@@ -8,16 +8,18 @@ use Exceedone\Exment\Tests\Unit\UnitTestBase;
 use Illuminate\Support\Facades\Bus;
 
 /**
- * GĐ1: LineSender — nhánh text. Subject/body lấy từ mail template (HTML) nên phải
- * chuyển về text thuần trước khi đẩy lên LINE (LINE không render HTML).
+ * Phase 1: LineSender — text branch. Subject/body come from the mail template (HTML),
+ * so they must be converted to plain text before being pushed to LINE (LINE does not
+ * render HTML).
  *
- * Kiểm tra qua đường công khai send(): Bus::fake() chặn LineSendJob rồi soi nội dung.
+ * Verified through the public send() path: Bus::fake() intercepts LineSendJob, then its
+ * contents are inspected.
  */
 class LineSenderTest extends UnitTestBase
 {
     public const TO = 'Uabcdef';
 
-    /** Gửi rồi trả về mảng messages đã đẩy vào job (null nếu không có job nào). */
+    /** Sends, then returns the messages array pushed into the job (null if no job was dispatched). */
     protected function sentMessages(string $subject, string $body): ?array
     {
         Bus::fake();
@@ -34,7 +36,7 @@ class LineSenderTest extends UnitTestBase
         return $prop->getValue($dispatched->first());
     }
 
-    /** Text đã gửi (message đầu tiên). */
+    /** The sent text (first message). */
     protected function sentText(string $subject, string $body): ?string
     {
         $messages = $this->sentMessages($subject, $body);
@@ -78,7 +80,7 @@ class LineSenderTest extends UnitTestBase
 
     public function test_excess_blank_lines_are_collapsed(): void
     {
-        // mail template HTML hay sinh ra một loạt </p><p> rỗng -> LINE sẽ đầy dòng trắng
+        // The mail template HTML often emits a run of empty </p><p>, which would flood LINE with blank lines
         $text = $this->sentText('', 'trên</p><p></p><p></p><p></p>dưới');
 
         $this->assertEquals("trên\n\ndưới", $text);
@@ -120,7 +122,7 @@ class LineSenderTest extends UnitTestBase
 
     public function test_nothing_is_sent_when_content_is_empty_after_stripping_html(): void
     {
-        // body chỉ có thẻ rỗng -> sau khi bỏ tag còn chuỗi rỗng -> LINE sẽ báo lỗi 400 nếu gửi
+        // Body contains only empty tags -> stripping them leaves an empty string -> LINE would return a 400 error if sent
         $this->assertNull($this->sentMessages('', '<p></p><br />'));
     }
 }

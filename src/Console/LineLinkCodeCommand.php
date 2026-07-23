@@ -7,8 +7,8 @@ use Illuminate\Console\Command;
 
 class LineLinkCodeCommand extends Command
 {
-    protected $signature = 'exment:line-linkcode {userId : id Exment user cần liên kết}';
-    protected $description = '(Fallback) Sinh mã liên kết LINE + deep link cho 1 Exment user. Luồng chính là trang LINE連携.';
+    protected $signature = 'exment:line-linkcode {userId : Exment user id to link}';
+    protected $description = '(Fallback) Generate a LINE link code + deep link for an Exment user. The main flow is the LINE連携 page.';
 
     public function handle(): int
     {
@@ -18,9 +18,9 @@ class LineLinkCodeCommand extends Command
         $code   = $linker->generateCodeForUser($userId);
         $link   = $linker->deepLink($code);
 
-        $this->info("Mã liên kết: {$code}");
+        $this->info(exmtrans('line.linkcode_code', $code));
         $this->info('Deep link: ' . $link);
-        $this->comment('Mở deep link trên điện thoại đã add OA, hoặc dùng trang 「LINE連携」 để hiển thị QR.');
+        $this->comment(exmtrans('line.linkcode_hint'));
 
         return 0;
     }

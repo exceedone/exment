@@ -9,14 +9,19 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Illuminate\Support\Facades\Http;
 
 /**
- * GĐ2: webhook LINE. Route công khai admin/line/webhook, verify chữ ký X-Line-Signature.
+ * Phase 2: LINE webhook. Public route admin/line/webhook, verifies the X-Line-Signature.
  *
- * Chữ ký ký bằng channel secret; ta set secret qua config('exment.line.channel_secret')
- * (System::system_line_channel_secret đọc từ config này). reply() gọi ra LINE được
- * chặn bằng Http::fake() -> không gọi API thật.
+ * The signature is signed with the channel secret, which we set via config('exment.line.channel_secret')
+ * (System::system_line_channel_secret reads from this config). Calls out to LINE via reply()
+ * are blocked with Http::fake() so no real API request is made.
  */
 class LineWebhookTest extends FeatureTestBase
 {
@@ -26,17 +31,40 @@ class LineWebhookTest extends FeatureTestBase
     public const SECRET = 'webhook-test-secret';
     public const WEBHOOK_URL = 'admin/line/webhook';
 
+    /** @var \ArrayObject Guzzle transactions captured from the mocked LINE transport. */
+    protected $lineHistory;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->initAllTest();
         config(['exment.line.channel_secret' => static::SECRET]);
         config(['exment.line.channel_access_token' => 'webhook-test-token']);
-        // mọi request ra api.line.me trả 200 rỗng -> reply()/push() không chạm mạng thật
+
+        // reply()/push() use Guzzle directly (not the Http facade), so bind a LineMessagingClient
+        // whose transport is mocked: keeps the suite hermetic and records every outgoing request.
+        $this->lineHistory = new \ArrayObject();
+        $stack = HandlerStack::create(new MockHandler(array_fill(0, 20, new GuzzleResponse(200, [], '{}'))));
+        $stack->push(Middleware::history($this->lineHistory));
+        $guzzle = new Client(['handler' => $stack, 'base_uri' => 'https://api.line.me']);
+        $this->app->bind(LineMessagingClient::class, function () use ($guzzle) {
+            return new LineMessagingClient(null, static::SECRET, $guzzle);
+        });
+
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
-    /** POST webhook với body + chữ ký hợp lệ (ký bằng SECRET). */
+    /** Paths of the LINE requests captured so far (e.g. '/v2/bot/message/reply'). */
+    protected function lineRequestPaths(): array
+    {
+        $paths = [];
+        foreach ($this->lineHistory as $tx) {
+            $paths[] = $tx['request']->getUri()->getPath();
+        }
+        return $paths;
+    }
+
+    /** POST to the webhook with a body and a valid signature (signed with SECRET). */
     protected function postWebhook(array $payload)
     {
         $body = json_encode($payload);
@@ -63,7 +91,7 @@ class LineWebhookTest extends FeatureTestBase
         ];
     }
 
-    // -------------------------------------------------- chữ ký
+    // -------------------------------------------------- signature
 
     public function testRejectsRequestWithoutSignature()
     {
@@ -100,7 +128,7 @@ class LineWebhookTest extends FeatureTestBase
 
     public function testAcceptsValidSignatureAndReturns200()
     {
-        // LINE luôn cần 200 kể cả events rỗng
+        // LINE always requires a 200, even when events is empty
         $this->postWebhook(['events' => []])->assertStatus(200);
     }
 
@@ -117,12 +145,52 @@ class LineWebhookTest extends FeatureTestBase
         $response->assertStatus(200);
     }
 
-    // -------------------------------------------------- liên kết qua tin nhắn
+    /**
+     * A follow event must not trigger any reply. Linking is driven from the web QR/deep link
+     * (which pre-fills the real "LINK <code>"), so a follow greeting would only be redundant.
+     * This also covers the unblock/re-add case, where a follow fires for an already-linked user.
+     */
+    public function testFollowSendsNoReply()
+    {
+        // brand-new follower
+        $this->postWebhook(['events' => [[
+            'type' => 'follow',
+            'replyToken' => 'rt-follow-new',
+            'source' => ['userId' => 'Ufollownew'],
+        ]]])->assertStatus(200);
+
+        // already-linked user unblocking / re-adding the OA
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
+        LineAccountLink::forUser($userId)->markLinked('Urefollow');
+        $this->postWebhook(['events' => [[
+            'type' => 'follow',
+            'replyToken' => 'rt-refollow',
+            'source' => ['userId' => 'Urefollow'],
+        ]]])->assertStatus(200);
+
+        $this->assertNotContains('/v2/bot/message/reply', $this->lineRequestPaths(), 'A follow event must not send any reply.');
+    }
+
+    /**
+     * Positive control: an unlinked user texting anything gets the syntax guidance, so a reply IS
+     * sent. Proves the mocked transport actually records reply requests, keeping the negative
+     * assertion in testFollowSendsNoReply honest.
+     */
+    public function testTextMessageSendsReply()
+    {
+        $this->postWebhook(['events' => [
+            $this->messageEvent('hello', 'Uplaintext'),
+        ]])->assertStatus(200);
+
+        $this->assertContains('/v2/bot/message/reply', $this->lineRequestPaths());
+    }
+
+    // -------------------------------------------------- account linking via message
 
     public function testLinkMessageLinksAccount()
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
-        // sinh mã cho user1
+        // Generate a code for user1
         $code = LineAccountLink::forUser($userId)->generateCode();
         $lineUserId = 'Ulinkme';
 
@@ -133,8 +201,8 @@ class LineWebhookTest extends FeatureTestBase
         $response->assertStatus(200);
 
         $link = LineAccountLink::where('user_id', $userId)->first();
-        $this->assertEquals($lineUserId, $link->line_user_id, 'line_user_id chưa được lưu.');
-        $this->assertNull($link->line_link_code, 'Mã 1 lần phải bị xóa sau khi liên kết.');
+        $this->assertEquals($lineUserId, $link->line_user_id, 'line_user_id was not saved.');
+        $this->assertNull($link->line_link_code, 'The one-time code must be cleared after linking.');
         $this->assertNotNull($link->linked_at);
     }
 
@@ -148,7 +216,7 @@ class LineWebhookTest extends FeatureTestBase
         ]])->assertStatus(200);
 
         $link = LineAccountLink::where('user_id', $userId)->first();
-        $this->assertNull($link->line_user_id, 'Mã sai mà vẫn liên kết.');
+        $this->assertNull($link->line_user_id, 'Linked despite a wrong code.');
     }
 
     public function testAlreadyLinkedLineCannotStealAnotherAccount()
@@ -157,16 +225,16 @@ class LineWebhookTest extends FeatureTestBase
         $user2 = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $lineUserId = 'Ualreadylinked';
 
-        // LINE này đã gắn user1
+        // This LINE account is already linked to user1
         LineAccountLink::forUser($user1)->markLinked($lineUserId);
-        // user2 sinh mã và LINE (đã gắn user1) thử liên kết sang user2
+        // user2 generates a code, and the LINE account (already linked to user1) tries to link to user2
         $code2 = LineAccountLink::forUser($user2)->generateCode();
 
         $this->postWebhook(['events' => [
             $this->messageEvent('LINK ' . $code2, $lineUserId),
         ]])->assertStatus(200);
 
-        // user2 vẫn chưa liên kết; user1 giữ nguyên
+        // user2 remains unlinked; user1 stays unchanged
         $this->assertNull(LineAccountLink::where('user_id', $user2)->first()->line_user_id);
         $this->assertEquals($lineUserId, LineAccountLink::where('user_id', $user1)->first()->line_user_id);
     }

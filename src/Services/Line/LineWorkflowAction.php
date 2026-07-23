@@ -7,11 +7,11 @@ use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\LoginUser;
 
 /**
- * Xử lý postback từ Flex Message: thực thi action Workflow tương ứng.
+ * Handles Flex Message postbacks: runs the matching workflow action.
  */
 class LineWorkflowAction
 {
-    /** Tách query-string postback data thành mảng key=>value. */
+    /** Parses the postback query string into a key => value array. */
     public static function parsePostback(string $data): array
     {
         parse_str($data, $out);
@@ -19,63 +19,62 @@ class LineWorkflowAction
     }
 
     /**
-     * Thực thi action workflow theo postback. Trả message để reply về LINE.
+     * Executes the workflow action from a postback. Returns the reply message for LINE.
      */
     public static function handle(array $data, ?string $lineUserId): string
     {
         if (empty($lineUserId)) {
-            return 'Không xác định được người dùng LINE.';
+            return exmtrans('line.user_unidentified');
         }
         $tableKey = array_get($data, 'table');
         $valueId  = array_get($data, 'id');
         $actionId = array_get($data, 'action');
         if (is_nullorempty($tableKey) || is_nullorempty($valueId) || is_nullorempty($actionId)) {
-            return 'Dữ liệu thao tác không hợp lệ.';
+            return exmtrans('line.invalid_action_data');
         }
 
-        // map line_user_id -> base_user_id
         $userId = LineAccountLink::where('line_user_id', $lineUserId)->value('user_id');
         if (is_nullorempty($userId)) {
-            return 'Tài khoản LINE chưa liên kết. Vui lòng liên kết trước.';
+            return exmtrans('line.account_not_linked');
         }
 
-        // resolve the login user for that base_user_id and authenticate (for authority checks)
+        // Resolve the login user for that base_user_id and authenticate (for authority checks)
         $loginUser = LoginUser::where('base_user_id', $userId)->first();
         if (!$loginUser) {
-            return 'Tài khoản chưa kích hoạt đăng nhập.';
+            return exmtrans('line.login_not_activated');
         }
         $guard = \Auth::guard(config('admin.auth.guard', 'admin'));
         $guard->login($loginUser);
         try {
             $custom_table = CustomTable::getEloquent($tableKey);
             if (!$custom_table) {
-                return 'Không tìm thấy bảng dữ liệu.';
+                return exmtrans('line.table_not_found');
             }
             $custom_value = $custom_table->getValueModel($valueId);
             if (!$custom_value) {
-                return 'Không tìm thấy bản ghi.';
+                return exmtrans('line.record_not_found');
             }
 
             $wfAction = $custom_value->getWorkflowActions(true, false)->first(function ($a) use ($actionId) {
                 return (string) $a->id === (string) $actionId;
             });
             if (!$wfAction) {
-                return 'Thao tác không khả dụng hoặc đã được xử lý.';
+                return exmtrans('line.action_unavailable');
             }
 
-            // FIX 3 (tap side): comment-required actions must be handled on web
+            // Comment-required actions must be handled on the web
             if ($wfAction->comment_type === \Exceedone\Exment\Enums\WorkflowCommentType::REQUIRED) {
-                return 'Thao tác này cần nhập ý kiến, vui lòng xử lý trên web.';
+                return exmtrans('line.action_need_comment');
             }
 
             try {
                 $wfAction->executeAction($custom_value, []);
             } catch (\Exception $e) {
                 \Log::warning('LINE workflow executeAction failed', ['error' => $e->getMessage()]);
-                return 'Có lỗi khi xử lý, vui lòng thử lại trên web.';
+                return exmtrans('line.action_error');
             }
 
-            return '✅ Đã xử lý: ' . $wfAction->action_name;
+            return exmtrans('line.action_done', $wfAction->action_name);
         } finally {
             $guard->logout();
         }

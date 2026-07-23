@@ -462,7 +462,7 @@ class NotifyService
     }
 
     /**
-     * Notify LINE (user-targeted): đọc line_user_id của user nhận rồi push.
+     * Notify LINE (user-targeted): read the recipient's line_user_id, then push.
      *
      * @param array $params
      * @return void
@@ -474,14 +474,14 @@ class NotifyService
             return;
         }
 
-        // lấy bản ghi user mục tiêu -> đọc line_user_id
+        // Resolve the target user record -> read its line_user_id
         $userId = method_exists($user, 'getUserId') ? $user->getUserId() : array_get((array) $user, 'id');
         if (is_nullorempty($userId)) {
             return;
         }
         $lineUserId = \Exceedone\Exment\Model\LineAccountLink::where('user_id', $userId)->value('line_user_id');
         if (is_nullorempty($lineUserId)) {
-            return; // user chưa liên kết LINE -> bỏ qua
+            return; // user has not linked LINE -> skip
         }
 
         $custom_value = array_get($params, 'custom_value');
@@ -494,8 +494,8 @@ class NotifyService
             'save_body'   => !boolval(array_get($params, 'disableHistoryBody', false)),
         ];
 
-        // Chống gửi trùng reminder: chỉ áp cho trigger TIME, key = user + bản ghi nguồn.
-        // recentlySent() tự trả false khi minutes<=0 hoặc thiếu parent -> an toàn khi tắt.
+        // Dedupe reminders: applies only to the TIME trigger, keyed by user + source record.
+        // recentlySent() returns false when minutes<=0 or the parent is missing -> safe when disabled.
         $dedupeMinutes = (int) config('exment.line.dedupe_minutes', 0);
         $notify = array_get($params, 'notify');
         if ($dedupeMinutes > 0
@@ -535,7 +535,7 @@ class NotifyService
                     foreach ($manualItems as $item) {
                         $value = trim((string) static::replaceWord($item['format'], $custom_value, $prms, $replaceOptions));
                         if ($value === '') {
-                            continue; // bỏ trường rỗng (vd: chưa có comment)
+                            continue; // skip empty fields (e.g. no comment yet)
                         }
                         $rows[] = ['label' => $item['label'], 'value' => $value];
                     }

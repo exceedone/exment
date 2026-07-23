@@ -11,24 +11,24 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 
 /**
- * GĐ1: LineMessagingClient — push / reply / verify chữ ký webhook.
+ * Phase 1: LineMessagingClient — push / reply / webhook signature verification.
  *
- * Kế thừa UnitTestBase (boot Laravel) vì constructor đọc config('exment.line.*').
- * HTTP được inject bằng Guzzle MockHandler -> không gọi API LINE thật.
+ * Extends UnitTestBase (boots Laravel) because the constructor reads config('exment.line.*').
+ * HTTP is injected via a Guzzle MockHandler so the real LINE API is never called.
  */
 class LineMessagingClientTest extends UnitTestBase
 {
     public const TOKEN  = 'test-channel-token';
     public const SECRET = 'test-channel-secret';
 
-    /** @var array<int, array> lịch sử request Guzzle đã gửi */
+    /** @var array<int, array> History of Guzzle requests that were sent. */
     protected $history = [];
 
     /**
-     * Dựng client với 1 response giả lập; mọi request được ghi vào $this->history.
+     * Build a client with a single mocked response; every request is recorded into $this->history.
      *
-     * @param int $status HTTP status LINE trả về
-     * @param string $body body LINE trả về
+     * @param int $status HTTP status returned by LINE
+     * @param string $body response body returned by LINE
      */
     protected function makeClient(int $status = 200, string $body = '{}'): LineMessagingClient
     {
@@ -42,10 +42,10 @@ class LineMessagingClientTest extends UnitTestBase
         return new LineMessagingClient(static::TOKEN, static::SECRET, $http);
     }
 
-    /** Request cuối cùng đã gửi. */
+    /** The last request that was sent. */
     protected function lastRequest(): \Psr\Http\Message\RequestInterface
     {
-        $this->assertNotEmpty($this->history, 'Không có request nào được gửi.');
+        $this->assertNotEmpty($this->history, 'No request was sent.');
         return $this->history[count($this->history) - 1]['request'];
     }
 
@@ -78,14 +78,14 @@ class LineMessagingClientTest extends UnitTestBase
 
         $res = $client->push('Uabc', [LineMessagingClient::text('xin chào')]);
 
-        // không ném exception: http_errors = false -> trả về kết quả để LineSendJob ghi log
+        // No exception thrown: http_errors = false, so the result is returned for LineSendJob to log.
         $this->assertFalse($res['ok']);
         $this->assertEquals(401, $res['status']);
         $this->assertEquals($raw, $res['raw']);
         $this->assertEquals('Authentication failed', $res['body']['message']);
     }
 
-    /** Cho phép truyền 1 message đơn lẻ (có key 'type') thay vì mảng nhiều message. */
+    /** Allows passing a single message (with a 'type' key) instead of an array of messages. */
     public function test_push_accepts_a_single_message_and_wraps_it(): void
     {
         $client = $this->makeClient();
@@ -122,7 +122,7 @@ class LineMessagingClientTest extends UnitTestBase
         $client = $this->makeClient();
         $body = '{"events":[{"type":"message"}]}';
 
-        // đúng cách LINE ký: HMAC-SHA256 body bằng channel secret, rồi base64
+        // Matches how LINE signs: HMAC-SHA256 of the body with the channel secret, then base64.
         $signature = base64_encode(hash_hmac('sha256', $body, static::SECRET, true));
 
         $this->assertTrue($client->verifySignature($body, $signature));
@@ -143,7 +143,7 @@ class LineMessagingClientTest extends UnitTestBase
         $client = $this->makeClient();
         $signature = base64_encode(hash_hmac('sha256', '{"events":[]}', static::SECRET, true));
 
-        // body bị sửa sau khi ký -> chữ ký không còn khớp
+        // Body modified after signing, so the signature no longer matches.
         $this->assertFalse($client->verifySignature('{"events":[{"type":"message"}]}', $signature));
     }
 

@@ -8,11 +8,11 @@ use Exceedone\Exment\Services\Line\LineSendLogger;
 
 class LineSender extends SenderBase
 {
-    /** @var string line_user_id người nhận */
+    /** @var string Recipient line_user_id */
     protected $to;
     /** @var array */
     protected $options;
-    /** @var array context để ghi line_send_log (xem LineSendLogger::record) */
+    /** @var array Context for the line_send_log entry (see LineSendLogger::record) */
     protected $context;
 
     public function __construct($to, $subject, $body, array $options = [], array $context = [])
@@ -46,7 +46,7 @@ class LineSender extends SenderBase
             'subject'          => $subject,
         ]);
 
-        // dispatchAfterResponse: đẩy push SAU response để confirmation reply (postback) luôn đến trước.
+        // dispatchAfterResponse: push AFTER the response so the confirmation reply (postback) always arrives first.
         LineSendJob::dispatchAfterResponse($this->to, [LineMessagingClient::text($text)], $context);
     }
 

@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\System;
 use Illuminate\Database\Migrations\Migration;
 
 /**
- * Custom table quản lý Flex template cho LINE (GĐ3).
+ * Custom table that manages Flex templates for LINE (Phase 3).
  */
 return new class extends Migration
 {
@@ -26,7 +26,7 @@ return new class extends Migration
     {
         $existing = CustomTable::getEloquent('line_flex_template');
         if ($existing) {
-            // đã tồn tại: chỉ đảm bảo là bảng hệ thống (không xóa được)
+            // Already exists: just ensure it is a system table (cannot be deleted)
             $this->markSystem($existing);
             return;
         }
@@ -49,7 +49,7 @@ return new class extends Migration
             ]);
         }
 
-        // Đặt template_name làm cột label (nhãn hiển thị ở list/relation/getLabel)
+        // Use template_name as the label column (shown in list/relation/getLabel)
         $nameColumn = CustomColumn::getEloquent('template_name', $table);
         if ($nameColumn) {
             CustomColumnMulti::create([
@@ -60,13 +60,13 @@ return new class extends Migration
             ]);
         }
 
-        // Đánh dấu là bảng hệ thống: không cho xóa (giống mail_template)
+        // Mark as a system table so it cannot be deleted (like mail_template)
         $this->markSystem($table);
     }
 
     /**
-     * Đánh dấu bảng là bảng hệ thống (system_flg=true) -> không xóa được.
-     * system_flg nằm trong $guarded của CustomTable nên phải gán trực tiếp.
+     * Mark the table as a system table (system_flg=true) so it cannot be deleted.
+     * system_flg is in CustomTable's $guarded, so it must be assigned directly.
      */
     protected function markSystem(CustomTable $table): void
     {
@@ -84,7 +84,7 @@ return new class extends Migration
         if (!$table) {
             return;
         }
-        // bỏ cờ hệ thống trước để cho phép xóa
+        // Clear the system flag first to allow deletion
         $table->system_flg = false;
         $table->save();
         $table->dropTable();

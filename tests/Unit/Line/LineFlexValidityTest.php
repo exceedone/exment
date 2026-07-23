@@ -23,7 +23,7 @@ class LineFlexValidityTest extends TestCase
         }
     }
 
-    /** Thu thập text của mọi "text" component trong 1 cây Flex (duyệt sâu toàn bộ). */
+    /** Collect the text of every "text" component in a Flex tree (full deep traversal). */
     private function collectTextValues($node, array &$out): void
     {
         if (!is_array($node)) {
@@ -43,13 +43,13 @@ class LineFlexValidityTest extends TestCase
     {
         $bubble = LineFlexBuilder::buildBubble('', [], []);
 
-        $this->assertNotEmpty($bubble['body']['contents'], 'Flex body.contents không được rỗng');
+        $this->assertNotEmpty($bubble['body']['contents'], 'Flex body.contents must not be empty');
 
         $texts = [];
         $this->collectTextValues($bubble, $texts);
         foreach ($texts as $t) {
-            $this->assertIsString($t, 'text component phải có thuộc tính text (string)');
-            $this->assertNotSame('', trim($t), 'LINE cấm "text" component rỗng -> sẽ bị reject 400');
+            $this->assertIsString($t, 'text component must have a text property (string)');
+            $this->assertNotSame('', trim($t), 'LINE forbids empty "text" components -> would be rejected with 400');
         }
     }
 
@@ -58,11 +58,11 @@ class LineFlexValidityTest extends TestCase
         $bubble = LineFlexBuilder::buildBubble('Some title', [], []);
 
         $msg = LineMessagingClient::flex('', $bubble);
-        $this->assertNotSame('', trim((string) $msg['altText']), 'altText không được rỗng');
+        $this->assertNotSame('', trim((string) $msg['altText']), 'altText must not be empty');
 
         $long = str_repeat('あ', 1000);
         $msg2 = LineMessagingClient::flex($long, $bubble);
-        $this->assertLessThanOrEqual(400, mb_strlen($msg2['altText']), 'altText phải <= 400 ký tự');
+        $this->assertLessThanOrEqual(400, mb_strlen($msg2['altText']), 'altText must be <= 400 characters');
         $this->assertNotSame('', trim((string) $msg2['altText']));
     }
 

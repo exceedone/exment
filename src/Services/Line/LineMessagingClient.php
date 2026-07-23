@@ -6,10 +6,10 @@ use GuzzleHttp\Client;
 use Exceedone\Exment\Model\System;
 
 /**
- * Bọc LINE Messaging API: push / reply / verify chữ ký webhook.
- * Chỉ lo HTTP, không chứa logic nghiệp vụ.
+ * Wraps the LINE Messaging API: push / reply / verify webhook signature.
+ * HTTP only, no business logic.
  *
- * Cấu hình đọc từ config('exment.line.*') (xem config/exment.php).
+ * Credentials come from System settings; endpoint and timeout from config('exment.line.*').
  */
 class LineMessagingClient
 {
@@ -38,7 +38,7 @@ class LineMessagingClient
         return new self($token, $secret);
     }
 
-    /** Gửi tin chủ động tới 1 userId. */
+    /** Send a push message to a userId. */
     public function push(string $to, array $messages): array
     {
         return $this->request('/v2/bot/message/push', [
@@ -47,7 +47,7 @@ class LineMessagingClient
         ]);
     }
 
-    /** Trả lời 1 event bằng replyToken. */
+    /** Reply to an event using a replyToken. */
     public function reply(string $replyToken, array $messages): array
     {
         return $this->request('/v2/bot/message/reply', [
@@ -56,7 +56,7 @@ class LineMessagingClient
         ]);
     }
 
-    /** Verify chữ ký webhook (HMAC-SHA256 base64 với channel secret). */
+    /** Verify the webhook signature (HMAC-SHA256, base64, with the channel secret). */
     public function verifySignature(string $requestBody, ?string $signature): bool
     {
         if (empty($signature)) {
@@ -66,13 +66,13 @@ class LineMessagingClient
         return hash_equals($hash, $signature);
     }
 
-    /** Helper dựng message text. */
+    /** Build a text message. */
     public static function text(string $text): array
     {
         return ['type' => 'text', 'text' => $text];
     }
 
-    /** Helper dựng Flex Message với bubble/carousel container. */
+    /** Build a Flex Message with a bubble/carousel container. */
     public static function flex(string $altText, array $bubble): array
     {
         $altText = trim($altText);
@@ -84,7 +84,7 @@ class LineMessagingClient
         return ['type' => 'flex', 'altText' => $altText, 'contents' => $bubble];
     }
 
-    /** Cho phép truyền 1 message hoặc mảng nhiều message. */
+    /** Accept a single message or an array of messages. */
     protected function normalize(array $messages): array
     {
         return isset($messages['type']) ? [$messages] : array_values($messages);

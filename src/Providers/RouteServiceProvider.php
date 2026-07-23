@@ -51,8 +51,8 @@ class RouteServiceProvider extends ServiceProvider
     }
 
     /**
-     * LINE webhook (public). Không qua 'web' middleware nên KHÔNG dính CSRF/auth.
-     * Verify chữ ký X-Line-Signature trong controller.
+     * LINE webhook (public). Not behind the 'web' middleware, so NO CSRF/auth applies.
+     * The X-Line-Signature is verified in the controller.
      * URL: {admin_prefix}/line/webhook
      * @return void
      */

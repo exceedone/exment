@@ -14,11 +14,12 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 
 /**
- * GĐ3 - E2E postback: người dùng bấm nút trên thẻ Flex -> webhook nhận postback
- * -> LineWorkflowAction thực thi action workflow -> status bản ghi được cập nhật.
+ * Phase 3 - E2E postback: the user taps a button on a Flex card -> the webhook
+ * receives the postback -> LineWorkflowAction runs the workflow action -> the
+ * record's status is updated.
  *
- * Đi qua đúng route công khai admin/line/webhook với chữ ký hợp lệ.
- * Không gọi API LINE thật (Http::fake) và không đẩy job notify thật (Bus::fake).
+ * Exercises the real public route admin/line/webhook with a valid signature.
+ * Does not call the real LINE API (Http::fake) or dispatch the real notify job (Bus::fake).
  */
 class LinePostbackWorkflowTest extends FeatureTestBase
 {
@@ -37,7 +38,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
-    /** POST một postback event với chữ ký hợp lệ. */
+    /** POST a postback event with a valid signature. */
     protected function postPostback(string $data, string $lineUserId)
     {
         $payload = ['events' => [[
@@ -60,7 +61,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         );
     }
 
-    /** Tạo 1 bản ghi workflow-enabled ở status 'start'. */
+    /** Create a workflow-enabled record at the 'start' status. */
     protected function createWorkflowValue(string $text)
     {
         $ct = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
@@ -79,18 +80,18 @@ class LinePostbackWorkflowTest extends FeatureTestBase
 
     public function testPostbackExecutesWorkflowActionAndAdvancesStatus()
     {
-        Bus::fake(); // chặn job notify sinh ra sau khi executeAction
+        Bus::fake(); // block the notify job spawned after executeAction
 
-        // user1 ở status 'start' có action middle_action (id=1, comment nullable)
+        // user1 at status 'start' has the middle_action action (id=1, comment nullable)
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
         $cv = $this->createWorkflowValue('postback happy');
         $this->assertEquals('start', $cv->workflow_status_name);
 
         $action = $cv->getWorkflowActions(true, false)
             ->first(function ($a) { return $a->action_name === 'middle_action'; });
-        $this->assertNotNull($action, 'Fixture: user1 phải có middle_action ở start.');
+        $this->assertNotNull($action, 'Fixture: user1 must have middle_action at start.');
 
-        // liên kết LINE cho user1
+        // link LINE for user1
         $lineUserId = 'Upostbackhappy';
         LineAccountLink::forUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1)->markLinked($lineUserId);
 
@@ -100,7 +101,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $response = $this->postPostback($data, $lineUserId);
 
         $response->assertStatus(200);
-        $this->assertEquals('middle', $this->reload($cv)->workflow_status_name, 'Status phải tiến sang middle sau postback.');
+        $this->assertEquals('middle', $this->reload($cv)->workflow_status_name, 'Status must advance to middle after the postback.');
     }
 
     // ------------------------------------------------ guards
@@ -117,23 +118,23 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $tableKey = $cv->custom_table->table_name;
         $data = LineFlexBuilder::postbackData($tableKey, $cv->id, $action->id);
 
-        // KHÔNG tạo LineAccountLink cho 'Unosuchlink'
+        // do NOT create a LineAccountLink for 'Unosuchlink'
         $this->postPostback($data, 'Unosuchlink')->assertStatus(200);
 
-        $this->assertEquals('start', $this->reload($cv)->workflow_status_name, 'User chưa liên kết không được đổi status.');
+        $this->assertEquals('start', $this->reload($cv)->workflow_status_name, 'An unlinked user must not change the status.');
     }
 
     public function testPostbackForActionUserHasNoAuthorityDoesNotChangeStatus()
     {
         Bus::fake();
 
-        // bản ghi tạo bởi user1; user2 ở 'start' KHÔNG có quyền middle_action (deny-by-default)
+        // record created by user1; user2 at 'start' does NOT have middle_action authority (deny-by-default)
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
         $cv = $this->createWorkflowValue('postback no authority');
         $action = $cv->getWorkflowActions(true, false)
             ->first(function ($a) { return $a->action_name === 'middle_action'; });
 
-        // LINE gắn user2
+        // link LINE to user2
         $lineUserId = 'Upostbacknoauth';
         LineAccountLink::forUser((int) TestDefine::TESTDATA_USER_LOGINID_USER2)->markLinked($lineUserId);
 
@@ -142,7 +143,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
 
         $this->postPostback($data, $lineUserId)->assertStatus(200);
 
-        $this->assertEquals('start', $this->reload($cv)->workflow_status_name, 'User không có quyền action thì status giữ nguyên.');
+        $this->assertEquals('start', $this->reload($cv)->workflow_status_name, 'A user without action authority leaves the status unchanged.');
     }
 
     public function testInvalidPostbackDataReturns200AndChangesNothing()
@@ -154,7 +155,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $lineUserId = 'Upostbackinvalid';
         LineAccountLink::forUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1)->markLinked($lineUserId);
 
-        // thiếu id + action -> LineWorkflowAction trả message lỗi, không đổi status
+        // missing id + action -> LineWorkflowAction returns an error message, status unchanged
         $this->postPostback('act=workflow&table=' . $cv->custom_table->table_name, $lineUserId)
             ->assertStatus(200);
 
@@ -170,17 +171,17 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $lineUserId = 'Upostbackunknown';
         LineAccountLink::forUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1)->markLinked($lineUserId);
 
-        // action id không tồn tại/không khả dụng -> trả message, không đổi status
+        // action id does not exist / is unavailable -> returns a message, status unchanged
         $data = LineFlexBuilder::postbackData($cv->custom_table->table_name, $cv->id, 999999);
         $this->postPostback($data, $lineUserId)->assertStatus(200);
 
         $this->assertEquals('start', $this->reload($cv)->workflow_status_name);
     }
 
-    // Ghi chú: nhánh comment REQUIRED (action cần nhập ý kiến -> chặn, xử lý trên web)
-    // KHÔNG có test tự động. Workflow fixture chỉ có 1 action REQUIRED (end_action) mà
-    // không login user nào chạm tới được ở các status khả dụng; còn ép middle_action
-    // thành REQUIRED thì side-effect làm mất luôn authority của nó (getWorkflowActions
-    // loại action) nên không dựng được cảnh hợp lệ. Guard được kiểm bằng đọc code
-    // (LineWorkflowAction::handle + NotifyService::notifyLine, cùng chú thích "FIX 3").
+    // Note: the comment-REQUIRED branch (action requires a comment -> blocked, handled on the web)
+    // has NO automated test. The workflow fixture has only one REQUIRED action (end_action), which
+    // no login user can reach at the available statuses; forcing middle_action to REQUIRED has the
+    // side effect of stripping its own authority (getWorkflowActions filters the action out), so a
+    // valid scenario cannot be built. This guard is verified by reading the code
+    // (LineWorkflowAction::handle + NotifyService::notifyLine, alongside the "FIX 3" note).
 }

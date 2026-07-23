@@ -3,13 +3,14 @@
 namespace Exceedone\Exment\Services\Line;
 
 /**
- * Dựng Flex Message bubble cho LINE từ template (title + body_items) và nút động.
- * Các method là THUẦN (không DB) để dễ test; phần thay biến / lấy action workflow
- * do nơi gọi (NotifyService::notifyLine) chuẩn bị rồi truyền vào buildBubble().
+ * Builds a LINE Flex Message bubble from a template (title + body_items) and dynamic buttons.
+ * The methods are PURE (no DB access) for easy testing; variable substitution and
+ * workflow action resolution are prepared by the caller (NotifyService::notifyLine)
+ * and passed into buildBubble().
  */
 class LineFlexBuilder
 {
-    /** Tách body_items: mỗi dòng "Nhãn = format" -> ['label'=>, 'format'=>]. Bỏ dòng không có '='. */
+    /** Parses body_items: each "Label = format" line -> ['label'=>, 'format'=>]. Skips lines without '='. */
     public static function parseBodyItems(string $raw): array
     {
         $items = [];
@@ -28,16 +29,16 @@ class LineFlexBuilder
         return $items;
     }
 
-    /** Chuỗi data cho nút postback. */
+    /** Builds the data string for a postback button. */
     public static function postbackData(string $tableKey, $valueId, $actionId): string
     {
         return "act=workflow&table={$tableKey}&id={$valueId}&action={$actionId}";
     }
 
     /**
-     * Các trường chi tiết workflow mặc định cho thẻ Flex, dùng CHUNG biến với mail
-     * template workflow (${workflow:...}, ${created_user}). Mỗi phần tử: [exmtrans_key, format].
-     * Nơi gọi (NotifyService::notifyLine) sẽ exmtrans nhãn + replaceWord giá trị.
+     * Default workflow detail fields for the Flex card, sharing the SAME variables as the
+     * mail template workflow (${workflow:...}, ${created_user}). Each entry: [exmtrans_key, format].
+     * The caller (NotifyService::notifyLine) runs exmtrans on the label and replaceWord on the value.
      */
     public static function workflowDetailFormats(): array
     {
@@ -51,9 +52,9 @@ class LineFlexBuilder
     }
 
     /**
-     * Title mặc định cho thẻ Flex: "[trạng thái mới] tên bản ghi" -> nêu rõ WF
-     * đang làm gì (bản ghi nào, đang ở giai đoạn nào). Là format chứa biến,
-     * resolve khi gửi qua replaceWord.
+     * Default title for the Flex card: "[new status] record name" -> makes clear what the
+     * workflow is doing (which record, at which stage). It is a format containing variables,
+     * resolved on send via replaceWord.
      */
     public static function defaultTitle(): string
     {
@@ -61,9 +62,9 @@ class LineFlexBuilder
     }
 
     /**
-     * Nội dung body_items mặc định: 5 trường workflow chuẩn dạng "Nhãn = format".
-     * Dùng để điền sẵn template mới (column default) + làm fallback. Nhãn theo
-     * locale hiện tại (exmtrans) -> "bảng là nguồn chính" khớp với thẻ.
+     * Default body_items content: the 5 standard workflow fields in "Label = format" form.
+     * Used to prefill a new template (column default) and as a fallback. Labels follow the
+     * current locale (exmtrans) so "the table is the source of truth" stays consistent with the card.
      */
     public static function defaultBodyItems(): string
     {
@@ -75,10 +76,10 @@ class LineFlexBuilder
     }
 
     /**
-     * Ráp bubble Flex.
+     * Assembles the Flex bubble.
      * @param string $title
-     * @param array $rows    list ['label'=>string,'value'=>string]
-     * @param array $buttons list ['label'=>string,'data'=>string]
+     * @param array $rows    list of ['label'=>string,'value'=>string]
+     * @param array $buttons list of ['label'=>string,'data'=>string]
      */
     public static function buildBubble(string $title, array $rows, array $buttons): array
     {
@@ -107,11 +108,11 @@ class LineFlexBuilder
         $footerContents = [];
         foreach ($buttons as $btn) {
             if (isset($btn['uri'])) {
-                // nút mở link (vd "Xem chi tiết") - kiểu link, không tạo bong bóng displayText
+                // link-opening button (e.g. "View details") - link style, no displayText bubble
                 $action = ['type' => 'uri', 'label' => (string) $btn['label'], 'uri' => (string) $btn['uri']];
                 $style = 'link';
             } else {
-                // nút thực thi action workflow (postback)
+                // button that executes a workflow action (postback)
                 $action = ['type' => 'postback', 'label' => (string) $btn['label'], 'data' => (string) $btn['data'], 'displayText' => (string) $btn['label']];
                 $style = 'primary';
             }

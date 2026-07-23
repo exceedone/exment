@@ -5,8 +5,8 @@ namespace Exceedone\Exment\Services\Line;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 /**
- * Render text (deep link LINE) thành ảnh QR SVG.
- * Dùng simplesoftwareio/simple-qrcode (đã có trong project).
+ * Renders text (a LINE deep link) into a QR code SVG image.
+ * Uses simplesoftwareio/simple-qrcode (already bundled in the project).
  */
 class QrRenderer
 {

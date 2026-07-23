@@ -2734,4 +2734,26 @@ return [
             '1' => 'Reverse condition',
         ],
     ],
+
+    // LINE bot replies (webhook / Flex postback). Rendered by exmtrans(), so the
+    // language follows the active locale (APP_LOCALE).
+    'line' => [
+        'link_success'        => '✅ LINE account linked successfully!',
+        'link_already_linked' => 'This LINE account is already linked to an account. To change it, please unlink it on the web first.',
+        'link_invalid_code'   => 'The link code is invalid or has expired. Please check and try again.',
+        'invalid_command'     => 'Invalid command.',
+        'link_syntax_guide'   => 'To link your account, send: LINK <code>.',
+        'user_unidentified'   => 'Could not identify the LINE user.',
+        'invalid_action_data' => 'Invalid action data.',
+        'account_not_linked'  => 'This LINE account is not linked yet. Please link it first.',
+        'login_not_activated' => 'This account has not activated login.',
+        'table_not_found'     => 'Data table not found.',
+        'record_not_found'    => 'Record not found.',
+        'action_unavailable'  => 'This action is unavailable or has already been processed.',
+        'action_need_comment' => 'This action requires a comment. Please process it on the web.',
+        'action_error'        => 'An error occurred while processing. Please try again on the web.',
+        'action_done'         => '✅ Done: %s',
+        'linkcode_code'       => 'Link code: %s',
+        'linkcode_hint'       => 'Open the deep link on a phone that has already added the OA, or use the 「LINE連携」 page to display the QR code.',
+    ],
 ];

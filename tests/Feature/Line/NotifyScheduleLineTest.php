@@ -20,10 +20,10 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 
 /**
- * GĐ4 - Reminder TIME -> LINE. exment:notifyschedule / Notify::notifySchedule()
- * gửi nhắc nhở qua LINE cho user đã liên kết, và chống gửi trùng khi batch chạy lặp.
+ * Phase 4 - Reminder TIME -> LINE. exment:notifyschedule / Notify::notifySchedule()
+ * sends reminders via LINE to linked users, and prevents duplicate sends when the batch runs repeatedly.
  *
- * Không gọi API LINE thật (Http::fake) và không đẩy push thật (Bus::fake).
+ * Does not call the real LINE API (Http::fake) and does not dispatch real pushes (Bus::fake).
  */
 class NotifyScheduleLineTest extends FeatureTestBase
 {
@@ -35,11 +35,11 @@ class NotifyScheduleLineTest extends FeatureTestBase
         parent::setUp();
         $this->initAllTest();
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
-        config(['exment.line.dedupe_minutes' => 0]); // reset để không rò giữa các test
+        config(['exment.line.dedupe_minutes' => 0]); // reset so state does not leak between tests
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
-    /** Đọc property protected của LineSendJob. */
+    /** Read a protected property of LineSendJob. */
     protected function jobProperty(LineSendJob $job, string $name)
     {
         $prop = (new \ReflectionClass($job))->getProperty($name);
@@ -48,7 +48,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
     }
 
     /**
-     * Dựng 1 notify TIME + action LINE cho bản ghi đến hạn, liên kết LINE cho người nhận.
+     * Build a TIME notify + LINE action for a due record, and link LINE for the recipient.
      * @return array [$notify, $table, int $recordId, int $recipientUserId, string $lineUserId]
      */
     protected function setupTimeReminder($flexTemplateId = null): array
@@ -77,7 +77,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         $table = CustomTable::find($notify->target_id);
         $record = $table->getValueModel()
             ->where('created_user_id', '<>', $loginUserId)->first();
-        $this->assertNotNull($record, 'Fixture: cần 1 bản ghi tạo bởi user khác.');
+        $this->assertNotNull($record, 'Fixture: a record created by another user is required.');
         $record->update(['value->date' => $targetDate]);
 
         $recipientUserId = (int) $record->created_user_id;
@@ -87,7 +87,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         return [$notify, $table, (int) $record->id, $recipientUserId, $lineUserId];
     }
 
-    /** Seed 1 dòng line_send_log cho (user, bản ghi) — dùng cho test dedupe. */
+    /** Seed one line_send_log row for (user, record) — used by dedupe tests. */
     protected function seedLog(int $userId, int $parentId, string $parentType): void
     {
         LineSendLogger::record(
@@ -130,7 +130,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
     {
         Bus::fake();
         [$notify, , , $recipientUserId] = $this->setupTimeReminder();
-        // gỡ liên kết đã tạo -> user không có line_user_id
+        // remove the link created above -> user has no line_user_id
         LineAccountLink::where('user_id', $recipientUserId)->delete();
 
         $notify->notifySchedule();
@@ -142,7 +142,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
     {
         Bus::fake();
 
-        // tạo 1 flex template tối thiểu
+        // create a minimal flex template
         $tmpl = CustomTable::getEloquent('line_flex_template')->getValueModel();
         $tmpl->setValue([
             'template_name' => 'reminder-test',
@@ -174,7 +174,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         $notify->notifySchedule();
         $notify->notifySchedule();
 
-        // dedupe tắt -> mỗi lần chạy 1 job (2 lần = 2 job)
+        // dedupe off -> one job per run (2 runs = 2 jobs)
         Bus::assertDispatchedAfterResponseTimes(LineSendJob::class, 2);
     }
 
@@ -198,7 +198,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         config(['exment.line.dedupe_minutes' => 60]);
         [$notify, $table, $recordId, $recipientUserId] = $this->setupTimeReminder();
 
-        // đã có 1 log trong cửa sổ 60' cho đúng (user, bản ghi) -> lần chạy này phải bị chặn
+        // a log already exists within the 60-minute window for this exact (user, record) -> this run must be blocked
         $this->seedLog($recipientUserId, $recordId, $table->table_name);
 
         $notify->notifySchedule();
@@ -212,7 +212,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         config(['exment.line.dedupe_minutes' => 60]);
         [$notify, $table, $recordId, $recipientUserId] = $this->setupTimeReminder();
 
-        // log cách đây 2 giờ -> ngoài cửa sổ 60' -> vẫn phải gửi
+        // log is 2 hours old -> outside the 60-minute window -> should still send
         Carbon::setTestNow(Carbon::now()->subHours(2));
         $this->seedLog($recipientUserId, $recordId, $table->table_name);
         Carbon::setTestNow();
@@ -228,12 +228,12 @@ class NotifyScheduleLineTest extends FeatureTestBase
         config(['exment.line.dedupe_minutes' => 60]);
         [, $table, $recordId, $recipientUserId, $lineUserId] = $this->setupTimeReminder();
 
-        // có log trong cửa sổ, NHƯNG notify là WORKFLOW -> guard không áp -> vẫn gửi
+        // a log exists within the window, BUT the notify is WORKFLOW -> the guard does not apply -> still sends
         $this->seedLog($recipientUserId, $recordId, $table->table_name);
 
         $record = $table->getValueModel()->find($recordId);
         $wfNotify = Notify::where('notify_trigger', NotifyTrigger::WORKFLOW)->first();
-        $this->assertNotNull($wfNotify, 'Fixture: cần 1 notify WORKFLOW.');
+        $this->assertNotNull($wfNotify, 'Fixture: a WORKFLOW notify is required.');
         $user = \Exceedone\Exment\Model\NotifyTarget::getModelAsUser(LoginUser::find($recipientUserId)->base_user);
 
         \Exceedone\Exment\Services\NotifyService::notifyLine([

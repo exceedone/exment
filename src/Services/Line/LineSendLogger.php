@@ -8,7 +8,6 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Illuminate\Support\Facades\Log;
 
-
 class LineSendLogger
 {
     public const TABLE_NAME = SystemTableName::LINE_SEND_LOG;
@@ -20,16 +19,13 @@ class LineSendLogger
     public const STATUS_FAILED  = 'failed';
 
     /**
-     *
-     * @param array $context  
-     * @param array $messages
-     * @param array $result 
+     * Record a LINE send log entry.
      */
     public static function record(array $context, array $messages, array $result): void
     {
         $table = CustomTable::getEloquent(static::TABLE_NAME);
         if (!$table) {
-            return; 
+            return;
         }
 
         try {
@@ -48,7 +44,6 @@ class LineSendLogger
                 'error_message' => static::formatError($result),
             ]);
 
-           
             $model->parent_id   = array_get($context, 'parent_id');
             $model->parent_type = array_get($context, 'parent_type');
 

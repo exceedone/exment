@@ -2734,4 +2734,26 @@ return [
             '1' => '条件を反転する',
         ],
     ],
+
+    // LINE bot replies (webhook / Flex postback). Rendered by exmtrans(), so the
+    // language follows the active locale (APP_LOCALE).
+    'line' => [
+        'link_success'        => '✅ LINE連携が完了しました！',
+        'link_already_linked' => 'このLINEアカウントは既に別のアカウントと連携済みです。変更する場合は、先にWeb上で連携を解除してください。',
+        'link_invalid_code'   => '連携コードが正しくないか、有効期限が切れています。再度ご確認ください。',
+        'invalid_command'     => '無効なコマンドです。',
+        'link_syntax_guide'   => 'アカウントを連携するには「LINK <コード>」の形式で送信してください。',
+        'user_unidentified'   => 'LINEユーザーを特定できませんでした。',
+        'invalid_action_data' => '操作データが無効です。',
+        'account_not_linked'  => 'LINEアカウントが未連携です。先に連携してください。',
+        'login_not_activated' => 'ログインが有効化されていないアカウントです。',
+        'table_not_found'     => 'データテーブルが見つかりません。',
+        'record_not_found'    => 'レコードが見つかりません。',
+        'action_unavailable'  => 'この操作は利用できないか、既に処理済みです。',
+        'action_need_comment' => 'この操作はコメントの入力が必要です。Web上で処理してください。',
+        'action_error'        => '処理中にエラーが発生しました。Web上で再度お試しください。',
+        'action_done'         => '✅ 処理しました: %s',
+        'linkcode_code'       => '連携コード: %s',
+        'linkcode_hint'       => '連携用OAを追加済みのスマートフォンでディープリンクを開くか、「LINE連携」ページでQRコードを表示してください。',
+    ],
 ];
