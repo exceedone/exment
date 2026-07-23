@@ -292,8 +292,7 @@ EOT;
             // upload zip file
             // @phpstan-ignore-next-line
             elseif ($file->getClientOriginalExtension() == 'zip') {
-                $upload_template = $importer->uploadTemplate($file);
-                $importer->importTemplate($upload_template);
+                $importer->uploadTemplate($file);
             }
         }
     }
