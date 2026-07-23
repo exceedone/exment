@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\PasswordHistory;
+use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\LoginType;
@@ -321,6 +322,13 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
+            
+            $form->validatorSavingCallback(function ($input, $message, $form) {
+                if (static::currentPasswordVerificationFails(\Exment::user(), $input)) {
+                    $message->add('current_password', exmtrans('validation.current_password'));
+                }
+            });
+
             // show 2factor setting if use
             if (boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor())) {
                 $login_2factor_provider = \Exment::user()->getSettingValue(
@@ -362,6 +370,32 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                 return redirect(admin_url('auth/setting'));
             });
         });
+    }
+
+    /**
+     * @param \Illuminate\Contracts\Auth\Authenticatable|\Exceedone\Exment\Model\LoginUser|null $login_user
+     * @param array<string, mixed> $input
+     * @return bool true => block the update (add a validation error)
+     */
+    protected static function currentPasswordVerificationFails($login_user, array $input): bool
+    {
+        // Only local (PURE) logins own/enforce a current password here; SSO/LDAP are out of scope.
+        if (is_null($login_user) || $login_user->login_type != LoginType::PURE) {
+            return false;
+        }
+
+        $new = array_get($input, 'password');
+        if ($new === null || $new === '') {
+            return false;
+        }
+
+        $current = array_get($input, 'current_password');
+        if (!filled($current)) {
+            return true;
+        }
+
+        // Present but not matching the stored credential => block.
+        return !LoginUserProvider::ValidateCredential($login_user, ['password' => $current]);
     }
 
     /**

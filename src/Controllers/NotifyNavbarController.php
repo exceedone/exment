@@ -179,8 +179,9 @@ class NotifyNavbarController extends AdminControllerBase
 
             if (isset($custom_value)) {
                 $show->field('target_custom_value', exmtrans('notify_navbar.target_custom_value'))->as(function ($v) use ($custom_value) {
+                    // getLabel() is plain text built from record values; let the Show field HTML-escape it to prevent stored XSS
                     return $custom_value->getLabel();
-                })->setEscape(false);
+                });
             }
             $show->field('notify_subject', exmtrans('notify_navbar.notify_subject'));
             $show->field('notify_body', exmtrans('notify_navbar.notify_body'))
