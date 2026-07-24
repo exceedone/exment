@@ -409,7 +409,10 @@ EOT;
 
                 // loop input's value
                 foreach ($relationValues as $relationK => $relationV) {
-                    $instance = $relation->findOrNew(array_get($relationV, $keyName));
+                    $childId = array_get($relationV, $keyName);
+                    $childRelation = $model->$relation_name();                    
+                    $instance = $childRelation->findOrNew($childId);
+
                     // remove self item
                     $uniqueCheckSiblings = array_filter($relationValues, function ($relationValue, $key) use ($relationK) {
                         return !isMatchString($relationK, $key);
