@@ -17,6 +17,8 @@ use Exceedone\Exment\Auth\Permission as Checker;
 
 class SearchController extends AdminControllerBase
 {
+    use MeiliGlobalSearchTrait;
+
     // @phpstan-ignore-next-line
     protected $custom_table;
 
@@ -49,6 +51,16 @@ class SearchController extends AdminControllerBase
         if (!isset($q)) {
             return [];
         }
+
+        // global search; on error -> fallback to MySQL below.
+        if ($this->meiliEnabled()) {
+            try {
+                return $this->headerByMeilisearch($q);
+            } catch (\Throwable $e) {
+                $this->logMeiliFallback('header', $e);
+            }
+        }
+
         $results = [];
         // Get table list
         $tables = $this->getSearchTargetTable();
@@ -62,7 +74,9 @@ class SearchController extends AdminControllerBase
                 $text = $d->label;
                 $results[] = [
                     'value' => $text
-                    , 'text' => $text
+                    // The autocomplete renders 'text' as html (to support
+                    // <mark> highlights on the Meilisearch path) -> escape.
+                    , 'text' => e($text)
                     , 'icon' =>array_get($table, 'options.icon')
                     , 'table_view_name' => array_get($table, 'table_view_name')
                     , 'table_name' => array_get($table, 'table_name')
@@ -124,9 +138,66 @@ class SearchController extends AdminControllerBase
         $tableArrays = $this->getSearchTargetTable()->map(function ($table) {
             return $this->getTableArray($table);
         });
+
+        // Filter by table: keep only the ticked tables.
+        $selectedTables = array_filter(array_map('strval', (array) $request->input('tables', [])));
+        if ($this->meiliEnabled() && !empty($selectedTables)) {
+            $tableArrays = $tableArrays->filter(function ($t) use ($selectedTables) {
+                return in_array((string) array_get($t, 'table_name'), $selectedTables, true);
+            })->values();
+        }
+
+        // add left column: unified filter (date + creator + status) + table facets.
+        // right column: saved search quickbar (mockup style) + results.
+        if ($this->meiliEnabled()) {
+            $applied = $this->appliedChips($request);
+
+            // Export keeps the keyword + applied filter (drop UI state: ss/back/page/tables).
+            $exportQuery = $request->query();
+            unset($exportQuery['ss'], $exportQuery['back'], $exportQuery['page'], $exportQuery['tables']);
+            $exportBase = admin_url('search/export') . '?' . http_build_query($exportQuery);
+
+            $resultsHtml = view('exment::search.index', [
+                'query' => $request->input('query'),
+                'tables' => $tableArrays,
+                'appliedChips' => $applied['chips'],
+                'clearUrl' => $applied['clearUrl'],
+                'exportBase' => $exportBase,
+                'sort' => $this->sortFromRequest($request) ?? 'relevance',
+            ])->render();
+            $sidebar = $this->renderFilterSidebarHtml($request, (string) $request->input('query'));
+            $quickbar = $this->renderSavedSearchBarHtml($request);
+            $content->body("<div class='row'><div class='col-md-3'>{$sidebar}</div><div class='col-md-9'>{$quickbar}{$resultsHtml}</div></div>");
+            return $content;
+        }
+
         $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $tableArrays]));
         return $content;
     }
+    /**
+     * Export the search results of one table (CSV/XLSX), with the exact keyword + applied filter.
+     *
+     * @param Request $request
+     * @return void|\Illuminate\Http\Response
+     */
+    // @phpstan-ignore-next-line
+    public function export(Request $request)
+    {
+        if (!$this->meiliEnabled()) {
+            abort(404);
+        }
+
+        $custom_table = CustomTable::getEloquent($request->input('table_name'));
+        if (!$custom_table
+            || !$custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
+            || !$custom_table->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
+            Checker::notFoundOrDeny();
+            return;
+        }
+
+        return $this->exportByMeili($request, (string) $request->input('query', ''), $custom_table);
+    }
+
     /**
      * Get Search enabled table list
      */
@@ -195,6 +266,15 @@ class SearchController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected function getListItem(Request $request, $q, $table_name)
     {
+        // pagination through Meili; on error -> fallback to MySQL below.
+        if ($this->meiliEnabled()) {
+            try {
+                return $this->getListItemByMeili($request, $q, $table_name);
+            } catch (\Throwable $e) {
+                $this->logMeiliFallback('getListItem', $e);
+            }
+        }
+
         $custom_table = CustomTable::getEloquent($table_name);
         if (empty($custom_table)) {
             return [];
@@ -411,6 +491,9 @@ class SearchController extends AdminControllerBase
         }
         if (CustomTable::getEloquent($table)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $array['show_list'] = true;
+        }
+        if (CustomTable::getEloquent($table)->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
+            $array['can_export'] = true;
         }
 
         // add table box key

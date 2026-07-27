@@ -385,6 +385,20 @@ trait ApiDataTrait
             }
         }
 
+        // select_table autocomplete via Meilisearch (simple case only:
+        // no linkage, no view filter). On error -> null -> fall back to searchValue.
+        if (boolval(config('meilisearch.global_search'))
+            && class_exists(\Meilisearch\Client::class)
+            && empty($relationColumn)
+            && empty(array_get($expand, 'target_view_id'))) {
+            $paginator = $this->searchSelectByMeilisearch($q, $count, $request);
+            if ($paginator !== null) {
+                return $this->modifyAfterGetValue($request, $paginator, [
+                    'appends' => ['q' => $q, 'count' => $count],
+                ]);
+            }
+        }
+
         $getLabel = $this->isAppendLabel($request);
         $paginator = $this->custom_table->searchValue($q, [
             'paginate' => true,
@@ -407,6 +421,64 @@ trait ApiDataTrait
                 'count' => $count,
             ]
         ]);
+    }
+
+    /**
+     * select_table autocomplete with a SINGLE Meilisearch query.
+     * Returns a LengthAwarePaginator of CustomValues (like searchValue), or null
+     * on error -> the caller falls back to searchValue (MySQL). Models are
+     * loaded through the global scope, so record permission still applies.
+     *
+     * @param string $q
+     * @param int|null $count
+     * @param Request $request
+     * @return \Illuminate\Pagination\LengthAwarePaginator|null
+     */
+    protected function searchSelectByMeilisearch($q, $count, Request $request)
+    {
+        try {
+            $perPage = $count ?: 10;
+            $page = (int) $request->input('page', 1);
+            if ($page < 1) {
+                $page = 1;
+            }
+
+            $service = new \Exceedone\Exment\Services\Meili\MeiliSearchService(
+                \Exceedone\Exment\Services\Meili\MeiliClientFactory::make(),
+                config('meilisearch.index')
+            );
+            $result = $service->searchTablePaginated($q, $this->custom_table->table_name, $perPage, $page);
+
+            // Must be an Eloquent Collection (has makeHidden) because modifyAfterGetValue calls makeHidden().
+            $models = new Collection();
+            if (!empty($result['ids'])) {
+                $loaded = getModelName($this->custom_table)::whereIn('id', $result['ids'])->get()->keyBy('id');
+                foreach ($result['ids'] as $id) {
+                    $m = $loaded->get($id);
+                    if ($m) {
+                        $models->push($m);
+                    }
+                }
+            }
+
+            // Meili's total ignores record permission. When this page came back
+            // short (the scope dropped rows), stop the paginator here so
+            // select2's "load more" never advertises pages that would be empty.
+            $total = $result['total'];
+            if ($models->count() < $perPage) {
+                $total = ($page - 1) * $perPage + $models->count();
+            }
+
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                $models,
+                $total,
+                $perPage,
+                $page,
+                ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+            );
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
 
