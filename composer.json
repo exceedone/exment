@@ -45,7 +45,11 @@
         "fzaninotto/faker": "~1.4",
         "intervention/image": "~2.3",
         "laravel/browser-kit-testing": "^6.0",
-        "spatie/phpunit-watcher": "^1.22.0"
+        "spatie/phpunit-watcher": "^1.22.0",
+        "meilisearch/meilisearch-php": "^1.10"
+    },
+    "suggest": {
+        "meilisearch/meilisearch-php": "Enable Meilisearch-powered global search (config('meilisearch.global_search')). Requires a guzzlehttp/guzzle compatible HTTP client."
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
