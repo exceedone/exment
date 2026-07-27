@@ -15,8 +15,8 @@ use Tests\TestCase;
  * so the browser displays the value correctly while keeping the +/- button UI.
  *
  * Files changed:
- *   - open-admin-core/src/Form/Field/Number.php
- *   - open-admin-core/resources/assets/number-input/bootstrap-number-input.js
+ *   - exment-admin-core/src/Form/Field/Number.php
+ *   - exment-admin-core/resources/assets/number-input/bootstrap-number-input.js
  *   - public/vendor/open-admin/number-input/bootstrap-number-input.js
  */
 class NumberRenderTest extends TestCase
