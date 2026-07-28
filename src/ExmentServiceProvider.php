@@ -276,6 +276,14 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::boot();
 
+        // Re-register route middleware aliases.
+        // The auto-discovered AdminServiceProvider runs register() after this provider,
+        // and re-aliases names like "admin.log" or "admin.auth" back to the core classes.
+        // boot() always runs after every register(), so aliasing here makes Exment's win.
+        foreach ($this->routeMiddleware as $key => $middleware) {
+            app('router')->aliasMiddleware($key, $middleware);
+        }
+
         foreach ($this->getMiddlewareGroups() as $key => $middleware) {
             app('router')->middlewareGroup($key, $middleware);
         }
