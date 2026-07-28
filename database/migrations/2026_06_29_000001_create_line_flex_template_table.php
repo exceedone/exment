@@ -15,11 +15,11 @@ return new class extends Migration
 {
     /** @var array<int, array{0:string,1:string,2:string}> [column_name, view_name, type] */
     protected $columns = [
-        ['flex_key',      'Flex key',      ColumnType::TEXT],
-        ['template_name', 'Template name', ColumnType::TEXT],
-        ['title',         'Title',         ColumnType::TEXT],
-        ['body_items',    'Body items',    ColumnType::TEXTAREA],
-        ['description',   'Description',   ColumnType::TEXTAREA],
+        ['flex_key',      'Flexキー',      ColumnType::TEXT],
+        ['template_name', 'テンプレート名', ColumnType::TEXT],
+        ['title',         'タイトル',       ColumnType::TEXT],
+        ['body_items',    '本文項目',       ColumnType::TEXTAREA],
+        ['description',   '説明',          ColumnType::TEXTAREA],
     ];
 
     public function up(): void
@@ -33,7 +33,7 @@ return new class extends Migration
 
         $table = CustomTable::create([
             'table_name'      => 'line_flex_template',
-            'table_view_name' => 'LINE Flex Template',
+            'table_view_name' => 'LINE Flexテンプレート',
             'options'         => ['search_enabled' => 1],
         ]);
         $table->createTable();

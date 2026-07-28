@@ -173,7 +173,7 @@ trait InitializeFormTrait
             ->help(exmtrans('system.help.system_slack_user_column'))
             ->options($this->getUserOrgSlackColumns('user'));
 
-        $form->exmheader('LINE')->hr();
+        $form->exmheader(exmtrans('system.system_line'))->hr();
 
         $form->password('system_line_channel_token', exmtrans('system.system_line_channel_token'));
 

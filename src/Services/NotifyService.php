@@ -519,7 +519,11 @@ class NotifyService
 
         $flexTemplateId = array_get($params, 'flex_template_id');
         if (!is_nullorempty($flexTemplateId) && isset($custom_value)) {
-            $tmpl = getModelName('line_flex_template')::find($flexTemplateId);
+            // The flex template is a system resource; look it up without the authority
+            // global scope, otherwise a notify triggered by a non-admin (e.g. a member
+            // creating a record) can't read it and the message silently falls back to
+            // plain text with no action buttons.
+            $tmpl = getModelName('line_flex_template')::withoutGlobalScopes()->find($flexTemplateId);
             if ($tmpl) {
                 $prms = array_get($params, 'prms', []);
                 $replaceOptions = array_get($params, 'replaceOptions', []);
