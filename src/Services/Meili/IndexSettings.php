@@ -34,12 +34,22 @@ class IndexSettings
             $synonyms = (object) [];
         }
 
+        // Language hint for tokenization. Kanji-only strings have no kana for the
+        // language detector, get classified as Chinese and normalized to simplified
+        // forms -> queries like 設備点検 return 0 hits. Locales force the right
+        // pipeline. null (not []) clears the setting on the index when unconfigured.
+        $locales = array_values($opts['locales'] ?? []);
+        $localized = $locales === []
+            ? null
+            : [['attributePatterns' => ['*'], 'locales' => $locales]];
+
         return [
             'searchableAttributes' => $opts['searchable_attributes'] ?? self::DEFAULT_SEARCHABLE,
             'filterableAttributes' => $filterable,
             'sortableAttributes' => $sortable,
             'stopWords' => array_values($opts['stop_words'] ?? []),
             'synonyms' => $synonyms,
+            'localizedAttributes' => $localized,
             'rankingRules' => $opts['ranking_rules'] ?? self::DEFAULT_RANKING,
             'typoTolerance' => [
                 'enabled' => $opts['typo_enabled'] ?? true,

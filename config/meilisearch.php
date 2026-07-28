@@ -36,6 +36,11 @@ return [
     'settings' => [
         'searchable_attributes' => ['label', 'fields', 'table_label'],
 
+        // Query/document language hint (ISO-639-3, comma-separated env).
+        // Without it, kanji-only queries (設備点検, 顧客満足度…) are misdetected as
+        // Chinese and return 0 hits. Set MEILISEARCH_LOCALES="" to disable.
+        'locales' => array_values(array_filter(explode(',', (string) env('MEILISEARCH_LOCALES', 'jpn')))),
+
         'stop_words' => [],
         // Synonyms, e.g. ['nyc' => ['new york']]. Leave empty if unused.
         'synonyms' => [],
