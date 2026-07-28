@@ -4,7 +4,9 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
 use Carbon\Carbon;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\ValidateCalledType;
+use Exceedone\Exment\Model\CustomValueModelScope;
 
 class DefaultTableProvider extends ProviderBase
 {
@@ -27,6 +29,12 @@ class DefaultTableProvider extends ProviderBase
      */
     // @phpstan-ignore-next-line
     protected $selectTableNotFounds;
+
+    /**
+     * @var int
+     */
+    // @phpstan-ignore-next-line
+    protected $oneRecordCreateCount = 0;
 
     // @phpstan-ignore-next-line
     public function __construct($args = [])
@@ -175,9 +183,23 @@ class DefaultTableProvider extends ProviderBase
         $errors = [];
 
         $validateRow = true;
+        $code = null;
+
+        
+        if (isset($model) && !$model->exists && $this->custom_table->isOneRecord()) {
+            $existingCount = $this->custom_table->getValueModel()->query()
+                ->withoutGlobalScope(CustomValueModelScope::class)
+                ->count();
+            $totalAfterThisRow = ++$this->oneRecordCreateCount + $existingCount;
+            if ($totalAfterThisRow > 1) {
+                $code = ErrorCode::ONE_RECORD_ALREADY();
+                $validateRow = false;
+            }
+        }
+
         // check create or update check
         // *Only check user object for batch
-        if (isset($model) && !is_nullorempty(\Exment::user())) {
+        if ($validateRow && isset($model) && !is_nullorempty(\Exment::user())) {
             if (!$model->exists && ($code = $this->custom_table->enableCreate()) !== true) {
                 $validateRow = false;
             } elseif (array_key_value_exists('deleted_at', $data) && ($code = $model->enableDelete()) !== true) {

@@ -269,6 +269,40 @@ class LoginSettingController extends AdminControllerBase
             }
         });
 
+        // Server-side "required" validation for OAuth options.
+        // Field::required() in laravel-admin only adds the HTML5 "required" attribute
+        // and the label asterisk; it does NOT add a validation rule (see Field::required()).
+        // So the browser check can be removed via devtools and empty values get saved.
+        // These fields are toggled by "login_type", so we validate conditionally here
+        // (the embedded form validator can't see the top-level "login_type").
+        $form->validatorSavingCallback(function ($input, $message, $form) {
+            if (array_get($input, 'login_type') != LoginType::OAUTH) {
+                return;
+            }
+
+            $rules = [
+                'options.oauth_provider_type' => 'required',
+                'options.oauth_client_id'     => 'required',
+                'options.oauth_client_secret' => 'required',
+            ];
+            $attributes = [
+                'options.oauth_provider_type' => exmtrans('login.oauth_provider_type'),
+                'options.oauth_client_id'     => exmtrans('login.oauth_client_id'),
+                'options.oauth_client_secret' => exmtrans('login.oauth_client_secret'),
+            ];
+
+            // "provider name" is required only when the provider type is "other".
+            if (array_get($input, 'options.oauth_provider_type') == Enums\LoginProviderType::OTHER) {
+                $rules['options.oauth_provider_name'] = 'required';
+                $attributes['options.oauth_provider_name'] = exmtrans('login.oauth_provider_name');
+            }
+
+            $validator = \Validator::make($input, $rules, [], $attributes);
+            if ($validator->fails()) {
+                $message->merge($validator->errors());
+            }
+        });
+
         $form->saved(function (Form $form) {
             return redirect($this->getEditUrl($form->model()->id));
         });
