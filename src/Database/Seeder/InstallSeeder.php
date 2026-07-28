@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Database\Seeder;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Exceedone\Exment\Services\Line\LineInstaller;
 use Exceedone\Exment\Services\TemplateImportExport;
 
 class InstallSeeder extends Seeder
@@ -38,6 +39,12 @@ class InstallSeeder extends Seeder
 
             $importer = new TemplateImportExport\TemplateImporter();
             $importer->importSystemTemplate();
+
+            // LINE: created here (not during migrate) — see LineInstaller docblock.
+            // Order matters: line_send_log references line_flex_template.
+            LineInstaller::ensureFlexTemplateTable();
+            LineInstaller::ensureSendLogTable();
+            LineInstaller::ensureLinkMenu();
         } catch (\Exception $exception) {
             //DB::rollback();
             throw $exception;

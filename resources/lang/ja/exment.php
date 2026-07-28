@@ -2739,6 +2739,7 @@ return [
     // LINE bot replies (webhook / Flex postback). Rendered by exmtrans(), so the
     // language follows the active locale (APP_LOCALE).
     'line' => [
+        'link_menu_title'     => 'LINE連携',
         'link_success'        => '✅ LINE連携が完了しました！',
         'link_already_linked' => 'このLINEアカウントは既に別のアカウントと連携済みです。変更する場合は、先にWeb上で連携を解除してください。',
         'link_invalid_code'   => '連携コードが正しくないか、有効期限が切れています。再度ご確認ください。',
