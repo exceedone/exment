@@ -43,6 +43,13 @@ class TemplateController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function searchTemplate(Request $request)
     {
+        if (System::initialized()) {
+            $login_user = \Exment::user();
+            if (!$login_user || !$login_user->hasPermission(Permission::SYSTEM)) {
+                abort(403);
+            }
+        }
+
         // search from exment api
         // $client = new Client();
 
@@ -111,12 +118,16 @@ class TemplateController extends AdminControllerBase
                     $delete_url = null;
                 }
 
+                $thumbnailExt = strtolower(pathinfo(array_get($a, 'thumbnail', ''), PATHINFO_EXTENSION));
+                $mimeMap = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
+                $mimeType = $mimeMap[$thumbnailExt] ?? 'image/png';
+
                 $datalist[] = [
                     'id' => json_encode(['template_type' => array_get($a, 'template_type'), 'template_name' => array_get($a, 'template_name')]),
                     'title' => array_get($a, 'template_view_name'),
                     'description' => array_get($a, 'description'),
                     'author' => array_get($a, 'author'),
-                    'thumbnail' => 'data:image/png;base64,'.$thumbnail_file,
+                    'thumbnail' => "data:{$mimeType};base64,{$thumbnail_file}",
                     'delete_url' => $delete_url,
                 ];
             }

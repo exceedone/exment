@@ -33,7 +33,7 @@
 </head>
 
 <body class="hold-transition {{config('admin.skin')}} {{join(' ', config('admin.layout'))}}">
-<div class="wrapper">
+<div class="wrapper" id="app">
     <div class="container-fluid" id="pjax-container" style="width:80%; min-width:960px; margin:0 auto;">
         @yield('content')
         {!! Admin::script() !!}

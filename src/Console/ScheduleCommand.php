@@ -48,6 +48,7 @@ class ScheduleCommand extends Command
         $this->debugLog('Exment schedule command called.');
         $this->notify();
         $this->backup();
+        $this->clearOperationLog();
         $this->pluginBatch();
         return 0;
     }
@@ -84,6 +85,113 @@ class ScheduleCommand extends Command
         \Artisan::call('exment:backup', !is_nullorempty($target) ? ['--target' => $target, '--schedule' => 1] : []);
 
         System::backup_automatic_executed($now);
+    }
+
+    /**
+     * Auto-delete operation logs older than the configured retention period.
+     * Runs when the current time satisfies all configured schedule conditions.
+     *
+     * @return void
+     */
+    protected function clearOperationLog()
+    {
+        $now = Carbon::now();
+        $keepDays = System::operation_log_keep_days();
+
+        if (!self::isOperationLogClearDue(
+            boolval(System::operation_log_enable_automatic()),
+            $keepDays,
+            System::operation_log_automatic_week(),
+            System::operation_log_automatic_month(),
+            System::operation_log_automatic_day(),
+            System::operation_log_automatic_hour(),
+            System::operation_log_automatic_minute(),
+            System::operation_log_automatic_executed(),
+            $now
+        )) {
+            return;
+        }
+
+        $exitCode = \Artisan::call('exment:log-clear', [
+            '--keep-days' => (string)(int)$keepDays,
+            '--force'     => true,
+        ]);
+
+        if ($exitCode === 0) {
+            // Record last execution. isOperationLogClearDue() reads this back as a run-once guard
+            // so the (hourly) scheduler does not re-run the purge on every tick.
+            System::operation_log_automatic_executed($now);
+        }
+    }
+
+    /**
+     * Decide whether the operation-log auto-delete should run at $now.
+     *
+     * Pure function (no DB / no side effects) so the scheduling and run-once guard logic is
+     * unit-testable. NOTE: the previous implementation wrote operation_log_automatic_executed
+     * but never read it back, so with the default hourly scheduler the purge ran on every tick.
+     * This method restores the guard by honoring $lastExecuted.
+     *
+     * Empty schedule conditions mean "any". "0" is NOT empty (is_nullorempty("0") === false),
+     * so hour=0 / minute=0 are honored.
+     *
+     * @param bool $enabled
+     * @param mixed $keepDays
+     * @param mixed $week    ISO day-of-week 1(Mon)..7(Sun), or empty
+     * @param mixed $month   1..12, or empty
+     * @param mixed $day     1..31, or empty
+     * @param mixed $hour    0..23, or empty
+     * @param mixed $minute  0..59, or empty
+     * @param Carbon|null $lastExecuted
+     * @param Carbon $now
+     * @return bool
+     */
+    public static function isOperationLogClearDue(
+        bool $enabled,
+        $keepDays,
+        $week,
+        $month,
+        $day,
+        $hour,
+        $minute,
+        ?Carbon $lastExecuted,
+        Carbon $now
+    ): bool {
+        if (!$enabled) {
+            return false;
+        }
+        if (is_nullorempty($keepDays) || (int)$keepDays <= 0) {
+            return false;
+        }
+
+        // day-of-week (ISO: 1=Mon..7=Sun)
+        if (!is_nullorempty($week) && (string)$now->dayOfWeekIso !== (string)$week) {
+            return false;
+        }
+        // month (1..12)
+        if (!is_nullorempty($month) && (string)$now->month !== (string)$month) {
+            return false;
+        }
+        // day-of-month (1..31)
+        if (!is_nullorempty($day) && (string)$now->day !== (string)$day) {
+            return false;
+        }
+        // hour (0..23)
+        if (!is_nullorempty($hour) && (string)$now->hour !== (string)$hour) {
+            return false;
+        }
+        // minute (0..59)
+        if (!is_nullorempty($minute) && (string)$now->minute !== (string)$minute) {
+            return false;
+        }
+
+        // Run-once guard: never purge more than once per calendar day, even when the (hourly)
+        // scheduler fires repeatedly and the time conditions are coarse/empty.
+        if ($lastExecuted instanceof Carbon && $lastExecuted->isSameDay($now)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

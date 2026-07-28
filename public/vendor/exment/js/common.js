@@ -155,15 +155,22 @@ var Exment;
                         $('.' + key).val(updatevalue);
                     }
                 }
-                if ($(".modal:visible").length > 0) {
-                    $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
-                        // put your default event here
-                        $(".modal").off("hidden.bs.modal");
+                try {
+                    if ($(".modal:visible").length > 0) {
+                        $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
+                            // put your default event here
+                            $(".modal").off("hidden.bs.modal");
+                            CommonEvent.redirectCallback(res);
+                        });
+                    }
+                    else {
                         CommonEvent.redirectCallback(res);
-                    });
-                }
-                else {
-                    CommonEvent.redirectCallback(res);
+                    }
+                } catch (e) {
+                    // Guard: a synchronous exception inside redirectCallback
+                    // (e.g. NProgress failing to find #app on the initialize page)
+                    // must not prevent resolve() from running and closing the dialog.
+                    console.warn('[Exment] redirectCallback error (suppressed):', e);
                 }
                 // show toastr
                 if (hasValue(res.toastr)) {

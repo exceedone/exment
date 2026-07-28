@@ -81,6 +81,30 @@ if (!function_exists('esc_html')) {
     }
 }
 
+if (!function_exists('css_clean')) {
+    /**
+     * Sanitize user-supplied CSS before it is emitted inside a <style> block.
+     *
+     * Custom CSS (e.g. a public form's custom_css) is an intentional feature, so the CSS
+     * itself is preserved. But the value MUST stay inside the <style> element: "</style"
+     * is the only sequence that terminates a raw-text <style> element, so a payload such as
+     * "</style><script>...</script>" would break out and become stored XSS.
+     *
+     * Neutralize every "</" by inserting a backslash ("<\/"). "</" never occurs in a valid
+     * stylesheet outside a string, and inside a CSS string "\/" is a no-op escape for "/",
+     * so legitimate CSS is unchanged while HTML/script breakout is impossible. (Same
+     * technique used to escape "</script>" when embedding JSON in an inline <script>.)
+     */
+    // @phpstan-ignore-next-line
+    function css_clean($css)
+    {
+        if (is_nullorempty($css)) {
+            return $css;
+        }
+        return str_replace('</', '<\\/', $css);
+    }
+}
+
 if (!function_exists('esc_script_tag')) {
     /**
      * escape only script tag

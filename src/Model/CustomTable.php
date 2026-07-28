@@ -94,6 +94,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     ];
 
     /**
+     * Table option keys that reference CustomForm IDs and their exported suuid keys.
+     *
+     * @var array<int, string>
+     */
+    protected static $templateFormOptionMap = [
+        'form_after_read',
+        'form_after_create_jan_code',
+        'form_after_read_jan_code',
+    ];
+
+    /**
      * Getted custom columns. if call attributes "custom_columns_cache", already called, return this value.
      */
 
@@ -1417,6 +1428,52 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $obj;
     }
 
+    /**
+     * @param array<string, mixed> $json
+     * @return void
+     */
+    protected static function exportReplaceJson(&$json)
+    {
+        foreach (static::$templateFormOptionMap as $optionKey) {
+            $suuidKey = 'options.' . $optionKey . '_suuid';
+            $formId = array_get($json, 'options.' . $optionKey);
+            if (is_null($formId)) {
+                continue;
+            }
+
+            $customForm = CustomForm::getEloquent($formId);
+            if ($customForm) {
+                array_set($json, $suuidKey, $customForm->suuid);
+            }
+        }
+
+        // If refer_column holds a numeric column ID, also export the column name so it can
+        // be resolved correctly when imported into another environment where IDs differ.
+        $referColumn = array_get($json, 'options.refer_column');
+        if (isset($referColumn) && is_numeric($referColumn)) {
+            $column = CustomColumn::getEloquent((int)$referColumn);
+            if ($column) {
+                array_set($json, 'options.refer_column_name', $column->column_name);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $json
+     * @param array<string, mixed> $options
+     * @return void
+     */
+    protected static function importReplaceJson(&$json, $options = [])
+    {
+        // These keys are helper metadata for template import and should not be persisted as table options.
+        foreach (static::$templateFormOptionMap as $optionKey) {
+            array_forget($json, 'options.' . $optionKey . '_suuid');
+        }
+
+        // refer_column_name is a helper key added during export; strip it so it is never stored in options.
+        array_forget($json, 'options.refer_column_name');
+    }
+
 
     // @phpstan-ignore-next-line
     protected function importSetValue(&$json, $options = [])
@@ -1442,6 +1499,43 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function importSaved($json, $options = [])
     {
+        $updated = false;
+        foreach (static::$templateFormOptionMap as $optionKey) {
+            $suuidKey = 'options.' . $optionKey . '_suuid';
+            $formSuuid = array_get($json, $suuidKey);
+            if (is_nullorempty($formSuuid)) {
+                continue;
+            }
+
+            // Mark as updated whenever suuid metadata is present so the cleanup save always runs,
+            // even when the form cannot be located (ensures suuid is stripped from options via the saving event).
+            $updated = true;
+
+            $customForm = CustomForm::where('custom_table_id', $this->id)
+                ->where('suuid', $formSuuid)
+                ->first();
+            if ($customForm) {
+                $this->setOption($optionKey, strval($customForm->id));
+            }
+        }
+
+        // Resolve refer_column: if a helper column name was exported, find the matching column
+        // in this environment and update refer_column to that column's ID.
+        $referColumnName = array_get($json, 'options.refer_column_name');
+        if (!is_nullorempty($referColumnName)) {
+            $column = $this->custom_columns()
+                ->where('column_name', $referColumnName)
+                ->first();
+            if ($column) {
+                $this->setOption('refer_column', strval($column->id));
+                $updated = true;
+            }
+        }
+
+        if ($updated) {
+            $this->save();
+        }
+
         $this->createTable();
 
         return $this;
@@ -3605,6 +3699,36 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Barcode-related option keys that should be excluded when copying a table.
+     *
+     * @var array<int, string>
+     */
+    protected static $barcodeOptionKeys = [
+        // QR code settings
+        'active_qr_flg',
+        'qr_use',
+        'text_qr',
+        'refer_column',
+        'cell_width',
+        'cell_height',
+        'margin_left',
+        'margin_top',
+        'col_per_page',
+        'row_per_page',
+        'col_spacing',
+        'row_spacing',
+        'form_after_read',
+        'action_after_read',
+        // JAN code settings
+        'active_jan_flg',
+        'jan_use',
+        'form_after_create_jan_code',
+        'action_after_create_jan_code',
+        'form_after_read_jan_code',
+        'action_after_read_jan_code',
+    ];
+
+    /**
      * copy this table
      */
 
@@ -3616,6 +3740,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             foreach($inputs as $key => $input) {
                 $new_table->{$key} = $input;
             }
+
+            // Remove barcode-related options from the copied table
+            foreach (static::$barcodeOptionKeys as $optionKey) {
+                $new_table->setOption($optionKey, null);
+            }
+
             $new_table->save();
 
             $replaceColumns = [];

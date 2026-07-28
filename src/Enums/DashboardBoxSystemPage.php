@@ -11,6 +11,7 @@ class DashboardBoxSystemPage extends EnumBase
     public const EDITOR = 3;
     public const HTML = 4;
     public const NOTIFY_NAVBAR = 4;
+    public const BARCODE = 6;
 
     // @phpstan-ignore-next-line
     protected static $options = [

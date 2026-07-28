@@ -300,16 +300,8 @@ class Exment
                     return [null, null];
                 }
 
-                // sort by timestamp
-                $sortedPackages = collect($packages)->sortByDesc('version_normalized');
-                foreach ($sortedPackages as $key => $package) {
-                    // if version is "dev-", continue
-                    if (substr($key, 0, 4) == 'dev-') {
-                        continue;
-                    }
-                    $latest = $key;
-                    break;
-                }
+                // pick the latest STABLE version (semantic compare; skip dev / branch-alias / pre-release)
+                $latest = $this->pickLatestStableVersion($packages);
 
                 try {
                     Cache::put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
@@ -345,22 +337,92 @@ class Exment
     public function checkLatestVersion()
     {
         list($latest, $current) = $this->getExmentVersion();
-        $latest = trim($latest, 'v');
-        $current = trim($current, 'v');
 
-        if (empty($latest) || empty($current)) {
+        return $this->classifyVersion($latest, $current);
+    }
+
+    /**
+     * Classify the installed version against the latest available version.
+     * Pure logic (no I/O), extracted so it can be unit tested.
+     *
+     * @param string|null $latest  latest available version (tag), may be null
+     * @param string|null $current installed version (tag), may be null
+     * @return int SystemVersion::*
+     */
+    public function classifyVersion($latest, $current): int
+    {
+        // cast before trim, and strip only the LEADING "v" prefix.
+        // ($latest / $current can be null when outside_api is off / offline / api error;
+        //  trim(..., 'v') would also strip a trailing "v", corrupting "*-dev" branch versions.)
+        $latest = ltrim((string)($latest ?? ''), 'vV');
+        $current = ltrim((string)($current ?? ''), 'vV');
+
+        if ($latest === '' || $current === '') {
             return SystemVersion::ERROR;
-        } elseif (strpos($current, 'dev-') === 0) {
-            return SystemVersion::DEV;
-        } elseif ($latest === $current) {
-            return SystemVersion::LATEST;
-// Unreachable statement - code above always terminates.
-//            $message = exmtrans("system.version_latest");
-//            $icon = 'check-square';
-//            $bgColor = 'blue';
-        } else {
-            return SystemVersion::HAS_NEXT;
         }
+        // development / branch-alias installs are not compared against released versions
+        if ($this->isDevVersion($current)) {
+            return SystemVersion::DEV;
+        }
+        // LATEST when the installed version is at least as new as the latest released one
+        if (version_compare($latest, $current, '<=')) {
+            return SystemVersion::LATEST;
+        }
+        return SystemVersion::HAS_NEXT;
+    }
+
+    /**
+     * Whether the given version string represents a development / branch-alias build.
+     * Covers: dev-main, dev-xxx, 6.x-dev, 6.2.x-dev, 9999999-dev, *-dev
+     *
+     * @param string|null $version
+     * @return bool
+     */
+    public function isDevVersion($version): bool
+    {
+        // strip only the leading "v" prefix (a "*-dev" version ends in "v")
+        $version = ltrim((string)($version ?? ''), 'vV');
+
+        return strpos($version, 'dev-') === 0
+            || strpos($version, '9999999') === 0
+            || preg_match('/-dev$/i', $version) === 1;
+    }
+
+    /**
+     * Pick the latest STABLE version key from a packagist "package.versions" map.
+     * Compares semantically (so "6.2.10" ranks above "6.2.9") and skips
+     * dev / branch-alias / pre-release (alpha/beta/RC) entries.
+     *
+     * @param array<string,mixed>|null $packages
+     * @return string|null
+     */
+    public function pickLatestStableVersion($packages)
+    {
+        if (empty($packages)) {
+            return null;
+        }
+
+        $sorted = collect($packages)->sort(function ($a, $b) {
+            return version_compare(
+                (string) array_get($b, 'version_normalized'),
+                (string) array_get($a, 'version_normalized')
+            );
+        });
+
+        foreach ($sorted as $key => $package) {
+            $key = (string) $key;
+            $normalized = (string) array_get($package, 'version_normalized', $key);
+            // skip dev branches and pre-releases (dev / alpha / beta / RC).
+            // NB: "-patch" / "-pl" are STABLE in composer, so only known unstable flags are excluded.
+            if ($normalized === ''
+                || strpos($key, 'dev-') === 0
+                || preg_match('/-(dev|alpha|beta|rc)/i', $normalized) === 1) {
+                continue;
+            }
+            return $key;
+        }
+
+        return null;
     }
 
 
