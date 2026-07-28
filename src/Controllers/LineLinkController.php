@@ -22,7 +22,7 @@ class LineLinkController extends AdminControllerBase
         }
 
         return $this->AdminContent($content)
-            ->title('LINE連携')
+            ->title(exmtrans('line.link_menu_title'))
             ->body(view('exment::line.link', ['link' => $link, 'qr' => $qr]));
     }
 
