@@ -240,7 +240,9 @@ trait InitializeFormTrait
         //     ->options(Define::FILE_OPTION());
 
         // template search url
-        $template_search_url = admin_urls('api', 'template', 'search');
+        $template_search_url = System::initialized()
+            ? admin_urls('webapi', 'template', 'search')
+            : admin_urls('api', 'template', 'search');
         $script = <<<EOT
 
     $(function(){
@@ -292,8 +294,7 @@ EOT;
             // upload zip file
             // @phpstan-ignore-next-line
             elseif ($file->getClientOriginalExtension() == 'zip') {
-                $upload_template = $importer->uploadTemplate($file);
-                $importer->importTemplate($upload_template);
+                $importer->uploadTemplate($file);
             }
         }
     }
