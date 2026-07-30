@@ -46,10 +46,10 @@ class JvnFieldTypeFlashMessageXssFixedTest extends SecurityRegressionTestCase
         return $this->exmentSource($relativeFromSrc);
     }
 
-    /** Read a source file from the admin framework package actually used here (exceedone/laravel-admin). */
+    /** Read a source file from the admin framework package actually used here (exceedone/exment-admin-core). */
     private function openAdminSrc(string $relativeFromSrc): string
     {
-        $path = base_path('vendor/exceedone/laravel-admin/src/' . ltrim($relativeFromSrc, '/'));
+        $path = base_path('vendor/exceedone/exment-admin-core/src/' . ltrim($relativeFromSrc, '/'));
         $this->assertFileExists($path, "Source not found: $path");
         return (string) file_get_contents($path);
     }
