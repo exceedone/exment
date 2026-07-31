@@ -33,7 +33,10 @@ class Select extends CustomItem
         // if $value is array
         $multiple = true;
         if (!is_array($v) && preg_match_ex('/\[.+\]/i', $v)) {
-            $v = json_decode_ex($v);
+            $decoded = json_decode_ex($v);
+            if (is_array($decoded)) {
+                $v = $decoded;
+            }
         }
         if (!is_array($v)) {
             $val = [$v];
