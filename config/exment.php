@@ -1201,4 +1201,107 @@ return [
     |
     */
     'api_max_rate_limit' => env('EXMENT_API_MAX_RATE_LIMIT', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mask targets for the operation log
+    |--------------------------------------------------------------------------
+    |
+    | Request keys and url segments replaced with "***" when writing the
+    | operation log (admin_operation_log). Add or remove a mask target here,
+    | without touching the source.
+    |
+    | WHEN UPGRADING: re-check this block. config/exment.php is published once
+    | per install and "exment:update" does not refresh it, and Laravel's
+    | mergeConfigFrom() merges top-level keys only - so once an install has its
+    | own "operation_log" block, that copy wins as a whole and mask targets
+    | added by a later Exment release do NOT reach that install.
+    |
+    | Because of that, the credentials that authenticate a user or a session
+    | (password / password_confirmation / current_password / _token /
+    | verify_code / access_token / refresh_token) are not listed below at all:
+    | they are owned by requiredHideColumns() in
+    | Exceedone\Exment\Middleware\LogOperation and stay masked on every install
+    | whatever this file says. Every other mask target - including the
+    | auth/reset url - is owned by this file, and lives in exactly one place.
+    |
+    */
+    'operation_log' => [
+
+        /*
+         * Keys masked on EVERY screen. Only names that are sensitive wherever
+         * they appear belong here: a name listed here is masked even when it is
+         * a business column of a user-defined table. Keys that are credentials
+         * only on a specific screen go to "mask_columns_by_uri" instead.
+         *
+         * The session credentials (password / password_confirmation /
+         * current_password / _token / token / verify_code / access_token /
+         * refresh_token) are NOT repeated here: they are owned by
+         * LogOperation::requiredHideColumns() and always masked. Do not add them
+         * back - a name in both places could be edited here and look disabled
+         * while the class keeps masking it.
+         */
+        'mask_columns' => [
+            // SSO (OAuth / SAML) secrets
+            'oauth_client_id',
+            'oauth_client_secret',
+            'saml_sp_privatekey',
+            // System config secrets (admin/system): reCAPTCHA secret, SMTP password
+            'recaptcha_secret_key',
+            'system_mail_password',
+            // Plugin DB connection password
+            'custom_password',
+            // Plugin CRUD page auth (key / id+password)
+            'crud_auth_key',
+            'crud_auth_password',
+        ],
+
+        /*
+         * "uri pattern below the admin prefix" => keys masked only when the
+         * request path matches ("*" is a wildcard, Str::is). Use this for names
+         * that are credentials on one screen but plain business data elsewhere,
+         * which therefore must not go into "mask_columns".
+         */
+        'mask_columns_by_uri' => [
+            // API client setting screens (admin/api_setting*). "id" IS the oauth
+            // client_id and "secret" the client secret (posted by the edit form /
+            // grid filter). "client_api_key" is the real api key, posted nested as
+            // client_api_key[key] only by this form's save. None may be masked
+            // globally - a business table can legitimately own id/secret columns.
+            'api_setting*' => ['id', 'secret', 'client_api_key'],
+            // OAuth token endpoints (admin/oauth/*): client_id / client_secret /
+            // api_key are posted as credentials here (grant_type: api_key /
+            // client_credentials / password). They are plain business data on
+            // user-defined tables, so they are masked only on this URI.
+            'oauth/*' => ['client_id', 'api_key', 'client_secret'],
+            // Password reset form (admin/auth/reset/{token}) posts the raw reset
+            // token back as a hidden field named "token" (see auth/reset.blade.php
+            // and ResetPasswordController::rules()). "token" is far too generic to
+            // mask globally - a user-defined table may well own a "token" column -
+            // and this is the only screen that posts it as a credential.
+            'auth/reset*' => ['token'],
+        ],
+
+        /*
+         * "uri prefix below the admin prefix" => whether to keep the first 8
+         * characters of the path segment that follows it. Use true for record
+         * ids, so the record can still be traced (the prefix is kept only when
+         * the segment is longer than 12 characters, e.g. a uuid), and false for
+         * bearer credentials, which are masked whole.
+         *
+         * This list is the only source: nothing here is hard-coded as a fallback,
+         * so removing an entry really does stop masking that url.
+         */
+        'mask_path_prefixes' => [
+            'api_setting' => true,
+            // Passport client management API: oauth/clients/{client_id}
+            'oauth/clients' => true,
+            // Password reset url: auth/reset/{token}. Both GET (mail link) and
+            // POST (reset form action) carry the raw token in the path, and that
+            // route group includes admin.log, so the token reaches the logged
+            // path. It is a bearer credential, hence false: masked whole, with no
+            // traceability prefix kept. DO NOT remove or set to true.
+            'auth/reset' => false,
+        ],
+    ],
 ];

@@ -220,6 +220,37 @@ class LogOperationMaskTest extends TestCase
         );
     }
 
+    public function testPreviousUrlIsMaskedWhenRelative()
+    {
+        // REGRESSION: the url was matched with a leading slash prepended, so a
+        // relative "_previous_" ("admin/api_setting/{id}/edit") matched nothing
+        // and was stored unmasked - a silent miss, no error raised.
+        $rel = $this->adminPath('api_setting/5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f/edit');
+        $this->assertSame(
+            $this->adminPath('api_setting/5e02b3a0***/edit'),
+            LogOperation::hideUrlPathParams($rel)
+        );
+    }
+
+    public function testUrlPathIsMaskedInQueryStringToo()
+    {
+        // the same url is often carried again as a "back" parameter
+        $rel = $this->adminPath('api_setting/5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f/edit');
+        $masked = LogOperation::hideUrlPathParams('http://localhost/' . $rel . '?back=/' . $rel);
+        $this->assertStringNotContainsString('7a7a-11f1', $masked);
+        $this->assertSame(
+            'http://localhost/' . $this->adminPath('api_setting/5e02b3a0***/edit')
+                . '?back=/' . $this->adminPath('api_setting/5e02b3a0***/edit'),
+            $masked
+        );
+    }
+
+    public function testUnrelatedUrlIsUntouched()
+    {
+        $url = 'http://localhost/' . $this->adminPath('data/client/123') . '?x=1';
+        $this->assertSame($url, LogOperation::hideUrlPathParams($url));
+    }
+
     // ----- path masking ------------------------------------------------------
 
     public function testPathClientIdSegmentIsPartiallyMasked()
@@ -268,5 +299,138 @@ class LogOperationMaskTest extends TestCase
     {
         $path = $this->adminPath('data/client/123');
         $this->assertSame($path, LogOperation::hidePathParams($path));
+    }
+
+    // ----- config driven mask targets ----------------------------------------
+    //
+    // The mask targets live in config "exment.operation_log.*" so an install can
+    // edit them without touching the source. Only requiredHideColumns() stays in
+    // the class, as a safety net for a config/exment.php that is out of date (it
+    // is published once per install and exment:update never refreshes it),
+    // hand-edited or emptied.
+
+    public function testDefaultConfigShipsTheBuiltInTargets()
+    {
+        // guards the package config block itself: everything below is owned by
+        // config only, so a dropped or renamed block silently stops masking it
+        $this->assertSame(
+            ['id', 'secret', 'client_api_key'],
+            LogOperation::getHideColumnsByUri()['api_setting*']
+        );
+        $this->assertSame(
+            ['client_id', 'api_key', 'client_secret'],
+            LogOperation::getHideColumnsByUri()['oauth/*']
+        );
+        foreach (['oauth_client_secret', 'saml_sp_privatekey', 'system_mail_password'] as $column) {
+            $this->assertContains($column, LogOperation::getHideColumns());
+        }
+        $this->assertSame(
+            $this->adminPath('api_setting/***'),
+            LogOperation::hidePathParams($this->adminPath('api_setting/123'))
+        );
+        // the reset token url is the most damaging entry to lose - assert the
+        // shipped config really carries it (see testPathResetTokenSegmentIsFullyMasked)
+        $this->assertSame(
+            $this->adminPath('auth/reset/***'),
+            LogOperation::hidePathParams($this->adminPath('auth/reset/' . str_repeat('a1b2c3d4', 8)))
+        );
+    }
+
+    public function testResetTokenFieldIsMaskedOnlyOnResetForm()
+    {
+        // auth/reset posts the raw reset token back as a hidden field "token"
+        $onReset = $this->mask(
+            '{"token":"raw-reset-token","password":"p"}',
+            $this->adminPath('auth/reset/raw-reset-token')
+        );
+        $this->assertSame('***', json_decode($onReset, true)['token']);
+
+        // ...but "token" is a plain business column name anywhere else, so it is
+        // deliberately NOT in the global list
+        $elsewhere = $this->mask('{"value":{"token":"T-1"}}', $this->adminPath('data/foo'));
+        $this->assertSame('T-1', json_decode($elsewhere, true)['value']['token']);
+    }
+
+    public function testConfigAddsGlobalMaskColumn()
+    {
+        config(['exment.operation_log.mask_columns' => ['my_secret_key']]);
+        $masked = $this->mask(
+            '{"my_secret_key":"s3cret","other":"keep"}',
+            $this->adminPath('data/foo')
+        );
+        $decoded = json_decode($masked, true);
+        $this->assertSame('***', $decoded['my_secret_key']);
+        $this->assertSame('keep', $decoded['other']);
+    }
+
+    public function testConfigDefinesUriScopedColumns()
+    {
+        config(['exment.operation_log.mask_columns_by_uri' => ['data/my_table*' => ['secret_column']]]);
+        $masked = $this->mask(
+            '{"secret_column":"v","value":{"secret_column":"v2"}}',
+            $this->adminPath('data/my_table/1/edit')
+        );
+        $decoded = json_decode($masked, true);
+        $this->assertSame('***', $decoded['secret_column']);
+        $this->assertSame('***', $decoded['value']['secret_column']);
+        // ...and stays scoped to that uri
+        $elsewhere = json_decode($this->mask('{"secret_column":"v"}', $this->adminPath('data/foo')), true);
+        $this->assertSame('v', $elsewhere['secret_column']);
+    }
+
+    public function testConfigAddsNewPathPrefix()
+    {
+        config(['exment.operation_log.mask_path_prefixes' => ['my_page' => false]]);
+        $this->assertSame(
+            $this->adminPath('my_page/***'),
+            LogOperation::hidePathParams($this->adminPath('my_page/5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f'))
+        );
+    }
+
+    // ----- safety net: config cannot switch these off ------------------------
+
+    public function testConfigCannotUnmaskSessionCredentials()
+    {
+        // an install that empties or rewrites the config must keep these masked
+        config(['exment.operation_log.mask_columns' => []]);
+        $decoded = json_decode(
+            $this->mask(
+                '{"password":"real","current_password":"real2","access_token":"t","verify_code":"123456"}',
+                $this->adminPath('data/foo')
+            ),
+            true
+        );
+        foreach (['password', 'current_password', 'access_token', 'verify_code'] as $column) {
+            $this->assertSame('***', $decoded[$column]);
+        }
+    }
+
+    public function testMissingConfigStillMasksSessionCredentials()
+    {
+        // simulates a published config/exment.php from a version without the block:
+        // only requiredHideColumns() survives - the uri and path rules are config
+        // owned, so they are gone. Documented trade-off of keeping them editable.
+        config(['exment.operation_log' => null]);
+        $decoded = json_decode($this->mask('{"password":"real"}', $this->adminPath('data/foo')), true);
+        $this->assertSame('***', $decoded['password']);
+        $this->assertSame([], LogOperation::getHideColumnsByUri());
+    }
+
+    public function testMalformedConfigIsIgnored()
+    {
+        config([
+            'exment.operation_log.mask_columns'        => 'not-an-array',
+            'exment.operation_log.mask_columns_by_uri' => 'not-an-array',
+            'exment.operation_log.mask_path_prefixes'  => 'not-an-array',
+        ]);
+        $decoded = json_decode($this->mask('{"password":"real"}', $this->adminPath('data/foo')), true);
+        $this->assertSame('***', $decoded['password']);
+        $this->assertSame([], LogOperation::getHideColumnsByUri());
+        // non-string entries inside a valid array are dropped, not masked as keys
+        config(['exment.operation_log.mask_columns' => ['ok_col', '', 123, ['nested']]]);
+        $this->assertContains('ok_col', LogOperation::getHideColumns());
+        foreach (LogOperation::getHideColumns() as $column) {
+            $this->assertIsString($column);
+        }
     }
 }
