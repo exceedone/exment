@@ -29,7 +29,8 @@ class LogOperation extends BaseLogOperation
                 'path'    => substr(static::hidePathParams($request->path()), 0, 255),
                 'method'  => $request->method(),
                 'ip'      => $request->getClientIp(),
-                'input'   => json_encode(static::maskInputArray($request->input(), $request->path())),
+                // @phpstan-ignore-next-line Request::input() is typed mixed
+                'input'   => json_encode(static::maskInputArray((array)$request->input(), $request->path())),
             ];
 
             try {
@@ -115,23 +116,43 @@ class LogOperation extends BaseLogOperation
     }
 
     /**
-     * Keys masked on every URI. Only key names that are sensitive wherever they
-     * appear belong here; keys that are credentials only on specific screens/APIs
-     * must go to getHideColumnsByUri(), otherwise unrelated business data with
-     * the same column name (e.g. a "client_id" column on a user-defined table)
-     * would be masked too.
+     * Keys masked on every URI, from config "exment.operation_log.mask_columns".
+     * Keys that are credentials only on specific screens/APIs belong to
+     * "mask_columns_by_uri" instead, otherwise unrelated business data with the
+     * same column name (e.g. a "client_id" column on a user-defined table) would
+     * be masked too.
+     *
+     * requiredHideColumns() is unioned in and cannot be removed by config.
      *
      * @return array<int, string>
      */
     public static function getHideColumns(): array
     {
+        return array_values(array_unique(array_merge(
+            static::requiredHideColumns(),
+            static::normalizeColumnList(config('exment.operation_log.mask_columns'))
+        )));
+    }
+
+    /**
+     * Keys masked whatever the config says: the credentials that authenticate a
+     * user or a session, where logging one in plain text cannot be undone.
+     * Only names that are unambiguous belong here - a generic name such as
+     * "token" is scoped to the screen that posts it (config mask_columns_by_uri)
+     * so a user-defined column of the same name is not masked everywhere.
+     *
+     * This is the safety net for an install whose config/exment.php is out of
+     * date, hand-edited or emptied - that file is published once per install and
+     * "exment:update" never refreshes it (see InstallUpdateTrait::
+     * publishStaticFiles(), which force-publishes assets and lang but not
+     * config), while mergeConfigFrom() merges top-level keys only, so a
+     * published "operation_log" block wins as a whole.
+     *
+     * @return array<int, string>
+     */
+    protected static function requiredHideColumns(): array
+    {
         return [
-            // "password" family is masked EVERYWHERE (global) and is intentionally
-            // NOT un-masked on data/* screens: Exment user management is a system
-            // table at "data/user" that posts a REAL login password there, so
-            // un-masking password on data/* would leak it. A user-defined "password"
-            // business column is therefore over-masked - the safe trade-off, since
-            // over-masking is far better than leaking a real password.
             'password',
             'password_confirmation',
             'current_password',
@@ -139,22 +160,6 @@ class LogOperation extends BaseLogOperation
             'verify_code',
             'access_token',
             'refresh_token',
-            // Password reset token (posted as hidden field on auth/reset form).
-            // The token also appears in the URL path (auth/reset/{token});
-            // that segment is masked separately - see getHidePathPrefixes().
-            'token',
-            // SSO (OAuth / SAML) secrets
-            'oauth_client_id',
-            'oauth_client_secret',
-            'saml_sp_privatekey',
-            // System config secrets (admin/system): reCAPTCHA secret, SMTP password
-            'recaptcha_secret_key',
-            'system_mail_password',
-            // Plugin DB connection password
-            'custom_password',
-            // Plugin CRUD page auth (key / id+password)
-            'crud_auth_key',
-            'crud_auth_password',
         ];
     }
 
@@ -164,23 +169,52 @@ class LogOperation extends BaseLogOperation
      * that are credentials on specific screens/APIs but plain business data
      * elsewhere.
      *
+     * Driven entirely by config "exment.operation_log.mask_columns_by_uri":
+     * none of these keys is a session credential, so freezing this list on an
+     * install cannot leak a login. A key that must never be configurable away
+     * belongs to requiredHideColumns() instead.
+     *
      * @return array<string, array<int, string>>
      */
     public static function getHideColumnsByUri(): array
     {
-        return [
-            // API client setting screens (admin/api_setting*). "id" IS the oauth
-            // client_id and "secret" the client secret (posted by the edit form /
-            // grid filter). "client_api_key" is the real api key, posted nested as
-            // client_api_key[key] only by this form's save. None may be masked
-            // globally - a business table can legitimately own id/secret columns.
-            'api_setting*' => ['id', 'secret', 'client_api_key'],
-            // OAuth token endpoints (admin/oauth/*): client_id / client_secret /
-            // api_key are posted as credentials here (grant_type: api_key /
-            // client_credentials / password). They are plain business data on
-            // user-defined tables, so they are masked only on this URI.
-            'oauth/*' => ['client_id', 'api_key', 'client_secret'],
-        ];
+        $config = config('exment.operation_log.mask_columns_by_uri');
+        if (!is_array($config)) {
+            return [];
+        }
+
+        $uriColumns = [];
+        foreach ($config as $pattern => $columns) {
+            $columns = static::normalizeColumnList($columns);
+            if (!is_string($pattern) || $pattern === '' || empty($columns)) {
+                continue;
+            }
+            $uriColumns[$pattern] = array_values(array_unique($columns));
+        }
+
+        return $uriColumns;
+    }
+
+    /**
+     * Read a config value as a list of key names. Anything that is not a
+     * non-empty string is dropped, so a malformed config cannot break logging.
+     *
+     * @param mixed $value
+     * @return array<int, string>
+     */
+    protected static function normalizeColumnList($value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $columns = [];
+        foreach ($value as $column) {
+            if (is_string($column) && $column !== '') {
+                $columns[] = $column;
+            }
+        }
+        return $columns;
     }
 
     /**
@@ -207,19 +241,29 @@ class LogOperation extends BaseLogOperation
      * record ids (so the record can still be traced), false for bearer
      * credentials (a partial token has no traceability value - mask it whole).
      *
+     * Driven entirely by config "exment.operation_log.mask_path_prefixes" - there
+     * is no hard-coded fallback, so an install that drops an entry really does
+     * stop masking that url. "auth/reset" in particular carries a raw
+     * password-reset token, so that entry must stay in the config block.
+     *
      * @return array<string, bool>
      */
     protected static function getHidePathPrefixes(): array
     {
-        return [
-            'api_setting' => true,
-            // Passport client management API: oauth/clients/{client_id}
-            'oauth/clients' => true,
-            // Password reset url: auth/reset/{token}. Both GET (mail link) and
-            // POST (reset form action) carry the raw token in the path, and the
-            // route group includes admin.log, so the path must be masked here.
-            'auth/reset' => false,
-        ];
+        $config = config('exment.operation_log.mask_path_prefixes');
+        if (!is_array($config)) {
+            return [];
+        }
+
+        $prefixes = [];
+        foreach ($config as $prefix => $keepIdPrefix) {
+            if (!is_string($prefix) || $prefix === '') {
+                continue;
+            }
+            $prefixes[$prefix] = boolval($keepIdPrefix);
+        }
+
+        return $prefixes;
     }
 
     /**
@@ -270,6 +314,11 @@ class LogOperation extends BaseLogOperation
         if ($maskedPath === $path) {
             return $url;
         }
-        return str_replace('/' . $path, '/' . $maskedPath, $url);
+
+        // Match the path without its leading slash: a relative url
+        // ("admin/api_setting/{id}") has no slash to anchor on, and an absolute
+        // one contains the path either way. Every occurrence is replaced, so a
+        // copy of the path inside the query string is masked too.
+        return str_replace($path, $maskedPath, $url);
     }
 }
