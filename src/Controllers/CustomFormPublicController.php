@@ -463,7 +463,6 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
             ->requiredRule()
             ->help(exmtrans("custom_form_public.help.custom_form_id"))
-            /** @phpstan-ignore-next-line Parameter #1 $options of method ExmentAdminCore\Admin\Form\Field::options() expects array, Closure given. need to fix laravel-admin */
             ->options(function ($value) use ($custom_table) {
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];

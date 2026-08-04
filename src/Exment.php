@@ -992,7 +992,6 @@ class Exment
             return null;
         }
         $carbon = Carbon::parse($value);
-        // @phpstan-ignore-next-line
         return Carbon::create($carbon->year, $carbon->month, $carbon->day);
     }
 

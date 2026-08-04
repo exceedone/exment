@@ -9,12 +9,10 @@ class Checkboxone extends Field
 {
     protected $view = 'exment::form.field.checkboxone';
 
-    // @phpstan-ignore-next-line
     protected static $css = [
         '/vendor/open-admin/AdminLTE/plugins/iCheck/all.css',
     ];
 
-    // @phpstan-ignore-next-line
     protected static $js = [
         '/vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js',
     ];
@@ -23,7 +21,6 @@ class Checkboxone extends Field
     protected $check_label = '';
     // @phpstan-ignore-next-line
     protected $check_value = '';
-    // @phpstan-ignore-next-line
     protected $options = [];
 
 

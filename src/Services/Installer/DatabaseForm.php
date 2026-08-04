@@ -40,7 +40,6 @@ class DatabaseForm
             $args[$s] = array_get($database_connection, $s);
         }
 
-        // @phpstan-ignore-next-line
         return view('exment::install.database', $args);
     }
 

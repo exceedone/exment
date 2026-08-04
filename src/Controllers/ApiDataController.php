@@ -220,7 +220,6 @@ class ApiDataController extends AdminControllerTableBase
             }
 
             $operator = '=';
-            // @phpstan-ignore-next-line
             switch ($values[1]) {
                 case 'gt':
                     $operator = '>';
@@ -241,7 +240,6 @@ class ApiDataController extends AdminControllerTableBase
                     $operator = 'LIKE';
                     break;
             }
-            // @phpstan-ignore-next-line
             $paramInfos[] = [$column_name, $operator, $values[2]];
         }
 
@@ -278,7 +276,6 @@ class ApiDataController extends AdminControllerTableBase
             // holds a record reports "このテーブルは1レコードのみ登録可能です。"
             // (code 402) instead of the misleading generic "Permission denied".
             // A real permission failure still yields admin.deny via getMessage().
-            // @phpstan-ignore-next-line
             return abortJson(403, $code);
         }
 

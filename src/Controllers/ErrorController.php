@@ -54,7 +54,6 @@ class ErrorController extends Controller
                     ->default(exmtrans("error.check_error_log"))
                 ;
             }
-            /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
             $content->row(new Box(exmtrans("error.header"), $form));
         }));
     }

@@ -33,7 +33,6 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     protected $casts = ['options' => 'json'];
     protected $appends = ['form_column_target'];
 
-    // @phpstan-ignore-next-line
     protected $with = ['custom_column'];
 
     /**

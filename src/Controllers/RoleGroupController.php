@@ -137,7 +137,6 @@ class RoleGroupController extends AdminControllerBase
         // user/organization assignment screen requires an existing role group; force role-permission form on create
         $isRolePermissionPage = true;
         $form = $this->form();
-        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(trans('admin.create'), $form);
         $this->appendTools($box, null, $isRolePermissionPage);
         return $this->AdminContent($content)->body($box);
@@ -779,7 +778,6 @@ class RoleGroupController extends AdminControllerBase
         try {
             collect(explode(',', $id))->filter()->each(function ($id) {
                 $model = RoleGroup::findOrFail($id);
-                // @phpstan-ignore-next-line
                 $model->delete();
             });
 
@@ -838,7 +836,6 @@ class RoleGroupController extends AdminControllerBase
         
         if ($service->format() == 'csv') {
             $file = $request->file('custom_table_file');
-            // @phpstan-ignore-next-line
             $file_name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $service->filebasename($file_name);
         }

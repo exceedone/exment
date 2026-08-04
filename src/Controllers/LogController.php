@@ -121,7 +121,6 @@ class LogController extends AdminControllerBase
             ->help(exmtrans('operation_log.automatic_minute_help'))
             ->attribute(['data-filter' => $dataFilter]);
 
-        /** @phpstan-ignore-next-line */
         return new Box(exmtrans('operation_log.enable_automatic'), $form);
     }
 

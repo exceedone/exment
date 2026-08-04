@@ -589,7 +589,6 @@ class SelectTable extends CustomItem
             $searchAsId = $use_table_label_id && substr($items[0], 0, 1) == '#';
 
             if ($searchAsId) {
-                // @phpstan-ignore-next-line
                 $searchId = substr($items[0], 1);
                 $query->where('id', $searchId);
 
@@ -603,7 +602,6 @@ class SelectTable extends CustomItem
                     return null;
                 }
 
-                // @phpstan-ignore-next-line
                 if ($this->setSelectTableQuery($query, array_get($labelColumns[$labelColumnIndex++], 'table_label_id'), $items[$i])) {
                     $executeSearch = true;
                 }

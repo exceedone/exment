@@ -97,7 +97,6 @@ class CrudForm extends CrudBase
     protected function form(bool $isCreate, $id = null)
     {
         $form = $this->getForm($isCreate, $id);
-        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(trans($isCreate ? 'admin.create' : 'admin.edit'), $form);
         $box->style('info');
         $this->setFormTools($id, $box);

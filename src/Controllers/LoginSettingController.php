@@ -354,7 +354,6 @@ class LoginSettingController extends AdminControllerBase
     protected function globalSettingBox(Request $request)
     {
         $form = $this->globalSettingForm($request);
-        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('common.detail_setting'), $form);
         return $box;
     }
