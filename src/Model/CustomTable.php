@@ -1248,7 +1248,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // @phpstan-ignore-next-line
             if (isset($view) && array_key_exists($view, $settings)) {
 
-                // @phpstan-ignore-next-line
                 $parameters = array_get($settings, $view);
             }
 

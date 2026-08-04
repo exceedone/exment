@@ -577,7 +577,6 @@ EOT;
                 'No.'.($revision->revision_no)
             )->setWidth(9, 2);
         }
-        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
     }
 
@@ -684,7 +683,6 @@ EOT;
 
             Admin::script($script);
         }
-        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
     }
 
@@ -738,7 +736,6 @@ EOT;
             ->setLabelClass(['d-none'])
             ->setWidth(12, 0);
         }
-        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
 

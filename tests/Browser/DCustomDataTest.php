@@ -154,7 +154,6 @@ class DCustomDataTest extends ExmentKitTestCase
         // Get new data row
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
         // Check custom data
-        // @phpstan-ignore-next-line
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 // @phpstan-ignore-next-line
                 ->seeInField('value[integer]', 99)
@@ -194,13 +193,11 @@ class DCustomDataTest extends ExmentKitTestCase
             'value[select2value]' => 'value1',
             'value[yesno]' => 1,
         ];
-        // @phpstan-ignore-next-line
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 ->submitForm('admin-submit', $data)
                 ->seePageIs('/admin/data/exmenttest_data')
         ;
         // Check custom data
-        // @phpstan-ignore-next-line
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 ->seeInField('value[select2value]', 'value1')
                 // @phpstan-ignore-next-line
@@ -221,7 +218,6 @@ class DCustomDataTest extends ExmentKitTestCase
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
         // Update custom data
-        // @phpstan-ignore-next-line
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 // @phpstan-ignore-next-line
                 ->type(100, 'value[integer]')
@@ -249,7 +245,6 @@ class DCustomDataTest extends ExmentKitTestCase
         ;
 
         // Check custom data
-        // @phpstan-ignore-next-line
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 // @phpstan-ignore-next-line
                 ->seeInField('value[integer]', 100)
@@ -343,7 +338,6 @@ class DCustomDataTest extends ExmentKitTestCase
         $colname1 = CustomColumn::getEloquent('index_text', 'custom_value_view_all')->getIndexColumnName();
         $sort_str = "_sort%5Bcolumn%5D={$table_name}.{$colname1}&_sort%5Btype%5D=-1&_sort%5Bdirect%5D=1";
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('value->index_text', 'desc')->first();
-        // @phpstan-ignore-next-line
         $row = json_decode($row->value);
 
         // Check custom view data

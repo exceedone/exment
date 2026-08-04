@@ -44,7 +44,6 @@ class HasManyJsonTable extends HasManyTable
     }
 
 
-    // @phpstan-ignore-next-line
     protected function buildNestedForm($column, \Closure $builder, $key = null, $index = null)
     {
         return $this->buildNestedFormTrait($column, $builder, $key, $index);

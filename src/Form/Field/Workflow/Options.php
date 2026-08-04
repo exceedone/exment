@@ -54,7 +54,6 @@ class Options extends Select
         return $this;
     }
 
-    // @phpstan-ignore-next-line
     public function prepare($value)
     {
         if (!array_has($value, 'ignore_work')) {

@@ -8,7 +8,6 @@ class SwitchField extends AdminSwitchField
 {
     protected $view = 'exment::form.field.switchfield';
 
-    // @phpstan-ignore-next-line
     protected $states = [
         'on'  => ['value' => '1', 'text' => 'YES', 'color' => 'primary'],
         'off' => ['value' => '0', 'text' => 'NO', 'color' => 'default'],
@@ -16,7 +15,6 @@ class SwitchField extends AdminSwitchField
 
     public function render()
     {
-        // @phpstan-ignore-next-line
         if (is_null($this->value()) && is_null($this->getOld())) {
             $this->value = $this->states['off']['value'];
         }

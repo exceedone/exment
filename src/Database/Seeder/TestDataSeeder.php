@@ -1219,7 +1219,6 @@ class TestDataSeeder extends Seeder
             case 0:
                 break;
             case 1:
-                // @phpstan-ignore-next-line
                 $result = $date->addDays($new_id-4);
                 break;
             case 2:
@@ -1247,13 +1246,11 @@ class TestDataSeeder extends Seeder
                 $result = $date;
                 break;
             default:
-                // @phpstan-ignore-next-line
                 $result = \Carbon\Carbon::create(2019, 12, 28)->addDays($new_id);
                 break;
         }
 
         if (isset($result)) {
-            // @phpstan-ignore-next-line
             return $result->format('Y-m-d');
         }
         return null;

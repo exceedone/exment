@@ -46,7 +46,6 @@ class CustomFormPriorityController extends AdminControllerTableBase
         $form = new Form(new CustomFormPriority());
         $custom_table = $this->custom_table;
         $form->select('custom_form_id', exmtrans("custom_form_priority.custom_form_id"))->required()
-            // @phpstan-ignore-next-line
             ->options(function ($value) use ($custom_table) {
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];

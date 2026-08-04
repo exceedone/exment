@@ -377,7 +377,6 @@ class ApiController extends AdminControllerBase
         $query->orderBy('created_at', 'desc');
         $paginator = $query->paginate($count);
 
-        // @phpstan-ignore-next-line
         $paginator->appends($request->all([
             'login_user_id',
             'base_user_id',

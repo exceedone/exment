@@ -33,7 +33,6 @@ class DefaultTableProvider extends ProviderBase
     /**
      * @var int
      */
-    // @phpstan-ignore-next-line
     protected $oneRecordCreateCount = 0;
 
     // @phpstan-ignore-next-line
@@ -106,7 +105,6 @@ class DefaultTableProvider extends ProviderBase
         foreach ($value_customs as $line_no => $value_custom) {
             $options['datalist'] = $value_customs;
             ///// convert data first.
-            // @phpstan-ignore-next-line
             $value_custom = $this->dataProcessingFirst($value_custom, $line_no, $options);
 
             // get model

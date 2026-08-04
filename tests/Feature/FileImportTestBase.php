@@ -55,7 +55,6 @@ abstract class FileImportTestBase extends FeatureTestBase
 
             $sourceDir = $this->getSourceFilePath();
             $dirs = scandir($sourceDir);
-            // @phpstan-ignore-next-line
             foreach ($dirs as $dir) {
                 if ($dir == '.' ||$dir == '..') {
                     continue;

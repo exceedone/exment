@@ -22,7 +22,6 @@ class InitOnly extends Display
         return $this;
     }
 
-    // @phpstan-ignore-next-line
     public function prepare($value)
     {
         // Even if set value, return always default.

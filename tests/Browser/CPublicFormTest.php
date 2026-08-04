@@ -343,7 +343,6 @@ class CPublicFormTest extends ExmentKitTestCase
         $table_name = \getDBTableName($table);
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
-        // @phpstan-ignore-next-line
         $this->visit(admin_url('data/custom_value_edit_all/'. $row->id . '/edit'))
             ->seeInField('value[text]', 'unit test text')
             ->seeIsSelected('value[user]', '3')
@@ -581,7 +580,6 @@ class CPublicFormTest extends ExmentKitTestCase
         $table_name = \getDBTableName($table);
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
-        // @phpstan-ignore-next-line
         $this->visit(admin_url('data/custom_value_edit_all/'. $row->id . '/edit'))
             ->seeInField('value[text]', 'unit test text')
         ;

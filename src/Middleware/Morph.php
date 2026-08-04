@@ -75,7 +75,6 @@ class Morph
             getModelName($table_name);
         }
 
-        // @phpstan-ignore-next-line
         return $morphMaps;
     }
 }

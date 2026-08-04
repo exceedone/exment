@@ -183,7 +183,6 @@ EOT;
             $column = $field->column();
             // if NestedEmbeds, loop hasmany items
             if ($field instanceof NestedEmbeds) {
-                // @phpstan-ignore-next-line
                 $nestedValues = Arr::get($input, $this->column);
                 if (!is_array($nestedValues)) {
                     continue;
@@ -273,7 +272,6 @@ EOT;
         }
 
         if (!empty($v = $this->getOld())) {
-            // @phpstan-ignore-next-line
             return count($v);
         }
 

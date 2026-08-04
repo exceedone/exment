@@ -19,7 +19,6 @@ class Tile extends Field
      */
     protected $overlay = false;
 
-    // @phpstan-ignore-next-line
     public function __construct($column, $arguments = array())
     {
         parent::__construct($column, $arguments);
@@ -75,7 +74,6 @@ class Tile extends Field
     /**
      * {@inheritdoc}
      */
-    // @phpstan-ignore-next-line
     public function prepare($value)
     {
         //if (is_array($value) && !Arr::isAssoc($value)) {
@@ -86,7 +84,6 @@ class Tile extends Field
     }
     public function render()
     {
-        // @phpstan-ignore-next-line
         if ($this->options instanceof \Closure) {
             // @phpstan-ignore-next-line
             if ($this->form && $this->form->model()) {

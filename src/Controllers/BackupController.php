@@ -122,7 +122,6 @@ class BackupController extends AdminControllerBase
             ->min(0)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
-        /** @phpstan-ignore-next-line  constructor expects string, ExmentAdminCore\Admin\Widgets\Form given. */
         return new Box(exmtrans("backup.setting_header"), $form);
     }
 
@@ -357,7 +356,6 @@ class BackupController extends AdminControllerBase
             // get upload file
             $file = $request->file('upload_zipfile');
             // store uploaded file
-            // @phpstan-ignore-next-line
             $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
             try {
                 $result = $this->restore->execute($filename, true);

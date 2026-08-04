@@ -363,7 +363,6 @@ abstract class CustomItem implements ItemInterface
         if (is_nullorempty($default)) {
             return null;
         }
-        // @phpstan-ignore-next-line
         return $this->getPureValueByQuery($default);
     }
 

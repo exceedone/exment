@@ -70,7 +70,6 @@ class StatusSelects extends Select
             $this->script = "$('.workflow_actions_status_from').select2($configs);";
         }
 
-        // @phpstan-ignore-next-line
         if ($this->options instanceof \Closure) {
             // @phpstan-ignore-next-line
             if ($this->form && $this->form->model()) {
