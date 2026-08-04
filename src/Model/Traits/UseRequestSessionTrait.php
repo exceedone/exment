@@ -87,9 +87,12 @@ trait UseRequestSessionTrait
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
         // get from request session
-        $records = System::{$func}($key, function () use ($with) {
+        $getRecords = function () use ($with) {
             return self::with($with)->get();
-        });
+        };
+        $records = $func === 'cache'
+            ? System::cache($key, $getRecords)
+            : System::requestSession($key, $getRecords);
 
         $collectFunc = $first ? 'first' : 'filter';
 
@@ -118,7 +121,11 @@ trait UseRequestSessionTrait
 
         // else, get all again
         $records = self::with($with)->get();
-        System::{$func}($key, $records);
+        if ($func === 'cache') {
+            System::cache($key, $records);
+        } else {
+            System::requestSession($key, $records);
+        }
 
         if (is_nullorempty($records)) {
 
