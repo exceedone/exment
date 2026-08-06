@@ -6,7 +6,7 @@ Laravel 12 work while `exceedone/exment-boilerplate` still has Laravel 10 on its
 default branch.
 
 `feature/laravel-12-test-ga` = `feature/laravel-12` + the temporary lines listed
-below.
+below + **one real fix that must be ported back** (see "Real fix" further down).
 
 ## What was added on top of `feature/laravel-12`
 
@@ -36,6 +36,29 @@ In ExmentServiceProvider.php line 36:
 
 plus this file (`.github/LARAVEL12-TEST-NOTES.md`).
 
+## Real fix — port this one back to `feature/laravel-12`
+
+Commit **`fix(phpstan): point at larastan v3 and ship the baseline`** is *not*
+temporary. `feature/laravel-12` still pointed phpstan at the abandoned
+`nunomaduro/larastan` v2, so CI died with
+
+```
+File '/var/www/exment/./vendor/nunomaduro/larastan/extension.neon' is missing or is not readable.
+```
+
+It changes two things:
+
+* `phpstan.neon.dist` — include `./vendor/larastan/larastan/extension.neon`
+  instead of `./vendor/nunomaduro/larastan/extension.neon`.
+* `.github/workflows/phpstan.yml` — the `setup phpstan` step also copies
+  `phpstan-baseline.neon` next to `phpstan.neon.dist`. PHPStan resolves relative
+  paths against the directory of the config file, and every `path:` in the
+  baseline is written relative to the host application root, so the baseline has
+  to sit there too.
+
+Cherry-pick that commit onto `feature/laravel-12`; the `ref:` blocks and this
+file must **not** follow it.
+
 ## Release order
 
 1. Merge `exceedone/exment-boilerplate` `feature/laravel-12` → `main`.
@@ -53,7 +76,9 @@ Laravel 12 files on their own, so the pinned refs are no longer needed.
 **Nhánh `feature/laravel-12-test-ga` chỉ dùng để test GitHub Actions. KHÔNG merge
 nhánh này vào `master`.**
 
-Nhánh này = `feature/laravel-12` + phần tạm thời:
+Nhánh này = `feature/laravel-12` + phần tạm thời + 1 fix thật.
+
+### Phần TẠM THỜI — xoá trước khi merge vào master
 
 - 3 file `.github/workflows/unittest.yml`, `phpstan.yml`, `check-lang.yml`: thêm
   khối `ref: feature/laravel-12` (nằm giữa 2 dòng đánh dấu `TEMPORARY` và
@@ -63,6 +88,19 @@ Nhánh này = `feature/laravel-12` + phần tạm thời:
 Lý do: repo `exment-boilerplate` chưa merge `feature/laravel-12` vào `main`, nên
 nếu không ghim `ref`, workflow sẽ checkout nhánh `main` (vẫn là Laravel 10) và CI
 báo lỗi `Class "ExmentAdminCore\Admin\AdminServiceProvider" not found`.
+
+### Phần KHÔNG tạm thời — phải mang sang `feature/laravel-12`
+
+Commit **`fix(phpstan): point at larastan v3 and ship the baseline`** là fix thật,
+phải cherry-pick sang `feature/laravel-12`:
+
+- `phpstan.neon.dist`: đổi `./vendor/nunomaduro/larastan/extension.neon` thành
+  `./vendor/larastan/larastan/extension.neon` (larastan v2 đã bỏ, Laravel 12 dùng
+  `larastan/larastan` v3).
+- `.github/workflows/phpstan.yml`: bước `setup phpstan` copy thêm
+  `phpstan-baseline.neon`. PHPStan tính đường dẫn tương đối theo thư mục chứa file
+  config, mà mọi `path:` trong baseline được ghi theo gốc app, nên baseline phải
+  nằm cùng chỗ với `phpstan.neon.dist`.
 
 Thứ tự khi phát hành:
 

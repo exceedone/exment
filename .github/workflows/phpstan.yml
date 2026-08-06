@@ -61,6 +61,7 @@ jobs:
         working-directory: docker-exment
         run: |
           docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan.neon.dist .
+          docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan-baseline.neon .
 
       - name: run phpstan
         working-directory: docker-exment
