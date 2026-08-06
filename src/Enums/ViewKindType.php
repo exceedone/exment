@@ -14,7 +14,21 @@ class ViewKindType extends EnumBase
     public const CALENDAR = "2";
     public const FILTER = "3";
     public const PLUGIN = "4";
+    public const KANBAN = "5";
     public const ALLDATA = "9";
+
+    /**
+     * Whether this view kind can be rendered as a plain data list.
+     * Calendar and kanban draw their own layout, so places that expect a
+     * table-like list (dashboard list box, chart box...) must exclude them.
+     *
+     * @param string $view_kind_type
+     * @return bool
+     */
+    public static function isListable($view_kind_type)
+    {
+        return !in_array($view_kind_type, [static::CALENDAR, static::KANBAN]);
+    }
 
     /**
      * Accept view kind type for datalist
@@ -58,6 +72,8 @@ class ViewKindType extends EnumBase
                 return GridItem\SummaryGrid::class;
             case static::CALENDAR:
                 return GridItem\CalendarGrid::class;
+            case static::KANBAN:
+                return GridItem\KanbanGrid::class;
             case static::ALLDATA:
                 return GridItem\AllDataGrid::class;
             case static::FILTER:

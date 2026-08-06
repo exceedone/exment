@@ -422,6 +422,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Kanban Max size Count
+    |--------------------------------------------------------------------------
+    |
+    | Default max records drawn on a kanban board (for performance).
+    | Each view can override it with its own "kanban_max_count" setting.
+    |
+    */
+    'kanban_max_size_count' => env('EXMENT_KANBAN_MAX_SIZE_COUNT', 300),
+
+    /*
+    |--------------------------------------------------------------------------
     | Calendar Data get value
     |--------------------------------------------------------------------------
     |

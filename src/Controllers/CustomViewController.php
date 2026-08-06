@@ -299,7 +299,12 @@ class CustomViewController extends AdminControllerTableBase
 
         // append model for getting from options
         $form->editing(function ($form) {
-            $form->model()->append(['use_view_infobox', 'view_infobox_title', 'view_infobox', 'pager_count', 'condition_join', 'condition_reverse', 'header_align']);
+            $form->model()->append(['use_view_infobox', 'view_infobox_title', 'view_infobox', 'pager_count', 'condition_join', 'condition_reverse', 'header_align',
+                'kanban_group_column_id', 'kanban_swimlane_column_id', 'kanban_editable', 'kanban_max_count',
+                'kanban_title_column_id', 'kanban_assignee_column_id', 'kanban_limit_column_id', 'kanban_age_column_id',
+                'kanban_ai_column_id', 'kanban_source', 'kanban_wips', 'kanban_done_keys',
+                'kanban_wip_column_id', 'kanban_limit_warn', 'kanban_age_steps',
+                'kanban_kpi', 'kanban_quickadd', 'kanban_bulk', 'kanban_drawer']);
         });
 
         // check filters and sorts count before save

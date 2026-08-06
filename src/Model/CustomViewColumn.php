@@ -31,7 +31,8 @@ class CustomViewColumn extends ModelBase
     use Traits\DatabaseJsonOptionTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color', 'sort_order', 'sort_type'];
+    protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color', 'sort_order', 'sort_type',
+        'kanban_position', 'kanban_style', 'kanban_icon'];
     //protected $with = ['custom_column'];
     protected $casts = ['options' => 'json'];
 
@@ -126,6 +127,54 @@ class CustomViewColumn extends ModelBase
     public function setViewColumnFontColorAttribute($view_column_color)
     {
         $this->setOption('font_color', $view_column_color);
+
+        return $this;
+    }
+
+
+    ///// kanban card field options ---------------------------------------
+    // Stored in the "options" json column, so no migration is needed.
+
+    // @phpstan-ignore-next-line
+    public function getKanbanPositionAttribute()
+    {
+        return $this->getOption('kanban_position');
+    }
+
+    // @phpstan-ignore-next-line
+    public function setKanbanPositionAttribute($kanban_position)
+    {
+        $this->setOption('kanban_position', $kanban_position);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanStyleAttribute()
+    {
+        return $this->getOption('kanban_style');
+    }
+
+    // @phpstan-ignore-next-line
+    public function setKanbanStyleAttribute($kanban_style)
+    {
+        $this->setOption('kanban_style', $kanban_style);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanIconAttribute()
+    {
+        return $this->getOption('kanban_icon');
+    }
+
+    // @phpstan-ignore-next-line
+    public function setKanbanIconAttribute($kanban_icon)
+    {
+        $this->setOption('kanban_icon', $kanban_icon);
 
         return $this;
     }

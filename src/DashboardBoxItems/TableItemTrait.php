@@ -97,7 +97,7 @@ trait TableItemTrait
                 if ($isCalendar) {
                     return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
                 }
-                return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
+                return ViewKindType::isListable(array_get($value, 'view_kind_type'));
             })
             ->filter(function ($value) use ($dashboard) {
                 if (array_get($dashboard, 'dashboard_type') != DashboardType::SYSTEM) {

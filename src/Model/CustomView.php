@@ -1086,6 +1086,313 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
 
+    ///// kanban view options -----------------------------------------------
+    // Stored in the "options" json column, so no migration is needed.
+
+    // @phpstan-ignore-next-line
+    public function getKanbanGroupColumnIdAttribute()
+    {
+        return $this->getOption('kanban_group_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanGroupColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_group_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanSwimlaneColumnIdAttribute()
+    {
+        return $this->getOption('kanban_swimlane_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanSwimlaneColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_swimlane_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanEditableAttribute()
+    {
+        return $this->getOption('kanban_editable');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanEditableAttribute($val)
+    {
+        $this->setOption('kanban_editable', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanMaxCountAttribute()
+    {
+        return $this->getOption('kanban_max_count');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanMaxCountAttribute($val)
+    {
+        $this->setOption('kanban_max_count', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanTitleColumnIdAttribute()
+    {
+        return $this->getOption('kanban_title_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanTitleColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_title_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanAssigneeColumnIdAttribute()
+    {
+        return $this->getOption('kanban_assignee_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanAssigneeColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_assignee_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanLimitColumnIdAttribute()
+    {
+        return $this->getOption('kanban_limit_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanLimitColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_limit_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanAgeColumnIdAttribute()
+    {
+        return $this->getOption('kanban_age_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanAgeColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_age_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanAiColumnIdAttribute()
+    {
+        return $this->getOption('kanban_ai_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanAiColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_ai_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanSourceAttribute()
+    {
+        return $this->getOption('kanban_source');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanSourceAttribute($val)
+    {
+        $this->setOption('kanban_source', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanWipColumnIdAttribute()
+    {
+        return $this->getOption('kanban_wip_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanWipColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_wip_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanLimitWarnAttribute()
+    {
+        return $this->getOption('kanban_limit_warn');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanLimitWarnAttribute($val)
+    {
+        $this->setOption('kanban_limit_warn', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanAgeStepsAttribute()
+    {
+        return $this->getOption('kanban_age_steps');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanAgeStepsAttribute($val)
+    {
+        $this->setOption('kanban_age_steps', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanWipsAttribute()
+    {
+        return $this->getOption('kanban_wips');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanWipsAttribute($val)
+    {
+        $this->setOption('kanban_wips', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanDoneKeysAttribute()
+    {
+        return $this->getOption('kanban_done_keys');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanDoneKeysAttribute($val)
+    {
+        $this->setOption('kanban_done_keys', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanKpiAttribute()
+    {
+        return $this->getOption('kanban_kpi');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanKpiAttribute($val)
+    {
+        $this->setOption('kanban_kpi', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanQuickaddAttribute()
+    {
+        return $this->getOption('kanban_quickadd');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanQuickaddAttribute($val)
+    {
+        $this->setOption('kanban_quickadd', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanBulkAttribute()
+    {
+        return $this->getOption('kanban_bulk');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanBulkAttribute($val)
+    {
+        $this->setOption('kanban_bulk', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanDrawerAttribute()
+    {
+        return $this->getOption('kanban_drawer');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanDrawerAttribute($val)
+    {
+        $this->setOption('kanban_drawer', $val);
+
+        return $this;
+    }
+
+
     // @phpstan-ignore-next-line
     public function getUseViewInfoboxAttribute()
     {
