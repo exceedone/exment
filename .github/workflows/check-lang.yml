@@ -22,6 +22,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
+          # ===== TEMPORARY: remove from here down to "END TEMPORARY" before merging into master =====
+          # Reason: exment-boilerplate has not merged feature/laravel-12 into main yet,
+          # so the Laravel 12 composer.dev.json / composer.dev.lock only exist on that branch.
+          # TẠM THỜI: xoá từ dòng này đến dòng "END TEMPORARY" trước khi merge vào master.
+          ref: feature/laravel-12
+          # ===== END TEMPORARY =====
           path: ./docker-exment/exment-boilerplate
 
       - uses: actions/checkout@v4
