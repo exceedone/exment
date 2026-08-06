@@ -72,8 +72,6 @@ class NestedEmbeds extends Embeds
 
     /**
      * @return array
-     * @phpstan-ignore-next-line Return type (array) of method Exceedone\Exment\Form\Field\NestedEmbeds::getAttributes() should be compatible with return type (string) of method ExmentAdminCore\Admin\Form\Field::getAttributes()
-     * it needs to fix laravel-admin
      */
     // @phpstan-ignore-next-line
     public function getAttributes()

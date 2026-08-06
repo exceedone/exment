@@ -58,7 +58,6 @@ class ApiWorkflowAccessControlTest extends TestCase
             {
                 $this->designated = $designated;
             }
-            // @phpstan-ignore-next-line
             public function getDesignatedTable()
             {
                 return $this->designated;

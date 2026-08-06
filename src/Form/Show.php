@@ -14,7 +14,6 @@ class Show extends AdminShow
     /**
      * Initialize panel.
      */
-    // @phpstan-ignore-next-line
     protected function initPanel()
     {
         $this->panel = new GridShowPanel($this);

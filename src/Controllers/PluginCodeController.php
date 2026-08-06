@@ -156,7 +156,6 @@ class PluginCodeController extends AdminControllerBase
 
             $upload_files = $request->file('fileUpload');
 
-            // @phpstan-ignore-next-line
             foreach ($upload_files as $upload_file) {
                 $filename = $upload_file->getClientOriginalName();
 

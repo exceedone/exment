@@ -480,11 +480,9 @@ class FileController extends AdminControllerBase
 
         // get upload file
         $file = $request->file('file');
-        // @phpstan-ignore-next-line
         $original_name = $file->getClientOriginalName();
         $uuid = make_uuid();
         // store uploaded file
-        // @phpstan-ignore-next-line
         $filename = $file->storeAs('', $uuid, Define::DISKNAME_TEMP_UPLOAD);
         try {
             $request->session()->put($uuid, $original_name);

@@ -9,7 +9,6 @@ class Tinymce extends Textarea
 {
     protected $view = 'admin::form.textarea';
 
-    // @phpstan-ignore-next-line
     protected static $js = [
         '/vendor/exment/tinymce/tinymce.min.js',
     ];

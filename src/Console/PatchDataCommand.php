@@ -1850,7 +1850,6 @@ class PatchDataCommand extends Command
         Model\File::where('parent_type', $custom_table->table_name)
             ->chunk(1000, function ($files) use ($custom_table) {
                 foreach ($files as $file) {
-                    // @phpstan-ignore-next-line
                     $exists = $custom_table->getValueModel()->query()
                         ->where('id', $file->parent_id)
                         ->withoutGlobalScopes()

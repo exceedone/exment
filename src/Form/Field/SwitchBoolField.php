@@ -6,7 +6,6 @@ class SwitchBoolField extends SwitchField
 {
     protected $view = 'exment::form.field.switchfield';
 
-    // @phpstan-ignore-next-line
     protected $states = [
         'on'  => ['value' => '1', 'text' => 'YES', 'color' => 'primary'],
         'off' => ['value' => '0', 'text' => 'NO', 'color' => 'default'],

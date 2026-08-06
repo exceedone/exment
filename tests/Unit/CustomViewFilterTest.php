@@ -715,7 +715,6 @@ class CustomViewFilterTest extends UnitTestBase
             $date = \Carbon\Carbon::parse($date);
             $date = \Carbon\Carbon::create($date->year, $date->month, $date->day);
 
-            // @phpstan-ignore-next-line
             $diff = \Carbon\Carbon::today()->diffInDays($date, false);
             return $diff >= 0;
         });

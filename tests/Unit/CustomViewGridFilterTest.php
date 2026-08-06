@@ -77,7 +77,6 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $this->__testGridFilter(['updated_at.start' => '2025-02-01', 'updated_at.end' => '2025-02-02'], function ($data) {
             $actual = array_get($data, 'updated_at');
-            // @phpstan-ignore-next-line
             return $actual->between(Carbon::create(2025, 2, 1), Carbon::create(2025, 2, 2)->endOfDay());
         }, 2);
     }
