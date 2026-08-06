@@ -1,5 +1,6 @@
 includes:
-    - ./vendor/nunomaduro/larastan/extension.neon
+    - ./vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
 parameters:
     paths:
         - vendor/exceedone/exment
@@ -74,33 +75,9 @@ parameters:
             path: vendor/exceedone/exment/src/*
 
         -
-            message: "#^Static access to instance property Exceedone\\\\Exment\\\\Enums\\\\FormColumnType::\\$options.#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Static access to instance property Exceedone\\\\Exment\\\\Enums\\\\GroupCondition::\\$options.#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Static access to instance property Exceedone\\\\Exment\\\\Enums\\\\SummaryCondition::\\$options.#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Static access to instance property Exceedone\\\\Exment\\\\Enums\\\\SystemColumn::\\$options.#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Enums\\\\FormColumnType supplied for foreach, only iterables are supported.#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Enums\\\\SystemColumn supplied for foreach, only iterables are supported.#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::#"
-            path: vendor/exceedone/exment/src/*
-
-        -
             message: "#^Part .* of encapsed string cannot be cast to string\\.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Anonymous function should return Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, Exceedone\\\\Exment\\\\Model\\\\[A-Za-z]+\\> but returns Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, Exceedone\\\\Exment\\\\Model\\\\[A-Za-z]+\\>\\.$#"
             path: vendor/exceedone/exment/src/*

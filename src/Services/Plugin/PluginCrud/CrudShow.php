@@ -45,7 +45,6 @@ class CrudShow extends CrudBase
         $form->disableSubmit();
 
         $this->setShowColumn($form);
-        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(trans('admin.detail'), $form);
         $box->style('info');
         $this->setShowTools($id, $box);

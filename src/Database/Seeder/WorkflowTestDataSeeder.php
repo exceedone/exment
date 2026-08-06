@@ -480,14 +480,12 @@ class WorkflowTestDataSeeder extends Seeder
                 $workflowstatus = new WorkflowStatus();
                 $workflowstatus->workflow_id = $workflowObj->id;
 
-                // @phpstan-ignore-next-line
                 foreach ($status as $key => $item) {
                     $workflowstatus->{$key} = $item;
                 }
                 $workflowstatus->order = $index;
 
                 $workflowstatus->save();
-                // @phpstan-ignore-next-line
                 $status['id'] = $workflowstatus->id;
                 $status['index'] = $index;
             }
@@ -498,11 +496,9 @@ class WorkflowTestDataSeeder extends Seeder
 
                 $workflowaction = new WorkflowAction();
                 $workflowaction->workflow_id = $workflowObj->id;
-                // @phpstan-ignore-next-line
                 $workflowaction->action_name = $action['action_name'];
                 $workflowaction->ignore_work = $action['ignore_work']?? 0;
 
-                // @phpstan-ignore-next-line
                 if ($action['status_from'] === 'start') {
                     $workflowaction->status_from = $action['status_from'];
                     $actionStatusFromTo['status_from'] = null;
@@ -521,7 +517,6 @@ class WorkflowTestDataSeeder extends Seeder
                 foreach ($action['authorities'] as $key => $item) {
                     $item['workflow_action_id'] = $workflowaction->id;
                     if ($item['related_type'] == 'column') {
-                        // @phpstan-ignore-next-line
                         $custom_column = CustomColumn::getEloquent($item['related_id'], $workflow['tables'][0]['custom_table']);
                         $item['related_id'] = $custom_column->id;
                     }
@@ -554,9 +549,7 @@ class WorkflowTestDataSeeder extends Seeder
                         $conditions['morph_id'] = $header->id;
                         // @phpstan-ignore-next-line
                         if (isset($conditions['target_column_id'])) {
-                            /** @phpstan-ignore-next-line */
                             \Log::debug($workflow['tables'][0]['custom_table']);
-                            // @phpstan-ignore-next-line
                             $target_column = CustomColumn::getEloquent($conditions['target_column_id'], $workflow['tables'][0]['custom_table']);
                             $conditions['target_column_id'] = $target_column->id;
                         }
@@ -571,7 +564,6 @@ class WorkflowTestDataSeeder extends Seeder
             foreach ($workflow['tables'] as &$table) {
                 $wfTable = new WorkflowTable();
                 $wfTable->workflow_id = $workflowObj->id;
-                // @phpstan-ignore-next-line
                 $wfTable->custom_table_id = CustomTable::getEloquent($table['custom_table'])->id;
                 $wfTable->active_flg = true;
                 $wfTable->save();
@@ -599,7 +591,6 @@ class WorkflowTestDataSeeder extends Seeder
                         'password' => array_get($user, 'password')
                     ]);
 
-                    // @phpstan-ignore-next-line
                     $custom_value = CustomTable::getEloquent($table['custom_table'])->getValueModel();
                     $custom_value->setValue("text", "test_$userKey");
                     $custom_value->setValue("index_text", "index_$userKey");
@@ -614,7 +605,6 @@ class WorkflowTestDataSeeder extends Seeder
 
                         $latest_flg = count($wfValueStatuses) - 1 === $index;
 
-                        // @phpstan-ignore-next-line
                         if ($table['custom_table'] == 'custom_value_edit_all') {
                             if ($index === 1) {
                                 $latest_flg = true;
@@ -632,7 +622,6 @@ class WorkflowTestDataSeeder extends Seeder
                             continue;
                         }
 
-                        // @phpstan-ignore-next-line
                         $user = $users[$wfUserKeys[$index - 1]];
                         \Auth::guard('admin')->attempt([
                             'username' => array_get($user, 'value.user_code'),

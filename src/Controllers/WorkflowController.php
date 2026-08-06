@@ -107,7 +107,6 @@ class WorkflowController extends AdminControllerBase
                 ))->render());
             }
 
-            // @phpstan-ignore-next-line
             if ($actions->row->canActivate()) {
                 $actions->prepend((new Tools\ModalLink(
                     admin_urls('workflow', $actions->row->id, 'activateModal'),
@@ -602,7 +601,6 @@ class WorkflowController extends AdminControllerBase
 
         $results = [];
 
-        // @phpstan-ignore-next-line
         if (is_null($results = old('workflow_tables'))) {
             $workflowTables = WorkflowTable::with(['workflow', 'custom_table'])->get()
             ->filter(function ($workflowTable) {
@@ -679,7 +677,6 @@ class WorkflowController extends AdminControllerBase
         $form->html(view('exment::workflow.beginning', [
             'items' => $results
         ])->render());
-        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('workflow.beginning'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => admin_url('workflow'),

@@ -312,7 +312,6 @@ class CustomOperation extends ModelBase
     protected function getUpdateValues($model, $inputs = null)
     {
 
-        // @phpstan-ignore-next-line
         $updates = collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) use ($model) {
             $custom_column = $operation_column->custom_column;
             if (is_nullorempty($custom_column)) {

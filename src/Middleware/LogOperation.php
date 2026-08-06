@@ -29,7 +29,6 @@ class LogOperation extends BaseLogOperation
                 'path'    => substr(static::hidePathParams($request->path()), 0, 255),
                 'method'  => $request->method(),
                 'ip'      => $request->getClientIp(),
-                // @phpstan-ignore-next-line Request::input() is typed mixed
                 'input'   => json_encode(static::maskInputArray((array)$request->input(), $request->path())),
             ];
 

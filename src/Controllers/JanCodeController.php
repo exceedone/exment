@@ -31,9 +31,7 @@ class JanCodeController extends Controller
             ->first();
         $url = '';
         if ($jan_code) {
-            // @phpstan-ignore-next-line
             $table_id = $jan_code->table_id;
-            // @phpstan-ignore-next-line
             $target_id = $jan_code->target_id;
             if ($table_id) {
                 $custom_table = CustomTable::getEloquent($table_id);

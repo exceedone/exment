@@ -64,7 +64,6 @@ class LoginUserProvider extends ProviderBase
             // if exists, firstOrNew
             else {
                 //*Replace "." to "->" for json value
-                // @phpstan-ignore-next-line
                 $model = $modelName::withTrashed()->firstOrNew([str_replace(".", "->", $this->primary_key) => $primary_value]);
             }
             if (!isset($model)) {

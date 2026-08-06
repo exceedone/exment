@@ -18,7 +18,6 @@ class HasManyTable extends HasMany
     protected $tablecolumnwidths = [];
     // @phpstan-ignore-next-line
     protected $count = null;
-    // @phpstan-ignore-next-line
     protected $enableHeader = true;
 
     /**
@@ -129,7 +128,6 @@ class HasManyTable extends HasMany
         return $this;
     }
 
-    // @phpstan-ignore-next-line
     public function disableHeader()
     {
         $this->enableHeader = false;

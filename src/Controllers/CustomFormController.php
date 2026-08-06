@@ -531,7 +531,6 @@ class CustomFormController extends AdminControllerTableBase
             ->help(exmtrans('custom_form.help.form_label_type'))
             ->default(FormLabelType::HORIZONTAL)
             ->options(FormLabelType::transArrayFilter('custom_form.form_label_type_options', FormLabelType::getFormLabelTypes()));
-        /** @phpstan-ignore-next-line  constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('custom_form.header_basic_setting'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => 'javascript:void(0);',
@@ -903,7 +902,6 @@ class CustomFormController extends AdminControllerTableBase
 
         return getAjaxResponse([
             'body'  => $form->render(),
-            /** @phpstan-ignore-next-line Result of method ExmentAdminCore\Admin\Widgets\Form::getScript() (void) is used. need to fix laravel-admin */
             'script' => $form->getScript(),
             'title' => trans('admin.setting'),
             'modalSize' => 'modal-xl',
