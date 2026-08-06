@@ -135,6 +135,39 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
         $this->assertStringNotContainsString('5e02b3a0', $log->input);
     }
 
+    public function testHandleMasksTheResetPasswordTokenInBothInputAndPath()
+    {
+        // The password-reset token is the one credential the removed core filter
+        // (admin.operation_log.filter_input) used to mask that Exment now covers
+        // from config alone - see GuardCoreFilterInputRemovedTest. It reaches the
+        // log twice on the same request: as the hidden "token" field posted by
+        // auth/reset.blade.php, and as the {token} segment of the form action.
+        // Both are asserted here on the stored row, because a unit test on the
+        // static helpers stays green even if this route stops being logged.
+        $token = 'raw-reset-token-9f3a1c7b5d2e';
+        $log = $this->logged('auth/reset/' . $token, [
+            'token' => $token,
+            'email' => 'user@example.com',
+            'password' => 'NewPass@456',
+            'password_confirmation' => 'NewPass@456',
+        ]);
+
+        $input = $this->input($log);
+        $this->assertSame('***', $input['token'], 'The reset token reached admin_operation_log unmasked.');
+        $this->assertSame('***', $input['password']);
+        $this->assertSame('***', $input['password_confirmation']);
+
+        // a bearer credential keeps no traceability prefix: the whole segment goes
+        $this->assertSame(ltrim(admin_base_path('auth/reset/***'), '/'), $log->path);
+
+        // belt and braces: the raw value must appear in neither column
+        $this->assertStringNotContainsString($token, $log->input);
+        $this->assertStringNotContainsString($token, $log->path);
+
+        // the address is what makes the row useful for auditing - keep it readable
+        $this->assertSame('user@example.com', $input['email']);
+    }
+
     public function testIdIsNotMaskedOnDataUris()
     {
         // the rule must never degrade into "mask every field named id"

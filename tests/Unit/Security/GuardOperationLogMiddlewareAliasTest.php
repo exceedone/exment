@@ -102,6 +102,38 @@ class GuardOperationLogMiddlewareAliasTest extends TestCase
         }
     }
 
+    public function testNothingWiresTheCoreLogOperationDirectly()
+    {
+        // The assertions above pin the "admin.log" ALIAS. A group may also name a
+        // middleware by class, which bypasses the alias entirely - and the core
+        // class no longer masks anything at all since its filterInput() was
+        // removed (see GuardCoreFilterInputRemovedTest), so any route wired that
+        // way would write every credential to admin_operation_log verbatim.
+        $core = ltrim(\ExmentAdminCore\Admin\Middleware\LogOperation::class, '\\');
+
+        foreach ($this->registeredAliases() as $alias => $class) {
+            $this->assertNotSame(
+                $core,
+                ltrim((string) $class, '\\'),
+                "Alias \"{$alias}\" resolves to the core LogOperation, which does not mask."
+            );
+        }
+
+        foreach (app('router')->getMiddlewareGroups() as $group => $middleware) {
+            foreach ((array) $middleware as $entry) {
+                if (!is_string($entry)) {
+                    continue;
+                }
+                $this->assertNotSame(
+                    $core,
+                    ltrim($entry, '\\'),
+                    "Middleware group \"{$group}\" wires the core LogOperation by class name, "
+                    . 'bypassing the "admin.log" alias. Use the alias so Exment\'s masking runs.'
+                );
+            }
+        }
+    }
+
     public function testLoggingMiddlewareStaysInEveryGroupThatNeedsIt()
     {
         // dropping "admin.log" from a group disables the log - and its masking -
