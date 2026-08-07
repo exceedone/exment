@@ -38,6 +38,7 @@ use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ShowGridType;
 use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\Services\MentionService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
 use Illuminate\Support\Str;
 
@@ -895,6 +896,7 @@ EOT;
     // @phpstan-ignore-next-line
     public function addComment($comment)
     {
+        $mentions = ['users' => collect(), 'denied' => []];
         if (!empty($comment)) {
             // save Comment Model
             $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
@@ -905,6 +907,10 @@ EOT;
             ]);
             $model->save();
 
+            // notify mentioned users
+            $mentions = MentionService::resolveMentions($comment, $this->custom_table);
+            MentionService::notifyMentioned($mentions['users'], $this->custom_value, $comment);
+
             // execute notify
             foreach ($this->custom_table->notifies as $notify) {
                 $notify->notifyCreateUpdateUser($this->custom_value, NotifySavedType::COMMENT, ['comment' => $comment]);
@@ -912,7 +918,11 @@ EOT;
         }
 
         $url = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id);
-        admin_toastr(trans('admin.save_succeeded'));
+        if (!empty($mentions['denied'])) {
+            admin_toastr(exmtrans('comment_mention.denied_message', ['codes' => implode(', ', $mentions['denied'])]), 'warning');
+        } else {
+            admin_toastr(trans('admin.save_succeeded'));
+        }
         return redirect($url);
     }
 

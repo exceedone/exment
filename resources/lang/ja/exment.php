@@ -1583,6 +1583,13 @@ return [
         ],
     ],
 
+    'comment_mention' => [
+        'notify_subject' => ':user_nameさんからメンションされました',
+        'notify_body' => ":user_nameさんが「:table_view_name」の「:label」のコメントであなたをメンションしました。\n\nコメント:\n:comment\n\nURL:\n:url",
+        'denied_message' => 'コメントを保存しました。ただし、アクセス権限がないため、次のユーザーへのメンション通知は送信されませんでした： :codes',
+        'placeholder_hint' => '「@」でユーザーをメンションできます',
+    ],
+
     'custom_form' => [
         'default_form_name' => 'フォーム',
         'header' => 'カスタムフォーム設定',
@@ -1614,6 +1621,9 @@ return [
         'items_detail' => 'フォーム項目詳細',
         'suggest_items' => '候補一覧',
         'add_all_items' => 'すべて項目に追加',
+        'select_all_items' => 'すべて選択',
+        'unselect_all_items' => '選択解除（:count）',
+        'select_item_tooltip' => 'チェックした項目は、いずれか1つをドラッグするとまとめて配置できます',
         'changedata_target_column' => '列を選択',
         'setting_available' => '設定済',
         'changedata_target_column_when' => 'の項目を選択したとき',

@@ -1586,3 +1586,161 @@ const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
     const blob = new Blob(byteArrays, { type: contentType });
     return blob;
 };
+
+
+/**
+ * Comment mention autocomplete.
+ * Shows accessible user suggestions when typing "@" in the record comment textarea,
+ * and inserts "@user_code" token.
+ */
+(function () {
+    const MENTION_TEXTAREA_SELECTOR = 'form[action$="addcomment"] textarea[name="comment"]';
+    const MENTION_TOKEN_REGEX = /(^|[^A-Za-z0-9_.\-@])@([A-Za-z0-9_.\-]*)$/;
+    let $mentionDropdown = null;
+    let mentionItems = [];
+    let mentionActiveIndex = -1;
+    let mentionTokenStart = -1;
+    let mentionTextarea = null;
+    let mentionFetchTimer = null;
+    let mentionFetchSeq = 0;
+
+    const hideMentionDropdown = function () {
+        if ($mentionDropdown) {
+            $mentionDropdown.remove();
+            $mentionDropdown = null;
+        }
+        mentionItems = [];
+        mentionActiveIndex = -1;
+        mentionTokenStart = -1;
+        mentionTextarea = null;
+    };
+
+    const detectMentionToken = function (textarea) {
+        const pos = textarea.selectionStart;
+        if (pos === null || pos === undefined || pos !== textarea.selectionEnd) {
+            return null;
+        }
+        const match = textarea.value.substring(0, pos).match(MENTION_TOKEN_REGEX);
+        if (!match) {
+            return null;
+        }
+        return { start: pos - match[2].length - 1, query: match[2] };
+    };
+
+    const renderMentionDropdown = function (textarea) {
+        if (mentionItems.length == 0) {
+            hideMentionDropdown();
+            return;
+        }
+        if (!$mentionDropdown) {
+            $mentionDropdown = $('<div class="comment-mention-dropdown"></div>').appendTo('body');
+        }
+        $mentionDropdown.empty();
+        for (let i = 0; i < mentionItems.length; i++) {
+            const item = mentionItems[i];
+            const $item = $('<div class="comment-mention-item"></div>').attr('data-index', i);
+            $('<span class="cm-code"></span>').text('@' + item.user_code).appendTo($item);
+            $('<span class="cm-name"></span>').text(item.user_name || '').appendTo($item);
+            if (i === mentionActiveIndex) {
+                $item.addClass('active');
+            }
+            $mentionDropdown.append($item);
+        }
+        const $textarea = $(textarea);
+        const offset = $textarea.offset();
+        $mentionDropdown.css({
+            top: offset.top + $textarea.outerHeight() + 2,
+            left: offset.left,
+            minWidth: Math.min($textarea.outerWidth(), 320),
+        });
+    };
+
+    const selectMentionItem = function (index) {
+        const item = mentionItems[index];
+        const textarea = mentionTextarea;
+        if (!item || !textarea || mentionTokenStart < 0) {
+            hideMentionDropdown();
+            return;
+        }
+        const pos = textarea.selectionStart;
+        const inserted = '@' + item.user_code + ' ';
+        textarea.value = textarea.value.substring(0, mentionTokenStart) + inserted + textarea.value.substring(pos);
+        const caret = mentionTokenStart + inserted.length;
+        textarea.setSelectionRange(caret, caret);
+        hideMentionDropdown();
+        textarea.focus();
+    };
+
+    const updateMention = function (textarea) {
+        const token = detectMentionToken(textarea);
+        if (!token) {
+            hideMentionDropdown();
+            return;
+        }
+        const url = ($(textarea).closest('form').attr('action') || '').replace(/addcomment$/, 'mention-users');
+        if (url === '') {
+            return;
+        }
+        if (mentionFetchTimer) {
+            clearTimeout(mentionFetchTimer);
+        }
+        const seq = ++mentionFetchSeq;
+        mentionFetchTimer = setTimeout(function () {
+            $.get(url, { q: token.query }, function (result) {
+                // ignore stale response, or token state already changed
+                if (seq !== mentionFetchSeq) {
+                    return;
+                }
+                const current = detectMentionToken(textarea);
+                if (!current || current.query !== token.query) {
+                    return;
+                }
+                mentionItems = result || [];
+                mentionActiveIndex = mentionItems.length > 0 ? 0 : -1;
+                mentionTokenStart = current.start;
+                mentionTextarea = textarea;
+                renderMentionDropdown(textarea);
+            });
+        }, 200);
+    };
+
+    $(document).on('input click', MENTION_TEXTAREA_SELECTOR, {}, function (ev) {
+        updateMention(ev.target);
+    });
+
+    $(document).on('keydown', MENTION_TEXTAREA_SELECTOR, {}, function (ev) {
+        if (!$mentionDropdown || mentionItems.length == 0) {
+            return;
+        }
+        if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+            ev.preventDefault();
+            const diff = ev.key === 'ArrowDown' ? 1 : -1;
+            mentionActiveIndex = (mentionActiveIndex + diff + mentionItems.length) % mentionItems.length;
+            renderMentionDropdown(ev.target);
+        } else if (ev.key === 'Enter' || ev.key === 'Tab') {
+            ev.preventDefault();
+            selectMentionItem(mentionActiveIndex);
+        } else if (ev.key === 'Escape') {
+            ev.preventDefault();
+            hideMentionDropdown();
+        }
+    });
+
+    // mousedown fires before textarea blur
+    $(document).on('mousedown', '.comment-mention-item', {}, function (ev) {
+        ev.preventDefault();
+        selectMentionItem(parseInt($(ev.target).closest('.comment-mention-item').attr('data-index'), 10));
+    });
+
+    $(document).on('blur', MENTION_TEXTAREA_SELECTOR, {}, function () {
+        setTimeout(hideMentionDropdown, 150);
+    });
+
+    $(document).on('pjax:send', function () {
+        hideMentionDropdown();
+    });
+
+    $(window).on('resize', function () {
+        hideMentionDropdown();
+    });
+})();

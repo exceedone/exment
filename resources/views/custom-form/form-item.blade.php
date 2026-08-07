@@ -8,6 +8,7 @@
     data-option_labels_definitions="{{$custom_form_column['option_labels_definitions'] }}"
     >
         <p class="item-label-top">
+            <input type="checkbox" class="item_select_checkbox" title="{{ exmtrans('custom_form.select_item_tooltip') }}">
             <span class="item-label {{array_get($custom_form_column, 'required') ? 'asterisk' : ''}}">
                 @if(isset($custom_form_column['font_awesome']))
                 <i class="text-center fa {{$custom_form_column['font_awesome']}}" aria-hidden="true" style="width:16px;"></i>

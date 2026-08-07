@@ -61,6 +61,9 @@
             height:auto !important;
             cursor: move;
             font-size: 0.9em;
+            // prevent text selection. selected text causes native text-drag (not-allowed cursor)
+            -webkit-user-select: none;
+            user-select: none;
 
             &.error{
                 background-color: lightpink;
@@ -174,4 +177,82 @@
             }
         }
     }
+
+    // checkbox for bulk adding/moving.
+    // only show in table columns suggests, and in form boxes
+    .item_select_checkbox{
+        display: none;
+    }
+    // draw as white box with blue check/dash, matching iCheck style.
+    // shared by item checkboxes and "select all" button checkbox
+    .item_select_checkbox, .btn-selectallitems .item_selectall_checkbox{
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border: 1px solid #AAAAAA;
+        border-radius: 2px;
+        background-color: #FFFFFF;
+        position: relative;
+
+        &:checked::after{
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 0;
+            width: 5px;
+            height: 9px;
+            border: solid #2f76a8;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        // hide browser default focus ring(black circle) on click
+        &:focus, &:active{
+            outline: none;
+        }
+    }
+    .btn-selectallitems{
+        &:focus, &:active, &:active:focus{
+            outline: none;
+            box-shadow: none;
+        }
+
+        // checkbox is a display-only indicator. all clicks are handled by the button
+        .item_selectall_checkbox{
+            pointer-events: none;
+            margin: 0;
+            vertical-align: middle;
+        }
+
+        // label switches between "select all" and "unselect(N)", so keep it on one line
+        .item_selectall_label{
+            white-space: nowrap;
+        }
+    }
+    .custom_form_column_suggests[data-form_column_type="0"], .custom_form_column_items{
+        .item_select_checkbox{
+            display: inline-block;
+            margin: 0 3px 0 0;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+        .draggable.selected{
+            outline: 2px solid #3c8dbc;
+            background-color: #9fd4ec;
+        }
+    }
+}
+
+// "+N" count badge while group dragging.
+// appended to body(not to the drag helper) and follows the cursor by js
+.drag_count_badge{
+    position: fixed;
+    z-index: 10010;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background-color: #3c8dbc;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
 }

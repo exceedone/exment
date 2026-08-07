@@ -58,6 +58,8 @@
   height: auto !important;
   cursor: move;
   font-size: 0.9em;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #custom_form_form .draggables .draggable.error {
@@ -168,4 +170,72 @@
 #custom_form_form .custom_form_column_suggests .draggables .draggable {
   width: calc(50% - 4px) !important;
   margin: 3px 2px;
+}
+
+#custom_form_form .item_select_checkbox {
+  display: none;
+}
+
+#custom_form_form .btn-selectallitems:focus, #custom_form_form .btn-selectallitems:active, #custom_form_form .btn-selectallitems:active:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+#custom_form_form .item_select_checkbox, #custom_form_form .btn-selectallitems .item_selectall_checkbox {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #AAAAAA;
+  border-radius: 2px;
+  background-color: #FFFFFF;
+  position: relative;
+}
+
+#custom_form_form .item_select_checkbox:checked::after, #custom_form_form .btn-selectallitems .item_selectall_checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  width: 5px;
+  height: 9px;
+  border: solid #2f76a8;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+#custom_form_form .item_select_checkbox:focus, #custom_form_form .item_select_checkbox:active, #custom_form_form .btn-selectallitems .item_selectall_checkbox:focus, #custom_form_form .btn-selectallitems .item_selectall_checkbox:active {
+  outline: none;
+}
+
+#custom_form_form .btn-selectallitems .item_selectall_checkbox {
+  pointer-events: none;
+  margin: 0;
+  vertical-align: middle;
+}
+#custom_form_form .btn-selectallitems .item_selectall_label {
+  white-space: nowrap;
+}
+#custom_form_form .custom_form_column_suggests[data-form_column_type="0"] .item_select_checkbox, #custom_form_form .custom_form_column_items .item_select_checkbox {
+  display: inline-block;
+  margin: 0 3px 0 0;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+#custom_form_form .custom_form_column_suggests[data-form_column_type="0"] .draggable.selected, #custom_form_form .custom_form_column_items .draggable.selected {
+  outline: 2px solid #3c8dbc;
+  background-color: #9fd4ec;
+}
+
+.drag_count_badge {
+  position: fixed;
+  z-index: 10010;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background-color: #3c8dbc;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: bold;
+  pointer-events: none;
 }

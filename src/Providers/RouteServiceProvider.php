@@ -212,6 +212,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
+            $router->get("data/{tableKey}/{id}/mention-users", 'CustomValueController@mentionUsers');
             $router->delete("data/{tableKey}/{id}/deletecomment/{suuid}", 'CustomValueController@deleteComment');
             $router->post("data/{tableKey}/qrcode_download", 'CustomValueController@qrcodeDownload')->name('exment.qrcode_download');
             $router->get("data/{tableKey}/form_create_qrcode", 'CustomValueController@formCreateQrcode')->name('exment.form_create_qrcode');

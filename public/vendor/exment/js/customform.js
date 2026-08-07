@@ -13,6 +13,13 @@ var Exment;
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .setting', {}, CustomFromEvent.settingModalEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_area_header .delete', {}, CustomFromEvent.deleteBoxEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .btn-addallitems', {}, CustomFromEvent.addAllItems);
+            $(document).on('change.exment_custom_form', '.box-custom_form_block .item_select_checkbox', {}, CustomFromEvent.toggleSelectItem);
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .btn-selectallitems', {}, CustomFromEvent.toggleSelectAllItems);
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .btn-addallitems', {}, CustomFromEvent.syncAfterAddAll);
+            $(document).on('dragstart.exment_custom_form', '.box-custom_form_block .custom_form_column_item', {}, CustomFromEvent.dragSelectedGroupStart);
+            $(document).on('dragtosortable.exment_custom_form', '.box-custom_form_block .custom_form_column_item', {}, CustomFromEvent.dragSelectedGroupOver);
+            $(document).on('dragfromsortable.exment_custom_form', '.box-custom_form_block .custom_form_column_item', {}, CustomFromEvent.dragSelectedGroupOut);
+            $(document).on('dragstop.exment_custom_form', '.box-custom_form_block .custom_form_column_item', {}, CustomFromEvent.dragSelectedGroupStop);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .addbutton_button', {}, CustomFromEvent.addAreaButtonEvent);
             $(document).on('change.exment_custom_form', '#modal-showmodal .modal-customform .changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
             $(document).on('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
@@ -118,39 +125,13 @@ var Exment;
             CustomFromEvent.toggleConfigIcon($elem, true);
             // add hidden form
             let header_name = CustomFromEvent.getHeaderName($elem);
-            $elem.append($('<input/>', {
-                name: header_name + '[form_column_target_id]',
-                value: $elem.find('.form_column_target_id').val(),
-                type: 'hidden',
-            }));
-            $elem.append($('<input/>', {
-                name: header_name + '[form_column_type]',
-                value: $elem.find('.form_column_type').val(),
-                type: 'hidden',
-            }));
-            $elem.append($('<input/>', {
-                name: header_name + '[required]',
-                value: $elem.find('.required_item').val(),
-                type: 'hidden',
-            }));
-            $elem.append($('<input/>', {
-                name: header_name + '[row_no]',
-                value: $elem.closest('[data-row_no]').data('row_no'),
-                'class': 'row_no',
-                type: 'hidden',
-            }));
-            $elem.append($('<input/>', {
-                name: header_name + '[column_no]',
-                value: $elem.closest('[data-column_no]').data('column_no'),
-                'class': 'column_no',
-                type: 'hidden',
-            }));
-            $elem.append($('<input/>', {
-                name: header_name + '[width]',
-                value: $elem.closest('[data-width]').data('width'),
-                'class': 'width',
-                type: 'hidden',
-            }));
+            CustomFromEvent.setHiddenInput($elem, header_name + '[form_column_target_id]', $elem.find('.form_column_target_id').val());
+            CustomFromEvent.setHiddenInput($elem, header_name + '[form_column_type]', $elem.find('.form_column_type').val());
+            // if name 'required', validation wrong call.
+            CustomFromEvent.setHiddenInput($elem, header_name + '[required]', $elem.find('.required_item').val());
+            CustomFromEvent.setHiddenInput($elem, header_name + '[row_no]', $elem.closest('[data-row_no]').data('row_no'), 'row_no');
+            CustomFromEvent.setHiddenInput($elem, header_name + '[column_no]', $elem.closest('[data-column_no]').data('column_no'), 'column_no');
+            CustomFromEvent.setHiddenInput($elem, header_name + '[width]', $elem.closest('[data-width]').data('width'), 'width');
             // rename for toggle
             if (hasValue($elem.find('[data-toggle]'))) {
                 let uuid = getUuid();
@@ -162,6 +143,34 @@ var Exment;
             // replace html name(for clone object)
             CustomFromEvent.replaceCloneColumnName($elem);
             toastr.clear();
+        }
+        /**
+         * Set posting hidden input of the item.
+         * If the input already exists, update its value instead of appending a duplicated one.
+         * (An item placed in a form box already has these inputs, by rendering or by a former drag.
+         *  Appending would post the same name twice, and the stale value comes first.)
+         * @param $elem item
+         * @param name input name
+         * @param value input value
+         * @param className set only when appending a new input
+         */
+        static setHiddenInput($elem, name, value, className) {
+            let $input = $elem.children('input[type="hidden"]').filter(function () {
+                return $(this).attr('name') === name;
+            });
+            if (hasValue($input)) {
+                $input.val(value);
+                return;
+            }
+            let attributes = {
+                name: name,
+                value: value,
+                type: 'hidden',
+            };
+            if (hasValue(className)) {
+                attributes['class'] = className;
+            }
+            $elem.append($('<input/>', attributes));
         }
         /**
          * Toggle addbutton show or hide
@@ -535,6 +544,49 @@ var Exment;
             preview.openPreview();
             CustomFromEvent.disableRequireValidate = false;
         }
+        /**
+         * Whether this item can be selected for group dragging.
+         * Target is a table columns suggest item, or an item already placed in a form box.
+         * (Other suggests are dragged as clone, so moving them as a group would take the original away)
+         */
+        static isSelectableItem($item) {
+            return $item.closest('.custom_form_column_suggests[data-form_column_type="0"]').length > 0
+                || $item.closest('.custom_form_column_items').length > 0;
+        }
+        /**
+         * Get selected items in the same block, excepting this item.
+         * Contains both suggest items and items already placed in form boxes.
+         */
+        static getOtherSelectedItems($item) {
+            return $item.closest('.box-custom_form_block')
+                .find('.custom_form_column_suggests[data-form_column_type="0"] .custom_form_column_item.selected:visible,'
+                + ' .custom_form_column_items .custom_form_column_item.selected:visible')
+                .not($item);
+        }
+        /**
+         * Sync "select all" button state by each item's state.
+         * Checkbox has only 2 states: checked when 1 or more items are selected, unchecked when none.
+         * The button label shows what clicking does, with the selected count.
+         */
+        static syncSelectAllState($box) {
+            let $selectall = $box.find('.btn-selectallitems .item_selectall_checkbox');
+            if (!hasValue($selectall)) {
+                return;
+            }
+            let $inner = $selectall.closest('.custom_form_column_block_inner');
+            let $checks = $inner
+                .find('.custom_form_column_suggests .custom_form_column_item:visible .item_select_checkbox');
+            let checkedCount = $checks.filter(':checked').length;
+            $selectall.prop('checked', checkedCount > 0);
+            // while 1 or more items are selected, clicking unselects them. show it on the label
+            let $label = $inner.find('.item_selectall_label');
+            if (checkedCount > 0) {
+                $label.text($label.data('message_selected').replace(':count', String(checkedCount)));
+            }
+            else {
+                $label.text($label.data('message'));
+            }
+        }
     }
     CustomFromEvent.disableRequireValidate = false;
     CustomFromEvent.addAreaButtonEvent = (ev) => {
@@ -564,10 +616,148 @@ var Exment;
         }
         $items.each(function (index, elem) {
             $(elem).appendTo($target_ul);
-            // show item options, 
+            // show item options,
             CustomFromEvent.setMovedEvent($(elem));
         });
         toastr.clear();
+    };
+    /**
+     * Toggle selected state of suggest item, for bulk adding
+     */
+    CustomFromEvent.toggleSelectItem = (ev) => {
+        let $check = $(ev.target);
+        $check.closest('.custom_form_column_item').toggleClass('selected', $check.prop('checked'));
+        CustomFromEvent.syncSelectAllState($check.closest('.box-custom_form_block'));
+    };
+    /**
+     * Toggle all suggest items selected state, by "select all" button
+     */
+    CustomFromEvent.toggleSelectAllItems = (ev) => {
+        let $button = $(ev.target).closest('.btn-selectallitems');
+        $button.trigger('blur');
+        let $items = $button.closest('.custom_form_column_block_inner')
+            .find('.custom_form_column_suggests .custom_form_column_item:visible');
+        // if any item is already selected, unselect all. otherwise select all.
+        // (matches the checkbox display: checked whenever 1 or more items are selected)
+        let checked = $items.filter('.selected').length == 0;
+        $items.each(function (index, elem) {
+            $(elem).toggleClass('selected', checked)
+                .find('.item_select_checkbox').prop('checked', checked);
+        });
+        CustomFromEvent.syncSelectAllState($button.closest('.box-custom_form_block'));
+    };
+    /**
+     * After "add all items" button, clear moved items select state and sync "select all" checkbox
+     */
+    CustomFromEvent.syncAfterAddAll = (ev) => {
+        let $box = $(ev.target).closest('.box-custom_form_block');
+        $box.find('.custom_form_column_items .custom_form_column_item.selected')
+            .removeClass('selected')
+            .find('.item_select_checkbox').prop('checked', false);
+        CustomFromEvent.syncSelectAllState($box);
+    };
+    /**
+     * Drag start event. If dragging a selected item, mark as group dragging.
+     */
+    CustomFromEvent.dragSelectedGroupStart = (ev, ui) => {
+        let $item = $(ev.target).closest('.custom_form_column_item');
+        if (!$item.hasClass('selected') || !CustomFromEvent.isSelectableItem($item)) {
+            return;
+        }
+        // keep the group here. they are hidden while over a form box, so cannot get by ":visible" later
+        $item.data('drag_selected_group', true);
+        $item.data('drag_selected_group_items', CustomFromEvent.getOtherSelectedItems($item));
+    };
+    /**
+     * The dragging item entered a form box(jQuery UI "toSortable" event).
+     * Hide the other selected items as they are about to move together, and show "+N" count badge.
+     */
+    CustomFromEvent.dragSelectedGroupOver = (ev, ui) => {
+        let $item = $(ev.target).closest('.custom_form_column_item');
+        if (!$item.data('drag_selected_group')) {
+            return;
+        }
+        let $others = $item.data('drag_selected_group_items') || $();
+        if ($others.length == 0) {
+            return;
+        }
+        $others.hide();
+        // hiding shifts the layout. recalculate cached item positions of the entered box
+        let $target_ul = $item.closest('.custom_form_column_items .draggables');
+        if (hasValue($target_ul)) {
+            try {
+                $target_ul.sortable('refreshPositions');
+            }
+            catch (e) { }
+        }
+        CustomFromEvent.showDragCountBadge($others.length, ev);
+    };
+    /**
+     * The dragging item left a form box(jQuery UI "fromSortable" event). Revert the "over" state.
+     */
+    CustomFromEvent.dragSelectedGroupOut = (ev, ui) => {
+        let $item = $(ev.target).closest('.custom_form_column_item');
+        if (!$item.data('drag_selected_group')) {
+            return;
+        }
+        ($item.data('drag_selected_group_items') || $()).show();
+        CustomFromEvent.removeDragCountBadge();
+    };
+    /**
+     * Show "+N" count badge following the cursor.
+     * Append to body, not to the drag helper. the helper is removed after the revert animation,
+     * too late to hide the badge on an aborted drag.
+     */
+    CustomFromEvent.showDragCountBadge = (count, ev) => {
+        CustomFromEvent.removeDragCountBadge();
+        let $badge = $('<div/>', { 'class': 'drag_count_badge', 'text': '+' + String(count) })
+            .css({ left: hasValue(ev.clientX) ? ev.clientX + 15 : -9999, top: hasValue(ev.clientY) ? ev.clientY - 12 : -9999 })
+            .appendTo('body');
+        $(document).on('mousemove.exment_drag_count_badge', function (mev) {
+            $badge.css({ left: mev.clientX + 15, top: mev.clientY - 12 });
+        });
+        // mouseup fires soon even when the drag is aborted
+        $(document).one('mouseup.exment_drag_count_badge', function () {
+            CustomFromEvent.removeDragCountBadge();
+        });
+    };
+    CustomFromEvent.removeDragCountBadge = () => {
+        $(document).off('mousemove.exment_drag_count_badge');
+        $(document).off('mouseup.exment_drag_count_badge');
+        $('.drag_count_badge').remove();
+    };
+    /**
+     * Drag stop event. If a selected item was dropped into a form box,
+     * move the other selected items into the same box together.
+     */
+    CustomFromEvent.dragSelectedGroupStop = (ev, ui) => {
+        let $item = $(ev.target).closest('.custom_form_column_item');
+        if (!$item.data('drag_selected_group')) {
+            return;
+        }
+        let $others = $item.data('drag_selected_group_items') || $();
+        $item.removeData('drag_selected_group');
+        $item.removeData('drag_selected_group_items');
+        CustomFromEvent.removeDragCountBadge();
+        // show items hidden while over a form box
+        $others.show();
+        // if not dropped into a form box(ex. reverted), keep selected state
+        let $target_ul = $item.closest('.custom_form_column_items .draggables');
+        if (!hasValue($target_ul)) {
+            return;
+        }
+        $item.removeClass('selected').find('.item_select_checkbox').prop('checked', false);
+        let $prev = $item;
+        $others.each(function (index, elem) {
+            // reset selected state before moving
+            $(elem).removeClass('selected').find('.item_select_checkbox').prop('checked', false);
+            $(elem).insertAfter($prev);
+            // show item options,
+            CustomFromEvent.setMovedEvent($(elem));
+            CustomFromEvent.addDragItemEvent($(elem));
+            $prev = $(elem);
+        });
+        CustomFromEvent.syncSelectAllState($item.closest('.box-custom_form_block'));
     };
     CustomFromEvent.toggleFromBlock = (ev) => {
         ev.preventDefault();

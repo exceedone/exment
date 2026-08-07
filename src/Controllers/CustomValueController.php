@@ -31,6 +31,7 @@ use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginPageType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\MentionService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\FormHelper;
 use Symfony\Component\HttpFoundation\Response;
@@ -523,6 +524,20 @@ class CustomValueController extends AdminControllerTableBase
 
         $show_item = $this->custom_form->show_item->id($id);
         return $show_item->addComment($comment);
+    }
+
+
+    /**
+     * Get mention candidate users for comment, by search keyword.
+     */
+    // @phpstan-ignore-next-line
+    public function mentionUsers(Request $request, $tableKey, $id)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
+        return response()->json(MentionService::getMentionCandidates($this->custom_table, $request->get('q')));
     }
 
 

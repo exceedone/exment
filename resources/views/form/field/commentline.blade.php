@@ -14,6 +14,6 @@
 </p>
 
 <p class="commentline_inner">
-{!! replaceBreakEsc($comment->getLabel()) !!}
+{!! \Exceedone\Exment\Services\MentionService::replaceMentionHtml(replaceBreakEsc($comment->getLabel()), $table_name) !!}
 </p>
 <hr />

@@ -829,3 +829,50 @@ label.radio-inline:has(input[readonly][type=radio]) {
 label.checkboxone-label:has(input[readonly][type=checkbox]) {
     pointer-events: none;
 }
+
+// comment mention chip in comment box
+.comment-mention{
+    color: #2f76a8;
+    background-color: #e2f0f9;
+    border-radius: 3px;
+    padding: 0 3px;
+    font-weight: bold;
+}
+.comment-mention-me{
+    color: #b06d00;
+    background-color: #fff3cd;
+}
+
+// comment mention autocomplete dropdown(appended to body)
+.comment-mention-dropdown{
+    position: absolute;
+    z-index: 1060;
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    max-height: 220px;
+    overflow-y: auto;
+
+    .comment-mention-item{
+        padding: 5px 10px;
+        cursor: pointer;
+        white-space: nowrap;
+
+        .cm-code{
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .cm-name{
+            color: #777777;
+        }
+        &.active{
+            background-color: #3c8dbc;
+            color: #FFFFFF;
+
+            .cm-name{
+                color: #EEEEEE;
+            }
+        }
+    }
+}

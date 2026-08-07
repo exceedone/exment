@@ -100,6 +100,10 @@
                         <h5>{{$suggest['label']}}
                             @if($suggest['form_column_type'] == '0')
                                 <button type="button" class="btn-addallitems btn btn-xs btn-default"><i class="fa fa-arrow-left"></i>&nbsp;{{ exmtrans('custom_form.add_all_items') }}</button>
+                                <button type="button" class="btn-selectallitems btn btn-xs btn-default" title="{{ exmtrans('custom_form.select_item_tooltip') }}"><input type="checkbox" class="item_selectall_checkbox" tabindex="-1">&nbsp;<span
+                                    class="item_selectall_label"
+                                    data-message="{{ exmtrans('custom_form.select_all_items') }}"
+                                    data-message_selected="{{ exmtrans('custom_form.unselect_all_items') }}">{{ exmtrans('custom_form.select_all_items') }}</span></button>
                             @endif
                         </h5>
                         <div class="custom_form_column_suggests"

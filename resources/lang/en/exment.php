@@ -1582,6 +1582,13 @@ return [
         ],
     ],
 
+    'comment_mention' => [
+        'notify_subject' => ':user_name mentioned you',
+        'notify_body' => ":user_name mentioned you in a comment on \":label\" (:table_view_name).\n\nComment:\n:comment\n\nURL:\n:url",
+        'denied_message' => 'The comment was saved, but mention notification was not sent to the following users because they do not have access permission: :codes',
+        'placeholder_hint' => 'Mention users with "@"',
+    ],
+
     'custom_form' => [
         'default_form_name' => 'Form',
         'header' => 'Custom Form Setting',
@@ -1613,6 +1620,9 @@ return [
         'items_detail' => 'Form Item Details',
         'suggest_items' => 'Suggest Items',
         'add_all_items' => 'Add All Items',
+        'select_all_items' => 'Select All',
+        'unselect_all_items' => 'Clear Selection (:count)',
+        'select_item_tooltip' => 'Check items and drag one of them to place them all at once',
         'changedata_target_column' => 'Select Column',
         'setting_available' => 'Already Setting',
         'changedata_target_column_when' => 'When select this column,',
