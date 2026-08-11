@@ -228,7 +228,10 @@ class TemplateController extends AdminControllerBase
         $form->disableReset();
         $form->action(admin_url('template/import'));
 
-        $form->descriptionHtml(exmtrans('template.description_import'));
+        $form->descriptionHtml(
+            exmtrans('template.description_import')
+            . '<br /><span class="text-danger">' . exmtrans('template.help.sync_deleted_columns') . '</span>'
+        );
         $this->addTemplateTile($form);
         $form->hidden('_token')->default(csrf_token());
         // @phpstan-ignore-next-line
@@ -269,16 +272,28 @@ class TemplateController extends AdminControllerBase
     {
         \Exment::setTimeLimitLong();
 
+        // template import always deletes columns not contained in template,
+        // to sync table structure with the exported environment.
+        $importOptions = [
+            'sync_deleted_columns' => true,
+        ];
+
         // upload template file and install
-        $this->uploadTemplate($request);
+        $uploadImporter = $this->uploadTemplate($request, $importOptions);
+        $syncDeletedColumns = $uploadImporter->syncDeletedColumns;
 
         // install templates selected tiles.
         if ($request->has('template')) {
             $importer = new TemplateImportExport\TemplateImporter();
-            $importer->importTemplate($request->input('template'));
+            $importer->importTemplate($request->input('template'), $importOptions);
+            $syncDeletedColumns = array_merge($syncDeletedColumns, $importer->syncDeletedColumns);
         }
 
-        admin_toastr(trans('admin.save_succeeded'));
+        $message = trans('admin.save_succeeded');
+        if (count($syncDeletedColumns) > 0) {
+            $message .= '<br/>' . exmtrans('template.message.sync_deleted_columns', ['columns' => esc_html(implode(', ', $syncDeletedColumns))]);
+        }
+        admin_toastr($message);
         return back();
     }
 

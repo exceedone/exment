@@ -274,12 +274,12 @@ EOT;
      * Upload Template
      */
     // @phpstan-ignore-next-line
-    protected function uploadTemplate(Request $request)
+    protected function uploadTemplate(Request $request, array $importOptions = [])
     {
         // upload zip file
         $upload_template = null;
         $importer = new TemplateImportExport\TemplateImporter();
-        if ($request->has('upload_template')) {
+        if ($request->hasFile('upload_template')) {
             // get upload file
             $file = $request->file('upload_template');
 
@@ -287,14 +287,18 @@ EOT;
             // @phpstan-ignore-next-line
             if ($file->getClientOriginalExtension() == 'xlsx') {
                 $json = $importer->uploadTemplateExcel($file);
+                // Excel templates are hand-authored and often partial,
+                // so never apply sync_deleted_columns option to them.
                 $importer->import($json, false, false, true);
             }
             // upload zip file
             // @phpstan-ignore-next-line
             elseif ($file->getClientOriginalExtension() == 'zip') {
-                $importer->uploadTemplate($file);
+                $importer->uploadTemplate($file, $importOptions);
             }
         }
+
+        return $importer;
     }
 
     /**

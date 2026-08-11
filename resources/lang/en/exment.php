@@ -2270,12 +2270,16 @@ return [
         'upload_template' => 'Upload',
         'export_target' => 'Export Target',
         'target_tables' => 'Target Tables',
-        
         'help' => [
             'thumbnail' => 'Recommended size:256px*256px',
             'upload_template' => 'The template zip file exported or created in Excel, and import the settings into this system.',
             'export_target' => 'Select export target.',
             'target_tables' => 'Select export tables. If not select, export all tables.',
+            'sync_deleted_columns' => 'For each table contained in the template, columns that exist in this system but not in the template will be deleted, along with all their data. Deleted data cannot be restored. Please back up the database before importing.',
+        ],
+
+        'message' => [
+            'sync_deleted_columns' => 'Deleted columns: :columns',
         ],
 
         'export_target_options' => [

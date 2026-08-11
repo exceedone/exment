@@ -2271,12 +2271,16 @@ return [
         'upload_template' => 'アップロード',
         'export_target' => 'エクスポート対象',
         'target_tables' => 'エクスポート対象テーブル',
-        
         'help' => [
             'thumbnail' => '推奨サイズ：256px*256px',
             'upload_template' => 'エクスポートしたテンプレートzipファイルや、Excelフォーマットで作成した設定ファイルをアップロードして、このシステムに設定をインポートします。',
             'export_target' => 'エクスポートする対象を選択してください。',
             'target_tables' => 'エクスポートするテーブルを選択してください。未選択の場合、すべてのテーブル情報をエクスポートします。',
+            'sync_deleted_columns' => 'テンプレートに含まれるテーブルについて、このシステムに存在し、テンプレートに存在しない列を、データごと削除します。削除したデータは復元できません。インポート前にデータベースのバックアップを取得してください。',
+        ],
+
+        'message' => [
+            'sync_deleted_columns' => '削除した列: :columns',
         ],
 
         'export_target_options' => [

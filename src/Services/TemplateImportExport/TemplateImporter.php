@@ -31,6 +31,14 @@ class TemplateImporter
     // @phpstan-ignore-next-line
     protected $diskService;
 
+    /**
+     * Column names deleted by "sync_deleted_columns" option. Format: "table_name.column_name"
+     * Reset at the head of importTemplate() / uploadTemplate(), and accumulates all templates imported by that call.
+     *
+     * @var array
+     */
+    public $syncDeletedColumns = [];
+
     public function __construct()
     {
         $this->diskService = new TemplateDiskService();
@@ -49,9 +57,10 @@ class TemplateImporter
      * Import template (from display. select item)
      */
     // @phpstan-ignore-next-line
-    public function importTemplate($importKeys)
+    public function importTemplate($importKeys, array $importOptions = [])
     {
         try {
+            $this->syncDeletedColumns = [];
             $importKeys = (array)$importKeys;
 
             $items = $this->getTemplates();
@@ -83,9 +92,9 @@ class TemplateImporter
                     if (!File::exists($path)) {
                         // TODO:Error
                     }
-                    $this->importFromFile(File::get($path), [
+                    $this->importFromFile(File::get($path), array_merge($importOptions, [
                         'basePath' => "$templates_path/$templateName",
-                    ]);
+                    ]));
                 }
 
                 // if crowd
@@ -98,9 +107,9 @@ class TemplateImporter
                         continue;
                     }
 
-                    $this->importFromFile(File::get($path), [
+                    $this->importFromFile(File::get($path), array_merge($importOptions, [
                         'basePath' => path_join($this->diskService->localSyncDiskItem()->dirFullPath(), $templateName),
-                    ]);
+                    ]));
                 }
             }
         } finally {
@@ -288,9 +297,10 @@ class TemplateImporter
      * Upload template and import (from display)
      */
     // @phpstan-ignore-next-line
-    public function uploadTemplate($uploadFile)
+    public function uploadTemplate($uploadFile, array $importOptions = [])
     {
         try {
+            $this->syncDeletedColumns = [];
             list($json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path, $tmpDiskItem) = $this->extractZip($uploadFile);
 
             if (isset($config_path)) {
@@ -310,9 +320,9 @@ class TemplateImporter
                 }
                 $this->diskService->upload($files);
 
-                $this->importFromFile(File::get(path_join($tmpfolderpath, $config_path)), [
+                $this->importFromFile(File::get(path_join($tmpfolderpath, $config_path)), array_merge($importOptions, [
                     'basePath' => $tmpfolderpath,
-                ]);
+                ]));
             }
         } catch (\Exception $ex) {
             throw $ex;
@@ -600,6 +610,7 @@ class TemplateImporter
                 'system_flg' => false,
                 'is_update' => false,
                 'basePath' => null,
+                'sync_deleted_columns' => false,
             ],
             $options
         );
@@ -609,7 +620,7 @@ class TemplateImporter
 
 
         $json = $this->getMergeJson($jsonString, $options);
-        $this->import($json, $system_flg, $is_update);
+        $this->import($json, $system_flg, $is_update, false, $options);
 
         if (!$is_update) {
             $locale = \App::getLocale();
@@ -670,10 +681,12 @@ class TemplateImporter
      * @param array $json import values
      * @param boolean $system_flg Is called from system(install or update)
      * @param boolean $is_update Is called for update
+     * @param boolean $fromExcel Is called from excel template
+     * @param array $importOptions other import options. "sync_deleted_columns": if true, delete columns not contained in template.
      * @return void
      */
     // @phpstan-ignore-next-line
-    public function import($json, $system_flg = false, $is_update = false, $fromExcel = false)
+    public function import($json, $system_flg = false, $is_update = false, $fromExcel = false, array $importOptions = [])
     {
         System::clearCache();
 
@@ -821,11 +834,67 @@ class TemplateImporter
             }
         }
 
+        // if select sync_deleted_columns option, delete columns not contained in template.
+        // Out of transaction because deleting column executes alter table(DDL).
+        if (boolval(array_get($importOptions, 'sync_deleted_columns'))) {
+            $this->deleteColumnsNotContainedInTemplate($json);
+        }
+
         // patch use_label_flg
         \Artisan::call('exment:patchdata', ['action' => 'use_label_flg']);
         \Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
 
         System::clearCache();
+    }
+
+    /**
+     * Delete custom columns not contained in template.
+     * Only tables contained in template with 1 or more custom_columns are target,
+     * because only an exported template is guaranteed to contain all columns of the table.
+     * (An empty or missing custom_columns cannot be distinguished from a partial definition,
+     * so never treat it as "delete all columns".)
+     * Deleted column names are appended to $this->syncDeletedColumns.
+     *
+     * @param array $json import values
+     * @return void
+     */
+    public function deleteColumnsNotContainedInTemplate($json)
+    {
+        foreach (array_get($json, "custom_tables", []) as $table) {
+            if (is_nullorempty(array_get($table, 'custom_columns'))) {
+                continue;
+            }
+
+            $obj_table = CustomTable::getEloquent(array_get($table, 'table_name'));
+            if (!isset($obj_table)) {
+                continue;
+            }
+
+            // column names in template
+            $template_column_names = collect(array_get($table, 'custom_columns', []))
+                ->map(function ($column) {
+                    return array_get($column, 'column_name');
+                })
+                ->filter()
+                ->toArray();
+
+            // use query instead of custom_columns relation, to avoid stale relation cache in the same request
+            $custom_columns = CustomColumn::where('custom_table_id', $obj_table->id)->get();
+            foreach ($custom_columns as $custom_column) {
+                if (boolval($custom_column->disabled_delete)) {
+                    continue;
+                }
+                if (in_array($custom_column->column_name, $template_column_names)) {
+                    continue;
+                }
+
+                $deleteColumnName = $obj_table->table_name . '.' . $custom_column->column_name;
+                // Deleting is irreversible. Logging before deleting, to keep trace even if this or a later delete fails.
+                \Log::info("Template import: delete custom column not contained in template. ({$deleteColumnName})");
+                $custom_column->delete();
+                $this->syncDeletedColumns[] = $deleteColumnName;
+            }
+        }
     }
 
     // @phpstan-ignore-next-line
