@@ -821,6 +821,35 @@
     // renderer chose to include) the bar would be a dead label.
     var hasActions = bar.querySelectorAll('.exm-bulk-act, .exm-bulk-edit, .exm-bulk-export').length > 0;
     bar.classList.toggle('show', selected > 0 && hasActions);
+
+    syncStockSelection(bar);
+  }
+
+  /**
+   * Keep the theme's own batch button in step.
+   *
+   * That button is driven by iCheck's `ifClicked`, which fires for a
+   * pointer on the checkbox and for nothing else - so a row unticked from
+   * code (the bar's clear, the page filter, a collapsed group) leaves it
+   * showing the count from before, sitting above rows that are no longer
+   * selected or no longer on screen. The list behind it is fine: that one
+   * is maintained on `ifChanged`, which does fire. So the count is simply
+   * rewritten from the list, in the theme's own wording.
+   */
+  function syncStockSelection(bar) {
+    var grid = window.$ && window.$.admin && window.$.admin.grid;
+    if (!grid || typeof grid.selected !== 'function') return;
+    var allName = bar.getAttribute('data-all');
+    if (!allName) return;
+    var box = document.querySelector('.' + allName + '-btn');
+    if (!box) return;
+
+    var count = grid.selected().length;
+    // The blade ships it hidden, so '' is exactly the state it started in.
+    box.style.display = count > 0 ? '' : 'none';
+    var label = box.querySelector('.selected');
+    var tpl = bar.getAttribute('data-stock-label');
+    if (label && tpl) label.textContent = tpl.replace('{n}', count);
   }
 
   /**
