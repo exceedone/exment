@@ -266,6 +266,60 @@ class ApiDataController extends AdminControllerTableBase
     }
 
     /**
+     * Render one cell of one record the way the data grid would render it.
+     *
+     * Used by the inline editor: after PUT succeeds the client does not
+     * know how a Select column paints its badge or how a Yesno column
+     * spells its two values, and it must not - the styling is a table
+     * owner setting. The rendered HTML is therefore delegated to the same
+     * ColumnItems pipeline the grid runs, so the returned markup is byte
+     * for byte what the grid would have produced on a full reload,
+     * including whatever badge or bar GridCellStyle::wrap adds.
+     *
+     * Permissions match the row-level access the grid already enforces.
+     *
+     * @return mixed
+     */
+    // @phpstan-ignore-next-line
+    public function dataCellHtml(Request $request, $tableKey, $id, $columnName)
+    {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
+        if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        if (($code = $custom_value->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
+            return abortJson(403, $code);
+        }
+
+        $custom_column = CustomColumn::getEloquent($columnName, $this->custom_table);
+        if (!isset($custom_column)) {
+            return abortJson(404, ErrorCode::DATA_NOT_FOUND());
+        }
+
+        $item = $custom_column->column_item;
+        if (!isset($item)) {
+            return abortJson(404, ErrorCode::DATA_NOT_FOUND());
+        }
+
+        // Same options the grid loop passes so the wrap / min-width / align
+        // decisions read the same setting the grid did. Without this the
+        // badge would silently drop off for any column with grid_column set
+        // to false.
+        $item->options([
+            'grid_column' => true,
+        ]);
+
+        return [
+            'html' => (string)$item->setCustomValue($custom_value)->html(),
+        ];
+    }
+
+    /**
      * create data
      * @return mixed
      */

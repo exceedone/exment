@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Services\Calc\CalcService;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Exceedone\Exment\ColumnItems\GridCellStyle;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -326,6 +327,44 @@ class CustomColumnController extends AdminControllerTableBase
             $form->select('text_align', exmtrans("custom_column.options.text_align"))
                 ->help(exmtrans("custom_column.help.text_align"))
                 ->options(TextAlignType::transArray('custom_column.align_type_options'));
+
+            // ----------------------------------------- cell appearance ----
+            // Only the data list is affected. A badge compares one record
+            // against the others, which the detail screen and the form -
+            // showing a single record - have nothing to compare against.
+            $form->html('<hr /><h5>' . esc_html(exmtrans('custom_column.options.grid_style_header')) . '</h5>')->plain();
+
+            $form->select('grid_style', exmtrans("custom_column.options.grid_style"))
+                ->help(exmtrans("custom_column.help.grid_style"))
+                ->options(GridCellStyle::getStyleOptions())
+                ->default(GridCellStyle::STYLE_PLAIN);
+
+            $form->color('grid_color', exmtrans("custom_column.options.grid_color"))
+                ->help(exmtrans("custom_column.help.grid_color"));
+
+            $form->color('grid_bg_color', exmtrans("custom_column.options.grid_bg_color"))
+                ->help(exmtrans("custom_column.help.grid_bg_color"));
+
+            $form->color('grid_border_color', exmtrans("custom_column.options.grid_border_color"))
+                ->help(exmtrans("custom_column.help.grid_border_color"));
+
+            $form->select('grid_font_weight', exmtrans("custom_column.options.grid_font_weight"))
+                ->help(exmtrans("custom_column.help.grid_font_weight"))
+                ->options(GridCellStyle::getFontWeightOptions());
+
+            $form->text('grid_icon', exmtrans("custom_column.options.grid_icon"))
+                ->help(exmtrans("custom_column.help.grid_icon"));
+
+            $form->switchbool('grid_nowrap', exmtrans("custom_column.options.grid_nowrap"))
+                ->help(exmtrans("custom_column.help.grid_nowrap"));
+
+            // Free text and dates have no fixed set of values to color one by
+            // one, so this is offered only where the values are a known list -
+            // and on numbers, where the same lines act as bar thresholds.
+            $form->textarea('grid_value_colors', exmtrans("custom_column.options.grid_value_colors"))
+                ->rows(4)
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::SELECT, ColumnType::SELECT_VALTEXT, ColumnType::INTEGER, ColumnType::DECIMAL]])])
+                ->help(exmtrans("custom_column.help.grid_value_colors"));
 
             if ($this->custom_table->table_name == SystemTableName::USER) {
                 $form->select('editable_userinfo', exmtrans("custom_column.editable_userinfo"))

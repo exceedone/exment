@@ -1057,6 +1057,23 @@ class KanbanGrid extends GridBase
 
 
     /**
+     * Whether a board can be made for this table at all: either a single-value
+     * select column to group by, or a workflow whose statuses become the lanes.
+     *
+     * @param CustomTable $custom_table
+     * @return bool
+     */
+    public static function canCreateBoard($custom_table)
+    {
+        if (!is_nullorempty(static::getKanbanGroupColumnOptions($custom_table))) {
+            return true;
+        }
+
+        return !is_null(Workflow::getWorkflowByTable($custom_table));
+    }
+
+
+    /**
      * Select options limited to the given column types.
      *
      * @param CustomTable $custom_table
@@ -1142,6 +1159,9 @@ class KanbanGrid extends GridBase
             ColumnType::USER, ColumnType::ORGANIZATION,
         ]);
         $has_workflow = !is_null(Workflow::getWorkflowByTable($custom_table));
+        // with no column to group by, the workflow is the only board there can be
+        $default_source = is_nullorempty($group_options) && $has_workflow
+            ? static::SOURCE_WORKFLOW : static::SOURCE_COLUMN;
 
         // ------------------------------------------------- basic settings --
         // Everything needed for a working board, nothing else.
@@ -1150,20 +1170,28 @@ class KanbanGrid extends GridBase
         if ($has_workflow) {
             $form->select('kanban_source', exmtrans("custom_view.kanban_source"))
                 ->required()
-                ->default(static::SOURCE_COLUMN)
+                ->default($default_source)
                 ->disableClear()
                 ->options([
                     static::SOURCE_COLUMN => exmtrans("custom_view.kanban_source_options.column"),
                     static::SOURCE_WORKFLOW => exmtrans("custom_view.kanban_source_options.workflow"),
                 ])
+                ->attribute(['data-filtertrigger' => true])
                 ->help(exmtrans("custom_view.help.kanban_source"));
         } else {
             $form->hidden('kanban_source')->default(static::SOURCE_COLUMN);
         }
 
-        // not ->required(): a workflow board has no group column at all
+        // The board cannot be drawn without it, so it is required - but only for
+        // a column board. On a workflow board the field is hidden and disabled,
+        // which drops it from the request and turns the rule off with it.
         $form->select('kanban_group_column_id', exmtrans("custom_view.kanban_group_column"))
+            ->required()
             ->options($group_options)
+            ->rules('required_if:kanban_source,' . static::SOURCE_COLUMN, [
+                'required_if' => exmtrans('custom_view.message.kanban_group_column_required'),
+            ])
+            ->attribute(['data-filter' => json_encode(['key' => 'kanban_source', 'value' => static::SOURCE_COLUMN])])
             ->help(exmtrans("custom_view.help.kanban_group_column"));
 
         $form->select('kanban_title_column_id', exmtrans("custom_view.kanban_title_column"))
