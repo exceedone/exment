@@ -38,6 +38,18 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     protected $appends = ['menu_target_view'];
     protected $casts = ['options' => 'json'];
 
+    /**
+     * The parent only declares the laravel-admin columns, so a Menu::create()
+     * would silently drop the columns that decide what the menu points at and
+     * leave an unusable row behind.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'parent_id', 'order', 'title', 'icon', 'uri', 'permission',
+        'menu_type', 'menu_name', 'menu_target', 'options',
+    ];
+
 
     // @phpstan-ignore-next-line
     public static $templateItems = [

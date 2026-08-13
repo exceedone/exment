@@ -445,46 +445,86 @@ namespace Exment {
          * if click grid row, move page
          */
         public static tableHoverLink() {
+            // On a cell wired to the inline editor the first click has to
+            // wait out the double-click window before it is allowed to
+            // navigate - see the note further down. One timer for the whole
+            // table: the next click on any row cancels whatever is pending.
+            let rowClickTimer: any = null;
             $('table').find('[data-id],.rowclick').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev: JQueryEventObject) {
+                if (rowClickTimer) {
+                    clearTimeout(rowClickTimer);
+                    rowClickTimer = null;
+                }
                 // if e.target closest"a" is length > 0, return
                 if ($(ev.target).closest('a,.rowclick').length > 0) {
+                    return;
+                }
+                // the batch checkbox is a control, not a link to the row:
+                // ticking it must not navigate away, otherwise selecting
+                // rows for a batch action is impossible
+                if ($(ev.target).closest('.grid-row-checkbox,.column-__row_selector__').length > 0) {
+                    return;
+                }
+                // the pen icon and an editor that is already open are
+                // controls in their own right - clicking either of them is
+                // never a request to leave the page
+                if ($(ev.target).closest('.exm-edit-pen,td.exm-editing').length > 0) {
                     return;
                 }
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }
-                
-                let editFlg = $('#gridrow_select_edit').val();
-                let tableOpt = $('#gridrow_select_transition').val();
-                let linkElem = $(ev.target).closest('tr').find('.rowclick');
-                if (tableOpt == 'edit') {
-                    editFlg = 1;
-                } else if (tableOpt == 'show') {
-                    editFlg = 0;
-                }
-                if (editFlg) {
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                    }
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                    }
-                } else {
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                    }
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                    }
-                }
 
-                if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-external-link');
-                }
-                if (!hasValue(linkElem)) {
+                let openRow = function () {
+                    let editFlg = $('#gridrow_select_edit').val();
+                    let tableOpt = $('#gridrow_select_transition').val();
+                    let linkElem = $(ev.target).closest('tr').find('.rowclick');
+                    if (tableOpt == 'edit') {
+                        editFlg = 1;
+                    } else if (tableOpt == 'show') {
+                        editFlg = 0;
+                    }
+                    if (editFlg) {
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                        }
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                        }
+                    } else {
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                        }
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                        }
+                    }
+
+                    if (!hasValue(linkElem)) {
+                        linkElem = $(ev.target).closest('tr').find('.fa-external-link');
+                    }
+                    if (!hasValue(linkElem)) {
+                        return;
+                    }
+                    linkElem.closest('a,.rowclick').trigger('click');
+                };
+
+                // An editable cell carries two gestures on the same spot:
+                // one click opens the row, like everywhere else in the grid,
+                // two clicks open the inline editor. The browser cannot know
+                // which is coming when the first click fires, so here the
+                // navigation is held back for the length of the double-click
+                // window; the second click arrives with detail == 2 and has
+                // already cancelled the timer at the top of this handler.
+                if ($(ev.target).closest('td.exm-editable').length > 0) {
+                    const clicks = (ev as any).detail || (ev.originalEvent ? (ev.originalEvent as any).detail : 0) || 1;
+                    if (clicks > 1) {
+                        return;
+                    }
+                    rowClickTimer = setTimeout(openRow, 250);
                     return;
                 }
-                linkElem.closest('a,.rowclick').trigger('click');
+                openRow();
             }).addClass('tableHoverLinkEvent');
 
             $('.janCodeRow').on('click', function (ev) {

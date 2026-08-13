@@ -22,6 +22,20 @@ class BatchUpdate extends BatchAction
     }
 
     /**
+     * A batch update is a CustomOperation execution. Marking it with an
+     * "action" icon keeps the copied bulk action bar visually paired
+     * with delete / restore rather than showing a lone text button. The
+     * icon rides through both the dropdown link and the bar copy, so no
+     * client-side icon lookup is needed.
+     *
+     * @return string
+     */
+    public function render()
+    {
+        return '<i class="fa fa-magic"></i>&nbsp;' . e((string)$this->getTitle());
+    }
+
+    /**
      * Script of batch delete action.
      *
      * @return string

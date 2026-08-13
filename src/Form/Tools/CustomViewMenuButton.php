@@ -241,9 +241,10 @@ class CustomViewMenuButton extends ModalTileMenuButton
                 'description' => exmtrans('custom_view.custom_view_menulist.help.create_calendar'),
                 'icon' => 'fa-calendar',
             ];
-            // Kanban needs at least one single-value select column to group by,
-            // so hide the entry on tables that cannot have a board at all.
-            if (!is_nullorempty(KanbanGrid::getKanbanGroupColumnOptions($this->custom_table))) {
+            // A board is made either from a single-value select column or from
+            // the statuses of a workflow. With neither, no board can exist, so
+            // the entry is hidden instead of leading to a form that cannot be saved.
+            if (KanbanGrid::canCreateBoard($this->custom_table)) {
                 $items[] = [
                     'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=' . ViewKindType::KANBAN . '&from_data=1'),
                     'header' => exmtrans('custom_view.custom_view_menulist.create_kanban'),

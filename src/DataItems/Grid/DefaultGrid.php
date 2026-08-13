@@ -109,6 +109,11 @@ class DefaultGrid extends GridBase
         $grid->setHeaderAttributes($this->custom_view->getHeaderOptions());
         // get view columns
         $custom_view_columns = $this->custom_view->custom_view_columns_cache;
+        // Whether the current user may inline-edit a row on this table. Read
+        // once so the per-column loop below does one array walk instead of
+        // one permission lookup per column, and so grid_tools.js only sees
+        // `.exm-editable` cells when the write path is actually open.
+        $inlineEditAllowed = $this->custom_table->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item;
             if (!isset($item)) {
@@ -124,6 +129,20 @@ class DefaultGrid extends GridBase
                 ]);
             //$name = $item->indexEnabled() ? $item->index() : $item->uniqueName();
             $className = 'column-' . $item->name();
+            $classes = [$className];
+            // Mark cells the inline editor can edit. `.exm-editable` is what
+            // grid_tools.js listens to on double-click; the badge and colour
+            // are added elsewhere.
+            //
+            // The whole decision lives in GridInlineEditor so this class and
+            // the JSON config it renders can never disagree - a cell marked
+            // here but missing from the config would open nothing on double
+            // click. That includes refusing a column of a related table or a
+            // pivot column: the editor PUTs to this table's endpoint only.
+            if ($inlineEditAllowed
+                && GridTools\GridInlineEditor::isEditableColumn($custom_view_column, $this->custom_table)) {
+                $classes[] = 'exm-editable';
+            }
             $grid->column($item->uniqueName(), $item->label())
                 ->sort($item->sortable())
                 ->sortName($item->getSortName())
@@ -136,7 +155,7 @@ class DefaultGrid extends GridBase
                     $this->custom_view->getSearchService()->setQuery($query)->addSelect()->orderByCustomViewColumn($custom_view_column, (count($args) > 0 ? $args[0] : 'asc'));
                 })
                 ->style($item->gridStyle())
-                ->setClasses($className)
+                ->setClasses($classes)
                 ->setHeaderStyle($item->gridHeaderStyle())
                 ->display(function ($v) use ($item) {
                     // @phpstan-ignore-next-line
@@ -465,6 +484,46 @@ class DefaultGrid extends GridBase
 
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::GRID_MENUBUTTON, $this->custom_table);
+
+            // Display helpers. They only change how the current page looks,
+            // so they come first and stay out of the way of the buttons
+            // that actually do something (new, import/export, view menu).
+            //
+            // GridColumnVisibility replaces laravel-admin's own column
+            // selector, so make sure the stock one stays off here too
+            // instead of relying on the global Grid::init in
+            // Middleware\Initialize - two column buttons side by side
+            // would be worse than none.
+            $grid->disableColumnSelector();
+            $tools->append(new GridTools\GridColumnVisibility($grid));
+            $tools->append(new GridTools\GridColumnPin($grid, $this->custom_table->table_name));
+            $tools->append(new GridTools\GridGroupBy($grid, $this->custom_table->table_name));
+            $tools->append(new GridTools\GridDensity());
+            $tools->append(new GridTools\GridAutoRefresh($this->custom_table->table_name));
+
+            // Second entrance to the batch actions rendered further left.
+            // It is fixed to the bottom of the viewport, so it is appended
+            // here only to get it inside #pjax-container - a bar left over
+            // from the previous page would keep an obsolete selection
+            // count on screen. The custom_table and custom_view arguments
+            // let it decide whether to expose bulk-edit / bulk-export
+            // buttons alongside the actions copied from the stock batch
+            // dropdown - both features only make sense when the table
+            // permits them.
+            $tools->append(new GridTools\GridBulkBar($this->custom_table, $this->custom_view));
+
+            // Right-click menu carrier. The div is invisible until
+            // grid_tools.js positions it at the cursor - kept inside the
+            // toolbar (i.e. inside #pjax-container) so a page swap
+            // rebuilds it with the same current CSRF token instead of
+            // leaving one behind on <body>.
+            $tools->append(new GridTools\GridContextMenu($this->custom_table));
+
+            // JSON config for the inline editor. Renders no visible
+            // widget - just a `<script>` tag grid_tools.js reads on boot
+            // to learn which columns can be edited in place and how each
+            // one's picker should look. Skipped without edit permission.
+            $tools->append(new GridTools\GridInlineEditor($this->custom_table, $this->custom_view));
 
             // validate export and import
             $import = $this->custom_table->enableImport();

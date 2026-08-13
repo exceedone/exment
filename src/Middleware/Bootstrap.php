@@ -62,6 +62,13 @@ class Bootstrap
             'vendor/exment/jstree/themes/default/style.min.css',
         ], true);
 
+        // The AdminLTE bundles are appended after everything above, so a
+        // stylesheet meant to override the theme's table rules has to go
+        // through csslast or it silently loses every specificity tie.
+        static::setCssJsList([
+            'vendor/exment/css/grid_tools.css',
+        ], true, true);
+
         static::setCssJsList([
             'vendor/exment/validation/jquery.validate.js',
             'vendor/exment/chartjs/chart.min.js',
@@ -81,6 +88,7 @@ class Bootstrap
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',
+            'vendor/exment/js/grid_tools.js',
             'vendor/exment/js/file-required.js',
             'vendor/exment/js/scroll-restore.js',
             'vendor/exment/js/file-required.js',

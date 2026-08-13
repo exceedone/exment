@@ -42,6 +42,14 @@ abstract class CustomItem implements ItemInterface
     protected $required = true;
 
     /**
+     * Cached cell styling. false until built, then GridCellStyle or null.
+     *
+     * @var GridCellStyle|null|false
+     */
+    // @phpstan-ignore-next-line
+    protected $grid_cell_style = false;
+
+    /**
      * Available fields.
      *
      * @var array
@@ -158,7 +166,70 @@ abstract class CustomItem implements ItemInterface
         if (isset($text_align)) {
             $array['text-align'] = $text_align;
         }
+
+        // Appended last so the cell setting wins over the defaults above -
+        // getStyleString keeps insertion order and the browser takes the last
+        // declaration of a property.
+        $cell_style = $this->getGridCellStyle();
+        if (isset($cell_style)) {
+            $array = array_merge($array, $cell_style->tdStyle());
+        }
+
         return $this->getStyleString($array);
+    }
+
+    /**
+     * get html(for display)
+     *
+     * Overrides the trait to give each value the badge configured on the
+     * column. The wrapping is applied value by value, not to the joined
+     * string, so every value of a multi-value column gets its own badge.
+     *
+     * @return mixed
+     */
+    public function html()
+    {
+        $cell_style = $this->getGridCellStyle();
+
+        $html = $this->_getMultipleValue(function ($v) use ($cell_style) {
+            $inner = $this->_html($v);
+
+            // An empty value must stay empty: _getMultipleValue drops empties
+            // after this callback, and an empty badge would survive that.
+            if (!isset($cell_style) || is_nullorempty($inner)) {
+                return $inner;
+            }
+
+            return $cell_style->wrap($inner, $v, $this->_text($v));
+        });
+
+        return is_list($html) ? collect($html)->implode($this->getSeparateWord()) : $html;
+    }
+
+    /**
+     * Cell styling of this column, or null when it is not styled.
+     *
+     * Only the grid asks for it. The detail screen and the form show one
+     * record at a time, where a badge carries no comparison and would just
+     * fight the field layout.
+     *
+     * @return GridCellStyle|null
+     */
+    // @phpstan-ignore-next-line
+    protected function getGridCellStyle()
+    {
+        if (!boolval(array_get($this->options, 'grid_column'))) {
+            return null;
+        }
+
+        // The grid reuses one item for every row, so this is built once per
+        // column. false is the "not built yet" marker because null is a real
+        // answer here - it means "this column is not styled".
+        if ($this->grid_cell_style === false) {
+            $this->grid_cell_style = GridCellStyle::make($this->custom_column);
+        }
+
+        return $this->grid_cell_style;
     }
 
     /**
