@@ -55,6 +55,15 @@ class Bootstrap
         Ad::js(asset('lib/js/bignumber.min.js'));
 
         static::setCssJsList([
+            // iCheck is not decoration here. Grid\Displayers\RowSelector
+            // emits `$('.grid-row-checkbox').iCheck(...).on('ifChanged',
+            // ...)`, so without the plugin that call throws and the whole
+            // handler chain behind it - `$.admin.grid.select()`, the batch
+            // action button, the "N selected" counter - is never bound.
+            // The skin has to come with it: iCheck hides the real input
+            // and draws its own box, so the JS alone would leave every
+            // checkbox invisible.
+            'vendor/open-admin/AdminLTE/plugins/iCheck/minimal/blue.css',
             'vendor/exment/css/common.css',
             'vendor/exment/css/workflow.css',
             'vendor/exment/css/customform.css',
@@ -70,6 +79,8 @@ class Bootstrap
         ], true, true);
 
         static::setCssJsList([
+            // see the note on the stylesheet above
+            'vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js',
             'vendor/exment/validation/jquery.validate.js',
             'vendor/exment/chartjs/chart.min.js',
             'vendor/exment/codemirror/codemirror.js',

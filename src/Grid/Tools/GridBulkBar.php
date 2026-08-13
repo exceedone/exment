@@ -68,6 +68,12 @@ class GridBulkBar extends AbstractTool
         $allName = e($this->grid->getSelectAllName());
         $label = e(exmtrans('common.grid_bulk_selected'));
         $clear = e(exmtrans('common.grid_bulk_clear'));
+        // The stock batch button writes its own counter from this string.
+        // It is only ever refreshed from an iCheck pointer event, so when
+        // the bar clears the selection - or the page filter unticks a row
+        // it hides - the JS has to rewrite it, and it needs the theme's
+        // own wording to do that rather than inventing a second one.
+        $stockLabel = e(trans('admin.grid_items_selected'));
 
         // The bar can expose two more actions when the table permits.
         // Bulk edit needs an edit permission AND at least one column the
@@ -104,6 +110,7 @@ HTML;
 <div class="exm-bulkbar" data-grid="{$gridId}"
     data-all="{$allName}"
     data-label="{$label}"
+    data-stock-label="{$stockLabel}"
     data-list-url="{$listUrl}"
     data-webapi-url="{$webapiUrl}"
     data-csrf="{$csrf}">
