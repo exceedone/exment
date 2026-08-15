@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Storage\Adapter;
 
 use Aws\S3\S3Client;
+use Aws\S3\S3ClientInterface;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
+use League\Flysystem\PathPrefixer;
 
 class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
 {
@@ -19,6 +21,65 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
         'ETag',
         'VersionId',
     ];
+
+    /**
+     * Keep the client, the bucket and the prefix, because the ones of the parent are private.
+     *
+     * @var S3ClientInterface
+     */
+    protected $s3Client;
+
+    /**
+     * @var string
+     */
+    protected $s3Bucket;
+
+    /**
+     * @var PathPrefixer
+     */
+    protected $s3Prefixer;
+
+    /**
+     * @param S3ClientInterface $client
+     * @param string $bucket
+     * @param string $prefix
+     * @param mixed ...$args the other arguments of the parent, passed as they are
+     */
+    public function __construct(S3ClientInterface $client, string $bucket, string $prefix = '', ...$args)
+    {
+        parent::__construct($client, $bucket, $prefix, ...$args);
+
+        $this->s3Client = $client;
+        $this->s3Bucket = $bucket;
+        $this->s3Prefixer = new PathPrefixer($prefix);
+    }
+
+    /**
+     * Get an url the client can use to download the file from S3 itself.
+     *
+     * Having this method makes Storage::disk(...)->providesTemporaryUrls() true, so Exment
+     * sends the client to S3 instead of reading the file and forwarding it. S3 checks the
+     * expiration when the request starts: a download already running is not cut when the url
+     * expires, but a download restarted after that time fails.
+     *
+     * @param string $path
+     * @param \DateTimeInterface $expiration
+     * @param array<string, mixed> $options options of the GetObject command, as ResponseContentDisposition
+     * @return string
+     */
+    public function getTemporaryUrl(string $path, $expiration, array $options = []): string
+    {
+        $command = $this->s3Client->getCommand('GetObject', array_merge([
+            'Bucket' => $this->s3Bucket,
+            'Key' => $this->s3Prefixer->prefixPath($path),
+        ], $options));
+
+        return (string) $this->s3Client->createPresignedRequest(
+            $command,
+            $expiration,
+            $options
+        )->getUri();
+    }
 
     /**
      * get adapter class
