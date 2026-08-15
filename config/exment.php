@@ -163,6 +163,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | file download temporary url minutes
+    |--------------------------------------------------------------------------
+    |
+    | How long the signed url used to download a file from a cloud storage stays valid.
+    | The storage checks it when the download starts, so a download already running is not
+    | cut when the url expires. But a download interrupted by a network problem is restarted
+    | with the same url, and that fails once the url has expired.
+    |
+    */
+    'file_download_temporary_url_minutes' => env('EXMENT_FILE_DOWNLOAD_TEMPORARY_URL_MINUTES', 15),
+
+    /*
+    |--------------------------------------------------------------------------
     | password rule
     |--------------------------------------------------------------------------
     |
