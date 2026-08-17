@@ -22,16 +22,23 @@ use Exceedone\Exment\Model\CustomView;
  * workflow, revision) - the grid is not writing to the database on its
  * own.
  *
- * The config lists only the columns worth turning into a picker:
+ * The config lists the columns the editor knows how to open:
  *
- *   - Select and SelectValtext, single value, no free input
- *   - Yesno
+ *   - Select and SelectValtext (single value, no free input) and Yesno
+ *     -> a picker
+ *   - Text, Email, Url -> a text input
+ *   - Integer, Decimal, Currency -> a number input; skipped when the
+ *     column is computed by a calc formula, because a hand-typed value
+ *     would just be overwritten by the next recalculation
+ *   - Date, Datetime -> the browser's own calendar input
  *
- * Multi-select would need a completely different editor (chips, add/remove
- * per value) and free input would need a text field with validation -
- * neither is on the design brief. A column outside the list keeps its
- * normal double-click behaviour (nothing, the row's link handler still
- * runs), so the pen icon simply never shows.
+ * The typed inputs carry no client-side rules beyond the html input
+ * type: the PUT lands in the same ApiDataController validation the edit
+ * form uses, and a refused value comes back as a failed save (red flash,
+ * old markup restored). Multi-select stays out - it would need a
+ * completely different editor (chips, add/remove per value). A column
+ * outside the list keeps its normal double-click behaviour (nothing, the
+ * row's link handler still runs), so the pen icon simply never shows.
  *
  * The config also carries the update URL, the cell URL template and a
  * fresh CSRF token; grid_tools.js never fabricates URLs from string
@@ -173,7 +180,14 @@ HTML;
             if (boolval($custom_column->getOption('multiple_enabled'))) {
                 return null;
             }
-            if (boolval($custom_column->getOption('free_input'))) {
+            // Free input turns the field into "options plus anything you
+            // type", which a plain picker cannot represent. But the option
+            // only takes effect while the radio/checkbox display is off -
+            // Select::isFreeInput() ignores it otherwise - and this gate has
+            // to match what the form actually does, not what the stored
+            // option says.
+            if (boolval($custom_column->getOption('free_input'))
+                && !boolval($custom_column->getOption('check_radio_enabled'))) {
                 return null;
             }
 
@@ -205,6 +219,50 @@ HTML;
                     ['v' => '1', 'l' => (string)getYesNo(1)],
                 ],
                 'required' => true, // yesno stores 0 or 1, empty is not a valid state
+                'label' => (string)$custom_column->column_view_name,
+            ];
+        }
+
+        if (in_array($type, [ColumnType::TEXT, ColumnType::EMAIL, ColumnType::URL], true)) {
+            $meta = [
+                'type' => 'text',
+                'required' => boolval($custom_column->required),
+                'label' => (string)$custom_column->column_view_name,
+            ];
+            // The one client-side rule worth carrying: maxlength stops the
+            // overrun while typing instead of after the round trip.
+            $length = $custom_column->getOption('string_length');
+            if (!is_nullorempty($length)) {
+                $meta['maxLength'] = intval($length);
+            }
+            return $meta;
+        }
+
+        if (in_array($type, [ColumnType::INTEGER, ColumnType::DECIMAL, ColumnType::CURRENCY], true)) {
+            $meta = [
+                'type' => 'number',
+                // Drives the input's step only - whole numbers spin by 1,
+                // the rest accept any fraction.
+                'decimal' => $type !== ColumnType::INTEGER,
+                'required' => boolval($custom_column->required),
+                'label' => (string)$custom_column->column_view_name,
+            ];
+            // Same min/max the edit form puts on its own number field.
+            $min = $custom_column->getOption('number_min');
+            $max = $custom_column->getOption('number_max');
+            if (!is_nullorempty($min)) {
+                $meta['min'] = $min;
+            }
+            if (!is_nullorempty($max)) {
+                $meta['max'] = $max;
+            }
+            return $meta;
+        }
+
+        if ($type === ColumnType::DATE || $type === ColumnType::DATETIME) {
+            return [
+                'type' => $type === ColumnType::DATE ? 'date' : 'datetime',
+                'required' => boolval($custom_column->required),
                 'label' => (string)$custom_column->column_view_name,
             ];
         }
@@ -297,7 +355,10 @@ HTML;
             if (boolval($custom_column->getOption('multiple_enabled'))) {
                 return false;
             }
-            if (boolval($custom_column->getOption('free_input'))) {
+            // Same reading of free_input as buildColumnMeta above: it only
+            // counts while the radio/checkbox display is off.
+            if (boolval($custom_column->getOption('free_input'))
+                && !boolval($custom_column->getOption('check_radio_enabled'))) {
                 return false;
             }
             $options = $custom_column->createSelectOptions();
@@ -308,6 +369,138 @@ HTML;
             return true;
         }
 
+        if (in_array($type, [ColumnType::TEXT, ColumnType::EMAIL, ColumnType::URL,
+            ColumnType::DATE, ColumnType::DATETIME, ], true)) {
+            return true;
+        }
+
+        if (in_array($type, [ColumnType::INTEGER, ColumnType::DECIMAL, ColumnType::CURRENCY], true)) {
+            // A computed column recalculates from its formula on save, so a
+            // hand-typed value would only survive until the next write -
+            // an editor that looks like it works and then loses the value
+            // is worse than no editor.
+            return is_nullorempty($custom_column->getOption('calc_formula'));
+        }
+
         return false;
+    }
+
+    /**
+     * The hidden marker an editable cell carries its true value in, or ''
+     * when the cell does not need one.
+     *
+     * The grid shortens a long value to `exment.grid_mat_length`
+     * characters and appends '...' (`get_omitted_string`). That is right
+     * for reading and wrong for editing: the client prefills the editor
+     * from the cell it is opening, so on a shortened cell the editor
+     * would come up holding '...' and save that string back - silently
+     * dropping everything past the 50th character of the stored value.
+     *
+     * Shortening is not the only lossy formatting. A number column with
+     * number_format rounds for display (1000.999 with one decimal digit
+     * paints as "1,001"), and percent_format multiplies by 100 and
+     * appends '%' - in both, the digits on screen are NOT the stored
+     * value, and an editor prefilled from them would save the display
+     * back over the data. So a marker is also written whenever
+     * recovering a number from the cell the way the client does (strip
+     * everything but digits, dot and minus) does not land back on the
+     * stored value.
+     *
+     * Only those cells get a marker. It is the same data twice in the
+     * page, and the vast majority of cells are neither shortened nor
+     * reformatted - there the text the user is reading IS the value.
+     *
+     * The value written out is the DATABASE value, not the display text:
+     * a select stores the option key and that is what the editor's
+     * <option> carries, a date stores 'Y-m-d H:i:s' which the client
+     * already parses. Multi-value columns return an array here, but they
+     * are not inline editable in the first place, so they get nothing.
+     *
+     * @param mixed $item column item, already bound to a row
+     * @param string|null $html the cell markup being sent, when the caller
+     *        has it - it is what the client's own recovery would read
+     * @return string
+     */
+    public static function rawValueTag($item, ?string $html = null): string
+    {
+        if (!isset($item)) {
+            return '';
+        }
+
+        $value = $item->pureValue();
+        if (is_null($value) || is_array($value) || is_object($value)) {
+            return '';
+        }
+
+        $needed = false;
+
+        $text = $item->text();
+        if (is_string($text) && $text !== get_omitted_string($text)) {
+            // The grid shortened it - the tail is not on screen at all.
+            $needed = true;
+        }
+
+        if (!$needed && isset($html)
+            && method_exists($item, 'getCustomColumn')
+            && ($custom_column = $item->getCustomColumn())
+            && in_array($custom_column->column_type, [ColumnType::INTEGER, ColumnType::DECIMAL, ColumnType::CURRENCY], true)) {
+            // Same recovery the client runs on the cell text, then the same
+            // trailing-zero blindness ("9800.00" and "9800" are one number).
+            $shown = preg_replace(
+                '/[^0-9.\-]/',
+                '',
+                html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5)
+            );
+            $needed = static::normalizeNumber($shown) !== static::normalizeNumber((string)$value);
+        }
+
+        if (!$needed) {
+            return '';
+        }
+
+        return '<span class="exm-cell-raw" data-v="' . esc_html((string)$value) . '"></span>';
+    }
+
+    /**
+     * '1,001.50' and '1001.5' are the same number; '1001' and '1000.999'
+     * are not. String maths on purpose - floats would call 16-digit
+     * values equal at exactly the precision this marker exists to keep.
+     *
+     * @param string $number
+     * @return string
+     */
+    protected static function normalizeNumber(string $number): string
+    {
+        $number = trim($number);
+        if (strpos($number, '.') !== false) {
+            $number = rtrim(rtrim($number, '0'), '.');
+        }
+        return $number;
+    }
+
+    /**
+     * Whether a view column may appear in the BULK edit modal.
+     *
+     * Stricter than `isEditableColumn` on purpose: the modal rests on a
+     * sentinel "(no change)" option, and only a <select> can carry one. A
+     * free-typed input's untouched empty state is indistinguishable from
+     * "clear this column on every selected row" - the loudest possible
+     * way to lose data - so only the picker types qualify. This is the
+     * server-side twin of the `meta.type === 'select'` filter the modal
+     * applies, and GridBulkBar uses it so the bulk edit button never
+     * opens an empty modal.
+     *
+     * @param mixed $custom_view_column
+     * @param CustomTable|null $custom_table
+     * @return bool
+     */
+    public static function isBulkEditableColumn($custom_view_column, ?CustomTable $custom_table = null): bool
+    {
+        if (!static::isEditableColumn($custom_view_column, $custom_table)) {
+            return false;
+        }
+
+        $type = $custom_view_column->column_item->getCustomColumn()->column_type;
+        return in_array($type, [ColumnType::SELECT, ColumnType::SELECT_VALTEXT, ColumnType::YESNO], true);
     }
 }

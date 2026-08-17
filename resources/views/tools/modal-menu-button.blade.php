@@ -1,7 +1,10 @@
-<div class="btn-group float-end p-0">
+{{-- grid_tool: rendered inside the data-grid toolbar, where the buttons sit in
+     normal flow (DOM order = display order, spacing via .exm-grid-tool) instead
+     of float-end, whose reverse stacking broke the phone layout. --}}
+<div class="btn-group {{ !empty($grid_tool) ? 'exm-grid-tool' : 'float-end' }} p-0">
     @if((!is_null($ajax) && trim($ajax) !== '') || !empty($menulist) || (!empty($icon) && !empty($label)))
-    <a class="btn btn-sm justify-content-center align-items-center d-flex {{$button_class}} {{!is_nullorempty($menulist) ? 'dropdown-toggle' : ''}}" 
-        style="margin-right:5px; font-size:12px !important;"
+    <a class="btn btn-sm justify-content-center align-items-center d-flex {{$button_class}} {{!is_nullorempty($menulist) ? 'dropdown-toggle' : ''}}"
+        style="{{ empty($grid_tool) ? 'margin-right:5px;' : '' }} font-size:12px !important;"
         {{-- data-bs-toggle="dropdown" --}}
         data-widgetmodal_url="{{$ajax ?? ''}}"
         data-widgetmodal_method="GET"

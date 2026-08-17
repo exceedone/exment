@@ -139,8 +139,9 @@ class DefaultGrid extends GridBase
             // here but missing from the config would open nothing on double
             // click. That includes refusing a column of a related table or a
             // pivot column: the editor PUTs to this table's endpoint only.
-            if ($inlineEditAllowed
-                && GridTools\GridInlineEditor::isEditableColumn($custom_view_column, $this->custom_table)) {
+            $inlineEditable = $inlineEditAllowed
+                && GridTools\GridInlineEditor::isEditableColumn($custom_view_column, $this->custom_table);
+            if ($inlineEditable) {
                 $classes[] = 'exm-editable';
             }
             $grid->column($item->uniqueName(), $item->label())
@@ -157,12 +158,22 @@ class DefaultGrid extends GridBase
                 ->style($item->gridStyle())
                 ->setClasses($classes)
                 ->setHeaderStyle($item->gridHeaderStyle())
-                ->display(function ($v) use ($item) {
+                ->display(function ($v) use ($item, $inlineEditable) {
                     // @phpstan-ignore-next-line
                     if (is_null($this)) {
                         return '';
                     }
-                    return $item->setCustomValue($this)->html();
+                    $html = $item->setCustomValue($this)->html();
+                    if (!$inlineEditable) {
+                        return $html;
+                    }
+                    // A long value is shown shortened ('...'), a formatted
+                    // number rounded - either way the cell no longer says the
+                    // stored value, and the inline editor prefills from the
+                    // cell. The marker carries the value the editor must
+                    // start from, so what it saves is an edit of the data,
+                    // not of the display.
+                    return (string)$html . GridTools\GridInlineEditor::rawValueTag($item, (string)$html);
                 })->escape(false);
         }
 
@@ -525,6 +536,39 @@ class DefaultGrid extends GridBase
             // one's picker should look. Skipped without edit permission.
             $tools->append(new GridTools\GridInlineEditor($this->custom_table, $this->custom_view));
 
+            // The action buttons. gridTool() drops their classic float-end
+            // wrapper, so unlike the stock header they render in DOM order
+            // - which is why this block appends them in the order they have
+            // always appeared on screen (floats stacked them in reverse):
+            // plugins, view menu, table settings, create, import/export.
+            // Same look on the PC, and the phone flex layout (which never
+            // honored the floats) now reads in the same order instead of
+            // mirrored. It also gives every button the shared
+            // .exm-grid-tool spacing - the floats sat flush against the
+            // display tools above.
+
+            // add plugin button
+            if ($listButtons !== null && count($listButtons) > 0) {
+                foreach ($listButtons as $listButton) {
+                    $tools->append((new Tools\PluginMenuButton($listButton, $this->custom_table))->gridTool());
+                }
+            }
+
+            if ($this->custom_table->enableViewMenuButton()) {
+                /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
+                $tools->append((new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view))->gridTool());
+            }
+
+            // add page change button(contains view seting)
+            if ($this->custom_table->enableTableMenuButton()) {
+                /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+                $tools->append((new Tools\CustomTableMenuButton('data', $this->custom_table))->gridTool());
+            }
+
+            if ($this->custom_table->enableCreate(true) === true) {
+                $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name, 'grid_tool' => true]));
+            }
+
             // validate export and import
             $import = $this->custom_table->enableImport();
             $export = $this->custom_table->enableExport();
@@ -532,28 +576,7 @@ class DefaultGrid extends GridBase
                 // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
                 $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $export === true, $import === true, $export === true);
                 /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
-                $tools->append($button->setCustomTable($this->custom_table));
-            }
-
-            if ($this->custom_table->enableCreate(true) === true) {
-                $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
-            }
-
-            // add page change button(contains view seting)
-            if ($this->custom_table->enableTableMenuButton()) {
-                /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
-                $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
-            }
-            if ($this->custom_table->enableViewMenuButton()) {
-                /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
-                $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
-            }
-
-            // add plugin button
-            if ($listButtons !== null && count($listButtons) > 0) {
-                foreach ($listButtons as $listButton) {
-                    $tools->append(new Tools\PluginMenuButton($listButton, $this->custom_table));
-                }
+                $tools->append($button->setCustomTable($this->custom_table)->gridTool());
             }
 
             // manage batch --------------------------------------------------

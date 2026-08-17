@@ -74,6 +74,9 @@ class GridColumnPin extends ColumnSelector
         // the element because grid_tools.js is a static file - it has no
         // way to reach the translations.
         $flag = e(exmtrans('common.grid_pin_flag'));
+        // Toast shown when a narrow screen forces applyPins to leave some
+        // of the chosen columns unpinned - same static-file reason.
+        $narrow = e(exmtrans('common.grid_pin_narrow'));
 
         $items = '';
         foreach (static::PRESETS as $preset) {
@@ -90,12 +93,20 @@ HTML;
 
         $none = e(exmtrans('common.grid_pin_none'));
         $actions = e(exmtrans('common.grid_pin_actions'));
+        // Header lock rides in the pin menu because it is the same idea
+        // turned 90 degrees: pinning keeps columns on screen against the
+        // horizontal scroll, this keeps the header row on screen against
+        // the vertical one (grid_tools.js applyHeadLock).
+        $head = e(exmtrans('common.grid_pin_head'));
         $items .= <<<HTML
 <li><a class="dropdown-item exm-pin-preset" href="#" data-preset="0">
     <i class="fa fa-ban"></i><span>{$none}</span>
 </a></li>
 <li><a class="dropdown-item exm-pin-right" href="#">
     <i class="fa fa-thumbtack"></i><span>{$actions}</span>
+</a></li>
+<li><a class="dropdown-item exm-pin-head" href="#">
+    <i class="fa fa-thumbtack"></i><span>{$head}</span>
 </a></li>
 <li><hr class="dropdown-divider"></li>
 HTML;
@@ -115,7 +126,7 @@ HTML;
 
         return <<<HTML
 <div class="btn-group exm-grid-tool exm-grid-pin" data-grid="{$gridId}" data-key="{$key}"
-    data-flag="{$flag}">
+    data-flag="{$flag}" data-narrow="{$narrow}">
     <button type="button" class="btn btn-sm btn-default dropdown-toggle exm-pin-btn"
         data-bs-toggle="dropdown" aria-expanded="false" title="{$title}">
         <i class="fa fa-thumbtack"></i>

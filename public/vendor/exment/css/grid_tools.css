@@ -443,6 +443,44 @@
 }
 
 
+/* ---------------------------------------------------- locked header --- */
+/* "Scroll inside the table" mode. grid_tools.js caps the box's height
+   (measured against the viewport, so no magic calc() here) and adds
+   `.exm-headlock`; from there sticky-top does the header the same way
+   sticky-left already does the pinned columns - against the very same
+   scrolling ancestor, which is why the two compose. */
+.table-responsive.exm-headlock {
+  overflow-y: auto;
+}
+
+/* Above the pinned BODY cells (z2): scrolling rows must slide under the
+   header, never over it. The background repeats the pinned header tint
+   so the locked strip reads as one piece, and because a transparent
+   sticky header would let every row show through it. */
+.exm-headlock > .table.exm-grid > thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background-color: #e9eef4;
+  background-clip: padding-box;
+}
+
+/* The corner cell: pinned column header inside a locked header row. It
+   sticks both ways (left comes inline from the pin pass, top from the
+   rule above) and has to sit over both the sliding header cells and the
+   pinned body cells - the extra class in the selector outweighs the
+   z-index:3 pin-header rule further up. */
+.exm-headlock > .table.exm-grid.exm-grid > thead > tr > th.exm-pin {
+  z-index: 5;
+}
+
+/* Same idea as the pin seam shadows: the line only appears once rows
+   are actually sliding underneath the header. */
+.exm-headlock-scrolled > .table.exm-grid > thead > tr > th {
+  box-shadow: 0 3px 5px -3px rgba(0, 0, 0, .25);
+}
+
+
 /* ------------------------------------------------------ grouped rows --- */
 .table.exm-grid > tbody > tr.exm-group-row > td {
   background-color: #eef2f7;
@@ -565,6 +603,19 @@
   z-index: 1030;
   display: flex;
   align-items: center;
+  /* Never wider than the screen: the bar's natural width (~495px of
+     buttons) used to hang 60px past EACH edge of a 375px phone, cutting
+     off the buttons at both ends. Wrapping keeps every button reachable;
+     the bar just grows upward.
+
+     width is explicit because `left: 50%` halves the space the
+     shrink-to-fit algorithm thinks is available - left alone, the bar
+     folds itself into a half-screen tower on a phone. max-content
+     resolves against the content instead, and max-width caps it. */
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   padding: 8px 12px;
   border-radius: 6px;
@@ -591,6 +642,8 @@
 .exm-bulkbar .exm-bulk-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -794,6 +847,23 @@
   cursor: text;
 }
 
+/* A pinned column is sticky, and the `relative` above - same specificity,
+   written later - would quietly cancel that on any column that is both
+   pinned and editable. The px offset grid_tools.js writes for the sticky
+   position would then be read as a relative nudge and slide the cell
+   right over its neighbour, so the column looks frozen while it is not.
+   Sticky positions the pen exactly as well. */
+.table.exm-grid > tbody > tr > td.exm-editable.exm-pin {
+  position: sticky;
+}
+
+/* Carries the untruncated value of a shortened cell, for the inline
+   editor to open on. It is an empty element and must stay one - no box,
+   no line box, nothing that could change how the cell measures. */
+.exm-cell-raw {
+  display: none;
+}
+
 .table.exm-grid > tbody > tr > td.exm-editable .exm-edit-pen {
   position: absolute;
   top: 50%;
@@ -828,14 +898,51 @@
 .table.exm-grid > tbody > tr > td.exm-editing {
   background-color: #fffbe6 !important;
   cursor: default;
+  /* Containing block for the editor overlay below, and the layer it sits
+     on: above the pinned body cells (2) so a wide editor is not sliced by
+     a frozen column, below the locked header (4) so a row scrolling under
+     it still disappears underneath. */
+  position: relative;
+  z-index: 3;
+  /* A grid cell clips what sticks out of it, which would cut the editor
+     back to the column width and undo the whole point of floating it.
+     Nothing else can spill: the cell's own content is inside the hidden
+     ghost while the editor is open. */
+  overflow: visible;
+}
+
+/* A pinned cell carries an inline `left` for its sticky position, and
+   `position: relative` would read that same offset as a nudge - the cell
+   would jump sideways the moment the editor opened. Sticky is a
+   containing block for absolute children just as well. */
+.table.exm-grid > tbody > tr > td.exm-editing.exm-pin {
+  position: sticky;
 }
 
 .table.exm-grid > tbody > tr > td.exm-editing .exm-edit-pen {
   display: none;
 }
 
-.table.exm-grid > tbody > tr > td.exm-editing select,
+/* The cell's original markup, held in the flow but invisible. Column
+   widths are laid out around the VALUES, so an editor that took their
+   place would resize its own column - and every column to the right of it
+   would slide at the exact moment the user is aiming at the cell. This
+   keeps the grid still and lets the editor float above it instead. */
+.table.exm-grid > tbody > tr > td.exm-editing .exm-edit-ghost {
+  visibility: hidden;
+}
+
+/* Overlay, not a cell child: a 100px status column leaves a box too small
+   to read a value in, let alone type one. grid_tools.js measures the
+   value and writes the px width - the rules here are the floor it can
+   never fall below, and the look. */
+.table.exm-grid > tbody > tr > td.exm-editing select.exm-edit-input,
 .table.exm-grid > tbody > tr > td.exm-editing input.exm-edit-input {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  box-sizing: border-box;
   width: 100%;
   min-width: 90px;
   height: 26px;
@@ -845,6 +952,9 @@
   background-color: #fff;
   border: 1px solid #3c8dbc;
   border-radius: 3px;
+  /* Reads as a floating editor rather than a cell that grew teeth - and
+     marks the edge where it covers the neighbouring column. */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
   outline: none;
 }
 
@@ -967,4 +1077,89 @@
 
 .exm-ctxmenu .exm-ctx-head:empty {
   display: none;
+}
+
+/* ------------------------------------------------- grid toolbar, phone --- */
+/* `.exm-grid-header` is stamped on the grid's own box-header by
+   grid_tools.js (initHeaderFlag) - stock laravel-admin markup has no class
+   to scope a phone layout to, and these rules must never leak into the
+   headers of other admin screens. */
+
+/* A header dropdown is sized by its content: the pin menu lists every
+   column, the view menu every view name. On a phone that is wider than
+   the screen (267px menu on a 375px viewport) and taller than the grid.
+   The width cap pairs with the margin nudge grid_tools.js applies on
+   shown.bs.dropdown; long entries fade out with an ellipsis instead of
+   pushing the menu wide. */
+.exm-grid-header .dropdown-menu {
+  max-width: calc(100vw - 16px);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.exm-grid-header .dropdown-menu > li > a,
+.exm-grid-header .dropdown-menu .dropdown-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 767px) {
+  /* One wrapping flex flow instead of two floats. The floats are what
+     produced the ragged rows: the left block wrapped under itself, the
+     right block centered its own overflow, and every row started at a
+     different x. Flex keeps one gap everywhere and every row starts at
+     the same edge. */
+  .box-header.exm-grid-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* The clearfix pseudo-elements would become flex items - a zero-width
+     column each - and double the first and last gap. */
+  .box-header.exm-grid-header::before,
+  .box-header.exm-grid-header::after {
+    content: none;
+  }
+
+  /* Stop every float in the header, at any depth - laravel-admin wraps
+     the create/export tools in their own nested .pull-right divs, and a
+     right float inside the flex flow stacks its items in REVERSE DOM
+     order (that is where the mirrored second row came from). The grid's
+     own action buttons render unfloated now (gridTool()), so float-end
+     only shows up here when a plugin ships its own floated markup. */
+  .exm-grid-header .pull-left,
+  .exm-grid-header .pull-right,
+  .exm-grid-header .float-end {
+    float: none;
+  }
+
+  /* Dissolve the pure wrapper divs so every button group joins the same
+     flex flow with the same gap. Only wrappers: a .btn-group that
+     carries pull-right itself keeps its box, because dissolving it
+     would split the visually-joined buttons inside. Children keep
+     working as before - a modal inside is position:fixed, a hidden
+     group stays hidden. */
+  .exm-grid-header div.pull-left:not(.btn-group),
+  .exm-grid-header div.pull-right:not(.btn-group) {
+    display: contents;
+  }
+
+  /* The stock header spaces groups with inline `margin-right: 5px`,
+     and .exm-grid-tool carries margin-left for the PC row; both would
+     add to the flex gap and make the spacing uneven. !important is the
+     only thing that outranks an inline style. (.exm-grid-tool is not
+     always a .btn-group - a plugin button is a bare <a>.) */
+  .exm-grid-header .btn-group,
+  .exm-grid-header .exm-grid-tool {
+    margin: 0 !important;
+  }
+
+  /* The quick-search form is empty on a phone (its input is d-md-flex),
+     but the element itself would still sit in the flow as a zero-width
+     flex item and double one gap. */
+  .exm-grid-header form[pjax-container] {
+    display: none;
+  }
 }
