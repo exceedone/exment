@@ -25,7 +25,13 @@
   var REFRESH_PREFIX = 'exment_grid_refresh_';
   var PIN_PREFIX = 'exment_grid_pin_';
   var PIN_RIGHT_PREFIX = 'exment_grid_pinright_';
+  var PIN_HEAD_PREFIX = 'exment_grid_pinhead_';
   var GROUP_PREFIX = 'exment_grid_group_';
+  // sessionStorage, both of them, and on purpose: which groups are folded
+  // and what the page is filtered on are "this sitting" state like the
+  // grouping column itself - none of it should ambush the user tomorrow.
+  var GROUP_FOLD_PREFIX = 'exment_grid_groupfold_';
+  var FILTER_PREFIX = 'exment_grid_pagefilter_';
 
   // laravel-admin's names for the two columns it adds itself. They are
   // rendered as `column-__row_selector__` / `column-__actions__` like any
@@ -214,7 +220,14 @@
       // otherwise identical requests pile up on the same URL. Also never
       // yank the page from under an open modal.
       if (pjaxInFlight || document.hidden) return;
-      if (document.querySelector('.modal.show, .modal.d-block')) return;
+      // The bulk edit overlay is its own markup, not a Bootstrap
+      // `.modal`, so it needs naming here or the refresh fires straight
+      // through it - the selection being edited would untick under the
+      // user mid-modal.
+      if (document.querySelector('.modal.show, .modal.d-block, .exm-bulk-modal-overlay')) return;
+      // Same for an open right-click menu: swapping the grid under it
+      // tears the menu away just as the user is aiming at an entry.
+      if (activeCtx) return;
       // Never pull the page out from under an edit in progress. The
       // picked value would be dropped on the floor (the swap cancels the
       // editor, it does not commit it) and a save still in flight would
@@ -338,6 +351,47 @@
   }
 
   /**
+   * "Scroll inside the table" mode: cap the scroll box at the viewport
+   * and let the header row stick to its top edge.
+   *
+   * Sticky-top only works against a vertically scrolling ancestor, and
+   * the stock layout scrolls the whole document - which is exactly why
+   * the header disappears two screens into a long page today. Turning
+   * the existing `.table-responsive` into that ancestor keeps both
+   * scrollbars on one element, so the column pins (sticky-left against
+   * the same box) keep working unchanged.
+   *
+   * Runs BEFORE the pin measuring pass on purpose: capping the height is
+   * what makes the vertical scrollbar appear, and the ~15px it eats have
+   * to be gone from the box before any column width is read.
+   */
+  function applyHeadLock(box, table, key) {
+    var sc = scrollBoxOf(table);
+    if (!sc) return;
+
+    var on = readStore('localStorage', PIN_HEAD_PREFIX + key) === '1';
+    var item = box.querySelector('.exm-pin-head');
+    if (item) item.classList.toggle('active', on);
+
+    sc.classList.toggle('exm-headlock', on);
+    if (!on) {
+      sc.classList.remove('exm-headlock-scrolled');
+      sc.style.removeProperty('max-height');
+      return;
+    }
+
+    // Measured, not a fixed calc(): the space above the table moves with
+    // the toolbar wrapping, the breadcrumb and the filter chip. 60px
+    // keeps the paginator visible below the box; the 200px floor stops a
+    // small window from squeezing the table into a letterbox (then the
+    // page scrolls as before - worse than ideal, never broken).
+    var top = sc.getBoundingClientRect().top
+      + (window.pageYOffset || document.documentElement.scrollTop || 0);
+    var h = Math.max(200, window.innerHeight - top - 60);
+    sc.style.maxHeight = h + 'px';
+  }
+
+  /**
    * Freeze the chosen columns.
    *
    * No markup is duplicated, unlike laravel-admin's own FixColumns: the
@@ -346,13 +400,16 @@
    * a row - the batch checkbox, the action links, the cell appearance
    * markup - therefore keeps working untouched.
    */
-  function applyPins(box) {
+  function applyPins(box, notify) {
     var table = gridOf(box);
     if (!table) return;
 
     var key = box.getAttribute('data-key');
     var pinned = readPins(key);
     var pinRight = readStore('localStorage', PIN_RIGHT_PREFIX + key) === '1';
+
+    // Height first, widths second - see the note on applyHeadLock.
+    applyHeadLock(box, table, key);
 
     // Full reset first: the offsets are cumulative, so they can only be
     // measured on a table where nothing is sticky yet.
@@ -399,8 +456,20 @@
       );
     });
 
+    // A frozen block wider than the box leaves nothing to scroll: on a
+    // phone, "pin 3 columns" adds up to more than the whole grid and
+    // horizontal scrolling turns into a no-op (measured 444px pinned in
+    // a 330px box). Pins therefore apply only while they fit inside a
+    // share of the box. The STORED choice is kept whole on purpose - the
+    // same grid pins fully again the moment it gets a wider screen.
+    var scBox = scrollBoxOf(table);
+    var budget = scBox ? scBox.clientWidth * 0.6 : Infinity;
+
     var left = 0;
-    group.forEach(function (name, idx) {
+    var keptData = 0;
+    var dropped = 0;
+    var lastKept = null;
+    group.forEach(function (name) {
       var cells = table.querySelectorAll('.column-' + name);
       if (!cells.length) return;
 
@@ -413,15 +482,41 @@
         if (w > width) width = w;
       });
 
-      var last = idx === group.length - 1;
+      // The selector column rides along for free; a data column has to
+      // fit the budget. The FIRST data column is pinned even when it
+      // alone is over - the user asked for that column by name, and one
+      // frozen column always leaves the rest of the box scrollable.
+      var isData = name !== SELECTOR_COLUMN;
+      if (isData && keptData > 0 && left + width > budget) {
+        dropped++;
+        var straggler = table.querySelector('thead > tr > th.column-' + name + ' .exm-pin-flag');
+        if (straggler) straggler.remove();
+        return;
+      }
+
       each(cells, function (cell) {
         cell.classList.add('exm-pin');
         cell.style.left = left + 'px';
-        if (last) cell.classList.add('exm-pin-last');
       });
-
+      if (isData) keptData++;
+      lastKept = name;
       left += width;
     });
+    // The seam shadow belongs to the rightmost column that actually froze.
+    if (lastKept) {
+      each(table.querySelectorAll('.column-' + lastKept), function (cell) {
+        cell.classList.add('exm-pin-last');
+      });
+    }
+
+    // Said once, on the action itself - not again on every resize or
+    // pjax reload re-applying the same stored pins.
+    if (notify && dropped > 0) {
+      var narrowMsg = box.getAttribute('data-narrow') || '';
+      if (narrowMsg && window.toastr && typeof toastr.info === 'function') {
+        toastr.info(narrowMsg);
+      }
+    }
 
     // Off by default: with a narrow table there is nothing to scroll, and
     // a frozen action column would simply sit on top of the last real
@@ -454,6 +549,10 @@
     if (!sc) return;
     sc.classList.toggle('exm-pin-scrolled', sc.scrollLeft > 2);
     sc.classList.toggle('exm-pin-scrolled-end', sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 2);
+    // Vertical twin of the seam shadows above: the line under the locked
+    // header only appears once rows are actually sliding beneath it.
+    sc.classList.toggle('exm-headlock-scrolled',
+      sc.classList.contains('exm-headlock') && sc.scrollTop > 2);
   }
 
   function initPin() {
@@ -537,12 +636,22 @@
 
     var span = table.querySelectorAll('thead > tr > th').length || 1;
     var pageLabel = box.getAttribute('data-page-label') || '';
+    // Folds recorded for this table + this column. Everything below is a
+    // rebuild - a regroup, a filter, an inline edit of the grouping
+    // column - and without this the rebuild would silently unfold every
+    // group the user had just closed.
+    var fold = readGroupFold(key, col);
+    var refolded = false;
 
     order.forEach(function (k) {
       var bucket = buckets[k];
 
       var head = document.createElement('tr');
       head.className = 'exm-group-row';
+      // The raw cell value, NOT the '-' placeholder the empty label is
+      // displayed as: the fold store and the click handler must speak
+      // the same value or the empty group can never stay folded.
+      head.setAttribute('data-exm-group-val', bucket.label);
       var td = document.createElement('td');
       td.setAttribute('colspan', String(span));
 
@@ -577,11 +686,60 @@
       bucket.rows.forEach(function (tr) {
         tbody.appendChild(tr);
       });
+
+      if (fold.indexOf(bucket.label) > -1) {
+        setGroupCollapsed(head, true);
+        refolded = true;
+      }
     });
+
+    // Rows just went invisible again, so the selection rule has to run
+    // over them (see syncBulk) - deferred like every other caller.
+    if (refolded) setTimeout(syncBulk, 0);
   }
 
   function initGroup() {
     each(document.querySelectorAll('.exm-grid-group[data-grid]'), applyGroup);
+  }
+
+  /**
+   * Labels of the groups folded shut, remembered per table AND per
+   * grouping column: "in progress" folded under `state` says nothing
+   * about a heading that happens to read the same under `priority`.
+   */
+  function readGroupFold(key, col) {
+    var raw = readStore('sessionStorage', GROUP_FOLD_PREFIX + key);
+    if (!raw) return [];
+    try {
+      var saved = JSON.parse(raw);
+      if (!saved || saved.c !== col || !Array.isArray(saved.l)) return [];
+      return saved.l;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function writeGroupFold(key, col, labels) {
+    writeStore('sessionStorage', GROUP_FOLD_PREFIX + key,
+      labels.length ? JSON.stringify({ c: col, l: labels }) : null);
+  }
+
+  /**
+   * Fold a group shut / open it back up. One walker for the click
+   * handler and for the rebuild in applyGroup, so the two can never
+   * disagree on what "folded" looks like. Selection cleanup is NOT here:
+   * syncBulk owns the "hidden rows leave the selection" rule, callers
+   * only have to schedule it.
+   */
+  function setGroupCollapsed(groupRow, collapsed) {
+    groupRow.classList.toggle('collapsed', collapsed);
+    var caret = groupRow.querySelector('.fa');
+    if (caret) caret.className = collapsed ? 'fa fa-caret-right' : 'fa fa-caret-down';
+    var next = groupRow.nextElementSibling;
+    while (next && !next.classList.contains('exm-group-row')) {
+      next.classList.toggle('exm-row-hidden', collapsed);
+      next = next.nextElementSibling;
+    }
   }
 
   /**
@@ -597,6 +755,22 @@
     var box = document.querySelector('.exm-grid-group[data-grid="' + table.id + '"]');
     if (!box) return '';
     return readStore('sessionStorage', GROUP_PREFIX + box.getAttribute('data-key')) || '';
+  }
+
+  /**
+   * Storage key for per-table client state, read off whichever toolbar
+   * box is present. The group and pin tools are both constructed with
+   * the same server-side key (the table name - DefaultGrid passes it to
+   * both), so it does not matter which one answers; what matters is that
+   * the key comes from the server and not from the DOM id, which
+   * laravel-admin regenerates per render.
+   */
+  function storeKeyOf(table) {
+    if (!table || !table.id) return '';
+    var box = document.querySelector(
+      '.exm-grid-group[data-grid="' + table.id + '"], .exm-grid-pin[data-grid="' + table.id + '"]'
+    );
+    return box ? (box.getAttribute('data-key') || '') : '';
   }
 
   /* --------------------------------------------------- page filter --- */
@@ -657,6 +831,16 @@
     table.setAttribute(FILTER_COL_ATTR, col);
     table.setAttribute(FILTER_VAL_ATTR, value);
 
+    // Grouping survives a reload (sessionStorage) - a filter that did not
+    // would silently evaporate on the next auto-refresh tick while the
+    // button that caused it sits right next to the one that set it up.
+    // Same store, same lifetime.
+    var storeKey = storeKeyOf(table);
+    if (storeKey) {
+      writeStore('sessionStorage', FILTER_PREFIX + storeKey,
+        JSON.stringify({ c: col, v: value }));
+    }
+
     // Groups re-count over the rows that are left, and the frozen columns
     // are re-measured because dropping rows can change a column's width.
     initGroup();
@@ -677,10 +861,52 @@
     table.removeAttribute(FILTER_COL_ATTR);
     table.removeAttribute(FILTER_VAL_ATTR);
     removeFilterChip(table);
+    var storeKey = storeKeyOf(table);
+    if (storeKey) writeStore('sessionStorage', FILTER_PREFIX + storeKey, null);
     if (quiet) return;
     initGroup();
     initPin();
     setTimeout(syncBulk, 0);
+  }
+
+  /**
+   * Re-apply the stored page filter after a reload or a pjax swap.
+   *
+   * The fresh DOM knows nothing - the filter lives in classes and
+   * attributes the swap threw away - so this walks the grids, finds a
+   * stored entry and runs the normal applyRowFilter over the new rows.
+   * On another page of the same table that is exactly the wanted
+   * behaviour: the chip re-appears and the rows that do not match hide,
+   * same as if the user had filtered here by hand.
+   */
+  function initFilter() {
+    each(document.querySelectorAll('table.exm-grid'), function (table) {
+      var storeKey = storeKeyOf(table);
+      if (!storeKey) return;
+      var raw = readStore('sessionStorage', FILTER_PREFIX + storeKey);
+      if (!raw) return;
+
+      var saved = null;
+      try {
+        saved = JSON.parse(raw);
+      } catch (e) {
+        /* half-written entry - fall through to the cleanup below */
+      }
+      if (!saved || !saved.c) {
+        writeStore('sessionStorage', FILTER_PREFIX + storeKey, null);
+        return;
+      }
+
+      applyRowFilter(table, findCtxMenuFor(table), saved.c, saved.v || '');
+
+      // applyRowFilter refused - the column picker has hidden the column,
+      // so there is no value on screen to compare against. Dropping the
+      // entry here keeps it from retrying (and failing) on every load;
+      // the user re-filters in one right-click when the column returns.
+      if (table.getAttribute(FILTER_COL_ATTR) !== saved.c) {
+        writeStore('sessionStorage', FILTER_PREFIX + storeKey, null);
+      }
+    });
   }
 
   function chipOf(table) {
@@ -799,6 +1025,20 @@
   }
 
   function syncBulk() {
+    // "A row nobody can see is never selected" - and this is where the
+    // rule is actually enforced, because one entry point walks around
+    // every other guard: the theme's select-all script ticks EVERY
+    // `.grid-row-checkbox` on the page (BatchActions::script has no
+    // notion of the client-side hiding), so with a page filter or a
+    // folded group active it happily selects rows the user cannot see,
+    // and the batch delete behind it would reach them. Every selection
+    // change already funnels through here; unticking fires ifChanged,
+    // which schedules one more syncBulk that then finds nothing left to
+    // untick.
+    each(document.querySelectorAll(
+      'tr.exm-row-hidden .grid-row-checkbox, tr.exm-row-filtered .grid-row-checkbox'
+    ), uncheckBox);
+
     var bar = document.querySelector('.exm-bulkbar');
     if (!bar) return;
 
@@ -1237,8 +1477,11 @@
    * controller and no new permission check.
    *
    * @param {HTMLElement} bar
+   * @param {string} format 'csv' or 'xlsx' - whatever else arrives is
+   *   folded to csv, so a doctored data-format attribute can only ever
+   *   pick between the two real exporters.
    */
-  function runBulkExport(bar) {
+  function runBulkExport(bar, format) {
     if (!bar) return;
     var ids = selectedRowIds();
     if (!ids.length) return;
@@ -1249,7 +1492,7 @@
     var params = new URLSearchParams(window.location.search);
     params.set('_export_', 'selected:' + ids.join(','));
     params.set('action', 'export');
-    params.set('format', 'csv');
+    params.set('format', format === 'xlsx' ? 'xlsx' : 'csv');
     // A GET navigation triggers a download response; opening in a new
     // tab keeps the current grid selection intact for the user to keep
     // working with.
@@ -1425,26 +1668,56 @@
 
     var current = readCurrentValue(td, meta);
     var editor = buildEditor(meta, current);
-    // Clear the cell down to the editor. The pen icon is inside the
-    // snapshot, so cancel/commit restore it verbatim.
+    // What the editor actually holds after prefill, kept for the "did
+    // the user change anything" check on close. NOT the same thing as
+    // `current`: an <input> sanitizes what it is given (a stray newline
+    // inside a stored text is dropped on assignment), and comparing a
+    // later value against the cell would read that sanitization as a
+    // user edit - committing it on every blur.
+    editor._exmInitial = editor.value;
+    // The old markup stays in the cell as an invisible ghost so the
+    // column keeps the width and the row the height the table was laid
+    // out with, and the editor floats above them. Replacing the content
+    // outright would resize this column - and shove every column right of
+    // it sideways - at the moment the user is aiming at the cell.
+    //
+    // The pen icon is inside the snapshot, so cancel/commit restore it
+    // verbatim either way.
+    var ghost = document.createElement('span');
+    ghost.className = 'exm-edit-ghost';
+    ghost.setAttribute('aria-hidden', 'true');
+    ghost.innerHTML = snapshot;
     td.innerHTML = '';
+    td.appendChild(ghost);
     td.appendChild(editor);
+    sizeInlineEditor(td, editor, meta);
 
     // Focus & open picker as soon as the browser lets us - the second
     // click of a dblclick would otherwise land on the fresh element
     // and mark it selected without opening the dropdown.
     setTimeout(function () {
       editor.focus();
-      if (editor.tagName === 'SELECT' && typeof editor.showPicker === 'function') {
+      var wantsPicker = editor.tagName === 'SELECT'
+        || editor.type === 'date' || editor.type === 'datetime-local';
+      if (wantsPicker && typeof editor.showPicker === 'function') {
         try { editor.showPicker(); } catch (e) { /* not supported everywhere */ }
       } else if (editor.tagName === 'INPUT') {
         editor.select();
+        // Selecting puts the caret at the end, and a value too long for
+        // the box then opens scrolled to its tail - the one part of it
+        // the cell was already showing. A value is read from its start.
+        editor.scrollLeft = 0;
       }
     }, 0);
 
-    // change on a select fires on picking a value; blur is the cancel /
-    // click-away commit path. Enter commits, Escape reverts.
-    editor.addEventListener('change', function () { finishInlineEditor(td, true); });
+    // Commit-on-change is for the <select> only: there, picking an
+    // option IS the decision. On a typed input `change` fires while the
+    // user is still mid-thought (a date input emits one per completed
+    // segment), so those commit through Enter or click-away and cancel
+    // through Escape, the way a text editor is expected to behave.
+    if (editor.tagName === 'SELECT') {
+      editor.addEventListener('change', function () { finishInlineEditor(td, true); });
+    }
     editor.addEventListener('blur', function () {
       // A tiny delay so a click on the dropdown's own option is not
       // read as a blur before the change fires.
@@ -1458,18 +1731,157 @@
     });
   }
 
-  function readCurrentValue(td, meta) {
-    if (!meta) return '';
-    // Best-effort: read what the cell text says today. The client only
-    // ever uses this to pre-select the matching option in the dropdown,
-    // so a miss just means the dropdown opens with its first entry.
-    var text = (td.textContent || '').replace(/\s+/g, ' ').trim();
-    if (meta.type === 'select') {
-      for (var i = 0; i < meta.choices.length; i++) {
-        if (String(meta.choices[i].l) === text) return meta.choices[i].v;
+  /**
+   * Width floors per editor type, in px. Not guesses at a pretty size -
+   * each one is what the widget needs before its own content starts being
+   * cut: a date input renders 10 digits plus a picker button, a
+   * datetime-local those plus a time down to seconds, a number the value
+   * plus its spinner.
+   */
+  var EDITOR_MIN_WIDTH = {
+    text: 200,
+    number: 110,
+    date: 140,
+    datetime: 230,
+    select: 140
+  };
+
+  /**
+   * Smallest the "stop following the value" cap ever gets, and the whole
+   * cap on a narrow screen. Wide enough for the values the grid itself
+   * shortens (it cuts at 50 characters), which is exactly where the
+   * editor used to stop showing the whole value.
+   */
+  var EDITOR_MAX_WIDTH = 640;
+
+  /**
+   * On a wider grid the cap follows the grid instead: the editor is an
+   * overlay, and past roughly this much of what the user can see it stops
+   * being a field in a row and becomes a panel over one.
+   */
+  var EDITOR_MAX_RATIO = .6;
+
+  /**
+   * Give the (absolutely positioned) editor a width that fits the value
+   * rather than the column, and keep it inside the part of the grid the
+   * user can actually see.
+   *
+   * Both measurements are taken here, in the tick the editor is built:
+   * the ghost holds the cell's box exactly as the table laid it out, so
+   * nothing about the cell moves between the swap and this call.
+   */
+  function sizeInlineEditor(td, editor, meta) {
+    var rect = td.getBoundingClientRect();
+    var want = Math.max(rect.width, EDITOR_MIN_WIDTH[meta.type] || 120);
+
+    // An <input> whose value overruns its box reports the value's full
+    // length as scrollWidth - the cheapest true measurement of "how wide
+    // does this text need to be", no font maths involved. Read it before
+    // the width below is written, while the box is still the cell's.
+    if (editor.tagName === 'INPUT' && editor.scrollWidth > editor.clientWidth) {
+      want = Math.max(want, editor.scrollWidth + 14);
+    }
+    // A <select> never overruns - it clips its option instead, which is
+    // the same unreadable half-value in a different shape. Left to size
+    // itself it takes the width of its widest option (plus the arrow),
+    // and that is the measurement wanted: every option legible without
+    // opening the list.
+    if (editor.tagName === 'SELECT') {
+      var keep = editor.style.width;
+      editor.style.width = 'auto';
+      want = Math.max(want, editor.offsetWidth + 2);
+      editor.style.width = keep;
+    }
+
+    var left = 0;
+    var sc = scrollBoxOf(td);
+    var box = sc ? sc.getBoundingClientRect() : null;
+    want = Math.min(want, box
+      ? Math.max(EDITOR_MAX_WIDTH, Math.round(box.width * EDITOR_MAX_RATIO))
+      : EDITOR_MAX_WIDTH);
+
+    if (box) {
+      // An editor opening past the edge of the scroll box would have to
+      // be scrolled to before it could be typed in. Anything that does
+      // not fit slides sideways rather than being cut: the columns it
+      // covers are readable again the moment the editor closes, half a
+      // value is not.
+      want = Math.min(want, box.width - 12);
+      if (rect.left + want > box.right - 6) {
+        left = box.right - 6 - want - rect.left;
+      }
+      if (rect.left + left < box.left + 6) {
+        left = box.left + 6 - rect.left;
       }
     }
-    return '';
+
+    editor.style.width = Math.round(want) + 'px';
+    if (left) editor.style.left = Math.round(left) + 'px';
+  }
+
+  function readCurrentValue(td, meta) {
+    if (!meta) return '';
+    // A cell the grid had to shorten shows '...' where the rest of the
+    // value was, and carries the real one in an empty `.exm-cell-raw`
+    // marker - opening the editor on the visible text would put those
+    // three dots in the input and save them over the stored value.
+    //
+    // Every other cell shows its value in full, so the text IS the value.
+    // Reading it back is best effort: the client only uses this to
+    // prefill, so a miss means the editor opens empty, which beats
+    // opening on a wrong guess.
+    var marker = td.querySelector('.exm-cell-raw');
+    var raw = marker ? marker.getAttribute('data-v') : null;
+    var text = raw !== null ? raw : (td.textContent || '').replace(/\s+/g, ' ').trim();
+    if (meta.type === 'select') {
+      // The marker holds the stored option key, the cell text holds the
+      // label - so match against whichever one we have. An unknown key is
+      // no match on purpose: the editor opening on its first option
+      // instead is one stray blur away from saving a value nobody picked.
+      for (var i = 0; i < meta.choices.length; i++) {
+        var hit = raw !== null
+          ? String(meta.choices[i].v) === raw
+          : String(meta.choices[i].l) === text;
+        if (hit) return meta.choices[i].v;
+      }
+      return '';
+    }
+    if (meta.type === 'number') {
+      // Down from the display formatting - thousands separators, a
+      // currency symbol, a unit suffix - to the bare number the input
+      // accepts.
+      return text.replace(/[^0-9.\-]/g, '');
+    }
+    if (meta.type === 'date') {
+      return parseDateText(text);
+    }
+    if (meta.type === 'datetime') {
+      var day = parseDateText(text);
+      if (!day) return '';
+      var hm = text.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+      if (!hm) return day + 'T00:00';
+      // <input type="datetime-local"> wants the ISO 'T' form. Seconds
+      // ride along when the cell shows them, so they survive an edit
+      // that only touches the date.
+      return day + 'T' + pad2(hm[1]) + ':' + hm[2] + (hm[3] ? ':' + hm[3] : '');
+    }
+    // The text-ish types (text, email, url) show the stored value as is.
+    return text;
+  }
+
+  /**
+   * 'YYYY-MM-DD' out of the formats Exment renders dates in - Y-m-d,
+   * Y/m/d and the Japanese Y年m月d日. Anything else returns '' and the
+   * date editor opens empty; a wrong prefill would be worse than none.
+   */
+  function parseDateText(text) {
+    var m = (text || '').match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
+    return m ? m[1] + '-' + pad2(m[2]) + '-' + pad2(m[3]) : '';
+  }
+
+  function pad2(v) {
+    v = String(v);
+    return v.length === 1 ? '0' + v : v;
   }
 
   function buildEditor(meta, current) {
@@ -1482,22 +1894,61 @@
         blank.textContent = '';
         select.appendChild(blank);
       }
+      var matched = false;
       for (var i = 0; i < meta.choices.length; i++) {
         var opt = document.createElement('option');
         opt.value = meta.choices[i].v;
         opt.textContent = meta.choices[i].l;
-        if (String(meta.choices[i].v) === String(current)) opt.selected = true;
+        if (String(meta.choices[i].v) === String(current)) {
+          opt.selected = true;
+          matched = true;
+        }
         select.appendChild(opt);
+      }
+      // A required column can still hold a value that is not among the
+      // options - the option was deleted after the fact, or the value
+      // arrived through import or the API. With nothing marked selected
+      // the browser falls back to selecting the FIRST option, and the
+      // blur that closes an untouched editor would then commit a value
+      // nobody picked. A hidden placeholder pins the editor to '' until
+      // the user actually chooses.
+      if (meta.required && !matched) {
+        var ph = document.createElement('option');
+        ph.value = '';
+        ph.textContent = '';
+        ph.disabled = true;
+        ph.hidden = true;
+        ph.selected = true;
+        select.insertBefore(ph, select.firstChild);
       }
       return select;
     }
-    // No numeric/text editor in this release - would need per-type
-    // validation the server owns. Bail with a plain input so anything
-    // still opens, but this branch is not reachable while the meta
-    // builder only emits `type: 'select'`.
+    // Typed inputs. The real validation rules stay on the server (the
+    // PUT runs the same ApiDataController pipeline the edit form does),
+    // so the input type here only drives the widget: the spinner, the
+    // calendar, the mobile keyboard. A value the server refuses comes
+    // back as a failed save and the cell flashes red with the old
+    // markup restored - never a silent wrong write.
     var input = document.createElement('input');
-    input.type = 'text';
     input.className = 'exm-edit-input';
+    if (meta.type === 'number') {
+      input.type = 'number';
+      input.step = meta.decimal ? 'any' : '1';
+      if (meta.min != null) input.min = meta.min;
+      if (meta.max != null) input.max = meta.max;
+    } else if (meta.type === 'date') {
+      input.type = 'date';
+    } else if (meta.type === 'datetime') {
+      input.type = 'datetime-local';
+      // Seconds included: the grid displays them ('09:15:30'), so the
+      // editor must carry them - at step 60 the widget holds minutes
+      // only, and editing just the date would silently write the
+      // seconds back as :00.
+      input.step = '1';
+    } else {
+      input.type = 'text';
+      if (meta.maxLength) input.maxLength = meta.maxLength;
+    }
     input.value = current;
     return input;
   }
@@ -1526,18 +1977,30 @@
     }
     var newValue = editor.value;
     var meta = inlineColumnMeta(td);
-    // Restore the snapshot first so `readCurrentValue` sees the badge,
-    // not the leftover `<select>`. Then compare against the value that
-    // was picked.
+    // Restore the snapshot first - every return below must leave the
+    // cell showing its own markup again.
     td.innerHTML = snapshot;
     // No meta means the config this editor was opened from is gone - the
     // grid was re-rendered underneath it. Without the column definition
     // there is nothing to validate the picked value against, so the edit
     // is dropped rather than sent on a guess.
     if (!meta) return;
-    var currentValue = readCurrentValue(td, meta);
-    if (String(newValue) === String(currentValue)) {
-      // Same value the cell already shows: no request, no flash.
+    // A value the widget itself flags as unparseable - '2026-99-99' in a
+    // date field, letters pasted into a number - surfaces as value ''
+    // plus validity.badInput. Committing that would not save what the
+    // user typed, it would silently CLEAR the column; closing as a
+    // revert keeps the stored value and the half-typed text is lost,
+    // which is the smaller of the two losses.
+    if (editor.validity && editor.validity.badInput) return;
+    // Compared against what the editor OPENED holding, not against the
+    // cell text: the prefill already went through the input's own
+    // sanitizer, and re-reading the cell would count that difference (a
+    // dropped newline, a collapsed space) as an edit worth saving.
+    var initial = typeof editor._exmInitial === 'string'
+      ? editor._exmInitial
+      : readCurrentValue(td, meta);
+    if (String(newValue) === String(initial)) {
+      // Same value the editor opened on: no request, no flash.
       return;
     }
 
@@ -1555,7 +2018,22 @@
     td.classList.remove('exm-error');
     td.classList.add('exm-saving');
 
-    saveInlineCell(cfg, id, column, newValue, td, snapshot);
+    saveInlineCell(cfg, id, column, serializeEditorValue(newValue, meta), td, snapshot);
+  }
+
+  /**
+   * What the PUT body carries for a picked value. Only datetime needs a
+   * translation: <input type="datetime-local"> speaks ISO's 'T' and
+   * drops the seconds, while the server-side date validator reads
+   * 'Y-m-d H:i:s'. The compare in finishInlineEditor stays in the
+   * input's own format - both sides of it came from there.
+   */
+  function serializeEditorValue(value, meta) {
+    if (meta && meta.type === 'datetime' && value) {
+      var v = value.replace('T', ' ');
+      return v.length === 16 ? v + ':00' : v;
+    }
+    return value;
   }
 
   function saveInlineCell(cfg, id, column, value, td, snapshot) {
@@ -1884,7 +2362,7 @@
         pins.push(col);
       }
       writePins(pinKey, pins);
-      applyPins(pinBox);
+      applyPins(pinBox, true);
       return;
     }
 
@@ -1901,6 +2379,22 @@
       return;
     }
 
+    var pinHeadItem = closest(t, '.exm-pin-head');
+    if (pinHeadItem) {
+      e.preventDefault();
+      e.stopPropagation();
+      var headBox = closest(pinHeadItem, '.exm-grid-pin[data-key]');
+      if (!headBox) return;
+      var headKey = PIN_HEAD_PREFIX + headBox.getAttribute('data-key');
+      var wasOn = readStore('localStorage', headKey) === '1';
+      writeStore('localStorage', headKey, wasOn ? null : '1');
+      // The whole pin pass, not just the height: toggling the vertical
+      // scrollbar changes the box's inner width, so every pinned offset
+      // has to be measured again.
+      applyPins(headBox);
+      return;
+    }
+
     var pinPreset = closest(t, '.exm-pin-preset');
     if (pinPreset) {
       e.preventDefault();
@@ -1910,7 +2404,7 @@
       if (!table) return;
       var take = parseInt(pinPreset.getAttribute('data-preset') || '0', 10);
       writePins(presetBox.getAttribute('data-key'), dataColumnNames(table).slice(0, take));
-      applyPins(presetBox);
+      applyPins(presetBox, true);
       return;
     }
 
@@ -1927,19 +2421,27 @@
 
     var groupRow = closest(t, 'tr.exm-group-row');
     if (groupRow) {
-      var collapsed = groupRow.classList.toggle('collapsed');
-      var caret = groupRow.querySelector('.fa');
-      if (caret) caret.className = collapsed ? 'fa fa-caret-right' : 'fa fa-caret-down';
-      var next = groupRow.nextElementSibling;
-      while (next && !next.classList.contains('exm-group-row')) {
-        next.classList.toggle('exm-row-hidden', collapsed);
-        // Same rule the page filter follows: a row nobody can see must
-        // not stay in the selection, or a batch action reaches rows the
-        // user has no way of unticking.
-        if (collapsed) uncheckBox(next.querySelector('.grid-row-checkbox'));
-        next = next.nextElementSibling;
+      var collapsed = !groupRow.classList.contains('collapsed');
+      setGroupCollapsed(groupRow, collapsed);
+
+      // Remember the fold so the next rebuild - a regroup, a filter, a
+      // pjax reload - puts the heading back the way the user left it.
+      var gtable = closest(groupRow, 'table.exm-grid');
+      var gkey = storeKeyOf(gtable);
+      var gcol = groupColumnOf(gtable);
+      if (gkey && gcol) {
+        var folds = readGroupFold(gkey, gcol);
+        var gval = groupRow.getAttribute('data-exm-group-val') || '';
+        var at2 = folds.indexOf(gval);
+        if (collapsed && at2 === -1) folds.push(gval);
+        if (!collapsed && at2 > -1) folds.splice(at2, 1);
+        writeGroupFold(gkey, gcol, folds);
       }
-      if (collapsed) setTimeout(syncBulk, 0);
+
+      // Rows that just went invisible leave the selection - enforced in
+      // syncBulk, which also refreshes both selection counters. Runs on
+      // expand too so the counters never sit stale.
+      setTimeout(syncBulk, 0);
       return;
     }
 
@@ -1974,7 +2476,10 @@
     var bulkExportBtn = closest(t, '.exm-bulk-export');
     if (bulkExportBtn) {
       e.preventDefault();
-      runBulkExport(closest(bulkExportBtn, '.exm-bulkbar'));
+      runBulkExport(
+        closest(bulkExportBtn, '.exm-bulkbar'),
+        bulkExportBtn.getAttribute('data-format') || 'csv'
+      );
       return;
     }
 
@@ -2107,12 +2612,30 @@
 
   /* ------------------------------------------------------------ boot --- */
 
+  /**
+   * Mark the toolbar row that carries the grid tools. The header itself
+   * is stock laravel-admin markup with no class of its own to hook, and
+   * grid_tools.css needs one for the phone layout (flex flow instead of
+   * two floats) and for keeping its dropdown menus on screen.
+   */
+  function initHeaderFlag() {
+    each(document.querySelectorAll('.exm-grid-tool'), function (tool) {
+      var head = closest(tool, '.box-header');
+      if (head) head.classList.add('exm-grid-header');
+    });
+  }
+
   function initAll() {
+    initHeaderFlag();
     initDensity();
     initRefresh();
     // Grouping moves rows around, so it runs before the pins are measured.
     initGroup();
     initPin();
+    // After group and pin: re-applying a stored filter re-runs both over
+    // the rows it hides, so this order does the double work only when a
+    // filter actually exists.
+    initFilter();
     initBulk();
     initInline();
     initCtxMenu();
@@ -2124,6 +2647,44 @@
   window.addEventListener('resize', function () {
     if (pinResizeTimer) clearTimeout(pinResizeTimer);
     pinResizeTimer = setTimeout(initPin, 150);
+  });
+
+  // Bootstrap positions a header dropdown against its own button, not
+  // against the screen. On a phone that puts the right-anchored pin menu
+  // 70px past the left edge (its button sits near it) and walks the view
+  // menu off the right. Once a menu is open, nudge it back inside the
+  // viewport. The nudge rides on margin-left - safe ground, because
+  // Popper owns transform/inset and rewrites only those on its updates.
+  //
+  // Swept from a click, not from shown.bs.dropdown: the shown event fires
+  // before Popper's (async) first positioning, so a rect read there is
+  // the menu's pre-Popper spot - and the view selector's menu never
+  // fires the event at all. Every one of these menus opens and closes by
+  // click, so one deferred sweep after each click catches them all.
+  function clampHeaderMenus() {
+    each(document.querySelectorAll('.exm-grid-header .dropdown-menu'), function (menu) {
+      if (!menu.classList.contains('show')) {
+        // Closed: drop the nudge so the next open starts from
+        // Bootstrap's own position and is measured fresh - the toolbar
+        // may have wrapped differently by then.
+        menu.style.removeProperty('margin-left');
+        return;
+      }
+      var vw = document.documentElement.clientWidth;
+      var rect = menu.getBoundingClientRect();
+      var dx = 0;
+      if (rect.right > vw - 8) dx = vw - 8 - rect.right;
+      if (rect.left + dx < 8) dx = 8 - rect.left;
+      if (dx) {
+        // Additive: the rect already includes any nudge applied on an
+        // earlier sweep of this same open menu.
+        var base = parseFloat(menu.style.marginLeft) || 0;
+        menu.style.marginLeft = Math.round(base + dx) + 'px';
+      }
+    });
+  }
+  document.addEventListener('click', function () {
+    setTimeout(clampHeaderMenus, 50);
   });
 
   if (document.readyState === 'loading') {

@@ -20,15 +20,16 @@ use Exceedone\Exment\Model\CustomView;
  * generic actions the grid already has webapi endpoints for and that
  * the stock dropdown does not expose:
  *
- *   - Bulk edit: pick one editable column and apply the same value
- *     across every selected row. Uses the same PUT
+ *   - Bulk edit: a Redmine-style modal - fill only the fields to change,
+ *     the rest stay untouched. Uses the same PUT
  *     `/admin/webapi/data/{table}/{id}` endpoint the single-cell inline
  *     editor uses, so validation / workflow / revision live in one
- *     place.
+ *     place. Picker columns only (see isBulkEditableColumn).
  *
  *   - Bulk export: reuse laravel-admin's `_export_=selected:{ids}` scope
- *     against the current grid, so only ticked rows appear in the CSV
- *     without adding a new controller.
+ *     against the current grid, so only ticked rows appear in the file
+ *     without adding a new controller. One button per enabled format
+ *     (CSV / Excel), mirroring the export dialog's config switches.
  *
  * Everything that runs inside a CustomOperation (BatchUpdate, BatchRestore,
  * BatchHardDelete, BatchDelete) is copied from the stock dropdown, so a
@@ -100,10 +101,32 @@ HTML;
 
         $exportBtn = '';
         if ($canExport) {
+            // The same two switches the export dialog obeys - a format the
+            // administrator turned off must not resurface here.
+            $formats = [];
+            if (!boolval(config('exment.export_import_export_disabled_csv', false))) {
+                $formats['csv'] = exmtrans('common.grid_bulk_export_csv');
+            }
+            if (!boolval(config('exment.export_import_export_disabled_excel', false))) {
+                $formats['xlsx'] = exmtrans('common.grid_bulk_export_xlsx');
+            }
+
             $exportLabel = e(exmtrans('common.grid_bulk_export'));
-            $exportBtn = <<<HTML
-<button type="button" class="btn btn-sm btn-default exm-bulk-export"><i class="fa fa-download"></i>&nbsp;{$exportLabel}</button>
+            if (count($formats) === 1) {
+                // Only one way out - a format suffix would just be noise.
+                $fmt = e((string)array_key_first($formats));
+                $exportBtn = <<<HTML
+<button type="button" class="btn btn-sm btn-default exm-bulk-export" data-format="{$fmt}"><i class="fa fa-download"></i>&nbsp;{$exportLabel}</button>
 HTML;
+            } else {
+                foreach ($formats as $fmt => $fmtLabel) {
+                    $fmt = e((string)$fmt);
+                    $fmtLabel = e($fmtLabel);
+                    $exportBtn .= <<<HTML
+<button type="button" class="btn btn-sm btn-default exm-bulk-export" data-format="{$fmt}" title="{$exportLabel} ({$fmtLabel})"><i class="fa fa-download"></i>&nbsp;{$fmtLabel}</button>
+HTML;
+                }
+            }
         }
 
         return <<<HTML
@@ -122,9 +145,12 @@ HTML;
     }
 
     /**
-     * Whether at least one column on the current view would be editable
-     * inline. If not, the bulk edit modal would open with an empty
-     * column picker; better to hide the button.
+     * Whether at least one column on the current view can appear in the
+     * bulk edit modal. Deliberately the BULK check, not the inline one:
+     * the free-typed columns the inline editor now accepts (text, number,
+     * date) are excluded from the modal - see isBulkEditableColumn - so a
+     * view made up of only those would get a bulk edit button that opens
+     * an empty modal.
      *
      * @return bool
      */
@@ -134,7 +160,7 @@ HTML;
             return false;
         }
         foreach ($this->custom_view->custom_view_columns_cache as $custom_view_column) {
-            if (GridInlineEditor::isEditableColumn($custom_view_column, $this->custom_table)) {
+            if (GridInlineEditor::isBulkEditableColumn($custom_view_column, $this->custom_table)) {
                 return true;
             }
         }

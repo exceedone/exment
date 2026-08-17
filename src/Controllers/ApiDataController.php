@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\ValidateCalledType;
+use Exceedone\Exment\Grid\Tools\GridInlineEditor;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Carbon\Carbon;
 use Validator;
@@ -314,8 +315,19 @@ class ApiDataController extends AdminControllerTableBase
             'grid_column' => true,
         ]);
 
+        $html = (string)$item->setCustomValue($custom_value)->html();
+
+        // The grid hands an editable cell its true value in a hidden marker
+        // whenever the display is lossy (shortened text, rounded number);
+        // the cell rendered here replaces that markup after a save, so it
+        // has to carry it too. Without this, editing such a value a second
+        // time would start from the display again.
+        if (GridInlineEditor::isEditable($custom_column)) {
+            $html .= GridInlineEditor::rawValueTag($item, $html);
+        }
+
         return [
-            'html' => (string)$item->setCustomValue($custom_value)->html(),
+            'html' => $html,
         ];
     }
 
