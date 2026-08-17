@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: ./docker-exment/exment-boilerplate/exment
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: feature/laravel-12-new-code
 
       - name: Docker Compose Version
         run: docker compose --version
