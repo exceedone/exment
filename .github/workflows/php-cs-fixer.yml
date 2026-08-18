@@ -6,6 +6,9 @@ on:
       - 'src/**'
       - 'tests/**'
 
+env:
+  EXMENT_REPOSITORY: exceedone/exment
+
 jobs:
   php-cs-fixer:
     runs-on: ubuntu-latest
@@ -14,8 +17,11 @@ jobs:
       matrix:
         php: [ "8.1", "8.2", "8.3"]
     steps:
+      # Ghim repository: PR chay CI o repo base, checkout mac dinh se tim branch nay
+      # o repo base va fail neu do la repo khac (vi du ex1nhatvh/exment).
       - uses: actions/checkout@v4
         with:
+          repository: ${{ env.EXMENT_REPOSITORY}}
           ref: feature/laravel-12-new-code
 
       - name: Setup PHP
