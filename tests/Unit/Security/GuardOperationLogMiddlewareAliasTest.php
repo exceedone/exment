@@ -102,7 +102,7 @@ class GuardOperationLogMiddlewareAliasTest extends TestCase
         }
     }
 
-    public function testNothingWiresTheCoreLogOperationDirectly()
+    public function testNothingWiresTheCoreLogOperationDirectly(): void
     {
         // The assertions above pin the "admin.log" ALIAS. A group may also name a
         // middleware by class, which bypasses the alias entirely - and the core

@@ -59,17 +59,17 @@ class GuardCoreFilterInputRemovedTest extends TestCase
 
     // ----- the removal itself stays removed --------------------------------
 
-    public function testCoreMiddlewareNoLongerDefinesFilterInput()
+    public function testCoreMiddlewareNoLongerDefinesFilterInput(): void
     {
         $this->assertFalse(
-            method_exists(CoreLogOperation::class, 'filterInput'),
+            (new \ReflectionClass(CoreLogOperation::class))->hasMethod('filterInput'),
             'filterInput() is back on the core middleware. It is dead code on Exment (the core '
             . 'handle() never runs) and its config key misleads readers into thinking masking is '
             . 'configured in config/admin.php. Masking belongs to Exment\'s LogOperation.'
         );
     }
 
-    public function testNoMiddlewareSourceStillMentionsFilterInput()
+    public function testNoMiddlewareSourceStillMentionsFilterInput(): void
     {
         // catches a half-revert: method deleted but the call in handle() left
         // behind (fatal), or the call removed while the method lingers.
@@ -82,7 +82,7 @@ class GuardCoreFilterInputRemovedTest extends TestCase
         }
     }
 
-    public function testCorePackageConfigNoLongerDeclaresFilterInput()
+    public function testCorePackageConfigNoLongerDeclaresFilterInput(): void
     {
         $file = $this->corePackageConfigFile();
         $this->assertFileExists($file);
@@ -96,7 +96,7 @@ class GuardCoreFilterInputRemovedTest extends TestCase
 
     // ----- but the parts Exment inherits must NOT be removed ---------------
 
-    public function testCoreStillProvidesTheMethodsExmentInherits()
+    public function testCoreStillProvidesTheMethodsExmentInherits(): void
     {
         // Exment::shouldLogOperation() calls inAllowedMethods() and
         // Exment::inExceptArray() calls parent::inExceptArray().
@@ -108,7 +108,7 @@ class GuardCoreFilterInputRemovedTest extends TestCase
         }
     }
 
-    public function testCoreConfigStillDeclaresExceptAndAllowedMethods()
+    public function testCoreConfigStillDeclaresExceptAndAllowedMethods(): void
     {
         // these two keys of the operation_log block are still live: deleting the
         // whole block (instead of just filter_input) breaks them. "except" has no
@@ -126,7 +126,7 @@ class GuardCoreFilterInputRemovedTest extends TestCase
 
     // ----- parity: every key the removed filter used to mask ---------------
 
-    public function testPasswordKeysStayMaskedWithoutTheCoreFilter()
+    public function testPasswordKeysStayMaskedWithoutTheCoreFilter(): void
     {
         $masked = $this->mask(
             ['password' => 'real-pass', 'password_confirmation' => 'real-pass', 'name' => 'foo'],
@@ -138,7 +138,7 @@ class GuardCoreFilterInputRemovedTest extends TestCase
         $this->assertSame('foo', $masked['name'], 'Business data must stay readable.');
     }
 
-    public function testResetTokenStaysMaskedWithoutTheCoreFilter()
+    public function testResetTokenStaysMaskedWithoutTheCoreFilter(): void
     {
         // auth/reset.blade.php posts the raw reset token back as a hidden field
         // named "token" - the only screen in Exment that posts that key.
@@ -150,7 +150,7 @@ class GuardCoreFilterInputRemovedTest extends TestCase
         $this->assertSame('***', $masked['token']);
     }
 
-    public function testResetTokenInThePathStaysMasked()
+    public function testResetTokenInThePathStaysMasked(): void
     {
         // the token is also a path segment, on both the mail link (GET) and the
         // form action (POST); it is a bearer credential, so it is masked whole.
@@ -160,7 +160,7 @@ class GuardCoreFilterInputRemovedTest extends TestCase
         $this->assertStringEndsWith('***', $masked);
     }
 
-    public function testTokenIsNotMaskedOnBusinessScreens()
+    public function testTokenIsNotMaskedOnBusinessScreens(): void
     {
         // deliberate difference from the removed core filter, which masked "token"
         // on every screen: a user-defined table may own a "token" column, and

@@ -135,7 +135,7 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
         $this->assertStringNotContainsString('5e02b3a0', $log->input);
     }
 
-    public function testHandleMasksTheResetPasswordTokenInBothInputAndPath()
+    public function testHandleMasksTheResetPasswordTokenInBothInputAndPath(): void
     {
         // The password-reset token is the one credential the removed core filter
         // (admin.operation_log.filter_input) used to mask that Exment now covers
