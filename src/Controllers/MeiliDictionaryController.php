@@ -3,9 +3,9 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\MeiliDictionary;
-use Encore\Admin\Grid;
-use Encore\Admin\Form;
-use Encore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 
 /**
