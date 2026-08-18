@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Grid\Linker;
-use Encore\Admin\Widgets\Table as WidgetTable;
+use ExmentAdminCore\Admin\Grid\Linker;
+use ExmentAdminCore\Admin\Widgets\Table as WidgetTable;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Services\Meili\GlobalSearch\AppliedChips;
