@@ -94,6 +94,36 @@ trait TestTrait
         return $this;
     }
 
+    /**
+     * Get the body of a file download response.
+     *
+     * FileController::responseStream() never builds the body as a string: a local file is sent
+     * as a BinaryFileResponse and any other disk as a streamed response, because reading a whole
+     * file into memory is what breaks the memory_limit of php.ini on a large file.
+     *
+     * getContent() returns false for both of those responses, so the body has to be read from
+     * the file itself or captured while the response writes it out.
+     *
+     * @param mixed $response
+     * @return string
+     */
+    protected function getDownloadedContent($response)
+    {
+        $baseResponse = $response->baseResponse ?? $response;
+
+        if ($baseResponse instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse) {
+            return (string)file_get_contents($baseResponse->getFile()->getPathname());
+        }
+
+        if ($baseResponse instanceof \Symfony\Component\HttpFoundation\StreamedResponse) {
+            ob_start();
+            $baseResponse->sendContent();
+            return (string)ob_get_clean();
+        }
+
+        return (string)$baseResponse->getContent();
+    }
+
 
     /**
      * Check post's Response
