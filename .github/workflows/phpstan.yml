@@ -12,6 +12,7 @@ on:
 env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+  EXMENT_ADMIN_CORE_REPOSITORY: exceedone/exment-admin-core
 
 jobs:
   phpstan:
@@ -26,11 +27,45 @@ jobs:
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate
+          ref: feature/laravel-12
 
       - uses: actions/checkout@v4
         with:
           path: ./docker-exment/exment-boilerplate/exment
           ref: feature/laravel-12-new-code
+
+      # exment-boilerplate require ca exceedone/exment-admin-core (dev-master).
+      # Bat buoc branch master: composer doan version cua path repository theo ten branch
+      # dang checkout, branch khac se ra dev-<branch> va khong khop rang buoc dev-master.
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.EXMENT_ADMIN_CORE_REPOSITORY}}
+          path: ./docker-exment/exment-boilerplate/exment-admin-core
+          ref: master
+
+      # composer.dev.lock da tro exceedone/exment-admin-core vao ./exment-admin-core, nhung
+      # composer.dev.json lai thieu repository tuong ung nen composer install khong tim thay
+      # thu muc nguon. Va vao day thay vi sua repo exment-boilerplate de CI khong phai cho
+      # mot PR o repo khac. Sua composer.dev.json lam lech content-hash cua lock, composer
+      # chi canh bao "lock file is not up to date" roi van cai tiep tu lock.
+      - name: Add exment-admin-core to composer.dev.json
+        working-directory: docker-exment/exment-boilerplate
+        run: |
+          php -r '
+            $file = "composer.dev.json";
+            $json = json_decode(file_get_contents($file), true);
+            $repositories = $json["repositories"] ?? [];
+            foreach ($repositories as $repository) {
+                if (($repository["url"] ?? "") === "./exment-admin-core") {
+                    echo "already registered", PHP_EOL;
+                    exit(0);
+                }
+            }
+            $repositories[] = ["type" => "path", "url" => "./exment-admin-core", "options" => ["symlink" => true]];
+            $json["repositories"] = $repositories;
+            file_put_contents($file, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+            echo "added", PHP_EOL;
+          '
 
       - name: Docker Compose Version
         run: docker compose --version
