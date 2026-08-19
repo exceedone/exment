@@ -1218,4 +1218,16 @@ return [
         'timeout'              => env('LINE_HTTP_TIMEOUT', 10),
         'dedupe_minutes'       => env('LINE_DEDUPE_MINUTES', 0),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Safety check (安否確認) - nguồn dữ liệu động đất
+    |--------------------------------------------------------------------------
+    | feed_url   : endpoint API bản tin động đất (mặc định P2P地震情報, relay JMA)
+    | feed_limit : số bản tin đọc mỗi lần poll (exment:safetywatch)
+    */
+    'safety_check' => [
+        'feed_url'   => env('EXMENT_SAFETY_CHECK_FEED_URL', 'https://api.p2pquake.net/v2/history'),
+        'feed_limit' => env('EXMENT_SAFETY_CHECK_FEED_LIMIT', 10),
+    ],
 ];

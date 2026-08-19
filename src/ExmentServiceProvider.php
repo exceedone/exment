@@ -23,6 +23,8 @@ use Exceedone\Exment\Auth\PublicFormGuard;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
+use Exceedone\Exment\Services\SafetyCheck\EarthquakeFeedInterface;
+use Exceedone\Exment\Services\SafetyCheck\P2pQuakeFeed;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
@@ -96,6 +98,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
+        \Exceedone\Exment\Console\SafetyWatchCommand::class,
     ];
 
 
@@ -344,6 +347,15 @@ class ExmentServiceProvider extends ServiceProvider
             return CustomTable::findByEndpoint();
         });
 
+        // bind default earthquake feed for the safety-check auto-trigger watcher
+        $this->app->bind(EarthquakeFeedInterface::class, P2pQuakeFeed::class);
+
+        // default LINE API client (configured Guzzle transport); tests re-bind
+        // this with a mocked transport
+        $this->app->bind(\Exceedone\Exment\Services\Line\LineMessagingClient::class, function () {
+            return new \Exceedone\Exment\Services\Line\LineMessagingClient();
+        });
+
         // guard provider
         Auth::extend('publicformtoken', function ($app, $name, array $config) {
             return tap($this->makeGuard($config), function ($guard) {
@@ -427,6 +439,10 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
+            // withoutOverlapping: a slow poll (LINE outage / many users on the sync
+            // queue) must not overlap the next run — the jma_event_id dedupe is
+            // check-then-insert, so two concurrent runs could double-send an event.
+            $schedule->command('exment:safetywatch')->everyMinute()->withoutOverlapping(10);
 
             // set cron event
             try {

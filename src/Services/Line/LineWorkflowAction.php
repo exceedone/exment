@@ -3,8 +3,6 @@
 namespace Exceedone\Exment\Services\Line;
 
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\LineAccountLink;
-use Exceedone\Exment\Model\LoginUser;
 
 /**
  * Handles Flex Message postbacks: runs the matching workflow action.
@@ -33,19 +31,16 @@ class LineWorkflowAction
             return exmtrans('line.invalid_action_data');
         }
 
-        $userId = LineAccountLink::where('line_user_id', $lineUserId)->value('user_id');
-        if (is_nullorempty($userId)) {
+        $userId = LineActingUser::userId($lineUserId);
+        if ($userId === null) {
             return exmtrans('line.account_not_linked');
         }
 
-        // Resolve the login user for that base_user_id and authenticate (for authority checks)
-        $loginUser = LoginUser::where('base_user_id', $userId)->first();
+        $loginUser = LineActingUser::loginUser($userId);
         if (!$loginUser) {
             return exmtrans('line.login_not_activated');
         }
-        $guard = \Auth::guard(config('admin.auth.guard', 'admin'));
-        $guard->login($loginUser);
-        try {
+        return LineActingUser::runAs($loginUser, function () use ($tableKey, $valueId, $actionId) {
             $custom_table = CustomTable::getEloquent($tableKey);
             if (!$custom_table) {
                 return exmtrans('line.table_not_found');
@@ -75,8 +70,6 @@ class LineWorkflowAction
             }
 
             return exmtrans('line.action_done', $wfAction->action_name);
-        } finally {
-            $guard->logout();
-        }
+        });
     }
 }

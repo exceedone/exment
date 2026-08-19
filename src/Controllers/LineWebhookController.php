@@ -19,11 +19,9 @@ class LineWebhookController extends Controller
 {
     public function handle(Request $request)
     {
-        // Resolve from the container only when explicitly bound (tests inject a mock transport);
-        // in production nothing binds it, so build it directly with its configured Guzzle client.
-        $client = app()->bound(LineMessagingClient::class)
-            ? app(LineMessagingClient::class)
-            : new LineMessagingClient();
+        // Container-resolved (bound in ExmentServiceProvider); tests re-bind it
+        // with a mocked transport.
+        $client = app(LineMessagingClient::class);
         $linker = new LineAccountLinker();
 
         $body = $request->getContent();
@@ -35,10 +33,51 @@ class LineWebhookController extends Controller
 
         $events = json_decode($body, true)['events'] ?? [];
         foreach ($events as $event) {
-            $this->dispatchEvent($event, $client, $linker);
+            if (!$this->markEventProcessed($event)) {
+                // Already handled: LINE may redeliver webhooks, and redelivery order is
+                // not guaranteed — replaying an old "safe" tap after a newer "need_help"
+                // would overwrite the newer answer. Skip silently (a redelivered
+                // replyToken is expired anyway).
+                continue;
+            }
+            try {
+                $this->dispatchEvent($event, $client, $linker);
+            } catch (\Throwable $e) {
+                // Release the exactly-once key so LINE's redelivery of this event can
+                // succeed — otherwise a transient failure (DB deadlock etc.) would turn
+                // into a permanent skip and the user's action would be silently lost.
+                // Rethrow: LINE sees a non-2xx and redelivers the whole batch; events
+                // that DID complete keep their key and are deduped on that replay.
+                $this->forgetEventProcessed($event);
+                throw $e;
+            }
         }
 
         return response('', 200); // LINE always expects a 200 response
+    }
+
+    /**
+     * Exactly-once guard per webhookEventId. Cache::add is atomic (first caller wins),
+     * so a concurrent redelivery cannot slip through between check and set. Events
+     * without a webhookEventId (old payloads, tests) are processed unconditionally.
+     * TTL 25h covers LINE's redelivery window comfortably.
+     */
+    protected function markEventProcessed(array $event): bool
+    {
+        $eventId = $event['webhookEventId'] ?? null;
+        if (is_nullorempty($eventId)) {
+            return true;
+        }
+        return \Cache::add('line_webhook_event.' . $eventId, 1, 60 * 60 * 25);
+    }
+
+    /** Undo markEventProcessed after a failed dispatch, so a redelivery is accepted. */
+    protected function forgetEventProcessed(array $event): void
+    {
+        $eventId = $event['webhookEventId'] ?? null;
+        if (!is_nullorempty($eventId)) {
+            \Cache::forget('line_webhook_event.' . $eventId);
+        }
     }
 
     protected function dispatchEvent(array $event, LineMessagingClient $client, LineAccountLinker $linker): void
@@ -60,6 +99,10 @@ class LineWebhookController extends Controller
                     $msg = exmtrans('line.link_already_linked');
                 } elseif ($isLinkCommand) {
                     $msg = exmtrans('line.link_invalid_code');
+                } elseif ($alreadyLinked && \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::attachComment($userId, $text)) {
+                    // Plain text from an already-linked user, attached as a comment on their
+                    // current open safety-check answer row (e.g. injury detail follow-up).
+                    $msg = exmtrans('safety.comment_added');
                 } elseif ($alreadyLinked) {
                     // Already linked; plain text (not a command, actions only via buttons) is invalid
                     $msg = exmtrans('line.invalid_command');
@@ -73,6 +116,11 @@ class LineWebhookController extends Controller
             $data = \Exceedone\Exment\Services\Line\LineWorkflowAction::parsePostback($raw);
             if (($data['act'] ?? null) === 'workflow') {
                 $msg = \Exceedone\Exment\Services\Line\LineWorkflowAction::handle($data, $userId);
+                if ($replyToken) {
+                    $client->reply($replyToken, [LineMessagingClient::text($msg)]);
+                }
+            } elseif (($data['act'] ?? null) === 'safety') {
+                $msg = \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::handle($data, $userId);
                 if ($replyToken) {
                     $client->reply($replyToken, [LineMessagingClient::text($msg)]);
                 }

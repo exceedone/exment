@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Database\Seeder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Services\Line\LineInstaller;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Services\TemplateImportExport;
 
 class InstallSeeder extends Seeder
@@ -45,6 +46,9 @@ class InstallSeeder extends Seeder
             LineInstaller::ensureFlexTemplateTable();
             LineInstaller::ensureSendLogTable();
             LineInstaller::ensureLinkMenu();
+
+            // Safety check (安否確認): created here too, same reasoning as LINE above.
+            SafetyCheckInstaller::ensureAll();
         } catch (\Exception $exception) {
             //DB::rollback();
             throw $exception;
