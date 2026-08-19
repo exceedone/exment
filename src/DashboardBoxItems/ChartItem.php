@@ -1767,7 +1767,9 @@ class ChartItem implements ItemInterface
                     return [];
                 }
 
-                return array_column(static::seriesSelectOptions($custom_view), 'text', 'id');
+                // tên lớp viết đầy đủ: laravel-admin gọi closure này với scope của MODEL
+                // (DashboardBox), nên static:: / self:: sẽ trỏ nhầm lớp và gây lỗi.
+                return array_column(ChartItem::seriesSelectOptions($custom_view), 'text', 'id');
             });
 
         // Shared option builder: columns of the currently chosen table, keyed by COLUMN NAME
