@@ -45,6 +45,7 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentAnonymousWebRotes();
         $this->mapExmentLineWebhookRoute();
         $this->mapExmentLineLinkRoute();
+        $this->mapExmentSafetyCheckRoute();
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
@@ -80,6 +81,24 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('line/link', 'LineLinkController@index')->name('exment.line_link');
             $router->post('line/link/generate', 'LineLinkController@generate')->name('exment.line_link_generate');
             $router->post('line/link/unlink', 'LineLinkController@unlink')->name('exment.line_link_unlink');
+        });
+    }
+
+    /**
+     * Safety-check (安否確認) admin page (auth admin). URL: {admin_prefix}/safety_check
+     * @return void
+     */
+    protected function mapExmentSafetyCheckRoute()
+    {
+        Route::group([
+            'prefix'     => config('admin.route.prefix'),
+            'namespace'  => $this->namespace,
+            'middleware' => ['adminweb', 'admin'],
+        ], function (Router $router) {
+            $router->get('safety_check', 'SafetyCheckController@index')->name('exment.safety_check');
+            $router->post('safety_check/send', 'SafetyCheckController@send')->name('exment.safety_check_send');
+            $router->post('safety_check/{id}/resend', 'SafetyCheckController@resend')->name('exment.safety_check_resend');
+            $router->post('safety_check/{id}/close', 'SafetyCheckController@close')->name('exment.safety_check_close');
         });
     }
 

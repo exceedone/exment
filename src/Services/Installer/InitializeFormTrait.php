@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -184,6 +185,38 @@ trait InitializeFormTrait
 
         $form->display('system_line_webhook_url', exmtrans('system.system_line_webhook_url'))
             ->default(admin_url('line/webhook'));
+
+        $form->exmheader(exmtrans('system.safety_check'))->hr();
+
+        $form->switchbool('safety_check_auto_enabled', exmtrans('system.safety_check_auto_enabled'))
+            ->help(exmtrans('system.help.safety_check_auto_enabled'));
+
+        $form->select('safety_check_min_scale', exmtrans('system.safety_check_min_scale'))
+            ->help(exmtrans('system.help.safety_check_min_scale'))
+            ->options(SafetyCheckDefine::scaleOptions())
+            ->disableClear()
+            ->default(45);
+
+        $form->number('safety_check_cooldown_minutes', exmtrans('system.safety_check_cooldown_minutes'))
+            ->help(exmtrans('system.help.safety_check_cooldown_minutes'))
+            ->default(60)
+            ->min(0);
+        $form->number('safety_check_comment_window_minutes', exmtrans('system.safety_check_comment_window_minutes'))
+            ->help(exmtrans('system.help.safety_check_comment_window_minutes'))
+            ->default(60)
+            ->min(1);
+        $form->number('safety_check_max_bulletin_age_minutes', exmtrans('system.safety_check_max_bulletin_age_minutes'))
+            ->help(exmtrans('system.help.safety_check_max_bulletin_age_minutes'))
+            ->default(30)
+            ->min(1);
+        $form->number('safety_check_resend_throttle_minutes', exmtrans('system.safety_check_resend_throttle_minutes'))
+            ->help(exmtrans('system.help.safety_check_resend_throttle_minutes'))
+            ->default(5)
+            ->min(0);
+        $form->number('safety_check_index_limit', exmtrans('system.safety_check_index_limit'))
+            ->help(exmtrans('system.help.safety_check_index_limit'))
+            ->default(20)
+            ->min(1);
     }
 
 

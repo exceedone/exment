@@ -53,6 +53,30 @@ class LineFlexValidityTest extends TestCase
         }
     }
 
+    /**
+     * A row with only one side filled (the safety-check card ends with a note row that has no
+     * label) must not emit an empty text component - LINE answers 400 "must be non-empty text".
+     */
+    public function test_buildBubble_row_with_missing_side_must_not_emit_empty_text_component(): void
+    {
+        $bubble = LineFlexBuilder::buildBubble('Title', [
+            ['label' => 'Filled', 'value' => 'Both sides'],
+            ['label' => '', 'value' => 'Note without label'],
+            ['label' => 'Label without value', 'value' => ''],
+            ['label' => '', 'value' => ''],
+        ], []);
+
+        $texts = [];
+        $this->collectTextValues($bubble, $texts);
+        foreach ($texts as $t) {
+            $this->assertNotSame('', trim((string) $t), 'LINE forbids empty "text" components -> 400');
+        }
+        $this->assertContains('Note without label', $texts);
+        $this->assertContains('Label without value', $texts);
+        // title + 2-column row + 2 single-line rows; the fully empty row is dropped
+        $this->assertCount(4, $bubble['body']['contents']);
+    }
+
     public function test_flex_altText_must_be_non_empty_and_within_400(): void
     {
         $bubble = LineFlexBuilder::buildBubble('Some title', [], []);

@@ -35,6 +35,12 @@ class LineFlexBuilder
         return "act=workflow&table={$tableKey}&id={$valueId}&action={$actionId}";
     }
 
+    /** Builds the data string for a safety-check answer postback button (see SafetyCheckSender). */
+    public static function safetyPostbackData($eventId, string $status): string
+    {
+        return "act=safety&event={$eventId}&st={$status}";
+    }
+
     /**
      * Default workflow detail fields for the Flex card, sharing the SAME variables as the
      * mail template workflow (${workflow:...}, ${created_user}). Each entry: [exmtrans_key, format].
@@ -91,12 +97,26 @@ class LineFlexBuilder
             ];
         }
 
+        // LINE rejects the whole message (400) if any "text" component is empty, so a row with a
+        // missing side renders as a single full-width line instead of a two-column box.
         foreach ($rows as $row) {
+            $label = trim((string) ($row['label'] ?? ''));
+            $value = trim((string) ($row['value'] ?? ''));
+            if ($label === '' && $value === '') {
+                continue;
+            }
+            if ($label === '' || $value === '') {
+                $bodyContents[] = [
+                    'type' => 'text', 'text' => ($label === '' ? $value : $label),
+                    'size' => 'sm', 'color' => '#888888', 'wrap' => true,
+                ];
+                continue;
+            }
             $bodyContents[] = [
                 'type' => 'box', 'layout' => 'horizontal', 'spacing' => 'sm',
                 'contents' => [
-                    ['type' => 'text', 'text' => (string) $row['label'], 'size' => 'sm', 'color' => '#888888', 'flex' => 4, 'wrap' => true, 'gravity' => 'top'],
-                    ['type' => 'text', 'text' => (string) $row['value'], 'size' => 'sm', 'wrap' => true, 'flex' => 6, 'gravity' => 'top'],
+                    ['type' => 'text', 'text' => $label, 'size' => 'sm', 'color' => '#888888', 'flex' => 4, 'wrap' => true, 'gravity' => 'top'],
+                    ['type' => 'text', 'text' => $value, 'size' => 'sm', 'wrap' => true, 'flex' => 6, 'gravity' => 'top'],
                 ],
             ];
         }
