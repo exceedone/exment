@@ -476,17 +476,9 @@ class ChartItem implements ItemInterface
             // its page-lifetime map and reloads the box once (relevant-values rule, same as the
             // bar's cascade).
             $checkedIds = array_map('strval', $selectedValues);
-            $options = [];
-            if (!empty($checkedIds)) {
-                $options = $ctx['builder']->columnOptions(
-                    $this->custom_table,
-                    $col,
-                    $this->chartFilterOptionScope($col, $ctx) + [$col => $spec],
-                    null
-                );
-                foreach ($options as $opt) {
-                    $this->bf_option_names[$col][(string) $opt['id']] = (string) $opt['name'];
-                }
+            $options = $this->resolveCheckedOptions($col, $spec, $ctx);
+            foreach ($options as $opt) {
+                $this->bf_option_names[$col][(string) $opt['id']] = (string) $opt['name'];
             }
             $offered = array_map('strval', array_column($options, 'id'));
             $stale = count(array_diff($checkedIds, $offered)) > 0;
@@ -598,6 +590,45 @@ class ChartItem implements ItemInterface
     }
 
     /**
+     * Resolve the CHECKED values of one checklist (ids → labels) with a single id-scoped
+     * lookup: the field's scope (chartFilterOptionScope) with the selection itself on $col.
+     * When a dashboard filter sits on the SAME column (slicer クラス = 2-A, 2-B and a chart
+     * filter on クラス too) the two are intersected, so a value the slicer no longer offers is
+     * simply not returned — which is exactly what flags it stale. Returns [] when nothing is
+     * selected or the intersection is empty (never an unscoped query).
+     *
+     * NOTE: `$scope + [$col => $spec]` would KEEP the dashboard spec on $col and ignore the
+     * selection — every slicer value then came back as "checked" (2-B ticked → 2-A and 2-B both
+     * rendered checked, and the next collect() carried both).
+     *
+     * @param string $col
+     * @param array|null $spec  the checklist's own selection (FilterState::spec, 'in' shape)
+     * @param array $ctx  see chartFilterContext()
+     * @return array<int, array{id: mixed, name: mixed}>
+     */
+    protected function resolveCheckedOptions($col, $spec, array $ctx)
+    {
+        if ($spec === null || empty($spec['in'])) {
+            return [];
+        }
+        $scope = $this->chartFilterOptionScope($col, $ctx);
+        $own = array_map('strval', $spec['in']);
+        if (isset($scope[$col])) {
+            $df = FilterState::spec($scope[$col]);
+            if ($df !== null && isset($df['in'])) {
+                $own = array_values(array_intersect($own, array_map('strval', $df['in'])));
+                if (empty($own)) {
+                    return []; // nothing selected survives the slicer → all stale
+                }
+            }
+            // (a checklist column is a select/text column, so a slicer on it is an IN list too;
+            // any other shape is simply replaced by the selection)
+        }
+        $scope[$col] = ['in' => $own];
+        return $ctx['builder']->columnOptions($this->custom_table, $col, $scope, null);
+    }
+
+    /**
      * The option lists of this box's chart-level filter checklists under the CURRENT request
      * (df_ / bf_ params of the box AJAX), for the lazy popover — served by
      * DashboardBoxController::chartFilterOptions. Per select-type column:
@@ -643,9 +674,7 @@ class ChartItem implements ItemInterface
             if ($capped) {
                 // over the cap: offer only the currently-selected values (clearable) — same
                 // treatment as a capped filter-bar dim.
-                $options = empty($checkedIds)
-                    ? []
-                    : $ctx['builder']->columnOptions($this->custom_table, $col, $scope + [$col => $spec], null);
+                $options = $this->resolveCheckedOptions($col, $spec, $ctx);
             }
             // checked values first, so an active selection is visible without scrolling
             usort($options, function ($a, $b) use ($checkedIds) {
