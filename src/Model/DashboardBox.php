@@ -30,6 +30,52 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];
 
+    /**
+     * Set by the chart box form's saving hook (ChartItem::saving) for the ONE save that
+     * follows: re-merge stored option keys the form did not submit (see boot()). A plain
+     * class property, not an Eloquent attribute — it never reaches the database. Off by
+     * default so seeds / feature code that deliberately REMOVE an option key keep working.
+     *
+     * @var bool
+     */
+    public $mergeStoredOptions = false;
+
+    // @phpstan-ignore-next-line
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Real-path guard for the admin-form "embeds wipe": laravel-admin runs the field-
+        // level prepare (EmbeddedForm::prepare — strips every option key the form does not
+        // declare) AFTER the form's saving callbacks, so a merge done in ChartItem::saving
+        // cannot survive prepareUpdate. Here, at Eloquent level, the ORIGINAL attribute
+        // still holds the stored JSON — restore every key ABSENT from the new array.
+        // Safe against deliberate clears: the embedded form always submits every key it
+        // declares (empty included), so an absent key can only be one the form never knew
+        // about (chart_level_views, chart_value_mean, chart_benchmark, ...).
+        static::saving(function ($model) {
+            if (!$model->mergeStoredOptions || !$model->exists || !$model->isDirty('options')) {
+                return;
+            }
+            $model->mergeStoredOptions = false; // one shot
+            $new = $model->options;
+            $old = json_decode((string) $model->getRawOriginal('options'), true);
+            if (!is_array($new) || !is_array($old)) {
+                return;
+            }
+            $changed = false;
+            foreach ($old as $key => $value) {
+                if (!array_key_exists($key, $new)) {
+                    $new[$key] = $value;
+                    $changed = true;
+                }
+            }
+            if ($changed) {
+                $model->options = $new;
+            }
+        });
+    }
+
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
@@ -119,7 +165,15 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     // @phpstan-ignore-next-line
     public function getDashboardBoxItemAttribute()
     {
-        $enum_class = DashboardBoxType::getEnum($this->dashboard_box_type)->getDashboardBoxItemClass();
+        // An unknown / legacy box type (a feature that was removed, or a plugin box whose
+        // plugin is gone) has no enum. Return null so ONE stray box degrades gracefully
+        // instead of a null-method-call taking down the entire dashboard.
+        $enum = DashboardBoxType::getEnum($this->dashboard_box_type);
+        if (is_null($enum)) {
+            return null;
+        }
+
+        $enum_class = $enum->getDashboardBoxItemClass();
         return $enum_class::getItem($this) ?? null;
     }
 
@@ -149,7 +203,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
             'dashboard_box_view_name' => $this->dashboard_box_view_name,
             'dashboard_box_type' => $this->dashboard_box_type,
         ];
-        $attributes = array_merge($this->dashboard_box_item->attributes(), $attributes);
+        $item = $this->dashboard_box_item;
+        $attributes = array_merge($item ? $item->attributes() : [], $attributes);
 
         return collect($attributes)->mapWithKeys(function ($attr, $key) {
             return ["data-$key" => $attr];

@@ -1201,4 +1201,86 @@ return [
     |
     */
     'api_max_rate_limit' => env('EXMENT_API_MAX_RATE_LIMIT', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI / LLM Configuration (provider-aware, OpenAI-compatible)
+    |--------------------------------------------------------------------------
+    |
+    | Settings for the per-chart AI summary (the 🧠 strip under a chart box).
+    | Any OpenAI-compatible /chat/completions endpoint works: point OPENAI_BASE_URL /
+    | OPENAI_MODEL / OPENAI_API_KEY at it (Groq by default; Gemini's OpenAI-compatible
+    | endpoint, OpenAI itself, ...). Access via config('exment.ai.*').
+    |
+    */
+    'ai' => [
+        'api_key'  => env('OPENAI_API_KEY', ''),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.groq.com/openai/v1'),
+        'model'    => env('OPENAI_MODEL', 'openai/gpt-oss-20b'),
+        'timeout'  => (int) env('AI_TIMEOUT', 30),
+        // Reasoning models (Groq's current line-up: openai/gpt-oss-*, qwen3, groq/compound;
+        // OpenAI o-series) think BEFORE they answer and bill that as completion tokens. A
+        // short dashboard summary needs no deep reasoning: 'low' keeps the answer fast and
+        // cheap and — critically — leaves room for the reply itself (with 700 tokens and
+        // default effort the model returned an EMPTY answer). Set '' for a model/provider
+        // that rejects the parameter (llama, gemini) — it is then not sent at all.
+        'reasoning_effort'   => (string) env('AI_REASONING_EFFORT', 'low'),
+        // completion budget for one AI summary (reasoning tokens + the 3-5 sentence reply)
+        'insight_max_tokens' => (int) env('AI_INSIGHT_MAX_TOKENS', 1200),
+
+        // Site-wide kill switch for the "🧠 AI summary" strip under charts. false hides
+        // the strip on every chart AND makes the insight endpoint refuse (a hand-crafted
+        // request is not a way in). The strip is also OPT-IN per dashboard: it only renders
+        // where the dashboard setting 「AI要約」 (options.ai_summary, default OFF) was
+        // deliberately switched on.
+        'insight_enabled' => (bool) env('AI_INSIGHT_ENABLED', true),
+
+        // DATA-level security boundary: comma-separated table_name list whose data must
+        // NEVER be sent to the AI provider (e.g. "salary,medical_record"). Charts on these
+        // tables get no AI summary and no scope benchmark — regardless of the switches
+        // above. Enforced server-side in every endpoint/data getter.
+        'blocked_tables' => (string) env('AI_BLOCKED_TABLES', ''),
+
+        // Rate limiting: max requests per user per hour (rolling window)
+        'rate_limit' => (int) env('AI_RATE_LIMIT', 30),
+
+
+        // Max aggregated data rows sent to the LLM for the focused chart (token guard)
+        'max_data_rows' => (int) env('AI_MAX_DATA_ROWS', 50),
+
+        // Anomaly detection (Power-BI-style "expected range"). Points outside
+        // [Q1 - k·IQR, Q3 + k·IQR] are flagged as outliers — computed deterministically
+        // from the chart's own values (no LLM), so the numbers are exact. 'k' is the
+        // Tukey fence multiplier (1.5 = moderate, 3.0 = only extreme outliers).
+        // 'min_points' is the fewest numeric points needed before quartiles are trusted
+        // enough to claim an anomaly — below it, no point is flagged (avoids noise on
+        // tiny series). 'min_rel' is a meaningfulness floor: a flagged point must also
+        // differ from the median by at least this fraction (0.02 = 2%), so tightly-clustered
+        // data doesn't over-flag points that are statistically "out" but practically trivial
+        // (e.g. 622.7 among {618,619,620}). Lower = more sensitive; 0 = pure IQR.
+        'anomaly_iqr_k'      => (float) env('AI_ANOMALY_IQR_K', 1.5),
+        'anomaly_min_points' => (int) env('AI_ANOMALY_MIN_POINTS', 5),
+        'anomaly_min_rel'    => (float) env('AI_ANOMALY_MIN_REL', 0.02),
+        // Fallback multiplier used only when IQR = 0 (a series where >= half the values are
+        // identical): a point beyond median +/- k * robust-scale (MAD, or mean abs dev) is
+        // flagged. 3.5 is the standard Iglewicz-Hoaglin modified z-score cutoff.
+        'anomaly_mad_k'      => (float) env('AI_ANOMALY_MAD_K', 3.5),
+
+        // Cache TTL (seconds) for an AI summary, keyed by (box + locale + data hash) — one
+        // generation serves every viewer of the dashboard. The strip renders on every
+        // dashboard load, so a non-zero TTL matters: the cached insight is served until the
+        // data changes or a refresh is requested, instead of an LLM call per page view.
+        // 0 = no cache. AI_INSIGHT_CACHE_TTL is the canonical name; the old
+        // OPENAI_AI_INSIGHT_CACHE_TTL is kept as a fallback so an existing .env keeps working.
+        'insight_cache_ttl' => (int) env('AI_INSIGHT_CACHE_TTL', env('OPENAI_AI_INSIGHT_CACHE_TTL', 3600)),
+
+        // Scope benchmark: when the dashboard filter bar narrows a chart, ground the AI
+        // summary in the deterministic per-record means of the current / parent / overall
+        // scopes (indexed SQL aggregates), so "how does this compare to the higher level?"
+        // is answered with real numbers. false = skip those queries.
+        'scope_benchmark' => (bool) env('AI_SCOPE_BENCHMARK', true),
+
+        // Log token usage to Laravel logs
+        'log_usage' => (bool) env('AI_LOG_USAGE', true),
+    ],
 ];

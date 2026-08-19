@@ -548,6 +548,125 @@ return [
         'description_chart' => '*To display the chart, you need aggregation view and aggregation items. <br /> If you have not created a summary view, first create a summary view from the view setting page.',
         'default_dashboard_name' => 'Default Dashboard',
         'not_registered' => 'Not Registered',
+        'filter_bar' => [
+            'header' => 'Dashboard Filter Bar',
+            'description' => 'Shows a filter bar at the top of this dashboard that narrows all boxes at once. Filter items are columns of the source table; only boxes using a table that has a column with the same name are filtered.',
+            'source_table' => 'Filter source table',
+            'dims' => 'Filter items',
+            'dim_column' => 'Column',
+            'dim_label' => 'Display name',
+            // parent select: forced-none option / auto placeholder
+            // slicer targeting: which chart boxes this dim narrows (empty = all, legacy)
+            'dim_targets' => 'Target boxes',
+            // placeholders of the from / to inputs of a range item
+            'range_from' => 'from',
+            'range_to' => 'to',
+            // source-table fitness check shown on the setting screen
+            'check_header' => 'Fitness check',
+            'check_recommend' => 'Recommended filter source table: :table (would filter :covered of :total boxes)',
+            'check_covered' => ':covered of :total boxes will be filtered by this filter',
+            'check_box_ok' => 'Filtered',
+            'check_box_ng' => 'Not filtered',
+            'check_reason_columns' => 'This box\'s table has no column with the same name',
+            'check_box_mismatch' => 'Type mismatch',
+            'check_box_novalue' => 'No matching values',
+            'check_reason_mismatch' => 'Same column name but a different value type, so filtering would return 0 rows: :columns',
+            'check_reason_novalue' => 'Same column name but not a single value in common, so filtering would return 0 rows (these are probably different concepts): :columns',
+            'check_recommend_better' => 'The selected ":selected" applies to :selected_covered of :total boxes (:selected_reach columns); ":best" would apply to :best_covered (:best_reach columns). Please check the selected table.',
+            'check_reason_type' => 'Only chart boxes apply dashboard filters',
+            'check_pick_table' => 'Select a filter source table to see which boxes would be filtered.',
+            'check_no_boxes' => 'This dashboard has no box with a data table yet.',
+            'check_after_boxes' => 'Save the dashboard and add boxes to see the fitness check.',
+            'check_all_missed' => 'No box would be filtered. The source table\'s column names probably do not match the column names of the boxes\' tables — see the recommended table above.',
+            'not_affected' => 'Not affected by filters',
+            'drill_hint' => 'Drill down:',
+            'click_filter_hint' => 'Click a bar to filter',
+            'narrow_first' => 'Too many values — narrow a higher-level filter first',
+            // master-driven choice that has no matching data in the current scope
+            'no_data' => '(no data)',
+            // select placeholder = nothing selected
+            'all_values' => '(All)',
+            'advanced' => 'Detailed Filter',
+            // Detailed Filter panel: free conditions (field + operator + value), Power-BI style
+            'detailed_filter' => 'Detailed Filter',
+            'cond_field' => 'Field',
+            'cond_condition' => 'Condition',
+            'cond_value' => 'Value',
+            'cond_value_placeholder' => 'Enter a value',
+            'cond_add' => 'Add condition',
+            'cond_apply' => 'Apply',
+            'cond_clear' => 'Clear conditions',
+            'cond_op' => [
+                'contains'        => 'contains',
+                'not_contains'    => 'does not contain',
+                'starts_with'     => 'starts with',
+                'not_starts_with' => 'does not start with',
+                'is'              => 'is',
+                'is_not'          => 'is not',
+                'is_blank'        => 'is blank',
+                'is_not_blank'    => 'is not blank',
+                'is_empty'        => 'is empty',
+                'is_not_empty'    => 'is not empty',
+            ],
+            'level_caption' => 'Showing',
+            'partially_affected' => 'Filters not applied here',
+            // breadcrumb root label fallback (config filter_bar.root_label overrides)
+            'root_all' => 'All',
+            // mutual-exclusion tooltip (:label = the filter currently locking this one)
+            'disabled_with' => 'Not selectable while the ":label" filter is active',
+            // readability cap: the drilled depth had too many groups, chart stayed shallower
+            // (:name = the breakdown that was too large, e.g. "Average score by class")
+            'level_too_many' => 'Too many items to show ":name". Narrow a higher-level filter to see it.',
+            'help' => [
+                'source_table' => 'Table the filter choices are read from. Select and save first, then the filter items become configurable. Leave empty to hide the filter bar.',
+                'dims' => 'Items shown on the filter bar. Parent–child relations between items (e.g. Grade › Class › Student) are inferred automatically from Exment references (master tables referencing each other): changing a parent clears the child selection and the chain appears in the breadcrumb. Nothing to configure.',
+                'dim_targets' => 'Chart boxes this filter applies to. Only the selected boxes are narrowed; every other box is unaffected even when its table has the same column. Empty = the legacy behavior: every box whose table has a column with the same name.',
+            ],
+        ],
+        'chart' => [
+            // suffix of the Y-axis label when the chart plots per-group MEANS (chart_value_mean)
+            'mean' => 'Avg',
+            // caption of the reference line (chart_benchmark). It is the average OF THE BARS,
+            // so it names what each bar is — otherwise it reads as the scope-wide average,
+            // which is a different statistic whenever the groups hold unequal record counts.
+            'peer_average' => 'Avg per :group',
+        ],
+        // chart-level filter (box option chart_filters): toolbar button + popover
+        'box_filter' => [
+            'label' => 'Filter',
+            'loading' => 'Loading…',
+        ],
+        // per-dashboard AI summary opt-in switch (dashboard setting form; default OFF)
+        'ai_summary' => 'AI summary',
+        'ai_summary_help' => 'When enabled, chart data is sent to the AI service to generate AI summaries and analysis. Disable this on dashboards handling highly confidential data. When disabled, the AI features are unavailable.',
+        'ai_chat' => [
+            // Client-side errors
+            'error_generic'       => 'An error occurred connecting to AI. Please try again.',
+            'error_connect'       => 'Cannot connect to the AI service.',
+            // Server / service messages
+            'no_valid_answer'     => 'Could not get a valid answer from AI. Please try again.',
+            'api_error_timeout'   => 'The connection to the AI service was interrupted or timed out. Please try again.',
+            'api_error_rate'      => 'AI call limit reached (quota / rate limit). Please try again in a few minutes.',
+            'api_error_auth'      => 'The AI service API key is invalid or unauthorized. Please check the settings.',
+            'api_error_bad_request' => 'The request to the AI service is invalid (the model may not support this feature).',
+            'api_error_upstream'  => 'The AI service is having problems. Please try again later.',
+            'api_error_unknown'   => 'Cannot connect to the AI service. Please try again later.',
+            'error_rate_limit'    => 'You exceeded the AI request limit (:limit per hour). Please try again later.',
+        ],
+        'ai_insight' => [
+            'toggle'     => 'AI summary',
+            'generating' => 'Generating insight...',
+            'regenerate' => 'Regenerate',
+            'withheld'   => 'This data was withheld from AI because it contains sensitive columns.',
+            'stat_highest' => 'Highest',
+            'stat_lowest'  => 'Lowest',
+            'stat_average' => 'Average',
+            'stat_range'   => 'Spread',
+            'anomaly_title'   => 'Anomalies',
+            'expected_range'  => 'Expected range',
+            'stable'          => 'No outliers — all points within the expected range',
+            'chart_render_error' => 'Could not render this chart type (a plugin library may be missing or the data is unsuitable).',
+        ],
         'dashboard_type_options' => [
             'system' => 'System Dashboard',
             'user' => 'User Dashboard',
@@ -560,11 +679,11 @@ return [
         'dashboard_box_type' => 'Box Type',
         'dashboard_box_view_name' => 'Box View Name',
         'dashboard_box_type_options' => [
-            'list' => 'Data List',
-            'system' => 'System',
-            'chart' => 'Chart',
-            'calendar' => 'Calendar',
-            'plugin' => 'Plugin',
+            'list'       => 'Data List',
+            'system'     => 'System',
+            'chart'      => 'Chart',
+            'calendar'   => 'Calendar',
+            'plugin'     => 'Plugin',
         ],
         
         'dashboard_box_options' => [
@@ -574,6 +693,7 @@ return [
             'target_system_id' => 'Target Item',
             'chart_axisx' => 'Axis X',
             'chart_axisy' => 'Axis Y',
+            'chart_series' => 'Series column (multi-series)',
             'chart_axis_label' => 'Show axis label',
             'chart_axis_name' => 'Show axis name',
             'chart_axisx_short' => 'Axis X',
@@ -582,6 +702,13 @@ return [
             'chart_begin_zero' => 'Start at zero',
             'chart_legend' => 'Show legend',
             'chart_options' => 'Option settings',
+            'chart_filters' => 'Chart filter fields',
+            'chart_filters_help' => 'Adds filter fields to the toolbar of this chart (a checklist where several values can be picked; number and date columns get a from / to range). Each narrows ONLY this chart — other boxes are unaffected. Works independently of the dashboard filter bar; when both are set, both conditions apply.',
+            'chart_sort_value' => 'Sort order',
+            'chart_sort_value_desc' => 'By value, descending',
+            'chart_sort_value_help' => 'Order the groups by their aggregated value, largest first (empty = the view\'s own order).',
+            'chart_max_groups' => 'Groups to show (top N)',
+            'chart_max_groups_help' => 'Keep only the first N groups after sorting (0 / empty = all). Combined with "By value, descending" this turns an ordinary chart into a top-10 ranking that still follows the dashboard filter and the chart-level filter.',
             'calendar_type' => 'Calendar Type',
             'content' => 'Content',
             'html' => 'HTML',
@@ -603,6 +730,7 @@ return [
 
         'message' => [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
+            'need_multiseries' => 'This chart type needs an aggregate view grouped by 2 columns (1st = X axis, 2nd = series) and a summary value.',
             'not_exists_table' => 'The table or view has been deleted.',
             'not_exists_plugin' => 'The plugin has been deleted.',
         ],
@@ -2570,7 +2698,23 @@ return [
             'bar' => 'Bar chart',
             'line' => 'Line chart',
             'pie' => 'Pie chart',
+            'hbar' => 'Horizontal bar (ECharts)',
+            'area' => 'Area chart (ECharts)',
+            'doughnut' => 'Doughnut chart (ECharts)',
+            'radar' => 'Radar chart (ECharts)',
+            'funnel' => 'Funnel chart (ECharts)',
+            'gauge' => 'Gauge / KPI (ECharts)',
+            'scatter' => 'Scatter (ECharts)',
+            'mbar' => 'Grouped bar - multi series (ECharts)',
+            'sbar' => 'Stacked bar - multi series (ECharts)',
+            'mline' => 'Multi-line - multi series (ECharts)',
+            'heatmap' => 'Heatmap - multi series (ECharts)',
+            'sarea' => 'Stacked area - multi series (ECharts)',
+            'treemap' => 'Treemap - multi series (ECharts)',
+            'sunburst' => 'Sunburst - multi series (ECharts)',
+            'boxplot' => 'Boxplot - multi series (ECharts)',
         ],
+
         
         'help' => [
             'chartitem_manual' => '*Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for the setting contents of the graph.'

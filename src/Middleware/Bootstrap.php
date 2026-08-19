@@ -65,6 +65,7 @@ class Bootstrap
         static::setCssJsList([
             'vendor/exment/validation/jquery.validate.js',
             'vendor/exment/chartjs/chart.min.js',
+            'vendor/exment/echarts/echarts.min.js',
             'vendor/exment/codemirror/codemirror.js',
             'vendor/exment/codemirror/mode/htmlmixed/htmlmixed.js',
             'vendor/exment/codemirror/mode/xml/xml.js',

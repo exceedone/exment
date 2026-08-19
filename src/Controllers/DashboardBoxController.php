@@ -14,6 +14,8 @@ use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Services\Dashboard\FilterState;
+use Exceedone\Exment\DashboardBoxItems\ChartItem;
 use Illuminate\Support\Collection;
 
 class DashboardBoxController extends AdminControllerBase
@@ -81,9 +83,20 @@ class DashboardBoxController extends AdminControllerBase
         // get box html --------------------------------------------------
         if (isset($box)) {
             $dashboard_box_item = $box->dashboard_box_item;
-            $header = $this->rednerHtml($dashboard_box_item->header());
-            $body = $this->rednerHtml($dashboard_box_item->body());
-            $footer = $this->rednerHtml($dashboard_box_item->footer());
+            // null for an unknown / legacy box type — render an empty box instead of erroring.
+            if (isset($dashboard_box_item)) {
+                $header = $this->rednerHtml($dashboard_box_item->header());
+                $body = $this->rednerHtml($dashboard_box_item->body());
+                $footer = $this->rednerHtml($dashboard_box_item->footer());
+
+                // Level-visibility marker (ChartItem::isVisibleAtCurrentLevel): the box asked
+                // to disappear at this drill depth — tell the loader to hide the whole card,
+                // and skip the filter badge (a badge on a hidden box makes no sense).
+                $hide = isset($body) && strpos($body, 'data-exment-box-hidden') !== false;
+                if (!$hide && isset($body) && !is_null($badge = $this->filterUnaffectedBadge($box))) {
+                    $body = $badge . $body;
+                }
+            }
         }
 
         // get dashboard box
@@ -91,6 +104,7 @@ class DashboardBoxController extends AdminControllerBase
             'header' => $header ?? null,
             'body' => $body ?? null,
             'footer' => $footer ?? null,
+            'hide' => $hide ?? false,
             'suuid' => $suuid,
         ];
     }
@@ -290,13 +304,157 @@ class DashboardBoxController extends AdminControllerBase
         }
         // get custom views
         $custom_view = CustomView::getEloquent($id);
+        if (!isset($custom_view)) {
+            return [];
+        }
+
+        // series column list (for multi-series charts) = the view's group-by columns
+        if ($axis_type == 'series') {
+            return ChartItem::seriesSelectOptions($custom_view);
+        }
 
         return $custom_view->getViewColumnsSelectOptions($axis_type == 'y');
+    }
+
+    /**
+     * Linkage endpoint for the chart box form: columns of the table picked in
+     * target_table_id (sent as `q`), offered as chart-level filter fields
+     * (options.chart_filters — stored by column NAME, template-portable).
+     *
+     * @param Request $request
+     * @return array<int, array<string, string>>
+     */
+    // @phpstan-ignore-next-line
+    public function chartFilterColumns(Request $request)
+    {
+        $id = $request->get('q');
+        if (!isset($id)) {
+            return [];
+        }
+        $custom_table = CustomTable::getEloquent($id);
+        if (!isset($custom_table)) {
+            return [];
+        }
+
+        $results = [];
+        foreach ($custom_table->custom_columns as $custom_column) {
+            $results[] = [
+                'id' => $custom_column->column_name,
+                'text' => $custom_column->column_view_name . ' (' . $custom_column->column_name . ')',
+            ];
+        }
+        return $results;
+    }
+
+    /**
+     * Lazy option lists of a chart box's chart-level filter checklists (see
+     * ChartItem::chartFilterOptions): the dashboard JS calls this the first time the
+     * フィルター popover opens after a render, with the SAME query params as the box AJAX
+     * (df_* / bf_* / dfa), so the lists are scoped exactly like the box. Optional `col`
+     * narrows the answer to one column.
+     *
+     * @param Request $request
+     * @param string $suuid
+     * @return array{columns: array}
+     */
+    // @phpstan-ignore-next-line
+    public function chartFilterOptions(Request $request, $suuid)
+    {
+        $box = DashBoardBox::findBySuuid($suuid);
+        $item = isset($box) ? $box->dashboard_box_item : null;
+        if (!isset($item) || !method_exists($item, 'chartFilterOptions')) {
+            return ['columns' => []];
+        }
+        $only = $request->get('col');
+        $only = FilterState::isIdentifier($only) ? $only : null;
+        return ['columns' => $item->chartFilterOptions($only)];
     }
 
     // @phpstan-ignore-next-line
     protected function rednerHtml($item)
     {
         return $item instanceof \Illuminate\Contracts\Support\Renderable ? $item->render() : $item;
+    }
+
+    /**
+     * When the dashboard's filter bar has active selections but this box's query cannot
+     * honor them, return a muted "not affected by filters" tag to prepend to the body, so
+     * unfiltered numbers are not read as filtered ones. Only chart boxes apply df_* params
+     * (ChartItem::applyDashboardFilter); every other data box — and a chart whose table
+     * lacks all of the selected columns — keeps its own scope.
+     *
+     * @param DashboardBox $box
+     * @return string|null null = no badge (filter inactive, box reacts, or box has no data table)
+     */
+    protected function filterUnaffectedBadge($box)
+    {
+        // Same param source and guards as ChartItem::applyDashboardFilter (both live in
+        // FilterState now), so this badge and the actual filtering can never disagree
+        // about which selections are "active".
+        $active_columns = FilterState::activeColumns();
+        if (empty($active_columns)) {
+            return null;
+        }
+
+        $dashboard = $box->dashboard;
+        if (!isset($dashboard) || is_nullorempty(array_get($dashboard->options ?? [], 'filter_bar'))) {
+            return null;
+        }
+
+        // Boxes without a target table (system news etc.) make no data claim — skip.
+        $custom_table = CustomTable::getEloquent(array_get($box->options ?? [], 'target_table_id'));
+        if (!isset($custom_table)) {
+            return null;
+        }
+
+        if ($box->dashboard_box_type == DashboardBoxType::CHART) {
+            $matched = [];
+            $unmatched = [];
+            foreach ($active_columns as $column_name) {
+                // a dim filters this box only when the column exists on its table AND the
+                // dim's slicer targeting (if configured) includes this box — the exact gate
+                // FilterState::applyTo uses, so badge and filtering can never disagree
+                if ($custom_table->custom_columns->contains(fn ($c) => $c->column_name === $column_name)
+                    && FilterState::targetsAllow($box, $column_name)) {
+                    $matched[] = $column_name;
+                } else {
+                    $unmatched[] = $column_name;
+                }
+            }
+            if (count($unmatched) === 0) {
+                return null; // every active selection applies — nothing to disclose
+            }
+            if (count($matched) > 0) {
+                // Partially filtered: the box narrows by some selections but cannot honor the
+                // rest (its table lacks those columns — e.g. a student-master pie when a
+                // student is selected on the fact table). Name the ignored dims so the number
+                // is not read as filtered by them.
+                $dim_labels = [];
+                $dims = array_get($dashboard->options ?? [], 'filter_bar.dims');
+                foreach ($unmatched as $column_name) {
+                    $label = $column_name;
+                    foreach (is_array($dims) ? $dims : [] as $dim) {
+                        if (array_get($dim, 'column') === $column_name) {
+                            $label = array_get($dim, 'label', $column_name);
+                            break;
+                        }
+                    }
+                    $dim_labels[] = $label;
+                }
+                return $this->filterBadgeHtml(exmtrans('dashboard.filter_bar.partially_affected') . ': ' . implode(', ', $dim_labels));
+            }
+        }
+
+        return $this->filterBadgeHtml(exmtrans('dashboard.filter_bar.not_affected'));
+    }
+
+    /**
+     * @param string $text
+     * @return string
+     */
+    protected function filterBadgeHtml($text)
+    {
+        return '<div style="text-align:right; margin:0 8px 2px;"><span style="display:inline-block; padding:1px 10px; font-size:11px; color:#888; background:#f4f4f4; border:1px solid #ddd; border-radius:10px;">'
+            . esc_html($text) . '</span></div>';
     }
 }

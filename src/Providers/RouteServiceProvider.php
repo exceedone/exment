@@ -62,9 +62,18 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('/', 'DashboardController@home');
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
             $router->delete('dashboardbox/delete/{suuid}', 'DashboardBoxController@delete');
+            // linkage endpoint of the filter-bar setting section — MUST stay above the resource
+            // route, otherwise `dashboard/{id}` (show) swallows it.
+            $router->get('dashboard/filter_bar_columns', 'DashboardController@filterBarColumns');
+            $router->get('dashboard/filter_bar_check', 'DashboardController@filterBarCheck');
             $router->resource('dashboard', 'DashboardController');
             $router->get("dashboardbox/table_views/{dashboard_type}", 'DashboardBoxController@tableViews');
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
+            // chart-level filter fields linkage (box form) — above the resource so
+            // `dashboardbox/{id}` (show) doesn't swallow it
+            $router->get("dashboardbox/chart_filter_columns", 'DashboardBoxController@chartFilterColumns');
+            // lazy option lists of a box's chart-level filter popover (same params as the box AJAX)
+            $router->get("dashboardbox/chart_filter_options/{suuid}", 'DashboardBoxController@chartFilterOptions');
             $router->get("dashboard/{id}/shareClick", 'DashboardController@shareClick');
             $router->post("dashboard/{id}/sendShares", 'DashboardController@sendShares');
             $router->resource('dashboardbox', 'DashboardBoxController');
@@ -278,6 +287,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
             $router->get("webapi/{tableKey}/operation-update-type", 'ApiTableController@getOperationUpdateType');
             $router->get("webapi/{tableKey}/operation-filter-value", 'ApiTableController@getOperationFilterValue');
+
+            // AI proactive insight for a chart box (the "🧠 AI summary" strip)
+            $router->post('webapi/ai-insight', 'AiChatController@insight');
         });
     }
 
