@@ -466,8 +466,17 @@ class DashboardController extends AdminControllerBase
         // the filter-bar fragment (its cascade options and breadcrumb are server-side), then
         // sync the boxes selectively. Anything unexpected in the response falls back to a
         // normal navigation, so the bar can never be left half-updated.
+        // Newest-wins token for the bar refetch: clicking through filters quickly puts several
+        // GETs in flight, and without this the SLOWEST one lands last and pushes the page back
+        // to a state the user already moved away from (stale URL, stale bar, stale boxes).
+        var exmentDfSeq = 0;
+
         function exmentDfNavigate(url, push){
+            var seq = ++exmentDfSeq;
             $.get(url).done(function(html){
+                if(seq !== exmentDfSeq){
+                    return; // superseded by a newer filter change while this one was in flight
+                }
                 if(push !== false){
                     history.pushState({exmentDf: 1}, '', url);
                 }
@@ -482,6 +491,22 @@ class DashboardController extends AdminControllerBase
                     window.location.href = url;
                     return;
                 }
+                // select2 keeps the OPEN dropdown on <body>, outside the fragment about to be
+                // replaced. go() closes it when the navigation STARTS, but the user can open
+                // another dim while this GET is still running — that dropdown would survive the
+                // swap with its <select> gone and stay floating over the page. Close (and
+                // destroy) the bar's selects at swap time, then sweep whatever select2 still
+                // has attached to the body.
+                if(window.jQuery && jQuery.fn.select2){
+                    var hadOpen = current.find('.select2-container--open').length > 0;
+                    current.find('.df-select.added-select2').each(function(){
+                        try { jQuery(this).select2('close'); } catch (e) {}
+                        try { jQuery(this).select2('destroy'); } catch (e) {}
+                    });
+                    if(hadOpen){
+                        $('body').children('.select2-container').remove();
+                    }
+                }
                 // replaceWith re-executes the fragment's inline script, which re-binds the
                 // fresh selects; select2 is re-initialised the same way pjax:complete does it.
                 current.replaceWith(fresh.outerHTML);
@@ -490,6 +515,9 @@ class DashboardController extends AdminControllerBase
                 }
                 exmentSyncBoxes();
             }).fail(function(){
+                if(seq !== exmentDfSeq){
+                    return;
+                }
                 window.location.href = url;
             });
         }
@@ -598,6 +626,19 @@ class DashboardController extends AdminControllerBase
             });
         }
 
+        // Run the reload that was queued while this box was busy (see loadDashboardBox).
+        // Called once the box leaves the loading state, on success and on error alike, so a
+        // failed render never strands the queued state.
+        function exmentFlushPending(suuid){
+            var target = $('[data-suuid="' + suuid + '"]');
+            var pending = target.data('dfPending');
+            if(!pending){
+                return;
+            }
+            target.removeData('dfPending');
+            loadDashboardBox(suuid, pending === true ? null : pending);
+        }
+
         function loadDashboardBox(suuid, url){
             if(!hasValue(suuid)){
                 return true;
@@ -607,8 +648,15 @@ class DashboardController extends AdminControllerBase
             }
             var target = $('[data-suuid="' + suuid + '"]');
             if(target.hasClass('loading')){
+                // A newer state arrived while this box was still fetching the previous one.
+                // Dropping the request here used to leave the box rendering the OLD filter
+                // while exmentSyncBoxes had already stored the NEW signature (data-dfSig), so
+                // nothing ever refreshed it. Remember it instead and re-run on completion;
+                // `true` = recompute the URL from the live state at that point.
+                target.data('dfPending', hasValue(url) ? url : true);
                 return true;
             }
+            target.removeData('dfPending');
             target.addClass('loading');
             // a new body is coming: any in-flight chart-filter option fetch is for the old scope
             target.data('bfGen', (target.data('bfGen') || 0) + 1);
@@ -695,7 +743,9 @@ class DashboardController extends AdminControllerBase
                             exmentPopReopen[suuid] = 'filters';
                         }
                         loadDashboardBox(suuid);
+                        return; // that reload carries any pending state forward
                     }
+                    exmentFlushPending(suuid);
                 },
                 error: function () {
                     var suuid = this.suuid;
@@ -711,6 +761,8 @@ class DashboardController extends AdminControllerBase
 
                     // show error
                     target.find('.box-body .box-body-inner-body').html('$error');
+
+                    exmentFlushPending(suuid);
                 },
             });
         }
