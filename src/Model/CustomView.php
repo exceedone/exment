@@ -150,12 +150,36 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     /**
+     * Children set on this instance by hand, or null to read them the usual way.
+     *
+     * The cached readers below look children up by custom_view_id, so a view
+     * built in memory - the preview of settings that were never saved - would
+     * find none of them, or worse, find the ones still saved under the same id.
+     * Whatever was put on the relation is what this view is made of.
+     *
+     * @param string $relation
+     * @return \Illuminate\Support\Collection|null
+     */
+    protected function getSetRelationCache(string $relation)
+    {
+        if (!$this->relationLoaded($relation)) {
+            return null;
+        }
+
+        return collect($this->getRelation($relation));
+    }
+
+    /**
      * get Custom columns using cache
      */
 
     // @phpstan-ignore-next-line
     public function getCustomViewColumnsCacheAttribute()
     {
+        if (!is_null($set = $this->getSetRelationCache('custom_view_columns'))) {
+            return $set;
+        }
+
         return $this->hasManyCache(CustomViewColumn::class, 'custom_view_id');
     }
 
@@ -166,6 +190,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     // @phpstan-ignore-next-line
     public function getCustomViewFiltersCacheAttribute()
     {
+        if (!is_null($set = $this->getSetRelationCache('custom_view_filters'))) {
+            return $set;
+        }
+
         return $this->hasManyCache(CustomViewFilter::class, 'custom_view_id');
     }
 
@@ -176,6 +204,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     // @phpstan-ignore-next-line
     public function getCustomViewSortsCacheAttribute()
     {
+        if (!is_null($set = $this->getSetRelationCache('custom_view_sorts'))) {
+            return $set;
+        }
+
         return $this->hasManyCache(CustomViewSort::class, 'custom_view_id');
     }
 
@@ -1330,6 +1362,38 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
 
     // @phpstan-ignore-next-line
+    public function getKanbanHideKeysAttribute()
+    {
+        return $this->getOption('kanban_hide_keys');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanHideKeysAttribute($val)
+    {
+        $this->setOption('kanban_hide_keys', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanColCountAttribute()
+    {
+        return $this->getOption('kanban_col_count');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanColCountAttribute($val)
+    {
+        $this->setOption('kanban_col_count', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
     public function getKanbanKpiAttribute()
     {
         return $this->getOption('kanban_kpi');
@@ -1388,6 +1452,230 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setKanbanDrawerAttribute($val)
     {
         $this->setOption('kanban_drawer', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanCoverColumnIdAttribute()
+    {
+        return $this->getOption('kanban_cover_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanCoverColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_cover_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanCoverFitAttribute()
+    {
+        return $this->getOption('kanban_cover_fit');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanCoverFitAttribute($val)
+    {
+        $this->setOption('kanban_cover_fit', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanLabelsColumnIdAttribute()
+    {
+        return $this->getOption('kanban_labels_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanLabelsColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_labels_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanLabelsStyleAttribute()
+    {
+        return $this->getOption('kanban_labels_style');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanLabelsStyleAttribute($val)
+    {
+        $this->setOption('kanban_labels_style', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanBadgeColumnIdAttribute()
+    {
+        return $this->getOption('kanban_badge_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanBadgeColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_badge_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanSumColumnIdAttribute()
+    {
+        return $this->getOption('kanban_sum_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanSumColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_sum_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanColAgeAttribute()
+    {
+        return $this->getOption('kanban_col_age');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanColAgeAttribute($val)
+    {
+        $this->setOption('kanban_col_age', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanHistoryAttribute()
+    {
+        return $this->getOption('kanban_history');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanHistoryAttribute($val)
+    {
+        $this->setOption('kanban_history', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanProgressColumnIdAttribute()
+    {
+        return $this->getOption('kanban_progress_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanProgressColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_progress_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanProgressMaxAttribute()
+    {
+        return $this->getOption('kanban_progress_max');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanProgressMaxAttribute($val)
+    {
+        $this->setOption('kanban_progress_max', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanBlockedKeysAttribute()
+    {
+        return $this->getOption('kanban_blocked_keys');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanBlockedKeysAttribute($val)
+    {
+        $this->setOption('kanban_blocked_keys', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanExpediteKeysAttribute()
+    {
+        return $this->getOption('kanban_expedite_keys');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanExpediteKeysAttribute($val)
+    {
+        $this->setOption('kanban_expedite_keys', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanWipEnforceAttribute()
+    {
+        return $this->getOption('kanban_wip_enforce');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanWipEnforceAttribute($val)
+    {
+        $this->setOption('kanban_wip_enforce', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanPoliciesAttribute()
+    {
+        return $this->getOption('kanban_policies');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanPoliciesAttribute($val)
+    {
+        $this->setOption('kanban_policies', $val);
 
         return $this;
     }

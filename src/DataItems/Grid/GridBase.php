@@ -16,6 +16,8 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Services\DataImportExport;
+use Illuminate\Http\Request;
 
 abstract class GridBase
 {
@@ -25,6 +27,18 @@ abstract class GridBase
     protected $custom_view;
     // @phpstan-ignore-next-line
     protected $modal = false;
+    /**
+     * Drawn from settings that were never saved, on the preview screen.
+     *
+     * Everything the view can be asked to do lives behind a url that reads the
+     * saved view: a card moved here, a record created here, a second page
+     * fetched here would all be answered from the database, not from the
+     * settings on screen. So a preview shows and does nothing.
+     *
+     * @var bool
+     */
+    // @phpstan-ignore-next-line
+    protected $preview = false;
     // @phpstan-ignore-next-line
     protected $callback;
 
@@ -44,6 +58,28 @@ abstract class GridBase
         $this->modal = $modal;
 
         return $this;
+    }
+
+    /**
+     * Draw this view as a read-only preview.
+     *
+     * @param bool $preview
+     * @return $this
+     */
+    // @phpstan-ignore-next-line
+    public function preview(bool $preview)
+    {
+        $this->preview = $preview;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPreview(): bool
+    {
+        return $this->preview;
     }
 
     // @phpstan-ignore-next-line
@@ -344,40 +380,156 @@ abstract class GridBase
     /**
      * setTableMenuButton
      *
+     * @param bool $grid_tool render as a data-grid toolbar button (normal flow,
+     *                        .exm-grid-tool spacing) instead of a right float
      * @return void
      */
     // @phpstan-ignore-next-line
-    protected function setTableMenuButton(&$tools)
+    protected function setTableMenuButton(&$tools, bool $grid_tool = false)
     {
         if ($this->custom_table->enableTableMenuButton()) {
-            $tools[] = \Exment::getRender(new Tools\CustomTableMenuButton('data', $this->custom_table));
+            $button = new Tools\CustomTableMenuButton('data', $this->custom_table);
+            $tools[] = \Exment::getRender($grid_tool ? $button->gridTool() : $button);
         }
     }
 
     /**
      * setViewMenuButton
      *
+     * @param bool $grid_tool see setTableMenuButton
      * @return void
      */
     // @phpstan-ignore-next-line
-    protected function setViewMenuButton(&$tools)
+    protected function setViewMenuButton(&$tools, bool $grid_tool = false)
     {
         if ($this->custom_table->enableViewMenuButton()) {
-            $tools[] = \Exment::getRender(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
+            $button = new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view);
+            $tools[] = \Exment::getRender($grid_tool ? $button->gridTool() : $button);
         }
     }
 
     /**
      * setNewButton
      *
+     * @param bool $grid_tool see setTableMenuButton
      * @return void
      */
     // @phpstan-ignore-next-line
-    protected function setNewButton(&$tools)
+    protected function setNewButton(&$tools, bool $grid_tool = false)
     {
-        if ($this->custom_table->enableCreate(true) === true) {
-            $tools[] = \Exment::getRender(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
+        if ($this->preview) {
+            return;
         }
+
+        if ($this->custom_table->enableCreate(true) === true) {
+            $tools[] = \Exment::getRender(view('exment::custom-value.new-button', [
+                'table_name' => $this->custom_table->table_name,
+                'grid_tool' => $grid_tool,
+            ]));
+        }
+    }
+
+    /**
+     * Import and export button, the same one the data grid shows.
+     *
+     * @param Grid $grid grid the export urls are read from
+     * @param bool $grid_tool see setTableMenuButton
+     * @return void
+     */
+    // @phpstan-ignore-next-line
+    protected function setExportImportButton(&$tools, $grid, bool $grid_tool = false)
+    {
+        if ($this->preview) {
+            return;
+        }
+
+        $import = $this->custom_table->enableImport();
+        $export = $this->custom_table->enableExport();
+        if ($import !== true && $export !== true) {
+            return;
+        }
+
+        // plugin export stays off outside the data grid, as on the other views
+        $button = (new Tools\ExportImportButton(
+            admin_urls('data', $this->custom_table->table_name),
+            $grid,
+            $export === true,
+            $export === true,
+            $import === true
+        ))->setCustomTable($this->custom_table);
+
+        $tools[] = \Exment::getRender($grid_tool ? $button->gridTool() : $button);
+    }
+
+    /**
+     * Grid used by the export flow of a view that draws its own page instead of
+     * a table (board, calendar). The export urls and the exporter both need a
+     * grid, but this one never renders a table: on an export request it only
+     * runs the exporter, which sends the file and exits.
+     *
+     * @return Grid
+     */
+    // @phpstan-ignore-next-line
+    protected function getExportGrid()
+    {
+        $classname = getModelName($this->custom_table);
+        $grid = new Grid(new $classname());
+        // export what the view shows, filtered and sorted the same way. The
+        // reset matters: this is a second query off the same view, and the
+        // search service would otherwise skip a join it has already made.
+        $this->custom_view->resetSearchService();
+        $this->custom_view->filterSortModel($grid->model());
+        $grid->exporter($this->getImportExportService($grid));
+
+        return $grid;
+    }
+
+    /**
+     * @param Request $request
+     */
+    // @phpstan-ignore-next-line
+    public function import(Request $request)
+    {
+        $service = $this->getImportExportService()
+            ->format($request->file('custom_table_file'))
+            ->filebasename($this->custom_table->table_name);
+        $result = $service->import($request);
+
+        return getAjaxResponse($result);
+    }
+
+    /**
+     * Import and export service of this table. Every view kind shares it, so the
+     * import modal keeps working whichever view it was opened from.
+     */
+    // @phpstan-ignore-next-line
+    public function getImportExportService($grid = null)
+    {
+        $service = (new DataImportExport\DataImportExportService())
+            ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
+                [
+                    'custom_table' => $this->custom_table,
+                    'grid' => $grid,
+                ]
+            ))->viewExportAction(new DataImportExport\Actions\Export\ViewAction(
+                [
+                    'custom_table' => $this->custom_table,
+                    'custom_view' => $this->custom_view,
+                    'grid' => $grid,
+                ]
+            ))->pluginExportAction(new DataImportExport\Actions\Export\PluginAction(
+                [
+                    'custom_table' => $this->custom_table,
+                    'custom_view' => $this->custom_view,
+                    'grid' => $grid,
+                ]
+            ))->importAction(new DataImportExport\Actions\Import\CustomTableAction(
+                [
+                    'custom_table' => $this->custom_table,
+                    'primary_key' => app('request')->input('select_primary_key') ?? null,
+                ]
+            ));
+        return $service;
     }
 
 

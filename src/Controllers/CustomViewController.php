@@ -13,6 +13,8 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\DataShareAuthoritable;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums;
@@ -77,6 +79,170 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         return parent::edit($request, $content, $tableKey, $id);
+    }
+
+    /**
+     * Show what the settings on the edit screen would look like, without
+     * saving them.
+     *
+     * The form posts itself here, exactly as the custom form preview does, so
+     * what arrives is the settings as they stand on screen - including the
+     * rows just added and the ones just removed. They are turned into a view
+     * that lives only for this request and handed to the very renderer the
+     * data screen uses, so the preview cannot drift away from the real thing.
+     *
+     * @param Request $request
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return Content|void
+     */
+    public function preview(Request $request, $tableKey, $id = null)
+    {
+        //Validation table value
+        if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            return;
+        }
+
+        $custom_view = $this->getViewFromRequest($request, $id);
+        if (!isset($custom_view)) {
+            return $this->previewError($request);
+        }
+
+        // only the view kinds that draw a data screen of their own
+        if (!in_array(intval($custom_view->view_kind_type), [
+            ViewKindType::DEFAULT,
+            ViewKindType::ALLDATA,
+            ViewKindType::KANBAN,
+        ])) {
+            $content = new Content();
+            $content->withWarning(exmtrans('common.preview'), exmtrans('custom_view.message.preview_not_supported'));
+            return $content;
+        }
+
+        $grid = $custom_view->grid_item->preview(true)->grid();
+
+        $content = new Content();
+        $this->setPageInfo(
+            $this->custom_table->table_view_name,
+            $this->custom_table->table_view_name,
+            $this->custom_table->description,
+            $this->custom_table->getOption('icon')
+        );
+        $this->AdminContent($content);
+        $content->row($grid);
+
+        admin_info(exmtrans('common.preview'), exmtrans('common.message.preview'));
+
+        return $content;
+    }
+
+    /**
+     * Preview error. (If called as GET request)
+     *
+     * The preview lives in the posted settings alone, so a reload of this
+     * window - or a link that leaves the first page - has nothing to draw.
+     *
+     * @param Request $request
+     * @return Content
+     */
+    public function previewError(Request $request)
+    {
+        $content = new Content();
+        $content->withError(exmtrans('common.error'), exmtrans('common.message.preview_error'));
+        return $content;
+    }
+
+    /**
+     * Build the view the preview draws, from the posted settings.
+     *
+     * Nothing here touches the database: the view keeps the id and suuid of
+     * the one being edited (a copy of it, so the one held in cache for this
+     * request is left alone) and every setting is overwritten by what was
+     * posted.
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return CustomView|null null when the settings could not be read
+     */
+    protected function getViewFromRequest(Request $request, $id = null)
+    {
+        $base = isset($id) ? CustomView::getEloquent($id) : null;
+        if (isset($base) && !$base->hasEditPermission()) {
+            Checker::error();
+            return null;
+        }
+
+        $custom_view = isset($base) ? $base->replicate() : new CustomView();
+        if (isset($base)) {
+            // replicate() drops the keys, and the renderer reads both
+            $custom_view->id = $base->id;
+            $custom_view->suuid = $base->suuid;
+            $custom_view->exists = true;
+        }
+        $custom_view->custom_table_id = $this->custom_table->id;
+
+        // let the edit form itself read the request: every field knows how to
+        // turn its own input back into a value, and several of them (the
+        // json tables above all) are not the plain strings they look like
+        $model = $this->form($id)->getModelByInputs(null, $custom_view);
+        if (!($model instanceof CustomView)) {
+            return null;
+        }
+
+        $this->setViewRelationsFromRequest($request, $model);
+
+        return $model;
+    }
+
+    /**
+     * Put the posted rows on the view as its children.
+     *
+     * The saved rows are still in the database under this view's id, so they
+     * have to be replaced rather than added to - otherwise a row deleted on
+     * screen would come back in its own preview.
+     *
+     * @param Request $request
+     * @param CustomView $custom_view
+     * @return void
+     */
+    protected function setViewRelationsFromRequest(Request $request, CustomView $custom_view)
+    {
+        $relations = [
+            'custom_view_columns' => [CustomViewColumn::class, 'order'],
+            'custom_view_filters' => [CustomViewFilter::class, null],
+            'custom_view_sorts' => [CustomViewSort::class, 'priority'],
+        ];
+
+        foreach ($relations as $name => list($classname, $sort_key)) {
+            $items = collect();
+
+            foreach ((array) $request->get($name) as $row) {
+                if (!is_array($row) || boolval(array_get($row, Form::REMOVE_FLAG_NAME))) {
+                    continue;
+                }
+
+                $item = new $classname();
+                // the view first: a column target is stored as an id pair, and
+                // working out which table it belongs to needs the view it is on
+                $item->custom_view_id = $custom_view->id;
+                $item->setRelation('custom_view', $custom_view);
+                $item->fill(array_filter($row, function ($key) {
+                    return $key != Form::REMOVE_FLAG_NAME;
+                }, ARRAY_FILTER_USE_KEY));
+
+                $items->push($item);
+            }
+
+            if (isset($sort_key)) {
+                // the saved rows arrive in this order from the database, so the
+                // preview has to sort them the same way to match
+                $items = $items->sortBy(function ($item) use ($sort_key) {
+                    return intval($item->{$sort_key});
+                })->values();
+            }
+
+            $custom_view->setRelation($name, $items);
+        }
     }
 
     /**
@@ -304,7 +470,14 @@ class CustomViewController extends AdminControllerTableBase
                 'kanban_title_column_id', 'kanban_assignee_column_id', 'kanban_limit_column_id', 'kanban_age_column_id',
                 'kanban_ai_column_id', 'kanban_source', 'kanban_wips', 'kanban_done_keys',
                 'kanban_wip_column_id', 'kanban_limit_warn', 'kanban_age_steps',
-                'kanban_kpi', 'kanban_quickadd', 'kanban_bulk', 'kanban_drawer']);
+                'kanban_kpi', 'kanban_quickadd', 'kanban_bulk', 'kanban_drawer',
+                'kanban_cover_column_id', 'kanban_cover_fit', 'kanban_labels_column_id',
+                'kanban_labels_style', 'kanban_badge_column_id',
+                'kanban_sum_column_id', 'kanban_col_age', 'kanban_history',
+                'kanban_progress_column_id', 'kanban_progress_max',
+                'kanban_hide_keys', 'kanban_col_count',
+                'kanban_blocked_keys', 'kanban_expedite_keys',
+                'kanban_wip_enforce', 'kanban_policies']);
         });
 
         // check filters and sorts count before save
@@ -369,6 +542,31 @@ class CustomViewController extends AdminControllerTableBase
                     'label' => exmtrans('custom_view.view_datalist'),
                     'icon' => 'fa-database',
                     'btn_class' => 'btn-purple',
+                ]));
+            }
+
+            // Preview. [data-preview] is picked up by the shared handler that
+            // already runs on every admin page: it posts this very form to the
+            // url below in a second window, so the settings are shown as they
+            // stand rather than as they were last saved.
+            if (in_array(intval($view_kind_type), [
+                Enums\ViewKindType::DEFAULT,
+                Enums\ViewKindType::ALLDATA,
+                Enums\ViewKindType::KANBAN,
+            ])) {
+                $tools->append(view('exment::tools.button', [
+                    'href' => 'javascript:void(0);',
+                    'label' => exmtrans('common.preview'),
+                    'icon' => 'fa-eye',
+                    'btn_class' => 'btn-warning',
+                    'attributes' => [
+                        'data-preview' => true,
+                        'data-preview-url' => isset($id)
+                            ? admin_urls('view', $custom_table->table_name, $id, 'preview')
+                            : admin_urls('view', $custom_table->table_name, 'preview'),
+                        'data-preview-error-title' => '',
+                        'data-preview-error-text' => '',
+                    ],
                 ]));
             }
         });

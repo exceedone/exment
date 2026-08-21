@@ -10,7 +10,10 @@
 /* ---------------------------------------------------------------- toolbar */
 .exment-kanban .kb-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;width:100%;}
 .exment-kanban .kb-toolbar-left{display:flex;align-items:center;flex-wrap:wrap;gap:5px;}
-.exment-kanban .kb-toolbar-right{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-left:auto;justify-content:flex-end;}
+/* the tools are the same ones the data grid renders: they bring their own
+   .exm-grid-tool margin, so only the wrap gap is set here */
+.exment-kanban .kb-toolbar-right{display:flex;align-items:center;flex-wrap:wrap;gap:5px 0;margin-left:auto;justify-content:flex-end;}
+.exment-kanban .kb-toolbar-right .exm-grid-tool{margin-bottom:0;}
 .exment-kanban .kb-search{width:230px;}
 .exment-kanban .kb-filterbox{padding:10px 12px;border-top:1px solid var(--kb-border);background:#fbfcfd;}
 .exment-kanban .kb-filterbox .kb-f{display:inline-block;vertical-align:top;margin:0 10px 8px 0;min-width:170px;}
@@ -44,6 +47,10 @@
   padding:4px 2px 8px;border-bottom:1px solid var(--kb-border);margin-bottom:10px;}
 .exment-kanban .kb-lane-head .fa{color:#95a5a6;}
 .exment-kanban .kb-lane-count{background:#e7edf3;color:#5a6b7b;border-radius:10px;padding:0 8px;font-size:12px;font-weight:600;}
+/* the interruption lane, pinned to the top and coloured so it is read first */
+.exment-kanban .kb-swimlane.kb-expedite-lane > .kb-lane-head{color:#c0392b;border-bottom-color:#f0b7ae;}
+.exment-kanban .kb-swimlane.kb-expedite-lane > .kb-lane-head .fa{color:#e74c3c;}
+.exment-kanban .kb-swimlane.kb-expedite-lane > .kb-lane-head .kb-lane-count{background:#fadbd8;color:#a93226;}
 .exment-kanban .kb-row{display:flex;gap:12px;align-items:flex-start;min-width:max-content;}
 
 /* ------------------------------------------------------------------ column */
@@ -54,11 +61,50 @@
 .exment-kanban .kb-col-title{flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .exment-kanban .kb-col-count{background:#e7edf3;color:#5a6b7b;border-radius:10px;padding:0 8px;font-size:12px;font-weight:600;}
 .exment-kanban .kb-col-wip{margin-left:2px;font-size:12px;color:#9aa6b2;font-variant-numeric:tabular-nums;font-weight:600;}
+.exment-kanban .kb-fold{flex:0 0 auto;border:0;background:none;padding:0;color:#b0b8c1;font-size:11px;line-height:1;cursor:pointer;}
+.exment-kanban .kb-fold:hover{color:#3c8dbc;}
+.exment-kanban .kb-col-policy{flex:0 0 auto;color:#3c8dbc;font-size:12px;cursor:help;}
+.exment-kanban .kb-col-blocked{background:#f2e3f7;color:#7d3c98;border-radius:10px;padding:0 7px;
+  font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
+/* folded away: still one click from being read, and never off the board */
+.exment-kanban .kb-col.kb-folded{flex:0 0 44px;width:44px;background:#eef1f5;}
+.exment-kanban .kb-col.kb-folded .kb-col-head{flex-direction:column;align-items:center;
+  justify-content:flex-start;gap:8px;padding:8px 4px;height:100%;border-bottom:0;
+  border-right:2px solid var(--kb-blue);border-radius:4px;}
+.exment-kanban .kb-col.kb-folded .kb-col-title{flex:0 1 auto;writing-mode:vertical-rl;
+  max-height:210px;overflow:hidden;text-overflow:ellipsis;}
+.exment-kanban .kb-col.kb-folded .kb-col-policy,
+.exment-kanban .kb-col.kb-folded .kb-col-blocked,
+.exment-kanban .kb-col.kb-folded .kb-col-wip,
+.exment-kanban .kb-col.kb-folded .kb-col-stats,
+.exment-kanban .kb-col.kb-folded .kb-list,
+.exment-kanban .kb-col.kb-folded .kb-more,
+.exment-kanban .kb-col.kb-folded .kb-quickadd{display:none;}
 .exment-kanban .kb-col-head.over-wip{border-bottom-color:#dd4b39;background:#fdecea;color:#c0392b;}
 .exment-kanban .kb-col-head.over-wip .kb-col-count{background:#f7c7c0;color:#a93226;}
 .exment-kanban .kb-col-head.over-wip .kb-col-wip{color:#c0392b;}
+/* a total and an average, kept out of the WIP badge so each says one thing */
+.exment-kanban .kb-col-stats{display:flex;align-items:center;gap:8px;padding:5px 10px;background:#f7f9fb;
+  border-bottom:1px solid var(--kb-line);font-size:12px;}
+.exment-kanban .kb-col-sum{font-weight:700;color:#2c3e50;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.exment-kanban .kb-col-age{margin-left:auto;display:inline-flex;align-items:center;gap:4px;color:#8a949e;
+  white-space:nowrap;}
+.exment-kanban .kb-col-total{color:#8a949e;white-space:nowrap;}
+.exment-kanban .kb-col-sum + .kb-col-total{padding-left:8px;border-left:1px solid #dfe4ea;}
+/* load the rest of one column, without dragging the whole board along */
+.exment-kanban .kb-more{padding:0 8px 8px;}
+.exment-kanban .kb-more-btn{width:100%;border:1px dashed var(--kb-border);background:#fff;color:#3c8dbc;
+  border-radius:3px;padding:5px 8px;font-size:12px;cursor:pointer;}
+.exment-kanban .kb-more-btn:hover{background:#eaf3fb;border-style:solid;}
+.exment-kanban .kb-more-btn[disabled]{color:#aab4be;cursor:default;background:#fff;}
+/* the box is off asking the server for matches further down the columns */
+.exment-kanban input.kb-searching{border-color:#3c8dbc;box-shadow:inset 0 0 0 1px #3c8dbc;}
+.exment-kanban .kb-col-head.over-wip + .kb-col-stats{background:#fdf2f0;}
 .exment-kanban .kb-list{min-height:48px;padding:8px;display:flex;flex-direction:column;gap:8px;flex:1 1 auto;overflow-y:auto;}
 .exment-kanban .kb-list.drag-over{background:#eaf3fb;outline:2px dashed var(--kb-blue);outline-offset:-4px;border-radius:0 0 4px 4px;}
+/* folded, and still a place to put a card */
+.exment-kanban .kb-col.kb-folded.drag-over{background:#dceaf7;outline:2px dashed var(--kb-blue);outline-offset:-3px;}
 .exment-kanban .kb-empty{color:#aab4be;font-size:12px;text-align:center;padding:14px 4px;}
 .exment-kanban .kb-quickadd{padding:8px;border-top:1px solid var(--kb-border);}
 .exment-kanban .kb-quick{width:100%;height:30px;font-size:12.5px;border:1px solid var(--kb-border);border-radius:3px;padding:4px 8px;}
@@ -76,12 +122,34 @@
 .exment-kanban .kb-card.kb-age-1{border-left-color:#f1c40f;}
 .exment-kanban .kb-card.kb-age-2{border-left-color:#e67e22;}
 .exment-kanban .kb-card.kb-age-3{border-left-color:#c0392b;}
+/* Work that stopped, and work that jumped the queue. Drawn as an inset
+   outline so the left edge is left to say how long the card has waited. */
+.exment-kanban .kb-card.kb-expedite{box-shadow:inset 0 0 0 2px #e67e22,0 1px 1px rgba(0,0,0,.08);}
+.exment-kanban .kb-card.kb-blocked{box-shadow:inset 0 0 0 2px #8e44ad,0 1px 1px rgba(0,0,0,.08);background:#fdfaff;}
+.exment-kanban .kb-card-flags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px;}
+/* not .kb-flag: that class already belongs to a card field drawn as a
+   flag, and a scoped rule of the same name would restyle it */
+.exment-kanban .kb-mark{display:inline-flex;align-items:center;gap:4px;border-radius:3px;
+  padding:1px 6px;font-size:11px;font-weight:700;line-height:1.6;}
+.exment-kanban .kb-mark-exp{background:#fdebd0;color:#b9770e;}
+.exment-kanban .kb-mark-blk{background:#f2e3f7;color:#7d3c98;}
 .exment-kanban .kb-card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .exment-kanban .kb-handle{color:#b0b8c1;cursor:grab;font-size:12px;}
 .exment-kanban .kb-num{font-size:12.5px;color:var(--kb-blue);font-weight:600;}
 .exment-kanban .kb-num:hover{text-decoration:underline;}
 .exment-kanban .kb-card-top .kb-chip-wrap{margin-left:auto;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .exment-kanban .kb-card-title{font-weight:600;color:#2c3e50;line-height:1.35;margin:5px 0;word-break:break-word;}
+/* not scoped to the board: the detail drawer draws the same bar, and it
+   is attached to <body> */
+.kb-progress{position:relative;height:14px;border-radius:7px;background:#e7edf3;
+  overflow:hidden;margin:2px 0 6px;}
+.kb-progress-bar{position:absolute;left:0;top:0;bottom:0;background:#3c8dbc;
+  border-radius:7px;transition:width .2s;}
+.kb-progress.half .kb-progress-bar{background:#f39c12;}
+.kb-progress.full .kb-progress-bar{background:#27ae60;}
+.kb-progress-txt{position:relative;display:block;text-align:center;font-size:10px;
+  line-height:14px;font-weight:700;color:#3d4b57;}
+.kb-drawer-body>.kb-progress{margin:0 0 12px;}
 .exment-kanban .kb-card-meta,
 .exment-kanban .kb-card-meta2,
 .exment-kanban .kb-card-foot{display:flex;flex-wrap:wrap;align-items:center;gap:5px;}
@@ -116,6 +184,23 @@
 .kb-ai{font-size:11px;color:#1c6ea4;background:#e1f0fb;border:1px solid #b9ddf4;border-radius:10px;
   padding:1px 8px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
 .kb-ai.suggested{color:#8e5b00;background:#fff5e0;border-color:#f0d18a;}
+
+/* ------------------------------------------- cover, labels, corner badge */
+/* the negative margins stretch the image over the card padding; the colored
+   left border (age / unassigned) stays visible on purpose */
+.exment-kanban .kb-cover{margin:-8px -10px 8px;overflow:hidden;border-radius:0 2px 0 0;background:#eef1f4;}
+.exment-kanban .kb-cover img{display:block;width:100%;height:110px;object-fit:cover;}
+.exment-kanban .kb-cover.contain img{object-fit:contain;}
+.kb-labels{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px;}
+.kb-label{font-size:10.5px;font-weight:600;border:1px solid;border-radius:9px;padding:0 7px;line-height:16px;
+  white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;}
+.kb-label-bar{width:32px;height:7px;border-radius:4px;display:inline-block;}
+.kb-badge{display:inline-block;background:#34495e;color:#fff;border-radius:9px;font-size:10.5px;font-weight:700;
+  padding:0 7px;line-height:17px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;}
+.kb-drawer-cover{margin:-16px -16px 12px;background:#eef1f4;}
+.kb-drawer-cover img{display:block;width:100%;max-height:220px;object-fit:cover;}
+.kb-drawer-tags{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:0 0 12px;}
+.kb-drawer-tags .kb-labels{margin-bottom:0;}
 
 /* SLA timer badge */
 .kb-sla{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;border-radius:10px;padding:1px 8px;white-space:nowrap;}
@@ -156,7 +241,37 @@
 .kb-wf-btn:last-child{margin-bottom:0;}
 .kb-wf-to{margin-left:auto;opacity:.85;font-size:12px;white-space:nowrap;padding-left:8px;}
 .kb-wf-none{font-size:12px;color:#7d8891;}
-/* a status this card cannot reach, while it is dragged */
+
+/* move control of a column board: the only way through on a touch screen */
+.kb-move{display:flex;align-items:center;gap:10px;margin-top:14px;background:#f4f7fa;
+  border:1px solid #e0e6ec;border-radius:4px;padding:10px 12px;}
+.kb-move label{margin:0;font-size:12px;font-weight:600;color:#5a6b7b;white-space:nowrap;}
+.kb-move-sel{flex:1 1 auto;min-width:0;height:32px;border:1px solid #ccd4dc;border-radius:3px;
+  padding:4px 8px;font-size:13px;background:#fff;color:#2c3e50;}
+.kb-move-sel:focus{outline:0;border-color:#66afe9;}
+/* ----------------------------------------------------------------- history */
+.kb-hist{background:#f7f8fa;border:1px solid #e4e8ec;border-radius:4px;padding:12px;margin-top:14px;}
+.kb-hist-head{display:flex;align-items:center;gap:8px;font-weight:600;color:#4a5562;margin-bottom:8px;}
+.kb-hist-body{max-height:260px;overflow-y:auto;}
+.kb-hist-list{list-style:none;margin:0;padding:0;border-left:2px solid #dde3e9;}
+.kb-hist-list li{position:relative;padding:0 0 12px 14px;}
+.kb-hist-list li:last-child{padding-bottom:0;}
+.kb-hist-list li::before{content:'';position:absolute;left:-5px;top:5px;width:8px;height:8px;
+  border-radius:50%;background:#3c8dbc;border:2px solid #fff;}
+.kb-hist-line{display:flex;align-items:center;gap:8px;}
+.kb-hist-act{font-weight:600;color:#2c3e50;font-size:13px;}
+.kb-hist-at{margin-left:auto;font-size:11px;color:#9aa6b2;white-space:nowrap;}
+.kb-hist-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:#6b7783;margin-top:2px;}
+.kb-hist-who{display:inline-flex;align-items:center;gap:4px;margin-left:auto;color:#8a949e;}
+.kb-hist-cmt{margin-top:4px;font-size:12px;color:#4a5562;background:#fff;border:1px solid #e4e8ec;
+  border-radius:3px;padding:5px 7px;word-break:break-word;}
+.kb-hist-none{font-size:12px;color:#7d8891;}
+
+/* the my-cards toggle, on while it is filtering */
+.exment-kanban .kb-mine-btn.active{background:#3c8dbc;border-color:#367fa9;color:#fff;}
+.exment-kanban .kb-mine-btn.active:hover{background:#367fa9;}
+
+/* a status this card cannot reach, or a column already full, while dragging */
 .exment-kanban .kb-col.kb-nodrop{opacity:.4;}
 .exment-kanban .kb-col.kb-nodrop .kb-list{background:repeating-linear-gradient(45deg,#f2f4f6,#f2f4f6 6px,#e9edf1 6px,#e9edf1 12px);}
 

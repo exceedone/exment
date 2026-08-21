@@ -22,6 +22,8 @@ use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\DataItems\Grid\KanbanGrid;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
@@ -691,6 +693,87 @@ class CustomValueController extends AdminControllerTableBase
             'showSubmit' => false,
             'modalSize' => 'modal-xl',
         ]);
+    }
+
+    /**
+     * Next slice of one kanban column, for the "load more" button.
+     *
+     * The board asks for one column at a time, so a lane with thousands of
+     * records never has to arrive in one page. The same route answers the
+     * keyword search and the column figures, so a board only ever has one
+     * url to know about.
+     */
+    // @phpstan-ignore-next-line
+    public function kanbanCards(Request $request, $tableKey)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::GRID)) instanceof Response) {
+            return $response;
+        }
+
+        $grid_item = $this->custom_view->grid_item;
+        if (!($grid_item instanceof KanbanGrid)) {
+            abort(404);
+        }
+
+        // the board asks for its figures again after it has written a record,
+        // so the totals it shows describe the table as it is now
+        if ($request->get('stats')) {
+            return response()->json($grid_item->columnStats());
+        }
+
+        // the same endpoint answers both: a keyword searches the whole table,
+        // otherwise it is the next slice of one board column
+        $keyword = trim(strval($request->get('q')));
+        if ($keyword !== '') {
+            return response()->json($grid_item->searchCards($keyword));
+        }
+
+        return response()->json($grid_item->moreCards(
+            strval($request->get('key')),
+            intval($request->get('offset')),
+            $request->get('lane')
+        ));
+    }
+
+    /**
+     * Workflow history of one record, as plain json.
+     *
+     * The record screen already has a modal for this, built as a form. The
+     * board draws a compact timeline inside its drawer instead, and asks for
+     * it only when a card is opened - so a 300 card board keeps its weight.
+     */
+    // @phpstan-ignore-next-line
+    public function kanbanHistory(Request $request, $tableKey, $id = null)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $custom_value = $this->custom_table->getValueModel($id);
+        if (!isset($custom_value)) {
+            abort(404);
+        }
+
+        $rows = [];
+        foreach ($custom_value->getWorkflowHistories() as $workflow_value) {
+            $workflow_action = $workflow_value->workflow_action_cache;
+            // created_user is already the printable name, not a model
+            $created_user = strval($workflow_value->created_user);
+
+            $rows[] = [
+                'at' => isset($workflow_value->created_at) ? $workflow_value->created_at->format('Y-m-d H:i') : '',
+                'action' => isset($workflow_action) ? strval($workflow_action->action_name) : '',
+                'from' => strval(WorkflowStatus::getWorkflowStatusName(
+                    $workflow_value->workflow_status_from_id,
+                    $workflow_value->workflow_cache
+                )),
+                'to' => strval($workflow_value->workflow_status_name),
+                'user' => $created_user,
+                'comment' => strval($workflow_value->comment),
+            ];
+        }
+
+        return response()->json(['rows' => $rows]);
     }
 
     /**

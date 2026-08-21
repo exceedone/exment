@@ -10,6 +10,15 @@
         'swimlane' => exmtrans('custom_view.kanban_swimlane_column'),
         'only_over' => exmtrans('custom_view.kanban_only_over'),
         'only_unassigned' => exmtrans('custom_view.kanban_only_unassigned'),
+        'only_mine' => exmtrans('custom_view.kanban_only_mine'),
+        'only_blocked' => exmtrans('custom_view.kanban_only_blocked'),
+        'only_expedite' => exmtrans('custom_view.kanban_only_expedite'),
+        'blocked' => exmtrans('custom_view.kanban_blocked'),
+        'expedite' => exmtrans('custom_view.kanban_expedite'),
+        'blocked_partial' => exmtrans('custom_view.kanban_blocked_partial'),
+        'policy_title' => exmtrans('custom_view.kanban_policy_title'),
+        'collapse' => exmtrans('custom_view.kanban_collapse'),
+        'expand' => exmtrans('custom_view.kanban_expand'),
         'reset' => exmtrans('custom_view.kanban_reset'),
         'no_card' => exmtrans('custom_view.kanban_no_card'),
         'quickadd' => exmtrans('custom_view.kanban_quickadd_placeholder'),
@@ -36,6 +45,19 @@
         'wf_no_action' => exmtrans('custom_view.message.kanban_wf_no_action'),
         'wf_locked' => exmtrans('custom_view.message.kanban_wf_locked'),
         'wf_none' => exmtrans('custom_view.message.kanban_wf_none'),
+        'col_age' => exmtrans('custom_view.kanban_col_age_title'),
+        'move_to' => exmtrans('custom_view.kanban_move_to'),
+        'bulk_move' => exmtrans('custom_view.kanban_bulk_move'),
+        'col_total' => exmtrans('custom_view.kanban_col_total'),
+        'more' => exmtrans('custom_view.kanban_more'),
+        'more_plain' => exmtrans('custom_view.kanban_more_plain'),
+        'search_more' => exmtrans('custom_view.kanban_search_more'),
+        'history' => exmtrans('common.workflow_history'),
+        'history_none' => exmtrans('custom_view.kanban_history_none'),
+        'partial' => exmtrans('custom_view.message.kanban_partial'),
+        'search_capped' => exmtrans('custom_view.message.kanban_search_capped'),
+        'wip_full' => exmtrans('custom_view.message.kanban_wip_full'),
+        'wip_blocked' => exmtrans('custom_view.message.kanban_wip_blocked'),
     ];
 @endphp
 <div class="box card p-2 exment-kanban" id="{{ $boardId }}">
@@ -50,6 +72,13 @@
                     <input type="text" class="form-control kb-search" placeholder="{{ exmtrans('custom_view.kanban_search_placeholder') }}">
                     <span class="input-group-btn"><button type="button" class="btn btn-default"><i class="fa fa-search"></i></button></span>
                 </span>
+                {{-- the filter everyone reaches for first, given a button of its
+                     own so it is one tap rather than four --}}
+                @if(array_get($board, 'assignee_column') && !is_nullorempty(array_get($board, 'me')))
+                <button type="button" class="btn btn-sm btn-default kb-mine-btn">
+                    <i class="fa fa-user"></i><span class="hidden-xs">&nbsp;&nbsp;{{ exmtrans('custom_view.kanban_mine_button') }}</span>
+                </button>
+                @endif
                 @if(array_get($features, 'ai'))
                 <button type="button" class="btn btn-sm btn-info kb-ai-btn" title="{{ exmtrans('custom_view.help.kanban_ai_column') }}">
                     <i class="fa fa-magic"></i><span class="hidden-xs">&nbsp;&nbsp;{{ exmtrans('custom_view.kanban_ai_button') }}</span>
@@ -80,6 +109,10 @@
     </div>
     @endif
 
+    {{-- a board loaded per column can be rearranged into a shape the server
+         cannot page or total by; the script owns up to that here --}}
+    <div class="kb-partial" style="display:none;"></div>
+
     @if(array_get($features, 'kpi'))
     <div class="kb-kpis">
         <div class="kb-kpi" data-kpi="open">
@@ -102,6 +135,12 @@
         <div class="kb-kpi" data-kpi="age">
             <div class="kb-kpi-icon" style="background:#00c0ef"><i class="fa fa-clock-o"></i></div>
             <div><div class="kb-kpi-num">0</div><div class="kb-kpi-label">{{ exmtrans('custom_view.kanban_kpi_age') }}</div></div>
+        </div>
+        @endif
+        @if(!is_nullorempty(array_get($board, 'blocked')))
+        <div class="kb-kpi" data-kpi="blocked">
+            <div class="kb-kpi-icon" style="background:#8e44ad"><i class="fa fa-hand-paper-o"></i></div>
+            <div><div class="kb-kpi-num">0</div><div class="kb-kpi-label">{{ exmtrans('custom_view.kanban_kpi_blocked') }}</div></div>
         </div>
         @endif
         @if(!is_nullorempty(array_get($board, 'done_keys')))
