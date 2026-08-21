@@ -16,7 +16,6 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Workflow;
-use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -55,6 +54,7 @@ class DefaultGrid extends GridBase
             $grid->model()->select("$db_table_name.*");
         } else {
             // filter
+            $this->custom_view->resetSearchService();
             $this->custom_view->filterSortModel($grid->model(), ['callback' => $this->callback]);
         }
 
@@ -77,6 +77,14 @@ class DefaultGrid extends GridBase
         // if modal, append to selectitem button
         if ($this->modal) {
             $this->appendSelectItemButton($grid);
+        }
+
+        // A preview has one page and no pager. The rows are still fetched a
+        // page at a time - a table of 100,000 rows must not be read whole to
+        // show what a view looks like - but every pager link is a GET back to
+        // the preview url, which no longer holds the unsaved settings.
+        if ($this->preview) {
+            $grid->option('show_pagination', false);
         }
 
         return $grid;
@@ -478,7 +486,7 @@ class DefaultGrid extends GridBase
     // @phpstan-ignore-next-line
     protected function manageMenuToolButton($grid)
     {
-        if ($this->modal) {
+        if ($this->modal || $this->preview) {
             $grid->disableRowSelector();
             $grid->disableCreateButton();
             $grid->disableExport();
@@ -608,7 +616,7 @@ class DefaultGrid extends GridBase
     // @phpstan-ignore-next-line
     protected function manageRowAction($grid)
     {
-        if ($this->modal) {
+        if ($this->modal || $this->preview) {
             $grid->disableActions();
             return;
         }
@@ -747,51 +755,6 @@ class DefaultGrid extends GridBase
                 PartialCrudService::setGridRowAction($custom_table, $actions);
             });
         }
-    }
-
-    /**
-     * @param Request $request
-     */
-    // @phpstan-ignore-next-line
-    public function import(Request $request)
-    {
-        $service = $this->getImportExportService()
-            ->format($request->file('custom_table_file'))
-            ->filebasename($this->custom_table->table_name);
-        $result = $service->import($request);
-
-        return getAjaxResponse($result);
-    }
-
-    // create import and exporter
-    // @phpstan-ignore-next-line
-    public function getImportExportService($grid = null)
-    {
-        $service = (new DataImportExport\DataImportExportService())
-            ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
-                [
-                    'custom_table' => $this->custom_table,
-                    'grid' => $grid,
-                ]
-            ))->viewExportAction(new DataImportExport\Actions\Export\ViewAction(
-                [
-                    'custom_table' => $this->custom_table,
-                    'custom_view' => $this->custom_view,
-                    'grid' => $grid,
-                ]
-            ))->pluginExportAction(new DataImportExport\Actions\Export\PluginAction(
-                [
-                    'custom_table' => $this->custom_table,
-                    'custom_view' => $this->custom_view,
-                    'grid' => $grid,
-                ]
-            ))->importAction(new DataImportExport\Actions\Import\CustomTableAction(
-                [
-                    'custom_table' => $this->custom_table,
-                    'primary_key' => app('request')->input('select_primary_key') ?? null,
-                ]
-            ));
-        return $service;
     }
 
     // @phpstan-ignore-next-line

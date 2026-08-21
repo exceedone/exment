@@ -197,6 +197,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("data/{tableKey}/{id}/notifyClick", 'CustomValueController@notifyClick');
             $router->get("data/{tableKey}/{id}/shareClick", 'CustomValueController@shareClick');
             $router->get("data/{tableKey}/{id}/workflowHistoryModal", 'CustomValueController@workflowHistoryModal');
+            $router->get("data/{tableKey}/kanbanCards", 'CustomValueController@kanbanCards');
+            $router->get("data/{tableKey}/{id}/kanbanHistory", 'CustomValueController@kanbanHistory');
             $router->post("data/{tableKey}/{id}/sendMail", 'CustomValueController@sendMail');
             $router->post("data/{tableKey}/{id}/sendTargetUsers", 'CustomValueController@sendTargetUsers');
             $router->post("data/{tableKey}/{id}/sendShares", 'CustomValueController@sendShares');
@@ -215,6 +217,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/create_qrcode", 'CustomValueController@createQrcode')->name('exment.create_qrcode');
 
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
+            $router->post('view/{tableKey}/preview', 'CustomViewController@preview');
+            $router->put('view/{tableKey}/preview', 'CustomViewController@preview');
+            $router->post('view/{tableKey}/{id}/preview', 'CustomViewController@preview');
+            $router->put('view/{tableKey}/{id}/preview', 'CustomViewController@preview');
+            $router->get('view/{tableKey}/preview', 'CustomViewController@previewError');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/{id}/shareClick", 'CustomViewController@shareClick');
