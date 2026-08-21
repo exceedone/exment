@@ -1033,6 +1033,34 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Google reCAPTCHA v3 score threshold
+    |--------------------------------------------------------------------------
+    |
+    | reCAPTCHA v3 does not ask the visitor anything: it returns a score from
+    | 0.0 (almost certainly a bot) to 1.0 (almost certainly a human), and this
+    | is the value below which a submission is rejected. 0.5 is Google's own
+    | recommended starting point. Raise it if spam still gets through, lower it
+    | if real visitors are being blocked. Only used when the system settings
+    | screen selects v3; v2 answers pass or fail and ignores this.
+    | Values outside 0..1 are ignored and 0.5 is used instead.
+    |
+    */
+    'recaptcha_v3_score_threshold' => env('EXMENT_RECAPTCHA_V3_SCORE_THRESHOLD', 0.5),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google reCAPTCHA skip ips
+    |--------------------------------------------------------------------------
+    |
+    | Ip addresses that are never asked to pass reCAPTCHA, e.g. an office
+    | address used for testing the public form. Leave empty in production: an
+    | entry here disables the check completely for that address.
+    |
+    */
+    'recaptcha_skip_ips' => [],
+
+    /*
+    |--------------------------------------------------------------------------
     | Show disable field readonly
     |--------------------------------------------------------------------------
     |
