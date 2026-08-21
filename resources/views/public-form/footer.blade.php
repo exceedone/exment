@@ -14,11 +14,7 @@
                 @endif
             @endif
 
-            @if($useRecaptchaV2)
-            {!! no_captcha()->display() !!}
-            @elseif($useRecaptchaV3)
-            {{ no_captcha()->input('g-recaptcha-response') }}
-            @endif
+            {!! $recaptchaWidget !!}
 
             @if(in_array('submit', $buttons))
             <div class="">
@@ -29,16 +25,4 @@
     </div>
 </div>
 
-@if($useRecaptchaV2)
-{!! no_captcha()->script() !!}
-@elseif($useRecaptchaV3)
-{!! no_captcha()->script() !!}
-{!! no_captcha()->getApiScript() !!}
-<script>
-    grecaptcha.ready(function() {
-        window.noCaptcha.render('login', function (token) {
-            document.querySelector('#g-recaptcha-response').value = token;
-        });
-    });
-</script>
-@endif
+{!! $recaptchaScript !!}

@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Form\Field;
 use ExmentAdminCore\Admin\Form\Field\Hidden;
 
 /**
- * Gooele ReCaptcha
+ * Google reCAPTCHA
  */
 class ReCaptcha extends Hidden
 {
@@ -30,7 +30,7 @@ class ReCaptcha extends Hidden
         // }
 
         $this->column = 'g-recaptcha-response';
-        $this->label = 'Gooele reCaptcha';
+        $this->label = 'Google reCAPTCHA';
     }
 
 

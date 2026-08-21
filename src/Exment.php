@@ -1018,13 +1018,14 @@ class Exment
 
 
     /**
-     * Whether Available Google recaptcha (whether has class)
+     * Whether Google reCAPTCHA can be used, that is whether the optional
+     * google/recaptcha library is installed.
      *
      * @return boolean
      */
     public function isAvailableGoogleRecaptcha()
     {
-        return class_exists(\Arcanedev\NoCaptcha\NoCaptchaManager::class);
+        return Services\ReCaptchaService::isAvailable();
     }
 
 
