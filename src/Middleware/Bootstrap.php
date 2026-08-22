@@ -58,6 +58,7 @@ class Bootstrap
             'vendor/exment/css/common.css',
             'vendor/exment/css/workflow.css',
             'vendor/exment/css/customform.css',
+            'vendor/exment/css/dashboard.css',
             'vendor/exment/codemirror/codemirror.css',
             'vendor/exment/jstree/themes/default/style.min.css',
         ], true);
@@ -65,6 +66,7 @@ class Bootstrap
         static::setCssJsList([
             'vendor/exment/validation/jquery.validate.js',
             'vendor/exment/chartjs/chart.min.js',
+            'vendor/exment/echarts/echarts.min.js',
             'vendor/exment/codemirror/codemirror.js',
             'vendor/exment/codemirror/mode/htmlmixed/htmlmixed.js',
             'vendor/exment/codemirror/mode/xml/xml.js',
@@ -81,6 +83,7 @@ class Bootstrap
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',
+            'vendor/exment/js/dashboard.js',
             'vendor/exment/js/file-required.js',
             'vendor/exment/js/scroll-restore.js',
             'vendor/exment/js/search.js',

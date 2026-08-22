@@ -3,20 +3,33 @@
 namespace Exceedone\Exment\DashboardBoxItems;
 
 use Encore\Admin\Facades\Admin;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomViewSummary;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ChartAxisType;
 use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewSummary;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\AiSummaryService;
+use Exceedone\Exment\Services\Dashboard\ChartFilter;
+use Exceedone\Exment\Services\Dashboard\DashboardFilter;
+use Exceedone\Exment\Services\Dashboard\FilterValue;
 
+/**
+ * Chart box. On top of the configured chart, the box renders a toolbar (runtime chart-type
+ * switcher + the box's own chart filter) and, when the dashboard opted in, the AI summary
+ * strip. Every data path applies the dashboard filter bar (df_*) and the chart filter
+ * (bf_*) of the request, so chart, popover options and AI summary see the same rows.
+ */
 class ChartItem implements ItemInterface
 {
     use TableItemTrait;
+
+    /** labels / values are printed raw into a <script>: hex-encode so they can never break out */
+    protected const JSON_FLAGS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
 
     // @phpstan-ignore-next-line
     protected $dashboard_box;
@@ -33,8 +46,14 @@ class ChartItem implements ItemInterface
     // @phpstan-ignore-next-line
     protected $axis_y;
 
-    // @phpstan-ignore-next-line
+    /** @var string|null the configured type */
+    protected $configured_type;
+
+    /** @var string|null the type actually rendered (runtime switch applied) */
     protected $chart_type;
+
+    // @phpstan-ignore-next-line
+    protected $chart_series;
 
     // @phpstan-ignore-next-line
     protected $chart_options;
@@ -44,6 +63,12 @@ class ChartItem implements ItemInterface
 
     // @phpstan-ignore-next-line
     protected $chart_axis_name;
+
+    /** @var DashboardFilter */
+    protected $dashboard_filter;
+
+    /** @var ChartFilter */
+    protected $chart_filter;
 
     // @phpstan-ignore-next-line
     public function __construct($dashboard_box)
@@ -59,12 +84,25 @@ class ChartItem implements ItemInterface
 
         $this->axis_x = array_get($this->dashboard_box, 'options.chart_axisx');
         $this->axis_y = array_get($this->dashboard_box, 'options.chart_axisy');
-        $this->chart_type = array_get($this->dashboard_box, 'options.chart_type');
-        $this->chart_options = array_get($this->dashboard_box, 'options.chart_options')?? [];
-        $this->chart_axis_label = array_get($this->dashboard_box, 'options.chart_axis_label')?? [];
-        $this->chart_axis_name = array_get($this->dashboard_box, 'options.chart_axis_name')?? [];
-    }
+        $this->chart_series = array_get($this->dashboard_box, 'options.chart_series');
+        $this->chart_options = array_get($this->dashboard_box, 'options.chart_options') ?? [];
+        $this->chart_axis_label = array_get($this->dashboard_box, 'options.chart_axis_label') ?? [];
+        $this->chart_axis_name = array_get($this->dashboard_box, 'options.chart_axis_name') ?? [];
 
+        // runtime chart-type switch (`ct` on the box request): presentation only, same data
+        $this->configured_type = array_get($this->dashboard_box, 'options.chart_type');
+        $this->chart_type = $this->typeLocked()
+            ? $this->configured_type
+            : ChartType::resolve($this->configured_type, request()->input('ct'));
+        if ($this->chart_type !== $this->configured_type) {
+            // the saved option flag belongs to the configured family — give the switched type its own default
+            $this->chart_options = in_array($this->chart_type, ChartType::legendTypes(), true)
+                ? [ChartOptionType::LEGEND] : [ChartOptionType::BEGIN_ZERO];
+        }
+
+        $this->dashboard_filter = DashboardFilter::fromRequest($this->dashboard_box->dashboard ?? null);
+        $this->chart_filter = ChartFilter::fromRequest($this->dashboard_box, $this->custom_table);
+    }
 
     /**
      * get header
@@ -99,37 +137,156 @@ class ChartItem implements ItemInterface
             return null;
         }
 
-        if (array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE) {
-            $result = $this->getAggregateData();
-        } else {
-            $result = $this->getListData();
-        }
+        // toolbar first: building the chart-filter popover also drops ticked values the
+        // current scope no longer offers, and the data query below must see that
+        $toolbar = $this->toolbarHtml();
 
-        if ($result === false) {
-            return exmtrans('dashboard.message.need_setting');
-        }
-
-        $axisx_label = $result['axisx_label'];
-        $axisy_label = $result['axisy_label'];
-        $chart_data = $result['chart_data'];
-        $chart_label = $result['chart_label'];
-
-        return view('exment::dashboard.chart.chart', [
+        $common = [
             'suuid' => $this->dashboard_box->suuid,
-            'chart_data' => json_encode($chart_data, JSON_UNESCAPED_SLASHES),
-            'chart_labels' => json_encode($chart_label, JSON_UNESCAPED_SLASHES),
             'chart_type' => $this->chart_type,
             'chart_height' => 300,
-            'chart_axisx_label' => in_array(ChartAxisType::X, $this->chart_axis_label),
-            'chart_axisy_label' => in_array(ChartAxisType::Y, $this->chart_axis_label),
-            'chart_axisx_name' => in_array(ChartAxisType::X, $this->chart_axis_name),
-            'chart_axisy_name' => in_array(ChartAxisType::Y, $this->chart_axis_name),
-            'chart_axisx' => $axisx_label,
-            'chart_axisy' => $axisy_label,
             'chart_legend' => in_array(ChartOptionType::LEGEND, $this->chart_options),
-            'chart_begin_zero' => in_array(ChartOptionType::BEGIN_ZERO, $this->chart_options),
-            'chart_color' => json_encode($this->getChartColor(count($chart_data)))
+        ];
+
+        if (ChartType::isMulti($this->chart_type)) {
+            $result = $this->getMultiSeriesData();
+            if ($result === false) {
+                return exmtrans('dashboard.message.need_multiseries');
+            }
+            $chart = view('exment::dashboard.chart.echart_multi', $common + [
+                'x_categories' => json_encode($result['x_categories'], static::JSON_FLAGS),
+                'series_names' => json_encode($result['series_names'], static::JSON_FLAGS),
+                'matrix' => json_encode($result['matrix'], static::JSON_FLAGS),
+                'chart_axisx' => $result['axisx_label'],
+                'chart_axisy' => $result['axisy_label'],
+                'chart_colors' => json_encode($this->getChartPalette()),
+            ]);
+        } else {
+            $result = $this->isAggregateView() ? $this->getAggregateData() : $this->getListData();
+            if ($result === false) {
+                return exmtrans('dashboard.message.need_setting');
+            }
+            $vars = $common + [
+                'chart_data' => json_encode($result['chart_data'], static::JSON_FLAGS),
+                'chart_labels' => json_encode($result['chart_label'], static::JSON_FLAGS),
+                'chart_axisx' => $result['axisx_label'],
+                'chart_axisy' => $result['axisy_label'],
+            ];
+            if (ChartType::isEcharts($this->chart_type)) {
+                $chart = view('exment::dashboard.chart.echart', $vars + [
+                    'chart_colors' => json_encode($this->getChartPalette()),
+                ]);
+            } else {
+                $chart = view('exment::dashboard.chart.chart', $vars + [
+                    'chart_axisx_label' => in_array(ChartAxisType::X, $this->chart_axis_label),
+                    'chart_axisy_label' => in_array(ChartAxisType::Y, $this->chart_axis_label),
+                    'chart_axisx_name' => in_array(ChartAxisType::X, $this->chart_axis_name),
+                    'chart_axisy_name' => in_array(ChartAxisType::Y, $this->chart_axis_name),
+                    'chart_begin_zero' => in_array(ChartOptionType::BEGIN_ZERO, $this->chart_options),
+                    'chart_color' => json_encode($this->getChartColor(count($result['chart_data']))),
+                ]);
+            }
+        }
+
+        return $toolbar . $chart->render() . $this->aiSummaryHtml();
+    }
+
+    /**
+     * The chart's data for the AI summary (same rows the chart shows), or null.
+     *
+     * @return array|null {title, chart_type, axis_x_label, axis_y_label, labels, values, is_aggregate}
+     */
+    // @phpstan-ignore-next-line
+    public function getInsightData()
+    {
+        if ($this->hasPermission() !== true || is_null($this->custom_view)) {
+            return null;
+        }
+        $result = $this->isAggregateView() ? $this->getAggregateData() : $this->getListData();
+        if ($result === false) {
+            return null;
+        }
+        return [
+            'title' => array_get($this->dashboard_box, 'dashboard_box_view_name'),
+            'chart_type' => $this->chart_type,
+            'axis_x_label' => $result['axisx_label'],
+            'axis_y_label' => $result['axisy_label'],
+            'labels' => collect($result['chart_label'])->values()->map(function ($v) {
+                return is_scalar($v) ? (string) $v : $v;
+            })->all(),
+            'values' => collect($result['chart_data'])->values()->map(function ($v) {
+                return is_numeric($v) ? floatval($v) : $v;
+            })->all(),
+            'is_aggregate' => $this->isAggregateView(),
+        ];
+    }
+
+    /**
+     * Stable string of this box's current filter state (dashboard filter + chart filter).
+     */
+    public function filterFingerprint(): string
+    {
+        return md5($this->dashboard_filter->fingerprint() . '|' . $this->chart_filter->fingerprint());
+    }
+
+    protected function isAggregateView(): bool
+    {
+        return array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE;
+    }
+
+    protected function typeLocked(): bool
+    {
+        return boolval(array_get($this->dashboard_box, 'options.chart_type_lock'));
+    }
+
+    /**
+     * AND the dashboard filter (targeting-aware) and this box's chart filter onto a query.
+     */
+    protected function applyFilters($query): void
+    {
+        $this->dashboard_filter->applyTo($query, $this->custom_table, $this->dashboard_box);
+        $this->chart_filter->applyTo($query);
+    }
+
+    /**
+     * The toolbar above the chart: [フィルター ▾] [chart type ▾]; '' when neither applies.
+     */
+    protected function toolbarHtml(): string
+    {
+        $types = [];
+        if (!$this->typeLocked()) {
+            foreach (ChartType::switchPool($this->configured_type) as $type) {
+                $types[$type] = exmtrans('chart.chart_type_options.' . $type);
+            }
+        }
+        $fields = [];
+        if ($this->chart_filter->isConfigured()) {
+            // option lists are scoped like the chart itself: the view's own filters first
+            $viewScope = function ($query) {
+                $this->custom_view->filterModel($query);
+            };
+            $fields = $this->chart_filter->fields($this->dashboard_filter, $viewScope);
+        }
+        if (empty($types) && empty($fields)) {
+            return '';
+        }
+        return view('exment::dashboard.chart.toolbar', [
+            'types' => $types,
+            'current_type' => $this->chart_type,
+            'fields' => $fields,
+            'filter_count' => count($this->chart_filter->values()),
+            'captions' => $this->chart_filter->captions(),
         ])->render();
+    }
+
+    /**
+     * The collapsed AI summary strip under the chart (only where the dashboard opted in).
+     */
+    protected function aiSummaryHtml(): string
+    {
+        return AiSummaryService::enabledForBox($this->dashboard_box)
+            ? view('exment::dashboard.chart.ai_summary')->render()
+            : '';
     }
 
     /**
@@ -147,7 +304,7 @@ class ChartItem implements ItemInterface
 
         // create model for getting data --------------------------------------------------
         $model = $this->custom_table->getValueQuery();
-
+        $this->applyFilters($model);
         $this->custom_view->filterModel($model);
 
         // get data
@@ -158,7 +315,8 @@ class ChartItem implements ItemInterface
             if ($view_column_x == Define::CHARTITEM_LABEL) {
                 return $val->getLabel();
             }
-            return esc_html($view_column_x->column_item->setCustomValue($val)->text());
+            // plain text: drawn on a canvas and hex-encoded before reaching the DOM
+            return $view_column_x->column_item->setCustomValue($val)->text();
         });
         $axis_y_name = $view_column_y->custom_column->column_name;
         $chart_data = $items->pluck('value.'.$axis_y_name);
@@ -201,13 +359,14 @@ class ChartItem implements ItemInterface
 
         // create model for getting data --------------------------------------------------
         $query = $this->custom_table->getValueQuery();
+        $this->applyFilters($query);
 
         // get data
         $datalist = $this->custom_view->getQuery($query)->get();
         $chart_label = $datalist->map(function ($val) use ($item_x_list) {
             $labels = $item_x_list->map(function ($item_x) use ($val) {
                 $item = $item_x->setCustomValue($val);
-                return esc_html($item->text());
+                return $item->text();
             });
             return $labels->implode(' ');
         });
@@ -225,6 +384,79 @@ class ChartItem implements ItemInterface
             'axisy_label'   => array_get($view_column_y, 'view_column_name')?? $item_y->label(),
         ];
     }
+
+    /**
+     * Pivoted data of a multi-series chart from an aggregate view grouped by 2+ columns:
+     * the series column (chart_series, default = 2nd column) splits the legend, the first
+     * other group column is the X axis, the measure (chart_axisy) fills each cell.
+     *
+     * @return array|false {x_categories[], series_names[], matrix[seriesIdx][xIdx], axisx_label, axisy_label}
+     */
+    // @phpstan-ignore-next-line
+    protected function getMultiSeriesData()
+    {
+        if (!$this->isAggregateView()) {
+            return false;
+        }
+        $view_columns = collect($this->custom_view->custom_view_columns)->values();
+        $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
+        if ($view_columns->count() < 2 || is_nullorempty($view_column_y)) {
+            return false;
+        }
+
+        $series_pos = 1;
+        foreach ($view_columns as $pos => $column) {
+            if (!is_nullorempty($this->chart_series) && (ViewKindType::DEFAULT . '_' . $column->id) === $this->chart_series) {
+                $series_pos = $pos;
+            }
+        }
+        $x_pos = $series_pos === 0 ? 1 : 0;
+
+        $items = $view_columns->map(function ($item) {
+            return $item->column_item->options([
+                'summary' => true,
+                'summary_index' => ViewKindType::DEFAULT . '_' . $item->id,
+            ]);
+        });
+        $item_x = $items[$x_pos];
+        $item_series = $items[$series_pos];
+        $item_y = $view_column_y->column_item;
+
+        $query = $this->custom_table->getValueQuery();
+        $this->applyFilters($query);
+        $datalist = $this->custom_view->getQuery($query)->get();
+
+        $x_texts = $datalist->map(function ($val) use ($item_x) {
+            return $item_x->setCustomValue($val)->text();
+        })->all();
+        $series_texts = $datalist->map(function ($val) use ($item_series) {
+            return $item_series->setCustomValue($val)->text();
+        })->all();
+        $y_values = $datalist->pluck($item_y->uniqueName())->all();
+
+        // strict unique so "7" and "007" stay distinct categories
+        $x_categories = collect($x_texts)->unique(null, true)->values();
+        $series_names = collect($series_texts)->unique(null, true)->values();
+
+        $matrix = array_fill(0, $series_names->count(), array_fill(0, $x_categories->count(), 0));
+        foreach ($y_values as $i => $value) {
+            $x_idx = $x_categories->search($x_texts[$i], true);
+            $s_idx = $series_names->search($series_texts[$i], true);
+            if ($x_idx !== false && $s_idx !== false) {
+                // accumulate: a view grouped by 3+ columns yields several rows per cell
+                $matrix[$s_idx][$x_idx] += is_numeric($value) ? floatval($value) : 0;
+            }
+        }
+
+        return [
+            'x_categories' => $x_categories->all(),
+            'series_names' => $series_names->all(),
+            'matrix'       => $matrix,
+            'axisx_label'  => array_get($view_columns[$x_pos], 'view_column_name') ?? $item_x->label(),
+            'axisy_label'  => array_get($view_column_y, 'view_column_name') ?? $item_y->label(),
+        ];
+    }
+
     /**
      * set laravel admin embeds option
      */
@@ -243,7 +475,11 @@ class ChartItem implements ItemInterface
             ->required()
             ->options($tables)
             ->attribute([
-                'data-linkage' => json_encode(['options_target_view_id' => admin_urls('dashboardbox', 'table_views', DashboardBoxType::CHART)]),
+                'data-linkage' => json_encode([
+                    'options_target_view_id' => admin_urls('dashboardbox', 'table_views', DashboardBoxType::CHART),
+                    // the chart filter fields are columns of the table
+                    'options_chart_filters' => admin_urls('dashboardbox', 'chart_filter_columns'),
+                ]),
                 'data-linkage-expand' => json_encode(['dashboard_suuid' => $dashboard->suuid])
             ]);
 
@@ -253,47 +489,53 @@ class ChartItem implements ItemInterface
                 return ChartItem::getCustomViewSelectOptions($value, $field, $model, $dashboard);
             })
             ->loads(
-                ['options_chart_axisx', 'options_chart_axisy'],
-                [admin_url('dashboardbox/chart_axis').'/x', admin_url('dashboardbox/chart_axis').'/y']
+                ['options_chart_axisx', 'options_chart_axisy', 'options_chart_series'],
+                [admin_url('dashboardbox/chart_axis').'/x', admin_url('dashboardbox/chart_axis').'/y', admin_url('dashboardbox/chart_axis').'/series']
             );
 
         // link to manual
         $form->descriptionHtml(sprintf(exmtrans("chart.help.chartitem_manual"), getManualUrl('dashboard?id='.exmtrans('chart.chartitem_manual'))));
 
+        $viewColumnOptions = function ($summary) {
+            return function ($value, $model) use ($summary) {
+                $custom_view = ChartItem::formCustomView($model);
+                return $custom_view ? array_column($custom_view->getViewColumnsSelectOptions($summary), 'text', 'id') : [];
+            };
+        };
         $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
             ->required()
             ->default(Define::CHARTITEM_LABEL)
-            ->options(function ($value, $model) {
-                $target_view_id = array_get(request()->all(), 'options.target_view_id') ?? array_get($model->data(), 'target_view_id');
-                if (!isset($target_view_id)) {
-                    return [];
-                }
-
-                $custom_view = CustomView::getEloquent($target_view_id);
-                if (!isset($custom_view)) {
-                    return [];
-                }
-
-                $options = $custom_view->getViewColumnsSelectOptions(false);
-                return array_column($options, 'text', 'id');
-            });
+            ->options($viewColumnOptions(false));
 
         $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))
             ->required()
+            ->options($viewColumnOptions(true));
+
+        // series column of a multi-series chart (shown for those types only, see the script below)
+        $form->select('chart_series', exmtrans("dashboard.dashboard_box_options.chart_series"))
+            ->help(exmtrans('dashboard.message.need_multiseries'))
             ->options(function ($value, $model) {
-                $target_view_id = array_get(request()->all(), 'options.target_view_id') ?? array_get($model->data(), 'target_view_id');
-                if (!isset($target_view_id)) {
-                    return [];
-                }
-
-                $custom_view = CustomView::getEloquent($target_view_id);
-                if (!isset($custom_view)) {
-                    return [];
-                }
-
-                $options = $custom_view->getViewColumnsSelectOptions(true);
-                return array_column($options, 'text', 'id');
+                // laravel-admin binds this closure to the model, so the class is named explicitly
+                return array_column(ChartItem::seriesSelectOptions(ChartItem::formCustomView($model)), 'text', 'id');
             });
+
+        // chart filter: columns of the table offered as filter fields on this chart only
+        $form->multipleSelect('chart_filters', exmtrans("dashboard.dashboard_box_options.chart_filters"))
+            ->options(function ($value, $model) {
+                $table_id = array_get(request()->all(), 'options.target_table_id') ?? array_get($model->data(), 'target_table_id');
+                $custom_table = isset($table_id) ? CustomTable::getEloquent($table_id) : null;
+                $options = [];
+                foreach ($custom_table ? $custom_table->custom_columns : [] as $column) {
+                    $options[$column->column_name] = $column->column_view_name . ' (' . $column->column_name . ')';
+                }
+                return $options;
+            })
+            ->help(exmtrans("dashboard.dashboard_box_options.chart_filters_help"));
+
+        $form->switchbool('chart_type_lock', exmtrans("dashboard.dashboard_box_options.chart_type_lock"))
+            ->help(exmtrans("dashboard.dashboard_box_options.chart_type_lock_help"))
+            ->default(false);
+
         $form->checkbox('chart_axis_label', exmtrans("dashboard.dashboard_box_options.chart_axis_label"))
             ->options([
                 1 => exmtrans("dashboard.dashboard_box_options.chart_axisx_short"),
@@ -309,15 +551,17 @@ class ChartItem implements ItemInterface
                 1 => exmtrans("dashboard.dashboard_box_options.chart_legend"),
                 2 => exmtrans("dashboard.dashboard_box_options.chart_begin_zero")])
         ;
+
+        $legendTypes = json_encode(ChartType::legendTypes());
+        $multiTypes = json_encode(ChartType::multiTypes());
         $script = <<<EOT
+        var exmentLegendCharts = $legendTypes;
+        var exmentMultiCharts = $multiTypes;
         function setChartOptions(val) {
-            if (val == 'pie') {
-                $('#chart_options > .icheck:nth-child(1)').show();
-                $('#chart_options > .icheck:nth-child(2)').hide();
-            } else {
-                $('#chart_options > .icheck:nth-child(1)').hide();
-                $('#chart_options > .icheck:nth-child(2)').show();
-            }
+            var legend = exmentLegendCharts.indexOf(val) >= 0;
+            $('#chart_options > .icheck:nth-child(1)').toggle(legend);
+            $('#chart_options > .icheck:nth-child(2)').toggle(!legend);
+            $('.options_chart_series').closest('.form-group').toggle(exmentMultiCharts.indexOf(val) >= 0);
         }
         setChartOptions($('.options_chart_type').val());
 
@@ -339,50 +583,101 @@ EOT;
         $options = $form->options;
         $chart_type = array_get($options, 'chart_type');
         $chart_options = array_get($options, 'chart_options')?? [];
-        $new_options = [];
-        if ($chart_type == ChartType::PIE) {
+        $keep = in_array($chart_type, ChartType::legendTypes(), true) ? ChartOptionType::LEGEND : ChartOptionType::BEGIN_ZERO;
+        if (ChartType::isCircular($chart_type)) {
             $options['chart_axis_label'] = [];
             $options['chart_axis_name'] = [];
-            foreach ($chart_options as $chart_option) {
-                if ($chart_option == ChartOptionType::LEGEND) {
-                    $new_options[] = $chart_option;
-                }
-            }
-        } else {
-            foreach ($chart_options as $chart_option) {
-                if ($chart_option == ChartOptionType::BEGIN_ZERO) {
-                    $new_options[] = $chart_option;
-                }
-            }
         }
-        $options['chart_options'] = $new_options;
+        $options['chart_options'] = array_values(array_filter($chart_options, function ($option) use ($keep) {
+            return $option == $keep;
+        }));
+
+        // series column only matters to a multi-series type
+        if (!ChartType::isMulti($chart_type)) {
+            unset($options['chart_series']);
+        }
+
+        // chart filter: plain column names only; an empty selection posts nothing = cleared
+        $filters = array_values(array_filter((array) array_get($options, 'chart_filters', []), function ($column) {
+            return FilterValue::isIdentifier($column);
+        }));
+        if (count($filters)) {
+            $options['chart_filters'] = $filters;
+        } else {
+            unset($options['chart_filters']);
+        }
+
+        if (boolval(array_get($options, 'chart_type_lock'))) {
+            $options['chart_type_lock'] = true;
+        } else {
+            unset($options['chart_type_lock']);
+        }
+
         $form->options = $options;
+    }
+
+    /**
+     * The view chosen on the box form (the posted one while editing, else the stored one).
+     */
+    // @phpstan-ignore-next-line
+    public static function formCustomView($model)
+    {
+        $view_id = array_get(request()->all(), 'options.target_view_id') ?? array_get($model->data(), 'target_view_id');
+        return isset($view_id) ? CustomView::getEloquent($view_id) : null;
+    }
+
+    /**
+     * Series-column choices of a multi-series chart = the group columns of the aggregate view.
+     *
+     * @return array<int, array{id:string, text:string|null}>
+     */
+    // @phpstan-ignore-next-line
+    public static function seriesSelectOptions($custom_view)
+    {
+        $options = [];
+        if (is_nullorempty($custom_view) || $custom_view->view_kind_type != ViewKindType::AGGREGATE) {
+            return $options;
+        }
+        foreach ($custom_view->custom_view_columns_cache as $custom_view_column) {
+            $condition_item = $custom_view_column->condition_item;
+            $options[] = [
+                'id'   => ViewKindType::DEFAULT . '_' . $custom_view_column->id,
+                'text' => $condition_item ? $condition_item->getSelectColumnText($custom_view_column, $custom_view->custom_table) : null,
+            ];
+        }
+        return $options;
     }
 
     /**
      * get chart color array.
      *
-     * @return array Chart color array
+     * @return array|string Chart color array
      */
     // @phpstan-ignore-next-line
     protected function getChartColor($datacnt)
     {
-        $chart_color = config('exment.chart_backgroundColor');
-        $chart_color = stringToArray(empty($chart_color) ? 'red' : $chart_color);
+        $chart_color = $this->getChartPalette();
 
         if ($this->chart_type == ChartType::PIE) {
             $colors = [];
             for ($i = 0; $i < $datacnt; $i++) {
-                if (count($colors) >= $datacnt) {
-                    break;
-                }
-
                 $colors[] = $chart_color[$i % count($chart_color)];
             }
             return $colors;
-        } else {
-            return (count($chart_color) > 0) ? $chart_color[0] : '';
         }
+        return $chart_color[0];
+    }
+
+    /**
+     * The configured color list (config exment.chart_backgroundColor), never empty.
+     *
+     * @return string[]
+     */
+    protected function getChartPalette()
+    {
+        $chart_color = config('exment.chart_backgroundColor');
+        $chart_color = stringToArray(empty($chart_color) ? 'red' : $chart_color);
+        return count($chart_color) > 0 ? array_values($chart_color) : ['red'];
     }
 
     // @phpstan-ignore-next-line

@@ -41,9 +41,9 @@
                         },
                         @if($chart_axisx_name)
                         scaleLabel: {
-							display: true,
-							labelString: '{{ $chart_axisx }}'
-						}
+                            display: true,
+                            labelString: @json($chart_axisx)
+                        }
                         @endif
                     }],
                     yAxes: [{
@@ -57,9 +57,9 @@
                         },
                         @if($chart_axisy_name)
                         scaleLabel: {
-							display: true,
-							labelString: '{{ $chart_axisy }}'
-						}
+                            display: true,
+                            labelString: @json($chart_axisy)
+                        }
                         @endif
                     }]
                 },
