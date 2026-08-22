@@ -195,6 +195,15 @@
     }
 
     // ---- AI summary -------------------------------------------------------------------
+    // The chart renderers register a per-box marker hook (window.ExmentCharts[suuid].mark);
+    // the anomalies of the summary are painted on the chart while the strip is open.
+    function markChart($wrap, anomalies) {
+        var suuid = $wrap.closest('[data-suuid]').data('suuid'), hook = (window.ExmentCharts || {})[suuid];
+        if (hook && typeof hook.mark === 'function') {
+            try { hook.mark(anomalies || null); } catch (e) {}
+        }
+    }
+
     function fetchAi($wrap) {
         var $box = $wrap.closest('[data-suuid]'), suuid = $box.data('suuid'), $panel = $wrap.find('[data-ai-panel]');
         if (!suuid || $wrap.data('loading')) { return; }
@@ -207,8 +216,9 @@
             contentType: 'application/json',
             data: JSON.stringify({ suuid: suuid }),
             success: function (res) {
-                $wrap.data('loading', false).data('loaded', true);
+                $wrap.data('loading', false).data('loaded', true).data('anomalies', (res && res.anomalies) || null);
                 $panel.html(res && res.success ? renderAi(res) : aiError(res && res.message));
+                markChart($wrap, $wrap.data('anomalies'));
             },
             error: function (xhr) {
                 $wrap.data('loading', false);
@@ -337,9 +347,9 @@
             var open = $(this).attr('aria-expanded') === 'true';
             $(this).attr('aria-expanded', open ? 'false' : 'true');
             $wrap.toggleClass('open', !open);
-            if (open) { $panel.attr('hidden', true); return; }
+            if (open) { $panel.attr('hidden', true); markChart($wrap, null); return; }
             $panel.removeAttr('hidden');
-            if (!$wrap.data('loaded')) { fetchAi($wrap); }
+            if ($wrap.data('loaded')) { markChart($wrap, $wrap.data('anomalies')); } else { fetchAi($wrap); }
         });
         $(document).on('click' + NS, '[data-ai-regen]', function (ev) {
             ev.preventDefault();

@@ -119,5 +119,28 @@
         var resize = function () { chart.resize(); };
         $(window).off('resize.echart_{{ $suuid }}').on('resize.echart_{{ $suuid }}', resize);
         $('[data-suuid="{{ $suuid }}"]').off('exment:dashboard_loaded.echart').on('exment:dashboard_loaded.echart', function () { setTimeout(resize, 50); });
+
+        // Anomaly markers, toggled by the AI summary strip (dashboard.js): amber pins on the
+        // flagged points + a shaded expected-range band. Value-axis types only.
+        var AMBER = '#e0a020';
+        var horizontal = { hbar: true, area: false, scatter: false }[type];
+        window.ExmentCharts = window.ExmentCharts || {};
+        window.ExmentCharts['{{ $suuid }}'] = { mark: function (anomaly) {
+            if (horizontal === undefined || (chart.isDisposed && chart.isDisposed())) { return; }
+            if (!anomaly || !anomaly.points || !anomaly.points.length) {
+                chart.setOption({ series: [{ markPoint: { data: [] }, markArea: { data: [] }, markLine: { data: [] } }] });
+                return;
+            }
+            var from = horizontal ? { xAxis: anomaly.lower } : { yAxis: anomaly.lower };
+            var to = horizontal ? { xAxis: anomaly.upper } : { yAxis: anomaly.upper };
+            chart.setOption({ series: [{
+                markArea: { silent: true, itemStyle: { color: 'rgba(224,160,32,0.08)' }, data: [[from, to]] },
+                markLine: { silent: true, symbol: 'none', lineStyle: { type: 'dashed', color: AMBER, width: 1 }, label: { show: false }, data: [from, to] },
+                markPoint: {
+                    symbol: 'pin', symbolSize: 42, itemStyle: { color: AMBER }, label: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
+                    data: anomaly.points.map(function (p) { return { coord: horizontal ? [p.value, p.index] : [p.index, p.value], value: p.direction === 'high' ? '▲' : '▼' }; })
+                }
+            }] });
+        } };
     })();
 </script>
