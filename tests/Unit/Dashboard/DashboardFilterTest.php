@@ -74,6 +74,23 @@ class DashboardFilterTest extends DashboardUnitTestCase
         ], $q->sql());
     }
 
+    public function testFixedScopeNarrowsOptionListsOnly()
+    {
+        $dashboard = $this->makeDashboard($this->bar(['grade'], ['scope' => ['subject' => '3', 'school' => '17'], 'max_options' => 1000]));
+        $filter = DashboardFilter::of($dashboard, ['df_grade' => '1']);
+        $this->assertSame(1000, $filter->maxOptions());
+
+        $q = new FakeQuery();
+        $filter->applyFixedScope($q, $this->table());
+        $this->assertSame(['column_subject = "3"'], $q->sql(), 'only scope columns the table carries');
+
+        $q = new FakeQuery();
+        $filter->applyTo($q, $this->table(), null);
+        $this->assertSame(['column_grade = "1"'], $q->sql(), 'box data is never narrowed by the fixed scope');
+
+        $this->assertSame(500, DashboardFilter::of($this->makeDashboard(null), [])->maxOptions());
+    }
+
     public function testLabelsAndFingerprint()
     {
         $dashboard = $this->makeDashboard($this->bar(['grade' => ['label' => '学年'], 'subject']));

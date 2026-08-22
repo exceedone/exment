@@ -48,6 +48,7 @@ final class FilterBarView
                 $view['range'] = ['from' => (string) ($spec['from'] ?? ''), 'to' => (string) ($spec['to'] ?? '')];
             } else {
                 $scope = function ($query) use ($filter, $table, $column) {
+                    $filter->applyFixedScope($query, $table);
                     foreach ($filter->values() as $other => $otherSpec) {
                         $otherColumn = $other === $column ? null : $table->custom_columns->firstWhere('column_name', $other);
                         if ($otherColumn !== null) {

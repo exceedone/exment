@@ -108,6 +108,31 @@ final class DashboardFilter
     }
 
     /**
+     * AND the bar's fixed scope (config `scope`) onto an OPTION-LIST query, for the scope
+     * columns $table carries. Option lists only — box data is never narrowed by it.
+     */
+    public function applyFixedScope($query, $table): void
+    {
+        if ($table === null || $this->config === null) {
+            return;
+        }
+        foreach ($this->config->scope() as $column => $spec) {
+            $customColumn = $table->custom_columns->firstWhere('column_name', $column);
+            if ($customColumn !== null) {
+                FilterValue::apply($query, $customColumn, $spec);
+            }
+        }
+    }
+
+    /**
+     * The option cap of this dashboard's lists.
+     */
+    public function maxOptions(): int
+    {
+        return $this->config ? $this->config->maxOptions() : FilterBarConfig::DEFAULT_MAX_OPTIONS;
+    }
+
+    /**
      * Display labels of the given items.
      *
      * @param string[] $columns

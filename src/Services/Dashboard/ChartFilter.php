@@ -139,11 +139,15 @@ final class ChartFilter
      * DROPPED from the selection here — call this before querying the chart data. A capped
      * list (too many values to show) keeps the selection as is.
      *
+     * The option cap and the fixed scope are the dashboard's own (options.filter_bar
+     * max_options / scope), so a chart filter lists exactly what the bar would.
+     *
      * @param callable|null $viewScope  narrows a query to the box's view (its static filters)
      * @return array<int, array>
      */
-    public function fields(DashboardFilter $dashboardFilter, ?callable $viewScope = null, int $cap = FilterBarConfig::DEFAULT_MAX_OPTIONS): array
+    public function fields(DashboardFilter $dashboardFilter, ?callable $viewScope = null): array
     {
+        $cap = $dashboardFilter->maxOptions();
         $fields = [];
         foreach ($this->columns as $column => $customColumn) {
             $spec = $this->values[$column] ?? null;
@@ -161,6 +165,7 @@ final class ChartFilter
                     if ($viewScope !== null) {
                         $viewScope($query);
                     }
+                    $dashboardFilter->applyFixedScope($query, $this->table);
                     $dashboardFilter->applyTo($query, $this->table, $this->box);
                     $this->applyTo($query, [$column]);
                 };
