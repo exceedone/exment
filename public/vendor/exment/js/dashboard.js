@@ -186,6 +186,23 @@
         return window.location.pathname + (query ? '?' + query : '');
     }
 
+    // Click-to-filter from a chart: select `value` on the bar's `column` item — click = only
+    // this value (clicking the sole selected value again clears it), Ctrl/⌘-click = toggle it
+    // within the current selection — then navigate like a bar change.
+    function pick(column, value, toggle) {
+        var $s = $('.exment-df-bar .df-select[data-column="' + column + '"]');
+        value = String(value == null ? '' : value);
+        if (!$s.length || value === '' || !$s.find('option[value="' + value.replace(/"/g, '\\"') + '"]').length) { return; }
+        var current = ($s.val() || []).slice(), values;
+        if (toggle) {
+            values = current.indexOf(value) >= 0 ? current.filter(function (v) { return v !== value; }) : current.concat([value]);
+        } else {
+            values = (current.length === 1 && current[0] === value) ? [] : [value];
+        }
+        $s.val(values);
+        navigate(filterBarUrl());
+    }
+
     function navigate(url) {
         $('.exment-df-bar .df-select').each(function () {
             $(this).data('applied', ($(this).val() || []).slice());
@@ -368,6 +385,7 @@
             $boxes.parents('.row').addClass('row-eq-height row-dashboard');
             $boxes.each(function () { loadBox($(this).data('suuid')); });
         },
-        load: loadBox
+        load: loadBox,
+        pick: pick
     };
 })(jQuery);

@@ -118,6 +118,18 @@
             return;
         }
 
+        // click-to-filter on the X category (cartesian series: dataIndex; heatmap: value[0])
+        var click = {!! $chart_click !!};
+        if (click) {
+            chart.on('click', function (p) {
+                var xi = (p.componentSubType === 'heatmap' && Array.isArray(p.value)) ? p.value[0]
+                    : ((p.componentSubType === 'bar' || p.componentSubType === 'line') ? p.dataIndex : null);
+                if (typeof xi !== 'number' || xi >= click.values.length) { return; }
+                var ne = p.event && p.event.event;
+                ExmentDashboard.pick(click.column, click.values[xi], !!(ne && (ne.ctrlKey || ne.metaKey)));
+            });
+        }
+
         var resize = function () { chart.resize(); };
         $(window).off('resize.echart_{{ $suuid }}').on('resize.echart_{{ $suuid }}', resize);
         $('[data-suuid="{{ $suuid }}"]').off('exment:dashboard_loaded.echart').on('exment:dashboard_loaded.echart', function () { setTimeout(resize, 50); });

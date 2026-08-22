@@ -160,6 +160,7 @@ class ChartItem implements ItemInterface
                 'chart_axisx' => $result['axisx_label'],
                 'chart_axisy' => $result['axisy_label'],
                 'chart_colors' => json_encode($this->getChartPalette()),
+                'chart_click' => json_encode($result['chart_click'], static::JSON_FLAGS),
             ]);
         } else {
             $result = $this->isAggregateView() ? $this->getAggregateData() : $this->getListData();
@@ -171,6 +172,7 @@ class ChartItem implements ItemInterface
                 'chart_labels' => json_encode($result['chart_label'], static::JSON_FLAGS),
                 'chart_axisx' => $result['axisx_label'],
                 'chart_axisy' => $result['axisy_label'],
+                'chart_click' => json_encode($result['chart_click'] ?? null, static::JSON_FLAGS),
             ];
             if (ChartType::isEcharts($this->chart_type)) {
                 $chart = view('exment::dashboard.chart.echart', $vars + [
@@ -372,6 +374,12 @@ class ChartItem implements ItemInterface
         });
         $chart_data = $datalist->pluck($item_y->uniqueName());
 
+        // click-to-filter: a single group column only (a compound label has no one value)
+        $chart_click = null;
+        if (count($view_column_x_list) === 1) {
+            $chart_click = $this->clickFilter(collect($view_column_x_list)->first(), $datalist->pluck($item_x_list->first()->uniqueName()));
+        }
+
         // get item label
         $axisx_label = collect($view_column_x_list)->map(function ($item) {
             return array_get($item, 'view_column_name')?? $item->column_item->label();
@@ -382,6 +390,38 @@ class ChartItem implements ItemInterface
             'chart_label'   => $chart_label,
             'axisx_label'   => $axisx_label,
             'axisy_label'   => array_get($view_column_y, 'view_column_name')?? $item_y->label(),
+            'chart_click'   => $chart_click,
+        ];
+    }
+
+    /**
+     * Click-to-filter payload of a chart whose group column is an item of the dashboard
+     * filter bar: {column, values[]} with values[i] = the stored value behind data point i
+     * (what a df_{column} param compares against), so clicking a bar selects it on the bar.
+     * null when the column is not a filter item, belongs to another table, or the grouping
+     * is a derived bucket (date format) whose value never equals the stored one.
+     *
+     * @param mixed $view_column  the view's group CustomViewColumn
+     * @param iterable $raw_values  raw group values, index-aligned with the chart's points
+     * @return array|null
+     */
+    protected function clickFilter($view_column, $raw_values)
+    {
+        $config = $this->dashboard_filter->config();
+        $custom_column = $view_column ? $view_column->custom_column : null;
+        if ($config === null || is_nullorempty($custom_column) || is_nullorempty($this->custom_table)) {
+            return null;
+        }
+        if (array_get($view_column, 'view_column_table_id') != $this->custom_table->id
+            || !is_nullorempty(array_get($view_column, 'view_group_condition'))
+            || $config->dim($custom_column->column_name) === null) {
+            return null;
+        }
+        return [
+            'column' => $custom_column->column_name,
+            'values' => collect($raw_values)->map(function ($v) {
+                return is_scalar($v) ? (string) $v : '';
+            })->values()->all(),
         ];
     }
 
@@ -438,6 +478,8 @@ class ChartItem implements ItemInterface
         $x_categories = collect($x_texts)->unique(null, true)->values();
         $series_names = collect($series_texts)->unique(null, true)->values();
 
+        $x_raws = $datalist->pluck($item_x->uniqueName())->all();
+        $x_raw_by_category = [];
         $matrix = array_fill(0, $series_names->count(), array_fill(0, $x_categories->count(), 0));
         foreach ($y_values as $i => $value) {
             $x_idx = $x_categories->search($x_texts[$i], true);
@@ -445,6 +487,7 @@ class ChartItem implements ItemInterface
             if ($x_idx !== false && $s_idx !== false) {
                 // accumulate: a view grouped by 3+ columns yields several rows per cell
                 $matrix[$s_idx][$x_idx] += is_numeric($value) ? floatval($value) : 0;
+                $x_raw_by_category[$x_idx] = $x_raw_by_category[$x_idx] ?? ($x_raws[$i] ?? null);
             }
         }
 
@@ -454,6 +497,9 @@ class ChartItem implements ItemInterface
             'matrix'       => $matrix,
             'axisx_label'  => array_get($view_columns[$x_pos], 'view_column_name') ?? $item_x->label(),
             'axisy_label'  => array_get($view_column_y, 'view_column_name') ?? $item_y->label(),
+            'chart_click'  => $this->clickFilter($view_columns[$x_pos], $x_categories->keys()->map(function ($idx) use ($x_raw_by_category) {
+                return $x_raw_by_category[$idx] ?? null;
+            })),
         ];
     }
 
