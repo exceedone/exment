@@ -10,9 +10,6 @@
 <div class="exment-df-bar" data-dashboard-suuid="{{ $dashboard_suuid }}">
     <div class="df-head">
         <span class="df-title"><i class="fa fa-filter"></i>{{ exmtrans('dashboard.filter_bar.title') }}</span>
-        @if($has_selection)
-        <button type="button" class="df-reset">{{ trans('admin.reset') }}</button>
-        @endif
     </div>
     <div class="df-fields">
         @foreach($dims as $dim)
@@ -35,5 +32,9 @@
             @endif
         </div>
         @endforeach
+        @if($has_selection)
+        {{-- sits inline at the end of the filter row, aligned with the inputs --}}
+        <button type="button" class="df-reset"><i class="fa fa-times"></i>&nbsp;{{ trans('admin.reset') }}</button>
+        @endif
     </div>
 </div>

@@ -4,7 +4,7 @@
 .exment-df-bar { display: flex; flex-direction: column; gap: 9px; margin: -5px 0 10px; padding: 10px 14px; background: #fff; border: 1px solid #ecebf5; border-radius: 8px; }
 .exment-df-bar .df-head { display: flex; align-items: center; gap: 8px; }
 .exment-df-bar .df-title { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #5b6ef5; }
-.exment-df-bar .df-reset { margin-left: auto; height: 28px; padding: 0 12px; border: 1px solid #d7d5e6; border-radius: 6px; background: #fff; color: #7a7a90; font-size: 12px; cursor: pointer; }
+.exment-df-bar .df-reset { align-self: flex-end; height: 32px; padding: 0 12px; border: 1px solid #d7d5e6; border-radius: 6px; background: #fff; color: #7a7a90; font-size: 12px; cursor: pointer; }
 .exment-df-bar .df-reset:hover { background: #f6f4ff; color: #5b4bd6; border-color: #c9c6e6; }
 .exment-df-bar .df-fields { display: flex; flex-wrap: wrap; gap: 10px 14px; }
 .exment-df-bar .df-field { display: flex; flex-direction: column; gap: 3px; width: 190px; min-width: 150px; }
