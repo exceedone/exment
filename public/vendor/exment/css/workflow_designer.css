@@ -1,0 +1,550 @@
+/**
+ * ワークフロー設定 Step2「アクション設定」の右ペイン（フロー プレビュー）。
+ *
+ * クラス名はすべて .wd- 名前空間。SVG の中でも box / accent / chip といった
+ * 一般名は使わない: AdminLTE の `.box { width:100% }` などが SVG2 の
+ * ジオメトリプロパティとして <rect> の width を上書きしてしまうため。
+ */
+
+/* open-admin の styles.css に .wrapper { overflow-y: auto !important } があり、
+   これが position:sticky のスクロール親になるため右ペインが固定できない。
+   プレビューを出している間だけ、横のはみ出しを切る動き（clip）は
+   残したままスクロールコンテナを解除する。clip はスクロール親にならない。 */
+body.wd-sticky .wrapper {
+  overflow-x: clip;
+  overflow-y: visible !important;
+}
+
+/* ---- 2ペイン ------------------------------------------------------------ */
+.wd-split {
+  display: flex;
+  align-items: flex-start;
+}
+
+.wd-left {
+  flex: 0 0 56%;
+  max-width: 56%;
+  min-width: 0;
+  padding-right: 4px;
+}
+
+/* hasManyTable は既定で col-sm-10 offset-sm-1。左ペインでは幅いっぱいに使う。
+   Bootstrap 5 の .col-sm-10 は flex-basis ではなく width: 83.33% で幅を決めるので、
+   width も上書きしないと右に 16.67% の隔たりが残る。 */
+.wd-left .hasmanyblock-workflow_actions {
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  overflow-x: auto;
+}
+
+.wd-left .has-many-table-div {
+  padding-bottom: 1rem !important;
+}
+
+/* 左ペインは幅が狭くなるので、ラベル列を広げて見出しの折り返しを防ぐ。
+   col-md-* が効く幅（Bootstrap の md = 768px）すべてで必要。
+   表の中の項目は col-md-12 なので影響しない。 */
+@media (min-width: 768px) {
+  .wd-left .form-group.row > .control-label.col-md-2 {
+    flex: 0 0 27%;
+    max-width: 27%;
+  }
+
+  .wd-left .form-group.row > .col-md-8 {
+    flex: 0 0 71%;
+    max-width: 71%;
+  }
+}
+
+.wd-split.wd-hidden .wd-left {
+  flex: 1 1 100%;
+  max-width: 100%;
+  padding-right: 0;
+}
+
+.wd-splitbar {
+  flex: 0 0 9px;
+  align-self: stretch;
+  cursor: col-resize;
+  position: relative;
+  touch-action: none;
+}
+
+.wd-splitbar::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #dfe4ea;
+  transition: background .12s;
+}
+
+.wd-splitbar:hover::before,
+.wd-splitbar.wd-drag::before {
+  left: 3px;
+  width: 3px;
+  background: #3c8dbc;
+  border-radius: 2px;
+}
+
+.wd-split.wd-hidden .wd-splitbar {
+  display: none;
+}
+
+.wd-right {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 3px;
+  position: sticky;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+  background: #fff;
+  border: 1px solid #dfe4ea;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* ---- ヘッダ ------------------------------------------------------------- */
+.wd-right .wd-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  flex-wrap: wrap;
+  background: #fff;
+  border-bottom: 1px solid #d2d6de;
+}
+
+.wd-right .wd-head b {
+  font-size: 13px;
+  color: #444;
+  white-space: nowrap;
+}
+
+.wd-right .wd-head small {
+  color: #999;
+  font-size: 11px;
+}
+
+.wd-right .wd-head .wd-sp {
+  flex: 1;
+}
+
+.wd-issues {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #e8f6ef;
+  color: #00a65a;
+  white-space: nowrap;
+}
+
+.wd-issues.wd-bad {
+  background: #fdf3e3;
+  color: #c87f0a;
+  cursor: pointer;
+}
+
+/* プレビュー表示切替ボタン（アクション設定の見出し行へ JS が差し込む） */
+.wd-toggle {
+  margin-left: 12px;
+  vertical-align: 2px;
+}
+
+/* ---- キャンバス --------------------------------------------------------- */
+.wd-canvasarea {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  background: #f7f9fb;
+}
+
+.wd-canvasarea .wd-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: default;
+}
+
+.wd-canvasarea .wd-svg.wd-panning {
+  cursor: grabbing;
+}
+
+.wd-zoombar {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 5;
+}
+
+.wd-zoombar button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #d2d6de;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #555;
+  line-height: 1;
+  padding: 0;
+}
+
+.wd-zoombar button:hover {
+  background: #f4f4f4;
+}
+
+/* 拡大縮小と「配置を保存」の区切り */
+.wd-zoombar .wd-zsep {
+  height: 1px;
+  margin: 2px 3px;
+  background: #d2d6de;
+}
+
+/* 配置を保存するかの切り替え。押した状態＝保存する */
+.wd-zoombar button.wd-pin {
+  position: relative;
+}
+
+.wd-zoombar button.wd-pin.wd-on {
+  background: #3c8dbc;
+  border-color: #3c8dbc;
+  color: #fff;
+}
+
+.wd-zoombar button.wd-pin.wd-on:hover {
+  background: #357ca5;
+}
+
+/* 未保存の変更あり */
+.wd-zoombar button.wd-pin.wd-dirty::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f39c12;
+  border: 1px solid #fff;
+}
+
+.wd-legend {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  background: rgba(255, 255, 255, .93);
+  border: 1px solid #d2d6de;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #555;
+  line-height: 1.9;
+  z-index: 5;
+}
+
+.wd-legend .wd-sw {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+
+.wd-legend .wd-ln {
+  display: inline-block;
+  width: 22px;
+  height: 0;
+  border-top: 2px solid #9ab0c4;
+  margin-right: 5px;
+  vertical-align: 3px;
+}
+
+.wd-legend .wd-ln.wd-dash {
+  border-top-style: dashed;
+}
+
+.wd-legend .wd-br {
+  color: #367fa9;
+  font-weight: 700;
+}
+
+.wd-legend .wd-cn {
+  color: #dd8500;
+  font-weight: 700;
+}
+
+/* ---- SVG パーツ --------------------------------------------------------- */
+.wd-node {
+  cursor: grab;
+}
+
+.wd-node .nbox {
+  fill: #fff;
+  stroke: #c9d4de;
+  stroke-width: 1.2;
+}
+
+.wd-node:hover .nbox {
+  stroke: #9fb6c9;
+}
+
+.wd-node .nacc {
+  fill: #3c8dbc;
+}
+
+.wd-node.wd-completed .nbox {
+  fill: #f2faf6;
+  stroke: #bfe0cd;
+}
+
+.wd-node.wd-completed .nacc {
+  fill: #00a65a;
+}
+
+.wd-node .nm {
+  font-size: 13.5px;
+  font-weight: 600;
+  fill: #2f3b45;
+  pointer-events: none;
+}
+
+.wd-node .nchip {
+  font-size: 9.5px;
+  fill: #fff;
+  pointer-events: none;
+}
+
+.wd-node.wd-sel .nbox {
+  stroke: #3c8dbc;
+  stroke-width: 2.5;
+}
+
+.wd-node.wd-sel {
+  filter: drop-shadow(0 1px 4px rgba(60, 141, 188, .45));
+}
+
+.wd-node.wd-start .nbox {
+  fill: #00a65a;
+  stroke: #008d4c;
+}
+
+.wd-node.wd-start.wd-sel .nbox {
+  stroke: #1a5fb4;
+  stroke-width: 2.5;
+}
+
+.wd-node.wd-start .nm {
+  fill: #fff;
+}
+
+.wd-warn {
+  cursor: pointer;
+}
+
+.wd-warn circle {
+  fill: #f39c12;
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+
+.wd-warn text {
+  font-size: 11px;
+  font-weight: 700;
+  fill: #fff;
+  pointer-events: none;
+}
+
+.wd-line {
+  fill: none;
+  stroke: #8aa4ba;
+  stroke-width: 2.25;
+}
+
+.wd-line.wd-ign {
+  stroke-dasharray: 7 5;
+}
+
+.wd-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  cursor: pointer;
+}
+
+.wd-edge:hover .wd-line {
+  stroke: #5f7f9a;
+  stroke-width: 2.75;
+}
+
+.wd-edge.wd-hl .wd-line {
+  stroke: #f39c12;
+  stroke-width: 3;
+}
+
+.wd-edge.wd-sel .wd-line {
+  stroke: #3c8dbc;
+  stroke-width: 3.25;
+}
+
+.wd-elab rect {
+  fill: #fff;
+  stroke: #c9d4de;
+}
+
+.wd-elab text {
+  font-size: 11.5px;
+  fill: #41546a;
+  pointer-events: none;
+}
+
+.wd-elab .br {
+  fill: #367fa9;
+  font-weight: 700;
+}
+
+.wd-elab .cn {
+  fill: #dd8500;
+  font-weight: 700;
+}
+
+.wd-edge.wd-hl .wd-elab rect {
+  stroke: #f39c12;
+}
+
+.wd-edge.wd-sel .wd-elab rect {
+  stroke: #3c8dbc;
+  stroke-width: 1.6;
+}
+
+.wd-edge.wd-sel .wd-elab text {
+  fill: #367fa9;
+  font-weight: 600;
+}
+
+/* 実行前＝実行後のアクション。Exment が保存時に弾くので赤で描く */
+.wd-edge.wd-bad .wd-line {
+  stroke: #dd4b39;
+}
+
+.wd-edge.wd-bad .wd-elab rect {
+  stroke: #dd4b39;
+}
+
+.wd-edge.wd-bad .wd-elab text {
+  fill: #b93a2b;
+}
+
+/* ---- 要確認ポップオーバー ----------------------------------------------- */
+.wd-issuepop {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 300px;
+  max-height: 62%;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d2d6de;
+  border-radius: 4px;
+  z-index: 6;
+  display: none;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .12);
+  padding: 10px 12px;
+}
+
+.wd-issuepop.wd-open {
+  display: block;
+}
+
+.wd-issuepop .wd-tit {
+  font-size: 12px;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 7px;
+}
+
+.wd-issuelist .wd-it {
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 3px;
+  margin-bottom: 5px;
+  background: #fdf3e3;
+  color: #8a6108;
+  line-height: 1.5;
+}
+
+.wd-issuelist .wd-it.wd-err {
+  background: #fbeae8;
+  color: #a4392b;
+}
+
+.wd-issuelist .wd-it[data-node],
+.wd-issuelist .wd-it[data-act] {
+  cursor: pointer;
+}
+
+.wd-issuelist .wd-it[data-node]:hover,
+.wd-issuelist .wd-it[data-act]:hover {
+  outline: 1px solid #e3c98a;
+}
+
+.wd-issuelist .wd-ok {
+  font-size: 12px;
+  color: #00a65a;
+}
+
+/* ---- 左テーブルの連動ハイライト ----------------------------------------- */
+.has-many-table-workflow_actions-table tr.has-many-table-row td {
+  transition: background .12s;
+}
+
+.has-many-table-workflow_actions-table tr.wd-hl-row td {
+  background: #fff7e8;
+}
+
+.has-many-table-workflow_actions-table tr.wd-sel-row td {
+  background: #eaf3fb;
+}
+
+.has-many-table-workflow_actions-table tr.wd-sel-row td:first-child {
+  box-shadow: inset 4px 0 0 #3c8dbc;
+}
+
+/* ---- 狭い画面 ------------------------------------------------------
+   縦には積まない（プレビューは常に右に固定）。左右とも最小幅を
+   持たせず比率だけで分けるので、横スクロールバーは出ない。
+   表が入りきらない分は .hasmanyblock-workflow_actions が横にスクロールする。 */
+@media (max-width: 1199px) {
+  .wd-left {
+    padding-right: 3px;
+  }
+
+  .wd-right {
+    margin-left: 2px;
+  }
+
+  /* ヘッダが 2 行に折れて図の高さを食わないよう、補足文は隠す */
+  .wd-right .wd-head small {
+    display: none;
+  }
+}
+
+/* 右ペインがこれより狭いと凡例が図にかぶさる */
+@media (max-width: 991px) {
+  .wd-legend {
+    display: none;
+  }
+}

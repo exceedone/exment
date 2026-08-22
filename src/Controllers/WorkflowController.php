@@ -421,6 +421,12 @@ class WorkflowController extends AdminControllerBase
                 ->required()
                 ->default('executed_user')
             ;
+
+            // フロー プレビューで手で動かしたノードの座標。値は JSON 文字列
+            // {"enabled":true,"pos":{"<ステータスID>":{"x":0,"y":0}}} で、
+            // workflow_designer.js が書き込み、この画面の「保存」で一緒に送られる。
+            // 他の options 項目と同じ経路なので、保存前に離脱しても中途半端に残らない。
+            $form->hidden('designer_layout');
         })->disableHeader();
 
         $field = $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use ($id, $workflow) {
@@ -543,6 +549,10 @@ class WorkflowController extends AdminControllerBase
            ->required()
            ->hideDeleteButtonRow(1);
 
+        // フロー プレビュー（右ペイン）。この html は入れ物と初期データだけで、
+        // 2ペインへの組み替えと描画は workflow_designer.js が行う。
+        $form->html($this->getDesignerHtml($workflow))->plain();
+
         $self = $this;
         $form->tools(function (Form\Tools $tools) use ($self, $workflow) {
             $tools->append(new Tools\SystemChangePageMenu());
@@ -583,6 +593,41 @@ class WorkflowController extends AdminControllerBase
         ]);
 
         return $form;
+    }
+
+    /**
+     * Get flow preview html, shown on the right side of the action form.
+     *
+     * ステータスの完了区分・ロック区分は画面のどこにも出力されていないため、
+     * ここで JSON にして JavaScript へ渡す。アクション（行）の中身は
+     * workflow_designer.js が hasManyTable の DOM から直接読み取るので、
+     * 行を編集すると図もそのまま追従する。
+     *
+     * @param Workflow $workflow
+     * @return string
+     */
+    protected function getDesignerHtml($workflow)
+    {
+        $statuses = $workflow->workflow_statuses_cache->map(function ($status) {
+            return [
+                'id' => strval($status->id),
+                'name' => strval($status->status_name),
+                'completed' => boolval($status->completed_flg),
+                'datalock' => boolval($status->datalock_flg),
+            ];
+        })->values()->toArray();
+
+        // ロケールにキーが無くても画面が落ちないよう、英語を土台にして上書きする
+        $texts = array_merge(
+            (array)trans('exment::exment.workflow.designer', [], 'en'),
+            (array)exmtrans('workflow.designer')
+        );
+
+        return view('exment::workflow.designer', [
+            'wd_statuses' => $statuses,
+            'wd_start_name' => strval($workflow->start_status_name),
+            'wd_texts' => $texts,
+        ])->render();
     }
 
     /**
