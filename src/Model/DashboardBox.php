@@ -119,7 +119,13 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     // @phpstan-ignore-next-line
     public function getDashboardBoxItemAttribute()
     {
-        $enum_class = DashboardBoxType::getEnum($this->dashboard_box_type)->getDashboardBoxItemClass();
+        // an unknown box type (a removed plugin) has no enum: null lets one stray box
+        // degrade instead of taking the whole dashboard down
+        $enum = DashboardBoxType::getEnum($this->dashboard_box_type);
+        if (is_null($enum)) {
+            return null;
+        }
+        $enum_class = $enum->getDashboardBoxItemClass();
         return $enum_class::getItem($this) ?? null;
     }
 
@@ -149,7 +155,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
             'dashboard_box_view_name' => $this->dashboard_box_view_name,
             'dashboard_box_type' => $this->dashboard_box_type,
         ];
-        $attributes = array_merge($this->dashboard_box_item->attributes(), $attributes);
+        $item = $this->dashboard_box_item;
+        $attributes = array_merge($item ? $item->attributes() : [], $attributes);
 
         return collect($attributes)->mapWithKeys(function ($attr, $key) {
             return ["data-$key" => $attr];

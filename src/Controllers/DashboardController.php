@@ -14,6 +14,9 @@ use Exceedone\Exment\Model\DataShareAuthoritable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 use Exceedone\Exment\Form\Tools\ShareButton;
+use Exceedone\Exment\Services\Dashboard\DashboardFilter;
+use Exceedone\Exment\Services\Dashboard\FilterBarForm;
+use Exceedone\Exment\Services\Dashboard\FilterBarView;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
@@ -104,6 +107,12 @@ class DashboardController extends AdminControllerBase
         // add dashboard header
         $content->row((new DashboardMenu($this->dashboard))->render());
 
+        // dashboard filter bar (options.filter_bar); nothing when not configured
+        $bar = FilterBarView::build($this->dashboard, DashboardFilter::fromRequest($this->dashboard));
+        if ($bar !== null) {
+            $content->row(view('exment::dashboard.filter_bar', $bar)->render());
+        }
+
         //set row
         for ($i = 1; $i <= intval(config('exment.dashboard_rows', 4)); $i++) {
             $row_name = 'row'.$i;
@@ -113,127 +122,25 @@ class DashboardController extends AdminControllerBase
             }
         }
 
-        // set dashboard box --------------------------------------------------
-        $delete_confirm = trans('admin.delete_confirm');
-        $confirm = trans('admin.confirm');
-        $cancel = trans('admin.cancel');
-        $error = exmtrans('error.header');
-
-        $script = <<<EOT
-        $(function () {
-            // get suuid inputs
-            var suuids = $('[data-suuid]');
-            // add 'row-eq-height' class
-            suuids.parents('.row').addClass('row-eq-height row-dashboard');
-            suuids.each(function(index, element){
-                var suuid = $(element).data('suuid');
-                loadDashboardBox(suuid);
-            });
-
-            ///// delete click event
-            $('[data-exment-widget="delete"]').off('click').on('click', function(ev){
-                // get suuid
-                var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
-                var url = admin_url('dashboardbox/delete/' + suuid);
-                Exment.CommonEvent.ShowSwal(url, {
-                    title: "$delete_confirm",
-                    confirm:"$confirm",
-                    method: 'delete',
-                    cancel:"$cancel",
-                });
-            });
-
-            ///// reload click event
-            $('[data-exment-widget="reload"]').off('click').on('click', function(ev){
-                // get suuid
-                var target = $(ev.target).closest('[data-suuid]');
-                var suuid = target.data('suuid');
-                loadDashboardBox(suuid);
-            });
-
-            ///// click dashboard link event
-            $(document).off('click.exment_dashboard', '[data-ajax-link]').on('click.exment_dashboard', '[data-ajax-link]', [], function(ev){
-                // get link
-                var url = $(ev.target).closest('[data-ajax-link]').data('ajax-link');
-                var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
-                loadDashboardBox(suuid, url);
-            });
-        });
-
-        function loadDashboardBox(suuid, url){
-            if(!hasValue(suuid)){
-                return true;
-            }
-            if(!hasValue(url)){
-                url = admin_url('dashboardbox/html/' + suuid);
-            }
-            var target = $('[data-suuid="' + suuid + '"]');
-            if(target.hasClass('loading')){
-                return true;
-            }
-            target.addClass('loading');
-
-            // set height
-            var inner_body = target.find('.box-body-inner-body');
-            var height = inner_body.height();
-            inner_body.css('height', height);
-
-            target.find('.box-body-inneritem').html('');
-            target.find('.overlay').show();
-
-            $.ajax({
-                url: url,
-                type: "GET",
-                context: {
-                    'inner_body': inner_body,
-                    'suuid': suuid,
-                },
-                success: function (data) {
-                    var suuid = this.suuid;
-
-                    // get target object
-                    var target = $('[data-suuid="' + suuid + '"]');
-
-                    // if set header
-                    if(data.header){
-                        target.find('.box-body .box-body-inner-header').html(data.header);
-                    }
-                    // if set body
-                    if(data.body){
-                        target.find('.box-body .box-body-inner-body').html(data.body);
-                    }
-                    // if set footer
-                    if(data.footer){
-                        target.find('.box-body .box-body-inner-footer').html(data.footer);
-                    }
-
-                    // remove height
-                    this.inner_body.css('height', '');
-
-                    target.find('.overlay').hide();
-
-                    // fire plugin event
-                    target.trigger('exment:dashboard_loaded');
-
-                    target.removeClass('loading');
-
-                    Exment.CommonEvent.tableHoverLink();
-                },
-                error: function () {
-                    var suuid = this.suuid;
-                    // get target object
-                    var target = $('[data-suuid="' + suuid + '"]');
-
-                    target.find('.overlay').hide();
-                    target.removeClass('loading');
-
-                    // show error
-                    target.find('.box-body .box-body-inner-body').html('$error');
-                },
-            });
-        }
-EOT;
-        Admin::script($script);
+        // dashboard runtime (public/vendor/exment/js/dashboard.js): box loading, filter bar,
+        // chart toolbar and AI summary strip — only the texts are passed from here
+        $lang = [
+            'delete_confirm' => trans('admin.delete_confirm'),
+            'confirm' => trans('admin.confirm'),
+            'cancel' => trans('admin.cancel'),
+            'error' => exmtrans('error.header'),
+            'ai_generating' => exmtrans('dashboard.ai.generating'),
+            'ai_regenerate' => exmtrans('dashboard.ai.regenerate'),
+            'ai_error' => exmtrans('dashboard.ai.error_generic'),
+            'ai_highest' => exmtrans('dashboard.ai.stat_highest'),
+            'ai_lowest' => exmtrans('dashboard.ai.stat_lowest'),
+            'ai_average' => exmtrans('dashboard.ai.stat_average'),
+            'ai_range' => exmtrans('dashboard.ai.stat_range'),
+            'ai_anomalies' => exmtrans('dashboard.ai.anomaly_title'),
+            'ai_expected_range' => exmtrans('dashboard.ai.expected_range'),
+            'ai_stable' => exmtrans('dashboard.ai.stable'),
+        ];
+        Admin::script('ExmentDashboard.init(' . json_encode(['lang' => $lang], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) . ');');
         return $content;
     }
 
@@ -281,8 +188,14 @@ EOT;
 
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
 
+        // AI summary strip under the charts: opt-in per dashboard (default OFF), enforced
+        // server-side too (AiSummaryService::enabledForBox)
+        $form->switchbool('ai_summary', exmtrans('dashboard.ai.switch'))
+            ->help(exmtrans('dashboard.ai.switch_help'))
+            ->default(false);
+
         // create row select options
-        $form->embeds('options', exmtrans("dashboard.row"), function ($form) {
+        $form->embeds('row_setting', exmtrans("dashboard.row"), function ($form) {
             for ($row_count = 1; $row_count <= intval(config('exment.dashboard_rows', 4)); $row_count++) {
                 $row = [];
                 for ($i = 1; $i <= 4; $i++) {
@@ -313,6 +226,14 @@ EOT;
             }
         })->disableHeader();
 
+        FilterBarForm::build($form, $model ?? null);
+
+        // the form binds virtual attributes (each merges into options on save, so keys no
+        // field manages survive); expose them on the model the form reads from
+        $form->editing(function ($form) {
+            $form->model()->append(['row_setting', 'ai_summary', 'filter_bar_table', 'filter_bar_dims']);
+        });
+
         $form->tools(function (Form\Tools $tools) use ($id, $dashboard_type) {
             $tools->disableList();
 
@@ -338,6 +259,22 @@ EOT;
         });
 
         return $form;
+    }
+
+    /**
+     * Linkage endpoint of the filter bar setting section: filter columns of the table
+     * picked in `filter_bar_table` (sent as `q`).
+     *
+     * @param Request $request
+     * @return array<int, array{id:string, text:string}>
+     */
+    public function filterBarColumns(Request $request)
+    {
+        $results = [];
+        foreach (FilterBarForm::columnOptions($request->get('q')) as $id => $text) {
+            $results[] = ['id' => $id, 'text' => $text];
+        }
+        return $results;
     }
 
     /**

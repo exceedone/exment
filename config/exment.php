@@ -1201,4 +1201,44 @@ return [
     |
     */
     'api_max_rate_limit' => env('EXMENT_API_MAX_RATE_LIMIT', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI summary (dashboard chart boxes)
+    |--------------------------------------------------------------------------
+    |
+    | Any OpenAI-compatible /chat/completions endpoint: point base_url / model /
+    | api_key at it (Groq by default). The strip is OPT-IN per dashboard (setting
+    | 「AI要約」) on top of the site-wide switch below.
+    |
+    */
+    'ai' => [
+        'api_key'  => env('OPENAI_API_KEY', ''),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.groq.com/openai/v1'),
+        'model'    => env('OPENAI_MODEL', 'openai/gpt-oss-20b'),
+        'timeout'  => (int) env('AI_TIMEOUT', 30),
+        // reasoning models think before answering: 'low' keeps a short summary fast;
+        // '' = do not send the parameter (models that reject it)
+        'reasoning_effort' => (string) env('AI_REASONING_EFFORT', 'low'),
+        'summary_max_tokens' => (int) env('AI_INSIGHT_MAX_TOKENS', 1200),
+
+        // site-wide switch for the AI summary strip (false also makes the endpoint refuse)
+        'summary_enabled' => (bool) env('AI_INSIGHT_ENABLED', true),
+        // comma-separated table_name list whose data must never reach the AI provider
+        'blocked_tables' => (string) env('AI_BLOCKED_TABLES', ''),
+        // fresh generations per user per hour (cached summaries are free)
+        'rate_limit' => (int) env('AI_RATE_LIMIT', 30),
+        // data rows sent to the model for one chart (token guard)
+        'max_data_rows' => (int) env('AI_MAX_DATA_ROWS', 50),
+        // seconds a generated summary is shared by every viewer of the same data (0 = none)
+        'summary_cache_ttl' => (int) env('AI_INSIGHT_CACHE_TTL', 3600),
+        'log_usage' => (bool) env('AI_LOG_USAGE', true),
+
+        // outlier detection (Tukey fences): k multiplier, minimum points, minimum relative
+        // deviation from the median, and the MAD multiplier used when IQR = 0
+        'anomaly_iqr_k'      => (float) env('AI_ANOMALY_IQR_K', 1.5),
+        'anomaly_min_points' => (int) env('AI_ANOMALY_MIN_POINTS', 5),
+        'anomaly_min_rel'    => (float) env('AI_ANOMALY_MIN_REL', 0.02),
+        'anomaly_mad_k'      => (float) env('AI_ANOMALY_MAD_K', 3.5),
+    ],
 ];

@@ -62,9 +62,12 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('/', 'DashboardController@home');
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
             $router->delete('dashboardbox/delete/{suuid}', 'DashboardBoxController@delete');
+            // linkage endpoints sit above the resource routes so `{id}` (show) cannot swallow them
+            $router->get('dashboard/filter_bar_columns', 'DashboardController@filterBarColumns');
             $router->resource('dashboard', 'DashboardController');
             $router->get("dashboardbox/table_views/{dashboard_type}", 'DashboardBoxController@tableViews');
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
+            $router->get("dashboardbox/chart_filter_columns", 'DashboardBoxController@chartFilterColumns');
             $router->get("dashboard/{id}/shareClick", 'DashboardController@shareClick');
             $router->post("dashboard/{id}/sendShares", 'DashboardController@sendShares');
             $router->resource('dashboardbox', 'DashboardBoxController');
@@ -278,6 +281,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
             $router->get("webapi/{tableKey}/operation-update-type", 'ApiTableController@getOperationUpdateType');
             $router->get("webapi/{tableKey}/operation-filter-value", 'ApiTableController@getOperationFilterValue');
+
+            // AI summary strip of a chart box
+            $router->post('webapi/ai-summary', 'AiSummaryController@summary');
         });
     }
 

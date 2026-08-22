@@ -87,6 +87,144 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         }, false)->sortBy('column_no');
     }
 
+    // Form virtual attributes -------------------------------------------------------
+    // The setting form binds these instead of the raw `options` JSON: each mutator merges
+    // into options, so keys no form field manages survive a save.
+
+    // @phpstan-ignore-next-line
+    public function getRowSettingAttribute()
+    {
+        return $this->options;
+    }
+
+    // @phpstan-ignore-next-line
+    public function setRowSettingAttribute(?array $options)
+    {
+        $this->setOption($options);
+        return $this;
+    }
+
+    /**
+     * AI summary strip opt-in (options.ai_summary, default OFF).
+     */
+    public function getAiSummaryAttribute(): bool
+    {
+        return boolval($this->getOption('ai_summary'));
+    }
+
+    // @phpstan-ignore-next-line
+    public function setAiSummaryAttribute($value)
+    {
+        if (boolval($value)) {
+            $this->setOption('ai_summary', true);
+        } else {
+            $this->forgetOption('ai_summary');
+        }
+        return $this;
+    }
+
+    /**
+     * Filter bar source table (options.filter_bar.source_table).
+     */
+    // @phpstan-ignore-next-line
+    public function getFilterBarTableAttribute()
+    {
+        return $this->getOption('filter_bar.source_table');
+    }
+
+    // @phpstan-ignore-next-line
+    public function setFilterBarTableAttribute($value)
+    {
+        return $this->setFilterBarOption('source_table', is_nullorempty($value) ? null : strval($value));
+    }
+
+    /**
+     * Filter bar items (options.filter_bar.dims) as form rows: column / label / targets.
+     *
+     * @return array<int, array{column:?string, label:?string, targets:string[]}>
+     */
+    // @phpstan-ignore-next-line
+    public function getFilterBarDimsAttribute()
+    {
+        $dims = $this->getOption('filter_bar.dims');
+        return collect(is_array($dims) ? $dims : [])->map(function ($dim) {
+            return [
+                'column' => array_get($dim, 'column'),
+                'label' => array_get($dim, 'label'),
+                'targets' => array_values(array_filter((array) array_get($dim, 'targets', []), 'is_string')),
+            ];
+        })->values()->toArray();
+    }
+
+    // @phpstan-ignore-next-line
+    public function setFilterBarDimsAttribute($value)
+    {
+        $dims = [];
+        foreach (is_array($value) ? $value : [] as $row) {
+            $column = trim(strval(array_get($row, 'column', '')));
+            if ($column === '') {
+                continue; // a row left blank is not a filter item
+            }
+            $label = trim(strval(array_get($row, 'label', '')));
+            $dim = ['column' => $column, 'label' => $label !== '' ? $label : $column];
+            // target boxes: an empty multi-select posts nothing = every box
+            $targets = array_values(array_filter((array) array_get($row, 'targets', []), function ($v) {
+                return is_string($v) && $v !== '';
+            }));
+            if (count($targets)) {
+                $dim['targets'] = $targets;
+            }
+            $dims[] = $dim;
+        }
+        return $this->setFilterBarOption('dims', count($dims) ? $dims : null);
+    }
+
+    /**
+     * Write one key inside options.filter_bar (null = remove it).
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return $this
+     */
+    protected function setFilterBarOption($key, $value)
+    {
+        $bar = $this->getOption('filter_bar');
+        $bar = is_array($bar) ? $bar : [];
+        if (is_null($value)) {
+            unset($bar[$key]);
+        } else {
+            $bar[$key] = $value;
+        }
+        return $this->setOption('filter_bar', $bar);
+    }
+
+    /**
+     * Keep options.filter_bar consistent whatever wrote it: drop a half-configured bar
+     * (no source table or no items) and duplicate columns (one item per column).
+     *
+     * @return void
+     */
+    protected function normalizeFilterBarOption()
+    {
+        $bar = $this->getOption('filter_bar');
+        if (!is_array($bar)) {
+            return;
+        }
+        $dims = [];
+        foreach ((array) array_get($bar, 'dims', []) as $dim) {
+            $column = array_get($dim, 'column');
+            if (!is_nullorempty($column) && !isset($dims[$column])) {
+                $dims[$column] = $dim;
+            }
+        }
+        if (is_nullorempty(array_get($bar, 'source_table')) || empty($dims)) {
+            $this->forgetOption('filter_bar');
+            return;
+        }
+        $bar['dims'] = array_values($dims);
+        $this->setOption('filter_bar', $bar);
+    }
+
 
     // @phpstan-ignore-next-line
     public function data_share_authoritables(): HasMany
@@ -163,6 +301,10 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         });
         static::updating(function ($model) {
             $model->setDefaultFlg(null, 'setDefaultFlgFilter', 'setDefaultFlgSet');
+        });
+
+        static::saving(function ($model) {
+            $model->normalizeFilterBarOption();
         });
 
         static::created(function ($model) {

@@ -14,6 +14,8 @@ use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\DashboardBoxItems\ChartItem;
+use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Illuminate\Support\Collection;
 
 class DashboardBoxController extends AdminControllerBase
@@ -81,9 +83,15 @@ class DashboardBoxController extends AdminControllerBase
         // get box html --------------------------------------------------
         if (isset($box)) {
             $dashboard_box_item = $box->dashboard_box_item;
-            $header = $this->rednerHtml($dashboard_box_item->header());
-            $body = $this->rednerHtml($dashboard_box_item->body());
-            $footer = $this->rednerHtml($dashboard_box_item->footer());
+            // null for an unknown box type (a removed plugin): render an empty box instead of erroring
+            if (isset($dashboard_box_item)) {
+                $header = $this->rednerHtml($dashboard_box_item->header());
+                $body = $this->rednerHtml($dashboard_box_item->body());
+                $footer = $this->rednerHtml($dashboard_box_item->footer());
+                if (isset($body)) {
+                    $body = $this->filterBadge($box) . $body;
+                }
+            }
         }
 
         // get dashboard box
@@ -290,8 +298,63 @@ class DashboardBoxController extends AdminControllerBase
         }
         // get custom views
         $custom_view = CustomView::getEloquent($id);
+        if (!isset($custom_view)) {
+            return [];
+        }
+        // series column of a multi-series chart = the view's group columns
+        if ($axis_type == 'series') {
+            return ChartItem::seriesSelectOptions($custom_view);
+        }
 
         return $custom_view->getViewColumnsSelectOptions($axis_type == 'y');
+    }
+
+    /**
+     * Linkage endpoint of the chart box form: columns of the table picked in
+     * target_table_id (sent as `q`), offered as chart filter fields.
+     *
+     * @param Request $request
+     * @return array<int, array{id:string, text:string}>
+     */
+    // @phpstan-ignore-next-line
+    public function chartFilterColumns(Request $request)
+    {
+        $custom_table = CustomTable::getEloquent($request->get('q'));
+        $results = [];
+        foreach ($custom_table ? $custom_table->custom_columns : [] as $custom_column) {
+            $results[] = [
+                'id' => $custom_column->column_name,
+                'text' => $custom_column->column_view_name . ' (' . $custom_column->column_name . ')',
+            ];
+        }
+        return $results;
+    }
+
+    /**
+     * A muted "not affected by filters" tag prepended to a box body when the dashboard
+     * filter bar has a selection that this box does not (fully) honour — so unfiltered
+     * numbers are never read as filtered ones. Only chart boxes apply the filter bar.
+     *
+     * @param DashboardBox $box
+     * @return string '' when nothing to disclose
+     */
+    protected function filterBadge($box)
+    {
+        $filter = DashboardFilter::fromRequest($box->dashboard);
+        $custom_table = CustomTable::getEloquent(array_get($box->options ?? [], 'target_table_id'));
+        if ($filter->isEmpty() || !isset($custom_table)) {
+            return '';
+        }
+        $ignored = $box->dashboard_box_type == DashboardBoxType::CHART
+            ? $filter->ignoredFor($custom_table, $box)
+            : array_keys($filter->values());
+        if (empty($ignored)) {
+            return '';
+        }
+        $text = count($ignored) === count($filter->values())
+            ? exmtrans('dashboard.filter_bar.not_affected')
+            : exmtrans('dashboard.filter_bar.partially_affected') . ': ' . implode(', ', $filter->labels($ignored));
+        return '<div class="exment-filter-badge"><span>' . esc_html($text) . '</span></div>';
     }
 
     // @phpstan-ignore-next-line
