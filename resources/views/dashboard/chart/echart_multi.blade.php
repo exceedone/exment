@@ -102,6 +102,9 @@
             }
         }
 
+        // a pivoted chart has no single-series point to mark: drop any marker hook of a previous render
+        if (window.ExmentCharts) { delete window.ExmentCharts['{{ $suuid }}']; }
+
         window.ExmentECharts = window.ExmentECharts || {};
         var prior = window.ExmentECharts['{{ $suuid }}'];
         if (prior && !(prior.isDisposed && prior.isDisposed())) { try { prior.dispose(); } catch (e) {} }

@@ -66,5 +66,31 @@
                 @endif
             }
         });
+
+        // Anomaly markers, toggled by the AI summary strip (dashboard.js): the flagged bars /
+        // points turn amber and their tooltip names the expected range. Value-axis types only.
+        window.ExmentCharts = window.ExmentCharts || {};
+        window.ExmentCharts['{{ $suuid }}'] = { mark: function (anomaly) {
+            @if($chart_type == 'pie')
+            return;
+            @else
+            var ds = myChart.data.datasets[0], base = {!! $chart_color !!}, AMBER = '#e0a020', flagged = {};
+            ((anomaly && anomaly.points) || []).forEach(function (p) { flagged[p.index] = true; });
+            var paint = function (i) { return flagged[i] ? AMBER : base; };
+            @if($chart_type == 'line')
+            ds.pointBackgroundColor = ds.data.map(function (v, i) { return paint(i); });
+            ds.pointRadius = ds.data.map(function (v, i) { return flagged[i] ? 6 : 3; });
+            @else
+            ds.backgroundColor = ds.data.map(function (v, i) { return paint(i); });
+            @endif
+            var fmt = function (n) { return Math.round(n * 10) / 10; };
+            myChart.options.tooltips = myChart.options.tooltips || {};
+            myChart.options.tooltips.callbacks = myChart.options.tooltips.callbacks || {};
+            myChart.options.tooltips.callbacks.afterLabel = function (item) {
+                return (anomaly && flagged[item.index]) ? @json(exmtrans('dashboard.ai.expected_range')) + ': ' + fmt(anomaly.lower) + ' – ' + fmt(anomaly.upper) : '';
+            };
+            myChart.update();
+            @endif
+        } };
     });
 </script>
