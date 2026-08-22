@@ -19,7 +19,8 @@
             @if($filter_count > 0)<span class="ct-cnt">{{ $filter_count }}</span>@endif
             <span class="ct-car">▾</span>
         </button>
-        <div class="ct-pop">
+        {{-- wide enough for the fields to sit side by side (one ~190px column each); the JS shrinks it to the card when needed --}}
+        <div class="ct-pop" style="min-width: {{ min(190 * max(2, count($fields)) + 30, 720) }}px">
             <h4>{{ exmtrans('dashboard.dashboard_box_options.chart_filters') }}</h4>
             <div class="ct-fgrid">
                 @foreach($fields as $field)
