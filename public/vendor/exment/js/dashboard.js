@@ -115,8 +115,11 @@
         // keep the panel inside its card: cap its width and pull an overflowing edge back
         var card = $pop.closest('.box')[0], item = $pop.closest('.ct-item')[0];
         if (!card || !item) { return; }
-        var PAD = 8, c = card.getBoundingClientRect();
-        $pop.css({ left: '', right: '', 'max-width': (c.width - PAD * 2) + 'px' });
+        var PAD = 8, c = card.getBoundingClientRect(), room = c.width - PAD * 2;
+        $pop.css({ left: '', right: '', 'max-width': room + 'px' });
+        if ($pop[0].getBoundingClientRect().width > room) {
+            $pop.css('min-width', 0); // the fields' own min-width beats max-width: let them wrap instead
+        }
         var p = $pop[0].getBoundingClientRect(), i = item.getBoundingClientRect();
         if (p.left < c.left + PAD) { $pop.css({ left: (c.left + PAD - i.left) + 'px', right: 'auto' }); }
         else if (p.right > c.right - PAD) { $pop.css({ left: 'auto', right: (i.right - (c.right - PAD)) + 'px' }); }
