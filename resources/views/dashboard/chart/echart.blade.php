@@ -116,6 +116,16 @@
             return;
         }
 
+        // click-to-filter (types whose dataIndex maps 1:1 to the labels; radar / gauge draw one shape)
+        var click = {!! $chart_click !!};
+        if (click && ['hbar', 'area', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0) {
+            chart.on('click', function (p) {
+                if (typeof p.dataIndex !== 'number' || p.dataIndex >= click.values.length) { return; }
+                var ne = p.event && p.event.event;
+                ExmentDashboard.pick(click.column, click.values[p.dataIndex], !!(ne && (ne.ctrlKey || ne.metaKey)));
+            });
+        }
+
         var resize = function () { chart.resize(); };
         $(window).off('resize.echart_{{ $suuid }}').on('resize.echart_{{ $suuid }}', resize);
         $('[data-suuid="{{ $suuid }}"]').off('exment:dashboard_loaded.echart').on('exment:dashboard_loaded.echart', function () { setTimeout(resize, 50); });

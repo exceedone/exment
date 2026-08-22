@@ -5,6 +5,8 @@
     $(function () {
         var ctx = $('[data-canvas-id="{{$suuid}}"]')[0].getContext('2d');
         ctx.canvas.height = {!! $chart_height !!};
+        // click-to-filter: {column, values[]} when the group column is a filter-bar item (else null)
+        var click = {!! $chart_click !!};
         var myChart = new Chart(ctx, {
             type: '{{ $chart_type }}',
             data: {
@@ -26,6 +28,10 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                onClick: function (evt, elements) {
+                    if (click && elements.length) { ExmentDashboard.pick(click.column, click.values[elements[0]._index], evt.ctrlKey || evt.metaKey); }
+                },
+                hover: { onHover: function (evt, elements) { evt.target.style.cursor = (click && elements.length) ? 'pointer' : 'default'; } },
                 @if(!$chart_legend)
                 legend : {
                     display: false
