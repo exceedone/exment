@@ -33,8 +33,11 @@
         </div>
         @endforeach
         @if($has_selection)
-        {{-- sits inline at the end of the filter row, aligned with the inputs --}}
-        <button type="button" class="df-reset"><i class="fa fa-times"></i>&nbsp;{{ trans('admin.reset') }}</button>
+        {{-- laid out like a field (blank label + 32px control) so it lines up with the inputs at any zoom --}}
+        <div class="df-field df-field-reset">
+            <label>&nbsp;</label>
+            <button type="button" class="df-reset"><i class="fa fa-times"></i>&nbsp;{{ trans('admin.reset') }}</button>
+        </div>
         @endif
     </div>
 </div>
