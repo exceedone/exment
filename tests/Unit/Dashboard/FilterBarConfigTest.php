@@ -47,6 +47,17 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame(FilterBarConfig::DEFAULT_MAX_OPTIONS, FilterBarConfig::fromArray(['source_table' => 't', 'max_options' => -1, 'dims' => [['column' => 'a']]])->maxOptions());
     }
 
+    public function testFixedScope()
+    {
+        $config = FilterBarConfig::fromArray([
+            'source_table' => 't',
+            'dims' => [['column' => 'class']],
+            'scope' => ['school' => '17', 'grade' => ['1', '2'], 'bad-name' => '1', 'empty' => ''],
+        ]);
+        $this->assertSame(['school' => ['in' => ['17']], 'grade' => ['in' => ['1', '2']]], $config->scope());
+        $this->assertSame([], FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'a']]])->scope());
+    }
+
     public function testAppliesToHonoursTargeting()
     {
         $config = FilterBarConfig::fromDashboard($this->makeDashboard($this->bar([

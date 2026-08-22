@@ -11,11 +11,15 @@ namespace Exceedone\Exment\Services\Dashboard;
  *       {"column": "grade", "label": "学年"},            // one filter item per column
  *       {"column": "subject", "label": "教科", "targets": ["<box suuid>", ...]}
  *     ],
- *     "max_options": 500                               // optional option cap per item
+ *     "max_options": 500,                              // optional option cap per item
+ *     "scope": {"school": "17"}                        // optional fixed scope of the option lists
  *   }
  *
  * `targets` (slicer targeting): with box suuids listed, ONLY those chart boxes are narrowed
  * by the item; empty / absent = every box whose table has the column.
+ * `scope` narrows every option list (filter bar and chart filters) to the given column
+ * values — a one-school dashboard lists that school's classes, not the nationwide ones.
+ * It never filters box data: a box takes its scope from its view.
  */
 final class FilterBarConfig
 {
@@ -27,12 +31,15 @@ final class FilterBarConfig
     private $dims;
     /** @var int */
     private $maxOptions;
+    /** @var array<string, array> column => spec */
+    private $scope;
 
-    private function __construct(string $sourceTable, array $dims, int $maxOptions)
+    private function __construct(string $sourceTable, array $dims, int $maxOptions, array $scope)
     {
         $this->sourceTable = $sourceTable;
         $this->dims = $dims;
         $this->maxOptions = $maxOptions;
+        $this->scope = $scope;
     }
 
     /**
@@ -67,7 +74,14 @@ final class FilterBarConfig
             return null;
         }
         $max = (int) array_get($raw, 'max_options', self::DEFAULT_MAX_OPTIONS);
-        return new self((string) $raw['source_table'], $dims, $max > 0 ? $max : self::DEFAULT_MAX_OPTIONS);
+        $scope = [];
+        foreach ((array) array_get($raw, 'scope', []) as $column => $value) {
+            $spec = FilterValue::parse($value);
+            if (FilterValue::isIdentifier($column) && $spec !== null) {
+                $scope[$column] = $spec;
+            }
+        }
+        return new self((string) $raw['source_table'], $dims, $max > 0 ? $max : self::DEFAULT_MAX_OPTIONS, $scope);
     }
 
     public function sourceTable(): string
@@ -96,6 +110,16 @@ final class FilterBarConfig
     public function maxOptions(): int
     {
         return $this->maxOptions;
+    }
+
+    /**
+     * Fixed scope of the option lists, as column => spec.
+     *
+     * @return array<string, array>
+     */
+    public function scope(): array
+    {
+        return $this->scope;
     }
 
     /**
