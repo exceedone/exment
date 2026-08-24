@@ -16,7 +16,11 @@ use Exceedone\Exment\Model\MeiliFilterSetting;
  */
 class FilterConfig
 {
-    /** The column_types treated as equality filters (poured into facets[]). */
+    /**
+     * The column_types treated as equality filters (poured into facets[]).
+     *
+     * @return array<int,string>
+     */
     public static function equalityTypes(): array
     {
         return config('meilisearch.filter.equality_column_types', ['select', 'select_valtext', 'yesno']);
@@ -37,7 +41,7 @@ class FilterConfig
      * The final equality columns of a table according to mode.
      *
      * @param \Exceedone\Exment\Model\CustomTable $table
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection<int,\Exceedone\Exment\Model\CustomColumn>
      */
     public static function equalityColumns($table)
     {
@@ -66,7 +70,7 @@ class FilterConfig
      * [auto] Equality columns picked automatically by column_type (+ exclusions in the config file).
      *
      * @param \Exceedone\Exment\Model\CustomTable $table
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection<int,\Exceedone\Exment\Model\CustomColumn>
      */
     public static function autoEqualityColumns($table)
     {
@@ -106,6 +110,7 @@ class FilterConfig
                 ->pluck('alias', 'column_name')
                 ->toArray();
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] filter aliases unavailable: ' . $e->getMessage());
             return [];
         }
     }
@@ -126,6 +131,7 @@ class FilterConfig
                 ->pluck('view_label', 'alias')
                 ->toArray();
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] alias labels unavailable: ' . $e->getMessage());
             return [];
         }
     }
@@ -134,7 +140,7 @@ class FilterConfig
      * Range columns (number/date) — always from admin include (there is no auto range).
      *
      * @param \Exceedone\Exment\Model\CustomTable $table
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection<int,\Exceedone\Exment\Model\CustomColumn>
      */
     public static function rangeColumns($table)
     {
@@ -146,18 +152,58 @@ class FilterConfig
      *
      * @return array<int,string>
      */
-    public static function allRangeFields(): array
+    /**
+     * Every alias currently configured, system-wide.
+     *
+     * An alias is used as a facet prefix in place of "table::column", so it is
+     * the one bare (unqualified) prefix shape that is still legitimate. Callers
+     * validating a facet token need this list to tell an alias apart from a
+     * stale pre-qualification token.
+     *
+     * @return array<int,string>
+     */
+    public static function allAliases(): array
     {
         try {
-            return MeiliFilterSetting::where('filter_type', 'range')
-                ->where('mode', 'include')
+            return MeiliFilterSetting::whereNotNull('alias')
+                ->where('alias', '<>', '')
                 ->where('enabled', 1)
-                ->pluck('column_name')
+                ->pluck('alias')
                 ->unique()
-                ->map(fn ($c) => 'n_' . $c)
                 ->values()
                 ->toArray();
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] alias list unavailable: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Every range attribute declared filterable in the index, table-qualified.
+     *
+     * @return array<int,string>
+     */
+    public static function allRangeFields(): array
+    {
+        try {
+            // Eager-load the table: the field name carries it, so two tables
+            // owning a same-named range column stay separate axes.
+            return MeiliFilterSetting::with('custom_table')
+                ->where('filter_type', 'range')
+                ->where('mode', 'include')
+                ->where('enabled', 1)
+                ->get()
+                ->map(function ($s) {
+                    $tableName = array_get($s, 'custom_table.table_name');
+
+                    return $tableName ? DocumentMapper::rangeField((string) $tableName, (string) $s->column_name) : null;
+                })
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] range fields unavailable: ' . $e->getMessage());
             return [];
         }
     }
@@ -166,7 +212,7 @@ class FilterConfig
      * CustomColumns per config row (filter_type + include/exclude) of a table.
      *
      * @param \Exceedone\Exment\Model\CustomTable|string $table
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection<int,\Exceedone\Exment\Model\CustomColumn>
      */
     public static function settingColumns($table, string $filterType, string $rowMode)
     {
@@ -188,6 +234,7 @@ class FilterConfig
     /**
      * List of column_name per config row of a table.
      *
+     * @param \Exceedone\Exment\Model\CustomTable|string $table
      * @return array<int,string>
      */
     public static function settingColumnNames($table, string $filterType, string $rowMode): array

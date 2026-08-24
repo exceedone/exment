@@ -150,25 +150,29 @@ class SearchController extends AdminControllerBase
         // add left column: unified filter (date + creator + status) + table facets.
         // right column: saved search quickbar (mockup style) + results.
         if ($this->meiliEnabled()) {
-            $applied = $this->appliedChips($request);
+            try {
+                $applied = $this->appliedChips($request);
 
-            // Export keeps the keyword + applied filter (drop UI state: ss/back/page/tables).
-            $exportQuery = $request->query();
-            unset($exportQuery['ss'], $exportQuery['back'], $exportQuery['page'], $exportQuery['tables']);
-            $exportBase = admin_url('search/export') . '?' . http_build_query($exportQuery);
+                // Export keeps the keyword + applied filter (drop UI state: ss/back/page/tables).
+                $exportQuery = $request->query();
+                unset($exportQuery['ss'], $exportQuery['back'], $exportQuery['page'], $exportQuery['tables']);
+                $exportBase = admin_url('search/export') . '?' . http_build_query($exportQuery);
 
-            $resultsHtml = view('exment::search.index', [
-                'query' => $request->input('query'),
-                'tables' => $tableArrays,
-                'appliedChips' => $applied['chips'],
-                'clearUrl' => $applied['clearUrl'],
-                'exportBase' => $exportBase,
-                'sort' => $this->sortFromRequest($request) ?? 'relevance',
-            ])->render();
-            $sidebar = $this->renderFilterSidebarHtml($request, (string) $request->input('query'));
-            $quickbar = $this->renderSavedSearchBarHtml($request);
-            $content->body("<div class='row'><div class='col-md-3'>{$sidebar}</div><div class='col-md-9'>{$quickbar}{$resultsHtml}</div></div>");
-            return $content;
+                $resultsHtml = view('exment::search.index', [
+                    'query' => $request->input('query'),
+                    'tables' => $tableArrays,
+                    'appliedChips' => $applied['chips'],
+                    'clearUrl' => $applied['clearUrl'],
+                    'exportBase' => $exportBase,
+                    'sort' => $this->sortFromRequest($request) ?? 'relevance',
+                ])->render();
+                $sidebar = $this->renderFilterSidebarHtml($request, (string) $request->input('query'));
+                $quickbar = $this->renderSavedSearchBarHtml($request);
+                $content->body("<div class='row'><div class='col-md-3'>{$sidebar}</div><div class='col-md-9'>{$quickbar}{$resultsHtml}</div></div>");
+                return $content;
+            } catch (\Throwable $e) {
+                $this->logMeiliFallback('index', $e);
+            }
         }
 
         $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $tableArrays]));
@@ -178,9 +182,8 @@ class SearchController extends AdminControllerBase
      * Export the search results of one table (CSV/XLSX), with the exact keyword + applied filter.
      *
      * @param Request $request
-     * @return void|\Illuminate\Http\Response
+     * @return mixed
      */
-    // @phpstan-ignore-next-line
     public function export(Request $request)
     {
         if (!$this->meiliEnabled()) {
@@ -267,7 +270,9 @@ class SearchController extends AdminControllerBase
     protected function getListItem(Request $request, $q, $table_name)
     {
         // pagination through Meili; on error -> fallback to MySQL below.
-        if ($this->meiliEnabled()) {
+        $searchDocument = boolval(config('exment.search_document', false));
+
+        if ($this->meiliEnabled() && !$searchDocument) {
             try {
                 return $this->getListItemByMeili($request, $q, $table_name);
             } catch (\Throwable $e) {

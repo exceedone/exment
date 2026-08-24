@@ -26,17 +26,20 @@ class SearchExporter
 
     /**
      * @param \Exceedone\Exment\Model\CustomTable $custom_table
-     * @return void  (FormatBase::sendResponse() sends the file then exits)
+     * @return mixed  Normally never returns: FormatBase::sendResponse() sends the
+     *   file and exits. The value is still propagated for the paths that do return.
      */
     public function export(Request $request, string $q, $custom_table)
     {
         $cap = (int) config('meilisearch.permission_scan_cap', 1000);
+        $sort = RequestFilters::sort($request);
         $result = $this->service->searchTablePaginated(
             $q,
             $custom_table->table_name,
             $cap,
             1,
-            RequestFilters::parse($request)
+            RequestFilters::parse($request),
+            $sort
         );
         $ids = $result['ids'];
 
@@ -45,6 +48,13 @@ class SearchExporter
         $grid->model()->usePaginate(false);
         // No hits -> empty whereIn so the output file has only a header (not the whole table).
         $grid->model()->whereIn('id', empty($ids) ? [-1] : $ids);
+
+        // The grid re-fetches by id and would otherwise use its own default
+        // order, losing the sort the user picked on screen. Meili sorts these
+        // two on f_date, i.e. created_at.
+        if ($sort === 'newest' || $sort === 'oldest') {
+            $grid->model()->orderBy('created_at', $sort === 'newest' ? 'desc' : 'asc');
+        }
 
         $format = in_array($request->input('format'), ['csv', 'xlsx'], true)
             ? $request->input('format')

@@ -8,15 +8,23 @@ use Illuminate\Console\Command;
 
 class MeiliSearchCommand extends Command
 {
+    use CommandTrait;
     use MeiliCommandTrait;
 
-    protected $signature = 'meili:search {query : Search keyword}
+    protected $signature = 'exment:meili-search {query : Search keyword}
         {--limit=10 : Maximum number of results}
         {--table= : Filter by table_name}
         {--highlight : Show the highlighted matching snippet}
         {--facets : Count results per table}';
 
     protected $description = 'Global search via Meilisearch (integration check) + timing';
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->initExmentCommand();
+    }
 
     public function handle(): int
     {
@@ -73,7 +81,9 @@ class MeiliSearchCommand extends Command
                     $snippet = str_replace(
                         [MeiliSearchService::HIGHLIGHT_PRE, MeiliSearchService::HIGHLIGHT_POST],
                         ['[', ']'],
-                        $h['snippet']
+                        // Always set on the --highlight path; defaulted so the
+                        // shared $hits shape (search() has no snippet) stays safe.
+                        $h['snippet'] ?? ''
                     );
                     return [$h['table_name'], $h['value_id'], $snippet];
                 }, $hits)

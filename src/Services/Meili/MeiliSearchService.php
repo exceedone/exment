@@ -6,9 +6,25 @@ use Meilisearch\Client;
 
 /**
  * Global search via Meilisearch: ONE query to the combined index "exment_global".
+ *
+ * @phpstan-type MeiliFilters array{
+ *     tables?: array<int,string>,
+ *     permitted_tables?: array<int,string>,
+ *     date_from?: int|null,
+ *     date_to?: int|null,
+ *     users?: array<int,int>,
+ *     facets?: array<int,string>,
+ *     ranges?: array<string,array{from?: int|float|null, to?: int|float|null}>
+ * }
  */
 class MeiliSearchService
 {
+    /**
+     * Stands in for "no table is permitted". table_name always holds a real
+     * Exment table_name, so this value can never match a document.
+     */
+    public const NO_TABLE_SENTINEL = '__exm_no_table__';
+
     public function __construct(
         private Client $client,
         private string $indexName
@@ -61,6 +77,7 @@ class MeiliSearchService
     /**
      * Search within ONE table, with pagination (for the full results page).
      *
+     * @param MeiliFilters $filters
      * @return array{ids:array<int,mixed>, total:int}
      */
     public function searchTablePaginated(string $q, string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null): array
@@ -75,8 +92,8 @@ class MeiliSearchService
 
     /**
      * Build the paginated per-table search parameters (pure logic).
-     * $filters: ['date_from'=>unix, 'date_to'=>unix, 'users'=>int[]].
      *
+     * @param MeiliFilters $filters
      * @return array<string,mixed>
      */
     public static function buildTableSearchOptions(string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null): array
@@ -129,7 +146,7 @@ class MeiliSearchService
      * Build the Meili filter expression: table + date range + creator.
      * $tableName null -> no table constraint (used for system-wide facets).
      *
-     * @param array{date_from?:?int,date_to?:?int,users?:array<int,int>} $filters
+     * @param MeiliFilters $filters
      */
     public static function buildFilterExpression(?string $tableName, array $filters): string
     {
@@ -137,6 +154,17 @@ class MeiliSearchService
 
         if ($tableName !== null && $tableName !== '') {
             $parts[] = 'table_name = ' . self::quoteFilterValue($tableName);
+        }
+
+        if (array_key_exists('permitted_tables', $filters)) {
+            $permitted = $filters['permitted_tables'];
+            $vals = empty($permitted)
+                ? self::quoteFilterValue(self::NO_TABLE_SENTINEL)
+                : implode(', ', array_map(
+                    fn ($t) => self::quoteFilterValue((string) $t),
+                    $permitted
+                ));
+            $parts[] = 'table_name IN [' . $vals . ']';
         }
 
         // Filter by multiple tables: table_name IN [...].
@@ -150,11 +178,11 @@ class MeiliSearchService
         }
 
         $from = $filters['date_from'] ?? null;
-        if ($from !== null && $from !== '') {
+        if ($from !== null) {
             $parts[] = 'f_date >= ' . (int) $from;
         }
         $to = $filters['date_to'] ?? null;
-        if ($to !== null && $to !== '') {
+        if ($to !== null) {
             $parts[] = 'f_date <= ' . (int) $to;
         }
 
@@ -169,20 +197,23 @@ class MeiliSearchService
             $parts[] = $clause;
         }
 
-        // n_<col> >= from AND n_<col> <= to.
+        // n_<table::col> >= from AND n_<table::col> <= to.
         foreach (($filters['ranges'] ?? []) as $field => $r) {
-            if (!preg_match('/^n_[A-Za-z0-9_]+$/', (string) $field)) {
+            // Injection guard: $field goes straight into the filter expression.
+            if (!preg_match(DocumentMapper::RANGE_FIELD_PATTERN, (string) $field)) {
                 continue;
             }
+            $quoted = '"' . $field . '"';
             $rangeFrom = $r['from'] ?? null;
             $rangeTo = $r['to'] ?? null;
             // floatval instead of arithmetic: a non-numeric string would make
-            // `$v + 0` throw a TypeError in PHP 8.
-            if ($rangeFrom !== null && $rangeFrom !== '' && is_scalar($rangeFrom)) {
-                $parts[] = $field . ' >= ' . floatval($rangeFrom);
+            // `$v + 0` throw a TypeError in PHP 8. RequestFilters::parse() already
+            // narrows these to int|float|null, so only the null check remains.
+            if ($rangeFrom !== null) {
+                $parts[] = $quoted . ' >= ' . floatval($rangeFrom);
             }
-            if ($rangeTo !== null && $rangeTo !== '' && is_scalar($rangeTo)) {
-                $parts[] = $field . ' <= ' . floatval($rangeTo);
+            if ($rangeTo !== null) {
+                $parts[] = $quoted . ' <= ' . floatval($rangeTo);
             }
         }
 
@@ -232,6 +263,9 @@ class MeiliSearchService
     {
         $ids = [];
         $offset = 0;
+        // Guard against a non-positive page size: it would make the loop
+        // request 0 documents forever.
+        $pageSize = max(1, $pageSize);
 
         while (true) {
             $query = (new \Meilisearch\Contracts\DocumentsQuery())
@@ -261,6 +295,8 @@ class MeiliSearchService
 
     /**
      * Delete documents from the index by their value_ids for one table.
+     *
+     * @param array<int,mixed> $valueIds
      */
     public function deleteByValueIds(string $tableName, array $valueIds, DocumentMapper $mapper): void
     {
@@ -336,6 +372,7 @@ class MeiliSearchService
      * (table_name/facets/f_user) with the current filter. Returns the raw map
      * attribute => [value => count].
      *
+     * @param MeiliFilters $filters
      * @param array<int,string> $attributes
      * @return array<string,array<string,int>>
      */
@@ -349,7 +386,7 @@ class MeiliSearchService
 
         $result = $this->client->index($this->indexName)->search($q, $this->applyMatchingStrategy($opts));
 
-        return $result->getFacetDistribution() ?? [];
+        return $result->getFacetDistribution();
     }
 
     /**
@@ -497,50 +534,6 @@ class MeiliSearchService
         $distribution = $result->getFacetDistribution()['table_name'] ?? [];
 
         return self::sortFacets($distribution);
-    }
-
-    /**
-     * Count the number of results per creator (f_user) for the keyword $q,
-     * applying the current filter (e.g. date range). Returns [user_id => count] in descending order.
-     *
-     * @param array{date_from?:?int,date_to?:?int,users?:array<int,int>} $filters
-     * @return array<int|string,int>
-     */
-    public function searchUserFacets(string $q, array $filters = []): array
-    {
-        $opts = ['limit' => 0, 'facets' => ['f_user']];
-        $expr = self::buildFilterExpression(null, $filters);
-        if ($expr !== '') {
-            $opts['filter'] = $expr;
-        }
-
-        $result = $this->client->index($this->indexName)->search($q, $this->applyMatchingStrategy($opts));
-        $dist = $result->getFacetDistribution()['f_user'] ?? [];
-        arsort($dist);
-
-        return $dist;
-    }
-
-    /**
-     * [Filter v2] Distribution of facets["column=value"] for the keyword $q (applying date/user filters),
-     * returns [token => count] in descending order. Used to build the status/classification checkbox groups.
-     *
-     * @param array{date_from?:?int,date_to?:?int,users?:array<int,int>} $filters
-     * @return array<string,int>
-     */
-    public function searchFacetValues(string $q, ?string $tableName, array $filters = []): array
-    {
-        $opts = ['limit' => 0, 'facets' => ['facets']];
-        $expr = self::buildFilterExpression($tableName, $filters);
-        if ($expr !== '') {
-            $opts['filter'] = $expr;
-        }
-
-        $result = $this->client->index($this->indexName)->search($q, $this->applyMatchingStrategy($opts));
-        $dist = $result->getFacetDistribution()['facets'] ?? [];
-        arsort($dist);
-
-        return $dist;
     }
 
     /**

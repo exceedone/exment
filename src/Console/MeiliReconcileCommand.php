@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Console;
 use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\ExmentIndexer;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
+use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
 use Illuminate\Console\Command;
 
@@ -22,12 +23,20 @@ use Illuminate\Console\Command;
  */
 class MeiliReconcileCommand extends Command
 {
+    use CommandTrait;
     use MeiliCommandTrait;
 
-    protected $signature = 'meili:reconcile {--dry-run : Report drift only, do not modify the index}
+    protected $signature = 'exment:meili-reconcile {--dry-run : Report drift only, do not modify the index}
         {--table= : Reconcile only this table_name}';
 
     protected $description = 'Reconcile the Meilisearch index against MySQL and repair drift (missing/orphan documents)';
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->initExmentCommand();
+    }
 
     public function handle(): int
     {
@@ -68,7 +77,9 @@ class MeiliReconcileCommand extends Command
             $tableName = $table->table_name;
 
             // Ids that should be indexed = current (non-deleted) records of the table.
-            $dbIds = getModelName($table)::query()->pluck('id')->all();
+            $dbIds = getModelName($table)::query()
+                ->withoutGlobalScope(CustomValueModelScope::class)
+                ->pluck('id')->all();
 
             try {
                 $indexIds = $service->indexedValueIds($tableName);

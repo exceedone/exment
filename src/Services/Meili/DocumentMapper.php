@@ -12,6 +12,8 @@ class DocumentMapper
     /**
      * Generate a safe primary key for Meilisearch: "{table_name}__{value_id}".
      * Meilisearch only accepts characters [a-zA-Z0-9_-] for the primary key.
+     *
+     * @param  mixed  $valueId
      */
     public function makeDocumentId(string $tableName, $valueId): string
     {
@@ -27,7 +29,10 @@ class DocumentMapper
      * NOT the raw JSON directly -> search results match Exment.
      *
      * @param  \Exceedone\Exment\Model\CustomValue  $record
-     * @param  iterable  $columns  The table's freeword CustomColumns
+     * @param  iterable<\Exceedone\Exment\Model\CustomColumn>  $columns  The table's freeword CustomColumns
+     * @param  iterable<\Exceedone\Exment\Model\CustomColumn>  $facetColumns
+     * @param  iterable<\Exceedone\Exment\Model\CustomColumn>  $rangeColumns
+     * @param  array<string,string>  $aliases
      * @return array<string,mixed>
      */
     public function map($record, iterable $columns, string $tableName, ?string $tableLabel, iterable $facetColumns = [], iterable $rangeColumns = [], array $aliases = []): array
@@ -45,12 +50,11 @@ class DocumentMapper
         // unified filter fields: creation time + creator.
         $extra = self::filterFieldsV1($record->created_at ?? null, $record->created_user_id ?? null);
 
-        // facets["column=value"] from status/classification columns.
+        // facets["<prefix>=value"] from status/classification columns.
         $facets = [];
         foreach ($facetColumns as $column) {
             $value = $record->getValue($column, true);
-            // Column with an alias -> the token uses the alias as prefix (merges columns with the same meaning).
-            $prefix = $aliases[$column->column_name] ?? $column->column_name;
+            $prefix = $aliases[$column->column_name] ?? self::qualifyColumn($tableName, $column->column_name);
             foreach (self::facetTokens($prefix, $value) as $token) {
                 $facets[] = $token;
             }
@@ -59,11 +63,11 @@ class DocumentMapper
             $extra['facets'] = array_values(array_unique($facets));
         }
 
-        // n_<col>: numeric field for range filtering.
+        // n_<table::col>: numeric field for range filtering.
         foreach ($rangeColumns as $column) {
             $num = self::rangeValue($record->getValue($column), (string) $column->column_type);
             if ($num !== null) {
-                $extra['n_' . $column->column_name] = $num;
+                $extra[self::rangeField($tableName, $column->column_name)] = $num;
             }
         }
 
@@ -74,6 +78,7 @@ class DocumentMapper
      * Assemble the document to send to Meilisearch.
      * Drops fields whose value is null or an empty string.
      *
+     * @param  mixed  $valueId
      * @param  array<string,mixed>  $fields
      * @param  array<string,mixed>  $extra  Additional fields (filter v1...) merged into the document.
      * @return array<string,mixed>
@@ -103,6 +108,7 @@ class DocumentMapper
     /**
      * Convert a range column value to a comparable number (date -> unix, number -> number).
      *
+     * @param  mixed  $value
      * @return int|float|null
      */
     public static function rangeValue($value, string $columnType)
@@ -121,9 +127,66 @@ class DocumentMapper
     }
 
     /**
+     * Separator between table_name and column_name in an unaliased facet prefix.
+     * Neither name can contain it (both are [A-Za-z0-9_]), so the prefix stays
+     * unambiguous and splittable.
+     */
+    public const COLUMN_QUALIFIER = '::';
+
+    /**
+     * Table-qualified facet prefix: "table_name::column_name".
+     */
+    public static function qualifyColumn(string $tableName, string $columnName): string
+    {
+        return $tableName . self::COLUMN_QUALIFIER . $columnName;
+    }
+
+    /**
+     * Prefix of every numeric range attribute in the index.
+     */
+    public const RANGE_PREFIX = 'n_';
+
+    /**
+     * Injection guard - the field name is concatenated into a Meilisearch
+     * filter expression, so nothing but n_<table>::<column> may pass.
+     * The unqualified n_<column> shape is rejected on purpose: it matches no
+     * attribute, so sanitize() drops it with a warning instead of returning 0 rows.
+     */
+    public const RANGE_FIELD_PATTERN = '/^n_[A-Za-z0-9_]+::[A-Za-z0-9_]+$/';
+
+    /**
+     * Name of the Meilisearch attribute holding a column's range value:
+     * "n_<table_name>::<column_name>".
+     */
+    public static function rangeField(string $tableName, string $columnName): string
+    {
+        return self::RANGE_PREFIX . self::qualifyColumn($tableName, $columnName);
+    }
+
+    /**
+     * Split a facet prefix back into [table_name, column_name].
+     * An aliased prefix has no qualifier -> table_name is null.
+     *
+     * @return array{table:?string,column:string}
+     */
+    public static function splitColumnPrefix(string $prefix): array
+    {
+        $pos = strpos($prefix, self::COLUMN_QUALIFIER);
+        if ($pos === false) {
+            return ['table' => null, 'column' => $prefix];
+        }
+
+        return [
+            'table' => substr($prefix, 0, $pos),
+            'column' => substr($prefix, $pos + strlen(self::COLUMN_QUALIFIER)),
+        ];
+    }
+
+    /**
      * Generate facet tokens "column=value" for one column.
      * Array -> multiple tokens; skips null/empty; bool -> 1/0.
      *
+     * @param  mixed  $value
      * @return array<int,string>
      */
     public static function facetTokens(string $columnName, $value): array
@@ -147,6 +210,8 @@ class DocumentMapper
      * Generate filter fields: f_date (unix) + f_user (array of ids).
      * f_date is skipped when the timestamp cannot be determined.
      *
+     * @param  mixed  $createdAt
+     * @param  mixed  $createdUserId
      * @return array<string,mixed>
      */
     public static function filterFieldsV1($createdAt, $createdUserId): array
@@ -169,6 +234,8 @@ class DocumentMapper
 
     /**
      * Convert a time value (Carbon/DateTime/int/string) to a unix timestamp.
+     *
+     * @param  mixed  $value
      */
     private static function toTimestamp($value): ?int
     {

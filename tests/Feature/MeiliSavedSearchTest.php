@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\MeiliSavedSearch;
+use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
@@ -50,7 +51,7 @@ class MeiliSavedSearchTest extends FeatureTestBase
         $id = $response->json('id');
         $this->assertNotNull($id);
 
-        $saved = MeiliSavedSearch::find($id);
+        $saved = MeiliSavedSearch::find((int) $id);
         $this->assertSame('My personal search', $saved->name);
         $this->assertSame('contract', (string) $saved->query);
         $this->assertSame(MeiliSavedSearch::SHARE_PERSONAL, $saved->share_type);
@@ -68,7 +69,7 @@ class MeiliSavedSearchTest extends FeatureTestBase
         ]);
 
         $id = $response->json('id');
-        $this->assertSame('', (string) MeiliSavedSearch::find($id)->query);
+        $this->assertSame('', (string) MeiliSavedSearch::find((int) $id)->query);
     }
 
     public function testStoreShareAll(): void
@@ -79,21 +80,29 @@ class MeiliSavedSearchTest extends FeatureTestBase
             'share_type' => 'all',
         ]);
 
-        $this->assertSame(MeiliSavedSearch::SHARE_ALL, MeiliSavedSearch::find($response->json('id'))->share_type);
+        $this->assertSame(MeiliSavedSearch::SHARE_ALL, MeiliSavedSearch::find((int) $response->json('id'))->share_type);
     }
 
     public function testStoreShareRoleGroupKeepsTargets(): void
     {
+        // Ids come from the DB: hardcoded ones only exist in one fixture, and
+        // validShareTargets() drops whatever does not exist -> targets end up [].
+        $ids = RoleGroup::orderBy('id')->limit(2)->pluck('id')->map('intval')->all();
+        if (count($ids) < 2) {
+            $this->markTestSkipped('needs at least 2 role groups seeded');
+        }
+
         $response = $this->post(admin_urls('search', 'saved'), [
             'query' => 'x',
             'name' => 'Shared with role groups',
             'share_type' => 'role_group',
-            'share_targets' => ['15', '27'],
+            // the trailing id does not exist and must be filtered out
+            'share_targets' => array_merge(array_map('strval', $ids), ['999999']),
         ]);
 
-        $saved = MeiliSavedSearch::find($response->json('id'));
+        $saved = MeiliSavedSearch::find((int) $response->json('id'));
         $this->assertSame(MeiliSavedSearch::SHARE_ROLE_GROUP, $saved->share_type);
-        $this->assertSame([15, 27], array_map('intval', (array) $saved->share_targets));
+        $this->assertSame($ids, array_map('intval', (array) $saved->share_targets));
     }
 
     public function testStoreKeepsGenericFilterParams(): void
@@ -106,7 +115,7 @@ class MeiliSavedSearchTest extends FeatureTestBase
             'date_from' => '2025-01-01',
         ]);
 
-        $filters = (array) MeiliSavedSearch::find($response->json('id'))->filters;
+        $filters = (array) MeiliSavedSearch::find((int) $response->json('id'))->filters;
         $this->assertContains('priority=high', $filters['facets'] ?? []);
         $this->assertSame('2025-01-01', $filters['date_from'] ?? null);
     }
@@ -152,7 +161,7 @@ class MeiliSavedSearchTest extends FeatureTestBase
         ])->json('id');
 
         $this->delete(admin_urls('search', 'saved', $id))->assertStatus(200);
-        $this->assertNull(MeiliSavedSearch::find($id));
+        $this->assertNull(MeiliSavedSearch::find((int) $id));
     }
 
     public function testDestroyOtherUsersRecordDenied(): void
@@ -173,7 +182,11 @@ class MeiliSavedSearchTest extends FeatureTestBase
         ]);
 
         $this->be($nonAdmin);
-        $this->delete(admin_urls('search', 'saved', $saved->id))->assertStatus(403);
-        $this->assertNotNull(MeiliSavedSearch::find($saved->id));
+        // The XHR header is what the admin permission layer keys on: without it a
+        // denial renders an HTML error page with status 200 instead of 403.
+        $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->delete(admin_urls('search', 'saved', $saved->id))
+            ->assertStatus(403);
+        $this->assertNotNull(MeiliSavedSearch::find((int) $saved->id));
     }
 }

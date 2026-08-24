@@ -6,12 +6,9 @@ use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
 use Exceedone\Exment\Model\CustomTable;
-use Illuminate\Bus\Queueable;
+use Exceedone\Exment\Model\CustomValueModelScope;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * Reindex Meilisearch for ONE custom table when the table/column config changes.
@@ -24,12 +21,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUnique
 {
-    use Dispatchable;
-    use InteractsWithQueue;
-    use Queueable;
-    use SerializesModels;
+    use JobTrait;
 
-    public int $tries = 3;
     public int $backoff = 10;
 
     /** Hold the unique lock for at most 5 minutes in case the job hangs. */
@@ -37,12 +30,15 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUnique
 
     public function __construct(public string $tableName)
     {
-        // Heavy job (reindexes a whole table, can take minutes). Route it to a
-        // separate queue so it never blocks the light per-record sync jobs on
-        // the default queue. Run a worker with:
+        // MUST stay below the connection's retry_after (database: 90s), or a
+        // second worker re-reserves this job and two "wipe then refill" passes
+        // race on the same table. Set here, not as a property: redeclaring a
+        // trait property with a different value is a PHP fatal.
+        $this->timeout = 60;
+
+        // Own queue so a long reindex never blocks the per-record sync jobs:
         //   php artisan queue:work --queue=default,<reindex_queue>
-        // so the default queue is always drained first.
-        // try/catch: constructing the job in a bare unit test has no app/config.
+        // try/catch: a bare unit test constructs this with no app/config.
         try {
             $this->onQueue(config('meilisearch.reindex_queue', 'meili-reindex'));
         } catch (\Throwable $e) {
@@ -86,23 +82,30 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUnique
         $aliases = \Exceedone\Exment\Services\Meili\FilterConfig::aliasMap($table);
         $tableName = $table->table_name;
         $tableLabel = $table->table_view_name;
-        $batchSize = (int) config('meilisearch.batch_size', 1000);
+        // max(1): chunkById(0) would break out after step 1 already wiped the
+        // table's documents, leaving it empty.
+        $batchSize = max(1, (int) config('meilisearch.batch_size', 1000));
 
-        getModelName($table)::query()->chunkById($batchSize, function ($records) use ($index, $client, $mapper, $columns, $facetColumns, $rangeColumns, $aliases, $tableName, $tableLabel) {
-            $docs = [];
-            foreach ($records as $record) {
-                $docs[] = $mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
-            }
+        // Scope dropped: see ExmentIndexer's class docblock.
+        getModelName($table)::query()
+            ->withoutGlobalScope(CustomValueModelScope::class)
+            ->chunkById($batchSize, function ($records) use ($index, $client, $mapper, $columns, $facetColumns, $rangeColumns, $aliases, $tableName, $tableLabel) {
+                $docs = [];
+                foreach ($records as $record) {
+                    $docs[] = $mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
+                }
 
-            if (!empty($docs)) {
-                $task = $index->addDocuments($docs, 'id');
-                $client->waitForTask($task['taskUid'], 60000);
-            }
-        });
+                if (!empty($docs)) {
+                    $task = $index->addDocuments($docs, 'id');
+                    $client->waitForTask($task['taskUid'], 60000);
+                }
+            });
     }
 
     /**
      * Whether the table should be in the index (matches the global search/Indexer criteria).
+     *
+     * @param CustomTable|null $table
      */
     private function shouldIndex($table): bool
     {

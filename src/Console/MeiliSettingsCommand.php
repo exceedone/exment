@@ -13,11 +13,19 @@ use Illuminate\Console\Command;
  */
 class MeiliSettingsCommand extends Command
 {
+    use CommandTrait;
     use MeiliCommandTrait;
 
-    protected $signature = 'meili:settings {--show : Only display the index current settings}';
+    protected $signature = 'exment:meili-settings {--show : Only display the index current settings}';
 
     protected $description = 'Apply/view the relevance settings of the Meilisearch index';
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->initExmentCommand();
+    }
 
     public function handle(): int
     {
@@ -40,7 +48,7 @@ class MeiliSettingsCommand extends Command
 
         if ($this->option('show')) {
             $current = $index->getSettings();
-            $this->line(json_encode([
+            $this->line((string) json_encode([
                 'searchableAttributes' => $current['searchableAttributes'] ?? null,
                 'filterableAttributes' => $current['filterableAttributes'] ?? null,
                 'stopWords' => $current['stopWords'] ?? null,
@@ -50,9 +58,7 @@ class MeiliSettingsCommand extends Command
             return self::SUCCESS;
         }
 
-        $opts = (array) config('meilisearch.settings', []);
-        $opts['range_fields'] = \Exceedone\Exment\Services\Meili\FilterConfig::allRangeFields();
-        $opts = \Exceedone\Exment\Model\MeiliDictionary::mergeIntoOpts($opts);
+        $opts = IndexSettings::fromSystem();
         $settings = IndexSettings::build($opts);
 
         $this->info('Applying settings to index "' . config('meilisearch.index') . '"...');

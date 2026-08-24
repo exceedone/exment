@@ -65,7 +65,7 @@ class SavedSearchService
      * ]
      *
      * @param array<string,mixed> $stored
-     * @param array<string,array> $ctx
+     * @param array<string,array<int,int|string>> $ctx
      * @return array{params:array<string,mixed>, dropped:array<int,string>}
      */
     public static function sanitizeWith(array $stored, array $ctx): array
@@ -157,7 +157,7 @@ class SavedSearchService
      *
      * @return array<int,string>
      */
-    protected static function searchableTableNames(): array
+    public static function searchableTableNames(): array
     {
         try {
             return CustomTable::searchEnabled()->get()
@@ -165,12 +165,44 @@ class SavedSearchService
                 ->pluck('table_name')
                 ->all();
         } catch (\Throwable $e) {
+            // Fail closed: an empty list is also the sidebar's permission
+            // boundary, so it hides everything. Log it or the sidebar just
+            // looks empty for no visible reason.
+            \Illuminate\Support\Facades\Log::warning('[Meili] searchable table list unavailable: ' . $e->getMessage());
             return [];
         }
     }
 
     /**
-     * column_name that still exists, among the columns referenced by the facet tokens.
+     * Tables whose facet counts are safe to show: the user can see every row.
+     *
+     * Meilisearch computes facet distributions over the whole index, which holds
+     * every row regardless of permission (the index is shared - see
+     * ExmentIndexer). For a table granted row by row, those counts describe rows
+     * the user cannot open: they reveal how many exist and which values they
+     * carry. searchableTableNames() is too wide for that - it also admits
+     * AVAILABLE_ACCESS_CUSTOM_VALUE, which is exactly the row-by-row case.
+     *
+     * @return array<int,string>
+     */
+    public static function facetableTableNames(): array
+    {
+        try {
+            return CustomTable::searchEnabled()->get()
+                ->filter(fn ($t) => $t->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE))
+                ->pluck('table_name')
+                ->all();
+        } catch (\Throwable $e) {
+            // Fail closed, same as searchableTableNames().
+            \Illuminate\Support\Facades\Log::warning('[Meili] facetable table list unavailable: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Facet prefixes that are still valid: "table::column" or a configured alias.
+     * A bare column_name is a pre-qualification leftover and is dropped, so the
+     * caller warns instead of silently filtering on a token no document carries.
      *
      * @param array<int,string> $tokens
      * @return array<int,string>
@@ -184,12 +216,53 @@ class SavedSearchService
         if (empty($cols)) {
             return [];
         }
-        try {
-            return \DB::table('custom_columns')->whereIn('column_name', $cols)
-                ->distinct()->pluck('column_name')->all();
-        } catch (\Throwable $e) {
-            return [];
+
+        $parts = [];
+        foreach ($cols as $col) {
+            $parts[$col] = DocumentMapper::splitColumnPrefix((string) $col);
         }
+
+        $aliases = FilterConfig::allAliases();
+
+        // Only qualified prefixes need a column lookup.
+        $qualified = array_filter($parts, fn ($p) => $p['table'] !== null);
+
+        $rows = [];
+        if (!empty($qualified)) {
+            try {
+                $rows = \DB::table('custom_columns')
+                    ->join('custom_tables', 'custom_tables.id', '=', 'custom_columns.custom_table_id')
+                    ->whereIn('custom_columns.column_name', array_column($qualified, 'column'))
+                    ->get(['custom_columns.column_name as _column', 'custom_tables.table_name as _table']);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[Meili] facet column validation unavailable: ' . $e->getMessage());
+                return [];
+            }
+        }
+
+        $out = [];
+        foreach ($parts as $prefix => $part) {
+            // Bare prefix: valid only as an alias.
+            if ($part['table'] === null) {
+                if (in_array((string) $prefix, $aliases, true)) {
+                    $out[] = (string) $prefix;
+                }
+                continue;
+            }
+
+            foreach ($rows as $row) {
+                if ($row->_column !== $part['column']) {
+                    continue;
+                }
+                if ($row->_table !== $part['table']) {
+                    continue;
+                }
+                $out[] = (string) $prefix;
+                break;
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -211,6 +284,7 @@ class SavedSearchService
             return getModelName($userTable)::whereIn('id', array_map('intval', $ids))
                 ->pluck('id')->map(fn ($v) => (int) $v)->all();
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] user id validation unavailable: ' . $e->getMessage());
             return [];
         }
     }
