@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Validator;
 
 /**
@@ -390,7 +391,8 @@ trait ApiDataTrait
         if (boolval(config('meilisearch.global_search'))
             && class_exists(\Meilisearch\Client::class)
             && empty($relationColumn)
-            && empty(array_get($expand, 'target_view_id'))) {
+            && empty(array_get($expand, 'target_view_id'))
+            && !in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION], true)) {
             $paginator = $this->searchSelectByMeilisearch($q, $count, $request);
             if ($paginator !== null) {
                 return $this->modifyAfterGetValue($request, $paginator, [
@@ -432,7 +434,7 @@ trait ApiDataTrait
      * @param string $q
      * @param int|null $count
      * @param Request $request
-     * @return \Illuminate\Pagination\LengthAwarePaginator|null
+     * @return \Illuminate\Pagination\LengthAwarePaginator<int,\Exceedone\Exment\Model\CustomValue>|null
      */
     protected function searchSelectByMeilisearch($q, $count, Request $request)
     {

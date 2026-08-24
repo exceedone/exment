@@ -326,11 +326,11 @@ class ExmentServiceProvider extends ServiceProvider
         // Record changed -> dispatch a sync job; table/column config changed -> reindex the table.
         \Illuminate\Support\Facades\Event::listen('eloquent.saved: *', function ($eventName, $payload) {
             \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'upsert');
-            \Exceedone\Exment\Services\Meili\MeiliConfigSync::handle($payload[0] ?? null);
+            \Exceedone\Exment\Services\Meili\MeiliDefinitionSync::handle($payload[0] ?? null);
         });
         \Illuminate\Support\Facades\Event::listen('eloquent.deleted: *', function ($eventName, $payload) {
             \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'delete');
-            \Exceedone\Exment\Services\Meili\MeiliConfigSync::handle($payload[0] ?? null);
+            \Exceedone\Exment\Services\Meili\MeiliDefinitionSync::handle($payload[0] ?? null);
         });
         // Restore also fires 'saved' (restore() calls save()), but listen to
         // 'restored' explicitly so the intent is covered even if that
@@ -479,10 +479,10 @@ class ExmentServiceProvider extends ServiceProvider
             $schedule->command('exment:schedule')->hourly();
 
             // Daily index repair (fix drift accumulated from missed/failed sync
-            // jobs). Uses meili:reconcile (only re-indexes missing docs + removes
-            // orphans) instead of a full meili:index reindex, so it is cheap.
+            // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
+            // orphans) instead of a full exment:meili-index reindex, so it is cheap.
             if (boolval(config('meilisearch.repair_enabled'))) {
-                $schedule->command('meili:reconcile')
+                $schedule->command('exment:meili-reconcile')
                     ->dailyAt(config('meilisearch.repair_at', '03:00'))
                     ->withoutOverlapping()
                     ->runInBackground();

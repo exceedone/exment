@@ -74,4 +74,84 @@ class DocumentMapperTest extends TestCase
             DocumentMapper::facetTokens('state', ['完了']),
         );
     }
+
+    public function testQualifyColumnKeepsTablesApart(): void
+    {
+        // column_name is not unique across tables, so an unaliased prefix carries
+        // the table: two "status" columns must not collapse into one filter group.
+        $this->assertSame('contract::status', DocumentMapper::qualifyColumn('contract', 'status'));
+        $this->assertNotSame(
+            DocumentMapper::qualifyColumn('contract', 'status'),
+            DocumentMapper::qualifyColumn('customer', 'status'),
+        );
+    }
+
+    public function testSplitColumnPrefixQualified(): void
+    {
+        $this->assertSame(
+            ['table' => 'contract', 'column' => 'status'],
+            DocumentMapper::splitColumnPrefix('contract::status'),
+        );
+    }
+
+    public function testSplitColumnPrefixBareIsAnAlias(): void
+    {
+        // An aliased prefix has no qualifier -> no owning table.
+        $this->assertSame(
+            ['table' => null, 'column' => 'state'],
+            DocumentMapper::splitColumnPrefix('state'),
+        );
+    }
+
+    public function testRangeFieldIsTableQualified(): void
+    {
+        // Same reason as facet tokens: a bare n_amount would be ONE shared axis
+        // for every table owning an `amount` column.
+        $this->assertSame('n_contract::amount', DocumentMapper::rangeField('contract', 'amount'));
+        $this->assertNotSame(
+            DocumentMapper::rangeField('contract', 'amount'),
+            DocumentMapper::rangeField('customer', 'amount'),
+        );
+    }
+
+    /**
+     * RANGE_FIELD_PATTERN is an injection guard: the field name is concatenated
+     * into a Meilisearch filter expression, so it must admit nothing but
+     * n_<table>::<column>.
+     */
+    public function testRangeFieldPatternRejectsAnythingButAQualifiedField(): void
+    {
+        $this->assertMatchesRegularExpression(
+            DocumentMapper::RANGE_FIELD_PATTERN,
+            DocumentMapper::rangeField('meili_contract', 'amount')
+        );
+
+        foreach ([
+            'n_amount',            // pre-qualification leftover
+            'n_a::b OR 1=1',
+            'n_a::b; DROP',
+            'n_a::b" OR "1',       // tries to escape the quotes we wrap it in
+            'n_a::b AND x',
+            'nn_a::b',
+            'n_::b',
+            'n_a::',
+            '',
+        ] as $bad) {
+            $this->assertDoesNotMatchRegularExpression(
+                DocumentMapper::RANGE_FIELD_PATTERN,
+                $bad,
+                "should reject: {$bad}"
+            );
+        }
+    }
+
+    public function testSplitColumnPrefixOnlySplitsAtTheFirstQualifier(): void
+    {
+        // Defensive: neither table_name nor column_name can contain "::",
+        // but the split must stay deterministic if one ever did.
+        $this->assertSame(
+            ['table' => 'contract', 'column' => 'a::b'],
+            DocumentMapper::splitColumnPrefix('contract::a::b'),
+        );
+    }
 }

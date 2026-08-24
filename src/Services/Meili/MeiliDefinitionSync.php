@@ -7,12 +7,15 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 
 /**
- * Catch CONFIGURATION changes (CustomTable / CustomColumn) -> reindex the affected table.
+ * Catch table/column DEFINITION changes (CustomTable / CustomColumn) -> reindex
+ * the affected table: enabling/disabling search, adding/removing freeword
+ * columns, deleting tables/columns all invalidate the indexed documents.
  *
- * Unlike MeiliSync (which syncs record DATA): this handles enabling/disabling search,
- * adding/removing freeword columns, deleting tables/columns -> documents in Meili need to be rebuilt.
+ * Sits between the two neighbours it is easily confused with:
+ *  - MeiliSync   : record DATA changed  -> sync one document.
+ *  - MeiliConfig : system SETTINGS      -> push into config('meilisearch.*').
  */
-class MeiliConfigSync
+class MeiliDefinitionSync
 {
     /**
      * Tables already dispatched recently (table_name => unix time). Collapses
@@ -53,10 +56,13 @@ class MeiliConfigSync
         }
         self::$dispatched[$tableName] = $now;
 
-        // Reindex runs after the response is sent (matters on the sync queue
-        // driver), and a dispatch failure must never break the admin's save.
+        // Queued on purpose, NOT ->afterResponse(): afterResponse() routes
+        // through Dispatcher::dispatchSync(), which forces onConnection('sync')
+        // and runs the whole reindex inline in the web process on every driver -
+        // where PHP's max_execution_time can kill it after the documents have
+        // already been deleted. A dispatch failure must never break the save.
         try {
-            ReindexMeiliTableJob::dispatch($tableName)->afterResponse();
+            ReindexMeiliTableJob::dispatch($tableName);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning(
                 '[Meili] reindex dispatch failed: ' . $e->getMessage()
@@ -79,7 +85,7 @@ class MeiliConfigSync
         if ($model->wasRecentlyCreated || !$model->exists) {
             return true;
         }
-        if (method_exists($model, 'trashed') && $model->trashed()) {
+        if (is_object($model) && method_exists($model, 'trashed') && $model->trashed()) {
             return true;
         }
 

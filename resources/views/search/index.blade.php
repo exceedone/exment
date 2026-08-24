@@ -6,7 +6,7 @@
         @if(isset($sort))
         {{-- Sort: applies to all tables; changing it reloads the page with the sort param. --}}
         <div class="box-tools pull-right">
-            <select class="form-control input-sm meili-sort" style="display:inline-block;width:auto;">
+            <select class="form-select form-select-sm meili-sort" style="display:inline-block;width:auto;">
                 <option value="relevance" @if($sort === 'relevance') selected @endif>{{ exmtrans('search.sort_relevance') }}</option>
                 <option value="newest" @if($sort === 'newest') selected @endif>{{ exmtrans('search.sort_newest') }}</option>
                 <option value="oldest" @if($sort === 'oldest') selected @endif>{{ exmtrans('search.sort_oldest') }}</option>
@@ -43,12 +43,12 @@
                     {{-- Per-table export: keep the keyword + applied filter. --}}
                     @if(!empty($exportBase) && !empty($table['can_export']))
                     <div class="btn-group meili-export">
-                        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+                        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-bs-toggle="dropdown">
                             <i class="fa fa-download"></i> {{ exmtrans('search.export') }} <span class="caret"></span>
                         </button>
                         {{-- target=_blank: pjax skips links with a target, otherwise the binary file
                              would be injected into the DOM instead of being downloaded. --}}
-                        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                        <ul class="dropdown-menu dropdown-menu-end" role="menu">
                             <li><a href="{{ $exportBase }}&table_name={{ $table['table_name'] }}&format=csv" target="_blank" rel="noopener" download>CSV</a></li>
                             <li><a href="{{ $exportBase }}&table_name={{ $table['table_name'] }}&format=xlsx" target="_blank" rel="noopener" download>Excel (xlsx)</a></li>
                         </ul>

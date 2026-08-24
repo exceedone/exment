@@ -44,6 +44,18 @@ return [
         'typo_enabled' => true,
         'typo_one' => 5,   // words of >=5 chars: allow 1 typo
         'typo_two' => 9,   // words of >=9 chars: allow 2 typos
+
+        // Escape hatches, empty by default (see IndexSettings::build).
+        // The attributes the feature needs (table_name, f_date, f_user, facets
+        // and the n_<col> range fields) are always added, so these only ADD to
+        // them - they cannot break filtering by omission.
+        'filterable_attributes' => [],
+        'sortable_attributes' => [],
+        // Meilisearch ranking rule order. Empty = IndexSettings::DEFAULT_RANKING
+        // ['words','typo','proximity','attribute','sort','exactness'].
+        'ranking_rules' => [],
+
+        'max_facet_values' => (int) env('MEILISEARCH_MAX_FACET_VALUES', 1000),
     ],
 
     'filter' => [
@@ -55,6 +67,8 @@ return [
 
         'max_groups' => 12,
 
-        'max_values_per_group' => 8,
+        // Values beyond this are dropped, and the sidebar's "N more" only counts
+        // what reached the view - so a group past this limit understates by a lot.
+        'max_values_per_group' => 20,
     ],
 ];

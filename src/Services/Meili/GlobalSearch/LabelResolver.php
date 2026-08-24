@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\Meili\GlobalSearch;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\MeiliFilterSetting;
+use Exceedone\Exment\Services\Meili\DocumentMapper;
 
 /**
  * Resolve display labels for filter groups/chips: column view names, admin
@@ -14,69 +15,133 @@ use Exceedone\Exment\Model\MeiliFilterSetting;
 class LabelResolver
 {
     /**
-     * column_name -> display label (view_label) configured by the admin on the
-     * filter settings screen, if any.
+     * Facet prefix -> display label (view_label) configured by the admin on the
+     * filter settings screen, if any. Keyed back by the original prefix.
      *
-     * @param array<int,string> $columnNames
+     * @param array<int,string> $prefixes
      * @return array<string,string>
      */
-    public static function settingViewLabels(array $columnNames): array
+    public static function settingViewLabels(array $prefixes): array
     {
-        if (empty($columnNames)) {
+        if (empty($prefixes)) {
             return [];
         }
+
+        $parts = [];
+        foreach ($prefixes as $prefix) {
+            $parts[(string) $prefix] = DocumentMapper::splitColumnPrefix((string) $prefix);
+        }
+
         try {
-            return MeiliFilterSetting::whereIn('column_name', $columnNames)
+            $rows = MeiliFilterSetting::with('custom_table')
+                ->whereIn('column_name', array_column($parts, 'column'))
                 ->whereNotNull('view_label')
                 ->where('view_label', '<>', '')
-                ->pluck('view_label', 'column_name')
-                ->toArray();
+                ->get();
         } catch (\Throwable $e) {
+            // Pre-migration this is expected; still log so a real failure does
+            // not just show up as unlabelled filter groups.
+            \Illuminate\Support\Facades\Log::warning('[Meili] setting labels unavailable: ' . $e->getMessage());
             return [];
         }
+
+        $out = [];
+        foreach ($parts as $prefix => $part) {
+            foreach ($rows as $row) {
+                if ($row->column_name !== $part['column']) {
+                    continue;
+                }
+                // Qualified -> only the setting row of the owning table applies.
+                if ($part['table'] !== null
+                    && (string) array_get($row, 'custom_table.table_name') !== $part['table']) {
+                    continue;
+                }
+                $out[$prefix] = (string) $row->view_label;
+                break;
+            }
+        }
+
+        return $out;
     }
 
     /**
-     * Resolve column_name -> column_view_name (across all tables, first match wins).
+     * Resolve facet prefix -> column_view_name.
+     * A qualified prefix ("table::column") resolves against that exact table;
+     * a bare one (an alias, or a legacy token) falls back to first match.
      *
-     * @param array<int,string> $columnNames
+     * @param array<int,string> $prefixes
      * @return array<string,string>
      */
-    public static function resolveColumnLabels(array $columnNames): array
+    public static function resolveColumnLabels(array $prefixes): array
     {
-        if (empty($columnNames)) {
-            return [];
-        }
-        try {
-            return \DB::table('custom_columns')
-                ->whereIn('column_name', $columnNames)
-                ->pluck('column_view_name', 'column_name')
-                ->toArray();
-        } catch (\Throwable $e) {
-            return [];
-        }
+        return self::resolvePrefixes($prefixes, 'custom_columns.column_view_name');
     }
 
     /**
-     * Resolve column_name -> table_view_name of the table containing the column (first match).
+     * Resolve facet prefix -> table_view_name of the owning table.
      *
-     * @param array<int,string> $columnNames
+     * @param array<int,string> $prefixes
      * @return array<string,string>
      */
-    public static function resolveColumnTables(array $columnNames): array
+    public static function resolveColumnTables(array $prefixes): array
     {
-        if (empty($columnNames)) {
+        return self::resolvePrefixes($prefixes, 'custom_tables.table_view_name');
+    }
+
+    /**
+     * Shared lookup for the two resolvers above: read one column off
+     * custom_columns joined to custom_tables, keyed back by the ORIGINAL prefix
+     * so callers never have to know about the qualifier.
+     *
+     * @param array<int,string> $prefixes
+     * @param string $select fully qualified column to read as the label
+     * @return array<string,string>
+     */
+    private static function resolvePrefixes(array $prefixes, string $select): array
+    {
+        if (empty($prefixes)) {
             return [];
         }
+
+        // Split once: qualified prefixes are matched on (table_name, column_name),
+        // bare ones on column_name only.
+        $parts = [];
+        foreach ($prefixes as $prefix) {
+            $parts[(string) $prefix] = DocumentMapper::splitColumnPrefix((string) $prefix);
+        }
+
         try {
-            return \DB::table('custom_columns')
+            $rows = \DB::table('custom_columns')
                 ->join('custom_tables', 'custom_tables.id', '=', 'custom_columns.custom_table_id')
-                ->whereIn('custom_columns.column_name', $columnNames)
-                ->pluck('custom_tables.table_view_name', 'custom_columns.column_name')
-                ->toArray();
+                ->whereIn('custom_columns.column_name', array_column($parts, 'column'))
+                ->get([
+                    'custom_columns.column_name as _column',
+                    'custom_tables.table_name as _table',
+                    \DB::raw($select . ' as _label'),
+                ]);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] column labels unavailable: ' . $e->getMessage());
             return [];
         }
+
+        $out = [];
+        foreach ($parts as $prefix => $part) {
+            foreach ($rows as $row) {
+                if ($row->_column !== $part['column']) {
+                    continue;
+                }
+                // Qualified -> only the owning table may answer.
+                if ($part['table'] !== null && $row->_table !== $part['table']) {
+                    continue;
+                }
+                if ($row->_label !== null && $row->_label !== '') {
+                    $out[$prefix] = (string) $row->_label;
+                }
+                break;
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -123,6 +188,7 @@ class LabelResolver
             return getModelName($userTable)::whereIn('id', $ids)->get()
                 ->mapWithKeys(fn ($u) => [$u->id => $u->label])->toArray();
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] user names unavailable: ' . $e->getMessage());
             return [];
         }
     }

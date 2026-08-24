@@ -11,6 +11,8 @@ class MeiliSavedSearchController extends AdminControllerBase
 {
     /**
      * Save the current search conditions.
+     *
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -76,6 +78,9 @@ class MeiliSavedSearchController extends AdminControllerBase
 
     /**
      * Apply a saved search: sanitize -> redirect to the search screen.
+     *
+     * @param string|int $id
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function apply(Request $request, $id)
     {
@@ -110,6 +115,9 @@ class MeiliSavedSearchController extends AdminControllerBase
 
     /**
      * Delete a saved search (owner or admin).
+     *
+     * @param string|int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(Request $request, $id)
     {

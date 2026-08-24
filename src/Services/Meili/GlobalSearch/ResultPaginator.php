@@ -21,7 +21,7 @@ class ResultPaginator
 
     /**
      * @param \Exceedone\Exment\Model\CustomTable $custom_table
-     * @return array{paginator:\Illuminate\Pagination\LengthAwarePaginator, capped:bool}
+     * @return array{paginator:\Illuminate\Pagination\LengthAwarePaginator<int,\Exceedone\Exment\Model\CustomValue>, capped:bool}
      *   capped = the candidate set hit permission_scan_cap, so the real total is
      *   at least the reported one (UI shows it as "N+").
      */

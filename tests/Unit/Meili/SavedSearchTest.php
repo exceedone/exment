@@ -42,6 +42,9 @@ class SavedSearchTest extends TestCase
 
     // ---- sanitizeWith (re-apply against current metadata) ----
 
+    /**
+     * @return array<string,array<int,int|string>>
+     */
     private function ctx(): array
     {
         return [
@@ -96,6 +99,41 @@ class SavedSearchTest extends TestCase
         );
     }
 
+    /**
+     * The facet prefix shapes that reach sanitizeWith after the tokens became
+     * table-qualified: "table::column" and a bare alias are both legitimate,
+     * a bare column_name is a pre-qualification leftover.
+     *
+     * existingColumnNames() decides which of these lands in facet_columns;
+     * this pins down what sanitizeWith must then do with each, so a regression
+     * there shows up as a failing test rather than as a saved search that
+     * silently returns nothing.
+     */
+    public function testSanitizeKeepsQualifiedAndAliasFacetsDropsBareOnes(): void
+    {
+        $stored = [
+            'facets' => [
+                'meili_contract::status=review',  // qualified, still configured
+                'territory=north',                // alias, still configured
+                'status=review',                  // bare -> stale, must go
+            ],
+        ];
+
+        $out = SavedSearchService::sanitizeWith($stored, [
+            'tables' => [],
+            // what existingColumnNames() returns for the tokens above
+            'facet_columns' => ['meili_contract::status', 'territory'],
+            'range_fields' => [],
+            'user_ids' => [],
+        ]);
+
+        $this->assertSame(
+            ['meili_contract::status=review', 'territory=north'],
+            $out['params']['facets']
+        );
+        $this->assertSame(['facet:status=review'], $out['dropped']);
+    }
+
     public function testSanitizeEmptyStored(): void
     {
         $out = SavedSearchService::sanitizeWith([], $this->ctx());
@@ -106,14 +144,25 @@ class SavedSearchTest extends TestCase
 
     // ---- visibleToUser (share rules) ----
 
-    private function record(array $attrs): object
+    /**
+     * A saved-search row as a plain object, so the share rules can be exercised
+     * without touching the database.
+     *
+     * @param array<int,int> $shareTargets
+     * @return object{owner_user_id:int,share_type:?string,share_targets:array<int,int>}
+     */
+    private function record(?string $shareType, array $shareTargets = [], int $ownerUserId = 10): object
     {
-        return (object) ($attrs + ['owner_user_id' => 10, 'share_targets' => []]);
+        return (object) [
+            'owner_user_id' => $ownerUserId,
+            'share_type' => $shareType,
+            'share_targets' => $shareTargets,
+        ];
     }
 
     public function testOwnerAlwaysSees(): void
     {
-        $r = $this->record(['share_type' => MeiliSavedSearch::SHARE_PERSONAL]);
+        $r = $this->record(MeiliSavedSearch::SHARE_PERSONAL);
 
         $this->assertTrue(MeiliSavedSearch::visibleToUser($r, 10, [], []));
         $this->assertFalse(MeiliSavedSearch::visibleToUser($r, 11, [], []));
@@ -121,14 +170,14 @@ class SavedSearchTest extends TestCase
 
     public function testShareAll(): void
     {
-        $r = $this->record(['share_type' => MeiliSavedSearch::SHARE_ALL]);
+        $r = $this->record(MeiliSavedSearch::SHARE_ALL);
 
         $this->assertTrue(MeiliSavedSearch::visibleToUser($r, 999, [], []));
     }
 
     public function testShareRoleGroupRequiresMembership(): void
     {
-        $r = $this->record(['share_type' => MeiliSavedSearch::SHARE_ROLE_GROUP, 'share_targets' => [5, 6]]);
+        $r = $this->record(MeiliSavedSearch::SHARE_ROLE_GROUP, [5, 6]);
 
         $this->assertTrue(MeiliSavedSearch::visibleToUser($r, 999, [6], []));
         $this->assertFalse(MeiliSavedSearch::visibleToUser($r, 999, [7], []));
@@ -136,7 +185,7 @@ class SavedSearchTest extends TestCase
 
     public function testShareOrganizationRequiresMembership(): void
     {
-        $r = $this->record(['share_type' => MeiliSavedSearch::SHARE_ORGANIZATION, 'share_targets' => [3]]);
+        $r = $this->record(MeiliSavedSearch::SHARE_ORGANIZATION, [3]);
 
         $this->assertTrue(MeiliSavedSearch::visibleToUser($r, 999, [], [3]));
         $this->assertFalse(MeiliSavedSearch::visibleToUser($r, 999, [], [4]));
@@ -144,7 +193,7 @@ class SavedSearchTest extends TestCase
 
     public function testUnknownShareTypeIsPrivate(): void
     {
-        $r = $this->record(['share_type' => 'weird']);
+        $r = $this->record('weird');
 
         $this->assertFalse(MeiliSavedSearch::visibleToUser($r, 999, [1], [1]));
     }

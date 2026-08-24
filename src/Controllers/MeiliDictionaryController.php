@@ -49,6 +49,9 @@ class MeiliDictionaryController extends AdminControllerBase
         return $content;
     }
 
+    /**
+     * @return Grid
+     */
     protected function grid()
     {
         $grid = new Grid(new MeiliDictionary());
@@ -63,7 +66,13 @@ class MeiliDictionaryController extends AdminControllerBase
         return $grid;
     }
 
-    protected function form()
+    /**
+     * $id is passed by HasResourceActions::update().
+     *
+     * @param int|string|null $id
+     * @return Form
+     */
+    protected function form($id = null)
     {
         $form = new Form(new MeiliDictionary());
 

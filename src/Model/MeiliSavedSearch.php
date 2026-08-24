@@ -33,9 +33,13 @@ class MeiliSavedSearch extends ModelBase
     /**
      * Whether the user can see this saved search.
      *
-     * @param int   $userId        user id (CustomValue user)
-     * @param array $roleGroupIds  role group ids the user belongs to
-     * @param array $orgIds        organization ids the user belongs to
+     * Duck-typed on purpose: the unit tests pass a plain stdClass so the share
+     * rules can be exercised without touching the database.
+     *
+     * @param self|object{owner_user_id:int|string,share_type:?string,share_targets?:mixed} $record
+     * @param int                  $userId        user id (CustomValue user)
+     * @param array<int,int|string> $roleGroupIds role group ids the user belongs to
+     * @param array<int,int|string> $orgIds       organization ids the user belongs to
      */
     public static function visibleToUser($record, int $userId, array $roleGroupIds, array $orgIds): bool
     {
@@ -60,7 +64,7 @@ class MeiliSavedSearch extends ModelBase
     /**
      * List of saved searches the current user can see (own + shared).
      *
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection<int,self>
      */
     public static function listForCurrentUser()
     {

@@ -2,12 +2,15 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Jobs\ApplyMeiliSettingsJob;
 use Exceedone\Exment\Jobs\ReindexMeiliTableJob;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Configuration of columns used as filters (facets) — managed via the
- * MeiliFilterController screen. Only applied when config('meilisearch.filter.mode') = 'manual'.
+ * MeiliFilterController screen. Applied in every filter.mode: 'manual' uses the
+ * include rows alone, 'override' (the default) adds them to the auto-detected
+ * columns and subtracts the exclude rows. Range rows and aliases ignore mode.
  *
  * Save/delete -> auto reindex the related table (facets are baked into the document at index time).
  *
@@ -23,6 +26,9 @@ class MeiliFilterSetting extends ModelBase
 
     protected $casts = ['enabled' => 'boolean', 'order' => 'integer'];
 
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
@@ -65,12 +71,17 @@ class MeiliFilterSetting extends ModelBase
             }
             self::$reindexDispatched[$table->table_name] = $now;
 
-            // afterResponse: on the sync queue driver the reindex would
-            // otherwise run inline and could time out the settings screen.
-            ReindexMeiliTableJob::dispatch($table->table_name)->afterResponse();
+            // Queued, NOT ->afterResponse() - see MeiliDefinitionSync for why.
+            ReindexMeiliTableJob::dispatch($table->table_name);
+
+            // Reindex only rewrites documents. A range setting also needs its
+            // n_<table>::<col> declared filterable, or Meili rejects the filter
+            // as "not filterable" and the search silently falls back to MySQL.
+            ApplyMeiliSettingsJob::dispatch();
         } catch (\Throwable $e) {
-            // skip if queue/meili is not configured yet.
+            \Illuminate\Support\Facades\Log::warning(
+                '[Meili] reindex dispatch failed after filter setting save: ' . $e->getMessage()
+            );
         }
     }
-
 }

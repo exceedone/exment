@@ -15,7 +15,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (\Schema::hasTable('meili_filter_settings') && !\Schema::hasColumn('meili_filter_settings', 'mode')) {
+        if (!\Schema::hasColumn('meili_filter_settings', 'mode')) {
             $this->schema()->table('meili_filter_settings', function (ExtendedBlueprint $table) {
                 $table->string('mode', 20)->default('include')->after('filter_type');
             });
@@ -31,12 +31,12 @@ return new class extends Migration
         }
     }
 
-    protected function schema()
+    protected function schema(): \Illuminate\Database\Schema\Builder
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function ($table, $callback) {
-            return new ExtendedBlueprint($table, $callback);
+        $schema->blueprintResolver(function ($connection, $table, $callback) {
+            return new ExtendedBlueprint($connection, $table, $callback);
         });
 
         return $schema;

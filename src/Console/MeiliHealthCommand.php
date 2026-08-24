@@ -12,11 +12,19 @@ use Illuminate\Console\Command;
  */
 class MeiliHealthCommand extends Command
 {
+    use CommandTrait;
     use MeiliCommandTrait;
 
-    protected $signature = 'meili:health {--failed : Show the number of failed sync jobs}';
+    protected $signature = 'exment:meili-health {--failed : Show the number of failed sync jobs}';
 
     protected $description = 'Check Meilisearch status (health + document count in the index)';
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->initExmentCommand();
+    }
 
     public function handle(): int
     {

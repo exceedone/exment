@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Services\Meili;
 
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Push the Meilisearch configuration (stored in Exment's System settings screen, the `systems` table)
@@ -38,7 +38,7 @@ class MeiliConfig
     public static function apply(): void
     {
         try {
-            if (!Schema::hasTable('systems')) {
+            if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
                 return;
             }
             foreach (self::MAP as $name => $cfg) {

@@ -79,6 +79,31 @@ var Exment;
             }
         }
         /**
+         * Read a repeated query param in any shape: the sidebar form emits
+         * facets[]=a, PHP http_build_query (chip remove / saved search) emits
+         * facets[0]=a. Reading only 'facets[]' silently dropped the filter.
+         */
+        static getArrayParam(cur, name) {
+            const bracket = cur.getAll(name + '[]');
+            if (bracket.length) {
+                return bracket;
+            }
+            // name[0], name[1], ... - entries() preserves the URL order.
+            const indexed = [];
+            const prefix = name + '[';
+            for (const pair of cur.entries()) {
+                if (pair[0].indexOf(prefix) === 0 && pair[1] !== '') {
+                    indexed.push(pair[1]);
+                }
+            }
+            if (indexed.length) {
+                return indexed;
+            }
+            // Single comma-separated value.
+            const single = cur.get(name);
+            return single ? single.split(',').filter(function (v) { return v !== ''; }) : [];
+        }
+        /**
          * Get Search Navi data for List
          */
         static getListNaviData() {
@@ -88,11 +113,10 @@ var Exment;
             const params = { query: $('.base_query').val() };
             const cur = new URLSearchParams(window.location.search);
             ['date_from', 'date_to', 'sort'].forEach(function (k) { if (cur.get(k)) { params[k] = cur.get(k); } });
-            let users = cur.getAll('users[]');
-            if (!users.length && cur.get('users')) { users = cur.get('users').split(','); }
+            const users = SearchEvent.getArrayParam(cur, 'users');
             if (users.length) { params.users = users.join(','); }
             // forward facets (status/classification) — keep the facets[] array form.
-            let facets = cur.getAll('facets[]');
+            const facets = SearchEvent.getArrayParam(cur, 'facets');
             if (facets.length) { params['facets'] = facets; }
             // forward range[n_col][from|to] (range filter).
             for (const pair of cur.entries()) { if (pair[0].indexOf('range[') === 0 && pair[1]) { params[pair[0]] = pair[1]; } }

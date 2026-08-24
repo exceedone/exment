@@ -5417,3 +5417,114 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginView/Plugin.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 15
+			path: vendor/exceedone/exment/config/meilisearch.php
+		-
+			message: '#^Method Exceedone\\Exment\\Model\\MeiliDictionary\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\MeiliDictionary\)\>\|static\(Exceedone\\Exment\\Model\\MeiliDictionary\)\|null but returns array\{\}\|Countable\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: vendor/exceedone/exment/src/Model/MeiliDictionary.php
+		-
+			message: '#^Method Exceedone\\Exment\\Model\\MeiliFilterSetting\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\MeiliFilterSetting\)\>\|static\(Exceedone\\Exment\\Model\\MeiliFilterSetting\)\|null but returns array\{\}\|Countable\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: vendor/exceedone/exment/src/Model/MeiliFilterSetting.php
+		-
+			message: '#^Method Exceedone\\Exment\\Model\\MeiliSavedSearch\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\MeiliSavedSearch\)\>\|static\(Exceedone\\Exment\\Model\\MeiliSavedSearch\)\|null but returns array\{\}\|Countable\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: vendor/exceedone/exment/src/Model/MeiliSavedSearch.php
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Exceedone\\Exment\\Tests\\Feature\\MeiliExportTest\) and ''assertMatchesRegula…'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliExportTest.php
+		-
+			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\MeiliExportTest\:\:assertArraySubset\(\) has parameter \$array with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliExportTest.php
+		-
+			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\MeiliExportTest\:\:assertArraySubset\(\) has parameter \$subset with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliExportTest.php
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$data1$#'
+			identifier: parameter.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliExportTest.php
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$data2$#'
+			identifier: parameter.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliExportTest.php
+		-
+			message: '#^PHPDoc tag @return with type \$this\(Exceedone\\Exment\\Tests\\Feature\\MeiliExportTest\) is incompatible with native type void\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliExportTest.php
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Exceedone\\Exment\\Tests\\Feature\\MeiliSavedSearchTest\) and ''assertMatchesRegula…'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSavedSearchTest.php
+		-
+			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\MeiliSavedSearchTest\:\:assertArraySubset\(\) has parameter \$array with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSavedSearchTest.php
+		-
+			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\MeiliSavedSearchTest\:\:assertArraySubset\(\) has parameter \$subset with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSavedSearchTest.php
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$data1$#'
+			identifier: parameter.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSavedSearchTest.php
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$data2$#'
+			identifier: parameter.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSavedSearchTest.php
+		-
+			message: '#^PHPDoc tag @return with type \$this\(Exceedone\\Exment\\Tests\\Feature\\MeiliSavedSearchTest\) is incompatible with native type void\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSavedSearchTest.php
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Exceedone\\Exment\\Tests\\Feature\\MeiliSearchFilterTest\) and ''assertMatchesRegula…'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSearchFilterTest.php
+		-
+			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\MeiliSearchFilterTest\:\:assertArraySubset\(\) has parameter \$array with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSearchFilterTest.php
+		-
+			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\MeiliSearchFilterTest\:\:assertArraySubset\(\) has parameter \$subset with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSearchFilterTest.php
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$data1$#'
+			identifier: parameter.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSearchFilterTest.php
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$data2$#'
+			identifier: parameter.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSearchFilterTest.php
+		-
+			message: '#^PHPDoc tag @return with type \$this\(Exceedone\\Exment\\Tests\\Feature\\MeiliSearchFilterTest\) is incompatible with native type void\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/MeiliSearchFilterTest.php
