@@ -532,6 +532,9 @@ class MenuController extends AdminControllerBase
             return System::api_available();
         } elseif ($k == 'notify') {
             return false;
+        } elseif ($k == 'meili_filter' || $k == 'meili_dictionary') {
+            // Both screens only configure the Meilisearch global search.
+            return boolval(config('meilisearch.global_search'));
         }
 
         return true;

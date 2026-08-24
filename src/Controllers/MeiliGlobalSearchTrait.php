@@ -59,7 +59,7 @@ trait MeiliGlobalSearchTrait
      * Global search header suggestions (same response structure as header()).
      *
      * @param string $q
-     * @return array
+     * @return array<int,array<string,mixed>>
      */
     protected function headerByMeilisearch($q)
     {
@@ -104,8 +104,9 @@ trait MeiliGlobalSearchTrait
      * Export the search results of ONE table (CSV/XLSX). Reuses Exment's export
      * engine fed with Meili-derived, permission-matched ids.
      *
-     * @param \Exceedone\Exment\Model\CustomTable $custom_table
-     * @return void  (FormatBase::sendResponse() sends the file then exits)
+     * @param CustomTable $custom_table
+     * @return mixed  Normally never returns: FormatBase::sendResponse() sends the
+     *   file and exits. The value is still propagated for the paths that do return.
      */
     protected function exportByMeili(Request $request, string $q, $custom_table)
     {
@@ -116,6 +117,10 @@ trait MeiliGlobalSearchTrait
      * Body of getListItem paginated via Meilisearch. Glue between the Meili
      * paginator (ResultPaginator) and Exment's grid/view rendering; kept separate
      * so the caller can wrap it with the MySQL fallback.
+     *
+     * @param string $q
+     * @param string $table_name
+     * @return array<string,mixed>
      */
     protected function getListItemByMeili(Request $request, $q, $table_name)
     {

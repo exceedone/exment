@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\Meili\GlobalSearch;
 
+use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Illuminate\Http\Request;
 
 /**
@@ -62,7 +63,7 @@ class RequestFilters
         $ranges = (array) $request->input('range', []);
         $out = [];
         foreach ($ranges as $field => $r) {
-            if (!is_string($field) || !preg_match('/^n_[A-Za-z0-9_]+$/', $field) || !is_array($r)) {
+            if (!is_string($field) || !preg_match(DocumentMapper::RANGE_FIELD_PATTERN, $field) || !is_array($r)) {
                 continue;
             }
             foreach (['from', 'to'] as $k) {

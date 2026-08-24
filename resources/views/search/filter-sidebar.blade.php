@@ -75,8 +75,8 @@
             <div class="box box-primary">
                 <div class="filter-title">{{ $range['label'] }}</div>
                 <div class="box-body">
-                    <input type="{{ $range['type'] }}" name="range[{{ $range['field'] }}][from]" value="{{ $range['from'] }}" class="form-control input-sm" style="margin-bottom:4px;" placeholder="{{ exmtrans('search.range_min') }}">
-                    <input type="{{ $range['type'] }}" name="range[{{ $range['field'] }}][to]" value="{{ $range['to'] }}" class="form-control input-sm" placeholder="{{ exmtrans('search.range_max') }}">
+                    <input type="{{ $range['type'] }}" name="range[{{ $range['field'] }}][from]" value="{{ $range['from'] }}" class="form-control form-control-sm" style="margin-bottom:4px;" placeholder="{{ exmtrans('search.range_min') }}">
+                    <input type="{{ $range['type'] }}" name="range[{{ $range['field'] }}][to]" value="{{ $range['to'] }}" class="form-control form-control-sm" placeholder="{{ exmtrans('search.range_max') }}">
                 </div>
             </div>
         @endforeach

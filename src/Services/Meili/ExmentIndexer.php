@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Meili;
 
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValueModelScope;
 use Illuminate\Support\Collection;
 use Meilisearch\Client;
 
@@ -12,15 +13,26 @@ use Meilisearch\Client;
  * The indexing criteria match Exment's global search:
  *  - Table: CustomTable::searchEnabled() with >=1 freeword column.
  *  - Column: index_enabled && freeword_search (getFreewordSearchColumns()).
+ *
+ * Reads drop CustomValueModelScope (the index is shared by all users), but keep
+ * SoftDeletes - hence withoutGlobalScope, not withoutGlobalScopes.
  */
 class ExmentIndexer
 {
+    /**
+     * Clamped in the constructor: 0 from the system setting would index nothing.
+     *
+     * @var int<1,max>
+     */
+    private int $batchSize;
+
     public function __construct(
         private Client $client,
         private DocumentMapper $mapper,
         private string $indexName,
-        private int $batchSize
+        int $batchSize
     ) {
+        $this->batchSize = max(1, $batchSize);
     }
 
     /**
@@ -57,19 +69,21 @@ class ExmentIndexer
             $tableLabel = $table->table_view_name;
             $count = 0;
 
-            getModelName($table)::query()->chunkById($this->batchSize, function ($records) use ($index, $columns, $facetColumns, $rangeColumns, $aliases, $tableName, $tableLabel, &$count) {
-                $docs = [];
-                foreach ($records as $record) {
-                    $docs[] = $this->mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
-                }
+            getModelName($table)::query()
+                ->withoutGlobalScope(CustomValueModelScope::class)
+                ->chunkById($this->batchSize, function ($records) use ($index, $columns, $facetColumns, $rangeColumns, $aliases, $tableName, $tableLabel, &$count) {
+                    $docs = [];
+                    foreach ($records as $record) {
+                        $docs[] = $this->mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
+                    }
 
-                if (!empty($docs)) {
-                    $task = $index->addDocuments($docs, 'id');
-                    $this->client->waitForTask($task['taskUid'], 60000);
-                }
+                    if (!empty($docs)) {
+                        $task = $index->addDocuments($docs, 'id');
+                        $this->client->waitForTask($task['taskUid'], 60000);
+                    }
 
-                $count += $records->count();
-            });
+                    $count += $records->count();
+                });
 
             $perTable[$tableName] = $count;
             $total += $count;
@@ -100,7 +114,9 @@ class ExmentIndexer
         $count = 0;
 
         foreach (array_chunk($ids, $this->batchSize) as $chunk) {
-            $records = getModelName($table)::query()->whereIn('id', $chunk)->get();
+            $records = getModelName($table)::query()
+                ->withoutGlobalScope(CustomValueModelScope::class)
+                ->whereIn('id', $chunk)->get();
             $docs = [];
             foreach ($records as $record) {
                 $docs[] = $this->mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
@@ -118,7 +134,7 @@ class ExmentIndexer
     /**
      * Ensure the index exists and is configured correctly. If $fresh: delete then recreate.
      * Public: SyncMeiliDocumentJob also uses it so a realtime sync arriving
-     * before the first `meili:index` run never lets Meilisearch auto-create
+     * before the first `exment:meili-index` run never lets Meilisearch auto-create
      * the index with default settings (no filterableAttributes).
      */
     public function ensureIndex(bool $fresh = false): void
@@ -140,11 +156,8 @@ class ExmentIndexer
         }
 
         // Apply the full settings (searchable weighting, synonyms, stopwords, typo, range fields).
-        $opts = (array) config('meilisearch.settings', []);
-        $opts['range_fields'] = FilterConfig::allRangeFields();
-        $opts = \Exceedone\Exment\Model\MeiliDictionary::mergeIntoOpts($opts);
         $index = $this->client->index($this->indexName);
-        $task = $index->updateSettings(IndexSettings::build($opts));
+        $task = $index->updateSettings(IndexSettings::build(IndexSettings::fromSystem()));
         $this->client->waitForTask($task['taskUid'], 60000);
     }
 }

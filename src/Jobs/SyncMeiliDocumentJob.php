@@ -5,11 +5,8 @@ namespace Exceedone\Exment\Jobs;
 use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
 use Exceedone\Exment\Model\CustomTable;
-use Illuminate\Bus\Queueable;
+use Exceedone\Exment\Model\CustomValueModelScope;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 
 /**
  * Sync one Exment document to Meilisearch (runs in background via queue).
@@ -17,14 +14,13 @@ use Illuminate\Queue\SerializesModels;
  */
 class SyncMeiliDocumentJob implements ShouldQueue
 {
-    use Dispatchable;
-    use InteractsWithQueue;
-    use Queueable;
-    use SerializesModels;
+    use JobTrait;
 
-    public int $tries = 3;
     public int $backoff = 10;
 
+    /**
+     * @param mixed $valueId
+     */
     public function __construct(
         public string $tableName,
         public $valueId,
@@ -63,7 +59,7 @@ class SyncMeiliDocumentJob implements ShouldQueue
 
         // Upserting into a missing index would let Meilisearch auto-create it
         // with default settings (no filterableAttributes), breaking every
-        // filtered search until `meili:index` runs. Create it properly instead.
+        // filtered search until `exment:meili-index` runs. Create it properly instead.
         if (!self::$indexVerified) {
             try {
                 $client->getRawIndex($indexName);
@@ -84,7 +80,9 @@ class SyncMeiliDocumentJob implements ShouldQueue
         }
 
         // Upsert: reload the record. If it has been deleted -> delete the document.
-        $record = getModelName($table)::find($this->valueId);
+        $record = getModelName($table)::query()
+            ->withoutGlobalScope(CustomValueModelScope::class)
+            ->find($this->valueId);
         if (!$record) {
             $index->deleteDocument($mapper->makeDocumentId($this->tableName, $this->valueId));
             return;

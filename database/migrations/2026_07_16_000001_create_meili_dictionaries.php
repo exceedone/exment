@@ -7,7 +7,7 @@ use Illuminate\Database\Migrations\Migration;
  * Admin-managed relevance dictionary for Meilisearch: synonyms and stop words.
  *
  * These are index SETTINGS (not data), so changes apply in seconds via
- * meili:settings WITHOUT reindexing documents. Especially useful for Japanese
+ * exment:meili-settings WITHOUT reindexing documents. Especially useful for Japanese
  * (kana<->kanji, EN<->JA pairs, particles as stop words).
  *
  *  - type 'synonym' : `word` + `synonyms` (comma/newline list) become a mutual
@@ -20,8 +20,8 @@ return new class extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function ($table, $callback) {
-            return new ExtendedBlueprint($table, $callback);
+        $schema->blueprintResolver(function ($connection, $table, $callback) {
+            return new ExtendedBlueprint($connection, $table, $callback);
         });
 
         if (!\Schema::hasTable('meili_dictionaries')) {

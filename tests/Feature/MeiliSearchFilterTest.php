@@ -68,7 +68,7 @@ class MeiliSearchFilterTest extends FeatureTestBase
         $response->assertStatus(200);
 
         // Only the selected table produces a result box.
-        $this->assertSame(1, substr_count($response->getContent(), 'data-box_key='));
+        $this->assertSame(1, substr_count((string) $response->getContent(), 'data-box_key='));
     }
 
     public function testSearchRequiresAuth(): void

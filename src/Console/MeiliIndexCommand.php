@@ -9,11 +9,20 @@ use Illuminate\Console\Command;
 
 class MeiliIndexCommand extends Command
 {
+    use CommandTrait;
     use MeiliCommandTrait;
 
-    protected $signature = 'meili:index {--fresh : Delete and recreate the index before indexing}';
+    protected $signature = 'exment:meili-index {--fresh : Delete and recreate the index before indexing}
+        {--force : Skip the confirmation prompt of --fresh}';
 
     protected $description = 'Index Exment data (search-enabled custom tables) into Meilisearch';
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->initExmentCommand();
+    }
 
     public function handle(): int
     {
@@ -47,6 +56,18 @@ class MeiliIndexCommand extends Command
         if ($tables->isEmpty()) {
             $this->warn('No search-enabled custom table with a freeword column to index.');
             return self::SUCCESS;
+        }
+
+        // --fresh drops the whole index (every table, not just this run's), so
+        // confirm first like the other destructive commands do.
+        if ($this->option('fresh') && !$this->option('force')) {
+            if (!$this->confirm(sprintf(
+                'This will DELETE and recreate the index "%s", removing every indexed document. Continue?',
+                $indexName
+            ))) {
+                $this->info('Aborted.');
+                return self::SUCCESS;
+            }
         }
 
         $this->info(sprintf(

@@ -3,16 +3,22 @@
 namespace Exceedone\Exment\Services\Meili\GlobalSearch;
 
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\MeiliFilterSetting;
+use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\FilterConfig;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
+use Exceedone\Exment\Services\Meili\SavedSearchService;
 use Illuminate\Http\Request;
 
 /**
  * Render the left column of the search results page: the unified filter sidebar
  * (table facets, equality facets, creator, created date range, numeric ranges)
  * with live disjunctive-faceting counts.
+ *
+ * @phpstan-type FacetItem array{value:string,label:string,count:int,checked:bool}
+ * @phpstan-type FacetGroup array{title:string,name:string,new:bool,items:array<int,FacetItem>}
  */
 class FilterSidebar
 {
@@ -29,6 +35,8 @@ class FilterSidebar
             $filters['tables'] = $selectedTables;
         }
 
+        $filters['permitted_tables'] = SavedSearchService::facetableTableNames();
+
         // Disjunctive faceting: each group's counts reflect ALL current filters
         // except that group's own selection (so options in a ticked group do not
         // disappear). One merged query for groups with no selection; groups with
@@ -36,6 +44,8 @@ class FilterSidebar
         try {
             $dist = $this->service->searchDistributions($q, $filters, ['table_name', 'facets', 'f_user']);
         } catch (\Throwable $e) {
+            // An empty sidebar is the visible symptom; log so the cause is findable.
+            \Illuminate\Support\Facades\Log::warning('[Meili] facet distribution unavailable: ' . $e->getMessage());
             $dist = [];
         }
 
@@ -72,7 +82,7 @@ class FilterSidebar
      * @param array<string,mixed> $filters
      * @param array<string,int> $baseDist  table_name distribution under the full filters
      * @param array<int,string> $selectedTables
-     * @return array{title:string,name:string,new:bool,items:array}|null
+     * @return FacetGroup|null
      */
     private function tableFacetGroup(string $q, array $filters, array $baseDist, array $selectedTables): ?array
     {
@@ -86,6 +96,7 @@ class FilterSidebar
                     ['table_name']
                 )['table_name'] ?? [];
             } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[Meili] table facet recount unavailable: ' . $e->getMessage());
                 $dist = [];
             }
         }
@@ -127,7 +138,7 @@ class FilterSidebar
      * @param array<string,mixed> $filters
      * @param array<string,int> $baseDist  f_user distribution under the full filters
      * @param array<int,int> $selectedUsers
-     * @return array{title:string,name:string,new:bool,items:array}|null
+     * @return FacetGroup|null
      */
     private function creatorFacetGroup(string $q, array $filters, array $baseDist, array $selectedUsers): ?array
     {
@@ -141,13 +152,16 @@ class FilterSidebar
                     ['f_user']
                 )['f_user'] ?? [];
             } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[Meili] creator facet recount unavailable: ' . $e->getMessage());
                 $dist = [];
             }
         }
         arsort($dist);
-        $dist = array_slice($dist, 0, 10, true);
+        // Any org with more creators than this loses the rest, so keep it in step
+        // with the equality groups rather than a tighter number of its own.
+        $dist = array_slice($dist, 0, (int) config('meilisearch.filter.max_values_per_group', 20), true);
 
-        // A ticked user outside the top-10 / with 0 results is still shown.
+        // A ticked user outside the top values / with 0 results is still shown.
         foreach ($selectedUsers as $uid) {
             if (!array_key_exists($uid, $dist) && !array_key_exists((string) $uid, $dist)) {
                 $dist[$uid] = 0;
@@ -174,7 +188,7 @@ class FilterSidebar
     /**
      * @param array<string,mixed> $filters
      * @param array<string,int> $baseDist  facets distribution under the full filters
-     * @return array<int,array{title:string,name:string,new:bool,items:array}>
+     * @return array<int,FacetGroup>
      */
     private function facetValueGroups(string $q, array $filters, array $baseDist): array
     {
@@ -204,6 +218,7 @@ class FilterSidebar
                     ['facets']
                 )['facets'] ?? [];
             } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('[Meili] facet group recount unavailable: ' . $e->getMessage());
                 continue;
             }
             arsort($dist);
@@ -269,29 +284,63 @@ class FilterSidebar
     private function rangeInputs(Request $request): array
     {
         try {
-            $settings = MeiliFilterSetting::where('filter_type', 'range')
+            $settings = MeiliFilterSetting::with('custom_table')
+                ->where('filter_type', 'range')
+                ->where('mode', 'include')
                 ->where('enabled', 1)->get();
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] range filter settings unavailable: ' . $e->getMessage());
             return [];
         }
         if ($settings->isEmpty()) {
             return [];
         }
 
-        $cols = $settings->pluck('column_name')->unique()->values();
-        $meta = \DB::table('custom_columns')->whereIn('column_name', $cols)
-            ->get()->keyBy('column_name');
-        $labelByCol = $settings->pluck('view_label', 'column_name');
         $req = (array) $request->input('range', []);
 
+        // Resolve each setting's column through CustomColumn (cached per table)
+        $viewable = SavedSearchService::searchableTableNames();
+
+        $resolved = $settings->map(function ($s) use ($viewable) {
+            $table = $s->custom_table;
+            if (!$table || !in_array($table->table_name, $viewable, true)) {
+                return null;
+            }
+            $column = CustomColumn::getEloquent($s->column_name, $table);
+
+            return $column ? ['setting' => $s, 'table' => $table, 'column' => $column] : null;
+        })->filter()->values();
+
+        // Labels appearing on more than one table get the table name appended.
+        $duplicateLabels = $resolved
+            ->map(fn ($r) => $r['setting']->view_label ?: $r['column']->column_view_name)
+            ->filter()
+            ->duplicates()
+            ->values();
+
         $out = [];
-        foreach ($cols as $col) {
-            $m = $meta->get($col);
-            $field = 'n_' . $col;
+        $seen = [];
+        foreach ($resolved as $r) {
+            $setting = $r['setting'];
+            $column = $r['column'];
+            $tableName = $r['table']->table_name;
+
+            $field = DocumentMapper::rangeField((string) $tableName, (string) $column->column_name);
+            if (isset($seen[$field])) {
+                continue;
+            }
+            $seen[$field] = true;
+
+            $label = $setting->view_label ?: ($column->column_view_name ?? $column->column_name);
+            // Same column label in two tables -> say which table it belongs to.
+            if ($duplicateLabels->contains($label)) {
+                $label .= ' (' . ($r['table']->table_view_name ?: $tableName) . ')';
+            }
+
             $out[] = [
-                'label' => $labelByCol->get($col) ?: (optional($m)->column_view_name ?? $col),
+                'label' => $label,
                 'field' => $field,
-                'type' => in_array((string) optional($m)->column_type, ['date', 'datetime'], true) ? 'date' : 'number',
+                'type' => in_array((string) $column->column_type, ['date', 'datetime'], true) ? 'date' : 'number',
                 'from' => (string) ($req[$field]['from'] ?? ''),
                 'to' => (string) ($req[$field]['to'] ?? ''),
             ];

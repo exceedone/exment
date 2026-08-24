@@ -7,7 +7,7 @@ use Exceedone\Exment\Jobs\ApplyMeiliSettingsJob;
 /**
  * Admin-managed relevance dictionary (synonyms + stop words) for Meilisearch.
  *
- * These are index SETTINGS, so saving/deleting applies via meili:settings
+ * These are index SETTINGS, so saving/deleting applies via exment:meili-settings
  * WITHOUT reindexing documents (fast). Merged on top of the config-file
  * synonyms/stop_words in IndexSettings.
  *
@@ -79,7 +79,7 @@ class MeiliDictionary extends ModelBase
         $map = [];
         foreach ($rows as $row) {
             $group = array_values(array_unique(array_merge(
-                [trim((string) ($row['word'] ?? ''))],
+                [trim($row['word'])],
                 self::splitTerms($row['synonyms'] ?? null)
             )));
             $group = array_values(array_filter($group, fn ($t) => $t !== ''));
@@ -105,7 +105,7 @@ class MeiliDictionary extends ModelBase
     {
         $words = [];
         foreach ($rows as $row) {
-            foreach (self::splitTerms($row['word'] ?? null) as $w) {
+            foreach (self::splitTerms($row['word']) as $w) {
                 $words[] = $w;
             }
         }

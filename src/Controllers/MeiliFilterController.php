@@ -11,8 +11,8 @@ use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 
 /**
- * Admin screen for columns used as filters (facets).
- * Only applies when config('meilisearch.filter.mode') = 'manual'. Save/delete -> auto reindex.
+ * Admin screen for columns used as filters (facets). Active in every
+ * filter.mode - see MeiliFilterSetting. Save/delete -> auto reindex.
  */
 class MeiliFilterController extends AdminControllerBase
 {
@@ -49,6 +49,9 @@ class MeiliFilterController extends AdminControllerBase
         return $content;
     }
 
+    /**
+     * @return Grid
+     */
     protected function grid()
     {
         $grid = new Grid(new MeiliFilterSetting());
@@ -66,7 +69,13 @@ class MeiliFilterController extends AdminControllerBase
         return $grid;
     }
 
-    protected function form()
+    /**
+     * $id is passed by HasResourceActions::update().
+     *
+     * @param int|string|null $id
+     * @return Form
+     */
+    protected function form($id = null)
     {
         $form = new Form(new MeiliFilterSetting());
 
@@ -75,9 +84,8 @@ class MeiliFilterController extends AdminControllerBase
             ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
             ->load('column_name', admin_url('meili-filter/columns'));
 
-        // Static options (enough to display the saved value when editing); the ->load()
-        // above replaces the options based on the selected table. A laravel-admin select
-        // does not accept a closure.
+        // Static options so the saved value still renders when editing; the ->load()
+        // above replaces them with the chosen table's columns as soon as it fires.
         $form->select('column_name', exmtrans('custom_column.column_name'))
             ->required()
             ->options(\DB::table('custom_columns')->pluck('column_view_name', 'column_name')->toArray());
@@ -94,7 +102,10 @@ class MeiliFilterController extends AdminControllerBase
             ->help(exmtrans('system.help.meili_filter_include_mode'));
 
         $form->text('view_label', exmtrans('custom_column.column_view_name'));
+        // max:40 = column width (silently truncated otherwise); the charset must
+        // exclude '::', which splitColumnPrefix() reads as a table qualifier.
         $form->text('alias', exmtrans('system.meili_filter_alias'))
+            ->rules(['nullable', 'max:40', 'regex:/^[A-Za-z0-9_]+$/'])
             ->help(exmtrans('system.help.meili_filter_alias'));
         $form->number('order', exmtrans('custom_table.order'))->default(0);
         $form->switchbool('enabled', exmtrans('system.meili_enabled'))->default(1);
@@ -104,6 +115,8 @@ class MeiliFilterController extends AdminControllerBase
 
     /**
      * AJAX: return the columns (filtered by valid type) of the selected table (dependent select).
+     *
+     * @return \Illuminate\Support\Collection<int,array{id:string,text:string}>
      */
     public function columnOptions(Request $request)
     {
@@ -116,6 +129,7 @@ class MeiliFilterController extends AdminControllerBase
     /**
      * [column_name => label] the filterable columns of a table (excludes text/auto_number...).
      *
+     * @param \Exceedone\Exment\Model\CustomTable|string|int|null $customTableId
      * @return array<string,string>
      */
     public static function columnsForTable($customTableId): array

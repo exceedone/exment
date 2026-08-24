@@ -28,8 +28,9 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
                 <h4 class="modal-title">{{ exmtrans('search.save_current') }}</h4>
+                <button type="button" class="close border-0 bg-transparent" data-bs-dismiss="modal"
+                    aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -41,7 +42,7 @@
                 </div>
                 <div class="form-group">
                     <label>{{ exmtrans('search.saved_share_scope') }}</label>
-                    <select class="form-control" id="meili-ss-sharetype">
+                    <select class="form-select" id="meili-ss-sharetype">
                         <option value="personal">{{ exmtrans('search.share_personal') }}</option>
                         <option value="all">{{ exmtrans('search.share_all') }}</option>
                         @if (!empty($roleGroups))<option value="role_group">{{ exmtrans('search.share_role_group') }}</option>@endif
@@ -50,7 +51,7 @@
                 </div>
                 <div class="form-group" id="meili-ss-targets" style="display:none;">
                     <label id="meili-ss-targets-label"></label>
-                    <select class="form-control" id="meili-ss-targets-select" multiple size="6" style="height:auto;">
+                    <select class="form-select" id="meili-ss-targets-select" multiple size="6" style="height:auto;">
                         <optgroup label="role_group" id="meili-ss-opt-role">
                             @foreach ($roleGroups as $rg)<option value="{{ $rg['id'] }}" data-kind="role_group">{{ $rg['name'] }}</option>@endforeach
                         </optgroup>
@@ -61,7 +62,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">{{ trans('admin.cancel') }}</button>
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">{{ trans('admin.cancel') }}</button>
                 <button type="button" class="btn btn-primary" id="meili-ss-submit">{{ trans('admin.save') }}</button>
             </div>
         </div>

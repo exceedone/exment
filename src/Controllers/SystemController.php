@@ -311,7 +311,10 @@ class SystemController extends AdminControllerBase
         $form->text('meili_index', exmtrans('system.meili_index'))->help(exmtrans('system.help.meili_index'));
         $form->switchbool('meili_global_search', exmtrans('system.meili_global_search'))->help(exmtrans('system.help.meili_global_search'));
         $form->switchbool('meili_realtime_sync', exmtrans('system.meili_realtime_sync'))->help(exmtrans('system.help.meili_realtime_sync'));
-        $form->number('meili_batch_size', exmtrans('system.meili_batch_size'))->help(exmtrans('system.help.meili_batch_size'));
+        $form->number('meili_batch_size', exmtrans('system.meili_batch_size'))
+            ->min(1)
+            ->rules(['nullable', 'integer', 'min:1'])
+            ->help(exmtrans('system.help.meili_batch_size'));
         $form->switchbool('meili_repair_enabled', exmtrans('system.meili_repair_enabled'))->help(exmtrans('system.help.meili_repair_enabled'));
         $form->text('meili_repair_at', exmtrans('system.meili_repair_at'))
             ->rules(['nullable', 'regex:/^([01][0-9]|2[0-3]):[0-5][0-9]$/'])

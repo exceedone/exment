@@ -10,6 +10,9 @@ use PHPUnit\Framework\TestCase;
  */
 class FilterAccessibleHitsTest extends TestCase
 {
+    /**
+     * @return array<int,array<string,mixed>>
+     */
     private function hits(): array
     {
         return [
