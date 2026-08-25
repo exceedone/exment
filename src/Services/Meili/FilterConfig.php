@@ -144,7 +144,11 @@ class FilterConfig
      */
     public static function rangeColumns($table)
     {
-        return self::settingColumns($table, 'range', 'include');
+        // Rows saved before the type check exist; drop them here too, or the
+        // sidebar renders a min/max box that can never match a document.
+        return self::settingColumns($table, 'range', 'include')
+            ->filter(fn ($c) => DocumentMapper::supportsRange((string) $c->column_type))
+            ->values();
     }
 
     /**

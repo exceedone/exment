@@ -317,6 +317,7 @@ return [
             'exclude' => '除外（自動対象の列を外す）',
         ],
         'meili_enabled' => '有効',
+        'meili_filter_range_unsupported' => '範囲フィルタには日付または数値の列が必要です。「:type」は比較できないため、条件に一致するデータが存在しません。',
         'meili_dictionary' => '検索辞書（類義語・ストップワード）',
         'meili_dictionary_type' => '種別',
         'meili_dictionary_type_synonym' => '類義語',
