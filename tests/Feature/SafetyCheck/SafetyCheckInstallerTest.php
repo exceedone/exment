@@ -58,4 +58,49 @@ class SafetyCheckInstallerTest extends FeatureTestBase
                 ->where('value->flex_key', SafetyCheckInstaller::FLEX_KEY)->count()
         );
     }
+
+    public function testEnsureMailTemplateSeedsSystemTemplate()
+    {
+        SafetyCheckInstaller::ensureAll();
+
+        $tmpl = getModelName(\Exceedone\Exment\Enums\SystemTableName::MAIL_TEMPLATE)::withoutGlobalScopes()
+            ->where('value->mail_key_name', \Exceedone\Exment\Enums\MailKeyName::SAFETY_CHECK_MAIL)->first();
+        $this->assertNotNull($tmpl);
+        $this->assertStringContainsString('${answer_url}', $tmpl->getValue('mail_body'));
+        $this->assertStringContainsString('${safety_title}', $tmpl->getValue('mail_subject'));
+
+        // idempotent: chạy lần 2 không nhân đôi
+        SafetyCheckInstaller::ensureAll();
+        $count = getModelName(\Exceedone\Exment\Enums\SystemTableName::MAIL_TEMPLATE)::withoutGlobalScopes()
+            ->where('value->mail_key_name', \Exceedone\Exment\Enums\MailKeyName::SAFETY_CHECK_MAIL)->count();
+        $this->assertEquals(1, $count);
+    }
+
+    public function testChannelSelectHasMailOption()
+    {
+        SafetyCheckInstaller::ensureAll();
+
+        $answerTable = \Exceedone\Exment\Model\CustomTable::getEloquent('safety_check_answer');
+        $channel = \Exceedone\Exment\Model\CustomColumn::getEloquent('channel', $answerTable);
+        $this->assertStringContainsString('mail', (string) array_get($channel->options, 'select_item'));
+    }
+
+    public function testSentCountLabelRenamed()
+    {
+        // First install: creates safety_check_event and its sent_count column.
+        SafetyCheckInstaller::ensureAll();
+
+        // Simulate an env installed before the rename shipped — it stored the
+        // old LINE-only label in the DB.
+        $eventTable = \Exceedone\Exment\Model\CustomTable::getEloquent('safety_check_event');
+        $sentCount = \Exceedone\Exment\Model\CustomColumn::getEloquent('sent_count', $eventTable);
+        $sentCount->column_view_name = 'LINE送信数';
+        $sentCount->save();
+
+        // Upgrade path: re-running ensureAll() must relabel the stale column.
+        SafetyCheckInstaller::ensureAll();
+
+        $sentCount = \Exceedone\Exment\Model\CustomColumn::getEloquent('sent_count', $eventTable);
+        $this->assertEquals(exmtrans('safety.col_sent_count'), $sentCount->column_view_name);
+    }
 }

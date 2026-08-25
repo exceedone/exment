@@ -146,7 +146,7 @@ class SafetyWatchCommand extends Command
                     'triggered_at' => now()->format('Y-m-d H:i:s'),
                     'jma_event_id' => $item['id'],
                     'quake_time'   => $item['time']->format('Y-m-d H:i:s'),
-                    'quake_info' => $item['hypocenter'] . ' / max scale ' . $item['max_scale'] . ' / ' . $affected->pluck('pref')->unique()->implode('・'),
+                    'quake_info' => $item['hypocenter'] . ' / ' . SafetyCheckDefine::scaleLabel((int) $item['max_scale']) . ' / ' . $affected->pluck('pref')->unique()->implode('・'),
                 ]);
                 $event->save();
                 SafetyCheckSender::send($event);

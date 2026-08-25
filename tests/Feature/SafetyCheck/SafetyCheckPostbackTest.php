@@ -232,4 +232,38 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $fresh = $this->freshAnswerRow($row->id);
         $this->assertEquals('safe', array_get($fresh->value, 'answer_status'), 'The redelivered event must be processed after the first attempt failed.');
     }
+
+    public function testRecordAnswerWritesRowWithChannel()
+    {
+        $event = $this->createEvent();
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $row = $this->createAnswerRow($event->id, $userId);
+
+        $ok = \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::recordAnswer($event->id, $userId, 'safe', 'mail', 'from web');
+
+        $this->assertTrue($ok);
+        $fresh = $this->freshAnswerRow($row->id);
+        $this->assertEquals('safe', $fresh->getValue('answer_status'));
+        $this->assertEquals('mail', $fresh->getValue('channel'));
+        $this->assertNotNull($fresh->getValue('answered_at'));
+        $this->assertStringContainsString('from web', (string) $fresh->getValue('comment'));
+    }
+
+    public function testRecordAnswerReturnsFalseWhenRowMissing()
+    {
+        $event = $this->createEvent();
+        $this->assertFalse(\Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::recordAnswer($event->id, 99999, 'safe', 'mail'));
+    }
+
+    public function testCurrentAnswerFindsRow()
+    {
+        $event = $this->createEvent();
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $this->createAnswerRow($event->id, $userId, ['answer_status' => 'safe']);
+
+        $found = \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::currentAnswer($event->id, $userId);
+        $this->assertNotNull($found);
+        $this->assertEquals('safe', $found->getValue('answer_status'));
+        $this->assertNull(\Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::currentAnswer($event->id, 99999));
+    }
 }

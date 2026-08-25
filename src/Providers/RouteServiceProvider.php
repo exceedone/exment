@@ -46,6 +46,7 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentLineWebhookRoute();
         $this->mapExmentLineLinkRoute();
         $this->mapExmentSafetyCheckRoute();
+        $this->mapExmentSafetyAnswerRoute();
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
@@ -99,6 +100,62 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('safety_check/send', 'SafetyCheckController@send')->name('exment.safety_check_send');
             $router->post('safety_check/{id}/resend', 'SafetyCheckController@resend')->name('exment.safety_check_resend');
             $router->post('safety_check/{id}/close', 'SafetyCheckController@close')->name('exment.safety_check_close');
+        });
+    }
+
+    /**
+     * Safety-check web answer page (mail fallback). No auth: identity comes from
+     * the SIGNED user/event query params (URL::signedRoute) — the controller
+     * validates the signature. adminweb gives session+CSRF for the POST form.
+     * Deliberately NOT the 'admin_anonymous' group as-is: TWO of its members are
+     * dropped, both for the same reason — on this page the signed URL is the
+     * only gate, and anything else that can refuse the request is a way for a
+     * disaster answer to be lost:
+     *
+     * - 'admin.web-ipfilter' would block exactly the users this page exists for
+     *   — someone answering from home or a mobile network, off-site, during a
+     *   disaster. The publicform API routes follow the same precedent and also
+     *   omit the IP filter.
+     * - 'admin.permission' does nothing for the anonymous visitor this page was
+     *   designed around (laravel-admin's Permission middleware short-circuits
+     *   when Admin::user() is null), but it bites the moment the visitor DOES
+     *   have an Exment session — clicking the mail link in a browser already
+     *   logged into Exment is the normal case, not an edge case. Then
+     *   Admin::user() resolves and Exment's Auth\Permission has no
+     *   pass-through case for the "safety" endpoint, so every non-system user
+     *   (and any user holding zero permission objects) gets Checker::error()'s
+     *   trans('admin.deny') page instead of the form — on GET and on POST
+     *   alike, i.e. their answer is silently unreachable. The permission system
+     *   has no legitimate say over who may answer here: the signature already
+     *   pins the exact (event, user) pair.
+     *
+     * Every other admin_anonymous member is kept as-is (still no admin.auth —
+     * this stays a no-login page).
+     * URL: {admin_prefix}/safety/answer
+     * @return void
+     */
+    protected function mapExmentSafetyAnswerRoute()
+    {
+        Route::group([
+            'prefix'     => config('admin.route.prefix'),
+            'namespace'  => $this->namespace,
+            'middleware' => [
+                'adminweb',
+                // admin_anonymous (ExmentServiceProvider::$middlewareGroups), minus
+                // 'admin.web-ipfilter' and 'admin.permission' — see docblock above.
+                'admin.browser',
+                'admin.initialize',
+                'admin.login',
+                'admin.morph',
+                'admin.bootstrap2',
+                'admin.pjax',
+                'admin.log',
+                'admin.bootstrap',
+                'admin.session',
+            ],
+        ], function (Router $router) {
+            $router->get('safety/answer', 'SafetyCheckAnswerController@form')->name('exment.safety_answer');
+            $router->post('safety/answer', 'SafetyCheckAnswerController@submit')->name('exment.safety_answer_submit');
         });
     }
 

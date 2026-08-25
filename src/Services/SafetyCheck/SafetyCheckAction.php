@@ -54,25 +54,10 @@ class SafetyCheckAction
                 return exmtrans('safety.answer_closed');
             }
 
-            $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
-
-            // transaction + lockForUpdate (in findAnswerRow): the whole value JSON is
-            // read-modified-saved, so two concurrent taps (or a tap + a comment) must
-            // serialize on the row instead of overwriting each other's fields.
-            return \DB::transaction(function () use ($answerTable, $eventId, $userId, $status) {
-                $answerRow = static::findAnswerRow($answerTable, $eventId, $userId);
-                if (!$answerRow) {
-                    return exmtrans('line.record_not_found');
-                }
-
-                $answerRow->setValue([
-                    'answer_status' => $status,
-                    'answered_at'   => now()->format('Y-m-d H:i:s'),
-                    'channel'       => 'line',
-                ])->save();
-
-                return exmtrans('safety.answer_done', ['status' => exmtrans('safety.status_' . $status)]);
-            });
+            if (!static::recordAnswer($eventId, (int) $userId, $status, 'line')) {
+                return exmtrans('line.record_not_found');
+            }
+            return exmtrans('safety.answer_done', ['status' => exmtrans('safety.status_' . $status)]);
         });
     }
 
@@ -160,23 +145,86 @@ class SafetyCheckAction
      * Looks up the safety_check_answer row for ($eventId, $userId), via the generated
      * index columns (event/user are index_enabled) — same querying convention as
      * LineSendLogger. Values on SelectTable-backed columns are persisted as strings
-     * (see SelectTable::saving()), hence the string casts.
+     * (see SelectTable::saving()), hence the string casts. Pass `$lock = false` for a
+     * read-only lookup outside a transaction (see currentAnswer).
      */
-    private static function findAnswerRow($answerTable, $eventId, $userId)
+    private static function findAnswerRow($answerTable, $eventId, $userId, bool $lock = true)
     {
         $indexEvent = CustomColumn::getEloquent('event', $answerTable)->getIndexColumnName();
         $indexUser  = CustomColumn::getEloquent('user', $answerTable)->getIndexColumnName();
 
         // withoutGlobalScope: see handle() — the caller has already pinned $userId to the
         // LINE-verified user, so this can only ever return that user's own row.
-        // lockForUpdate: both callers run inside a transaction and rewrite the whole
-        // value JSON; the row lock serializes concurrent webhook deliveries.
-        return $answerTable->getValueModel()
+        // lockForUpdate: the locked callers run inside a transaction and rewrite the whole
+        // value JSON, so the row lock serializes concurrent writers; currentAnswer reads
+        // without a lock.
+        $query = $answerTable->getValueModel()
             ->withoutGlobalScope(CustomValueModelScope::class)
             ->where($indexEvent, (string) $eventId)
-            ->where($indexUser, (string) $userId)
-            ->lockForUpdate()
-            ->first();
+            ->where($indexUser, (string) $userId);
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+        return $query->first();
+    }
+
+    /**
+     * Records an answer onto the (event, user) row — the single write path shared
+     * by the LINE postback (channel 'line') and the mail-fallback web page
+     * (channel 'mail'). Status validity and event-open checks are the CALLER's
+     * job; this only performs the locked read-modify-write. A comment given here
+     * is appended in the SAME save as the status (one lock cycle, not two).
+     * Returns false when the row does not exist.
+     *
+     * SECURITY: findAnswerRow bypasses CustomValueModelScope, so this can read/write
+     * ANY user's row. The caller MUST pin $userId to a verified identity — an
+     * authenticated user, or an id proven by a cryptographic check such as the
+     * signed answer URL — never a client-supplied value taken at face value.
+     */
+    public static function recordAnswer($eventId, int $userId, string $status, string $channel, ?string $comment = null): bool
+    {
+        $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
+        if (!$answerTable) {
+            return false;
+        }
+
+        return \DB::transaction(function () use ($answerTable, $eventId, $userId, $status, $channel, $comment) {
+            $answerRow = static::findAnswerRow($answerTable, $eventId, $userId);
+            if (!$answerRow) {
+                return false;
+            }
+
+            $value = [
+                'answer_status' => $status,
+                'answered_at'   => now()->format('Y-m-d H:i:s'),
+                'channel'       => $channel,
+            ];
+            if (!is_nullorempty($comment)) {
+                $old = (string) $answerRow->getValue('comment');
+                $value['comment'] = ($old === '' ? '' : $old . "\n") . '[' . now()->format('m/d H:i') . '] ' . $comment;
+            }
+            $answerRow->setValue($value)->save();
+
+            return true;
+        });
+    }
+
+    /**
+     * The user's answer row for an event, WITHOUT locking — read-only display
+     * (e.g. preselecting the web answer form). Null when missing.
+     *
+     * SECURITY: findAnswerRow bypasses CustomValueModelScope, so this can read
+     * ANY user's row. The caller MUST pin $userId to a verified identity — an
+     * authenticated user, or an id proven by a cryptographic check such as the
+     * signed answer URL — never a client-supplied value taken at face value.
+     */
+    public static function currentAnswer($eventId, int $userId)
+    {
+        $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
+        if (!$answerTable) {
+            return null;
+        }
+        return static::findAnswerRow($answerTable, $eventId, $userId, false);
     }
 
     /**
