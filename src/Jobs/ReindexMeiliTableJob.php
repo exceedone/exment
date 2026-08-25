@@ -36,6 +36,8 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUnique
         // trait property with a different value is a PHP fatal.
         $this->timeout = 60;
 
+        $this->afterCommit();
+
         // Own queue so a long reindex never blocks the per-record sync jobs:
         //   php artisan queue:work --queue=default,<reindex_queue>
         // try/catch: a bare unit test constructs this with no app/config.

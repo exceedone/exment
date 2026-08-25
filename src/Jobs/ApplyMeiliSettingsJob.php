@@ -23,6 +23,8 @@ class ApplyMeiliSettingsJob implements ShouldQueue, ShouldBeUnique
 
     public function __construct()
     {
+        $this->afterCommit();
+        
         // try/catch: constructing the job in a bare unit test has no app/config.
         try {
             $this->onQueue(config('meilisearch.sync_queue', 'default'));
