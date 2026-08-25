@@ -56,6 +56,9 @@ return [
         'ranking_rules' => [],
 
         'max_facet_values' => (int) env('MEILISEARCH_MAX_FACET_VALUES', 1000),
+
+        // Query/document language hint (ISO-639-3, comma-separated env).
+        'locales' => array_values(array_filter(explode(',', (string) env('MEILISEARCH_LOCALES', 'jpn')))),
     ],
 
     'filter' => [
