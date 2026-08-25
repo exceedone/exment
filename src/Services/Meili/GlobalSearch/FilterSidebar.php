@@ -307,8 +307,11 @@ class FilterSidebar
                 return null;
             }
             $column = CustomColumn::getEloquent($s->column_name, $table);
+            if (!$column || !DocumentMapper::supportsRange((string) $column->column_type)) {
+                return null;
+            }
 
-            return $column ? ['setting' => $s, 'table' => $table, 'column' => $column] : null;
+            return ['setting' => $s, 'table' => $table, 'column' => $column];
         })->filter()->values();
 
         // Labels appearing on more than one table get the table name appended.
