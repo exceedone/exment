@@ -2,8 +2,10 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\MeiliFilterSetting;
+use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\FilterConfig;
 use ExmentAdminCore\Admin\Grid;
 use ExmentAdminCore\Admin\Form;
@@ -109,6 +111,19 @@ class MeiliFilterController extends AdminControllerBase
             ->help(exmtrans('system.help.meili_filter_alias'));
         $form->number('order', exmtrans('custom_table.order'))->default(0);
         $form->switchbool('enabled', exmtrans('system.meili_enabled'))->default(1);
+
+        $form->saving(function (Form $form) {
+            // A range needs a comparable number; user/organization resolve to a
+            // CustomValue, so the column would index nothing and never match.
+            if ($form->filter_type !== 'range') {
+                return;
+            }
+            $column = CustomColumn::getEloquent($form->column_name, $form->custom_table_id);
+            if ($column && !DocumentMapper::supportsRange((string) $column->column_type)) {
+                admin_toastr(exmtrans('system.meili_filter_range_unsupported', ['type' => $column->column_type]), 'error');
+                return back()->withInput();
+            }
+        });
 
         return $form;
     }

@@ -106,6 +106,18 @@ class DocumentMapper
     }
 
     /**
+     * Column types rangeValue() can turn into a number. Anything else indexes
+     * no n_<table>::<column> attribute at all, so a range filter on it matches
+     * nothing - user and organization columns resolve to a CustomValue object.
+     */
+    public const RANGE_COLUMN_TYPES = ['date', 'datetime', 'time', 'integer', 'decimal', 'currency'];
+
+    public static function supportsRange(string $columnType): bool
+    {
+        return in_array($columnType, self::RANGE_COLUMN_TYPES, true);
+    }
+
+    /**
      * Convert a range column value to a comparable number (date -> unix, number -> number).
      *
      * @param  mixed  $value

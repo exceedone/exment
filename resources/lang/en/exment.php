@@ -317,6 +317,7 @@ return [
             'exclude' => 'Exclude (drop an auto column)',
         ],
         'meili_enabled' => 'Enabled',
+        'meili_filter_range_unsupported' => 'A range filter needs a date or numeric column. ":type" cannot be compared, so the filter would never match any record.',
         'meili_dictionary' => 'Search dictionary (synonyms / stop words)',
         'meili_dictionary_type' => 'Type',
         'meili_dictionary_type_synonym' => 'Synonym',
