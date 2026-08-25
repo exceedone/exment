@@ -29,11 +29,11 @@ class RequestFilters
         // into an array, so type-check every value before using it as a string
         // (concat/strtotime on an array would 500 the request).
         $from = $request->input('date_from');
-        if (is_string($from) && $from !== '' && ($ts = strtotime($from . ' 00:00:00')) !== false) {
+        if (is_string($from) && $from !== '' && ($ts = self::boundary($from, false)) !== null) {
             $filters['date_from'] = $ts;
         }
         $to = $request->input('date_to');
-        if (is_string($to) && $to !== '' && ($ts = strtotime($to . ' 23:59:59')) !== false) {
+        if (is_string($to) && $to !== '' && ($ts = self::boundary($to, true)) !== null) {
             $filters['date_to'] = $ts;
         }
 
@@ -71,7 +71,7 @@ class RequestFilters
                 if (!is_scalar($v) || $v === '') {
                     continue;
                 }
-                $out[$field][$k] = is_numeric($v) ? ($v + 0) : (strtotime((string) $v) ?: null);
+                $out[$field][$k] = is_numeric($v) ? ($v + 0) : self::boundary((string) $v, $k === 'to');
             }
         }
         if (!empty($out)) {
@@ -79,6 +79,17 @@ class RequestFilters
         }
 
         return $filters;
+    }
+
+    private static function boundary(string $value, bool $upper): ?int
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            $value .= $upper ? ' 23:59:59' : ' 00:00:00';
+        }
+
+        $ts = strtotime($value);
+
+        return $ts === false ? null : $ts;
     }
 
     /**
