@@ -54,11 +54,6 @@ class MeiliSync
             return false;
         }
 
-        $table = $model->custom_table;
-        if (!$table || !boolval($table->getOption('search_enabled'))) {
-            return false;
-        }
-
-        return $table->getFreewordSearchColumns()->isNotEmpty();
+        return ExmentIndexer::isIndexable($model->custom_table);
     }
 }

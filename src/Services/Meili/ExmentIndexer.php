@@ -36,6 +36,20 @@ class ExmentIndexer
     }
 
     /**
+     *
+     * @param  mixed  $table
+     */
+    public static function isIndexable($table): bool
+    {
+        if (!$table) {
+            return false;
+        }
+
+        return boolval($table->getOption('search_enabled'))
+            && $table->getFreewordSearchColumns()->isNotEmpty();
+    }
+
+    /**
      * List of custom tables to index (search-enabled + having freeword columns).
      *
      * @return Collection<int,CustomTable>
@@ -43,7 +57,7 @@ class ExmentIndexer
     public function searchableTables(): Collection
     {
         return CustomTable::searchEnabled()->get()->filter(function (CustomTable $table) {
-            return $table->getFreewordSearchColumns()->isNotEmpty();
+            return self::isIndexable($table);
         })->values();
     }
 
