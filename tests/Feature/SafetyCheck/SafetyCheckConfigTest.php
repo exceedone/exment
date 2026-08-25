@@ -49,6 +49,36 @@ class SafetyCheckConfigTest extends FeatureTestBase
     }
 
     /**
+     * scaleLabel() renders the intensity for END USERS (Flex card, mail, web answer
+     * page, admin list) -- the raw feed code must never reach them. Asserted against
+     * literal strings in BOTH locales on purpose: comparing exmtrans() to exmtrans()
+     * would still pass if the whole mapping were deleted.
+     */
+    public function testScaleLabelRendersIntensityNotRawCode()
+    {
+        \App::setLocale('ja');
+        $this->assertEquals('最大震度1', SafetyCheckDefine::scaleLabel(10));
+        $this->assertEquals('最大震度3', SafetyCheckDefine::scaleLabel(30));
+        $this->assertEquals('最大震度5弱', SafetyCheckDefine::scaleLabel(45));
+        $this->assertEquals('最大震度5強', SafetyCheckDefine::scaleLabel(50));
+        $this->assertEquals('最大震度7', SafetyCheckDefine::scaleLabel(70));
+
+        // codes that exist in the feed but are NOT threshold choices
+        $this->assertEquals('最大震度5弱以上', SafetyCheckDefine::scaleLabel(46));
+        $this->assertEquals('最大震度不明', SafetyCheckDefine::scaleLabel(-1));
+
+        \App::setLocale('en');
+        $this->assertEquals('Max Shindo 5 Lower', SafetyCheckDefine::scaleLabel(45));
+        $this->assertEquals('Max Shindo Unknown', SafetyCheckDefine::scaleLabel(-1));
+    }
+
+    /** An unrecognised code must surface as-is, never be swallowed into a wrong label. */
+    public function testScaleLabelKeepsUnknownCodeVisible()
+    {
+        $this->assertStringContainsString('99', SafetyCheckDefine::scaleLabel(99));
+    }
+
+    /**
      * The feed-time parsing changed semantics (JST parse -> app-tz convert), so a
      * cursor stored by the OLD code sits hours in the future and would make the
      * watcher skip every bulletin until wall clock passes it. Deploys carrying that

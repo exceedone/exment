@@ -56,7 +56,7 @@ class SafetyCheckDefine
     public static function scaleOptions(): array
     {
         return [
-            // 10 => exmtrans('safety.scale_options.10'), // 震度1 — enable temporarily for live testing
+            10 => exmtrans('safety.scale_options.10'), // 震度1 — enable temporarily for live testing
             40 => exmtrans('safety.scale_options.40'),
             45 => exmtrans('safety.scale_options.45'),
             50 => exmtrans('safety.scale_options.50'),
@@ -64,5 +64,25 @@ class SafetyCheckDefine
             60 => exmtrans('safety.scale_options.60'),
             70 => exmtrans('safety.scale_options.70'),
         ];
+    }
+
+    /**
+     * Human-readable "max intensity" text for a P2PQuake scale code, e.g. 45 -> 最大震度5弱.
+     *
+     * Deliberately NOT built from scaleOptions(): that list is the *threshold* picker
+     * (only the codes an admin may choose, and its 震度1 entry carries a "for testing"
+     * note). Display has to cover every code the feed can emit -- 20/30 are common,
+     * 46 appears in points[].scale, -1 means "no intensity reported" -- so an unknown
+     * code must never be swallowed: it falls back to the raw number.
+     *
+     * @param int $scale
+     * @return string
+     */
+    public static function scaleLabel(int $scale): string
+    {
+        $labels = exmtrans('safety.scale_labels');
+        $label = (is_array($labels) && array_key_exists($scale, $labels)) ? $labels[$scale] : (string) $scale;
+
+        return exmtrans('safety.quake_max_scale', ['scale' => $label]);
     }
 }

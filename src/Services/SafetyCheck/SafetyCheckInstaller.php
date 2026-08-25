@@ -3,8 +3,10 @@
 namespace Exceedone\Exment\Services\SafetyCheck;
 
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\MultisettingType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomTable;
@@ -30,6 +32,9 @@ class SafetyCheckInstaller
         static::ensureAnswerTable();
         static::ensureMenu();
         static::ensureFlexTemplate();
+        static::ensureMailTemplate();
+        static::ensureChannelMailOption();
+        static::ensureSentCountLabel();
     }
 
     /** Event-table column definitions: [name, view name, type, options]. */
@@ -102,7 +107,7 @@ class SafetyCheckInstaller
             ['answer_status', exmtrans('safety.col_answer_status'), ColumnType::SELECT,       ['index_enabled' => 1, 'select_item' => implode("\n", $answerStatuses), 'default' => SafetyCheckDefine::ANSWER_NOT_ANSWERED]],
             ['comment',       exmtrans('safety.col_comment'),       ColumnType::TEXTAREA,     []],
             ['answered_at',   exmtrans('safety.col_answered_at'),   ColumnType::DATETIME,     []],
-            ['channel',       exmtrans('safety.col_channel'),       ColumnType::SELECT,       ['select_item' => "line"]],
+            ['channel',       exmtrans('safety.col_channel'),       ColumnType::SELECT,       ['select_item' => "line\nmail"]],
             ['unlinked_flg',  exmtrans('safety.col_unlinked_flg'),  ColumnType::YESNO,        []],
         ];
 
@@ -169,6 +174,12 @@ class SafetyCheckInstaller
                 ->forceDelete();
         }
 
+        if (CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)) {
+            getModelName(SystemTableName::MAIL_TEMPLATE)::withoutGlobalScopes()
+                ->where('value->mail_key_name', MailKeyName::SAFETY_CHECK_MAIL)
+                ->forceDelete();
+        }
+
         foreach ([SafetyCheckDefine::TABLE_ANSWER, SafetyCheckDefine::TABLE_EVENT] as $tableName) {
             $table = CustomTable::getEloquent($tableName);
             if (!$table) {
@@ -204,6 +215,74 @@ class SafetyCheckInstaller
             'body_items'    => '',
             'description'   => exmtrans('safety.flex_template_desc'),
         ])->save();
+    }
+
+    /**
+     * System mail template for the safety-check mail fallback (users without a
+     * LINE link). Subject/body are stored at install time in the APP_LOCALE
+     * language (same convention as ensureMenu) and are editable by the admin
+     * afterwards. ${safety_title}/${safety_body}/${answer_url} are replaced by
+     * SafetyCheckSender at send time via MailSender->prms().
+     */
+    public static function ensureMailTemplate(): void
+    {
+        $existing = getModelName(SystemTableName::MAIL_TEMPLATE)::withoutGlobalScopes()
+            ->where('value->mail_key_name', MailKeyName::SAFETY_CHECK_MAIL)->first();
+        if ($existing) {
+            return;
+        }
+
+        CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)->getValueModel()->setValue([
+            'mail_key_name'      => MailKeyName::SAFETY_CHECK_MAIL,
+            'mail_view_name'     => exmtrans('safety.mail_template_view_name'),
+            'mail_template_type' => 'body',
+            'mail_subject'       => exmtrans('safety.mail_subject'),
+            'mail_body'          => exmtrans('safety.mail_body'),
+        ])->save();
+    }
+
+    /**
+     * Upgrade path: the channel select was created with only "line" before the
+     * mail fallback existed — append the "mail" option once (idempotent).
+     */
+    public static function ensureChannelMailOption(): void
+    {
+        $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
+        if (!$answerTable) {
+            return;
+        }
+        $channel = CustomColumn::getEloquent('channel', $answerTable);
+        if (!$channel) {
+            return;
+        }
+        $items = preg_split('/\r?\n/', (string) array_get($channel->options, 'select_item'), -1, PREG_SPLIT_NO_EMPTY);
+        if (in_array('mail', $items, true)) {
+            return;
+        }
+        $items[] = 'mail';
+        $channel->setOption('select_item', implode("\n", $items));
+        $channel->save();
+    }
+
+    /**
+     * sent_count now counts BOTH channels (LINE + mail) — rename the stored
+     * column label from the old LINE-only wording. The label is system-owned
+     * (matches the eventColumns definition), so this sets it whenever it
+     * doesn't already match the current lang value; a no-op once it does
+     * (idempotent).
+     */
+    public static function ensureSentCountLabel(): void
+    {
+        $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
+        if (!$eventTable) {
+            return;
+        }
+        $sentCount = CustomColumn::getEloquent('sent_count', $eventTable);
+        if (!$sentCount || $sentCount->column_view_name === exmtrans('safety.col_sent_count')) {
+            return;
+        }
+        $sentCount->column_view_name = exmtrans('safety.col_sent_count');
+        $sentCount->save();
     }
 
     /**

@@ -3,7 +3,10 @@
 namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 
 use Exceedone\Exment\Jobs\LineSendJob;
+use Exceedone\Exment\Jobs\MailSendJob;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -11,12 +14,16 @@ use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Notification;
 
 /**
- * Task 4 - SafetyCheckSender: pre-create answer rows for all users, push a LINE Flex
- * message to linked users (LINE is the only delivery channel - unlinked users just keep
- * their `not_answered` row), and support a "re-send" mode that only targets users still
- * `not_answered` (no new rows).
+ * Task 4 - SafetyCheckSender: pre-create answer rows for all users, then deliver over
+ * TWO channels - a LINE Flex push for users who linked their LINE account, and a
+ * fallback mail carrying a signed web-answer URL for unlinked users who have an email
+ * (see SafetyCheckAnswerController). A user with neither a LINE link nor an email keeps
+ * their `not_answered` row, flagged `unlinked_flg` so the admin sees the gap. Also
+ * supports a "re-send" mode that only targets users still `not_answered`, recreating any
+ * answer row that failed to be created at an earlier send.
  */
 class SafetyCheckSenderTest extends FeatureTestBase
 {
@@ -30,6 +37,17 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->initAllTest();
         SafetyCheckInstaller::ensureAll();
         Bus::fake([LineSendJob::class]);
+        Notification::fake();
+    }
+
+    /** Users who would get the fallback mail: not linked AND have an email. */
+    protected function mailableUserCount(array $linkedUserIds): int
+    {
+        return CustomTable::getEloquent('user')->getValueQuery()->get()
+            ->filter(function ($u) use ($linkedUserIds) {
+                return !in_array((int) $u->id, $linkedUserIds, true)
+                    && !is_nullorempty($u->getValue('email'));
+            })->count();
     }
 
     public function testSendCreatesAnswerRowsForAllUsers()
@@ -143,10 +161,12 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $freshEvent = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
         $this->assertEquals($userCount, (int) $freshEvent->getValue('target_count'));
 
-        // sent_count must also keep reflecting the FIRST send (2 linked users), not be
-        // clobbered by the smaller resend batch (1 job) -- otherwise the admin page
-        // shows e.g. 送信数 1/対象 N after a resend that reached fewer users.
-        $this->assertEquals(2, (int) $freshEvent->getValue('sent_count'));
+        // sent_count reflects the FIRST send across both channels, not be clobbered by
+        // the smaller resend batch (1 job) -- otherwise the admin page shows e.g.
+        // 送信数 1/対象 N after a resend that reached fewer users.
+        // sent_count = 2 LINE + mail của lần gửi ĐẦU, không bị resend ghi đè
+        $expectedMailFirst = $this->mailableUserCount([$userA, $userB]);
+        $this->assertEquals(2 + $expectedMailFirst, (int) $freshEvent->getValue('sent_count'));
     }
 
     /**
@@ -191,5 +211,128 @@ class SafetyCheckSenderTest extends FeatureTestBase
         });
         $this->assertCount(2, $jobsForA, 'First send + recovery resend.');
         $this->assertEquals($userCount, $result['target']);
+    }
+
+    public function testUnlinkedUsersReceiveMail()
+    {
+        $event = $this->createEvent();
+        $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
+        $this->linkUser($linked);
+        $expectedMail = $this->mailableUserCount([$linked]);
+        $this->assertGreaterThan(0, $expectedMail, 'test data must contain unlinked users with email');
+
+        $result = SafetyCheckSender::send($event);
+
+        Notification::assertSentTimes(MailSendJob::class, $expectedMail);
+        $this->assertEquals($expectedMail, $result['mail']);
+
+        // sent_count = line + mail
+        $freshEvent = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
+        $this->assertEquals(1 + $expectedMail, (int) $freshEvent->getValue('sent_count'));
+    }
+
+    public function testBuildMailSenderContainsSignedUrl()
+    {
+        $event = $this->createEvent(['title' => 'Big quake']);
+        $userValue = CustomTable::getEloquent('user')->getValueQuery()
+            ->find((int) TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->assertFalse(is_nullorempty($userValue->getValue('email')));
+
+        $sender = SafetyCheckSender::buildMailSender($userValue, $event, 'Big quake', 'body lines');
+        $this->assertNotNull($sender);
+        $sender->send();
+
+        // sau send(), subject/body đã được replaceWord (xem NotifyTest pattern)
+        $this->assertStringContainsString('Big quake', $sender->getSubject());
+        $this->assertStringContainsString('safety/answer', $sender->getBody());
+        $this->assertStringContainsString('signature=', $sender->getBody());
+        $this->assertStringContainsString('user=' . $userValue->id, $sender->getBody());
+    }
+
+    public function testBuildMailSenderNullWithoutEmail()
+    {
+        $event = $this->createEvent();
+        $userTable = CustomTable::getEloquent('user');
+        $noMail = $userTable->getValueModel();
+        $noMail->setValue(['user_name' => 'nomail user', 'user_code' => 'nomail_' . time()])->save();
+
+        $this->assertNull(SafetyCheckSender::buildMailSender($userTable->getValueQuery()->find($noMail->id), $event, 't', 'b'));
+    }
+
+    /** MailSender exposes no getter for final_user; read the protected property. */
+    protected function finalUserOf(MailSender $sender)
+    {
+        $property = new \ReflectionProperty(MailSender::class, 'final_user');
+        $property->setAccessible(true);
+        return $property->getValue($sender);
+    }
+
+    /**
+     * A fallback mail that dies on a real queue is otherwise invisible: the
+     * mail_send_log row is only written on a SUCCESSFUL send, and the try/catch
+     * around send() in SafetyCheckSender::send() cannot see a job that failed on
+     * a worker minutes later. MailSendJob::failed() is the only remaining trace,
+     * and it emits the 'sendmail_error' navbar notice to the triggering admin
+     * ONLY when the sender flagged final_user. So an admin-triggered send must
+     * set it.
+     */
+    public function testBuildMailSenderFlagsFinalUserWhenAdminTriggered()
+    {
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'admin');
+        $this->assertNotNull(\Exment::getUserId(), 'Fixture: the send must be attributable to a logged-in user.');
+
+        $event = $this->createEvent();
+        $userValue = CustomTable::getEloquent('user')->getValueQuery()
+            ->find((int) TestDefine::TESTDATA_USER_LOGINID_USER2);
+
+        $sender = SafetyCheckSender::buildMailSender($userValue, $event, 'Big quake', 'body lines');
+
+        $this->assertNotNull($sender);
+        $this->assertTrue((bool) $this->finalUserOf($sender));
+    }
+
+    /**
+     * ...but a send with NO logged-in user (JMA auto-trigger, CLI/scheduler) must
+     * leave the flag off. NavbarJob writes notify_navbar.target_user_id from the
+     * user id captured at send time, and that column is NOT NULL — flagging an
+     * unattributable send would only make failed() throw. Those sends stay
+     * untraced for now (documented limitation), and building/sending one must
+     * still not throw.
+     */
+    public function testBuildMailSenderLeavesFinalUserOffWhenNoLoggedInUser()
+    {
+        auth('admin')->logout();
+        $this->assertNull(\Exment::getUserId(), 'Fixture: this send must be unattributable.');
+
+        $event = $this->createEvent();
+        $userValue = CustomTable::getEloquent('user')->getValueQuery()
+            ->find((int) TestDefine::TESTDATA_USER_LOGINID_USER2);
+
+        $sender = SafetyCheckSender::buildMailSender($userValue, $event, 'Big quake', 'body lines');
+
+        $this->assertNotNull($sender);
+        $this->assertFalse((bool) $this->finalUserOf($sender));
+        $sender->send();
+        Notification::assertSentTimes(MailSendJob::class, 1);
+    }
+
+    public function testResendMailsOnlyUnanswered()
+    {
+        $event = $this->createEvent();
+        $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
+        $answered = (int) TestDefine::TESTDATA_USER_LOGINID_USER2; // unlinked, sẽ trả lời
+        $this->linkUser($linked);
+        $expectedMailFirst = $this->mailableUserCount([$linked]);
+
+        SafetyCheckSender::send($event);
+        Notification::assertSentTimes(MailSendJob::class, $expectedMailFirst);
+
+        // user2 trả lời qua web -> resend không gửi lại cho user2
+        \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::recordAnswer($event->id, $answered, 'safe', 'mail');
+
+        $result = SafetyCheckSender::send($event, true);
+
+        $this->assertEquals($expectedMailFirst - 1, $result['mail']);
+        Notification::assertSentTimes(MailSendJob::class, $expectedMailFirst + ($expectedMailFirst - 1));
     }
 }

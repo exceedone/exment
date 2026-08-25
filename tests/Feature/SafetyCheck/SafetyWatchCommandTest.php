@@ -7,6 +7,7 @@ use Exceedone\Exment\Jobs\LineSendJob;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SafetyCheck\EarthquakeFeedInterface;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
@@ -87,6 +88,23 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $event = CustomTable::getEloquent('safety_check_event')->getValueModel();
         $event->setValue($value)->save();
         return $event;
+    }
+
+    /**
+     * quake_info is shown verbatim to employees on all four channels (LINE Flex card,
+     * mail body, web answer page, admin list), so it must carry the JMA intensity, not
+     * the feed's raw numeric code: "max scale 50" means nothing to the person reading it.
+     */
+    public function testQuakeInfoShowsIntensityLabelNotRawScaleCode()
+    {
+        $this->bindFeed([$this->feedItem(['id' => 'quake-label', 'max_scale' => 50])]);
+
+        \Artisan::call('exment:safetywatch');
+
+        $quakeInfo = (string) array_get($this->eventRows()->first()->value, 'quake_info');
+        $this->assertStringContainsString(SafetyCheckDefine::scaleLabel(50), $quakeInfo);
+        $this->assertStringNotContainsString('max scale', $quakeInfo);
+        $this->assertStringNotContainsString('/ 50 /', $quakeInfo);
     }
 
     public function testScaleAboveThresholdCreatesEventAndDispatches()
