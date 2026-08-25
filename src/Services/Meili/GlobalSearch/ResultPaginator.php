@@ -34,7 +34,9 @@ class ResultPaginator
         }
 
         // 1. Over-fetch candidate ids (by relevance) up to the cap, to filter permissions + paginate.
-        $cap = (int) config('meilisearch.permission_scan_cap', 1000);
+        // max(1): a cap of 0 would ask Meilisearch for zero hits AND make the
+        // "capped" test below always true, so the page would report "0+".
+        $cap = max(1, (int) config('meilisearch.permission_scan_cap', 1000));
         $result = $this->service->searchTablePaginated(
             $q,
             $custom_table->table_name,
