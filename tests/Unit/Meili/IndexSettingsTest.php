@@ -114,6 +114,30 @@ class IndexSettingsTest extends TestCase
         $this->assertSame(1000, IndexSettings::build(['max_facet_values' => 0])['faceting']['maxValuesPerFacet']);
     }
 
+    public function testLocalesBecomeALocalizedAttributeRuleOverEveryField(): void
+    {
+        $s = IndexSettings::build(['locales' => ['jpn']]);
+
+        $this->assertSame([['attributePatterns' => ['*'], 'locales' => ['jpn']]], $s['localizedAttributes']);
+    }
+
+    public function testSeveralLocalesAreKeptInOrder(): void
+    {
+        $s = IndexSettings::build(['locales' => ['jpn', 'eng']]);
+
+        $this->assertSame(['jpn', 'eng'], $s['localizedAttributes'][0]['locales']);
+    }
+
+    /**
+     * null, not [] - an empty array would leave whatever the index already has,
+     * so clearing MEILISEARCH_LOCALES could never undo the setting.
+     */
+    public function testNoLocalesClearsTheSettingWithNull(): void
+    {
+        $this->assertNull(IndexSettings::build()['localizedAttributes']);
+        $this->assertNull(IndexSettings::build(['locales' => []])['localizedAttributes']);
+    }
+
     /**
      * Meilisearch defaults to 'alpha'. Sorting by count is what makes a forced
      * truncation keep the values that matter - and it also returns correct

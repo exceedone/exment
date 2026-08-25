@@ -65,12 +65,18 @@ class IndexSettings
         $maxTotalHits = max(self::DEFAULT_MAX_TOTAL_HITS, (int) ($opts['max_total_hits'] ?? 0));
         $maxFacetValues = max(self::DEFAULT_MAX_FACET_VALUES, (int) ($opts['max_facet_values'] ?? 0));
 
+        $locales = array_values($opts['locales'] ?? []);
+        $localized = $locales === []
+            ? null
+            : [['attributePatterns' => ['*'], 'locales' => $locales]];
+
         return [
             'searchableAttributes' => empty($searchable) ? self::DEFAULT_SEARCHABLE : $searchable,
             'filterableAttributes' => $filterable,
             'sortableAttributes' => $sortable,
             'stopWords' => array_values($opts['stop_words'] ?? []),
             'synonyms' => $synonyms,
+            'localizedAttributes' => $localized,
             'rankingRules' => empty($ranking) ? self::DEFAULT_RANKING : $ranking,
             'typoTolerance' => [
                 'enabled' => $opts['typo_enabled'] ?? true,
