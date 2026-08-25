@@ -113,6 +113,16 @@ class MeiliFilterController extends AdminControllerBase
         $form->switchbool('enabled', exmtrans('system.meili_enabled'))->default(1);
 
         $form->saving(function (Form $form) {
+            // The table has a unique index on (custom_table_id, column_name);
+            $duplicate = MeiliFilterSetting::where('custom_table_id', $form->custom_table_id)
+                ->where('column_name', $form->column_name)
+                ->when($form->model()->getKey(), fn ($q, $id) => $q->where('id', '<>', $id))
+                ->exists();
+            if ($duplicate) {
+                admin_toastr(exmtrans('system.meili_filter_duplicate'), 'error');
+                return back()->withInput();
+            }
+
             // A range needs a comparable number; user/organization resolve to a
             // CustomValue, so the column would index nothing and never match.
             if ($form->filter_type !== 'range') {
