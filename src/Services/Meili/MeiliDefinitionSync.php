@@ -18,19 +18,6 @@ use Exceedone\Exment\Model\CustomTable;
 class MeiliDefinitionSync
 {
     /**
-     * Tables already dispatched recently (table_name => unix time). Collapses
-     * bursts (e.g. a settings screen saving many columns in one request) into
-     * a single reindex; a short window is used instead of a per-request flag
-     * so long-running processes (queue workers) never suppress a real change.
-     *
-     * @var array<string,float>
-     */
-    protected static array $dispatched = [];
-
-    /** Seconds during which repeated dispatches for a table are collapsed. */
-    protected const DEDUP_WINDOW = 5.0;
-
-    /**
      * Handle a config model that was just saved/deleted: if relevant, dispatch a reindex job.
      *
      * @param  mixed  $model
@@ -50,24 +37,9 @@ class MeiliDefinitionSync
             return;
         }
 
-        $now = microtime(true);
-        if (isset(self::$dispatched[$tableName]) && ($now - self::$dispatched[$tableName]) < self::DEDUP_WINDOW) {
-            return;
-        }
-        self::$dispatched[$tableName] = $now;
-
-        // Queued on purpose, NOT ->afterResponse(): afterResponse() routes
-        // through Dispatcher::dispatchSync(), which forces onConnection('sync')
-        // and runs the whole reindex inline in the web process on every driver -
-        // where PHP's max_execution_time can kill it after the documents have
-        // already been deleted. A dispatch failure must never break the save.
-        try {
-            ReindexMeiliTableJob::dispatch($tableName);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning(
-                '[Meili] reindex dispatch failed: ' . $e->getMessage()
-            );
-        }
+        // Delayed + unique, so a screen saving many columns at once collapses to
+        // one job that reads the committed state instead of racing it.
+        ReindexMeiliTableJob::dispatchUnlessBlocking($tableName);
     }
 
     /**

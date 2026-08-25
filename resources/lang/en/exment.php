@@ -2264,6 +2264,7 @@ return [
         'filter_date_to' => 'To',
         'filter_clear_all' => 'Clear all filters',
         'export' => 'Export',
+        'export_too_many' => 'Too many results to export (limit %d). Narrow the search with filters and try again.',
         'sort_relevance' => 'Relevance',
         'sort_newest' => 'Newest first',
         'sort_oldest' => 'Oldest first',

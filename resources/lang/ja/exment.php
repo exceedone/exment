@@ -2265,6 +2265,7 @@ return [
         'filter_date_to' => '終了',
         'filter_clear_all' => 'フィルターをすべて解除',
         'export' => 'エクスポート',
+        'export_too_many' => '出力対象が多すぎます（上限 %d 件）。絞り込み条件を追加してから再実行してください。',
         'sort_relevance' => '関連度順',
         'sort_newest' => '新しい順',
         'sort_oldest' => '古い順',
