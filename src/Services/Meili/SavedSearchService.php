@@ -18,6 +18,44 @@ use Exceedone\Exment\Model\CustomTable;
 class SavedSearchService
 {
     /**
+     * A request value as a clean list of non-empty strings, dropping anything
+     * that is not scalar.
+     *
+     * The save modal posts the current query string as-is, so `?tables[][]=x`
+     * arrives here as a nested array: strval() on it is an "Array to string
+     * conversion" E_WARNING, which Laravel turns into an ErrorException — the
+     * save 500s, and without the exception it would store the literal "Array".
+     *
+     * @param mixed $value
+     * @return array<int,string>
+     */
+    private static function scalarList($value): array
+    {
+        if (is_scalar($value)) {
+            $value = [$value];
+        }
+        if (!is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            array_map('strval', array_filter($value, 'is_scalar')),
+            fn ($s) => $s !== ''
+        ));
+    }
+
+    /**
+     * Same guard for a single value: a non-scalar becomes '' (i.e. "not set")
+     * instead of the string "Array".
+     *
+     * @param mixed $value
+     */
+    private static function scalarString($value): string
+    {
+        return is_scalar($value) ? (string) $value : '';
+    }
+
+    /**
      * Whitelist the filter keys allowed to be saved from the request.
      *
      * @param array<string,mixed> $input
@@ -27,24 +65,26 @@ class SavedSearchService
     {
         $out = [];
         foreach (['tables', 'users', 'facets'] as $k) {
-            $v = array_values(array_filter(array_map('strval', (array) ($input[$k] ?? [])), fn ($s) => $s !== ''));
+            $v = self::scalarList($input[$k] ?? []);
             if (!empty($v)) {
                 $out[$k] = $v;
             }
         }
         foreach (['date_from', 'date_to'] as $k) {
-            $v = (string) ($input[$k] ?? '');
+            $v = self::scalarString($input[$k] ?? '');
             if ($v !== '') {
                 $out[$k] = $v;
             }
         }
         $ranges = (array) ($input['range'] ?? []);
         foreach ($ranges as $field => $r) {
-            if (!is_array($r)) {
+            // A range field is always "n_<table>::<column>"; a numeric key means
+            // the param was posted as a plain list and can never match a field.
+            if (!is_string($field) || !is_array($r)) {
                 continue;
             }
             foreach (['from', 'to'] as $side) {
-                $v = (string) ($r[$side] ?? '');
+                $v = self::scalarString($r[$side] ?? '');
                 if ($v !== '') {
                     $out['range'][$field][$side] = $v;
                 }
@@ -73,10 +113,14 @@ class SavedSearchService
         $params = [];
         $dropped = [];
 
+        // Every value below goes through the scalar guards: rows saved before
+        // filtersFromInput() started dropping non-scalars still hold arrays, and
+        // "'table:' . $array" is the same E_WARNING -> ErrorException 500 here.
+
         // tables: keep only tables that still exist + still authorized.
-        foreach ((array) ($stored['tables'] ?? []) as $t) {
-            if (in_array((string) $t, $ctx['tables'] ?? [], true)) {
-                $params['tables'][] = (string) $t;
+        foreach (self::scalarList($stored['tables'] ?? []) as $t) {
+            if (in_array($t, $ctx['tables'] ?? [], true)) {
+                $params['tables'][] = $t;
             } else {
                 $dropped[] = 'table:' . $t;
             }
@@ -84,7 +128,7 @@ class SavedSearchService
 
         // dates: keep if parseable.
         foreach (['date_from', 'date_to'] as $k) {
-            $v = (string) ($stored[$k] ?? '');
+            $v = self::scalarString($stored[$k] ?? '');
             if ($v === '') {
                 continue;
             }
@@ -97,7 +141,7 @@ class SavedSearchService
 
         // users: keep only ids that still exist.
         $validUsers = array_map('intval', $ctx['user_ids'] ?? []);
-        foreach ((array) ($stored['users'] ?? []) as $u) {
+        foreach (self::scalarList($stored['users'] ?? []) as $u) {
             if (in_array((int) $u, $validUsers, true)) {
                 $params['users'][] = (int) $u;
             } else {
@@ -107,10 +151,10 @@ class SavedSearchService
 
         // facets: "column=value" token — the column must still exist.
         $validCols = array_map('strval', $ctx['facet_columns'] ?? []);
-        foreach ((array) ($stored['facets'] ?? []) as $token) {
-            $col = MeiliSearchService::parseFacetToken((string) $token)['col'];
+        foreach (self::scalarList($stored['facets'] ?? []) as $token) {
+            $col = MeiliSearchService::parseFacetToken($token)['col'];
             if (in_array($col, $validCols, true)) {
-                $params['facets'][] = (string) $token;
+                $params['facets'][] = $token;
             } else {
                 $dropped[] = 'facet:' . $token;
             }
@@ -119,13 +163,14 @@ class SavedSearchService
         // range: the n_<col> field must still be declared.
         $validFields = array_map('strval', $ctx['range_fields'] ?? []);
         foreach ((array) ($stored['range'] ?? []) as $field => $r) {
-            if (!is_array($r)) {
+            if (!is_string($field) || !is_array($r)) {
                 continue;
             }
-            if (in_array((string) $field, $validFields, true)) {
+            if (in_array($field, $validFields, true)) {
                 foreach (['from', 'to'] as $side) {
-                    if (($r[$side] ?? '') !== '') {
-                        $params['range'][$field][$side] = (string) $r[$side];
+                    $v = self::scalarString($r[$side] ?? '');
+                    if ($v !== '') {
+                        $params['range'][$field][$side] = $v;
                     }
                 }
             } else {
@@ -146,9 +191,11 @@ class SavedSearchService
     {
         return static::sanitizeWith($stored, [
             'tables' => static::searchableTableNames(),
-            'facet_columns' => static::existingColumnNames($stored['facets'] ?? []),
+            // Same guard as sanitizeWith(): the lookups below concatenate and
+            // cast these values, so a stored non-scalar must not reach them.
+            'facet_columns' => static::existingColumnNames(self::scalarList($stored['facets'] ?? [])),
             'range_fields' => FilterConfig::allRangeFields(),
-            'user_ids' => static::existingUserIds($stored['users'] ?? []),
+            'user_ids' => static::existingUserIds(self::scalarList($stored['users'] ?? [])),
         ]);
     }
 

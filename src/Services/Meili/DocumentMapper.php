@@ -118,7 +118,8 @@ class DocumentMapper
     }
 
     /**
-     * Convert a range column value to a comparable number (date -> unix, number -> number).
+     * Convert a range column value to a comparable number
+     * (date/datetime -> unix, time -> seconds since midnight, number -> number).
      *
      * @param  mixed  $value
      * @return int|float|null
@@ -128,7 +129,18 @@ class DocumentMapper
         if ($value === null || $value === '' || is_array($value)) {
             return null;
         }
-        if (in_array($columnType, ['date', 'datetime', 'time'], true)) {
+        // A time column carries no date, so strtotime() would resolve "10:30:00"
+        // against the day the record happens to be indexed: the same clock time
+        // gets a different number on every reindex, and a filter built today
+        // matches nothing indexed yesterday. Seconds since midnight is the only
+        // stable comparable number for a time of day.
+        if ($columnType === 'time') {
+            if ($value instanceof \DateTimeInterface) {
+                $value = $value->format('H:i:s');
+            }
+            return is_scalar($value) ? self::timeOfDaySeconds((string) $value) : null;
+        }
+        if (in_array($columnType, ['date', 'datetime'], true)) {
             return self::toTimestamp($value);
         }
         if (is_numeric($value)) {
@@ -136,6 +148,39 @@ class DocumentMapper
         }
 
         return null;
+    }
+
+    /**
+     * "HH:MM" / "HH:MM:SS" -> seconds since midnight. Anything else -> null.
+     *
+     * Shared by the indexer (DocumentMapper::rangeValue) and the request parser
+     * (RequestFilters::parse) so both sides of a time range speak the same unit.
+     */
+    public static function timeOfDaySeconds(string $value): ?int
+    {
+        if (!preg_match('/^(\d{1,2}):([0-5]\d)(?::([0-5]\d))?$/', trim($value), $m)) {
+            return null;
+        }
+        $hour = (int) $m[1];
+        if ($hour > 23) {
+            return null;
+        }
+
+        return $hour * 3600 + ((int) $m[2]) * 60 + ((int) ($m[3] ?? 0));
+    }
+
+    /**
+     * html input type of a range column's min/max box in the filter sidebar.
+     * A time column needs a time picker: rendering it as a number box let the
+     * browser reject "10:30" outright, so the filter could not be used at all.
+     */
+    public static function rangeInputType(string $columnType): string
+    {
+        if ($columnType === 'time') {
+            return 'time';
+        }
+
+        return in_array($columnType, ['date', 'datetime'], true) ? 'date' : 'number';
     }
 
     /**

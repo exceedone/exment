@@ -343,7 +343,7 @@ class FilterSidebar
             $out[] = [
                 'label' => $label,
                 'field' => $field,
-                'type' => in_array((string) $column->column_type, ['date', 'datetime'], true) ? 'date' : 'number',
+                'type' => DocumentMapper::rangeInputType((string) $column->column_type),
                 'from' => (string) ($req[$field]['from'] ?? ''),
                 'to' => (string) ($req[$field]['to'] ?? ''),
             ];

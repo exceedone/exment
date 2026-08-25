@@ -100,8 +100,11 @@ class MeiliSearchService
     {
         $options = [
             'filter' => self::buildFilterExpression($tableName, $filters),
-            'hitsPerPage' => $perPage,
-            'page' => $page,
+            // Clamped: hitsPerPage 0 makes Meilisearch answer every query with
+            // zero hits, which the callers then read as "no results" instead of
+            // as a misconfigured cap.
+            'hitsPerPage' => max(1, $perPage),
+            'page' => max(1, $page),
         ];
 
         $sortExpr = self::buildSortExpression($sort);
