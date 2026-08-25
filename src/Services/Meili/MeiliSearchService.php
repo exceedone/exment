@@ -474,16 +474,25 @@ class MeiliSearchService
     /**
      * Search with highlighting: also returns 'snippet' (the excerpt containing the highlighted keyword).
      *
+     * @param MeiliFilters $filters
      * @return array<int,array{table_name:?string,value_id:mixed,label:?string,snippet:string}>
      */
-    public function searchHighlighted(string $q, int $limit = 10): array
+    public function searchHighlighted(string $q, int $limit = 10, array $filters = []): array
     {
-        $result = $this->client->index($this->indexName)->search($q, $this->applyMatchingStrategy([
+        $options = [
             'limit' => $limit,
             'attributesToHighlight' => ['*'],
             'highlightPreTag' => self::HIGHLIGHT_PRE,
             'highlightPostTag' => self::HIGHLIGHT_POST,
-        ]));
+        ];
+
+        // Filtering here rather than only after the fact.
+        $expr = self::buildFilterExpression(null, $filters);
+        if ($expr !== '') {
+            $options['filter'] = $expr;
+        }
+
+        $result = $this->client->index($this->indexName)->search($q, $this->applyMatchingStrategy($options));
 
         return array_map(function ($hit) {
             return [

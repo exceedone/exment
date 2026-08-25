@@ -37,6 +37,19 @@ trait MeiliGlobalSearchTrait
             && class_exists(\Meilisearch\Client::class);
     }
 
+    /**
+     * Whether the search screen should actually go through Meilisearch.
+     *
+     * exment.search_document makes the MySQL path search document contents,
+     * which the index does not hold. Every entry point must agree on this, or
+     * the page renders Meili's sidebar/sort/export over MySQL results and the
+     * filters quietly do nothing.
+     */
+    protected function meiliActive(): bool
+    {
+        return $this->meiliEnabled() && !boolval(config('exment.search_document', false));
+    }
+
     protected function makeService(): MeiliSearchService
     {
         return new MeiliSearchService(

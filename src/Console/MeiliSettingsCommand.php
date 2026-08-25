@@ -53,6 +53,7 @@ class MeiliSettingsCommand extends Command
                 'filterableAttributes' => $current['filterableAttributes'] ?? null,
                 'stopWords' => $current['stopWords'] ?? null,
                 'synonyms' => $current['synonyms'] ?? null,
+                'localizedAttributes' => $current['localizedAttributes'] ?? null,
                 'typoTolerance' => $current['typoTolerance'] ?? null,
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             return self::SUCCESS;
