@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Console;
 
+use Exceedone\Exment\Jobs\ReindexMeiliTableJob;
 use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\ExmentIndexer;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
@@ -115,9 +116,64 @@ class MeiliReconcileCommand extends Command
             }
         }
 
+        // A table that stopped being search-enabled leaves every one of its
+        // documents behind: the per-table loop above only visits tables that
+        // still qualify, so nothing would ever come back for them.
+        $totalStale = $only ? 0 : $this->purgeStaleTables($client, $indexName, $indexer, $dryRun);
+
         $verb = $dryRun ? 'found' : 'repaired';
-        $this->info(sprintf('Reconcile done. %s: %d missing, %d orphan.', $verb, $totalMissing, $totalOrphan));
+        $this->info(sprintf(
+            'Reconcile done. %s: %d missing, %d orphan, %d document(s) of de-indexed tables.',
+            $verb,
+            $totalMissing,
+            $totalOrphan,
+            $totalStale
+        ));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Delete the documents of tables that are in the index but no longer
+     * qualify for it. Returns how many documents that covered.
+     *
+     * @param \Meilisearch\Client $client
+     * @param \Exceedone\Exment\Services\Meili\ExmentIndexer $indexer
+     */
+    protected function purgeStaleTables($client, string $indexName, $indexer, bool $dryRun): int
+    {
+        try {
+            // One query, no documents fetched: the facet distribution lists every
+            // table_name present with its document count.
+            $distribution = $client->index($indexName)
+                ->search('', ['limit' => 0, 'facets' => ['table_name']])
+                ->getFacetDistribution()['table_name'] ?? [];
+        } catch (\Throwable $e) {
+            $this->warn('  could not list indexed tables: ' . $e->getMessage());
+            return 0;
+        }
+
+        $searchable = $indexer->searchableTables()->pluck('table_name')->all();
+        $total = 0;
+
+        foreach ($distribution as $tableName => $count) {
+            if (in_array((string) $tableName, $searchable, true)) {
+                continue;
+            }
+
+            $total += (int) $count;
+            $this->line(sprintf('  %-30s de-indexed, %d document(s) %s', $tableName, $count, $dryRun ? '(dry-run)' : 'removed'));
+
+            if ($dryRun) {
+                continue;
+            }
+
+            $task = $client->index($indexName)->deleteDocuments([
+                'filter' => ReindexMeiliTableJob::tableFilter((string) $tableName),
+            ]);
+            $client->waitForTask($task['taskUid'], 60000);
+        }
+
+        return $total;
     }
 }

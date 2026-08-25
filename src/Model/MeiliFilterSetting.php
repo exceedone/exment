@@ -47,15 +47,6 @@ class MeiliFilterSetting extends ModelBase
         });
     }
 
-    /**
-     * Tables already dispatched recently (table_name => unix time). The
-     * settings screen saves many rows in one request; without this, N rows
-     * would mean N full-table reindexes (inline on the sync queue driver).
-     *
-     * @var array<string,float>
-     */
-    protected static array $reindexDispatched = [];
-
     protected function dispatchReindex(): void
     {
         try {
@@ -64,15 +55,9 @@ class MeiliFilterSetting extends ModelBase
                 return;
             }
 
-            $now = microtime(true);
-            $last = self::$reindexDispatched[$table->table_name] ?? null;
-            if ($last !== null && ($now - $last) < 5.0) {
-                return;
-            }
-            self::$reindexDispatched[$table->table_name] = $now;
-
-            // Queued, NOT ->afterResponse() - see MeiliDefinitionSync for why.
-            ReindexMeiliTableJob::dispatch($table->table_name);
+            // Delayed + unique: the settings screen saves many rows in one
+            // request, and one job reading the committed state beats N racing it.
+            ReindexMeiliTableJob::dispatchUnlessBlocking($table->table_name);
 
             // Reindex only rewrites documents. A range setting also needs its
             // n_<table>::<col> declared filterable, or Meili rejects the filter

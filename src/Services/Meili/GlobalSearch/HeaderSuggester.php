@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\Meili\GlobalSearch;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
+use Exceedone\Exment\Services\Meili\SavedSearchService;
 
 /**
  * Global search header suggestions: a single Meilisearch query, permission
@@ -22,8 +23,11 @@ class HeaderSuggester
     public function suggest(string $q): array
     {
         $limit = 10;
-        // Over-fetch (limit*4) so enough hits remain after permission filtering.
-        $hits = $this->service->searchHighlighted($q, $limit * 4);
+        // Constrain to tables the user may view, then over-fetch: the row-level
+        // scope below can still drop hits, but never a whole table's worth.
+        $hits = $this->service->searchHighlighted($q, $limit * 4, [
+            'permitted_tables' => SavedSearchService::searchableTableNames(),
+        ]);
 
         // Record permission filter: queries automatically apply the
         // CustomValueModelScope global scope.

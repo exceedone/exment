@@ -54,7 +54,7 @@ class SearchController extends AdminControllerBase
         }
 
         // global search; on error -> fallback to MySQL below.
-        if ($this->meiliEnabled()) {
+        if ($this->meiliActive()) {
             try {
                 return $this->headerByMeilisearch($q);
             } catch (\Throwable $e) {
@@ -145,7 +145,7 @@ class SearchController extends AdminControllerBase
 
         // Filter by table: keep only the ticked tables.
         $selectedTables = RequestFilters::strList($request, 'tables');
-        if ($this->meiliEnabled() && !empty($selectedTables)) {
+        if ($this->meiliActive() && !empty($selectedTables)) {
             $tableArrays = $tableArrays->filter(function ($t) use ($selectedTables) {
                 return in_array((string) array_get($t, 'table_name'), $selectedTables, true);
             })->values();
@@ -153,7 +153,7 @@ class SearchController extends AdminControllerBase
 
         // add left column: unified filter (date + creator + status) + table facets.
         // right column: saved search quickbar (mockup style) + results.
-        if ($this->meiliEnabled()) {
+        if ($this->meiliActive()) {
             try {
                 $applied = $this->appliedChips($request);
 
@@ -190,7 +190,7 @@ class SearchController extends AdminControllerBase
      */
     public function export(Request $request)
     {
-        if (!$this->meiliEnabled()) {
+        if (!$this->meiliActive()) {
             abort(404);
         }
 
@@ -274,9 +274,7 @@ class SearchController extends AdminControllerBase
     protected function getListItem(Request $request, $q, $table_name)
     {
         // pagination through Meili; on error -> fallback to MySQL below.
-        $searchDocument = boolval(config('exment.search_document', false));
-
-        if ($this->meiliEnabled() && !$searchDocument) {
+        if ($this->meiliActive()) {
             try {
                 return $this->getListItemByMeili($request, $q, $table_name);
             } catch (\Throwable $e) {

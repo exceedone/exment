@@ -43,6 +43,15 @@ class SearchExporter
         );
         $ids = $result['ids'];
 
+        // A full page back means Meilisearch had at least this many matches, so
+        // exporting would drop the rest with nothing on the file to say so.
+        // Refusing is the only honest option: the index caps at maxTotalHits, so
+        // there is no page 2 to fetch.
+        if (count($ids) >= $cap) {
+            admin_toastr(sprintf(exmtrans('search.export_too_many'), $cap), 'error');
+            return back();
+        }
+
         $classname = getModelName($custom_table);
         $grid = new \ExmentAdminCore\Admin\Grid(new $classname());
         $grid->model()->usePaginate(false);
