@@ -318,6 +318,7 @@ return [
         ],
         'meili_enabled' => '有効',
         'meili_filter_range_unsupported' => '範囲フィルタには日付または数値の列が必要です。「:type」は比較できないため、条件に一致するデータが存在しません。',
+        'meili_filter_duplicate' => 'この列にはすでにフィルタ設定があります。行を追加せず、既存の行を編集してください。',
         'meili_dictionary' => '検索辞書（類義語・ストップワード）',
         'meili_dictionary_type' => '種別',
         'meili_dictionary_type_synonym' => '類義語',

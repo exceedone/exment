@@ -318,6 +318,7 @@ return [
         ],
         'meili_enabled' => 'Enabled',
         'meili_filter_range_unsupported' => 'A range filter needs a date or numeric column. ":type" cannot be compared, so the filter would never match any record.',
+        'meili_filter_duplicate' => 'This column already has a filter setting. Edit the existing row instead of adding another one.',
         'meili_dictionary' => 'Search dictionary (synonyms / stop words)',
         'meili_dictionary_type' => 'Type',
         'meili_dictionary_type_synonym' => 'Synonym',
