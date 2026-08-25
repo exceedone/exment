@@ -81,6 +81,39 @@ class RequestFilters
         return $filters;
     }
 
+    /**
+     * Read a param as a string. `?query[]=x` makes input() return an array, and
+     * casting that to string is an E_WARNING - which Laravel turns into an
+     * ErrorException, so a crafted URL would 500 the page.
+     */
+    public static function str(Request $request, string $key, string $default = ''): string
+    {
+        $value = $request->input($key, $default);
+
+        return is_scalar($value) ? (string) $value : $default;
+    }
+
+    /**
+     * Read a param as a list of strings, dropping anything not scalar.
+     *
+     * @return array<int,string>
+     */
+    public static function strList(Request $request, string $key): array
+    {
+        $values = $request->input($key, []);
+        if (is_scalar($values)) {
+            $values = [$values];
+        }
+        if (!is_array($values)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            array_map('strval', array_filter($values, 'is_scalar')),
+            fn ($v) => $v !== ''
+        ));
+    }
+
     private static function boundary(string $value, bool $upper): ?int
     {
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {

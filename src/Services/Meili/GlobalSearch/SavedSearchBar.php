@@ -26,7 +26,7 @@ class SavedSearchBar
             // If back is already in the URL (a chip is applied), keep it -> clicking
             // another chip then toggling still returns to the correct original state.
             $back = $request->input('back');
-            if ($back === null) {
+            if (!is_scalar($back)) {
                 $qs = $request->query();
                 unset($qs['ss'], $qs['back']);
                 $back = http_build_query($qs);
@@ -34,13 +34,13 @@ class SavedSearchBar
 
             // q = the current keyword: a saved search WITHOUT a keyword (quick filter)
             // applies its filters on top of this keyword.
-            $fallback = '?q=' . urlencode((string) $request->input('query', ''))
+            $fallback = '?q=' . urlencode(RequestFilters::str($request, 'query'))
                 . '&back=' . urlencode((string) $back);
 
             // Clicking the active chip again -> return to the state before applying.
             $toggleUrl = admin_url('search') . '?' . ((string) $back !== ''
                 ? (string) $back
-                : 'query=' . urlencode((string) $request->input('query', '')));
+                : 'query=' . urlencode(RequestFilters::str($request, 'query')));
 
             $savedSearches = MeiliSavedSearch::listForCurrentUser()->map(fn ($r) => [
                 'id' => $r->id,

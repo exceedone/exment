@@ -14,6 +14,28 @@ use Illuminate\Http\Request;
 class AppliedChips
 {
     /**
+     * Query params are attacker-controlled: `?tables[][]=x` nests an array, and
+     * strval() on it is an E_WARNING that Laravel turns into an ErrorException.
+     *
+     * @param  mixed  $value
+     * @return array<int,string>
+     */
+    private static function stringList($value): array
+    {
+        if (is_scalar($value)) {
+            $value = [$value];
+        }
+        if (!is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            array_map('strval', array_filter($value, 'is_scalar')),
+            fn ($v) => $v !== ''
+        ));
+    }
+
+    /**
      * @return array{chips:array<int,array{label:string,url:string}>,clearUrl:string}
      */
     public static function build(Request $request): array
@@ -26,7 +48,7 @@ class AppliedChips
         $chips = [];
 
         // Tables
-        $tables = array_values(array_filter(array_map('strval', (array) ($qs['tables'] ?? []))));
+        $tables = self::stringList($qs['tables'] ?? null);
         foreach ($tables as $tn) {
             $rest = $qs;
             $rest['tables'] = array_values(array_diff($tables, [$tn]));
@@ -41,7 +63,7 @@ class AppliedChips
         }
 
         // Status/category (facets)
-        $facets = array_values(array_filter(array_map('strval', (array) ($qs['facets'] ?? []))));
+        $facets = self::stringList($qs['facets'] ?? null);
         if (!empty($facets)) {
             $cols = array_map(fn ($t) => MeiliSearchService::parseFacetToken($t)['col'], $facets);
             $labels = FilterConfig::aliasLabels()
@@ -62,7 +84,7 @@ class AppliedChips
         }
 
         // Creator
-        $users = array_values(array_filter(array_map('strval', (array) ($qs['users'] ?? []))));
+        $users = self::stringList($qs['users'] ?? null);
         if (!empty($users)) {
             $names = LabelResolver::resolveUserNames(array_map('intval', $users));
             foreach ($users as $uid) {
@@ -86,7 +108,7 @@ class AppliedChips
             $rest = $qs;
             unset($rest[$key]);
             $chips[] = [
-                'label' => exmtrans('common.created_at') . ' ' . exmtrans($trans) . ': ' . $qs[$key],
+                'label' => exmtrans('common.created_at') . ' ' . exmtrans($trans) . ': ' . (is_scalar($qs[$key]) ? $qs[$key] : ''),
                 'url' => $url($rest),
             ];
         }

@@ -30,7 +30,7 @@ class FilterSidebar
     {
         $filters = RequestFilters::parse($request);
         $selectedUsers = $filters['users'] ?? [];
-        $selectedTables = array_values(array_filter(array_map('strval', (array) $request->input('tables', []))));
+        $selectedTables = RequestFilters::strList($request, 'tables');
         if (!empty($selectedTables)) {
             $filters['tables'] = $selectedTables;
         }
