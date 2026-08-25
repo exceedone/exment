@@ -164,9 +164,15 @@ class MeiliFilterController extends AdminControllerBase
             return [];
         }
 
+        // Equality types + everything a range filter can index
+        // (DocumentMapper::RANGE_COLUMN_TYPES) + user/organization, which are
+        // offered for equality only. Leaving a range-capable type out of this
+        // list makes it unselectable, so a decimal or time column could never be
+        // configured as a range filter even though the indexer supports it.
         $allowed = array_merge(
             FilterConfig::equalityTypes(),
-            ['date', 'datetime', 'integer', 'currency', 'user', 'organization']
+            DocumentMapper::RANGE_COLUMN_TYPES,
+            ['user', 'organization']
         );
 
         return collect($table->custom_columns)

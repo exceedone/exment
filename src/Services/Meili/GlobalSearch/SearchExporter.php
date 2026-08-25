@@ -31,7 +31,9 @@ class SearchExporter
      */
     public function export(Request $request, string $q, $custom_table)
     {
-        $cap = (int) config('meilisearch.permission_scan_cap', 1000);
+        // max(1): with a cap of 0 the "too many results" test below would refuse
+        // every export, including an empty one.
+        $cap = max(1, (int) config('meilisearch.permission_scan_cap', 1000));
         $sort = RequestFilters::sort($request);
         $result = $this->service->searchTablePaginated(
             $q,

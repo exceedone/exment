@@ -48,8 +48,11 @@ class SearchController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function header(Request $request)
     {
-        $q = $request->input('query');
-        if (!isset($q)) {
+        // `?query[]=x` would otherwise reach headerByMeilisearch/searchValue
+        // as an array and 500 the autocomplete (same crafted-URL class the
+        // search page was hardened against in 2764a781f).
+        $q = RequestFilters::str($request, 'query');
+        if ($q === '') {
             return [];
         }
 
@@ -194,6 +197,15 @@ class SearchController extends AdminControllerBase
             abort(404);
         }
 
+        // Normalize `query` into the request source before touching the exporter.
+        // The exporter builds an admin Grid and Middleware\Initialize wires
+        // Grid::setSearchKey('query'), so HasQuickSearch would otherwise pull
+        // the raw array back out of the request via request()->get('query')
+        // and 500 on trim(array). Do this before permission checks so a bad
+        // input never leaks a TypeError trace through the error page.
+        $q = RequestFilters::str($request, 'query');
+        $request->merge(['query' => $q]);
+
         $custom_table = CustomTable::getEloquent($request->input('table_name'));
         if (!$custom_table
             || !$custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
@@ -202,7 +214,7 @@ class SearchController extends AdminControllerBase
             return;
         }
 
-        return $this->exportByMeili($request, RequestFilters::str($request, 'query'), $custom_table);
+        return $this->exportByMeili($request, $q, $custom_table);
     }
 
     /**
@@ -243,7 +255,7 @@ class SearchController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function getLists(Request $request)
     {
-        $q = $request->input('query');
+        $q = RequestFilters::str($request, 'query');
         //search each tables
         $table_names = stringToArray($request->input('table_names', []));
 
@@ -261,7 +273,7 @@ class SearchController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function getList(Request $request)
     {
-        $q = $request->input('query');
+        $q = RequestFilters::str($request, 'query');
         $table_name = $request->input('table_name', []);
 
         return $this->getListItem($request, $q, $table_name);

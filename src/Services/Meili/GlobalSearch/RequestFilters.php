@@ -71,7 +71,7 @@ class RequestFilters
                 if (!is_scalar($v) || $v === '') {
                     continue;
                 }
-                $out[$field][$k] = is_numeric($v) ? ($v + 0) : self::boundary((string) $v, $k === 'to');
+                $out[$field][$k] = is_numeric($v) ? ($v + 0) : self::rangeBound((string) $v, $k === 'to');
             }
         }
         if (!empty($out)) {
@@ -112,6 +112,29 @@ class RequestFilters
             array_map('strval', array_filter($values, 'is_scalar')),
             fn ($v) => $v !== ''
         ));
+    }
+
+    /**
+     * Bound of a range[n_<table>::<col>] box. A time column is indexed as
+     * seconds since midnight (DocumentMapper::rangeValue), so "10:30" must be
+     * converted the same way - strtotime() would turn it into today's unix
+     * timestamp and the filter would match nothing.
+     *
+     * Only the range boxes go through here: date_from/date_to filter created_at,
+     * which really is a unix timestamp.
+     */
+    private static function rangeBound(string $value, bool $upper): ?int
+    {
+        $seconds = DocumentMapper::timeOfDaySeconds($value);
+        if ($seconds === null) {
+            return self::boundary($value, $upper);
+        }
+
+        // "to 10:30" must cover 10:30:00-10:30:59, like a date bound covers the
+        // whole day; an explicit "10:30:45" is already exact.
+        $hasSeconds = (bool) preg_match('/^\d{1,2}:\d{2}:\d{2}$/', trim($value));
+
+        return ($upper && !$hasSeconds) ? $seconds + 59 : $seconds;
     }
 
     private static function boundary(string $value, bool $upper): ?int

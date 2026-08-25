@@ -120,6 +120,72 @@ class MeiliSavedSearchTest extends FeatureTestBase
         $this->assertSame('2025-01-01', $filters['date_from'] ?? null);
     }
 
+    /**
+     * The save modal posts the CURRENT QUERY STRING verbatim
+     * (resources/views/search/saved-quickbar.blade.php), so a crafted search URL
+     * such as ?tables[][]=x reaches SavedSearchService::filtersFromInput() as a
+     * nested array. strval()/(string) on it raises "Array to string conversion",
+     * which Laravel's error handler turns into an ErrorException: this endpoint
+     * answered 500. Where it did not, the literal string "Array" was persisted
+     * as a table/user/facet filter.
+     *
+     * See tests/Unit/Meili/SavedSearchArrayInputTest.php for the unit-level
+     * contract; this pins the HTTP behaviour that first exposed it.
+     */
+    public function testStoreSurvivesArrayShapedFilterParams(): void
+    {
+        $response = $this->post(admin_urls('search', 'saved'), [
+            'query' => 'crafted',
+            'name' => 'Crafted filters',
+            'tables' => [['nested']],
+            'users' => [['nested']],
+            'facets' => [['nested=1']],
+            'date_from' => ['2025-01-01'],
+            'range' => ['n_t::price' => ['from' => ['1']]],
+        ]);
+
+        $response->assertStatus(200);
+
+        // Nothing in that payload is a usable filter, so nothing may be stored.
+        $filters = (array) MeiliSavedSearch::find((int) $response->json('id'))->filters;
+        $this->assertSame([], $filters);
+    }
+
+    /**
+     * Rows written before the guard existed still hold arrays in `filters`, and
+     * apply() runs them back through sanitizeWith(), which concatenates
+     * ('table:' . $value) and casts ((int) $value) them - the same 500, plus
+     * `(int) ['1'] === 1`, i.e. a filter on a user id nobody ever chose.
+     */
+    public function testApplyOfALegacyRecordWithArrayFiltersDoesNotBreak(): void
+    {
+        $saved = MeiliSavedSearch::create([
+            'name' => 'Legacy junk filters',
+            'owner_user_id' => (int) LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN)->getUserId(),
+            'query' => 'legacy',
+            'filters' => [
+                'tables' => [['nested']],
+                'users' => [['1']],
+                'facets' => [['a=b']],
+                'date_from' => ['2025-01-01'],
+                'range' => ['n_t::price' => ['from' => ['1']]],
+            ],
+            'share_type' => MeiliSavedSearch::SHARE_PERSONAL,
+            'share_targets' => [],
+        ]);
+
+        $response = $this->get(admin_urls('search', 'saved', $saved->id, 'apply'));
+
+        $response->assertStatus(302);
+        $location = (string) $response->headers->get('Location');
+        $this->assertStringContainsString('query=legacy', $location);
+        $this->assertStringNotContainsString(
+            'Array',
+            $location,
+            'a nested array reached the redirect as a filter value literally named "Array"'
+        );
+    }
+
     public function testListForCurrentUserReturnsOwnRecords(): void
     {
         $this->post(admin_urls('search', 'saved'), [
