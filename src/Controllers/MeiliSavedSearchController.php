@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\MeiliSavedSearch;
 use Exceedone\Exment\Services\Meili\GlobalSearch\SavedSearchBar;
+use Exceedone\Exment\Services\Meili\GlobalSearch\RequestFilters;
 use Exceedone\Exment\Services\Meili\SavedSearchService;
 use Illuminate\Http\Request;
 
@@ -21,12 +22,12 @@ class MeiliSavedSearchController extends AdminControllerBase
             abort(403);
         }
 
-        $name = trim((string) $request->input('name'));
+        $name = trim(RequestFilters::str($request, 'name'));
         if ($name === '' || mb_strlen($name) > 100) {
             return response()->json(['message' => exmtrans('search.saved_name_invalid')], 422);
         }
 
-        $shareType = (string) $request->input('share_type', MeiliSavedSearch::SHARE_PERSONAL);
+        $shareType = RequestFilters::str($request, 'share_type', MeiliSavedSearch::SHARE_PERSONAL);
         if (!in_array($shareType, [
             MeiliSavedSearch::SHARE_PERSONAL,
             MeiliSavedSearch::SHARE_ALL,
@@ -37,12 +38,12 @@ class MeiliSavedSearchController extends AdminControllerBase
         }
 
         // with_query=0 -> save only the conditions (quick filter); applying keeps the current keyword.
-        $withQuery = (string) $request->input('with_query', '1') !== '0';
+        $withQuery = RequestFilters::str($request, 'with_query', '1') !== '0';
 
         $saved = MeiliSavedSearch::create([
             'name' => $name,
             'owner_user_id' => (int) $user->getUserId(),
-            'query' => $withQuery ? (string) $request->input('query', '') : '',
+            'query' => $withQuery ? RequestFilters::str($request, 'query') : '',
             'filters' => SavedSearchService::filtersFromInput($request->all()),
             'share_type' => $shareType,
             'share_targets' => self::validShareTargets($shareType, (array) $request->input('share_targets', [])),
@@ -94,14 +95,14 @@ class MeiliSavedSearchController extends AdminControllerBase
         // A saved search with a keyword -> replace the keyword too (a complete bookmark).
         $query = (string) $saved->query;
         if ($query === '') {
-            $query = (string) $request->input('q', '');
+            $query = RequestFilters::str($request, 'q');
         }
 
         // ss = the applied id -> the quickbar highlights the correct chip.
         $params = ['query' => $query, 'ss' => $saved->id] + $result['params'];
 
         // Keep the state before applying
-        $back = (string) $request->input('back', '');
+        $back = RequestFilters::str($request, 'back');
         if ($back !== '') {
             $params['back'] = $back;
         }
