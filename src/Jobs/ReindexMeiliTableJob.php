@@ -35,7 +35,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUnique
         // race on the same table. Set here, not as a property: redeclaring a
         // trait property with a different value is a PHP fatal.
         $this->timeout = 60;
-
+        
         $this->afterCommit();
 
         // Own queue so a long reindex never blocks the per-record sync jobs:
@@ -111,14 +111,6 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUnique
      */
     private function shouldIndex($table): bool
     {
-        if (!$table) {
-            return false;
-        }
-
-        if (!boolval($table->getOption('search_enabled'))) {
-            return false;
-        }
-
-        return $table->getFreewordSearchColumns()->isNotEmpty();
+        return \Exceedone\Exment\Services\Meili\ExmentIndexer::isIndexable($table);
     }
 }

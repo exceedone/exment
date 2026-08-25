@@ -428,8 +428,9 @@ trait ApiDataTrait
     /**
      * select_table autocomplete with a SINGLE Meilisearch query.
      * Returns a LengthAwarePaginator of CustomValues (like searchValue), or null
-     * on error -> the caller falls back to searchValue (MySQL). Models are
-     * loaded through the global scope, so record permission still applies.
+     * whenever Meilisearch cannot answer authoritatively - the caller then falls
+     * back to searchValue (MySQL). Models are loaded through the global scope,
+     * so record permission still applies.
      *
      * @param string $q
      * @param int|null $count
@@ -439,7 +440,15 @@ trait ApiDataTrait
     protected function searchSelectByMeilisearch($q, $count, Request $request)
     {
         try {
-            $perPage = $count ?: 10;
+            $custom_table = $this->custom_table;
+
+            // A table outside the indexing criteria has no document at all, so
+            // Meili could only ever answer "no results".
+            if (!\Exceedone\Exment\Services\Meili\ExmentIndexer::isIndexable($custom_table)) {
+                return null;
+            }
+
+            $perPage = max(1, (int) ($count ?: 10));
             $page = (int) $request->input('page', 1);
             if ($page < 1) {
                 $page = 1;
@@ -449,13 +458,30 @@ trait ApiDataTrait
                 \Exceedone\Exment\Services\Meili\MeiliClientFactory::make(),
                 config('meilisearch.index')
             );
-            $result = $service->searchTablePaginated($q, $this->custom_table->table_name, $perPage, $page);
+
+            $cap = min(
+                (int) config('meilisearch.permission_scan_cap', 1000),
+                $perPage * 20
+            );
+            $result = $service->searchTablePaginated($q, $custom_table->table_name, $cap, 1);
+            $candidateIds = $result['ids'];
+            if (empty($candidateIds)) {
+                return null;
+            }
+
+            $accessibleIds = getModelName($custom_table)::whereIn('id', $candidateIds)->pluck('id')->all();
+            $paged = \Exceedone\Exment\Services\Meili\MeiliSearchService::pageAccessibleIds(
+                $candidateIds,
+                $accessibleIds,
+                $page,
+                $perPage
+            );
 
             // Must be an Eloquent Collection (has makeHidden) because modifyAfterGetValue calls makeHidden().
             $models = new Collection();
-            if (!empty($result['ids'])) {
-                $loaded = getModelName($this->custom_table)::whereIn('id', $result['ids'])->get()->keyBy('id');
-                foreach ($result['ids'] as $id) {
+            if (!empty($paged['pageIds'])) {
+                $loaded = getModelName($custom_table)::whereIn('id', $paged['pageIds'])->get()->keyBy('id');
+                foreach ($paged['pageIds'] as $id) {
                     $m = $loaded->get($id);
                     if ($m) {
                         $models->push($m);
@@ -463,17 +489,9 @@ trait ApiDataTrait
                 }
             }
 
-            // Meili's total ignores record permission. When this page came back
-            // short (the scope dropped rows), stop the paginator here so
-            // select2's "load more" never advertises pages that would be empty.
-            $total = $result['total'];
-            if ($models->count() < $perPage) {
-                $total = ($page - 1) * $perPage + $models->count();
-            }
-
             return new \Illuminate\Pagination\LengthAwarePaginator(
                 $models,
-                $total,
+                $paged['total'],
                 $perPage,
                 $page,
                 ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
