@@ -26,6 +26,10 @@ class SyncMeiliDocumentJob implements ShouldQueue
         public $valueId,
         public string $action // 'upsert' | 'delete'
     ) {
+        // Saves run inside a transaction: a worker picking this up before the
+        // commit would find() nothing and delete the document instead.
+        $this->afterCommit();
+
         // Light job (one document, ~tens of ms). Stays on the priority queue so
         // record changes reflect in the index quickly, never waiting behind the
         // heavy table reindex job (see ReindexMeiliTableJob).
