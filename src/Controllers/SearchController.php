@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Meili\GlobalSearch\RequestFilters;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Auth\Permission as Checker;
@@ -131,8 +132,11 @@ class SearchController extends AdminControllerBase
         $content->description(exmtrans('search.description_freeword'));
         $this->setCommonScript(true);
 
+        // `?query[]=x` would otherwise reach sprintf/blade as an array.
+        $q = RequestFilters::str($request, 'query');
+
         // add header and description
-        $title = sprintf(exmtrans("search.result_label"), $request->input('query'));
+        $title = sprintf(exmtrans("search.result_label"), $q);
         $this->setPageInfo($title, $title, exmtrans("plugin.description"));
 
         $tableArrays = $this->getSearchTargetTable()->map(function ($table) {
@@ -140,7 +144,7 @@ class SearchController extends AdminControllerBase
         });
 
         // Filter by table: keep only the ticked tables.
-        $selectedTables = array_filter(array_map('strval', (array) $request->input('tables', [])));
+        $selectedTables = RequestFilters::strList($request, 'tables');
         if ($this->meiliEnabled() && !empty($selectedTables)) {
             $tableArrays = $tableArrays->filter(function ($t) use ($selectedTables) {
                 return in_array((string) array_get($t, 'table_name'), $selectedTables, true);
@@ -159,14 +163,14 @@ class SearchController extends AdminControllerBase
                 $exportBase = admin_url('search/export') . '?' . http_build_query($exportQuery);
 
                 $resultsHtml = view('exment::search.index', [
-                    'query' => $request->input('query'),
+                    'query' => $q,
                     'tables' => $tableArrays,
                     'appliedChips' => $applied['chips'],
                     'clearUrl' => $applied['clearUrl'],
                     'exportBase' => $exportBase,
                     'sort' => $this->sortFromRequest($request) ?? 'relevance',
                 ])->render();
-                $sidebar = $this->renderFilterSidebarHtml($request, (string) $request->input('query'));
+                $sidebar = $this->renderFilterSidebarHtml($request, $q);
                 $quickbar = $this->renderSavedSearchBarHtml($request);
                 $content->body("<div class='row'><div class='col-md-3'>{$sidebar}</div><div class='col-md-9'>{$quickbar}{$resultsHtml}</div></div>");
                 return $content;
@@ -175,7 +179,7 @@ class SearchController extends AdminControllerBase
             }
         }
 
-        $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $tableArrays]));
+        $content->body(view('exment::search.index', ['query' => $q, 'tables' => $tableArrays]));
         return $content;
     }
     /**
@@ -198,7 +202,7 @@ class SearchController extends AdminControllerBase
             return;
         }
 
-        return $this->exportByMeili($request, (string) $request->input('query', ''), $custom_table);
+        return $this->exportByMeili($request, RequestFilters::str($request, 'query'), $custom_table);
     }
 
     /**
