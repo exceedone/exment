@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\Meili\GlobalSearch;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Meili\FilterConfig;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
+use Exceedone\Exment\Services\Meili\SavedSearchService;
 use Illuminate\Http\Request;
 
 /**
@@ -47,6 +48,11 @@ class AppliedChips
 
         $chips = [];
 
+        // Labels are resolved from raw query keys, so scope them to the tables
+        // the user may view: an unpermitted key falls back to the raw token
+        // instead of leaking a hidden table's/column's display name.
+        $permitted = SavedSearchService::searchableTableNames();
+
         // Tables
         $tables = self::stringList($qs['tables'] ?? null);
         foreach ($tables as $tn) {
@@ -55,9 +61,9 @@ class AppliedChips
             if (empty($rest['tables'])) {
                 unset($rest['tables']);
             }
-            $table = CustomTable::getEloquent($tn);
+            $table = in_array($tn, $permitted, true) ? CustomTable::getEloquent($tn) : null;
             $chips[] = [
-                'label' => exmtrans('custom_table.table') . ': ' . ($table->table_view_name ?? $tn),
+                'label' => exmtrans('custom_table.table') . ': ' . ($table ? ($table->table_view_name ?? $tn) : $tn),
                 'url' => $url($rest),
             ];
         }
@@ -66,9 +72,12 @@ class AppliedChips
         $facets = self::stringList($qs['facets'] ?? null);
         if (!empty($facets)) {
             $cols = array_map(fn ($t) => MeiliSearchService::parseFacetToken($t)['col'], $facets);
+            // Only resolve column view-names for tables the user may view; alias
+            // labels are global admin search vocabulary, so they stay unscoped.
+            $safeCols = LabelResolver::permittedPrefixes($cols, $permitted);
             $labels = FilterConfig::aliasLabels()
-                + LabelResolver::settingViewLabels($cols)
-                + LabelResolver::resolveColumnLabels($cols);
+                + LabelResolver::settingViewLabels($safeCols)
+                + LabelResolver::resolveColumnLabels($safeCols);
             foreach ($facets as $token) {
                 $p = MeiliSearchService::parseFacetToken($token);
                 $rest = $qs;
@@ -117,7 +126,8 @@ class AppliedChips
         $ranges = (array) ($qs['range'] ?? []);
         if (!empty($ranges)) {
             $cols = array_map(fn ($f) => preg_replace('/^n_/', '', (string) $f), array_keys($ranges));
-            $labels = LabelResolver::settingViewLabels($cols) + LabelResolver::resolveColumnLabels($cols);
+            $safeCols = LabelResolver::permittedPrefixes($cols, $permitted);
+            $labels = LabelResolver::settingViewLabels($safeCols) + LabelResolver::resolveColumnLabels($safeCols);
             foreach ($ranges as $field => $r) {
                 $from = RequestFilters::rangeSide($r, 'from');
                 $to = RequestFilters::rangeSide($r, 'to');

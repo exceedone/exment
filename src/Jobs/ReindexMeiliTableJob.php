@@ -166,7 +166,25 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         // Records deleted since the last run keep a document nothing points at.
         $service = new MeiliSearchService($client, $indexName);
         $orphan = MeiliSearchService::diffIds($dbIds, $service->indexedValueIds($this->tableName))['orphan'];
-        $service->deleteByValueIds($this->tableName, $orphan, $mapper);
+        $service->deleteByValueIds($this->tableName, self::deletableOrphans($orphan, $dbIds), $mapper);
+    }
+
+    /**
+     * Drop ids newer than the snapshot from the orphan list.
+     *
+     * @param  array<int,int|string>  $orphan
+     * @param  array<int,int|string>  $dbIds
+     * @return array<int,int|string>
+     */
+    public static function deletableOrphans(array $orphan, array $dbIds): array
+    {
+        if (empty($dbIds)) {
+            return [];
+        }
+
+        $highest = max(array_map('intval', $dbIds));
+
+        return array_values(array_filter($orphan, fn ($id) => (int) $id <= $highest));
     }
 
     /**
