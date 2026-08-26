@@ -94,6 +94,9 @@ class AiSummaryServiceTest extends DashboardUnitTestCase
         $this->assertSame('chat/completions', ltrim($this->history[0]['request']->getUri()->getPath(), '/v1/'));
         $this->assertStringContainsString('"E"=50 (unusually high)', $sent['messages'][0]['content']);
         $this->assertStringContainsString('highest = "E" at 50', $sent['messages'][0]['content']);
+        $this->assertStringContainsString('spread = highest - lowest = 40', $sent['messages'][0]['content']);
+        $this->assertStringContainsString('lowest to highest (10 to 50)', $sent['messages'][0]['content'], 'range semantics pinned to the Key figures extremes');
+        $this->assertStringContainsString('takeaway that stays inside the data', $sent['messages'][0]['content'], 'recommendation must not promise outcomes the data cannot show');
         $this->assertStringContainsString('title="Avg score"', $sent['messages'][0]['content']);
 
         // same data again: served from cache, no provider call
@@ -107,6 +110,22 @@ class AiSummaryServiceTest extends DashboardUnitTestCase
         $mock->append(self::reply('other'));
         $this->assertFalse($service->summarize('box1|fp2', $this->data())['cached']);
         $this->assertCount(2, $this->history);
+    }
+
+    public function testStableSeriesPromptOmitsFenceValues()
+    {
+        [$service, $mock] = $this->service([self::reply('stable')]);
+        // evenly spread values: no outlier (fences 7.5 .. 17.5)
+        $result = $service->summarize('b', $this->data(['A', 'B', 'C', 'D', 'E', 'F'], [10, 11, 12, 13, 14, 15]));
+
+        $this->assertTrue($result['success']);
+        $this->assertSame(0, $result['anomalies']['count']);
+        $this->assertSame(7.5, $result['anomalies']['lower'], 'the strip still gets the fences');
+
+        $sent = json_decode((string) $this->history[0]['request']->getBody(), true)['messages'][0]['content'];
+        $this->assertStringContainsString('no significant anomaly', $sent);
+        $this->assertStringContainsString('do NOT quote any expected range', $sent);
+        $this->assertStringNotContainsString('7.5', $sent, 'fence values are withheld from the narrative prompt');
     }
 
     public function testWithheldWhenValuesContainPii()

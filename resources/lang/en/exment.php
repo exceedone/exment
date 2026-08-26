@@ -585,8 +585,6 @@ return [
             'chart_series' => 'Series column (multi-series)',
             'chart_filters' => 'Chart filter fields',
             'chart_filters_help' => 'Adds filter fields to the toolbar of this chart (a checklist where several values can be picked; number and date columns get a from / to range). They narrow ONLY this chart — other boxes are unaffected. When the dashboard filter bar is set too, both conditions apply.',
-            'chart_type_lock' => 'Lock chart type',
-            'chart_type_lock_help' => 'When enabled, the chart-type selector is not shown on the dashboard.',
             'calendar_type' => 'Calendar Type',
             'content' => 'Content',
             'html' => 'HTML',

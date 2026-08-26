@@ -91,9 +91,7 @@ class ChartItem implements ItemInterface
 
         // runtime chart-type switch (`ct` on the box request): presentation only, same data
         $this->configured_type = array_get($this->dashboard_box, 'options.chart_type');
-        $this->chart_type = $this->typeLocked()
-            ? $this->configured_type
-            : ChartType::resolve($this->configured_type, request()->input('ct'));
+        $this->chart_type = ChartType::resolve($this->configured_type, request()->input('ct'));
         if ($this->chart_type !== $this->configured_type) {
             // the saved option flag belongs to the configured family — give the switched type its own default
             $this->chart_options = in_array($this->chart_type, ChartType::legendTypes(), true)
@@ -236,11 +234,6 @@ class ChartItem implements ItemInterface
         return array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE;
     }
 
-    protected function typeLocked(): bool
-    {
-        return boolval(array_get($this->dashboard_box, 'options.chart_type_lock'));
-    }
-
     /**
      * AND the dashboard filter (targeting-aware) and this box's chart filter onto a query.
      */
@@ -256,10 +249,8 @@ class ChartItem implements ItemInterface
     protected function toolbarHtml(): string
     {
         $types = [];
-        if (!$this->typeLocked()) {
-            foreach (ChartType::switchPool($this->configured_type) as $type) {
-                $types[$type] = exmtrans('chart.chart_type_options.' . $type);
-            }
+        foreach (ChartType::switchPool($this->configured_type) as $type) {
+            $types[$type] = exmtrans('chart.chart_type_options.' . $type);
         }
         $fields = [];
         if ($this->chart_filter->isConfigured()) {
@@ -578,10 +569,6 @@ class ChartItem implements ItemInterface
             })
             ->help(exmtrans("dashboard.dashboard_box_options.chart_filters_help"));
 
-        $form->switchbool('chart_type_lock', exmtrans("dashboard.dashboard_box_options.chart_type_lock"))
-            ->help(exmtrans("dashboard.dashboard_box_options.chart_type_lock_help"))
-            ->default(false);
-
         $form->checkbox('chart_axis_label', exmtrans("dashboard.dashboard_box_options.chart_axis_label"))
             ->options([
                 1 => exmtrans("dashboard.dashboard_box_options.chart_axisx_short"),
@@ -651,12 +638,6 @@ EOT;
             $options['chart_filters'] = $filters;
         } else {
             unset($options['chart_filters']);
-        }
-
-        if (boolval(array_get($options, 'chart_type_lock'))) {
-            $options['chart_type_lock'] = true;
-        } else {
-            unset($options['chart_type_lock']);
         }
 
         $form->options = $options;
