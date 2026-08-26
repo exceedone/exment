@@ -15,6 +15,24 @@ use Exceedone\Exment\Services\Meili\DocumentMapper;
 class LabelResolver
 {
     /**
+     * Keep only the prefixes whose label is safe to show the current user: a
+     * qualified "table::column" whose table the user may view. Bare prefixes
+     * (aliases / legacy tokens with no table qualifier) are dropped so the
+     * caller falls back to the raw token instead of leaking a hidden label.
+     *
+     * @param array<int,string> $prefixes
+     * @param array<int,string> $permittedTables table_names the user may view
+     * @return array<int,string>
+     */
+    public static function permittedPrefixes(array $prefixes, array $permittedTables): array
+    {
+        return array_values(array_filter($prefixes, function ($prefix) use ($permittedTables) {
+            $table = DocumentMapper::splitColumnPrefix((string) $prefix)['table'];
+            return $table !== null && in_array($table, $permittedTables, true);
+        }));
+    }
+
+    /**
      * Facet prefix -> display label (view_label) configured by the admin on the
      * filter settings screen, if any. Keyed back by the original prefix.
      *

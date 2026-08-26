@@ -159,7 +159,7 @@ class FilterSidebar
         arsort($dist);
         // Any org with more creators than this loses the rest, so keep it in step
         // with the equality groups rather than a tighter number of its own.
-        $dist = array_slice($dist, 0, (int) config('meilisearch.filter.max_values_per_group', 20), true);
+        $dist = array_slice($dist, 0, max(1, (int) config('meilisearch.filter.max_values_per_group', 20)), true);
 
         // A ticked user outside the top values / with 0 results is still shown.
         foreach ($selectedUsers as $uid) {
@@ -235,8 +235,8 @@ class FilterSidebar
             return [];
         }
 
-        $maxGroups = (int) config('meilisearch.filter.max_groups', 12);
-        $maxVals = (int) config('meilisearch.filter.max_values_per_group', 8);
+        $maxGroups = max(1, (int) config('meilisearch.filter.max_groups', 12));
+        $maxVals = max(1, (int) config('meilisearch.filter.max_values_per_group', 8));
         // Group label: alias (merged group) takes priority first, then the column's
         // view_label, finally fall back to the column display name. An alias column
         // token has key = alias so only aliasLabels matches; a normal column token
