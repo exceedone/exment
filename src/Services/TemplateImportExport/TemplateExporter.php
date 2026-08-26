@@ -13,6 +13,8 @@ use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\PublicForm;
+use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Enums\TemplateExportTarget;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\DashboardType;
@@ -122,6 +124,12 @@ class TemplateExporter
         }
         if (in_array(TemplateExportTarget::PUBLIC_FORM, $options['export_target'])) {
             static::setTemplatePublicForm($config, array_get($options, 'public_form_uuid'), $is_lang);
+        }
+        if (in_array(TemplateExportTarget::WORKFLOW, $options['export_target'])) {
+            static::setTemplateWorkflow($config, $options['target_tables'] ?? [], $is_lang);
+        }
+        if (in_array(TemplateExportTarget::NOTIFY, $options['export_target'])) {
+            static::setTemplateNotify($config, $options['target_tables'] ?? [], $is_lang);
         }
 
         return $config;
@@ -271,6 +279,83 @@ class TemplateExporter
             return;
         }
         $config['public_form'] = $public_form->getTemplateExportItems($is_lang);
+    }
+
+
+    /**
+     * Export workflows (with workflow_tables, workflow_statuses, workflow_actions and workflow_authorities as children).
+     * If target_tables is not empty, only export workflows attached to those tables.
+     */
+    // @phpstan-ignore-next-line
+    protected static function setTemplateWorkflow(&$config, $target_tables = [], $is_lang = false)
+    {
+        $workflows = Workflow::with([
+            'workflow_tables',
+            'workflow_tables.custom_table',
+            'workflow_statuses',
+            'workflow_actions',
+        ])->get();
+
+        $configWorkflows = [];
+        foreach ($workflows as $workflow) {
+            if (count($target_tables) > 0) {
+                $attached = collect($workflow->workflow_tables)
+                    ->pluck('custom_table.table_name')
+                    ->filter()
+                    ->intersect($target_tables);
+                if ($attached->isEmpty()) {
+                    continue;
+                }
+            }
+            $configWorkflows[] = $workflow->getTemplateExportItems($is_lang);
+        }
+        $config['workflows'] = $configWorkflows;
+    }
+
+
+    /**
+     * Export notifies. If target_tables is not empty, only export notifies whose
+     * target references those tables (custom_table target or workflow attached to those tables).
+     */
+    // @phpstan-ignore-next-line
+    protected static function setTemplateNotify(&$config, $target_tables = [], $is_lang = false)
+    {
+        $notifies = Notify::all();
+        $configNotifies = [];
+        foreach ($notifies as $notify) {
+            if (count($target_tables) > 0) {
+                if (!static::notifyMatchesTargetTables($notify, $target_tables)) {
+                    continue;
+                }
+            }
+            $configNotifies[] = $notify->getTemplateExportItems($is_lang);
+        }
+        $config['notifies'] = $configNotifies;
+    }
+
+
+    /**
+     * Whether a Notify record ultimately references any of the target_tables (by table_name).
+     */
+    // @phpstan-ignore-next-line
+    protected static function notifyMatchesTargetTables($notify, array $target_tables): bool
+    {
+        $trigger = $notify->notify_trigger;
+        $customTableTriggers = \Exceedone\Exment\Enums\NotifyTrigger::CUSTOM_TABLES();
+        if (is_array($customTableTriggers) && in_array($trigger, $customTableTriggers)) {
+            $table = \Exceedone\Exment\Model\CustomTable::getEloquent($notify->target_id);
+            return $table && in_array($table->table_name, $target_tables);
+        }
+        if ($trigger == \Exceedone\Exment\Enums\NotifyTrigger::WORKFLOW) {
+            $workflow = Workflow::find($notify->target_id);
+            if (!$workflow) {
+                return false;
+            }
+            $tables = collect($workflow->workflow_tables)->pluck('custom_table.table_name')->filter();
+            return $tables->intersect($target_tables)->isNotEmpty();
+        }
+        // Fallback: include when we can't determine
+        return true;
     }
 
 

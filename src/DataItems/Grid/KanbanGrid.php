@@ -484,7 +484,7 @@ class KanbanGrid extends GridBase
         // one option list shared by every card, not one lookup per card
         $labels_options = [];
         if (isset($labels_column)) {
-            foreach ($labels_column->createSelectOptions() as $key => $label) {
+            foreach (static::columnValueOptions($labels_column) as $key => $label) {
                 $labels_options[strval($key)] = strval($label);
             }
         }
@@ -686,12 +686,12 @@ class KanbanGrid extends GridBase
         foreach ($groupables as $custom_column) {
             $columns[$custom_column->id] = $custom_column;
         }
-        if (isset($assignee_column) && static::isSelectableColumn($assignee_column)) {
+        if (static::isValueListedColumn($assignee_column)) {
             $columns[$assignee_column->id] = $assignee_column;
         }
         foreach ($card_fields as $card_field) {
             $custom_column = $card_field['custom_column'];
-            if (isset($custom_column) && static::isSelectableColumn($custom_column)) {
+            if (static::isValueListedColumn($custom_column)) {
                 $columns[$custom_column->id] = $custom_column;
             }
         }
@@ -733,11 +733,11 @@ class KanbanGrid extends GridBase
     protected function buildOptions($custom_column)
     {
         $options = [];
-        if (!static::isSelectableColumn($custom_column)) {
+        if (!static::isValueListedColumn($custom_column)) {
             return $options;
         }
 
-        foreach ($custom_column->createSelectOptions() as $key => $label) {
+        foreach (static::columnValueOptions($custom_column) as $key => $label) {
             $options[] = ['key' => strval($key), 'label' => strval($label)];
         }
 
@@ -755,7 +755,7 @@ class KanbanGrid extends GridBase
     {
         $colors = [];
         foreach ($value_columns as $column_name => $custom_column) {
-            if (!static::isSelectableColumn($custom_column)) {
+            if (!static::isValueListedColumn($custom_column)) {
                 continue;
             }
             // the data list already lets a column say what each value looks
@@ -765,7 +765,7 @@ class KanbanGrid extends GridBase
 
             $map = [];
             $index = 0;
-            foreach ($custom_column->createSelectOptions() as $key => $label) {
+            foreach (static::columnValueOptions($custom_column) as $key => $label) {
                 $color = array_get($picked, strval($key) . '.color');
                 $map[strval($key)] = $color ?: static::PALETTE[$index % count(static::PALETTE)];
                 $index++;
@@ -2120,17 +2120,8 @@ class KanbanGrid extends GridBase
             return [];
         }
 
-        $column_type = array_get($assignee_column, 'column_type');
-        if ($column_type == ColumnType::SELECT_TABLE) {
-            // a select_table only holds people when the table it points at does
-            $target = $assignee_column->select_target_table;
-            $table_name = isset($target) ? $target->table_name : null;
-            if ($table_name == SystemTableName::USER) {
-                $column_type = ColumnType::USER;
-            } elseif ($table_name == SystemTableName::ORGANIZATION) {
-                $column_type = ColumnType::ORGANIZATION;
-            }
-        }
+        // a select_table only holds people when the table it points at does
+        $column_type = static::normalizedColumnType($assignee_column);
 
         $user = \Exment::user();
         if (!isset($user)) {
@@ -2332,6 +2323,94 @@ class KanbanGrid extends GridBase
     protected static function isSelectableColumn($custom_column)
     {
         return in_array(array_get($custom_column, 'column_type'), [ColumnType::SELECT, ColumnType::SELECT_VALTEXT]);
+    }
+
+
+    /**
+     * Column type with select_table resolved to what it actually points at.
+     *
+     * A select_table aimed at the user table behaves like a user column in
+     * every way the board cares about, and the same for organisations.
+     *
+     * @param CustomColumn|null $custom_column
+     * @return string|null
+     */
+    protected static function normalizedColumnType($custom_column)
+    {
+        $column_type = array_get($custom_column, 'column_type');
+        if ($column_type != ColumnType::SELECT_TABLE) {
+            return $column_type;
+        }
+
+        $target = $custom_column->select_target_table;
+        $table_name = isset($target) ? $target->table_name : null;
+        if ($table_name == SystemTableName::USER) {
+            return ColumnType::USER;
+        }
+        if ($table_name == SystemTableName::ORGANIZATION) {
+            return ColumnType::ORGANIZATION;
+        }
+
+        return $column_type;
+    }
+
+
+    /**
+     * Whether the values of a column can be listed as a fixed set of key => label.
+     *
+     * The board needs such a list for the assignee picker, the filter panel and
+     * the colour map. A select column carries its list in its own settings; a
+     * user or organisation column borrows it from the table it points at. This
+     * is deliberately wider than isSelectableColumn(), which answers the
+     * narrower question of what a card can be dropped onto.
+     *
+     * @param CustomColumn|null $custom_column
+     * @return bool
+     */
+    protected static function isValueListedColumn($custom_column)
+    {
+        if (!isset($custom_column)) {
+            return false;
+        }
+        if (static::isSelectableColumn($custom_column)) {
+            return true;
+        }
+
+        return in_array(static::normalizedColumnType($custom_column), [ColumnType::USER, ColumnType::ORGANIZATION]);
+    }
+
+
+    /**
+     * key => label of everything a column can hold.
+     *
+     * @param CustomColumn|null $custom_column
+     * @return array<int|string, string>
+     */
+    protected static function columnValueOptions($custom_column)
+    {
+        if (!isset($custom_column)) {
+            return [];
+        }
+        if (static::isSelectableColumn($custom_column)) {
+            return $custom_column->createSelectOptions();
+        }
+
+        $column_type = static::normalizedColumnType($custom_column);
+        if ($column_type == ColumnType::USER) {
+            $target = CustomTable::getEloquent(SystemTableName::USER);
+        } elseif ($column_type == ColumnType::ORGANIZATION) {
+            $target = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
+        } else {
+            return [];
+        }
+        if (!isset($target)) {
+            return [];
+        }
+
+        // notAjax: the board keeps the whole list in its payload, so it has to
+        // be the whole list even past the point an ordinary select box would
+        // switch to searching
+        return $target->getSelectOptions(['notAjax' => true, 'custom_column' => $custom_column])->toArray();
     }
 
 

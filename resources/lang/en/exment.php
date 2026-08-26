@@ -2,6 +2,10 @@
 
 return [
     'label' => 'English',
+    'cross_link' => [
+        'header' => 'Cross links',
+        'deleted' => '(deleted record)',
+    ],
     'common' => [
         'home' => 'HOME',
         'success' => 'Success',
@@ -172,6 +176,7 @@ return [
             'modal_confirm' => 'If you want to do it, enter "%s".',
             'label_link' => 'For :label, please check <a href=":link" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'preview' => 'This page is a preview. If you want to refresh the content, click the preview button again in the original window.',
+            'comment_mention' => 'Comment (type @ to notify a member)',
             'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.',
             'preview_error' => 'The preview has expired. Please close this screen and preview again.',
             'csrf_error' => 'The expiration date has expired, so please reopen your browser.',
@@ -1304,6 +1309,7 @@ return [
         'one_record_flg' => 'Save Only One Record',
         'attachment_flg' => 'Use Attachment File',
         'comment_flg' => 'Use Comment',
+        'comment_link_relation' => 'Link type for records mentioned in a comment',
         'use_label_id_flg' => 'Use ID as Label',
         'revision_flg' => 'Use Data Revision',
         'revision_count' => 'Data Revision Versioning Count',
@@ -1388,6 +1394,7 @@ return [
             'one_record_flg' => 'Can Save Only One Record. For example, yourself company information.',
             'attachment_flg' => 'If set to YES, you can add attachments to each data.',
             'comment_flg' => 'If set to YES, comments can be added to each data.',
+            'comment_link_relation' => 'Enter an alphanumeric type name (e.g. related) to create links automatically from labels (e.g. PORTAL-12) or #12 found in the comment text. Leave blank to do nothing.',
             'use_label_id_flg' => 'If set to YES, the value of the data id is displayed as a heading item. Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
             'revision_flg' => 'If it is set to YES, save the data change history when saving each data. Also, you can restore previous saved information on each data page.',
             'revision_count' => 'The maximum number of items to save change history of data. When saving more history, the past history is deleted.',
@@ -1485,6 +1492,8 @@ return [
     ],
     
     'custom_column' => [
+        'assign_me' => 'Assign to me',
+        'quickadd' => 'Add new',
         'header' => 'Custom Column Detail Setting',
         'description' => 'Setting details with customer list. these define required fields, searchable fields, etc.',
         'column_name' => 'Column Name',
@@ -1552,6 +1561,10 @@ return [
             'select_import_column_id' => 'Key column when importing',
             'select_export_column_id' => 'Key column when exporting',
             'select_load_ajax' => 'Narrow down the choices',
+            'cross_link_relation' => 'Two-way link type',
+            'assign_me_enabled' => 'Show an "assign to me" button',
+            'quickadd_enabled' => 'Show an "add new" button',
+            'paste_attach_enabled' => 'Accept images pasted from the clipboard',
             'showing_all_user_organizations' => 'Display users/organizations without permission',
             'true_value' => 'Select1 Value',
             'true_label' => 'Select1 Label',
@@ -1658,6 +1671,10 @@ return [
             'select_item_valtext' => 'Enter choices by line break separator. The word before the comma is the value, the word after the comma is the label.<br/>Ex：「1,Adult<br/>2,Underage」→"1" is the value saving data. "Adult" is the label user selected.',
             'select_target_table' => 'Select the table to be selected.',
             'select_load_ajax' => 'If set to YES, the options are not read at first, but the data is searched by the user input value, and the candidates are narrowed down. <br/> * Regardless of this setting, if the number of data items is %s or more, it will be set to narrow down to improve performance.',
+            'cross_link_relation' => 'Enter an alphanumeric type name (e.g. related) to also show the link on the detail page of the picked record. Leave blank for a plain one-way lookup.',
+            'assign_me_enabled' => 'If YES, a button appears next to this column that picks the logged-in user.',
+            'quickadd_enabled' => 'If YES, an "add new" button appears next to the choices. Enter just a name to create the row in the referenced table. Hidden when the user cannot create there.',
+            'paste_attach_enabled' => 'If YES, an image pasted with Ctrl+V on the screen is added to this file column. Pasting inside the rich text editor still goes into the text.',
             'showing_all_user_organizations' => 'When set to YES, all users/organizations are displayed in the selection without checking the permission to access the table. *If this setting is NO, the options displayed will be limited to the users and organizations that can access this table.',
             'select_target_view' => 'To narrow the data, specify a condition view. Please create the condition view on the custom table setting page first.',
             'select_import_column_id' => 'When importing data, you can specify custom columns to narrow the data in the selected table. If not set, use id. Please refer to &nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp; for details.',
@@ -2439,6 +2456,7 @@ return [
         'role_type_option_system' => [
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
             'login_user' => ['label' => 'Manage login user', 'help' => 'You can manage the users who log in to Exment.'],
+            'operation_log' => ['label' => 'View operation log', 'help' => 'You can read and export the operation log.<br/>Granted on its own it lets an auditor review who did what without also receiving the System Setting rights.<br/>Changing the auto-delete settings and deleting log rows still require System Setting.'],
             'filter_multiuser_all' => ['label' => 'Get All User and Org', 'help' => 'Information of all users/organizations can be obtained regardless of the setting of User/organization filter.'],
             'workflow' => ['label' => 'Workflow Settings', 'help' => 'You can change the workflow settings.'],
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can add, edit, delete custom tables.'],
@@ -2627,6 +2645,9 @@ return [
             'dashboard' => 'Dashboard',
             'menu' => 'Menu',
             'role_group' => 'Role group',
+            'public_form' => 'Public form',
+            'workflow' => 'Workflow',
+            'notify' => 'Notify',
         ]
     ],
 
@@ -2730,6 +2751,8 @@ return [
             'operation_contains_notmatch_condition' => 'The data %s that cannot be updated is selected.',
             'operation_succeeded' => 'Batch update was performed.',
             'action_disabled' => 'Operations from the screen are restricted.',
+            'quickadd_no_column' => 'This table has no text column usable as a label, so nothing can be added quickly.',
+            'mention_notify' => 'You were mentioned in a comment: :label',
             'restore' => 'Are you sure to restore this item ?',
             'restore_succeeded' => 'Restore succeeded !',
             'hard_delete' => 'Permanently delete? (This operation cannot be restored)',
@@ -2890,6 +2913,9 @@ return [
         'path' => 'Path',
         'ip' => 'IP Address',
         'input' => 'Input/Query',
+        'event_type' => 'Event',
+        'resource' => 'Target record',
+        'diff' => 'Changes',
         'enable_automatic' => 'Auto-delete operation logs',
         'keep_days' => 'Log retention period (days)',
         'keep_days_help' => 'Automatically delete operation logs older than the specified number of days. Enter a value of 1 or more.',

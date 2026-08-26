@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\TemplateImportResult;
 use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\Search\SearchService;
@@ -47,10 +48,23 @@ class Notify extends ModelBase
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\ColumnOptionQueryTrait;
+    use Traits\TemplateTrait;
     use Notifiable;
 
     protected $guarded = ['id'];
     protected $casts = ['trigger_settings' => 'json', 'action_settings' => 'json'];
+
+    public static $templateItems = [
+        'excepts' => ['id', 'suuid', 'mail_template_id', 'custom_view_id', 'active_flg', 'notify_actions'],
+        'uniqueKeys' => ['notify_view_name'],
+        'langs' => [
+            'keys' => ['notify_view_name'],
+            'values' => ['notify_view_name'],
+        ],
+        'enums' => [
+            'notify_trigger' => NotifyTrigger::class,
+        ],
+    ];
 
 
     // @phpstan-ignore-next-line
@@ -840,5 +854,170 @@ class Notify extends ModelBase
         ]);
 
         return $item->setCustomValue($custom_value)->value();
+    }
+
+    /**
+     * Export template replace json - handle polymorphic target_id mapping
+     *
+     * @param array $json
+     * @return void
+     */
+    protected function exportReplaceJson(&$json)
+    {
+        $notify_trigger = array_get($json, 'notify_trigger');
+
+        // Handle polymorphic target_id based on notify_trigger
+        if (isset($json['target_id']) && !is_nullorempty($json['target_id'])) {
+            // CUSTOM_TABLES group: map target_id to custom_table.table_name
+            if (in_array($notify_trigger, NotifyTrigger::CUSTOM_TABLES())) {
+                $custom_table = CustomTable::find($json['target_id']);
+                if ($custom_table) {
+                    $json['target_table_name'] = $custom_table->table_name;
+                    unset($json['target_id']);
+                } else {
+                    \Log::warning("Notify exportReplaceJson: target_id {$json['target_id']} not found in custom_tables for notify_trigger {$notify_trigger}");
+                }
+            }
+            // WORKFLOW: map target_id to workflow.workflow_view_name
+            elseif ($notify_trigger == NotifyTrigger::WORKFLOW) {
+                $workflow = Workflow::find($json['target_id']);
+                if ($workflow) {
+                    $json['target_workflow_name'] = $workflow->workflow_view_name;
+                    unset($json['target_id']);
+                } else {
+                    \Log::warning("Notify exportReplaceJson: target_id {$json['target_id']} not found in workflows for notify_trigger WORKFLOW");
+                }
+            }
+            // PUBLIC_FORMS group: map target_id to public_form.uuid
+            elseif (in_array($notify_trigger, NotifyTrigger::PUBLIC_FORMS())) {
+                $public_form = PublicForm::find($json['target_id']);
+                if ($public_form) {
+                    $json['target_public_form_uuid'] = $public_form->uuid;
+                    unset($json['target_id']);
+                } else {
+                    \Log::warning("Notify exportReplaceJson: target_id {$json['target_id']} not found in public_forms for notify_trigger {$notify_trigger}");
+                }
+            }
+        }
+
+        // Convert mail_template_id to mail_template_key_name
+        if (isset($json['mail_template_id']) && !is_nullorempty($json['mail_template_id'])) {
+            $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)->getValueModel($json['mail_template_id']);
+            if ($mail_template) {
+                $json['mail_template_key_name'] = $mail_template->getValue('mail_key_name');
+            }
+            unset($json['mail_template_id']);
+        }
+
+        // Convert custom_view_id to custom_view.suuid
+        if (isset($json['custom_view_id']) && !is_nullorempty($json['custom_view_id'])) {
+            $custom_view = CustomView::find($json['custom_view_id']);
+            if ($custom_view) {
+                $json['custom_view_suuid'] = $custom_view->suuid;
+            }
+            unset($json['custom_view_id']);
+        }
+
+        // Convert legacy notify_actions CSV from enum values to enum keys for human readability
+        if (isset($json['notify_actions']) && !is_nullorempty($json['notify_actions'])) {
+            $actions_array = is_array($json['notify_actions']) ? $json['notify_actions'] : explode(',', $json['notify_actions']);
+            $action_keys = [];
+            foreach ($actions_array as $action_value) {
+                $enum = NotifyAction::getEnum($action_value);
+                if ($enum) {
+                    $action_keys[] = $enum->getKey();
+                }
+            }
+            if (!empty($action_keys)) {
+                $json['notify_actions'] = implode(',', $action_keys);
+            }
+        }
+    }
+
+    /**
+     * Import template replace json - reverse polymorphic target_id mapping
+     *
+     * @param array $json
+     * @param array $options
+     * @return string|null
+     */
+    protected static function importReplaceJson(&$json, $options = [])
+    {
+        $notify_trigger = array_get($json, 'notify_trigger');
+
+        // Handle polymorphic target_id based on notify_trigger
+        // CUSTOM_TABLES group: map target_table_name to custom_table.id
+        if (in_array($notify_trigger, NotifyTrigger::CUSTOM_TABLES()) && isset($json['target_table_name'])) {
+            $custom_table = CustomTable::getEloquent($json['target_table_name']);
+            if ($custom_table) {
+                $json['target_id'] = $custom_table->id;
+            } else {
+                \Log::warning("Notify importReplaceJson: target_table_name '{$json['target_table_name']}' not found for notify_trigger {$notify_trigger}");
+                return TemplateImportResult::CONITNUE;
+            }
+            unset($json['target_table_name']);
+        }
+        // WORKFLOW: map target_workflow_name to workflow.id
+        elseif ($notify_trigger == NotifyTrigger::WORKFLOW && isset($json['target_workflow_name'])) {
+            $workflow = Workflow::where('workflow_view_name', $json['target_workflow_name'])->first();
+            if ($workflow) {
+                $json['target_id'] = $workflow->id;
+            } else {
+                \Log::warning("Notify importReplaceJson: target_workflow_name '{$json['target_workflow_name']}' not found for notify_trigger WORKFLOW");
+                return TemplateImportResult::CONITNUE;
+            }
+            unset($json['target_workflow_name']);
+        }
+        // PUBLIC_FORMS group: map target_public_form_uuid to public_form.id
+        elseif (in_array($notify_trigger, NotifyTrigger::PUBLIC_FORMS()) && isset($json['target_public_form_uuid'])) {
+            $public_form = PublicForm::where('uuid', $json['target_public_form_uuid'])->first();
+            if ($public_form) {
+                $json['target_id'] = $public_form->id;
+            } else {
+                \Log::warning("Notify importReplaceJson: target_public_form_uuid '{$json['target_public_form_uuid']}' not found for notify_trigger {$notify_trigger}");
+                return TemplateImportResult::CONITNUE;
+            }
+            unset($json['target_public_form_uuid']);
+        }
+
+        // Convert mail_template_key_name to mail_template_id
+        if (isset($json['mail_template_key_name'])) {
+            $mail_template_table = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
+            if ($mail_template_table) {
+                $mail_template = $mail_template_table->getValueModel()->where('value->mail_key_name', $json['mail_template_key_name'])->first();
+                if ($mail_template) {
+                    $json['mail_template_id'] = $mail_template->id;
+                } else {
+                    \Log::warning("Notify importReplaceJson: mail_template_key_name '{$json['mail_template_key_name']}' not found");
+                }
+            }
+            unset($json['mail_template_key_name']);
+        }
+
+        // Convert custom_view.suuid to custom_view_id
+        if (isset($json['custom_view_suuid'])) {
+            $custom_view = CustomView::where('suuid', $json['custom_view_suuid'])->first();
+            if ($custom_view) {
+                $json['custom_view_id'] = $custom_view->id;
+            } else {
+                \Log::warning("Notify importReplaceJson: custom_view_suuid '{$json['custom_view_suuid']}' not found");
+            }
+            unset($json['custom_view_suuid']);
+        }
+
+        // Convert legacy notify_actions CSV from enum keys back to enum values
+        if (isset($json['notify_actions']) && !is_nullorempty($json['notify_actions'])) {
+            $action_keys = is_array($json['notify_actions']) ? $json['notify_actions'] : explode(',', $json['notify_actions']);
+            $action_values = [];
+            foreach ($action_keys as $action_key) {
+                $enum = NotifyAction::getEnum($action_key);
+                if ($enum) {
+                    $action_values[] = $enum->getValue();
+                }
+            }
+            if (!empty($action_values)) {
+                $json['notify_actions'] = implode(',', $action_values);
+            }
+        }
     }
 }

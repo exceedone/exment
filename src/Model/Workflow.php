@@ -27,10 +27,30 @@ class Workflow extends ModelBase
     use Traits\DatabaseJsonOptionTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
+    use Traits\TemplateTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $appends = ['workflow_edit_flg'];
     protected $casts = ['options' => 'json'];
+
+
+    // @phpstan-ignore-next-line
+    public static $templateItems = [
+        'excepts' => ['id', 'suuid'],
+        'uniqueKeys' => ['workflow_view_name'],
+        'langs' => [
+            'keys' => ['workflow_view_name'],
+            'values' => ['workflow_view_name'],
+        ],
+        'enums' => [
+            'workflow_type' => WorkflowType::class,
+        ],
+        'children' => [
+            'workflow_tables' => WorkflowTable::class,
+            'workflow_statuses' => WorkflowStatus::class,
+            'workflow_actions' => WorkflowAction::class,
+        ],
+    ];
 
 
     // @phpstan-ignore-next-line

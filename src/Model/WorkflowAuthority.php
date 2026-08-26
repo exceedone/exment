@@ -17,6 +17,15 @@ use Exceedone\Exment\ConditionItems\ConditionItemBase;
 class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\TemplateTrait;
+
+
+    // @phpstan-ignore-next-line
+    public static $templateItems = [
+        'excepts' => ['id'],
+        'parent' => 'workflow_action_id',
+        'uniqueKeys' => ['workflow_action_id', 'related_type', 'related_id'],
+    ];
 
 
     // @phpstan-ignore-next-line
@@ -132,5 +141,64 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
         }
 
         return [];
+    }
+
+    /**
+     * Export replace json - convert related_id to name-based reference for COLUMN type
+     *
+     * @param array $json
+     * @return void
+     */
+    public static function exportReplaceJson(&$json)
+    {
+        // For COLUMN type, convert ID to table.column_name format
+        if (array_key_exists('related_type', $json) && array_key_exists('related_id', $json)) {
+            $relatedType = $json['related_type'];
+            $relatedId = $json['related_id'];
+            
+            if ($relatedType === 'column' && is_numeric($relatedId)) {
+                $column = CustomColumn::getEloquent($relatedId);
+                if ($column) {
+                    $table = $column->custom_table;
+                    if ($table) {
+                        $json['related_ref'] = $table->table_name . '.' . $column->column_name;
+                        unset($json['related_id']);
+                    }
+                }
+            }
+            // For other types (user, organization, system), keep as-is (ID-based, only portable within same install)
+        }
+    }
+
+    /**
+     * Import replace json - convert name-based reference back to related_id for COLUMN type
+     *
+     * @param array $json
+     * @param array $options
+     * @return void
+     */
+    public static function importReplaceJson(&$json, $options = [])
+    {
+        // For COLUMN type with related_ref, convert back to ID
+        if (array_key_exists('related_type', $json) && array_key_exists('related_ref', $json)) {
+            $relatedType = $json['related_type'];
+            $relatedRef = $json['related_ref'];
+            
+            if ($relatedType === 'column' && strpos($relatedRef, '.') !== false) {
+                list($tableName, $columnName) = explode('.', $relatedRef, 2);
+                
+                $table = CustomTable::getEloquent($tableName);
+                if ($table) {
+                    $column = $table->custom_columns_cache->first(function ($col) use ($columnName) {
+                        return $col->column_name === $columnName;
+                    });
+                    
+                    if ($column) {
+                        $json['related_id'] = $column->id;
+                        unset($json['related_ref']);
+                    }
+                }
+            }
+        }
     }
 }
