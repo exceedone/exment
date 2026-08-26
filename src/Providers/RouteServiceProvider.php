@@ -46,6 +46,27 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
+        $this->mapExmentWebhookRotes();
+    }
+
+    /**
+     * Inbound webhooks: events posted by monitoring, CI or a git host.
+     *
+     * No admin auth here on purpose - the caller is a machine with a shared
+     * secret, not a browser with a session. The secret is checked per table in
+     * the controller, and a table that has not opted in returns 404.
+     *
+     * @return void
+     */
+    protected function mapExmentWebhookRotes()
+    {
+        Route::group([
+            'prefix'        => url_join(config('admin.route.prefix'), 'webhook'),
+            'namespace'     => $this->namespace,
+            'middleware'    => ['api'],
+        ], function (Router $router) {
+            $router->post('{tableKey}', 'WebhookController@receive')->name('exment.webhook');
+        });
     }
 
     /**
@@ -261,6 +282,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('tmpimages', 'FileController@uploadTempImage');
             $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFile');
 
+            // Preview of an unsaved record. Registered before the resource because
+            // "preview" would otherwise be read as a record id by data/{tableKey}/{id}.
+            $router->post('data/{tableKey}/preview', 'CustomValueController@preview')->name('exment.data.preview');
+            $router->post('data/{tableKey}/{id}/preview', 'CustomValueController@preview');
+
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
             $this->setTableResouce($router, 'form', 'CustomFormController');
@@ -277,6 +303,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');
             $router->get('webapi/menu/menutargetview', 'MenuController@menutargetview');
 
+            $router->get('webapi/mention/users', 'MentionController@users');
+
+            $router->post("webapi/{tableKey}/quickadd", 'ApiTableController@quickAdd');
             $router->get("webapi/{tableKey}/filter-condition", 'ApiTableController@getFilterCondition');
             $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
             $router->get("webapi/{tableKey}/operation-update-type", 'ApiTableController@getOperationUpdateType');

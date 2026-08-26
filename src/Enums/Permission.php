@@ -23,6 +23,7 @@ class Permission extends EnumBase
     public const PLUGIN_ACCESS = 'plugin_access';
     public const PLUGIN_SETTING = 'plugin_setting';
     public const LOGIN_USER = 'login_user';
+    public const OPERATION_LOG = 'operation_log';
     public const FILTER_MULTIUSER_ALL = 'filter_multiuser_all';
     public const ROLE_GROUP_ALL = 'role_group_all';
     public const ROLE_GROUP_PERMISSION = 'role_group_permission';
@@ -55,6 +56,7 @@ class Permission extends EnumBase
         self::CUSTOM_TABLE,
         self::CUSTOM_VALUE_EDIT_ALL,
         self::LOGIN_USER,
+        self::OPERATION_LOG,
         self::WORKFLOW,
         self::API_ALL,
         self::API,

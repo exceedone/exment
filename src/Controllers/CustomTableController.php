@@ -299,6 +299,15 @@ class CustomTableController extends AdminControllerBase
             $form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))
                 ->help(exmtrans("custom_table.help.comment_flg"))
                 ->default("1")
+                ->attribute(['data-filtertrigger' =>true])
+            ;
+            // A comment that names another record of this table links the two, the
+            // way Backlog does. Only shown when comments are on, because without
+            // them there is nothing to read.
+            $form->text('comment_link_relation', exmtrans("custom_table.comment_link_relation"))
+                ->help(exmtrans("custom_table.help.comment_link_relation"))
+                ->rules('nullable|regex:/^[a-zA-Z0-9_]{1,32}$/')
+                ->attribute(['data-filter' => json_encode(['key' => 'options_comment_flg', 'value' => "1"])])
             ;
             $form->switchbool('revision_flg', exmtrans("custom_table.revision_flg"))->help(exmtrans("custom_table.help.revision_flg"))
                 ->default("1")

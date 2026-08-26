@@ -71,6 +71,8 @@ class DefaultShow extends ShowBase
     {
         $this->setChildBlockBox($row);
 
+        $this->setCrossLinkBox($row);
+
         $this->setDocumentBox($row);
 
         $this->setRevisionBox($row);
@@ -613,6 +615,123 @@ EOT;
     }
 
     // @phpstan-ignore-next-line
+    /**
+     * set cross item link box.
+     *
+     * Shows every record tied to this one through `cross_item_links`, in both
+     * directions. That table is what carries the alert -> incident -> problem ->
+     * change -> backlog -> deploy chain, and without this box the links exist in
+     * the database but nowhere on screen.
+     *
+     * @param Row $row
+     * @return void
+     */
+    // @phpstan-ignore-next-line
+    protected function setCrossLinkBox($row)
+    {
+        if ($this->modal) {
+            return;
+        }
+        if (!method_exists($this->custom_value, 'crossLinksFrom')) {
+            return;
+        }
+
+        $items = [];
+        foreach ($this->custom_value->crossLinksFrom() as $link) {
+            $items[] = [
+                'relation_type' => $link->relation_type,
+                'direction' => 'out',
+                'type' => $link->to_type,
+                'id' => $link->to_id,
+                'meta' => $link->meta_json,
+            ];
+        }
+        foreach ($this->custom_value->crossLinksTo() as $link) {
+            $items[] = [
+                'relation_type' => $link->relation_type,
+                'direction' => 'in',
+                'type' => $link->from_type,
+                'id' => $link->from_id,
+                'meta' => $link->meta_json,
+            ];
+        }
+
+        if (empty($items)) {
+            return;
+        }
+
+        $html = [];
+        foreach ($items as $item) {
+            $target = static::getCrossLinkTarget($item['type'], $item['id']);
+            $arrow = $item['direction'] == 'out' ? '&rarr;' : '&larr;';
+
+            $label = esc_html($target['label']);
+            if (!is_nullorempty($target['url'])) {
+                $label = '<a href="' . $target['url'] . '">' . $label . '</a>';
+            }
+
+            $note = array_get($item['meta'], 'note');
+            $noteHtml = is_nullorempty($note) ? '' : '<div class="text-muted small">' . esc_html($note) . '</div>';
+
+            $html[] = '<div style="padding:4px 0;border-bottom:1px solid #f4f4f4;">'
+                . '<span class="label label-primary">' . esc_html($item['relation_type']) . '</span> '
+                . $arrow . ' '
+                . '<span class="text-muted">' . esc_html($target['table_label']) . '</span> '
+                . $label
+                . $noteHtml
+                . '</div>';
+        }
+
+        $form = new WidgetForm();
+        $form->disableReset();
+        $form->disableSubmit();
+        $form->html(implode('', $html))->plain()->setWidth(12, 0);
+
+        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('cross_link.header'), $form))->style('info'));
+    }
+
+    /**
+     * Resolve a cross_item_links endpoint ("custom_value_<table>" + id) into a
+     * label, the table's display name and the detail url.
+     *
+     * @param string $type
+     * @param int $id
+     * @return array{label: string, table_label: string, url: string|null}
+     */
+    // @phpstan-ignore-next-line
+    protected static function getCrossLinkTarget($type, $id)
+    {
+        $fallback = [
+            'label' => "{$type}#{$id}",
+            'table_label' => $type,
+            'url' => null,
+        ];
+
+        if (!\Str::startsWith($type, 'custom_value_')) {
+            return $fallback;
+        }
+
+        $table_name = substr($type, strlen('custom_value_'));
+        $custom_table = CustomTable::getEloquent($table_name);
+        if (!isset($custom_table)) {
+            return $fallback;
+        }
+
+        $fallback['table_label'] = $custom_table->table_view_name;
+
+        $custom_value = $custom_table->getValueModel($id);
+        if (!isset($custom_value)) {
+            $fallback['label'] = exmtrans('cross_link.deleted');
+            return $fallback;
+        }
+
+        return [
+            'label' => $custom_value->getLabel(),
+            'table_label' => $custom_table->table_view_name,
+            'url' => admin_urls('data', $table_name, $id),
+        ];
+    }
+
     protected function setDocumentBox($row)
     {
         $documents = $this->getDocuments();
@@ -734,6 +853,13 @@ EOT;
             ->rows(3)
             ->required()
             ->setLabelClass(['d-none'])
+            // "@" opens the member picker; mention.js reads both attributes off
+            // the field, so no page-level script tag is needed
+            ->attribute([
+                'data-mention' => '1',
+                'data-mention-url' => admin_url('webapi/mention/users'),
+                'placeholder' => exmtrans('common.message.comment_mention'),
+            ])
             ->setWidth(12, 0);
         }
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));

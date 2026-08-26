@@ -16,6 +16,9 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
@@ -810,6 +813,21 @@ class TemplateImporter
                         ]);
                     }
                 }
+            }
+
+            // loop for workflows (must be after custom_tables so workflow_tables can resolve custom_table_id)
+            foreach (array_get($json, "workflows", []) as $workflow) {
+                Workflow::importTemplate($workflow, $is_update);
+            }
+
+            // loop for notifies (must be after workflows so target_id can resolve to workflow_id)
+            foreach (array_get($json, "notifies", []) as $notify) {
+                Notify::importTemplate($notify, $is_update);
+            }
+
+            // public_form (single object, not array). Exporter writes it under 'public_form' key.
+            if (array_has($json, 'public_form') && is_array($json['public_form']) && !empty($json['public_form'])) {
+                PublicForm::importTemplate($json['public_form'], $is_update);
             }
 
             // create default form and view

@@ -14,9 +14,73 @@ class WorkflowConditionHeader extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
     use Traits\DatabaseJsonOptionTrait;
+    use Traits\TemplateTrait;
 
     protected $appends = ['condition_join', 'condition_reverse'];
     protected $casts = ['options' => 'json'];
+
+
+    // @phpstan-ignore-next-line
+    public static $templateItems = [
+        'excepts' => ['id'],
+        'uniqueKeys' => [
+            'export' => ['workflow_action_id', 'status_to'],
+            'import' => ['workflow_action_id', 'status_to'],
+        ],
+        'parent' => 'workflow_action_id',
+    ];
+
+
+    /**
+     * Convert status_to id -> status_name so the header is portable across installs.
+     */
+    public static function exportReplaceJson(&$json)
+    {
+        if (!array_key_exists('status_to', $json) || is_null($json['status_to'])) {
+            return;
+        }
+        $statusTo = $json['status_to'];
+        if ($statusTo === Define::WORKFLOW_START_KEYNAME) {
+            return;
+        }
+        if (is_numeric($statusTo)) {
+            $ws = WorkflowStatus::getEloquent($statusTo);
+            if ($ws) {
+                $json['status_to'] = $ws->status_name;
+            }
+        }
+    }
+
+
+    /**
+     * Convert status_to status_name back to id.
+     * The importer passes 'parent' = WorkflowAction instance in $options,
+     * which is why we resolve via WorkflowAction -> workflow_id.
+     */
+    public static function importReplaceJson(&$json, $options = [])
+    {
+        if (!array_key_exists('status_to', $json) || is_null($json['status_to'])) {
+            return;
+        }
+        $statusTo = $json['status_to'];
+        if ($statusTo === Define::WORKFLOW_START_KEYNAME) {
+            return;
+        }
+        if (is_numeric($statusTo)) {
+            return;
+        }
+
+        $workflowAction = array_get($options, 'parent');
+        if (!$workflowAction || !isset($workflowAction->workflow_id)) {
+            return;
+        }
+        $ws = WorkflowStatus::where('workflow_id', $workflowAction->workflow_id)
+            ->where('status_name', $statusTo)
+            ->first();
+        if ($ws) {
+            $json['status_to'] = (string) $ws->id;
+        }
+    }
 
 
     // @phpstan-ignore-next-line

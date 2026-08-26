@@ -10,6 +10,33 @@ namespace Exceedone\Exment\Model;
 class OperationLog extends \ExmentAdminCore\Admin\Auth\Database\OperationLog
 {
     use Traits\SerializeDateTrait;
+
+    /**
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'user_id',
+        'path',
+        'method',
+        'ip',
+        'input',
+        'event_type',
+        'resource_type',
+        'resource_id',
+        'before_json',
+        'after_json',
+        'diff_json',
+        'request_id',
+    ];
+
+    /**
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'before_json' => 'array',
+        'after_json' => 'array',
+        'diff_json' => 'array',
+    ];
     //protected $appends = ['base_user_id'];
 
 
@@ -35,6 +62,15 @@ class OperationLog extends \ExmentAdminCore\Admin\Auth\Database\OperationLog
         $user = $this->user;
         return $user ? $user->user_name : null;
     }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getDiffAttribute(): array
+    {
+        return $this->diff_json ?: [];
+    }
+
 
     /**
      * Prepare a date for array / JSON serialization.

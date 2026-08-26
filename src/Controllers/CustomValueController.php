@@ -28,6 +28,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginPageType;
@@ -336,6 +337,94 @@ class CustomValueController extends AdminControllerTableBase
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
             'page_type' => PluginPageType::CREATE
         ]);
+        return $content;
+    }
+
+    /**
+     * Show what the record will look like, without saving it.
+     *
+     * Backlog puts a プレビュー button next to 追加 for a reason: an issue is read far
+     * more often than it is written, and the writer is the only person who can
+     * still fix a mangled table or a broken link. Once it is saved, every watcher
+     * has already had it in their inbox.
+     *
+     * Reached by posting the form itself - preview.js retargets the form at this
+     * url in a second window - so what is rendered is the form as it stands, not
+     * as it was last saved. Nothing here writes: the record is built in memory and
+     * dropped when the response ends.
+     *
+     * @param Request $request
+     * @param Content $content
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return Content|Response
+     */
+    public function preview(Request $request, Content $content, $tableKey, $id = null)
+    {
+        $pageType = is_null($id) ? CustomValuePageType::CREATE : CustomValuePageType::EDIT;
+        if (($response = $this->firstFlow($request, $pageType, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $this->AdminContent($content);
+
+        // Start from the stored record when editing, so columns kept off the form
+        // (or not editable by this user) still show their real value rather than
+        // appearing to have been emptied.
+        $custom_value = isset($id) ? $this->custom_table->getValueModel($id) : null;
+        if (!isset($custom_value)) {
+            $custom_value = $this->custom_table->getValueModel();
+        }
+
+        $posted = $request->get('value');
+        if (is_array($posted)) {
+            $custom_value->setValue($posted);
+        }
+
+        $groups = [];
+        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            if (!boolval($custom_form_block->available)) {
+                continue;
+            }
+
+            $rows = [];
+            foreach ($custom_form_block->custom_form_columns as $form_column) {
+                if ($form_column->form_column_type != FormColumnType::COLUMN) {
+                    continue;
+                }
+
+                $column_item = $form_column->column_item;
+                if (is_null($column_item)) {
+                    continue;
+                }
+
+                try {
+                    $html = $column_item->setCustomValue($custom_value)->html();
+                } catch (\Throwable $ex) {
+                    // one column that cannot render must not cost the whole preview
+                    \Log::warning($ex);
+                    $html = null;
+                }
+
+                $rows[] = [
+                    'label' => $column_item->label(),
+                    'html' => $html,
+                ];
+            }
+
+            if (!empty($rows)) {
+                $groups[] = [
+                    'title' => $custom_form_block->form_block_view_name,
+                    'rows' => $rows,
+                ];
+            }
+        }
+
+        $content->row(view('exment::form.preview', [
+            'table_view_name' => $this->custom_table->table_view_name,
+            'groups' => $groups,
+        ]));
+
         return $content;
     }
 

@@ -34,8 +34,27 @@ class LogController extends AdminControllerBase
     {
         $this->AdminContent($content);
         $content->body($this->grid());
-        $content->row($this->settingFormBox());
+        // reading the log and administering it are two different jobs: an auditor
+        // holding only "operation_log" reads the rows, but the retention settings
+        // stay with the system role
+        if (static::canManageLog()) {
+            $content->row($this->settingFormBox());
+        }
         return $content;
+    }
+
+    /**
+     * Whether the current user may change retention settings or delete log rows.
+     *
+     * Reading is enough for PermissionEnum::OPERATION_LOG; changing what is kept
+     * would let a reader erase their own trail, so it stays on the system role.
+     *
+     * @return bool
+     */
+    protected static function canManageLog(): bool
+    {
+        $user = \Exment::user();
+        return $user ? $user->hasSystemPermission() : false;
     }
 
     /**
@@ -131,6 +150,10 @@ class LogController extends AdminControllerBase
      */
     public function postSetting(Request $request)
     {
+        if (!static::canManageLog()) {
+            abort(403);
+        }
+
         $autoEnabled = boolval($request->get('operation_log_enable_automatic', false));
         $keepDays = $request->get('operation_log_keep_days');
 
@@ -168,6 +191,32 @@ class LogController extends AdminControllerBase
     }
 
     /**
+     * Render diff_json as "column: before -> after" lines for the log grid.
+     *
+     * @param array<mixed>|null $diff
+     * @return string
+     */
+    public static function formatAuditDiff($diff): string
+    {
+        if (!is_array($diff) || empty($diff)) {
+            return '';
+        }
+
+        $html = [];
+        foreach ($diff as $key => $item) {
+            $before = json_encode(array_get($item, 'before'), JSON_UNESCAPED_UNICODE);
+            $after = json_encode(array_get($item, 'after'), JSON_UNESCAPED_UNICODE);
+            $html[] = '<div><b>' . esc_html($key) . '</b>: '
+                . '<span class="text-muted">' . esc_html(mb_strimwidth((string)$before, 0, 60, '...')) . '</span>'
+                . ' &rarr; '
+                . '<span>' . esc_html(mb_strimwidth((string)$after, 0, 60, '...')) . '</span>'
+                . '</div>';
+        }
+
+        return implode('', $html);
+    }
+
+    /**
      * @return Grid
      */
     protected function grid()
@@ -180,14 +229,31 @@ class LogController extends AdminControllerBase
             return $model->user_name;
         });
         $grid->column('method', exmtrans('operation_log.method'));
+        $grid->column('event_type', exmtrans('operation_log.event_type'));
         $grid->column('path', exmtrans('operation_log.path'));
+        $grid->column('resource_type', exmtrans('operation_log.resource'))->display(function ($value, $column, $model) {
+            if (is_nullorempty($model->resource_type)) {
+                return '';
+            }
+            return esc_html($model->resource_type) . ' #' . intval($model->resource_id);
+        });
+        $grid->column('diff_json', exmtrans('operation_log.diff'))->display(function ($value, $column, $model) {
+            return LogController::formatAuditDiff($model->diff_json);
+        });
         $grid->column('ip', exmtrans('operation_log.ip'));
         $grid->column('created_at', trans('admin.created_at'));
 
-        $grid->actions(function (Grid\Displayers\Actions $actions) {
+        $canManage = static::canManageLog();
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($canManage) {
             $actions->disableEdit();
+            if (!$canManage) {
+                $actions->disableDelete();
+            }
         });
 
+        if (!$canManage) {
+            $grid->disableRowSelector();
+        }
         $grid->disableCreateButton();
         $grid->disableExport();
         $grid->model()->with(['user', 'user.base_user']);
@@ -198,6 +264,9 @@ class LogController extends AdminControllerBase
             $filter->equal('user_id', exmtrans('operation_log.user_name'))->select($userModel::with(['base_user'])->get()->pluck('name', 'id'));
             $filter->equal('method', exmtrans('operation_log.method'))->select(array_combine(OperationLog::$methods, OperationLog::$methods));
             $filter->like('path', exmtrans('operation_log.path'));
+            $filter->equal('event_type', exmtrans('operation_log.event_type'))
+                ->select(['create' => 'create', 'update' => 'update', 'delete' => 'delete', 'view' => 'view']);
+            $filter->like('resource_type', exmtrans('operation_log.resource'));
             $filter->equal('ip', exmtrans('operation_log.ip'));
             $filter->betweendatetime(function ($query, $input) {
                 if (array_key_value_exists('start', $input)) {
@@ -265,6 +334,10 @@ class LogController extends AdminControllerBase
      */
     public function destroy($id)
     {
+        if (!static::canManageLog()) {
+            abort(403);
+        }
+
         $ids = explode(',', $id);
 
         if (OperationLog::destroy(array_filter($ids))) {

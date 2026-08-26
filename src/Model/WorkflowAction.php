@@ -28,12 +28,27 @@ class WorkflowAction extends ModelBase
 {
     use Traits\DatabaseJsonOptionTrait;
     use Traits\UseRequestSessionTrait;
+    use Traits\TemplateTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\ClearCacheTrait;
 
     protected $appends = ['work_targets', 'comment_type', 'flow_next_type', 'flow_next_count'];
     protected $casts = ['options' => 'json'];
 
+
+    // @phpstan-ignore-next-line
+    public static $templateItems = [
+        'excepts' => ['id', 'deleted_at'],
+        'uniqueKeys' => [
+            'export' => ['workflow.workflow_view_name', 'action_name'],
+            'import' => ['workflow_id', 'action_name'],
+        ],
+        'parent' => 'workflow_id',
+        'children' => [
+            'workflow_authorities' => WorkflowAuthority::class,
+            'workflow_condition_headers' => WorkflowConditionHeader::class,
+        ],
+    ];
 
     // @phpstan-ignore-next-line
     protected $work_targets;
@@ -929,6 +944,70 @@ class WorkflowAction extends ModelBase
         });
 
         return $toActionAuthorities;
+    }
+
+    /**
+     * Export replace json - convert status_from id to status_name
+     *
+     * @param array $json
+     * @return void
+     */
+    public static function exportReplaceJson(&$json)
+    {
+        // Convert status_from from ID to name for portability
+        if (array_key_exists('status_from', $json) && !is_null($json['status_from'])) {
+            $statusFrom = $json['status_from'];
+            
+            // If it's the start keyword, keep as-is
+            if ($statusFrom === Define::WORKFLOW_START_KEYNAME) {
+                $json['status_from_name'] = Define::WORKFLOW_START_KEYNAME;
+            }
+            // If it's numeric, convert to status name
+            elseif (is_numeric($statusFrom)) {
+                $workflowStatus = WorkflowStatus::getEloquent($statusFrom);
+                if ($workflowStatus) {
+                    $json['status_from_name'] = $workflowStatus->status_name;
+                }
+            }
+            
+            // Remove the original id-based field
+            unset($json['status_from']);
+        }
+    }
+
+    /**
+     * Import replace json - convert status_from_name back to status_from id
+     *
+     * @param array $json
+     * @param array $options
+     * @return void
+     */
+    public static function importReplaceJson(&$json, $options = [])
+    {
+        // Convert status_from_name back to status_from
+        if (array_key_exists('status_from_name', $json)) {
+            $statusFromName = $json['status_from_name'];
+            
+            // If it's the start keyword, keep as-is
+            if ($statusFromName === Define::WORKFLOW_START_KEYNAME) {
+                $json['status_from'] = Define::WORKFLOW_START_KEYNAME;
+            }
+            // Otherwise, look up the status by name within the parent workflow
+            else {
+                $workflowId = array_get($options, 'parent.id');
+                if ($workflowId) {
+                    $workflowStatus = WorkflowStatus::where('workflow_id', $workflowId)
+                        ->where('status_name', $statusFromName)
+                        ->first();
+                    if ($workflowStatus) {
+                        $json['status_from'] = $workflowStatus->id;
+                    }
+                }
+            }
+            
+            // Remove the name-based field
+            unset($json['status_from_name']);
+        }
     }
 
     protected static function boot()

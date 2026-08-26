@@ -236,6 +236,46 @@ class SelectTable extends CustomItem
             ];
         }
 
+        // "assign to me", Backlog's 私が担当. Rides the same button strip the search
+        // button uses, so it lands next to the field with no new markup. The user
+        // id travels in the attribute rather than a JS global, because nothing
+        // exposes the logged-in user to scripts today.
+        if (isMatchString($this->custom_column->column_type, ColumnType::USER)
+            && boolval($this->custom_column->getOption('assign_me_enabled'))
+        ) {
+            $assign_me_id = \Exment::getUserId();
+            if (!is_nullorempty($assign_me_id)) {
+                $login_user = \Exment::user();
+                $buttons[] = [
+                    'label' => exmtrans('custom_column.assign_me'),
+                    'btn_class' => 'btn-default',
+                    'icon' => 'fa-user',
+                    'attributes' => [
+                        'data-assign-me' => $assign_me_id,
+                        'data-assign-me-label' => $login_user ? $login_user->user_name : $assign_me_id,
+                    ],
+                ];
+            }
+        }
+
+        // Quick add, Backlog's + beside カテゴリー. Hidden unless this user could
+        // create the record anyway, so the button never offers something the save
+        // would then refuse.
+        if (boolval($this->custom_column->getOption('quickadd_enabled'))
+            && isMatchString($this->custom_column->column_type, ColumnType::SELECT_TABLE)
+            && $this->target_table->enableCreate(true) === true
+        ) {
+            $buttons[] = [
+                'label' => exmtrans('custom_column.quickadd'),
+                'btn_class' => 'btn-default',
+                'icon' => 'fa-plus',
+                'attributes' => [
+                    'data-quickadd-url' => admin_urls('webapi', $this->target_table->table_name, 'quickadd'),
+                    'data-quickadd-title' => $this->label(),
+                ],
+            ];
+        }
+
         $callback = $this->getRelationFilterCallback($linkage);
         $selectOption = $this->getSelectFieldOptions($callback);
 
@@ -698,6 +738,14 @@ class SelectTable extends CustomItem
     public function setCustomColumnOptionForm(&$form)
     {
         $this->setCustomColumnOptionFormSelectTable($form);
+
+        // Two-way link. Filling this in makes every pick also land in
+        // cross_item_links, which the detail screen reads from both ends - so the
+        // record on the other side shows the link back without anybody typing it
+        // there. Left blank, the column behaves as a plain one-way lookup.
+        $form->text('cross_link_relation', exmtrans("custom_column.options.cross_link_relation"))
+            ->help(exmtrans("custom_column.help.cross_link_relation"))
+            ->rules('nullable|regex:/^[a-zA-Z0-9_]{1,32}$/');
     }
 
 

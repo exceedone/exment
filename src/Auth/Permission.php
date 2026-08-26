@@ -253,9 +253,18 @@ class Permission
             case "login_setting":
             case "database":
             case "auth/menu":
-            case "auth/logs":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
+                }
+                return false;
+                ///// reading the operation log is split off from "system" on purpose:
+                ///// an auditor has to be able to read who did what without also
+                ///// gaining the run-the-whole-platform rights that "system" carries.
+                ///// Changing the retention settings and deleting log rows stay on
+                ///// "system" - see LogController.
+            case "auth/logs":
+                if ($this->role_type == RoleType::SYSTEM) {
+                    return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::OPERATION_LOG], $this->permission_details);
                 }
                 return false;
                 ///// each permissions

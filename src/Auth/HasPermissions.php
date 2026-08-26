@@ -69,6 +69,31 @@ trait HasPermissions
     }
 
     /**
+     * Whether this user holds the platform-wide "system" permission.
+     *
+     * hasPermission(Permission::SYSTEM) answers a different question: it asks
+     * whether the user is on the super administrator list. This one asks whether
+     * any system-level role grants the "system" key - the same test the menu and
+     * the system screens make. Super administrators still pass, because the
+     * permission map folds that list in.
+     */
+    public function hasSystemPermission(): bool
+    {
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
+            return true;
+        }
+
+        foreach ($this->allPermissions() as $permission) {
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_key_exists(Permission::SYSTEM, $permission->getPermissionDetails())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * whethere has permission, permission level
      * $role_key * if set array, check whether either items.
      * Checking also each table. If there is even one, return true.
