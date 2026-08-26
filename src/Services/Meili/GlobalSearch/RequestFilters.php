@@ -115,6 +115,33 @@ class RequestFilters
     }
 
     /**
+     * One side ('from'/'to') of a range[n_<table>::<col>] box, as a display string.
+     *
+     * These two values are read straight back out of the request to re-fill the
+     * sidebar boxes and to label the applied chips, and the param is
+     * attacker-controlled: `?range[n_t::c][from][]=1` makes the side an ARRAY,
+     * and casting an array to string is an "Array to string conversion"
+     * E_WARNING - which Laravel's error handler turns into an ErrorException.
+     *
+     * On the search page that exception does not surface as a 500: it is caught
+     * by SearchController::getFreeWord, which then renders the plain fallback
+     * view. The whole Meilisearch UI (filter sidebar, applied chips, export,
+     * saved searches, sort) disappears with nothing on screen to say why - so
+     * the guard belongs at the read, next to str()/strList().
+     *
+     * @param mixed $range the raw range[<field>] value
+     */
+    public static function rangeSide($range, string $side): string
+    {
+        if (!is_array($range)) {
+            return '';
+        }
+        $value = $range[$side] ?? null;
+
+        return is_scalar($value) ? (string) $value : '';
+    }
+
+    /**
      * Bound of a range[n_<table>::<col>] box. A time column is indexed as
      * seconds since midnight (DocumentMapper::rangeValue), so "10:30" must be
      * converted the same way - strtotime() would turn it into today's unix

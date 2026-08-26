@@ -344,8 +344,8 @@ class FilterSidebar
                 'label' => $label,
                 'field' => $field,
                 'type' => DocumentMapper::rangeInputType((string) $column->column_type),
-                'from' => (string) ($req[$field]['from'] ?? ''),
-                'to' => (string) ($req[$field]['to'] ?? ''),
+                'from' => RequestFilters::rangeSide($req[$field] ?? null, 'from'),
+                'to' => RequestFilters::rangeSide($req[$field] ?? null, 'to'),
             ];
         }
 

@@ -71,6 +71,61 @@ class MeiliSearchFilterTest extends FeatureTestBase
         $this->assertSame(1, substr_count((string) $response->getContent(), 'data-box_key='));
     }
 
+    /**
+     * A crafted `?range[n_t::c][from][]=1` made FilterSidebar::rangeInputs() and
+     * AppliedChips::build() cast an array to string. That is an E_WARNING, which
+     * Laravel turns into an ErrorException - and getFreeWord() catches Throwable,
+     * so the page still answered 200 while quietly rendering the NON-Meili view:
+     * no filter sidebar, no chips, no export, no saved-search bar, no sort.
+     *
+     * See tests/Unit/Meili/RangeSideGuardTest.php for the unit-level contract.
+     */
+    public function testArrayShapedRangeParamKeepsTheMeiliFilterUi(): void
+    {
+        // Control first: without the crafted param the Meili branch renders, so
+        // the assertion below actually distinguishes the two code paths.
+        $control = $this->get(admin_url('search') . '?query=test');
+        $control->assertStatus(200);
+        $control->assertSee('meili-filter', false);
+
+        $response = $this->get(
+            admin_url('search') . '?query=test&range[n_t%3A%3Ac][from][]=1&range[n_t%3A%3Ac][to][]=9'
+        );
+
+        $response->assertStatus(200);
+        $response->assertSee('meili-filter', false);
+        $response->assertSee('meili-quickbar', false);
+    }
+
+    /**
+     * The other half of the same defect. Laravel only turns the warning into an
+     * ErrorException when E_WARNING is part of error_reporting
+     * (HandleExceptions::handleError). Where it is not, nothing throws: the page
+     * keeps its Meili UI and the cast quietly yields the literal string "Array",
+     * which lands in the applied-chip label as the filter's value.
+     */
+    public function testArrayShapedRangeParamProducesNoGarbageChip(): void
+    {
+        $previous = error_reporting(E_ALL & ~E_WARNING);
+        try {
+            $response = $this->get(
+                admin_url('search') . '?query=test&range[n_t%3A%3Ac][from][]=1'
+            );
+        } finally {
+            error_reporting($previous);
+        }
+
+        $response->assertStatus(200);
+        // The Meili branch really did render here - otherwise there are no chips
+        // to be wrong about and the assertion below would pass for free.
+        $response->assertSee('meili-filter', false);
+        $this->assertStringNotContainsString(
+            'Array',
+            (string) $response->getContent(),
+            'a nested range value reached the page as a filter whose value is literally "Array"'
+        );
+    }
+
     public function testSearchRequiresAuth(): void
     {
         auth('admin')->logout();
