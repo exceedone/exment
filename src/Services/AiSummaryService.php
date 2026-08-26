@@ -242,13 +242,14 @@ class AiSummaryService
         }
 
         $system = "You are a senior data analyst embedded in a BI dashboard. "
-            . "Given ONE chart's real data, write a short, proactive insight for a busy manager.\n"
+            . "Given ONE chart's real data, write a short, proactive insight for a busy mana    ger.\n"
             . "Rules:\n"
             . "- LANGUAGE: write every sentence in {$lang}; keep the category labels' original spelling, never translate them.\n"
             . "- ONE cohesive paragraph of 3 to 5 sentences (about 40-90 words). No list markers, no heading, no markdown.\n"
             . "- Use ONLY the numbers and labels present in the data. Never invent, round differently or extrapolate a value.\n"
             . "- If the labels are TIME (dates, months, years) you may describe a trend; if they are CATEGORIES, compare across them and never assume an order.\n"
-            . "- Cover the highest and lowest points with their exact values, the overall picture, any anomaly listed below, and end with one concrete takeaway.\n"
+            . "- Cover the highest and lowest points with their exact values, the overall picture, and any anomaly listed below.\n"
+            . "- End with ONE short takeaway that stays inside the data: suggest attention to or improvement of the lowest category, following up a flagged anomaly, or maintaining the current level. Never claim or imply that a measure would cause an outcome (e.g. that strengthening one category would lift the overall average) — the data cannot show that.\n"
             . "- Do not speculate about causes that are not visible in the data."
             . $this->dataBlock($payload, $rows, $truncated)
             . $this->statsBlock($stats)
@@ -312,13 +313,17 @@ class AiSummaryService
             return '';
         }
         return sprintf(
-            "\nKey figures (AUTHORITATIVE — use exactly these labels and values): highest = \"%s\" at %s; lowest = \"%s\" at %s; average = %s over %d categories.",
+            "\nKey figures (AUTHORITATIVE — use exactly these labels and values): highest = \"%s\" at %s; lowest = \"%s\" at %s; average = %s; spread = highest - lowest = %s, over %d categories."
+            . "\nAny statement about the overall range of the data MUST run from exactly lowest to highest (%s to %s); never present any other pair of points as the bounds of the data.",
             $stats['highest']['label'],
             $this->num($stats['highest']['value']),
             $stats['lowest']['label'],
             $this->num($stats['lowest']['value']),
             $this->num($stats['average']),
-            $stats['count']
+            $this->num($stats['range']),
+            $stats['count'],
+            $this->num($stats['lowest']['value']),
+            $this->num($stats['highest']['value'])
         );
     }
 
@@ -329,17 +334,21 @@ class AiSummaryService
         }
         $range = $this->num($anomalies['lower']) . '..' . $this->num($anomalies['upper']);
         if (empty($anomalies['points'])) {
-            return "\nAnomaly check (deterministic IQR rule): no significant anomaly — no point deviates meaningfully from the expected range [{$range}]. Describe the series as stable; do not fabricate an anomaly.";
+            // the fence values are deliberately withheld from the narrative: readers mistake
+            // them for the data's spread (the strip already shows them, labeled, on its own line)
+            return "\nAnomaly check (deterministic IQR rule): no significant anomaly. Describe the series as stable and say no anomaly was found; do NOT quote any expected range or band — it is an internal statistical threshold, not the data's spread (the real highest/lowest are in Key figures) — and do not fabricate an anomaly.";
         }
         $list = implode('; ', array_map(function ($p) {
             return sprintf('"%s"=%s (%s)', $p['label'], $this->num($p['value']), $p['direction'] === 'high' ? 'unusually high' : 'unusually low');
         }, $anomalies['points']));
-        return "\nAnomaly check (deterministic IQR rule, expected range [{$range}]): these points fall OUTSIDE it: {$list}. Call them out with their exact values and direction; suggest what to verify, but do not invent a cause.";
+        return "\nAnomaly check (deterministic IQR rule, statistically expected band [{$range}]): these points fall OUTSIDE it: {$list}. Call them out with their exact values and direction; suggest what to verify, but do not invent a cause. Never present the band as the data's min-max spread; if you mention it, name it as the statistically expected band.";
     }
 
     private function num(float $v): string
     {
-        return floor($v) === $v ? (string) (int) $v : rtrim(rtrim(number_format($v, 2, '.', ''), '0'), '.');
+        // 1 decimal, matching the strip's fmtNum (dashboard.js) so the narrative and the
+        // stat tiles never show the same figure rounded two different ways
+        return floor($v) === $v ? (string) (int) $v : rtrim(rtrim(number_format($v, 1, '.', ''), '0'), '.');
     }
 
     private function errorMessage(GuzzleException $e): string
