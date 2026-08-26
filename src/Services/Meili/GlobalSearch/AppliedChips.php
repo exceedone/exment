@@ -119,8 +119,8 @@ class AppliedChips
             $cols = array_map(fn ($f) => preg_replace('/^n_/', '', (string) $f), array_keys($ranges));
             $labels = LabelResolver::settingViewLabels($cols) + LabelResolver::resolveColumnLabels($cols);
             foreach ($ranges as $field => $r) {
-                $from = (string) ($r['from'] ?? '');
-                $to = (string) ($r['to'] ?? '');
+                $from = RequestFilters::rangeSide($r, 'from');
+                $to = RequestFilters::rangeSide($r, 'to');
                 if ($from === '' && $to === '') {
                     continue;
                 }

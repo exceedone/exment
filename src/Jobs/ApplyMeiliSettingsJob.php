@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Services\Meili\IndexSettings;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
@@ -12,9 +12,15 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  * reindexing documents. Dispatched when the admin edits the relevance
  * dictionary; settings apply in seconds, so this stays on the light queue.
  *
- * ShouldBeUnique: many rapid dictionary edits collapse into one apply.
+ * Unique so many rapid dictionary edits collapse into ONE apply - but only
+ * UNTIL PROCESSING: plain ShouldBeUnique holds the lock until handle() returns,
+ * and handle() blocks on waitForTask for up to 60s. An edit saved inside that
+ * window would have its apply job dropped and never reach the index. For a
+ * range filter setting that is silent and harmful: n_<table>::<col> stays
+ * out of filterableAttributes, Meilisearch rejects the filter, the search
+ * throws, and the page falls back to MySQL showing UNFILTERED results.
  */
-class ApplyMeiliSettingsJob implements ShouldQueue, ShouldBeUnique
+class ApplyMeiliSettingsJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
     use JobTrait;
 
