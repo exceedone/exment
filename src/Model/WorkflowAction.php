@@ -346,7 +346,11 @@ class WorkflowAction extends ModelBase
     // @phpstan-ignore-next-line
     protected function setActionCondition()
     {
-        $this->workflow_condition_headers()->delete();
+        // 1件ずつ消す。クエリでまとめて消すと deleting イベントが発生せず、
+        // ヘッダにぶら下がる conditions が孤児として残り続ける。
+        foreach ($this->workflow_condition_headers()->get() as $workflow_condition_header) {
+            $workflow_condition_header->delete();
+        }
         if (!isset($this->work_condition_headers)) {
             return;
         }

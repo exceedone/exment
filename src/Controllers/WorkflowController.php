@@ -41,6 +41,7 @@ use Carbon\Carbon;
 class WorkflowController extends AdminControllerBase
 {
     use WorkflowTrait;
+    use WorkflowDesignTrait;
     use HasResourceActions{
         HasResourceActions::destroy as destroyTrait;
     }
@@ -128,6 +129,13 @@ class WorkflowController extends AdminControllerBase
                 $actions->prepend($linker);
             }
 
+            // フロー図で直接編集する画面（ステップ1・2と同じ内容を扱う）
+            $linker = (new Linker())
+                ->url(admin_urls('workflow', $actions->getKey(), 'design'))
+                ->icon('fa-sitemap')
+                ->tooltip(exmtrans('workflow.design.header'));
+            $actions->prepend($linker);
+
             $linker = (new Linker())
                 ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=2'))
                 ->icon('fa-exchange')
@@ -143,6 +151,14 @@ class WorkflowController extends AdminControllerBase
         });
 
         $grid->tools(function ($tools) {
+            // ステップ1→ステップ2 と進む代わりに、フロー図から作り始める入口
+            $tools->append(view('exment::tools.button', [
+                'href' => admin_url('workflow/design/create'),
+                'label' => exmtrans('workflow.design.new_workflow'),
+                'icon' => 'fa-sitemap',
+                'btn_class' => 'btn-info',
+            ]));
+
             if (Workflow::hasSettingCompleted()) {
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_url('workflow/beginning'),
@@ -339,6 +355,7 @@ class WorkflowController extends AdminControllerBase
         $self = $this;
         $form->tools(function (Form\Tools $tools) use ($self, $workflow) {
             $tools->append(new Tools\SystemChangePageMenu());
+            $self->appendDesignButton($workflow, $tools);
             $self->appendActivateButton($workflow, $tools);
             $self->appendTableSettingButton($workflow, $tools);
             $self->disableDelete($workflow, $tools);
@@ -433,7 +450,13 @@ class WorkflowController extends AdminControllerBase
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
                 ->disableClear()
                 ->options(function ($value, $field, $workflow) {
-                    return $workflow->getStatusOptions($field->getIndex() === 0);
+                    // 1行目は「開始」からのアクション。ただしデザイナーで作った並びによって
+                    // 1行目が開始以外になった場合、選択肢に実際の値が無いと画面を開いただけで
+                    // 値が失われるため、そのときは全ステータスを出す。
+                    $onlyStart = ($field->getIndex() === 0)
+                        && (is_nullorempty($value) || $value == Define::WORKFLOW_START_KEYNAME);
+
+                    return $workflow->getStatusOptions($onlyStart);
                 });
 
             if ($workflow->workflow_type == WorkflowType::TABLE) {
@@ -556,6 +579,7 @@ class WorkflowController extends AdminControllerBase
         $self = $this;
         $form->tools(function (Form\Tools $tools) use ($self, $workflow) {
             $tools->append(new Tools\SystemChangePageMenu());
+            $self->appendDesignButton($workflow, $tools);
             $self->appendActivateButton($workflow, $tools);
             $self->appendTableSettingButton($workflow, $tools);
             $self->disableDelete($workflow, $tools);

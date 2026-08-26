@@ -1,0 +1,1333 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ワークフローデザイナー 設計モック（Exment）</title>
+<style>
+/* ============================================================
+   Thiết kế mock "Workflow Designer" cho Exment.
+   File tĩnh, không gọi server. Dữ liệu vẽ thử lưu ở localStorage.
+   ============================================================ */
+:root{
+  --blue:#3c8dbc; --green:#00a65a; --red:#dd4b39; --orange:#f39c12;
+  --ink:#333; --line:#c8d2da; --soft:#9ab0c4; --bg:#ecf0f5;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI","Yu Gothic UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+  color:var(--ink);background:var(--bg);font-size:14px;line-height:1.65}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 20px 80px}
+h1{font-size:21px;margin:6px 0 2px}
+h2{font-size:17px;margin:38px 0 10px;padding:8px 12px;background:#222d32;color:#fff;border-radius:4px}
+h2 small{font-weight:normal;opacity:.75;margin-left:10px;font-size:12px}
+h3{font-size:15px;margin:20px 0 8px;border-left:4px solid var(--blue);padding-left:8px}
+p{margin:6px 0}
+.muted{color:#777;font-size:12.5px}
+.vn{background:#fff8e1;border:1px solid #f1e0a6;border-radius:5px;padding:10px 14px;margin:10px 0;font-size:13.5px}
+.vn b{color:#8a6d1a}
+.kbd{display:inline-block;border:1px solid #bbb;border-bottom-width:2px;border-radius:4px;background:#fff;
+  padding:0 7px;font-size:12px;font-family:Consolas,monospace}
+.nav{margin:12px 0 4px}
+.nav a{display:inline-block;margin-right:8px;padding:5px 12px;background:#fff;border:1px solid var(--line);
+  border-radius:16px;text-decoration:none;color:var(--blue);font-size:13px}
+.nav a:hover{background:var(--blue);color:#fff}
+table.doc{border-collapse:collapse;width:100%;background:#fff;font-size:13px;margin:8px 0}
+table.doc th,table.doc td{border:1px solid #d8dfe5;padding:7px 10px;text-align:left;vertical-align:top}
+table.doc th{background:#f4f6f8;white-space:nowrap}
+code{background:#eef2f5;border:1px solid #dde5ec;border-radius:3px;padding:0 5px;font-size:12px;font-family:Consolas,monospace}
+pre.block{background:#272b33;color:#d7dde5;border-radius:5px;padding:12px 14px;font-size:12px;overflow:auto;
+  font-family:Consolas,monospace;line-height:1.5}
+
+/* ---- mock màn hình admin (AdminLTE giản lược) ---- */
+.mock{background:#fff;border:1px solid var(--line);border-radius:5px;padding:0;margin:12px 0;overflow:hidden}
+.mock .m-head{background:#f7f9fa;border-bottom:1px solid var(--line);padding:8px 14px;display:flex;align-items:center;gap:10px}
+.mock .m-title{font-weight:bold;font-size:14px}
+.mock .m-body{padding:12px 14px}
+.mock .m-tools{margin-left:auto;display:flex;gap:6px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:5px;border:1px solid #ccc;background:#f4f4f4;color:#444;
+  border-radius:3px;padding:4px 10px;font-size:12.5px;cursor:pointer;text-decoration:none;line-height:1.5}
+.btn:hover{filter:brightness(.96)}
+.btn-primary{background:var(--blue);border-color:#367fa9;color:#fff}
+.btn-success{background:var(--green);border-color:#008d4c;color:#fff}
+.btn-info{background:#00c0ef;border-color:#00acd6;color:#fff}
+.btn-danger{background:var(--red);border-color:#d73925;color:#fff}
+.btn-xs{padding:1px 6px;font-size:12px}
+.new-flag{background:var(--red);color:#fff;font-size:10px;border-radius:8px;padding:1px 7px;margin-left:4px;vertical-align:2px}
+.hotspot{position:relative;outline:2px dashed var(--red);outline-offset:3px;border-radius:3px}
+table.grid{border-collapse:collapse;width:100%;font-size:13px}
+table.grid th,table.grid td{border-bottom:1px solid #eceff2;padding:8px 10px;text-align:left}
+table.grid th{background:#fbfcfd;border-bottom:2px solid #e3e8ee;white-space:nowrap}
+.ops a{display:inline-flex;width:26px;height:24px;align-items:center;justify-content:center;border-radius:3px;
+  color:var(--blue);text-decoration:none;font-size:13px}
+.ops a:hover{background:#eef6fb}
+.chip{display:inline-block;background:#eef2f5;border:1px solid #dde5ec;border-radius:10px;
+  padding:0 8px;font-size:11.5px;margin:1px 2px}
+.step-tag{display:inline-block;background:var(--blue);color:#fff;border-radius:3px;padding:1px 8px;font-size:11.5px;margin-right:6px}
+
+/* ============================================================
+   DESIGNER (phần tương tác thật)
+   ============================================================ */
+#wfd-app{background:#fff;border:1px solid var(--line);border-radius:5px;overflow:hidden;margin:12px 0;
+  user-select:none;-webkit-user-select:none}
+.wfd-bar{display:flex;align-items:center;gap:6px;background:#f7f9fa;border-bottom:1px solid var(--line);
+  padding:7px 10px;flex-wrap:wrap}
+.wfd-bar .t{font-weight:bold;font-size:14px;margin:0 6px}
+.wfd-sp{flex:1}
+.wfd-zoom{font-size:11.5px;color:#888;min-width:44px;text-align:center}
+#wfd-issues{border:none;border-radius:12px;padding:3px 12px;font-size:12px;cursor:pointer;color:#fff;background:var(--green)}
+#wfd-issues.warn{background:var(--orange)}
+.wfd-hint{background:#eef6fb;border-bottom:1px solid #d7e7f2;padding:6px 12px;font-size:12.5px;color:#31708f;
+  display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.wfd-hint .x{margin-left:auto;cursor:pointer;border:none;background:none;font-size:15px;color:#8aa;line-height:1}
+#wfd-canvas{position:relative;height:600px;overflow:hidden;background:#fdfefe;cursor:grab;touch-action:none}
+#wfd-canvas.panning{cursor:grabbing}
+#wfd-world{position:absolute;left:0;top:0;transform-origin:0 0;
+  background-image:radial-gradient(#dde5ec 1.2px,transparent 1.3px);background-size:22px 22px}
+#wfd-svg{position:absolute;left:0;top:0}
+.wfd-edge{fill:none;stroke:var(--soft);stroke-width:2.2px;cursor:pointer}
+.wfd-edge.dash{stroke-dasharray:7 5}
+.wfd-edge.sel{stroke:var(--blue);stroke-width:3px}
+.wfd-rubber{fill:none;stroke:var(--green);stroke-width:2.4px;stroke-dasharray:6 5;pointer-events:none}
+#wfd-nodes,#wfd-labels{position:absolute;left:0;top:0;width:0;height:0}
+.wfd-node{position:absolute;width:160px;min-height:58px;background:#fff;border:1.5px solid var(--line);
+  border-left:5px solid var(--blue);border-radius:7px;box-shadow:0 1px 3px rgba(30,50,70,.12);
+  padding:8px 12px 7px 10px;cursor:move}
+.wfd-node .nm{font-weight:bold;font-size:13.5px;word-break:break-all;line-height:1.35}
+.wfd-node .chips{margin-top:3px;min-height:1px}
+.wfd-node .chips span{display:inline-block;font-size:10px;border-radius:8px;padding:0 6px;margin-right:3px}
+.wfd-node .c-done{background:#e2f6ec;color:#0a7c47;border:1px solid #bfe8d4}
+.wfd-node .c-lock{background:#f1f3f5;color:#667;border:1px solid #dfe3e7}
+.wfd-node.done{border-left-color:var(--green)}
+.wfd-node.start{width:112px;min-height:44px;background:#3a4750;border:1.5px solid #2d3840;border-left-width:1.5px;
+  border-radius:22px;color:#fff;text-align:center;padding:10px 12px}
+.wfd-node.start .nm{font-size:13px}
+.wfd-node.sel{box-shadow:0 0 0 3px rgba(60,141,188,.35)}
+.wfd-node.droptarget{outline:3px dashed var(--green);outline-offset:2px}
+.wfd-handle{position:absolute;right:-13px;top:50%;margin-top:-13px;width:26px;height:26px;border-radius:50%;
+  background:var(--blue);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);cursor:crosshair;
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;transition:transform .12s}
+.wfd-handle::after{content:'';position:absolute;inset:-9px}
+.wfd-handle:hover{transform:scale(1.25)}
+.wfd-node.start .wfd-handle{background:var(--green)}
+/* nhãn action: cố ý TO để chuột phải dễ trúng */
+.wfd-albl{position:absolute;transform:translate(-50%,-50%);background:#fff;border:1.5px solid var(--soft);
+  border-radius:16px;padding:6px 14px;font-size:13.5px;font-weight:bold;color:#345;cursor:context-menu;
+  box-shadow:0 1px 3px rgba(30,50,70,.14);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.wfd-albl:hover{border-color:var(--blue);color:var(--blue)}
+.wfd-albl.sel{border-color:var(--blue);box-shadow:0 0 0 3px rgba(60,141,188,.3);color:var(--blue)}
+.wfd-albl .b{font-size:10px;font-weight:normal;background:#fff3dd;border:1px solid #f0d9a8;color:#9a6b00;
+  border-radius:8px;padding:0 6px}
+.wfd-albl .b2{font-size:10px;font-weight:normal;background:#f1f3f5;border:1px solid #dfe3e7;color:#667;
+  border-radius:8px;padding:0 6px}
+.wfd-legend{position:absolute;left:10px;bottom:10px;background:rgba(255,255,255,.95);border:1px solid var(--line);
+  border-radius:5px;padding:7px 11px;font-size:11.5px;color:#556;line-height:1.9;pointer-events:none}
+.wfd-legend .sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.wfd-legend .ln{display:inline-block;width:22px;height:0;border-top:2.2px solid var(--soft);vertical-align:3px;margin-right:4px}
+.wfd-legend .ln.dash{border-top-style:dashed}
+/* menu chuột phải */
+#wfd-menu{position:fixed;z-index:1000;display:none;background:#fff;border:1px solid var(--line);border-radius:5px;
+  box-shadow:0 4px 14px rgba(0,0,0,.18);min-width:220px;padding:5px 0;font-size:13px}
+#wfd-menu .mi{padding:7px 16px;cursor:pointer;display:flex;gap:9px;align-items:center}
+#wfd-menu .mi:hover{background:#eef6fb}
+#wfd-menu .mi.danger{color:var(--red)}
+#wfd-menu .sep{border-top:1px solid #eef1f4;margin:4px 0}
+#wfd-menu .cap{padding:3px 16px 5px;font-size:11px;color:#99a;border-bottom:1px solid #eef1f4;margin-bottom:4px}
+/* modal */
+#wfd-modal{position:fixed;inset:0;z-index:1100;display:none;background:rgba(20,30,40,.45);
+  align-items:flex-start;justify-content:center;padding:60px 16px 16px}
+#wfd-modal.on{display:flex}
+.wfd-dlg{background:#fff;border-radius:6px;width:520px;max-width:100%;max-height:82vh;display:flex;flex-direction:column;
+  box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.wfd-dlg-h{padding:11px 16px;border-bottom:1px solid #e7ecf0;font-weight:bold;font-size:14.5px;display:flex;align-items:center}
+.wfd-dlg-h .wfd-x{margin-left:auto;border:none;background:none;font-size:19px;color:#9ab;cursor:pointer;line-height:1}
+.wfd-dlg-b{padding:14px 18px;overflow:auto}
+.wfd-dlg-f{padding:10px 16px;border-top:1px solid #e7ecf0;display:flex;gap:8px;justify-content:flex-end}
+.wfd-dlg label.fl{display:block;font-weight:bold;font-size:13px;margin:12px 0 4px}
+.wfd-dlg label.fl:first-child{margin-top:0}
+.wfd-dlg .req{color:var(--red);font-size:10.5px;border:1px solid var(--red);border-radius:3px;padding:0 4px;margin-left:6px;font-weight:normal}
+.wfd-dlg input[type=text],.wfd-dlg input[type=number],.wfd-dlg select{width:100%;border:1px solid #ccd4da;border-radius:3px;
+  padding:6px 9px;font-size:13.5px;font-family:inherit}
+.wfd-dlg input.err{border-color:var(--red);background:#fff5f4}
+.wfd-dlg .help{font-size:11.5px;color:#889;margin-top:3px}
+.wfd-dlg .opt{display:flex;gap:8px;align-items:flex-start;margin:7px 0;font-size:13px}
+.wfd-dlg .opt input{margin-top:3px}
+.wfd-dlg .box{border:1px solid #e3e8ee;border-radius:4px;background:#fafbfc;padding:9px 12px;margin:6px 0}
+.wfd-dlg .chips-edit .chip{background:#eef6fb;border-color:#cfe4f2;color:#2b6c94;cursor:default}
+.wfd-dlg .chips-edit .chip b{cursor:pointer;margin-left:5px;color:#88a}
+.wfd-dlg .inline{display:flex;gap:6px;margin-top:6px}
+.wfd-dlg .inline input{flex:1}
+.wfd-dlg .note{background:#f4f8fb;border:1px dashed #bcd4e4;border-radius:4px;padding:7px 10px;font-size:12px;color:#4a7a9b;margin-top:10px}
+.wfd-num{width:70px !important;display:inline-block !important;margin:0 6px}
+pre.wfd-json{background:#272b33;color:#cfe3c8;font-size:11.5px;border-radius:4px;padding:10px;overflow:auto;
+  max-height:46vh;font-family:Consolas,monospace;line-height:1.45;margin:0}
+/* issues popup */
+#wfd-ipop{position:absolute;right:10px;top:8px;z-index:50;display:none;width:340px;background:#fff;
+  border:1px solid var(--line);border-radius:5px;box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:12.5px}
+#wfd-ipop .tit{padding:8px 12px;border-bottom:1px solid #eef1f4;font-weight:bold}
+#wfd-ipop .it{padding:7px 12px;border-bottom:1px solid #f4f6f8;cursor:pointer;color:#8a6d1a}
+#wfd-ipop .it:hover{background:#fff8e1}
+/* toast */
+#wfd-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:1200;background:#222d32;color:#fff;
+  border-radius:18px;padding:8px 20px;font-size:13px;display:none;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ワークフローデザイナー — 設計モック</h1>
+<p class="muted">Exment ワークフロー設定に「描いて作る」モードを追加する設計案。この HTML はモックであり、サーバーには何も保存されません。</p>
+
+<div class="vn">
+  <b>NSC127 — đây là bản thiết kế BẤM ĐƯỢC THẬT, chưa phải code tích hợp.</b><br>
+  Ba phần ①② là hình tĩnh cho vị trí nút. Phần ③ là canvas hoạt động thật: chuột phải thêm trạng thái,
+  kéo chấm tròn ● ở mép phải để nối, chuột phải vào tên action để mở cấu hình. Dữ liệu vẽ thử chỉ nằm trong
+  trình duyệt (bộ nhớ cục bộ <code>localStorage</code>), bấm「リセット」để về mẫu ban đầu.
+</div>
+
+<div class="nav">
+  <a href="#sec-list">① 一覧にボタン</a>
+  <a href="#sec-steps">② ステップ1・2にボタン</a>
+  <a href="#sec-designer">③ デザインモード（触れる）</a>
+  <a href="#sec-save">④ 保存の仕組み・実装計画</a>
+</div>
+
+<!-- =========================================================
+     ① Nút trên màn hình LIST
+     ========================================================= -->
+<h2 id="sec-list">① ワークフロー一覧に「デザイン」ボタン <small>màn hình /admin/workflow</small></h2>
+<p>操作列の先頭に <b>デザイン</b>（<span style="color:var(--blue)">⧉</span>）を追加します。クリックで <code>/admin/workflow/{id}/design</code> を開きます。</p>
+
+<div class="mock">
+  <div class="m-head">
+    <span class="m-title">ワークフロー</span>
+    <div class="m-tools">
+      <span class="btn btn-primary btn-xs">⚙ ワークフロー開始</span>
+      <span class="btn btn-success btn-xs">＋ 新規</span>
+    </div>
+  </div>
+  <div class="m-body">
+    <table class="grid">
+      <tr><th>ID</th><th>ワークフロー表示名</th><th>ワークフロー種類</th><th>テーブル</th><th>ステータス設定</th><th>設定完了</th><th style="width:180px">操作</th></tr>
+      <tr>
+        <td>3</td><td>稟議ワークフロー</td><td>テーブル専用</td><td>稟議</td>
+        <td><span class="chip">申請中</span><span class="chip">課長確認中</span><span class="chip">部長確認中</span><span class="chip">…</span></td>
+        <td>✔</td>
+        <td class="ops">
+          <a class="hotspot" href="#sec-designer" title="デザイン（新規）">⧉</a><span class="new-flag">NEW</span>
+          <a href="#sec-designer" title="編集">✎</a>
+          <a href="#sec-designer" title="アクション">⇄</a>
+          <a href="#" onclick="return false" title="通知">🔔</a>
+          <a href="#" onclick="return false" title="削除">🗑</a>
+        </td>
+      </tr>
+      <tr>
+        <td>4</td><td>インシデント承認</td><td>汎用</td><td>—</td>
+        <td><span class="chip">受付</span><span class="chip">対応中</span><span class="chip">完了</span></td>
+        <td>—</td>
+        <td class="ops">
+          <a class="hotspot" href="#sec-designer" title="デザイン（新規）">⧉</a><span class="new-flag">NEW</span>
+          <a href="#sec-designer" title="編集">✎</a>
+          <a href="#sec-designer" title="アクション">⇄</a>
+          <a href="#" onclick="return false" title="設定完了">☑</a>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+<div class="vn">
+  <b>Vị trí code khi làm thật:</b> <code>WorkflowController::grid()</code> —
+  thêm 1 <code>Linker</code> (icon <code>fa-sitemap</code>) bằng <code>$actions->prepend()</code>,
+  đặt cùng chỗ với nút 編集 / アクション hiện có (dòng ~92–145). Nút ⧉ ở mock này bấm được: nhảy xuống phần ③.
+</div>
+
+<!-- =========================================================
+     ② Nút trên STEP1 / STEP2
+     ========================================================= -->
+<h2 id="sec-steps">② ステップ1・ステップ2に切替ボタン <small>tools 右上に追加</small></h2>
+
+<div class="mock">
+  <div class="m-head">
+    <span class="step-tag">STEP 1</span><span class="m-title">ステータス設定 — 稟議ワークフロー</span>
+    <div class="m-tools">
+      <a class="btn btn-info hotspot" href="#sec-designer">⧉ デザインモードへ</a><span class="new-flag">NEW</span>
+      <span class="btn btn-xs">対象テーブル設定</span>
+      <span class="btn btn-xs">☑ 設定完了</span>
+      <span class="btn btn-xs">一覧</span>
+    </div>
+  </div>
+  <div class="m-body">
+    <table class="grid">
+      <tr><th>ステータス名</th><th style="width:140px">データの編集不可</th><th style="width:90px">操作</th></tr>
+      <tr><td>承認済み <span class="chip">1行目 = 完了ステータス</span></td><td>YES</td><td>↑ ↓ ✖</td></tr>
+      <tr><td>申請中</td><td>NO</td><td>↑ ↓ ✖</td></tr>
+      <tr><td>課長確認中</td><td>NO</td><td>↑ ↓ ✖</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="mock">
+  <div class="m-head">
+    <span class="step-tag">STEP 2</span><span class="m-title">アクション設定 — 稟議ワークフロー</span>
+    <div class="m-tools">
+      <a class="btn btn-info hotspot" href="#sec-designer">⧉ デザインモードへ</a><span class="new-flag">NEW</span>
+      <span class="btn btn-xs">☑ 設定完了</span>
+      <span class="btn btn-xs">一覧</span>
+    </div>
+  </div>
+  <div class="m-body muted" style="font-size:12.5px">
+    アクション名｜ステータス（実行元）｜アクション設定（実行後・条件）｜実行可能ユーザー｜オプション設定 … の表形式（既存のまま）。
+    右側の「フロー プレビュー」ペイン（既存機能）はそのまま残ります。
+  </div>
+</div>
+<div class="vn">
+  <b>Vị trí code khi làm thật:</b> <code>statusForm()</code> và <code>actionForm()</code> đều có
+  <code>$form->tools(...)</code> — thêm 1 nút <code>btn-info</code> trỏ tới <code>/admin/workflow/{id}/design</code>.
+  Step1/Step2 <b>giữ nguyên</b>, designer chỉ là chế độ thứ ba; ai quen màn cũ vẫn dùng màn cũ.
+</div>
+
+<!-- =========================================================
+     ③ DESIGNER tương tác
+     ========================================================= -->
+<h2 id="sec-designer">③ デザインモード <small>phần này thao tác được thật — hãy thử theo checklist bên dưới</small></h2>
+
+<div id="wfd-app">
+  <div class="wfd-bar">
+    <span class="btn btn-xs" title="実装時：/admin/workflow へ">◀ 一覧へ</span>
+    <span class="btn btn-xs" title="実装時：edit?action=1 へ">ステップ1</span>
+    <span class="btn btn-xs" title="実装時：edit?action=2 へ">ステップ2</span>
+    <span class="t">稟議ワークフロー</span><span class="chip">テーブル専用：稟議</span>
+    <span class="wfd-sp"></span>
+    <button id="wfd-issues" type="button">問題なし</button>
+    <span class="btn btn-xs" id="wfd-relayout" title="自動整列">✦ 自動整列</span>
+    <span class="btn btn-xs" id="wfd-fit" title="全体表示">⤢</span>
+    <span class="btn btn-xs" id="wfd-zout">－</span>
+    <span class="wfd-zoom" id="wfd-zoomlv">100%</span>
+    <span class="btn btn-xs" id="wfd-zin">＋</span>
+    <span class="btn btn-xs" id="wfd-reset" title="サンプルに戻す">リセット</span>
+    <span class="btn btn-primary btn-xs" id="wfd-save">💾 保存（送信内容を確認）</span>
+  </div>
+  <div class="wfd-hint" id="wfd-hint">
+    <span>🖱 右クリック＝ステータス追加</span>
+    <span>● をドラッグ＝ステータスを接続（アクション作成）</span>
+    <span>アクション名を右クリック＝アクション設定</span>
+    <button class="x" id="wfd-hint-x" title="閉じる">×</button>
+  </div>
+  <div id="wfd-canvas">
+    <div id="wfd-world">
+      <svg id="wfd-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="wfd-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#9ab0c4"></path>
+          </marker>
+          <marker id="wfd-arr-sel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#3c8dbc"></path>
+          </marker>
+          <marker id="wfd-arr-new" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#00a65a"></path>
+          </marker>
+        </defs>
+        <g id="wfd-edges"></g>
+        <g id="wfd-ovl"></g>
+      </svg>
+      <div id="wfd-labels"></div>
+      <div id="wfd-nodes"></div>
+    </div>
+    <div class="wfd-legend">
+      <span class="sw" style="background:#3a4750"></span>開始&nbsp;&nbsp;
+      <span class="sw" style="background:#3c8dbc"></span>通常ステータス&nbsp;&nbsp;
+      <span class="sw" style="background:#00a65a"></span>完了ステータス<br>
+      <span class="ln"></span>アクション（遷移）&nbsp;&nbsp;
+      <span class="ln dash"></span>特殊なアクション（差戻し等）
+    </div>
+    <div id="wfd-ipop"><div class="tit"></div><div class="lst"></div></div>
+  </div>
+</div>
+
+<div id="wfd-menu"></div>
+<div id="wfd-modal"></div>
+<div id="wfd-toast"></div>
+
+<div class="vn">
+  <b>Checklist thử trong 60 giây:</b><br>
+  1. <b>Chuột phải chỗ trống</b> → chọn「＋ ステータスを追加」→ nhập tên (ví dụ 経理確認中) → 追加. Trạng thái mới hiện đúng chỗ vừa bấm.<br>
+  2. <b>Kéo chấm ●</b> ở mép phải của 部長確認中 thả vào trạng thái vừa tạo → hộp nhỏ hỏi アクション名 → gõ 経理へ回付 → 作成.<br>
+  3. Sau khi tạo, số 要確認 tăng vì action mới chưa có 実行可能ユーザー — <b>chuột phải vào tên action</b> →「⚙ アクション設定」
+     → chọn 事前に設定, gõ tên người, 追加 → 保存 → số 要確認 giảm lại.<br>
+  4. Thử kéo ● thả vào <b>chỗ trống</b>: mock đề nghị tạo luôn trạng thái mới + nối (giống draw.io).<br>
+  5. Kéo thân hộp để di chuyển; lăn chuột để thu phóng;「✦ 自動整列」xếp lại;「💾 保存」xem đúng JSON sẽ gửi về server.<br>
+  6. Bấm vào huy hiệu <span style="color:var(--orange)">要確認 1 件</span>: mẫu cố tình để sẵn 1 lỗi
+     (却下 không có đường ra mà cũng không phải 完了) — bấm từng dòng trong danh sách sẽ nhảy thẳng tới chỗ lỗi trên hình.
+</div>
+
+<h3>フィールド対応表（モーダルは既存画面と同じ項目）</h3>
+<table class="doc">
+  <tr><th>デザイナーの操作</th><th>表示する項目</th><th>既存画面での場所</th></tr>
+  <tr>
+    <td>右クリック →「ステータスを追加 / ステータス設定」</td>
+    <td>ステータス名（必須・30文字）／データの編集不可（YES/NO）／完了ステータス</td>
+    <td>ステップ1の行（<code>status_name</code> / <code>datalock_flg</code>）。完了は「1行目＝完了」というステップ1の仕様を、スイッチ1つに置き換え（ONは常に1件、保存時に order=0 へ）。</td>
+  </tr>
+  <tr>
+    <td>● をドラッグして接続</td>
+    <td>アクション名（必須・30文字）だけ即入力。残りは既定値</td>
+    <td>ステップ2の行追加＋<code>status_from</code>／実行後ステータス（<code>work_conditions.status_to</code>）を線の向きから自動設定。</td>
+  </tr>
+  <tr>
+    <td>アクション名を右クリック →「アクション設定」</td>
+    <td>アクション名／実行元・実行後ステータス／実行可能ユーザー（事前に設定・前アクションの実行ユーザーが選択・実行ユーザー情報から取得・全ユーザー実行可能）／次のステータスへ進む条件／特殊なアクション</td>
+    <td>ステップ2の <code>action_name</code>・<code>work_targets</code> モーダル・オプション設定（<code>flow_next_type / flow_next_count / ignore_work</code>）。条件分岐（複数分岐）は実装時に既存「アクション設定」モーダルを呼び出し。</td>
+  </tr>
+</table>
+
+<!-- =========================================================
+     ④ Save contract + plan
+     ========================================================= -->
+<h2 id="sec-save">④ 保存の仕組み・実装計画 <small>phần cho developer</small></h2>
+
+<h3>Luồng lưu (API contract)</h3>
+<div class="vn">
+  Nút 💾 trong mock chỉ <b>hiển thị</b> JSON. Khi làm thật:
+  <code>POST /admin/workflow/{id}/design</code> nhận đúng JSON đó, chạy trong <b>1 transaction</b>:
+  upsert <code>workflow_statuses</code> (khóa tạm <code>new:sX</code> → id thật) → upsert
+  <code>workflow_actions</code> (đổi <code>new:sX</code> trong from/to thành id vừa tạo) → xóa những dòng không còn
+  → ghi vị trí node vào <code>workflows.options.designer_layout</code> (cùng chỗ bản preview cũ đang dùng, nên
+  <b>preview và designer chung một bộ tọa độ</b>). Server validate lại như <code>validateData()</code> +
+  bộ luật issues của <code>workflow_designer.js</code> cũ (đã có sẵn 12 luật <code>issue_*</code> trong lang).
+</div>
+
+<h3>Kế hoạch làm thật (ước lượng ~4.5 ngày)</h3>
+<table class="doc">
+  <tr><th>Hạng mục</th><th>File đụng tới</th><th>Ước lượng</th></tr>
+  <tr><td>Route GET/POST <code>workflow/{id}/design</code> + controller + blade khung</td>
+      <td><code>RouteServiceProvider.php</code>, <code>WorkflowController.php</code>, view mới <code>workflow/design.blade.php</code></td><td>0.5 ngày</td></tr>
+  <tr><td>Nút ở 一覧 + step1 + step2</td><td><code>WorkflowController::grid/statusForm/actionForm</code></td><td>0.5 ngày</td></tr>
+  <tr><td>JS designer (canvas CRUD như mock này). <b>Tái dùng ~60%</b> từ <code>workflow_designer.js</code> cũ:
+      graph/issues/sugiyama(自動整列)/zoom/pan/lưu tọa độ</td>
+      <td>file mới <code>workflow_design_edit.js</code> (+ CSS)</td><td>2 ngày</td></tr>
+  <tr><td>Endpoint lưu: transaction, map khóa tạm, validate, xóa an toàn</td><td><code>WorkflowController.php</code></td><td>1 ngày</td></tr>
+  <tr><td>i18n (ja/en) + test tay 2 loại workflow (汎用/テーブル専用)</td><td>lang 2 file</td><td>0.5 ngày</td></tr>
+</table>
+
+<h3>Ràng buộc & rủi ro</h3>
+<table class="doc">
+  <tr><th>Rủi ro</th><th>Cách xử lý</th></tr>
+  <tr><td>Workflow đã 設定完了 (đang chạy) — sửa cấu trúc sẽ phá dữ liệu đang duyệt</td>
+      <td>Giống step1/2 hiện tại: mở designer ở <b>chế độ chỉ xem</b> (ẩn nút thêm/xóa, chỉ cho di chuyển node và lưu tọa độ).</td></tr>
+  <tr><td>2 người cùng sửa một workflow</td>
+      <td>Gửi kèm <code>updated_at</code>; server thấy lệch thì từ chối và bảo tải lại (không ghi đè im lặng).</td></tr>
+  <tr><td>Nhập từ màn cũ và designer lệch nhau</td>
+      <td>Designer đọc/ghi cùng bảng <code>workflow_statuses/workflow_actions</code>, không có kho dữ liệu riêng → không thể lệch.</td></tr>
+  <tr><td>Rollback</td>
+      <td>Gỡ 2 nút + route là xong. <code>designer_layout</code> nằm trong cột options có sẵn, không cần migration, không ảnh hưởng dữ liệu.</td></tr>
+</table>
+
+<h3>Cách kiểm tra bản mock này</h3>
+<p class="muted" style="font-size:13px">
+Mở <code>http://wf.jp/vendor/exment/designs/workflow_designer.html</code> → làm theo checklist ở phần ③.
+Nếu menu chuột phải của trình duyệt hiện ra thay vì menu của mock → con trỏ đang nằm ngoài vùng canvas trắng.
+Bấm「リセット」nếu muốn xóa những gì đã vẽ thử (dữ liệu chỉ nằm trong localStorage của trình duyệt).
+</p>
+
+</div><!-- /wrap -->
+
+<script>
+(function () {
+'use strict';
+
+/* ============================ tiện ích ============================ */
+var $id = function (s) { return document.getElementById(s); };
+function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+function clen(s) { var n = 0, i; for (i = 0; i < String(s).length; i++) { n++; var c = String(s).charCodeAt(i); if (c >= 0xD800 && c <= 0xDBFF) { i++; } } return n; }
+function snap(v) { return Math.round(v / 10) * 10; }
+
+var LS_KEY = 'exment_wfd_proto_v1';
+var NODE_W = 160, NODE_H = 58, START_W = 112, START_H = 44;
+var WORLD_W = 2400, WORLD_H = 1400;
+
+/* ============================ dữ liệu mẫu ============================ */
+function sample() {
+    return {
+        ver: 1,
+        workflowName: '稟議ワークフロー',
+        startName: '開始',
+        seq: { s: 7, a: 8 },
+        start: { x: 60, y: 307 },
+        statuses: [
+            { key: 's1', dbId: 21, name: '申請中',   datalock: false, completed: false, x: 250,  y: 300 },
+            { key: 's2', dbId: 22, name: '課長確認中', datalock: false, completed: false, x: 510,  y: 300 },
+            { key: 's3', dbId: 23, name: '部長確認中', datalock: false, completed: false, x: 780,  y: 300 },
+            { key: 's4', dbId: 24, name: '承認済み',  datalock: true,  completed: true,  x: 1050, y: 300 },
+            { key: 's5', dbId: 25, name: '差戻し',   datalock: false, completed: false, x: 645,  y: 480 },
+            { key: 's6', dbId: 26, name: '却下',     datalock: true,  completed: false, x: 1050, y: 480 }
+        ],
+        actions: [
+            { key: 'a1', dbId: 31, name: '申請',   from: 'start', to: 's1', targetType: 'all',           targets: [],                 flowType: 'all',  flowCount: 1, ignore: false },
+            { key: 'a2', dbId: 32, name: '提出',   from: 's1',    to: 's2', targetType: 'fix',           targets: ['ユーザー：鈴木 課長'], flowType: 'all',  flowCount: 1, ignore: false },
+            { key: 'a3', dbId: 33, name: '承認',   from: 's2',    to: 's3', targetType: 'fix',           targets: ['ユーザー：山田 部長'], flowType: 'all',  flowCount: 1, ignore: false },
+            { key: 'a4', dbId: 34, name: '最終承認', from: 's3',    to: 's4', targetType: 'fix',           targets: ['組織：役員会'],       flowType: 'some', flowCount: 2, ignore: false },
+            { key: 'a5', dbId: 35, name: '差戻し',  from: 's3',    to: 's5', targetType: 'fix',           targets: ['ユーザー：山田 部長'], flowType: 'all',  flowCount: 1, ignore: true },
+            { key: 'a6', dbId: 36, name: '再提出',  from: 's5',    to: 's2', targetType: 'action_select', targets: [],                 flowType: 'all',  flowCount: 1, ignore: false },
+            { key: 'a7', dbId: 37, name: '却下',   from: 's3',    to: 's6', targetType: 'fix',           targets: ['ユーザー：山田 部長'], flowType: 'all',  flowCount: 1, ignore: true }
+        ]
+    };
+}
+function load() {
+    try {
+        var raw = localStorage.getItem(LS_KEY);
+        if (!raw) { return null; }
+        var v = JSON.parse(raw);
+        return (v && v.ver === 1 && v.statuses && v.actions) ? v : null;
+    } catch (e) { return null; }
+}
+function persist() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(st)); } catch (e) { /* bỏ qua */ }
+}
+
+var st = load() || sample();
+
+/* ============================ DOM gốc ============================ */
+var canvas = $id('wfd-canvas'), world = $id('wfd-world'), svg = $id('wfd-svg');
+var gEdges = $id('wfd-edges'), gOvl = $id('wfd-ovl');
+var nodesEl = $id('wfd-nodes'), labelsEl = $id('wfd-labels');
+var menuEl = $id('wfd-menu'), modalEl = $id('wfd-modal'), toastEl = $id('wfd-toast');
+var ipop = $id('wfd-ipop');
+
+world.style.width = WORLD_W + 'px';
+world.style.height = WORLD_H + 'px';
+svg.setAttribute('width', WORLD_W);
+svg.setAttribute('height', WORLD_H);
+
+var scale = 1, panX = 0, panY = 0;
+var sel = null;      /* {type:'node'|'edge', key} */
+var drag = null;     /* trạng thái thao tác kéo hiện tại */
+var issueList = [];
+
+/* ============================ tra cứu ============================ */
+function statusOf(key) {
+    for (var i = 0; i < st.statuses.length; i++) { if (st.statuses[i].key === key) { return st.statuses[i]; } }
+    return null;
+}
+function actionOf(key) {
+    for (var i = 0; i < st.actions.length; i++) { if (st.actions[i].key === key) { return st.actions[i]; } }
+    return null;
+}
+function geom(key) {
+    if (key === 'start') {
+        return { x: st.start.x, y: st.start.y, w: START_W, h: START_H, name: st.startName, isStart: true };
+    }
+    var s = statusOf(key);
+    if (!s) { return null; }
+    return { x: s.x, y: s.y, w: NODE_W, h: NODE_H, name: s.name, completed: s.completed, datalock: s.datalock };
+}
+function nameOf(key) { var g = geom(key); return g ? g.name : '(削除済み)'; }
+
+/* ============================ vẽ ============================ */
+function applyTf() {
+    world.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')';
+    $id('wfd-zoomlv').textContent = Math.round(scale * 100) + '%';
+}
+
+function nodeHtml(key) {
+    var g = geom(key);
+    var cls = 'wfd-node' + (g.isStart ? ' start' : '') + (g.completed ? ' done' : '') +
+        (sel && sel.type === 'node' && sel.key === key ? ' sel' : '');
+    var chips = '';
+    if (!g.isStart) {
+        chips = '<div class="chips">' +
+            (g.completed ? '<span class="c-done">完了</span>' : '') +
+            (g.datalock ? '<span class="c-lock">🔒 編集不可</span>' : '') +
+            '</div>';
+    }
+    return '<div class="' + cls + '" data-key="' + esc(key) + '" style="left:' + g.x + 'px;top:' + g.y + 'px">' +
+        '<div class="nm">' + esc(g.name) + '</div>' + chips +
+        '<div class="wfd-handle" title="ドラッグして次のステータスへ接続">●</div></div>';
+}
+function renderNodes() {
+    var html = nodeHtml('start');
+    for (var i = 0; i < st.statuses.length; i++) { html += nodeHtml(st.statuses[i].key); }
+    nodesEl.innerHTML = html;
+}
+
+function cubicAt(t, x0, y0, x1, y1, x2, y2, x3, y3) {
+    var m = 1 - t;
+    return {
+        x: m * m * m * x0 + 3 * m * m * t * x1 + 3 * m * t * t * x2 + t * t * t * x3,
+        y: m * m * m * y0 + 3 * m * m * t * y1 + 3 * m * t * t * y2 + t * t * t * y3
+    };
+}
+function edgeGeo(a, idx, cnt) {
+    var s = geom(a.from), t = geom(a.to);
+    if (!s || !t) { return null; }
+    var off = (cnt > 1) ? (idx - (cnt - 1) / 2) * 44 : 0;
+    var scx = s.x + s.w / 2, tcx = t.x + t.w / 2;
+    var sx, sy, tx, ty, c1x, c1y, c2x, c2y, k;
+    sy = s.y + s.h / 2; ty = t.y + t.h / 2;
+    if (tcx >= scx + (s.w + t.w) / 2 - 20) {            /* đi xuôi: phải → trái */
+        sx = s.x + s.w; tx = t.x;
+        k = Math.max(50, Math.min(150, (tx - sx) / 2));
+        c1x = sx + k; c1y = sy + off; c2x = tx - k; c2y = ty + off;
+    } else if (tcx <= scx - (s.w + t.w) / 2 + 20) {     /* đi ngược: trái → phải */
+        sx = s.x; tx = t.x + t.w;
+        k = Math.max(50, Math.min(150, (sx - tx) / 2));
+        c1x = sx - k; c1y = sy + off; c2x = tx + k; c2y = ty + off;
+    } else {                                            /* xếp dọc */
+        if (t.y >= s.y + s.h) { sx = scx; sy = s.y + s.h; tx = tcx; ty = t.y; }
+        else if (t.y + t.h <= s.y) { sx = scx; sy = s.y; tx = tcx; ty = t.y + t.h; }
+        else { /* chồng lấn: vòng sang phải */
+            sx = s.x + s.w; sy = s.y + s.h / 2; tx = t.x + t.w; ty = t.y + t.h / 2;
+            c1x = sx + 90 + off; c1y = sy; c2x = tx + 90 + off; c2y = ty;
+            var m0 = cubicAt(0.5, sx, sy, c1x, c1y, c2x, c2y, tx, ty);
+            return { d: 'M' + sx + ',' + sy + ' C' + c1x + ',' + c1y + ' ' + c2x + ',' + c2y + ' ' + tx + ',' + ty, lx: m0.x, ly: m0.y };
+        }
+        k = Math.max(40, Math.abs(ty - sy) / 2);
+        var dir = (ty >= sy) ? 1 : -1;
+        c1x = sx + off; c1y = sy + dir * k; c2x = tx + off; c2y = ty - dir * k;
+    }
+    var mid = cubicAt(0.5, sx, sy, c1x, c1y, c2x, c2y, tx, ty);
+    /* cạnh ngang quá ngắn: nhãn sẽ đè lên ● của node nguồn → nâng nhãn lên trên */
+    if (Math.abs(ty - sy) < 30 && Math.abs(tx - sx) < 170) { mid.y -= 32; }
+    return { d: 'M' + sx + ',' + sy + ' C' + c1x + ',' + c1y + ' ' + c2x + ',' + c2y + ' ' + tx + ',' + ty, lx: mid.x, ly: mid.y };
+}
+function targetText(a) {
+    var m = { all: '全ユーザー実行可能', action_select: '前アクションの実行ユーザーが選択', get_by_userinfo: '実行ユーザー情報から取得', fix: '事前に設定' };
+    var t = m[a.targetType] || a.targetType;
+    if (a.targetType === 'fix' && a.targets.length) { t += '：' + a.targets.join('、'); }
+    return t;
+}
+function renderEdges() {
+    /* gom cặp from|to (2 chiều chung nhóm) để tách các đường song song */
+    var groups = {}, i, a, pk;
+    for (i = 0; i < st.actions.length; i++) {
+        a = st.actions[i];
+        pk = [a.from, a.to].sort().join('|');
+        (groups[pk] = groups[pk] || []).push(a.key);
+    }
+    var paths = '', labels = '';
+    for (i = 0; i < st.actions.length; i++) {
+        a = st.actions[i];
+        pk = [a.from, a.to].sort().join('|');
+        var g = edgeGeo(a, groups[pk].indexOf(a.key), groups[pk].length);
+        if (!g) { continue; }
+        var isSel = sel && sel.type === 'edge' && sel.key === a.key;
+        paths += '<path class="wfd-edge' + (a.ignore ? ' dash' : '') + (isSel ? ' sel' : '') + '" data-key="' + esc(a.key) +
+            '" d="' + g.d + '" marker-end="url(#' + (isSel ? 'wfd-arr-sel' : 'wfd-arr') + ')"></path>';
+        var badge = (a.flowType === 'some') ? '<span class="b">' + esc(a.flowCount) + '人以上</span>' : '';
+        var badge2 = a.ignore ? '<span class="b2">特殊</span>' : '';
+        labels += '<div class="wfd-albl' + (isSel ? ' sel' : '') + '" data-key="' + esc(a.key) +
+            '" style="left:' + g.lx + 'px;top:' + g.ly + 'px" title="' +
+            esc(nameOf(a.from) + ' → ' + nameOf(a.to) + '\n実行可能ユーザー：' + targetText(a)) + '">' +
+            esc(a.name || '(名称未設定)') + badge + badge2 + '</div>';
+    }
+    gEdges.innerHTML = paths;
+    labelsEl.innerHTML = labels;
+}
+function render() {
+    applyTf();
+    renderNodes();
+    renderEdges();
+    refreshIssues();
+    persist();
+}
+
+/* ============================ issues (kiểm tra sơ đồ) ============================ */
+function computeIssues() {
+    var list = [], out = {}, i, a, s;
+    for (i = 0; i < st.actions.length; i++) {
+        a = st.actions[i];
+        (out[a.from] = out[a.from] || []).push(a);
+    }
+    if (!(out.start || []).length) {
+        list.push({ msg: '「' + st.startName + '」から始まるアクションがありません。最初のステータスへ接続してください。', sel: { type: 'node', key: 'start' } });
+    }
+    var seen = { start: true }, q = ['start'];
+    while (q.length) {
+        var u = q.shift(), lst = out[u] || [];
+        for (i = 0; i < lst.length; i++) { if (!seen[lst[i].to]) { seen[lst[i].to] = true; q.push(lst[i].to); } }
+    }
+    for (i = 0; i < st.statuses.length; i++) {
+        s = st.statuses[i];
+        if (!seen[s.key]) { list.push({ msg: '「' + s.name + '」へ到達するアクションがありません。', sel: { type: 'node', key: s.key } }); }
+        if (!(out[s.key] || []).length && !s.completed) {
+            list.push({ msg: '「' + s.name + '」から出るアクションがなく、完了ステータスでもありません。', sel: { type: 'node', key: s.key } });
+        }
+    }
+    for (i = 0; i < st.actions.length; i++) {
+        a = st.actions[i];
+        var nm = a.name || '(名称未設定)';
+        if (!a.name || !a.name.replace(/\s/g, '').length) {
+            list.push({ msg: 'アクション名が未入力の行があります。このままでは保存できません。', sel: { type: 'edge', key: a.key } });
+        } else if (clen(a.name) > 30) {
+            list.push({ msg: 'アクション「' + nm + '」のアクション名が30文字を超えています。', sel: { type: 'edge', key: a.key } });
+        }
+        if (a.from === a.to) {
+            list.push({ msg: 'アクション「' + nm + '」の実行前と実行後が同じステータスです。', sel: { type: 'edge', key: a.key } });
+        }
+        if (a.targetType === 'fix' && !a.targets.length) {
+            list.push({ msg: 'アクション「' + nm + '」の実行可能ユーザーが未設定です。このままでは保存できません。', sel: { type: 'edge', key: a.key } });
+        }
+    }
+    return list;
+}
+function refreshIssues() {
+    issueList = computeIssues();
+    var b = $id('wfd-issues');
+    if (issueList.length) { b.className = 'warn'; b.textContent = '要確認 ' + issueList.length + ' 件'; }
+    else { b.className = ''; b.textContent = '問題なし'; ipop.style.display = 'none'; }
+}
+$id('wfd-issues').addEventListener('click', function () {
+    if (!issueList.length) { toast('問題はありません。'); return; }
+    if (ipop.style.display === 'block') { ipop.style.display = 'none'; return; }
+    ipop.querySelector('.tit').textContent = '要確認 ' + issueList.length + ' 件（クリックで該当箇所へ）';
+    var html = '', i;
+    for (i = 0; i < issueList.length; i++) { html += '<div class="it" data-i="' + i + '">・' + esc(issueList[i].msg) + '</div>'; }
+    ipop.querySelector('.lst').innerHTML = html;
+    ipop.style.display = 'block';
+});
+ipop.addEventListener('click', function (e) {
+    var it = e.target.closest('.it');
+    if (!it) { return; }
+    var iss = issueList[+it.getAttribute('data-i')];
+    if (!iss) { return; }
+    sel = iss.sel;
+    centerOn(iss.sel);
+    render();
+});
+function centerOn(target) {
+    var x, y;
+    if (target.type === 'node') {
+        var g = geom(target.key); if (!g) { return; }
+        x = g.x + g.w / 2; y = g.y + g.h / 2;
+    } else {
+        var a = actionOf(target.key); if (!a) { return; }
+        var eg = edgeGeo(a, 0, 1); if (!eg) { return; }
+        x = eg.lx; y = eg.ly;
+    }
+    var r = canvas.getBoundingClientRect();
+    panX = r.width / 2 - x * scale;
+    panY = r.height / 2 - y * scale;
+    applyTf();
+}
+
+/* ============================ toast / menu / modal ============================ */
+var toastTimer = null;
+function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.style.display = 'none'; }, 2400);
+}
+
+function closeMenu() { menuEl.style.display = 'none'; menuEl.innerHTML = ''; }
+function openMenu(e, cap, items) {
+    var html = cap ? '<div class="cap">' + esc(cap) + '</div>' : '';
+    var i;
+    for (i = 0; i < items.length; i++) {
+        if (items[i] === '-') { html += '<div class="sep"></div>'; continue; }
+        html += '<div class="mi' + (items[i].danger ? ' danger' : '') + '" data-i="' + i + '">' +
+            '<span>' + items[i].icon + '</span><span>' + esc(items[i].label) + '</span></div>';
+    }
+    menuEl.innerHTML = html;
+    menuEl.style.display = 'block';
+    var mw = menuEl.offsetWidth, mh = menuEl.offsetHeight;
+    menuEl.style.left = Math.min(e.clientX, window.innerWidth - mw - 8) + 'px';
+    menuEl.style.top = Math.min(e.clientY, window.innerHeight - mh - 8) + 'px';
+    menuEl.onclick = function (ev) {
+        var mi = ev.target.closest('.mi');
+        if (!mi) { return; }
+        var item = items[+mi.getAttribute('data-i')];
+        closeMenu();
+        if (item && item.run) { item.run(); }
+    };
+}
+document.addEventListener('pointerdown', function (e) {
+    if (!e.target.closest('#wfd-menu')) { closeMenu(); }
+    if (ipop.style.display === 'block' && !e.target.closest('#wfd-ipop') && !e.target.closest('#wfd-issues')) {
+        ipop.style.display = 'none';
+    }
+});
+
+function closeModal() { modalEl.classList.remove('on'); modalEl.innerHTML = ''; }
+function openModal(title, body, buttons, wide) {
+    var html = '<div class="wfd-dlg"' + (wide ? ' style="width:640px"' : '') + '>' +
+        '<div class="wfd-dlg-h">' + esc(title) + '<button type="button" class="wfd-x" data-close>×</button></div>' +
+        '<div class="wfd-dlg-b">' + body + '</div><div class="wfd-dlg-f">';
+    var i;
+    for (i = 0; i < buttons.length; i++) {
+        html += '<button type="button" class="btn ' + (buttons[i].cls || '') + '" data-bi="' + i + '">' + esc(buttons[i].label) + '</button>';
+    }
+    html += '</div></div>';
+    modalEl.innerHTML = html;
+    modalEl.classList.add('on');
+    modalEl.onclick = function (ev) {
+        if (ev.target.closest('[data-close]') || ev.target === modalEl) { closeModal(); return; }
+        var b = ev.target.closest('[data-bi]');
+        if (!b) { return; }
+        var def = buttons[+b.getAttribute('data-bi')];
+        if (!def.run) { closeModal(); return; }
+        if (def.run(modalEl) !== false) { closeModal(); }
+    };
+    modalEl.onkeydown = function (ev) {
+        if (ev.key === 'Enter' && /INPUT/.test(ev.target.tagName) && ev.target.type !== 'number') {
+            var prim = modalEl.querySelector('.btn-primary,[data-bi] .btn-success');
+            prim = modalEl.querySelector('.btn-primary') || modalEl.querySelector('.btn-success');
+            if (prim) { ev.preventDefault(); prim.click(); }
+        }
+    };
+    var first = modalEl.querySelector('input[type=text]');
+    if (first) { setTimeout(function () { first.focus(); first.select(); }, 30); }
+}
+function readText(m, id) { var el = m.querySelector('#' + id); return el ? el.value.trim() : ''; }
+function markErr(m, id) { var el = m.querySelector('#' + id); if (el) { el.classList.add('err'); el.focus(); } }
+
+/* ============================ form: STATUS ============================ */
+function statusFormHtml(s) {
+    s = s || { name: '', datalock: false, completed: false };
+    return '' +
+        '<label class="fl">ステータス名<span class="req">必須</span></label>' +
+        '<input type="text" id="wf-sname" maxlength="30" value="' + esc(s.name) + '">' +
+        '<div class="help">画面に表示するときの名称を設定します。（30文字まで）</div>' +
+        '<div class="opt" style="margin-top:14px"><input type="checkbox" id="wf-slock"' + (s.datalock ? ' checked' : '') + '>' +
+        '<span><b>データの編集不可</b><div class="help">ワークフローがこのステータスのときに、対象のデータを編集不可にします。</div></span></div>' +
+        '<div class="opt"><input type="checkbox" id="wf-sdone"' + (s.completed ? ' checked' : '') + '>' +
+        '<span><b>完了ステータス</b><div class="help">本家仕様では「ステップ1の1行目＝完了」。デザイナーでは、このスイッチをONにしたステータスを保存時に先頭（order=0）へ移動します。ONにできるのは1件のみ（他のONは自動でOFF）。</div></span></div>';
+}
+function readStatusForm(m, target) {
+    var name = readText(m, 'wf-sname');
+    if (!name) { markErr(m, 'wf-sname'); return null; }
+    target.name = name;
+    target.datalock = m.querySelector('#wf-slock').checked;
+    var done = m.querySelector('#wf-sdone').checked;
+    if (done && !target.completed) {
+        var i;
+        for (i = 0; i < st.statuses.length; i++) { st.statuses[i].completed = false; }
+    }
+    target.completed = done;
+    return target;
+}
+function addStatusModal(wx, wy, andConnectFrom) {
+    var title = andConnectFrom ? '新しいステータスを作成して接続' : 'ステータスを追加';
+    var extra = andConnectFrom ?
+        '<label class="fl" style="margin-top:16px">アクション名（' + esc(nameOf(andConnectFrom)) + ' → 新ステータス）<span class="req">必須</span></label>' +
+        '<input type="text" id="wf-aname" maxlength="30" value="">' : '';
+    openModal(title, statusFormHtml(null) + extra, [
+        { label: 'キャンセル' },
+        { label: andConnectFrom ? '作成して接続' : '追加', cls: 'btn-success', run: function (m) {
+            var s = { key: 's' + (++st.seq.s), name: '', datalock: false, completed: false, x: snap(wx), y: snap(wy) };
+            if (!readStatusForm(m, s)) { return false; }
+            var aname = '';
+            if (andConnectFrom) {
+                aname = readText(m, 'wf-aname');
+                if (!aname) { markErr(m, 'wf-aname'); return false; }
+            }
+            st.statuses.push(s);
+            if (andConnectFrom) {
+                st.actions.push(newAction(aname, andConnectFrom, s.key));
+                toast('ステータスとアクションを作成しました。アクション名を右クリックすると詳細設定できます。');
+            } else {
+                toast('ステータス「' + s.name + '」を追加しました。●をドラッグして接続してください。');
+            }
+            sel = { type: 'node', key: s.key };
+            render();
+        } }
+    ]);
+}
+function editStatusModal(key) {
+    var s = statusOf(key);
+    if (!s) { return; }
+    openModal('ステータス設定：' + s.name, statusFormHtml(s), [
+        { label: 'キャンセル' },
+        { label: '保存', cls: 'btn-primary', run: function (m) {
+            if (!readStatusForm(m, s)) { return false; }
+            render();
+        } }
+    ]);
+}
+function editStartModal() {
+    openModal('開始ステータス名', '' +
+        '<label class="fl">開始ステータス名<span class="req">必須</span></label>' +
+        '<input type="text" id="wf-stname" maxlength="30" value="' + esc(st.startName) + '">' +
+        '<div class="help">ワークフローの開始時のステータス名を設定してください。（ステップ1の同項目と同じ）</div>', [
+        { label: 'キャンセル' },
+        { label: '保存', cls: 'btn-primary', run: function (m) {
+            var v = readText(m, 'wf-stname');
+            if (!v) { markErr(m, 'wf-stname'); return false; }
+            st.startName = v;
+            render();
+        } }
+    ]);
+}
+function deleteStatusFlow(key) {
+    var s = statusOf(key);
+    if (!s) { return; }
+    var used = st.actions.filter(function (a) { return a.from === key || a.to === key; });
+    var msg = '<p>ステータス「<b>' + esc(s.name) + '</b>」を削除します。</p>' +
+        (used.length ? '<div class="box" style="color:#a94442">接続している ' + used.length + ' 件のアクションも削除されます。</div>' : '');
+    openModal('削除の確認', msg, [
+        { label: 'キャンセル' },
+        { label: '削除', cls: 'btn-danger', run: function () {
+            st.statuses = st.statuses.filter(function (x) { return x.key !== key; });
+            st.actions = st.actions.filter(function (a) { return a.from !== key && a.to !== key; });
+            sel = null;
+            render();
+            toast('削除しました。');
+        } }
+    ]);
+}
+
+/* ============================ form: ACTION ============================ */
+function newAction(name, from, to) {
+    return {
+        key: 'a' + (++st.seq.a), name: name, from: from, to: to,
+        targetType: from === 'start' ? 'all' : 'fix',
+        targets: [], flowType: 'all', flowCount: 1, ignore: false
+    };
+}
+function statusSelectHtml(id, current, withStart) {
+    var html = '<select id="' + id + '">', i;
+    if (withStart) { html += '<option value="start"' + (current === 'start' ? ' selected' : '') + '>' + esc(st.startName) + '（開始）</option>'; }
+    for (i = 0; i < st.statuses.length; i++) {
+        var s = st.statuses[i];
+        html += '<option value="' + esc(s.key) + '"' + (current === s.key ? ' selected' : '') + '>' + esc(s.name) + '</option>';
+    }
+    return html + '</select>';
+}
+function actionFormHtml(a) {
+    function rd(v, label, extra) {
+        return '<div class="opt"><input type="radio" name="wf-tt" value="' + v + '"' + (a.targetType === v ? ' checked' : '') + '>' +
+            '<span>' + label + (extra || '') + '</span></div>';
+    }
+    var chips = '', i;
+    for (i = 0; i < a.targets.length; i++) {
+        chips += '<span class="chip">' + esc(a.targets[i]) + '<b data-rm="' + i + '" title="削除">×</b></span>';
+    }
+    return '' +
+        '<label class="fl">アクション名<span class="req">必須</span></label>' +
+        '<input type="text" id="wf-aname" maxlength="30" value="' + esc(a.name) + '">' +
+        '<div class="help">30文字まで。（ステップ2の「アクション名」と同じ）</div>' +
+        '<div style="display:flex;gap:12px;margin-top:12px">' +
+        '<div style="flex:1"><label class="fl" style="margin-top:0">実行元ステータス</label>' + statusSelectHtml('wf-from', a.from, true) + '</div>' +
+        '<div style="flex:1"><label class="fl" style="margin-top:0">実行後ステータス</label>' + statusSelectHtml('wf-to', a.to, false) + '</div>' +
+        '</div>' +
+        '<div class="help">矢印の向きと同じです。ここを変えると線もつなぎ替わります。</div>' +
+        '<label class="fl" style="margin-top:16px">実行可能ユーザー<span class="req">必須</span></label>' +
+        '<div class="box">' +
+        rd('fix', '<b>事前に設定</b>',
+            '<div class="chips-edit" id="wf-chips">' + chips + '</div>' +
+            '<div class="inline"><input type="text" id="wf-tgt" placeholder="例：ユーザー：鈴木 課長 ／ 組織：営業部 ／ 列：担当者">' +
+            '<span class="btn btn-xs" id="wf-tgt-add">追加</span></div>' +
+            '<div class="help">実装時は既存のユーザー・組織・列選択モーダル（targetModal）をそのまま使用（ここは簡易入力）。</div>') +
+        rd('action_select', '<b>前アクションの実行ユーザーが選択</b>') +
+        rd('get_by_userinfo', '<b>実行ユーザー情報から取得</b>（上長など）') +
+        rd('all', '<b>全ユーザー実行可能</b>') +
+        '</div>' +
+        '<label class="fl">次のステータスへ進む条件</label>' +
+        '<div class="box">' +
+        '<div class="opt"><input type="radio" name="wf-ft" value="all"' + (a.flowType === 'all' ? ' checked' : '') + '><span>全員が実行したら次へ</span></div>' +
+        '<div class="opt"><input type="radio" name="wf-ft" value="some"' + (a.flowType === 'some' ? ' checked' : '') + '>' +
+        '<span><input type="number" id="wf-fc" class="wfd-num" min="1" max="10" value="' + esc(a.flowCount) + '">人以上が実行したら次へ</span></div>' +
+        '</div>' +
+        '<div class="opt" style="margin-top:10px"><input type="checkbox" id="wf-ig"' + (a.ignore ? ' checked' : '') + '>' +
+        '<span><b>特殊なアクション</b><div class="help">「却下」「差し戻し」など前のステータスに戻るアクションに使用。実行可能ユーザーを作業ユーザーに含めません。（線が点線になります）</div></span></div>' +
+        '<div class="note">条件分岐（1本のアクションから条件で行き先を変える◆）は、実装時に既存の「アクション設定」モーダル（work_conditions）を呼び出して設定します。このモックでは省略。</div>';
+}
+function bindActionFormEvents(m, a) {
+    /* thêm/xóa chip 実行可能ユーザー — thao tác trên bản nháp draft */
+    m.addEventListener('click', function (ev) {
+        var rm = ev.target.closest('[data-rm]');
+        if (rm) {
+            a.draftTargets.splice(+rm.getAttribute('data-rm'), 1);
+            renderChips();
+            return;
+        }
+        if (ev.target.closest('#wf-tgt-add')) {
+            var inp = m.querySelector('#wf-tgt');
+            var v = inp.value.trim();
+            if (v) { a.draftTargets.push(v); inp.value = ''; renderChips(); }
+            var fx = m.querySelector('input[name=wf-tt][value=fix]');
+            if (fx) { fx.checked = true; }
+        }
+    });
+    function renderChips() {
+        var html = '', i;
+        for (i = 0; i < a.draftTargets.length; i++) {
+            html += '<span class="chip">' + esc(a.draftTargets[i]) + '<b data-rm="' + i + '" title="削除">×</b></span>';
+        }
+        m.querySelector('#wf-chips').innerHTML = html;
+    }
+}
+function editActionModal(key) {
+    var a = actionOf(key);
+    if (!a) { return; }
+    a.draftTargets = a.targets.slice();
+    openModal('アクション設定：' + (a.name || '(名称未設定)'), actionFormHtml(a), [
+        { label: 'キャンセル' },
+        { label: '保存', cls: 'btn-primary', run: function (m) {
+            var name = readText(m, 'wf-aname');
+            if (!name) { markErr(m, 'wf-aname'); return false; }
+            var from = m.querySelector('#wf-from').value;
+            var to = m.querySelector('#wf-to').value;
+            if (from === to) { toast('実行前と実行後が同じステータスです。'); return false; }
+            a.name = name;
+            a.from = from;
+            a.to = to;
+            a.targetType = (m.querySelector('input[name=wf-tt]:checked') || {}).value || 'fix';
+            a.targets = a.draftTargets.slice();
+            a.flowType = (m.querySelector('input[name=wf-ft]:checked') || {}).value || 'all';
+            a.flowCount = Math.max(1, Math.min(10, +m.querySelector('#wf-fc').value || 1));
+            a.ignore = m.querySelector('#wf-ig').checked;
+            delete a.draftTargets;
+            sel = { type: 'edge', key: a.key };
+            render();
+        } }
+    ], true);
+    bindActionFormEvents(modalEl, a);
+}
+function quickActionModal(from, to) {
+    openModal('アクションを作成', '' +
+        '<p style="margin:0 0 4px"><span class="chip">' + esc(nameOf(from)) + '</span> → <span class="chip">' + esc(nameOf(to)) + '</span></p>' +
+        '<label class="fl">アクション名<span class="req">必須</span></label>' +
+        '<input type="text" id="wf-aname" maxlength="30" value="">' +
+        '<div class="help">実行可能ユーザーなどの詳細は、作成後にアクション名を右クリック →「アクション設定」。</div>', [
+        { label: 'キャンセル' },
+        { label: '作成して詳細設定', run: function (m) {
+            var name = readText(m, 'wf-aname');
+            if (!name) { markErr(m, 'wf-aname'); return false; }
+            var a = newAction(name, from, to);
+            st.actions.push(a);
+            sel = { type: 'edge', key: a.key };
+            render();
+            setTimeout(function () { editActionModal(a.key); }, 60);
+        } },
+        { label: '作成', cls: 'btn-success', run: function (m) {
+            var name = readText(m, 'wf-aname');
+            if (!name) { markErr(m, 'wf-aname'); return false; }
+            var a = newAction(name, from, to);
+            st.actions.push(a);
+            sel = { type: 'edge', key: a.key };
+            render();
+            if (a.targetType === 'fix' && !a.targets.length) {
+                toast('作成しました。実行可能ユーザーが未設定です（右クリック → アクション設定）。');
+            } else {
+                toast('作成しました。');
+            }
+        } }
+    ]);
+}
+function deleteActionFlow(key) {
+    var a = actionOf(key);
+    if (!a) { return; }
+    openModal('削除の確認', '<p>アクション「<b>' + esc(a.name || '(名称未設定)') + '</b>」（' +
+        esc(nameOf(a.from)) + ' → ' + esc(nameOf(a.to)) + '）を削除します。</p>', [
+        { label: 'キャンセル' },
+        { label: '削除', cls: 'btn-danger', run: function () {
+            st.actions = st.actions.filter(function (x) { return x.key !== key; });
+            sel = null;
+            render();
+            toast('削除しました。');
+        } }
+    ]);
+}
+
+/* ============================ chuột phải ============================ */
+canvas.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    var lbl = e.target.closest('.wfd-albl');
+    var nd = e.target.closest('.wfd-node');
+    var r = canvas.getBoundingClientRect();
+    var wx = (e.clientX - r.left - panX) / scale;
+    var wy = (e.clientY - r.top - panY) / scale;
+    if (lbl) {
+        var a = actionOf(lbl.getAttribute('data-key'));
+        if (!a) { return; }
+        sel = { type: 'edge', key: a.key };
+        render();
+        openMenu(e, 'アクション：' + (a.name || '(名称未設定)'), [
+            { icon: '⚙', label: 'アクション設定', run: function () { editActionModal(a.key); } },
+            '-',
+            { icon: '✖', label: '削除', danger: true, run: function () { deleteActionFlow(a.key); } }
+        ]);
+    } else if (nd && nd.getAttribute('data-key') === 'start') {
+        openMenu(e, '開始', [
+            { icon: '✎', label: '開始ステータス名を変更', run: editStartModal }
+        ]);
+    } else if (nd) {
+        var key = nd.getAttribute('data-key');
+        sel = { type: 'node', key: key };
+        render();
+        openMenu(e, 'ステータス：' + nameOf(key), [
+            { icon: '⚙', label: 'ステータス設定', run: function () { editStatusModal(key); } },
+            '-',
+            { icon: '✖', label: '削除', danger: true, run: function () { deleteStatusFlow(key); } }
+        ]);
+    } else {
+        openMenu(e, null, [
+            { icon: '＋', label: 'ステータスを追加', run: function () { addStatusModal(wx - NODE_W / 2, wy - NODE_H / 2, null); } },
+            '-',
+            { icon: '✦', label: '自動整列', run: autoLayout },
+            { icon: '⤢', label: '全体表示', run: fit }
+        ]);
+    }
+});
+
+/* ============================ kéo: node / nối / pan ============================ */
+nodesEl.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0) { return; }
+    var h = e.target.closest('.wfd-handle');
+    var nd = e.target.closest('.wfd-node');
+    if (!nd) { return; }
+    var key = nd.getAttribute('data-key');
+    e.stopPropagation();
+    e.preventDefault();
+    var rect = nd.getBoundingClientRect();
+    if (h || e.clientX > rect.right - 18) {   /* trúng ● hoặc dải 18px mép phải đều bắt đầu nối */
+        var g = geom(key);
+        drag = { type: 'rubber', from: key, sx: g.x + g.w, sy: g.y + g.h / 2, hover: null };
+        return;
+    }
+    var pos = (key === 'start') ? st.start : statusOf(key);
+    drag = { type: 'move', key: key, el: nd, mx: e.clientX, my: e.clientY, ox: pos.x, oy: pos.y, moved: false };
+});
+labelsEl.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0) { return; }
+    var lbl = e.target.closest('.wfd-albl');
+    if (!lbl) { return; }
+    e.stopPropagation();
+    sel = { type: 'edge', key: lbl.getAttribute('data-key') };
+    render();
+});
+labelsEl.addEventListener('dblclick', function (e) {
+    var lbl = e.target.closest('.wfd-albl');
+    if (lbl) { editActionModal(lbl.getAttribute('data-key')); }
+});
+canvas.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0) { return; }
+    if (e.target.closest('.wfd-node') || e.target.closest('.wfd-albl') || e.target.closest('#wfd-ipop')) { return; }
+    drag = { type: 'pan', mx: e.clientX, my: e.clientY, ox: panX, oy: panY, moved: false };
+    canvas.classList.add('panning');
+});
+
+window.addEventListener('pointermove', function (e) {
+    if (!drag) { return; }
+    if (drag.type === 'move') {
+        var dx = (e.clientX - drag.mx) / scale, dy = (e.clientY - drag.my) / scale;
+        if (Math.abs(e.clientX - drag.mx) + Math.abs(e.clientY - drag.my) > 3) { drag.moved = true; }
+        var pos = (drag.key === 'start') ? st.start : statusOf(drag.key);
+        if (!pos) { return; }
+        pos.x = Math.max(0, Math.min(WORLD_W - NODE_W, snap(drag.ox + dx)));
+        pos.y = Math.max(0, Math.min(WORLD_H - NODE_H, snap(drag.oy + dy)));
+        drag.el.style.left = pos.x + 'px';
+        drag.el.style.top = pos.y + 'px';
+        renderEdges();
+    } else if (drag.type === 'rubber') {
+        var r = canvas.getBoundingClientRect();
+        var wx = (e.clientX - r.left - panX) / scale;
+        var wy = (e.clientY - r.top - panY) / scale;
+        var k = Math.max(40, Math.abs(wx - drag.sx) / 2);
+        gOvl.innerHTML = '<path class="wfd-rubber" d="M' + drag.sx + ',' + drag.sy +
+            ' C' + (drag.sx + k) + ',' + drag.sy + ' ' + (wx - k) + ',' + wy + ' ' + wx + ',' + wy +
+            '" marker-end="url(#wfd-arr-new)"></path>';
+        var el = document.elementFromPoint(e.clientX, e.clientY);
+        var nd = el && el.closest ? el.closest('.wfd-node') : null;
+        var hoverKey = nd ? nd.getAttribute('data-key') : null;
+        if (drag.hover !== hoverKey) {
+            var old = nodesEl.querySelector('.droptarget');
+            if (old) { old.classList.remove('droptarget'); }
+            if (nd && hoverKey !== drag.from && hoverKey !== 'start') { nd.classList.add('droptarget'); }
+            drag.hover = hoverKey;
+        }
+        drag.wx = wx; drag.wy = wy;
+    } else if (drag.type === 'pan') {
+        if (Math.abs(e.clientX - drag.mx) + Math.abs(e.clientY - drag.my) > 3) { drag.moved = true; }
+        panX = drag.ox + (e.clientX - drag.mx);
+        panY = drag.oy + (e.clientY - drag.my);
+        applyTf();
+    }
+});
+window.addEventListener('pointerup', function (e) {
+    if (!drag) { return; }
+    var d = drag;
+    drag = null;
+    canvas.classList.remove('panning');
+    if (d.type === 'move') {
+        if (!d.moved) { sel = { type: 'node', key: d.key }; }
+        render();
+    } else if (d.type === 'rubber') {
+        gOvl.innerHTML = '';
+        var old = nodesEl.querySelector('.droptarget');
+        if (old) { old.classList.remove('droptarget'); }
+        var el = document.elementFromPoint(e.clientX, e.clientY);
+        var nd = el && el.closest ? el.closest('.wfd-node') : null;
+        var inCanvas = el && el.closest ? el.closest('#wfd-canvas') : null;
+        if (nd) {
+            var to = nd.getAttribute('data-key');
+            if (to === 'start') { toast('「開始」へ戻るアクションは作成できません。'); return; }
+            if (to === d.from) { toast('実行前と実行後が同じステータスです。別のステータスへ接続してください。'); return; }
+            quickActionModal(d.from, to);
+        } else if (inCanvas) {
+            /* thả vào chỗ trống → tạo status mới + nối luôn (kiểu draw.io) */
+            var r2 = canvas.getBoundingClientRect();
+            var wx2 = (e.clientX - r2.left - panX) / scale;
+            var wy2 = (e.clientY - r2.top - panY) / scale;
+            addStatusModal(wx2 - NODE_W / 2, wy2 - NODE_H / 2, d.from);
+        }
+    } else if (d.type === 'pan' && !d.moved) {
+        sel = null;
+        render();
+    }
+});
+
+/* ============================ zoom / fit / auto layout ============================ */
+function zoomAt(mx, my, ns) {
+    ns = Math.max(0.3, Math.min(2, ns));
+    var wx = (mx - panX) / scale, wy = (my - panY) / scale;
+    panX = mx - wx * ns;
+    panY = my - wy * ns;
+    scale = ns;
+    applyTf();
+}
+canvas.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    if (drag) { return; }   /* đang kéo thì không zoom */
+    var r = canvas.getBoundingClientRect();
+    zoomAt(e.clientX - r.left, e.clientY - r.top, scale * (e.deltaY < 0 ? 1.12 : 1 / 1.12));
+}, { passive: false });
+$id('wfd-zin').addEventListener('click', function () {
+    var r = canvas.getBoundingClientRect();
+    zoomAt(r.width / 2, r.height / 2, scale * 1.2);
+});
+$id('wfd-zout').addEventListener('click', function () {
+    var r = canvas.getBoundingClientRect();
+    zoomAt(r.width / 2, r.height / 2, scale / 1.2);
+});
+function fit() {
+    var xs = [st.start.x], ys = [st.start.y], xe = [st.start.x + START_W], ye = [st.start.y + START_H], i;
+    for (i = 0; i < st.statuses.length; i++) {
+        xs.push(st.statuses[i].x); ys.push(st.statuses[i].y);
+        xe.push(st.statuses[i].x + NODE_W); ye.push(st.statuses[i].y + NODE_H);
+    }
+    var x0 = Math.min.apply(null, xs) - 40, y0 = Math.min.apply(null, ys) - 40;
+    var x1 = Math.max.apply(null, xe) + 40, y1 = Math.max.apply(null, ye) + 60;
+    var r = canvas.getBoundingClientRect();
+    scale = Math.max(0.3, Math.min(1.3, Math.min(r.width / (x1 - x0), r.height / (y1 - y0))));
+    panX = (r.width - (x1 - x0) * scale) / 2 - x0 * scale;
+    panY = (r.height - (y1 - y0) * scale) / 2 - y0 * scale;
+    applyTf();
+}
+$id('wfd-fit').addEventListener('click', fit);
+function autoLayout() {
+    /* BFS từ 開始 → xếp cột theo độ sâu (bản thật sẽ tái dùng sugiyama() của workflow_designer.js) */
+    var depth = { start: 0 }, orderIn = {}, q = ['start'], i, a;
+    var outMap = {};
+    for (i = 0; i < st.actions.length; i++) {
+        a = st.actions[i];
+        (outMap[a.from] = outMap[a.from] || []).push(a.to);
+    }
+    while (q.length) {
+        var u = q.shift(), lst = outMap[u] || [];
+        for (i = 0; i < lst.length; i++) {
+            if (depth[lst[i]] === undefined) { depth[lst[i]] = depth[u] + 1; q.push(lst[i]); }
+        }
+    }
+    var maxD = 0, k;
+    for (k in depth) { if (depth[k] > maxD) { maxD = depth[k]; } }
+    for (i = 0; i < st.statuses.length; i++) {
+        if (depth[st.statuses[i].key] === undefined) { depth[st.statuses[i].key] = maxD + 1; }
+    }
+    st.start.x = 60;
+    for (i = 0; i < st.statuses.length; i++) {
+        var s = st.statuses[i], d = depth[s.key];
+        var row = (orderIn[d] = (orderIn[d] || 0));
+        orderIn[d]++;
+        s.x = 60 + d * 270;
+        s.y = 90 + row * 150;
+    }
+    /* căn 開始 giữa cột các node độ sâu 1 */
+    var ys = [];
+    for (i = 0; i < st.statuses.length; i++) { if (depth[st.statuses[i].key] === 1) { ys.push(st.statuses[i].y); } }
+    st.start.y = ys.length ? (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2 + (NODE_H - START_H) / 2 : 300;
+    render();
+    fit();
+}
+$id('wfd-relayout').addEventListener('click', autoLayout);
+
+/* ============================ nút thanh công cụ ============================ */
+$id('wfd-reset').addEventListener('click', function () {
+    openModal('リセット', '<p>キャンバスをサンプルの状態に戻します。（この画面で試した変更は消えます）</p>', [
+        { label: 'キャンセル' },
+        { label: 'リセット', cls: 'btn-danger', run: function () {
+            st = sample();
+            sel = null;
+            render();
+            fit();
+        } }
+    ]);
+});
+$id('wfd-hint-x').addEventListener('click', function () { $id('wfd-hint').style.display = 'none'; });
+
+function refOf(key) {
+    var s = statusOf(key);
+    return s ? (s.dbId ? s.dbId : 'new:' + s.key) : key;
+}
+$id('wfd-save').addEventListener('click', function () {
+    var ordered = st.statuses.slice().sort(function (a, b) { return (b.completed ? 1 : 0) - (a.completed ? 1 : 0); });
+    var pos = { start: { x: st.start.x, y: st.start.y } }, i;
+    for (i = 0; i < st.statuses.length; i++) {
+        pos[st.statuses[i].dbId || st.statuses[i].key] = { x: st.statuses[i].x, y: st.statuses[i].y };
+    }
+    var payload = {
+        workflow_view_name: st.workflowName,
+        start_status_name: st.startName,
+        updated_at: '2026-08-26 15:00:00',
+        workflow_statuses: ordered.map(function (s, idx) {
+            return { id: s.dbId || null, key: s.dbId ? undefined : 'new:' + s.key, status_name: s.name,
+                datalock_flg: s.datalock ? 1 : 0, completed_flg: s.completed ? 1 : 0, order: idx };
+        }),
+        workflow_actions: st.actions.map(function (a) {
+            return { id: a.dbId || null, action_name: a.name,
+                status_from: a.from === 'start' ? 'start' : refOf(a.from),
+                work_conditions: [{ enabled_flg: 1, status_to: refOf(a.to) }],
+                work_targets: { work_target_type: a.targetType, targets: a.targets },
+                options: { flow_next_type: a.flowType, flow_next_count: a.flowCount, ignore_work: a.ignore ? 1 : 0 } };
+        }),
+        options: { designer_layout: { enabled: true, pos: pos } }
+    };
+    var json = JSON.stringify(payload, function (k, v) { return v === undefined ? undefined : v; }, 2);
+    openModal('保存 — 実装時にサーバーへ送る内容（POST /admin/workflow/{id}/design）',
+        '<div class="help" style="margin-bottom:8px">モックのため送信はしません。新規ステータスは <code>new:sX</code> の仮キーで送り、サーバー側で作成後の ID に差し替えます。issues（要確認）が残っている場合、サーバーは 422 で拒否します。</div>' +
+        '<pre class="wfd-json">' + esc(json) + '</pre>', [
+        { label: '閉じる', cls: 'btn-primary' }
+    ], true);
+});
+
+/* ============================ phím tắt ============================ */
+document.addEventListener('keydown', function (e) {
+    if (modalEl.classList.contains('on')) {
+        if (e.key === 'Escape') { closeModal(); }
+        return;
+    }
+    if (e.key === 'Escape') {
+        closeMenu();
+        gOvl.innerHTML = '';
+        if (drag && drag.type === 'rubber') { drag = null; }
+        sel = null;
+        render();
+        return;
+    }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && sel && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
+        e.preventDefault();
+        if (sel.type === 'node' && sel.key !== 'start') { deleteStatusFlow(sel.key); }
+        else if (sel.type === 'edge') { deleteActionFlow(sel.key); }
+    }
+});
+
+/* ============================ khởi động ============================ */
+render();
+requestAnimationFrame(fit);
+})();
+</script>
+</body>
+</html>

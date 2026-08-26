@@ -163,6 +163,13 @@ class RouteServiceProvider extends ServiceProvider
             $this->setResouce($router, 'workflow', 'WorkflowController');
 
 
+            // フロー図で直接編集する画面（ステップ1・2と同じテーブルを更新する）
+            // 新規作成は id が無いので、先に固定パスの方を登録する
+            $router->get('workflow/design/create', 'WorkflowController@designCreate');
+            $router->post('workflow/design/create', 'WorkflowController@designCreatePost');
+            $router->get('workflow/{id}/design', 'WorkflowController@design');
+            $router->post('workflow/{id}/design', 'WorkflowController@designPost');
+
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
             $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
             $router->post('workflow/{id}/activate', 'WorkflowController@activate');

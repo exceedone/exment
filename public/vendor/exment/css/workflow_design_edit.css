@@ -1,0 +1,699 @@
+/*
+ * ワークフロー デザイナー（workflow/design 画面）のスタイル。
+ *
+ * すべて #wfd- で始まる id / .wfd- で始まる class に閉じている。
+ * AdminLTE の .box や .chip などと名前がぶつからないようにするため、
+ * 汎用的な名前はキャンバスの中では使わない。
+ */
+
+.wfd-app {
+    background: #fff;
+    border: 1px solid #c8d2da;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ---------------------------------------------------------- ツールバー -- */
+
+.wfd-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f7f9fa;
+    border-bottom: 1px solid #c8d2da;
+    padding: 7px 10px;
+    flex-wrap: wrap;
+}
+
+.wfd-bar .wfd-name {
+    font-weight: bold;
+    font-size: 14px;
+    margin: 0 4px;
+    cursor: pointer;
+    border-bottom: 1px dashed #b6c3cd;
+}
+
+.wfd-bar .wfd-name:hover {
+    color: #3c8dbc;
+}
+
+.wfd-bar .wfd-sp {
+    flex: 1;
+}
+
+/* 設定完了したあとは「設定完了する」を出す意味がないので隠す。要素自体は
+   残しておき、保存でボタンを差し替えるときの置き場所にする。 */
+.wfd-bar .wfd-hide {
+    display: none;
+}
+
+/* まだ進めないステップ（3・4）。押せない見た目にするが、理由を title で読ませたいので
+   Bootstrap の .disabled（pointer-events:none）は使わない。 */
+.wfd-bar .wfd-off {
+    opacity: .5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.wfd-zoom {
+    font-size: 11.5px;
+    color: #888;
+    min-width: 44px;
+    text-align: center;
+}
+
+.wfd-dirty {
+    display: none;
+    background: #f39c12;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 11px;
+    padding: 1px 9px;
+}
+
+.wfd-dirty.on {
+    display: inline-block;
+}
+
+.wfd-issues {
+    border: none;
+    border-radius: 12px;
+    padding: 4px 13px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #fff;
+    background: #00a65a;
+}
+
+.wfd-issues.warn {
+    background: #f39c12;
+}
+
+.wfd-hint {
+    background: #eef6fb;
+    border-bottom: 1px solid #d7e7f2;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    color: #31708f;
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.wfd-hint .x {
+    margin-left: auto;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 15px;
+    color: #8aa;
+    line-height: 1;
+}
+
+.wfd-notice {
+    background: #fcf8e3;
+    border-bottom: 1px solid #faebcc;
+    color: #8a6d3b;
+    padding: 7px 12px;
+    font-size: 12.5px;
+}
+
+/* ------------------------------------------------------------ キャンバス -- */
+
+#wfd-canvas {
+    position: relative;
+    height: 640px;
+    overflow: hidden;
+    background: #fdfefe;
+    cursor: grab;
+    touch-action: none;
+}
+
+#wfd-canvas.panning {
+    cursor: grabbing;
+}
+
+#wfd-world {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    background-image: radial-gradient(#dde5ec 1.2px, transparent 1.3px);
+    background-size: 22px 22px;
+}
+
+#wfd-svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+#wfd-nodes,
+#wfd-labels {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+}
+
+.wfd-edge {
+    fill: none;
+    stroke: #9ab0c4;
+    stroke-width: 2.2px;
+    cursor: pointer;
+}
+
+.wfd-edge.dash {
+    stroke-dasharray: 7 5;
+}
+
+.wfd-edge.sel {
+    stroke: #3c8dbc;
+    stroke-width: 3px;
+}
+
+.wfd-rubber {
+    fill: none;
+    stroke: #00a65a;
+    stroke-width: 2.4px;
+    stroke-dasharray: 6 5;
+    pointer-events: none;
+}
+
+/* ------------------------------------------------------------- ノード -- */
+
+.wfd-node {
+    position: absolute;
+    width: 160px;
+    min-height: 58px;
+    background: #fff;
+    border: 1.5px solid #c8d2da;
+    border-left: 5px solid #3c8dbc;
+    border-radius: 7px;
+    box-shadow: 0 1px 3px rgba(30, 50, 70, .12);
+    padding: 8px 12px 7px 10px;
+    cursor: move;
+}
+
+.wfd-node .nm {
+    font-weight: bold;
+    font-size: 13.5px;
+    word-break: break-all;
+    line-height: 1.35;
+}
+
+.wfd-node .chips {
+    margin-top: 3px;
+    min-height: 1px;
+}
+
+.wfd-node .chips span {
+    display: inline-block;
+    font-size: 10px;
+    border-radius: 8px;
+    padding: 0 6px;
+    margin-right: 3px;
+}
+
+.wfd-node .c-done {
+    background: #e2f6ec;
+    color: #0a7c47;
+    border: 1px solid #bfe8d4;
+}
+
+.wfd-node .c-lock {
+    background: #f1f3f5;
+    color: #667;
+    border: 1px solid #dfe3e7;
+}
+
+.wfd-node.done {
+    border-left-color: #00a65a;
+}
+
+.wfd-node.start {
+    width: 112px;
+    min-height: 44px;
+    background: #3a4750;
+    border: 1.5px solid #2d3840;
+    border-left-width: 1.5px;
+    border-radius: 22px;
+    color: #fff;
+    text-align: center;
+    padding: 10px 12px;
+}
+
+.wfd-node.start .nm {
+    font-size: 13px;
+}
+
+.wfd-node.sel {
+    box-shadow: 0 0 0 3px rgba(60, 141, 188, .35);
+}
+
+.wfd-node.droptarget {
+    outline: 3px dashed #00a65a;
+    outline-offset: 2px;
+}
+
+/* 接続をつまむ丸。小さいと当たらないので 26px + 不可視の余白で拾う */
+.wfd-handle {
+    position: absolute;
+    right: -13px;
+    top: 50%;
+    margin-top: -13px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #3c8dbc;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+    cursor: crosshair;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+    transition: transform .12s;
+}
+
+.wfd-handle::after {
+    content: '';
+    position: absolute;
+    inset: -9px;
+}
+
+.wfd-handle:hover {
+    transform: scale(1.25);
+}
+
+.wfd-node.start .wfd-handle {
+    background: #00a65a;
+}
+
+/* アクション名。右クリックしやすいよう、意図的に大きくしている */
+.wfd-albl {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border: 1.5px solid #9ab0c4;
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 13.5px;
+    font-weight: bold;
+    color: #345;
+    cursor: context-menu;
+    box-shadow: 0 1px 3px rgba(30, 50, 70, .14);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.wfd-albl:hover {
+    border-color: #3c8dbc;
+    color: #3c8dbc;
+}
+
+.wfd-albl.sel {
+    border-color: #3c8dbc;
+    box-shadow: 0 0 0 3px rgba(60, 141, 188, .3);
+    color: #3c8dbc;
+}
+
+.wfd-albl.bad {
+    border-color: #dd4b39;
+    color: #c0392b;
+}
+
+.wfd-albl .b {
+    font-size: 10px;
+    font-weight: normal;
+    background: #fff3dd;
+    border: 1px solid #f0d9a8;
+    color: #9a6b00;
+    border-radius: 8px;
+    padding: 0 6px;
+}
+
+.wfd-legend {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    background: rgba(255, 255, 255, .95);
+    border: 1px solid #c8d2da;
+    border-radius: 5px;
+    padding: 7px 11px;
+    font-size: 11.5px;
+    color: #556;
+    line-height: 1.9;
+    pointer-events: none;
+}
+
+.wfd-legend .sw {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    vertical-align: -1px;
+    margin-right: 4px;
+}
+
+.wfd-legend .ln {
+    display: inline-block;
+    width: 22px;
+    height: 0;
+    border-top: 2.2px solid #9ab0c4;
+    vertical-align: 3px;
+    margin-right: 4px;
+}
+
+.wfd-legend .ln.dash {
+    border-top-style: dashed;
+}
+
+/* --------------------------------------------------------- 右クリック -- */
+
+#wfd-menu {
+    position: fixed;
+    z-index: 1000;
+    display: none;
+    background: #fff;
+    border: 1px solid #c8d2da;
+    border-radius: 5px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+    min-width: 226px;
+    padding: 5px 0;
+    font-size: 13px;
+}
+
+#wfd-menu .mi {
+    padding: 7px 16px;
+    cursor: pointer;
+    display: flex;
+    gap: 9px;
+    align-items: center;
+}
+
+#wfd-menu .mi:hover {
+    background: #eef6fb;
+}
+
+#wfd-menu .mi.danger {
+    color: #dd4b39;
+}
+
+#wfd-menu .mi.dis {
+    color: #b6bcc4;
+    cursor: not-allowed;
+}
+
+#wfd-menu .mi.dis:hover {
+    background: transparent;
+}
+
+#wfd-menu .mi .note {
+    display: block;
+    font-size: 11px;
+    font-style: normal;
+    color: #b6bcc4;
+}
+
+#wfd-menu .sep {
+    border-top: 1px solid #eef1f4;
+    margin: 4px 0;
+}
+
+#wfd-menu .cap {
+    padding: 3px 16px 5px;
+    font-size: 11px;
+    color: #99a;
+    border-bottom: 1px solid #eef1f4;
+    margin-bottom: 4px;
+}
+
+/* ------------------------------------------------------------ モーダル -- */
+
+#wfd-modal {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1100;
+    display: none;
+    background: rgba(20, 30, 40, .45);
+    align-items: flex-start;
+    justify-content: center;
+    padding: 50px 16px 16px;
+}
+
+#wfd-modal.on {
+    display: flex;
+}
+
+/* select2 の候補一覧は body 直下に出るため、モーダルを開いている間だけ前に出す */
+body.wfd-modal-open .select2-container--open {
+    z-index: 1200;
+}
+
+.wfd-dlg {
+    background: #fff;
+    border-radius: 6px;
+    width: 540px;
+    max-width: 100%;
+    max-height: 84vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
+}
+
+.wfd-dlg.wide {
+    width: 680px;
+}
+
+.wfd-dlg-h {
+    padding: 11px 16px;
+    border-bottom: 1px solid #e7ecf0;
+    font-weight: bold;
+    font-size: 14.5px;
+    display: flex;
+    align-items: center;
+}
+
+.wfd-dlg-h .wfd-x {
+    margin-left: auto;
+    border: none;
+    background: none;
+    font-size: 19px;
+    color: #9ab;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.wfd-dlg-b {
+    padding: 14px 18px;
+    overflow: auto;
+}
+
+.wfd-dlg-f {
+    padding: 10px 16px;
+    border-top: 1px solid #e7ecf0;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.wfd-dlg label.fl {
+    display: block;
+    font-weight: bold;
+    font-size: 13px;
+    margin: 13px 0 4px;
+}
+
+.wfd-dlg label.fl:first-child {
+    margin-top: 0;
+}
+
+.wfd-dlg .req {
+    color: #dd4b39;
+    font-size: 10.5px;
+    border: 1px solid #dd4b39;
+    border-radius: 3px;
+    padding: 0 4px;
+    margin-left: 6px;
+    font-weight: normal;
+}
+
+.wfd-dlg input[type=text],
+.wfd-dlg input[type=number],
+.wfd-dlg select {
+    width: 100%;
+    border: 1px solid #ccd4da;
+    border-radius: 3px;
+    padding: 6px 9px;
+    font-size: 13.5px;
+    font-family: inherit;
+    height: auto;
+}
+
+.wfd-dlg input.err {
+    border-color: #dd4b39;
+    background: #fff5f4;
+}
+
+.wfd-dlg .help {
+    font-size: 11.5px;
+    color: #889;
+    margin-top: 3px;
+}
+
+.wfd-dlg .opt {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 7px 0;
+    font-size: 13px;
+}
+
+.wfd-dlg .opt input[type=radio],
+.wfd-dlg .opt input[type=checkbox] {
+    margin-top: 3px;
+    width: auto;
+}
+
+.wfd-dlg .box {
+    border: 1px solid #e3e8ee;
+    border-radius: 4px;
+    background: #fafbfc;
+    padding: 9px 12px;
+    margin: 6px 0;
+}
+
+.wfd-dlg .row2 {
+    display: flex;
+    gap: 12px;
+}
+
+.wfd-dlg .row2 > div {
+    flex: 1;
+}
+
+.wfd-dlg .note {
+    background: #f4f8fb;
+    border: 1px dashed #bcd4e4;
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-size: 12px;
+    color: #4a7a9b;
+    margin-top: 10px;
+}
+
+.wfd-dlg .errbox {
+    background: #fdf3f2;
+    border: 1px solid #f0c6c0;
+    border-radius: 4px;
+    color: #a94442;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    margin-bottom: 10px;
+}
+
+.wfd-dlg .errbox ul {
+    margin: 4px 0 0;
+    padding-left: 20px;
+}
+
+.wfd-num {
+    width: 74px !important;
+    display: inline-block !important;
+    margin: 0 6px;
+}
+
+.wfd-branch {
+    border: 1px solid #e3e8ee;
+    border-radius: 4px;
+    padding: 9px 12px;
+    margin: 8px 0;
+    background: #fafbfc;
+}
+
+.wfd-branch .bh {
+    display: flex;
+    align-items: center;
+    font-size: 12.5px;
+    font-weight: bold;
+    color: #556;
+    margin-bottom: 5px;
+}
+
+.wfd-branch .bh .rm {
+    margin-left: auto;
+    border: none;
+    background: none;
+    color: #c0392b;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.wfd-branch .cond {
+    font-size: 11.5px;
+    color: #8a6d1a;
+    margin-top: 4px;
+}
+
+/* ------------------------------------------------------- 要確認ポップ -- */
+
+#wfd-ipop {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    z-index: 50;
+    display: none;
+    width: 360px;
+    max-height: 60%;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #c8d2da;
+    border-radius: 5px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+    font-size: 12.5px;
+}
+
+#wfd-ipop .tit {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eef1f4;
+    font-weight: bold;
+}
+
+#wfd-ipop .it {
+    padding: 7px 12px;
+    border-bottom: 1px solid #f4f6f8;
+    cursor: pointer;
+    color: #8a6d1a;
+}
+
+#wfd-ipop .it:hover {
+    background: #fff8e1;
+}
+
+#wfd-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    z-index: 1200;
+    background: #222d32;
+    color: #fff;
+    border-radius: 18px;
+    padding: 9px 22px;
+    font-size: 13px;
+    display: none;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
+    max-width: 80vw;
+}
