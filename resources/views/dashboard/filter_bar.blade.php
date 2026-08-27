@@ -1,7 +1,9 @@
 {{--
-    Dashboard filter bar (options.filter_bar). A change navigates to the dashboard URL with
+    Dashboard filter bar (options.filter_bar). A change pushState's the dashboard URL with
     df_{column} params (one value: df_col=v; several: df_col[]=v; range: df_col[from]/[to]),
-    which every box forwards on its own request. Handlers: public/vendor/exment/js/dashboard.js.
+    reloads only the boxes the changed items narrow (each box's data-df-dims attribute) and
+    re-renders this bar from a partial request (?_df_bar=1); boxes forward the df_ params on
+    their own requests. Handlers: public/vendor/exment/js/dashboard.js.
 
     $dims            FilterBarView::build(): [{column, label, style, kind, active, options, selected, capped | range}]
     $has_selection   any item selected (shows the reset button)

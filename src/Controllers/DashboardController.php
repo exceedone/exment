@@ -14,7 +14,9 @@ use Exceedone\Exment\Model\DataShareAuthoritable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 use Exceedone\Exment\Form\Tools\ShareButton;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
+use Exceedone\Exment\Services\Dashboard\FilterBarConfig;
 use Exceedone\Exment\Services\Dashboard\FilterBarForm;
 use Exceedone\Exment\Services\Dashboard\FilterBarView;
 use Exceedone\Exment\Enums\Permission;
@@ -109,6 +111,13 @@ class DashboardController extends AdminControllerBase
 
         // dashboard filter bar (options.filter_bar); nothing when not configured
         $bar = FilterBarView::build($this->dashboard, DashboardFilter::fromRequest($this->dashboard));
+
+        // bar-only render for a selective (pushState) filter change: the boxes that keep
+        // their content still need the bar's fresh option lists (dashboard.js refreshFilterBar)
+        if ($request->boolean('_df_bar')) {
+            return response($bar === null ? '' : view('exment::dashboard.filter_bar', $bar)->render());
+        }
+
         if ($bar !== null) {
             $content->row(view('exment::dashboard.filter_bar', $bar)->render());
         }
@@ -139,6 +148,8 @@ class DashboardController extends AdminControllerBase
             'ai_anomalies' => exmtrans('dashboard.ai.anomaly_title'),
             'ai_expected_range' => exmtrans('dashboard.ai.expected_range'),
             'ai_stable' => exmtrans('dashboard.ai.stable'),
+            'filter_not_affected' => exmtrans('dashboard.filter_bar.not_affected'),
+            'filter_partially_affected' => exmtrans('dashboard.filter_bar.partially_affected'),
         ];
         Admin::script('ExmentDashboard.init(' . json_encode(['lang' => $lang], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) . ');');
         return $content;
@@ -290,6 +301,7 @@ class DashboardController extends AdminControllerBase
         $content->row(function ($row) use ($row_column_count, $row_no) {
             // check role.
             $has_role = $this->dashboard->hasEditPermission();
+            $filter_bar = FilterBarConfig::fromDashboard($this->dashboard);
             for ($i = 1; $i <= $row_column_count; $i++) {
                 // get $boxes as $row_no
                 $boxes = $this->dashboard->dashboard_row_boxes($row_no);
@@ -338,6 +350,18 @@ class DashboardController extends AdminControllerBase
                     'md' => 12 / $row_column_count
                 ];
 
+                $attributes = isset($dashboard_box) ? $dashboard_box->getBoxHtmlAttr() : [];
+                // data-df-dims: the filter bar items that narrow this box — dashboard.js only
+                // reloads the boxes whose items changed on a bar change (empty = never narrowed)
+                if (isset($dashboard_box) && $filter_bar !== null) {
+                    $dims = [];
+                    if ($dashboard_box->dashboard_box_type == DashboardBoxType::CHART) {
+                        $table = CustomTable::getEloquent(array_get($dashboard_box->options ?? [], 'target_table_id'));
+                        $dims = $filter_bar->dimsFor($table, $dashboard_box);
+                    }
+                    $attributes['data-df-dims'] = implode(',', $dims);
+                }
+
                 $row->column($grids, view('exment::dashboard.box', [
                     'title' => $dashboard_box->dashboard_box_view_name ?? null,
                     'id' => $id,
@@ -345,7 +369,7 @@ class DashboardController extends AdminControllerBase
                     'dashboard_suuid' => $this->dashboard->suuid,
                     'dashboardboxes_newbuttons' => $dashboardboxes_newbuttons,
                     'icons' => $icons,
-                    'attributes' => isset($dashboard_box) ? \Exment::formatAttributes($dashboard_box->getBoxHtmlAttr()) : '',
+                    'attributes' => \Exment::formatAttributes($attributes),
                 ]));
             }
         });
