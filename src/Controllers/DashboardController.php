@@ -150,7 +150,6 @@ class DashboardController extends AdminControllerBase
             'ai_stable' => exmtrans('dashboard.ai.stable'),
             'filter_not_affected' => exmtrans('dashboard.filter_bar.not_affected'),
             'filter_partially_affected' => exmtrans('dashboard.filter_bar.partially_affected'),
-            'filter_no_match' => exmtrans('dashboard.filter_bar.no_match'),
         ];
         Admin::script('ExmentDashboard.init(' . json_encode(['lang' => $lang], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) . ');');
         return $content;

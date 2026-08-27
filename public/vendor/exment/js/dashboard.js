@@ -157,26 +157,11 @@
     }
 
     // ---- filter bar -------------------------------------------------------------------
-    // A selected value the current scope no longer offers (data-missing, tagged by
-    // FilterBarView) renders dimmed with a note — in the list and on its chip — so a
-    // combination that yields no rows explains itself.
-    function dfOptionLabel(state) {
-        if (!state.id || !$(state.element).attr('data-missing')) { return state.text; }
-        return $('<span class="df-nomatch">').text(state.text)
-            .append($('<small>').text('(' + (L.filter_no_match || '') + ')'));
-    }
-
     function initFilterBar() {
         $('.exment-df-bar .df-select').each(function () {
             var $s = $(this);
             if ($s.hasClass('select2-hidden-accessible')) { return; }
-            $s.select2({
-                width: '100%',
-                closeOnSelect: false,
-                placeholder: $s.data('placeholder') || '',
-                templateResult: dfOptionLabel,
-                templateSelection: dfOptionLabel
-            });
+            $s.select2({ width: '100%', closeOnSelect: false, placeholder: $s.data('placeholder') || '' });
             $s.data('applied', ($s.val() || []).slice());
         });
     }
@@ -300,7 +285,7 @@
     // While a dropdown is open the fresh bar cannot be swapped in (applyFilterBar defers):
     // narrow the OPEN select's option list in place instead, so picking fast never picks
     // from a stale list. The user's selection is preserved; selected values the fresh scope
-    // no longer offers stay as data-missing options (mirror of FilterBarView).
+    // no longer offers stay listed so they can be removed (mirror of FilterBarView).
     function syncOpenSelects($fresh) {
         $('.exment-df-bar .df-select').each(function () {
             var $s = $(this), open = false;
@@ -316,7 +301,7 @@
             $.each(selected.slice().reverse(), function (i, v) {
                 if (seen[v]) { return; }
                 var $old = $s.find('option').filter(function () { return String($(this).val()) === v; }).first();
-                opts.unshift($('<option>').val(v).text($old.length ? $old.text() : v).attr('data-missing', '1'));
+                opts.unshift($('<option>').val(v).text($old.length ? $old.text() : v));
             });
             $s.empty().append(opts).val(selected).trigger('change.select2');
             try {
