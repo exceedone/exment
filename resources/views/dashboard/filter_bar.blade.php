@@ -28,7 +28,7 @@
             @else
             <select class="df-select" multiple data-column="{{ $dim['column'] }}" data-placeholder="{{ exmtrans('dashboard.filter_bar.all_values') }}" {{ $capped ? 'disabled' : '' }}>
                 @foreach($dim['options'] as $option)
-                <option value="{{ $option['id'] }}" {{ in_array((string) $option['id'], $dim['selected'], true) ? 'selected' : '' }}>{{ $option['name'] }}</option>
+                <option value="{{ $option['id'] }}" {{ in_array((string) $option['id'], $dim['selected'], true) ? 'selected' : '' }}{!! empty($option['missing']) ? '' : ' data-missing="1"' !!}>{{ $option['name'] }}</option>
                 @endforeach
             </select>
             @endif

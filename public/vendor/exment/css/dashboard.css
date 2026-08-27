@@ -19,6 +19,12 @@
 .exment-df-bar .df-range-input.active { border-color: #5b6ef5; background: #eef1fd; }
 .exment-df-bar .df-range-sep { color: #b6b6c8; font-size: 12px; }
 
+/* a selected value the current scope no longer offers (option[data-missing]): dimmed +
+   "(no match)" note, on the chip and in the dropdown list (the list lives under <body>) */
+.df-nomatch small { margin-left: 4px; font-weight: normal; opacity: .8; }
+.select2-results__option .df-nomatch { color: #9a9ab0; }
+.exment-df-bar .select2-selection__choice .df-nomatch { opacity: .8; }
+
 /* "not affected by filters" badge on a box */
 .exment-filter-badge { text-align: right; margin: 0 8px 2px; }
 .exment-filter-badge span { display: inline-block; padding: 1px 10px; font-size: 11px; color: #888; background: #f4f4f4; border: 1px solid #ddd; border-radius: 10px; }
