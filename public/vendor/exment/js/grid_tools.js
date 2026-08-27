@@ -27,6 +27,7 @@
   var PIN_RIGHT_PREFIX = 'exment_grid_pinright_';
   var PIN_HEAD_PREFIX = 'exment_grid_pinhead_';
   var GROUP_PREFIX = 'exment_grid_group_';
+  var NOWRAP_KEY = 'exment_grid_nowrap';
   // sessionStorage, both of them, and on purpose: which groups are folded
   // and what the page is filtered on are "this sitting" state like the
   // grouping column itself - none of it should ambush the user tomorrow.
@@ -71,6 +72,19 @@
     } catch (e) {
       /* preference simply does not survive the reload */
     }
+  }
+
+  /**
+   * An on/off preference whose default is not "off".
+   *
+   * `=== '1'` cannot express that: it reads an absent key and an explicit
+   * "no" as the same thing, so a shipped-on switch could never be turned
+   * off for good. Storing '0' keeps the two apart.
+   */
+  function readFlag(key, fallback) {
+    var raw = readStore('localStorage', key);
+    if (raw === null || raw === undefined || raw === '') return fallback;
+    return raw === '1';
   }
 
   /**
@@ -165,11 +179,64 @@
     table.classList.add('table-density-' + density);
   }
 
+  /* ---------------------------------------------------- one line --- */
+
+  /**
+   * One row = one line.
+   *
+   * Without it a long text column drags its row to two or three lines and
+   * the row heights go ragged (56-114px measured on the incident grid),
+   * which is what makes a list impossible to scan down a column. The text
+   * is not lost - syncCellTitles moves it into `title`.
+   */
+  function nowrapOn() {
+    return readFlag(NOWRAP_KEY, true);
+  }
+
+  function applyNowrap(table, on) {
+    if (!table) return;
+    table.classList.toggle('exm-nowrap', on);
+    syncCellTitles(table, on);
+  }
+
+  /**
+   * Hover text for the cells that ended up cut.
+   *
+   * Only the cut ones: a `title` on every cell turns an ordinary mouse
+   * rest into a tooltip storm. Cells that came with their own title are
+   * left alone, which is why the ones we set are marked.
+   */
+  function syncCellTitles(table, on) {
+    each(table.querySelectorAll('tbody > tr > td'), function (td) {
+      var ours = td.getAttribute('data-exm-cut') === '1';
+      if (!on) {
+        if (ours) {
+          td.removeAttribute('title');
+          td.removeAttribute('data-exm-cut');
+        }
+        return;
+      }
+      if (td.title && !ours) return;
+      if (td.scrollWidth > td.clientWidth + 1) {
+        td.title = cellText(td);
+        td.setAttribute('data-exm-cut', '1');
+      } else if (ours) {
+        td.removeAttribute('title');
+        td.removeAttribute('data-exm-cut');
+      }
+    });
+  }
+
   function initDensity() {
     var density = currentDensity();
+    var wrap = nowrapOn();
     each(document.querySelectorAll('.exm-grid-density[data-grid]'), function (box) {
-      applyDensity(document.getElementById(box.getAttribute('data-grid')), density);
+      var table = document.getElementById(box.getAttribute('data-grid'));
+      applyDensity(table, density);
+      applyNowrap(table, wrap);
       markActive(box, '.exm-density-item', 'data-density', density);
+      var item = box.querySelector('.exm-wrap-item');
+      if (item) item.classList.toggle('active', wrap);
     });
   }
 
@@ -334,9 +401,15 @@
 
   /* --------------------------------------------------- column pin --- */
 
+  /**
+   * The pinned set, or null when the user has never chosen one.
+   *
+   * The null matters: "never touched this grid" takes the shipped default
+   * (defaultPins), while "unpinned everything" has to stay unpinned.
+   */
   function readPins(key) {
     var raw = readStore('localStorage', PIN_PREFIX + key);
-    if (!raw) return [];
+    if (raw === null || raw === undefined || raw === '') return null;
     try {
       var list = JSON.parse(raw);
       return Array.isArray(list) ? list : [];
@@ -347,7 +420,22 @@
   }
 
   function writePins(key, list) {
-    writeStore('localStorage', PIN_PREFIX + key, list.length ? JSON.stringify(list) : null);
+    // An empty list is written, not removed - see readPins.
+    writeStore('localStorage', PIN_PREFIX + key, JSON.stringify(list));
+  }
+
+  /**
+   * What freezes on a grid nobody has configured.
+   *
+   * Only the first data column, and only when the table really is wider
+   * than its box: on a table that fits there is nothing to scroll under a
+   * frozen column and the seam would be drawn for no gain.
+   */
+  function defaultPins(table) {
+    var sc = scrollBoxOf(table);
+    if (!sc || sc.scrollWidth <= sc.clientWidth + 4) return [];
+    var names = dataColumnNames(table);
+    return names.length > 2 ? [names[0]] : [];
   }
 
   /**
@@ -369,7 +457,9 @@
     var sc = scrollBoxOf(table);
     if (!sc) return;
 
-    var on = readStore('localStorage', PIN_HEAD_PREFIX + key) === '1';
+    // Ships on: a header row that scrolls away is the single most common
+    // complaint about a long list, and the switch is one click away.
+    var on = readFlag(PIN_HEAD_PREFIX + key, true);
     var item = box.querySelector('.exm-pin-head');
     if (item) item.classList.toggle('active', on);
 
@@ -405,11 +495,18 @@
     if (!table) return;
 
     var key = box.getAttribute('data-key');
-    var pinned = readPins(key);
-    var pinRight = readStore('localStorage', PIN_RIGHT_PREFIX + key) === '1';
+    // Ships on for the same reason as the header lock: on a wide grid the
+    // view/edit links of a row sit outside the window, so the one thing a
+    // list exists for - opening a record - needs a sideways scroll first.
+    var pinRight = readFlag(PIN_RIGHT_PREFIX + key, true);
 
     // Height first, widths second - see the note on applyHeadLock.
     applyHeadLock(box, table, key);
+
+    // Measured after the height pass on purpose: capping the box is what
+    // brings the vertical scrollbar in, and defaultPins compares widths.
+    var pinned = readPins(key);
+    if (pinned === null) pinned = defaultPins(table);
 
     // Full reset first: the offsets are cumulative, so they can only be
     // measured on a table where nothing is sticky yet.
@@ -518,9 +615,8 @@
       }
     }
 
-    // Off by default: with a narrow table there is nothing to scroll, and
-    // a frozen action column would simply sit on top of the last real
-    // column for no gain.
+    // On by default (see above). On a table that fits, sticky-right
+    // resolves to the cell's own place, so it costs nothing there.
     if (pinRight) {
       each(table.querySelectorAll('.column-' + ACTION_COLUMN), function (cell) {
         cell.classList.add('exm-pin', 'exm-pin-right-first');
@@ -553,6 +649,27 @@
     // header only appears once rows are actually sliding beneath it.
     sc.classList.toggle('exm-headlock-scrolled',
       sc.classList.contains('exm-headlock') && sc.scrollTop > 2);
+  }
+
+  /**
+   * Move the filter chips from the toolbar to just above the table.
+   *
+   * A grid tool can only render inside the toolbar, but that is not where
+   * the chips belong: they say what the list below IS, so they read as a
+   * caption for the table - and that is also where the page-filter chip
+   * appears, so the two kinds of "this list is narrowed" sit together
+   * instead of in two unrelated places.
+   */
+  function placeFilterChips() {
+    var chips = document.querySelector('.exm-filter-chips');
+    if (!chips || chips.getAttribute('data-exm-placed') === '1') return;
+
+    var table = document.querySelector('table.exm-grid');
+    var sc = table ? scrollBoxOf(table) : null;
+    if (!sc || !sc.parentNode) return;
+
+    chips.setAttribute('data-exm-placed', '1');
+    sc.parentNode.insertBefore(chips, sc);
   }
 
   function initPin() {
@@ -2231,6 +2348,192 @@
     }, 60);
   }
 
+  /* ------------------------------------------------- quick preview --- */
+
+  function notify(kind, message) {
+    if (!message) return;
+    if (window.toastr && typeof toastr[kind] === 'function') {
+      toastr[kind](message);
+    }
+  }
+
+  /**
+   * Read a record without leaving the list.
+   *
+   * The page is fetched exactly the way a pjax navigation fetches it, so
+   * what the modal shows IS the show page - same blocks, same formatting,
+   * same permission checks - rather than a second rendering that would
+   * drift away from it over time. Only the two parts that make no sense
+   * inside a modal are dropped: the page header and the row of action
+   * buttons; "open full page" in the footer is how the user gets to them.
+   *
+   * Read-only on purpose. Scripts arriving through innerHTML never run,
+   * so an interactive block would be half-alive in here - better to send
+   * the user to the real page than to fake it.
+   */
+  function openPeekModal(menu, id) {
+    var base = menu.getAttribute('data-view-url') || '';
+    if (!base) return;
+
+    var url = base + '/' + encodeURIComponent(id);
+    var head = menu.querySelector('.exm-ctx-head');
+    var title = head ? cellText(head) : '';
+
+    var overlay = document.createElement('div');
+    overlay.className = 'exm-bulk-modal-overlay exm-peek-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.innerHTML =
+      '<div class="exm-bulk-modal exm-peek-modal">' +
+        '<div class="exm-bulk-modal-header">' + escHtml(title) + '</div>' +
+        '<div class="exm-bulk-modal-body exm-peek-body">' +
+          '<div class="exm-peek-note">' +
+            escHtml(menu.getAttribute('data-peek-loading') || '') +
+          '</div>' +
+        '</div>' +
+        '<div class="exm-bulk-modal-footer">' +
+          '<button type="button" class="btn btn-default exm-peek-close">' +
+            escHtml(menu.getAttribute('data-peek-close') || '') +
+          '</button>' +
+          '<a class="btn btn-primary" href="' + escAttr(url) + '">' +
+            escHtml(menu.getAttribute('data-peek-open') || '') +
+          '</a>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+
+    var onKey = function (ev) {
+      if (ev.key === 'Escape') close();
+    };
+    function close() {
+      document.removeEventListener('keydown', onKey);
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }
+    document.addEventListener('keydown', onKey);
+    overlay.addEventListener('click', function (ev) {
+      // Only the backdrop itself - a click that started inside the panel
+      // must not close the record the user is reading.
+      if (ev.target === overlay || closest(ev.target, '.exm-peek-close')) close();
+    });
+
+    var body = overlay.querySelector('.exm-peek-body');
+    fetch(url, {
+      credentials: 'same-origin',
+      headers: { 'X-PJAX': 'true', 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(function (r) {
+      if (!r.ok) throw new Error('peek:' + r.status);
+      return r.text();
+    }).then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+
+      // Two blocks, in reading order. The values live in the `.box-info`
+      // box's `.form-horizontal`; `.block_custom_value_show` is the tail
+      // of the page - attachments, revisions, comments - which is half of
+      // what "read this incident" means, so it comes along.
+      var parts = [
+        doc.querySelector('section.content .box.box-info > .form-horizontal'),
+        doc.querySelector('.block_custom_value_show')
+      ].filter(Boolean);
+      if (!parts.length) throw new Error('peek:empty');
+
+      body.innerHTML = '';
+      parts.forEach(function (part) {
+        // Anything that could act is taken out rather than left dead: the
+        // modal is a place to read, and a save button that navigates the
+        // page out from under the list is worse than no button at all.
+        // The settings modals go too - they belong to the page's own
+        // toolbar, which we already dropped.
+        each(part.querySelectorAll('script, .modal, .box-tools, input, button, textarea, select, .btn'),
+          function (el) { el.remove(); });
+        body.appendChild(part);
+      });
+    }).catch(function () {
+      body.innerHTML = '<div class="exm-peek-note exm-peek-error">'
+        + escHtml(menu.getAttribute('data-peek-error') || '') + '</div>';
+    });
+  }
+
+  /* -------------------------------------------------- assign to me --- */
+
+  /**
+   * Put the current user in the row's assignee column.
+   *
+   * Goes through `PUT /admin/webapi/data/{table}/{id}` - the same
+   * endpoint the inline editor and the bulk edit use - so the workflow,
+   * the revision history and the validation all run exactly as they do
+   * when the field is changed on the edit form. Nothing here writes to
+   * the database on its own.
+   *
+   * The changed cell is re-read from the server rather than composed on
+   * the client: a user column renders as an avatar plus a name, and only
+   * the server knows what that looks like. When the column is not on
+   * screen (hidden by the column picker, or a view that does not list it)
+   * the whole grid is reloaded instead - the row may not even belong on
+   * this page any more once its assignee changed.
+   */
+  function assignToMe(menu, id) {
+    var col = menu.getAttribute('data-assign-col');
+    var user = menu.getAttribute('data-assign-user');
+    var webapi = menu.getAttribute('data-webapi-url') || '';
+    var cellBase = menu.getAttribute('data-cell-url') || '';
+    var csrf = menu.getAttribute('data-csrf') || '';
+    if (!col || !user || !webapi) return;
+
+    var headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+    if (csrf) headers['X-CSRF-TOKEN'] = csrf;
+
+    var body = { value: {} };
+    body.value[col] = user;
+
+    var tr = findRowById(id);
+    var td = tr ? tr.querySelector('td.column-' + cssEscape(col)) : null;
+    if (td) td.classList.add('exm-saving');
+
+    fetch(webapi + '/' + encodeURIComponent(id), {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: headers,
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (!r.ok) throw new Error('assign:' + r.status);
+      if (!td || !cellBase) return null;
+      return fetch(cellBase + '/' + encodeURIComponent(id) + '/' + encodeURIComponent(col), {
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+      }).then(function (r2) {
+        return r2.ok ? r2.json() : null;
+      });
+    }).then(function (payload) {
+      if (td) td.classList.remove('exm-saving');
+      notify('success', menu.getAttribute('data-assign-done') || '');
+
+      if (!td || !payload || payload.html == null) {
+        reloadGridSoft();
+        return;
+      }
+      td.innerHTML = String(payload.html);
+      addPenIcon(td);
+      td.classList.add('exm-saved');
+      setTimeout(function () { td.classList.remove('exm-saved'); }, 1200);
+      // The row may belong somewhere else now (grouped, page-filtered)
+      // and a wider name can move every pinned offset.
+      refreshRowPlacement(td);
+      each(document.querySelectorAll('.exm-grid-pin[data-key]'), applyPins);
+    }).catch(function () {
+      if (td) {
+        td.classList.remove('exm-saving');
+        td.classList.add('exm-error');
+        setTimeout(function () { td.classList.remove('exm-error'); }, 1600);
+      }
+      notify('error', menu.getAttribute('data-assign-error') || '');
+    });
+  }
+
   function runCtxAction(menu, act) {
     var id = menu.getAttribute('data-row-id');
     var col = menu.getAttribute('data-row-col');
@@ -2239,6 +2542,14 @@
     var webapi = menu.getAttribute('data-webapi-url') || '';
     var csrf = menu.getAttribute('data-csrf') || '';
 
+    if (act === 'preview') {
+      openPeekModal(menu, id);
+      return;
+    }
+    if (act === 'assign-me') {
+      assignToMe(menu, id);
+      return;
+    }
     if (act === 'view') {
       window.location.href = view + '/' + encodeURIComponent(id);
       return;
@@ -2353,7 +2664,12 @@
       var pinBox = closest(pinItem, '.exm-grid-pin[data-key]');
       if (!pinBox) return;
       var pinKey = pinBox.getAttribute('data-key');
+      var pinTable = gridOf(pinBox);
       var pins = readPins(pinKey);
+      // The first tick on an untouched grid starts from what is on screen,
+      // not from an empty list - otherwise the default pin would silently
+      // vanish the moment the user pins a second column.
+      if (pins === null) pins = pinTable ? defaultPins(pinTable) : [];
       var col = pinItem.getAttribute('data-col');
       var at = pins.indexOf(col);
       if (at > -1) {
@@ -2366,6 +2682,18 @@
       return;
     }
 
+    var wrapItem = closest(t, '.exm-wrap-item');
+    if (wrapItem) {
+      e.preventDefault();
+      if (!closest(wrapItem, '.exm-grid-density[data-grid]')) return;
+      writeStore('localStorage', NOWRAP_KEY, nowrapOn() ? '0' : '1');
+      initDensity();
+      // Column widths move with the wrapping, so every frozen offset is
+      // stale now.
+      initPin();
+      return;
+    }
+
     var pinRightItem = closest(t, '.exm-pin-right');
     if (pinRightItem) {
       e.preventDefault();
@@ -2373,8 +2701,8 @@
       var rightBox = closest(pinRightItem, '.exm-grid-pin[data-key]');
       if (!rightBox) return;
       var rightKey = PIN_RIGHT_PREFIX + rightBox.getAttribute('data-key');
-      var wasRight = readStore('localStorage', rightKey) === '1';
-      writeStore('localStorage', rightKey, wasRight ? null : '1');
+      var wasRight = readFlag(rightKey, true);
+      writeStore('localStorage', rightKey, wasRight ? '0' : '1');
       applyPins(rightBox);
       return;
     }
@@ -2386,8 +2714,8 @@
       var headBox = closest(pinHeadItem, '.exm-grid-pin[data-key]');
       if (!headBox) return;
       var headKey = PIN_HEAD_PREFIX + headBox.getAttribute('data-key');
-      var wasOn = readStore('localStorage', headKey) === '1';
-      writeStore('localStorage', headKey, wasOn ? null : '1');
+      var wasOn = readFlag(headKey, true);
+      writeStore('localStorage', headKey, wasOn ? '0' : '1');
       // The whole pin pass, not just the height: toggling the vertical
       // scrollbar changes the box's inner width, so every pinned offset
       // has to be measured again.
@@ -2626,6 +2954,7 @@
   }
 
   function initAll() {
+    placeFilterChips();
     initHeaderFlag();
     initDensity();
     initRefresh();

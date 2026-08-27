@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Grid\Tools;
 
 use ExmentAdminCore\Admin\Grid\Tools\AbstractTool;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 
 /**
@@ -38,6 +40,34 @@ class GridContextMenu extends AbstractTool
     }
 
     /**
+     * The column "assign this to me" would write into.
+     *
+     * The first single-value user column of the table, in the order the
+     * table defines its columns - on an incident that is the assignee,
+     * on a request the owner. A multi-value user column is skipped: a
+     * one-click action cannot decide whether the intent was to replace
+     * the list or to join it, and guessing wrong silently drops the
+     * people already on it.
+     *
+     * Returns null when the table has no such column, and the menu entry
+     * is then not rendered at all rather than shown and failing.
+     */
+    protected function findAssignColumn(): ?CustomColumn
+    {
+        foreach ($this->custom_table->custom_columns_cache as $custom_column) {
+            if ($custom_column->column_type != ColumnType::USER) {
+                continue;
+            }
+            if (boolval(array_get($custom_column, 'options.multiple_enabled'))) {
+                continue;
+            }
+            return $custom_column;
+        }
+
+        return null;
+    }
+
+    /**
      * @return string
      */
     public function render()
@@ -58,10 +88,37 @@ class GridContextMenu extends AbstractTool
         $listBaseUrl = e(admin_urls('data', $tableName));
         $viewUrlBase = e(admin_urls('data', $tableName));
         $webapiBase = e(admin_urls('webapi', 'data', $tableName));
+        // Same endpoint the inline editor re-reads a cell from. Carried
+        // here as well so "assign to me" can repaint the cell it changed
+        // even on a grid where inline editing is switched off.
+        $cellBase = e(admin_urls('webapi', 'data', $tableName, 'cell'));
         $csrf = e(csrf_token());
+
+        // "Assign to me" needs both a column to write into and a user to
+        // write - an unauthenticated render (a public form preview) has
+        // no user, and not every table has an assignee.
+        $assignColumn = $canEdit ? $this->findAssignColumn() : null;
+        $assignUser = \Exment::user() ? \Exment::user()->base_user_id : null;
+        $assignName = $assignColumn ? e($assignColumn->column_name) : '';
+        $assignUserId = $assignUser ? e(strval($assignUser)) : '';
 
         $labels = [
             'view' => e(exmtrans('common.grid_ctx_view')),
+            'preview' => e(exmtrans('common.grid_ctx_preview')),
+            'assign' => $assignColumn
+                ? e(exmtrans('common.grid_ctx_assign', ['column' => $assignColumn->column_view_name]))
+                : '',
+            // Strings the peek modal and the assign action need. They ride
+            // on this div for the same reason the filter chip's do:
+            // grid_tools.js is a static file with no translations.
+            'peek_loading' => e(exmtrans('common.grid_peek_loading')),
+            'peek_error' => e(exmtrans('common.grid_peek_error')),
+            'peek_open' => e(exmtrans('common.grid_peek_open')),
+            'peek_close' => e(exmtrans('common.grid_peek_close')),
+            'assign_done' => $assignColumn
+                ? e(exmtrans('common.grid_ctx_assign_done', ['column' => $assignColumn->column_view_name]))
+                : '',
+            'assign_error' => e(exmtrans('common.grid_ctx_assign_error')),
             'edit' => e(exmtrans('common.grid_ctx_edit')),
             'copy' => e(exmtrans('common.grid_ctx_copy')),
             'filter' => e(exmtrans('common.grid_ctx_filter')),
@@ -80,7 +137,10 @@ class GridContextMenu extends AbstractTool
 
         $items = '';
         if ($canAccess) {
+            // Peek first: it is the cheapest of the three - it does not
+            // leave the list, so nothing is lost if it was the wrong row.
             $items .= <<<HTML
+<a href="#" data-act="preview"><i class="fa fa-window-restore"></i>&nbsp;{$labels['preview']}</a>
 <a href="#" data-act="view"><i class="fa fa-eye"></i>&nbsp;{$labels['view']}</a>
 HTML;
         }
@@ -92,6 +152,12 @@ HTML;
         if ($canCopy) {
             $items .= <<<HTML
 <a href="#" data-act="copy-row"><i class="fa fa-copy"></i>&nbsp;{$labels['copy']}</a>
+HTML;
+        }
+
+        if ($assignColumn && $assignUserId !== '') {
+            $items .= <<<HTML
+<a href="#" data-act="assign-me"><i class="fa fa-user-check"></i>&nbsp;{$labels['assign']}</a>
 HTML;
         }
 
@@ -124,6 +190,15 @@ HTML;
     data-list-url="{$listBaseUrl}"
     data-view-url="{$viewUrlBase}"
     data-webapi-url="{$webapiBase}"
+    data-cell-url="{$cellBase}"
+    data-assign-col="{$assignName}"
+    data-assign-user="{$assignUserId}"
+    data-assign-done="{$labels['assign_done']}"
+    data-assign-error="{$labels['assign_error']}"
+    data-peek-loading="{$labels['peek_loading']}"
+    data-peek-error="{$labels['peek_error']}"
+    data-peek-open="{$labels['peek_open']}"
+    data-peek-close="{$labels['peek_close']}"
     data-csrf="{$csrf}"
     data-confirm="{$labels['confirm']}"
     data-filter-label="{$labels['filter']}"

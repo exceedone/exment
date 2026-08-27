@@ -30,6 +30,18 @@ use Illuminate\Support\Collection;
 
 class DefaultGrid extends GridBase
 {
+    /**
+     * Request key + column item of every filter the grid registered.
+     *
+     * Collected while the filters are being built because that is the
+     * only place both halves exist at once: the key is decided inside
+     * setAdminFilter, and the item is what can turn a stored value back
+     * into readable text. GridFilterChips needs the two together.
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    protected $filterChipPairs = [];
+
     // @phpstan-ignore-next-line
     public function __construct($custom_table, $custom_view)
     {
@@ -324,25 +336,52 @@ class DefaultGrid extends GridBase
             // set filter item
             if (count($filterItems) <= 6) {
                 foreach ($filterItems as $filterItem) {
-                    $filterItem->setAdminFilter($filter);
+                    $this->setAdminFilterAndRemember($filterItem, $filter);
                 }
             } else {
                 $separate = floor(count($filterItems) /  2);
                 $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
                     for ($i = 0; $i < $separate; $i++) {
-                        $filterItems[$i]->setAdminFilter($filter);
+                        $this->setAdminFilterAndRemember($filterItems[$i], $filter);
                     }
                 });
                 $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
                     for ($i = $separate; $i < count($filterItems); $i++) {
                         /** @var int $i */
-                        $filterItems[$i]->setAdminFilter($filter);
+                        $this->setAdminFilterAndRemember($filterItems[$i], $filter);
                     }
                 });
             }
         });
     }
 
+
+    /**
+     * Register one column item's filter and note which request key it took.
+     *
+     * The key is built inside setAdminFilter from state this class cannot
+     * read (`uniqueName` is protected, and calling the public
+     * `uniqueName()` would GENERATE one where none was set - a different
+     * string from the one the filter is already using). Reading it back
+     * off the filter that was just added is therefore the only way to get
+     * the two sides to agree.
+     *
+     * @param mixed $filterItem
+     * @param mixed $filter
+     * @return void
+     */
+    protected function setAdminFilterAndRemember($filterItem, &$filter)
+    {
+        $before = count($filter->filters());
+        $filterItem->setAdminFilter($filter);
+
+        foreach (array_slice($filter->filters(), $before) as $added) {
+            $this->filterChipPairs[] = [
+                'key' => $added->getColumn(),
+                'item' => $filterItem,
+            ];
+        }
+    }
 
     /**
      * Get filter showing columns
@@ -514,6 +553,9 @@ class DefaultGrid extends GridBase
             // Middleware\Initialize - two column buttons side by side
             // would be worse than none.
             $grid->disableColumnSelector();
+            // Reads what the request is filtering on and says so on the
+            // grid. Appended first so it renders above the button row.
+            $tools->append(new GridTools\GridFilterChips($this->custom_table, $this->filterChipPairs));
             $tools->append(new GridTools\GridColumnVisibility($grid));
             $tools->append(new GridTools\GridColumnPin($grid, $this->custom_table->table_name));
             $tools->append(new GridTools\GridGroupBy($grid, $this->custom_table->table_name));
