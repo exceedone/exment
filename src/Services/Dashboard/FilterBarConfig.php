@@ -123,6 +123,27 @@ final class FilterBarConfig
     }
 
     /**
+     * The items that can narrow $box at all — its table has the column and the targeting
+     * includes the box — regardless of the current selection. Rendered as the box's
+     * `data-df-dims` attribute, so a bar change only reloads the boxes it narrows.
+     *
+     * @return string[] column names
+     */
+    public function dimsFor($table, $box): array
+    {
+        if ($table === null) {
+            return [];
+        }
+        $out = [];
+        foreach ($this->dims as $column => $dim) {
+            if ($table->custom_columns->firstWhere('column_name', $column) !== null && $this->appliesTo($column, $box)) {
+                $out[] = $column;
+            }
+        }
+        return $out;
+    }
+
+    /**
      * Slicer targeting gate: whether the item on $column narrows $box.
      */
     public function appliesTo(string $column, $box): bool

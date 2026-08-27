@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Tests\Unit\Dashboard;
 
 use Exceedone\Exment\Services\Dashboard\FilterBarConfig;
 use Exceedone\Exment\Tests\Unit\Dashboard\Support\DashboardUnitTestCase;
+use Exceedone\Exment\Tests\Unit\Dashboard\Support\FakeCustomColumn;
+use Exceedone\Exment\Tests\Unit\Dashboard\Support\FakeCustomTable;
 
 class FilterBarConfigTest extends DashboardUnitTestCase
 {
@@ -74,5 +76,20 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertFalse($config->appliesTo('subject', $box2));
         $this->assertTrue($config->appliesTo('subject', null), 'no box = dashboard-wide meaning');
         $this->assertFalse($config->appliesTo('unknown', $box1), 'a column that is not an item never applies');
+    }
+
+    public function testDimsForHonoursColumnsAndTargeting()
+    {
+        $config = FilterBarConfig::fromDashboard($this->makeDashboard($this->bar([
+            'grade',
+            'subject' => ['targets' => ['box1']],
+            'semester',
+        ])));
+        // the box table carries grade and subject, but not semester
+        $table = new FakeCustomTable([new FakeCustomColumn('grade'), new FakeCustomColumn('subject')]);
+
+        $this->assertSame(['grade', 'subject'], $config->dimsFor($table, $this->makeBox('box1', [])));
+        $this->assertSame(['grade'], $config->dimsFor($table, $this->makeBox('box2', [])), 'subject targets box1 only');
+        $this->assertSame([], $config->dimsFor(null, $this->makeBox('box1', [])), 'no table = never narrowed');
     }
 }

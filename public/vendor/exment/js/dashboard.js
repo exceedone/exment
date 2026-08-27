@@ -9,6 +9,10 @@
  *   df_{column}           dashboard filter bar selection, copied from the page URL
  *   ct                    runtime chart type (page-lifetime, per box)
  *   bf_{column}           chart filter selection (page-lifetime, per box)
+ *
+ * A filter bar change is applied selectively (see `navigate`): pushState the new URL,
+ * reload only the boxes the changed items narrow (their data-df-dims attribute), refresh
+ * the bar from a partial request (?_df_bar=1) — untouched boxes keep their content.
  */
 (function ($) {
     'use strict';
@@ -79,6 +83,9 @@
                     delete stateOf(suuid).reopen;
                     openPop($box.find('[data-ct-pop]').first());
                 }
+                // the request may have been built before a pushState'd filter change:
+                // recompute the badge against the current URL (same result as the server's)
+                syncBadge($box);
                 $box.trigger('exment:dashboard_loaded');
                 $box.removeClass('loading');
                 Exment.CommonEvent.tableHoverLink();
@@ -203,12 +210,104 @@
         navigate(filterBarUrl());
     }
 
+    // ---- selective apply --------------------------------------------------------------
+    // A bar change reloads ONLY the boxes the changed items narrow (data-df-dims, written
+    // per box by DashboardController): the others keep their rendered content — no spinner
+    // that could read as "this chart was filtered too". The URL still updates (pushState,
+    // so F5 / back keep working) and the bar re-renders its option lists from a partial
+    // request. Anything unexpected falls back to a full pjax render.
+    var barReq = 0, pushedState = false;
+
+    function dfColumnOf(key) {
+        if (key.indexOf('df_') !== 0) { return null; }
+        var column = key.slice(3), bracket = column.indexOf('[');
+        return bracket >= 0 ? column.slice(0, bracket) : column;
+    }
+
+    // active selection of a URL query string, as column => sorted ["key=value", ...]
+    function dfSelection(search) {
+        var sel = {};
+        new URLSearchParams(search).forEach(function (v, k) {
+            var column = dfColumnOf(k);
+            if (column && v !== '') { (sel[column] = sel[column] || []).push(k + '=' + v); }
+        });
+        $.each(sel, function (column, parts) { parts.sort(); });
+        return sel;
+    }
+
+    function changedColumns(oldSearch, newSearch) {
+        var a = dfSelection(oldSearch), b = dfSelection(newSearch), out = [];
+        $.each(a, function (column, parts) {
+            if (!b[column] || b[column].join('&') !== parts.join('&')) { out.push(column); }
+        });
+        $.each(b, function (column) {
+            if (!a[column]) { out.push(column); }
+        });
+        return out;
+    }
+
+    function boxDims($box) {
+        return String($box.attr('data-df-dims') || '').split(',').filter(Boolean);
+    }
+
+    // client mirror of DashboardBoxController::filterBadge, for boxes that skip the reload:
+    // the active items minus the ones this box honours — so unfiltered numbers stay disclosed
+    // without a re-fetch. No-op on boxes without data-df-dims (server badge is the truth).
+    function syncBadge($box) {
+        if ($box.attr('data-df-dims') === undefined) { return; }
+        var active = Object.keys(dfSelection(window.location.search));
+        var dims = boxDims($box);
+        var ignored = active.filter(function (column) { return dims.indexOf(column) < 0; });
+        var $body = $box.find('.box-body-inner-body'), $badge = $body.find('.exment-filter-badge').first();
+        if (!$body.length || !ignored.length) { $badge.remove(); return; }
+        var labels = {};
+        $('.exment-df-bar .df-field').each(function () {
+            var column = $(this).find('[data-column]').first().data('column');
+            if (column) { labels[column] = $.trim($(this).find('label').first().text()); }
+        });
+        var text = ignored.length === active.length
+            ? L.filter_not_affected
+            : L.filter_partially_affected + ': ' + ignored.map(function (column) { return labels[column] || column; }).join(', ');
+        if (!$badge.length) { $badge = $('<div class="exment-filter-badge"><span></span></div>').prependTo($body); }
+        $badge.find('span').text(text);
+    }
+
+    function refreshFilterBar(url) {
+        var token = ++barReq;
+        $.get(url + (url.indexOf('?') >= 0 ? '&' : '?') + '_df_bar=1').done(function (html) {
+            if (token !== barReq) { return; }
+            var $fresh = $('<div>').append($.parseHTML(String(html))).find('.exment-df-bar').first();
+            var $bar = $('.exment-df-bar').first();
+            if ($fresh.length && $bar.length) {
+                $bar.replaceWith($fresh);
+                initFilterBar();
+            }
+        });
+    }
+
+    function fullNavigate(url) {
+        if ($.pjax) { $.pjax({ url: url, container: '#pjax-container' }); } else { window.location.href = url; }
+    }
+
     function navigate(url) {
         $('.exment-df-bar .df-select').each(function () {
             $(this).data('applied', ($(this).val() || []).slice());
             try { $(this).select2('close'); } catch (e) {}
         });
-        if ($.pjax) { $.pjax({ url: url, container: '#pjax-container' }); } else { window.location.href = url; }
+        if (url === window.location.pathname + window.location.search) { return; }
+        var $boxes = $('[data-suuid]').filter(function () { return $(this).data('suuid'); });
+        var canPartial = window.history && window.history.pushState && $boxes.length
+            && $boxes.filter('[data-df-dims]').length === $boxes.length;
+        if (!canPartial) { fullNavigate(url); return; }
+        var changed = changedColumns(window.location.search, url.indexOf('?') >= 0 ? url.slice(url.indexOf('?')) : '');
+        window.history.pushState({ exdf: true }, '', url);
+        pushedState = true;
+        $boxes.each(function () {
+            var dims = boxDims($(this)), hit = false;
+            $.each(changed, function (i, column) { if (dims.indexOf(column) >= 0) { hit = true; } });
+            if (hit) { loadBox($(this).data('suuid')); } else { syncBadge($(this)); }
+        });
+        refreshFilterBar(url);
     }
 
     // ---- AI summary -------------------------------------------------------------------
@@ -330,6 +429,13 @@
         });
         $(document).on('change' + NS, '.exment-df-bar .df-range-input', function () { navigate(filterBarUrl()); });
         $(document).on('click' + NS, '.exment-df-bar .df-reset', function () { navigate(filterBarUrl(true)); });
+        // back/forward across pushState'd filter states: pjax restores its own entries
+        // (state.container), everything else re-renders in full
+        $(window).on('popstate' + NS, function (ev) {
+            var st = ev.originalEvent.state;
+            if (!pushedState || (st && st.container)) { return; }
+            fullNavigate(window.location.href);
+        });
 
         // chart toolbar
         $(document).on('click' + NS, function (ev) {
