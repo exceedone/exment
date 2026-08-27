@@ -61,9 +61,7 @@ final class FilterBarView
                 $missing = array_values(array_diff($selected, array_column($result['options'], 'id')));
                 $labels = ColumnOptions::labels($customColumn, $missing);
                 foreach (array_reverse($missing) as $v) {
-                    // `missing`: kept only because it is selected — the current scope of the
-                    // other items no longer offers it (rendered dimmed with a "no match" note)
-                    array_unshift($result['options'], ['id' => $v, 'name' => (string) ($labels[$v] ?? $v), 'missing' => true]);
+                    array_unshift($result['options'], ['id' => $v, 'name' => (string) ($labels[$v] ?? $v)]);
                 }
                 $view['options'] = $result['options'];
                 $view['selected'] = $selected;
