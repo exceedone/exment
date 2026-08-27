@@ -157,11 +157,26 @@
     }
 
     // ---- filter bar -------------------------------------------------------------------
+    // A selected value the current scope no longer offers (data-missing, tagged by
+    // FilterBarView) renders dimmed with a note — in the list and on its chip — so a
+    // combination that yields no rows explains itself.
+    function dfOptionLabel(state) {
+        if (!state.id || !$(state.element).attr('data-missing')) { return state.text; }
+        return $('<span class="df-nomatch">').text(state.text)
+            .append($('<small>').text('(' + (L.filter_no_match || '') + ')'));
+    }
+
     function initFilterBar() {
         $('.exment-df-bar .df-select').each(function () {
             var $s = $(this);
             if ($s.hasClass('select2-hidden-accessible')) { return; }
-            $s.select2({ width: '100%', closeOnSelect: false, placeholder: $s.data('placeholder') || '' });
+            $s.select2({
+                width: '100%',
+                closeOnSelect: false,
+                placeholder: $s.data('placeholder') || '',
+                templateResult: dfOptionLabel,
+                templateSelection: dfOptionLabel
+            });
             $s.data('applied', ($s.val() || []).slice());
         });
     }
@@ -277,15 +292,69 @@
         $.get(url + (url.indexOf('?') >= 0 ? '&' : '?') + '_df_bar=1').done(function (html) {
             if (token !== barReq) { return; }
             var $fresh = $('<div>').append($.parseHTML(String(html))).find('.exment-df-bar').first();
-            var $bar = $('.exment-df-bar').first();
-            if ($fresh.length && $bar.length) {
-                $bar.replaceWith($fresh);
-                initFilterBar();
-            }
+            syncOpenSelects($fresh);
+            applyFilterBar($fresh, token);
         });
     }
 
+    // While a dropdown is open the fresh bar cannot be swapped in (applyFilterBar defers):
+    // narrow the OPEN select's option list in place instead, so picking fast never picks
+    // from a stale list. The user's selection is preserved; selected values the fresh scope
+    // no longer offers stay as data-missing options (mirror of FilterBarView).
+    function syncOpenSelects($fresh) {
+        $('.exment-df-bar .df-select').each(function () {
+            var $s = $(this), open = false;
+            try { open = $s.data('select2') && $s.select2('isOpen'); } catch (e) {}
+            if (!open) { return; }
+            var $freshSelect = $fresh.find('.df-select[data-column="' + $s.data('column') + '"]');
+            if (!$freshSelect.length) { return; }
+            var selected = ($s.val() || []).map(String), seen = {}, opts = [];
+            $freshSelect.find('option').each(function () {
+                seen[String($(this).val())] = true;
+                opts.push($(this).clone());
+            });
+            $.each(selected.slice().reverse(), function (i, v) {
+                if (seen[v]) { return; }
+                var $old = $s.find('option').filter(function () { return String($(this).val()) === v; }).first();
+                opts.unshift($('<option>').val(v).text($old.length ? $old.text() : v).attr('data-missing', '1'));
+            });
+            $s.empty().append(opts).val(selected).trigger('change.select2');
+            try {
+                var s2 = $s.data('select2');
+                var term = s2.$container ? String(s2.$container.find('.select2-search__field').val() || '') : '';
+                s2.trigger('query', { term: term }); // re-render the open results list
+            } catch (e) {}
+        });
+    }
+
+    // Swap in the freshly rendered bar — but never while the user is in it: replacing the
+    // DOM under an open select2 strands its dropdown at the page corner (the dropdown is
+    // attached to <body> and loses its anchor). Retry until free; a newer refresh (token
+    // bump) obsoletes this one.
+    function applyFilterBar($fresh, token) {
+        if (token !== barReq) { return; }
+        var $bar = $('.exment-df-bar').first();
+        if (!$fresh.length || !$bar.length) { return; }
+        var active = document.activeElement;
+        var busy = $bar.find('.df-select').toArray().some(function (el) {
+            try { return $(el).data('select2') && $(el).select2('isOpen'); } catch (e) { return false; }
+        }) || ($.contains($bar[0], active) && (
+            $(active).hasClass('df-range-input')                                             // typing a range bound
+            || ($(active).hasClass('select2-search__field') && String(active.value || '') !== '') // typed search text
+        ));
+        if (busy) { setTimeout(function () { applyFilterBar($fresh, token); }, 250); return; }
+        $bar.find('.df-select').each(function () {
+            try { $(this).select2('destroy'); } catch (e) {}
+        });
+        $bar.replaceWith($fresh);
+        initFilterBar();
+    }
+
     function fullNavigate(url) {
+        // an open dropdown is attached to <body> and would survive the pjax swap as an orphan
+        $('.exment-df-bar .df-select').each(function () {
+            try { $(this).select2('close'); } catch (e) {}
+        });
         if ($.pjax) { $.pjax({ url: url, container: '#pjax-container' }); } else { window.location.href = url; }
     }
 

@@ -606,6 +606,7 @@ return [
             'narrow_first' => 'Too many values — narrow another filter first',
             'not_affected' => 'Not affected by filters',
             'partially_affected' => 'Filters not applied here',
+            'no_match' => 'no match',
             'help' => [
                 'source_table' => 'Table the filter choices are read from. Leave empty to hide the filter bar.',
                 'dims' => 'Items shown on the filter bar. The choices of each item are narrowed by the selection of the other items.',
