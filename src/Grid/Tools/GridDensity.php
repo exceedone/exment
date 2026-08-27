@@ -38,6 +38,18 @@ class GridDensity extends AbstractTool
 HTML;
         }
 
+        // Row height and line wrapping are the same question asked twice -
+        // "how tall is a row" - so the switch lives in this menu rather
+        // than adding a seventh button to the toolbar. It is a toggle, not
+        // a fourth density: the two settings combine.
+        $nowrap = e(exmtrans('common.grid_nowrap'));
+        $items .= <<<HTML
+<li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item exm-wrap-item" href="#">
+    <i class="fa fa-check"></i><span>{$nowrap}</span>
+</a></li>
+HTML;
+
         return $this->buildHtml($gridId, $title, $items);
     }
 
@@ -78,6 +90,13 @@ HTML;
             density = '{$default}';
         }
         table.classList.add('exm-grid', 'table-density-' + density);
+        // Applied here too, so a one-line grid never paints its rows two
+        // lines tall first and then snaps shut when grid_tools.js boots.
+        var nowrap = '1';
+        try {
+            nowrap = localStorage.getItem('exment_grid_nowrap') || '1';
+        } catch (e) { /* storage blocked - keep the default */ }
+        if (nowrap !== '0') { table.classList.add('exm-nowrap'); }
     };
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', apply);

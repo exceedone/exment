@@ -85,6 +85,131 @@
 }
 
 
+/* --------------------------------------------------- filter chips --- */
+/* The row of "you are filtering on this" chips above the toolbar.
+   `flex-basis: 100%` puts it on a line of its own: the toolbar is a
+   wrapping flex row, and chips squeezed between the search box and the
+   buttons would read as another control rather than as the state of the
+   list. `order: -1` lifts it above them - the state comes before the
+   things that change it. */
+.exm-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  /* Bottom only: grid_tools.js drops this row straight above the table's
+     scroll box, so the space over it is the box-header's own padding. */
+  margin: 0 0 8px;
+}
+
+.exm-filter-chips-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.exm-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #33475b;
+  background-color: #eef4fb;
+  border: 1px solid #cfdcea;
+  border-radius: 12px;
+  text-decoration: none;
+}
+
+.exm-filter-chip:hover {
+  background-color: #e2ecf7;
+  border-color: #a9c3dd;
+  color: #1f2d3d;
+  text-decoration: none;
+}
+
+.exm-filter-chip-key {
+  font-weight: 700;
+}
+
+.exm-filter-chip-key::after {
+  content: ':';
+}
+
+.exm-filter-chip-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The X is what the whole chip does, so it is styled as the chip's own
+   affordance rather than as a separate button. */
+.exm-filter-chip .fa-times {
+  font-size: 11px;
+  color: #8296ad;
+}
+
+.exm-filter-chip:hover .fa-times {
+  color: #c0392b;
+}
+
+.exm-filter-chip-clear {
+  background-color: transparent;
+  border-color: transparent;
+  color: #64748b;
+  text-decoration: underline;
+}
+
+
+/* ------------------------------------------------------- one line --- */
+/* One row, one line: a cell that would wrap is cut with an ellipsis and
+   grid_tools.js moves the full text into `title`.
+
+   `max-width` is what makes the cut possible at all - in the automatic
+   table layout a cell is as wide as its content asks for, so without an
+   upper bound there is no overflow to cut. 340px is roughly 40 Japanese
+   characters at this size: long enough to read a summary, short enough
+   that the columns after it still reach the screen.
+
+   Same doubled class as the block at the top of this file, for the same
+   specificity reason. */
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td {
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* `!important` is the only thing that can win here: a text column
+     arrives with `style="min-width:100px; max-width:300px;
+     word-wrap:break-word; white-space:normal"` written on the cell by
+     the server, and an inline declaration outranks every selector. The
+     max-width above is deliberately NOT forced - where the server sent
+     one it knows the column better than a blanket number does, and this
+     one only fills in for the cells that came without. */
+  white-space: nowrap !important;
+}
+
+/* The two columns laravel-admin owns hold icons, never prose - clipping
+   them would cut the action links in half. */
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td.column-__row_selector__,
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td.column-__actions__ {
+  max-width: none;
+  overflow: visible;
+}
+
+/* An open inline editor floats out of its cell on purpose (see the
+   `.exm-editing` block below); clipping it here would put the editor back
+   inside the column width and undo that. This rule has to repeat the
+   values because the one above outranks the editing block. */
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td.exm-editing,
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td.exm-saving {
+  max-width: none;
+  overflow: visible;
+  /* Forced back for the same reason the rule above forces it on. */
+  white-space: normal !important;
+}
+
+
 /* --------------------------------------------------- cell appearance --- */
 /* Shapes for the "cell appearance" column setting. Every color arrives as an
    inline style from GridCellStyle, so only geometry lives here - that is what
@@ -745,6 +870,35 @@
   font-weight: 700;
   padding: 12px 16px;
   border-bottom: 1px solid #eceff4;
+}
+
+/* The quick preview reuses the modal shell above and only changes its
+   size: it carries a whole record, not a handful of fields. */
+.exm-peek-modal {
+  width: min(980px, 100%);
+  max-height: min(88vh, 860px);
+}
+
+/* The show page lays its blocks out in bootstrap rows sized for a full
+   page. Inside the modal the body is the container, so the row's
+   negative margins would push the first block under the edge. */
+.exm-peek-body {
+  padding: 0 8px 8px;
+}
+
+.exm-peek-body .box {
+  box-shadow: none;
+  border: 1px solid #e6ebf1;
+}
+
+.exm-peek-note {
+  padding: 24px 8px;
+  text-align: center;
+  color: #64748b;
+}
+
+.exm-peek-error {
+  color: #c0392b;
 }
 
 .exm-bulk-modal-body {
