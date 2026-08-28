@@ -96,8 +96,6 @@ class SafetyCheckController extends AdminControllerBase
         $grid->disableCreateButton();
         $grid->disableExport();
         $grid->disableRowSelector();
-        // (intSetting: an emptied admin-UI field is stored as 0 -> Define default 20)
-        $grid->paginate(SafetyCheckDefine::intSetting('safety_check_index_limit'));
 
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($controller) {
             $actions->disableView();

@@ -85,6 +85,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertStringContainsString('mail', (string) array_get($channel->options, 'select_item'));
     }
 
+    /** Payload of the 2026_08_28_000002 migration -- see ensureSentCountLabel()'s docblock. */
     public function testSentCountLabelRenamed()
     {
         // First install: creates safety_check_event and its sent_count column.
@@ -97,10 +98,31 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $sentCount->column_view_name = 'LINE送信数';
         $sentCount->save();
 
-        // Upgrade path: re-running ensureAll() must relabel the stale column.
-        SafetyCheckInstaller::ensureAll();
+        // Upgrade path: the one-shot patch (run from its own migration, no longer
+        // part of ensureAll()) must relabel the stale column.
+        SafetyCheckInstaller::ensureSentCountLabel();
 
         $sentCount = \Exceedone\Exment\Model\CustomColumn::getEloquent('sent_count', $eventTable);
         $this->assertEquals(exmtrans('safety.col_sent_count'), $sentCount->column_view_name);
+    }
+
+    /**
+     * ensureAll() runs on EVERY migrate / exment:update, so it must converge the
+     * install *shape* only -- never fight the admin over editable data. A column
+     * label renamed on the UI has to survive an update.
+     */
+    public function testEnsureAllDoesNotOverwriteAdminEditedColumnLabel()
+    {
+        SafetyCheckInstaller::ensureAll();
+
+        $eventTable = CustomTable::getEloquent('safety_check_event');
+        $sentCount = CustomColumn::getEloquent('sent_count', $eventTable);
+        $sentCount->column_view_name = '送信数（管理者が変更）';
+        $sentCount->save();
+
+        SafetyCheckInstaller::ensureAll();
+
+        $sentCount = CustomColumn::getEloquent('sent_count', $eventTable);
+        $this->assertEquals('送信数（管理者が変更）', $sentCount->column_view_name);
     }
 }

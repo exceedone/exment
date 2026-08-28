@@ -157,16 +157,18 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         );
     }
 
-    /** The index list size is a system setting: with safety_check_index_limit=1 only the newest event shows. */
-    public function testIndexLimitSettingControlsListSize()
+    /**
+     * The list size is the grid's own per-page selector, NOT a system setting:
+     * the safety_check_index_limit setting was removed because this already
+     * covers it. Regression guard for that removal — with per_page=1 only the
+     * newest event shows.
+     */
+    public function testPerPageSelectorControlsListSize()
     {
-        System::safety_check_index_limit(1);
-        System::clearCache();
-
         $this->createEvent(['title' => 'zz_older_event_hidden']);
         $this->createEvent(['title' => 'zz_newer_event_visible']);
 
-        $response = $this->get('admin/safety_check');
+        $response = $this->get('admin/safety_check?per_page=1');
 
         $response->assertStatus(200);
         $response->assertSee('zz_newer_event_visible');
