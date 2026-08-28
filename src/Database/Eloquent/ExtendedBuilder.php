@@ -54,7 +54,10 @@ class ExtendedBuilder extends Builder
         $_query = clone $this;
         $table = $this->model->getTable();
         $sql = $_query->select($table . '.id as sid')->forPage($page, $perPage)->toSql();
-        $bindings = $this->getBindings();
+        // Use the bindings of the cloned query, not of $this.
+        // select() above drops the "select" bindings (withCount / selectRaw / selectSub ...) from the clone,
+        // so the bindings of $this would be shifted against the placeholders of $sql.
+        $bindings = $_query->getBindings();
         if (count($bindings) > 0) {
             // @phpstan-ignore-next-line
             $query = preg_replace_callback('/\?/', function() use (&$bindings) {
