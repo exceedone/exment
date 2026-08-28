@@ -213,10 +213,6 @@ trait InitializeFormTrait
             ->help(exmtrans('system.help.safety_check_resend_throttle_minutes'))
             ->default(5)
             ->min(0);
-        $form->number('safety_check_index_limit', exmtrans('system.safety_check_index_limit'))
-            ->help(exmtrans('system.help.safety_check_index_limit'))
-            ->default(20)
-            ->min(1);
     }
 
 

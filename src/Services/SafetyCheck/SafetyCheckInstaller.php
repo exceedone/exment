@@ -34,7 +34,6 @@ class SafetyCheckInstaller
         static::ensureFlexTemplate();
         static::ensureMailTemplate();
         static::ensureChannelMailOption();
-        static::ensureSentCountLabel();
     }
 
     /** Event-table column definitions: [name, view name, type, options]. */

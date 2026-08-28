@@ -38,6 +38,27 @@ class LineInstaller
     {
         return CustomTable::where('table_name', SystemTableName::USER)->exists();
     }
+
+    /**
+     * Everything the LINE integration needs in the DB, in dependency order --
+     * line_send_log has a SELECT_TABLE column pointing at line_flex_template, so
+     * the flex table has to exist first.
+     *
+     * Single entry point for BOTH install paths (see the class docblock): call
+     * this from a dated migration whenever the installed shape changes, and let
+     * InstallSeeder call it too. Idempotent; a no-op before the system template
+     * is imported.
+     */
+    public static function ensureAll(): void
+    {
+        if (!static::systemTemplateImported()) {
+            return;
+        }
+        static::ensureFlexTemplateTable();
+        static::ensureSendLogTable();
+        static::ensureLinkMenu();
+    }
+
     public static function ensureLinkMenu(): void
     {
         if (Menu::where('menu_type', MenuType::CUSTOM)->where('menu_name', 'line_link')->exists()) {
