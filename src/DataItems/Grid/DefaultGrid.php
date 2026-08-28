@@ -544,8 +544,8 @@ class DefaultGrid extends GridBase
                 $enableDelete = true;
                 $enableHardDelete = false;
 
-                // if has relations, add link
-                if (count($relationTables) > 0) {
+                // if has relations, add link (not for trashed rows: relation search targets undeleted data only)
+                if (count($relationTables) > 0 && !$actions->row->trashed()) {
                     $linker = (new Linker())
                         ->url($actions->row->getRelationSearchUrl())
                         ->icon('fa-compress')

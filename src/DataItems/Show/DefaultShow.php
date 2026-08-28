@@ -200,7 +200,8 @@ class DefaultShow extends ShowBase
                     ]));
                 }
 
-                if (count($this->custom_table->getRelationTables()) > 0) {
+                // not for trashed data: relation search targets undeleted data only
+                if (count($this->custom_table->getRelationTables()) > 0 && !$this->custom_value->trashed()) {
                     $tools->append(view('exment::tools.button', [
                         'href' => $this->custom_value->getRelationSearchUrl(true),
                         'label' => exmtrans('search.header_relation'),
