@@ -29,6 +29,7 @@
         "laravel/ui": "^4.2",
         "webpatser/laravel-uuid": "^4.0",
         "phpoffice/phpspreadsheet": "^1.29",
+        "exceedone/exment-admin-core": "^1.0",
         "exment-git/spout": "^4.0",
         "mews/purifier": "^3.2",
         "myclabs/php-enum": "^1.8",
