@@ -162,6 +162,7 @@ return [
         'error_datetime' => 'Error DateTime',
         'delete_failed' => 'Delete failed. Please check the error log file.',
         'failure_import_file' => 'The format of the uploaded file is incorrect. Please check the file.',
+        'invalid_zip_entry' => 'The ZIP file contains an invalid file path. Please remove the following entry and upload again. :entry',
         'import_max_row_count' => 'Up to :count data items can be imported at one time. Please divide and upload.',
         'not_install' => 'Exment is not installed. Please install Exment according to the following URL. <br /> https://exment.net/docs/#/quickstart',
         'disabled_outside_api' => 'External connection is not permitted.',

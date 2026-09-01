@@ -11,6 +11,7 @@ use Exceedone\Exment\Validator\PluginTypeRule;
 use Exceedone\Exment\Validator\PluginNamespaceRule;
 use Exceedone\Exment\Validator\PluginRequirementRule;
 use Exceedone\Exment\Services\TemplateImportExport;
+use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Storage\Disk\DiskServiceItem;
 use ZipArchive;
 use File;
@@ -46,7 +47,14 @@ class PluginInstaller
             //Define variable like flag to check exitsed file config (config.json) before extract zip file
             $res = $zip->open($fullpath);
             if ($res !== true) {
-                //TODO:error
+                return back()->with('errorMess', exmtrans('common.message.wrongconfig'));
+            }
+
+            $zipEntryValidation = ZipService::validateZipEntries($zip);
+            if ($zipEntryValidation !== true) {
+                $zip->close();
+                $tmpDiskItem->disk()->delete($filename);
+                return back()->with('errorMess', $zipEntryValidation);
             }
 
             //Get folder into zip file

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Storage\Disk;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\ZipService;
 use Illuminate\Support\Facades\Storage;
 
 class BackupDiskService extends DiskServiceBase
@@ -73,6 +74,12 @@ class BackupDiskService extends DiskServiceBase
         // open new zip file
         $zip = new \ZipArchive();
         if ($zip->open($localSyncDiskItem->fileFullPath()) === true) {
+            $zipEntryValidation = ZipService::validateZipEntries($zip);
+            if ($zipEntryValidation !== true) {
+                $zip->close();
+                throw new \RuntimeException($zipEntryValidation);
+            }
+
             $zip->extractTo($localSyncDiskItem->dirFullPath());
             $zip->close();
         }
