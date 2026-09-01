@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\DataImportExport\Formats;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\ZipService;
 
 trait CsvTrait
 {
@@ -74,6 +75,11 @@ trait CsvTrait
                 if ($res !== true) {
                     //TODO:error
                 }
+                $zipEntryValidation = ZipService::validateZipEntries($zip);
+                if ($zipEntryValidation !== true) {
+                    throw new \RuntimeException($zipEntryValidation);
+                }
+
                 $zip->extractTo($tmpfolderpath);
 
                 // get all files

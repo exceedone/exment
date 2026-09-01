@@ -162,6 +162,7 @@ return [
         'error_datetime' => 'エラー発生日時',
         'failure_import_file' => 'インポートファイルの形式が正しくありません。ファイルを確認してください。',
         'delete_failed' => '削除に失敗しました。詳細はエラーログをご確認ください。',
+        'invalid_zip_entry' => 'ZIPファイルに不正なファイルパスが含まれています。以下のエントリを削除してから再度アップロードしてください。 :entry',
         'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。分割してアップロードをいただくか、大量データ投入を行ってください。',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'disabled_outside_api' => '外部接続が許可されていません。',

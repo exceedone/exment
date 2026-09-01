@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ExportImportLibrary;
+use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Exceedone\Exment\Storage\Disk\TemplateDiskService;
@@ -338,6 +339,12 @@ class TemplateImporter
             $stat = $zip->statIndex($i);
             $fileInfo = $zip->getNameIndex($i);
             if ($fileInfo === 'config.json') {
+                $zipEntryValidation = ZipService::validateZipEntries($zip);
+                if ($zipEntryValidation !== true) {
+                    $zip->close();
+                    return $emptyResult;
+                }
+
                 $zip->extractTo($tmpfolderpath);
                 $config_path = array_get($stat, 'name');
             } elseif (pathinfo($fileInfo)['filename'] === 'thumbnail') {
