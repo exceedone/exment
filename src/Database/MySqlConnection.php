@@ -78,6 +78,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $password = config('database.connections.mysql.password', '');
         $database = config('database.connections.mysql.database', '');
         $dbport = config('database.connections.mysql.port', '');
+        $charset = config('database.connections.mysql.charset', 'utf8mb4');
 
         // mysqldump v8.0 or later, append "column-statistics=0" option
         // https://serverfault.com/questions/912162/mysqldump-throws-unknown-table-column-statistics-in-information-schema-1109
@@ -92,10 +93,11 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             $set_gtid = '';
         }
         $command = sprintf(
-            '%s %s %s --no-tablespaces -h %s -u %s --password=%s -P %s',
+            '%s %s %s --no-tablespaces --default-character-set=%s -h %s -u %s --password=%s -P %s',
             $mysqldump,
             $column_statistics,
             $set_gtid,
+            escapeshellarg($charset),
             escapeshellarg($host),
             escapeshellarg($username),
             escapeshellarg($password),
@@ -260,10 +262,12 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             $password = config('database.connections.mysql.password', '');
             $database = config('database.connections.mysql.database', '');
             $dbport = config('database.connections.mysql.port', '');
+            $charset = config('database.connections.mysql.charset', 'utf8mb4');
 
             $mysqlcmd = sprintf(
-                '%s -h %s -u %s --password=%s -P %s %s',
+                '%s --default-character-set=%s -h %s -u %s --password=%s -P %s %s',
                 static::getMysqlPath(),
+                escapeshellarg($charset),
                 escapeshellarg($host),
                 escapeshellarg($username),
                 escapeshellarg($password),
