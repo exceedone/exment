@@ -276,6 +276,26 @@ class FileColumnProvider extends ProviderBase
             return null;
         }
 
+        if (!$this->isInFileDir($file_path)) {
+            return null;
+        }
+
         return $file_path;
+    }
+
+    /**
+     * @param string $file_path
+     * @return bool
+     */
+    protected function isInFileDir(string $file_path): bool
+    {
+        $baseReal   = realpath($this->fileDirFullPath);
+        $targetReal = realpath($file_path);
+        if ($baseReal === false || $targetReal === false) {
+            return false;
+        }
+
+        $baseReal = rtrim($baseReal, '/\\') . DIRECTORY_SEPARATOR;
+        return strncmp($targetReal, $baseReal, strlen($baseReal)) === 0;
     }
 }
