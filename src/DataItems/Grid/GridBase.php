@@ -139,10 +139,10 @@ abstract class GridBase
                 } else {
                     if ($filter_raw->is_multiple) {
                         $column = \DB::getQueryGrammar()->wrapJsonExtract($value_table_column);
-                        $model->whereRaw("$column = '$filter_raw->view_filter_condition_value_text'");
+                        $model->whereRaw("$column = ?", [$filter_raw->view_filter_condition_value_text]);
                     } else {
                         $column = \DB::getQueryGrammar()->getDateFormatString($filter_raw->view_group_condition, $value_table_column);
-                        $model->whereRaw("$column = '$query_value'");
+                        $model->whereRaw("$column = ?", [$query_value]);
                     }
                 }
             }
