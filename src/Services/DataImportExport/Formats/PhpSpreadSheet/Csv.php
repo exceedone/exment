@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\DataImportExport\Formats\CsvTrait;
+use Exceedone\Exment\Services\ZipService;
 use File;
 
 class Csv extends PhpSpreadSheet
@@ -37,6 +38,11 @@ class Csv extends PhpSpreadSheet
                 if ($res !== true) {
                     //TODO:error
                 }
+                $zipEntryValidation = ZipService::validateZipEntries($zip);
+                if ($zipEntryValidation !== true) {
+                    throw new \RuntimeException($zipEntryValidation);
+                }
+
                 $zip->extractTo($tmpfolderpath);
 
                 // get all files

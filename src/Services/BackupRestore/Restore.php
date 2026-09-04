@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\BackupRestore;
 
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\Installer\EnvTrait;
+use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use File;
@@ -232,6 +233,12 @@ class Restore
             // open new zip file
             $zip = new \ZipArchive();
             if ($zip->open($zipPath) === true) {
+                $zipEntryValidation = ZipService::validateZipEntries($zip);
+                if ($zipEntryValidation !== true) {
+                    $zip->close();
+                    throw new \RuntimeException($zipEntryValidation);
+                }
+
                 $zip->extractTo($this->diskService->tmpDiskItem()->dirFullPath());
                 $zip->close();
             }

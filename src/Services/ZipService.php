@@ -3,12 +3,13 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\File as ExmentFile;
+use ZipArchive;
 
 /**
  * Zip Service, set password
  */
 class ZipService
-{
+{    
     /**
      * Create Password zip.
      * encrypt is ZipCrypto
@@ -103,4 +104,51 @@ class ZipService
 
         exec($cmd);
     }
+
+    /**
+     * Validate ZIP entry names before extraction.
+     *
+     * @param ZipArchive $zip
+     * @return bool|string
+     */
+    public static function validateZipEntries(ZipArchive $zip)
+    {
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entryName = $zip->getNameIndex($i);
+            if ($entryName === false) {
+                continue;
+            }
+
+            if (strpos($entryName, "\0") !== false || static::isUnsafeZipEntryName($entryName)) {
+                return exmtrans('error.invalid_zip_entry', ['entry' => $entryName]);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $entryName
+     * @return bool
+     */
+    public static function isUnsafeZipEntryName(string $entryName): bool
+    {
+        if (preg_match('/^[a-zA-Z]:[\/\\\\]?/', $entryName)) {
+            return true;
+        }
+
+        if (strpos($entryName, '/') === 0 || strpos($entryName, '\\') === 0) {
+            return true;
+        }
+
+        $normalized = str_replace('\\', '/', $entryName);
+        if (strpos($normalized, '//') === 0) {
+            return true;
+        }
+
+        return collect(explode('/', $normalized))->contains(function ($segment) {
+            return $segment === '..';
+        });
+    }
+
 }
