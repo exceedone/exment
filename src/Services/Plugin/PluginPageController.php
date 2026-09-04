@@ -95,7 +95,6 @@ class PluginPageController extends Controller
         }
 
         $file = \File::get($realFile);
-        // @phpstan-ignore-next-line
         $extension = pathinfo($realFile)['extension'] ?? '';
 
         switch ($extension) {

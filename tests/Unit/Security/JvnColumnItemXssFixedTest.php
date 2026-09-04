@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Unit\Security;
 
 use ReflectionMethod;
+use Exceedone\Exment\ColumnItems\FormOtherItem;
 use Exceedone\Exment\ColumnItems\FormOthers\Html;
 use Exceedone\Exment\ColumnItems\FormOthers\ExHtml;
 use Exceedone\Exment\ColumnItems\FormOthers\Image;
@@ -33,8 +34,14 @@ use Exceedone\Exment\ColumnItems\FormOthers\Image;
  */
 class JvnColumnItemXssFixedTest extends SecurityRegressionTestCase
 {
-    /** Invoke a protected _html($v) on a column item with the given options. */
-    private function renderHtml(object $item, array $options, $value = null): string
+    /**
+     * Invoke a protected _html($v) on a column item with the given options.
+     *
+     * @param FormOtherItem $item
+     * @param array<string, mixed> $options
+     * @param mixed $value
+     */
+    private function renderHtml(FormOtherItem $item, array $options, $value = null): string
     {
         $item->setFormColumnOptions($options);
 
