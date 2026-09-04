@@ -26,6 +26,7 @@ class ExtendedBuilder extends Builder
      *
      * @throws \InvalidArgumentException
      */
+    // @phpstan-ignore-next-line
     public function paginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
     {
         $page = $page ?: Paginator::resolveCurrentPage($pageName);
@@ -47,6 +48,7 @@ class ExtendedBuilder extends Builder
         ]);
     }
 
+    // @phpstan-ignore-next-line
     protected function executeQuery($page, $perPage, $columns)
     {
         if (isset($this->query->groups) && count($this->query->groups) > 0) {
@@ -57,6 +59,7 @@ class ExtendedBuilder extends Builder
         $sql = $_query->select($table . '.id as sid')->forPage($page, $perPage)->toSql();
         $bindings = $this->getBindings();
         if (count($bindings) > 0) {
+            // @phpstan-ignore-next-line
             $query = preg_replace_callback('/\?/', function() use (&$bindings) {
                 $binding = array_shift($bindings);
                 return is_numeric($binding) ? $binding : "'" . addslashes($binding) . "'";

@@ -98,7 +98,7 @@ class CustomRelationController extends AdminControllerTableBase
         }
 
         $grid->tools(function (Grid\Tools $tools) {
-            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+            // @phpstan-ignore-next-line
             $tools->append(new Tools\CustomTableMenuButton('relation', $this->custom_table));
         });
 
@@ -128,6 +128,7 @@ class CustomRelationController extends AdminControllerTableBase
      *
      * @return Form
      */
+    // @phpstan-ignore-next-line
     protected function form($id = null)
     {
         $form = new Form(new CustomRelation());
@@ -142,7 +143,9 @@ class CustomRelationController extends AdminControllerTableBase
 
         if (isset($id)) {
             $custom_relation = CustomRelation::find($id);
+            // @phpstan-ignore-next-line
             $child_table = $custom_relation->child_custom_table_cache;
+            // @phpstan-ignore-next-line
             $relation_type = $custom_relation->relation_type;
             $form->display('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))
                 ->displayText($child_table->table_view_name);
@@ -198,7 +201,7 @@ class CustomRelationController extends AdminControllerTableBase
 
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
-            /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+            // @phpstan-ignore-next-line
             $tools->add(new Tools\CustomTableMenuButton('relation', $custom_table));
         });
         return $form;

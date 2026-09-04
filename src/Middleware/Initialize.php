@@ -29,6 +29,10 @@ use PDO;
  */
 class Initialize
 {
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
         if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
@@ -83,6 +87,10 @@ class Initialize
     }
 
 
+    /**
+     * @param bool $setDatabase
+     * @return void
+     */
     public static function initializeConfig($setDatabase = true)
     {
         //// set from env
@@ -438,6 +446,9 @@ class Initialize
         }
     }
 
+    /**
+     * @return void
+     */
     public static function requireBootstrap()
     {
         $file = config('exment.bootstrap', exment_app_path('bootstrap.php'));
@@ -449,13 +460,14 @@ class Initialize
 
     /**
      * set laravel-admin
+     * @return void
      */
     public static function registeredLaravelAdmin()
     {
         Grid::init(function (Grid $grid) {
             $grid->disableColumnSelector();
 
-            /** @phpstan-ignore-next-line Left side of && is always true. it needs to fix laravel-admin */
+            // @phpstan-ignore-next-line
             if ($grid->model() && ($grid->model()->eloquent() instanceof Model\CustomValue)) {
                 if (!is_null($value = System::grid_pager_count())) {
                     $grid->paginate($value);

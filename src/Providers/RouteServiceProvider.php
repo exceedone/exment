@@ -27,6 +27,7 @@ class RouteServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        /** @var int $rate_limit */
         $rate_limit = config('exment.api_max_rate_limit', 60);
         RateLimiter::for('api', function (Request $request) use ($rate_limit) {
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
@@ -49,6 +50,7 @@ class RouteServiceProvider extends ServiceProvider
 
     /**
      * Web web routes
+     * @return void
      */
     protected function mapExmentWebRotes()
     {
@@ -68,6 +70,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('dashboardbox', 'DashboardBoxController');
 
             $router->resource('auth/logs', 'LogController', ['except' => ['create', 'edit']]);
+            $router->post('auth/logs/setting', 'LogController@postSetting');
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
@@ -279,6 +282,9 @@ class RouteServiceProvider extends ServiceProvider
     }
 
 
+    /**
+     * @return void
+     */
     protected function mapExmentAnonymousWebRotes()
     {
         Route::group([
@@ -327,6 +333,9 @@ class RouteServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * @return void
+     */
     protected function mapExmentInstallWebRotes()
     {
         Route::group([
@@ -340,6 +349,9 @@ class RouteServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * @return void
+     */
     protected function mapExmentApiRotes()
     {
         // define adminapi(for webapi), api(for web)
@@ -474,6 +486,7 @@ class RouteServiceProvider extends ServiceProvider
 
     /**
      * define api and anonynous routes
+     * @return void
      */
     protected function mapExmentAnonymousApiRotes()
     {
@@ -498,6 +511,11 @@ class RouteServiceProvider extends ServiceProvider
     /**
      * set table resource.
      * (We cannot create endpoint using resouce function if contains {tableKey}).
+     * @param \Illuminate\Routing\Router $router
+     * @param string $endpointName
+     * @param string $controllerName
+     * @param bool $isShow
+     * @return void
      */
     protected function setTableResouce($router, $endpointName, $controllerName, $isShow = false)
     {
@@ -513,6 +531,11 @@ class RouteServiceProvider extends ServiceProvider
 
     /**
      * set resource.
+     * @param \Illuminate\Routing\Router $router
+     * @param string $endpointName
+     * @param string $controllerName
+     * @param bool $isShow
+     * @return void
      */
     protected function setResouce($router, $endpointName, $controllerName, $isShow = false)
     {

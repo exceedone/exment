@@ -231,7 +231,7 @@ class ApiUserTest extends ApiTestBase
 
         // Response is not file.
         $this->assertTrue($response->baseResponse instanceof \Illuminate\Http\Response);
-        /** @phpstan-ignore-next-line next line always false */
+        // @phpstan-ignore-next-line
         $this->assertFalse($response->baseResponse instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse);
     }
 }

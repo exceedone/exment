@@ -40,6 +40,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $policies = [
         'Exceedone\Exment\Model' => 'App\Policies\ModelPolicy',
     ];
@@ -49,6 +50,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $serviceProviders = [
         ExmentProviders\RouteServiceProvider::class,
         ExmentProviders\Route2factorServiceProvider::class,
@@ -61,6 +63,7 @@ class ExmentServiceProvider extends ServiceProvider
     /**
      * @var array commands
      */
+    // @phpstan-ignore-next-line
     protected $commands = [
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
@@ -91,6 +94,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\DocumentImportCommand::class,
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
+        \Exceedone\Exment\Console\LogClearCommand::class,
     ];
 
 
@@ -101,6 +105,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $middleware = [
         \Exceedone\Exment\Middleware\TrustProxies::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
@@ -112,8 +117,11 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
+        'log.exec.time' => \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
+        'check.logging.enabled' => \Exceedone\Exment\Middleware\CheckLoggingEnabled::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
         'admin.password-limit'       => \Exceedone\Exment\Middleware\AuthenticatePasswordLimit::class,
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
@@ -147,6 +155,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $middlewareGroups = [
         // Exment web page default
         'admin' => [
@@ -154,6 +163,8 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.web-ipfilter',
             'admin.initialize',
             'admin.auth',
+            'log.exec.time',
+            'check.logging.enabled',
             'admin.auth-2factor',
             'admin.password-limit',
             'admin.morph',
@@ -350,6 +361,7 @@ class ExmentServiceProvider extends ServiceProvider
         Passport::ignoreMigrations();
     }
 
+    // @phpstan-ignore-next-line
     protected function publish()
     {
         $this->publishes([__DIR__.'/../config' => config_path()]);
@@ -360,6 +372,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
     }
 
+    // @phpstan-ignore-next-line
     protected function load()
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
@@ -379,6 +392,7 @@ class ExmentServiceProvider extends ServiceProvider
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function bootApp()
     {
         foreach ($this->serviceProviders as $serviceProvider) {
@@ -393,6 +407,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         if (config('admin.https') || config('admin.secure')) {
             \URL::forceScheme('https');
+            // @phpstan-ignore-next-line
             $this->app['request']->server->set('HTTPS', true);
         }
         if (boolval(config('admin.use_app_url', false))) {
@@ -400,6 +415,7 @@ class ExmentServiceProvider extends ServiceProvider
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function bootSchedule()
     {
         if (!$this->app->runningInConsole()) {
@@ -428,6 +444,7 @@ class ExmentServiceProvider extends ServiceProvider
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function bootPassport()
     {
         // adding rule for laravel-passport
@@ -442,6 +459,7 @@ class ExmentServiceProvider extends ServiceProvider
     }
 
 
+    // @phpstan-ignore-next-line
     protected function bootSetting()
     {
         Initialize::requireBootstrap();
@@ -514,6 +532,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function policies()
     {
         return $this->policies;
@@ -525,6 +544,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getMiddlewareGroups()
     {
         ////// register middleware group.
@@ -568,13 +588,16 @@ class ExmentServiceProvider extends ServiceProvider
      * @param  array  $config
      * @return \Illuminate\Auth\RequestGuard
      */
+    // @phpstan-ignore-next-line
     protected function makeGuard(array $config)
     {
         return new RequestGuard(function ($request) use ($config) {
             return (new PublicFormGuard(
                 Auth::createUserProvider($config['provider']),
+                // @phpstan-ignore-next-line
                 $this->app['request']
             ))->user();
+        // @phpstan-ignore-next-line
         }, $this->app['request']);
     }
 }

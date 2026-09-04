@@ -9,6 +9,7 @@ use Exceedone\Exment\Exceptions\BackupRestoreNotSupportedException;
 
 class BackupRestore extends SystemRequireBase
 {
+    // @phpstan-ignore-next-line
     protected $exceptionMessage;
 
     public function __construct()

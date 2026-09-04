@@ -13,13 +13,14 @@ class StatusSelects extends Select
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $column = [];
 
     /**
      * @param $column
      * @param $arguments
-     * @phpstan-ignore-next-line
      */
+    // @phpstan-ignore-next-line
     public function __construct($column = '', $arguments = [])
     {
         $this->column['action_name'] = 'action_name';
@@ -38,6 +39,7 @@ class StatusSelects extends Select
      *
      * @return $this
      */
+    // @phpstan-ignore-next-line
     public function setElementClass($class)
     {
         $classItem = collect($class)->map(function ($c) {
@@ -69,16 +71,16 @@ class StatusSelects extends Select
             $this->script = "$('.workflow_actions_status_from').select2($configs);";
         }
 
-        /** @phpstan-ignore-next-line Instanceof between array and Closure will always evaluate to false. */
+        // @phpstan-ignore-next-line
         if ($this->options instanceof \Closure) {
-            /** @phpstan-ignore-next-line Left side of && is always true. and Right side of && is always true. */
+            // @phpstan-ignore-next-line
             if ($this->form && $this->form->model()) {
                 $this->options = $this->options->bindTo($this->form->model());
             }
 
             $this->options(call_user_func($this->options, $this->value, $this, $this->form->model()));
         }
-        /** @phpstan-ignore-next-line array_filter expects (callable(mixed): bool)|null, 'strlen' given */
+        // @phpstan-ignore-next-line
         $this->options = array_filter($this->options, 'strlen');
 
         // Whether is show id
@@ -87,6 +89,7 @@ class StatusSelects extends Select
             $action_id = array_get($this->data, 'id');
         }
 
+        // @phpstan-ignore-next-line
         return parent::render()->with([
             'options' => $this->options,
             'action_id' => $action_id,

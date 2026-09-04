@@ -27,14 +27,24 @@ class MailSender extends SenderBase
     use MailInfoTrait;
     use MailHistoryTrait;
 
-
+    /**
+     * @var array<string, mixed>
+     */
     protected $prms = [];
+
+    /**
+     * @var array<string, mixed>
+     */
     protected $replaceOptions = [];
+
+    /**
+     * @var mixed
+     */
     protected $final_user;
 
     /**
-     * @param $mail_template
-     * @param $to
+     * @param mixed $mail_template
+     * @param mixed $to
      * @throws NoMailTemplateException
      */
     public function __construct($mail_template, $to)
@@ -58,6 +68,11 @@ class MailSender extends SenderBase
         }
     }
 
+    /**
+     * @param mixed $mail_template
+     * @param mixed $to
+     * @return MailSender
+     */
     public static function make($mail_template, $to)
     {
         $sender = new MailSender($mail_template, $to);
@@ -65,6 +80,10 @@ class MailSender extends SenderBase
         return $sender;
     }
 
+    /**
+     * @param mixed $from
+     * @return $this
+     */
     public function from($from)
     {
         $this->setFrom($from);
@@ -73,6 +92,8 @@ class MailSender extends SenderBase
 
     /**
      * mail TO. support mail address or User model
+     * @param mixed $to
+     * @return $this
      */
     public function to($to)
     {
@@ -85,6 +106,8 @@ class MailSender extends SenderBase
 
     /**
      * mail CC. support mail address or User model
+     * @param mixed $cc
+     * @return $this
      */
     public function cc($cc)
     {
@@ -97,6 +120,8 @@ class MailSender extends SenderBase
 
     /**
      * mail BCC. support mail address or User model
+     * @param mixed $bcc
+     * @return $this
      */
     public function bcc($bcc)
     {
@@ -107,6 +132,10 @@ class MailSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @param mixed $subject
+     * @return $this
+     */
     public function subject($subject)
     {
         if (isset($subject)) {
@@ -116,6 +145,10 @@ class MailSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @param mixed $body
+     * @return $this
+     */
     public function body($body)
     {
         if (isset($body)) {
@@ -125,6 +158,10 @@ class MailSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @param mixed $attachments
+     * @return $this
+     */
     public function attachments($attachments)
     {
         if (isset($attachments)) {
@@ -138,6 +175,10 @@ class MailSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @param mixed $custom_value
+     * @return $this
+     */
     public function custom_value($custom_value)
     {
         if (isset($custom_value)) {
@@ -147,6 +188,10 @@ class MailSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @param mixed $user
+     * @return $this
+     */
     public function user($user)
     {
         if (isset($user)) {
@@ -157,12 +202,19 @@ class MailSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function disableHistoryBody()
     {
         $this->setHistoryBody(false);
         return $this;
     }
 
+    /**
+     * @param mixed $prms
+     * @return $this
+     */
     public function prms($prms)
     {
         if (isset($prms)) {
@@ -172,6 +224,10 @@ class MailSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @param mixed $final_user
+     * @return $this
+     */
     public function finalUser($final_user)
     {
         if (isset($final_user)) {
@@ -181,6 +237,10 @@ class MailSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @param mixed $replaceOptions
+     * @return $this
+     */
     public function replaceOptions($replaceOptions)
     {
         $this->replaceOptions = $replaceOptions;
@@ -212,6 +272,8 @@ class MailSender extends SenderBase
 
     /**
      * Send Mail
+     *
+     * @return void
      */
     public function send()
     {
@@ -219,6 +281,9 @@ class MailSender extends SenderBase
         $this->sendPasswordMail();
     }
 
+    /**
+     * @return void
+     */
     protected function sendMail()
     {
         // get subject
@@ -241,13 +306,16 @@ class MailSender extends SenderBase
             ->setFromName($fromName)
             ->setBodyType($bodyType);
 
-        $job = new MailSendJob(\Exment::user(), $this->final_user);
+        $job = new MailSendJob(\Exment::getUserId(), $this->final_user);
         $job->setMailInfo($this->mailInfo)
             ->setMailHistory($this->mailHistory);
         $this->notify($job);
     }
 
 
+    /**
+     * @return void
+     */
     protected function sendPasswordMail()
     {
         if (!boolval($this->getUsePassword())) {
@@ -281,7 +349,7 @@ class MailSender extends SenderBase
             ->setMailTemplate($mail_template)
             ->setHistory(false);
 
-        $job = new MailSendJob(\Exment::user(), $this->final_user);
+        $job = new MailSendJob(\Exment::getUserId(), $this->final_user);
         $job->setMailInfo($mailInfo)
             ->setMailHistory($mailHistory);
 
@@ -293,8 +361,10 @@ class MailSender extends SenderBase
      * Get Body And Body Type(PLAIN, HTML)
      * Replace body break to <br/>, or <br /> to \n
      *
-     * @param string $body
-     * @return array offset 0 : $body, 1 : Type(PLAIN, HTML)
+     * @param mixed $body
+     * @param array<string, mixed> $prms
+     * @param array<string, mixed> $replaceOptions
+     * @return array<int, string> offset 0 : $body, 1 : Type(PLAIN, HTML)
      */
     protected function getBodyAndBodyType($body, array $prms = [], array $replaceOptions = [])
     {

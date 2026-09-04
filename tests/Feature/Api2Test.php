@@ -208,7 +208,9 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'table'))
             ->assertStatus(200);
 
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $data = array_get($json, 'data');
 
         $this->assertTrue(!\is_nullorempty($data));
@@ -592,7 +594,9 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'data', 'custom_value_access_all').'?orderby=user%20desc,id%20asc')
             ->assertStatus(200);
 
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $data = array_get($json, 'data');
         $value = array_get($data[0], 'value');
         $this->assertMatch(array_get($value, 'user'), '9');
@@ -629,7 +633,9 @@ class Api2Test extends ApiTestBase
             ->assertJsonCount(5, 'data');
 
         // check children
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $data = array_get($json, 'data');
 
         foreach ($data as $d) {
@@ -654,11 +660,67 @@ class Api2Test extends ApiTestBase
            ->assertJsonCount(5, 'data');
 
         // check children
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $data = array_get($json, 'data');
 
         foreach ($data as $d) {
             $this->_testChildrenValues($d, TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY, array_get($d, 'id'));
+        }
+    }
+
+    /**
+     * Getting values parents(1:N), and match ids
+     */
+    /**
+     * @return void
+     */
+    public function testGetValuesWithParents()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE).'?parents=1&count=5')
+            ->assertStatus(200)
+            ->assertJsonCount(5, 'data');
+
+        // check children
+        // @phpstan-ignore-next-line
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
+        $data = array_get($json, 'data');
+
+        foreach ($data as $d) {
+            $this->_testParentsValues($d, TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE, array_get($d, 'id'));
+        }
+    }
+
+    /**
+     * Getting values parents(N:N), and match ids
+     */
+    /**
+     * @return void
+     */
+    public function testGetValuesWithParents2()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY).'?parents=1&count=5&page=2')
+            ->assertStatus(200)
+            ->assertJsonCount(5, 'data');
+
+        // check children
+        // @phpstan-ignore-next-line
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
+        $data = array_get($json, 'data');
+
+        foreach ($data as $d) {
+            $this->_testParentsValues($d, TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY, array_get($d, 'id'));
         }
     }
 
@@ -723,8 +785,10 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit').'?count=1000')
             ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
         // get ids
+        // @phpstan-ignore-next-line
         $ids = collect(array_get($json, 'data'))->map(function ($j) {
             return array_get($j, 'id');
         })->toArray();
@@ -781,7 +845,9 @@ class Api2Test extends ApiTestBase
             ]);
 
         // check children
+        // @phpstan-ignore-next-line
         $d = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $this->_testChildrenValues($d, TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE, array_get($d, 'id'));
     }
 
@@ -804,8 +870,60 @@ class Api2Test extends ApiTestBase
             ]);
 
         // check children
+        // @phpstan-ignore-next-line
         $d = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $this->_testChildrenValues($d, TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY, array_get($d, 'id'));
+    }
+
+    /**
+     * Getting value with parents, and match ids
+     */
+    /**
+     * @return void
+     */
+    public function testGetValueWithParents()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE, '1?parents=1'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'id' => 1
+            ]);
+
+        // check children
+        // @phpstan-ignore-next-line
+        $d = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
+        $this->_testParentsValues($d, TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE, array_get($d, 'id'));
+    }
+
+    /**
+     * Getting value with parents, and match ids
+     */
+    /**
+     * @return void
+     */
+    public function testGetValueWithParents2()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY, '2?parents=1'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'id' => 2
+            ]);
+
+        // check children
+        // @phpstan-ignore-next-line
+        $d = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
+        $this->_testParentsValues($d, TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY, array_get($d, 'id'));
     }
 
     /**
@@ -873,8 +991,11 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid))
             ->assertStatus(200);
 
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $data = array_get($json, 'data');
+        // @phpstan-ignore-next-line
         $column_definitions = array_get($json, 'column_definitions');
         $user_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'user';
@@ -928,8 +1049,11 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid).'?valuetype=text')
             ->assertStatus(200);
 
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $data = array_get($json, 'data');
+        // @phpstan-ignore-next-line
         $column_definitions = array_get($json, 'column_definitions');
         $user_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'user';
@@ -955,8 +1079,11 @@ class Api2Test extends ApiTestBase
 
         $check_data = $custom_view->getQueryData();
 
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $data = array_get($json, 'data');
+        // @phpstan-ignore-next-line
         $column_definitions = array_get($json, 'column_definitions');
         $id_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'id';
@@ -980,8 +1107,11 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid, 3))
             ->assertStatus(200);
 
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $data = array_get($json, 'value');
+        // @phpstan-ignore-next-line
         $column_definitions = array_get($json, 'column_definitions');
         $id_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'id';
@@ -1679,7 +1809,7 @@ class Api2Test extends ApiTestBase
         for ($i = 0; $i < 100; $i++) {
             $query = CustomTable::getEloquent('custom_value_edit')->getValueModel()->query();
             if ($isAlreadyTrashed) {
-                /** @phpstan-ignore-next-line */
+                // @phpstan-ignore-next-line
                 $query->onlyTrashed();
             }
             $data = $query->find($id + $i);
@@ -1701,7 +1831,7 @@ class Api2Test extends ApiTestBase
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find($id);
         $this->assertTrue(!isset($data));
 
-        /** @phpstan-ignore-next-line */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->query()->onlyTrashed()->find($id);
         $this->assertTrue($isGetTrashed ? isset($data) : !isset($data));
     }
@@ -1835,8 +1965,10 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit', 'query').'?q=index_001&count=100')
             ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
         // get ids
+        // @phpstan-ignore-next-line
         $ids = collect(array_get($json, 'data'))->map(function ($j) {
             return array_get($j, 'id');
         })->toArray();
@@ -1905,8 +2037,10 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit', 'query-column').'?q=odd_even%20eq%20odd&count=1000')
             ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
         // get ids
+        // @phpstan-ignore-next-line
         $ids = collect(array_get($json, 'data'))->map(function ($j) {
             return array_get($j, 'id');
         })->toArray();
@@ -2293,10 +2427,15 @@ class Api2Test extends ApiTestBase
         ])
         ->assertStatus(201);
 
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $this->assertTrue(array_has($json, 'url'));
+        // @phpstan-ignore-next-line
         $this->assertTrue(array_has($json, 'created_at'));
+        // @phpstan-ignore-next-line
         $this->assertTrue(array_has($json, 'created_user_id'));
+        // @phpstan-ignore-next-line
         $this->assertMatch(array_get($json, 'name'), 'test1.txt');
     }
 
@@ -2315,7 +2454,9 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'document', 'custom_value_edit', 1))
         ->assertStatus(200);
 
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $data = collect(array_get($json, 'data'))->first();
 
         $this->assertMatch(array_get($data, 'url'), $document->url);
@@ -2360,9 +2501,12 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'files', $document->file_uuid . '?base64=1'))
         ->assertStatus(200);
 
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
 
+        // @phpstan-ignore-next-line
         $this->assertMatch(array_get($json, 'name'), $document->label);
+        // @phpstan-ignore-next-line
         $this->assertMatch(array_get($json, 'base64'), base64_encode(TestDefine::FILE_TESTSTRING));
     }
 
@@ -2854,6 +2998,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls_query('api', 'log', $filters))
             ->assertStatus(200);
 
+        // @phpstan-ignore-next-line
         $results = json_decode_ex($response->baseResponse->getContent(), true)['data'];
         foreach ($results as $result) {
             foreach ($filters as $key => $value) {
@@ -2895,6 +3040,7 @@ class Api2Test extends ApiTestBase
     protected function assertFileUrl($token, $response)
     {
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $id = array_get($json, 'id');
 
         // get file url as uuid
@@ -2902,7 +3048,9 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit', $id . '?valuetype=text'))
         ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $url = array_get($json, 'value.file');
         $this->assertTrue(isset($url));
 
@@ -2920,7 +3068,9 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit', $id))
         ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $path = array_get($json, 'value.file');
         $this->assertTrue(isset($path));
 
@@ -2943,6 +3093,7 @@ class Api2Test extends ApiTestBase
     protected function assertFilesUrl($token, $response, $matchValues)
     {
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $id = array_get($json, 'id');
 
         // get file url as uuid
@@ -2950,7 +3101,9 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $id . '?valuetype=text'))
         ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $urls = array_get($json, 'value.file_multiple');
         $this->assertTrue(isset($urls));
         $this->assertMatch(count(stringToArray($urls)), count($matchValues));
@@ -2971,7 +3124,9 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $id))
         ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $json = json_decode_ex($response->baseResponse->getContent(), true);
+        // @phpstan-ignore-next-line
         $paths = array_get($json, 'value.file_multiple');
         $this->assertTrue(isset($paths));
         $this->assertMatch(count($paths), count($matchValues));
@@ -3034,6 +3189,57 @@ class Api2Test extends ApiTestBase
                 }
                 foreach ($children_ids as $childId) {
                     $this->assertTrue(in_array($childId, $childIds), "{$childId} expects containing {$id}' children, but not has.");
+                }
+            }
+        }
+    }
+
+    /**
+     * @param mixed $data
+     * @param string $table_name
+     * @param mixed $id
+     * @return void
+     */
+    protected function _testParentsValues($data, $table_name, $id)
+    {
+        $relations = CustomRelation::getRelationsByChild($table_name);
+
+        // Whether has children
+        $this->assertTrue(array_has($data, 'parents'));
+        foreach ($relations as $relation) {
+            $this->assertTrue(array_has($data, 'parents.' . $relation->parent_custom_table_cache->table_name));
+            $parents = array_get($data, 'parents.' . $relation->parent_custom_table_cache->table_name);
+
+            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                // Get value directly with parent_id
+                $value = $relation->child_custom_table_cache->getValueQuery()->find($id);
+                $parentId = array_get($parents, 'id');
+                $this->assertTrue($parentId == $value->parent_id, "parent_id expects equals {$value->parent_id}', but {$parentId}.");
+            }
+            ////// Check as n:n
+            else {
+                // get parents id
+                $parents_ids = collect($parents)->map(function ($parent) {
+                    return array_get($parent, 'id');
+                })->toArray();
+
+                // Get value using pivot table
+                $parentIds = \DB::table($relation->getRelationName())
+                    ->where('child_id', $id)
+                    ->select('parent_id')
+                    ->distinct()
+                    ->pluck('parent_id')
+                    ->toArray();
+
+                if (count($parentIds) == 0) {
+                    $this->assertTrue(count($parents_ids) == 0, "{$id}' parents count expects 0, but real count is " . count($parents_ids));
+                } else {
+                    foreach ($parentIds as $parentId) {
+                        $this->assertTrue(in_array($parentId, $parents_ids), "{$parentId} expects containing {$id}' parents, but not has.");
+                    }
+                    foreach ($parents_ids as $parentId) {
+                        $this->assertTrue(in_array($parentId, $parentIds), "{$parentId} expects containing {$id}' parents, but not has.");
+                    }
                 }
             }
         }

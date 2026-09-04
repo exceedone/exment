@@ -16,15 +16,14 @@ class ReCaptcha extends Hidden
 
     /**
      * @var string
-     * @phpstan-ignore-next-line Property Exceedone\Exment\Form\Field\ReCaptcha::$rules (array|Closure) does not accept default value of type 'required'.
-     * it need to fix laravel-admin
      */
+    // @phpstan-ignore-next-line
     protected $rules = 'required';
 
     /**
      * @param $arguments
-     * @phpstan-ignore-next-line
      */
+    // @phpstan-ignore-next-line
     public function __construct($arguments = [])
     {
         // if (!\Exment::isAvailableGoogleRecaptcha()) {
@@ -49,6 +48,7 @@ class ReCaptcha extends Hidden
 
     public function setForm($form = null)
     {
+        // @phpstan-ignore-next-line
         $this->form = $form;
 
         $this->form->ignore($this->column);

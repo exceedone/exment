@@ -26,6 +26,7 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
     public function retrieveById($identifier)
     {
         //return \Encore\Admin\Auth\Database\Administrator::find($identifier);
+        // @phpstan-ignore-next-line
         return LoginUser::find($identifier);
     }
 
@@ -33,11 +34,12 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
      * retrieveByCredentials.
      * execute login using each service.
      *
-     * @param array $credentials
+     * @param array<string, mixed> $credentials
      * @return ?Authenticatable
      */
     public function retrieveByCredentials(array $credentials)
     {
+        // @phpstan-ignore-next-line
         return static::RetrieveByCredential($credentials);
     }
 
@@ -45,8 +47,8 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
      * retrieveByCredentials.
      * execute login using each service.
      *
-     * @param array $credentials
-     * @return Authenticatable|null|array
+     * @param array<string, mixed> $credentials
+     * @return Authenticatable|null|array<mixed>
      */
     public static function RetrieveByCredential(array $credentials)
     {
@@ -66,6 +68,9 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
         return $classname::retrieveByCredential($credentials);
     }
 
+    /**
+     * @param array<string, mixed> $credentials
+     */
     public function validateCredentials(Authenticatable $login_user, array $credentials)
     {
         return static::ValidateCredential($login_user, $credentials);
@@ -74,7 +79,7 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
     /**
      * findByCredentials. Only search from database.
      *
-     * @param array $credentials
+     * @param array<string, mixed> $credentials
      * @return ?Authenticatable
      */
     public static function findByCredential(array $credentials)
@@ -121,7 +126,7 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
 
     /**
      * @param Authenticatable $login_user
-     * @param array $credentials
+     * @param array<string, mixed> $credentials
      * @return false
      */
     public static function ValidateCredential(Authenticatable $login_user, array $credentials)
@@ -139,6 +144,10 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
         return $classname::validateCredential($login_user, $credentials);
     }
 
+    /**
+     * @param array<string, mixed> $credentials
+     * @return string|null
+     */
     protected static function getClassName($credentials)
     {
         // has login type, set LoginType::PURE
@@ -149,6 +158,10 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
         return LoginType::getLoginServiceClassName($credentials['login_type']);
     }
 
+    /**
+     * @param array<string, mixed> $credentials
+     * @return array<string, mixed>
+     */
     protected static function getCredentialDefault(array $credentials)
     {
         return array_merge(

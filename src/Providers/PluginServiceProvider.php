@@ -134,6 +134,8 @@ class PluginServiceProvider extends ServiceProvider
                     return;
                 }
 
+                /** @var array<mixed> $routes */
+                // @phpstan-ignore-next-line
                 $routes = array_get($json, 'route', []);
 
                 // if not has index endpoint, set.
@@ -172,7 +174,7 @@ class PluginServiceProvider extends ServiceProvider
     /**
      * Check route has index.
      *
-     * @param array $routes
+     * @param array<mixed> $routes
      * @return boolean
      */
     protected function hasPluginRouteIndex($routes)
@@ -183,6 +185,7 @@ class PluginServiceProvider extends ServiceProvider
 
         foreach ($routes as $route) {
             // if uri is not empty, continue.
+            /** @var array<mixed> $route */
             if (array_get($route, 'uri') != '') {
                 continue;
             }

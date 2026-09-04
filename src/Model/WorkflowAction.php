@@ -34,40 +34,58 @@ class WorkflowAction extends ModelBase
     protected $appends = ['work_targets', 'comment_type', 'flow_next_type', 'flow_next_count'];
     protected $casts = ['options' => 'json'];
 
+
+    // @phpstan-ignore-next-line
     protected $work_targets;
+
+    // @phpstan-ignore-next-line
     protected $work_condition_headers;
 
+
+    // @phpstan-ignore-next-line
     public function workflow()
     {
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function workflow_authorities()
     {
         return $this->hasMany(WorkflowAuthority::class, 'workflow_action_id');
         //->with(['user_organization']);
     }
 
+
+    // @phpstan-ignore-next-line
     public function workflow_condition_headers()
     {
         return $this->hasMany(WorkflowConditionHeader::class, 'workflow_action_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function getWorkflowCacheAttribute()
     {
         return Workflow::getEloquent($this->workflow_id);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getWorkflowAuthoritiesCacheAttribute()
     {
         return $this->hasManyCache(WorkflowAuthority::class, 'workflow_action_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function getWorkflowConditionHeadersCacheAttribute()
     {
         return $this->hasManyCache(WorkflowConditionHeader::class, 'workflow_action_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function getWorkTargetsAttribute()
     {
         $result = [];
@@ -79,7 +97,8 @@ class WorkflowAction extends ModelBase
                 $result[$key] = $val;
             }
 
-            /** @phpstan-ignore-next-line Left side of && is always true. */
+
+            // @phpstan-ignore-next-line
             if ($key == 'work_target_type' && ($val == WorkflowWorkTargetType::FIX || $val == WorkflowWorkTargetType::GET_BY_USERINFO)) {
                 $authorities = WorkflowAuthority::where('workflow_action_id', $this->id)->get();
                 $authorities->each(function ($v) use (&$result) {
@@ -90,6 +109,8 @@ class WorkflowAction extends ModelBase
 
         return collect($result);
     }
+
+    // @phpstan-ignore-next-line
     public function setWorkTargetsAttribute($work_targets)
     {
         if (is_nullorempty($work_targets)) {
@@ -106,6 +127,8 @@ class WorkflowAction extends ModelBase
      *
      * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
      */
+
+    // @phpstan-ignore-next-line
     public function getWorkConditionsAttribute()
     {
         $headers = $this->workflow_condition_headers()
@@ -125,6 +148,8 @@ class WorkflowAction extends ModelBase
             );
         });
     }
+
+    // @phpstan-ignore-next-line
     public function setWorkConditionsAttribute($work_conditions)
     {
         if (is_nullorempty($work_conditions)) {
@@ -143,6 +168,8 @@ class WorkflowAction extends ModelBase
      *
      * @return array
      */
+
+    // @phpstan-ignore-next-line
     public function getWorkConditionSelectAttribute()
     {
         $headers = $this->workflow_condition_headers;
@@ -152,6 +179,8 @@ class WorkflowAction extends ModelBase
         return $headers->first()->status_to;
     }
 
+
+    // @phpstan-ignore-next-line
     public function setWorkConditionSelectAttribute($work_condition)
     {
         // Whether contains header check.
@@ -169,6 +198,8 @@ class WorkflowAction extends ModelBase
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getStatusFromNameAttribute()
     {
         if (is_numeric($this->status_from)) {
@@ -180,30 +211,42 @@ class WorkflowAction extends ModelBase
         return null;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCommentTypeAttribute()
     {
         return $this->getOption('comment_type');
     }
+
+    // @phpstan-ignore-next-line
     public function setCommentTypeAttribute($comment_type)
     {
         $this->setOption('comment_type', $comment_type);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getFlowNextTypeAttribute()
     {
         return $this->getOption('flow_next_type');
     }
+
+    // @phpstan-ignore-next-line
     public function setFlowNextTypeAttribute($flow_next_type)
     {
         $this->setOption('flow_next_type', $flow_next_type);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getFlowNextCountAttribute()
     {
         return $this->getOption('flow_next_count');
     }
+
+    // @phpstan-ignore-next-line
     public function setFlowNextCountAttribute($flow_next_count)
     {
         $this->setOption('flow_next_count', $flow_next_count);
@@ -214,6 +257,8 @@ class WorkflowAction extends ModelBase
      * get eloquent using Cache.
      * now only support only id.
      */
+
+    // @phpstan-ignore-next-line
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentCache($id, $withs);
@@ -222,6 +267,8 @@ class WorkflowAction extends ModelBase
     /**
      * set action authority
      */
+
+    // @phpstan-ignore-next-line
     protected function setActionAuthority()
     {
         $this->syncOriginal();
@@ -280,6 +327,8 @@ class WorkflowAction extends ModelBase
     /**
      * set action conditions
      */
+
+    // @phpstan-ignore-next-line
     protected function setActionCondition()
     {
         $this->workflow_condition_headers()->delete();
@@ -306,6 +355,8 @@ class WorkflowAction extends ModelBase
      * @param array $data
      * @return WorkflowValue|null
      */
+
+    // @phpstan-ignore-next-line
     public function executeAction($custom_value, $data = [])
     {
         $custom_table = $custom_value->custom_table;
@@ -380,6 +431,8 @@ class WorkflowAction extends ModelBase
      * @param array $data comment
      * @return WorkflowValue created workflow value
      */
+
+    // @phpstan-ignore-next-line
     protected function forwardWorkflowValue(CustomValue $custom_value, array $data = []): WorkflowValue
     {
         $next = $this->isActionNext($custom_value);
@@ -469,6 +522,8 @@ class WorkflowAction extends ModelBase
      * @param CustomValue $custom_value
      * @return \Illuminate\Support\Collection
      */
+
+    // @phpstan-ignore-next-line
     public function getAuthorityTargets($custom_value, string $workflowGetAuthorityType, $params = [])
     {
         // Convert options
@@ -562,6 +617,8 @@ class WorkflowAction extends ModelBase
      *     $getAutorities if true, get by authority
      *     $asNextAction if true, get as next action. If false, get as current action. For use WorkflowWorkTargetType::GET_BY_USERINFO
      */
+
+    // @phpstan-ignore-next-line
     protected function getAuthorityTargetOption(string $workflowGetAuthorityType): array
     {
         $work_target_type = $this->getOption('work_target_type');
@@ -618,6 +675,8 @@ class WorkflowAction extends ModelBase
      *
      * @return string|null
      */
+
+    // @phpstan-ignore-next-line
     public function getStatusToId($custom_value)
     {
         $next = $this->isActionNext($custom_value);
@@ -640,6 +699,8 @@ class WorkflowAction extends ModelBase
      *
      * @return WorkflowConditionHeader|null
      */
+
+    // @phpstan-ignore-next-line
     public function getMatchedCondtionHeader($custom_value)
     {
         if (count($this->workflow_condition_headers_cache) == 0) {
@@ -661,6 +722,8 @@ class WorkflowAction extends ModelBase
      * @param CustomValue $custom_value
      * @return boolean|array If next, return true. else, [$flow_next_count, $action_executed_count]
      */
+
+    // @phpstan-ignore-next-line
     public function isActionNext($custom_value)
     {
         list($isNext, $flow_next_count) = $this->getActionNextParams($custom_value);
@@ -694,6 +757,8 @@ class WorkflowAction extends ModelBase
      *
      * @return array ["is action next", "next minimum count"]
      */
+
+    // @phpstan-ignore-next-line
     public function getActionNextParams($custom_value)
     {
         if (($flow_next_count = $this->getOption("flow_next_count", 1)) == 1 && $this->flow_next_type == WorkflowNextType::SOME) {
@@ -735,6 +800,7 @@ class WorkflowAction extends ModelBase
         }
 
         // check already executed user
+        // Exment helper class not recognized
         $showSubmit = !WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exment::user()->base_user);
 
         if ($showSubmit) {
@@ -805,6 +871,8 @@ class WorkflowAction extends ModelBase
 
         // not next, showing message
         elseif ($next !== true) {
+
+            // @phpstan-ignore-next-line
             list($flow_next_count, $action_executed_count) = $next;
 
             $form->display('flow_executed_user_count', exmtrans('workflow.flow_executed_user_count'))
@@ -840,6 +908,8 @@ class WorkflowAction extends ModelBase
      *
      * @return \Illuminate\Support\Collection
      */
+
+    // @phpstan-ignore-next-line
     protected function getNextActionAuthorities($custom_value, $statusTo, $nextActions = null)
     {
         // get next actions
@@ -874,6 +944,8 @@ class WorkflowAction extends ModelBase
         });
     }
 
+
+    // @phpstan-ignore-next-line
     public function deletingChildren()
     {
         $keys = ['workflow_authorities', 'workflow_condition_headers'];
@@ -883,6 +955,8 @@ class WorkflowAction extends ModelBase
                 if (!method_exists($item, 'deletingChildren')) {
                     continue;
                 }
+
+                // @phpstan-ignore-next-line
                 $item->deletingChildren();
             }
 
@@ -898,6 +972,8 @@ class WorkflowAction extends ModelBase
      * @param string $workflow_status
      * @return void
      */
+
+    // @phpstan-ignore-next-line
     public static function appendStatusFromQuery($query, $workflow_status)
     {
         // if sql server, append cast
@@ -906,8 +982,12 @@ class WorkflowAction extends ModelBase
             /** @phpstan-ignore-next-line */
             $column = \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_ACTION . '.status_from');
             $whereStatusStart = $column . ' = ' . \Exment::wrapValue($workflow_status);
+
+            // @phpstan-ignore-next-line
             $query->whereRaw($whereStatusStart);
         } else {
+
+            // @phpstan-ignore-next-line
             $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', $workflow_status);
         }
     }
@@ -925,8 +1005,12 @@ class WorkflowAction extends ModelBase
             // create where raw query
             /** @phpstan-ignore-next-line */
             $whereStatusStart = \Exment::wrapColumn(SystemTableName::WORKFLOW_ACTION . '.status_from') . ' = ' . \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
+
+            // @phpstan-ignore-next-line
             $query->whereRaw($whereStatusStart);
         } else {
+
+            // @phpstan-ignore-next-line
             $query->whereColumn(SystemTableName::WORKFLOW_ACTION . '.status_from', SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
         }
     }

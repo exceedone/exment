@@ -68,6 +68,9 @@ class ClientListCommand extends Command
 
     /**
      * get client type string
+     *
+     * @param Client $client
+     * @return string|null
      */
     protected function getClientType(Client $client)
     {

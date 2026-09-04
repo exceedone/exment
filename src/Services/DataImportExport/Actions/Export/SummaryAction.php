@@ -6,6 +6,7 @@ use Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
 class SummaryAction extends ViewAction
 {
+    // @phpstan-ignore-next-line
     protected function getProvider()
     {
         return new Export\SummaryProvider([

@@ -10,6 +10,7 @@ class WorkflowStartView
     /**
      * create workflow view sql
      */
+    // @phpstan-ignore-next-line
     public static function createWorkflowStartView()
     {
         /////// first query. not has workflow value's custom value

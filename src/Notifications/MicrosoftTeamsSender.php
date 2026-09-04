@@ -14,6 +14,9 @@ class MicrosoftTeamsSender extends SenderBase
     /**
      * Create a new notification instance.
      *
+     * @param mixed $webhook_url
+     * @param mixed $subject
+     * @param mixed $body
      * @return void
      */
     public function __construct($webhook_url, $subject, $body)
@@ -27,9 +30,10 @@ class MicrosoftTeamsSender extends SenderBase
     /**
      * Initialize $this
      *
-     * @param string $webhook_url
-     * @param string $subject
-     * @param string $body
+     * @param mixed $webhook_url
+     * @param mixed $subject
+     * @param mixed $body
+     * @param array<string, mixed> $options
      * @return MicrosoftTeamsSender
      */
     public static function make($webhook_url, $subject, $body, array $options = []): MicrosoftTeamsSender
@@ -38,6 +42,9 @@ class MicrosoftTeamsSender extends SenderBase
     }
 
 
+    /**
+     * @return string|null
+     */
     protected function routeNotificationForMicrosoftTeams()
     {
         return $this->webhook_url;
@@ -58,6 +65,8 @@ class MicrosoftTeamsSender extends SenderBase
 
     /**
      * replace url to slack format.
+     *
+     * @return string
      */
     protected function editContent()
     {

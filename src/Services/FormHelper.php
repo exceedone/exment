@@ -15,6 +15,13 @@ class FormHelper
     /**
      * Get form field. be called by value form, importer.
      *
+     * @param mixed $custom_table
+     * @param mixed $column
+     * @param mixed $custom_value_or_id
+     * @param mixed $form_column
+     * @param mixed $column_name_prefix
+     * @param bool $validate
+     * @return mixed
      * @deprecated Please use getFormFieldObj.
      */
     public static function getFormField($custom_table, $column, $custom_value_or_id = null, $form_column = null, $column_name_prefix = null, $validate = false)
@@ -26,6 +33,7 @@ class FormHelper
 
         $column_item = isset($form_column) ? $form_column->column_item : $column->column_item;
         if ($custom_value_or_id instanceof CustomValue && method_exists($column_item, 'setCustomValue')) {
+            // @phpstan-ignore-next-line
             $column_item->setCustomValue($custom_value_or_id);
         } else {
             $column_item->id($custom_value_or_id);
@@ -36,6 +44,11 @@ class FormHelper
 
     /**
      * Get form field. be called by value form, importer.
+     *
+     * @param CustomTable $custom_table
+     * @param CustomColumn $column
+     * @param array<string, mixed> $options
+     * @return mixed
      */
     public static function getFormFieldObj(CustomTable $custom_table, CustomColumn $column, array $options = [])
     {
@@ -58,6 +71,7 @@ class FormHelper
 
         $column_item = isset($form_column) ? $form_column->column_item : $column->column_item;
         if ($custom_value_or_id instanceof CustomValue && method_exists($column_item, 'setCustomValue')) {
+            // @phpstan-ignore-next-line
             $column_item->setCustomValue($custom_value_or_id);
         } else {
             $column_item->id($custom_value_or_id);

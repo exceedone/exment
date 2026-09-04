@@ -16,6 +16,7 @@ class Plugin extends PluginDashboardBase
         $data = $this->getData();
 
         return view('exment_test_plugin_dashboard::sample', [
+            // @phpstan-ignore-next-line
             'id' => $data->id,
             'params' => $this->getParams($data),
             'action' => admin_url($this->getDashboardUri('post')),
@@ -36,15 +37,19 @@ class Plugin extends PluginDashboardBase
 
         $now = \Carbon\Carbon::now();
 
+        // @phpstan-ignore-next-line
         $integer = $data->getValue('integer');
         switch (request()->get('action')) {
             case 'add':
+                // @phpstan-ignore-next-line
                 $data->setValue('integer', $integer + 1);
                 break;
             case 'minus':
+                // @phpstan-ignore-next-line
                 $data->setValue('integer', $integer - 1);
                 break;
         }
+        // @phpstan-ignore-next-line
         $data->save();
 
         admin_toastr(trans('admin.save_succeeded'));

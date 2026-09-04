@@ -9,6 +9,11 @@ use Exceedone\Exment\Services\DataImportExport;
 
 trait ExportCommandTrait
 {
+    /**
+     * Get common parameters for export commands
+     *
+     * @return array<string, mixed>
+     */
     protected function getParametersCommon()
     {
         /** @var null|string $table_name */
@@ -77,7 +82,7 @@ trait ExportCommandTrait
      *
      * @param CustomTable $custom_table
      * @param \Encore\Admin\Grid $grid
-     * @param array $options
+     * @param array<string, mixed> $options
      * @return \Exceedone\Exment\Services\DataImportExport\Actions\Export\ActionInterface
      */
     protected function getExportAction(CustomTable $custom_table, $grid, array $options)

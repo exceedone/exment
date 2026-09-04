@@ -140,15 +140,25 @@ namespace Exment {
                     }
                 }
 
-                if ($(".modal:visible").length > 0) {
-                    $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
-                        // put your default event here
-                        $(".modal").off("hidden.bs.modal");
+                try {
+                    if ($(".modal:visible").length > 0) {
+                        $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
+                            // put your default event here
+                            $(".modal").off("hidden.bs.modal");
+                            CommonEvent.redirectCallback(res);
+                        });
+                    }
+                    else {
                         CommonEvent.redirectCallback(res);
-                    });
-                }
-                else {
-                    CommonEvent.redirectCallback(res);
+                    }
+                } catch(e) {
+                    // Guard: a synchronous exception thrown inside redirectCallback
+                    // (e.g. NProgress failing to find its parent element on pages
+                    // that do not include the standard #app wrapper) must not
+                    // prevent resolve() from being called below, as that would
+                    // leave a SweetAlert preConfirm promise permanently pending
+                    // and the dialog stuck in "processing" state.
+                    console.warn('[Exment] redirectCallback error (suppressed):', e);
                 }
 
                 // show toastr

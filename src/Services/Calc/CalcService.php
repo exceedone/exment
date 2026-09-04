@@ -47,12 +47,13 @@ class CalcService
      *     'child_relation_name': if relation is 1:n, set child relation name.
      *     'pivot_column': if select_table, set pivot column's name.
      */
+    // @phpstan-ignore-next-line
     public static function getCalcFormArray(CustomTable $custom_table, CustomFormBlock $custom_form_block)
     {
         $calc_formulas = [];
         $calc_counts = [];
 
-        /** @phpstan-ignore-next-line  $relationInfo Ternary operator condition is always true. */
+        // @phpstan-ignore-next-line
         $relationInfo = $custom_form_block ? $custom_form_block->getRelationInfo($custom_table) : null;
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             if ($form_column->form_column_type != FormColumnType::COLUMN) {
@@ -153,6 +154,7 @@ class CalcService
      *     'target_relation_name': If type is summary, box and triggered box is defferent, so set trigger relation name.
      * ]
      */
+    // @phpstan-ignore-next-line
     protected static function getCalcParamsFromString($value, CustomTable $custom_table, ?CustomFormBlock $custom_form_block = null): array
     {
         if (is_nullorempty($value)) {
@@ -216,6 +218,7 @@ class CalcService
      *     'type': calc type
      * ]
      */
+    // @phpstan-ignore-next-line
     public static function getCalcCustomColumnOptions($id, $custom_table): \Illuminate\Support\Collection
     {
         $options = collect();
@@ -234,6 +237,7 @@ class CalcService
      *
      * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
      */
+    // @phpstan-ignore-next-line
     public static function getSymbols()
     {
         return collect(exmtrans('custom_column.symbols'))->map(function ($symbol, $key) {

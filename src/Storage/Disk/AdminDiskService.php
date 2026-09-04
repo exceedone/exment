@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class AdminDiskService extends DiskServiceBase
 {
+    // @phpstan-ignore-next-line
     public function __construct(...$args)
     {
         $now = \Carbon\Carbon::now()->format('YmdHisv');

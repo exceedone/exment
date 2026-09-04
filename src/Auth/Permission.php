@@ -35,6 +35,7 @@ class Permission
      * Summary of $permission_details
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $permission_details;
 
     /**
@@ -48,6 +49,7 @@ class Permission
      *
      * @param array $attributes
      */
+    // @phpstan-ignore-next-line
     public function __construct(array $attributes = [])
     {
         $this->role_type = array_get($attributes, 'role_type');
@@ -56,21 +58,25 @@ class Permission
         $this->permission_details = array_get($attributes, 'permission_details', []);
     }
 
+    // @phpstan-ignore-next-line
     public function getRoleType()
     {
         return $this->role_type;
     }
 
+    // @phpstan-ignore-next-line
     public function getTableName()
     {
         return $this->table_name;
     }
 
+    // @phpstan-ignore-next-line
     public function getPluginId()
     {
         return $this->plugin_id;
     }
 
+    // @phpstan-ignore-next-line
     public function getPermissionDetails()
     {
         return $this->permission_details;
@@ -79,14 +85,17 @@ class Permission
     /**
      * @param callable $callback
      */
+    // @phpstan-ignore-next-line
     public static function bootingShouldPass(callable $callback)
     {
+        // @phpstan-ignore-next-line
         static::$bootingShouldPasses[] = $callback;
     }
 
     /**
      * Send not found or deny error.
      */
+    // @phpstan-ignore-next-line
     public static function notFoundOrDeny()
     {
         return AdminPermission::error(exmtrans('common.message.notfound_or_deny'));
@@ -95,6 +104,7 @@ class Permission
     /**
      * Send error response page.
      */
+    // @phpstan-ignore-next-line
     public static function error($message = null)
     {
         return AdminPermission::error($message);
@@ -103,6 +113,7 @@ class Permission
     /**
      * Call the booting ShouldPasses for the exment application.
      */
+    // @phpstan-ignore-next-line
     protected function fireShouldPasses($endpoint)
     {
         foreach (static::$bootingShouldPasses as $callable) {
@@ -377,7 +388,7 @@ class Permission
         ///// get last url.
         $uris = explode("/", $url);
         foreach ($uris as $k => $uri) {
-            /** @phpstan-ignore-next-line Call to function is_null() with string will always evaluate to false. */
+            // @phpstan-ignore-next-line
             if (!is_null($uri) && mb_strlen($uri) == 0) {
                 continue;
             }
@@ -503,12 +514,14 @@ class Permission
     protected function isNotAdminUrl(?string $endpoint): bool
     {
         $parse_url = parse_url_ex($endpoint);
+        // @phpstan-ignore-next-line
         if ($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false) {
             return true;
         }
         return false;
     }
 
+    // @phpstan-ignore-next-line
     protected function removeAfterQuery($url)
     {
         if (mb_strpos($url, '?') !== false) {

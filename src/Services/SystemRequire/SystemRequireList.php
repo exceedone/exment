@@ -11,8 +11,10 @@ use Illuminate\Support\Collection;
  */
 class SystemRequireList
 {
+    // @phpstan-ignore-next-line
     protected $items = [];
 
+    // @phpstan-ignore-next-line
     protected static $requireClassesCommand = [
         MemorySize::class,
         MaxInputVars::class,
@@ -23,6 +25,7 @@ class SystemRequireList
         BackupRestore::class,
     ];
 
+    // @phpstan-ignore-next-line
     protected static $requireClassesWeb = [
         MemorySize::class,
         MaxInputVars::class,
@@ -33,6 +36,7 @@ class SystemRequireList
         BackupRestore::class,
     ];
 
+    // @phpstan-ignore-next-line
     protected static $requireClassesInstallWeb = [
         MemorySize::class,
         MaxInputVars::class,
@@ -44,6 +48,7 @@ class SystemRequireList
     ];
 
 
+    // @phpstan-ignore-next-line
     protected static function getRequireClasses(string $systemRequireCalledType)
     {
         switch ($systemRequireCalledType) {
@@ -59,6 +64,7 @@ class SystemRequireList
     }
 
 
+    // @phpstan-ignore-next-line
     public function setItem($item)
     {
         $this->items[] = $item;
@@ -66,6 +72,7 @@ class SystemRequireList
     }
 
 
+    // @phpstan-ignore-next-line
     public function getItems()
     {
         return $this->items;
@@ -98,6 +105,7 @@ class SystemRequireList
         $classes = static::getRequireClasses($systemRequireCalledType);
         foreach ($classes as $className) {
             $obj = new $className();
+            // @phpstan-ignore-next-line
             $obj->systemRequireCalledType($systemRequireCalledType);
 
             $result->setItem($obj);

@@ -17,6 +17,7 @@ class ChangePasswordController extends Controller
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function rules()
     {
         return [

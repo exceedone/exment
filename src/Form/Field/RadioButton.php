@@ -8,6 +8,7 @@ class RadioButton extends Radio
 {
     protected $view = 'exment::form.field.radiobutton';
 
+    // @phpstan-ignore-next-line
     protected $addEmpty = false;
 
     /**

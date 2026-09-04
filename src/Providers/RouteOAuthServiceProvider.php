@@ -144,6 +144,9 @@ class RouteOAuthServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getOauthDefaultOptions()
     {
         return [
@@ -152,6 +155,9 @@ class RouteOAuthServiceProvider extends ServiceProvider
             'middleware' => 'adminapi'
         ];
     }
+    /**
+     * @return array<string, mixed>
+     */
     protected function getOauthAnonymousOptions()
     {
         return [
@@ -160,6 +166,9 @@ class RouteOAuthServiceProvider extends ServiceProvider
             'middleware' => ['adminapi_anonymous'],
         ];
     }
+    /**
+     * @return array<string, mixed>
+     */
     protected function getOauthWebOptions()
     {
         return [
@@ -176,27 +185,36 @@ class RouteOAuthServiceProvider extends ServiceProvider
         if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
             app(AuthorizationServer::class)->enableGrantType(
                 $this->makeApiKeyGrant(),
+                // @phpstan-ignore-next-line
                 Passport::tokensExpireIn()
             );
 
             app(AuthorizationServer::class)->enableGrantType(
                 $this->makePasswordGrant(),
+                // @phpstan-ignore-next-line
                 Passport::tokensExpireIn()
             );
         }
     }
 
+    /**
+     * @return ApiKeyGrant
+     */
     protected function makeApiKeyGrant()
     {
         $grant = new ApiKeyGrant(
             $this->app->make(RefreshTokenRepository::class)
         );
 
+        // @phpstan-ignore-next-line
         $grant->setRefreshTokenTTL(Passport::refreshTokensExpireIn());
 
         return $grant;
     }
 
+    /**
+     * @return PasswordGrant
+     */
     protected function makePasswordGrant()
     {
         $grant = new PasswordGrant(
@@ -204,6 +222,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
             $this->app->make(Bridge\RefreshTokenRepository::class)
         );
 
+        // @phpstan-ignore-next-line
         $grant->setRefreshTokenTTL(Passport::refreshTokensExpireIn());
 
         return $grant;

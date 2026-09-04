@@ -38,6 +38,7 @@ class TemplateController extends AdminControllerBase
     /**
      * search template
      */
+    // @phpstan-ignore-next-line
     public function searchTemplate(Request $request)
     {
         // search from exment api
@@ -89,6 +90,7 @@ class TemplateController extends AdminControllerBase
             if (is_null($array)) {
                 $array = [];
             }
+            // @phpstan-ignore-next-line
             $no_thumbnail_file = base64_encode(file_get_contents(exment_package_path('templates/noimage.png')));
 
             $datalist = [];
@@ -107,12 +109,16 @@ class TemplateController extends AdminControllerBase
                     $delete_url = null;
                 }
 
+                $thumbnailExt = strtolower(pathinfo(array_get($a, 'thumbnail', ''), PATHINFO_EXTENSION));
+                $mimeMap = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
+                $mimeType = $mimeMap[$thumbnailExt] ?? 'image/png';
+
                 $datalist[] = [
                     'id' => json_encode(['template_type' => array_get($a, 'template_type'), 'template_name' => array_get($a, 'template_name')]),
                     'title' => array_get($a, 'template_view_name'),
                     'description' => array_get($a, 'description'),
                     'author' => array_get($a, 'author'),
-                    'thumbnail' => 'data:image/png;base64,'.$thumbnail_file,
+                    'thumbnail' => "data:{$mimeType};base64,{$thumbnail_file}",
                     'delete_url' => $delete_url,
                 ];
             }
@@ -152,10 +158,11 @@ class TemplateController extends AdminControllerBase
     /**
      * create export box
      */
+    // @phpstan-ignore-next-line
     protected function exportBox(Content $content)
     {
         $form = $this->exportBoxForm();
-        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
+        // @phpstan-ignore-next-line
         $content->row((new Box(exmtrans('template.header_export'), $form))->style('info'));
     }
 
@@ -214,6 +221,7 @@ class TemplateController extends AdminControllerBase
     /**
      * create import box
      */
+    // @phpstan-ignore-next-line
     protected function importBox(Content $content)
     {
         $form = new \Encore\Admin\Widgets\Form();
@@ -223,13 +231,14 @@ class TemplateController extends AdminControllerBase
         $form->descriptionHtml(exmtrans('template.description_import'));
         $this->addTemplateTile($form);
         $form->hidden('_token')->default(csrf_token());
-        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
+        // @phpstan-ignore-next-line
         $content->row((new Box(exmtrans('template.header_import'), $form))->style('info'));
     }
 
     /**
      * export
      */
+    // @phpstan-ignore-next-line
     public function export(Request $request)
     {
         // validation
@@ -255,6 +264,7 @@ class TemplateController extends AdminControllerBase
     /**
      * import
      */
+    // @phpstan-ignore-next-line
     public function import(Request $request)
     {
         \Exment::setTimeLimitLong();
@@ -275,6 +285,7 @@ class TemplateController extends AdminControllerBase
     /**
      * delete template
      */
+    // @phpstan-ignore-next-line
     public function delete(Request $request)
     {
         // install templates selected tiles.

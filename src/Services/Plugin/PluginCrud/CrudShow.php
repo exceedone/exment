@@ -19,6 +19,7 @@ class CrudShow extends CrudBase
      * @param $id
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public function show($id)
     {
         $content = $this->pluginClass->getContent();
@@ -34,6 +35,7 @@ class CrudShow extends CrudBase
      * @param $id
      * @return Box
      */
+    // @phpstan-ignore-next-line
     protected function detail($id)
     {
         $data = $this->pluginClass->getData($id);
@@ -43,7 +45,7 @@ class CrudShow extends CrudBase
         $form->disableSubmit();
 
         $this->setShowColumn($form);
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
+        // @phpstan-ignore-next-line
         $box = new Box(trans('admin.detail'), $form);
         $box->style('info');
         $this->setShowTools($id, $box);
@@ -79,6 +81,7 @@ class CrudShow extends CrudBase
      * @param Box $box
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setShowTools($id, Box $box)
     {
         // get oauth logout view

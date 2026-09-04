@@ -8,8 +8,16 @@ use Exceedone\Exment\Enums\PluginType;
 
 trait BootstrapTrait
 {
+    /**
+     * @param array<int, string> $list
+     * @param bool $isCss
+     * @param bool $isLast
+     * @return void
+     * @phpstan-ignore-next-line
+     */
     protected static function setCssJsList(array $list, bool $isCss, bool $isLast = false)
     {
+        /** @phpstan-ignore-next-line */
         $ver = \Exment::getExmentCurrentVersion();
         if (!isset($ver)) {
             $ver = date('YmdHis');
@@ -25,6 +33,10 @@ trait BootstrapTrait
     }
 
 
+    /**
+     * @param mixed $request
+     * @return bool
+     */
     protected function isStaticRequest($request)
     {
         $pathInfo = $request->getPathInfo();
@@ -35,10 +47,11 @@ trait BootstrapTrait
     /**
      * append Style and sript to page
      *
-     * @param $pl
+     * @param mixed $pl
      * @param bool $asPublicForm
      * @return void
      * @throws \Exception
+     * @phpstan-ignore-next-line
      */
     protected static function appendStyleScript($pl, bool $asPublicForm = false)
     {
@@ -60,9 +73,11 @@ trait BootstrapTrait
             }
 
             // get scripts
+            /** @phpstan-ignore-next-line */
             $cdns = array_get($plugin, 'options.cdns', []);
             foreach ($cdns as $cdn) {
                 $ext = pathinfo($cdn, PATHINFO_EXTENSION);
+                /** @phpstan-ignore-next-line */
                 $p = isMatchString($ext, 'js') ? 'js' : (isMatchString($ext, 'css') ? 'css' : null);
                 if (!$p) {
                     continue;

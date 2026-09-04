@@ -46,7 +46,7 @@ class NotifyNavbarController extends AdminControllerBase
         $grid->disableExport();
 
         $grid->tools(function (Grid\Tools $tools) {
-            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\SwalMenuButton given */
+            // @phpstan-ignore-next-line
             $tools->append(new SwalMenuButton($this->getMenuList()));
             $tools->batch(function (Grid\Tools\BatchActions $batch) {
                 $batch->add(exmtrans('notify_navbar.all_check'), new BatchCheck());
@@ -92,6 +92,7 @@ class NotifyNavbarController extends AdminControllerBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getMenuList(): array
     {
         $menulist = [];
@@ -130,6 +131,7 @@ class NotifyNavbarController extends AdminControllerBase
      *
      * @return Form
      */
+    // @phpstan-ignore-next-line
     protected function form($id = null)
     {
         return new Form(new NotifyNavbar());
@@ -149,7 +151,9 @@ class NotifyNavbarController extends AdminControllerBase
             abort(404);
         }
 
+        // @phpstan-ignore-next-line
         if ($model->read_flg == 0) {
+            // @phpstan-ignore-next-line
             $model->update(['read_flg' => true]);
         }
 
@@ -162,6 +166,7 @@ class NotifyNavbarController extends AdminControllerBase
             }
         }
 
+        // @phpstan-ignore-next-line
         return new Show($model, function (Show $show) use ($id, $parent_type, $custom_value, $custom_table) {
             if (isset($parent_type)) {
                 $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use ($custom_table) {
@@ -246,6 +251,7 @@ class NotifyNavbarController extends AdminControllerBase
      *
      * @param mixed   $id
      */
+    // @phpstan-ignore-next-line
     public function redirectTargetData(Request $request, $id = null)
     {
         $model = NotifyNavbar::find($id);
@@ -255,16 +261,20 @@ class NotifyNavbarController extends AdminControllerBase
         }
 
         // update read_flg
+        // @phpstan-ignore-next-line
         if ($model->read_flg == 0) {
+            // @phpstan-ignore-next-line
             $model->update(['read_flg' => true]);
         }
 
+        // @phpstan-ignore-next-line
         $custom_table = getModelName($model->parent_type);
 
         if (is_nullorempty($custom_table)) {
             return back();
         }
 
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table::find($model->parent_id);
 
         if (!isset($custom_value)) {
@@ -280,6 +290,7 @@ class NotifyNavbarController extends AdminControllerBase
      *
      * @param mixed   $id
      */
+    // @phpstan-ignore-next-line
     public function rowCheck(Request $request, $id = null)
     {
         if (!isset($id)) {

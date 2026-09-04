@@ -56,6 +56,7 @@ class Define
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
+        'logging_toggle_available' => ['type' => 'boolean', 'default' => '0', 'group' => 'initialize'],
 
         // Advanced ----------------------------------
         'filter_search_type' => ['default' => 'forward', 'group' => 'advanced'],
@@ -124,6 +125,18 @@ class Define
         'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
         'backup_automatic_executed' => ['type' => 'datetime'],
         'backup_history_files' => ['type' => 'int', 'default' => '0', 'group' => 'backup'],
+
+        // Operation log auto-delete
+        // Opt-in (default '0') like backup_enable_automatic above: a destructive housekeeping task
+        // must not silently purge audit logs on a fresh install without an explicit admin choice.
+        'operation_log_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'operation_log'],
+        'operation_log_keep_days' => ['type' => 'int', 'default' => '180', 'group' => 'operation_log'],
+        'operation_log_automatic_week' => ['group' => 'operation_log'],
+        'operation_log_automatic_month' => ['group' => 'operation_log'],
+        'operation_log_automatic_day' => ['group' => 'operation_log'],
+        'operation_log_automatic_hour' => ['group' => 'operation_log'],
+        'operation_log_automatic_minute' => ['group' => 'operation_log'],
+        'operation_log_automatic_executed' => ['type' => 'datetime'],
 
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
@@ -388,7 +401,7 @@ class Define
     ];
 
     public const DATABASE_VERSION = [
-        'mysql' => ['min' => '5.7.8', 'max_lt' => '8.1.0'],
+        'mysql' => ['min' => '5.7.8'],
         'mariadb' => ['min' => '10.2.7'],
         'sqlsrv' => ['min' => '13.0.0.0'],
     ];
@@ -410,6 +423,8 @@ class Define
         'data',
     ];
 
+
+    // @phpstan-ignore-next-line
     public static function FILE_OPTION()
     {
         // get max size

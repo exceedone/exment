@@ -26,6 +26,7 @@ class RestoreCommand extends Command
      */
     protected $description = 'Restore database definition, table data, files in selected folder';
 
+    // @phpstan-ignore-next-line
     protected $restore;
 
     /**
@@ -73,6 +74,7 @@ class RestoreCommand extends Command
         return 0;
     }
 
+    // @phpstan-ignore-next-line
     protected function getFile()
     {
         $file = $this->argument("file");

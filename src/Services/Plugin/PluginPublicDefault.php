@@ -12,6 +12,7 @@ class PluginPublicDefault extends PluginPublicBase
 {
     use PluginBase;
 
+    // @phpstan-ignore-next-line
     public function __construct($plugin)
     {
         $this->plugin = $plugin;

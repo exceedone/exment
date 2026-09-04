@@ -9,6 +9,7 @@ class FormLabelType extends EnumBase
     public const VERTICAL = "vertical";
     public const HIDDEN = "hidden";
 
+    // @phpstan-ignore-next-line
     public static function getFormLabelTypes()
     {
         return [
@@ -18,6 +19,7 @@ class FormLabelType extends EnumBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public static function getFieldLabelTypes()
     {
         return [

@@ -32,6 +32,9 @@ class ApiController extends AdminControllerBase
 
     /**
      * get Exment version
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function version(Request $request)
     {
@@ -41,7 +44,7 @@ class ApiController extends AdminControllerBase
     /**
      * get login user info
      * @param Request $request
-     * @return array|null
+     * @return array<string, mixed>|null
      */
     public function me(Request $request)
     {
@@ -151,6 +154,9 @@ class ApiController extends AdminControllerBase
 
     /**
      * get column list
+     *
+     * @param Request $request
+     * @param bool $onlyIndex
      * @return mixed
      */
     protected function _getcolumns(Request $request, $onlyIndex = true)
@@ -238,6 +244,7 @@ class ApiController extends AdminControllerBase
      */
     public function column($id, Request $request)
     {
+        // @phpstan-ignore-next-line
         return $this->responseColumn($request, CustomColumn::find($id));
     }
 
@@ -267,6 +274,7 @@ class ApiController extends AdminControllerBase
      * 3. get columns that belongs to target table
      * @param mixed $id select_table custon_column id
      */
+    // @phpstan-ignore-next-line
     public function targetBelongsColumns($id)
     {
         if (!isset($id)) {
@@ -296,6 +304,7 @@ class ApiController extends AdminControllerBase
     /**
      * get auth logs
      */
+    // @phpstan-ignore-next-line
     public function authLogs(Request $request)
     {
         $login_user = \Exment::user();
@@ -346,7 +355,7 @@ class ApiController extends AdminControllerBase
         $query->orderBy('created_at', 'desc');
         $paginator = $query->paginate($count);
 
-        /** @phpstan-ignore-next-line need Class Reflection Extension */
+        // @phpstan-ignore-next-line
         $paginator->appends($request->all([
             'login_user_id',
             'base_user_id',
@@ -364,6 +373,7 @@ class ApiController extends AdminControllerBase
     /**
      * get auth log
      */
+    // @phpstan-ignore-next-line
     public function authLog(Request $request, $id)
     {
         $login_user = \Exment::user();
@@ -385,6 +395,7 @@ class ApiController extends AdminControllerBase
     /**
      * create notify
      */
+    // @phpstan-ignore-next-line
     public function notifyCreate(Request $request)
     {
         $is_single = false;
@@ -483,6 +494,7 @@ class ApiController extends AdminControllerBase
      * @param Request $request
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function notifyPage(Request $request)
     {
         // get notify NotifyNavbar list

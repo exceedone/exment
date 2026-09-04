@@ -9,13 +9,16 @@ class RoleGroupAction extends ExportActionBase implements ActionInterface
     /**
      * laravel-admin grid
      */
+    // @phpstan-ignore-next-line
     protected $grid;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         $this->grid = array_get($args, 'grid');
     }
 
+    // @phpstan-ignore-next-line
     public function datalist()
     {
         $providers = [];
@@ -50,6 +53,7 @@ class RoleGroupAction extends ExportActionBase implements ActionInterface
         return $datalist;
     }
 
+    // @phpstan-ignore-next-line
     public function filebasename()
     {
         return 'role_group';

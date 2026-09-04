@@ -12,9 +12,24 @@ class NavbarSender extends SenderBase
 {
     use Notifiable;
 
+    /**
+     * @var mixed
+     */
     protected $notify_id;
+
+    /**
+     * @var mixed
+     */
     protected $custom_value;
+
+    /**
+     * @var mixed
+     */
     protected $custom_table_id;
+
+    /**
+     * @var mixed
+     */
     protected $user;
 
     /**
@@ -33,10 +48,10 @@ class NavbarSender extends SenderBase
     /**
      * Initialize $this
      *
-     * @param string $notify_id
-     * @param string $subject
-     * @param string $body
-     * @param array $options
+     * @param mixed $notify_id
+     * @param mixed $subject
+     * @param mixed $body
+     * @param array<string, mixed> $options
      * @return NavbarSender
      */
     public static function make($notify_id, $subject, $body, $options): NavbarSender
@@ -44,6 +59,10 @@ class NavbarSender extends SenderBase
         return new self($notify_id, $subject, $body, $options);
     }
 
+    /**
+     * @param mixed $custom_value
+     * @return $this
+     */
     public function custom_value($custom_value)
     {
         if (isset($custom_value)) {
@@ -53,6 +72,10 @@ class NavbarSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @return $this
+     */
     public function custom_table($custom_table)
     {
         if (isset($custom_table)) {
@@ -62,6 +85,10 @@ class NavbarSender extends SenderBase
         return $this;
     }
 
+    /**
+     * @param mixed $user
+     * @return $this
+     */
     public function user($user)
     {
         if (isset($user)) {

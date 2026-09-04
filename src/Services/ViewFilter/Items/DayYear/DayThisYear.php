@@ -11,6 +11,7 @@ class DayThisYear extends DayYearBase
         return FilterOption::DAY_THIS_YEAR;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
         return new \Carbon\Carbon('first day of this year');

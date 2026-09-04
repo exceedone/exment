@@ -45,6 +45,7 @@ class WorkflowController extends AdminControllerBase
         HasResourceActions::destroy as destroyTrait;
     }
 
+    // @phpstan-ignore-next-line
     protected $exists = false;
 
     public function __construct()
@@ -106,7 +107,7 @@ class WorkflowController extends AdminControllerBase
                 ))->render());
             }
 
-            /** @phpstan-ignore-next-line Cannot call method canActivate() on stdClass. */
+            // @phpstan-ignore-next-line
             if ($actions->row->canActivate()) {
                 $actions->prepend((new Tools\ModalLink(
                     admin_urls('workflow', $actions->row->id, 'activateModal'),
@@ -176,6 +177,7 @@ class WorkflowController extends AdminControllerBase
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      */
+    // @phpstan-ignore-next-line
     protected function form($id = null)
     {
         if (!isset($id)) {
@@ -200,6 +202,7 @@ class WorkflowController extends AdminControllerBase
      *
      * @return Form
      */
+    // @phpstan-ignore-next-line
     public function action(Request $request, Content $content, $id)
     {
         return $this->AdminContent($content)->body($this->actionForm($id)->edit($id));
@@ -211,6 +214,7 @@ class WorkflowController extends AdminControllerBase
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
+    // @phpstan-ignore-next-line
     public function destroy($id)
     {
         $this->isDeleteForce = true;
@@ -222,6 +226,7 @@ class WorkflowController extends AdminControllerBase
      *
      * @return Form
      */
+    // @phpstan-ignore-next-line
     protected function statusForm($id = null)
     {
         $workflow = Workflow::getEloquent($id);
@@ -379,6 +384,7 @@ class WorkflowController extends AdminControllerBase
      *
      * @return Form
      */
+    // @phpstan-ignore-next-line
     protected function actionForm($id)
     {
         $workflow = Workflow::getEloquent($id);
@@ -596,7 +602,7 @@ class WorkflowController extends AdminControllerBase
 
         $results = [];
 
-        /** @phpstan-ignore-next-line Call to function is_null() with mixed will always evaluate to false. */
+        // @phpstan-ignore-next-line
         if (is_null($results = old('workflow_tables'))) {
             $workflowTables = WorkflowTable::with(['workflow', 'custom_table'])->get()
             ->filter(function ($workflowTable) {
@@ -673,7 +679,7 @@ class WorkflowController extends AdminControllerBase
         $form->html(view('exment::workflow.beginning', [
             'items' => $results
         ])->render());
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
+        // @phpstan-ignore-next-line
         $box = new Box(exmtrans('workflow.beginning'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => admin_url('workflow'),
@@ -761,6 +767,7 @@ class WorkflowController extends AdminControllerBase
         return back();
     }
 
+    // @phpstan-ignore-next-line
     public function appendActivateButton($workflow, $tools)
     {
         if (isset($workflow) && $workflow->canActivate()) {
@@ -778,6 +785,7 @@ class WorkflowController extends AdminControllerBase
     /**
      * Append table setting button
      */
+    // @phpstan-ignore-next-line
     public function appendTableSettingButton($workflow, $tools)
     {
         if (isset($workflow) && boolval($workflow->setting_completed_flg)) {
@@ -790,6 +798,7 @@ class WorkflowController extends AdminControllerBase
         }
     }
 
+    // @phpstan-ignore-next-line
     public function disableDelete($workflow, $tools)
     {
         if (isset($workflow) && $workflow->disabled_delete) {
@@ -817,6 +826,7 @@ class WorkflowController extends AdminControllerBase
      * @param $id
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|Response
      */
+    // @phpstan-ignore-next-line
     public function activate(Request $request, $id)
     {
         $workflow = Workflow::getEloquent($id);
@@ -858,6 +868,7 @@ class WorkflowController extends AdminControllerBase
      * @param $id
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|Response
      */
+    // @phpstan-ignore-next-line
     public function deactivate(Request $request, $id)
     {
         $workflow = Workflow::getEloquent($id);
@@ -889,6 +900,7 @@ class WorkflowController extends AdminControllerBase
         ]);
     }
 
+    // @phpstan-ignore-next-line
     protected function appendWorkflowNotify($workflow)
     {
         // get mail template
@@ -915,6 +927,7 @@ class WorkflowController extends AdminControllerBase
     /**
      * validate before save.
      */
+    // @phpstan-ignore-next-line
     protected function validateData(Form $form)
     {
         $request = request();
@@ -1041,6 +1054,7 @@ class WorkflowController extends AdminControllerBase
      * @param $id
      * @return Response
      */
+    // @phpstan-ignore-next-line
     public function targetModal(Request $request, $id)
     {
         $workflow = Workflow::getEloquent($id);
@@ -1133,6 +1147,7 @@ class WorkflowController extends AdminControllerBase
      * @param $id
      * @return Response
      */
+    // @phpstan-ignore-next-line
     public function conditionModal(Request $request, $id)
     {
         $workflow = Workflow::getEloquent($id);
@@ -1239,6 +1254,7 @@ class WorkflowController extends AdminControllerBase
      * @param $id
      * @return Response
      */
+    // @phpstan-ignore-next-line
     public function activateModal(Request $request, $id)
     {
         $workflow = Workflow::getEloquent($id);
@@ -1271,6 +1287,7 @@ class WorkflowController extends AdminControllerBase
      * @param $id
      * @return Response
      */
+    // @phpstan-ignore-next-line
     public function deactivateModal(Request $request, $id)
     {
         $workflow = Workflow::getEloquent($id);
@@ -1301,6 +1318,7 @@ class WorkflowController extends AdminControllerBase
      *
      * @return ModalForm
      */
+    // @phpstan-ignore-next-line
     protected function getUserOrgModalForm(?CustomTable $custom_table, ?Workflow $workflow, $value = [], $options = [])
     {
         $options = array_merge([

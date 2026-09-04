@@ -50,6 +50,7 @@ trait ThrottlesLogins
      * @return void
      * @throws \Illuminate\Validation\ValidationException
      */
+    // @phpstan-ignore-next-line
     protected function sendLockoutResponse(Request $request, $errorKey = null)
     {
         if (!isset($errorKey)) {

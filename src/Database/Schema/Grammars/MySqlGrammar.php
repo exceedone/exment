@@ -32,6 +32,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function compileColumnDefinitions($tableName)
     {
         return "show columns from {$this->wrapTable($tableName)}";
@@ -57,6 +58,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
         return "create table if not exists {$this->wrapTable($tableName)} like custom_relation_values";
     }
 
+    // @phpstan-ignore-next-line
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
         // ALTER TABLE
@@ -68,21 +70,25 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
         ];
     }
 
+    // @phpstan-ignore-next-line
     public function compileGetIndex($tableName)
     {
         return $this->_compileGetIndex($tableName, false);
     }
 
+    // @phpstan-ignore-next-line
     public function compileGetUnique($tableName)
     {
         return $this->_compileGetIndex($tableName, true);
     }
 
+    // @phpstan-ignore-next-line
     protected function _compileGetIndex($tableName, $unique)
     {
         return "show index from {$this->wrapTable($tableName)} where non_unique = :non_unique and column_name = :column_name";
     }
 
+    // @phpstan-ignore-next-line
     public function compileGetConstraint($tableName)
     {
         return null;

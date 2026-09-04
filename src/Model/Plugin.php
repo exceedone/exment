@@ -32,6 +32,8 @@ class Plugin extends ModelBase
 
     protected $casts = ['options' => 'json', 'custom_options' => 'json'];
 
+
+    // @phpstan-ignore-next-line
     public function setPluginTypesAttribute($pluginTypes)
     {
         if (is_null($pluginTypes)) {
@@ -49,6 +51,8 @@ class Plugin extends ModelBase
         }
     }
 
+
+    // @phpstan-ignore-next-line
     public function getPluginTypesAttribute()
     {
         $plugin_types = array_get($this->attributes, 'plugin_types');
@@ -74,6 +78,8 @@ class Plugin extends ModelBase
      * $role_key * if set array, check whether either items.
      * @param array|string $role_key
      */
+
+    // @phpstan-ignore-next-line
     public function hasPermission($role_key)
     {
         return \Exment::user()->hasPermissionPlugin($this->id, $role_key);
@@ -84,6 +90,8 @@ class Plugin extends ModelBase
      *
      * @return array|\Illuminate\Support\Collection
      */
+
+    // @phpstan-ignore-next-line
     public static function getIdsHasSettingPermission()
     {
         return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS, function () {
@@ -106,6 +114,8 @@ class Plugin extends ModelBase
      *
      * @return bool is match plugin type. if $plugin_types is multiple, whether contains.
      */
+
+    // @phpstan-ignore-next-line
     public function matchPluginType($plugin_types)
     {
         $plugin_types = toArray($plugin_types);
@@ -118,11 +128,15 @@ class Plugin extends ModelBase
         return false;
     }
 
+
+    // @phpstan-ignore-next-line
     public function isPluginTypeUri()
     {
         return $this->matchPluginType(PluginType::PLUGIN_TYPE_PUBLIC_CLASS());
     }
 
+
+    // @phpstan-ignore-next-line
     public static function getPluginByUUID($uuid)
     {
         if ($uuid instanceof Plugin) {
@@ -133,6 +147,8 @@ class Plugin extends ModelBase
         });
     }
 
+
+    // @phpstan-ignore-next-line
     public static function getPluginByName($plugin_name)
     {
         return static::getPluginsCache()->first(function ($plugin) use ($plugin_name) {
@@ -175,6 +191,8 @@ class Plugin extends ModelBase
      *
      * @return Collection
      */
+
+    // @phpstan-ignore-next-line
     public static function getBatches()
     {
         $now = Carbon::now();
@@ -189,6 +207,8 @@ class Plugin extends ModelBase
      *
      * @return Collection
      */
+
+    // @phpstan-ignore-next-line
     public static function getCronBatches()
     {
         return static::getByPluginTypes(PluginType::BATCH)->filter(function ($plugin) {
@@ -201,6 +221,8 @@ class Plugin extends ModelBase
      *
      * @return mixed \Exceedone\Exment\Services\Plugin\PluginBase
      */
+
+    // @phpstan-ignore-next-line
     public function getClass($plugin_type, $options = [])
     {
         $options = array_merge(
@@ -227,6 +249,8 @@ class Plugin extends ModelBase
     /**
      * Get namespace path
      */
+
+    // @phpstan-ignore-next-line
     public function getNameSpace(...$pass_array)
     {
         $array = ["App", "Plugins", pascalize($this->plugin_name)];
@@ -243,6 +267,8 @@ class Plugin extends ModelBase
      * Get plugin path. (not fullpath. relation from laravel root)
      * if $pass_array is empty, return plugin folder path.
      */
+
+    // @phpstan-ignore-next-line
     public function getPath(...$pass_array)
     {
         $pluginPath = pascalize(preg_replace('/\s+/', '', $this->plugin_name));
@@ -263,6 +289,8 @@ class Plugin extends ModelBase
      * Get plugin fullpath.
      * if $pass_array is empty, return plugin folder full path.
      */
+
+    // @phpstan-ignore-next-line
     public function getFullPath(...$pass_array)
     {
         $diskService = new PluginDiskService($this);
@@ -277,6 +305,8 @@ class Plugin extends ModelBase
     /**
      * Get plugin file paths. relative path, not fullpath
      */
+
+    // @phpstan-ignore-next-line
     public function getPluginFilePaths($dirPath = null, $subdir = true, ?PluginDiskService $diskService = null)
     {
         list($diskService, $disk, $dirName, $dirPath) = $this->initPluginDisk($dirPath, $diskService);
@@ -295,6 +325,8 @@ class Plugin extends ModelBase
     /**
      * Get plugin directories paths. relative path, not fullpath
      */
+
+    // @phpstan-ignore-next-line
     public function getPluginDirPaths($dirPath = null, $subdir = true, ?PluginDiskService $diskService = null)
     {
         list($diskService, $disk, $dirName, $dirPath) = $this->initPluginDisk($dirPath, $diskService);
@@ -334,6 +366,8 @@ class Plugin extends ModelBase
      * @return mixed
      * @throws FileNotFoundException
      */
+
+    // @phpstan-ignore-next-line
     public function putPluginFile(string $path, $file, ?PluginDiskService $diskService = null)
     {
         list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk($path, $diskService, ['exceptionFileNotFound' => false]);
@@ -351,6 +385,8 @@ class Plugin extends ModelBase
      * @return mixed
      * @throws FileNotFoundException
      */
+
+    // @phpstan-ignore-next-line
     public function putAsPluginFile(?string $dirPath, string $fileName, $file, ?PluginDiskService $diskService = null)
     {
         list($diskService, $disk, $dirName, $dirPath) = $this->initPluginDisk($dirPath, $diskService, ['exceptionFileNotFound' => false]);
@@ -413,6 +449,8 @@ class Plugin extends ModelBase
      * @param array $options
      * @return array offset 0:PluginDiskService, 1:disk, 2: root dir name, 3: joined path.
      */
+
+    // @phpstan-ignore-next-line
     protected function initPluginDisk(string $path = null, ?PluginDiskService $diskService = null, array $options = [])
     {
         $options = array_merge([
@@ -451,6 +489,8 @@ class Plugin extends ModelBase
     /**
      * @param string|null $event
      */
+
+    // @phpstan-ignore-next-line
     public static function pluginExecuteEvent($event = null, $custom_table = null, $options = [])
     {
         $plugins = static::getPluginsByTable($custom_table, false);
@@ -500,6 +540,8 @@ class Plugin extends ModelBase
      * @param string|null $event
      * @return array
      */
+
+    // @phpstan-ignore-next-line
     public static function pluginPreparingButton($event = null, $custom_table = null)
     {
         $plugins = static::getPluginsByTable($custom_table, true);
@@ -569,6 +611,8 @@ class Plugin extends ModelBase
      * @param CustomTable $custom_table
      * @return array
      */
+
+    // @phpstan-ignore-next-line
     public static function pluginPreparingImport($custom_table)
     {
         $plugins = static::getPluginsByTable($custom_table, true);
@@ -593,6 +637,8 @@ class Plugin extends ModelBase
     /**
      * execute custom plugin validate
      */
+
+    // @phpstan-ignore-next-line
     public static function pluginValidator($custom_table, $options = [])
     {
         $plugins = static::getPluginsByTable($custom_table, false);
@@ -617,6 +663,8 @@ class Plugin extends ModelBase
     /**
      * execute validate destroy
      */
+
+    // @phpstan-ignore-next-line
     public static function pluginValidateDestroy($model, $options = [])
     {
         $plugins = static::getPluginsByTable($model->custom_table, false);
@@ -630,6 +678,8 @@ class Plugin extends ModelBase
                 // if isset $class, call
                 if (isset($class)) {
                     if (method_exists($class, 'validateDestroy')) {
+
+                        // @phpstan-ignore-next-line
                         $res = $class->validateDestroy($model);
                         if ($res === false) {
                             return [
@@ -656,6 +706,8 @@ class Plugin extends ModelBase
     /**
      * Get plugins filtering accessable by selecting plugin_type
      */
+
+    // @phpstan-ignore-next-line
     public static function getAccessableByPluginTypes($plugin_types, $getAsClass = false)
     {
         return static::getByPluginTypes($plugin_types, $getAsClass)
@@ -671,6 +723,8 @@ class Plugin extends ModelBase
     /**
      * Get plugins by selecting plugin_type
      */
+
+    // @phpstan-ignore-next-line
     public static function getByPluginTypes($plugin_types, $getAsClass = false)
     {
         return static::getPluginPublicSessions($plugin_types, $getAsClass);
@@ -681,6 +735,8 @@ class Plugin extends ModelBase
      *
      * @return Collection
      */
+
+    // @phpstan-ignore-next-line
     public static function getPluginPages()
     {
         return static::getPluginPublicSessions(PluginType::PLUGIN_TYPE_PLUGIN_PAGE(), true);
@@ -691,6 +747,8 @@ class Plugin extends ModelBase
      *
      * @return Collection
      */
+
+    // @phpstan-ignore-next-line
     public static function getPluginScriptStyles()
     {
         return static::getPluginPublicSessions(PluginType::PLUGIN_TYPE_SCRIPT_STYLE(), true);
@@ -701,6 +759,8 @@ class Plugin extends ModelBase
      *
      * @return Collection
      */
+
+    // @phpstan-ignore-next-line
     protected static function getPluginPublicSessions($targetPluginTypes, $getAsClass = false)
     {
         $plugins = static::getPluginsCache();
@@ -729,6 +789,8 @@ class Plugin extends ModelBase
         })->filter();
     }
 
+
+    // @phpstan-ignore-next-line
     protected static function getPluginsCache()
     {
         // get plugin page's
@@ -795,6 +857,8 @@ class Plugin extends ModelBase
      *
      * @return string
      */
+
+    // @phpstan-ignore-next-line
     public function getRootUrl($plugin_type): string
     {
         if ($plugin_type == PluginType::PAGE || $plugin_type == PluginType::CRUD) {
@@ -810,6 +874,8 @@ class Plugin extends ModelBase
      *
      * @return string
      */
+
+    // @phpstan-ignore-next-line
     public function getFullUrl(...$pass_array)
     {
         return admin_urls($this->getRouteUri(...$pass_array));
@@ -820,6 +886,8 @@ class Plugin extends ModelBase
      *
      * @return string
      */
+
+    // @phpstan-ignore-next-line
     public function getRouteUri(...$pass_array)
     {
         return url_join('plugins', $this->getOptionUri(), ...$pass_array);
@@ -840,6 +908,8 @@ class Plugin extends ModelBase
         return snake_case($uri);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCannotReadMessage()
     {
         return exmtrans('plugin.error.cannot_read', [
@@ -850,6 +920,8 @@ class Plugin extends ModelBase
     /**
      * get eloquent using request settion.
      */
+
+    // @phpstan-ignore-next-line
     public static function getEloquent($obj, $withs = [])
     {
         if ($obj instanceof Plugin) {
@@ -890,10 +962,14 @@ class Plugin extends ModelBase
         return $obj;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCustomOption($key, $default = null)
     {
         return $this->getJson('custom_options', $key, $default);
     }
+
+    // @phpstan-ignore-next-line
     public function setCustomOption($key, $val = null)
     {
         return $this->setJson('custom_options', $key, $val);

@@ -10,6 +10,7 @@ class EncPassword extends Password
     /**
      * @bool update if empty flag
      */
+    // @phpstan-ignore-next-line
     protected $updateIfEmpty = false;
 
     /**
@@ -33,6 +34,7 @@ class EncPassword extends Password
      * Format value by passing custom formater.
      * Always null.
      */
+    // @phpstan-ignore-next-line
     protected function formatValue()
     {
         $this->value = trydecrypt($this->value);
@@ -41,6 +43,7 @@ class EncPassword extends Password
     /**
      * set flag update if empty.
      */
+    // @phpstan-ignore-next-line
     public function updateIfEmpty(bool $updateIfEmpty = true)
     {
         $this->updateIfEmpty = $updateIfEmpty;

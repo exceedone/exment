@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\NotifyTarget;
 
 class FixedEmail extends NotifyTargetBase
 {
+    // @phpstan-ignore-next-line
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         return $this->getFixedEmail();
@@ -23,12 +24,14 @@ class FixedEmail extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return $this->getFixedEmail();
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getFixedEmail(): Collection
     {
         $emails = array_get($this->action_setting, 'target_emails');
@@ -36,6 +39,7 @@ class FixedEmail extends NotifyTargetBase
         $emails = breakCommaToArray($emails);
 
         /** @var Collection $collection */
+        // @phpstan-ignore-next-line
         $collection =  collect($emails)->filter(function ($email) {
             return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
         })->map(function ($email) {

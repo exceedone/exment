@@ -4,13 +4,20 @@ namespace Exceedone\Exment\Notifications;
 
 abstract class SenderBase
 {
+    /**
+     * @var mixed
+     */
     protected $subject;
+
+    /**
+     * @var mixed
+     */
     protected $body;
 
     /**
      * Get the subject of message.
      *
-     * @return string
+     * @return mixed
      */
     public function getSubject()
     {
@@ -20,7 +27,7 @@ abstract class SenderBase
     /**
      * Get the body of message.
      *
-     * @return string
+     * @return mixed
      */
     public function getBody()
     {

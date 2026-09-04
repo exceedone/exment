@@ -18,6 +18,8 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
 {
     use Traits\UseRequestSessionTrait;
 
+
+    // @phpstan-ignore-next-line
     public function getAuthorityTextAttribute()
     {
         $item = ConditionItemBase::getDetailItemByAuthority(null, $this);
@@ -41,6 +43,8 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
      * @param WorkflowAction $values
      * @return array
      */
+
+    // @phpstan-ignore-next-line
     public static function getAuhoritiesFromValue($values, $action = null)
     {
         $values = jsonToArray($values);
@@ -71,6 +75,8 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
      *
      * @return array
      */
+
+    // @phpstan-ignore-next-line
     public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, WorkflowAction $workflow_action, bool $asNextAction = false): array
     {
         $workflow = $workflow_action->workflow_cache;

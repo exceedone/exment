@@ -89,6 +89,7 @@ trait MailTemplateTrait
             });
 
             return $files->filter()->map(function ($attachment) {
+
                 return ExmentFile::getData($attachment);
             });
         }

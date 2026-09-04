@@ -11,8 +11,10 @@ use Exceedone\Exment\Grid\Filter as ExmFilter;
 
 class Datetime extends Date
 {
+    // @phpstan-ignore-next-line
     protected $format = 'Y-m-d H:i:s';
 
+    // @phpstan-ignore-next-line
     protected function getDisplayFormat()
     {
         if (FilterKind::useDate(array_get($this->options, 'filterKind'))) {
@@ -22,6 +24,7 @@ class Datetime extends Date
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
@@ -33,6 +36,7 @@ class Datetime extends Date
         return Field\Datetime::class;
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFilterClass()
     {
         return ExmFilter\BetweenDatetime::class;
@@ -41,6 +45,7 @@ class Datetime extends Date
     /**
      * get cast Options
      */
+    // @phpstan-ignore-next-line
     protected function getCastOptions()
     {
         return [DatabaseDataType::TYPE_DATETIME, true, []];

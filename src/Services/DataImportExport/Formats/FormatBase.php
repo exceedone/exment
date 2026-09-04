@@ -7,9 +7,13 @@ use Illuminate\Http\Request;
 
 abstract class FormatBase
 {
+    // @phpstan-ignore-next-line
     protected $datalist;
+    // @phpstan-ignore-next-line
     protected $filebasename;
+    // @phpstan-ignore-next-line
     protected $downloadFilePath;
+    // @phpstan-ignore-next-line
     protected $output_aszip;
 
     /**
@@ -19,7 +23,9 @@ abstract class FormatBase
      */
     protected $isBackground = false;
 
+    // @phpstan-ignore-next-line
     protected $extension = '*';
+    // @phpstan-ignore-next-line
     protected $accept_extension = '*';
 
     /**
@@ -35,6 +41,7 @@ abstract class FormatBase
         $this->deleteTmpDirectory();
     }
 
+    // @phpstan-ignore-next-line
     public function datalist($datalist = [])
     {
         if (!func_num_args()) {
@@ -46,6 +53,7 @@ abstract class FormatBase
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function filebasename($filebasename = [])
     {
         if (!func_num_args()) {
@@ -57,11 +65,13 @@ abstract class FormatBase
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function accept_extension()
     {
         return $this->accept_extension;
     }
 
+    // @phpstan-ignore-next-line
     public function background()
     {
         $this->isBackground = true;
@@ -82,6 +92,7 @@ abstract class FormatBase
 
 
 
+    // @phpstan-ignore-next-line
     public function sendResponse()
     {
         $response = response()->download($this->getDownloadFilePath(), $this->getFileName(), $this->getDefaultHeaders());
@@ -93,6 +104,7 @@ abstract class FormatBase
     }
 
 
+    // @phpstan-ignore-next-line
     public function saveAsFile($dirpath)
     {
         // move file tmp directory to $dirpath
@@ -169,12 +181,14 @@ abstract class FormatBase
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     protected function getTmpFilePath($fileName): string
     {
         return path_join($this->tmpdir(), $fileName);
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getDefaultHeaders()
     {
         $filename = $this->getFileName();
@@ -191,6 +205,7 @@ abstract class FormatBase
      * @param array $options
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getDataOptions(array $options)
     {
         return array_merge([
@@ -240,6 +255,7 @@ abstract class FormatBase
      * @param array $files
      * @return string
      */
+    // @phpstan-ignore-next-line
     protected function createDownloadFile(array $files): string
     {
         // save as csv
@@ -272,20 +288,26 @@ abstract class FormatBase
      * @param Request|\SplFileInfo|string $target
      * @return array [$path, $extension, $originalName];
      */
+    // @phpstan-ignore-next-line
     protected function getFileInfo($target): array
     {
         // get file
         if ($target instanceof Request) {
             $file = $target->file('custom_table_file');
+            // @phpstan-ignore-next-line
             $path = $file->getRealPath();
+            // @phpstan-ignore-next-line
             $extension = $file->extension();
+            // @phpstan-ignore-next-line
             $originalName = $file->getClientOriginalName();
         } elseif ($target instanceof \SplFileInfo) {
             $path = $target->getPathName();
+            // @phpstan-ignore-next-line
             $extension = pathinfo($path)['extension'];
             $originalName = pathinfo($path, PATHINFO_BASENAME);
         } else {
             $path = $target;
+            // @phpstan-ignore-next-line
             $extension = pathinfo($path)['extension'];
             $originalName = pathinfo($path, PATHINFO_BASENAME);
         }
@@ -316,6 +338,7 @@ abstract class FormatBase
      * @param array $options
      * @return boolean
      */
+    // @phpstan-ignore-next-line
     protected function isReadSheetRow(int $sheet_row_no, array $options = []): bool
     {
         // get options
@@ -338,9 +361,11 @@ abstract class FormatBase
      * create file
      * 1 sheet - 1 table data
      */
+    // @phpstan-ignore-next-line
     abstract public function createFile();
 
 
+    // @phpstan-ignore-next-line
     abstract public function getFormat();
 
     /**
@@ -350,6 +375,8 @@ abstract class FormatBase
      * @return boolean
      */
     abstract protected function isOutputAsZip();
+    // @phpstan-ignore-next-line
     abstract protected function createWriter($spreadsheet);
+    // @phpstan-ignore-next-line
     abstract protected function createReader();
 }

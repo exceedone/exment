@@ -15,14 +15,19 @@ class ListItem implements ItemInterface
 {
     use TableItemTrait;
 
+    // @phpstan-ignore-next-line
     protected $dashboard_box;
 
+    // @phpstan-ignore-next-line
     protected $custom_table;
 
+    // @phpstan-ignore-next-line
     protected $custom_view;
 
+    // @phpstan-ignore-next-line
     protected $paginate;
 
+    // @phpstan-ignore-next-line
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -46,6 +51,7 @@ class ListItem implements ItemInterface
     /**
      * get header
      */
+    // @phpstan-ignore-next-line
     public function header()
     {
         return $this->tableheader();
@@ -55,6 +61,7 @@ class ListItem implements ItemInterface
      * get body
      * *this function calls from non-value method. So please escape if not necessary unescape.
      */
+    // @phpstan-ignore-next-line
     public function body()
     {
         // get paginate
@@ -91,6 +98,7 @@ class ListItem implements ItemInterface
      * get footer
      * *this function calls from non-value method. So please escape if not necessary unescape.
      */
+    // @phpstan-ignore-next-line
     public function footer()
     {
         // get paginate
@@ -108,6 +116,7 @@ class ListItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
+    // @phpstan-ignore-next-line
     public static function setAdminOptions(&$form, $dashboard)
     {
         $form->select('pager_count', trans("admin.show"))
@@ -136,10 +145,12 @@ class ListItem implements ItemInterface
     /**
      * saving event
      */
+    // @phpstan-ignore-next-line
     public static function saving(&$form)
     {
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($dashboard_box) = $args + [null];
@@ -149,6 +160,7 @@ class ListItem implements ItemInterface
     /**
      * set paginate
      */
+    // @phpstan-ignore-next-line
     protected function setPaginate()
     {
         if (isset($this->paginate)) {

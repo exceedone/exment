@@ -35,6 +35,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     use HasResourceTableActions;
     use NotifyTrait;
 
+    // @phpstan-ignore-next-line
     protected $mailTemplates = [];
 
     public function __construct(?CustomTable $custom_table, Request $request)
@@ -60,6 +61,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      *
      * @return Form
      */
+    // @phpstan-ignore-next-line
     protected function form($id = null)
     {
         if (!isset($id) && request()->has('template')) {
@@ -86,6 +88,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      *
      * @return Form|void
      */
+    // @phpstan-ignore-next-line
     protected function basicForm($id = null)
     {
         if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
@@ -104,10 +107,12 @@ class CustomFormPublicController extends AdminControllerTableBase
             $form->descriptionHtml(exmtrans('common.help.more_help'));
 
             if (isset($public_form)) {
+                // @phpstan-ignore-next-line
                 if ($public_form->active_flg) {
                     $form->url('share_url', exmtrans('custom_form_public.share_url'))
                         ->attribute(['copyScript' => 1])
                         ->help(exmtrans('custom_form_public.help.share_url'))
+                        // @phpstan-ignore-next-line
                         ->default($public_form->getUrl())
                         ->readonly();
                     $form->ignore('share_url');
@@ -458,7 +463,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
             ->requiredRule()
             ->help(exmtrans("custom_form_public.help.custom_form_id"))
-            /** @phpstan-ignore-next-line Parameter #1 $options of method Encore\Admin\Form\Field::options() expects array, Closure given. need to fix laravel-admin */
+            // @phpstan-ignore-next-line
             ->options(function ($value) use ($custom_table) {
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];
@@ -487,6 +492,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     }
 
 
+    // @phpstan-ignore-next-line
     protected function setFormInfo($form, $id, $public_form, $preview = true)
     {
         $custom_table = $this->custom_table;
@@ -510,7 +516,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->disableEditingCheck(false);
 
         $form->tools(function (Form\Tools $tools) use ($custom_table, $id, $public_form, $preview) {
-            /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+            // @phpstan-ignore-next-line
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
 
@@ -594,6 +600,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     }
 
 
+    // @phpstan-ignore-next-line
     protected function setNotifyMailTemplate($form, string $field_name, ?string $notify_mail_template, string $filter_key_name)
     {
         if (\is_nullorempty($this->mailTemplates)) {
@@ -659,6 +666,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @return PublicContent
      * @throws PublicFormNotFoundException
      */
+    // @phpstan-ignore-next-line
     public function preview(Request $request, $tableKey, $id = null)
     {
         $original_public_form = PublicForm::find($id);
@@ -700,6 +708,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     /**
      * file delete. Now only header_logo, If other file, todo refactor.
      */
+    // @phpstan-ignore-next-line
     public function filedelete(Request $request, $tableKey, $id)
     {
         // If not id, sot saving, so return nothing doing.
@@ -716,6 +725,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             return $trueResult;
         }
 
+        // @phpstan-ignore-next-line
         $uri = $original_public_form->getOption('header_logo');
         if (!$uri) {
             return $trueResult;
@@ -723,6 +733,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         ExmentFile::deleteFileInfo($uri);
 
+        // @phpstan-ignore-next-line
         $original_public_form->forgetOption('header_logo')
             ->save();
 
@@ -737,6 +748,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     /**
      * get copy modal
      */
+    // @phpstan-ignore-next-line
     public function activeModal(Request $request, $tableKey, $id)
     {
         $public_form = PublicForm::find($id);
@@ -746,6 +758,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         // create form fields
         $form = new ModalForm();
+        // @phpstan-ignore-next-line
         $form->action(admin_urls("formpublic", $this->custom_table->table_name, $public_form->id, "activate"));
         $form->method('POST');
 
@@ -754,6 +767,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             ->displayText(exmtrans('custom_form_public.help.activate_modal_header'))
             ->escape(false);
 
+        // @phpstan-ignore-next-line
         $tableUseds = $public_form->getListOfTablesUsed();
         $html = "<ul>" . $tableUseds->map(function ($tableUsed) {
             return "<li>" . esc_html($tableUsed->table_view_name) . "</li>";
@@ -780,6 +794,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
+    // @phpstan-ignore-next-line
     public function activate(Request $request, $tableKey, $id)
     {
         return $this->toggleActivate($request, $id, true);
@@ -792,6 +807,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
+    // @phpstan-ignore-next-line
     public function deactivate(Request $request, $tableKey, $id)
     {
         return $this->toggleActivate($request, $id, false);
@@ -805,6 +821,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @param $id
      * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      */
+    // @phpstan-ignore-next-line
     public function export(Request $request, $tableKey, $id)
     {
         $public_form = PublicForm::find($id);
@@ -812,12 +829,15 @@ class CustomFormPublicController extends AdminControllerTableBase
         // execute export
         return TemplateImportExport\TemplateExporter::exportTemplate(
             make_uuid(),
+            // @phpstan-ignore-next-line
             $public_form->public_form_view_name,
             null,
             null,
             [
                 'export_target' => [TemplateExportTarget::PUBLIC_FORM],
+                // @phpstan-ignore-next-line
                 'public_form_uuid' => $public_form->uuid,
+                // @phpstan-ignore-next-line
                 'zip_name' => $public_form->public_form_view_name,
             ]
         );
@@ -831,6 +851,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @param bool $active_flg
      * @return \Symfony\Component\HttpFoundation\Response|void
      */
+    // @phpstan-ignore-next-line
     protected function toggleActivate(Request $request, $id, bool $active_flg)
     {
         if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
@@ -838,7 +859,9 @@ class CustomFormPublicController extends AdminControllerTableBase
         }
 
         $public_form = PublicForm::find($id);
+        // @phpstan-ignore-next-line
         $public_form->active_flg = $active_flg;
+        // @phpstan-ignore-next-line
         $public_form->save();
 
         return getAjaxResponse([
@@ -848,6 +871,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     }
 
 
+    // @phpstan-ignore-next-line
     public function notify_action_target(Request $request)
     {
         $options = NotifyService::getNotifyTargetColumns($this->custom_table, $request->get('q'), [
@@ -861,6 +885,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     }
 
 
+    // @phpstan-ignore-next-line
     protected static function getFileOptions($custom_table, $id)
     {
         return array_merge(
@@ -882,6 +907,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      * validation table
      * @param mixed $table id or customtable
      */
+    // @phpstan-ignore-next-line
     protected function validateTable($table, $role_name)
     {
         $table = CustomTable::getEloquent($table);

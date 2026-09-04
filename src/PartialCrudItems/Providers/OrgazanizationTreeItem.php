@@ -15,6 +15,7 @@ class OrgazanizationTreeItem extends ProviderBase
     /**
      * set laravel admin grid's content
      */
+    // @phpstan-ignore-next-line
     public function setGridContent(&$content)
     {
         if (!boolval(config('exment.show_organization_tree', false))) {

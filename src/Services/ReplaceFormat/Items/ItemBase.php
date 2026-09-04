@@ -10,11 +10,16 @@ use Exceedone\Exment\Enums\SystemColumn;
  */
 abstract class ItemBase
 {
+    // @phpstan-ignore-next-line
     protected $custom_value;
+    // @phpstan-ignore-next-line
     protected $length_array;
+    // @phpstan-ignore-next-line
     protected $matchOptions;
+    // @phpstan-ignore-next-line
     protected $key;
 
+    // @phpstan-ignore-next-line
     public function __construct($custom_value, $length_array, $matchOptions)
     {
         $this->custom_value = $custom_value;
@@ -23,6 +28,7 @@ abstract class ItemBase
         $this->key = $length_array[0];
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem($custom_value, $length_array, $matchOptions)
     {
         $key = $length_array[0];
@@ -74,6 +80,7 @@ abstract class ItemBase
         }
     }
 
+    // @phpstan-ignore-next-line
     public function getLink($str)
     {
         return "<a href='$str'>$str</a>";

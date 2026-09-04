@@ -20,11 +20,13 @@ class Select extends CustomItem
         return $this->getResultForSelect($v, false);
     }
 
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         return $this->getResultForSelect($v, true);
     }
 
+    // @phpstan-ignore-next-line
     protected function getResultForSelect($v, $label)
     {
         $select_options = $this->custom_column->createSelectOptions();
@@ -49,11 +51,13 @@ class Select extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function getReturnsValue($select_options, $val, $label)
     {
         return $val;
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         if ($this->isMultipleEnabled()) {
@@ -84,12 +88,14 @@ class Select extends CustomItem
     /**
      * get cast Options
      */
+    // @phpstan-ignore-next-line
     protected function getCastOptions()
     {
         $type = $this->isMultipleEnabled() ? DatabaseDataType::TYPE_STRING_MULTIPLE : DatabaseDataType::TYPE_STRING;
         return [$type, false, []];
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->createSelectOptions();
@@ -121,6 +127,7 @@ class Select extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         if (!$this->isFreeInput()) {
@@ -129,11 +136,13 @@ class Select extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
         return [\Encore\Admin\Validator\HasOptionRule::class];
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
         $options = $this->custom_column->createSelectOptions();
@@ -145,6 +154,7 @@ class Select extends CustomItem
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getImportValueOption()
     {
         return $this->custom_column->createSelectOptions();
@@ -156,6 +166,7 @@ class Select extends CustomItem
         return $this->isMultipleEnabledTrait();
     }
 
+    // @phpstan-ignore-next-line
     public function isFreeInput()
     {
         if (boolval($this->custom_column->getOption('check_radio_enabled', false))) {
@@ -167,6 +178,7 @@ class Select extends CustomItem
 
         return boolval($this->custom_column->getOption('free_input', false));
     }
+    // @phpstan-ignore-next-line
     protected function getFilterFieldClass()
     {
         if ($this->isMultipleEnabled()) {

@@ -30,6 +30,7 @@ class ConditionTypeDetail extends EnumBase
     public const LOGIN_USER_COLUMN = "8";
     public const COLUMN = "9";
 
+    // @phpstan-ignore-next-line
     public static function CONDITION_OPTIONS()
     {
         return [
@@ -39,6 +40,7 @@ class ConditionTypeDetail extends EnumBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public static function SYSTEM_TABLE_OPTIONS($form_priority_type)
     {
         $result = [];

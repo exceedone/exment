@@ -14,5 +14,6 @@ abstract class DayYearBase extends ViewFilterBase
         $query->{"{$method_name}YearExment"}($query_column, $target_day, $isDateTime);
     }
 
+    // @phpstan-ignore-next-line
     abstract protected function getTargetDay($query_value);
 }

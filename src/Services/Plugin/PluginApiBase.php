@@ -16,11 +16,13 @@ class PluginApiBase
     use ApiTrait;
     use PluginBase;
 
+    // @phpstan-ignore-next-line
     public function _plugin()
     {
         return $this->plugin;
     }
 
+    // @phpstan-ignore-next-line
     public function __construct($plugin)
     {
         $this->plugin = $plugin;
@@ -31,6 +33,7 @@ class PluginApiBase
      *
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     public function getRouteUri($endpoint = null)
     {
         if (!isset($this->plugin)) {

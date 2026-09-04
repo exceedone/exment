@@ -9,10 +9,13 @@ class NestedEmbeds extends Embeds
 {
     protected $view = 'exment::form.field.embeds';
 
+    // @phpstan-ignore-next-line
     protected $nestedForm;
 
+    // @phpstan-ignore-next-line
     protected $relationName;
 
+    // @phpstan-ignore-next-line
     protected $data_key;
 
     /**
@@ -21,6 +24,7 @@ class NestedEmbeds extends Embeds
      * @param string $column
      * @param array  $arguments
      */
+    // @phpstan-ignore-next-line
     public function __construct($column, $arguments = [])
     {
         $this->data_key = Arr::get($arguments, 0, '');
@@ -41,6 +45,7 @@ class NestedEmbeds extends Embeds
         return $this->nestedForm;
     }
 
+    // @phpstan-ignore-next-line
     public function setRelationName($relationName)
     {
         $this->relationName = $relationName;
@@ -51,6 +56,7 @@ class NestedEmbeds extends Embeds
     /**
      * @return array|string
      */
+    // @phpstan-ignore-next-line
     protected function getRules()
     {
         $rules = [];
@@ -66,13 +72,13 @@ class NestedEmbeds extends Embeds
 
     /**
      * @return array
-     * @phpstan-ignore-next-line Return type (array) of method Exceedone\Exment\Form\Field\NestedEmbeds::getAttributes() should be compatible with return type (string) of method Encore\Admin\Form\Field::getAttributes()
-     * it needs to fix laravel-admin
      */
+    // @phpstan-ignore-next-line
     public function getAttributes()
     {
         $attributes = [];
         foreach ($this->buildEmbeddedForm()->fields() as $field) {
+            // @phpstan-ignore-next-line
             $attributes[$this->column . '.'. $field->column] = $field->label();
         }
         return $attributes;
@@ -88,6 +94,7 @@ class NestedEmbeds extends Embeds
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getEmbeddedData()
     {
         $keyName = "{$this->relationName}.{$this->column}";
@@ -100,6 +107,7 @@ class NestedEmbeds extends Embeds
         }
 
         if (is_string($this->value)) {
+            // @phpstan-ignore-next-line
             return json_decode_ex($this->value, true);
         }
 
@@ -117,9 +125,11 @@ class NestedEmbeds extends Embeds
         $render = parent::render();
         $script = $this->buildEmbeddedForm()->getScripts();
         if (!is_nullorempty($script)) {
+            // @phpstan-ignore-next-line
             $this->script = $script;
         }
 
+        // @phpstan-ignore-next-line
         return $render;
     }
 }

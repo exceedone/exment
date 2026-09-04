@@ -4,31 +4,40 @@ namespace Exceedone\Exment\DataItems\Grid;
 
 use Encore\Admin\Grid;
 use Encore\Admin\Form;
+use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\GroupCondition;
+use Illuminate\Support\Collection;
 
 class SummaryGrid extends GridBase
 {
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $custom_view)
     {
         $this->custom_table = $custom_table;
         $this->custom_view = $custom_view;
     }
 
+    // @phpstan-ignore-next-line
     public function grid()
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname());
 
         $this->setSummaryGrid($grid);
+
+        $this->setCustomGridFilters($grid);
 
         $this->setGrid($grid);
 
@@ -39,7 +48,7 @@ class SummaryGrid extends GridBase
         $grid->perPages($grid_per_pages);
 
         $grid->disableCreateButton();
-        $grid->disableFilter();
+        // $grid->disableFilter();
         //$grid->disableActions();
         $grid->disableRowSelector();
         $grid->disableExport();
@@ -85,7 +94,7 @@ class SummaryGrid extends GridBase
             $edit_flg = $this->custom_table->enableEdit(true) === true;
             if ($edit_flg && $this->custom_table->enableExport() === true) {
                 $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false);
-                /** @phpstan-ignore-next-line append expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
+                // @phpstan-ignore-next-line
                 $tools->append($button->setCustomTable($this->custom_table));
             }
 
@@ -95,11 +104,11 @@ class SummaryGrid extends GridBase
             }
 
             if ($this->custom_table->enableTableMenuButton()) {
-                /** @phpstan-ignore-next-line expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+                // @phpstan-ignore-next-line
                 $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
             }
             if ($this->custom_table->enableViewMenuButton()) {
-                /** @phpstan-ignore-next-line expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
+                // @phpstan-ignore-next-line
                 $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
             }
         });
@@ -110,6 +119,7 @@ class SummaryGrid extends GridBase
     /**
      * set summary grid
      */
+    // @phpstan-ignore-next-line
     public function setSummaryGrid($grid)
     {
         $query = $grid->model();
@@ -120,6 +130,7 @@ class SummaryGrid extends GridBase
     /**
      * set laravel-admin grid using custom_view
      */
+    // @phpstan-ignore-next-line
     public function setGrid($grid)
     {
         // set with
@@ -130,6 +141,7 @@ class SummaryGrid extends GridBase
     /**
      * get query for summary
      */
+    // @phpstan-ignore-next-line
     public function getQuery($query, array $options = [])
     {
         $options = array_merge([
@@ -243,8 +255,12 @@ class SummaryGrid extends GridBase
     }
 
 
-    protected function isShowViewSummaryDetail()
+    // @phpstan-ignore-next-line
+    protected function  isShowViewSummaryDetail()
     {
+        if (boolval(request()->get('execute_filter'))) {
+            return false;
+        }
         return !$this->custom_view->custom_view_columns->contains(function ($custom_view_column) {
             return $this->custom_table->id != $custom_view_column->view_column_table_id;
         }) && !$this->custom_view->custom_view_summaries->contains(function ($custom_view_summary) {
@@ -262,6 +278,7 @@ class SummaryGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
+    // @phpstan-ignore-next-line
     public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         static::setViewInfoboxFields($form);
@@ -365,12 +382,57 @@ class SummaryGrid extends GridBase
 
         // filter setting
         static::setFilterFields($form, $custom_table, true);
+
+        static::setGridFilterFields($form, $custom_table);
+    }
+
+    /**
+     * Set column gridfilter item form
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @return void
+     */
+    // @phpstan-ignore-next-line
+    public static function setGridFilterFields(&$form, $custom_table, array $column_options = [])
+    {
+        // columns setting
+        $column_options = array_merge([
+            'append_table' => true,
+            'include_parent' => true,
+            'include_workflow' => true,
+            'index_enabled_only' => true,
+            'only_system_grid_filter' => true,
+            'ignore_many_to_many' => true,
+            'ignore_multiple_refer' => true,
+        ], $column_options);
+
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        $description = exmtrans("custom_view.description_custom_view_grid_filters", $manualUrl);
+        $description .= exmtrans("custom_view.description_custom_view_summary_filters");
+
+        $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options) {
+            $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
+
+            $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                ->options($targetOptions);
+
+            if (boolval(config('exment.form_column_option_group', false))) {
+                $targetGroups = static::convertGroups($targetOptions, $custom_table);
+                $field->groups($targetGroups);
+            }
+
+            $form->hidden('order')->default(0);
+        })->setTableColumnWidth(8, 4)
+        ->rowUpDown('order', 10)
+        ->descriptionHtml($description);
     }
 
 
     /**
      * get group condition
      */
+    // @phpstan-ignore-next-line
     public static function getGroupCondition($view_column_target = null)
     {
         if (!isset($view_column_target)) {
@@ -395,6 +457,7 @@ class SummaryGrid extends GridBase
     }
 
 
+    // @phpstan-ignore-next-line
     public function getCallbackGroupKeys($model)
     {
         $keys = [];
@@ -413,5 +476,190 @@ class SummaryGrid extends GridBase
         }
 
         return $keys;
+    }
+
+    /**
+     * set grid filter
+     */
+    // @phpstan-ignore-next-line
+    protected function setCustomGridFilters($grid, $ajax = false)
+    {
+        $grid->filter(function ($filter) use ($ajax) {
+            $filter->disableIdFilter();
+            $filter->setAction($this->getFilterUrl());
+
+            if (config('exment.custom_value_filter_ajax', true) && !$ajax && !boolval(request()->get('execute_filter'))) {
+                $filter->setFilterAjax(admin_urls_query('data', $this->custom_table->table_name, ['filter_ajax' => 1]));
+                return;
+            }
+
+            $filterItems = $this->getFilterColumns($filter);
+
+            // set filter item
+            if (count($filterItems) <= 6) {
+                foreach ($filterItems as $filterItem) {
+                    $filterItem->setAdminFilter($filter);
+                }
+            } else {
+                $separate = floor(count($filterItems) /  2);
+                $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
+                    for ($i = 0; $i < $separate; $i++) {
+                        $filterItems[$i]->setAdminFilter($filter);
+                    }
+                });
+                $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
+                    for ($i = $separate; $i < count($filterItems); $i++) {
+                        /** @var int $i */
+                        $filterItems[$i]->setAdminFilter($filter);
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Get filter url.
+     * *Modal appends query URL.*
+     *
+     * @return string
+     */
+    protected function getFilterUrl(): string
+    {
+        $query = array_filter(request()->all([
+            '_scope_',
+        ]));
+        return admin_urls_query('data', $this->custom_table->table_name, $query);
+    }
+
+    /**
+     * Get filter html. call from ajax, or execute set filter.
+     *
+     * @return array offset 0 : html, 1 : script
+     */
+    // @phpstan-ignore-next-line
+    public function getFilterHtml()
+    {
+        $classname = getModelName($this->custom_table);
+        $grid = new Grid(new $classname());
+
+        $this->setCustomGridFilters($grid, true);
+
+        // get html force
+        $html = null;
+        $grid->filter(function ($filter) use (&$html) {
+            $html = $filter->render();
+        });
+
+        return ['html' => $html, 'script' => \Admin::purescript()->render()];
+    }
+
+    /**
+     * Get filter showing columns
+     */
+    // @phpstan-ignore-next-line
+    protected function getFilterColumns($filter): Collection
+    {
+        $filterItems = [];
+
+        // if has custom_view_grid_filters, set as value
+        $custom_view_grid_filters = $this->custom_view->custom_view_grid_filters;
+        if (count($custom_view_grid_filters) > 0) {
+            $service = $this->custom_view->getSearchService()->setQuery($filter->model());
+
+            foreach ($custom_view_grid_filters as $custom_view_grid_filter) {
+                $service->setRelationJoin($custom_view_grid_filter, [
+                    'asSummary' => true,
+                ]);
+
+                $filterItems[] = $custom_view_grid_filter->column_item;
+            }
+
+            /** @var Collection $collection */
+            // @phpstan-ignore-next-line
+            $collection =  collect($filterItems);
+            return $collection;
+        }
+
+        foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => true]) as $filterKey => $filterType) {
+            if ($this->custom_table->gridFilterDisable($filterKey)) {
+                continue;
+            }
+
+            $filterItems[] = ColumnItems\SystemItem::getItem($this->custom_table, $filterKey);
+        }
+
+        // check relation
+        $this->setRelationFilter($filterItems);
+
+        // filter workflow
+        if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
+            foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => false]) as $filterKey => $filterType) {
+                if (!SystemColumn::isWorkflow($filterKey)) {
+                    continue;
+                }
+                if ($this->custom_table->gridFilterDisable($filterKey)) {
+                    continue;
+                }
+
+                $filterItems[] = ColumnItems\WorkflowItem::getItem($this->custom_table, $filterKey);
+            }
+        }
+
+        // filter comment
+        if (boolval($this->custom_table->getOption('comment_flg')?? true)) {
+            foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => false]) as $filterKey => $filterType) {
+                if (!SystemColumn::isComment($filterKey)) {
+                    continue;
+                }
+                if ($this->custom_table->gridFilterDisable($filterKey)) {
+                    continue;
+                }
+
+                $filterItems[] = ColumnItems\CommentItem::getItem($this->custom_table);
+            }
+        }
+
+        // loop custom column
+        $this->setColumnFilter($filterItems);
+
+        return collect($filterItems);
+    }
+
+    /**
+     * Set relation filter. Consider modal.
+     *
+     * @return void
+     */
+    // @phpstan-ignore-next-line
+    protected function setRelationFilter(&$filterItems)
+    {
+        // check relation
+        $relation = CustomRelation::getRelationByChild($this->custom_table);
+        // if set, create select
+        if (!isset($relation)) {
+            return;
+        }
+
+        $column_item = ColumnItems\ParentItem::getItemWithRelation($this->custom_table, $relation);
+        $filterItems[] = $column_item;
+    }
+
+    /**
+     * Set column filter. Consider modal.
+     *
+     * @return void
+     */
+    // @phpstan-ignore-next-line
+    protected function setColumnFilter(&$filterItems)
+    {
+        // if modal, skip
+        $search_column_select = null;
+        $searchType = null;
+
+        // get search_enabled_columns and loop
+        $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
+        foreach ($search_enabled_columns as $search_column) {
+            $filterItems[] = $search_column->column_item;
+        }
     }
 }

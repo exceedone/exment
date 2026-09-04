@@ -19,9 +19,15 @@ use Illuminate\Contracts\Database\Query\Builder;
  *
  * @property CustomTable $custom_table
  * @property CustomColumn $custom_column
- * @method array getSummaryParams()
+ * @method array<string, mixed> getSummaryParams()
  * @method mixed getSummaryCondition()
  * @method mixed getViewPivotCustomValue($custom_value, $options)
+ * @method string name()
+ * @method string sqlname()
+ * @method string index()
+ * @method mixed setCustomValue($custom_value)
+ * @method mixed _text($v)
+ * @method mixed _html($v)
  */
 trait ItemTrait
 {
@@ -35,24 +41,31 @@ trait ItemTrait
 
     /**
      * this column's target custom_table
+     * @var mixed
      */
     protected $value;
 
+    /**
+     * @var string|null
+     */
     protected $label;
 
+    /**
+     * @var mixed
+     */
     protected $id;
 
     /**
      * Custom form column options
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $form_column_options = [];
 
     /**
      * Custom form columns in same block. Use for getting other fields.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $other_form_columns = [];
 
@@ -63,7 +76,7 @@ trait ItemTrait
      *     'public_form': If this form is public_form, set publcform model
      *     'as_confirm' : If this form is before confirm, set true.
      * ]
-     * @var array|null
+     * @var array<string, mixed>
      */
     protected $options = [];
 
@@ -72,7 +85,7 @@ trait ItemTrait
      * Unique column name.
      * For use class name, laravel-admin grid (If not use this, get same field name, return wrong value.), etc.
      *
-     * @var string
+     * @var string|null
      */
     protected $uniqueName;
 
@@ -80,15 +93,22 @@ trait ItemTrait
      * Unique table name.
      * For use join relation(contains select_table).
      *
-     * @var string
+     * @var string|null
      */
     protected $uniqueTableName;
 
+    /**
+     * @return CustomTable
+     */
     public function getCustomTable()
     {
         return $this->custom_table;
     }
 
+    /**
+     * @param CustomTable $custom_table
+     * @return $this
+     */
     public function setCustomTable(CustomTable $custom_table)
     {
         $this->custom_table = $custom_table;
@@ -98,6 +118,8 @@ trait ItemTrait
 
     /**
      * set item label
+     * @param mixed $label
+     * @return string|null
      */
     public function setLabel($label)
     {
@@ -113,6 +135,7 @@ trait ItemTrait
 
     /**
      * get value
+     * @return mixed
      */
     public function value()
     {
@@ -124,6 +147,7 @@ trait ItemTrait
     /**
      * get pure value. (In database value)
      * *Don't override this function
+     * @return mixed
      */
     public function pureValue()
     {
@@ -134,6 +158,7 @@ trait ItemTrait
 
     /**
      * get text
+     * @return mixed
      */
     public function text()
     {
@@ -147,6 +172,7 @@ trait ItemTrait
     /**
      * get html(for display)
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
+     * @return mixed
      */
     public function html()
     {
@@ -157,6 +183,10 @@ trait ItemTrait
         return is_list($html) ? collect($html)->implode($this->getSeparateWord()) : $html;
     }
 
+    /**
+     * @param callable $singleValueCallback
+     * @return mixed
+     */
     protected function _getMultipleValue($singleValueCallback)
     {
         $isList = is_list($this->value);
@@ -180,6 +210,8 @@ trait ItemTrait
 
     /**
      * get value
+     * @param mixed $v
+     * @return mixed
      */
     protected function _value($v)
     {
@@ -189,6 +221,8 @@ trait ItemTrait
     /**
      * get pure value. (In database value)
      * *Don't override this function
+     * @param mixed $v
+     * @return mixed
      */
     protected function _pureValue($v)
     {
@@ -197,14 +231,18 @@ trait ItemTrait
 
     /**
      * get or set option for convert
+     * @param array<string, mixed>|null $options
+     * @return array<string, mixed>|$this
      */
     public function options($options = null)
     {
         if (!func_num_args()) {
+            // @phpstan-ignore-next-line
             return $this->options ?? [];
         }
 
         $this->options = array_merge(
+            // @phpstan-ignore-next-line
             $this->options ?? [],
             $options
         );
@@ -214,6 +252,8 @@ trait ItemTrait
 
     /**
      * get label. (user theader, form label etc...)
+     * @param string|null $label
+     * @return string|null|$this
      */
     public function label($label = null)
     {
@@ -228,6 +268,8 @@ trait ItemTrait
 
     /**
      * get value's id.
+     * @param mixed $id
+     * @return mixed|$this
      */
     public function id($id = null)
     {
@@ -238,6 +280,9 @@ trait ItemTrait
         return $this;
     }
 
+    /**
+     * @return void
+     */
     public function prepare()
     {
     }
@@ -245,6 +290,7 @@ trait ItemTrait
     /**
      * whether column is enabled index.
      *
+     * @return bool
      */
     public function indexEnabled()
     {
@@ -253,6 +299,7 @@ trait ItemTrait
 
     /**
      * get cast name for sort
+     * @return string|null
      */
     public function getCastName()
     {
@@ -261,6 +308,7 @@ trait ItemTrait
 
     /**
      * get sort name
+     * @return string
      */
     public function getSortName()
     {
@@ -292,7 +340,7 @@ trait ItemTrait
 
     /**
      * Set unique name.
-     *
+     * @param string $uniqueName
      * @return $this
      */
     public function setUniqueName($uniqueName)
@@ -301,6 +349,9 @@ trait ItemTrait
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function sqlAsName()
     {
         return $this->uniqueName();
@@ -308,6 +359,7 @@ trait ItemTrait
 
     /**
      * get target table real db name.
+     * @return string
      */
     public function sqlRealTableName()
     {
@@ -318,6 +370,7 @@ trait ItemTrait
     /**
      * get target table unique db name.
      * Maybe, sql join same db table, so we have to set unique table name.
+     * @return string
      */
     public function sqlUniqueTableName()
     {
@@ -348,6 +401,7 @@ trait ItemTrait
      * @param \Exceedone\Exment\Model\CustomValue $custom_value
      * @return \Exceedone\Exment\Model\CustomValue|\Illuminate\Support\Collection|null
      */
+    // @phpstan-ignore-next-line
     protected function getTargetCustomValue($custom_value)
     {
         // if summary, cannot get view_pivot_column, so return $custom_value.
@@ -368,6 +422,7 @@ trait ItemTrait
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function apiDefinitions()
     {
         $items = [];
@@ -548,6 +603,7 @@ trait ItemTrait
      * @param array $array
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getStyleString(array $array = [])
     {
         $array['word-wrap'] = 'break-word';
@@ -577,6 +633,7 @@ trait ItemTrait
      * @param array $options
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function setShowFieldOptions(ShowField $field, array $options = [])
     {
         $options = array_merge([
@@ -605,6 +662,7 @@ trait ItemTrait
      *
      * @return  self|void
      */
+    // @phpstan-ignore-next-line
     public function setFormColumnOptions($form_column_options)
     {
         if (is_null($form_column_options)) {
@@ -625,6 +683,7 @@ trait ItemTrait
      *
      * @return  self|void
      */
+    // @phpstan-ignore-next-line
     public function setOtherFormColumns($other_form_columns)
     {
         if (is_null($other_form_columns)) {
@@ -648,6 +707,7 @@ trait ItemTrait
     /**
      * whether column is date
      *
+     * @return bool
      */
     public function isDate()
     {
@@ -657,6 +717,7 @@ trait ItemTrait
     /**
      * whether column is datetime
      *
+     * @return bool
      */
     public function isDateTime()
     {
@@ -666,12 +727,16 @@ trait ItemTrait
     /**
      * whether column is Numeric
      *
+     * @return bool
      */
     public function isNumeric()
     {
         return false;
     }
 
+    /**
+     * @return bool
+     */
     public function isMultipleEnabled()
     {
         return false;
@@ -688,21 +753,33 @@ trait ItemTrait
         return !is_nullorempty(array_get($this->options, 'public_form'));
     }
 
+    /**
+     * @return bool
+     */
     public function readonly()
     {
         return false;
     }
 
+    /**
+     * @return bool
+     */
     public function viewonly()
     {
         return false;
     }
 
+    /**
+     * @return bool
+     */
     public function hidden()
     {
         return false;
     }
 
+    /**
+     * @return bool
+     */
     public function internal()
     {
         return false;
@@ -725,7 +802,8 @@ trait ItemTrait
      * @param string $value
      * @param int $takeCount
      * @param string|null $q
-     * @return array
+     * @param array<string, mixed> $options
+     * @return array<int, mixed>
      */
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
@@ -773,6 +851,7 @@ trait ItemTrait
         return null;
     }
 
+    // @phpstan-ignore-next-line
     protected function getQueryMarkAndValue($mark, $value, $q, $options = [])
     {
         $options = array_merge([
@@ -811,6 +890,7 @@ trait ItemTrait
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getAdminFilterClass()
     {
         return ExmFilter\Where::class;
@@ -819,6 +899,7 @@ trait ItemTrait
     /**
      * set admin filter for filtering grid.
      */
+    // @phpstan-ignore-next-line
     public function setAdminFilter(&$filter)
     {
         $classname = $this->getAdminFilterClass();
@@ -835,10 +916,12 @@ trait ItemTrait
         }
 
         if ($this->isShowFilterNullCheck()) {
+            // @phpstan-ignore-next-line
             $filteritem->showNullCheck();
         }
 
         // set whereNull query
+        // @phpstan-ignore-next-line
         $filteritem->whereNull(function ($query) {
             $this->getAdminFilterWhereNullQuery($query);
         });
@@ -856,6 +939,7 @@ trait ItemTrait
      * @param $filter
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
     }
@@ -877,10 +961,12 @@ trait ItemTrait
      * @param mixed $input
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function getAdminFilterWhereQuery($query, $input)
     {
         // get vieww filter item
         $viewFilterItem = ViewFilterBase::make($this->getGridFilterOption(), $this);
+        // @phpstan-ignore-next-line
         $viewFilterItem->setFilter($query, $input);
     }
 
@@ -939,6 +1025,7 @@ trait ItemTrait
      *
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     protected function getWeekdayFormat($val)
     {
         if (is_null($val)) return null;
@@ -949,6 +1036,7 @@ trait ItemTrait
         return exmtrans('common.weekday.' . array_get($weekdayNos, $val));
     }
 
+    // @phpstan-ignore-next-line
     protected function getWeekdayNolist()
     {
         return [
@@ -1026,6 +1114,7 @@ trait ItemTrait
 
     /**
      * get grid header style
+     * @return array<string, mixed>
      */
     public function gridHeaderStyle()
     {

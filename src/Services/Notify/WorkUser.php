@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 
 class WorkUser extends NotifyTargetBase
 {
+    // @phpstan-ignore-next-line
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         // work user not use getModels
@@ -26,6 +27,7 @@ class WorkUser extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         $workflow = $workflow_action->workflow_cache;

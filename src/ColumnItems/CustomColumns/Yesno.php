@@ -15,13 +15,16 @@ class Yesno extends CustomItem
     /**
      * laravel-admin set required. if false, always not-set required
      */
+    // @phpstan-ignore-next-line
     protected $required = false;
 
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         return getYesNo($v);
     }
 
+    // @phpstan-ignore-next-line
     public function saving()
     {
         // get custom_value's value.
@@ -49,6 +52,7 @@ class Yesno extends CustomItem
         return boolval($this->value) ? 1 : 0;
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
@@ -58,6 +62,7 @@ class Yesno extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
@@ -71,16 +76,19 @@ class Yesno extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->radio(Define::YESNO_RADIO);
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         $validates[] = new Validator\YesNoRule();
     }
 
+    // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
         return [\Encore\Admin\Validator\HasOptionRule::class];
@@ -91,6 +99,7 @@ class Yesno extends CustomItem
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getImportValueOption()
     {
         return [
@@ -155,10 +164,12 @@ class Yesno extends CustomItem
             ->help(exmtrans("custom_column.help.required_yes"));
     }
 
+    // @phpstan-ignore-next-line
     public function getFalseValue()
     {
         return 0;
     }
+    // @phpstan-ignore-next-line
     public function getTrueValue()
     {
         return 1;

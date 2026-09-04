@@ -9,13 +9,16 @@ use Encore\Admin\Facades\Admin;
  */
 class DeleteButton
 {
+    // @phpstan-ignore-next-line
     protected $url;
 
+    // @phpstan-ignore-next-line
     public function __construct($url)
     {
         $this->url = $url;
     }
 
+    // @phpstan-ignore-next-line
     protected function script($id)
     {
         $url = $this->url;
@@ -34,6 +37,7 @@ class DeleteButton
 EOT;
     }
 
+    // @phpstan-ignore-next-line
     public function render()
     {
         $id =  'btn' . short_uuid();

@@ -13,6 +13,7 @@ trait AdapterTrait
     /**
      * Get URL using File class
      */
+    // @phpstan-ignore-next-line
     public function getUrl($path)
     {
         return File::getUrl($path);
@@ -24,7 +25,7 @@ trait AdapterTrait
      * @param string $baseConfigKey
      * @param string $mergeConfigKey
      * @param string $mergeFrom
-     * @return array
+     * @return array<string, mixed>
      */
     public static function mergeFileConfig($baseConfigKey, $mergeConfigKey, $mergeFrom)
     {
@@ -42,8 +43,11 @@ trait AdapterTrait
             array_set($baseConfig, $k, $m);
         }
 
+        /** @phpstan-ignore-next-line Static call to instance method */
         $keys = static::getMergeConfigKeys($mergeFrom);
+        /** @phpstan-ignore-next-line Dynamic iteration over adapter config keys */
         foreach ($keys as $k => $v) {
+            /** @phpstan-ignore-next-line Helper function from Helpers.php */
             if (is_nullorempty($v)) {
                 continue;
             }

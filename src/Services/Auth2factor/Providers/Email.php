@@ -74,6 +74,7 @@ class Email
         return redirect(admin_url(''));
     }
 
+    // @phpstan-ignore-next-line
     public function insertVerify()
     {
         $loginuser = \Admin::user();

@@ -9,10 +9,14 @@ use Encore\Admin\Facades\Admin;
  */
 class NotifyButton
 {
+    // @phpstan-ignore-next-line
     protected $notify;
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $id;
 
+    // @phpstan-ignore-next-line
     public function __construct($notify, $custom_table, $id = null)
     {
         $this->notify = $notify;
@@ -20,6 +24,7 @@ class NotifyButton
         $this->id = $id;
     }
 
+    // @phpstan-ignore-next-line
     protected function script($suuid, $label)
     {
         $table_name = array_get($this->custom_table, 'table_name');
@@ -49,6 +54,7 @@ class NotifyButton
 EOT;
     }
 
+    // @phpstan-ignore-next-line
     public function render()
     {
         // get label

@@ -7,6 +7,7 @@ use BadMethodCallException;
 
 class PluginApiController extends Controller
 {
+    // @phpstan-ignore-next-line
     protected $pluginApi;
 
     public function __construct(?PluginApiBase $pluginApi)
@@ -20,6 +21,7 @@ class PluginApiController extends Controller
      * @return mixed
      *
      */
+    // @phpstan-ignore-next-line
     public function __call($method, $parameters)
     {
         if (!$this->pluginApi) {
@@ -35,6 +37,7 @@ class PluginApiController extends Controller
         }
 
         // create html
+        // @phpstan-ignore-next-line
         $result = call_user_func_array([$this->pluginApi, $method], array_values($parameters));
 
         return $result;

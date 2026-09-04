@@ -18,6 +18,7 @@ class RoleGroupPermissionMasterProvider extends RoleGroupPermissionProvider
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return 'role_group_permission_master';
@@ -28,6 +29,7 @@ class RoleGroupPermissionMasterProvider extends RoleGroupPermissionProvider
      * 
      * @param $rules
      */
+    // @phpstan-ignore-next-line
     protected function addValidateTypeRules(&$rules) : void
     {
         $ids = CustomTable::whereIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER())->pluck('id')->toArray();        

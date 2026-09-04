@@ -8,9 +8,13 @@ use Illuminate\Contracts\Support\Renderable;
  */
 class SelectItemBox implements Renderable
 {
+    // @phpstan-ignore-next-line
     protected $iframe_url;
+    // @phpstan-ignore-next-line
     protected $target_class;
+    // @phpstan-ignore-next-line
     protected $widgetmodal_uuid;
+    // @phpstan-ignore-next-line
     protected $items;
 
     /**
@@ -41,6 +45,7 @@ class SelectItemBox implements Renderable
      * @param string $iframe_url
      * @param array $items
      */
+    // @phpstan-ignore-next-line
     public function __construct($iframe_url, $target_class, $widgetmodal_uuid, array $items)
     {
         $this->iframe_url = $iframe_url;

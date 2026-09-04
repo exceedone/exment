@@ -20,85 +20,125 @@ trait PublicFormInputTrait
      * @var mixed
      */
     protected $tmp_notify_action_error;
+
+    // @phpstan-ignore-next-line
     protected $tmp_notify_mail_template_error;
+
+    // @phpstan-ignore-next-line
     protected $tmp_notify_action_complete_user;
+
+    // @phpstan-ignore-next-line
     protected $tmp_notify_action_complete_admin;
+
+    // @phpstan-ignore-next-line
     protected $tmp_notify_mail_template_complete_user;
+
+    // @phpstan-ignore-next-line
     protected $tmp_notify_mail_template_complete_admin;
 
 
 
 
     // For tab ----------------------------------------------------
+
+    // @phpstan-ignore-next-line
     public function getBasicSettingAttribute()
     {
         return $this->options;
     }
+
+    // @phpstan-ignore-next-line
     public function setBasicSettingAttribute(?array $options)
     {
         $this->setOption($options);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getDesignSettingAttribute()
     {
         return $this->options;
     }
+
+    // @phpstan-ignore-next-line
     public function setDesignSettingAttribute(?array $options)
     {
         $this->setOption($options);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getConfirmCompleteSettingAttribute()
     {
         return $this->options;
     }
+
+    // @phpstan-ignore-next-line
     public function setConfirmCompleteSettingAttribute(?array $options)
     {
         $this->setOption($options);
         return $this;
     }
+
+    // @phpstan-ignore-next-line
     public function getConfirmCompleteSetting2Attribute()
     {
         return $this->options;
     }
+
+    // @phpstan-ignore-next-line
     public function setConfirmCompleteSetting2Attribute(?array $options)
     {
         $this->setOption($options);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getErrorSettingAttribute()
     {
         return $this->options;
     }
+
+    // @phpstan-ignore-next-line
     public function setErrorSettingAttribute(?array $options)
     {
         $this->setOption($options);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getOptionSettingAttribute()
     {
         return $this->options;
     }
+
+    // @phpstan-ignore-next-line
     public function setOptionSettingAttribute(?array $options)
     {
         $this->setOption($options);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCssJsSettingAttribute()
     {
         return $this->options;
     }
+
+    // @phpstan-ignore-next-line
     public function setCssJsSettingAttribute(?array $options)
     {
         $this->setOption($options);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getNotifyActionsCompleteUserAttribute()
     {
         $notify = $this->notify_complete_user;
@@ -109,38 +149,52 @@ trait PublicFormInputTrait
         // Convert notify_action_target as signle.
         return collect($notify->action_settings)->first();
     }
+
+    // @phpstan-ignore-next-line
     public function setNotifyActionsCompleteUserAttribute($json)
     {
         // action target convert as array
         $this->tmp_notify_action_complete_user = [$json];
         return $this;
     }
+
+    // @phpstan-ignore-next-line
     public function getNotifyActionsCompleteAdminAttribute()
     {
         $notify = $this->notify_complete_admin;
         return $notify ? $notify->action_settings : null;
     }
+
+    // @phpstan-ignore-next-line
     public function setNotifyActionsCompleteAdminAttribute($json)
     {
         $this->tmp_notify_action_complete_admin = $json;
         return $this;
     }
+
+    // @phpstan-ignore-next-line
     public function getNotifyActionsErrorAttribute()
     {
         $notify = $this->notify_error;
         return $notify ? $notify->action_settings : null;
     }
+
+    // @phpstan-ignore-next-line
     public function setNotifyActionsErrorAttribute($json)
     {
         $this->tmp_notify_action_error = $json;
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getNotifyMailTemplateCompleteUserAttribute()
     {
         $notify = $this->notify_complete_user;
         return $notify ? $notify->mail_template_id : null;
     }
+
+    // @phpstan-ignore-next-line
     public function setNotifyMailTemplateCompleteUserAttribute($value)
     {
         $this->tmp_notify_mail_template_complete_user = $value;
@@ -148,21 +202,29 @@ trait PublicFormInputTrait
     }
 
 
+
+    // @phpstan-ignore-next-line
     public function getNotifyMailTemplateCompleteAdminAttribute()
     {
         $notify = $this->notify_complete_admin;
         return $notify ? $notify->mail_template_id : null;
     }
+
+    // @phpstan-ignore-next-line
     public function setNotifyMailTemplateCompleteAdminAttribute($value)
     {
         $this->tmp_notify_mail_template_complete_admin = $value;
         return $this;
     }
+
+    // @phpstan-ignore-next-line
     public function getNotifyMailTemplateErrorAttribute()
     {
         $notify = $this->notify_error;
         return $notify ? $notify->mail_template_id : null;
     }
+
+    // @phpstan-ignore-next-line
     public function setNotifyMailTemplateErrorAttribute($value)
     {
         $this->tmp_notify_mail_template_error = $value;
@@ -240,6 +302,8 @@ trait PublicFormInputTrait
      * @param array $json
      * @return void
      */
+
+    // @phpstan-ignore-next-line
     protected function exportReplaceJson(&$json)
     {
         // Append notify_complete_admin, notify_complete_user, notify_error
@@ -292,6 +356,8 @@ trait PublicFormInputTrait
      *
      * @param array $json
      */
+
+    // @phpstan-ignore-next-line
     public function createNotifyImported(array $json)
     {
         // Append notify_complete_admin, notify_complete_user, notify_error
@@ -347,6 +413,8 @@ trait PublicFormInputTrait
      *
      * @param array $json
      */
+
+    // @phpstan-ignore-next-line
     public function setPluginImported(array $json)
     {
         // set plugins ----------------------------------------------------

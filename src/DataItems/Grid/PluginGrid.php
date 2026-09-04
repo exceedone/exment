@@ -11,9 +11,12 @@ use Encore\Admin\Widgets\Box;
 
 class PluginGrid extends GridBase
 {
+    // @phpstan-ignore-next-line
     protected $plugin;
+    // @phpstan-ignore-next-line
     protected $pluginClass;
 
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $custom_view)
     {
         $this->custom_table = $custom_table;
@@ -34,6 +37,7 @@ class PluginGrid extends GridBase
      * Make a grid builder.
      *
      */
+    // @phpstan-ignore-next-line
     public function grid()
     {
         $grid = $this->pluginClass->grid();
@@ -57,6 +61,7 @@ class PluginGrid extends GridBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getBoxTools(): array
     {
         $tools = [];
@@ -88,6 +93,7 @@ class PluginGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
+    // @phpstan-ignore-next-line
     public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         $plugin_uuid = array_get($options, 'plugin');

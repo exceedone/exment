@@ -22,6 +22,7 @@ abstract class DayMonthBase extends ViewFilterBase
      * @param Carbon|string $target_day
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getTargetAndTodayFirstDay($target_day)
     {
         $target_day = Carbon::parse($target_day)->firstOfMonth();
@@ -30,5 +31,6 @@ abstract class DayMonthBase extends ViewFilterBase
         return [$target_day, $today];
     }
 
+    // @phpstan-ignore-next-line
     abstract protected function getTargetDay($query_value);
 }

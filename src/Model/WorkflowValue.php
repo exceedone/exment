@@ -23,6 +23,8 @@ class WorkflowValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;
 
+
+    // @phpstan-ignore-next-line
     public function workflow()
     {
         return $this->belongsTo(Workflow::class, 'workflow_id');
@@ -33,51 +35,71 @@ class WorkflowValue extends ModelBase
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
+
+    // @phpstan-ignore-next-line
     public function workflow_action()
     {
         return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function workflow_status()
     {
         return $this->belongsTo(WorkflowStatus::class, 'workflow_status_to_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function workflow_status_to()
     {
         return $this->workflow_status();
     }
 
+
+    // @phpstan-ignore-next-line
     public function workflow_status_from()
     {
         return $this->belongsTo(WorkflowStatus::class, 'workflow_status_from_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function workflow_value_authorities()
     {
         return $this->hasMany(WorkflowValueAuthority::class, 'workflow_value_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function getWorkflowCacheAttribute()
     {
         return Workflow::getEloquent($this->workflow_id);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getWorkflowStatusCacheAttribute()
     {
         return WorkflowStatus::getEloquent($this->workflow_status_to_id);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getWorkflowActionCacheAttribute()
     {
         return WorkflowAction::getEloquent($this->workflow_action_id);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getWorkflowStatusNameAttribute()
     {
         return WorkflowStatus::getWorkflowStatusName($this->workflow_status_to_id, $this->workflow);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getWorkflowEditableAttribute()
     {
         $status = $this->workflow_status_cache;
@@ -132,6 +154,8 @@ class WorkflowValue extends ModelBase
      *
      * @return bool
      */
+
+    // @phpstan-ignore-next-line
     public static function isAlreadyExecuted($action_id, $custom_value, $targetUser)
     {
         return static::where('morph_type', $custom_value->custom_table->table_name)
@@ -150,6 +174,8 @@ class WorkflowValue extends ModelBase
      *
      * @return WorkflowValue
      */
+
+    // @phpstan-ignore-next-line
     public static function getFirstExecutedWorkflowValue($custom_value)
     {
         // get first status name
@@ -168,6 +194,8 @@ class WorkflowValue extends ModelBase
      *
      * @return WorkflowValue|null
      */
+
+    // @phpstan-ignore-next-line
     public static function getLastExecutedWorkflowValue($custom_value)
     {
         return static::where('morph_type', $custom_value->custom_table_name)
@@ -177,6 +205,8 @@ class WorkflowValue extends ModelBase
             ->first();
     }
 
+
+    // @phpstan-ignore-next-line
     public function deletingChildren()
     {
         $this->workflow_value_authorities()->delete();

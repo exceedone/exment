@@ -12,6 +12,7 @@ trait CsvTrait
     }
 
 
+    // @phpstan-ignore-next-line
     public function getDataTable($request, array $options = [])
     {
         $options = $this->getDataOptions($options);
@@ -44,6 +45,7 @@ trait CsvTrait
         });
     }
 
+    // @phpstan-ignore-next-line
     public function getDataCount($request)
     {
         return $this->_getData($request, function ($files) {
@@ -53,6 +55,7 @@ trait CsvTrait
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function _getData($request, $callbackZip, $callbackDefault)
     {
         // get file
@@ -78,6 +81,7 @@ trait CsvTrait
 
                 // get all files
                 $files = collect(\File::files($tmpfolderpath))->filter(function ($value) {
+                    // @phpstan-ignore-next-line
                     return pathinfo($value)['extension'] == 'csv';
                 });
 

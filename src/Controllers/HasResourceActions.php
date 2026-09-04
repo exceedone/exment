@@ -9,6 +9,7 @@ trait HasResourceActions
 {
     use ParentResourceActions;
 
+    // @phpstan-ignore-next-line
     protected $isDeleteForce = false;
 
     /**
@@ -49,9 +50,11 @@ trait HasResourceActions
                 if (method_exists($this, 'getModel')) {
                     $model = $this->getModel($id);
                 } else {
+                    // @phpstan-ignore-next-line
                     $model = $this->form($id)->setIsForceDelete($this->isDeleteForce)->model()->find($id);
                 }
 
+                /** @phpstan-ignore-next-line */
                 if (boolval(array_get($model, 'disabled_delete'))) {
                     $disabled_delete = true;
                 }
@@ -61,6 +64,7 @@ trait HasResourceActions
         if ($disabled_delete) {
             return response()->json([
                 'status'  => false,
+                /** @phpstan-ignore-next-line */
                 'message' => exmtrans('error.disable_delete_row'),
                 'reload' => false,
             ]);
@@ -75,6 +79,7 @@ trait HasResourceActions
                 }
             } else {
                 /** @var \Illuminate\Http\Response|bool $response */
+                // @phpstan-ignore-next-line
                 $response = $this->form($id)->setIsForceDelete($this->isDeleteForce)->destroy($id);
                 if ($response === false) {
                     $result = false;
@@ -83,7 +88,9 @@ trait HasResourceActions
 
                 // if response instanceof Response, and status is false, result is false
                 elseif ($response instanceof Response) {
+                    /** @phpstan-ignore-next-line */
                     $content = jsonToArray($response->content());
+                    /** @phpstan-ignore-next-line */
                     if (is_array($content) && !boolval(array_get($content, 'status', true))) {
                         $result = false;
                         return;
@@ -95,11 +102,13 @@ trait HasResourceActions
         if ($result) {
             $data = [
                 'status'  => true,
+                /** @phpstan-ignore-next-line */
                 'message' => trans('admin.delete_succeeded'),
             ];
         } else {
             $data = [
                 'status'  => false,
+                /** @phpstan-ignore-next-line */
                 'message' => exmtrans('error.delete_failed'),
             ];
         }

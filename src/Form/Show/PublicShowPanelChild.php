@@ -23,7 +23,7 @@ class PublicShowPanelChild extends \Encore\Admin\Show\Panel
      */
     public function render()
     {
-        /** @phpstan-ignore-next-line Need laravel-admin php doc. */
+        // @phpstan-ignore-next-line
         return parent::render()->with([
         ]);
     }

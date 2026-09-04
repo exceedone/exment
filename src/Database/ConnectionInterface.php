@@ -47,12 +47,15 @@ interface ConnectionInterface
      *
      * @param string $dirFullPath restore file path
      */
+    // @phpstan-ignore-next-line
     public function importTsv($dirFullPath);
 
 
 
+    // @phpstan-ignore-next-line
     public function createView($viewName, $query);
 
 
+    // @phpstan-ignore-next-line
     public function dropView($viewName);
 }

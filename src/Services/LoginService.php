@@ -9,6 +9,7 @@ use Exceedone\Exment\Services\Login\LoginService as NewLoginService;
  */
 class LoginService
 {
+    // @phpstan-ignore-next-line
     public static function setToken()
     {
         return NewLoginService::setToken();
@@ -19,6 +20,7 @@ class LoginService
      *
      * @return array access_token, refresh_token, provider
      */
+    // @phpstan-ignore-next-line
     public static function getToken()
     {
         return NewLoginService::getToken();

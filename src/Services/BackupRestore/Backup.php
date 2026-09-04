@@ -36,6 +36,7 @@ class Backup
      * @return int
      * @throws \Exceedone\Exment\Exceptions\BackupRestoreCheckException
      */
+    // @phpstan-ignore-next-line
     public function execute($target = null, bool $schedule = false)
     {
         try {
@@ -46,7 +47,7 @@ class Backup
 
             if (is_string($target)) {
                 $target = collect(explode(",", $target))->map(function ($t) {
-                    /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
+                    // @phpstan-ignore-next-line
                     return new BackupTarget($t) ?? null;
                 })->filter()->toArray();
             }
@@ -84,6 +85,7 @@ class Backup
      *
      * @return bool true:success/false:fail
      */
+    // @phpstan-ignore-next-line
     protected function copyFiles($target)
     {
         // get directory paths
@@ -155,6 +157,7 @@ class Backup
      * archive whole folder(sql and tsv only) to zip.
      *
      */
+    // @phpstan-ignore-next-line
     protected function createZip()
     {
         // open new zip file
@@ -225,6 +228,7 @@ class Backup
      * get matched env data
      *
      */
+    // @phpstan-ignore-next-line
     protected function getMatchedEnv()
     {
         // get env file

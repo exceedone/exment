@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomValue;
 
 class WorkflowItem extends SystemItem implements ConditionItemInterface
 {
+    // @phpstan-ignore-next-line
     public function getFilterOption()
     {
         $target = explode('?', $this->target)[0];

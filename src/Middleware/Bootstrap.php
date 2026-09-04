@@ -15,6 +15,10 @@ class Bootstrap
 {
     use BootstrapTrait;
 
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
         $this->setCssJs($request, $next);
@@ -77,6 +81,8 @@ class Bootstrap
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',
+            'vendor/exment/js/file-required.js',
+            'vendor/exment/js/scroll-restore.js',
             'vendor/exment/js/search.js',
             'vendor/exment/js/calc.js',
             'vendor/exment/js/notify_navbar.js',
@@ -86,6 +92,7 @@ class Bootstrap
             'vendor/exment/js/customcolumn.js',
             'vendor/exment/js/customformitem.js',
             'vendor/exment/js/customform.js',
+            'vendor/exment/js/hasmanytable-validation.js',
             'vendor/exment/js/preview.js',
             'vendor/exment/js/webapi.js',
             'vendor/exment/js/admin.webapi.js',
@@ -105,7 +112,7 @@ class Bootstrap
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }
-        /** @phpstan-ignore-next-line jslast() expects null, string given */
+        // @phpstan-ignore-next-line
         Ad::jslast(asset('vendor/exment/js/customscript.js?ver='.$ver));
 
         // delete object

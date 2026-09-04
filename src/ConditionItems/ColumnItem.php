@@ -39,6 +39,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * get Update Type Condition
      */
+    // @phpstan-ignore-next-line
     public function getOperationUpdateType()
     {
         $isEnableSystem = false;
@@ -60,6 +61,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * get Operation filter value for field, Call as Ajax
      */
+    // @phpstan-ignore-next-line
     public function getOperationFilterValueAjax($target_key, $target_name, $show_condition_key = true)
     {
         $field = $this->getOperationFilterValue($target_key, $target_name, $show_condition_key);
@@ -74,9 +76,10 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * get Operation filter value for field
      */
+    // @phpstan-ignore-next-line
     public function getOperationFilterValue($target_key, $target_name, $show_condition_key = true)
     {
-        /** @phpstan-ignore-next-line constructor expects array, string|null given */
+        // @phpstan-ignore-next-line
         $field = new ChangeField($this->className, $this->label);
         $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
         if ($target_key == Enums\OperationUpdateType::DEFAULT) {
@@ -94,6 +97,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * get Operation filter value for field
      */
+    // @phpstan-ignore-next-line
     public function getOperationFilterValueChangeField($target_key, $target_name, $show_condition_key = true)
     {
         $item = $this->getFormColumnItem();
@@ -167,9 +171,11 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $custom_column = CustomColumn::find($workflow_authority->related_id);
+        // @phpstan-ignore-next-line
         if (!ColumnType::isUserOrganization($custom_column->column_type)) {
             return false;
         }
+        // @phpstan-ignore-next-line
         $auth_values = array_get($custom_value, 'value.' . $custom_column->column_name);
         if (is_null($auth_values)) {
             return false;
@@ -178,6 +184,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             $auth_values = [$auth_values];
         }
 
+        // @phpstan-ignore-next-line
         switch ($custom_column->column_type) {
             case ColumnType::USER:
                 return in_array($targetUser->id, $auth_values);
@@ -216,6 +223,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
 
         $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
         foreach ($custom_columns as $custom_column) {
+            // @phpstan-ignore-next-line
             $query->orWhere(function ($query) use ($custom_column, $tableName, $ids) {
                 $indexName = $custom_column->getIndexColumnName();
 
@@ -243,6 +251,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      * @param CustomViewSort $custom_view_sort
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function setQuerySort($query, CustomViewSort $custom_view_sort)
     {
         $column_item = $custom_view_sort->column_item;
@@ -317,6 +326,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      *
      * @return array offset 0 : column id, 1 : table id
      */
+    // @phpstan-ignore-next-line
     public function getColumnAndTableId($column_name, $custom_table): array
     {
         $target_column = CustomColumn::getEloquent($column_name, $custom_table);

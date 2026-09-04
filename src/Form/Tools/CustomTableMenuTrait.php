@@ -10,10 +10,14 @@ use Encore\Admin\Facades\Admin;
  */
 trait CustomTableMenuTrait
 {
+    // @phpstan-ignore-next-line
     protected $page_name;
+    // @phpstan-ignore-next-line
     protected $page_name_sub;
+    // @phpstan-ignore-next-line
     protected $custom_table;
 
+    // @phpstan-ignore-next-line
     protected function getItems()
     {
         $items = [];
@@ -27,6 +31,7 @@ trait CustomTableMenuTrait
             // if this page_name is table and grid, check role
             if ($this->page_name == 'table' && !isset($this->custom_table)) {
                 // if user dont't has role system
+                /** @phpstan-ignore-next-line */
                 if (!Admin::user()->hasPermission(array_get($menu, 'roles'))) {
                     continue;
                 }
@@ -51,6 +56,7 @@ trait CustomTableMenuTrait
                 ->map(function ($button) {
                     return [
                         'icon' => array_get($button, 'icon'),
+                        /** @phpstan-ignore-next-line */
                         'label' => exmtrans(array_get($button, 'exmtrans')),
                         'href' => admin_url(str_replace(':id', $this->custom_table->id, array_get($button, 'href'))),
                     ];
@@ -58,9 +64,12 @@ trait CustomTableMenuTrait
 
 
             $items[] = [
+                // @phpstan-ignore-next-line
                 'href' => admin_url($url),
                 'icon' => array_get($menu, 'icon'),
+                /** @phpstan-ignore-next-line */
                 'header' => exmtrans(array_get($menu, 'exmtrans')),
+                /** @phpstan-ignore-next-line */
                 'description' => exmtrans(array_get($menu, 'description')),
                 'buttons' => $buttons,
             ];

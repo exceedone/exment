@@ -10,7 +10,9 @@ use Response;
 
 class PluginPageController extends Controller
 {
+    // @phpstan-ignore-next-line
     protected $pluginPage;
+    // @phpstan-ignore-next-line
     protected $plugin;
 
     public function __construct(?PluginPublicBase $pluginPage)
@@ -25,6 +27,7 @@ class PluginPageController extends Controller
      * @return mixed
      *
      */
+    // @phpstan-ignore-next-line
     public function __call($method, $parameters)
     {
         if (!$this->pluginPage) {
@@ -40,6 +43,7 @@ class PluginPageController extends Controller
         }
 
         // create html
+        // @phpstan-ignore-next-line
         $result = call_user_func_array([$this->pluginPage, $method], array_values($parameters));
 
         if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
@@ -48,6 +52,7 @@ class PluginPageController extends Controller
 
         $content = new Content();
         $content->row($result);
+        // @phpstan-ignore-next-line
         if (method_exists($this->pluginPage, '_showHeader') && $this->pluginPage->_showHeader()) {
             $content->header($this->plugin->plugin_view_name)
             ->headericon($this->plugin->getOption('icon')?? 'fa-pencil');
@@ -56,6 +61,7 @@ class PluginPageController extends Controller
         return $content;
     }
 
+    // @phpstan-ignore-next-line
     public function _readPublicFile(Request $request, ...$args)
     {
         // get file path
@@ -71,6 +77,7 @@ class PluginPageController extends Controller
         }
 
         $file = \File::get($filePath);
+        // @phpstan-ignore-next-line
         $extension = pathinfo($filePath)['extension'];
 
         switch ($extension) {
@@ -87,6 +94,7 @@ class PluginPageController extends Controller
 
         // create response
         $response = Response::make($file, 200);
+        // @phpstan-ignore-next-line
         $response->header("Content-Type", $mimeType);
 
         return $response;

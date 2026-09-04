@@ -13,6 +13,11 @@ class ZipService
      * Create Password zip.
      * encrypt is ZipCrypto
      *
+     * @param array<int, string> $files
+     * @param string $zipFullPath
+     * @param string $tmpFolderPath
+     * @param string $password
+     * @param string|null $disk
      * @return void
      */
     public static function createPasswordZip($files, $zipFullPath, $tmpFolderPath, $password, ?string $disk = null)
@@ -50,6 +55,13 @@ class ZipService
         }
     }
 
+    /**
+     * @param string $zipFullPath
+     * @param string $tmpFolderPath
+     * @param string $password
+     * @return void
+     * @throws \Exception
+     */
     protected static function execPasswordZipWin($zipFullPath, $tmpFolderPath, $password)
     {
         if ($tmpFolderPath == '/' || $tmpFolderPath == '') {
@@ -61,6 +73,13 @@ class ZipService
         exec('"' . $dir7zip . '" a -p' . $password . ' "' . $zipFullPath . '" "' . $tmpFolderPath . '/*"', $output);
     }
 
+    /**
+     * @param string $zipFullPath
+     * @param string $tmpFolderPath
+     * @param string $password
+     * @return void
+     * @throws \Exception
+     */
     protected static function execPasswordZipLinux($zipFullPath, $tmpFolderPath, $password)
     {
         if ($tmpFolderPath == '/' || $tmpFolderPath == '') {

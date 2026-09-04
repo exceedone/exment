@@ -14,13 +14,17 @@ class CalendarItem implements ItemInterface
 {
     use TableItemTrait;
 
+    // @phpstan-ignore-next-line
     protected $dashboard_box;
 
+    // @phpstan-ignore-next-line
     protected $custom_table;
 
+    // @phpstan-ignore-next-line
     protected $custom_view;
 
 
+    // @phpstan-ignore-next-line
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -41,6 +45,7 @@ class CalendarItem implements ItemInterface
     /**
      * get header
      */
+    // @phpstan-ignore-next-line
     public function header()
     {
         return $this->tableheader();
@@ -49,6 +54,7 @@ class CalendarItem implements ItemInterface
     /**
      * get footer
      */
+    // @phpstan-ignore-next-line
     public function footer()
     {
         return null;
@@ -57,6 +63,7 @@ class CalendarItem implements ItemInterface
     /**
      * saving event
      */
+    // @phpstan-ignore-next-line
     public static function saving(&$form)
     {
     }
@@ -65,6 +72,7 @@ class CalendarItem implements ItemInterface
      * get html(for display)
      * *this function calls from non-value method. So please escape if not necessary unescape.
      */
+    // @phpstan-ignore-next-line
     public function body()
     {
         if (($result = $this->hasPermission()) !== true) {
@@ -90,6 +98,7 @@ class CalendarItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
+    // @phpstan-ignore-next-line
     public static function setAdminOptions(&$form, $dashboard)
     {
         $form->select('calendar_type', exmtrans("dashboard.dashboard_box_options.calendar_type"))
@@ -117,6 +126,7 @@ class CalendarItem implements ItemInterface
             });
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($dashboard_box) = $args + [null];

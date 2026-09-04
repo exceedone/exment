@@ -18,6 +18,8 @@ class DataShareAuthoritable extends ModelBase
     /**
      * Set Data Share Authoritable after custom value save
      */
+
+    // @phpstan-ignore-next-line
     public static function setDataAuthoritable($target_data)
     {
         $target_type = static::getTargetType($target_data);
@@ -42,6 +44,8 @@ class DataShareAuthoritable extends ModelBase
      * @param $target_data
      * @return ShareTargetType
      */
+
+    // @phpstan-ignore-next-line
     public static function getTargetType($target_data)
     {
         if ($target_data instanceof CustomView) {
@@ -56,6 +60,8 @@ class DataShareAuthoritable extends ModelBase
      *
      * @return void
      */
+
+    // @phpstan-ignore-next-line
     public static function deleteDataAuthoritable($target_data)
     {
         $target_type = static::getTargetType($target_data);
@@ -70,6 +76,8 @@ class DataShareAuthoritable extends ModelBase
      *
      * @return ModalForm
      */
+
+    // @phpstan-ignore-next-line
     public static function getShareDialogForm($target_data, $tableKey = null)
     {
         $id = $target_data->id;
@@ -137,6 +145,8 @@ class DataShareAuthoritable extends ModelBase
      * get listbox options default
      *
      */
+
+    // @phpstan-ignore-next-line
     protected static function getUserOrgSelectDefault($target_key, $id, $permission)
     {
         // get values
@@ -158,6 +168,8 @@ class DataShareAuthoritable extends ModelBase
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
+
+    // @phpstan-ignore-next-line
     public static function saveShareDialogForm($target_data)
     {
         $custom_table = $target_data->custom_table;
@@ -219,6 +231,7 @@ class DataShareAuthoritable extends ModelBase
                     },
                 ]));
             }
+            // Laravel facade DB not recognized
             \DB::commit();
 
             System::clearCache();

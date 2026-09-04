@@ -59,6 +59,7 @@ class PublicFormForm extends DefaultForm
      * @param ItemInterface $column_item
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setColumnItemOption(ItemInterface $column_item, $custom_form_columns)
     {
         $column_item->options(['public_form' => $this->public_form]);

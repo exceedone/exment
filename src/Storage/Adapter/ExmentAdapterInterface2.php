@@ -13,6 +13,7 @@ interface ExmentAdapterInterface2
     /**
      * get adapter class
      */
+    // @phpstan-ignore-next-line
     public static function getAdapter($app, $config, $driverKey);
 
     /**
@@ -21,7 +22,9 @@ interface ExmentAdapterInterface2
      * @param array $config
      * @return array
      */
+    // @phpstan-ignore-next-line
     public static function getConfig($config): array;
 
+    // @phpstan-ignore-next-line
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array;
 }

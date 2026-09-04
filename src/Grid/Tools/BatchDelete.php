@@ -8,6 +8,8 @@ class BatchDelete extends BatchDeleteBase
 {
     /**
      * Script of batch delete action.
+     *
+     * @return string
      */
     public function script()
     {

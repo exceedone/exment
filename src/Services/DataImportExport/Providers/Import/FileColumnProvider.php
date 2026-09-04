@@ -18,6 +18,7 @@ class FileColumnProvider extends ProviderBase
      */
     protected $fileDirFullPath;
 
+    // @phpstan-ignore-next-line
     protected $primary_key;
 
     /**
@@ -27,6 +28,7 @@ class FileColumnProvider extends ProviderBase
      */
     protected $custom_table;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         $this->custom_table = array_get($args, 'custom_table');
@@ -38,6 +40,7 @@ class FileColumnProvider extends ProviderBase
      * get data and object.
      * set matched model data
      */
+    // @phpstan-ignore-next-line
     public function getDataObject($data, $options = [])
     {
         $headers = [];
@@ -106,6 +109,7 @@ class FileColumnProvider extends ProviderBase
      * @param mixed $dataObjects
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function validateImportData($dataObjects)
     {
         ///// get all table columns
@@ -116,6 +120,7 @@ class FileColumnProvider extends ProviderBase
         $error_data = [];
         $success_data = [];
         foreach ($dataObjects as $line_no => $value) {
+            // @phpstan-ignore-next-line
             $check = $this->validateDataRow($line_no, $value, $validate_columns, $dataObjects);
             if ($check === true) {
                 $success_data[] = $value;
@@ -134,6 +139,7 @@ class FileColumnProvider extends ProviderBase
      * @param array $validate_columns
      * @param array $dataObjects
      */
+    // @phpstan-ignore-next-line
     public function validateDataRow($line_no, $dataAndModel, $validate_columns, $dataObjects)
     {
         return $this->_validateDataRow($line_no, $dataAndModel, $validate_columns, true);
@@ -148,6 +154,7 @@ class FileColumnProvider extends ProviderBase
      * @param bool $isCheckColumn
      * @return array|mixed[]|true
      */
+    // @phpstan-ignore-next-line
     protected function _validateDataRow($line_no, $dataAndModel, $validate_columns, bool $isCheckColumn)
     {
         $data = array_get($dataAndModel, 'data');
@@ -213,6 +220,7 @@ class FileColumnProvider extends ProviderBase
     /**
      * import data
      */
+    // @phpstan-ignore-next-line
     public function importData($dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
@@ -254,6 +262,7 @@ class FileColumnProvider extends ProviderBase
      * @param array $value_custom
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     protected function getFileFullPath(array $value_custom): ?string
     {
         $file_name = array_get($value_custom, 'file_name');

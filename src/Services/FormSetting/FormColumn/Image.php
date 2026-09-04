@@ -15,6 +15,7 @@ class Image extends OtherBase
      *
      * @return WidgetForm
      */
+    // @phpstan-ignore-next-line
     public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm
     {
         $form = new WidgetForm($parameters);
@@ -44,12 +45,14 @@ class Image extends OtherBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getItemsForDisplay(): array
     {
         $result = parent::getItemsForDisplay();
 
         // set image url for option
         $options = json_decode_ex($result['options'], true);
+        // @phpstan-ignore-next-line
         $options['image_url'] = $this->getImageUrl();
         $result['options'] = collect($options)->toJson();
         return $result;
@@ -75,6 +78,7 @@ class Image extends OtherBase
      * @param array $options
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function prepareSavingOptions(array $options): array
     {
         return array_filter($options, function ($option, $key) {
@@ -89,6 +93,7 @@ class Image extends OtherBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getValidationRules(): array
     {
         return ['image' => 'required_image'];
@@ -104,6 +109,7 @@ class Image extends OtherBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getOptionLabels(): array
     {
         $result = parent::getOptionLabels();

@@ -3847,6 +3847,7 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 
 .has-error .btn-valuemodal, .has-error .text-valuemodal, .has-error .checkbox, .has-error .checkbox-inline, .has-error .control-label, .has-error .help-block, .has-error .radio, .has-error .radio-inline {
   color: #dd4b39 !important;
+  word-break: break-all;
 }
 
 .has-error .select2-container--default .select2-selection--single, .has-error .select2-selection .select2-selection--single {
@@ -3855,6 +3856,10 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 
 .has-error .fa, .has-error .has-error-text {
   color: #dd4b39;
+}
+
+.has-error .help-block, .has-error .help-block .fa {
+  color: #737373 !important;
 }
 
 .column-__actions__ {
@@ -4245,4 +4250,8 @@ label.radio-inline:has(input[readonly][type=radio]) {
 
 label.checkboxone-label:has(input[readonly][type=checkbox]) {
   pointer-events: none;
+}
+
+.btn.btn-file>input[type='file'] {
+    font-size: 0px !important;
 }

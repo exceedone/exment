@@ -12,6 +12,7 @@ class Textarea extends CustomItem
 {
     use TextTrait;
 
+    // @phpstan-ignore-next-line
     public function saving()
     {
         if (is_nullorempty($this->value)) {
@@ -20,6 +21,7 @@ class Textarea extends CustomItem
         return strval($this->value);
     }
 
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         $text = $this->_text($v);
@@ -33,11 +35,13 @@ class Textarea extends CustomItem
         // replace space to tag
         return preg_replace('/ /', '<span style="margin-right: 0.5em;"></span>', $text);
     }
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Textarea::class;
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
@@ -46,6 +50,7 @@ class Textarea extends CustomItem
         $field->attribute(['maxlength' => $this->getMaxLength($options)]);
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         // value size

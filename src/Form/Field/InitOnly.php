@@ -12,14 +12,17 @@ class InitOnly extends Display
 {
     protected $view = 'exment::form.field.init_only';
 
+    // @phpstan-ignore-next-line
     protected $prepareDefault = false;
 
+    // @phpstan-ignore-next-line
     public function prepareDefault()
     {
         $this->prepareDefault = true;
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function prepare($value)
     {
         // Even if set value, return always default.
@@ -31,6 +34,7 @@ class InitOnly extends Display
      */
     public function render()
     {
+        // @phpstan-ignore-next-line
         return parent::render()->with([
             'prepareDefault'   => $this->prepareDefault,
             'default'          => $this->default,

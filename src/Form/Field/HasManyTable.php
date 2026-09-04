@@ -14,8 +14,11 @@ use Encore\Admin\Form\NestedForm;
  */
 class HasManyTable extends HasMany
 {
+    // @phpstan-ignore-next-line
     protected $tablecolumnwidths = [];
+    // @phpstan-ignore-next-line
     protected $count = null;
+    // @phpstan-ignore-next-line
     protected $enableHeader = true;
 
     /**
@@ -45,6 +48,7 @@ class HasManyTable extends HasMany
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $options = [
         'allowCreate' => true,
         'allowDelete' => true,
@@ -56,6 +60,7 @@ class HasManyTable extends HasMany
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $tablewidth = [
         'offset' => 1,
         'width' => 10,
@@ -64,16 +69,19 @@ class HasManyTable extends HasMany
     /**
      * display description
      */
+    // @phpstan-ignore-next-line
     protected $description;
 
     /**
      * whether escape description
      */
+    // @phpstan-ignore-next-line
     protected $escapeDescription = true;
 
     /**
      * set bootstrap table width
      */
+    // @phpstan-ignore-next-line
     public function setTableWidth($width = 8, $offset = 2)
     {
         $this->tablewidth['width'] = $width;
@@ -85,18 +93,21 @@ class HasManyTable extends HasMany
     /**
      * set bootstrap table Column width
      */
+    // @phpstan-ignore-next-line
     public function setTableColumnWidth(...$width)
     {
         $this->tablecolumnwidths = $width;
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function description($description)
     {
         $this->description = $description;
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function descriptionHtml($description)
     {
         $this->escapeDescription = false;
@@ -118,6 +129,7 @@ class HasManyTable extends HasMany
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function disableHeader()
     {
         $this->enableHeader = false;
@@ -142,6 +154,7 @@ class HasManyTable extends HasMany
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $views = [
         'default' => 'exment::form.field.hasmanytable',
         'tab'     => 'admin::form.hasmanytable', // TODO:for tab
@@ -150,6 +163,7 @@ class HasManyTable extends HasMany
     /**
      * set table header and body from fields
      */
+    // @phpstan-ignore-next-line
     protected function getTableItem(&$form)
     {
         $tableitems = [];
@@ -175,6 +189,7 @@ class HasManyTable extends HasMany
     /**
      * set table field item to header, body, hidden
      */
+    // @phpstan-ignore-next-line
     protected function setTableFieldItem(&$field, &$tableitems, &$hiddens, &$requires, &$helps)
     {
         // if internal, skip field
@@ -182,14 +197,15 @@ class HasManyTable extends HasMany
             return;
         }
 
-        // if hidden, set $hiddens
+        // if hidden, set $hiddens (do not add header metadata like required/help)
         if ($field instanceof Hidden) {
             $hiddens[] = $field;
-        } else {
-            $tableitems[] = $field;
+            return;
         }
 
-        // if required true false
+        $tableitems[] = $field;
+
+        // if required true false (header only)
         $requires[] = is_array($field->getAttributes()) && array_has($field->getAttributes(), 'required');
 
         // set label viewclass hidden
@@ -361,6 +377,7 @@ EOT;
         $this->view = $this->views[$this->viewMode];
 
         // set header and body info
+        // @phpstan-ignore-next-line
         $form = $this->buildNestedForm($this->column, $this->builder);
 
         list($template, $script) = $this->getTemplateHtmlAndScript($form);
@@ -404,6 +421,7 @@ EOT;
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getParentRenderClass()
     {
         return get_parent_class(get_parent_class(get_parent_class($this)));

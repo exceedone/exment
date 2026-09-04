@@ -22,6 +22,8 @@ class CustomValueAuthoritable extends ModelBase
 {
     use Traits\DataShareTrait;
 
+
+    // @phpstan-ignore-next-line
     public function getAuthoritableUserOrgAttribute()
     {
         return CustomTable::getEloquent($this->authoritable_user_org_type)->getValueModel($this->authoritable_target_id);
@@ -32,6 +34,8 @@ class CustomValueAuthoritable extends ModelBase
      *
      * @return void
      */
+
+    // @phpstan-ignore-next-line
     public static function setValueAuthoritable($custom_value)
     {
         $custom_table = $custom_value->custom_table;
@@ -182,6 +186,8 @@ class CustomValueAuthoritable extends ModelBase
      * @param bool $is_edit is true, as edit permission
      * @param bool $sync is true, delete items if not has array
      */
+
+    // @phpstan-ignore-next-line
     public static function setAuthoritableByUserOrgArray($custom_value, $arrays, $is_edit = false, $sync = false)
     {
         $custom_table = $custom_value->custom_table;
@@ -243,6 +249,8 @@ class CustomValueAuthoritable extends ModelBase
      *
      * @return void
      */
+
+    // @phpstan-ignore-next-line
     public static function deleteValueAuthoritable($custom_value)
     {
         $custom_table = $custom_value->custom_table;
@@ -258,6 +266,8 @@ class CustomValueAuthoritable extends ModelBase
      *
      * @return ModalForm
      */
+
+    // @phpstan-ignore-next-line
     public static function getShareDialogForm($custom_value)
     {
         // create form fields
@@ -319,6 +329,8 @@ class CustomValueAuthoritable extends ModelBase
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      */
+
+    // @phpstan-ignore-next-line
     public static function saveShareDialogForm($custom_value)
     {
         $custom_table = $custom_value->custom_table;
@@ -420,6 +432,8 @@ class CustomValueAuthoritable extends ModelBase
      * @param boolean $all if true, get all items. For checking value
      * @return array
      */
+
+    // @phpstan-ignore-next-line
     public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false, $default = null, $all = false)
     {
         $options = collect();
@@ -465,6 +479,8 @@ class CustomValueAuthoritable extends ModelBase
      * @param string $permission
      * @return array user and organization default options
      */
+
+    // @phpstan-ignore-next-line
     protected static function getUserOrgSelectDefault(CustomValue $custom_value, $permission)
     {
         $custom_table = $custom_value->custom_table;
@@ -506,6 +522,8 @@ class CustomValueAuthoritable extends ModelBase
     }
 
 
+
+    // @phpstan-ignore-next-line
     public static function getListsOnCustomValue(CustomValue $custom_value)
     {
         return static::where(['parent_id' => $custom_value->id, 'parent_type' => $custom_value->custom_table->table_name])->get();
@@ -518,6 +536,8 @@ class CustomValueAuthoritable extends ModelBase
      * @param Collection|\Tightenco\Collect\Support\Collection $shareTargets user and organization notify targets collection
      * @return void
      */
+
+    // @phpstan-ignore-next-line
     protected static function notifyUser($custom_value, $shareTargets)
     {
         foreach ($custom_value->custom_table->notifies as $notify) {

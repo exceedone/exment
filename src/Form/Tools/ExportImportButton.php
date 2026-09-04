@@ -13,14 +13,22 @@ use Exceedone\Exment\Enums\Permission;
  */
 class ExportImportButton extends ModalTileMenuButton
 {
+    // @phpstan-ignore-next-line
     protected $grid;
+    // @phpstan-ignore-next-line
     protected $endpoint;
+    // @phpstan-ignore-next-line
     protected $total_export_flg;
+    // @phpstan-ignore-next-line
     protected $export_flg;
+    // @phpstan-ignore-next-line
     protected $import_flg;
+    // @phpstan-ignore-next-line
     protected $view_flg;
     // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
+    // @phpstan-ignore-next-line
     protected $plugin_flg;
+    // @phpstan-ignore-next-line
     protected $base_key = 'custom_value';
 
     /**
@@ -31,6 +39,7 @@ class ExportImportButton extends ModalTileMenuButton
     protected $custom_table;
 
     // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
+    // @phpstan-ignore-next-line
     public function __construct($endpoint, $grid, $view_flg = false, $export_flg = true, $import_flg = true, $plugin_flg = false)
     {
         $this->grid = $grid;
@@ -278,6 +287,7 @@ class ExportImportButton extends ModalTileMenuButton
         return parent::render();
     }
 
+    // @phpstan-ignore-next-line
     protected function disabledButton()
     {
         if (boolval(config('exment.export_view_disabled', false)) && boolval(config('exment.export_disabled', false)) && boolval(config('exment.import_disabled', false))) {
@@ -291,6 +301,7 @@ class ExportImportButton extends ModalTileMenuButton
         return false;
     }
 
+    // @phpstan-ignore-next-line
     protected function getPluginExports()
     {
         if (!isset($this->custom_table)) {

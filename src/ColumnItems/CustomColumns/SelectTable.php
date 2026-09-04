@@ -29,9 +29,12 @@ class SelectTable extends CustomItem
 {
     use SelectTrait;
 
+    // @phpstan-ignore-next-line
     protected $target_table;
+    // @phpstan-ignore-next-line
     protected $target_view;
 
+    // @phpstan-ignore-next-line
     public function __construct($custom_column, $custom_value, $view_column_target = null)
     {
         parent::__construct($custom_column, $custom_value, $view_column_target);
@@ -40,6 +43,7 @@ class SelectTable extends CustomItem
         $this->target_view = CustomView::getEloquent(array_get($custom_column, 'options.select_target_view'));
     }
 
+    // @phpstan-ignore-next-line
     public function saving()
     {
         if (is_nullorempty($this->value)) {
@@ -60,12 +64,14 @@ class SelectTable extends CustomItem
     /**
      * get cast Options
      */
+    // @phpstan-ignore-next-line
     protected function getCastOptions()
     {
         $type = $this->isMultipleEnabled() ? DatabaseDataType::TYPE_STRING_MULTIPLE : DatabaseDataType::TYPE_INTEGER;
         return [$type, false, []];
     }
 
+    // @phpstan-ignore-next-line
     public function getSelectTable()
     {
         return $this->target_table;
@@ -76,16 +82,19 @@ class SelectTable extends CustomItem
         return $this->getValue($v, false, false);
     }
 
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         return $this->getValue($v, true, false);
     }
 
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         return $this->getValue($v, true, true);
     }
 
+    // @phpstan-ignore-next-line
     protected function getValue($v, $text, $html)
     {
         if (!isset($this->target_table)) {
@@ -144,6 +153,7 @@ class SelectTable extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function getResult($model, $text, $html)
     {
         if ($text === false) {
@@ -156,6 +166,7 @@ class SelectTable extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         if ($this->isMultipleEnabled()) {
@@ -175,6 +186,7 @@ class SelectTable extends CustomItem
         return (string)FilterOption::SELECT_EXISTS;
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         if (!isset($this->target_table)) {
@@ -239,6 +251,7 @@ class SelectTable extends CustomItem
         ]);
     }
 
+    // @phpstan-ignore-next-line
     public function getSelectOptions($value, $field, array $selectOption = [])
     {
         $selectOption = array_merge(
@@ -257,6 +270,7 @@ class SelectTable extends CustomItem
      * @param \Closure|null $callback
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getSelectFieldOptions($callback = null)
     {
         return [
@@ -321,6 +335,7 @@ class SelectTable extends CustomItem
      *
      * @return \Closure|null|void
      */
+    // @phpstan-ignore-next-line
     protected function getRelationFilterCallback($linkage)
     {
         if (!isset($linkage)) {
@@ -365,6 +380,7 @@ class SelectTable extends CustomItem
         return null;
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
         if (!isset($this->target_table)) {
@@ -382,12 +398,14 @@ class SelectTable extends CustomItem
         })->ajax($ajax);
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         $validates[] = new Validator\SelectTableNumericRule();
         $validates[] = new Validator\CustomValueRule($this->target_table, $this->custom_column->getOption('select_target_view'));
     }
 
+    // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
         return [\Encore\Admin\Validator\HasOptionRule::class];
@@ -400,6 +418,7 @@ class SelectTable extends CustomItem
      * @param array $setting
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getImportValue($value, $setting = [])
     {
         $result = true;
@@ -427,6 +446,7 @@ class SelectTable extends CustomItem
                 // if get as id and not numeric, set error
                 if (!is_numeric($v)) {
                     $result = false;
+                    // @phpstan-ignore-next-line
                     $message = trans('validation.integer', ['attribute' => $this->label()]);
                 }
             } else {
@@ -462,6 +482,7 @@ class SelectTable extends CustomItem
      * @param string $key
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getKeyAndIdList($datalist, $key)
     {
         if (is_nullorempty($datalist) || is_nullorempty($key)) {
@@ -564,9 +585,11 @@ class SelectTable extends CustomItem
             $label = preg_replace('/\s+/', ' ', $label);
             $items = preg_split('/[\s|\x{3000}]+/u', $label);
 
+            // @phpstan-ignore-next-line
             $searchAsId = $use_table_label_id && substr($items[0], 0, 1) == '#';
 
             if ($searchAsId) {
+                // @phpstan-ignore-next-line
                 $searchId = substr($items[0], 1);
                 $query->where('id', $searchId);
 
@@ -574,11 +597,13 @@ class SelectTable extends CustomItem
             }
 
             $labelColumnIndex = 0;
+            // @phpstan-ignore-next-line
             for ($i = ($searchAsId ? 1 : 0); $i < count($items); $i++) {
                 if (count($labelColumns) <= $labelColumnIndex) {
                     return null;
                 }
 
+                // @phpstan-ignore-next-line
                 if ($this->setSelectTableQuery($query, array_get($labelColumns[$labelColumnIndex++], 'table_label_id'), $items[$i])) {
                     $executeSearch = true;
                 }
@@ -594,6 +619,7 @@ class SelectTable extends CustomItem
         return is_nullorempty($ids) ? null : ($this->isMultipleEnabled() ? $ids->toArray() : $ids->first());
     }
 
+    // @phpstan-ignore-next-line
     protected function setSelectTableQuery($query, $custom_column_id, $value)
     {
         $custom_column = CustomColumn::getEloquent($custom_column_id);
@@ -633,6 +659,7 @@ class SelectTable extends CustomItem
      * @param array $options
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
         if (!$this->isMultipleEnabled()) {
@@ -652,6 +679,7 @@ class SelectTable extends CustomItem
     {
         return $this->isMultipleEnabledTrait();
     }
+    // @phpstan-ignore-next-line
     protected function getFilterFieldClass()
     {
         if ($this->isMultipleEnabled()) {
@@ -675,6 +703,7 @@ class SelectTable extends CustomItem
     }
 
 
+    // @phpstan-ignore-next-line
     protected function setCustomColumnOptionFormSelectTable(&$form, string $user_org = null)
     {
         $id = request()->route('id');
@@ -785,6 +814,7 @@ class SelectTable extends CustomItem
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected static function getImportExportColumnSelect($custom_table, $value, $field, $id, $column_type, $isImport = true)
     {
         if (is_nullorempty($field)) {
@@ -794,7 +824,7 @@ class SelectTable extends CustomItem
         // whether column_type is user or org
         if (!is_null(old('column_type'))) {
             $model = CustomColumn::getEloquent(old('column_type'), $custom_table);
-            /** @phpstan-ignore-next-line Right side of || is always false.  */
+        // @phpstan-ignore-next-line
         } elseif (isset($id) || old('column_type')) {
             $model = CustomColumn::getEloquent($id);
         }

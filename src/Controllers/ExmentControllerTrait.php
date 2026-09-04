@@ -7,11 +7,16 @@ use Exceedone\Exment\Model\CustomTable;
 
 trait ExmentControllerTrait
 {
+    // @phpstan-ignore-next-line
     protected $title;
+    // @phpstan-ignore-next-line
     protected $header;
+    // @phpstan-ignore-next-line
     protected $description;
+    // @phpstan-ignore-next-line
     protected $headericon;
 
+    // @phpstan-ignore-next-line
     protected function setPageInfo($title = null, $header = null, $description = null, $headericon = null)
     {
         if (isset($header)) {
@@ -28,6 +33,7 @@ trait ExmentControllerTrait
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function AdminContent($content)
     {
         if (isset($this->header)) {
@@ -48,6 +54,7 @@ trait ExmentControllerTrait
      * validation table
      * @param mixed $table id or customtable
      */
+    // @phpstan-ignore-next-line
     protected function validateTable($table, $role_name)
     {
         $table = CustomTable::getEloquent($table);

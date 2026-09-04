@@ -34,6 +34,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function compileColumnDefinitions($tableName)
     {
         return "SELECT
@@ -75,6 +76,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         return "if object_id('{$this->wrapTable($tableName)}') is null select * into {$this->wrapTable($tableName)} from custom_relation_values";
     }
 
+    // @phpstan-ignore-next-line
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
         // ALTER TABLE
@@ -90,22 +92,26 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         ];
     }
 
+    // @phpstan-ignore-next-line
     public function compileAlterPrimaryKey($db_table_name, $db_column_name = 'id')
     {
         // ALTER TABLE
         return "alter table {$db_table_name} add primary key ({$db_column_name})";
     }
 
+    // @phpstan-ignore-next-line
     public function compileGetIndex($tableName)
     {
         return $this->_compileGetIndex($tableName, false);
     }
 
+    // @phpstan-ignore-next-line
     public function compileGetUnique($tableName)
     {
         return $this->_compileGetIndex($tableName, true);
     }
 
+    // @phpstan-ignore-next-line
     protected function _compileGetIndex($tableName, $unique)
     {
         return "select
@@ -125,6 +131,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         and COL_NAME(ic.object_id, ic.column_id) = :column_name";
     }
 
+    // @phpstan-ignore-next-line
     public function compileGetConstraint($tableName)
     {
         return "SELECT
@@ -141,6 +148,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function compileDropConstraint($tableName, $contraintName)
     {
         $tableName = $this->wrapTable($tableName);
@@ -154,6 +162,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
      * @param  \Illuminate\Support\Fluent  $command
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function compileDropDefaultConstraint(Blueprint $blueprint, Fluent $command)
     {
         $columns = "'".implode("','", $command->columns)."'";

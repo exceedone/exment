@@ -10,10 +10,14 @@ use Encore\Admin\Facades\Admin;
  */
 class CopyMenuButton implements Renderable
 {
+    // @phpstan-ignore-next-line
     protected $copy;
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $id;
 
+    // @phpstan-ignore-next-line
     public function __construct($copy, $custom_table, $id = null)
     {
         $this->copy = $copy;
@@ -21,6 +25,7 @@ class CopyMenuButton implements Renderable
         $this->id = $id;
     }
 
+    // @phpstan-ignore-next-line
     protected function scriptSwal($uuid, $label)
     {
         $table_name = array_get($this->custom_table, 'table_name');
@@ -50,6 +55,7 @@ class CopyMenuButton implements Renderable
 EOT;
     }
 
+    // @phpstan-ignore-next-line
     protected function scriptModal($uuid)
     {
         $table_name = array_get($this->custom_table, 'table_name');

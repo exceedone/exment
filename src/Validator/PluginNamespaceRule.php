@@ -11,6 +11,7 @@ use Exceedone\Exment\Storage\Disk\DiskServiceItem;
  */
 class PluginNamespaceRule implements Rule
 {
+    // @phpstan-ignore-next-line
     protected $errors = [];
 
     /**

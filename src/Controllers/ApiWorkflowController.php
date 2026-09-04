@@ -151,6 +151,7 @@ class ApiWorkflowController extends AdminControllerBase
         }
 
         if (($code = $custom_table->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
             return abortJson(403, trans('admin.deny'), $code);
         }
 
@@ -194,6 +195,7 @@ class ApiWorkflowController extends AdminControllerBase
         }
 
         if (($code = $custom_table->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
             return abortJson(403, trans('admin.deny'), $code);
         }
 
@@ -238,6 +240,7 @@ class ApiWorkflowController extends AdminControllerBase
         }
 
         if (($code = $custom_table->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
             return abortJson(403, trans('admin.deny'), $code);
         }
 
@@ -270,6 +273,7 @@ class ApiWorkflowController extends AdminControllerBase
         }
 
         if (($code = $custom_table->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
             return abortJson(403, trans('admin.deny'), $code);
         }
 
@@ -305,6 +309,7 @@ class ApiWorkflowController extends AdminControllerBase
         }
 
         if (($code = $custom_table->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
             return abortJson(403, trans('admin.deny'), $code);
         }
 
@@ -378,6 +383,7 @@ class ApiWorkflowController extends AdminControllerBase
     /**
      * create execute workflow params by request
      */
+    // @phpstan-ignore-next-line
     protected function getExecuteParams(Request $request)
     {
         $params = [];

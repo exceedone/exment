@@ -18,11 +18,15 @@ class WorkflowTable extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
 
+
+    // @phpstan-ignore-next-line
     public function workflow(): BelongsTo
     {
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');

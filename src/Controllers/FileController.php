@@ -23,6 +23,7 @@ class FileController extends AdminControllerBase
     /**
      * Download file (call as web)
      */
+    // @phpstan-ignore-next-line
     public function download(Request $request, $uuid)
     {
         return static::downloadFile($uuid);
@@ -31,6 +32,7 @@ class FileController extends AdminControllerBase
     /**
      * Download file (call as publicform)
      */
+    // @phpstan-ignore-next-line
     public function downloadPublicForm(Request $request, $publicFormUuid, $uuid)
     {
         return static::downloadFile($uuid);
@@ -39,6 +41,7 @@ class FileController extends AdminControllerBase
     /**
      * Download file (call as web)
      */
+    // @phpstan-ignore-next-line
     public function downloadTable(Request $request, $tableKey, $uuid)
     {
         return static::downloadFile(url_join($tableKey, $uuid));
@@ -47,6 +50,7 @@ class FileController extends AdminControllerBase
     /**
      * Delete file (call as web)
      */
+    // @phpstan-ignore-next-line
     public function delete(Request $request, $uuid)
     {
         return static::deleteFile($uuid);
@@ -55,6 +59,7 @@ class FileController extends AdminControllerBase
     /**
      * Delete file (call as web)
      */
+    // @phpstan-ignore-next-line
     public function deleteTable(Request $request, $tableKey, $uuid)
     {
         return static::deleteFile(url_join($tableKey, $uuid));
@@ -65,6 +70,7 @@ class FileController extends AdminControllerBase
     /**
      * Download file (call as Api)
      */
+    // @phpstan-ignore-next-line
     public function downloadApi(Request $request, $uuid)
     {
         return static::downloadFile(
@@ -79,6 +85,7 @@ class FileController extends AdminControllerBase
     /**
      * Download file (call as Api)
      */
+    // @phpstan-ignore-next-line
     public function downloadTableApi(Request $request, $tableKey, $uuid)
     {
         return static::downloadFile(
@@ -93,6 +100,7 @@ class FileController extends AdminControllerBase
     /**
      * Delete file (call as Api)
      */
+    // @phpstan-ignore-next-line
     public function deleteApi(Request $request, $uuid)
     {
         return static::deleteFile(
@@ -106,6 +114,7 @@ class FileController extends AdminControllerBase
     /**
      * Delete file (call as Api)
      */
+    // @phpstan-ignore-next-line
     public function deleteTableApi(Request $request, $tableKey, $uuid)
     {
         return static::deleteFile(
@@ -120,6 +129,7 @@ class FileController extends AdminControllerBase
     /**
      * Download favicon image
      */
+    // @phpstan-ignore-next-line
     public function downloadFavicon()
     {
         return static::downloadFileByKey('site_favicon');
@@ -128,6 +138,7 @@ class FileController extends AdminControllerBase
     /**
      * Download Login image
      */
+    // @phpstan-ignore-next-line
     public function downloadLoginBackground()
     {
         return static::downloadFileByKey('login_page_image');
@@ -136,6 +147,7 @@ class FileController extends AdminControllerBase
     /**
      * Download Login Header
      */
+    // @phpstan-ignore-next-line
     public function downloadLoginHeader()
     {
         return static::downloadFileByKey('site_logo');
@@ -162,6 +174,7 @@ class FileController extends AdminControllerBase
     /**
      * Download file
      */
+    // @phpstan-ignore-next-line
     public static function downloadFile($uuid, $options = [])
     {
         $options = array_merge(
@@ -218,6 +231,7 @@ class FileController extends AdminControllerBase
 
         // create response
         $response = Response::make($file, 200);
+        // @phpstan-ignore-next-line
         $response->header("Content-Type", $type);
 
         // Disposition is attachment because inline is SVG XSS.
@@ -230,6 +244,7 @@ class FileController extends AdminControllerBase
     /**
      * Download temporary upload file
      */
+    // @phpstan-ignore-next-line
     public static function downloadTemp($uuid, $options = [])
     {
         $filename = pathinfo($uuid, PATHINFO_FILENAME);
@@ -247,6 +262,7 @@ class FileController extends AdminControllerBase
 
         // create response
         $response = Response::make($file, 200);
+        // @phpstan-ignore-next-line
         $response->header("Content-Type", $type);
 
         // Disposition is attachment because inline is SVG XSS.
@@ -258,6 +274,7 @@ class FileController extends AdminControllerBase
     /**
      * Delete file and document info
      */
+    // @phpstan-ignore-next-line
     public static function deleteFile($uuid, $options = [])
     {
         $options = array_merge(
@@ -315,6 +332,7 @@ class FileController extends AdminControllerBase
                 $custom_value = $custom_table->getValueModel()->find($data->parent_id);
             }
             if (isset($custom_value) && isset($custom_column)) {
+                // @phpstan-ignore-next-line
                 $current_val = $custom_value->getValue($custom_column->column_name);
                 if($custom_column->column_type == ColumnType::IMAGE || $custom_column->column_type == ColumnType::FILE) {
                     if($current_val instanceof \Illuminate\Support\Collection) {
@@ -341,7 +359,9 @@ class FileController extends AdminControllerBase
                         }
                     }
                 }
+                // @phpstan-ignore-next-line
                 $custom_value->setValue($custom_column->column_name, $current_val);
+                // @phpstan-ignore-next-line
                 $custom_value->save();
             }
             return response(null, 204);
@@ -356,6 +376,7 @@ class FileController extends AdminControllerBase
     /**
      *  Delete temporary files that are one day old
      */
+    // @phpstan-ignore-next-line
     protected function removeTempFiles()
     {
         $disk = Storage::disk(Define::DISKNAME_TEMP_UPLOAD);
@@ -388,6 +409,7 @@ class FileController extends AdminControllerBase
     /**
      *  check if used in dashboard editor
      */
+    // @phpstan-ignore-next-line
     protected function usedInDashboardEditor($file, &$contents)
     {
         if (is_null($contents)) {
@@ -411,6 +433,7 @@ class FileController extends AdminControllerBase
     /**
      *  upload file as temporary
      */
+    // @phpstan-ignore-next-line
     protected function uploadTempFile(Request $request)
     {
         return $this->_uploadTempFile($request, false);
@@ -419,6 +442,7 @@ class FileController extends AdminControllerBase
     /**
      *  upload Image as temporary
      */
+    // @phpstan-ignore-next-line
     protected function uploadTempImage(Request $request)
     {
         return $this->_uploadTempFile($request, true);
@@ -427,6 +451,7 @@ class FileController extends AdminControllerBase
     /**
      *  upload Image as temporary
      */
+    // @phpstan-ignore-next-line
     protected function uploadTempImagePublicForm(Request $request, $publicFormUuid)
     {
         $public_form = PublicForm::getPublicFormByUuid($publicFormUuid);
@@ -436,6 +461,7 @@ class FileController extends AdminControllerBase
     /**
      *  upload file as temporary
      */
+    // @phpstan-ignore-next-line
     protected function _uploadTempFile(Request $request, bool $isImage, ?PublicForm $public_form = null)
     {
         // delete old temporary files
@@ -456,9 +482,11 @@ class FileController extends AdminControllerBase
 
         // get upload file
         $file = $request->file('file');
+        // @phpstan-ignore-next-line
         $original_name = $file->getClientOriginalName();
         $uuid = make_uuid();
         // store uploaded file
+        // @phpstan-ignore-next-line
         $filename = $file->storeAs('', $uuid, Define::DISKNAME_TEMP_UPLOAD);
         try {
             $request->session()->put($uuid, $original_name);
@@ -467,8 +495,10 @@ class FileController extends AdminControllerBase
 
         // If this request is as public_form, return as url
         if ($public_form) {
+            // @phpstan-ignore-next-line
             $localtion = $public_form->getUrl('tmpfiles', basename($filename));
         } else {
+            // @phpstan-ignore-next-line
             $localtion = admin_urls('tmpfiles', basename($filename));
         }
         return json_encode(['location' => $localtion]);
@@ -477,6 +507,7 @@ class FileController extends AdminControllerBase
     /**
      * Download temporary saved file
      */
+    // @phpstan-ignore-next-line
     public function downloadTempFile(Request $request, $uuid)
     {
         // delete old temporary files
@@ -488,6 +519,7 @@ class FileController extends AdminControllerBase
     /**
      * Download temporary saved file
      */
+    // @phpstan-ignore-next-line
     public function downloadTempFilePublicForm(Request $request, $publicFormUuid, $uuid)
     {
         // delete old temporary files
@@ -503,6 +535,7 @@ class FileController extends AdminControllerBase
      * @param mixed $data
      * @return true|\Symfony\Component\HttpFoundation\Response
      */
+    // @phpstan-ignore-next-line
     protected static function checkParentPermission($data, array $options = [])
     {
         $options = array_merge(

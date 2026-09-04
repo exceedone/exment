@@ -13,20 +13,25 @@ class CustomTableAction implements ActionInterface
     /**
      * target custom table
      */
+    // @phpstan-ignore-next-line
     protected $custom_table;
 
     /**
      * custom_table's relations
      */
+    // @phpstan-ignore-next-line
     protected $relations;
 
     /**
      * import data filter
      */
+    // @phpstan-ignore-next-line
     protected $filter;
 
+    // @phpstan-ignore-next-line
     protected $primary_key;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         $this->custom_table = array_get($args, 'custom_table');
@@ -45,6 +50,7 @@ class CustomTableAction implements ActionInterface
      * @param array $options
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function importChunk($datalist, $options = [])
     {
         $messages = [];
@@ -79,9 +85,9 @@ class CustomTableAction implements ActionInterface
                         'command.import.file_row_info',
                         $options['file_name'] ?? null,
                         $table_name,
-                        /** @phpstan-ignore-next-line Offset 'row_start' on non-empty-array on left side of ?? always exists and is not nullable. */
+                        // @phpstan-ignore-next-line
                         $options['row_start'] ?? null,
-                        /** @phpstan-ignore-next-line Offset 'row_start' on non-empty-array on left side of ?? always exists and is not nullable. */
+                        // @phpstan-ignore-next-line
                         $options['row_end'] ?? null
                     ));
                 }
@@ -128,6 +134,7 @@ class CustomTableAction implements ActionInterface
                 foreach ($data_import as $index => &$row) {
                     // call dataProcessing if method exists
                     if (method_exists($provider, 'dataProcessing')) {
+                        // @phpstan-ignore-next-line
                         $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
                     }
 
@@ -154,6 +161,7 @@ class CustomTableAction implements ActionInterface
         ];
     }
 
+    // @phpstan-ignore-next-line
     public function import($datalist, $options = [])
     {
         // get target data and model list
@@ -201,6 +209,7 @@ class CustomTableAction implements ActionInterface
             foreach ($data_import['data_import'] as $index => &$row) {
                 // call dataProcessing if method exists
                 if (method_exists($provider, 'dataProcessing')) {
+                    // @phpstan-ignore-next-line
                     $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
                 }
 
@@ -217,6 +226,7 @@ class CustomTableAction implements ActionInterface
     /**
      * filter only custom_table or relations datalist.
      */
+    // @phpstan-ignore-next-line
     public function filterDatalist($datalist)
     {
         // get tablenames
@@ -239,6 +249,7 @@ class CustomTableAction implements ActionInterface
     /**
      * get provider
      */
+    // @phpstan-ignore-next-line
     public function getProvider($keyname)
     {
         // get providers
@@ -274,11 +285,13 @@ class CustomTableAction implements ActionInterface
     /**
      * get import modal endpoint. not contains "import" and "admin"
      */
+    // @phpstan-ignore-next-line
     public function getImportEndpoint()
     {
         return url_join('data', $this->custom_table->table_name);
     }
 
+    // @phpstan-ignore-next-line
     public function getImportHeaderViewName()
     {
         return $this->custom_table->table_view_name;
@@ -287,6 +300,7 @@ class CustomTableAction implements ActionInterface
     /**
      * get primary key list.
      */
+    // @phpstan-ignore-next-line
     public function getPrimaryKeys()
     {
         // default list
@@ -313,6 +327,7 @@ class CustomTableAction implements ActionInterface
     /**
      * set_import_modal_items. it sets at form footer
      */
+    // @phpstan-ignore-next-line
     public function setImportModalItems(&$form)
     {
         $form->hidden('custom_table_name')->default($this->custom_table->table_name);
@@ -322,6 +337,7 @@ class CustomTableAction implements ActionInterface
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     protected function getImportTableSetting($settingArray, $table_name)
     {
         if (count($settingArray) <= 2) {

@@ -8,12 +8,17 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\FormLabelType;
 use Encore\Admin\Show\Field as ShowField;
 
+/**
+ * @property \Exceedone\Exment\Model\CustomColumn $custom_column
+ */
 abstract class FormOtherItem implements ItemInterface
 {
     use ItemTrait;
 
+    // @phpstan-ignore-next-line
     protected $form_column;
 
+    // @phpstan-ignore-next-line
     protected $custom_value;
 
     /**
@@ -21,8 +26,10 @@ abstract class FormOtherItem implements ItemInterface
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     public static $availableFields = [];
 
+    // @phpstan-ignore-next-line
     public function __construct($form_column)
     {
         $this->form_column = $form_column;
@@ -45,6 +52,7 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * get column name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return make_uuid();
@@ -53,6 +61,7 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * sqlname
      */
+    // @phpstan-ignore-next-line
     public function sqlname()
     {
         return null;
@@ -61,6 +70,7 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * get index name
      */
+    // @phpstan-ignore-next-line
     public function index()
     {
         return null;
@@ -69,6 +79,7 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * get Text(for display)
      */
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         return array_get($this->form_column_options, 'text');
@@ -78,6 +89,7 @@ abstract class FormOtherItem implements ItemInterface
      * get html(for display)
      * *Please escape
      */
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         // default escapes text
@@ -87,6 +99,7 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * get grid style
      */
+    // @phpstan-ignore-next-line
     public function gridStyle()
     {
         return $this->getStyleString();
@@ -95,27 +108,33 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * sortable for grid
      */
+    // @phpstan-ignore-next-line
     public function sortable()
     {
         return false;
     }
 
+    // @phpstan-ignore-next-line
     public function setCustomValue($custom_value)
     {
         $this->custom_value = $custom_value;
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function getCustomTable()
     {
+        /** @phpstan-ignore-next-line */
         return $this->custom_column->custom_table;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetValue($custom_value)
     {
         return null;
     }
 
+    // @phpstan-ignore-next-line
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         if (is_array($form_column)) {
@@ -134,8 +153,10 @@ abstract class FormOtherItem implements ItemInterface
         return $field;
     }
 
+    // @phpstan-ignore-next-line
     abstract protected function getAdminFieldClass();
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         $field_label_type = $this->getLabelType();
@@ -160,12 +181,13 @@ abstract class FormOtherItem implements ItemInterface
      * @param array $options
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function setShowFieldOptions(ShowField $field, array $options = [])
     {
         $item = $this;
 
         $field->as(function ($v) use ($item) {
-            /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\ColumnItems\FormOtherItem) will always evaluate to false. */
+            // @phpstan-ignore-next-line
             if (is_null($this)) {
                 return '';
             }
@@ -180,6 +202,7 @@ abstract class FormOtherItem implements ItemInterface
         $field->setWidth(12, 0);
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($form_column) = $args + [null];
@@ -219,6 +242,7 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * get view filter type
      */
+    // @phpstan-ignore-next-line
     public function getViewFilterType()
     {
         return FilterType::DEFAULT;

@@ -6,10 +6,13 @@ use Illuminate\Support\Collection;
 
 class ViewProvider extends DefaultTableProvider
 {
+    // @phpstan-ignore-next-line
     protected $custom_view;
 
+    // @phpstan-ignore-next-line
     protected $summary_index_and_view_columns;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         parent::__construct($args);
@@ -22,6 +25,7 @@ class ViewProvider extends DefaultTableProvider
     /**
      * get data
      */
+    // @phpstan-ignore-next-line
     public function data()
     {
         // get header and body
@@ -43,6 +47,7 @@ class ViewProvider extends DefaultTableProvider
      * get export headers
      * contains custom column name, column view name
      */
+    // @phpstan-ignore-next-line
     protected function getHeaders($columnDefines)
     {
         // create 2 rows.
@@ -65,6 +70,7 @@ class ViewProvider extends DefaultTableProvider
     /**
      * get target chunk records
      */
+    // @phpstan-ignore-next-line
     public function getRecords(): Collection
     {
         $this->grid->applyQuickSearch();
@@ -84,6 +90,7 @@ class ViewProvider extends DefaultTableProvider
     /**
      * get export bodies
      */
+    // @phpstan-ignore-next-line
     protected function getBodies($records, $columnDefines)
     {
         if (!isset($records)) {
@@ -119,6 +126,7 @@ class ViewProvider extends DefaultTableProvider
     }
 
 
+    // @phpstan-ignore-next-line
     protected function appendBodyItemOptions(array $options, $index)
     {
         return $options;

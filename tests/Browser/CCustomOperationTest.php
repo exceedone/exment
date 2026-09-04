@@ -227,7 +227,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                     "custom_operation_conditions[$row_id][condition_target]",
                     $custom_operation_condition->target_column_id
                 );
-                /** @phpstan-ignore-next-line  */
+                // @phpstan-ignore-next-line
                 $this->seeOuterElement("input.condition_value.rowno-$row_id", 30000);
                 $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::NUMBER));
             }
@@ -280,7 +280,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             'suuid' => array_get($operation, 'suuid'),
             'id' => implode(',', $err_ids)
         ]);
-        /** @phpstan-ignore-next-line  */
+        // @phpstan-ignore-next-line
         $this->assertFalse($this->response->getData()->result);
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -290,7 +290,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             'suuid' => array_get($operation, 'suuid'),
             'id' => implode(',', $ids)
         ]);
-        /** @phpstan-ignore-next-line  */
+        // @phpstan-ignore-next-line
         $this->assertFalse($this->response->getData()->result);
     }
 
@@ -374,7 +374,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
                 ->type('operation create test update', 'value[text]')
                 ->type('even', 'value[odd_even]')
-            /** @phpstan-ignore-next-line  */
+                // @phpstan-ignore-next-line
                 ->type(123.45, 'value[decimal]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url("/data/$target_table_name"));

@@ -123,9 +123,11 @@ class FNotifyTest extends ExmentKitTestCase
 
         $content = $response->response->getContent();
         if (is_json($content)) {
+            // @phpstan-ignore-next-line
             $json = json_decode_ex($content, true);
 
             ///// Cannot test checking whether submitting mail.
+            // @phpstan-ignore-next-line
             $this->assertTrue(array_get($json, 'result', false), 'Post submit error, message is : ' . json_encode($json['errors']));
         }
     }
@@ -173,11 +175,15 @@ class FNotifyTest extends ExmentKitTestCase
 
         $content = $response->response->getContent();
         if (is_json($content)) {
+            // @phpstan-ignore-next-line
             $json = json_decode_ex($content, true);
+            // @phpstan-ignore-next-line
             if (array_get($json, 'result') === false) {
+                // @phpstan-ignore-next-line
                 throw new \Exception(json_encode($json['errors']));
             }
 
+            // @phpstan-ignore-next-line
             $html = array_get($json, 'body');
         } else {
             $html = $content;

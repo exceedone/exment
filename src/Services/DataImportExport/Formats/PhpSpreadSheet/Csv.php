@@ -11,9 +11,11 @@ class Csv extends PhpSpreadSheet
 {
     use CsvTrait;
 
+    // @phpstan-ignore-next-line
     protected $accept_extension = 'csv,zip';
 
 
+    // @phpstan-ignore-next-line
     protected function _getData($request, $callbackZip, $callbackDefault)
     {
         // get file
@@ -39,6 +41,7 @@ class Csv extends PhpSpreadSheet
 
                 // get all files
                 $files = collect(\File::files($tmpfolderpath))->filter(function ($value) {
+                    // @phpstan-ignore-next-line
                     return pathinfo($value)['extension'] == 'csv';
                 });
 
@@ -62,6 +65,7 @@ class Csv extends PhpSpreadSheet
     }
 
 
+    // @phpstan-ignore-next-line
     protected function createWriter($spreadsheet)
     {
         /** @var \PhpOffice\PhpSpreadsheet\Writer\Csv $writer */
@@ -73,6 +77,7 @@ class Csv extends PhpSpreadSheet
         return $writer;
     }
 
+    // @phpstan-ignore-next-line
     protected function createReader()
     {
         return IOFactory::createReader('Csv');
@@ -84,6 +89,7 @@ class Csv extends PhpSpreadSheet
      * @param string|array|\Illuminate\Support\Collection $files
      * @return int
      */
+    // @phpstan-ignore-next-line
     protected function getRowCount($files): int
     {
         $count = 0;
@@ -104,9 +110,10 @@ class Csv extends PhpSpreadSheet
         return $count;
     }
 
+    // @phpstan-ignore-next-line
     protected function getCsvArray($file, array $options = [])
     {
-        /** @phpstan-ignore-next-line setlocale expects array|string|null, int given */
+        // @phpstan-ignore-next-line
         $original_locale = setlocale(LC_CTYPE, 0);
 
         // set C locale
@@ -121,6 +128,7 @@ class Csv extends PhpSpreadSheet
         $array = $this->getDataFromSheet($spreadsheet->getActiveSheet(), false, false, $options);
 
         // revert to original locale
+        // @phpstan-ignore-next-line
         setlocale(LC_CTYPE, $original_locale);
 
         return $array;

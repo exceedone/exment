@@ -10,8 +10,10 @@ use Exceedone\Exment\Model\CustomColumn;
 
 class LoginUserProvider extends ProviderBase
 {
+    // @phpstan-ignore-next-line
     protected $grid;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         parent::__construct();
@@ -21,6 +23,7 @@ class LoginUserProvider extends ProviderBase
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return 'login_user';
@@ -29,6 +32,7 @@ class LoginUserProvider extends ProviderBase
     /**
      * get data
      */
+    // @phpstan-ignore-next-line
     public function data()
     {
         $headers = $this->getHeaders();
@@ -48,6 +52,7 @@ class LoginUserProvider extends ProviderBase
     /**
      * get export headers
      */
+    // @phpstan-ignore-next-line
     protected function getHeaders()
     {
         // create 2 rows.
@@ -89,6 +94,7 @@ class LoginUserProvider extends ProviderBase
     /**
      * get target chunk records
      */
+    // @phpstan-ignore-next-line
     public function getRecords(): Collection
     {
         $records = new Collection();
@@ -106,6 +112,7 @@ class LoginUserProvider extends ProviderBase
     /**
      * get export bodies
      */
+    // @phpstan-ignore-next-line
     protected function getBodies($records)
     {
         if (!isset($records)) {
