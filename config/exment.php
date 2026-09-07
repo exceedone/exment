@@ -360,6 +360,40 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Workflow task navbar
+    |--------------------------------------------------------------------------
+    |
+    | Show the un-actioned workflow task navbar icon
+    |
+    */
+    'workflow_task_navbar' => env('EXMENT_WORKFLOW_TASK_NAVBAR', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Workflow task navbar interval
+    |--------------------------------------------------------------------------
+    |
+    | How often (SECONDS) the browser re-fetches the workflow task badge.
+    | Default 300 (5 minutes). Values below 30 are raised to 30: this endpoint scans
+    | every pending record of every workflow table, once per logged-in browser.
+    |
+    */
+    'workflow_task_navbar_interval' => env('EXMENT_WORKFLOW_TASK_NAVBAR_INTERVAL', 300),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Same organization workflow notify
+    |--------------------------------------------------------------------------
+    |
+    | When a member of an assigned organization executes a workflow action, also
+    | notify the other members of that organization. The notification body contains
+    | the record label, so set false to keep it off other members' navbar.
+    |
+    */
+    'same_org_workflow_notify' => env('EXMENT_SAME_ORG_WORKFLOW_NOTIFY', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Chart BackgroundColor
     |--------------------------------------------------------------------------
     |
