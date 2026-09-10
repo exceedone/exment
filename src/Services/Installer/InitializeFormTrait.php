@@ -207,7 +207,7 @@ trait InitializeFormTrait
             ->min(1);
         $form->number('safety_check_max_bulletin_age_minutes', exmtrans('system.safety_check_max_bulletin_age_minutes'))
             ->help(exmtrans('system.help.safety_check_max_bulletin_age_minutes'))
-            ->default(30)
+            ->default(10)
             ->min(1);
         $form->number('safety_check_resend_throttle_minutes', exmtrans('system.safety_check_resend_throttle_minutes'))
             ->help(exmtrans('system.help.safety_check_resend_throttle_minutes'))
