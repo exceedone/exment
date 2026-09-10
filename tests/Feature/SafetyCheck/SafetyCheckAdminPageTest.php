@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 
+use Exceedone\Exment\Controllers\SafetyCheckController;
 use Exceedone\Exment\Jobs\LineSendJob;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LineAccountLink;
@@ -254,6 +255,45 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertEquals($countBefore, $countAfter, 'An empty title must not create an event.');
 
         Bus::assertNotDispatched(LineSendJob::class);
+    }
+
+    /**
+     * Double-submit guard: while another send() by the same admin is still
+     * running (its Cache lock is held), a second POST creates no event and sends
+     * nothing.
+     */
+    public function testSendRefusedWhileAnotherSendIsInProgress()
+    {
+        $countBefore = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
+        $lockKey = SafetyCheckController::sendLockKey();
+        \Cache::add($lockKey, 1, SafetyCheckController::SEND_LOCK_SECONDS);
+
+        try {
+            $response = $this->post('admin/safety_check/send', [
+                'title' => 'Double click',
+                'trigger_type' => 'manual',
+            ]);
+        } finally {
+            \Cache::forget($lockKey);
+        }
+
+        $response->assertStatus(302);
+        $countAfter = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
+        $this->assertEquals($countBefore, $countAfter, 'A send while the lock is held must not create an event.');
+        Bus::assertNotDispatched(LineSendJob::class);
+    }
+
+    /** The lock is released once the send finished, so the next legitimate send goes through. */
+    public function testSendReleasesLockAndAllowsNextSend()
+    {
+        $countBefore = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
+
+        $this->post('admin/safety_check/send', ['title' => 'First', 'trigger_type' => 'manual'])->assertStatus(302);
+        $this->assertFalse(\Cache::has(SafetyCheckController::sendLockKey()), 'lock must be released after send()');
+        $this->post('admin/safety_check/send', ['title' => 'Second', 'trigger_type' => 'manual'])->assertStatus(302);
+
+        $countAfter = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
+        $this->assertEquals($countBefore + 2, $countAfter);
     }
 
     /** 5. POST close: event_status becomes 'closed'. */

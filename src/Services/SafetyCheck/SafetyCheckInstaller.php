@@ -85,22 +85,12 @@ class SafetyCheckInstaller
         static::markSystem($table);
     }
 
-    /**
-     * Answer table (safety_check_answer). References safety_check_event, so
-     * ensureEventTable() must run first.
-     */
-    public static function ensureAnswerTable(): void
+    /** Answer-table column definitions: [name, view name, type, options]. */
+    protected static function answerColumns(): array
     {
-        $existing = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
-        if ($existing) {
-            static::markSystem($existing);
-            return;
-        }
-
         $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
-
         $answerStatuses = array_merge([SafetyCheckDefine::ANSWER_NOT_ANSWERED], SafetyCheckDefine::ANSWER_STATUSES);
-        $columns = [
+        return [
             ['event',         exmtrans('safety.col_event'),         ColumnType::SELECT_TABLE, ['index_enabled' => 1, 'select_target_table' => $eventTable ? $eventTable->id : null]],
             ['user',          exmtrans('safety.col_user'),          ColumnType::USER,         ['index_enabled' => 1]],
             ['answer_status', exmtrans('safety.col_answer_status'), ColumnType::SELECT,       ['index_enabled' => 1, 'select_item' => implode("\n", $answerStatuses), 'default' => SafetyCheckDefine::ANSWER_NOT_ANSWERED]],
@@ -109,6 +99,20 @@ class SafetyCheckInstaller
             ['channel',       exmtrans('safety.col_channel'),       ColumnType::SELECT,       ['select_item' => "line\nmail"]],
             ['unlinked_flg',  exmtrans('safety.col_unlinked_flg'),  ColumnType::YESNO,        []],
         ];
+    }
+
+    /**
+     * Answer table (safety_check_answer). References safety_check_event, so
+     * ensureEventTable() must run first.
+     */
+    public static function ensureAnswerTable(): void
+    {
+        $existing = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
+        if ($existing) {
+            static::ensureColumns($existing, static::answerColumns());
+            static::markSystem($existing);
+            return;
+        }
 
         $table = CustomTable::create([
             'table_name'      => SafetyCheckDefine::TABLE_ANSWER,
@@ -116,18 +120,7 @@ class SafetyCheckInstaller
             'options'         => ['search_enabled' => 1],
         ]);
         $table->createTable();
-
-        foreach ($columns as $order => [$name, $view, $type, $options]) {
-            CustomColumn::create([
-                'custom_table_id'  => $table->id,
-                'column_name'      => $name,
-                'column_view_name' => $view,
-                'column_type'      => $type,
-                'options'          => $options,
-                'order'            => $order + 1,
-            ]);
-        }
-
+        static::ensureColumns($table, static::answerColumns());
         static::markSystem($table);
     }
 
@@ -216,13 +209,6 @@ class SafetyCheckInstaller
         ])->save();
     }
 
-    /**
-     * System mail template for the safety-check mail fallback (users without a
-     * LINE link). Subject/body are stored at install time in the APP_LOCALE
-     * language (same convention as ensureMenu) and are editable by the admin
-     * afterwards. ${safety_title}/${safety_body}/${answer_url} are replaced by
-     * SafetyCheckSender at send time via MailSender->prms().
-     */
     public static function ensureMailTemplate(): void
     {
         $existing = getModelName(SystemTableName::MAIL_TEMPLATE)::withoutGlobalScopes()
@@ -240,10 +226,6 @@ class SafetyCheckInstaller
         ])->save();
     }
 
-    /**
-     * Upgrade path: the channel select was created with only "line" before the
-     * mail fallback existed — append the "mail" option once (idempotent).
-     */
     public static function ensureChannelMailOption(): void
     {
         $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
@@ -263,13 +245,6 @@ class SafetyCheckInstaller
         $channel->save();
     }
 
-    /**
-     * sent_count now counts BOTH channels (LINE + mail) — rename the stored
-     * column label from the old LINE-only wording. The label is system-owned
-     * (matches the eventColumns definition), so this sets it whenever it
-     * doesn't already match the current lang value; a no-op once it does
-     * (idempotent).
-     */
     public static function ensureSentCountLabel(): void
     {
         $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
@@ -284,11 +259,6 @@ class SafetyCheckInstaller
         $sentCount->save();
     }
 
-    /**
-     * Create every column from the definition list that the table does not have
-     * yet (idempotent, per-column). `order` mirrors the list position so a column
-     * added later in the middle keeps the intended display order on new installs.
-     */
     protected static function ensureColumns(CustomTable $table, array $columns): void
     {
         foreach ($columns as $order => [$name, $view, $type, $options]) {
@@ -306,10 +276,6 @@ class SafetyCheckInstaller
         }
     }
 
-    /**
-     * Mark as a system table (cannot be deleted, like mail_template).
-     * system_flg is in CustomTable's $guarded, so it must be assigned directly.
-     */
     protected static function markSystem(CustomTable $table): void
     {
         if (boolval($table->system_flg)) {

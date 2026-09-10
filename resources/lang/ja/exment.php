@@ -2817,6 +2817,8 @@ return [
         'resend_closed_error' => 'この安否確認は締め切られているため、再送できません。',
         'message_close_succeeded' => '安否確認を締め切りました。',
         'message_title_required' => 'タイトルを入力してください。',
+        'message_send_in_progress' => '送信処理中です。しばらく待ってから画面を更新してください。',
+        'message_not_installed' => '安否確認のテーブルがインストールされていません。「php artisan db:seed --class=Exceedone\\\\Exment\\\\Database\\\\Seeder\\\\InstallSeeder」を実行してください。',
         'answer_intro' => '現在の状況を選択して送信してください。',
         'answer_current' => '現在の回答',
         'answer_comment_label' => '追加回答（任意）',

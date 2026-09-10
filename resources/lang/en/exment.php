@@ -2817,6 +2817,8 @@ return [
         'resend_closed_error' => 'This safety check has been closed and can no longer be resent.',
         'message_close_succeeded' => 'Safety check closed.',
         'message_title_required' => 'Please enter a title.',
+        'message_send_in_progress' => 'A send is already in progress. Please wait a moment and refresh the page.',
+        'message_not_installed' => 'The safety check tables are not installed. Run "php artisan db:seed --class=Exceedone\\\\Exment\\\\Database\\\\Seeder\\\\InstallSeeder".',
         'answer_intro' => 'Please select your current status and submit.',
         'answer_current' => 'Current answer',
         'answer_comment_label' => 'Additional response (optional)',

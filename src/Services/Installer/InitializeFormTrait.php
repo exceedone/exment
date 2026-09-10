@@ -200,7 +200,7 @@ trait InitializeFormTrait
         $form->number('safety_check_cooldown_minutes', exmtrans('system.safety_check_cooldown_minutes'))
             ->help(exmtrans('system.help.safety_check_cooldown_minutes'))
             ->default(60)
-            ->min(0);
+            ->min(1);
         $form->number('safety_check_comment_window_minutes', exmtrans('system.safety_check_comment_window_minutes'))
             ->help(exmtrans('system.help.safety_check_comment_window_minutes'))
             ->default(60)
