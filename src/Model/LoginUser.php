@@ -93,11 +93,20 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
      */
     public function getHeaderInfo()
     {
+        // The base user record can be missing while the login account is still usable:
+        // it is soft-deleted from another session, or it was never linked (ex. sso provisioning).
+        // This partial is rendered on every admin screen, so dereferencing it here would take
+        // the whole back office down with a 500 instead of only hiding the header info.
+        $base_user = $this->base_user;
+        if (!isset($base_user)) {
+            return '';
+        }
+
         $headers = [];
         foreach (System::header_user_info() as $field) {
             if ($field == SystemColumn::CREATED_AT) {
                 $title = exmtrans('common.created_at');
-                $value = $this->base_user->created_at;
+                $value = $base_user->created_at;
             } else {
                 /** @var CustomColumn|null $column */
                 $column = CustomColumn::find($field);
@@ -105,7 +114,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
                     continue;
                 }
                 $title = $column->column_view_name;
-                $value = $this->base_user->getValue($column->column_name, true);
+                $value = $base_user->getValue($column->column_name, true);
             }
             $headers[] = exmtrans('common.format_keyvalue', $title, $value);
         }
