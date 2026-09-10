@@ -17,6 +17,7 @@
                 <hr>
                 <p>LINEアプリを開き、以下のQRコードを読み取って連携してください:</p>
                 <img src="{{ $qr }}" alt="LINE QR" width="256" height="256">
+                <p><small>有効期限: {{ $link->line_link_code_expires_at }}（期限が切れた場合は再生成してください）</small></p>
             @endif
         @endif
     </div>

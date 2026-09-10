@@ -27,6 +27,14 @@ class SafetyCheckSender
     public static function send($eventValue, bool $onlyUnanswered = false): array
     {
         $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
+        if (!$answerTable) {
+            // Half-installed environment (see SafetyWatchCommand::handle, which only
+            // checks the event table): fail loudly in the log instead of a fatal.
+            Log::error('safety check answer table is not installed; nothing sent', [
+                'event_id' => $eventValue->id,
+            ]);
+            return ['target' => 0, 'line' => 0, 'mail' => 0];
+        }
 
         // existing answer rows for this event, keyed by user id
         $existingByUser = [];
@@ -139,7 +147,10 @@ class SafetyCheckSender
                 // (QUEUE_CONNECTION=database/redis + worker) really queues the push and
                 // LineSendJob's 429/5xx retry can work. On the default sync driver the
                 // job runs inline here - the try/catch keeps one user's network failure
-                // (Guzzle connect exception) from aborting the rest of the loop.
+                // (Guzzle connect exception) or API rejection (LineSendFailedException,
+                // e.g. expired token) from aborting the rest of the loop, and such a
+                // user is NOT counted as reached over LINE. On an async queue the
+                // outcome is not known yet: 'line' counts dispatched pushes there.
                 try {
                     LineSendJob::dispatch($lineUserId, [$message], [
                         'user_id' => $userId,

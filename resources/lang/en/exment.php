@@ -2755,6 +2755,7 @@ return [
         'link_menu_title'     => 'LINE Link',
         'link_success'        => '✅ LINE account linked successfully!',
         'link_already_linked' => 'This LINE account is already linked to an account. To change it, please unlink it on the web first.',
+        'link_generate_blocked' => 'Your LINE account is already linked. Unlink it first to link again.',
         'link_invalid_code'   => 'The link code is invalid or has expired. Please check and try again.',
         'invalid_command'     => 'Invalid command.',
         'link_syntax_guide'   => 'To link your account, send: LINK <code>.',

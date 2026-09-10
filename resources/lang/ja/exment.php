@@ -2755,6 +2755,7 @@ return [
         'link_menu_title'     => 'LINE連携',
         'link_success'        => 'LINE連携が完了しました！',
         'link_already_linked' => 'このLINEアカウントは既に別のアカウントと連携済みです。変更する場合は、先にWeb上で連携を解除してください。',
+        'link_generate_blocked' => '既にLINE連携済みです。連携をやり直す場合は、先に連携を解除してください。',
         'link_invalid_code'   => '連携コードが正しくないか、有効期限が切れています。再度ご確認ください。',
         'invalid_command'     => '無効なコマンドです。',
         'link_syntax_guide'   => 'アカウントを連携するには「LINK <コード>」の形式で送信してください。',

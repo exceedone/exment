@@ -474,8 +474,8 @@ class NotifyService
             return;
         }
 
-        // Resolve the target user record -> read its line_user_id
-        $userId = method_exists($user, 'getUserId') ? $user->getUserId() : array_get((array) $user, 'id');
+        // $user is always a NotifyTarget (Notify.php builds them via NotifyTarget::*)
+        $userId = $user->getUserId();
         if (is_nullorempty($userId)) {
             return;
         }
@@ -603,13 +603,7 @@ class NotifyService
             array_get($params, 'replaceOptions', [])
         );
 
-        Notifications\LineSender::make(
-            $lineUserId,
-            $subject,
-            $body,
-            array_get($params, 'action_setting', []),
-            $logContext
-        )->send();
+        Notifications\LineSender::make($lineUserId, $subject, $body, $logContext)->send();
     }
 
     /**

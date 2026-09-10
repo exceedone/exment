@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Jobs;
 
+use Exceedone\Exment\Exceptions\LineSendFailedException;
 use Exceedone\Exment\Services\Line\LineMessagingClient;
 use Exceedone\Exment\Services\Line\LineSendLogger;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -74,6 +75,15 @@ class LineSendJob implements ShouldQueue
             $this->messages,
             $res
         );
+
+        if (!$res['ok'] && $this->isSyncDriver()) {
+            // Inline execution: the dispatching code is still on the stack, so tell
+            // it. Without this, SafetyCheckSender counted a push LINE rejected (e.g.
+            // expired channel token -> 401) as "sent" and the admin page showed N/N
+            // while nobody received anything. The log row is already written above;
+            // failed() skips this exception type so it is not written twice.
+            throw new LineSendFailedException($this->to, $res);
+        }
     }
 
     /**
@@ -85,6 +95,9 @@ class LineSendJob implements ShouldQueue
      */
     public function failed(\Throwable $e): void
     {
+        if ($e instanceof LineSendFailedException) {
+            return; // handle() logged the API result before throwing
+        }
         LineSendLogger::record(
             array_merge(['line_user_id' => $this->to], $this->context),
             $this->messages,
@@ -103,9 +116,15 @@ class LineSendJob implements ShouldQueue
         if ($status !== 429 && $status < 500) {
             return false;
         }
-        if (!$this->job || $this->job->getConnectionName() === 'sync') {
+        if ($this->isSyncDriver()) {
             return false;
         }
         return $this->attempts() < $this->tries;
+    }
+
+    /** True when running inline (sync driver, or no queue job at all — e.g. handle() called directly). */
+    protected function isSyncDriver(): bool
+    {
+        return !$this->job || $this->job->getConnectionName() === 'sync';
     }
 }

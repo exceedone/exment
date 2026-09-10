@@ -56,10 +56,15 @@ class LineMessagingClient
         ]);
     }
 
-    /** Verify the webhook signature (HMAC-SHA256, base64, with the channel secret). */
+    /**
+     * Verify the webhook signature (HMAC-SHA256, base64, with the channel secret).
+     * An unconfigured (empty) channel secret rejects EVERYTHING: the webhook route is
+     * public (no auth/CSRF/IP filter), so without this an attacker could sign any
+     * payload with the empty key while LINE is not yet set up.
+     */
     public function verifySignature(string $requestBody, ?string $signature): bool
     {
-        if (empty($signature)) {
+        if ($this->secret === '' || empty($signature)) {
             return false;
         }
         $hash = base64_encode(hash_hmac('sha256', $requestBody, $this->secret, true));

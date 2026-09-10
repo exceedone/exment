@@ -1217,6 +1217,11 @@ return [
         'api_base'             => env('LINE_API_BASE', 'https://api.line.me'),
         'timeout'              => env('LINE_HTTP_TIMEOUT', 10),
         'dedupe_minutes'       => env('LINE_DEDUPE_MINUTES', 0),
+        // one-time account-link code: lifetime (minutes) and wrong-code attempts
+        // allowed per LINE user before further LINK messages are ignored
+        'link_code_ttl_minutes'      => env('LINE_LINK_CODE_TTL_MINUTES', 10),
+        'link_max_attempts'          => env('LINE_LINK_MAX_ATTEMPTS', 5),
+        'link_attempt_decay_minutes' => env('LINE_LINK_ATTEMPT_DECAY_MINUTES', 10),
     ],
 
     /*

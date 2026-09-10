@@ -16,7 +16,7 @@ class LineLinkController extends AdminControllerBase
         $link   = LineAccountLink::forUser($userId);
 
         $qr = null;
-        if (!$link->isLinked() && !empty($link->line_link_code)) {
+        if (!$link->isLinked() && $link->hasActiveCode()) {
             $deepLink = (new LineAccountLinker())->deepLink($link->line_link_code);
             $qr = QrRenderer::svgDataUri($deepLink);
         }
@@ -29,6 +29,12 @@ class LineLinkController extends AdminControllerBase
     public function generate(Request $request)
     {
         $userId = (int) \Exment::user()->getUserId();
+        if (LineAccountLink::forUser($userId)->isLinked()) {
+            // generateCode() clears line_user_id: a stale tab still showing the
+            // "generate" form must not silently unlink an account linked meanwhile.
+            admin_toastr(exmtrans('line.link_generate_blocked'), 'error');
+            return redirect(admin_url('line/link'));
+        }
         (new LineAccountLinker())->generateCodeForUser($userId);
         return redirect(admin_url('line/link'));
     }

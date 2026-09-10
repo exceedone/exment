@@ -8,25 +8,25 @@ use Exceedone\Exment\Services\Line\LineSendLogger;
 
 class LineSender extends SenderBase
 {
+    /** LINE Messaging API limit for a text message's `text` field (characters). */
+    public const TEXT_MAX_LENGTH = 5000;
+
     /** @var string Recipient line_user_id */
     protected $to;
-    /** @var array */
-    protected $options;
     /** @var array Context for the line_send_log entry (see LineSendLogger::record) */
     protected $context;
 
-    public function __construct($to, $subject, $body, array $options = [], array $context = [])
+    public function __construct($to, $subject, $body, array $context = [])
     {
         $this->to      = $to;
         $this->subject = $subject;
         $this->body    = $body;
-        $this->options = $options;
         $this->context = $context;
     }
 
-    public static function make($to, $subject, $body, array $options = [], array $context = []): LineSender
+    public static function make($to, $subject, $body, array $context = []): LineSender
     {
-        return new self($to, $subject, $body, $options, $context);
+        return new self($to, $subject, $body, $context);
     }
 
     public function send()
@@ -39,6 +39,12 @@ class LineSender extends SenderBase
         $text = trim(($subject ? $subject . "\n" : '') . $body);
         if ($text === '') {
             return;
+        }
+        // LINE rejects the whole push (HTTP 400) when text exceeds the limit — a long
+        // mail-template body would then be lost silently. Truncate like flex() does
+        // for altText.
+        if (mb_strlen($text) > static::TEXT_MAX_LENGTH) {
+            $text = mb_substr($text, 0, static::TEXT_MAX_LENGTH);
         }
         $context = array_merge($this->context, [
             'message_type'     => LineSendLogger::TYPE_TEXT,
