@@ -183,7 +183,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'id' => 'eq-cd-prompt',
             'max_scale' => 50,
             'time' => $quakeTime->copy(),
-            'received_at' => Carbon::now()->subMinutes(9),
+            'received_at' => Carbon::now()->subMinutes(4),
         ]);
         $this->bindFeed([$prompt]);
         \Artisan::call('exment:safetywatch');
@@ -194,7 +194,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'id' => 'eq-cd-correction',
             'max_scale' => 55,
             'time' => $quakeTime->copy(),
-            'received_at' => Carbon::now()->subMinutes(8),
+            'received_at' => Carbon::now()->subMinutes(2),
         ]);
         $this->bindFeed([$prompt, $correction]);
         \Artisan::call('exment:safetywatch');
@@ -225,7 +225,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'id' => 'eq-foreshock',
             'max_scale' => 50,
             'time' => Carbon::now()->subMinutes(10)->startOfSecond(),
-            'received_at' => Carbon::now()->subMinutes(9),
+            'received_at' => Carbon::now()->subMinutes(4),
         ]);
         $this->bindFeed([$foreshock]);
         \Artisan::call('exment:safetywatch');
@@ -249,7 +249,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
     /**
      * A stale bulletin (older than the safety_check_max_bulletin_age_minutes setting,
-     * default 30) must be skipped even though its scale qualifies, so that a first run
+     * default 10) must be skipped even though its scale qualifies, so that a first run
      * (null cursor) or a re-enable after the watcher was off for a while does not blast
      * every user with a days-old quake. The cursor still advances to the stale item's
      * time, exactly like the other skip branches (below-threshold, duplicate, cooldown).
@@ -310,7 +310,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'id' => 'eq1-prompt',
             'max_scale' => 40, // below threshold 45
             'time' => $quakeTime->copy(),
-            'received_at' => Carbon::now()->subMinutes(9),
+            'received_at' => Carbon::now()->subMinutes(4),
         ]);
         $this->bindFeed([$prompt]);
         \Artisan::call('exment:safetywatch');
@@ -321,7 +321,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'id' => 'eq1-detail',
             'max_scale' => 50,
             'time' => $quakeTime->copy(),
-            'received_at' => Carbon::now()->subMinutes(8),
+            'received_at' => Carbon::now()->subMinutes(2),
         ]);
         $this->bindFeed([$prompt, $detail]);
         \Artisan::call('exment:safetywatch');
@@ -406,7 +406,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         System::safety_check_max_bulletin_age_minutes(0); // emptied in UI -> stored 0
         System::clearCache();
 
-        // 5 minutes old: inside the default 30-minute window
+        // 5 minutes old: inside the default 10-minute window
         $item = $this->feedItem(['id' => 'quake-age-default', 'max_scale' => 50, 'time' => Carbon::now()->subMinutes(5)]);
         $this->bindFeed([$item]);
 
@@ -435,10 +435,10 @@ class SafetyWatchCommandTest extends FeatureTestBase
         System::clearCache();
 
         // an already-triggered event for the SAME earthquake (shared occurred time)
-        $quakeTime = Carbon::now()->subMinutes(11)->startOfSecond();
+        $quakeTime = Carbon::now()->subMinutes(5)->startOfSecond();
         $this->createExistingEvent([
             'jma_event_id' => 'previous-quake-cd',
-            'triggered_at' => Carbon::now()->subMinutes(10)->format('Y-m-d H:i:s'),
+            'triggered_at' => Carbon::now()->subMinutes(4)->format('Y-m-d H:i:s'),
             'quake_time'   => $quakeTime->format('Y-m-d H:i:s'),
         ]);
 

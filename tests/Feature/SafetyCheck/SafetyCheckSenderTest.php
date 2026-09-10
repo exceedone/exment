@@ -19,8 +19,9 @@ use Illuminate\Support\Facades\Notification;
 /**
  * Task 4 - SafetyCheckSender: pre-create answer rows for all users, then deliver over
  * TWO channels - a LINE Flex push for users who linked their LINE account, and a
- * fallback mail carrying a signed web-answer URL for unlinked users who have an email
- * (see SafetyCheckAnswerController). A user with neither a LINE link nor an email keeps
+ * mail carrying a signed web-answer URL for EVERY user with an email, linked or not
+ * (both channels per user since 2026-08-28; see SafetyCheckAnswerController). A user
+ * with neither a LINE link nor an email keeps
  * their `not_answered` row, flagged `unlinked_flg` so the admin sees the gap. Also
  * supports a "re-send" mode that only targets users still `not_answered`, recreating any
  * answer row that failed to be created at an earlier send.
@@ -40,13 +41,12 @@ class SafetyCheckSenderTest extends FeatureTestBase
         Notification::fake();
     }
 
-    /** Users who would get the fallback mail: not linked AND have an email. */
-    protected function mailableUserCount(array $linkedUserIds): int
+    /** Users who get the mail: everyone with an email (LINE-linked included, 2026-08-28). */
+    protected function mailableUserCount(): int
     {
         return CustomTable::getEloquent('user')->getValueQuery()->get()
-            ->filter(function ($u) use ($linkedUserIds) {
-                return !in_array((int) $u->id, $linkedUserIds, true)
-                    && !is_nullorempty($u->getValue('email'));
+            ->filter(function ($u) {
+                return !is_nullorempty($u->getValue('email'));
             })->count();
     }
 
@@ -161,12 +161,11 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $freshEvent = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
         $this->assertEquals($userCount, (int) $freshEvent->getValue('target_count'));
 
-        // sent_count reflects the FIRST send across both channels, not be clobbered by
-        // the smaller resend batch (1 job) -- otherwise the admin page shows e.g.
-        // 送信数 1/対象 N after a resend that reached fewer users.
-        // sent_count = 2 LINE + mail của lần gửi ĐẦU, không bị resend ghi đè
-        $expectedMailFirst = $this->mailableUserCount([$userA, $userB]);
-        $this->assertEquals(2 + $expectedMailFirst, (int) $freshEvent->getValue('sent_count'));
+        // sent_count reflects the FIRST send, not clobbered by the smaller resend
+        // batch (1 job) -- otherwise the admin page shows e.g. 送信数 1/対象 N after
+        // a resend that reached fewer users. Value = DISTINCT users reached at the
+        // first send; A and B both have email, so "everyone with email" covers all.
+        $this->assertEquals($this->mailableUserCount(), (int) $freshEvent->getValue('sent_count'));
     }
 
     /**
@@ -213,22 +212,44 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertEquals($userCount, $result['target']);
     }
 
-    public function testUnlinkedUsersReceiveMail()
+    /**
+     * 2026-08-28 behavior change: mail is no longer fallback-only — EVERY user
+     * with an email gets the mail, LINE-linked included (they get both channels).
+     */
+    public function testLinkedUserWithEmailAlsoReceivesMail()
     {
         $event = $this->createEvent();
         $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
+        $linkedValue = CustomTable::getEloquent('user')->getValueQuery()->find($linked);
+        $this->assertFalse(is_nullorempty($linkedValue->getValue('email')), 'fixture: linked user must have an email');
         $this->linkUser($linked);
-        $expectedMail = $this->mailableUserCount([$linked]);
-        $this->assertGreaterThan(0, $expectedMail, 'test data must contain unlinked users with email');
+        $allWithEmail = $this->mailableUserCount();
 
         $result = SafetyCheckSender::send($event);
 
-        Notification::assertSentTimes(MailSendJob::class, $expectedMail);
-        $this->assertEquals($expectedMail, $result['mail']);
+        // the linked user is IN the mail count now, not excluded from it
+        Notification::assertSentTimes(MailSendJob::class, $allWithEmail);
+        $this->assertEquals($allWithEmail, $result['mail']);
+        $this->assertEquals(1, $result['line']);
+    }
 
-        // sent_count = line + mail
+    /**
+     * sent_count stays "how many USERS were reached" — a user reached over both
+     * channels counts once, so line+mail (which double-counts them) must NOT be
+     * what gets stored.
+     */
+    public function testSentCountCountsDistinctUsersAcrossChannels()
+    {
+        $event = $this->createEvent();
+        $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1; // has email (guarded above)
+        $this->linkUser($linked);
+        $allWithEmail = $this->mailableUserCount();
+
+        SafetyCheckSender::send($event);
+
         $freshEvent = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
-        $this->assertEquals(1 + $expectedMail, (int) $freshEvent->getValue('sent_count'));
+        // linked user already among the mailable ones -> distinct = allWithEmail
+        $this->assertEquals($allWithEmail, (int) $freshEvent->getValue('sent_count'));
     }
 
     public function testBuildMailSenderContainsSignedUrl()
@@ -322,7 +343,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $answered = (int) TestDefine::TESTDATA_USER_LOGINID_USER2; // unlinked, sẽ trả lời
         $this->linkUser($linked);
-        $expectedMailFirst = $this->mailableUserCount([$linked]);
+        $expectedMailFirst = $this->mailableUserCount(); // linked user1 gets mail too now
 
         SafetyCheckSender::send($event);
         Notification::assertSentTimes(MailSendJob::class, $expectedMailFirst);

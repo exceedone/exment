@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\URL;
  * per user (status `not_answered`) and pushes a LINE Flex message to users who linked
  * their LINE account.
  * Delivery is two-channel: users with a LINE link get a Flex push; users without
- * one get the fallback mail (safety_check_mail template) carrying a signed
+ * one get the mail (safety_check_mail template) carrying a signed
  * web-answer URL — see SafetyCheckAnswerController. Users with neither link nor
  * email keep their `not_answered` row (flagged `unlinked_flg`) for the admin.
  * Also supports re-sending: only users whose answer is still `not_answered` get
@@ -122,18 +122,12 @@ class SafetyCheckSender
         $bubble = LineFlexBuilder::buildBubble($title, $rows, $buttons);
         $message = LineMessagingClient::flex($title, $bubble);
 
-        // mail fallback needs the user rows (email column) — fetch ONLY the
-        // unlinked targets' rows, the LINE branch stays id-only
-        $unlinkedIds = [];
-        foreach ($targets as $userId => $answerRow) {
-            if (!$linkedMap->has($userId)) {
-                $unlinkedIds[] = $userId;
-            }
-        }
+        // every target with an email gets the mail (LINE-linked included), so the
+        // user rows (email column) are needed for the whole target list
         $mailUsers = collect();
-        if (!empty($unlinkedIds)) {
+        if (!empty($targets)) {
             $mailUsers = CustomTable::getEloquent(SystemTableName::USER)->getValueQuery()
-                ->whereIn('id', $unlinkedIds)->get()->keyBy('id');
+                ->whereIn('id', array_keys($targets))->get()->keyBy('id');
         }
 
         // mail body = the same info lines the Flex bubble shows (minus the
@@ -147,50 +141,60 @@ class SafetyCheckSender
         }
         $mailBody = implode("\n", $bodyLines);
 
+        $notified = 0;
         foreach ($targets as $userId => $answerRow) {
+            $sentAny = false;
+
             $lineUserId = $linkedMap->get($userId);
-            if (is_nullorempty($lineUserId)) {
-                // no LINE link -> fallback mail with the signed web-answer URL.
-                // No email either: skip (the admin still sees the gap via unlinked_flg).
+            if (!is_nullorempty($lineUserId)) {
+                // dispatch() (not dispatchAfterResponse) so a configured async queue
+                // (QUEUE_CONNECTION=database/redis + worker) really queues the push and
+                // LineSendJob's 429/5xx retry can work. On the default sync driver the
+                // job runs inline here - the try/catch keeps one user's network failure
+                // (Guzzle connect exception) from aborting the rest of the loop.
                 try {
-                    $mailSender = static::buildMailSender($mailUsers->get($userId), $eventValue, $title, $mailBody);
-                    if ($mailSender) {
-                        $mailSender->send();
-                        $result['mail']++;
-                    } else {
-                        Log::warning('safety check mail skipped: user has no email', [
-                            'user_id' => $userId,
-                            'event_id' => $eventValue->id,
-                        ]);
-                    }
+                    LineSendJob::dispatch($lineUserId, [$message], [
+                        'user_id' => $userId,
+                        'message_type' => LineSendLogger::TYPE_FLEX,
+                        'parent_id' => $eventValue->id,
+                        'parent_type' => SafetyCheckDefine::TABLE_EVENT,
+                        'subject' => $title,
+                    ]);
+                    $result['line']++;
+                    $sentAny = true;
                 } catch (\Throwable $e) {
-                    Log::error('safety check mail send failed', [
+                    Log::error('safety check LINE dispatch failed', [
                         'user_id' => $userId,
                         'event_id' => $eventValue->id,
                         'exception' => $e,
                     ]);
                 }
-                continue;
             }
-            // dispatch() (not dispatchAfterResponse) so a configured async queue
-            // (QUEUE_CONNECTION=database/redis + worker) really queues the push and
-            // LineSendJob's 429/5xx retry can work. On the default sync driver the
-            // job runs inline here - the try/catch keeps one user's network failure
-            // (Guzzle connect exception) from aborting the rest of the loop.
+
+            // mail carries the signed web-answer URL; null = user has no email
             try {
-                LineSendJob::dispatch($lineUserId, [$message], [
-                    'user_id' => $userId,
-                    'message_type' => LineSendLogger::TYPE_FLEX,
-                    'parent_id' => $eventValue->id,
-                    'parent_type' => SafetyCheckDefine::TABLE_EVENT,
-                    'subject' => $title,
-                ]);
-                $result['line']++;
+                $mailSender = static::buildMailSender($mailUsers->get($userId), $eventValue, $title, $mailBody);
+                if ($mailSender) {
+                    $mailSender->send();
+                    $result['mail']++;
+                    $sentAny = true;
+                }
             } catch (\Throwable $e) {
-                Log::error('safety check LINE dispatch failed', [
+                Log::error('safety check mail send failed', [
                     'user_id' => $userId,
                     'event_id' => $eventValue->id,
                     'exception' => $e,
+                ]);
+            }
+
+            if ($sentAny) {
+                $notified++;
+            } elseif (is_nullorempty($lineUserId)) {
+                // neither LINE nor email: unreachable — the admin still sees the
+                // gap via unlinked_flg on the row
+                Log::warning('safety check user unreachable: no LINE link and no email', [
+                    'user_id' => $userId,
+                    'event_id' => $eventValue->id,
                 ]);
             }
         }
@@ -205,9 +209,8 @@ class SafetyCheckSender
                 'target_count' => count($existingByUser),
             ];
         } else {
-            // counts of the initial send: notified users across both channels, and the full audience
             $eventUpdate = [
-                'sent_count' => $result['line'] + $result['mail'],
+                'sent_count' => $notified,
                 'target_count' => $result['target'],
             ];
         }

@@ -25,7 +25,7 @@ class SafetyCheckConfigTest extends FeatureTestBase
         $this->assertEquals(45, (int) System::safety_check_min_scale());
         $this->assertEquals(60, (int) System::safety_check_cooldown_minutes());
         $this->assertEquals(60, (int) System::safety_check_comment_window_minutes());
-        $this->assertEquals(30, (int) System::safety_check_max_bulletin_age_minutes());
+        $this->assertEquals(10, (int) System::safety_check_max_bulletin_age_minutes());
         $this->assertEquals(5, (int) System::safety_check_resend_throttle_minutes());
     }
 
