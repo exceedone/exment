@@ -147,6 +147,19 @@ class LineMessagingClientTest extends UnitTestBase
         $this->assertFalse($client->verifySignature('{"events":[{"type":"message"}]}', $signature));
     }
 
+    /**
+     * Security: with no channel secret configured, a forger could sign any payload
+     * with the empty key. The client must reject everything until a secret exists.
+     */
+    public function test_verifySignature_rejects_everything_when_secret_is_empty(): void
+    {
+        $client = new LineMessagingClient(static::TOKEN, '', new Client(['handler' => HandlerStack::create(new MockHandler([]))]));
+        $body = '{"events":[]}';
+        $signedWithEmptyKey = base64_encode(hash_hmac('sha256', $body, '', true));
+
+        $this->assertFalse($client->verifySignature($body, $signedWithEmptyKey));
+    }
+
     public function test_verifySignature_rejects_missing_signature(): void
     {
         $client = $this->makeClient();

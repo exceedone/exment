@@ -87,6 +87,8 @@ use Cache;
  * @method static int|void safety_check_min_scale($arg = null)
  * @method static int|void safety_check_cooldown_minutes($arg = null)
  * @method static int|void safety_check_comment_window_minutes($arg = null)
+ * @method static int|void safety_check_max_bulletin_age_minutes($arg = null)
+ * @method static int|void safety_check_resend_throttle_minutes($arg = null)
  * @method static Carbon|void safety_check_last_feed_time($arg = null)
  * @method static bool|void publicform_available($arg = null)
  * @method static string|void recaptcha_site_key($arg = null)

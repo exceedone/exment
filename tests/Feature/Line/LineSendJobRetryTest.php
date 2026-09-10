@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature\Line;
 
+use Exceedone\Exment\Exceptions\LineSendFailedException;
 use Exceedone\Exment\Jobs\LineSendJob;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Line\LineMessagingClient;
@@ -112,11 +113,24 @@ class LineSendJobRetryTest extends FeatureTestBase
         $queueJob->shouldReceive('release')->never();
         $job->setJob($queueJob);
 
-        $job->handle();
+        // On sync the failure is also surfaced to the inline caller (see
+        // SafetyCheckSender: a rejected push must not count as "sent").
+        $thrown = null;
+        try {
+            $job->handle();
+        } catch (LineSendFailedException $e) {
+            $thrown = $e;
+        }
+        $this->assertNotNull($thrown, 'Sync driver must surface the failure to the caller.');
+        $this->assertEquals(500, $thrown->getResult()['status']);
 
         $rows = $this->sendLogRows();
         $this->assertEquals($before + 1, $rows->count(), 'Sync driver cannot retry: log once, immediately.');
         $this->assertEquals('failed', array_get($rows->last()->value, 'status'));
+
+        // Laravel's sync queue calls failed() with the same exception: no second row.
+        $job->failed($thrown);
+        $this->assertEquals($before + 1, $this->sendLogRows()->count(), 'failed() must not log the API failure twice.');
     }
 
     public function testNonRetryableFailureIsNotReleased()

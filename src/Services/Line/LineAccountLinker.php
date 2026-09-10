@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Line;
 
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\System;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * Links a LINE account via a one-time code, stored in the dedicated line_account_links table.
@@ -31,7 +32,14 @@ class LineAccountLinker
     /**
      * Match a "LINK <code>" message and store the line_user_id.
      *
-     * @return LineAccountLink|null the linked record, or null if it does not match or is already taken.
+     * Brute-force guard: the code space is small (6 hex chars) and the webhook is
+     * public, so (a) a code is only valid for link_code_ttl_minutes after it was
+     * generated and (b) each LINE user gets link_max_attempts wrong codes per
+     * link_attempt_decay_minutes before LINK messages are ignored — both return
+     * null, which the webhook answers with the generic "invalid or expired" text.
+     *
+     * @return LineAccountLink|null the linked record, or null if it does not match, is
+     *                              expired/rate-limited, or the LINE account is already taken.
      */
     public function handleMessage(string $text, ?string $lineUserId): ?LineAccountLink
     {
@@ -43,8 +51,14 @@ class LineAccountLinker
         }
         $code = strtoupper($m[1]);
 
+        $attemptKey = static::attemptKey($lineUserId);
+        if (RateLimiter::tooManyAttempts($attemptKey, (int) config('exment.line.link_max_attempts', 5))) {
+            return null;
+        }
+
         $link = LineAccountLink::where('line_link_code', $code)->first();
-        if (!$link) {
+        if (!$link || !$link->hasActiveCode()) {
+            RateLimiter::hit($attemptKey, 60 * (int) config('exment.line.link_attempt_decay_minutes', 10));
             return null;
         }
 
@@ -56,7 +70,14 @@ class LineAccountLinker
             return null;
         }
 
+        RateLimiter::clear($attemptKey);
         $link->markLinked($lineUserId);
         return $link;
+    }
+
+    /** RateLimiter key for wrong-code attempts from one LINE user. */
+    public static function attemptKey(string $lineUserId): string
+    {
+        return 'line_link_attempt:' . $lineUserId;
     }
 }

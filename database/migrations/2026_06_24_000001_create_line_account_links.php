@@ -13,6 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->unique();
             $table->string('line_user_id')->nullable()->unique();
             $table->string('line_link_code')->nullable();
+            $table->timestamp('line_link_code_expires_at')->nullable(); // 2026_09_10 adds it on older installs
             $table->timestamp('linked_at')->nullable();
             $table->timestamps();
         });

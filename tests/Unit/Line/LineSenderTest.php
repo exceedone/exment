@@ -111,6 +111,17 @@ class LineSenderTest extends UnitTestBase
         });
     }
 
+    /** LINE rejects text over 5000 chars with HTTP 400 — truncate instead of losing the message. */
+    public function test_text_is_truncated_to_line_limit(): void
+    {
+        $body = str_repeat('あ', LineSender::TEXT_MAX_LENGTH + 100);
+
+        $text = $this->sentText('', $body);
+
+        $this->assertNotNull($text);
+        $this->assertEquals(LineSender::TEXT_MAX_LENGTH, mb_strlen($text));
+    }
+
     public function test_nothing_is_sent_when_there_is_no_recipient(): void
     {
         Bus::fake();

@@ -8,6 +8,8 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * Phase 2: LineAccountLinker — one-time code generation, deep link, and matching "LINK <code>".
@@ -82,6 +84,46 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertEquals($this->user1(), $link->user_id);
         $this->assertEquals($lineUserId, $link->line_user_id);
         $this->assertTrue($link->fresh()->isLinked());
+    }
+
+    /** A code is only valid for link_code_ttl_minutes after generation. */
+    public function testHandleMessageRejectsExpiredCode()
+    {
+        $code = $this->linker->generateCodeForUser($this->user1());
+        $link = LineAccountLink::where('user_id', $this->user1())->first();
+        $this->assertTrue($link->hasActiveCode());
+        $this->assertNotNull($link->line_link_code_expires_at);
+
+        Carbon::setTestNow(now()->addMinutes((int) config('exment.line.link_code_ttl_minutes', 10) + 1));
+        try {
+            $this->assertNull($this->linker->handleMessage('LINK ' . $code, 'Uexpired'), 'An expired code must not link.');
+            $this->assertNull(LineAccountLink::where('user_id', $this->user1())->first()->line_user_id);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    /** After link_max_attempts wrong codes, even the right code is ignored until the window decays. */
+    public function testHandleMessageIsRateLimitedPerLineUser()
+    {
+        $lineUserId = 'Ubruteforce';
+        RateLimiter::clear(LineAccountLinker::attemptKey($lineUserId));
+        $code = $this->linker->generateCodeForUser($this->user1());
+
+        $max = (int) config('exment.line.link_max_attempts', 5);
+        for ($i = 0; $i < $max; $i++) {
+            $this->assertNull($this->linker->handleMessage('LINK ZZZZZ' . $i, $lineUserId));
+        }
+
+        try {
+            $this->assertNull($this->linker->handleMessage('LINK ' . $code, $lineUserId), 'Too many wrong codes must block the correct one too.');
+            $this->assertNull(LineAccountLink::where('user_id', $this->user1())->first()->line_user_id);
+
+            // a different LINE user is not affected by that user's attempts
+            $this->assertNotNull($this->linker->handleMessage('LINK ' . $code, 'Uinnocent'));
+        } finally {
+            RateLimiter::clear(LineAccountLinker::attemptKey($lineUserId));
+        }
     }
 
     public function testHandleMessageIsCaseInsensitiveForCommand()
