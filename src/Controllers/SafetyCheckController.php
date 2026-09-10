@@ -25,6 +25,9 @@ class SafetyCheckController extends AdminControllerBase
     /** @var array<int|string, int> answered counts for the events on the current grid page */
     protected $answeredCounts = [];
 
+    /** Seconds a send() lock is held per admin (see the double-submit guard in send()). */
+    public const SEND_LOCK_SECONDS = 10;
+
     public function __construct()
     {
         $this->setPageInfo(exmtrans('safety.menu_title'), exmtrans('safety.menu_title'), exmtrans('safety.description'), 'fa-heartbeat');
@@ -39,9 +42,47 @@ class SafetyCheckController extends AdminControllerBase
 
     public function index(Request $request, Content $content)
     {
-        return $this->AdminContent($content)
+        $content = $this->AdminContent($content);
+        if (!$this->isInstalled()) {
+            // Half-installed environment (same case SafetyWatchCommand guards): show
+            // the recovery hint instead of a 500 from a null column lookup below.
+            return $content->withError(exmtrans('safety.menu_title'), exmtrans('safety.message_not_installed'));
+        }
+        return $content
             ->body(view('exment::safety.index'))
             ->body($this->grid());
+    }
+
+    /**
+     * Both feature tables AND every column the page/queries touch must exist. The
+     * install migration can be marked run while SafetyCheckInstaller::ensureAll()
+     * no-oped (LINE template not imported yet) - see SafetyWatchCommand::handle().
+     */
+    protected function isInstalled(): bool
+    {
+        $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
+        $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
+        if (!$eventTable || !$answerTable) {
+            return false;
+        }
+        foreach (['title', 'trigger_type', 'event_status', 'triggered_at'] as $name) {
+            if (!CustomColumn::getEloquent($name, $eventTable)) {
+                return false;
+            }
+        }
+        foreach (['event', 'answer_status'] as $name) {
+            if (!CustomColumn::getEloquent($name, $answerTable)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Guard for the POST actions: toastr + redirect instead of a 500 on a half-installed env. */
+    protected function notInstalledResponse()
+    {
+        admin_toastr(exmtrans('safety.message_not_installed'), 'error');
+        return redirect(admin_url('safety_check'));
     }
 
     /**
@@ -196,6 +237,10 @@ EOT;
 
     public function send(Request $request)
     {
+        if (!$this->isInstalled()) {
+            return $this->notInstalledResponse();
+        }
+
         $title = trim((string) $request->get('title'));
         if ($title === '') {
             admin_toastr(exmtrans('safety.message_title_required'), 'error');
@@ -207,23 +252,50 @@ EOT;
             $triggerType = SafetyCheckDefine::TRIGGER_MANUAL;
         }
 
-        $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
-        $event = $eventTable->getValueModel();
-        $event->setValue([
-            'title' => $title,
-            'trigger_type' => $triggerType,
-            'event_status' => SafetyCheckDefine::EVENT_OPEN,
-            'triggered_at' => now()->format('Y-m-d H:i:s'),
-        ])->save();
 
-        SafetyCheckSender::send($event);
+        $lockKey = static::sendLockKey();
+        if (!\Cache::add($lockKey, 1, static::SEND_LOCK_SECONDS)) {
+            admin_toastr(exmtrans('safety.message_send_in_progress'), 'error');
+            return redirect(admin_url('safety_check'));
+        }
+
+        try {
+            $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
+            $event = $eventTable->getValueModel();
+            $event->setValue([
+                'title' => $title,
+                'trigger_type' => $triggerType,
+                'event_status' => SafetyCheckDefine::EVENT_OPEN,
+                'triggered_at' => now()->format('Y-m-d H:i:s'),
+            ])->save();
+
+            $this->broadcast($event);
+        } finally {
+            \Cache::forget($lockKey);
+        }
 
         admin_toastr(exmtrans('safety.message_send_succeeded'));
         return redirect(admin_url('safety_check'));
     }
 
+    /** Cache key of the send() double-submit lock for the current admin. */
+    public static function sendLockKey(): string
+    {
+        return 'safety_check_send.' . \Exment::getUserId();
+    }
+
+    protected function broadcast(CustomValue $event, bool $onlyUnanswered = false): void
+    {
+        \Exment::setTimeLimitLong();
+        SafetyCheckSender::send($event, $onlyUnanswered);
+    }
+
     public function resend(Request $request, $id)
     {
+        if (!$this->isInstalled()) {
+            return $this->notInstalledResponse();
+        }
+
         $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
         $event = $this->findEventOrFail($eventTable, $id);
 
@@ -253,7 +325,7 @@ EOT;
             }
         }
 
-        SafetyCheckSender::send($event, true);
+        $this->broadcast($event, true);
 
         admin_toastr(exmtrans('safety.message_resend_succeeded'));
         return redirect(admin_url('safety_check'));
@@ -261,6 +333,10 @@ EOT;
 
     public function close(Request $request, $id)
     {
+        if (!$this->isInstalled()) {
+            return $this->notInstalledResponse();
+        }
+
         $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
         $event = $this->findEventOrFail($eventTable, $id);
 

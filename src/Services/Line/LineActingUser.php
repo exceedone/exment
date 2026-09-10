@@ -41,7 +41,7 @@ class LineActingUser
         try {
             return $callback();
         } finally {
-            $guard->logout();
+            $guard->logoutCurrentDevice();
         }
     }
 }

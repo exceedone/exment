@@ -125,4 +125,26 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $sentCount = CustomColumn::getEloquent('sent_count', $eventTable);
         $this->assertEquals('送信数（管理者が変更）', $sentCount->column_view_name);
     }
+
+    /**
+     * Upgrade path for the ANSWER table, mirroring the event table: an install
+     * that predates a column in answerColumns() must get it on the next
+     * ensureAll(). Simulated by dropping a (non-indexed) column and re-running.
+     */
+    public function testEnsureAllRecreatesMissingAnswerColumn()
+    {
+        SafetyCheckInstaller::ensureAll();
+
+        $answerTable = CustomTable::getEloquent('safety_check_answer');
+        $column = CustomColumn::getEloquent('unlinked_flg', $answerTable);
+        $this->assertNotNull($column);
+        $column->delete();
+        $this->assertNull(CustomColumn::getEloquent('unlinked_flg', CustomTable::getEloquent('safety_check_answer')));
+
+        SafetyCheckInstaller::ensureAll();
+
+        $recreated = CustomColumn::getEloquent('unlinked_flg', CustomTable::getEloquent('safety_check_answer'));
+        $this->assertNotNull($recreated, 'ensureAll() must recreate a missing answer-table column');
+        $this->assertEquals(exmtrans('safety.col_unlinked_flg'), $recreated->column_view_name);
+    }
 }
