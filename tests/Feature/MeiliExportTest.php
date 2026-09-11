@@ -121,7 +121,7 @@ class MeiliExportTest extends FeatureTestBase
                     'request_query' => $request->input('query'),
                     'facade_query' => request()->input('query'),
                     'grid_search_query' => request()->get(
-                        \ExmentAdminCore\Admin\Grid::getSearchKey()
+                        \Encore\Admin\Grid::getSearchKey()
                     ),
                 ];
                 return null;

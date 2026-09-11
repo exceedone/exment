@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Services\Meili\SavedSearchService;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
@@ -123,6 +124,29 @@ class MeiliSearchFilterTest extends FeatureTestBase
             'Array',
             (string) $response->getContent(),
             'a nested range value reached the page as a filter whose value is literally "Array"'
+        );
+    }
+
+    /**
+     * A table granted only custom_value_access_all is reference-only: hidden from
+     * menus and list screens, so its rows never reach the results. Facet counts
+     * must stop at the same boundary, or the sidebar reports how many rows exist
+     * and which values they carry for a table the user cannot open.
+     */
+    public function testFacetableTablesNeverExceedSearchableTables(): void
+    {
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
+
+        $searchable = SavedSearchService::searchableTableNames();
+        $facetable = SavedSearchService::facetableTableNames();
+
+        // Guard the fixture: user2 must really be reference-only on this table.
+        $this->assertNotContains('custom_value_access_all', $searchable);
+
+        $this->assertSame(
+            [],
+            array_values(array_diff($facetable, $searchable)),
+            'the sidebar counts rows of tables whose results the user never sees'
         );
     }
 

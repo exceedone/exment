@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\Meili\GlobalSearch;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Services\DataImportExport\Actions\Export\ViewAction;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\Services\Meili\IndexSettings;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
 use Illuminate\Http\Request;
 
@@ -48,9 +49,12 @@ class SearchExporter
         // A full page back means Meilisearch had at least this many matches, so
         // exporting would drop the rest with nothing on the file to say so.
         // Refusing is the only honest option: the index caps at maxTotalHits, so
-        // there is no page 2 to fetch.
-        if (count($ids) >= $cap) {
-            admin_toastr(sprintf(exmtrans('search.export_too_many'), $cap), 'error');
+        // there is no page 2 to fetch. Compare against the ceiling Meilisearch
+        // can really reach - a permission_scan_cap raised above the index's
+        // maxTotalHits is unreachable, and the guard would never fire.
+        $limit = self::effectiveCap($cap, $this->service->maxTotalHits());
+        if (count($ids) >= $limit) {
+            admin_toastr(sprintf(exmtrans('search.export_too_many'), $limit), 'error');
             return back();
         }
 
@@ -81,5 +85,18 @@ class SearchExporter
             ->filebasename($custom_table->table_name);
 
         return $service->export();
+    }
+
+    /**
+     * How many hits the export can actually see: the smaller of the configured
+     * cap and the index's maxTotalHits.
+     */
+    public static function effectiveCap(int $cap, ?int $maxTotalHits): int
+    {
+        $ceiling = ($maxTotalHits !== null && $maxTotalHits > 0)
+            ? $maxTotalHits
+            : IndexSettings::DEFAULT_MAX_TOTAL_HITS;
+
+        return min($cap, $ceiling);
     }
 }
