@@ -1071,6 +1071,10 @@ return [
     'workflow' => [
         'header' => 'Workflow Setting',
         'description' => 'Set the workflow. Specific users can execute the flow, such as request, approval, and rejection.',
+        'same_org_notify' => [
+            'subject' => 'A member of your organization processed a workflow',
+            'body' => '%s changed the status of "%s: %s" to "%s".',
+        ],
         'workflow_view_name' => 'Workflow View Name',
         'workflow_edit_flg' => 'Grant editing permission',
         'workflow_type' => 'Workflow Type',
@@ -2408,6 +2412,36 @@ return [
         'compare_revision' => 'Compare Revision',
     ],
 
+    'workflow_task' => [
+        'header' => 'Pending tasks',
+        'description' => 'Workflow tasks that are waiting for your action.',
+        'table' => 'Target table',
+        'data' => 'Data',
+        'status' => 'Current status',
+        'updated_at' => 'Updated at',
+        'count' => '%s in total',
+        'empty' => 'You have no pending tasks.',
+        'seen_flg' => 'Read',
+        'seen_options' => [
+            '0' => 'Unread',
+            '1' => 'Read',
+        ],
+        'unseen_count' => '%s unread',
+        'mark_all_seen' => 'Mark all as read',
+        'mark_all_unseen' => 'Mark all as unread',
+        'check_selected' => 'Mark selected as read',
+        'batch_all' => 'Batch actions',
+        'confirm_text' => [
+            'mark_all_seen' => 'Mark all tasks as read. Are you sure?',
+            'mark_all_unseen' => 'Mark all tasks as unread. Are you sure?',
+        ],
+        'message' => [
+            'mark_all_seen_succeeded' => 'All tasks have been marked as read.',
+            'mark_all_unseen_succeeded' => 'All tasks have been marked as unread.',
+            'check_succeeded' => 'The selected data has been marked as read.',
+            'check_notfound' => 'There is no data to update.',
+        ],
+    ],
     'notify_navbar' => [
         'header' => 'Notify list',
         'description' => 'List of notifications to the user.',
