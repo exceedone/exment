@@ -236,7 +236,7 @@ class SavedSearchService
     {
         try {
             return CustomTable::searchEnabled()->get()
-                ->filter(fn ($t) => $t->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE))
+                ->filter(fn ($t) => $t->hasPermission(Permission::AVAILABLE_ALL_VIEW_CUSTOM_VALUE))
                 ->pluck('table_name')
                 ->all();
         } catch (\Throwable $e) {
