@@ -25,6 +25,10 @@ class MeiliSearchService
      */
     public const NO_TABLE_SENTINEL = '__exm_no_table__';
 
+    /** Cached index pagination ceiling; see maxTotalHits(). */
+    private ?int $maxTotalHits = null;
+    private bool $maxTotalHitsRead = false;
+
     public function __construct(
         private Client $client,
         private string $indexName
@@ -368,6 +372,30 @@ class MeiliSearchService
         unset($filters[$key]);
 
         return $filters;
+    }
+
+    /**
+     * The index's pagination ceiling (maxTotalHits): no search can return more
+     * hits than this, whatever the caller asks for. Read once per instance;
+     * null when the setting cannot be read.
+     */
+    public function maxTotalHits(): ?int
+    {
+        if ($this->maxTotalHitsRead) {
+            return $this->maxTotalHits;
+        }
+        $this->maxTotalHitsRead = true;
+
+        try {
+            $pagination = $this->client->index($this->indexName)->getPagination();
+            $value = (int) ($pagination['maxTotalHits'] ?? 0);
+            $this->maxTotalHits = $value > 0 ? $value : null;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] pagination setting unavailable: ' . $e->getMessage());
+            $this->maxTotalHits = null;
+        }
+
+        return $this->maxTotalHits;
     }
 
     /**
