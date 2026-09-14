@@ -76,8 +76,10 @@ class NotifyNavbarController extends AdminControllerBase
             ];
             $filter->equal('read_flg', exmtrans("notify_navbar.read_flg"))->radio($options);
 
+            // Options are the tables of the login user's own notifications (value: table_name, as stored in parent_type),
+            // not the tables the login user has permission on.
             $filter->equal('parent_type', exmtrans("notify_navbar.parent_type"))->select(function ($val) {
-                return CustomTable::filterList()->pluck('table_view_name', 'table_view_name');
+                return NotifyNavbar::getTargetTableOptions();
             });
 
             $filter->like('notify_subject', exmtrans("notify_navbar.notify_subject"));
