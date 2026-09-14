@@ -125,4 +125,28 @@ class IndexSettingsTest extends TestCase
 
         $this->assertSame(['*' => 'count'], $s['faceting']['sortFacetValuesBy']);
     }
+
+    public function testLocalesBecomeALocalizedAttributeRuleOverEveryField(): void
+    {
+        $s = IndexSettings::build(['locales' => ['jpn']]);
+
+        $this->assertSame([['attributePatterns' => ['*'], 'locales' => ['jpn']]], $s['localizedAttributes']);
+    }
+
+    public function testSeveralLocalesAreKeptInOrder(): void
+    {
+        $s = IndexSettings::build(['locales' => ['jpn', 'eng']]);
+
+        $this->assertSame(['jpn', 'eng'], $s['localizedAttributes'][0]['locales']);
+    }
+
+    /**
+     * null, not [] - an empty array would leave whatever the index already has,
+     * so clearing MEILISEARCH_LOCALES could never undo the setting.
+     */
+    public function testNoLocalesClearsTheSettingWithNull(): void
+    {
+        $this->assertNull(IndexSettings::build()['localizedAttributes']);
+        $this->assertNull(IndexSettings::build(['locales' => []])['localizedAttributes']);
+    }
 }
