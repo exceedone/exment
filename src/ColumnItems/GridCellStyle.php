@@ -3,13 +3,16 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Model\CellStylePreset;
 
 /**
  * How one column paints its cells in the data grid.
  *
- * Everything here comes from the column setting screen and is stored in
- * `custom_columns.options`, so a table owner styles a list without touching
- * code and without a view kind of its own.
+ * The settings come from three places, read in this order by resolveSource():
+ * the preset a view picked for the column, then the preset the column itself
+ * picked, then the values typed on the column setting screen. Everything ends
+ * up as the same flat array of `grid_*` keys, so the painting code below
+ * never has to know which screen a value came from.
  *
  * Two levels are involved and they are deliberately separate:
  *
@@ -35,6 +38,18 @@ class GridCellStyle
     public const STYLE_AVATAR = 'avatar';
     public const STYLE_BAR = 'bar';
     public const STYLE_CELL = 'cell';
+
+    /**
+     * Every setting key that describes how a cell looks.
+     *
+     * One list shared by the column setting screen, the preset editor and
+     * the renderer, so a key added in one place cannot be forgotten in the
+     * other two.
+     */
+    public const STYLE_KEYS = [
+        'grid_style', 'grid_color', 'grid_bg_color', 'grid_border_color',
+        'grid_font_weight', 'grid_icon', 'grid_nowrap', 'grid_value_colors',
+    ];
 
     /**
      * Fallback colors handed to select values in option order.
@@ -108,35 +123,116 @@ class GridCellStyle
 
     /**
      * @param \Exceedone\Exment\Model\CustomColumn $custom_column
+     * @param array<string, mixed> $source already resolved `grid_*` settings
      */
-    protected function __construct($custom_column)
+    protected function __construct($custom_column, array $source)
     {
         $this->custom_column = $custom_column;
-        $this->style = strval($custom_column->getOption('grid_style')) ?: static::STYLE_PLAIN;
-        $this->color = static::normalizeColor($custom_column->getOption('grid_color'));
-        $this->bg_color = static::normalizeColor($custom_column->getOption('grid_bg_color'));
-        $this->border_color = static::normalizeColor($custom_column->getOption('grid_border_color'));
-        $this->font_weight = static::normalizeWeight($custom_column->getOption('grid_font_weight'));
-        $this->icon = static::normalizeIcon($custom_column->getOption('grid_icon'));
-        $this->nowrap = boolval($custom_column->getOption('grid_nowrap', false));
-        $this->value_colors = static::parseValueColors($custom_column->getOption('grid_value_colors'));
+        $this->style = strval(array_get($source, 'grid_style')) ?: static::STYLE_PLAIN;
+        $this->color = static::normalizeColor(array_get($source, 'grid_color'));
+        $this->bg_color = static::normalizeColor(array_get($source, 'grid_bg_color'));
+        $this->border_color = static::normalizeColor(array_get($source, 'grid_border_color'));
+        $this->font_weight = static::normalizeWeight(array_get($source, 'grid_font_weight'));
+        $this->icon = static::normalizeIcon(array_get($source, 'grid_icon'));
+        $this->nowrap = boolval(array_get($source, 'grid_nowrap', false));
+        $this->value_colors = static::parseValueColors(array_get($source, 'grid_value_colors'));
     }
 
     /**
      * Build the styler of a column, or null when the column is left alone.
      *
      * @param \Exceedone\Exment\Model\CustomColumn|null $custom_column
+     * @param mixed $view_preset_key preset the current view picked, if any
      * @return static|null
      */
-    public static function make($custom_column)
+    public static function make($custom_column, $view_preset_key = null)
     {
         if (!isset($custom_column)) {
             return null;
         }
 
-        $style = new static($custom_column);
+        $style = new static($custom_column, static::resolveSource($custom_column, $view_preset_key));
 
         return $style->isEmpty() ? null : $style;
+    }
+
+    /**
+     * The settings that actually apply to this column, in this view.
+     *
+     * A preset chosen on the view replaces the column's own appearance
+     * outright rather than merging with it. Two levels of presets plus
+     * per-key overrides would give a table owner no way to predict what a
+     * cell ends up looking like; "the view decides, or the column does" is
+     * a rule that can be held in one's head.
+     *
+     * @param \Exceedone\Exment\Model\CustomColumn $custom_column
+     * @param mixed $view_preset_key
+     * @return array<string, mixed>
+     */
+    public static function resolveSource($custom_column, $view_preset_key = null): array
+    {
+        // Per-value colors are data, not shape: the keys they color are this
+        // column's own choices, which no shared preset can know. They ride
+        // along whichever preset provides the shape.
+        $value_colors = $custom_column->getOption('grid_value_colors');
+
+        $view_preset = CellStylePreset::resolveOptions($view_preset_key);
+        if (!empty($view_preset)) {
+            return static::overlayValueColors($view_preset, $value_colors);
+        }
+
+        $preset = CellStylePreset::resolveOptions($custom_column->getOption('grid_preset'));
+        if (!empty($preset)) {
+            // The preset is the whole look - no per-key corrections. The raw
+            // fields a column may still carry from before presets existed
+            // stay in its options untouched (they come back the day the
+            // preset is deleted), but they do not override: a tweak is a new
+            // preset every column can share, not a private adjustment.
+            return static::overlayValueColors($preset, $value_colors);
+        }
+
+        $own = [];
+        foreach (static::STYLE_KEYS as $key) {
+            $own[$key] = $custom_column->getOption($key);
+        }
+
+        return $own;
+    }
+
+    /**
+     * Put the column's own per-value colors on top of a preset.
+     *
+     * @param array<string, mixed> $preset
+     * @param mixed $value_colors
+     * @return array<string, mixed>
+     */
+    protected static function overlayValueColors(array $preset, $value_colors): array
+    {
+        if (!is_nullorempty($value_colors)) {
+            $preset['grid_value_colors'] = $value_colors;
+        }
+
+        return $preset;
+    }
+
+    /**
+     * The per-value colors of a column, presets included.
+     *
+     * The kanban board and the gantt chart color their own shapes from the
+     * same lines, and they read them here so a preset paints those screens
+     * too instead of only the data list.
+     *
+     * @param \Exceedone\Exment\Model\CustomColumn|null $custom_column
+     * @param mixed $view_preset_key
+     * @return array<string, array<string, string>>
+     */
+    public static function valueColorsOf($custom_column, $view_preset_key = null): array
+    {
+        if (!isset($custom_column)) {
+            return [];
+        }
+
+        return static::parseValueColors(array_get(static::resolveSource($custom_column, $view_preset_key), 'grid_value_colors'));
     }
 
     /**
@@ -173,6 +269,40 @@ class GridCellStyle
         }
 
         return $options;
+    }
+
+    /**
+     * Texts of the per-value color table the script draws.
+     *
+     * Three screens render that table - the column setting, the preset
+     * editor and the preset list - and none of them can read a lang file
+     * from javascript, so the texts travel as a data attribute. One list
+     * here keeps the three saying the same thing.
+     *
+     * @return array<string, string>
+     */
+    public static function valueColorLabels(): array
+    {
+        $labels = [];
+        foreach (['value', 'label', 'unknown', 'color', 'threshold', 'auto', 'clear', 'remove'] as $key) {
+            $labels[$key] = exmtrans('custom_column.value_colors.' . $key);
+        }
+        $labels['add'] = exmtrans('custom_column.value_colors.add_row');
+
+        return $labels;
+    }
+
+    /**
+     * Texts of the icon picker the script draws.
+     *
+     * @return array<string, string>
+     */
+    public static function iconPickerLabels(): array
+    {
+        return [
+            'pick' => exmtrans('cell_style_preset.icon_pick'),
+            'clear' => exmtrans('cell_style_preset.icon_clear'),
+        ];
     }
 
     /**
@@ -605,7 +735,7 @@ class GridCellStyle
     /**
      * Translucent version of a color, for the fill and the border of a badge.
      */
-    protected static function rgba(string $hex, float $alpha): string
+    public static function rgba(string $hex, float $alpha): string
     {
         $hex = ltrim($hex, '#');
         if (strlen($hex) === 3) {
