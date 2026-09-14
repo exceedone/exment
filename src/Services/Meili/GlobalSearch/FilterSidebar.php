@@ -109,7 +109,8 @@ class FilterSidebar
             }
         }
 
-        $selectAll = empty($selectedTables);
+        // Only the user's own picks are checked: this list omits tables without
+        // view-all, so pre-checking it would submit a table filter that hides them.
         $items = [];
         foreach ($dist as $tableName => $count) {
             $table = CustomTable::getEloquent($tableName);
@@ -120,7 +121,7 @@ class FilterSidebar
                 'value' => (string) $tableName,
                 'label' => $table->table_view_name ?? $tableName,
                 'count' => (int) $count,
-                'checked' => $selectAll || in_array((string) $tableName, $selectedTables, true),
+                'checked' => in_array((string) $tableName, $selectedTables, true),
             ];
         }
 

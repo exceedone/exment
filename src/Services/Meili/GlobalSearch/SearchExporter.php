@@ -60,6 +60,8 @@ class SearchExporter
 
         $classname = getModelName($custom_table);
         $grid = new \ExmentAdminCore\Admin\Grid(new $classname());
+        // Meili already applied the keyword; stop HasQuickSearch parsing "col:value" out of it.
+        $grid->quickSearch(fn () => null);
         $grid->model()->usePaginate(false);
         // No hits -> empty whereIn so the output file has only a header (not the whole table).
         $grid->model()->whereIn('id', empty($ids) ? [-1] : $ids);
