@@ -53,7 +53,7 @@ class DocumentMapper
         // facets["<prefix>=value"] from status/classification columns.
         $facets = [];
         foreach ($facetColumns as $column) {
-            $value = $record->getValue($column, true);
+            $value = self::facetValue($record, $column);
             $prefix = $aliases[$column->column_name] ?? self::qualifyColumn($tableName, $column->column_name);
             foreach (self::facetTokens($prefix, $value) as $token) {
                 $facets[] = $token;
@@ -72,6 +72,27 @@ class DocumentMapper
         }
 
         return $this->buildDocument($tableName, $tableLabel, $record->id, $record->label, $fields, $extra);
+    }
+
+    /**
+     * Facet label(s) of a column. A multi-select gives one label per option:
+     * getValue($column, true) would join them into a single string.
+     *
+     * @return mixed
+     */
+    private static function facetValue($record, $column)
+    {
+        $raw = $record->getValue($column);
+        if ($raw instanceof \Illuminate\Contracts\Support\Arrayable) {
+            $raw = $raw->toArray();
+        }
+        if (!is_array($raw)) {
+            return $record->getValue($column, true);
+        }
+
+        $options = $column->column_type === 'select_valtext' ? $column->createSelectOptions() : null;
+
+        return array_map(fn ($v) => $options === null ? $v : array_get($options, $v), $raw);
     }
 
     /**
