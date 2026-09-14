@@ -207,9 +207,8 @@ class SearchController extends AdminControllerBase
         $request->merge(['query' => $q]);
 
         $custom_table = CustomTable::getEloquent($request->input('table_name'));
-        if (!$custom_table
-            || !$custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
-            || !$custom_table->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
+        // Same gate as the list export: permissions + the table's "export disabled" setting.
+        if (!$custom_table || $custom_table->enableExport() !== true) {
             Checker::notFoundOrDeny();
             return;
         }
@@ -511,7 +510,7 @@ class SearchController extends AdminControllerBase
         if (CustomTable::getEloquent($table)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $array['show_list'] = true;
         }
-        if (CustomTable::getEloquent($table)->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
+        if (CustomTable::getEloquent($table)->enableExport() === true) {
             $array['can_export'] = true;
         }
 
