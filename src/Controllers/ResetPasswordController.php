@@ -147,6 +147,9 @@ class ResetPasswordController extends Controller
 
         //$user->setRememberToken(Str::random(60));
 
+        // the user chose a password: an admin-imposed "change password at next login" is satisfied
+        $user->password_reset_flg = false;
+
         $user->saveOrFail();
 
         event(new PasswordReset($user));
