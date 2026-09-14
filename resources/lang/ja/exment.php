@@ -854,6 +854,7 @@ return [
         'email_or_usercode' => 'メールアドレスorユーザーコード',
         'forget_password' => 'パスワードを忘れた',
         'password_reset' => 'パスワードリセット',
+        'password_reset_throttled' => 'パスワードリセットメールは送信済みです。しばらくしてから再度お試しください。',
         'back_login_page' => 'ログインページに戻る',
         'sso_provider_error' => 'プロバイダからのログイン情報取得に失敗しました。何度も失敗する場合、管理者にお問い合わせください。',
         'noexists_user' => 'Exmentにユーザーが存在しませんでした。先にユーザーを追加するよう、管理者にお問い合わせください。',

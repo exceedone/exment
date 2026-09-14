@@ -116,6 +116,7 @@ class Initialize
                 'provider' => 'exment-auth',
                 'table' => 'password_reset_tokens',
                 'expire' => 720,
+                'throttle' => 60,
             ]);
         }
         if (!Config::has('auth.providers.exment-auth')) {

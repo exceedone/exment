@@ -854,6 +854,7 @@ return [
         'email_or_usercode' => 'Email or UserCode',
         'forget_password' => 'I forgot my password',
         'password_reset' => 'Password Reset',
+        'password_reset_throttled' => 'A password reset link was sent recently. Please wait before retrying.',
         'back_login_page' => 'Back to Login Page',
         'sso_provider_error' => 'Failed to acquire login information from provider. If you fail many times, please contact your administrator.',
         'noexists_user' => 'User did not exist in Exment. Please contact your administrator to add users first.',
