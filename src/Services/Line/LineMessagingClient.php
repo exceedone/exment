@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Line;
 
 use GuzzleHttp\Client;
 use Exceedone\Exment\Model\System;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Wraps the LINE Messaging API: push / reply / verify webhook signature.
@@ -50,10 +51,17 @@ class LineMessagingClient
     /** Reply to an event using a replyToken. */
     public function reply(string $replyToken, array $messages): array
     {
-        return $this->request('/v2/bot/message/reply', [
+        $res = $this->request('/v2/bot/message/reply', [
             'replyToken' => $replyToken,
             'messages'   => $this->normalize($messages),
         ]);
+        if (!$res['ok']) {
+            // Webhook handlers discard this result (the action already ran; an
+            // expired replyToken cannot be retried), so log it here or a revoked
+            // token / expired replyToken leaves no trace at all.
+            Log::warning('LINE reply failed', ['status' => $res['status'], 'body' => $res['body']]);
+        }
+        return $res;
     }
 
     /**

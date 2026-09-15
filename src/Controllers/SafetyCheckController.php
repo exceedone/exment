@@ -25,8 +25,14 @@ class SafetyCheckController extends AdminControllerBase
     /** @var array<int|string, int> answered counts for the events on the current grid page */
     protected $answeredCounts = [];
 
-    /** Seconds a send() lock is held per admin (see the double-submit guard in send()). */
-    public const SEND_LOCK_SECONDS = 10;
+    /**
+     * TTL of the send() double-submit lock, per admin. The lock is released in
+     * finally, so this only bounds how long a lock survives a process that died
+     * mid-send — but it MUST outlive a live send: on the sync queue driver that is
+     * N LINE pushes + N SMTP deliveries in one request (minutes for a few hundred
+     * users), and a TTL shorter than that let a second tab create a second event.
+     */
+    public const SEND_LOCK_SECONDS = 600;
 
     public function __construct()
     {

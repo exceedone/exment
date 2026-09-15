@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Line;
 
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\System;
 
 /**
  * Resolves the Exment identity behind a LINE user id and runs code with that
@@ -37,11 +38,19 @@ class LineActingUser
     public static function runAs(LoginUser $loginUser, \Closure $callback)
     {
         $guard = \Auth::guard(config('admin.auth.guard', 'admin'));
+        // Exment caches the CURRENT user's permission set / user settings in
+        // System::requestSession under keys without a user id ("role",
+        // "user_setting") for the whole PHP request. LINE batches several users'
+        // events into one webhook request, so every identity switch must drop
+        // that cache — before, so this user is not evaluated with the previous
+        // user's permissions; after, so the next one is not evaluated with ours.
+        System::clearRequestSession();
         $guard->login($loginUser);
         try {
             return $callback();
         } finally {
             $guard->logoutCurrentDevice();
+            System::clearRequestSession();
         }
     }
 }

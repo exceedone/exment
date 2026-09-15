@@ -56,10 +56,18 @@ class SafetyCheckInstaller
         ];
     }
 
+    /** Columns that identify each feature table as ours (see LineInstaller::isOwnedTable). */
+    public const OWNED_MARKERS = [
+        SafetyCheckDefine::TABLE_EVENT  => ['trigger_type', 'event_status', 'jma_event_id'],
+        SafetyCheckDefine::TABLE_ANSWER => ['answer_status', 'unlinked_flg'],
+    ];
+
     public static function ensureEventTable(): void
     {
         $existing = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
         if ($existing) {
+            // A customer's same-name table must not be adopted (nor dropped later).
+            LineInstaller::assertOwnedTable($existing, static::OWNED_MARKERS[SafetyCheckDefine::TABLE_EVENT]);
             // Upgrade path: a table created by an earlier version may miss
             // columns added since (e.g. quake_time).
             static::ensureColumns($existing, static::eventColumns());
@@ -109,6 +117,7 @@ class SafetyCheckInstaller
     {
         $existing = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
         if ($existing) {
+            LineInstaller::assertOwnedTable($existing, static::OWNED_MARKERS[SafetyCheckDefine::TABLE_ANSWER]);
             static::ensureColumns($existing, static::answerColumns());
             static::markSystem($existing);
             return;
@@ -176,6 +185,9 @@ class SafetyCheckInstaller
             $table = CustomTable::getEloquent($tableName);
             if (!$table) {
                 continue;
+            }
+            if (!LineInstaller::isOwnedTable($table, static::OWNED_MARKERS[$tableName])) {
+                continue; // a customer's same-name table: never drop it
             }
             // system_flg guards against deletion from the admin UI; lift it for teardown
             $table->system_flg = false;

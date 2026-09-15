@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Feature\Line;
 
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestDefine;
@@ -72,5 +73,24 @@ class LineLinkPageTest extends FeatureTestBase
 
         $response->assertStatus(200);
         $response->assertSee('line/link/generate');
+    }
+    /**
+     * The QR / deep link embeds the Official Account's basic id
+     * (https://line.me/R/oaMessage/@<id>/...). With no id configured the link is
+     * "@/" — every employee who scans it fails, and nobody knows why. Refuse to
+     * generate a code until the OA basic id is set in System settings.
+     */
+    public function testGenerateRefusedWhenOaBasicIdNotConfigured()
+    {
+        $loginUser = $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        config(['exment.line.oa_basic_id' => null]);
+        System::system_line_oa_basic_id('');
+        System::clearCache();
+
+        $response = $this->post('admin/line/link/generate');
+
+        $response->assertStatus(302);
+        $link = LineAccountLink::forUser((int) $loginUser->base_user_id);
+        $this->assertFalse($link->hasActiveCode(), 'No link code may be issued while the OA basic id is missing.');
     }
 }

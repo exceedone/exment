@@ -158,7 +158,7 @@ class SafetyCheckSender
                         'parent_id' => $eventValue->id,
                         'parent_type' => SafetyCheckDefine::TABLE_EVENT,
                         'subject' => $title,
-                    ]);
+                    ], true); // throwOnFailure: caught per user right below
                     $result['line']++;
                     $sentAny = true;
                 } catch (\Throwable $e) {

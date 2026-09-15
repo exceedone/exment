@@ -31,6 +31,9 @@ return new class extends Migration
         if (!$table) {
             return;
         }
+        if (!\Exceedone\Exment\Services\Line\LineInstaller::isOwnedTable($table, \Exceedone\Exment\Services\Line\LineInstaller::OWNED_MARKERS['line_send_log'])) {
+            return; // a customer's same-name table: never drop it
+        }
         $table->system_flg = false;
         $table->save();
         $table->dropTable();

@@ -333,6 +333,84 @@ class SafetyWatchCommandTest extends FeatureTestBase
     }
 
     /**
+     * Real P2PQuake feed: for any quake of 震度3+ the FIRST bulletin is a 震度速報
+     * (issue.type ScalePrompt) whose hypocenter name is EMPTY; the 震源 name only
+     * arrives with the later Destination/DetailScale bulletins. The prompt is what
+     * reaches the threshold first, so it is what triggers the event — the message
+     * every employee receives must not read "（2026-09-14 19:38 ）" / " / 最大震度5弱".
+     */
+    public function testPromptBulletinWithoutHypocenterUsesPendingPlaceholder()
+    {
+        $this->bindFeed([$this->feedItem(['id' => 'eq-nohypo', 'hypocenter' => '', 'max_scale' => 50])]);
+
+        \Artisan::call('exment:safetywatch');
+
+        $event = $this->eventRows()->first();
+        $this->assertNotNull($event);
+        $placeholder = exmtrans('safety.hypocenter_pending');
+        $this->assertStringContainsString($placeholder, (string) array_get($event->value, 'title'));
+        $this->assertStringContainsString($placeholder, (string) array_get($event->value, 'quake_info'));
+        $this->assertStringNotContainsString(' ）', (string) array_get($event->value, 'title'));
+    }
+
+    /**
+     * The later DetailScale bulletin of the SAME quake (same earthquake.time, cooldown
+     * suppresses a second send) carries the hypocenter name: the admin record must be
+     * completed with it — no new event, no second push.
+     */
+    public function testDetailBulletinBackfillsHypocenterWithoutResending()
+    {
+        $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $quakeTime = Carbon::now()->subMinutes(10)->startOfSecond();
+        $prompt = $this->feedItem([
+            'id' => 'eq-bf-prompt', 'hypocenter' => '', 'max_scale' => 50,
+            'time' => $quakeTime->copy(), 'received_at' => Carbon::now()->subMinutes(4),
+        ]);
+        $this->bindFeed([$prompt]);
+        \Artisan::call('exment:safetywatch');
+
+        $detail = $this->feedItem([
+            'id' => 'eq-bf-detail', 'hypocenter' => '熊本県熊本地方', 'max_scale' => 50,
+            'time' => $quakeTime->copy(), 'received_at' => Carbon::now()->subMinutes(2),
+        ]);
+        $this->bindFeed([$prompt, $detail]);
+        \Artisan::call('exment:safetywatch');
+
+        $rows = $this->eventRows();
+        $this->assertEquals(1, $rows->count());
+        Bus::assertDispatchedTimes(LineSendJob::class, 1);
+        $event = $rows->first();
+        $this->assertStringContainsString('熊本県熊本地方', (string) array_get($event->value, 'quake_info'));
+        $this->assertStringContainsString('熊本県熊本地方', (string) array_get($event->value, 'title'));
+        $this->assertStringNotContainsString(exmtrans('safety.hypocenter_pending'), (string) array_get($event->value, 'quake_info'));
+    }
+
+    /**
+     * A qualifying bulletin dropped as stale (cron/DB/feed outage longer than
+     * max_bulletin_age) is a real earthquake nobody was asked about: it must at
+     * least leave a warning an operator can find. Sub-threshold stale items stay
+     * silent — those are the normal first-run backlog.
+     */
+    public function testStaleQualifyingBulletinLogsWarning()
+    {
+        Log::spy();
+        $this->bindFeed([
+            $this->feedItem(['id' => 'stale-big', 'max_scale' => 60, 'time' => Carbon::now()->subHours(2)]),
+            $this->feedItem(['id' => 'stale-small', 'max_scale' => 10, 'time' => Carbon::now()->subHours(2)]),
+        ]);
+
+        \Artisan::call('exment:safetywatch');
+
+        $this->assertEquals(0, $this->eventRows()->count());
+        Log::shouldHaveReceived('warning')
+            ->once()
+            ->withArgs(function ($message, $context = []) {
+                return $message === 'safety check stale bulletin skipped'
+                    && array_get($context, 'jma_event_id') === 'stale-big';
+            });
+    }
+
+    /**
      * When creating the event row itself fails, NOTHING durable exists (no event, no
      * answer rows, no dedupe key), so the bulletin must NOT be consumed: the cursor
      * stays put and the next poll retries it. (A permanently failing bulletin

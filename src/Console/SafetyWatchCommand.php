@@ -104,6 +104,17 @@ class SafetyWatchCommand extends Command
                 // can return days-old items. Skip them rather than blasting every user
                 // the moment the feature comes online; still advance the cursor so this
                 // bulletin is never re-evaluated (same for every skip branch below).
+                if ($item['max_scale'] >= $minScale) {
+                    // A qualifying quake nobody was asked about (cron / DB / feed outage
+                    // longer than max_bulletin_age): leave a trace an operator can act on
+                    // (manual 送信 from the admin page) instead of dropping it silently.
+                    Log::warning('safety check stale bulletin skipped', [
+                        'jma_event_id' => $item['id'],
+                        'received_at'  => $receivedAt->format('Y-m-d H:i:s'),
+                        'max_scale'    => $item['max_scale'],
+                        'max_bulletin_age_minutes' => $maxAge,
+                    ]);
+                }
                 $newLast = $receivedAt;
                 continue;
             }
@@ -127,12 +138,27 @@ class SafetyWatchCommand extends Command
             // catch a correction/detail bulletin of an already-triggered quake — this
             // can. A DISTINCT quake (own occurred time), e.g. a bigger mainshock right
             // after a foreshock, must always trigger its own event.
+            // The first bulletin of a 震度3+ quake is the 震度速報 (ScalePrompt), which
+            // carries NO hypocenter name yet — the name only comes with the later
+            // Destination / DetailScale bulletins of the same quake. The prompt is what
+            // reaches the threshold first, so it is what triggers: use a placeholder
+            // instead of shipping "（19:38 ）" to every employee, and let the later
+            // bulletin (suppressed by the cooldown below) complete the admin record.
+            $hypocenterKnown = trim((string) $item['hypocenter']) !== '';
+            $hypocenter = $hypocenterKnown ? $item['hypocenter'] : exmtrans('safety.hypocenter_pending');
+            $title = exmtrans('safety.event_table_view_name') . '（' . $item['time']->format('Y-m-d H:i') . ' ' . $hypocenter . '）';
+            $quakeInfo = $hypocenter . ' / ' . SafetyCheckDefine::scaleLabel((int) $item['max_scale']) . ' / ' . $affected->pluck('pref')->unique()->implode('・');
+
             $recent = $eventTable->getValueModel()->where('value->trigger_type', SafetyCheckDefine::TRIGGER_JMA_AUTO)
                 ->where('value->quake_time', $item['time']->format('Y-m-d H:i:s'))
                 ->where('value->triggered_at', '>=', now()->subMinutes($cooldown)->format('Y-m-d H:i:s'))
-                ->exists();
+                ->first();
             if ($recent) {
                 Log::info('safety check suppressed by cooldown', ['jma_event_id' => $item['id']]);
+                if ($hypocenterKnown && str_contains((string) $recent->getValue('quake_info'), exmtrans('safety.hypocenter_pending'))) {
+                    // backfill only: no send, no second event
+                    $recent->setValue(['title' => $title, 'quake_info' => $quakeInfo])->save();
+                }
                 $newLast = $receivedAt;
                 continue;
             }
@@ -140,13 +166,13 @@ class SafetyWatchCommand extends Command
             $event = null;
             try {
                 $event = $eventTable->getValueModel()->setValue([
-                    'title' => exmtrans('safety.event_table_view_name') . '（' . $item['time']->format('Y-m-d H:i') . ' ' . $item['hypocenter'] . '）',
+                    'title' => $title,
                     'trigger_type' => SafetyCheckDefine::TRIGGER_JMA_AUTO,
                     'event_status' => SafetyCheckDefine::EVENT_OPEN,
                     'triggered_at' => now()->format('Y-m-d H:i:s'),
                     'jma_event_id' => $item['id'],
                     'quake_time'   => $item['time']->format('Y-m-d H:i:s'),
-                    'quake_info' => $item['hypocenter'] . ' / ' . SafetyCheckDefine::scaleLabel((int) $item['max_scale']) . ' / ' . $affected->pluck('pref')->unique()->implode('・'),
+                    'quake_info' => $quakeInfo,
                 ]);
                 $event->save();
                 SafetyCheckSender::send($event);

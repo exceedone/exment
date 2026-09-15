@@ -21,12 +21,21 @@ class LineSendJob implements ShouldQueue
     protected $messages;
     /** @var array Context for the line_send_log entry (see LineSendLogger::record) */
     protected $context;
+    /**
+     * @var bool Surface an API rejection to the inline caller as LineSendFailedException.
+     * Only for callers that dispatch() synchronously AND catch it per recipient
+     * (SafetyCheckSender). Never for dispatchAfterResponse() callers: Laravel runs
+     * those inline in Application::terminate() with no try/catch, so one thrown
+     * push would abort every later recipient's push in the same request/command.
+     */
+    protected $throwOnFailure;
 
-    public function __construct(string $to, array $messages, array $context = [])
+    public function __construct(string $to, array $messages, array $context = [], bool $throwOnFailure = false)
     {
         $this->to = $to;
         $this->messages = $messages;
         $this->context = $context;
+        $this->throwOnFailure = $throwOnFailure;
     }
 
     /** Exposes the (otherwise protected) log context, mainly so tests can assert on it. */
@@ -76,7 +85,7 @@ class LineSendJob implements ShouldQueue
             $res
         );
 
-        if (!$res['ok'] && $this->isSyncDriver()) {
+        if (!$res['ok'] && $this->throwOnFailure && $this->isSyncDriver()) {
             // Inline execution: the dispatching code is still on the stack, so tell
             // it. Without this, SafetyCheckSender counted a push LINE rejected (e.g.
             // expired channel token -> 401) as "sent" and the admin page showed N/N

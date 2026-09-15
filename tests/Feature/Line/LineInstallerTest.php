@@ -78,4 +78,34 @@ class LineInstallerTest extends FeatureTestBase
         $this->assertEquals(1, CustomTable::where('table_name', 'line_send_log')->count());
         $this->assertEquals(1, Menu::where('menu_name', 'line_link')->count());
     }
+    /**
+     * Same guard as SafetyCheckInstallerTest::testEnsureAllRefusesForeignTableWithSameName,
+     * for line_flex_template — including the HAZARD note there (a red run commits DDL;
+     * restore the test DB with `APP_ENV=testing php artisan exment:inittest --yes`).
+     */
+    public function testEnsureAllRefusesForeignTableWithSameName()
+    {
+        LineInstaller::ensureAll();
+        $real = CustomTable::getEloquent('line_flex_template');
+        $real->table_name = 'zz_line_flex_template_backup';
+        $real->save();
+        \Exceedone\Exment\Model\System::clearCache();
+
+        $foreign = CustomTable::create([
+            'table_name'      => 'line_flex_template',
+            'table_view_name' => 'Customer table',
+            'options'         => [],
+        ]);
+        \Exceedone\Exment\Model\System::clearCache();
+
+        $thrown = null;
+        try {
+            LineInstaller::ensureAll();
+        } catch (\RuntimeException $e) {
+            $thrown = $e;
+        }
+        $this->assertNotNull($thrown, 'ensureAll() must refuse a same-name table that is not the feature\'s.');
+        $this->assertFalse(boolval(CustomTable::find($foreign->id)->system_flg));
+        $this->assertEquals(0, CustomColumn::where('custom_table_id', $foreign->id)->count());
+    }
 }

@@ -56,7 +56,6 @@ class SafetyCheckDefine
     public static function scaleOptions(): array
     {
         return [
-            10 => exmtrans('safety.scale_options.10'), // 震度1 — enable temporarily for live testing
             40 => exmtrans('safety.scale_options.40'),
             45 => exmtrans('safety.scale_options.45'),
             50 => exmtrans('safety.scale_options.50'),
