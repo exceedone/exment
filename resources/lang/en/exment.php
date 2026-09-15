@@ -2755,6 +2755,7 @@ return [
         'link_menu_title'     => 'LINE Link',
         'link_success'        => '✅ LINE account linked successfully!',
         'link_already_linked' => 'This LINE account is already linked to an account. To change it, please unlink it on the web first.',
+        'link_oa_not_configured' => 'The LINE Official Account basic ID is not configured. Set it under Admin settings > System settings.',
         'link_generate_blocked' => 'Your LINE account is already linked. Unlink it first to link again.',
         'link_invalid_code'   => 'The link code is invalid or has expired. Please check and try again.',
         'invalid_command'     => 'Invalid command.',
@@ -2790,7 +2791,7 @@ return [
         'mail_subject' => '[${system:site_name}] ${safety_title}',
         'mail_body' => "\${safety_body}\n\nPlease answer your safety status from the link below.\n\${answer_url}\n\nLink your LINE account to receive and answer via LINE next time.",
         'scale_options' => [
-            10 => 'Shindo 1 (for testing)', 40 => 'Shindo 4', 45 => 'Shindo 5 Lower',
+            40 => 'Shindo 4', 45 => 'Shindo 5 Lower',
             50 => 'Shindo 5 Upper', 55 => 'Shindo 6 Lower', 60 => 'Shindo 6 Upper', 70 => 'Shindo 7',
         ],
         // Display labels: cover EVERY P2PQuake scale code (a superset of the
@@ -2826,6 +2827,7 @@ return [
         'answer_submit' => 'Submit',
         'answer_done_title' => 'Your answer has been recorded',
         'answer_done_body' => '":status" has been recorded. If your situation changes, you can answer again from the same link in the mail.',
+        'hypocenter_pending' => 'Hypocenter pending',
         'answer_invalid_link' => 'This link is invalid. Please contact your administrator.',
         'answer_invalid_status' => 'The submitted answer is invalid. Please go back and try again.',
     ],

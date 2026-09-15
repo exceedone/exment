@@ -2755,6 +2755,7 @@ return [
         'link_menu_title'     => 'LINE連携',
         'link_success'        => 'LINE連携が完了しました！',
         'link_already_linked' => 'このLINEアカウントは既に別のアカウントと連携済みです。変更する場合は、先にWeb上で連携を解除してください。',
+        'link_oa_not_configured' => 'LINE公式アカウントのベーシックIDが未設定です。管理者設定 > システム設定で設定してください。',
         'link_generate_blocked' => '既にLINE連携済みです。連携をやり直す場合は、先に連携を解除してください。',
         'link_invalid_code'   => '連携コードが正しくないか、有効期限が切れています。再度ご確認ください。',
         'invalid_command'     => '無効なコマンドです。',
@@ -2790,7 +2791,7 @@ return [
         'mail_subject' => '[${system:site_name}] ${safety_title}',
         'mail_body' => "\${safety_body}\n\n下記のリンクから安否状況を回答してください。\n\${answer_url}\n\nLINEアカウントを連携すると、次回からLINEで受信・回答できます。",
         'scale_options' => [
-            10 => '震度1（テスト用）', 40 => '震度4', 45 => '震度5弱',
+            40 => '震度4', 45 => '震度5弱',
             50 => '震度5強', 55 => '震度6弱', 60 => '震度6強', 70 => '震度7',
         ],
         // 表示用の震度ラベル：P2P地震情報の scale コードをすべて網羅する
@@ -2826,6 +2827,7 @@ return [
         'answer_submit' => '送信',
         'answer_done_title' => '回答を受け付けました',
         'answer_done_body' => '「:status」を記録しました。状況が変わった場合は、メールの同じリンクから再度回答できます。',
+        'hypocenter_pending' => '震源調査中',
         'answer_invalid_link' => 'リンクが無効です。管理者にお問い合わせください。',
         'answer_invalid_status' => '回答内容が正しくありません。もう一度お試しください。',
     ],

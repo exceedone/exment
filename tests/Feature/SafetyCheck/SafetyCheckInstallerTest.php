@@ -147,4 +147,42 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertNotNull($recreated, 'ensureAll() must recreate a missing answer-table column');
         $this->assertEquals(exmtrans('safety.col_unlinked_flg'), $recreated->column_view_name);
     }
+    /**
+     * A customer may already have a custom table called safety_check_event.
+     * ensureAll() used to "adopt" it (set system_flg, add columns) and
+     * migrate:rollback would then DROP the customer's data. A table with none of
+     * the feature's columns is not ours: refuse loudly, touch nothing.
+     *
+     * The real feature table is renamed (metadata only — CustomTable saving does
+     * no DDL) so a metadata-only stand-in can take its name inside the transaction.
+     * HAZARD if this test ever goes RED: without the guard, ensureColumns() runs
+     * DDL on the stand-in, which commits the transaction and leaves the renamed
+     * row + a duplicate table in the test DB — restore with
+     * `APP_ENV=testing php artisan exment:inittest --yes`.
+     */
+    public function testEnsureAllRefusesForeignTableWithSameName()
+    {
+        SafetyCheckInstaller::ensureAll();
+        $real = CustomTable::getEloquent('safety_check_event');
+        $real->table_name = 'zz_safety_check_event_backup';
+        $real->save();
+        \Exceedone\Exment\Model\System::clearCache();
+
+        $foreign = CustomTable::create([
+            'table_name'      => 'safety_check_event',
+            'table_view_name' => 'Customer table',
+            'options'         => [],
+        ]);
+        \Exceedone\Exment\Model\System::clearCache();
+
+        $thrown = null;
+        try {
+            SafetyCheckInstaller::ensureAll();
+        } catch (\RuntimeException $e) {
+            $thrown = $e;
+        }
+        $this->assertNotNull($thrown, 'ensureAll() must refuse a same-name table that is not the feature\'s.');
+        $this->assertFalse(boolval(CustomTable::find($foreign->id)->system_flg), 'The foreign table must not be marked as a system table.');
+        $this->assertEquals(0, CustomColumn::where('custom_table_id', $foreign->id)->count(), 'No feature column may be added to the foreign table.');
+    }
 }

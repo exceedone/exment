@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\LineAccountLink;
+use Exceedone\Exment\Model\System;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Services\Line\LineAccountLinker;
 use Exceedone\Exment\Services\Line\QrRenderer;
@@ -33,6 +34,12 @@ class LineLinkController extends AdminControllerBase
             // generateCode() clears line_user_id: a stale tab still showing the
             // "generate" form must not silently unlink an account linked meanwhile.
             admin_toastr(exmtrans('line.link_generate_blocked'), 'error');
+            return redirect(admin_url('line/link'));
+        }
+        if (trim((string) System::system_line_oa_basic_id()) === '') {
+            // The deep link / QR embeds the OA basic id; without it every scan
+            // opens "line.me/R/oaMessage/@/" and fails with no explanation.
+            admin_toastr(exmtrans('line.link_oa_not_configured'), 'error');
             return redirect(admin_url('line/link'));
         }
         (new LineAccountLinker())->generateCodeForUser($userId);

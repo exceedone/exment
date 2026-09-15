@@ -9,6 +9,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Phase 1: LineMessagingClient — push / reply / webhook signature verification.
@@ -113,6 +114,27 @@ class LineMessagingClientTest extends UnitTestBase
         $this->assertArrayNotHasKey('to', $sent);
 
         $this->assertTrue($res['ok']);
+    }
+
+    /**
+     * Webhook handlers discard reply()'s return value (the user already tapped;
+     * there is nothing to retry with an expired replyToken), so a rejected
+     * reply — revoked token, expired replyToken — must at least reach the log
+     * or an operator has no way to diagnose "users never see a confirmation".
+     */
+    public function test_reply_failure_is_logged_as_warning(): void
+    {
+        Log::spy();
+        $client = $this->makeClient(401, '{"message":"Authentication failed"}');
+
+        $res = $client->reply('reply-token-xyz', [LineMessagingClient::text('x')]);
+
+        $this->assertFalse($res['ok']);
+        Log::shouldHaveReceived('warning')
+            ->once()
+            ->withArgs(function ($message, $context = []) {
+                return $message === 'LINE reply failed' && ($context['status'] ?? null) === 401;
+            });
     }
 
     // ----------------------------------------------------- verifySignature

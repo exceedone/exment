@@ -108,13 +108,13 @@ class LineSendJobRetryTest extends FeatureTestBase
 
         $before = $this->sendLogRows()->count();
 
-        $job = new LineSendJob('Uretry3', [LineMessagingClient::text('hello')]);
+        // throwOnFailure=true: on sync the failure is also surfaced to the inline
+        // caller (see SafetyCheckSender: a rejected push must not count as "sent").
+        $job = new LineSendJob('Uretry3', [LineMessagingClient::text('hello')], [], true);
         $queueJob = $this->queueJobMock('sync', 1); // sync driver cannot retry
         $queueJob->shouldReceive('release')->never();
         $job->setJob($queueJob);
 
-        // On sync the failure is also surfaced to the inline caller (see
-        // SafetyCheckSender: a rejected push must not count as "sent").
         $thrown = null;
         try {
             $job->handle();
@@ -189,5 +189,29 @@ class LineSendJobRetryTest extends FeatureTestBase
         $rows = $this->sendLogRows();
         $this->assertEquals($before + 1, $rows->count());
         $this->assertEquals('success', array_get($rows->last()->value, 'status'));
+    }
+    /**
+     * Notify (LineSender / NotifyService::notifyLine) pushes via dispatchAfterResponse,
+     * which Laravel runs INLINE in Application::terminate() — never on a real queue.
+     * One recipient LINE rejects (stale line_user_id -> 400, expired token -> 401)
+     * must not abort the terminating-callback chain: every later recipient must
+     * still get their push and their line_send_log row.
+     */
+    public function testRejectedAfterResponsePushDoesNotAbortLaterPushes()
+    {
+        $this->bindClient([
+            new GuzzleResponse(401, [], '{"message":"invalid token"}'),
+            new GuzzleResponse(200, [], '{}'),
+        ]);
+        $before = $this->sendLogRows()->count();
+
+        LineSendJob::dispatchAfterResponse('Uafter1', [LineMessagingClient::text('hello')], ['user_id' => 1]);
+        LineSendJob::dispatchAfterResponse('Uafter2', [LineMessagingClient::text('hello')], ['user_id' => 2]);
+        $this->app->terminate();
+
+        $rows = $this->sendLogRows();
+        $this->assertEquals($before + 2, $rows->count(), 'The second recipient must still be pushed after the first was rejected.');
+        $this->assertEquals('failed', array_get($rows[$before]->value, 'status'));
+        $this->assertEquals('success', array_get($rows[$before + 1]->value, 'status'));
     }
 }

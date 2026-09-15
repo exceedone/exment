@@ -59,6 +59,44 @@ class LineInstaller
         static::ensureLinkMenu();
     }
 
+    /** Columns that identify each feature table as ours (any one present = ours). */
+    public const OWNED_MARKERS = [
+        'line_flex_template' => ['flex_key', 'template_name'],
+        'line_send_log'      => ['line_user_id', 'send_datetime'],
+    ];
+
+    /**
+     * Whether an existing custom table with one of our names really is the
+     * feature's table: it carries system_flg (set by us) or at least one of the
+     * feature's own columns (an install predating system_flg). A customer's
+     * table that merely shares the name has neither and must never be adopted
+     * (columns added, system_flg set) nor dropped by a rollback.
+     */
+    public static function isOwnedTable(CustomTable $table, array $markerColumns): bool
+    {
+        if (boolval($table->system_flg)) {
+            return true;
+        }
+        foreach ($markerColumns as $name) {
+            if (CustomColumn::getEloquent($name, $table)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** @throws \RuntimeException when the same-name table is not the feature's */
+    public static function assertOwnedTable(CustomTable $table, array $markerColumns): void
+    {
+        if (!static::isOwnedTable($table, $markerColumns)) {
+            throw new \RuntimeException(sprintf(
+                'Custom table "%s" already exists but is not the LINE/safety-check feature table (none of: %s). Rename the existing table before installing.',
+                $table->table_name,
+                implode(', ', $markerColumns)
+            ));
+        }
+    }
+
     public static function ensureLinkMenu(): void
     {
         if (Menu::where('menu_type', MenuType::CUSTOM)->where('menu_name', 'line_link')->exists()) {
@@ -94,6 +132,7 @@ class LineInstaller
     {
         $existing = CustomTable::getEloquent('line_flex_template');
         if ($existing) {
+            static::assertOwnedTable($existing, static::OWNED_MARKERS['line_flex_template']);
             static::markSystem($existing);
             return;
         }
@@ -146,6 +185,7 @@ class LineInstaller
     {
         $existing = CustomTable::getEloquent('line_send_log');
         if ($existing) {
+            static::assertOwnedTable($existing, static::OWNED_MARKERS['line_send_log']);
             static::markSystem($existing);
             return;
         }

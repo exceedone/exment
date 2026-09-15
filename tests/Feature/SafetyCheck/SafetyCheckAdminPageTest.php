@@ -283,6 +283,18 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
+    /**
+     * The lock is released in finally, so its TTL only matters while a send is
+     * still running — and on the sync driver that is N LINE pushes + N SMTP
+     * deliveries, several minutes for a few hundred users. A 10s TTL expired
+     * long before that, so a second tab could create a second event and blast
+     * everyone twice. The TTL must cover a realistic worst-case send.
+     */
+    public function testSendLockOutlivesALongSyncSend()
+    {
+        $this->assertGreaterThanOrEqual(600, SafetyCheckController::SEND_LOCK_SECONDS);
+    }
+
     /** The lock is released once the send finished, so the next legitimate send goes through. */
     public function testSendReleasesLockAndAllowsNextSend()
     {

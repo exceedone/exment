@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 
 use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -337,5 +338,26 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
 
         $response->assertHeader('Cache-Control', 'no-store, private');
         $response->assertHeader('X-Robots-Tag', 'noindex');
+    }
+    /**
+     * The route carries 'admin.log' (LogOperation), which stores request input —
+     * for GET that is the query string, i.e. the signed URL's `signature`, a
+     * credential that never expires. Anyone who can read 操作ログ (or a dump of
+     * admin_operation_log) could then answer on behalf of any employee. The
+     * answer page must be excluded from operation logging, GET and POST alike.
+     */
+    public function testAnswerPageIsNotWrittenToOperationLog()
+    {
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $event = $this->createEvent();
+        $this->createAnswerRow($event->id, $userId);
+        $url = $this->signedAnswerUrl($event->id, $userId);
+        $before = OperationLog::count();
+
+        $this->get($url)->assertStatus(200);
+        $this->post($url, ['st' => 'safe', 'comment' => 'secret detail'])->assertStatus(200);
+
+        $this->assertEquals($before, OperationLog::count(), 'safety/answer requests must not be written to admin_operation_log.');
+        $this->assertEquals(0, OperationLog::where('path', 'like', '%safety/answer%')->count());
     }
 }
