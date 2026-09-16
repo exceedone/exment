@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
@@ -279,7 +280,13 @@ class TemplateController extends AdminControllerBase
         \Exment::setTimeLimitLong();
 
         // upload template file and install
-        $this->uploadTemplate($request);
+        try {
+            $this->uploadTemplate($request);
+        } catch (InvalidZipEntryException $ex) {
+            // the message is already translated and carries no attacker controlled text
+            admin_toastr($ex->getMessage(), 'error');
+            return back();
+        }
 
         // install templates selected tiles.
         if ($request->has('template')) {
