@@ -18,8 +18,9 @@ use Illuminate\Support\Facades\Log;
  * points at any more. Wiping first is only correct if the refill is guaranteed
  * to finish, and it is not: a queue timeout would leave the table unsearchable.
  *
- * Unique by table_name, and the lock is released once the job starts, so a save
- * made DURING a reindex still schedules the next one.
+ * Unique by table_name, and the lock is released once the job starts. A save
+ * made while a continuation slice waits in the queue is dropped by that lock;
+ * the slices detect it through configHash() and restart the pass.
  */
 class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
@@ -30,7 +31,14 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     /** Hold the unique lock for at most 5 minutes in case the job hangs. */
     public int $uniqueFor = 300;
 
-    public function __construct(public string $tableName)
+    /**
+     * @param string $tableName
+     * @param int|null $afterId Start of this slice: the last id the previous run
+     *   indexed. null = start at the beginning of the table.
+     * @param string|null $configHash configHash() the earlier slices of this
+     *   chain indexed with. null = first slice, or unknown.
+     */
+    public function __construct(public string $tableName, public ?int $afterId = null, public ?string $configHash = null)
     {
         // Below the connection's retry_after (database: 90s) so a second worker
         // cannot re-reserve a still-running job. Set here, not as a property:
@@ -69,14 +77,107 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
                     "[Meili] reindex of '{$tableName}' skipped: the queue connection is 'sync',"
                     . ' which would run it inline. Run `php artisan exment:meili-index` after the change.'
                 );
+                self::warnAdmin();
                 return;
             }
 
+            // May be dropped without a word: while a continuation slice of this
+            // table waits in the queue it holds the unique lock. handle() catches
+            // that case by comparing configHash(), not by trusting this dispatch.
             self::dispatch($tableName)->delay(now()->addSeconds(self::DISPATCH_DELAY));
         } catch (\Throwable $e) {
             // A search-index problem must never break the user's save.
             Log::warning('[Meili] reindex dispatch failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Fingerprint of everything a document of this table is built from, other
+     * than the record itself: the exact arguments DocumentMapper::map() gets.
+     * Options are included whole - over-triggering a restart costs a pass,
+     * missing a change leaves documents wrong.
+     *
+     * @param iterable<mixed> $columns
+     * @param iterable<mixed> $facetColumns
+     * @param iterable<mixed> $rangeColumns
+     * @param array<string,string> $aliases
+     */
+    public static function configHash(string $tableLabel, iterable $columns, iterable $facetColumns, iterable $rangeColumns, array $aliases): string
+    {
+        // array_map, not ->map(): IndexPipelineTest reads every "->map(" in this
+        // file as a DocumentMapper::map() call site and checks its arguments.
+        $describe = fn ($list) => array_map(
+            fn ($c) => [(string) $c->column_name, (string) $c->column_type, $c->options ?? null],
+            collect($list)->values()->all()
+        );
+
+        ksort($aliases);
+
+        return md5((string) json_encode([
+            $tableLabel,
+            $describe($columns),
+            $describe($facetColumns),
+            $describe($rangeColumns),
+            $aliases,
+        ]));
+    }
+
+    /**
+     * True when the earlier slices of this chain were indexed with a different
+     * configuration than the one in force now.
+     *
+     * That happens when the table is saved while a continuation slice waits in
+     * the queue: the continuation holds the unique lock, so the save's own
+     * reindex is dropped. Kept out of the cache on purpose - Exment flushes the
+     * whole cache store when a table or column is saved, which is exactly when
+     * this matters.
+     */
+    public static function configChangedMidChain(?int $afterId, ?string $chainHash, string $currentHash): bool
+    {
+        // First slice: nothing indexed yet. No hash: queued by an older version.
+        if ($afterId === null || $chainHash === null) {
+            return false;
+        }
+
+        return $chainHash !== $currentHash;
+    }
+
+    /**
+     * Say it on screen, not only in the log: the settings screen otherwise
+     * reports a plain success while the index silently stays stale.
+     */
+    protected static function warnAdmin(): void
+    {
+        try {
+            if (app()->runningInConsole()) {
+                return;
+            }
+            // admin_warning, not admin_toastr: every toastr shares one session
+            // key, so the "saved" toast the controller flashes right after would
+            // replace this warning and the admin would never see it.
+            if (function_exists('admin_warning')) {
+                admin_warning(exmtrans('search.reindex_skipped'));
+            } elseif (function_exists('admin_toastr')) {
+                admin_toastr(exmtrans('search.reindex_skipped'), 'warning');
+            }
+        } catch (\Throwable $e) {
+            // A notification must never break the user's save.
+        }
+    }
+
+    /**
+     * Id the NEXT run has to start after, or null when this run reached the end
+     * of the table. A slice shorter than the chunk size means there is no more.
+     *
+     * @param array<int,int|string> $ids ids indexed by this run, in id order
+     */
+    public static function nextAfterId(array $ids, int $chunkSize): ?int
+    {
+        if (empty($ids) || count($ids) < max(1, $chunkSize)) {
+            return null;
+        }
+
+        return (int) max(array_map('intval', $ids));
     }
 
     /**
@@ -116,6 +217,8 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
     public function handle(): void
     {
+        $this->resetRequestSessionOnWorker();
+
         $client = MeiliClientFactory::make();
         $indexName = config('meilisearch.index');
         $index = $client->index($indexName);
@@ -135,56 +238,82 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         $aliases = \Exceedone\Exment\Services\Meili\FilterConfig::aliasMap($table);
         $tableName = $table->table_name;
         $tableLabel = $table->table_view_name;
-        $batchSize = max(1, (int) config('meilisearch.batch_size', 1000));
+        // Smaller than batch_size on purpose: one slice must finish well inside
+        // the job timeout, and indexing costs tens of milliseconds per record.
+        $chunkSize = max(1, (int) config('meilisearch.reindex_chunk_size', 500));
 
-        // Overwrite in place instead of wiping first: addDocuments upserts on the
-        // primary key, so a job killed halfway leaves the index stale, never empty.
-        // Batches are queued without waiting between them - Meilisearch processes
-        // them in order, so one wait at the end covers the lot.
-        $dbIds = [];
-        $lastTask = null;
-
-        // Scope dropped: see ExmentIndexer's class docblock.
-        getModelName($table)::query()
-            ->withoutGlobalScope(CustomValueModelScope::class)
-            ->chunkById($batchSize, function ($records) use ($index, $mapper, $columns, $facetColumns, $rangeColumns, $aliases, $tableName, $tableLabel, &$dbIds, &$lastTask) {
-                $docs = [];
-                foreach ($records as $record) {
-                    $dbIds[] = $record->id;
-                    $docs[] = $mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
-                }
-
-                if (!empty($docs)) {
-                    $lastTask = $index->addDocuments($docs, 'id')['taskUid'];
-                }
-            });
-
-        if ($lastTask !== null) {
-            $client->waitForTask($lastTask, 60000);
+        // Computed from the very values this slice maps with, so it describes
+        // exactly what these documents are built from.
+        $hash = self::configHash((string) $tableLabel, $columns, $facetColumns, $rangeColumns, $aliases);
+        if (self::configChangedMidChain($this->afterId, $this->configHash, $hash)) {
+            // The earlier slices carry the old configuration. Start over rather
+            // than finish: every slice still to come would be redone anyway. If
+            // the save's own job did get queued it holds the lock and this
+            // dispatch is dropped - that job is a full pass, so nothing is lost.
+            self::dispatch($this->tableName)->delay(now()->addSeconds(self::DISPATCH_DELAY));
+            return;
         }
 
-        // Records deleted since the last run keep a document nothing points at.
+        // Scope dropped: see ExmentIndexer's class docblock.
+        $records = getModelName($table)::query()
+            ->withoutGlobalScope(CustomValueModelScope::class)
+            ->when($this->afterId !== null, fn ($query) => $query->where('id', '>', $this->afterId))
+            ->orderBy('id')
+            ->limit($chunkSize)
+            ->get();
+
+        $ids = [];
+        $docs = [];
+        foreach ($records as $record) {
+            $ids[] = $record->id;
+            $docs[] = $mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
+        }
+
+        if (!empty($docs)) {
+            $task = $index->addDocuments($docs, 'id');
+            $client->waitForTask($task['taskUid'], 60000);
+        }
+
+        $next = self::nextAfterId($ids, $chunkSize);
+        if ($next !== null) {
+            // More to walk. While queued, the continuation holds the unique
+            // lock, so a save made meanwhile cannot queue its own job; the hash
+            // handed over here is how the continuation notices that save.
+            self::dispatch($this->tableName, $next, $hash);
+            return;
+        }
+
+        // Last slice: records deleted since the previous run keep a document
+        // nothing points at. Ids only, so this stays cheap on a large table.
+        $dbIds = getModelName($table)::query()
+            ->withoutGlobalScope(CustomValueModelScope::class)
+            ->pluck('id')->all();
         $service = new MeiliSearchService($client, $indexName);
         $orphan = MeiliSearchService::diffIds($dbIds, $service->indexedValueIds($this->tableName))['orphan'];
-        $service->deleteByValueIds($this->tableName, self::deletableOrphans($orphan, $dbIds), $mapper);
+
+        // Re-check just before deleting: a record created during the scan exists now.
+        $existingNow = [];
+        foreach (array_chunk($orphan, 1000) as $chunk) {
+            $existingNow = array_merge($existingNow, getModelName($table)::query()
+                ->withoutGlobalScope(CustomValueModelScope::class)
+                ->whereIn('id', $chunk)
+                ->pluck('id')->all());
+        }
+        $service->deleteByValueIds($this->tableName, self::deletableOrphans($orphan, $existingNow), $mapper);
     }
 
     /**
-     * Drop ids newer than the snapshot from the orphan list.
+     * Orphan ids minus those that exist in the database right now.
      *
      * @param  array<int,int|string>  $orphan
-     * @param  array<int,int|string>  $dbIds
+     * @param  array<int,int|string>  $existingNow
      * @return array<int,int|string>
      */
-    public static function deletableOrphans(array $orphan, array $dbIds): array
+    public static function deletableOrphans(array $orphan, array $existingNow): array
     {
-        if (empty($dbIds)) {
-            return [];
-        }
+        $existing = array_flip(array_map('intval', $existingNow));
 
-        $highest = max(array_map('intval', $dbIds));
-
-        return array_values(array_filter($orphan, fn ($id) => (int) $id <= $highest));
+        return array_values(array_filter($orphan, fn ($id) => !isset($existing[(int) $id])));
     }
 
     /**

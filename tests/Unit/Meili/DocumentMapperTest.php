@@ -75,6 +75,17 @@ class DocumentMapperTest extends TestCase
         );
     }
 
+    public function testFacetTokensSkipValuesThatAreNotScalar(): void
+    {
+        // A related record flattened by toArray() carries a nested `value` array.
+        // Casting it to string is an E_WARNING that Laravel turns into an
+        // ErrorException, which used to stop the whole reindex/sync job.
+        $this->assertSame(
+            ['manager=JapanAdmin', 'manager=1'],
+            DocumentMapper::facetTokens('manager', ['JapanAdmin', ['customer' => 'x'], new \stdClass(), true]),
+        );
+    }
+
     public function testQualifyColumnKeepsTablesApart(): void
     {
         // column_name is not unique across tables, so an unaliased prefix carries
@@ -124,6 +135,18 @@ class DocumentMapperTest extends TestCase
         $this->assertMatchesRegularExpression(
             DocumentMapper::RANGE_FIELD_PATTERN,
             DocumentMapper::rangeField('meili_contract', 'amount')
+        );
+
+        // Exment allows "-" in a table_name and a column_name, so a range field
+        // built from such names must pass the guard (it used to be dropped, and
+        // the filter silently did nothing).
+        $this->assertMatchesRegularExpression(
+            DocumentMapper::RANGE_FIELD_PATTERN,
+            DocumentMapper::rangeField('Location-HardFuniture', 'Desk_HardFurniture')
+        );
+        $this->assertMatchesRegularExpression(
+            DocumentMapper::RANGE_FIELD_PATTERN,
+            DocumentMapper::rangeField('contract', 'unit-price')
         );
 
         foreach ([

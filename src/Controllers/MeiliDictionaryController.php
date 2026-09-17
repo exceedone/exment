@@ -85,8 +85,10 @@ class MeiliDictionaryController extends AdminControllerBase
             ->default(MeiliDictionary::TYPE_SYNONYM)
             ->help(exmtrans('system.help.meili_dictionary_type'));
 
+        // max:255 = column width; longer input is truncated or rejected by MySQL.
         $form->text('word', exmtrans('system.meili_dictionary_word'))
             ->required()
+            ->rules(['max:255'])
             ->help(exmtrans('system.help.meili_dictionary_word'));
 
         $form->textarea('synonyms', exmtrans('system.meili_dictionary_synonyms'))

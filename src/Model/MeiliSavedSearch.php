@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
+
 /**
  * Saved Search for global search: stores keyword + filter (generic JSON params:
  * tables/date_from/date_to/users/facets/range) per user, and can be
@@ -77,7 +79,9 @@ class MeiliSavedSearch extends ModelBase
         try {
             $base = $user->base_user;
             $roleGroupIds = $base ? $base->belong_role_groups_all()->pluck('id')->all() : [];
-            $orgIds = $base ? (array) $base->getOrganizationIdsForQuery() : [];
+            // Same organization hierarchy rule as shared views and dashboards.
+            $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+            $orgIds = $base ? (array) $base->getOrganizationIdsForQuery($enum) : [];
         } catch (\Throwable $e) {
             $roleGroupIds = [];
             $orgIds = [];

@@ -47,17 +47,45 @@ class MeiliFilterSetting extends ModelBase
         });
     }
 
+    /**
+     * The tables whose documents this save invalidates: the one the setting
+     * points at now and, when it was moved, the one it pointed at before.
+     * Reindexing only the new table left the old one carrying facet tokens
+     * nothing configures any more.
+     *
+     * @param mixed $currentTableId
+     * @param mixed $originalTableId
+     * @return array<int,int>
+     */
+    public static function tablesToReindex($currentTableId, $originalTableId): array
+    {
+        $ids = [(int) $currentTableId];
+        if (!empty($originalTableId) && (int) $originalTableId !== (int) $currentTableId) {
+            $ids[] = (int) $originalTableId;
+        }
+
+        return array_values(array_filter($ids));
+    }
+
     protected function dispatchReindex(): void
     {
         try {
-            $table = CustomTable::getEloquent($this->custom_table_id);
-            if (!$table || !class_exists(\Meilisearch\Client::class)) {
+            if (!class_exists(\Meilisearch\Client::class)) {
                 return;
             }
 
-            // Delayed + unique: the settings screen saves many rows in one
-            // request, and one job reading the committed state beats N racing it.
-            ReindexMeiliTableJob::dispatchUnlessBlocking($table->table_name);
+            // getOriginal still holds the pre-save value here: Eloquent fires
+            // "saved" before syncOriginal().
+            foreach (self::tablesToReindex($this->custom_table_id, $this->getOriginal('custom_table_id')) as $tableId) {
+                $table = CustomTable::getEloquent($tableId);
+                if (!$table) {
+                    continue;
+                }
+
+                // Delayed + unique: the settings screen saves many rows in one
+                // request, and one job reading the committed state beats N racing it.
+                ReindexMeiliTableJob::dispatchUnlessBlocking($table->table_name);
+            }
 
             // Reindex only rewrites documents. A range setting also needs its
             // n_<table>::<col> declared filterable, or Meili rejects the filter

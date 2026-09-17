@@ -312,8 +312,12 @@ class ExmentServiceProvider extends ServiceProvider
         }
 
         // Record changed -> dispatch a sync job; table/column config changed -> reindex the table.
+        \Illuminate\Support\Facades\Event::listen('eloquent.updating: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\MeiliSync::rememberLabel($payload[0] ?? null);
+        });
         \Illuminate\Support\Facades\Event::listen('eloquent.saved: *', function ($eventName, $payload) {
             \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'upsert');
+            \Exceedone\Exment\Services\Meili\MeiliSync::handleLabelChange($payload[0] ?? null);
             \Exceedone\Exment\Services\Meili\MeiliDefinitionSync::handle($payload[0] ?? null);
         });
         \Illuminate\Support\Facades\Event::listen('eloquent.deleted: *', function ($eventName, $payload) {
@@ -325,6 +329,7 @@ class ExmentServiceProvider extends ServiceProvider
         // implementation detail changes; a duplicate upsert job is harmless.
         \Illuminate\Support\Facades\Event::listen('eloquent.restored: *', function ($eventName, $payload) {
             \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'upsert');
+            \Exceedone\Exment\Services\Meili\MeiliSync::handleRestoredChildren($payload[0] ?? null);
         });
     }
 

@@ -2,9 +2,11 @@
 
 namespace Exceedone\Exment\Services\Meili;
 
+use Exceedone\Exment\Enums\JoinedMultiUserFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\System;
 
 /**
  * Clean up Saved Search filters against the CURRENT metadata before applying them:
@@ -236,7 +238,7 @@ class SavedSearchService
     {
         try {
             return CustomTable::searchEnabled()->get()
-                ->filter(fn ($t) => $t->hasPermission(Permission::AVAILABLE_ALL_VIEW_CUSTOM_VALUE))
+                ->filter(fn ($t) => static::canViewAllRows($t))
                 ->pluck('table_name')
                 ->all();
         } catch (\Throwable $e) {
@@ -244,6 +246,30 @@ class SavedSearchService
             \Illuminate\Support\Facades\Log::warning('[Meili] facetable table list unavailable: ' . $e->getMessage());
             return [];
         }
+    }
+
+    /**
+     * Whether the current user can view every row of the table. Mirrors
+     * CustomValueModelScope: user/organization rows are narrowed by filter_multi_user.
+     *
+     * @param CustomTable $table
+     */
+    public static function canViewAllRows($table): bool
+    {
+        if (!$table->hasPermission(Permission::AVAILABLE_ALL_VIEW_CUSTOM_VALUE)) {
+            return false;
+        }
+        if (!in_array($table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION], true)) {
+            return true;
+        }
+
+        $user = \Exment::user();
+        if (!$user || $user->isAdministrator()) {
+            return true;
+        }
+
+        return System::filter_multi_user() == JoinedMultiUserFilterType::NOT_FILTER
+            || $user->hasPermission(Permission::FILTER_MULTIUSER_ALL);
     }
 
     /**

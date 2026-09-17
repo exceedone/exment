@@ -469,6 +469,19 @@ trait ApiDataTrait
                 return null;
             }
 
+            // Paging and the total below are computed over this list alone. When
+            // Meilisearch matched more than it returned, the total and the last
+            // pages would stop at the cap (select2 stops loading more, the API
+            // reports a wrong total), so leave large result sets to searchValue.
+            if (!\Exceedone\Exment\Services\Meili\MeiliSearchService::isCompleteCandidateSet(
+                count($candidateIds),
+                $cap,
+                $service->maxTotalHits(),
+                $result['total']
+            )) {
+                return null;
+            }
+
             $accessibleIds = getModelName($custom_table)::whereIn('id', $candidateIds)->pluck('id')->all();
             $paged = \Exceedone\Exment\Services\Meili\MeiliSearchService::pageAccessibleIds(
                 $candidateIds,

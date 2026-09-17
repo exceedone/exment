@@ -82,6 +82,16 @@ class RequestFilters
     }
 
     /**
+     * Whether the request carries a filter only Meilisearch can apply
+     * (created date, creator, facets, ranges). The MySQL fallback searches the
+     * keyword alone, so it must not stand in for a filtered search.
+     */
+    public static function hasFilters(Request $request): bool
+    {
+        return !empty(self::parse($request));
+    }
+
+    /**
      * Read a param as a string. `?query[]=x` makes input() return an array, and
      * casting that to string is an E_WARNING - which Laravel turns into an
      * ErrorException, so a crafted URL would 500 the page.
