@@ -67,6 +67,15 @@ class MeiliSync
             if (empty(self::referencingColumns($model->custom_table)) || !self::labelChanged($model)) {
                 return;
             }
+            // Sync driver: many linking records would be mapped inside the save request.
+            if (SyncMeiliReferencesJob::wouldBlockTheCaller($model->custom_table, $model->id)) {
+                \Illuminate\Support\Facades\Log::warning(
+                    "[Meili] update of records linking to '{$model->custom_table->table_name}' #{$model->id} skipped: the queue connection is 'sync'."
+                    . ' Run `php artisan exment:meili-index` after the change.'
+                );
+                ReindexMeiliTableJob::warnAdmin();
+                return;
+            }
             SyncMeiliReferencesJob::dispatch($model->custom_table->table_name, $model->id);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[Meili] reference sync dispatch failed: ' . $e->getMessage());

@@ -146,20 +146,18 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
      * Say it on screen, not only in the log: the settings screen otherwise
      * reports a plain success while the index silently stays stale.
      */
-    protected static function warnAdmin(): void
+    public static function warnAdmin(): void
     {
         try {
             if (app()->runningInConsole()) {
                 return;
             }
-            // admin_warning, not admin_toastr: every toastr shares one session
-            // key, so the "saved" toast the controller flashes right after would
-            // replace this warning and the admin would never see it.
-            if (function_exists('admin_warning')) {
-                admin_warning(exmtrans('search.reindex_skipped'));
-            } elseif (function_exists('admin_toastr')) {
-                admin_toastr(exmtrans('search.reindex_skipped'), 'warning');
-            }
+            // Flash, not admin_warning: it only lives for the current request on
+            // exment-admin-core and is lost on the redirect after saving.
+            session()->flash('warning', new \Illuminate\Support\MessageBag([
+                'title' => exmtrans('search.reindex_skipped'),
+                'message' => '',
+            ]));
         } catch (\Throwable $e) {
             // A notification must never break the user's save.
         }

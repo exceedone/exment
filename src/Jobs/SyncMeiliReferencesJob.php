@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueModelScope;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\FilterConfig;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
@@ -39,9 +41,34 @@ class SyncMeiliReferencesJob implements ShouldQueue
         }
     }
 
+    /**
+     * True when running inline (sync driver) would map more records than batch_size inside the save request.
+     *
+     * @param CustomTable $refTable
+     * @param mixed $valueId
+     */
+    public static function wouldBlockTheCaller($refTable, $valueId): bool
+    {
+        if (config('queue.default') !== 'sync') {
+            return false;
+        }
+
+        $limit = max(1, (int) config('meilisearch.batch_size', 1000));
+        $found = 0;
+        foreach (MeiliSync::referencingColumns($refTable) as [$table, $linkColumns]) {
+            $found += self::referencingQuery($table, $linkColumns, $valueId)->limit($limit + 1 - $found)->pluck('id')->count();
+            if ($found > $limit) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
+        // The save request may hold this record from before the change (sync driver): read the new label.
+        System::clearRequestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->tableName, $this->valueId));
 
         $refTable = CustomTable::getEloquent($this->tableName);
         $refs = $refTable ? MeiliSync::referencingColumns($refTable) : [];
