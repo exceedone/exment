@@ -14,11 +14,6 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Line\LineInstaller;
 
-/**
- * Install-time setup for the safety-check (安否確認) feature.
- * Same contract as LineInstaller: every ensure*() is idempotent and is called
- * from both the migration and InstallSeeder (see LineInstaller docblock).
- */
 class SafetyCheckInstaller
 {
     public const FLEX_KEY = 'safety_check';
@@ -36,7 +31,6 @@ class SafetyCheckInstaller
         static::ensureChannelMailOption();
     }
 
-    /** Event-table column definitions: [name, view name, type, options]. */
     protected static function eventColumns(): array
     {
         return [
@@ -45,9 +39,6 @@ class SafetyCheckInstaller
             ['event_status', exmtrans('safety.col_event_status'), ColumnType::SELECT,   ['index_enabled' => 1, 'select_item' => implode("\n", [SafetyCheckDefine::EVENT_OPEN, SafetyCheckDefine::EVENT_CLOSED])]],
             ['triggered_at', exmtrans('safety.col_triggered_at'), ColumnType::DATETIME, ['index_enabled' => 1]],
             ['jma_event_id', exmtrans('safety.col_jma_event_id'), ColumnType::TEXT,     ['index_enabled' => 1]],
-            // The quake's occurred time. Every P2PQuake bulletin has its own id, but
-            // bulletins for the same earthquake share this — it is what the watcher's
-            // cooldown uses to tell "correction of the same quake" from "new quake".
             ['quake_time',   exmtrans('safety.col_quake_time'),   ColumnType::DATETIME, []],
             ['quake_info',   exmtrans('safety.col_quake_info'),   ColumnType::TEXTAREA, []],
             ['target_count', exmtrans('safety.col_target_count'), ColumnType::INTEGER,  []],
@@ -56,7 +47,6 @@ class SafetyCheckInstaller
         ];
     }
 
-    /** Columns that identify each feature table as ours (see LineInstaller::isOwnedTable). */
     public const OWNED_MARKERS = [
         SafetyCheckDefine::TABLE_EVENT  => ['trigger_type', 'event_status', 'jma_event_id'],
         SafetyCheckDefine::TABLE_ANSWER => ['answer_status', 'unlinked_flg'],
@@ -66,10 +56,7 @@ class SafetyCheckInstaller
     {
         $existing = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
         if ($existing) {
-            // A customer's same-name table must not be adopted (nor dropped later).
             LineInstaller::assertOwnedTable($existing, static::OWNED_MARKERS[SafetyCheckDefine::TABLE_EVENT]);
-            // Upgrade path: a table created by an earlier version may miss
-            // columns added since (e.g. quake_time).
             static::ensureColumns($existing, static::eventColumns());
             static::markSystem($existing);
             return;
@@ -93,7 +80,6 @@ class SafetyCheckInstaller
         static::markSystem($table);
     }
 
-    /** Answer-table column definitions: [name, view name, type, options]. */
     protected static function answerColumns(): array
     {
         $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
@@ -109,10 +95,6 @@ class SafetyCheckInstaller
         ];
     }
 
-    /**
-     * Answer table (safety_check_answer). References safety_check_event, so
-     * ensureEventTable() must run first.
-     */
     public static function ensureAnswerTable(): void
     {
         $existing = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
@@ -144,8 +126,6 @@ class SafetyCheckInstaller
         $menu->menu_type   = MenuType::CUSTOM;
         $menu->menu_name   = 'safety_check';
         $menu->menu_target = 'safety_check';
-        // stored at install time in the APP_LOCALE language (same convention as
-        // Exment's system menus — see MenuController::menuType title handling)
         $menu->title       = exmtrans('safety.menu_title');
         $menu->icon        = 'fa-heartbeat';
         $menu->uri         = 'safety_check';
@@ -159,16 +139,10 @@ class SafetyCheckInstaller
             ->delete();
     }
 
-    /**
-     * Full feature teardown, mirroring ensureAll(): menu, flex template row, then
-     * the tables in dependency order (answer references event). Used by the
-     * install migration's down() — keep the two lists in sync HERE, not there.
-     */
     public static function removeAll(): void
     {
         static::removeMenu();
 
-        // Flex template row (line_flex_template may not be installed).
         if (CustomTable::getEloquent('line_flex_template')) {
             getModelName('line_flex_template')::withoutGlobalScopes()
                 ->where('value->flex_key', static::FLEX_KEY)
@@ -187,9 +161,8 @@ class SafetyCheckInstaller
                 continue;
             }
             if (!LineInstaller::isOwnedTable($table, static::OWNED_MARKERS[$tableName])) {
-                continue; // a customer's same-name table: never drop it
+                continue;
             }
-            // system_flg guards against deletion from the admin UI; lift it for teardown
             $table->system_flg = false;
             $table->save();
             $table->dropTable();
@@ -199,10 +172,6 @@ class SafetyCheckInstaller
         System::clearCache();
     }
 
-    /**
-     * Flex template used by the safety-check sender. The body rows are built
-     * at runtime by the Sender, so body_items is intentionally left blank.
-     */
     public static function ensureFlexTemplate(): void
     {
         $existing = getModelName('line_flex_template')::withoutGlobalScopes()

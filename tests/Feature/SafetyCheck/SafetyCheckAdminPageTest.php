@@ -15,12 +15,6 @@ use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Support\Facades\Bus;
 
-/**
- * Task 8 - admin page (admin/safety_check): send a new safety-check event
- * (manual/drill), re-send to still-unanswered users (throttled to once per 5
- * minutes), and close an event. Every action requires the system permission,
- * exercised here as the fixture admin user.
- */
 class SafetyCheckAdminPageTest extends FeatureTestBase
 {
     use TestTrait;
@@ -39,9 +33,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->be($loginUser, 'admin');
     }
 
-    // -------------------------------------------------- helpers
-
-    /** Re-fetch an event via a fresh query (bypasses the request-session cache). */
     protected function freshEvent($id)
     {
         return CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($id);
@@ -53,9 +44,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
             ->orderBy('id', 'desc')->first();
     }
 
-    // -------------------------------------------------- tests
-
-    /** 1. GET the page: 200, and the page shows the menu_title text. */
     public function testIndexPageShowsMenuTitle()
     {
         $response = $this->get('admin/safety_check');
@@ -64,7 +52,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $response->assertSee(exmtrans('safety.menu_title'));
     }
 
-    /** 2. POST send: creates a manual event + answer rows for every user + dispatches jobs for linked users. */
     public function testSendCreatesManualEventAndDispatchesJobs()
     {
         LineAccountLink::forUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1)->markLinked('U_admin_page_test_1');
@@ -90,7 +77,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         Bus::assertDispatchedTimes(LineSendJob::class, 1);
     }
 
-    /** 3. POST send with trigger_type=drill: the created event's trigger_type is 'drill'. */
     public function testSendDrillSetsTriggerType()
     {
         $response = $this->post('admin/safety_check/send', [
@@ -105,12 +91,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertEquals('drill', $event->getValue('trigger_type'));
     }
 
-    /**
-     * 4. POST resend within 5 minutes of a previous resend (seeded resent_at = 2 minutes ago): throttled,
-     * no extra job. The event has a real `not_answered` answer row for a LINE-linked user, so the throttle
-     * check is what prevents the dispatch -- without it, SafetyCheckSender::send($event, true) WOULD
-     * dispatch a job for this user, making this assertion meaningful (not vacuously true from zero rows).
-     */
     public function testResendThrottledWithinFiveMinutesDispatchesNoJob()
     {
         $linkedUserId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
@@ -129,11 +109,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertEquals($seededResentAt, $fresh->getValue('resent_at'), 'A throttled resend must not update resent_at.');
     }
 
-    /**
-     * The resend throttle is a system setting, not a hardcoded 5 minutes: with
-     * safety_check_resend_throttle_minutes lowered to 1, a resend 2 minutes after the
-     * previous one (throttled under the default) MUST go through and dispatch a job.
-     */
     public function testResendThrottleSettingRespected()
     {
         System::safety_check_resend_throttle_minutes(1);
@@ -158,12 +133,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         );
     }
 
-    /**
-     * The list size is the grid's own per-page selector, NOT a system setting:
-     * the safety_check_index_limit setting was removed because this already
-     * covers it. Regression guard for that removal — with per_page=1 only the
-     * newest event shows.
-     */
     public function testPerPageSelectorControlsListSize()
     {
         $this->createEvent(['title' => 'zz_older_event_hidden']);
@@ -176,11 +145,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $response->assertDontSee('zz_older_event_hidden');
     }
 
-    /**
-     * A successful (non-throttled) resend: only the still-`not_answered` linked user gets a job, no new
-     * answer rows are created, and `resent_at` is updated. This proves the controller calls
-     * SafetyCheckSender::send($event, true) -- not send($event) -- on the resend route.
-     */
     public function testResendSendsOnlyToUnansweredUsersAndUpdatesResentAt()
     {
         $answeredUser = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
@@ -205,9 +169,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         });
         $this->assertCount(1, $jobsForUnanswered, 'Only the still-unanswered linked user must get a job.');
 
-        // Resend backfills a row for every user missing one (recovery path for rows
-        // whose creation failed at the first send) — but still only PUSHES to linked
-        // users whose status is not_answered (asserted above: exactly 1 job).
         $rowsAfter = $this->answerRows($event->id);
         $this->assertEquals($this->totalUserCount(), $rowsAfter->count(), 'A resend must backfill missing answer rows for all users.');
         $this->assertGreaterThan($rowCountBefore, $rowsAfter->count());
@@ -216,11 +177,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertNotNull($fresh->getValue('resent_at'), 'A successful resend must set resent_at.');
     }
 
-    /**
-     * Resending a closed event must be blocked entirely: closed events' Flex buttons can
-     * only reply "closed" (see SafetyCheckAction::handle), so resending would just send
-     * paid LINE messages nobody can meaningfully answer. No job dispatched, event unchanged.
-     */
     public function testResendOnClosedEventIsBlocked()
     {
         $linkedUserId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
@@ -239,7 +195,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertNull($fresh->getValue('resent_at'), 'A blocked resend must not set resent_at.');
     }
 
-    /** POST send with an empty title: no event created, no jobs dispatched. */
     public function testSendWithEmptyTitleCreatesNoEventAndDispatchesNoJob()
     {
         $countBefore = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
@@ -257,11 +212,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
-    /**
-     * Double-submit guard: while another send() by the same admin is still
-     * running (its Cache lock is held), a second POST creates no event and sends
-     * nothing.
-     */
     public function testSendRefusedWhileAnotherSendIsInProgress()
     {
         $countBefore = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
@@ -283,19 +233,11 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
-    /**
-     * The lock is released in finally, so its TTL only matters while a send is
-     * still running — and on the sync driver that is N LINE pushes + N SMTP
-     * deliveries, several minutes for a few hundred users. A 10s TTL expired
-     * long before that, so a second tab could create a second event and blast
-     * everyone twice. The TTL must cover a realistic worst-case send.
-     */
     public function testSendLockOutlivesALongSyncSend()
     {
         $this->assertGreaterThanOrEqual(600, SafetyCheckController::SEND_LOCK_SECONDS);
     }
 
-    /** The lock is released once the send finished, so the next legitimate send goes through. */
     public function testSendReleasesLockAndAllowsNextSend()
     {
         $countBefore = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
@@ -308,7 +250,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertEquals($countBefore + 2, $countAfter);
     }
 
-    /** 5. POST close: event_status becomes 'closed'. */
     public function testCloseSetsEventStatusClosed()
     {
         $event = $this->createEvent();

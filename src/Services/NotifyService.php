@@ -462,26 +462,23 @@ class NotifyService
     }
 
     /**
-     * Notify LINE (user-targeted): read the recipient's line_user_id, then push.
-     *
      * @param array $params
      * @return void
      */
     public static function notifyLine(array $params = [])
     {
-        $user = array_get($params, 'user'); // NotifyTarget
+        $user = array_get($params, 'user');
         if (is_nullorempty($user)) {
             return;
         }
 
-        // $user is always a NotifyTarget (Notify.php builds them via NotifyTarget::*)
         $userId = $user->getUserId();
         if (is_nullorempty($userId)) {
             return;
         }
         $lineUserId = \Exceedone\Exment\Model\LineAccountLink::where('user_id', $userId)->value('line_user_id');
         if (is_nullorempty($lineUserId)) {
-            return; // user has not linked LINE -> skip
+            return;
         }
 
         $custom_value = array_get($params, 'custom_value');
@@ -494,8 +491,6 @@ class NotifyService
             'save_body'   => !boolval(array_get($params, 'disableHistoryBody', false)),
         ];
 
-        // Dedupe reminders: applies only to the TIME trigger, keyed by user + source record.
-        // recentlySent() returns false when minutes<=0 or the parent is missing -> safe when disabled.
         $dedupeMinutes = (int) config('exment.line.dedupe_minutes', 0);
         $notify = array_get($params, 'notify');
         if ($dedupeMinutes > 0
@@ -519,10 +514,6 @@ class NotifyService
 
         $flexTemplateId = array_get($params, 'flex_template_id');
         if (!is_nullorempty($flexTemplateId) && isset($custom_value)) {
-            // The flex template is a system resource; look it up without the authority
-            // global scope, otherwise a notify triggered by a non-admin (e.g. a member
-            // creating a record) can't read it and the message silently falls back to
-            // plain text with no action buttons.
             $tmpl = getModelName('line_flex_template')::withoutGlobalScopes()->find($flexTemplateId);
             if ($tmpl) {
                 $prms = array_get($params, 'prms', []);
@@ -539,7 +530,7 @@ class NotifyService
                     foreach ($manualItems as $item) {
                         $value = trim((string) static::replaceWord($item['format'], $custom_value, $prms, $replaceOptions));
                         if ($value === '') {
-                            continue; // skip empty fields (e.g. no comment yet)
+                            continue;
                         }
                         $rows[] = ['label' => $item['label'], 'value' => $value];
                     }

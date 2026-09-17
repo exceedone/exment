@@ -47,12 +47,6 @@ class SafetyCheckConfigTest extends FeatureTestBase
         $this->assertCount(6, SafetyCheckDefine::scaleOptions());
     }
 
-    /**
-     * scaleLabel() renders the intensity for END USERS (Flex card, mail, web answer
-     * page, admin list) -- the raw feed code must never reach them. Asserted against
-     * literal strings in BOTH locales on purpose: comparing exmtrans() to exmtrans()
-     * would still pass if the whole mapping were deleted.
-     */
     public function testScaleLabelRendersIntensityNotRawCode()
     {
         \App::setLocale('ja');
@@ -62,7 +56,6 @@ class SafetyCheckConfigTest extends FeatureTestBase
         $this->assertEquals('最大震度5強', SafetyCheckDefine::scaleLabel(50));
         $this->assertEquals('最大震度7', SafetyCheckDefine::scaleLabel(70));
 
-        // codes that exist in the feed but are NOT threshold choices
         $this->assertEquals('最大震度5弱以上', SafetyCheckDefine::scaleLabel(46));
         $this->assertEquals('最大震度不明', SafetyCheckDefine::scaleLabel(-1));
 
@@ -71,19 +64,11 @@ class SafetyCheckConfigTest extends FeatureTestBase
         $this->assertEquals('Max Shindo Unknown', SafetyCheckDefine::scaleLabel(-1));
     }
 
-    /** An unrecognised code must surface as-is, never be swallowed into a wrong label. */
     public function testScaleLabelKeepsUnknownCodeVisible()
     {
         $this->assertStringContainsString('99', SafetyCheckDefine::scaleLabel(99));
     }
 
-    /**
-     * The feed-time parsing changed semantics (JST parse -> app-tz convert), so a
-     * cursor stored by the OLD code sits hours in the future and would make the
-     * watcher skip every bulletin until wall clock passes it. Deploys carrying that
-     * change must reset the cursor once; the stale-bulletin guard (max_bulletin_age)
-     * prevents re-blasting old quakes on the next poll.
-     */
     public function testFeedCursorResetMigrationClearsStoredCursor()
     {
         System::safety_check_last_feed_time('2099-01-01 00:00:00');

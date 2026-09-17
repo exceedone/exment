@@ -11,10 +11,6 @@ use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\RateLimiter;
 
-/**
- * Phase 2: LineAccountLinker — one-time code generation, deep link, and matching "LINK <code>".
- * Touches the DB (line_account_links table), so this is a Feature test.
- */
 class LineAccountLinkerTest extends FeatureTestBase
 {
     use TestTrait;
@@ -35,8 +31,6 @@ class LineAccountLinkerTest extends FeatureTestBase
         return (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
     }
 
-    // -------------------------------------------------- code generation
-
     public function testGenerateCodeCreatesUnlinkedRecord()
     {
         $code = $this->linker->generateCodeForUser($this->user1());
@@ -51,7 +45,6 @@ class LineAccountLinkerTest extends FeatureTestBase
 
     public function testGenerateCodeIsIdempotentPerUser()
     {
-        // Generating a code twice for the same user still yields one record (user_id is unique); the new code overwrites the old.
         $first  = $this->linker->generateCodeForUser($this->user1());
         $second = $this->linker->generateCodeForUser($this->user1());
 
@@ -60,18 +53,13 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertEquals($second, LineAccountLink::where('user_id', $this->user1())->first()->line_link_code);
     }
 
-    // -------------------------------------------------- deep link
-
     public function testDeepLinkContainsEncodedLinkCommand()
     {
         $url = $this->linker->deepLink('ABC123');
 
         $this->assertStringContainsString('line.me/R/oaMessage', $url);
-        // "LINK ABC123" must be url-encoded (space -> %20)
         $this->assertStringContainsString(rawurlencode('LINK ABC123'), $url);
     }
-
-    // -------------------------------------------------- handleMessage
 
     public function testHandleMessageLinksOnValidCode()
     {
@@ -86,7 +74,6 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertTrue($link->fresh()->isLinked());
     }
 
-    /** A code is only valid for link_code_ttl_minutes after generation. */
     public function testHandleMessageRejectsExpiredCode()
     {
         $code = $this->linker->generateCodeForUser($this->user1());
@@ -103,7 +90,6 @@ class LineAccountLinkerTest extends FeatureTestBase
         }
     }
 
-    /** After link_max_attempts wrong codes, even the right code is ignored until the window decays. */
     public function testHandleMessageIsRateLimitedPerLineUser()
     {
         $lineUserId = 'Ubruteforce';
@@ -119,7 +105,6 @@ class LineAccountLinkerTest extends FeatureTestBase
             $this->assertNull($this->linker->handleMessage('LINK ' . $code, $lineUserId), 'Too many wrong codes must block the correct one too.');
             $this->assertNull(LineAccountLink::where('user_id', $this->user1())->first()->line_user_id);
 
-            // a different LINE user is not affected by that user's attempts
             $this->assertNotNull($this->linker->handleMessage('LINK ' . $code, 'Uinnocent'));
         } finally {
             RateLimiter::clear(LineAccountLinker::attemptKey($lineUserId));
@@ -130,7 +115,6 @@ class LineAccountLinkerTest extends FeatureTestBase
     {
         $code = $this->linker->generateCodeForUser($this->user1());
 
-        // lowercase "link" still matches (regex uses /i)
         $link = $this->linker->handleMessage('link ' . strtolower($code), 'Ulowercase');
 
         $this->assertNotNull($link);
@@ -142,7 +126,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->linker->generateCodeForUser($this->user1());
 
         $this->assertNull($this->linker->handleMessage('xin chào', 'Uchat'));
-        $this->assertNull($this->linker->handleMessage('LINK', 'Uchat'));       // missing code
+        $this->assertNull($this->linker->handleMessage('LINK', 'Uchat'));
         $this->assertNull($this->linker->handleMessage('', 'Uchat'));
     }
 
@@ -160,9 +144,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $user2 = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $lineUserId = 'Ubound';
 
-        // LINE is already bound to user1
         LineAccountLink::forUser($user1)->markLinked($lineUserId);
-        // user2 generates a code; the LINE (already bound to user1) tries to link to user2 -> rejected
         $code2 = $this->linker->generateCodeForUser($user2);
 
         $result = $this->linker->handleMessage('LINK ' . $code2, $lineUserId);
@@ -177,7 +159,6 @@ class LineAccountLinkerTest extends FeatureTestBase
         $lineUserId = 'Usameuser';
 
         LineAccountLink::forUser($user1)->markLinked($lineUserId);
-        // user1 generates a new code and re-links with the same LINE account -> allowed
         $code = $this->linker->generateCodeForUser($user1);
 
         $result = $this->linker->handleMessage('LINK ' . $code, $lineUserId);

@@ -5,10 +5,6 @@ namespace Exceedone\Exment\Tests\Unit\Line;
 use Exceedone\Exment\Services\Line\LineSendLogger;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Unit tests for the pure logic of LineSendLogger (no DB / Laravel involvement).
- * The body-hiding branch (save_body = false) calls exmtrans(), so it is covered in LineSendLogTest (Feature).
- */
 class LineSendLoggerTest extends TestCase
 {
     public static function setUpBeforeClass(): void

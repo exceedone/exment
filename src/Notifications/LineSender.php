@@ -8,12 +8,11 @@ use Exceedone\Exment\Services\Line\LineSendLogger;
 
 class LineSender extends SenderBase
 {
-    /** LINE Messaging API limit for a text message's `text` field (characters). */
     public const TEXT_MAX_LENGTH = 5000;
 
-    /** @var string Recipient line_user_id */
+    /** @var string */
     protected $to;
-    /** @var array Context for the line_send_log entry (see LineSendLogger::record) */
+    /** @var array */
     protected $context;
 
     public function __construct($to, $subject, $body, array $context = [])
@@ -40,9 +39,6 @@ class LineSender extends SenderBase
         if ($text === '') {
             return;
         }
-        // LINE rejects the whole push (HTTP 400) when text exceeds the limit — a long
-        // mail-template body would then be lost silently. Truncate like flex() does
-        // for altText.
         if (mb_strlen($text) > static::TEXT_MAX_LENGTH) {
             $text = mb_substr($text, 0, static::TEXT_MAX_LENGTH);
         }
@@ -52,7 +48,6 @@ class LineSender extends SenderBase
             'subject'          => $subject,
         ]);
 
-        // dispatchAfterResponse: push AFTER the response so the confirmation reply (postback) always arrives first.
         LineSendJob::dispatchAfterResponse($this->to, [LineMessagingClient::text($text)], $context);
     }
 

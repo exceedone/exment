@@ -4,11 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Account-link codes used to live forever (a leaked or guessed code stayed valid
- * indefinitely). Add an expiry; codes issued before this migration get a short
- * grace window from now so an in-progress link still completes.
- */
 return new class extends Migration
 {
     public function up(): void

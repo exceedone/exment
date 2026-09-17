@@ -4,18 +4,10 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Illuminate\Database\Migrations\Migration;
 
-/**
- * Custom table that manages Flex templates for LINE (Phase 3).
- * Creation logic lives in LineInstaller::ensureFlexTemplateTable().
- */
 return new class extends Migration
 {
     public function up(): void
     {
-        // Fresh install: the system template is not imported yet. Creating a
-        // custom_tables row here would make InstallService::getStatus() think
-        // installation is done and skip seeding — InstallSeeder creates this
-        // table instead, after importSystemTemplate().
         if (!\Exceedone\Exment\Services\Line\LineInstaller::systemTemplateImported()) {
             return;
         }
@@ -30,9 +22,8 @@ return new class extends Migration
             return;
         }
         if (!\Exceedone\Exment\Services\Line\LineInstaller::isOwnedTable($table, \Exceedone\Exment\Services\Line\LineInstaller::OWNED_MARKERS['line_flex_template'])) {
-            return; // a customer's same-name table: never drop it
+            return;
         }
-        // Clear the system flag first to allow deletion
         $table->system_flg = false;
         $table->save();
         $table->dropTable();

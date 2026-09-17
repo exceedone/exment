@@ -4,21 +4,14 @@ namespace Exceedone\Exment\Services\Line;
 
 use Exceedone\Exment\Model\CustomTable;
 
-/**
- * Handles Flex Message postbacks: runs the matching workflow action.
- */
 class LineWorkflowAction
 {
-    /** Parses the postback query string into a key => value array. */
     public static function parsePostback(string $data): array
     {
         parse_str($data, $out);
         return $out;
     }
 
-    /**
-     * Executes the workflow action from a postback. Returns the reply message for LINE.
-     */
     public static function handle(array $data, ?string $lineUserId): string
     {
         if (empty($lineUserId)) {
@@ -57,7 +50,6 @@ class LineWorkflowAction
                 return exmtrans('line.action_unavailable');
             }
 
-            // Comment-required actions must be handled on the web
             if ($wfAction->comment_type === \Exceedone\Exment\Enums\WorkflowCommentType::REQUIRED) {
                 return exmtrans('line.action_need_comment');
             }

@@ -3,8 +3,6 @@
         <h3 class="box-title"><i class="fa fa-paper-plane"></i> {{ exmtrans('safety.new_event_title') }}</h3>
     </div>
     <div class="box-body">
-        {{-- the button is disabled on submit: a double click would otherwise POST twice
-             (server side, SafetyCheckController::send() also holds a short lock) --}}
         <form method="POST" action="{{ admin_url('safety_check/send') }}" class="form-inline"
               onsubmit="this.querySelector('button[type=submit]').disabled = true;">
             {{ csrf_field() }}

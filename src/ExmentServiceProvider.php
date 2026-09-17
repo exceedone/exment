@@ -347,11 +347,8 @@ class ExmentServiceProvider extends ServiceProvider
             return CustomTable::findByEndpoint();
         });
 
-        // bind default earthquake feed for the safety-check auto-trigger watcher
         $this->app->bind(EarthquakeFeedInterface::class, P2pQuakeFeed::class);
 
-        // default LINE API client (configured Guzzle transport); tests re-bind
-        // this with a mocked transport
         $this->app->bind(\Exceedone\Exment\Services\Line\LineMessagingClient::class, function () {
             return new \Exceedone\Exment\Services\Line\LineMessagingClient();
         });
@@ -439,9 +436,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
-            // withoutOverlapping: a slow poll (LINE outage / many users on the sync
-            // queue) must not overlap the next run — the jma_event_id dedupe is
-            // check-then-insert, so two concurrent runs could double-send an event.
             $schedule->command('exment:safetywatch')->everyMinute()->withoutOverlapping(10);
 
             // set cron event

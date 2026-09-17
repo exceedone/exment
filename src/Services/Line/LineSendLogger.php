@@ -18,9 +18,6 @@ class LineSendLogger
     public const STATUS_SUCCESS = 'success';
     public const STATUS_FAILED  = 'failed';
 
-    /**
-     * Record a LINE send log entry.
-     */
     public static function record(array $context, array $messages, array $result): void
     {
         $table = CustomTable::getEloquent(static::TABLE_NAME);

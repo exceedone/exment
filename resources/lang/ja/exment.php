@@ -2749,8 +2749,6 @@ return [
         ],
     ],
 
-    // LINE bot replies (webhook / Flex postback). Rendered by exmtrans(), so the
-    // language follows the active locale (APP_LOCALE).
     'line' => [
         'link_menu_title'     => 'LINE連携',
         'link_success'        => 'LINE連携が完了しました！',
@@ -2774,7 +2772,6 @@ return [
         'linkcode_hint'       => '連携用OAを追加済みのスマートフォンでディープリンクを開くか、「LINE連携」ページでQRコードを表示してください。',
     ],
 
-    // Safety check (安否確認) feature: table/menu labels and LINE bot copy.
     'safety' => [
         'menu_title'             => '安否確認管理',
         'description'            => '安否確認の送信・再送・締切を管理します。',
@@ -2794,8 +2791,6 @@ return [
             40 => '震度4', 45 => '震度5弱',
             50 => '震度5強', 55 => '震度6弱', 60 => '震度6強', 70 => '震度7',
         ],
-        // 表示用の震度ラベル：P2P地震情報の scale コードをすべて網羅する
-        // （しきい値の選択肢 scale_options とは別物：20/30/46/-1 も必要、「テスト用」の注記は付けない）
         'scale_labels' => [
             -1 => '不明', 10 => '1', 20 => '2', 30 => '3', 40 => '4',
             45 => '5弱', 46 => '5弱以上', 50 => '5強', 55 => '6弱', 60 => '6強', 70 => '7',

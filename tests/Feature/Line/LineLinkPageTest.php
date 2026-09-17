@@ -10,15 +10,6 @@ use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 
-/**
- * The LINE self-linking page (admin/line/link) must be accessible to EVERY
- * authenticated user, not just system admins — each user only operates on their
- * own link, so there is no privilege escalation.
- *
- * Two guard layers share the Permission::shouldPass('line') engine:
- * - the admin.permission middleware on the route (403 on failure)
- * - Admin::user()->visible() hides the sidebar menu
- */
 class LineLinkPageTest extends FeatureTestBase
 {
     use TestTrait;
@@ -30,7 +21,6 @@ class LineLinkPageTest extends FeatureTestBase
         $this->initAllTest();
     }
 
-    /** Log in a user via the admin guard and delete any existing link so the page renders the QR-generation form. */
     protected function loginAndReset(string $loginUserId): LoginUser
     {
         /** @var LoginUser $loginUser */
@@ -41,7 +31,6 @@ class LineLinkPageTest extends FeatureTestBase
         return $loginUser;
     }
 
-    /** A regular user (user2 - belongs only to user_group) must be able to open the link page. */
     public function testEmployeeCanOpenLineLinkPage()
     {
         $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
@@ -49,11 +38,9 @@ class LineLinkPageTest extends FeatureTestBase
         $response = $this->get('admin/line/link');
 
         $response->assertStatus(200);
-        // marker for the line.link view (QR-generation form) - the deny page does not contain this string
         $response->assertSee('line/link/generate');
     }
 
-    /** Sidebar menu: visible('line/link') must be true for a regular user. */
     public function testLineLinkMenuVisibleForEmployee()
     {
         $loginUser = $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
@@ -64,7 +51,6 @@ class LineLinkPageTest extends FeatureTestBase
         );
     }
 
-    /** Regression: admin can still open the link page as before. */
     public function testAdminCanOpenLineLinkPage()
     {
         $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
@@ -74,12 +60,6 @@ class LineLinkPageTest extends FeatureTestBase
         $response->assertStatus(200);
         $response->assertSee('line/link/generate');
     }
-    /**
-     * The QR / deep link embeds the Official Account's basic id
-     * (https://line.me/R/oaMessage/@<id>/...). With no id configured the link is
-     * "@/" — every employee who scans it fails, and nobody knows why. Refuse to
-     * generate a code until the OA basic id is set in System settings.
-     */
     public function testGenerateRefusedWhenOaBasicIdNotConfigured()
     {
         $loginUser = $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);

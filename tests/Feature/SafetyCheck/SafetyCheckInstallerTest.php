@@ -69,7 +69,6 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertStringContainsString('${answer_url}', $tmpl->getValue('mail_body'));
         $this->assertStringContainsString('${safety_title}', $tmpl->getValue('mail_subject'));
 
-        // idempotent: chạy lần 2 không nhân đôi
         SafetyCheckInstaller::ensureAll();
         $count = getModelName(\Exceedone\Exment\Enums\SystemTableName::MAIL_TEMPLATE)::withoutGlobalScopes()
             ->where('value->mail_key_name', \Exceedone\Exment\Enums\MailKeyName::SAFETY_CHECK_MAIL)->count();
@@ -85,32 +84,21 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertStringContainsString('mail', (string) array_get($channel->options, 'select_item'));
     }
 
-    /** Payload of the 2026_08_28_000002 migration -- see ensureSentCountLabel()'s docblock. */
     public function testSentCountLabelRenamed()
     {
-        // First install: creates safety_check_event and its sent_count column.
         SafetyCheckInstaller::ensureAll();
 
-        // Simulate an env installed before the rename shipped — it stored the
-        // old LINE-only label in the DB.
         $eventTable = \Exceedone\Exment\Model\CustomTable::getEloquent('safety_check_event');
         $sentCount = \Exceedone\Exment\Model\CustomColumn::getEloquent('sent_count', $eventTable);
         $sentCount->column_view_name = 'LINE送信数';
         $sentCount->save();
 
-        // Upgrade path: the one-shot patch (run from its own migration, no longer
-        // part of ensureAll()) must relabel the stale column.
         SafetyCheckInstaller::ensureSentCountLabel();
 
         $sentCount = \Exceedone\Exment\Model\CustomColumn::getEloquent('sent_count', $eventTable);
         $this->assertEquals(exmtrans('safety.col_sent_count'), $sentCount->column_view_name);
     }
 
-    /**
-     * ensureAll() runs on EVERY migrate / exment:update, so it must converge the
-     * install *shape* only -- never fight the admin over editable data. A column
-     * label renamed on the UI has to survive an update.
-     */
     public function testEnsureAllDoesNotOverwriteAdminEditedColumnLabel()
     {
         SafetyCheckInstaller::ensureAll();
@@ -126,11 +114,6 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertEquals('送信数（管理者が変更）', $sentCount->column_view_name);
     }
 
-    /**
-     * Upgrade path for the ANSWER table, mirroring the event table: an install
-     * that predates a column in answerColumns() must get it on the next
-     * ensureAll(). Simulated by dropping a (non-indexed) column and re-running.
-     */
     public function testEnsureAllRecreatesMissingAnswerColumn()
     {
         SafetyCheckInstaller::ensureAll();
@@ -147,19 +130,6 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertNotNull($recreated, 'ensureAll() must recreate a missing answer-table column');
         $this->assertEquals(exmtrans('safety.col_unlinked_flg'), $recreated->column_view_name);
     }
-    /**
-     * A customer may already have a custom table called safety_check_event.
-     * ensureAll() used to "adopt" it (set system_flg, add columns) and
-     * migrate:rollback would then DROP the customer's data. A table with none of
-     * the feature's columns is not ours: refuse loudly, touch nothing.
-     *
-     * The real feature table is renamed (metadata only — CustomTable saving does
-     * no DDL) so a metadata-only stand-in can take its name inside the transaction.
-     * HAZARD if this test ever goes RED: without the guard, ensureColumns() runs
-     * DDL on the stand-in, which commits the transaction and leaves the renamed
-     * row + a duplicate table in the test DB — restore with
-     * `APP_ENV=testing php artisan exment:inittest --yes`.
-     */
     public function testEnsureAllRefusesForeignTableWithSameName()
     {
         SafetyCheckInstaller::ensureAll();

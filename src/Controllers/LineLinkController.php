@@ -31,14 +31,10 @@ class LineLinkController extends AdminControllerBase
     {
         $userId = (int) \Exment::user()->getUserId();
         if (LineAccountLink::forUser($userId)->isLinked()) {
-            // generateCode() clears line_user_id: a stale tab still showing the
-            // "generate" form must not silently unlink an account linked meanwhile.
             admin_toastr(exmtrans('line.link_generate_blocked'), 'error');
             return redirect(admin_url('line/link'));
         }
         if (trim((string) System::system_line_oa_basic_id()) === '') {
-            // The deep link / QR embeds the OA basic id; without it every scan
-            // opens "line.me/R/oaMessage/@/" and fails with no explanation.
             admin_toastr(exmtrans('line.link_oa_not_configured'), 'error');
             return redirect(admin_url('line/link'));
         }

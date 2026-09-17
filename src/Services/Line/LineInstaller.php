@@ -12,43 +12,13 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 
-/**
- * Install-time setup for the LINE integration.
- *
- * Each ensure*() is idempotent and called from BOTH:
- *  - the LINE migrations (existing, already-installed environments)
- *  - InstallSeeder, after importSystemTemplate() (fresh "exment:install")
- *
- * Why both are needed on a fresh install:
- *  - the seeder wipes admin_menu AFTER migrate has run, so the menu insert
- *    from the migration alone does not survive;
- *  - the table-creating migrations must SKIP while the system template is not
- *    imported yet (see systemTemplateImported()): InstallService::getStatus()
- *    treats "CustomTable::count() > 0" as "template imported", so creating a
- *    custom table during plain "migrate" makes the web installer jump straight
- *    to the initialize form and never seed the system template.
- */
 class LineInstaller
 {
-    /**
-     * Whether the Exment system template (user table etc.) has been imported.
-     * Direct query on purpose — no System request cache.
-     */
     public static function systemTemplateImported(): bool
     {
         return CustomTable::where('table_name', SystemTableName::USER)->exists();
     }
 
-    /**
-     * Everything the LINE integration needs in the DB, in dependency order --
-     * line_send_log has a SELECT_TABLE column pointing at line_flex_template, so
-     * the flex table has to exist first.
-     *
-     * Single entry point for BOTH install paths (see the class docblock): call
-     * this from a dated migration whenever the installed shape changes, and let
-     * InstallSeeder call it too. Idempotent; a no-op before the system template
-     * is imported.
-     */
     public static function ensureAll(): void
     {
         if (!static::systemTemplateImported()) {
@@ -59,19 +29,11 @@ class LineInstaller
         static::ensureLinkMenu();
     }
 
-    /** Columns that identify each feature table as ours (any one present = ours). */
     public const OWNED_MARKERS = [
         'line_flex_template' => ['flex_key', 'template_name'],
         'line_send_log'      => ['line_user_id', 'send_datetime'],
     ];
 
-    /**
-     * Whether an existing custom table with one of our names really is the
-     * feature's table: it carries system_flg (set by us) or at least one of the
-     * feature's own columns (an install predating system_flg). A customer's
-     * table that merely shares the name has neither and must never be adopted
-     * (columns added, system_flg set) nor dropped by a rollback.
-     */
     public static function isOwnedTable(CustomTable $table, array $markerColumns): bool
     {
         if (boolval($table->system_flg)) {
@@ -85,7 +47,7 @@ class LineInstaller
         return false;
     }
 
-    /** @throws \RuntimeException when the same-name table is not the feature's */
+    /** @throws \RuntimeException */
     public static function assertOwnedTable(CustomTable $table, array $markerColumns): void
     {
         if (!static::isOwnedTable($table, $markerColumns)) {
@@ -108,8 +70,6 @@ class LineInstaller
         $menu->menu_type   = MenuType::CUSTOM;
         $menu->menu_name   = 'line_link';
         $menu->menu_target = 'line/link';
-        // stored at install time in the APP_LOCALE language (same convention as
-        // Exment's system menus — see MenuController::menuType title handling)
         $menu->title       = exmtrans('line.link_menu_title');
         $menu->icon        = 'fa-comments';
         $menu->uri         = 'line/link';
@@ -123,11 +83,6 @@ class LineInstaller
             ->delete();
     }
 
-    /**
-     * Custom table that manages Flex templates for LINE (Phase 3).
-     * Created directly in its final state: JA view names, label column,
-     * system_flg, and column defaults (body_items / title).
-     */
     public static function ensureFlexTemplateTable(): void
     {
         $existing = CustomTable::getEloquent('line_flex_template');
@@ -163,7 +118,6 @@ class LineInstaller
             ]);
         }
 
-        // Use template_name as the label column (shown in list/relation/getLabel)
         $nameColumn = CustomColumn::getEloquent('template_name', $table);
         if ($nameColumn) {
             CustomColumnMulti::create([
@@ -177,10 +131,6 @@ class LineInstaller
         static::markSystem($table);
     }
 
-    /**
-     * Send-history table (line_send_log). References line_flex_template, so
-     * ensureFlexTemplateTable() must run first.
-     */
     public static function ensureSendLogTable(): void
     {
         $existing = CustomTable::getEloquent('line_send_log');
@@ -225,10 +175,6 @@ class LineInstaller
         static::markSystem($table);
     }
 
-    /**
-     * Mark as a system table (cannot be deleted, like mail_template).
-     * system_flg is in CustomTable's $guarded, so it must be assigned directly.
-     */
     protected static function markSystem(CustomTable $table): void
     {
         if (boolval($table->system_flg)) {

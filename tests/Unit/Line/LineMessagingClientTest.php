@@ -11,25 +11,17 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Phase 1: LineMessagingClient — push / reply / webhook signature verification.
- *
- * Extends UnitTestBase (boots Laravel) because the constructor reads config('exment.line.*').
- * HTTP is injected via a Guzzle MockHandler so the real LINE API is never called.
- */
 class LineMessagingClientTest extends UnitTestBase
 {
     public const TOKEN  = 'test-channel-token';
     public const SECRET = 'test-channel-secret';
 
-    /** @var array<int, array> History of Guzzle requests that were sent. */
+    /** @var array<int, array> */
     protected $history = [];
 
     /**
-     * Build a client with a single mocked response; every request is recorded into $this->history.
-     *
-     * @param int $status HTTP status returned by LINE
-     * @param string $body response body returned by LINE
+     * @param int $status
+     * @param string $body
      */
     protected function makeClient(int $status = 200, string $body = '{}'): LineMessagingClient
     {
@@ -43,14 +35,11 @@ class LineMessagingClientTest extends UnitTestBase
         return new LineMessagingClient(static::TOKEN, static::SECRET, $http);
     }
 
-    /** The last request that was sent. */
     protected function lastRequest(): \Psr\Http\Message\RequestInterface
     {
         $this->assertNotEmpty($this->history, 'No request was sent.');
         return $this->history[count($this->history) - 1]['request'];
     }
-
-    // ---------------------------------------------------------------- push
 
     public function test_push_sends_to_push_endpoint_with_bearer_token(): void
     {
@@ -79,14 +68,12 @@ class LineMessagingClientTest extends UnitTestBase
 
         $res = $client->push('Uabc', [LineMessagingClient::text('xin chào')]);
 
-        // No exception thrown: http_errors = false, so the result is returned for LineSendJob to log.
         $this->assertFalse($res['ok']);
         $this->assertEquals(401, $res['status']);
         $this->assertEquals($raw, $res['raw']);
         $this->assertEquals('Authentication failed', $res['body']['message']);
     }
 
-    /** Allows passing a single message (with a 'type' key) instead of an array of messages. */
     public function test_push_accepts_a_single_message_and_wraps_it(): void
     {
         $client = $this->makeClient();
@@ -96,8 +83,6 @@ class LineMessagingClientTest extends UnitTestBase
         $sent = json_decode((string) $this->lastRequest()->getBody(), true);
         $this->assertEquals([['type' => 'text', 'text' => 'một tin']], $sent['messages']);
     }
-
-    // --------------------------------------------------------------- reply
 
     public function test_reply_sends_reply_token_to_reply_endpoint(): void
     {
@@ -116,12 +101,6 @@ class LineMessagingClientTest extends UnitTestBase
         $this->assertTrue($res['ok']);
     }
 
-    /**
-     * Webhook handlers discard reply()'s return value (the user already tapped;
-     * there is nothing to retry with an expired replyToken), so a rejected
-     * reply — revoked token, expired replyToken — must at least reach the log
-     * or an operator has no way to diagnose "users never see a confirmation".
-     */
     public function test_reply_failure_is_logged_as_warning(): void
     {
         Log::spy();
@@ -137,14 +116,11 @@ class LineMessagingClientTest extends UnitTestBase
             });
     }
 
-    // ----------------------------------------------------- verifySignature
-
     public function test_verifySignature_accepts_signature_computed_with_channel_secret(): void
     {
         $client = $this->makeClient();
         $body = '{"events":[{"type":"message"}]}';
 
-        // Matches how LINE signs: HMAC-SHA256 of the body with the channel secret, then base64.
         $signature = base64_encode(hash_hmac('sha256', $body, static::SECRET, true));
 
         $this->assertTrue($client->verifySignature($body, $signature));
@@ -165,14 +141,9 @@ class LineMessagingClientTest extends UnitTestBase
         $client = $this->makeClient();
         $signature = base64_encode(hash_hmac('sha256', '{"events":[]}', static::SECRET, true));
 
-        // Body modified after signing, so the signature no longer matches.
         $this->assertFalse($client->verifySignature('{"events":[{"type":"message"}]}', $signature));
     }
 
-    /**
-     * Security: with no channel secret configured, a forger could sign any payload
-     * with the empty key. The client must reject everything until a secret exists.
-     */
     public function test_verifySignature_rejects_everything_when_secret_is_empty(): void
     {
         $client = new LineMessagingClient(static::TOKEN, '', new Client(['handler' => HandlerStack::create(new MockHandler([]))]));

@@ -16,16 +16,6 @@ use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Notification;
 
-/**
- * Task 4 - SafetyCheckSender: pre-create answer rows for all users, then deliver over
- * TWO channels - a LINE Flex push for users who linked their LINE account, and a
- * mail carrying a signed web-answer URL for EVERY user with an email, linked or not
- * (both channels per user since 2026-08-28; see SafetyCheckAnswerController). A user
- * with neither a LINE link nor an email keeps
- * their `not_answered` row, flagged `unlinked_flg` so the admin sees the gap. Also
- * supports a "re-send" mode that only targets users still `not_answered`, recreating any
- * answer row that failed to be created at an earlier send.
- */
 class SafetyCheckSenderTest extends FeatureTestBase
 {
     use TestTrait;
@@ -41,7 +31,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
         Notification::fake();
     }
 
-    /** Users who get the mail: everyone with an email (LINE-linked included, 2026-08-28). */
     protected function mailableUserCount(): int
     {
         return CustomTable::getEloquent('user')->getValueQuery()->get()
@@ -122,7 +111,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $rowCountBefore = $rowsBefore->count();
         $this->assertEquals($userCount, $rowCountBefore);
 
-        // user A answers "safe" -> must be excluded from the re-send
         $rowA = $rowsBefore->first(function ($row) use ($userA) {
             return (int) array_get($row->value, 'user') === $userA;
         });
@@ -133,16 +121,12 @@ class SafetyCheckSenderTest extends FeatureTestBase
 
         $result = SafetyCheckSender::send($event, true);
 
-        // still-unanswered users (everyone except A) are the target of the re-send
         $this->assertEquals($userCount - 1, $result['target']);
-        // only B is linked among the still-unanswered users
         $this->assertEquals(1, $result['line']);
 
-        // no new rows created by the re-send
         $rowsAfter = $this->answerRows($event->id);
         $this->assertEquals($rowCountBefore, $rowsAfter->count());
 
-        // A got a job only from the first send; B got one from each send
         $jobsForA = Bus::dispatched(LineSendJob::class, function (LineSendJob $job) use ($userA) {
             return $job->getContext()['user_id'] === $userA;
         });
@@ -155,25 +139,12 @@ class SafetyCheckSenderTest extends FeatureTestBase
 
         $this->assertNotNull($event->getValue('resent_at'));
 
-        // target_count must keep reflecting the ORIGINAL audience size, not the smaller
-        // still-unanswered subset re-send targeted -- otherwise the admin page can show
-        // 回答数 (answered count) > 対象者数 (target count).
         $freshEvent = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
         $this->assertEquals($userCount, (int) $freshEvent->getValue('target_count'));
 
-        // sent_count reflects the FIRST send, not clobbered by the smaller resend
-        // batch (1 job) -- otherwise the admin page shows e.g. 送信数 1/対象 N after
-        // a resend that reached fewer users. Value = DISTINCT users reached at the
-        // first send; A and B both have email, so "everyone with email" covers all.
         $this->assertEquals($this->mailableUserCount(), (int) $freshEvent->getValue('sent_count'));
     }
 
-    /**
-     * A user whose answer row failed to create at the first send (logged, skipped)
-     * would otherwise be invisible in 未回答 and unreachable forever. Resend must
-     * CREATE the missing row and send to that user, making 再送 the self-healing
-     * recovery path.
-     */
     public function testResendCreatesMissingAnswerRowAndSends()
     {
         $userCount = $this->totalUserCount();
@@ -185,7 +156,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $rows = $this->answerRows($event->id);
         $this->assertEquals($userCount, $rows->count());
 
-        // simulate "row create failed at first send": user A's row does not exist
         $rowA = $rows->first(function ($row) use ($userA) {
             return (int) array_get($row->value, 'user') === $userA;
         });
@@ -195,7 +165,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
 
         $result = SafetyCheckSender::send($event, true);
 
-        // the missing row is recreated as not_answered
         $rowsAfter = $this->answerRows($event->id);
         $this->assertEquals($userCount, $rowsAfter->count(), 'Resend must recreate the missing answer row.');
         $recreated = $rowsAfter->first(function ($row) use ($userA) {
@@ -204,7 +173,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertNotNull($recreated);
         $this->assertEquals('not_answered', array_get($recreated->value, 'answer_status'));
 
-        // and user A (linked, not answered) got a LINE job from the resend
         $jobsForA = Bus::dispatched(LineSendJob::class, function (LineSendJob $job) use ($userA) {
             return $job->getContext()['user_id'] === $userA;
         });
@@ -212,10 +180,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertEquals($userCount, $result['target']);
     }
 
-    /**
-     * 2026-08-28 behavior change: mail is no longer fallback-only — EVERY user
-     * with an email gets the mail, LINE-linked included (they get both channels).
-     */
     public function testLinkedUserWithEmailAlsoReceivesMail()
     {
         $event = $this->createEvent();
@@ -227,28 +191,21 @@ class SafetyCheckSenderTest extends FeatureTestBase
 
         $result = SafetyCheckSender::send($event);
 
-        // the linked user is IN the mail count now, not excluded from it
         Notification::assertSentTimes(MailSendJob::class, $allWithEmail);
         $this->assertEquals($allWithEmail, $result['mail']);
         $this->assertEquals(1, $result['line']);
     }
 
-    /**
-     * sent_count stays "how many USERS were reached" — a user reached over both
-     * channels counts once, so line+mail (which double-counts them) must NOT be
-     * what gets stored.
-     */
     public function testSentCountCountsDistinctUsersAcrossChannels()
     {
         $event = $this->createEvent();
-        $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1; // has email (guarded above)
+        $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $this->linkUser($linked);
         $allWithEmail = $this->mailableUserCount();
 
         SafetyCheckSender::send($event);
 
         $freshEvent = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
-        // linked user already among the mailable ones -> distinct = allWithEmail
         $this->assertEquals($allWithEmail, (int) $freshEvent->getValue('sent_count'));
     }
 
@@ -263,7 +220,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertNotNull($sender);
         $sender->send();
 
-        // sau send(), subject/body đã được replaceWord (xem NotifyTest pattern)
         $this->assertStringContainsString('Big quake', $sender->getSubject());
         $this->assertStringContainsString('safety/answer', $sender->getBody());
         $this->assertStringContainsString('signature=', $sender->getBody());
@@ -280,7 +236,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertNull(SafetyCheckSender::buildMailSender($userTable->getValueQuery()->find($noMail->id), $event, 't', 'b'));
     }
 
-    /** MailSender exposes no getter for final_user; read the protected property. */
     protected function finalUserOf(MailSender $sender)
     {
         $property = new \ReflectionProperty(MailSender::class, 'final_user');
@@ -288,15 +243,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
         return $property->getValue($sender);
     }
 
-    /**
-     * A fallback mail that dies on a real queue is otherwise invisible: the
-     * mail_send_log row is only written on a SUCCESSFUL send, and the try/catch
-     * around send() in SafetyCheckSender::send() cannot see a job that failed on
-     * a worker minutes later. MailSendJob::failed() is the only remaining trace,
-     * and it emits the 'sendmail_error' navbar notice to the triggering admin
-     * ONLY when the sender flagged final_user. So an admin-triggered send must
-     * set it.
-     */
     public function testBuildMailSenderFlagsFinalUserWhenAdminTriggered()
     {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'admin');
@@ -312,14 +258,6 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertTrue((bool) $this->finalUserOf($sender));
     }
 
-    /**
-     * ...but a send with NO logged-in user (JMA auto-trigger, CLI/scheduler) must
-     * leave the flag off. NavbarJob writes notify_navbar.target_user_id from the
-     * user id captured at send time, and that column is NOT NULL — flagging an
-     * unattributable send would only make failed() throw. Those sends stay
-     * untraced for now (documented limitation), and building/sending one must
-     * still not throw.
-     */
     public function testBuildMailSenderLeavesFinalUserOffWhenNoLoggedInUser()
     {
         auth('admin')->logout();
@@ -341,14 +279,13 @@ class SafetyCheckSenderTest extends FeatureTestBase
     {
         $event = $this->createEvent();
         $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
-        $answered = (int) TestDefine::TESTDATA_USER_LOGINID_USER2; // unlinked, sẽ trả lời
+        $answered = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $this->linkUser($linked);
-        $expectedMailFirst = $this->mailableUserCount(); // linked user1 gets mail too now
+        $expectedMailFirst = $this->mailableUserCount();
 
         SafetyCheckSender::send($event);
         Notification::assertSentTimes(MailSendJob::class, $expectedMailFirst);
 
-        // user2 trả lời qua web -> resend không gửi lại cho user2
         \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::recordAnswer($event->id, $answered, 'safe', 'mail');
 
         $result = SafetyCheckSender::send($event, true);

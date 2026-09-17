@@ -67,9 +67,6 @@ class LogOperation extends BaseLogOperation
         if ($request->is(ltrim(admin_base_path('webapi/notifyPage'), '/'))) {
             return true;
         }
-        // Safety-check answer page (signed URL, no login): the query string IS the
-        // credential (`signature`, no expiry) and the POST body is the employee's
-        // safety status/comment — neither belongs in admin_operation_log.
         if ($request->is(ltrim(admin_base_path('safety/answer'), '/'))) {
             return true;
         }

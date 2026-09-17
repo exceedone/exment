@@ -2749,11 +2749,9 @@ return [
         ],
     ],
 
-    // LINE bot replies (webhook / Flex postback). Rendered by exmtrans(), so the
-    // language follows the active locale (APP_LOCALE).
     'line' => [
         'link_menu_title'     => 'LINE Link',
-        'link_success'        => '✅ LINE account linked successfully!',
+        'link_success'        => 'LINE account linked successfully!',
         'link_already_linked' => 'This LINE account is already linked to an account. To change it, please unlink it on the web first.',
         'link_oa_not_configured' => 'The LINE Official Account basic ID is not configured. Set it under Admin settings > System settings.',
         'link_generate_blocked' => 'Your LINE account is already linked. Unlink it first to link again.',
@@ -2769,12 +2767,11 @@ return [
         'action_unavailable'  => 'This action is unavailable or has already been processed.',
         'action_need_comment' => 'This action requires a comment. Please process it on the web.',
         'action_error'        => 'An error occurred while processing. Please try again on the web.',
-        'action_done'         => '✅ Done: %s',
+        'action_done'         => 'Done: %s',
         'linkcode_code'       => 'Link code: %s',
         'linkcode_hint'       => 'Open the deep link on a phone that has already added the OA, or use the 「LINE連携」 page to display the QR code.',
     ],
 
-    // Safety check (安否確認) feature: table/menu labels and LINE bot copy.
     'safety' => [
         'menu_title'             => 'Safety Check',
         'description'            => 'Send, resend and close safety check events.',
@@ -2794,8 +2791,6 @@ return [
             40 => 'Shindo 4', 45 => 'Shindo 5 Lower',
             50 => 'Shindo 5 Upper', 55 => 'Shindo 6 Lower', 60 => 'Shindo 6 Upper', 70 => 'Shindo 7',
         ],
-        // Display labels: cover EVERY P2PQuake scale code (a superset of the
-        // threshold choices above -- 20/30/46/-1 are needed too, and no "for testing" note).
         'scale_labels' => [
             -1 => 'Unknown', 10 => '1', 20 => '2', 30 => '3', 40 => '4',
             45 => '5 Lower', 46 => '5 Lower or above', 50 => '5 Upper', 55 => '6 Lower', 60 => '6 Upper', 70 => '7',

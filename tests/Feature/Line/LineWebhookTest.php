@@ -16,13 +16,6 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Illuminate\Support\Facades\Http;
 
-/**
- * Phase 2: LINE webhook. Public route admin/line/webhook, verifies the X-Line-Signature.
- *
- * The signature is signed with the channel secret, which we set via config('exment.line.channel_secret')
- * (System::system_line_channel_secret reads from this config). Calls out to LINE via reply()
- * are blocked with Http::fake() so no real API request is made.
- */
 class LineWebhookTest extends FeatureTestBase
 {
     use TestTrait;
@@ -31,7 +24,7 @@ class LineWebhookTest extends FeatureTestBase
     public const SECRET = 'webhook-test-secret';
     public const WEBHOOK_URL = 'admin/line/webhook';
 
-    /** @var \ArrayObject Guzzle transactions captured from the mocked LINE transport. */
+    /** @var \ArrayObject */
     protected $lineHistory;
 
     protected function setUp(): void
@@ -41,8 +34,6 @@ class LineWebhookTest extends FeatureTestBase
         config(['exment.line.channel_secret' => static::SECRET]);
         config(['exment.line.channel_access_token' => 'webhook-test-token']);
 
-        // reply()/push() use Guzzle directly (not the Http facade), so bind a LineMessagingClient
-        // whose transport is mocked: keeps the suite hermetic and records every outgoing request.
         $this->lineHistory = new \ArrayObject();
         $stack = HandlerStack::create(new MockHandler(array_fill(0, 20, new GuzzleResponse(200, [], '{}'))));
         $stack->push(Middleware::history($this->lineHistory));
@@ -54,7 +45,6 @@ class LineWebhookTest extends FeatureTestBase
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
-    /** Paths of the LINE requests captured so far (e.g. '/v2/bot/message/reply'). */
     protected function lineRequestPaths(): array
     {
         $paths = [];
@@ -64,7 +54,6 @@ class LineWebhookTest extends FeatureTestBase
         return $paths;
     }
 
-    /** POST to the webhook with a body and a valid signature (signed with SECRET). */
     protected function postWebhook(array $payload)
     {
         $body = json_encode($payload);
@@ -90,8 +79,6 @@ class LineWebhookTest extends FeatureTestBase
             'message' => ['type' => 'text', 'text' => $text],
         ];
     }
-
-    // -------------------------------------------------- signature
 
     public function testRejectsRequestWithoutSignature()
     {
@@ -128,11 +115,8 @@ class LineWebhookTest extends FeatureTestBase
 
     public function testAcceptsValidSignatureAndReturns200()
     {
-        // LINE always requires a 200, even when events is empty
         $this->postWebhook(['events' => []])->assertStatus(200);
     }
-
-    // -------------------------------------------------- follow
 
     public function testFollowEventReturns200()
     {
@@ -145,21 +129,14 @@ class LineWebhookTest extends FeatureTestBase
         $response->assertStatus(200);
     }
 
-    /**
-     * A follow event must not trigger any reply. Linking is driven from the web QR/deep link
-     * (which pre-fills the real "LINK <code>"), so a follow greeting would only be redundant.
-     * This also covers the unblock/re-add case, where a follow fires for an already-linked user.
-     */
     public function testFollowSendsNoReply()
     {
-        // brand-new follower
         $this->postWebhook(['events' => [[
             'type' => 'follow',
             'replyToken' => 'rt-follow-new',
             'source' => ['userId' => 'Ufollownew'],
         ]]])->assertStatus(200);
 
-        // already-linked user unblocking / re-adding the OA
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         LineAccountLink::forUser($userId)->markLinked('Urefollow');
         $this->postWebhook(['events' => [[
@@ -171,11 +148,6 @@ class LineWebhookTest extends FeatureTestBase
         $this->assertNotContains('/v2/bot/message/reply', $this->lineRequestPaths(), 'A follow event must not send any reply.');
     }
 
-    /**
-     * Positive control: an unlinked user texting anything gets the syntax guidance, so a reply IS
-     * sent. Proves the mocked transport actually records reply requests, keeping the negative
-     * assertion in testFollowSendsNoReply honest.
-     */
     public function testTextMessageSendsReply()
     {
         $this->postWebhook(['events' => [
@@ -185,12 +157,9 @@ class LineWebhookTest extends FeatureTestBase
         $this->assertContains('/v2/bot/message/reply', $this->lineRequestPaths());
     }
 
-    // -------------------------------------------------- account linking via message
-
     public function testLinkMessageLinksAccount()
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
-        // Generate a code for user1
         $code = LineAccountLink::forUser($userId)->generateCode();
         $lineUserId = 'Ulinkme';
 
@@ -225,16 +194,13 @@ class LineWebhookTest extends FeatureTestBase
         $user2 = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $lineUserId = 'Ualreadylinked';
 
-        // This LINE account is already linked to user1
         LineAccountLink::forUser($user1)->markLinked($lineUserId);
-        // user2 generates a code, and the LINE account (already linked to user1) tries to link to user2
         $code2 = LineAccountLink::forUser($user2)->generateCode();
 
         $this->postWebhook(['events' => [
             $this->messageEvent('LINK ' . $code2, $lineUserId),
         ]])->assertStatus(200);
 
-        // user2 remains unlinked; user1 stays unchanged
         $this->assertNull(LineAccountLink::where('user_id', $user2)->first()->line_user_id);
         $this->assertEquals($lineUserId, LineAccountLink::where('user_id', $user1)->first()->line_user_id);
     }

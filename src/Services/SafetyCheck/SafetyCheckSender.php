@@ -18,41 +18,31 @@ use Illuminate\Support\Facades\URL;
 class SafetyCheckSender
 {
     /**
-     * @param CustomValue $eventValue CustomValue of `safety_check_event`.
-     * @param bool $onlyUnanswered If true (re-send): only (re-)send to users whose row
-     *                             is `not_answered`; rows missing after an earlier
-     *                             failed create are still created (recovery).
+     * @param CustomValue $eventValue
+     * @param bool $onlyUnanswered
      * @return array{target:int,line:int,mail:int}
      */
     public static function send($eventValue, bool $onlyUnanswered = false): array
     {
         $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
         if (!$answerTable) {
-            // Half-installed environment (see SafetyWatchCommand::handle, which only
-            // checks the event table): fail loudly in the log instead of a fatal.
             Log::error('safety check answer table is not installed; nothing sent', [
                 'event_id' => $eventValue->id,
             ]);
             return ['target' => 0, 'line' => 0, 'mail' => 0];
         }
 
-        // existing answer rows for this event, keyed by user id
         $existingByUser = [];
         foreach ($answerTable->getValueQuery()->where('value->event', $eventValue->id)->get() as $row) {
             $existingByUser[(int) array_get($row->value, 'user')] = $row;
         }
 
-        // only the ids are needed — don't hydrate every user row (full value JSON)
         $userIds = getModelName(SystemTableName::USER)::query()->pluck('id')->all();
 
         $linkedMap = LineAccountLink::whereIn('user_id', $userIds)
             ->whereNotNull('line_user_id')
             ->pluck('line_user_id', 'user_id');
 
-        // Ensure a row per user on EVERY send, resend included: a user whose row
-        // creation failed at the first send (logged below) would otherwise be
-        // invisible in 未回答 and unreachable forever — 再送 recreates the missing
-        // row (as not_answered) and reaches them, making it the recovery path.
         foreach ($userIds as $userId) {
             $userId = (int) $userId;
             if (isset($existingByUser[$userId])) {
@@ -69,9 +59,6 @@ class SafetyCheckSender
                 ])->save();
                 $existingByUser[$userId] = $answerRow;
             } catch (\Throwable $e) {
-                // one bad row must not abort the rest of the loop: users after this
-                // point still get their answer row. This user gets no row this send,
-                // but the next 再送 retries the create.
                 Log::error('safety check answer row create failed', [
                     'user_id' => $userId,
                     'event_id' => $eventValue->id,
@@ -81,7 +68,6 @@ class SafetyCheckSender
             }
         }
 
-        // targets for this call: re-send restricts to rows still `not_answered`
         $targets = [];
         foreach ($existingByUser as $userId => $answerRow) {
             if ($onlyUnanswered && array_get($answerRow->value, 'answer_status') !== SafetyCheckDefine::ANSWER_NOT_ANSWERED) {
@@ -118,16 +104,12 @@ class SafetyCheckSender
         $bubble = LineFlexBuilder::buildBubble($title, $rows, $buttons);
         $message = LineMessagingClient::flex($title, $bubble);
 
-        // every target with an email gets the mail (LINE-linked included), so the
-        // user rows (email column) are needed for the whole target list
         $mailUsers = collect();
         if (!empty($targets)) {
             $mailUsers = CustomTable::getEloquent(SystemTableName::USER)->getValueQuery()
                 ->whereIn('id', array_keys($targets))->get()->keyBy('id');
         }
 
-        // mail body = the same info lines the Flex bubble shows (minus the
-        // LINE-only comment note, label '')
         $bodyLines = [];
         foreach ($rows as $rowDef) {
             if ($rowDef['label'] === '') {
@@ -143,14 +125,6 @@ class SafetyCheckSender
 
             $lineUserId = $linkedMap->get($userId);
             if (!is_nullorempty($lineUserId)) {
-                // dispatch() (not dispatchAfterResponse) so a configured async queue
-                // (QUEUE_CONNECTION=database/redis + worker) really queues the push and
-                // LineSendJob's 429/5xx retry can work. On the default sync driver the
-                // job runs inline here - the try/catch keeps one user's network failure
-                // (Guzzle connect exception) or API rejection (LineSendFailedException,
-                // e.g. expired token) from aborting the rest of the loop, and such a
-                // user is NOT counted as reached over LINE. On an async queue the
-                // outcome is not known yet: 'line' counts dispatched pushes there.
                 try {
                     LineSendJob::dispatch($lineUserId, [$message], [
                         'user_id' => $userId,
@@ -158,7 +132,7 @@ class SafetyCheckSender
                         'parent_id' => $eventValue->id,
                         'parent_type' => SafetyCheckDefine::TABLE_EVENT,
                         'subject' => $title,
-                    ], true); // throwOnFailure: caught per user right below
+                    ], true);
                     $result['line']++;
                     $sentAny = true;
                 } catch (\Throwable $e) {
@@ -170,7 +144,6 @@ class SafetyCheckSender
                 }
             }
 
-            // mail carries the signed web-answer URL; null = user has no email
             try {
                 $mailSender = static::buildMailSender($mailUsers->get($userId), $eventValue, $title, $mailBody);
                 if ($mailSender) {
@@ -189,8 +162,6 @@ class SafetyCheckSender
             if ($sentAny) {
                 $notified++;
             } elseif (is_nullorempty($lineUserId)) {
-                // neither LINE nor email: unreachable — the admin still sees the
-                // gap via unlinked_flg on the row
                 Log::warning('safety check user unreachable: no LINE link and no email', [
                     'user_id' => $userId,
                     'event_id' => $eventValue->id,
@@ -199,10 +170,6 @@ class SafetyCheckSender
         }
 
         if ($onlyUnanswered) {
-            // Do NOT overwrite sent_count on resend: $result here covers only the
-            // still-unanswered subset, and clobbering it would make the admin page show
-            // e.g. 送信数 1/対象 N. target_count IS refreshed to the full row count so a
-            // recovery-created row (see above) is included and 回答数 can never exceed it.
             $eventUpdate = [
                 'resent_at' => now()->format('Y-m-d H:i:s'),
                 'target_count' => count($existingByUser),
