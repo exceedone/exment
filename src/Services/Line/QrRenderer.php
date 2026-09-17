@@ -4,10 +4,6 @@ namespace Exceedone\Exment\Services\Line;
 
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-/**
- * Renders text (a LINE deep link) into a QR code SVG image.
- * Uses simplesoftwareio/simple-qrcode (already bundled in the project).
- */
 class QrRenderer
 {
     public static function svg(string $text, int $size = 256): string

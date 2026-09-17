@@ -41,9 +41,6 @@ class InstallSeeder extends Seeder
             $importer = new TemplateImportExport\TemplateImporter();
             $importer->importSystemTemplate();
 
-            // LINE and safety check (安否確認) objects are created here, not during
-            // migrate — see the LineInstaller docblock for why. Same ensureAll() the
-            // dated migrations call, so both install paths converge on one shape.
             LineInstaller::ensureAll();
             SafetyCheckInstaller::ensureAll();
         } catch (\Exception $exception) {

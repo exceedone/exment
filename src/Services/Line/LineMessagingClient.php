@@ -6,12 +6,6 @@ use GuzzleHttp\Client;
 use Exceedone\Exment\Model\System;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Wraps the LINE Messaging API: push / reply / verify webhook signature.
- * HTTP only, no business logic.
- *
- * Credentials come from System settings; endpoint and timeout from config('exment.line.*').
- */
 class LineMessagingClient
 {
     /** @var Client */
@@ -39,7 +33,6 @@ class LineMessagingClient
         return new self($token, $secret);
     }
 
-    /** Send a push message to a userId. */
     public function push(string $to, array $messages): array
     {
         return $this->request('/v2/bot/message/push', [
@@ -48,7 +41,6 @@ class LineMessagingClient
         ]);
     }
 
-    /** Reply to an event using a replyToken. */
     public function reply(string $replyToken, array $messages): array
     {
         $res = $this->request('/v2/bot/message/reply', [
@@ -56,20 +48,11 @@ class LineMessagingClient
             'messages'   => $this->normalize($messages),
         ]);
         if (!$res['ok']) {
-            // Webhook handlers discard this result (the action already ran; an
-            // expired replyToken cannot be retried), so log it here or a revoked
-            // token / expired replyToken leaves no trace at all.
             Log::warning('LINE reply failed', ['status' => $res['status'], 'body' => $res['body']]);
         }
         return $res;
     }
 
-    /**
-     * Verify the webhook signature (HMAC-SHA256, base64, with the channel secret).
-     * An unconfigured (empty) channel secret rejects EVERYTHING: the webhook route is
-     * public (no auth/CSRF/IP filter), so without this an attacker could sign any
-     * payload with the empty key while LINE is not yet set up.
-     */
     public function verifySignature(string $requestBody, ?string $signature): bool
     {
         if ($this->secret === '' || empty($signature)) {
@@ -79,13 +62,11 @@ class LineMessagingClient
         return hash_equals($hash, $signature);
     }
 
-    /** Build a text message. */
     public static function text(string $text): array
     {
         return ['type' => 'text', 'text' => $text];
     }
 
-    /** Build a Flex Message with a bubble/carousel container. */
     public static function flex(string $altText, array $bubble): array
     {
         $altText = trim($altText);
@@ -97,7 +78,6 @@ class LineMessagingClient
         return ['type' => 'flex', 'altText' => $altText, 'contents' => $bubble];
     }
 
-    /** Accept a single message or an array of messages. */
     protected function normalize(array $messages): array
     {
         return isset($messages['type']) ? [$messages] : array_values($messages);

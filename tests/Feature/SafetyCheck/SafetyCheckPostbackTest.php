@@ -8,13 +8,6 @@ use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 
-/**
- * Task 6 - Webhook postback act=safety: taps on the LINE Flex "safe / minor_injury /
- * need_help" buttons record the answer onto the matching safety_check_answer row.
- *
- * Exercises the real public route admin/line/webhook with a valid signature
- * (same conventions as LineWebhookTest / LinePostbackWorkflowTest).
- */
 class SafetyCheckPostbackTest extends FeatureTestBase
 {
     use TestTrait;
@@ -29,8 +22,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->setUpLineWebhookMock();
     }
 
-    // -------------------------------------------------- helpers
-
     protected function postbackEvent(string $data, string $lineUserId, string $replyToken = 'rt-safety', array $overrides = []): array
     {
         return array_merge([
@@ -40,8 +31,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
             'postback' => ['data' => $data],
         ], $overrides);
     }
-
-    // -------------------------------------------------- tests
 
     public function testTapSafeRecordsAnswerAndReplies()
     {
@@ -101,7 +90,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $event = $this->createEvent();
         $row = $this->createAnswerRow($event->id, $userId);
-        // deliberately no LineAccountLink for this LINE user id
 
         $data = 'act=safety&event=' . $event->id . '&st=safe';
         $this->postWebhook(['events' => [$this->postbackEvent($data, 'Uunlinkedsafety')]])->assertStatus(200);
@@ -128,13 +116,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals(exmtrans('line.invalid_action_data'), $this->lastReplyText());
     }
 
-    /**
-     * user2 belongs to role group "user_group" which has NO permission on the
-     * safety_check_* tables (the installer grants none). The postback must still
-     * record the answer: identity is already proven by the signed webhook +
-     * LineAccountLink chain, and the row touched is the user's own.
-     * Regression test for CustomValueModelScope forcing `id < 0` (record_not_found).
-     */
     public function testRegularUserWithoutTablePermissionCanAnswer()
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
@@ -153,11 +134,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals($expected, $this->lastReplyText());
     }
 
-    /**
-     * LINE may redeliver a webhook, and redelivery order is not guaranteed. A
-     * redelivered old "safe" tap must NOT overwrite a newer "need_help" answer:
-     * events carrying a webhookEventId are processed exactly once.
-     */
     public function testRedeliveredWebhookEventDoesNotOverwriteNewerAnswer()
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
@@ -174,7 +150,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->postWebhook(['events' => [$safeEvent]])->assertStatus(200);
         $this->assertEquals('safe', array_get($this->freshAnswerRow($row->id)->value, 'answer_status'));
 
-        // the user changes their answer to need_help (a different webhook event)
         $helpEvent = $this->postbackEvent(
             'act=safety&event=' . $event->id . '&st=need_help',
             $lineUserId,
@@ -184,7 +159,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->postWebhook(['events' => [$helpEvent]])->assertStatus(200);
         $this->assertEquals('need_help', array_get($this->freshAnswerRow($row->id)->value, 'answer_status'));
 
-        // LINE redelivers the ORIGINAL safe event (same webhookEventId)
         $redelivered = $safeEvent;
         $redelivered['deliveryContext'] = ['isRedelivery' => true];
         $this->postWebhook(['events' => [$redelivered]])->assertStatus(200);
@@ -193,12 +167,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals('need_help', array_get($fresh->value, 'answer_status'), 'A redelivered older webhook event must not overwrite the newer answer.');
     }
 
-    /**
-     * The exactly-once guard must not turn a FAILED processing attempt into a
-     * permanent skip: when handling throws (e.g. a transient DB error), the
-     * webhookEventId has to be released again so LINE's redelivery of the same
-     * event can succeed — otherwise the user's answer is silently lost.
-     */
     public function testFailedProcessingReleasesWebhookEventIdForRedelivery()
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
@@ -206,7 +174,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $event = $this->createEvent();
         $row = $this->createAnswerRow($event->id, $userId);
 
-        // transient DB error stand-in: the FIRST answer save throws, later ones succeed
         $failOnce = true;
         getModelName('safety_check_answer')::saving(function () use (&$failOnce) {
             if ($failOnce) {
@@ -224,7 +191,6 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->postWebhook(['events' => [$tap]])->assertStatus(500);
         $this->assertEquals('not_answered', array_get($this->freshAnswerRow($row->id)->value, 'answer_status'));
 
-        // LINE redelivers the same webhookEventId; the DB hiccup is gone
         $redelivered = $tap;
         $redelivered['deliveryContext'] = ['isRedelivery' => true];
         $this->postWebhook(['events' => [$redelivered]])->assertStatus(200);

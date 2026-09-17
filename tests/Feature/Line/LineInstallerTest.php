@@ -10,17 +10,6 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestTrait;
 
-/**
- * Guards the "release = run the migrations" promise for the LINE side: whatever
- * a fresh install (InstallSeeder) and an upgrade (the dated migrations) run,
- * both go through LineInstaller::ensureAll(), and re-running it must converge
- * rather than duplicate.
- *
- * The test DB is already seeded by "exment:inittest", so these assert the
- * SHIPPED shape plus re-run safety -- the from-nothing creation path is not
- * exercised here (dropping the custom tables would need DDL, which MySQL
- * auto-commits and would break DatabaseTransactions).
- */
 class LineInstallerTest extends FeatureTestBase
 {
     use TestTrait;
@@ -53,11 +42,6 @@ class LineInstallerTest extends FeatureTestBase
         $this->assertTrue(Menu::where('menu_name', 'line_link')->exists());
     }
 
-    /**
-     * line_send_log.flex_template is a SELECT_TABLE pointing at line_flex_template,
-     * so ensureAll() has to create the flex table FIRST. Run them the other way
-     * round and the foreign table id silently ends up null -- this pins the order.
-     */
     public function testSendLogFlexTemplateColumnPointsAtFlexTemplateTable()
     {
         LineInstaller::ensureAll();
@@ -78,11 +62,6 @@ class LineInstallerTest extends FeatureTestBase
         $this->assertEquals(1, CustomTable::where('table_name', 'line_send_log')->count());
         $this->assertEquals(1, Menu::where('menu_name', 'line_link')->count());
     }
-    /**
-     * Same guard as SafetyCheckInstallerTest::testEnsureAllRefusesForeignTableWithSameName,
-     * for line_flex_template — including the HAZARD note there (a red run commits DDL;
-     * restore the test DB with `APP_ENV=testing php artisan exment:inittest --yes`).
-     */
     public function testEnsureAllRefusesForeignTableWithSameName()
     {
         LineInstaller::ensureAll();

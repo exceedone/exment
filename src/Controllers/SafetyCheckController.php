@@ -14,24 +14,11 @@ use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Illuminate\Http\Request;
 
-/**
- * Admin page for the safety-check (安否確認) feature: list recent events, trigger a
- * new one (manual/drill), re-send to still-unanswered users (throttled via the
- * safety_check_resend_throttle_minutes setting), and close an event. Every action
- * requires the system permission (see the constructor middleware).
- */
 class SafetyCheckController extends AdminControllerBase
 {
-    /** @var array<int|string, int> answered counts for the events on the current grid page */
+    /** @var array<int|string, int> */
     protected $answeredCounts = [];
 
-    /**
-     * TTL of the send() double-submit lock, per admin. The lock is released in
-     * finally, so this only bounds how long a lock survives a process that died
-     * mid-send — but it MUST outlive a live send: on the sync queue driver that is
-     * N LINE pushes + N SMTP deliveries in one request (minutes for a few hundred
-     * users), and a TTL shorter than that let a second tab create a second event.
-     */
     public const SEND_LOCK_SECONDS = 600;
 
     public function __construct()
@@ -50,8 +37,6 @@ class SafetyCheckController extends AdminControllerBase
     {
         $content = $this->AdminContent($content);
         if (!$this->isInstalled()) {
-            // Half-installed environment (same case SafetyWatchCommand guards): show
-            // the recovery hint instead of a 500 from a null column lookup below.
             return $content->withError(exmtrans('safety.menu_title'), exmtrans('safety.message_not_installed'));
         }
         return $content
@@ -59,11 +44,6 @@ class SafetyCheckController extends AdminControllerBase
             ->body($this->grid());
     }
 
-    /**
-     * Both feature tables AND every column the page/queries touch must exist. The
-     * install migration can be marked run while SafetyCheckInstaller::ensureAll()
-     * no-oped (LINE template not imported yet) - see SafetyWatchCommand::handle().
-     */
     protected function isInstalled(): bool
     {
         $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
@@ -84,7 +64,6 @@ class SafetyCheckController extends AdminControllerBase
         return true;
     }
 
-    /** Guard for the POST actions: toastr + redirect instead of a 500 on a half-installed env. */
     protected function notInstalledResponse()
     {
         admin_toastr(exmtrans('safety.message_not_installed'), 'error');
@@ -92,9 +71,6 @@ class SafetyCheckController extends AdminControllerBase
     }
 
     /**
-     * Event list as a standard admin grid (same look as the other list screens):
-     * filter, pagination, per-page selector, and per-row resend/close actions.
-     *
      * @return Grid
      */
     protected function grid()
@@ -105,10 +81,8 @@ class SafetyCheckController extends AdminControllerBase
         $classname = getModelName(SafetyCheckDefine::TABLE_EVENT);
         $grid = new Grid(new $classname());
 
-        // newest-first by default (a column-sort click replaces this via resetOrderBy)
         $grid->model()->orderBy('id', 'desc');
 
-        // answered counts for just the rows on the current page, in one grouped query
         $grid->model()->collection(function ($collection) use ($answerTable) {
             $this->answeredCounts = $this->answeredCounts($answerTable, $collection);
             return $collection;
@@ -118,7 +92,6 @@ class SafetyCheckController extends AdminControllerBase
             return CustomColumn::getEloquent($name, $eventTable)->getQueryKey();
         };
 
-        // no manual esc_html here: the grid column escapes values itself by default
         $grid->column($columnKey('title'), exmtrans('safety.col_title'))->sortable();
         $grid->column($columnKey('trigger_type'), exmtrans('safety.col_trigger_type'))->sortable()->display(function ($value) {
             return exmtrans('safety.trigger_type_' . $value);
@@ -139,7 +112,6 @@ class SafetyCheckController extends AdminControllerBase
             return $controller->getAnsweredCount($this->id);
         });
 
-        // events are created from the send form above the grid, never edited in place
         $grid->disableCreateButton();
         $grid->disableExport();
         $grid->disableRowSelector();
@@ -149,7 +121,6 @@ class SafetyCheckController extends AdminControllerBase
             $actions->disableEdit();
             $actions->disableDelete();
 
-            // a closed event can be neither resent (blocked in resend()) nor re-closed
             if ($actions->row->getValue('event_status') === SafetyCheckDefine::EVENT_CLOSED) {
                 return;
             }
@@ -188,17 +159,11 @@ class SafetyCheckController extends AdminControllerBase
         return $grid;
     }
 
-    /** Answered count for one listed event (populated per page by the grid's collection callback). */
     public function getAnsweredCount($eventId): int
     {
         return (int) ($this->answeredCounts[$eventId] ?? 0);
     }
 
-    /**
-     * A grid row action rendered as a small text button (same style as the other
-     * list screens), submitting a POST form (resend/close are POST routes) after
-     * a swal confirm popup (see rowActionScript).
-     */
     public function rowActionHtml(string $url, string $formId, string $label, string $confirm): string
     {
         return sprintf(
@@ -213,10 +178,6 @@ class SafetyCheckController extends AdminControllerBase
         );
     }
 
-    /**
-     * Confirm popup for the row action buttons: the same swal dialog the other
-     * screens use (OperationButton etc.), submitting the row's hidden form on OK.
-     */
     protected function rowActionScript(): string
     {
         $confirm = trans('admin.confirm');
@@ -284,7 +245,6 @@ EOT;
         return redirect(admin_url('safety_check'));
     }
 
-    /** Cache key of the send() double-submit lock for the current admin. */
     public static function sendLockKey(): string
     {
         return 'safety_check_send.' . \Exment::getUserId();
@@ -306,15 +266,10 @@ EOT;
         $event = $this->findEventOrFail($eventTable, $id);
 
         if ($event->getValue('event_status') === SafetyCheckDefine::EVENT_CLOSED) {
-            // A closed event's buttons can only reply "closed" (see SafetyCheckAction::handle);
-            // resending it would just send paid LINE messages nobody can meaningfully answer.
             admin_toastr(exmtrans('safety.resend_closed_error'), 'error');
             return redirect(admin_url('safety_check'));
         }
 
-        // Re-send is throttled to at most once every N minutes (0 = no throttle).
-        // The check and the resent_at write are ONE conditional UPDATE, so two
-        // concurrent clicks cannot both pass a read-then-write check and double-send.
         $throttle = (int) System::safety_check_resend_throttle_minutes();
         if ($throttle > 0) {
             $cutoff = now()->subMinutes($throttle)->format('Y-m-d H:i:s');
@@ -363,10 +318,6 @@ EOT;
     }
 
     /**
-     * Answered-answer count per listed event, as [event id => count]. ONE grouped
-     * query on the generated index columns instead of a COUNT per event (the JSON
-     * paths cannot use the index and would scan the answer table N times).
-     *
      * @param CustomTable $answerTable
      * @param \Illuminate\Support\Collection $events
      * @return array<int|string, int>

@@ -19,12 +19,6 @@ use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 
-/**
- * Phase 4 - Reminder TIME -> LINE. exment:notifyschedule / Notify::notifySchedule()
- * sends reminders via LINE to linked users, and prevents duplicate sends when the batch runs repeatedly.
- *
- * Does not call the real LINE API (Http::fake) and does not dispatch real pushes (Bus::fake).
- */
 class NotifyScheduleLineTest extends FeatureTestBase
 {
     use TestTrait;
@@ -35,11 +29,10 @@ class NotifyScheduleLineTest extends FeatureTestBase
         parent::setUp();
         $this->initAllTest();
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
-        config(['exment.line.dedupe_minutes' => 0]); // reset so state does not leak between tests
+        config(['exment.line.dedupe_minutes' => 0]);
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
-    /** Read a protected property of LineSendJob. */
     protected function jobProperty(LineSendJob $job, string $name)
     {
         $prop = (new \ReflectionClass($job))->getProperty($name);
@@ -48,8 +41,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
     }
 
     /**
-     * Build a TIME notify + LINE action for a due record, and link LINE for the recipient.
-     * @return array [$notify, $table, int $recordId, int $recipientUserId, string $lineUserId]
+     * @return array
      */
     protected function setupTimeReminder($flexTemplateId = null): array
     {
@@ -87,7 +79,6 @@ class NotifyScheduleLineTest extends FeatureTestBase
         return [$notify, $table, (int) $record->id, $recipientUserId, $lineUserId];
     }
 
-    /** Seed one line_send_log row for (user, record) — used by dedupe tests. */
     protected function seedLog(int $userId, int $parentId, string $parentType): void
     {
         LineSendLogger::record(
@@ -104,8 +95,6 @@ class NotifyScheduleLineTest extends FeatureTestBase
             ['ok' => true, 'status' => 200]
         );
     }
-
-    // -------------------------------------------------- pipeline
 
     public function testReminderTextDispatchesLineJobForLinkedUser()
     {
@@ -130,7 +119,6 @@ class NotifyScheduleLineTest extends FeatureTestBase
     {
         Bus::fake();
         [$notify, , , $recipientUserId] = $this->setupTimeReminder();
-        // remove the link created above -> user has no line_user_id
         LineAccountLink::where('user_id', $recipientUserId)->delete();
 
         $notify->notifySchedule();
@@ -142,7 +130,6 @@ class NotifyScheduleLineTest extends FeatureTestBase
     {
         Bus::fake();
 
-        // create a minimal flex template
         $tmpl = CustomTable::getEloquent('line_flex_template')->getValueModel();
         $tmpl->setValue([
             'template_name' => 'reminder-test',
@@ -174,7 +161,6 @@ class NotifyScheduleLineTest extends FeatureTestBase
         $notify->notifySchedule();
         $notify->notifySchedule();
 
-        // dedupe off -> one job per run (2 runs = 2 jobs)
         Bus::assertDispatchedAfterResponseTimes(LineSendJob::class, 2);
     }
 
@@ -190,15 +176,12 @@ class NotifyScheduleLineTest extends FeatureTestBase
         });
     }
 
-    // -------------------------------------------------- dedupe
-
     public function testDedupeBlocksSecondSendWithinWindow()
     {
         Bus::fake();
         config(['exment.line.dedupe_minutes' => 60]);
         [$notify, $table, $recordId, $recipientUserId] = $this->setupTimeReminder();
 
-        // a log already exists within the 60-minute window for this exact (user, record) -> this run must be blocked
         $this->seedLog($recipientUserId, $recordId, $table->table_name);
 
         $notify->notifySchedule();
@@ -212,7 +195,6 @@ class NotifyScheduleLineTest extends FeatureTestBase
         config(['exment.line.dedupe_minutes' => 60]);
         [$notify, $table, $recordId, $recipientUserId] = $this->setupTimeReminder();
 
-        // log is 2 hours old -> outside the 60-minute window -> should still send
         Carbon::setTestNow(Carbon::now()->subHours(2));
         $this->seedLog($recipientUserId, $recordId, $table->table_name);
         Carbon::setTestNow();
@@ -228,7 +210,6 @@ class NotifyScheduleLineTest extends FeatureTestBase
         config(['exment.line.dedupe_minutes' => 60]);
         [, $table, $recordId, $recipientUserId, $lineUserId] = $this->setupTimeReminder();
 
-        // a log exists within the window, BUT the notify is WORKFLOW -> the guard does not apply -> still sends
         $this->seedLog($recipientUserId, $recordId, $table->table_name);
 
         $record = $table->getValueModel()->find($recordId);

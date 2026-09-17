@@ -5,10 +5,6 @@ namespace Exceedone\Exment\Model;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Stores the link between an Exment account (user_id) and a LINE account (line_user_id).
- * Uses a dedicated line_account_links table (not a custom column on the user table).
- */
 class LineAccountLink extends Model
 {
     protected $table = 'line_account_links';
@@ -27,10 +23,6 @@ class LineAccountLink extends Model
         return !empty($this->line_user_id);
     }
 
-    /**
-     * A code is usable only until line_link_code_expires_at (config
-     * exment.line.link_code_ttl_minutes); an expired code is treated as absent.
-     */
     public function hasActiveCode(): bool
     {
         return !empty($this->line_link_code)

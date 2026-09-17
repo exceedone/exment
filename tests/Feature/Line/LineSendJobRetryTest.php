@@ -16,12 +16,6 @@ use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Illuminate\Contracts\Queue\Job;
 use Mockery;
 
-/**
- * LineSendJob must retry retryable LINE API failures (429 / 5xx) when it runs on a
- * real (async) queue: release back with backoff instead of swallowing the failure,
- * and only write the line_send_log failure row on the FINAL attempt. On the sync
- * driver (no retry possible) and on success, behavior is unchanged: one log row.
- */
 class LineSendJobRetryTest extends FeatureTestBase
 {
     use TestTrait;
@@ -40,7 +34,6 @@ class LineSendJobRetryTest extends FeatureTestBase
         parent::tearDown();
     }
 
-    /** Bind a LineMessagingClient whose transport returns the given responses. */
     protected function bindClient(array $responses): void
     {
         $stack = HandlerStack::create(new MockHandler($responses));
@@ -50,7 +43,6 @@ class LineSendJobRetryTest extends FeatureTestBase
         });
     }
 
-    /** A queue-context mock: the job contract LineSendJob sees via InteractsWithQueue. */
     protected function queueJobMock(string $connection, int $attempts): Job
     {
         $mock = Mockery::mock(Job::class);
@@ -76,7 +68,7 @@ class LineSendJobRetryTest extends FeatureTestBase
 
         $job = new LineSendJob('Uretry1', [LineMessagingClient::text('hello')]);
         $queueJob = $this->queueJobMock('database', 1);
-        $queueJob->shouldReceive('release')->once(); // released back for retry
+        $queueJob->shouldReceive('release')->once();
         $job->setJob($queueJob);
 
         $job->handle();
@@ -91,7 +83,7 @@ class LineSendJobRetryTest extends FeatureTestBase
         $before = $this->sendLogRows()->count();
 
         $job = new LineSendJob('Uretry2', [LineMessagingClient::text('hello')]);
-        $queueJob = $this->queueJobMock('database', $job->tries); // last allowed attempt
+        $queueJob = $this->queueJobMock('database', $job->tries);
         $queueJob->shouldReceive('release')->never();
         $job->setJob($queueJob);
 
@@ -108,10 +100,8 @@ class LineSendJobRetryTest extends FeatureTestBase
 
         $before = $this->sendLogRows()->count();
 
-        // throwOnFailure=true: on sync the failure is also surfaced to the inline
-        // caller (see SafetyCheckSender: a rejected push must not count as "sent").
         $job = new LineSendJob('Uretry3', [LineMessagingClient::text('hello')], [], true);
-        $queueJob = $this->queueJobMock('sync', 1); // sync driver cannot retry
+        $queueJob = $this->queueJobMock('sync', 1);
         $queueJob->shouldReceive('release')->never();
         $job->setJob($queueJob);
 
@@ -128,14 +118,12 @@ class LineSendJobRetryTest extends FeatureTestBase
         $this->assertEquals($before + 1, $rows->count(), 'Sync driver cannot retry: log once, immediately.');
         $this->assertEquals('failed', array_get($rows->last()->value, 'status'));
 
-        // Laravel's sync queue calls failed() with the same exception: no second row.
         $job->failed($thrown);
         $this->assertEquals($before + 1, $this->sendLogRows()->count(), 'failed() must not log the API failure twice.');
     }
 
     public function testNonRetryableFailureIsNotReleased()
     {
-        // 400 invalid user id: retrying cannot help
         $this->bindClient([new GuzzleResponse(400, [], '{"message":"invalid to"}')]);
 
         $before = $this->sendLogRows()->count();
@@ -152,12 +140,6 @@ class LineSendJobRetryTest extends FeatureTestBase
         $this->assertEquals('failed', array_get($rows->last()->value, 'status'));
     }
 
-    /**
-     * A network-level exception (Guzzle ConnectException: DNS/timeout, no HTTP
-     * status) escapes handle() by design so the queue retries it — but once the
-     * job finally dies, the failure must STILL leave a line_send_log row, like
-     * every HTTP-status failure does. Laravel calls failed() at that point.
-     */
     public function testExhaustedNetworkFailureWritesFailureLog()
     {
         $before = $this->sendLogRows()->count();
@@ -190,13 +172,6 @@ class LineSendJobRetryTest extends FeatureTestBase
         $this->assertEquals($before + 1, $rows->count());
         $this->assertEquals('success', array_get($rows->last()->value, 'status'));
     }
-    /**
-     * Notify (LineSender / NotifyService::notifyLine) pushes via dispatchAfterResponse,
-     * which Laravel runs INLINE in Application::terminate() — never on a real queue.
-     * One recipient LINE rejects (stale line_user_id -> 400, expired token -> 401)
-     * must not abort the terminating-callback chain: every later recipient must
-     * still get their push and their line_send_log row.
-     */
     public function testRejectedAfterResponsePushDoesNotAbortLaterPushes()
     {
         $this->bindClient([

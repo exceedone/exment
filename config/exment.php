@@ -1202,14 +1202,6 @@ return [
     */
     'api_max_rate_limit' => env('EXMENT_API_MAX_RATE_LIMIT', 60),
 
-    /*
-    |--------------------------------------------------------------------------
-    | LINE Messaging API (tích hợp kênh thông báo LINE - mô hình L-Step)
-    |--------------------------------------------------------------------------
-    | channel_access_token : LINE Developers Console > Messaging API
-    | channel_secret       : LINE Developers Console > Basic settings
-    | oa_basic_id          : Basic ID của OA, dạng @xxxx
-    */
     'line' => [
         'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
         'channel_secret'       => env('LINE_CHANNEL_SECRET'),
@@ -1217,20 +1209,11 @@ return [
         'api_base'             => env('LINE_API_BASE', 'https://api.line.me'),
         'timeout'              => env('LINE_HTTP_TIMEOUT', 10),
         'dedupe_minutes'       => env('LINE_DEDUPE_MINUTES', 0),
-        // one-time account-link code: lifetime (minutes) and wrong-code attempts
-        // allowed per LINE user before further LINK messages are ignored
         'link_code_ttl_minutes'      => env('LINE_LINK_CODE_TTL_MINUTES', 10),
         'link_max_attempts'          => env('LINE_LINK_MAX_ATTEMPTS', 5),
         'link_attempt_decay_minutes' => env('LINE_LINK_ATTEMPT_DECAY_MINUTES', 10),
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Safety check (安否確認) - nguồn dữ liệu động đất
-    |--------------------------------------------------------------------------
-    | feed_url   : endpoint API bản tin động đất (mặc định P2P地震情報, relay JMA)
-    | feed_limit : số bản tin đọc mỗi lần poll (exment:safetywatch)
-    */
     'safety_check' => [
         'feed_url'   => env('EXMENT_SAFETY_CHECK_FEED_URL', 'https://api.p2pquake.net/v2/history'),
         'feed_limit' => env('EXMENT_SAFETY_CHECK_FEED_LIMIT', 10),

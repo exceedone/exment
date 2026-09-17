@@ -2,15 +2,8 @@
 
 namespace Exceedone\Exment\Services\Line;
 
-/**
- * Builds a LINE Flex Message bubble from a template (title + body_items) and dynamic buttons.
- * The methods are PURE (no DB access) for easy testing; variable substitution and
- * workflow action resolution are prepared by the caller (NotifyService::notifyLine)
- * and passed into buildBubble().
- */
 class LineFlexBuilder
 {
-    /** Parses body_items: each "Label = format" line -> ['label'=>, 'format'=>]. Skips lines without '='. */
     public static function parseBodyItems(string $raw): array
     {
         $items = [];
@@ -29,23 +22,16 @@ class LineFlexBuilder
         return $items;
     }
 
-    /** Builds the data string for a postback button. */
     public static function postbackData(string $tableKey, $valueId, $actionId): string
     {
         return "act=workflow&table={$tableKey}&id={$valueId}&action={$actionId}";
     }
 
-    /** Builds the data string for a safety-check answer postback button (see SafetyCheckSender). */
     public static function safetyPostbackData($eventId, string $status): string
     {
         return "act=safety&event={$eventId}&st={$status}";
     }
 
-    /**
-     * Default workflow detail fields for the Flex card, sharing the SAME variables as the
-     * mail template workflow (${workflow:...}, ${created_user}). Each entry: [exmtrans_key, format].
-     * The caller (NotifyService::notifyLine) runs exmtrans on the label and replaceWord on the value.
-     */
     public static function workflowDetailFormats(): array
     {
         return [
@@ -57,21 +43,11 @@ class LineFlexBuilder
         ];
     }
 
-    /**
-     * Default title for the Flex card: "[new status] record name" -> makes clear what the
-     * workflow is doing (which record, at which stage). It is a format containing variables,
-     * resolved on send via replaceWord.
-     */
     public static function defaultTitle(): string
     {
         return '[${workflow:status_name}] ${value}';
     }
 
-    /**
-     * Default body_items content: the 5 standard workflow fields in "Label = format" form.
-     * Used to prefill a new template (column default) and as a fallback. Labels follow the
-     * current locale (exmtrans) so "the table is the source of truth" stays consistent with the card.
-     */
     public static function defaultBodyItems(): string
     {
         $lines = [];
@@ -82,10 +58,9 @@ class LineFlexBuilder
     }
 
     /**
-     * Assembles the Flex bubble.
      * @param string $title
-     * @param array $rows    list of ['label'=>string,'value'=>string]
-     * @param array $buttons list of ['label'=>string,'data'=>string]
+     * @param array $rows
+     * @param array $buttons
      */
     public static function buildBubble(string $title, array $rows, array $buttons): array
     {
@@ -97,8 +72,6 @@ class LineFlexBuilder
             ];
         }
 
-        // LINE rejects the whole message (400) if any "text" component is empty, so a row with a
-        // missing side renders as a single full-width line instead of a two-column box.
         foreach ($rows as $row) {
             $label = trim((string) ($row['label'] ?? ''));
             $value = trim((string) ($row['value'] ?? ''));
@@ -128,11 +101,9 @@ class LineFlexBuilder
         $footerContents = [];
         foreach ($buttons as $btn) {
             if (isset($btn['uri'])) {
-                // link-opening button (e.g. "View details") - link style, no displayText bubble
                 $action = ['type' => 'uri', 'label' => (string) $btn['label'], 'uri' => (string) $btn['uri']];
                 $style = 'link';
             } else {
-                // button that executes a workflow action (postback)
                 $action = ['type' => 'postback', 'label' => (string) $btn['label'], 'data' => (string) $btn['data'], 'displayText' => (string) $btn['label']];
                 $style = 'primary';
             }

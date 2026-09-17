@@ -23,7 +23,6 @@ class LineFlexValidityTest extends TestCase
         }
     }
 
-    /** Collect the text of every "text" component in a Flex tree (full deep traversal). */
     private function collectTextValues($node, array &$out): void
     {
         if (!is_array($node)) {
@@ -53,10 +52,6 @@ class LineFlexValidityTest extends TestCase
         }
     }
 
-    /**
-     * A row with only one side filled (the safety-check card ends with a note row that has no
-     * label) must not emit an empty text component - LINE answers 400 "must be non-empty text".
-     */
     public function test_buildBubble_row_with_missing_side_must_not_emit_empty_text_component(): void
     {
         $bubble = LineFlexBuilder::buildBubble('Title', [
@@ -73,7 +68,6 @@ class LineFlexValidityTest extends TestCase
         }
         $this->assertContains('Note without label', $texts);
         $this->assertContains('Label without value', $texts);
-        // title + 2-column row + 2 single-line rows; the fully empty row is dropped
         $this->assertCount(4, $bubble['body']['contents']);
     }
 

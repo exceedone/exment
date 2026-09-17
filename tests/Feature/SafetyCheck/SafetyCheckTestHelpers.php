@@ -13,25 +13,14 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Illuminate\Support\Facades\Http;
 
-/**
- * Shared fixtures for the SafetyCheck feature tests: event/answer-row factories,
- * LINE account linking, and the signed-webhook + mocked-LINE-transport scaffolding
- * (same conventions as LineWebhookTest). Keep changes to the webhook signature,
- * the answer-row schema, or the LINE mock HERE — five test classes use this trait.
- */
 trait SafetyCheckTestHelpers
 {
     public const WEBHOOK_SECRET = 'safety-webhook-test-secret';
     public const WEBHOOK_URL = 'admin/line/webhook';
 
-    /** @var \ArrayObject Guzzle transactions captured from the mocked LINE transport. */
+    /** @var \ArrayObject */
     protected $lineHistory;
 
-    /**
-     * Configures the LINE channel and binds a LineMessagingClient whose transport is
-     * mocked: reply()/push() use Guzzle directly (not the Http facade), so this keeps
-     * the suite hermetic and records every outgoing request in $this->lineHistory.
-     */
     protected function setUpLineWebhookMock(): void
     {
         config(['exment.line.channel_secret' => static::WEBHOOK_SECRET]);
@@ -48,7 +37,6 @@ trait SafetyCheckTestHelpers
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
-    /** POST to the webhook with a body and a valid signature (signed with WEBHOOK_SECRET). */
     protected function postWebhook(array $payload)
     {
         $body = json_encode($payload);
@@ -65,7 +53,6 @@ trait SafetyCheckTestHelpers
         );
     }
 
-    /** Text of the LAST '/v2/bot/message/reply' request captured, or null if none. */
     protected function lastReplyText(): ?string
     {
         $text = null;
@@ -92,7 +79,6 @@ trait SafetyCheckTestHelpers
         return $event;
     }
 
-    /** Seed a `safety_check_answer` row directly (bypasses SafetyCheckSender's pre-creation). */
     protected function createAnswerRow($eventId, int $userId, array $overrides = [])
     {
         $value = array_merge([
@@ -107,7 +93,6 @@ trait SafetyCheckTestHelpers
         return $row;
     }
 
-    /** Re-fetch an answer row via a fresh query (bypasses the request-session cache). */
     protected function freshAnswerRow($rowId)
     {
         return CustomTable::getEloquent('safety_check_answer')->getValueQuery()->find($rowId);
@@ -120,7 +105,6 @@ trait SafetyCheckTestHelpers
         return $lineUserId;
     }
 
-    /** All safety_check_answer rows for the given event id, via a fresh query (no caching). */
     protected function answerRows($eventId)
     {
         $answerTable = CustomTable::getEloquent('safety_check_answer');

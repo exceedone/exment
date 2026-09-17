@@ -16,14 +16,6 @@ use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Task 5 - SafetyWatchCommand (`exment:safetywatch`): polls the earthquake feed
- * (EarthquakeFeedInterface) every minute and, comparing the bulletin's NATIONWIDE
- * max scale against the configured threshold only (no prefecture filtering),
- * auto-creates a `jma_auto` safety_check_event + dispatches the send. Dedupes by
- * `jma_event_id`, suppresses re-trigger within a cooldown window, and always
- * advances the feed cursor (`safety_check_last_feed_time`), even for skipped items.
- */
 class SafetyWatchCommandTest extends FeatureTestBase
 {
     use TestTrait;
@@ -43,7 +35,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         System::clearCache();
     }
 
-    /** Bind a fake feed returning the given normalized items; returns the fake so tests can inspect it. */
     protected function bindFeed(array $items = []): FakeEarthquakeFeed
     {
         $feed = new FakeEarthquakeFeed();
@@ -63,13 +54,10 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'max_scale' => 50,
             'points' => [['pref' => 'Tokyo', 'scale' => 50]],
         ], $overrides);
-        // received_at (bulletin receive time, the cursor field) defaults to the
-        // occurred time unless a test needs them to differ
         $item['received_at'] = $item['received_at'] ?? $item['time']->copy();
         return $item;
     }
 
-    /** All safety_check_event rows, via a fresh query (no per-request cache). */
     protected function eventRows()
     {
         $eventTable = CustomTable::getEloquent('safety_check_event');
@@ -90,11 +78,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         return $event;
     }
 
-    /**
-     * quake_info is shown verbatim to employees on all four channels (LINE Flex card,
-     * mail body, web answer page, admin list), so it must carry the JMA intensity, not
-     * the feed's raw numeric code: "max scale 50" means nothing to the person reading it.
-     */
     public function testQuakeInfoShowsIntensityLabelNotRawScaleCode()
     {
         $this->bindFeed([$this->feedItem(['id' => 'quake-label', 'max_scale' => 50])]);
@@ -128,7 +111,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
         Bus::assertDispatchedTimes(LineSendJob::class, 1);
 
-        // cursor advances to the processed item's time
         $lastFeedTime = System::safety_check_last_feed_time();
         $this->assertNotNull($lastFeedTime);
         $this->assertEquals($itemTime->format('Y-m-d H:i:s'), $lastFeedTime->format('Y-m-d H:i:s'));
@@ -145,7 +127,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(0, $this->eventRows()->count());
         Bus::assertNotDispatched(LineSendJob::class);
 
-        // cursor still advances even though the item was skipped
         $lastFeedTime = System::safety_check_last_feed_time();
         $this->assertNotNull($lastFeedTime);
         $this->assertEquals($itemTime->format('Y-m-d H:i:s'), $lastFeedTime->format('Y-m-d H:i:s'));
@@ -167,12 +148,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
-    /**
-     * P2PQuake sends several bulletins per earthquake, every one with its OWN id,
-     * so the jma_event_id dedupe cannot catch them. The cooldown must: a correction
-     * bulletin sharing the quake's occurred time with an already-triggered event
-     * is suppressed, instead of blasting every user a second time.
-     */
     public function testCorrectionBulletinForSameQuakeIsSuppressedByCooldown()
     {
         Log::spy();
@@ -189,7 +164,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         \Artisan::call('exment:safetywatch');
         $this->assertEquals(1, $this->eventRows()->count());
 
-        // correction: same earthquake.time, new bulletin id
         $correction = $this->feedItem([
             'id' => 'eq-cd-correction',
             'max_scale' => 55,
@@ -210,13 +184,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
             });
     }
 
-    /**
-     * The cooldown throttles bulletins of the SAME earthquake only (that is what
-     * the setting's help text promises). A DISTINCT quake — e.g. a bigger
-     * mainshock minutes after a foreshock already triggered an event — must
-     * still trigger its own safety check: suppressing it would silently drop
-     * the notification exactly when it matters most.
-     */
     public function testDistinctQuakeWithinCooldownStillTriggers()
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -231,7 +198,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         \Artisan::call('exment:safetywatch');
         $this->assertEquals(1, $this->eventRows()->count());
 
-        // a DIFFERENT earthquake (own occurred time), inside the 60-min cooldown window
         $mainshock = $this->feedItem([
             'id' => 'eq-mainshock',
             'max_scale' => 60,
@@ -247,13 +213,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         Bus::assertDispatchedTimes(LineSendJob::class, 2);
     }
 
-    /**
-     * A stale bulletin (older than the safety_check_max_bulletin_age_minutes setting,
-     * default 10) must be skipped even though its scale qualifies, so that a first run
-     * (null cursor) or a re-enable after the watcher was off for a while does not blast
-     * every user with a days-old quake. The cursor still advances to the stale item's
-     * time, exactly like the other skip branches (below-threshold, duplicate, cooldown).
-     */
     public function testStaleBulletinCreatesNoEventButAdvancesCursor()
     {
         $itemTime = Carbon::now()->subHours(2);
@@ -272,11 +231,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals($itemTime->format('Y-m-d H:i:s'), $lastFeedTime->format('Y-m-d H:i:s'));
     }
 
-    /**
-     * The staleness cutoff is a system setting, not a hardcoded 30 minutes: with
-     * safety_check_max_bulletin_age_minutes raised to 180, a 2-hour-old qualifying
-     * bulletin (skipped as stale under the default) MUST create an event.
-     */
     public function testBulletinAgeSettingControlsStaleness()
     {
         System::safety_check_max_bulletin_age_minutes(180);
@@ -293,22 +247,14 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals('quake-old-but-allowed', array_get($rows->first()->value, 'jma_event_id'));
     }
 
-    /**
-     * P2PQuake sends several bulletins per earthquake (prompt report -> detail ->
-     * correction) that all share `earthquake.time`. A correction that upgrades the
-     * max scale above the threshold MUST still trigger, so the cursor has to run on
-     * the bulletin's receive time (`received_at`), not the quake's occurred time.
-     */
     public function testUpgradeBulletinSharingQuakeTimeStillTriggers()
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
 
-        // whole-second like real feed-parsed times ('Y/m/d H:i:s' has no microseconds) —
-        // otherwise stray microseconds sneak past the cursor's lte() and mask the bug
         $quakeTime = Carbon::now()->subMinutes(10)->startOfSecond();
         $prompt = $this->feedItem([
             'id' => 'eq1-prompt',
-            'max_scale' => 40, // below threshold 45
+            'max_scale' => 40,
             'time' => $quakeTime->copy(),
             'received_at' => Carbon::now()->subMinutes(4),
         ]);
@@ -316,7 +262,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         \Artisan::call('exment:safetywatch');
         $this->assertEquals(0, $this->eventRows()->count(), 'The prompt report is below threshold.');
 
-        // correction arrives later: same earthquake.time, higher scale, new id
         $detail = $this->feedItem([
             'id' => 'eq1-detail',
             'max_scale' => 50,
@@ -332,13 +277,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         Bus::assertDispatchedTimes(LineSendJob::class, 1);
     }
 
-    /**
-     * Real P2PQuake feed: for any quake of 震度3+ the FIRST bulletin is a 震度速報
-     * (issue.type ScalePrompt) whose hypocenter name is EMPTY; the 震源 name only
-     * arrives with the later Destination/DetailScale bulletins. The prompt is what
-     * reaches the threshold first, so it is what triggers the event — the message
-     * every employee receives must not read "（2026-09-14 19:38 ）" / " / 最大震度5弱".
-     */
     public function testPromptBulletinWithoutHypocenterUsesPendingPlaceholder()
     {
         $this->bindFeed([$this->feedItem(['id' => 'eq-nohypo', 'hypocenter' => '', 'max_scale' => 50])]);
@@ -353,11 +291,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertStringNotContainsString(' ）', (string) array_get($event->value, 'title'));
     }
 
-    /**
-     * The later DetailScale bulletin of the SAME quake (same earthquake.time, cooldown
-     * suppresses a second send) carries the hypocenter name: the admin record must be
-     * completed with it — no new event, no second push.
-     */
     public function testDetailBulletinBackfillsHypocenterWithoutResending()
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -385,12 +318,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertStringNotContainsString(exmtrans('safety.hypocenter_pending'), (string) array_get($event->value, 'quake_info'));
     }
 
-    /**
-     * A qualifying bulletin dropped as stale (cron/DB/feed outage longer than
-     * max_bulletin_age) is a real earthquake nobody was asked about: it must at
-     * least leave a warning an operator can find. Sub-threshold stale items stay
-     * silent — those are the normal first-run backlog.
-     */
     public function testStaleQualifyingBulletinLogsWarning()
     {
         Log::spy();
@@ -410,12 +337,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
             });
     }
 
-    /**
-     * When creating the event row itself fails, NOTHING durable exists (no event, no
-     * answer rows, no dedupe key), so the bulletin must NOT be consumed: the cursor
-     * stays put and the next poll retries it. (A permanently failing bulletin
-     * self-heals via max_bulletin_age: it goes stale and is then skipped normally.)
-     */
     public function testEventSaveFailureDoesNotAdvanceCursorSoBulletinIsRetried()
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -423,7 +344,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $item = $this->feedItem(['id' => 'quake-savefail', 'max_scale' => 50]);
         $this->bindFeed([$item]);
 
-        // inject a save failure on the event model (DB error stand-in)
         getModelName('safety_check_event')::saving(function () {
             throw new \RuntimeException('forced event save failure');
         });
@@ -435,11 +355,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertNull(System::safety_check_last_feed_time(), 'The cursor must not advance past a bulletin whose event row was never saved.');
     }
 
-    /**
-     * With exment.use_cache enabled, saving the cursor must NOT Cache::flush() the
-     * whole store: that would also evict every unrelated cache entry — including the
-     * schedule's withoutOverlapping mutex, silently re-enabling overlapping runs.
-     */
     public function testWatcherDoesNotFlushWholeCacheStore()
     {
         config(['exment.use_cache' => true]);
@@ -451,15 +366,9 @@ class SafetyWatchCommandTest extends FeatureTestBase
         \Artisan::call('exment:safetywatch');
 
         $this->assertEquals('keep-me', \Cache::get('unrelated-sentinel'), 'The watcher must clear only its own keys, not flush the whole cache store.');
-        // and the cursor still reads back fresh (its own cache keys were cleared)
         $this->assertNotNull(System::safety_check_last_feed_time());
     }
 
-    /**
-     * The every-minute schedule entry must carry withoutOverlapping(): a slow poll
-     * (LINE outage, many users on the sync queue) otherwise overlaps the next run,
-     * and the jma_event_id dedupe is check-then-insert with no unique constraint.
-     */
     public function testScheduleRegistersSafetywatchWithoutOverlapping()
     {
         $schedule = app(\Illuminate\Console\Scheduling\Schedule::class);
@@ -471,20 +380,12 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertTrue($event->withoutOverlapping, 'exment:safetywatch must use withoutOverlapping().');
     }
 
-    /**
-     * A numeric setting emptied in the admin UI is stored as 0. For settings where 0
-     * is meaningless it must fall back to the Define default instead of breaking the
-     * watcher: max_bulletin_age=0 would mark EVERY bulletin stale (watcher silently
-     * dead), min_scale=0 would trigger on every tiny quake, cooldown=0 would remove
-     * the re-trigger suppression.
-     */
     public function testEmptyMaxBulletinAgeFallsBackToDefault()
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
-        System::safety_check_max_bulletin_age_minutes(0); // emptied in UI -> stored 0
+        System::safety_check_max_bulletin_age_minutes(0);
         System::clearCache();
 
-        // 5 minutes old: inside the default 10-minute window
         $item = $this->feedItem(['id' => 'quake-age-default', 'max_scale' => 50, 'time' => Carbon::now()->subMinutes(5)]);
         $this->bindFeed([$item]);
 
@@ -495,10 +396,9 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
     public function testEmptyMinScaleFallsBackToDefault()
     {
-        System::safety_check_min_scale(0); // emptied in UI -> stored 0
+        System::safety_check_min_scale(0);
         System::clearCache();
 
-        // scale 40 is below the DEFAULT threshold 45 -> must not trigger
         $item = $this->feedItem(['id' => 'quake-minscale-default', 'max_scale' => 40]);
         $this->bindFeed([$item]);
 
@@ -509,10 +409,9 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
     public function testEmptyCooldownFallsBackToDefault()
     {
-        System::safety_check_cooldown_minutes(0); // emptied in UI -> stored 0
+        System::safety_check_cooldown_minutes(0);
         System::clearCache();
 
-        // an already-triggered event for the SAME earthquake (shared occurred time)
         $quakeTime = Carbon::now()->subMinutes(5)->startOfSecond();
         $this->createExistingEvent([
             'jma_event_id' => 'previous-quake-cd',
@@ -529,7 +428,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
-    /** The feed fetch size comes from config (exment.safety_check.feed_limit), not a hardcoded 10. */
     public function testFeedLimitConfigPassedToFeed()
     {
         config(['exment.safety_check.feed_limit' => 25]);
@@ -542,11 +440,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(25, $feed->receivedLimit);
     }
 
-    /**
-     * P2PQuake rejects limit > 100 with HTTP 400 — a misconfigured
-     * EXMENT_SAFETY_CHECK_FEED_LIMIT would silently kill the whole feed.
-     * The watcher must clamp the value to 100.
-     */
     public function testFeedLimitClampedTo100()
     {
         config(['exment.safety_check.feed_limit' => 250]);
@@ -559,18 +452,10 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(100, $feed->receivedLimit);
     }
 
-    /**
-     * A half-installed environment (migration marked run while the LINE template
-     * was not imported, so ensureAll() no-oped and the tables are absent) must not
-     * fatal the every-minute watcher on a null table — log an error and return,
-     * so the operator has something to find instead of a crash-loop.
-     */
     public function testMissingSafetyTablesLogsErrorInsteadOfFataling()
     {
         Log::spy();
 
-        // Make CustomTable::getEloquent('safety_check_event') return null without any
-        // DDL: rename the metadata row (rolled back by the test transaction).
         \DB::table('custom_tables')->where('table_name', 'safety_check_event')
             ->update(['table_name' => 'zz_hidden_safety_check_event']);
         System::clearCache();
@@ -605,11 +490,6 @@ class SafetyWatchCommandTest extends FeatureTestBase
     }
 }
 
-/**
- * Test double for EarthquakeFeedInterface: returns preset normalized items and
- * records whether fetchRecent() was called (used to prove the watcher short-circuits
- * before touching the feed when auto-trigger is disabled).
- */
 class FakeEarthquakeFeed implements EarthquakeFeedInterface
 {
     /** @var array */
@@ -618,7 +498,7 @@ class FakeEarthquakeFeed implements EarthquakeFeedInterface
     /** @var bool */
     public $called = false;
 
-    /** @var int|null The $limit the watcher actually passed in. */
+    /** @var int|null */
     public $receivedLimit = null;
 
     public function fetchRecent(int $limit = 10): array

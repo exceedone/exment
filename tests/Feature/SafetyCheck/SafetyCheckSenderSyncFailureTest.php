@@ -17,13 +17,6 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Illuminate\Support\Facades\Notification;
 
-/**
- * On the sync queue driver (the .env default) LineSendJob runs inline inside
- * SafetyCheckSender::send(). A push LINE rejects (expired token -> 401, bad user
- * id -> 400) must NOT be counted as a LINE delivery — before this, the admin page
- * showed 送信数 N/N while nobody received anything. Bus is deliberately NOT faked
- * here (unlike SafetyCheckSenderTest) so the job really executes.
- */
 class SafetyCheckSenderSyncFailureTest extends FeatureTestBase
 {
     use TestTrait;
@@ -39,7 +32,6 @@ class SafetyCheckSenderSyncFailureTest extends FeatureTestBase
         config(['exment.line.channel_access_token' => 'sync-failure-test-token']);
     }
 
-    /** Bind a LineMessagingClient whose transport always answers with $status. */
     protected function bindClientReturning(int $status): void
     {
         $stack = HandlerStack::create(new MockHandler(array_fill(0, 50, new GuzzleResponse($status, [], '{"message":"x"}'))));
@@ -49,7 +41,6 @@ class SafetyCheckSenderSyncFailureTest extends FeatureTestBase
         });
     }
 
-    /** Strip every user's email so the mail channel cannot mask the LINE outcome. */
     protected function removeAllEmails(): void
     {
         $userTable = CustomTable::getEloquent('user');
