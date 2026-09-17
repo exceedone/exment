@@ -132,7 +132,7 @@ $(function () {
     $('.meili-ss-delete').on('click', function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
-        if (!window.confirm(@json(trans('admin.deleting')))) { return; }
+        if (!window.confirm(@json(trans('admin.delete_confirm')))) { return; }
         $.post(@json(admin_url('search/saved')) + '/' + $(this).data('id'), {
             _method: 'DELETE',
             _token: LA.token
