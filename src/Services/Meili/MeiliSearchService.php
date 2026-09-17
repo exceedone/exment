@@ -29,6 +29,14 @@ class MeiliSearchService
     private ?int $maxTotalHits = null;
     private bool $maxTotalHitsRead = false;
 
+    /**
+     * Cached index filterableAttributes; see filterableAttributes().
+     *
+     * @var array<int,string>|null
+     */
+    private ?array $filterableAttributes = null;
+    private bool $filterableAttributesRead = false;
+
     public function __construct(
         private Client $client,
         private string $indexName
@@ -65,6 +73,11 @@ class MeiliSearchService
         return $options;
     }
 
+    public static function normalizeQuery(string $q): string
+    {
+        return preg_replace('/(^|\s)-+(?=\S)/u', '$1', $q) ?? $q;
+    }
+
     /**
      * System-wide search.
      *
@@ -73,7 +86,7 @@ class MeiliSearchService
     public function search(string $q, int $limit = 10, ?string $tableName = null): array
     {
         $result = $this->client->index($this->indexName)
-            ->search($q, $this->applyMatchingStrategy(self::buildSearchOptions($limit, $tableName)));
+            ->search(self::normalizeQuery($q), $this->applyMatchingStrategy(self::buildSearchOptions($limit, $tableName)));
 
         return self::mapHits($result->getHits());
     }
@@ -87,7 +100,7 @@ class MeiliSearchService
     public function searchTablePaginated(string $q, string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null): array
     {
         $result = $this->client->index($this->indexName)
-            ->search($q, $this->applyMatchingStrategy(self::buildTableSearchOptions($tableName, $perPage, $page, $filters, $sort)));
+            ->search(self::normalizeQuery($q), $this->applyMatchingStrategy(self::buildTableSearchOptions($tableName, $perPage, $page, $filters, $sort)));
 
         $ids = array_map(fn ($hit) => $hit['value_id'] ?? null, $result->getHits());
 
@@ -336,6 +349,26 @@ class MeiliSearchService
         ];
     }
 
+    public static function shouldWarnPartial(bool $capped, bool $canViewWholeTable): bool
+    {
+        return $capped && !$canViewWholeTable;
+    }
+
+    /**
+     * Whether a fetched candidate id list holds EVERY match of the query, so
+     * that paging and counting over it are exact. It does not when the fetch
+     * reached the requested cap, when Meilisearch reports more hits than it
+     * returned, or when the index's maxTotalHits ceiling stopped it.
+     */
+    public static function isCompleteCandidateSet(int $returned, int $cap, ?int $maxTotalHits, int $totalHits): bool
+    {
+        if ($returned >= $cap || $totalHits > $returned) {
+            return false;
+        }
+
+        return $maxTotalHits === null || $returned < $maxTotalHits;
+    }
+
     /**
      * Remove a group's OWN selection from the filters
      * (disjunctive faceting): the count for group X = the whole filter minus column X's tokens,
@@ -399,6 +432,32 @@ class MeiliSearchService
     }
 
     /**
+     * Attributes the index currently accepts in a filter expression. They can
+     * lag behind the filter settings in the database until
+     * ApplyMeiliSettingsJob has run. Read once per instance; null when the
+     * setting cannot be read.
+     *
+     * @return array<int,string>|null
+     */
+    public function filterableAttributes(): ?array
+    {
+        if ($this->filterableAttributesRead) {
+            return $this->filterableAttributes;
+        }
+        $this->filterableAttributesRead = true;
+
+        try {
+            $attributes = $this->client->index($this->indexName)->getFilterableAttributes();
+            $this->filterableAttributes = array_values(array_map('strval', (array) $attributes));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] filterable attributes unavailable: ' . $e->getMessage());
+            $this->filterableAttributes = null;
+        }
+
+        return $this->filterableAttributes;
+    }
+
+    /**
      * [Sidebar count] ONE query fetching the facet distribution for multiple attributes
      * (table_name/facets/f_user) with the current filter. Returns the raw map
      * attribute => [value => count].
@@ -415,7 +474,7 @@ class MeiliSearchService
             $opts['filter'] = $expr;
         }
 
-        $result = $this->client->index($this->indexName)->search($q, $this->applyMatchingStrategy($opts));
+        $result = $this->client->index($this->indexName)->search(self::normalizeQuery($q), $this->applyMatchingStrategy($opts));
 
         return $result->getFacetDistribution();
     }
@@ -523,7 +582,7 @@ class MeiliSearchService
             $options['filter'] = $expr;
         }
 
-        $result = $this->client->index($this->indexName)->search($q, $this->applyMatchingStrategy($options));
+        $result = $this->client->index($this->indexName)->search(self::normalizeQuery($q), $this->applyMatchingStrategy($options));
 
         return array_map(function ($hit) {
             return [
@@ -566,7 +625,7 @@ class MeiliSearchService
      */
     public function searchFacets(string $q): array
     {
-        $result = $this->client->index($this->indexName)->search($q, $this->applyMatchingStrategy([
+        $result = $this->client->index($this->indexName)->search(self::normalizeQuery($q), $this->applyMatchingStrategy([
             'limit' => 0,
             'facets' => ['table_name'],
         ]));

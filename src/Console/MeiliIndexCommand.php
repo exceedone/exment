@@ -58,15 +58,18 @@ class MeiliIndexCommand extends Command
             return self::SUCCESS;
         }
 
-        // --fresh drops the whole index (every table, not just this run's), so
-        // confirm first like the other destructive commands do.
+        // --fresh drops the whole index: confirm, or require --force when non-interactive.
         if ($this->option('fresh') && !$this->option('force')) {
+            if (!$this->input->isInteractive()) {
+                $this->error('--fresh deletes the whole index. Add --force to run it non-interactively.');
+                return self::FAILURE;
+            }
             if (!$this->confirm(sprintf(
                 'This will DELETE and recreate the index "%s", removing every indexed document. Continue?',
                 $indexName
             ))) {
                 $this->info('Aborted.');
-                return self::SUCCESS;
+                return self::FAILURE;
             }
         }
 

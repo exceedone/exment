@@ -46,9 +46,8 @@ class ResultPaginator
             RequestFilters::sort($request)
         );
         $candidateIds = $result['ids'];
-        // Hit the over-fetch cap -> Meili had (at least) as many matches as we asked
-        // for, so the reported total is a floor, not the exact count.
-        $capped = count($candidateIds) >= $cap;
+        // Reached the cap (or the index's maxTotalHits, if lower) -> the total is a floor.
+        $capped = count($candidateIds) >= SearchExporter::effectiveCap($cap, $this->service->maxTotalHits());
 
         // 2. Filter permissions once: the query has the global scope -> the set of ids actually viewable.
         $accessibleIds = empty($candidateIds)

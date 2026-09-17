@@ -86,11 +86,14 @@ class MeiliFilterController extends AdminControllerBase
             ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
             ->load('column_name', admin_url('meili-filter/columns'));
 
-        // Static options so the saved value still renders when editing; the ->load()
-        // above replaces them with the chosen table's columns as soon as it fires.
+        // Columns of the edited row's table (or the table re-submitted after an error);
+        // ->load() above replaces them when the table changes.
+        // edit() and update() call form() without the id: take it from the {id} route parameter.
+        $id = $id ?? request()->route('id');
+        $tableId = old('custom_table_id', $id ? MeiliFilterSetting::find($id)?->custom_table_id : null);
         $form->select('column_name', exmtrans('custom_column.column_name'))
             ->required()
-            ->options(\DB::table('custom_columns')->pluck('column_view_name', 'column_name')->toArray());
+            ->options($tableId ? self::columnsForTable($tableId) : []);
 
         $form->select('filter_type', exmtrans('system.meili_filter_type'))
             ->required()
@@ -120,6 +123,12 @@ class MeiliFilterController extends AdminControllerBase
                 ->exists();
             if ($duplicate) {
                 admin_toastr(exmtrans('system.meili_filter_duplicate'), 'error');
+                return back()->withInput();
+            }
+
+            // The column must belong to the chosen table and be a filterable type.
+            if (!array_key_exists((string) $form->column_name, self::columnsForTable($form->custom_table_id))) {
+                admin_toastr(exmtrans('system.meili_filter_column_invalid'), 'error');
                 return back()->withInput();
             }
 

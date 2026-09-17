@@ -127,6 +127,29 @@ trait MeiliGlobalSearchTrait
     }
 
     /**
+     * Result box for a filtered search Meilisearch could not run. No 'total':
+     * the box must stay visible (total 0 would hide it) and must not count
+     * towards the "N results" line.
+     *
+     * @param string $q
+     * @param string $table_name
+     * @return array<string,mixed>
+     */
+    protected function meiliFilterUnavailableItem($q, $table_name)
+    {
+        $custom_table = CustomTable::getEloquent($table_name);
+        if (empty($custom_table)) {
+            return [];
+        }
+
+        return [
+            'table_name' => array_get($custom_table, 'table_name'),
+            'header' => $this->getBoxHeaderHtml($custom_table, ['query' => $q]),
+            'body' => '<p class="text-warning">' . e(exmtrans('search.filter_unavailable')) . '</p>',
+        ];
+    }
+
+    /**
      * Body of getListItem paginated via Meilisearch. Glue between the Meili
      * paginator (ResultPaginator) and Exment's grid/view rendering; kept separate
      * so the caller can wrap it with the MySQL fallback.
@@ -156,7 +179,20 @@ trait MeiliGlobalSearchTrait
         $paginate->appends(array_filter($request->only(['date_from', 'date_to', 'users', 'facets', 'range', 'sort'])));
         $datalist = $paginate->items();
 
+        $partial = $this->meiliMayHidePermittedRows($custom_table, $capped);
+
         if (count($datalist) == 0) {
+            // Nothing accessible among the candidates. If the cap was reached,
+            // rows this user may see can still sit beyond it, so the box must
+            // stay visible to carry the warning: 'total' => 0 would hide it.
+            if ($partial) {
+                return [
+                    'table_name' => array_get($custom_table, 'table_name'),
+                    'header' => $boxHeader,
+                    'body' => self::meiliPartialNotice(),
+                ];
+            }
+
             return [
                 'table_name' => array_get($custom_table, 'table_name'),
                 'header' => $boxHeader,
@@ -187,10 +223,34 @@ trait MeiliGlobalSearchTrait
         return [
             'table_name' => array_get($custom_table, 'table_name'),
             'header' => $boxHeader,
-            'body' => $table->render(),
+            'body' => ($partial ? self::meiliPartialNotice() : '') . $table->render(),
             'footer' => $links,
             'total' => $paginate->total(),
             'total_capped' => $capped
         ];
+    }
+
+    /**
+     * Whether this result list may be hiding rows the user is allowed to see:
+     * Meilisearch stopped at the over-fetch cap and the user may view only part
+     * of the table, so their rows can sit beyond the cap (see
+     * MeiliSearchService::shouldWarnPartial).
+     *
+     * @param \Exceedone\Exment\Model\CustomTable $custom_table
+     */
+    protected function meiliMayHidePermittedRows($custom_table, bool $capped): bool
+    {
+        return MeiliSearchService::shouldWarnPartial(
+            $capped,
+            \Exceedone\Exment\Services\Meili\SavedSearchService::canViewAllRows($custom_table)
+        );
+    }
+
+    /**
+     * The warning itself: what happened and the two ways out of it.
+     */
+    protected static function meiliPartialNotice(): string
+    {
+        return '<p class="text-warning">' . e(exmtrans('search.partial_results')) . '</p>';
     }
 }

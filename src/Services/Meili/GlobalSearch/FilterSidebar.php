@@ -350,6 +350,31 @@ class FilterSidebar
             ];
         }
 
-        return $out;
+        if (empty($out)) {
+            return [];
+        }
+
+        return self::onlyFilterable($out, $this->service->filterableAttributes());
+    }
+
+    /**
+     * Drop the range boxes whose field the index does not accept in a filter
+     * yet. A range setting is in the database as soon as it is saved, but it
+     * reaches the index's filterableAttributes only when ApplyMeiliSettingsJob
+     * has run; a box offered in between makes every table's search fail.
+     * null = the index settings could not be read: keep the boxes rather than
+     * hide every one of them.
+     *
+     * @param array<int,array{label:string,field:string,type:string,from:string,to:string}> $inputs
+     * @param array<int,string>|null $filterable
+     * @return array<int,array{label:string,field:string,type:string,from:string,to:string}>
+     */
+    public static function onlyFilterable(array $inputs, ?array $filterable): array
+    {
+        if ($filterable === null) {
+            return $inputs;
+        }
+
+        return array_values(array_filter($inputs, fn ($r) => in_array($r['field'], $filterable, true)));
     }
 }

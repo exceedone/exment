@@ -135,7 +135,11 @@ class MeiliSearchFilterTest extends FeatureTestBase
      */
     public function testFacetableTablesNeverExceedSearchableTables(): void
     {
-        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $login = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        if ($login === null) {
+            $this->markTestSkipped('non-admin test user (login id 2) is not seeded in this environment');
+        }
+        $this->be($login);
 
         $searchable = SavedSearchService::searchableTableNames();
         $facetable = SavedSearchService::facetableTableNames();

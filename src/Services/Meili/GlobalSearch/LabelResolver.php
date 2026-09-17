@@ -188,6 +188,19 @@ class LabelResolver
     }
 
     /**
+     * Label of a creator who may have been deleted since. 
+     */
+    public static function userLabel(?string $label, bool $trashed, string $trashedSuffix): string
+    {
+        $label = (string) $label;
+        if (!$trashed) {
+            return $label;
+        }
+
+        return $label === '' ? $trashedSuffix : $label . ' ' . $trashedSuffix;
+    }
+
+    /**
      * Resolve user ids -> display names (labels of the user table). Returns [id => name].
      *
      * @param array<int,int|string> $ids
@@ -203,8 +216,10 @@ class LabelResolver
             if (!$userTable) {
                 return [];
             }
-            return getModelName($userTable)::whereIn('id', $ids)->get()
-                ->mapWithKeys(fn ($u) => [$u->id => $u->label])->toArray();
+            $trashedSuffix = exmtrans('common.trashed_user');
+
+            return getModelName($userTable)::withTrashed()->whereIn('id', $ids)->get()
+                ->mapWithKeys(fn ($u) => [$u->id => self::userLabel($u->label, (bool) $u->trashed(), $trashedSuffix)])->toArray();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[Meili] user names unavailable: ' . $e->getMessage());
             return [];

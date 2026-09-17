@@ -16,6 +16,8 @@ return [
     'index' => env('MEILISEARCH_INDEX', 'exment_global'),
 
     'batch_size' => (int) env('MEILISEARCH_BATCH_SIZE', 1000),
+    
+    'reindex_chunk_size' => (int) env('MEILISEARCH_REINDEX_CHUNK_SIZE', 500),
 
     'permission_scan_cap' => (int) env('MEILISEARCH_PERMISSION_SCAN_CAP', 1000),
 

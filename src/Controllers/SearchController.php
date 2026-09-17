@@ -285,11 +285,20 @@ class SearchController extends AdminControllerBase
     protected function getListItem(Request $request, $q, $table_name)
     {
         // pagination through Meili; on error -> fallback to MySQL below.
+        $sortNotApplied = false;
         if ($this->meiliActive()) {
             try {
                 return $this->getListItemByMeili($request, $q, $table_name);
             } catch (\Throwable $e) {
                 $this->logMeiliFallback('getListItem', $e);
+                // The MySQL search below knows the keyword only. Under applied
+                // filters it would list unfiltered rows beneath chips saying
+                // otherwise, so report that the filtered search failed instead.
+                if (RequestFilters::hasFilters($request)) {
+                    return $this->meiliFilterUnavailableItem($q, $table_name);
+                }
+                // The MySQL search cannot sort by date: say so instead of ignoring it.
+                $sortNotApplied = RequestFilters::sort($request) !== null;
             }
         }
 
@@ -338,7 +347,7 @@ class SearchController extends AdminControllerBase
         return [
             'table_name' => array_get($custom_table, 'table_name'),
             'header' => $boxHeader,
-            'body' => $table->render(),
+            'body' => ($sortNotApplied ? '<p class="text-warning">' . e(exmtrans('search.sort_unavailable')) . '</p>' : '') . $table->render(),
             'footer' => $links
         ];
     }

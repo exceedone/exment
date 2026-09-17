@@ -31,6 +31,7 @@ class IndexPipelineTest extends TestCase
         'src/Services/Meili/ExmentIndexer.php',
         'src/Jobs/ReindexMeiliTableJob.php',
         'src/Jobs/SyncMeiliDocumentJob.php',
+        'src/Jobs/SyncMeiliReferencesJob.php',
     ];
 
     private function packageRoot(): string

@@ -50,6 +50,8 @@ class SyncMeiliDocumentJob implements ShouldQueue
 
     public function handle(): void
     {
+        $this->resetRequestSessionOnWorker();
+
         $client = MeiliClientFactory::make();
         $indexName = config('meilisearch.index');
         $index = $client->index($indexName);

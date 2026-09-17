@@ -83,7 +83,15 @@ class DocumentMapper
     private static function facetValue($record, $column)
     {
         $raw = $record->getValue($column);
-        if ($raw instanceof \Illuminate\Contracts\Support\Arrayable) {
+
+        if ($raw instanceof \Exceedone\Exment\Model\CustomValue) {
+            return $raw->label;
+        }
+        // A multi-select comes back as a Collection: keep its items as they are,
+        // toArray() would flatten related records the same way.
+        if ($raw instanceof \Illuminate\Support\Collection) {
+            $raw = $raw->all();
+        } elseif ($raw instanceof \Illuminate\Contracts\Support\Arrayable) {
             $raw = $raw->toArray();
         }
         if (!is_array($raw)) {
@@ -92,7 +100,13 @@ class DocumentMapper
 
         $options = $column->column_type === 'select_valtext' ? $column->createSelectOptions() : null;
 
-        return array_map(fn ($v) => $options === null ? $v : array_get($options, $v), $raw);
+        return array_map(function ($v) use ($options) {
+            if ($v instanceof \Exceedone\Exment\Model\CustomValue) {
+                return $v->label;
+            }
+
+            return $options === null ? $v : array_get($options, $v);
+        }, $raw);
     }
 
     /**
@@ -230,7 +244,7 @@ class DocumentMapper
      * The unqualified n_<column> shape is rejected on purpose: it matches no
      * attribute, so sanitize() drops it with a warning instead of returning 0 rows.
      */
-    public const RANGE_FIELD_PATTERN = '/^n_[A-Za-z0-9_]+::[A-Za-z0-9_]+$/';
+    public const RANGE_FIELD_PATTERN = '/^n_[A-Za-z0-9_-]+::[A-Za-z0-9_-]+$/';
 
     /**
      * Name of the Meilisearch attribute holding a column's range value:
@@ -262,7 +276,9 @@ class DocumentMapper
 
     /**
      * Generate facet tokens "column=value" for one column.
-     * Array -> multiple tokens; skips null/empty; bool -> 1/0.
+     * Array -> multiple tokens; skips null/empty; bool -> 1/0; skips anything
+     * that is not a scalar (a nested array or an object has no filter value, and
+     * casting it would stop the whole indexing job with an ErrorException).
      *
      * @param  mixed  $value
      * @return array<int,string>
@@ -277,6 +293,9 @@ class DocumentMapper
             }
             if (is_bool($v)) {
                 $v = $v ? '1' : '0';
+            }
+            if (!is_scalar($v)) {
+                continue;
             }
             $out[] = $columnName . '=' . (string) $v;
         }

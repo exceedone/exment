@@ -190,22 +190,32 @@ class FilterConfig
     public static function allRangeFields(): array
     {
         try {
-            // Eager-load the table: the field name carries it, so two tables
-            // owning a same-named range column stay separate axes.
-            return MeiliFilterSetting::with('custom_table')
-                ->where('filter_type', 'range')
+            // Built from rangeColumns(), the sidebar's own source, so a field is
+            // listed only while its column still exists and can hold a range.
+            // Reading the settings rows alone kept columns an admin had deleted:
+            // Exment drops the column but not its row here, so a saved search
+            // naming that field passed sanitize() and returned nothing, silently.
+            $tableIds = MeiliFilterSetting::where('filter_type', 'range')
                 ->where('mode', 'include')
                 ->where('enabled', 1)
-                ->get()
-                ->map(function ($s) {
-                    $tableName = array_get($s, 'custom_table.table_name');
+                ->distinct()
+                ->pluck('custom_table_id')
+                ->all();
 
-                    return $tableName ? DocumentMapper::rangeField((string) $tableName, (string) $s->column_name) : null;
-                })
-                ->filter()
-                ->unique()
-                ->values()
-                ->toArray();
+            $fields = [];
+            foreach ($tableIds as $tableId) {
+                $table = \Exceedone\Exment\Model\CustomTable::getEloquent($tableId);
+                if (!$table) {
+                    continue;
+                }
+                // The field name carries the table, so two tables owning a
+                // same-named range column stay separate axes.
+                foreach (self::rangeColumns($table) as $column) {
+                    $fields[] = DocumentMapper::rangeField((string) $table->table_name, (string) $column->column_name);
+                }
+            }
+
+            return array_values(array_unique($fields));
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[Meili] range fields unavailable: ' . $e->getMessage());
             return [];
