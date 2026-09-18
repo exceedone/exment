@@ -1121,6 +1121,10 @@ return [
     'workflow' => [
         'header' => 'ワークフロー設定',
         'description' => 'ワークフローを設定します。申請、承認、却下など、特定のユーザーがフローを実行することができます。',
+        'same_org_notify' => [
+            'subject' => '同じ組織のメンバーがワークフローを処理しました',
+            'body' => '%sさんが「%s：%s」のステータスを「%s」に変更しました。',
+        ],
         'workflow_view_name' => 'ワークフロー表示名',
         'workflow_edit_flg' => '編集権限の付与',
         'workflow_type' => 'ワークフロー種類',
@@ -2488,6 +2492,36 @@ return [
         'compare_revision' => 'リビジョン比較',
     ],
 
+    'workflow_task' => [
+        'header' => '未処理タスク一覧',
+        'description' => 'あなたがまだ処理していない（アクションが必要な）ワークフロータスクの一覧です。',
+        'table' => '対象テーブル',
+        'data' => 'データ',
+        'status' => '現在のステータス',
+        'updated_at' => '更新日時',
+        'count' => '全%s件',
+        'empty' => '未処理のタスクはありません。',
+        'seen_flg' => '状態',
+        'seen_options' => [
+            '0' => '未読',
+            '1' => '既読',
+        ],
+        'unseen_count' => '未読%s件',
+        'mark_all_seen' => 'すべて既読にする',
+        'mark_all_unseen' => 'すべて未読にする',
+        'check_selected' => '選択項目を既読にする',
+        'batch_all' => '一括処理',
+        'confirm_text' => [
+            'mark_all_seen' => 'すべてのタスクを既読にします。よろしいですか？',
+            'mark_all_unseen' => 'すべてのタスクを未読にします。よろしいですか？',
+        ],
+        'message' => [
+            'mark_all_seen_succeeded' => 'すべてのタスクを既読にしました。',
+            'mark_all_unseen_succeeded' => 'すべてのタスクを未読にしました。',
+            'check_succeeded' => '選択データを既読に変更しました。',
+            'check_notfound' => '更新対象のデータが存在しません。',
+        ],
+    ],
     'notify_navbar' => [
         'header' => '通知一覧',
         'description' => 'ユーザーへの通知一覧です。',

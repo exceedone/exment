@@ -983,6 +983,28 @@ abstract class CustomValue extends ModelBase
         $this->workflow_values->each(function ($workflow_value) {
             $workflow_value->delete();
         });
+
+        // Feature 1: drop the "seen" marks of this record.
+        // WorkflowAction::forwardWorkflowValue() only clears them on a status change, so without
+        // this a hard-deleted record would leave one row per user in workflow_task_reads with
+        // nothing left to point at - and nothing would ever clean them up.
+        // withoutGlobalScopes(): the marks of every user have to go, not only those of the one
+        // pressing delete. A soft delete deliberately keeps them, so a restore keeps its state.
+        WorkflowTaskRead::withoutGlobalScopes()
+            ->where('custom_table_id', $custom_table->id)
+            ->where('morph_id', $this->id)
+            ->delete();
+
+        // ... and if the deleted record IS a user, that user's own marks go with it.
+        if ($custom_table->table_name == SystemTableName::USER) {
+            WorkflowTaskRead::withoutGlobalScopes()
+                ->where('target_user_id', $this->id)
+                ->delete();
+        }
+
+        // the deleting user sees this record leave their own task list on their very next
+        // navbar poll; other users' caches expire within one poll interval
+        \Exceedone\Exment\Services\Workflow\WorkflowTaskService::navbarCacheForget();
     }
 
     /**

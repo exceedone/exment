@@ -25,6 +25,7 @@ class PermissionEndpointTest extends UnitTestBase
         'api/user_organization',
         'api/version',
         'api/wf',
+        'api/workflowTaskPage',
         'auth-2factor',
         'auth-2factor/google',
         'auth-2factor/logout',
@@ -79,6 +80,13 @@ class PermissionEndpointTest extends UnitTestBase
         'webapi/user_organization',
         'webapi/version',
         'webapi/wf',
+        'webapi/workflowTaskPage',
+
+        // Feature 1 (part A): personal un-actioned task list, any logged-in user
+        'workflow_task',
+        'workflow_task/foobar',
+        'workflow_task/read',
+        'workflow_task/readAll',
 
         'http://github.com/exceedone/exment',
         'https://github.com/exceedone/exment',
