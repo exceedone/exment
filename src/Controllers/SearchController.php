@@ -78,9 +78,8 @@ class SearchController extends AdminControllerBase
                 $text = $d->label;
                 $results[] = [
                     'value' => $text
-                    // The autocomplete renders 'text' as html (to support
-                    // <mark> highlights on the Meilisearch path) -> escape.
-                    , 'text' => e($text)
+                    // Rendered as html by the autocomplete: escape.
+                    , 'text_html' => e($text)
                     , 'icon' =>array_get($table, 'options.icon')
                     , 'table_view_name' => array_get($table, 'table_view_name')
                     , 'table_name' => array_get($table, 'table_name')

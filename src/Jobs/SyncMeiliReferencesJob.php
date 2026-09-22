@@ -96,6 +96,7 @@ class SyncMeiliReferencesJob implements ShouldQueue
                 $docs[] = $mapper->map($record, $columns, $table->table_name, $table->table_view_name, $facetColumns, $rangeColumns, $aliases);
             }
             $client = MeiliClientFactory::make();
+            \Exceedone\Exment\Services\Meili\ExmentIndexer::ensureIndexExists($client, config('meilisearch.index'));
             $task = $client->index(config('meilisearch.index'))->addDocuments($docs, 'id');
             $client->waitForTask($task['taskUid'], 60000);
         }

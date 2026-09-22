@@ -53,7 +53,8 @@ class RequestFilters
             $facets = array_filter(explode("\n", $facets), fn ($v) => $v !== '');
         }
         if (!empty($facets) && is_array($facets)) {
-            $facets = array_values(array_filter($facets, 'is_string'));
+            // Each token becomes a filter clause: no screen ever sends this many.
+            $facets = array_slice(array_values(array_filter($facets, 'is_string')), 0, 100);
             if (!empty($facets)) {
                 $filters['facets'] = $facets;
             }
@@ -71,7 +72,12 @@ class RequestFilters
                 if (!is_scalar($v) || $v === '') {
                     continue;
                 }
-                $out[$field][$k] = is_numeric($v) ? ($v + 0) : self::rangeBound((string) $v, $k === 'to');
+                $num = is_numeric($v) ? ($v + 0) : self::rangeBound((string) $v, $k === 'to');
+                // "1e999" is numeric but INF, which no filter expression can hold.
+                if (is_float($num) && !is_finite($num)) {
+                    continue;
+                }
+                $out[$field][$k] = $num;
             }
         }
         if (!empty($out)) {

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Meili;
 
 use Exceedone\Exment\Model\MeiliFilterSetting;
+use Exceedone\Exment\Model\System;
 
 /**
  * Configure which columns are filterable (facets).
@@ -16,6 +17,18 @@ use Exceedone\Exment\Model\MeiliFilterSetting;
  */
 class FilterConfig
 {
+    public const SETTINGS_KEY = 'meili_filter_settings_rows';
+
+    /**
+     * Every filter setting row, read once per request: the sync path asks for each table.
+     *
+     * @return \Illuminate\Support\Collection<int,MeiliFilterSetting>
+     */
+    public static function settingRows()
+    {
+        return System::requestSession(self::SETTINGS_KEY, fn () => MeiliFilterSetting::orderBy('order')->get());
+    }
+
     /**
      * The column_types treated as equality filters (poured into facets[]).
      *
@@ -102,11 +115,11 @@ class FilterConfig
             return [];
         }
         try {
-            return MeiliFilterSetting::where('custom_table_id', $table->id)
-                ->where('filter_type', 'equality')
-                ->whereNotNull('alias')
-                ->where('alias', '<>', '')
-                ->where('enabled', 1)
+            return self::settingRows()
+                ->filter(fn ($r) => (int) $r->custom_table_id === (int) $table->id
+                    && $r->filter_type === 'equality'
+                    && (string) $r->alias !== ''
+                    && boolval($r->enabled))
                 ->pluck('alias', 'column_name')
                 ->toArray();
         } catch (\Throwable $e) {
@@ -124,10 +137,8 @@ class FilterConfig
     public static function aliasLabels(): array
     {
         try {
-            return MeiliFilterSetting::whereNotNull('alias')
-                ->where('alias', '<>', '')
-                ->whereNotNull('view_label')
-                ->where('view_label', '<>', '')
+            return self::settingRows()
+                ->filter(fn ($r) => (string) $r->alias !== '' && (string) $r->view_label !== '')
                 ->pluck('view_label', 'alias')
                 ->toArray();
         } catch (\Throwable $e) {
@@ -169,9 +180,8 @@ class FilterConfig
     public static function allAliases(): array
     {
         try {
-            return MeiliFilterSetting::whereNotNull('alias')
-                ->where('alias', '<>', '')
-                ->where('enabled', 1)
+            return self::settingRows()
+                ->filter(fn ($r) => (string) $r->alias !== '' && boolval($r->enabled))
                 ->pluck('alias')
                 ->unique()
                 ->values()
@@ -195,11 +205,11 @@ class FilterConfig
             // Reading the settings rows alone kept columns an admin had deleted:
             // Exment drops the column but not its row here, so a saved search
             // naming that field passed sanitize() and returned nothing, silently.
-            $tableIds = MeiliFilterSetting::where('filter_type', 'range')
-                ->where('mode', 'include')
-                ->where('enabled', 1)
-                ->distinct()
+            $tableIds = self::settingRows()
+                ->filter(fn ($r) => $r->filter_type === 'range' && $r->mode === 'include' && boolval($r->enabled))
                 ->pluck('custom_table_id')
+                ->unique()
+                ->values()
                 ->all();
 
             $fields = [];
@@ -258,12 +268,13 @@ class FilterConfig
             return [];
         }
 
-        return MeiliFilterSetting::where('custom_table_id', $table->id)
-            ->where('filter_type', $filterType)
-            ->where('mode', $rowMode)
-            ->where('enabled', 1)
-            ->orderBy('order')
+        return self::settingRows()
+            ->filter(fn ($r) => (int) $r->custom_table_id === (int) $table->id
+                && $r->filter_type === $filterType
+                && $r->mode === $rowMode
+                && boolval($r->enabled))
             ->pluck('column_name')
+            ->values()
             ->all();
     }
 }

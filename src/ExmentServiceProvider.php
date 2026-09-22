@@ -304,6 +304,12 @@ class ExmentServiceProvider extends ServiceProvider
         // Push the saved values (systems table) into config('meilisearch.*').
         \Exceedone\Exment\Services\Meili\MeiliConfig::apply();
 
+        // Saved searches do not depend on realtime sync or the SDK. 'deleted', not 'forceDeleted':
+        // CustomValue::delete() returns nothing, so Laravel never fires forceDeleted for it.
+        \Illuminate\Support\Facades\Event::listen('eloquent.deleted: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Model\MeiliSavedSearch::deleteOwnedBy($payload[0] ?? null);
+        });
+
         if (!boolval(config('meilisearch.realtime_sync'))) {
             return;
         }

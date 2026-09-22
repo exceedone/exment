@@ -39,10 +39,13 @@ class MeiliFilterSetting extends ModelBase
         parent::boot();
 
         // Changing filter config -> reindex that table (facets must be rebuilt in the index).
+        // Drop the per-request copy first: on the sync queue the reindex runs in this request.
         static::saved(function ($model) {
+            System::clearRequestSession(\Exceedone\Exment\Services\Meili\FilterConfig::SETTINGS_KEY);
             $model->dispatchReindex();
         });
         static::deleted(function ($model) {
+            System::clearRequestSession(\Exceedone\Exment\Services\Meili\FilterConfig::SETTINGS_KEY);
             $model->dispatchReindex();
         });
     }

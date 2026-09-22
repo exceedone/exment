@@ -44,7 +44,7 @@
                     <label>{{ exmtrans('search.saved_share_scope') }}</label>
                     <select class="form-control" id="meili-ss-sharetype">
                         <option value="personal">{{ exmtrans('search.share_personal') }}</option>
-                        <option value="all">{{ exmtrans('search.share_all') }}</option>
+                        @if (!empty($canShareAll))<option value="all">{{ exmtrans('search.share_all') }}</option>@endif
                         @if (!empty($roleGroups))<option value="role_group">{{ exmtrans('search.share_role_group') }}</option>@endif
                         @if (!empty($organizations))<option value="organization">{{ exmtrans('search.share_organization') }}</option>@endif
                     </select>
@@ -126,7 +126,11 @@ $(function () {
         $('#meili-ss-submit').prop('disabled', true);
         $.post(@json(admin_url('search/saved')), payload)
             .done(function () { window.location.reload(); })
-            .fail(function () { $('#meili-ss-submit').prop('disabled', false); });
+            .fail(function (xhr) {
+                $('#meili-ss-submit').prop('disabled', false);
+                var msg = xhr.responseJSON && xhr.responseJSON.message;
+                if (msg) { toastr.error(msg); }
+            });
     });
 
     $('.meili-ss-delete').on('click', function (ev) {

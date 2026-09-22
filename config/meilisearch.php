@@ -78,4 +78,7 @@ return [
         // what reached the view - so a group past this limit understates by a lot.
         'max_values_per_group' => 20,
     ],
+
+    // Saved searches one user may keep (a shared one shows on every user's quick bar).
+    'saved_search_limit' => (int) env('MEILISEARCH_SAVED_SEARCH_LIMIT', 50),
 ];

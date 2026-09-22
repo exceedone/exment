@@ -31,14 +31,22 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     /** Hold the unique lock for at most 5 minutes in case the job hangs. */
     public int $uniqueFor = 300;
 
+    /** Seconds one run may spend on the orphan scan before a continuation takes over. */
+    public const ORPHAN_SCAN_BUDGET = 40;
+
+    /** Index documents read per orphan-scan page. */
+    public const ORPHAN_SCAN_PAGE = 1000;
+
     /**
      * @param string $tableName
      * @param int|null $afterId Start of this slice: the last id the previous run
      *   indexed. null = start at the beginning of the table.
      * @param string|null $configHash configHash() the earlier slices of this
      *   chain indexed with. null = first slice, or unknown.
+     * @param int|null $orphanOffset Set: this run only continues the orphan scan
+     *   from that index position.
      */
-    public function __construct(public string $tableName, public ?int $afterId = null, public ?string $configHash = null)
+    public function __construct(public string $tableName, public ?int $afterId = null, public ?string $configHash = null, public ?int $orphanOffset = null)
     {
         // Below the connection's retry_after (database: 90s) so a second worker
         // cannot re-reserve a still-running job. Set here, not as a property:
@@ -230,6 +238,11 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
             return;
         }
 
+        if ($this->orphanOffset !== null) {
+            $this->removeOrphans($client, $indexName, $table, $mapper, $this->orphanOffset);
+            return;
+        }
+
         $columns = $table->getFreewordSearchColumns();
         $facetColumns = \Exceedone\Exment\Services\Meili\FilterConfig::equalityColumns($table);
         $rangeColumns = \Exceedone\Exment\Services\Meili\FilterConfig::rangeColumns($table);
@@ -268,6 +281,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         }
 
         if (!empty($docs)) {
+            \Exceedone\Exment\Services\Meili\ExmentIndexer::ensureIndexExists($client, $indexName);
             $task = $index->addDocuments($docs, 'id');
             $client->waitForTask($task['taskUid'], 60000);
         }
@@ -281,23 +295,41 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
             return;
         }
 
-        // Last slice: records deleted since the previous run keep a document
-        // nothing points at. Ids only, so this stays cheap on a large table.
-        $dbIds = getModelName($table)::query()
-            ->withoutGlobalScope(CustomValueModelScope::class)
-            ->pluck('id')->all();
-        $service = new MeiliSearchService($client, $indexName);
-        $orphan = MeiliSearchService::diffIds($dbIds, $service->indexedValueIds($this->tableName))['orphan'];
+        // Last slice: records deleted since the previous run keep a document nothing points at.
+        $this->removeOrphans($client, $indexName, $table, $mapper, 0);
+    }
 
-        // Re-check just before deleting: a record created during the scan exists now.
-        $existingNow = [];
-        foreach (array_chunk($orphan, 1000) as $chunk) {
-            $existingNow = array_merge($existingNow, getModelName($table)::query()
-                ->withoutGlobalScope(CustomValueModelScope::class)
-                ->whereIn('id', $chunk)
-                ->pluck('id')->all());
+    /**
+     * Delete documents whose record no longer exists, one index page at a time
+     * (a whole table's ids do not fit a 60s job on a large table).
+     *
+     * @param \Meilisearch\Client $client
+     */
+    private function removeOrphans($client, string $indexName, CustomTable $table, DocumentMapper $mapper, int $offset): void
+    {
+        $service = new MeiliSearchService($client, $indexName);
+        $started = microtime(true);
+        $read = 0;
+        $orphans = [];
+        do {
+            $page = $service->indexedValueIdsPage($this->tableName, $offset + $read, static::ORPHAN_SCAN_PAGE);
+            $read += $page['count'];
+            if (!empty($page['ids'])) {
+                $existing = getModelName($table)::query()
+                    ->withoutGlobalScope(CustomValueModelScope::class)
+                    ->whereIn('id', $page['ids'])
+                    ->pluck('id')->all();
+                array_push($orphans, ...self::deletableOrphans($page['ids'], $existing));
+            }
+            $more = $page['count'] === static::ORPHAN_SCAN_PAGE && $offset + $read < $page['total'];
+        } while ($more && microtime(true) - $started < static::ORPHAN_SCAN_BUDGET);
+
+        $service->deleteByValueIds($this->tableName, $orphans, $mapper);
+
+        if ($more) {
+            // The deleted documents shift the rest of the table forward by as many positions.
+            self::dispatch($this->tableName, null, null, $offset + $read - count($orphans));
         }
-        $service->deleteByValueIds($this->tableName, self::deletableOrphans($orphan, $existingNow), $mapper);
     }
 
     /**
