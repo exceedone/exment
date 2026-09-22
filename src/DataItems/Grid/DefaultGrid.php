@@ -146,6 +146,10 @@ class DefaultGrid extends GridBase
                     'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
                     'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
                     'header_align' => $this->custom_view->header_align ?? null,
+                    // The appearance this view asked for. Passed down rather
+                    // than looked up in the item because the same column can
+                    // wear a different preset in the next view.
+                    'grid_preset' => $custom_view_column->getOption('grid_preset'),
                 ]);
             //$name = $item->indexEnabled() ? $item->index() : $item->uniqueName();
             $className = 'column-' . $item->name();
@@ -894,22 +898,28 @@ class DefaultGrid extends GridBase
             ;
         }
 
+        // the view this form shows the values of: the one being edited, or
+        // the one a copy is taken from. Passed to every target list so a row
+        // pointing at a column the list may no longer offer still has an
+        // entry to sit in.
+        $custom_view = array_get($options, 'custom_view');
+
         // column setting
         if ($view_kind_type != Enums\ViewKindType::FILTER) {
             static::setViewInfoboxFields($form);
 
-            static::setColumnFields($form, $custom_table);
+            static::setColumnFields($form, $custom_table, [], $custom_view);
         }
 
         // filter setting
         if ($view_kind_type != Enums\ViewKindType::ALLDATA) {
-            static::setFilterFields($form, $custom_table);
+            static::setFilterFields($form, $custom_table, false, $custom_view);
         }
 
-        static::setSortFields($form, $custom_table, true);
+        static::setSortFields($form, $custom_table, true, $custom_view);
 
         if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
-            static::setGridFilterFields($form, $custom_table);
+            static::setGridFilterFields($form, $custom_table, [], $custom_view);
         }
     }
 
@@ -920,10 +930,12 @@ class DefaultGrid extends GridBase
      *
      * @param Form $form
      * @param CustomTable $custom_table
+     * @param array<string, mixed> $column_options
+     * @param CustomView|null $custom_view
      * @return void
      */
     // @phpstan-ignore-next-line
-    public static function setGridFilterFields(&$form, $custom_table, array $column_options = [])
+    public static function setGridFilterFields(&$form, $custom_table, array $column_options = [], $custom_view = null)
     {
         // columns setting
         $column_options = array_merge([
@@ -939,8 +951,12 @@ class DefaultGrid extends GridBase
 
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
 
-        $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options) {
-            $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
+        $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options, $custom_view) {
+            $targetOptions = static::appendStoredTargetOptions(
+                $custom_table->getColumnsSelectOptions($column_options),
+                $custom_view,
+                'custom_view_grid_filters'
+            );
 
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions);
@@ -962,11 +978,12 @@ class DefaultGrid extends GridBase
      * @param Form $form
      * @param CustomTable $custom_table
      * @param boolean $is_aggregate
+     * @param CustomView|null $custom_view
      * @return void
      */
-    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
+    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false, $custom_view = null)
     {
-        parent::setFilterFields($form, $custom_table, $is_aggregate);
+        parent::setFilterFields($form, $custom_table, $is_aggregate, $custom_view);
 
         $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
             ->option(exmtrans("condition.condition_reverse_options"));
