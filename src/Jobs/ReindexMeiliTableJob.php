@@ -38,6 +38,23 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public const ORPHAN_SCAN_PAGE = 1000;
 
     /**
+     * Seconds left to the delete that follows the scan. It waits for
+     * Meilisearch to process the task, so a scan that spends the whole timeout
+     * gets the job killed and the pass restarted from the top - forever, on a
+     * table whose scan does not fit one run.
+     */
+    public const ORPHAN_DELETE_RESERVE = 20;
+
+    /**
+     * How long one run may scan for orphans: the budget, or whatever the job's
+     * own timeout leaves once the delete is accounted for, whichever is smaller.
+     */
+    public static function orphanScanSeconds(int $timeout): int
+    {
+        return (int) max(1, min(static::ORPHAN_SCAN_BUDGET, $timeout - static::ORPHAN_DELETE_RESERVE));
+    }
+
+    /**
      * @param string $tableName
      * @param int|null $afterId Start of this slice: the last id the previous run
      *   indexed. null = start at the beginning of the table.
@@ -224,8 +241,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
-        // The orphan budget counts from here: the last slice has already spent part of the timeout.
-        $deadline = microtime(true) + static::ORPHAN_SCAN_BUDGET;
+        $deadline = microtime(true) + static::orphanScanSeconds($this->timeout);
 
         $client = MeiliClientFactory::make();
         $indexName = config('meilisearch.index');
@@ -303,8 +319,11 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
             return;
         }
 
-        // Last slice: records deleted since the previous run keep a document nothing points at.
-        $this->removeOrphans($client, $indexName, $table, $mapper, 0, $hash, $deadline);
+        // Records deleted since the previous run keep a document nothing points
+        // at. The scan gets a job of its own rather than what is left of this
+        // one: the slice has just spent part of its timeout indexing, and the
+        // scan ends in a delete that waits on Meilisearch.
+        self::dispatch($this->tableName, null, $hash, 0);
     }
 
     /**
@@ -322,13 +341,13 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
             $page = $service->indexedValueIdsPage($this->tableName, $offset + $read, static::ORPHAN_SCAN_PAGE);
             $read += $page['count'];
             if (!empty($page['ids'])) {
-                array_push($orphans, ...self::deletableOrphans($page['ids'], $this->existingIds($table, $page['ids'])));
+                array_push($orphans, ...self::deletableOrphans($page['ids'], self::existingIds($table, $page['ids'])));
             }
             $more = $page['count'] === static::ORPHAN_SCAN_PAGE && $offset + $read < $page['total'];
         } while ($more && microtime(true) < $deadline);
 
         // Re-check just before deleting: a record restored during the scan exists again.
-        $orphans = self::deletableOrphans($orphans, $this->existingIds($table, $orphans));
+        $orphans = self::deletableOrphans($orphans, self::existingIds($table, $orphans));
         $service->deleteByValueIds($this->tableName, $orphans, $mapper);
 
         if ($more) {
@@ -338,10 +357,12 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     }
 
     /**
+     * Ids of $ids that still exist in the database (shared with exment:meili-reconcile).
+     *
      * @param array<int,mixed> $ids
      * @return array<int,mixed>
      */
-    private function existingIds(CustomTable $table, array $ids): array
+    public static function existingIds(CustomTable $table, array $ids): array
     {
         if (empty($ids)) {
             return [];

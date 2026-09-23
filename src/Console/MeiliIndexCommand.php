@@ -58,15 +58,18 @@ class MeiliIndexCommand extends Command
             return self::SUCCESS;
         }
 
-        // --fresh drops the whole index: confirm, or require --force when non-interactive.
+        // --fresh rebuilds every document: confirm, or require --force when non-interactive.
         if ($this->option('fresh') && !$this->option('force')) {
             if (!$this->input->isInteractive()) {
-                $this->error('--fresh deletes the whole index. Add --force to run it non-interactively.');
+                $this->error('--fresh rebuilds every document. Add --force to run it non-interactively.');
                 return self::FAILURE;
             }
             if (!$this->confirm(sprintf(
-                'This will DELETE and recreate the index "%s", removing every indexed document. Continue?',
-                $indexName
+                'This rebuilds every document of "%s" into "%s" and swaps it in at the end.'
+                . ' Search keeps working meanwhile, but records changed DURING the rebuild are lost'
+                . ' from the index (run exment:meili-reconcile afterwards). Continue?',
+                $indexName,
+                ExmentIndexer::buildIndexName($indexName)
             ))) {
                 $this->info('Aborted.');
                 return self::FAILURE;
@@ -86,6 +89,12 @@ class MeiliIndexCommand extends Command
             $this->line(sprintf('  - %-30s %d records', $name, $count));
         }
         $this->info('Total: ' . $result['total'] . ' documents indexed.');
+
+        if ($this->option('fresh')) {
+            // Realtime sync wrote into the live index while this ran; those
+            // writes are on the index that has just been swapped out.
+            $this->warn('Run `php artisan exment:meili-reconcile` to pick up records changed during the rebuild.');
+        }
 
         return self::SUCCESS;
     }
