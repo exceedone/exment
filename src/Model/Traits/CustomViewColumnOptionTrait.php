@@ -40,4 +40,24 @@ trait CustomViewColumnOptionTrait
     {
         return $this->setOption('sort_type', $sort_order);
     }
+
+    /**
+     * get cell style preset key.
+     */
+
+    // @phpstan-ignore-next-line
+    public function getGridPresetAttribute()
+    {
+        return $this->getOption('grid_preset');
+    }
+
+    /**
+     * set cell style preset key.
+     */
+
+    // @phpstan-ignore-next-line
+    public function setGridPresetAttribute($grid_preset)
+    {
+        return $this->setOption('grid_preset', $grid_preset);
+    }
 }

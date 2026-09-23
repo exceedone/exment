@@ -285,16 +285,18 @@ class SummaryGrid extends GridBase
 
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
 
+        $custom_view = array_get($options, 'custom_view');
+
         // group columns setting
-        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
-            $targetOptions = $custom_table->getColumnsSelectOptions([
+        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table, $custom_view) {
+            $targetOptions = static::appendStoredTargetOptions($custom_table->getColumnsSelectOptions([
                 'append_table' => true,
                 'index_enabled_only' => true,
                 'include_parent' => true,
                 'include_child' => true,
                 'include_workflow' => true,
                 'is_aggregate' => true,
-            ]);
+            ]), $custom_view, 'custom_view_columns');
 
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions)
@@ -336,8 +338,12 @@ class SummaryGrid extends GridBase
         ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_groups"), $manualUrl));
 
         // summary columns setting
-        $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
-            $targetOptions = $custom_table->getSummaryColumnsSelectOptions();
+        $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table, $custom_view) {
+            $targetOptions = static::appendStoredTargetOptions(
+                $custom_table->getSummaryColumnsSelectOptions(),
+                $custom_view,
+                'custom_view_summaries'
+            );
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions)
                 ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
@@ -381,9 +387,9 @@ class SummaryGrid extends GridBase
         ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_summaries"), $manualUrl));
 
         // filter setting
-        static::setFilterFields($form, $custom_table, true);
+        static::setFilterFields($form, $custom_table, true, $custom_view);
 
-        static::setGridFilterFields($form, $custom_table);
+        static::setGridFilterFields($form, $custom_table, [], $custom_view);
     }
 
     /**
@@ -391,10 +397,12 @@ class SummaryGrid extends GridBase
      *
      * @param Form $form
      * @param CustomTable $custom_table
+     * @param array<string, mixed> $column_options
+     * @param CustomView|null $custom_view
      * @return void
      */
     // @phpstan-ignore-next-line
-    public static function setGridFilterFields(&$form, $custom_table, array $column_options = [])
+    public static function setGridFilterFields(&$form, $custom_table, array $column_options = [], $custom_view = null)
     {
         // columns setting
         $column_options = array_merge([
@@ -411,8 +419,12 @@ class SummaryGrid extends GridBase
         $description = exmtrans("custom_view.description_custom_view_grid_filters", $manualUrl);
         $description .= exmtrans("custom_view.description_custom_view_summary_filters");
 
-        $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options) {
-            $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
+        $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options, $custom_view) {
+            $targetOptions = static::appendStoredTargetOptions(
+                $custom_table->getColumnsSelectOptions($column_options),
+                $custom_view,
+                'custom_view_grid_filters'
+            );
 
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions);

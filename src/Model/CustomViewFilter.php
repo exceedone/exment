@@ -39,7 +39,11 @@ class CustomViewFilter extends ModelBase
             'export' => ['custom_table', 'view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column', 'view_filter_condition_value_table_id', 'view_filter_condition_value_id'],
         ],
         'uniqueKeys' => [
-            'custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id', 'view_filter_condition'
+            // The value has to take part in the key: a view may hold two filters
+            // on the same column with the same operator but different values
+            // (state <> resolved AND state <> closed). Without it the second one
+            // overwrites the first on import and the condition is silently lost.
+            'custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id', 'view_filter_condition', 'view_filter_condition_value_text'
         ],
         'parent' => 'custom_view_id',
         'uniqueKeyReplaces' => [
@@ -160,6 +164,15 @@ class CustomViewFilter extends ModelBase
         $viewFilterItem = ViewFilterBase::make($this->view_filter_condition, $this->column_item, [
             'or_option' => $or_option,
         ]);
+
+        // A row holding no comparison - or one that this column does not
+        // offer any more - cannot be turned into a query. Failing the whole
+        // screen over it would also take away the screen it is repaired
+        // from, so the row is left out and the reason is shown.
+        if (!isset($viewFilterItem)) {
+            admin_warning_once(exmtrans('common.error'), exmtrans('custom_view.message.filter_ignored'));
+            return $query;
+        }
 
         $viewFilterItem->setFilter($query, $condition_value_text);
         return $query;

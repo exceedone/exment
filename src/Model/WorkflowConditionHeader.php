@@ -28,6 +28,9 @@ class WorkflowConditionHeader extends ModelBase
             'import' => ['workflow_action_id', 'status_to'],
         ],
         'parent' => 'workflow_action_id',
+        'children' => [
+            'workflow_conditions' => Condition::class,
+        ],
     ];
 
 

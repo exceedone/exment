@@ -22,7 +22,10 @@ class WorkflowTable extends ModelBase
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => ['id'],
+        // The exporter eager loads custom_table to resolve the unique key, and
+        // toArray() then carries the whole relation into the template. It is
+        // not a column here, so writing it back on import fails.
+        'excepts' => ['id', 'custom_table'],
         'uniqueKeys' => [
             'export' => ['custom_table.table_name'],
             'import' => ['custom_table_id'],

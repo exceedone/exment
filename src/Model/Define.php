@@ -260,6 +260,10 @@ class Define
             'uri' => 'template',
             'icon' => 'fa-clone',
         ],
+        'cell_style_preset' => [
+            'uri' => 'cell_style_preset',
+            'icon' => 'fa-paint-brush',
+        ],
         'workflow' => [
             'uri' => 'workflow',
             'icon' => 'fa-share-alt',

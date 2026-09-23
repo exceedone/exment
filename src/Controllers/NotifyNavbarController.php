@@ -12,6 +12,8 @@ use Exceedone\Exment\Form\Tools\SwalMenuButton;
 use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\NotifyNavbar;
+use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\PluginType;
 
 class NotifyNavbarController extends AdminControllerBase
 {
@@ -282,8 +284,45 @@ class NotifyNavbarController extends AdminControllerBase
             return back();
         }
 
+        // A plugin can own the screen for a table - the project portal does -
+        // and then the bell should open that screen instead of the raw data
+        // page. Falls through to the data page when no plugin claims the row.
+        $portal_url = $this->pluginRecordUrl($custom_value);
+        if (isset($portal_url)) {
+            return redirect($portal_url);
+        }
+
         // redirect custom value page
         return redirect($custom_value->getUrl());
+    }
+
+    /**
+     * Ask the installed page plugins whether one of them owns this record.
+     *
+     * Plugin classes are autoloaded lazily, so each plugin is required before
+     * its definition class can be looked up. A plugin opts in by exposing
+     * {namespace}\PortalDefinition::portalRecordUrl().
+     *
+     * @param mixed $custom_value
+     * @return string|null
+     */
+    protected function pluginRecordUrl($custom_value): ?string
+    {
+        foreach (Plugin::getByPluginTypes(PluginType::PAGE, true) as $plugin) {
+            $plugin->requirePlugin();
+
+            $class = $plugin->getNameSpace() . '\\PortalDefinition';
+            if (!method_exists($class, 'portalRecordUrl')) {
+                continue;
+            }
+
+            $url = $class::portalRecordUrl($custom_value);
+            if (isset($url)) {
+                return $url;
+            }
+        }
+
+        return null;
     }
 
     /**

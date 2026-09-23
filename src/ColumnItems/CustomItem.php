@@ -226,7 +226,7 @@ abstract class CustomItem implements ItemInterface
         // column. false is the "not built yet" marker because null is a real
         // answer here - it means "this column is not styled".
         if ($this->grid_cell_style === false) {
-            $this->grid_cell_style = GridCellStyle::make($this->custom_column);
+            $this->grid_cell_style = GridCellStyle::make($this->custom_column, array_get($this->options, 'grid_preset'));
         }
 
         return $this->grid_cell_style;

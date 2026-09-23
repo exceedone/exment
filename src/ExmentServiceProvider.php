@@ -396,6 +396,9 @@ class ExmentServiceProvider extends ServiceProvider
             if (!is_null($items = $pluginPage->_getLoadView())) {
                 $this->loadViewsFrom($items[0], $items[1]);
             }
+            if (method_exists($pluginPage, '_getLoadTranslation') && !is_null($items = $pluginPage->_getLoadTranslation())) {
+                $this->loadTranslationsFrom($items[0], $items[1]);
+            }
         }
     }
 

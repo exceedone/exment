@@ -59,7 +59,7 @@ abstract class CustomValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
-    use Traits\HasCrossLinksTrait;
+    use Traits\HasCommentMentionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use \Exceedone\Exment\Revisionable\RevisionableTrait;
 
@@ -667,14 +667,7 @@ abstract class CustomValue extends ModelBase
 
         $this->savedValue();
 
-        // mirror "related issue" style columns into cross_item_links, so the record
-        // on the other end shows the link too
-        $this->syncCrossLinksFromColumns();
-
-        // a comment naming another record links the two
-        $this->linkRecordsMentionedInComment();
-
-        // and a comment naming a person tells that person
+        // a comment naming a person tells that person
         $this->notifyMentionedUsersInComment();
 
         if ($isCreate) {

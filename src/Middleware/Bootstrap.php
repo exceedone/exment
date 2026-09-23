@@ -39,6 +39,12 @@ class Bootstrap
             return;
         }
 
+        // A JSON response never renders a layout, so building the admin
+        // CSS/JS buckets for it is pure overhead.
+        if ($request->expectsJson()) {
+            return;
+        }
+
         if ($this->isStaticRequest($request)) {
             return;
         }
@@ -102,6 +108,7 @@ class Bootstrap
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',
             'vendor/exment/js/grid_tools.js',
+            'vendor/exment/js/cellstyle_preset.js',
             'vendor/exment/js/file-required.js',
             'vendor/exment/js/scroll-restore.js',
             'vendor/exment/js/file-required.js',

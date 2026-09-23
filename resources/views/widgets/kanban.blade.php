@@ -25,6 +25,8 @@
         'unassigned' => exmtrans('custom_view.kanban_unassigned'),
         'drag_hint' => exmtrans('custom_view.kanban_drag_hint'),
         'open_record' => exmtrans('custom_view.kanban_open_record'),
+        'detail' => exmtrans('custom_view.kanban_detail'),
+        'close' => trans('admin.close'),
         'undo' => exmtrans('custom_view.kanban_undo'),
         'day' => exmtrans('custom_view.kanban_day'),
         'sla_done' => exmtrans('custom_view.kanban_sla_done'),
@@ -49,6 +51,8 @@
         'move_to' => exmtrans('custom_view.kanban_move_to'),
         'bulk_move' => exmtrans('custom_view.kanban_bulk_move'),
         'col_total' => exmtrans('custom_view.kanban_col_total'),
+        'col_wip' => exmtrans('custom_view.kanban_col_wip'),
+        'col_wip_all' => exmtrans('custom_view.kanban_col_wip_all'),
         'more' => exmtrans('custom_view.kanban_more'),
         'more_plain' => exmtrans('custom_view.kanban_more_plain'),
         'search_more' => exmtrans('custom_view.kanban_search_more'),
@@ -57,6 +61,15 @@
         'partial' => exmtrans('custom_view.message.kanban_partial'),
         'search_capped' => exmtrans('custom_view.message.kanban_search_capped'),
         'wip_full' => exmtrans('custom_view.message.kanban_wip_full'),
+        'save' => trans('admin.save'),
+        'inline_edit' => exmtrans('custom_view.kanban_inline_edit'),
+        'inline_clear' => exmtrans('custom_view.kanban_inline_clear'),
+        'inline_saved' => exmtrans('custom_view.message.kanban_inline_saved'),
+        'save_view' => exmtrans('custom_view.kanban_save_view'),
+        'save_view_name' => exmtrans('custom_view.kanban_save_view_name'),
+        'view_saved' => exmtrans('custom_view.message.kanban_view_saved'),
+        'view_open' => exmtrans('custom_view.kanban_view_open'),
+        'blank_filtered' => exmtrans('custom_view.message.kanban_blank_filtered'),
         'wip_blocked' => exmtrans('custom_view.message.kanban_wip_blocked'),
     ];
 @endphp
@@ -74,9 +87,16 @@
                 </span>
                 {{-- the filter everyone reaches for first, given a button of its
                      own so it is one tap rather than four --}}
-                @if(array_get($board, 'assignee_column') && !is_nullorempty(array_get($board, 'me')))
+                @if(array_get($board, 'mine_column') && !is_nullorempty(array_get($board, 'me')))
                 <button type="button" class="btn btn-sm btn-default kb-mine-btn">
                     <i class="fa fa-user"></i><span class="hidden-xs">&nbsp;&nbsp;{{ exmtrans('custom_view.kanban_mine_button') }}</span>
+                </button>
+                @endif
+                {{-- the board narrows itself in the browser, so what is on
+                     screen is worth keeping only if it can be named --}}
+                @if(array_get($board, 'save_view_url'))
+                <button type="button" class="btn btn-sm btn-default kb-saveview-btn">
+                    <i class="fa fa-bookmark-o"></i><span class="hidden-xs">&nbsp;&nbsp;{{ exmtrans('custom_view.kanban_save_view') }}</span>
                 </button>
                 @endif
                 @if(array_get($features, 'ai'))
@@ -87,9 +107,11 @@
                 @endif
             </div>
             <div class="kb-toolbar-right">
+                @if(empty($embed))
                 @foreach($tools as $tool)
                 {!! $tool !!}
                 @endforeach
+                @endif
             </div>
         </div>
     </div>
@@ -112,6 +134,9 @@
     {{-- a board loaded per column can be rearranged into a shape the server
          cannot page or total by; the script owns up to that here --}}
     <div class="kb-partial" style="display:none;"></div>
+
+    {{-- why the board is empty, when a filter is the reason --}}
+    <div class="kb-blank" style="display:none;"></div>
 
     @if(array_get($features, 'kpi'))
     <div class="kb-kpis">

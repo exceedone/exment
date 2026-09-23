@@ -36,7 +36,9 @@ class Workflow extends ModelBase
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => ['id', 'suuid'],
+        // workflow_edit_flg is an appended accessor, not a stored column. Without
+        // excepting it the importer writes it into the options json as null.
+        'excepts' => ['id', 'suuid', 'workflow_edit_flg'],
         'uniqueKeys' => ['workflow_view_name'],
         'langs' => [
             'keys' => ['workflow_view_name'],

@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Model\CellStylePreset;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Menu;
@@ -16,6 +17,7 @@ use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Enums\TemplateExportTarget;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\DashboardType;
 use ZipArchive;
@@ -120,7 +122,7 @@ class TemplateExporter
             static::setTemplateDashboard($config, $is_lang);
         }
         if (in_array(TemplateExportTarget::ROLE_GROUP, $options['export_target'])) {
-            static::setTemplateRole($config, $is_lang);
+            static::setTemplateRole($config, $options['target_tables'] ?? [], $is_lang);
         }
         if (in_array(TemplateExportTarget::PUBLIC_FORM, $options['export_target'])) {
             static::setTemplatePublicForm($config, array_get($options, 'public_form_uuid'), $is_lang);
@@ -214,6 +216,79 @@ class TemplateExporter
             $configCopies[] = $custom_copy->getTemplateExportItems($is_lang);
         }
         $config['custom_copies'] = $configCopies;
+
+        // get cell style presets -----------------------------------------
+        static::setTemplateCellStylePreset($config, $is_lang);
+    }
+
+    /**
+     * Carry the cell style presets the exported tables and views point at.
+     *
+     * A column stores only the preset key, so a template that leaves the
+     * preset behind lands on a system where that key resolves to nothing and
+     * the column quietly renders unstyled.
+     *
+     * Only presets made on this system are carried. The "sys." catalog is
+     * seeded by a migration, so every installation already has it, and
+     * writing it back would repaint lists that have nothing to do with the
+     * imported tables.
+     */
+    // @phpstan-ignore-next-line
+    protected static function setTemplateCellStylePreset(&$config, $is_lang = false)
+    {
+        $config['cell_style_presets'] = [];
+
+        if (!CellStylePreset::available()) {
+            return;
+        }
+
+        $keys = static::collectCellStylePresetKeys(array_only($config, ['custom_tables', 'custom_views']));
+        $keys = array_filter($keys, function ($key) {
+            return strpos($key, CellStylePreset::BUILTIN_PREFIX) !== 0;
+        });
+
+        if (empty($keys)) {
+            return;
+        }
+
+        $presets = CellStylePreset::whereIn('suuid', array_values($keys))->orderBy('order')->orderBy('id')->get();
+
+        $configPresets = [];
+        foreach ($presets as $preset) {
+            $configPresets[] = $preset->getTemplateExportItems($is_lang);
+        }
+        $config['cell_style_presets'] = $configPresets;
+    }
+
+    /**
+     * Every grid_preset value found anywhere in an exported structure.
+     *
+     * The key appears in a custom column's options and in a view column's
+     * options, and the surrounding shape differs between the two, so the
+     * whole structure is walked rather than read at fixed paths.
+     *
+     * @param mixed $value
+     * @return array<int, string>
+     */
+    // @phpstan-ignore-next-line
+    protected static function collectCellStylePresetKeys($value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $keys = [];
+        foreach ($value as $k => $v) {
+            if ($k === 'grid_preset') {
+                if (is_string($v) && !is_nullorempty($v)) {
+                    $keys[] = $v;
+                }
+                continue;
+            }
+            $keys = array_merge($keys, static::collectCellStylePresetKeys($v));
+        }
+
+        return array_values(array_unique($keys));
     }
 
     /**
@@ -252,19 +327,45 @@ class TemplateExporter
     }
 
     /**
-     * set Role info to config
+     * set Role info to config.
+     * If target_tables is not empty, only export role groups that grant a
+     * permission on one of those tables. Without this a plugin template drags
+     * in every unrelated role group of the source system.
      */
     // @phpstan-ignore-next-line
-    protected static function setTemplateRole(&$config, $is_lang = false)
+    protected static function setTemplateRole(&$config, $target_tables = [], $is_lang = false)
     {
         // Get Roles --------------------------------------------------
-        $roles = RoleGroup::all();
+        $roles = RoleGroup::with('role_group_permissions')->get();
         $configRoles = [];
 
         foreach ($roles as $role) {
+            if (count($target_tables) > 0 && !static::roleGroupMatchesTargetTables($role, $target_tables)) {
+                continue;
+            }
             $configRoles[] = $role->getTemplateExportItems($is_lang);
         }
         $config['roles'] = $configRoles;
+    }
+
+
+    /**
+     * Whether a RoleGroup grants a table permission on any of the target_tables.
+     */
+    // @phpstan-ignore-next-line
+    protected static function roleGroupMatchesTargetTables($role_group, array $target_tables): bool
+    {
+        foreach ($role_group->role_group_permissions as $permission) {
+            if (!isMatchString($permission->role_group_permission_type, RoleType::TABLE)) {
+                continue;
+            }
+            $table = CustomTable::getEloquent($permission->role_group_target_id);
+            if ($table && in_array($table->table_name, $target_tables)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 

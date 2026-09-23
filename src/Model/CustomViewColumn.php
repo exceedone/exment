@@ -32,7 +32,7 @@ class CustomViewColumn extends ModelBase
 
     protected $guarded = ['id'];
     protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color', 'sort_order', 'sort_type',
-        'kanban_position', 'kanban_style', 'kanban_icon'];
+        'kanban_position', 'kanban_icon', 'grid_preset'];
     //protected $with = ['custom_column'];
     protected $casts = ['options' => 'json'];
 
@@ -145,21 +145,6 @@ class CustomViewColumn extends ModelBase
     public function setKanbanPositionAttribute($kanban_position)
     {
         $this->setOption('kanban_position', $kanban_position);
-
-        return $this;
-    }
-
-
-    // @phpstan-ignore-next-line
-    public function getKanbanStyleAttribute()
-    {
-        return $this->getOption('kanban_style');
-    }
-
-    // @phpstan-ignore-next-line
-    public function setKanbanStyleAttribute($kanban_style)
-    {
-        $this->setOption('kanban_style', $kanban_style);
 
         return $this;
     }

@@ -1317,3 +1317,412 @@
     display: none;
   }
 }
+
+/* ------------------------------------------------ cell style presets --- */
+/* The preset picker, its live sample and the preset editor. They live in
+   this file because they draw the very .exm-cell-* shapes defined above -
+   the setting screens show the same chip the grid will show, which is the
+   only honest way to preview one. */
+
+/* Picker and its edit button on one line. The select2 container is width
+   100% inside a table cell, so only a flex row keeps the button beside it
+   instead of under it. */
+.exm-preset-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.exm-preset-picker-wrap .select2-container {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.exm-preset-open {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  line-height: 1;
+  color: #6b7785;
+}
+
+.exm-preset-open:hover {
+  color: #3c8dbc;
+}
+
+/* The list is read by comparing the chips, so it needs room for one whether
+   or not the control it hangs off has any: the kanban card table gives the
+   picker a fifth of the row. Only the open list is widened - the closed
+   picker stays inside its cell. */
+.exm-preset-dropdown {
+  min-width: 230px;
+}
+
+/* One row of the dropdown: the preset drawn in its own style on the left,
+   the pencil parked on the right. */
+.exm-preset-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 22px;
+}
+
+.exm-preset-option > .exm-cell-bar {
+  min-width: 90px;
+  max-width: 140px;
+}
+
+.exm-preset-edit {
+  margin-left: auto;
+  padding: 2px 4px;
+  opacity: .55;
+  cursor: pointer;
+}
+
+.exm-preset-edit:hover {
+  opacity: 1;
+  color: #3c8dbc;
+}
+
+/* The selected value shows the same chip, so the closed picker still says
+   what the column will look like. */
+.select2-selection__rendered .exm-preset-option .exm-preset-edit {
+  display: none;
+}
+
+/* select2 writes the value and the clear button into one block, and this
+   theme lays that button out as a block of its own. A chip is a box, not a
+   run of text, so it starts a second line there and drops out of the
+   control - laying the closed picker out as a row is what puts it back on
+   the line the value belongs on. The selectors carry the container class
+   only to outrank the theme, which sets these same properties. */
+.exm-preset-picker-wrap .select2-container .select2-selection {
+  display: flex;
+  align-items: center;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* The -2px the theme nudges the text by is measured for a line of text and
+   leaves a chip sitting high. */
+.exm-preset-picker-wrap .select2-container .select2-selection .select2-selection__rendered {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-top: 0;
+}
+
+/* The clear button keeps the place the theme gave it: the right end, in
+   front of the arrow. */
+.exm-preset-picker-wrap .select2-selection__rendered > .select2-selection__clear {
+  order: 2;
+  margin-left: auto;
+  line-height: 1;
+}
+
+/* Full width is what a row of the dropdown wants; in the closed picker it
+   would push the clear button out of the control. */
+.exm-preset-picker-wrap .select2-selection__rendered > .exm-preset-option {
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------ preview --- */
+.exm-cellstyle-preview {
+  padding: 10px 12px;
+  border: 1px solid #e1e6ea;
+  border-radius: 4px;
+  background-color: #fff;
+  background-image: linear-gradient(45deg, #fafbfc 25%, transparent 25%, transparent 75%, #fafbfc 75%),
+    linear-gradient(45deg, #fafbfc 25%, transparent 25%, transparent 75%, #fafbfc 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+/* Samples sit in a column, one per value, the way rows of a list do -
+   comparing two badges side by side says nothing about a list. */
+.exm-cellstyle-preview-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 26px;
+}
+
+.exm-cellstyle-preview-note {
+  margin-top: 8px;
+  color: #8b95a1;
+  font-size: 11.5px;
+}
+
+/* --------------------------------------------------------- preset modal --- */
+.exm-preset-row {
+  margin-bottom: 12px;
+}
+
+.exm-preset-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #4a5562;
+}
+
+.exm-preset-hint {
+  margin-top: 4px;
+  color: #8b95a1;
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.exm-preset-color {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exm-preset-color .exm-preset-color-swatch {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  border: 1px solid #e1e6ea;
+  border-radius: 3px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.exm-preset-color .exm-preset-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.exm-preset-color-clear {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  line-height: 1.2;
+}
+
+.exm-preset-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exm-preset-check label {
+  margin: 0;
+  font-weight: 400;
+}
+
+/* The column type list is long; a scrolling box keeps the editor the size
+   of a modal instead of the size of the enum. */
+.exm-preset-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  max-height: 210px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid #e1e6ea;
+  border-radius: 4px;
+}
+
+/* One per line. Two columns fit more types on screen but cut the labels,
+   and three of them start with the same word - a truncated list would make
+   the select types impossible to tell apart. */
+.exm-preset-type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+/* The editor is taller than the modal body on a laptop screen, and the two
+   save buttons are the whole point of it - they stay on screen instead of
+   waiting at the bottom of a scroll nobody knows is there. */
+.exm-preset-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 12px 0 4px;
+  border-top: 1px solid #eef1f4;
+  background-color: #fff;
+}
+
+.exm-preset-actions-right {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Second click confirms; the colour change is the only warning there is. */
+.exm-preset-delete.exm-preset-confirming {
+  background-color: #922b21;
+  border-color: #922b21;
+}
+
+.exm-preset-note {
+  margin-top: 8px;
+  color: #8b95a1;
+  font-size: 11.5px;
+}
+
+/* The "paint the whole cell" style has no wrapper in the grid - the <td>
+   itself is coloured - so its sample has to look like a cell instead of
+   like a chip. */
+.exm-cellstyle-sample-cell {
+  display: inline-block;
+  min-width: 120px;
+  padding: 4px 10px;
+  border: 1px solid #e1e6ea;
+  border-radius: 2px;
+}
+
+/* Only the progress bar needs a name beside it; every other shape prints
+   the preset name as its own text. */
+.exm-preset-option-name {
+  flex: 0 0 auto;
+}
+
+/* -------------------------------------------------------- icon picker --- */
+
+/* The field, a button showing what is set now, and a grid of icons that
+   opens under them. */
+.exm-iconpick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.exm-iconpick > input[type="text"] {
+  width: 130px;
+  flex: 0 0 auto;
+}
+
+.exm-iconpick-toggle,
+.exm-iconpick-clear {
+  width: 34px;
+  padding: 5px 0;
+  line-height: 1.4;
+}
+
+/* Nothing set yet - the dots stand for "pick one" without pretending to be
+   an icon somebody chose. */
+.exm-iconpick-none {
+  opacity: 0.35;
+}
+
+.exm-iconpick-panel {
+  flex: 1 0 100%;
+  /* Eight to a row: wide enough to scan, narrow enough that it reads as a
+     menu belonging to the field rather than a band across the form. */
+  max-width: 330px;
+  max-height: 210px;
+  margin-top: 4px;
+  padding: 6px;
+  border: 1px solid #d2d6de;
+  border-radius: 3px;
+  background-color: #fff;
+  overflow-y: auto;
+}
+
+.exm-iconpick-item {
+  width: 32px;
+  height: 30px;
+  padding: 0;
+  margin: 0 3px 3px 0;
+  line-height: 1;
+}
+
+.exm-iconpick-item.active {
+  border-color: #3c8dbc;
+  background-color: #eaf3fa;
+}
+
+/* ------------------------------------------------ per-value color table --- */
+
+/* Replaces the raw "key,#hex" textarea: one row per choice of the column,
+   a color beside each name. Kept visually light - it sits inside a form
+   the rest of which is plain labels and fields. */
+.exm-vc-table {
+  border-collapse: collapse;
+  margin-bottom: 6px;
+}
+
+.exm-vc-table th {
+  padding: 2px 10px 4px 0;
+  color: #8b95a1;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.exm-vc-table td {
+  padding: 3px 10px 3px 0;
+  vertical-align: middle;
+}
+
+.exm-vc-keytext {
+  display: inline-block;
+  min-width: 70px;
+  font-family: Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.exm-vc-label {
+  color: #666;
+}
+
+/* The value typed into the row beside it is not one of the column's
+   choices, so there is no name to show. */
+.exm-vc-label-missing {
+  color: #a0a7b0;
+  font-style: italic;
+}
+
+.exm-vc-colorcell {
+  white-space: nowrap;
+}
+
+/* The swatch is a way of typing into the text field, which stays the
+   value - a native color input cannot say "no color at all". */
+.exm-vc-swatch {
+  width: 30px;
+  height: 26px;
+  padding: 0 2px;
+  border: 1px solid #d2d6de;
+  border-radius: 3px;
+  margin-right: 5px;
+  background: #fff;
+  vertical-align: middle;
+}
+
+.exm-vc-hex {
+  display: inline-block;
+  width: 92px;
+  vertical-align: middle;
+}
+
+.exm-vc-key {
+  width: 110px;
+}
+
+.exm-vc-actions .btn {
+  line-height: 1.2;
+}
+
+.exm-vc-add {
+  margin-bottom: 4px;
+}

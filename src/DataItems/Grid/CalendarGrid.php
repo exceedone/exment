@@ -60,11 +60,17 @@ class CalendarGrid extends GridBase
 
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
 
+        $custom_view = array_get($options, 'custom_view');
+
         // columns setting
-        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table, $custom_view) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_start_date"))
                 ->required()
-                ->options($custom_table->getDateColumnsSelectOptions());
+                ->options(static::appendStoredTargetOptions(
+                    $custom_table->getDateColumnsSelectOptions(),
+                    $custom_view,
+                    'custom_view_columns'
+                ));
             $form->select('view_column_end_date', exmtrans("custom_view.view_column_end_date"))
                 ->options($custom_table->getDateColumnsSelectOptions());
             $form->color('view_column_color', exmtrans("custom_view.color"))
@@ -77,7 +83,7 @@ class CalendarGrid extends GridBase
         ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_calendar_columns"), $manualUrl));
 
         // filter setting
-        static::setFilterFields($form, $custom_table);
+        static::setFilterFields($form, $custom_table, false, $custom_view);
     }
 
     /**
@@ -86,11 +92,12 @@ class CalendarGrid extends GridBase
      * @param Form $form
      * @param CustomTable $custom_table
      * @param boolean $is_aggregate
+     * @param \Exceedone\Exment\Model\CustomView|null $custom_view
      * @return void
      */
-    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
+    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false, $custom_view = null)
     {
-        parent::setFilterFields($form, $custom_table, $is_aggregate);
+        parent::setFilterFields($form, $custom_table, $is_aggregate, $custom_view);
 
         $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
             ->option(exmtrans("condition.condition_reverse_options"));

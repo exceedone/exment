@@ -15,6 +15,7 @@ class ViewKindType extends EnumBase
     public const FILTER = "3";
     public const PLUGIN = "4";
     public const KANBAN = "5";
+    public const GANTT = "6";
     public const ALLDATA = "9";
 
     /**
@@ -27,7 +28,7 @@ class ViewKindType extends EnumBase
      */
     public static function isListable($view_kind_type)
     {
-        return !in_array($view_kind_type, [static::CALENDAR, static::KANBAN]);
+        return !in_array($view_kind_type, [static::CALENDAR, static::KANBAN, static::GANTT]);
     }
 
     /**
@@ -74,6 +75,8 @@ class ViewKindType extends EnumBase
                 return GridItem\CalendarGrid::class;
             case static::KANBAN:
                 return GridItem\KanbanGrid::class;
+            case static::GANTT:
+                return GridItem\GanttGrid::class;
             case static::ALLDATA:
                 return GridItem\AllDataGrid::class;
             case static::FILTER:

@@ -255,6 +255,23 @@ class FilterOption extends EnumBase
     }
 
     /**
+     * Get the text of one filter option, whichever column type offers it.
+     *
+     * @param mixed $filter_option
+     * @return string|null null when this is not a filter option at all
+     */
+    // @phpstan-ignore-next-line
+    public static function getFilterOptionText($filter_option)
+    {
+        $transName = static::getTransName($filter_option);
+        if (is_nullorempty($transName)) {
+            return null;
+        }
+
+        return exmtrans('custom_view.filter_condition_options.' . $transName);
+    }
+
+    /**
      * get condition key text (for form condition only)
      */
     // @phpstan-ignore-next-line

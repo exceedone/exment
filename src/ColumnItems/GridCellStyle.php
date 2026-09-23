@@ -122,6 +122,16 @@ class GridCellStyle
     protected $auto_colors = null;
 
     /**
+     * The settings exactly as resolveSource() handed them over.
+     *
+     * Kept because toOptions() has to give them back unchanged: the browser
+     * renderer reads the same raw `grid_*` keys this class was built from.
+     *
+     * @var array<string, mixed>
+     */
+    protected $source = [];
+
+    /**
      * @param \Exceedone\Exment\Model\CustomColumn $custom_column
      * @param array<string, mixed> $source already resolved `grid_*` settings
      */
@@ -136,6 +146,7 @@ class GridCellStyle
         $this->icon = static::normalizeIcon(array_get($source, 'grid_icon'));
         $this->nowrap = boolval(array_get($source, 'grid_nowrap', false));
         $this->value_colors = static::parseValueColors(array_get($source, 'grid_value_colors'));
+        $this->source = $source;
     }
 
     /**
@@ -233,6 +244,62 @@ class GridCellStyle
         }
 
         return static::parseValueColors(array_get(static::resolveSource($custom_column, $view_preset_key), 'grid_value_colors'));
+    }
+
+    /**
+     * The resolved settings in the shape the browser's own renderer reads.
+     *
+     * A kanban card is drawn in javascript from a json payload, so it can
+     * never call wrap(). It calls the sample renderer of cellstyle_preset.js
+     * instead - the same one the preset dropdown and the column setting
+     * preview already use - and that one takes exactly these `grid_*` keys.
+     * One renderer for every screen is what stops a card and a list cell from
+     * drifting apart the way the board's own chip vocabulary did.
+     *
+     * The palette colors are written out as if somebody had typed them. The
+     * browser would otherwise need each value's position in the option list
+     * to reproduce them, which means shipping the option list twice.
+     *
+     * @return array<string, mixed>
+     */
+    public function toOptions(): array
+    {
+        $options = [];
+        foreach (static::STYLE_KEYS as $key) {
+            $value = array_get($this->source, $key);
+            if (!is_nullorempty($value)) {
+                $options[$key] = $value;
+            }
+        }
+
+        // resolveSource() may hand over a source with no style named at all -
+        // a column that only set a color. The renderer needs the answer this
+        // object settled on, not the blank.
+        $options['grid_style'] = $this->style;
+
+        $rows = $this->value_colors;
+        foreach ($this->autoColors() as $key => $color) {
+            if (!isset($rows[$key])) {
+                $rows[$key] = ['color' => $color];
+            }
+        }
+
+        unset($options['grid_value_colors']);
+        $lines = [];
+        foreach ($rows as $key => $row) {
+            // Written back by position, empty slots included: a line that only
+            // names a background would otherwise come back as a text color.
+            $parts = [$key];
+            foreach (['color', 'background', 'border'] as $name) {
+                $parts[] = array_get($row, $name, '');
+            }
+            $lines[] = rtrim(implode(',', $parts), ',');
+        }
+        if (!empty($lines)) {
+            $options['grid_value_colors'] = implode("\n", $lines);
+        }
+
+        return $options;
     }
 
     /**

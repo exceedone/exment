@@ -403,10 +403,24 @@ var Exment;
             // navigate - see the note further down. One timer for the whole
             // table: the next click on any row cancels whatever is pending.
             let rowClickTimer = null;
+            // Was an inline editor open when the mouse went down? While one
+            // is, the grid behaves like a form: a click on a row means "I am
+            // done with this cell", not "open this row". The answer is
+            // latched on mousedown because that is the last moment the editor
+            // is still marked - losing focus closes it about 80ms later, so a
+            // click held longer than that would find nothing left to test.
+            let inlineEditWasOpen = false;
             $('table').find('[data-id],.rowclick').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev) {
                 if (rowClickTimer) {
                     clearTimeout(rowClickTimer);
                     rowClickTimer = null;
+                }
+                // The click that puts the editor away is spent doing exactly
+                // that. The editor commits itself on blur, and navigating now
+                // would leave the page while that save is still in flight.
+                if (inlineEditWasOpen || $('td.exm-editing,td.exm-saving').length > 0) {
+                    inlineEditWasOpen = false;
+                    return;
                 }
                 // if e.target closest"a" is length > 0, return
                 if ($(ev.target).closest('a,.rowclick').length > 0) {
@@ -477,6 +491,8 @@ var Exment;
                     return;
                 }
                 openRow();
+            }).on('mousedown', function () {
+                inlineEditWasOpen = $('td.exm-editing,td.exm-saving').length > 0;
             }).addClass('tableHoverLinkEvent');
 
             $('.janCodeRow').on('click', function (ev) {
