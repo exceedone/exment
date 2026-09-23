@@ -267,6 +267,34 @@ class ApiDataController extends AdminControllerTableBase
     }
 
     /**
+     * The cell style preset a view picked for one column, if any.
+     *
+     * @param mixed $view_suuid
+     * @param CustomColumn $custom_column
+     * @return mixed
+     */
+    protected static function findViewPreset($view_suuid, $custom_column)
+    {
+        if (!is_string($view_suuid) || is_nullorempty($view_suuid)) {
+            return null;
+        }
+
+        $custom_view = CustomView::findBySuuid($view_suuid);
+        if (!isset($custom_view)) {
+            return null;
+        }
+
+        foreach ($custom_view->custom_view_columns_cache as $custom_view_column) {
+            if ($custom_view_column->view_column_target_id == $custom_column->id
+                && $custom_view_column->view_column_type == ConditionType::COLUMN) {
+                return $custom_view_column->getOption('grid_preset');
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Render one cell of one record the way the data grid would render it.
      *
      * Used by the inline editor: after PUT succeeds the client does not
@@ -311,8 +339,14 @@ class ApiDataController extends AdminControllerTableBase
         // decisions read the same setting the grid did. Without this the
         // badge would silently drop off for any column with grid_column set
         // to false.
+        //
+        // The view travels with the request because a preset chosen on the
+        // view beats the column's own appearance: without it an edited cell
+        // would come back wearing the column style while every other row
+        // kept the view style, until the next reload.
         $item->options([
             'grid_column' => true,
+            'grid_preset' => static::findViewPreset($request->get('view'), $custom_column),
         ]);
 
         $html = (string)$item->setCustomValue($custom_value)->html();

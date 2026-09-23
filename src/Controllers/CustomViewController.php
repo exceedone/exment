@@ -22,11 +22,19 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Exceedone\Exment\DataItems\Grid as DataGrid;
 
 class CustomViewController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
+
+    /**
+     * How many posted rows the preview had to leave out.
+     *
+     * @var int
+     */
+    protected $preview_skipped = 0;
 
     public function __construct(?CustomTable $custom_table, Request $request)
     {
@@ -113,6 +121,7 @@ class CustomViewController extends AdminControllerTableBase
             ViewKindType::DEFAULT,
             ViewKindType::ALLDATA,
             ViewKindType::KANBAN,
+            ViewKindType::GANTT,
         ])) {
             $content = new Content();
             $content->withWarning(exmtrans('common.preview'), exmtrans('custom_view.message.preview_not_supported'));
@@ -132,6 +141,12 @@ class CustomViewController extends AdminControllerTableBase
         $content->row($grid);
 
         admin_info(exmtrans('common.preview'), exmtrans('common.message.preview'));
+
+        if ($this->preview_skipped > 0) {
+            admin_warning(exmtrans('common.preview'), exmtrans('custom_view.message.preview_skipped', [
+                'count' => $this->preview_skipped,
+            ]));
+        }
 
         return $content;
     }
@@ -230,6 +245,11 @@ class CustomViewController extends AdminControllerTableBase
                     return $key != Form::REMOVE_FLAG_NAME;
                 }, ARRAY_FILTER_USE_KEY));
 
+                if (!$this->isPreviewReady($item)) {
+                    $this->preview_skipped++;
+                    continue;
+                }
+
                 $items->push($item);
             }
 
@@ -243,6 +263,47 @@ class CustomViewController extends AdminControllerTableBase
 
             $custom_view->setRelation($name, $items);
         }
+    }
+
+    /**
+     * Whether this posted row is finished enough to be drawn.
+     *
+     * The edit screen validates its rows when it saves; the preview is
+     * handed them exactly as they stand on screen, the half-filled ones
+     * included. A row with no column chosen - or, for a filter, no
+     * comparison - reaches the renderer looking like a real one and takes
+     * the whole page down with it, so it is left out and counted instead.
+     *
+     * @param CustomViewColumn|CustomViewFilter|CustomViewSort $item
+     * @return bool
+     */
+    protected function isPreviewReady($item): bool
+    {
+        if (is_nullorempty($item->view_column_target)) {
+            return false;
+        }
+
+        // the column, or the table it belongs to, may have been deleted
+        // while this screen was open
+        if ($item->view_column_type == Enums\ConditionType::COLUMN) {
+            if (!isset($item->custom_column)) {
+                return false;
+            }
+        } elseif (!isset($item->custom_table_cache)) {
+            return false;
+        }
+
+        if (!isset($item->column_item)) {
+            return false;
+        }
+
+        // which comparisons a filter may use depends on its column, so
+        // picking a different column empties the one already chosen
+        if ($item instanceof CustomViewFilter) {
+            return !is_null(ViewFilterBase::make($item->view_filter_condition, $item->column_item));
+        }
+
+        return true;
     }
 
     /**
@@ -459,6 +520,10 @@ class CustomViewController extends AdminControllerTableBase
         $classname = ViewKindType::getGridItemClassName($view_kind_type);
         $classname::setViewForm($view_kind_type, $form, $this->custom_table, [
             'plugin' => $plugin,
+            // the view whose values this form will show: the one being edited,
+            // or the one a copy is taken from. A grid uses it to decide which
+            // parts of the form to open on arrival.
+            'custom_view' => $model ?? $copy_custom_view,
         ]);
 
         $custom_table = $this->custom_table;
@@ -470,14 +535,18 @@ class CustomViewController extends AdminControllerTableBase
                 'kanban_title_column_id', 'kanban_assignee_column_id', 'kanban_limit_column_id', 'kanban_age_column_id',
                 'kanban_ai_column_id', 'kanban_source', 'kanban_wips', 'kanban_done_keys',
                 'kanban_wip_column_id', 'kanban_limit_warn', 'kanban_age_steps',
-                'kanban_kpi', 'kanban_quickadd', 'kanban_bulk', 'kanban_drawer',
+                'kanban_kpi', 'kanban_quickadd', 'kanban_bulk', 'kanban_editform', 'kanban_drawer',
                 'kanban_cover_column_id', 'kanban_cover_fit', 'kanban_labels_column_id',
                 'kanban_labels_style', 'kanban_badge_column_id',
                 'kanban_sum_column_id', 'kanban_col_age', 'kanban_history',
                 'kanban_progress_column_id', 'kanban_progress_max',
                 'kanban_hide_keys', 'kanban_col_count',
                 'kanban_blocked_keys', 'kanban_expedite_keys',
-                'kanban_wip_enforce', 'kanban_policies']);
+                'kanban_wip_enforce', 'kanban_policies',
+                'kanban_filter_column_ids', 'kanban_mine_column_id',
+                'gantt_start_column_id', 'gantt_end_column_id', 'gantt_color_column_id',
+                'gantt_progress_column_id', 'gantt_group_column_id', 'gantt_parent_column_id',
+                'gantt_assignee_column_id', 'gantt_max_count']);
         });
 
         // check filters and sorts count before save
@@ -553,6 +622,7 @@ class CustomViewController extends AdminControllerTableBase
                 Enums\ViewKindType::DEFAULT,
                 Enums\ViewKindType::ALLDATA,
                 Enums\ViewKindType::KANBAN,
+                Enums\ViewKindType::GANTT,
             ])) {
                 $tools->append(view('exment::tools.button', [
                     'href' => 'javascript:void(0);',

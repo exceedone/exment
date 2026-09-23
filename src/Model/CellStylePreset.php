@@ -32,9 +32,21 @@ class CellStylePreset extends ModelBase
     use Traits\ClearCacheTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonOptionTrait;
+    use Traits\TemplateTrait;
 
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json', 'column_types' => 'json'];
+
+    /**
+     * A column stores the preset by its suuid, so the suuid is what has to
+     * survive a template: it travels as it is rather than being regenerated,
+     * and a preset already present under that key is left alone.
+     */
+    // @phpstan-ignore-next-line
+    public static $templateItems = [
+        'excepts' => ['id'],
+        'uniqueKeys' => ['suuid'],
+    ];
 
     /**
      * Key prefix of the seeded catalog rows.
@@ -130,6 +142,14 @@ class CellStylePreset extends ModelBase
         'code_mono' => [
             'column_types' => [ColumnType::TEXT, ColumnType::AUTO_NUMBER, ColumnType::URL, ColumnType::EMAIL],
             'options' => ['grid_style' => GridCellStyle::STYLE_MONO],
+        ],
+        // The value on its own, nothing added. A data list gets that for
+        // free, so this exists for the kanban card: a card with no style
+        // prints the column name in front of every value, and a column whose
+        // name the card title already says does not need it repeated.
+        'text_plain' => [
+            'column_types' => [],
+            'options' => ['grid_style' => GridCellStyle::STYLE_TEXT],
         ],
         'alert_text' => [
             'column_types' => [],
@@ -269,6 +289,44 @@ class CellStylePreset extends ModelBase
     }
 
     /**
+     * The preset that produces the look these settings describe, if one does.
+     *
+     * A column styled before presets existed carries its settings raw, and
+     * the setting screen - which now offers presets only - showed an empty
+     * picker next to a preview full of colored tags. Naming the preset that
+     * means the same thing makes the screen say what the column is actually
+     * doing, and picking it changes nothing but where the answer is stored.
+     *
+     * Per-value colors are not compared: they stay on the column and ride
+     * along with whichever preset provides the shape.
+     *
+     * @param mixed $options
+     * @return string|null
+     */
+    public static function findMatchingKey($options): ?string
+    {
+        $wanted = static::filterOptions($options);
+        unset($wanted['grid_value_colors']);
+
+        if (empty($wanted) || !array_key_exists('grid_style', $wanted)) {
+            return null;
+        }
+
+        foreach (static::getDefinitions() as $definition) {
+            $candidate = static::filterOptions($definition['options']);
+            unset($candidate['grid_value_colors']);
+
+            // Both sides come out of filterOptions, so a key is present on
+            // exactly one condition: it was filled in and valid.
+            if ($candidate == $wanted) {
+                return $definition['key'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Choices for a preset select on a setting screen.
      *
      * Keyed by preset key, so the select stores exactly what the renderer
@@ -297,10 +355,12 @@ class CellStylePreset extends ModelBase
      */
     public static function seedDefaults(): void
     {
-        // Asked directly instead of through available(): that answer is
-        // cached per process, and the migration right before this one may
-        // have created the table in this same process.
-        if (!hasTable('cell_style_presets')) {
+        // Schema is asked directly rather than through available() or the
+        // hasTable() helper: both answer from a per process cache that was
+        // filled before the migration creating this table ran, so on a fresh
+        // install they still say the table is missing and the whole catalog
+        // would be skipped.
+        if (!\Schema::hasTable('cell_style_presets')) {
             return;
         }
 

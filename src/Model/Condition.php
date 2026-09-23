@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
+use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\TemplateImportResult;
 use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 
@@ -26,9 +28,98 @@ class Condition extends ModelBase
 {
     use Traits\ColumnOptionQueryTrait;
     use Traits\ConditionTypeTrait;
+    use Traits\TemplateTrait;
+    use Traits\TemplateColumnRefTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['condition_target'];
+
+    /**
+     * A condition is always a child: of a workflow branch, of a form display
+     * priority or of a data operation. The owner is identified by morph_type,
+     * which is a fixed string from the morph map and therefore travels as it
+     * is, while morph_id is filled in from the parent on import.
+     *
+     * condition_target must never be carried. It is an accessor whose setter
+     * rewrites condition_type and target_column_id from a query key built for
+     * the source system, which would undo the portable reference below.
+     */
+    // @phpstan-ignore-next-line
+    public static $templateItems = [
+        'excepts' => ['id', 'condition_target'],
+        'uniqueKeys' => [
+            'morph_id', 'morph_type', 'condition_type', 'target_column_id', 'condition_key', 'condition_value'
+        ],
+        'parent' => 'morph_id',
+    ];
+
+
+    /**
+     * Make the condition portable.
+     *
+     * Only a COLUMN condition stores a custom column id; every other type
+     * stores a name (a system column, a ConditionTypeDetail key) that means
+     * the same thing on any installation.
+     *
+     * @param array $json
+     * @return void
+     */
+    public static function exportReplaceJson(&$json)
+    {
+        // The accessor hands back a decoded array. The stored json string is
+        // kept instead so the value can take part in the import unique key,
+        // which has to compare scalars.
+        if (array_key_exists('condition_value', $json) && is_array($json['condition_value'])) {
+            $json['condition_value'] = json_encode(array_values($json['condition_value']));
+        }
+
+        if (strval(array_get($json, 'condition_type')) !== strval(ConditionType::COLUMN)) {
+            return;
+        }
+
+        $ref = static::templateColumnIdToRef(array_get($json, 'target_column_id'));
+        if (is_null($ref)) {
+            return;
+        }
+
+        $json['target_column_ref'] = $ref;
+        unset($json['target_column_id']);
+    }
+
+
+    /**
+     * Resolve the portable reference back to a column id on this installation.
+     *
+     * A condition whose column is missing here is dropped rather than imported
+     * with an empty target: a branch that silently matches nothing changes
+     * what the workflow or the form does without saying so.
+     *
+     * @param array $json
+     * @param array $options
+     * @return int|void
+     */
+    public static function importReplaceJson(&$json, $options = [])
+    {
+        if (array_key_exists('condition_value', $json) && is_array($json['condition_value'])) {
+            $json['condition_value'] = json_encode(array_values($json['condition_value']));
+        }
+
+        if (!array_key_exists('target_column_ref', $json)) {
+            return;
+        }
+
+        $ref = $json['target_column_ref'];
+        unset($json['target_column_ref']);
+
+        $id = static::templateColumnRefToId($ref);
+        if (is_null($id)) {
+            \Log::warning('Exment template import: condition skipped, column "' . strval($ref) . '" does not exist on this system.');
+            return TemplateImportResult::CONITNUE;
+        }
+
+        $json['target_column_id'] = $id;
+    }
+
 
     // @phpstan-ignore-next-line
     protected $condition_type_key = 'condition_type';

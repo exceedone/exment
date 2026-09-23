@@ -104,6 +104,10 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post('system/call_update', 'SystemController@callUpdate');
 
+            // The preset library: what the pickers on the column and view
+            // screens offer, managed as one list.
+            $this->setResouce($router, 'cell_style_preset', 'CellStylePresetSettingController');
+
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
@@ -226,6 +230,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("data/{tableKey}/{id}/shareClick", 'CustomValueController@shareClick');
             $router->get("data/{tableKey}/{id}/workflowHistoryModal", 'CustomValueController@workflowHistoryModal');
             $router->get("data/{tableKey}/kanbanCards", 'CustomValueController@kanbanCards');
+            $router->post("data/{tableKey}/kanbanSaveView", 'CustomValueController@kanbanSaveView');
             $router->get("data/{tableKey}/{id}/kanbanHistory", 'CustomValueController@kanbanHistory');
             $router->post("data/{tableKey}/{id}/sendMail", 'CustomValueController@sendMail');
             $router->post("data/{tableKey}/{id}/sendTargetUsers", 'CustomValueController@sendTargetUsers');
@@ -311,6 +316,12 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('webapi/menu/menutargetview', 'MenuController@menutargetview');
 
             $router->get('webapi/mention/users', 'MentionController@users');
+
+            $router->get("webapi/{tableKey}/cellstylepreset", 'CellStylePresetController@index');
+            $router->get("webapi/{tableKey}/cellstylepreset/modal", 'CellStylePresetController@modal');
+            $router->post("webapi/{tableKey}/cellstylepreset", 'CellStylePresetController@store');
+            $router->put("webapi/{tableKey}/cellstylepreset/{suuid}", 'CellStylePresetController@update');
+            $router->delete("webapi/{tableKey}/cellstylepreset/{suuid}", 'CellStylePresetController@destroy');
 
             $router->post("webapi/{tableKey}/quickadd", 'ApiTableController@quickAdd');
             $router->get("webapi/{tableKey}/filter-condition", 'ApiTableController@getFilterCondition');

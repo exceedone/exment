@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\DataItems\Grid;
 
+use ExmentAdminCore\Admin\Admin;
 use ExmentAdminCore\Admin\Form;
 use ExmentAdminCore\Admin\Grid;
 use Exceedone\Exment\Model\System;
@@ -11,7 +12,9 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CellStylePreset;
 use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
@@ -199,6 +202,83 @@ abstract class GridBase
     }
 
 
+    /**
+     * Open a part of the form the user has to ask for by name. Every field
+     * added between this call and closeFoldSection() sits inside the block.
+     *
+     * The fields keep their name and stay in the request: a block is hidden
+     * with css only. Hiding with the data-filter attribute would disable them
+     * instead, and a disabled field is not posted - saving the form would wipe
+     * everything the user could not see.
+     *
+     * @param mixed $form
+     * @param string $title text on the line that opens the block
+     * @param bool $opened open it from the start
+     * @return void
+     */
+    protected static function openFoldSection(&$form, string $title, bool $opened = false)
+    {
+        static::setFoldSectionScript();
+
+        $caret = $opened ? 'fa-caret-down' : 'fa-caret-right';
+        $style = $opened ? '' : ' style="display:none;"';
+
+        $form->html(
+            '<div class="form-group box-header with-border exment-fold">'
+            . '<div class="row"><div class="col-sm-12" style="margin:0 70px;">'
+            . '<a href="javascript:void(0);" class="exment-fold-toggle" style="font-size:15px;font-weight:bold;text-decoration:none;">'
+            . '<i class="fa ' . $caret . ' exment-fold-caret" style="display:inline-block;width:14px;"></i>&nbsp;'
+            . esc_html($title)
+            . '</a></div></div></div>'
+            . '<div class="exment-fold-body"' . $style . '>'
+        )->plain();
+    }
+
+    /**
+     * Close the block opened by openFoldSection().
+     *
+     * @param mixed $form
+     * @return void
+     */
+    protected static function closeFoldSection(&$form)
+    {
+        $form->html('</div>')->plain();
+    }
+
+    /**
+     * Client side of openFoldSection(). Bound to the document once, so it
+     * survives a pjax screen change and is not bound twice by a second block.
+     *
+     * @return void
+     */
+    protected static function setFoldSectionScript()
+    {
+        Admin::script(<<<'SCRIPT'
+if (!window.exmentFoldBound) {
+    window.exmentFoldBound = true;
+    $(document).on('click', '.exment-fold-toggle', function (e) {
+        e.preventDefault();
+        var $body = $(this).closest('.exment-fold').next('.exment-fold-body');
+        var opened = $body.is(':visible');
+        $body.toggle(!opened);
+        $(this).find('.exment-fold-caret')
+            .toggleClass('fa-caret-right', opened)
+            .toggleClass('fa-caret-down', !opened);
+    });
+    // A required field inside a closed block stops the submit with nothing on
+    // screen to explain it, so open the block that holds it. "invalid" does not
+    // bubble, which is why this listens in the capture phase.
+    document.addEventListener('invalid', function (e) {
+        var body = (e.target && e.target.closest) ? e.target.closest('.exment-fold-body') : null;
+        if (body && $(body).is(':hidden')) {
+            $(body).show().prev('.exment-fold').find('.exment-fold-caret')
+                .removeClass('fa-caret-right').addClass('fa-caret-down');
+        }
+    }, true);
+}
+SCRIPT);
+    }
+
     // @phpstan-ignore-next-line
     protected static function setViewInfoboxFields(&$form)
     {
@@ -248,17 +328,67 @@ abstract class GridBase
     }
 
     /**
+     * Add to a column list whatever the rows of this view already point at
+     * and the list can no longer offer.
+     *
+     * Each of these lists is narrowed - a filter and a sort take indexed
+     * columns only, a sort leaves out the multi-value ones - so what may be
+     * offered can change after a row was written. Turning off the search
+     * setting of one column is enough. The row itself goes on working, the
+     * grid still filters and sorts by it, but the form cannot show it any
+     * more; and since the target is required, one such row stops the whole
+     * setting screen from saving, with nothing on screen to say which row or
+     * why.
+     *
+     * Kept rather than quietly dropped: the row still does its job, the
+     * column may be given its index back tomorrow, and throwing away a filter
+     * the user never asked to remove is the worse mistake.
+     *
+     * @param array<string, string> $targetOptions list the form can offer
+     * @param CustomView|null $custom_view view being edited or copied from
+     * @param string $relation_name custom_view_columns, custom_view_filters...
+     * @return array<string, string>
+     */
+    protected static function appendStoredTargetOptions(array $targetOptions, $custom_view, string $relation_name): array
+    {
+        if (!isset($custom_view) || !isset($custom_view->id)) {
+            return $targetOptions;
+        }
+
+        foreach ($custom_view->{$relation_name} as $row) {
+            $target = strval($row->view_column_target);
+            if ($target === '' || array_key_exists($target, $targetOptions)) {
+                continue;
+            }
+
+            // A row whose column is gone cannot name itself, so the stored
+            // key is all there is to show.
+            $column_item = ($row->view_column_type == Enums\ConditionType::COLUMN && !isset($row->custom_column))
+                ? null : $row->column_item;
+            $label = isset($column_item) ? $column_item->label() : null;
+
+            $targetOptions[$target] = sprintf(
+                exmtrans('custom_view.column_target_unavailable'),
+                !is_nullorempty($label) ? $label : $target
+            );
+        }
+
+        return $targetOptions;
+    }
+
+    /**
      * Set filter fileds form
      *
      * @param Form $form
      * @param CustomTable $custom_table
      * @param boolean $is_aggregate
+     * @param CustomView|null $custom_view
      * @return void
      */
-    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
+    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false, $custom_view = null)
     {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
-        $targetOptions = $custom_table->getColumnsSelectOptions(
+        $targetOptions = static::appendStoredTargetOptions($custom_table->getColumnsSelectOptions(
             [
                 'append_table' => true,
                 'index_enabled_only' => true,
@@ -270,7 +400,7 @@ abstract class GridBase
                 'ignore_many_to_many' => true,
                 'ignore_multiple_refer' => true,
             ]
-        );
+        ), $custom_view, 'custom_view_filters');
         if (boolval(config('exment.form_column_option_group', false))) {
             $targetGroups = static::convertGroups($targetOptions, $custom_table);
         }
@@ -306,10 +436,12 @@ abstract class GridBase
      *
      * @param Form $form
      * @param CustomTable $custom_table
+     * @param array<string, mixed> $column_options
+     * @param CustomView|null $custom_view
      * @return void
      */
     // @phpstan-ignore-next-line
-    public static function setColumnFields(&$form, $custom_table, array $column_options = [])
+    public static function setColumnFields(&$form, $custom_table, array $column_options = [], $custom_view = null)
     {
         // columns setting
         $column_options = array_merge([
@@ -318,8 +450,12 @@ abstract class GridBase
             'include_workflow' => true,
         ], $column_options);
 
-        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table, $column_options) {
-            $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
+        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table, $column_options, $custom_view) {
+            $targetOptions = static::appendStoredTargetOptions(
+                $custom_table->getColumnsSelectOptions($column_options),
+                $custom_view,
+                'custom_view_columns'
+            );
 
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions);
@@ -330,10 +466,72 @@ abstract class GridBase
             }
 
             $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+
+            // Appearance picked here beats whatever the column setting says:
+            // a view exists to show the same table another way, and the
+            // person building it cannot be expected to go and edit columns
+            // that other views are using too.
+            $form->select('grid_preset', exmtrans("custom_view.grid_preset"))
+                ->options(CellStylePreset::getPickerOptions())
+                ->attribute([
+                    'data-cellstyle-preset' => $custom_table->table_name,
+                    'data-cellstyle-preset-label' => exmtrans('cell_style_preset.edit_preset'),
+                    'data-cellstyle-preset-placeholder' => exmtrans('cell_style_preset.select_placeholder'),
+                    'data-cellstyle-types' => json_encode(static::getColumnTypeMap($targetOptions)),
+                ])
+                ->help(exmtrans("custom_view.help.grid_preset"));
+
             $form->hidden('order')->default(0);
-        })->required()->setTableColumnWidth(7, 3, 2)
+        })->required()->setTableColumnWidth(5, 2, 3, 2)
         ->rowUpDown('order', 10)
         ->descriptionHtml(exmtrans("custom_view.description_custom_view_columns"));
+    }
+
+
+    /**
+     * The column type behind each entry of a column target list.
+     *
+     * The preset list is narrowed to the presets that fit the column - an
+     * avatar is not something a date can be drawn as - and on a view form
+     * the column is whatever the row points at. Sent along as a map so the
+     * browser can answer that again every time a row is pointed elsewhere,
+     * without asking the server.
+     *
+     * A target with no column of its own is left out and the browser offers it
+     * the whole library rather than nothing - except the system columns that
+     * do say what they hold. A created date is a date whichever table it sits
+     * on, and offering it an avatar is offering something that cannot be drawn.
+     * The workflow status stays out: it is a status, but not of a type any
+     * preset is written against, and matching on it would leave the row with
+     * no choice at all.
+     *
+     * @param array<string, mixed> $targetOptions
+     * @return array<string, string>
+     */
+    protected static function getColumnTypeMap(array $targetOptions): array
+    {
+        $types = [];
+
+        foreach ($targetOptions as $key => $label) {
+            // "822?table_id=14" for a column - of this table or of a parent
+            // one - and a name for everything else.
+            $column_key = explode('?', strval($key))[0];
+
+            if (!is_numeric($column_key)) {
+                $system_type = array_get(SystemColumn::getOption(['name' => $column_key]), 'type');
+                if (in_array($system_type, [ColumnType::DATETIME, ColumnType::USER], true)) {
+                    $types[strval($key)] = strval($system_type);
+                }
+                continue;
+            }
+
+            $custom_column = CustomColumn::getEloquent($column_key);
+            if (isset($custom_column)) {
+                $types[strval($key)] = strval($custom_column->column_type);
+            }
+        }
+
+        return $types;
     }
 
 
@@ -343,21 +541,22 @@ abstract class GridBase
      * @param Form $form
      * @param CustomTable $custom_table
      * @param boolean $include_parent
+     * @param CustomView|null $custom_view
      * @return void
      */
-    public static function setSortFields(&$form, $custom_table, $include_parent = false)
+    public static function setSortFields(&$form, $custom_table, $include_parent = false, $custom_view = null)
     {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
 
         // sort setting
-        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table, $include_parent) {
-            $targetOptions = $custom_table->getColumnsSelectOptions([
+        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table, $include_parent, $custom_view) {
+            $targetOptions = static::appendStoredTargetOptions($custom_table->getColumnsSelectOptions([
                 'append_table' => true,
                 'index_enabled_only' => true,
                 'include_parent' => $include_parent,
                 'ignore_multiple' => true,
                 'ignore_many_to_many' => true,
-            ]);
+            ]), $custom_view, 'custom_view_sorts');
 
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions);
@@ -534,5 +733,75 @@ abstract class GridBase
 
 
     // @phpstan-ignore-next-line
+    /**
+     * When set, this grid is embedded inside another screen (the project
+     * portal) and must show only the records of one parent record. The
+     * host screen also brings its own toolbar, so the grid drops its own.
+     */
+    protected $embed_parent_type = null;
+    protected $embed_parent_id = null;
+
+    // @phpstan-ignore-next-line
+    public function setEmbedRelation($parent_type, $parent_id)
+    {
+        $this->embed_parent_type = $parent_type;
+        $this->embed_parent_id = $parent_id;
+
+        return $this;
+    }
+
+    public function isEmbed(): bool
+    {
+        return isset($this->embed_parent_type);
+    }
+
+    /**
+     * Name of a javascript function the host screen provides for editing one
+     * record. A board drawn on a screen that has an editor of its own - the
+     * project portal - calls it instead of opening the admin's own form, so
+     * the reader stays in the screen they were already in.
+     *
+     * @var string|null
+     */
+    protected $editor_hook = null;
+
+    /**
+     * @param string $function_name global javascript function, called with
+     *                              (table_name, id)
+     * @return $this
+     */
+    public function setEditorHook(string $function_name)
+    {
+        $this->editor_hook = $function_name;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEditorHook(): string
+    {
+        return strval($this->editor_hook);
+    }
+
+    /**
+     * Narrow a query to the parent record this grid is embedded under.
+     * parent_type / parent_id are the 1:N relation columns every child
+     * value table has, so this works for any related table.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @return mixed
+     */
+    protected function applyEmbedFilter($query)
+    {
+        if ($this->isEmbed()) {
+            $query->where('parent_type', $this->embed_parent_type)
+                ->where('parent_id', $this->embed_parent_id);
+        }
+
+        return $query;
+    }
+
     abstract public function grid();
 }

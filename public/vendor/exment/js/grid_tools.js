@@ -2159,6 +2159,9 @@
 
     var updateUrl = cfg.updateUrl + '/' + encodeURIComponent(id);
     var cellUrl = cfg.cellUrl + '/' + encodeURIComponent(id) + '/' + encodeURIComponent(column);
+    // The cell's appearance can come from the view rather than the column,
+    // so the server has to be told which view this grid is showing.
+    if (cfg.cellView) cellUrl += '?view=' + encodeURIComponent(cfg.cellView);
 
     var headers = {
       'Content-Type': 'application/json',

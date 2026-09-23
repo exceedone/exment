@@ -44,6 +44,7 @@ use Carbon\Carbon;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Elibyy\TCPDF\Facades\TCPDF;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomColumn;
 
@@ -62,6 +63,11 @@ class CustomValueController extends AdminControllerTableBase
     public const DATANAME_CUSTOM_VIEW_ID = 'data-custom_view_id';
     public const DATANAME_CUSTOM_VIEW_SUUID = 'data-custom_view_suuid';
     public const DATANAME_CUSTOM_VIEW_NAME = 'data-view_view_name';
+    /**
+     * Query flag that asks for the edit form on a bare page, for a screen that
+     * shows it in a frame of its own.
+     */
+    public const FORM_FRAME_KEY = 'formframe';
 
     /**
      * CustomValueController constructor.
@@ -92,7 +98,28 @@ class CustomValueController extends AdminControllerTableBase
         if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
             return $response;
         }
-        return $this->updateTrait($tableKey, $id);
+        $response = $this->updateTrait($tableKey, $id);
+
+        if ($request->has(static::FORM_FRAME_KEY)) {
+            // Sent by the window the form is in. It is staying on screen
+            // either way, so all it is told is whether the record went in -
+            // and if it did not, what to write beside which field. Redrawing
+            // the form here would take back everything typed since.
+            if ($request->ajax() && $response instanceof RedirectResponse) {
+                return $this->frameSaveResult($id);
+            }
+            // Opened in a frame of its own. Following the redirect would load
+            // a whole screen inside a window the size of a dialog, and the
+            // screen it would load is the one already open behind it - so the
+            // frame reports the save instead, and its opener does the rest.
+            // A failed validation redirects back to the form itself, which is
+            // exactly what should happen: the frame redraws it, errors and all.
+            if ($response instanceof RedirectResponse && $this->isFrameSaved($response, $id)) {
+                return $this->frameSignal('saved', $id);
+            }
+        }
+
+        return $response;
     }
 
     /**
@@ -446,10 +473,32 @@ class CustomValueController extends AdminControllerTableBase
         // if user doesn't have edit permission, redirect to show
         $redirect = $this->redirectShow($id);
         if (isset($redirect)) {
+            // Followed inside a frame that redirect would draw a whole record
+            // screen, sidebar and all, at the size of a dialog. The screen
+            // that opened the frame is told instead, and shows this reader
+            // what they were always going to get: the record, not the form.
+            if ($request->has(static::FORM_FRAME_KEY)) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'noedit' => true,
+                        'id' => strval($id),
+                        'table' => $this->custom_table->table_name,
+                    ]);
+                }
+                return $this->frameSignal('noedit', $id);
+            }
             return $redirect;
         }
 
         $custom_value = $this->custom_table->getValueModel($id);
+
+        // Asked for by a screen that draws its own chrome and wants the form
+        // inside a frame - the kanban board's edit popup. Same permissions,
+        // same form, same save: only the header, the sidebar and the footer
+        // of the admin around it are left out.
+        if ($request->has(static::FORM_FRAME_KEY)) {
+            return $this->editFrame($request, $id, $custom_value);
+        }
 
         $this->AdminContent($content);
 
@@ -472,6 +521,197 @@ class CustomValueController extends AdminControllerTableBase
             'custom_value' => $custom_value
         ]);
         return $content;
+    }
+
+    /**
+     * The edit form, alone: no header, no sidebar, no menu.
+     *
+     * Asked for over ajax - which is how the kanban board asks - the answer
+     * is the form and nothing else, because the screen it is going into is a
+     * page of this same admin and already holds every stylesheet and script
+     * the form needs. Sending all of them again, into a frame of its own,
+     * was more than a second of the two it took to open a card.
+     *
+     * @param Request $request
+     * @param mixed $id
+     * @param mixed $custom_value
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+     */
+    protected function editFrame(Request $request, $id, $custom_value)
+    {
+        Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
+            'page_type' => PluginPageType::EDIT,
+            'custom_value' => $custom_value
+        ]);
+
+        $form = $this->frameForm($id);
+        $ajax = $request->ajax();
+        $body = view('exment::widgets.formframe', array_filter([
+            'content' => $form->render(),
+            // a page of its own may style the page; a form going into one
+            // that is already open may not
+            'standalone' => !$ajax,
+        ]))->render();
+
+        Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
+            'page_type' => PluginPageType::EDIT,
+            'custom_value' => $custom_value
+        ]);
+
+        if ($ajax) {
+            return response()->json([
+                // the order the layout itself uses: what the fields look
+                // like, the fields, what they need beside them, what starts
+                // them up
+                'body' => Admin::style()->render()
+                    . $body
+                    . Admin::html()->render()
+                    . Admin::script()->render(),
+                'assets' => static::frameAssets(),
+                'title' => $custom_value->getLabel(),
+            ]);
+        }
+
+        // Opened as a page of its own - a saved link, or a screen that shows
+        // it in a frame. Meant to be framed, which is the reason to say by
+        // whom: an edit form of this site, framed by another site, is a form
+        // a reader can be made to save without seeing what they are saving.
+        return response(view('exment::widgets.partialindex', ['content' => $body])->render())
+            ->header('X-Frame-Options', 'SAMEORIGIN');
+    }
+
+    /**
+     * The edit form as a window wants it: saving to itself, with no way out
+     * of the window written into it.
+     *
+     * @param mixed $id
+     * @return \ExmentAdminCore\Admin\Form
+     */
+    protected function frameForm($id)
+    {
+        // Every after-save choice leaves for a screen a dialog cannot show -
+        // the list, a new record - and "continue editing" would leave the
+        // window sitting on a form the board has already been told was saved.
+        $form = $this->custom_form->form_item
+            ->id($id)
+            ->disableSavedRedirectCheck()
+            ->form()
+            ->edit($id);
+        // Pjax posts the form and then looks for a pjax container in the
+        // answer. There is none in an answer that only reports the save, so
+        // pjax reloaded the url it had posted to - the record screen, chrome
+        // and all, in a window the size of a dialog.
+        $form->disablePjax();
+        // Form::disablePjax() only sets the builder's flag; the attribute
+        // that the pjax handler actually matches on lives on the form itself
+        $form->removeAttribute('pjax-container');
+        // the save has to come back here, not to the screen behind the window
+        $form->setAction(admin_urls_query('data', $this->custom_table->table_name, $id, [
+            static::FORM_FRAME_KEY => 1,
+        ]));
+
+        return $form;
+    }
+
+    /**
+     * Stylesheets and scripts a field asked for while the form was drawn.
+     *
+     * A json answer skips the layout, so these buckets hold what the fields
+     * added and little else. The screen that receives them loads only what
+     * it does not already have.
+     *
+     * @return array<string, array<int, string>>
+     */
+    protected static function frameAssets(): array
+    {
+        $srcs = function ($html, $pattern) {
+            preg_match_all($pattern, $html, $matches);
+            return array_values(array_unique($matches[1] ?? []));
+        };
+
+        return [
+            'js' => $srcs(Admin::js()->render(), '/<script[^>]+src=["\']([^"\']+)/'),
+            'css' => $srcs(Admin::css()->render(), '/<link[^>]+href=["\']([^"\']+)/'),
+        ];
+    }
+
+    /**
+     * Did a save from a framed form go through?
+     *
+     * Read the other way round: a refused save sends the reader back to the
+     * form they were on, with the messages in the session. Anything still
+     * pointing at that form counts as refused, so a doubtful answer leaves
+     * the form on screen instead of closing it over work not yet written.
+     *
+     * @param RedirectResponse $response
+     * @param mixed $id
+     * @return bool
+     */
+    protected function isFrameSaved(RedirectResponse $response, $id): bool
+    {
+        if (session()->has('errors')) {
+            return false;
+        }
+
+        $target = $response->getTargetUrl();
+
+        return strpos($target, "/$id/edit") === false
+            && strpos($target, static::FORM_FRAME_KEY) === false;
+    }
+
+    /**
+     * What became of a save sent from a window, as json.
+     *
+     * admin-core answers a refused save with back()->withErrors(), so by now
+     * the messages are in the session, keyed the way the form names its
+     * fields. They are taken out of it: the window shows them itself, and
+     * left where they are they would surface on the next page opened.
+     *
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function frameSaveResult($id)
+    {
+        $errors = session()->get('errors');
+        $bag = $errors ? $errors->getBag('default') : null;
+
+        session()->forget(['toastr', 'errors', '_old_input']);
+
+        if ($bag && $bag->any()) {
+            $messages = [];
+            foreach ($bag->messages() as $key => $texts) {
+                $messages[$key] = implode(' ', (array)$texts);
+            }
+
+            return response()->json(['errors' => $messages], 422);
+        }
+
+        return response()->json([
+            'saved' => true,
+            'id' => strval($id),
+            'table' => $this->custom_table->table_name,
+        ]);
+    }
+
+    /**
+     * Tell the screen that opened the frame what became of the record.
+     *
+     * @param string $action 'saved', or 'noedit' for a record this user may read but not write
+     * @param mixed $id
+     * @return \Illuminate\Http\Response
+     */
+    protected function frameSignal(string $action, $id)
+    {
+        // the message belongs to the board, which says so itself. Left in the
+        // session it would surface on whatever page the user opened next.
+        session()->forget('toastr');
+
+        return response(view('exment::widgets.formframe-signal', [
+            'action' => $action,
+            'id' => $id,
+            'table' => $this->custom_table->table_name,
+            'fallback' => admin_url('data', [$this->custom_table->table_name, $id]),
+        ])->render())->header('X-Frame-Options', 'SAMEORIGIN');
     }
 
     /**
@@ -804,10 +1044,23 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
+        // an embedded board (project portal) shows one parent's records only,
+        // and its ajax calls have to stay inside that parent too
+        if (!is_nullorempty($request->get('embed_ptype')) && !is_nullorempty($request->get('embed_pid'))) {
+            $grid_item->setEmbedRelation($request->get('embed_ptype'), $request->get('embed_pid'));
+        }
+
         // the board asks for its figures again after it has written a record,
         // so the totals it shows describe the table as it is now
         if ($request->get('stats')) {
             return response()->json($grid_item->columnStats());
+        }
+
+        // one card read back after it was edited on the board, so the chip,
+        // the colour and the label on it come from the same place they came
+        // from when the board was drawn
+        if (!is_nullorempty($request->get('cards'))) {
+            return response()->json($grid_item->cardsOf(explode(',', strval($request->get('cards')))));
         }
 
         // the same endpoint answers both: a keyword searches the whole table,
@@ -823,6 +1076,51 @@ class CustomValueController extends AdminControllerTableBase
             $request->get('lane')
         ));
     }
+
+    /**
+     * Save what a kanban board is showing as a new view of the same table.
+     *
+     * The board filters in the browser, so this writes no filter conditions:
+     * it copies the view the board was drawn from and remembers the state on
+     * screen as the state the new view opens with.
+     */
+    // @phpstan-ignore-next-line
+    public function kanbanSaveView(Request $request, $tableKey)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::GRID)) instanceof Response) {
+            return $response;
+        }
+
+        $grid_item = $this->custom_view->grid_item;
+        if (!($grid_item instanceof KanbanGrid)) {
+            abort(404);
+        }
+
+        // a view belongs to the table's settings, not to its data: whoever may
+        // only read the records may not add one
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            abort(403);
+        }
+
+        $validator = \Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $view = $grid_item->saveAsView(
+            strval($request->get('name')),
+            (array)$request->get('state', [])
+        );
+
+        return response()->json([
+            'suuid' => strval($view->suuid),
+            'url' => $this->custom_table->getGridUrl(true, ['view' => $view->suuid]),
+            'name' => strval($view->view_view_name),
+        ]);
+    }
+
 
     /**
      * Workflow history of one record, as plain json.

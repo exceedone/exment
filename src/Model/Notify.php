@@ -49,13 +49,17 @@ class Notify extends ModelBase
     use Traits\DatabaseJsonTrait;
     use Traits\ColumnOptionQueryTrait;
     use Traits\TemplateTrait;
+    use Traits\TemplateColumnRefTrait;
     use Notifiable;
 
     protected $guarded = ['id'];
     protected $casts = ['trigger_settings' => 'json', 'action_settings' => 'json'];
 
     public static $templateItems = [
-        'excepts' => ['id', 'suuid', 'mail_template_id', 'custom_view_id', 'active_flg', 'notify_actions'],
+        // custom_table_id and workflow_id are legacy columns superseded by the
+        // polymorphic target_id (see PatchDataCommand::notifyTargetId). Keeping
+        // them would put a source-system id into the template for no benefit.
+        'excepts' => ['id', 'suuid', 'mail_template_id', 'custom_view_id', 'active_flg', 'notify_actions', 'custom_table_id', 'workflow_id'],
         'uniqueKeys' => ['notify_view_name'],
         'langs' => [
             'keys' => ['notify_view_name'],
@@ -932,6 +936,32 @@ class Notify extends ModelBase
                 $json['notify_actions'] = implode(',', $action_keys);
             }
         }
+
+        // Replace column ids inside action_settings with portable references
+        $json['action_settings'] = static::templateReplaceActionSettings(array_get($json, 'action_settings'), true);
+    }
+
+    /**
+     * Convert the column ids stored in every action_settings entry.
+     *
+     * @param mixed $action_settings
+     * @param bool $toRef true converts id to reference, false converts back
+     * @return mixed
+     */
+    protected static function templateReplaceActionSettings($action_settings, bool $toRef)
+    {
+        if (!is_array($action_settings)) {
+            return $action_settings;
+        }
+
+        foreach ($action_settings as &$action_setting) {
+            if (!is_array($action_setting) || !isset($action_setting['notify_action_target'])) {
+                continue;
+            }
+            $action_setting['notify_action_target'] = static::templateReplaceColumnRefList($action_setting['notify_action_target'], $toRef);
+        }
+
+        return $action_settings;
     }
 
     /**
@@ -1019,5 +1049,12 @@ class Notify extends ModelBase
                 $json['notify_actions'] = implode(',', $action_values);
             }
         }
+
+        // Resolve the portable column references written by exportReplaceJson
+        if (isset($json['action_settings'])) {
+            $json['action_settings'] = static::templateReplaceActionSettings($json['action_settings'], false);
+        }
+
+        return TemplateImportResult::SUCCESS;
     }
 }

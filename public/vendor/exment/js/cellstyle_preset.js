@@ -77,10 +77,6 @@ var Exment;
         }
 
         /**
-         * Delegated handlers. Safe to call again: each one replaces itself.
-         */
-
-        /**
          * Delegated handlers. Registered once for the life of the page.
          */
         static AddEventOnce() {
@@ -89,6 +85,22 @@ var Exment;
                     ev.preventDefault();
                     var $select = $(this).data('presetSelect');
                     CellStylePresetEvent.openEditor($(this), $select, $select ? String($select.val() || '') : '');
+                });
+
+            // The column type is picked on the same screen, and half the
+            // library does not apply to a given type. Bound to the document
+            // so the field of a form drawn later is covered too.
+            $(document).off('change.cellstyletype', '[name="column_type"]')
+                .on('change.cellstyletype', '[name="column_type"]', function () {
+                    CellStylePresetEvent.refreshPickerOptions($(this).closest('form'));
+                });
+
+            // The same question on a view form, where the column is whatever
+            // the row points at - so only that row's picker is concerned.
+            $(document).off('change.cellstyletarget', 'select[name$="[view_column_target]"]')
+                .on('change.cellstyletarget', 'select[name$="[view_column_target]"]', function () {
+                    var $row = $(this).closest('tr');
+                    CellStylePresetEvent.refreshPickerOptions($row.length ? $row : $(this).closest('form'));
                 });
 
             // select2 selects an entry on mouseup, so the pencil has to be
@@ -284,6 +296,70 @@ var Exment;
             if (res && res.toastr && typeof toastr !== 'undefined') {
                 toastr.success(res.toastr);
             }
+        }
+
+        /**
+         * Narrow every picker of a form to the column type now chosen.
+         *
+         * Cheaper than rebindAll and it keeps the select2 instances alive:
+         * select2 reads the options out of the element each time the list is
+         * opened, so replacing them is enough.
+         */
+        static refreshPickerOptions($form) {
+            if (!$form || !$form.length) {
+                return;
+            }
+
+            $form.find('select.exm-preset-picker').each(function () {
+                var $select = $(this);
+                var map = $select.data('presetMap') || {};
+                var presets = [];
+                for (var key in map) {
+                    presets.push(map[key]);
+                }
+                if (!presets.length) {
+                    return;
+                }
+
+                // Dropped before the list is rebuilt, not after: syncOptions
+                // deliberately keeps whatever is selected, so that a value
+                // saved earlier is never thrown away behind the user's back.
+                // Here the user is choosing the type themselves, and a preset
+                // that cannot paint it has to go.
+                var type = CellStylePresetEvent.columnType($select);
+                var current = map[String($select.val() || '')];
+                var types = current ? (current.column_types || []) : [];
+
+                if (current) {
+                    // something is picked, so nothing is being held for later
+                    $select.removeData('presetDropped');
+                }
+                if (current && hasValue(type) && types.length && types.indexOf(type) < 0) {
+                    // Put aside rather than forgotten. Pointing a row at the
+                    // wrong column and correcting it a second later should
+                    // not cost the preset that was chosen before the slip.
+                    $select.data('presetDropped', String($select.val() || ''));
+                    $select.val('');
+                }
+
+                // The one put aside earlier, if the column it could not
+                // paint has been pointed somewhere it can. Chosen here but
+                // selected after the list is rebuilt: a value no option
+                // carries yet does not stick.
+                var dropped = map[String($select.data('presetDropped') || '')];
+                var back = dropped ? (dropped.column_types || []) : [];
+                var restore = (dropped && !hasValue($select.val())
+                    && (!hasValue(type) || !back.length || back.indexOf(type) >= 0)) ? dropped.key : null;
+
+                CellStylePresetEvent.syncOptions($select, presets);
+
+                if (hasValue(restore) && !hasValue($select.val())) {
+                    $select.val(restore);
+                    $select.removeData('presetDropped');
+                }
+
+                $select.trigger('change');
+            });
         }
 
         /**
@@ -499,6 +575,9 @@ var Exment;
                 placeholder: { id: '', text: String($select.data('cellstyle-preset-placeholder') || ' ') },
                 dropdownParent: $select.closest('#modal-showmodal').length
                     ? $('#modal-showmodal .modal-dialog') : null,
+                // the kanban card table gives this picker a fifth of the row,
+                // which cuts the chips the list is read by in half
+                dropdownCssClass: 'exm-preset-dropdown',
                 templateResult: function (state) {
                     return CellStylePresetEvent.optionHtml(state, byKey, true);
                 },
@@ -637,10 +716,39 @@ var Exment;
          * The column type being edited, when the screen knows it.
          */
         static columnType($select) {
-            var $form = $select.closest('form');
-            var $type = $form.find('[name="column_type"]').first();
+            // A view form has no column on it: every row points at one, and
+            // the picker carries a map saying what type each target is. A
+            // target the map says nothing about - a system column, the
+            // workflow status, the parent record - answers "no type", which
+            // offers the whole library rather than none of it.
+            var types = $select.data('cellstyleTypes');
+            if (types) {
+                var $row = $select.closest('tr');
+                var $target = ($row.length ? $row : $select.closest('form'))
+                    .find('select[name$="[view_column_target]"]').first();
 
-            return $type.length ? String($type.val() || '') : null;
+                return String(types[String($target.val() || '')] || '');
+            }
+
+            var $form = $select.closest('form');
+            var $fields = $form.find('[name="column_type"]');
+            if (!$fields.length) {
+                return null;
+            }
+
+            // Not the first: laravel-admin renders a hidden companion ahead
+            // of a select and never writes the choice into it, so reading
+            // that one answered "no type" for every column being created -
+            // and the whole library stayed on offer whatever was picked.
+            var type = '';
+            $fields.each(function () {
+                var value = String($(this).val() || '');
+                if (value.length) {
+                    type = value;
+                }
+            });
+
+            return type;
         }
 
         // ------------------------------------------------- value colors ---
@@ -812,7 +920,8 @@ var Exment;
             var $table = $box.find('.exm-vc-table').first();
             var $group = $src.closest('.form-group, .exm-preset-row');
             var type = String($scope.find('[name="column_type"]').first().val() || '');
-            var style = CellStylePresetEvent.resolvedStyle($scope);
+            var options = CellStylePresetEvent.resolvedOptions($scope);
+            var style = String(options.grid_style || 'plain');
 
             // No column type in reach means a preset is being edited, not a
             // column: the values it colors belong to whichever column picks
@@ -845,7 +954,10 @@ var Exment;
             for (var i = 0; i < choices.length; i++) {
                 var key = String(choices[i].value);
                 $table.append(CellStylePresetEvent.valueColorRow(
-                    key, labeled ? String(choices[i].text) : null, existing[key] || {}, labels, false, labeled));
+                    key, labeled ? String(choices[i].text) : null, existing[key] || {}, labels, false, labeled,
+                    // what this value is painted with while no colour is
+                    // named here - the same answer the grid would reach
+                    CellStylePresetEvent.colorFor(options, key, i)));
                 used[key] = true;
             }
 
@@ -954,7 +1066,7 @@ var Exment;
          * @param manual  the key is typed by hand and the row can be removed
          * @param labeled the table carries a name column
          */
-        static valueColorRow(key, label, row, labels, manual, labeled) {
+        static valueColorRow(key, label, row, labels, manual, labeled, auto) {
             var $tr = $('<tr>', { 'class': 'exm-vc-row' });
             $tr.data('vcTail', row.tail || []);
 
@@ -978,9 +1090,15 @@ var Exment;
                 $tr.append($labelcell);
             }
 
+            // The swatch of a value nobody has coloured shows the colour it
+            // is drawn with anyway - the palette hands one out by position.
+            // A fixed blue there said the opposite of the preview right below.
             var color = row.color || '';
             $tr.append($('<td>', { 'class': 'exm-vc-colorcell' })
-                .append($('<input>', { 'type': 'color', 'class': 'exm-vc-swatch', 'tabindex': -1, 'value': color || '#3c8dbc' }))
+                .append($('<input>', {
+                    'type': 'color', 'class': 'exm-vc-swatch', 'tabindex': -1,
+                    'value': color || auto || '#3c8dbc'
+                }))
                 .append($('<input>', {
                     'type': 'text', 'class': 'form-control input-sm exm-vc-hex', 'maxlength': 7,
                     'value': color, 'placeholder': String(labels.auto || '')
@@ -1073,22 +1191,46 @@ var Exment;
          * what the column saved before presets existed.
          */
         static resolvedStyle($scope) {
+            return String(CellStylePresetEvent.resolvedOptions($scope).grid_style || 'plain');
+        }
+
+        /**
+         * Every setting in effect on this screen, in the order the renderer
+         * reads them: the preset a picker names, then the raw fields a column
+         * styled before presets still carries, then - in the preset editor,
+         * which has no picker - the fields being edited.
+         */
+        static resolvedOptions($scope) {
             var $picker = $scope.find('select[data-cellstyle-preset]').first();
             if ($picker.length) {
                 var map = $picker.data('presetMap') || {};
                 var preset = map[String($picker.val() || '')];
                 if (preset) {
-                    return String(preset.options.grid_style || 'plain');
+                    // The colours stay on the column whichever preset gives
+                    // the shape, so they are read from the column either way.
+                    var merged = $.extend({}, preset.options);
+                    var colors = CellStylePresetEvent.fieldValue($scope, 'grid_value_colors');
+                    if (hasValue(colors)) {
+                        merged.grid_value_colors = colors;
+                    }
+                    return merged;
                 }
             }
 
-            var legacy = CellStylePresetEvent.legacySource($scope).grid_style;
-            if (hasValue(legacy)) {
-                return String(legacy);
+            var legacy = CellStylePresetEvent.legacySource($scope);
+            if (hasValue(legacy.grid_style)) {
+                return legacy;
             }
 
-            // A preset editor keeps the same setting under a flat name.
-            return String(CellStylePresetEvent.fieldValue($scope, 'grid_style') || 'plain');
+            var flat = {};
+            for (var i = 0; i < STYLE_KEYS.length; i++) {
+                var value = CellStylePresetEvent.fieldValue($scope, STYLE_KEYS[i]);
+                if (hasValue(value)) {
+                    flat[STYLE_KEYS[i]] = value;
+                }
+            }
+
+            return flat;
         }
 
         /**

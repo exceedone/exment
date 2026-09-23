@@ -93,6 +93,9 @@ class GridInlineEditor extends AbstractTool
             'updateUrl' => $update_url_base,
             // Client fills in `<cellUrl>/<id>/<column>`.
             'cellUrl' => $cell_url_base,
+            // ...and appends this view, because the appearance of a cell can
+            // be a setting of the view rather than of the column.
+            'cellView' => $this->custom_view->suuid ?? null,
             'csrf' => csrf_token(),
             'columns' => $columns,
             'labels' => [

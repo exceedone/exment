@@ -14,7 +14,14 @@ $(function () {
     }
     root.dataset.kbBound = '1';
 
+    // Handlers this board puts on the page itself rather than on its own
+    // node - the window, the shared modal. Named after the board, so a
+    // second board on the same page does not take the first one's off.
+    var NS = '.kb-' + root.id;
+
     var D = JSON.parse(document.getElementById('{{ $boardId }}-data').textContent);
+    // embedded board: every ajax call has to stay inside the same parent record
+    var EMB = D.embed ? { embed_ptype: D.embed.type, embed_pid: D.embed.id } : {};
     var L = @json($lang);
 
     var NOW = new Date(String(D.now).replace(' ', 'T')).getTime();
@@ -24,10 +31,16 @@ $(function () {
     // every reader below can treat them as always present, instead of each
     // one guarding against a payload built by an older release.
     D.me = D.me || [];
+    // boards drawn before the setting existed read "mine" off the assignee
+    D.mine_column = D.mine_column || D.assignee_column || '';
     D.blocked = D.blocked || [];
     D.expedite = D.expedite || [];
     D.policies = D.policies || {};
     D.wip_enforce = D.wip_enforce || 'off';
+    // what may be changed on the card itself, and what the editor looks like
+    D.inline = D.inline || {};
+    // the state the view was saved with, if it was saved off a board
+    D.preset = D.preset || null;
 
     /* ---------------------------------------------------------- state ---- */
     var groupBy = D.group_column;
@@ -43,7 +56,12 @@ $(function () {
     // browser: which columns a person needs open is their business, not the
     // view's, and it must not follow them onto somebody else's screen.
     var collapsed = {};
-    var STORE_KEY = 'exment-kanban-' + (D.view_suuid || '');
+    // One view can be drawn under many parents - the same board embedded in
+    // every project. Remembered against the view alone, "only mine" follows
+    // the user from a project where they have work to one where they have
+    // none, and the board looks empty for no stated reason.
+    var STORE_KEY = 'exment-kanban-' + (D.view_suuid || '') +
+        (D.embed ? '|' + D.embed.type + ':' + D.embed.id : '');
     var sel = {};
     var aiMap = {};
     // How far each board column has been read, in order. Search results are
@@ -66,13 +84,56 @@ $(function () {
         try {
             var saved = JSON.parse(window.localStorage.getItem(STORE_KEY) || '{}') || {};
             $.each(saved.collapsed || [], function (i, k) { collapsed[k] = true; });
-            // the board may have lost its assignee column since: a filter that
-            // can no longer match anything must not come back switched on
-            onlyMine = !!saved.mine && D.me.length > 0 && !!D.assignee_column;
+            // Only when this browser has an answer of its own. Reading a
+            // missing key as "off" would switch off a view that was saved
+            // with the filter on, the first time it is opened here.
+            if (Object.prototype.hasOwnProperty.call(saved, 'mine')) {
+                // the board may have lost its assignee column since: a filter
+                // that can no longer match anything must not come back on
+                onlyMine = !!saved.mine && D.me.length > 0 && !!D.mine_column;
+            }
         } catch (ex) {
             // private mode, a full store, or a leftover from an older release
         }
     }
+    // The board a saved view opens with. Each piece is checked against the
+    // board as it stands now, the same way loadPrefs checks the remembered
+    // one: a filter that can no longer match anything hides every card.
+    function applyPreset() {
+        var p = D.preset;
+        if (!p) { return; }
+        $.each(p.filters || {}, function (name, value) { filters[name] = String(value); });
+        keyword = String(p.keyword || '');
+        if (p.group) { groupBy = p.group; }
+        if (p.swimlane) { swimBy = p.swimlane; }
+        var only = p.only || {};
+        onlyOver = !!only.over && !!D.limit_column;
+        onlyUnassigned = !!only.unassigned && !!D.assignee_column;
+        onlyMine = !!only.mine && !!D.mine_column && D.me.length > 0;
+        onlyBlocked = !!only.blocked && D.blocked.length > 0;
+        onlyExpedite = !!only.expedite && D.expedite.length > 0;
+    }
+    // everything on screen, in the shape a view stores it
+    function currentState() {
+        var picked = {};
+        $.each(filters, function (name, value) { if (value !== '') { picked[name] = value; } });
+        var only = {};
+        if (onlyOver) { only.over = 1; }
+        if (onlyUnassigned) { only.unassigned = 1; }
+        if (onlyMine) { only.mine = 1; }
+        if (onlyBlocked) { only.blocked = 1; }
+        if (onlyExpedite) { only.expedite = 1; }
+        return {
+            filters: picked,
+            keyword: keyword,
+            group: groupBy || '',
+            swimlane: swimBy || '',
+            // only the ones that are on: jQuery would send a false as the
+            // string "false", which php reads back as true
+            only: only
+        };
+    }
+
     function savePrefs() {
         if (!D.view_suuid || !window.localStorage) { return; }
         try {
@@ -101,6 +162,16 @@ $(function () {
             });
         });
     }
+    // Whether this one card already shows a column among its fields. Asked per
+    // card, not per board: a field with no value is dropped from the card it
+    // is empty on, so the board can carry the column while a given card shows
+    // nothing of it - and an editor hung off the field would have nothing to
+    // hang from there.
+    function hasField(c, name) {
+        var found = false;
+        $.each(c.fields, function (i, f) { if (f.name === name) { found = true; } });
+        return found;
+    }
 
     /* --------------------------------------------------------- helpers --- */
     function esc(s) {
@@ -122,10 +193,6 @@ $(function () {
         return found;
     }
     function colorOf(name, value) { return (D.colors[name] || {})[value] || ''; }
-    function firstKeyOf(name) {
-        var keys = Object.keys(D.colors[name] || {});
-        return keys.length ? keys[0] : null;
-    }
     function hexToRgba(hex, a) {
         var m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
         if (!m) { return 'rgba(120,130,140,' + a + ')'; }
@@ -211,10 +278,7 @@ $(function () {
         var hit = false;
         $.each(list, function (i, m) {
             if (hit || !m.column) { return; }
-            var v = c.values[m.column];
-            if (v === null || v === undefined || v === '') { return; }
-            var values = $.isArray(v) ? v : [v];
-            $.each(values, function (j, one) {
+            $.each(keysOf(c, m.column), function (j, one) {
                 if (String(one) === String(m.key)) { hit = true; }
             });
         });
@@ -222,14 +286,22 @@ $(function () {
     }
     function isBlocked(c) { return D.blocked.length ? matchesAny(c, D.blocked) : false; }
     function isExpedite(c) { return D.expedite.length ? matchesAny(c, D.expedite) : false; }
-    // an assignee field holds one person, or several
+    // Every key a card holds in one column. A board key is a single value, so
+    // c.values keeps the first one only; a column that can hold several people
+    // or several tags sends the whole list alongside it.
+    function keysOf(c, name) {
+        if (!name) { return []; }
+        var many = (c.multi || {})[name];
+        if (many && many.length) { return many; }
+        var v = c.values[name];
+        if (v === null || v === undefined || v === '') { return []; }
+        return $.isArray(v) ? v : [v];
+    }
+    // the field holds one person, or several
     function isMine(c) {
-        if (!D.assignee_column || !D.me.length) { return false; }
-        var v = c.values[D.assignee_column];
-        if (v === null || v === undefined || v === '') { return false; }
-        var values = $.isArray(v) ? v : [v];
+        if (!D.mine_column || !D.me.length) { return false; }
         var hit = false;
-        $.each(values, function (i, one) {
+        $.each(keysOf(c, D.mine_column), function (i, one) {
             if (D.me.indexOf(String(one)) >= 0) { hit = true; }
         });
         return hit;
@@ -298,52 +370,68 @@ $(function () {
     }
 
     /* ---------------------------------------------------------- chips ---- */
-    function iconHTML(icon) { return icon ? '<i class="fa ' + esc(icon) + '"></i>' : ''; }
+
+    // A card column painted the way the data list paints it, from the cell
+    // style the view or the column picked. The shape is drawn by
+    // cellstyle_preset.js - the same code behind the preset dropdown and the
+    // column setting preview - so one preset cannot mean two things.
+    //
+    // Cached by what it is drawn from: a board of three hundred cards holds a
+    // handful of distinct values per column, and this runs again on every
+    // filter keystroke.
+    var cellStyles = D.card_styles || {};
+    var cellCache = {};
+    function cellHTML(f, options) {
+        var key = f.key + '\u0000' + f.value + '\u0000' + f.text + '\u0000' + f.icon;
+        if (cellCache[key] !== undefined) { return cellCache[key]; }
+
+        // The card's icon setting may name one icon per value, which a preset
+        // shared by every column cannot - so where it is set, it wins.
+        if (f.icon) { options = $.extend({}, options, { grid_icon: f.icon }); }
+
+        // The palette colours arrive already written out per value, so the
+        // renderer never needs the option order this board does not carry.
+        var html = $('<span>').append(
+            Exment.CellStylePresetEvent.sample(options, f.value, f.text, null)
+        ).html();
+
+        cellCache[key] = html;
+        return html;
+    }
 
     function chipHTML(f) {
-        var color = colorOf(f.name, f.value);
-        switch (f.style) {
-            case 'text':
-                return '<span class="kb-chip-text">' + esc(f.text) + '</span>';
-            case 'tag':
-                return '<span class="kb-tag">' + esc(f.text) + '</span>';
-            case 'pill':
-                return '<span class="kb-pill">' + iconHTML(f.icon) + esc(f.text) + '</span>';
-            case 'dot':
-                return '<span class="kb-prio" style="color:' + (color || '#444') + '">' +
-                    '<span class="kb-sq" style="background:' + (color || '#95a5a6') + '"></span>' + esc(f.text) + '</span>';
-            case 'lvl':
-                return '<span class="kb-lvl" style="color:' + (color || '#444') + '">' +
-                    '<span class="kb-cir" style="background:' + (color || '#95a5a6') + '"></span>' + esc(f.text) + '</span>';
-            case 'state':
-                return '<span class="kb-state" style="color:' + (color || '#5a6b7b') +
-                    ';background:' + hexToRgba(color, .13) + ';border-color:' + hexToRgba(color, .35) + '">' + esc(f.text) + '</span>';
-            case 'chip':
-                return '<span class="kb-chip">' + iconHTML(f.icon) + esc(f.text) + '</span>';
-            case 'point':
-                return '<span class="kb-point">' + iconHTML(f.icon || 'fa-tachometer') + esc(f.text) + '</span>';
-            case 'flag':
-                var on = (f.value !== '' && f.value === firstKeyOf(f.name));
-                return '<span class="kb-flag ' + (on ? 'on' : 'off') + '"><i class="fa ' +
-                    (on ? 'fa-check' : 'fa-times') + '"></i>' + esc(f.text) + '</span>';
-            case 'avatar':
-                return avatarHTML(f.text);
-            case 'icontext':
-                return '<span class="kb-icontext">' + iconHTML(f.icon) + esc(f.text) + '</span>';
-            default:
-                return '<div class="kb-auto"><span class="kb-auto-label">' + esc(f.label) + '</span>' + f.html + '</div>';
-        }
+        var cell = cellStyles[f.key];
+        if (cell && window.Exment && Exment.CellStylePresetEvent) { return cellHTML(f, cell); }
+
+        // Nothing was picked for this column, here or on the column itself.
+        // A card has no header row to say what a bare value is a value of,
+        // so the column name is printed in front of it.
+        return '<div class="kb-auto"><span class="kb-auto-label">' + esc(f.label) + '</span>' + f.html + '</div>';
     }
     function fieldsAt(c, pos) {
         var html = '';
         $.each(c.fields, function (i, f) {
-            // the label strip and the corner badge already show these columns,
-            // so their chip would repeat the same information on the card
+            // the label strip, the corner badge and the due chip already show
+            // these columns, so their chip would repeat the same information
             if ((D.labels_column && f.name === D.labels_column) ||
+                (D.limit_column && f.name === D.limit_column) ||
                 (D.badge_column && f.name === D.badge_column)) { return; }
-            if (f.pos === pos) { html += chipHTML(f); }
+            if (f.pos !== pos) { return; }
+            // a column shown as a card field is edited where it is shown,
+            // instead of being repeated somewhere else on the card
+            if (canEditAssignee() && f.name === D.assignee_column) {
+                html += editable(chipHTML(f), 'assignee', D.inline.assignee.label);
+            } else {
+                html += chipHTML(f);
+            }
         });
         return html;
+    }
+    // one clickable wrapper, so every inline editor is opened the same way and
+    // the card click that opens the drawer can tell them apart from the rest
+    function editable(html, kind, label) {
+        return '<span class="kb-inline kb-inline-' + kind + '" title="' + esc(fmt(L.inline_edit, label)) +
+            '">' + html + '</span>';
     }
 
     /* --------------------------------------------- cover, labels, badge -- */
@@ -373,7 +461,7 @@ $(function () {
         var max = D.progress_max > 0 ? D.progress_max : 100;
         var pct = Math.max(0, Math.min(100, (raw / max) * 100));
         return '<div class="kb-progress' + (pct >= 100 ? ' full' : (pct >= 50 ? ' half' : '')) +
-            '" title="' + esc(D.progress_label) + '">' +
+            '" title="' + esc(D.progress_label + ': ' + Math.round(pct) + '%') + '">' +
             '<span class="kb-progress-bar" style="width:' + pct.toFixed(1) + '%"></span>' +
             '<span class="kb-progress-txt">' + Math.round(pct) + '%</span></div>';
     }
@@ -398,7 +486,20 @@ $(function () {
 
         var h = '<div class="kb-card ' + cls + (unassigned ? ' unassigned' : '') +
             (expedite ? ' kb-expedite' : '') + (blocked ? ' kb-blocked' : '') + (sel[c.id] ? ' sel' : '') +
-            '" draggable="' + (D.editable ? 'true' : 'false') + '" data-id="' + c.id + '">';
+            '" draggable="' + (D.editable ? 'true' : 'false') + '"' +
+            // the card is its own handle now, so the hint moves onto the card.
+            // As a role description rather than a title: a tooltip on the whole
+            // card would follow the pointer around the board.
+            (D.editable ? ' aria-roledescription="' + esc(L.drag_hint) + '"' : '') +
+            ' data-id="' + c.id + '">';
+
+        // The click opens the form now, so the panel needs a way in of its
+        // own. Only when both are on: with no form to open, the click is
+        // still the way to the panel, and the card needs nothing added.
+        if (D.features.drawer && canOpenEditor()) {
+            h += '<button type="button" class="kb-detail-btn" title="' + esc(L.detail) +
+                '" aria-label="' + esc(L.detail) + '"><i class="fa fa-info-circle"></i></button>';
+        }
 
         h += coverHTML(c);
         h += labelsHTML(c);
@@ -419,24 +520,45 @@ $(function () {
 
         var header = fieldsAt(c, 'header');
         var badge = badgeHTML(c);
-        if (D.title_column || header || badge || D.editable) {
+        var title = D.title_column ? (c.title || c.label) : c.label;
+        // The name of the record is the line right underneath. Where the title
+        // column is the name, the top line said it twice - a whole line of the
+        // card spent on nothing. The drag handle goes the same way: the card
+        // itself is the handle.
+        var num = (D.title_column && c.label !== title) ? c.label : '';
+        if (num || header || badge) {
             h += '<div class="kb-card-top">';
-            if (D.editable) { h += '<span class="kb-handle" title="' + esc(L.drag_hint) + '"><i class="fa fa-bars"></i></span>'; }
-            if (D.title_column) { h += '<a href="' + esc(c.url) + '" class="kb-num">' + esc(c.label) + '</a>'; }
+            if (num) { h += '<a href="' + esc(c.url) + '" class="kb-num">' + esc(num) + '</a>'; }
             if (header || badge) { h += '<span class="kb-chip-wrap">' + header + badge + '</span>'; }
             h += '</div>';
         }
 
-        h += '<div class="kb-card-title">' + esc(D.title_column ? (c.title || c.label) : c.label) + '</div>';
+        h += '<div class="kb-card-title">' + esc(title) + '</div>';
         h += progressHTML(c);
 
         var meta = fieldsAt(c, 'meta');
         if (meta) { h += '<div class="kb-card-meta">' + meta + '</div>'; }
 
         var meta2 = fieldsAt(c, 'meta2');
-        if (meta2 || sla) {
-            h += '<div class="kb-card-meta2">' + meta2 +
-                (sla ? '<span class="kb-sla ' + sla.cls + '"><i class="fa fa-clock-o"></i>' + esc(sla.txt) + '</span>' : '') + '</div>';
+        var due = '';
+        if (sla) {
+            // the date is what is read at a glance; how far past it is, is why
+            // the chip is red. Both on the card is one line more than it needs
+            // seconds on a deadline are never read, and on a card they cost a
+            // whole line once the assignee is beside them
+            var dueText = ((D.limit_column && c.texts[D.limit_column]) || '')
+                .replace(/(\d{1,2}:\d{2}):\d{2}(\D*)$/, '$1$2');
+            due = '<span class="kb-sla ' + sla.cls + '" title="' + esc(sla.txt) + '">' +
+                '<i class="fa fa-clock-o"></i>' + esc(dueText || sla.txt) + '</span>';
+        }
+        // every card gets a way in, including the ones with no date yet -
+        // giving them one is the whole point
+        if (canEditLimit()) {
+            due = editable(due || '<span class="kb-due-add"><i class="fa fa-calendar-o"></i></span>',
+                'due', D.inline.limit.label);
+        }
+        if (meta2) {
+            h += '<div class="kb-card-meta2">' + meta2 + '</div>';
         }
 
         var foot = fieldsAt(c, 'foot');
@@ -453,7 +575,15 @@ $(function () {
                 }
             }
         }
-        if (foot || who) { h += '<div class="kb-card-foot">' + foot + who + '</div>'; }
+        // the column is shown as a card field, but not on this card: with no
+        // value there is no chip, and so nowhere to assign anybody from
+        if (!who && canEditAssignee() && !hasField(c, D.assignee_column)) {
+            who = '<span class="kb-unassigned"><i class="fa fa-user-plus"></i>' + esc(L.unassigned) + '</span>';
+        }
+        if (who && canEditAssignee()) { who = editable(who, 'assignee', D.inline.assignee.label); }
+        // the date joins the assignee on the bottom row instead of taking a row
+        // of its own - the two answer "whose, and by when" together
+        if (foot || who || due) { h += '<div class="kb-card-foot">' + foot + who + due + '</div>'; }
 
         h += '</div>';
         return h;
@@ -545,15 +675,17 @@ $(function () {
         var ok = true;
         $.each(filters, function (name, value) {
             if (value === '') { return; }
-            // the label strip may carry several values, so any of them is a match -
-            // c.values only ever holds the first one
+            // the label strip carries its values ready drawn, so it is read
+            // from there rather than from the card values
             if (D.labels_column && name === D.labels_column) {
                 var hit = false;
                 $.each(c.labels || [], function (i, l) { if (l.key === value) { hit = true; } });
                 if (!hit) { ok = false; }
                 return;
             }
-            if ((c.values[name] || '') !== value) { ok = false; }
+            // any of the values a card holds in that column is a match: a
+            // person second on the assignee list is still on it
+            if ($.inArray(String(value), $.map(keysOf(c, name), String)) < 0) { ok = false; }
         });
         if (!ok) { return false; }
         if (onlyOver) {
@@ -606,6 +738,21 @@ $(function () {
             sortLanes(lanes);
         }
 
+        // Lanes are collected from the cards and from the figures standing
+        // behind them, so a board holding nothing collects none at all - a
+        // project whose first issue has not been written yet, or a filter
+        // that matched none of them. No lane means no row, and no row means
+        // no column: what is left is a toolbar over an empty box, which
+        // reads as broken rather than as empty, and says nothing about the
+        // filter that emptied it. Draw the unsplit board instead. The
+        // columns are still there, each one saying it holds nothing, which
+        // is the true answer and the one the user can act on.
+        var split = !!swimBy;
+        if (!lanes.length) {
+            split = false;
+            lanes = [''];
+        }
+
         // The WIP limit is set per board column, so it has to be measured over
         // the whole column even when the board is split: one lane of a column
         // that is over budget looks comfortable on its own, and the limit stops
@@ -627,7 +774,7 @@ $(function () {
             var laneStat = swimBy ? (laneStats[lane] || {}) : stats;
             html += '<div class="kb-swimlane' + (isExpediteLane(lane) ? ' kb-expedite-lane' : '') +
                 '" data-lane="' + esc(lane) + '">';
-            if (swimBy) {
+            if (split) {
                 html += '<div class="kb-lane-head"><i class="fa fa-bars"></i>' + esc(laneLabelOf(lane)) +
                     '<span class="kb-lane-count">' + laneItems.length + '</span></div>';
             }
@@ -641,6 +788,12 @@ $(function () {
                         : (D.wip_column ? amountSum(items) : items.length));
                 var over = col.wip > 0 && load > col.wip;
                 var loadTxt = fmtNum(load, D.wip_column ? D.wip_format : GROUPED);
+                // The limit is set per board column, so the figure beside it
+                // counts the whole column. Split into lanes that is not the
+                // number of cards in this cell, and a head reading "0" next to
+                // a load of 16.5 looks broken unless the badge says which is
+                // which.
+                var wipTitle = fmt(swimBy ? L.col_wip_all : L.col_wip, loadTxt, col.wip);
                 var sum = (fromDb && st) ? st.sum : sumOf(items, D.sum_column);
                 var age = (fromDb && st) ? st.age : (D.col_age ? avgAge(items) : null);
                 var total = (fromDb && st) ? st.total : items.length;
@@ -650,6 +803,15 @@ $(function () {
                 if (D.blocked.length) {
                     $.each(items, function (i, c) { if (isBlocked(c)) { stuck++; } });
                 }
+
+                // The count is what was drawn. Where the board reads a column
+                // at a time and more of it is still on the server, it is drawn
+                // against the column's own total instead - two figures in the
+                // one badge, rather than a second row under every head.
+                var drawn = fmtNum(items.length, GROUPED);
+                var countTxt = (fromDb && total > items.length)
+                    ? drawn + '/' + fmtNum(total, GROUPED) : drawn;
+                var countTitle = fromDb ? fmt(L.col_total, fmtNum(total, GROUPED)) : '';
 
                 html += '<div class="kb-col' + (folded ? ' kb-folded' : '') + '" data-col="' + esc(col.key) + '">';
                 html += '<div class="kb-col-head' + (over ? ' over-wip' : '') + '">' +
@@ -661,30 +823,22 @@ $(function () {
                     // rather than in a wiki nobody opens twice
                     (col.policy ? '<span class="kb-col-policy" title="' +
                         esc(L.policy_title + ': ' + col.policy) + '"><i class="fa fa-info-circle"></i></span>' : '') +
-                    '<span class="kb-col-count">' + items.length + '</span>' +
+                    '<span class="kb-col-count"' + (countTitle ? ' title="' + esc(countTitle) + '"' : '') +
+                        '>' + esc(countTxt) + '</span>' +
                     (stuck ? '<span class="kb-col-blocked" title="' + esc(L.blocked) + '">' +
                         '<i class="fa fa-hand-paper-o"></i>' + stuck + '</span>' : '') +
-                    (col.wip > 0 ? '<span class="kb-col-wip">' + esc(loadTxt) + '/' + col.wip + '</span>' : '') +
+                    (col.wip > 0 ? '<span class="kb-col-wip' + (swimBy ? ' kb-col-wip-all' : '') +
+                        '" title="' + esc(wipTitle) + '">' + esc(loadTxt) + '/' + col.wip + '</span>' : '') +
+                    // both are switched on one at a time in the view settings,
+                    // and neither is worth a row of its own on every column.
+                    // An empty column is left with its nought alone: a sum of
+                    // zero and a dash for an average say the same thing twice.
+                    (D.sum_column && items.length ? '<span class="kb-col-sum" title="' + esc(D.sum_label) + '">' +
+                        esc(fmtNum(sum === null ? 0 : sum, D.sum_format)) + '</span>' : '') +
+                    (D.col_age && items.length ? '<span class="kb-col-age" title="' + esc(L.col_age) + '">' +
+                        '<i class="fa fa-hourglass-half"></i>' +
+                        (age === null ? '-' : age.toFixed(1) + L.day) + '</span>' : '') +
                     '</div>';
-                // the total and the average sit under the head, so the WIP
-                // badge keeps meaning "cards against the limit". Every column
-                // gets the row, empty ones included - one column without it
-                // would start its cards higher than all the others.
-                if (D.sum_column || D.col_age || colMode) {
-                    html += '<div class="kb-col-stats">' +
-                        (D.sum_column ? '<span class="kb-col-sum" title="' + esc(D.sum_label) + '">' +
-                            esc(fmtNum(sum === null ? 0 : sum, D.sum_format)) + '</span>' : '') +
-                        // The whole column, straight from the table - the badge
-                        // above only ever counts what was drawn. Dropped while a
-                        // filter is on: the figure would then describe records
-                        // the board is deliberately not showing.
-                        (fromDb ? '<span class="kb-col-total">' +
-                            esc(fmt(L.col_total, fmtNum(total, GROUPED))) + '</span>' : '') +
-                        (D.col_age ? '<span class="kb-col-age" title="' + esc(L.col_age) + '">' +
-                            '<i class="fa fa-hourglass-half"></i>' +
-                            (age === null ? '-' : age.toFixed(1) + L.day) + '</span>' : '') +
-                        '</div>';
-                }
                 html += '<div class="kb-list" data-col="' + esc(col.key) + '">';
                 if (!items.length) {
                     html += '<div class="kb-empty">' + esc(L.no_card) + '</div>';
@@ -748,6 +902,7 @@ $(function () {
         });
 
         renderPartial();
+        renderBlank(shown.length);
         renderKpi(shown);
         renderBulk();
     }
@@ -796,6 +951,22 @@ $(function () {
             html += '<div class="alert alert-warning mb-0' + (i ? ' mt-1' : '') + '">' + esc(m) + '</div>';
         });
         $box.html('<div class="box-body pb-0">' + html + '</div>').show();
+    }
+
+    // A board narrowed down to nothing looks broken, and the filter doing it
+    // may have been remembered from another day or come with the view. Say so,
+    // and put the way out next to the sentence.
+    function renderBlank(count) {
+        var $box = $(root).find('.kb-blank');
+        if (!$box.length) { return; }
+        if (count > 0 || !D.cards.length || !filtersActive()) {
+            $box.empty().hide();
+            return;
+        }
+        $box.html('<div class="box-body pb-0"><div class="alert alert-info mb-0 kb-blank-msg">' +
+            '<i class="fa fa-filter"></i><span>' + esc(L.blank_filtered) + '</span>' +
+            '<a href="javascript:void(0);" class="btn btn-sm btn-default kb-reset"><i class="fa fa-undo"></i>&nbsp;' +
+            esc(L.reset) + '</a></div></div>').show();
     }
 
     /* ----------------------------------------------------------- KPI ----- */
@@ -897,7 +1068,7 @@ $(function () {
             searched[q] = true;
 
             var $box = $(root).find('.kb-search, .kb-f-keyword').addClass('kb-searching');
-            $.getJSON(D.more_url, { view: D.view_suuid, q: q })
+            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, q: q }, EMB))
                 .done(function (res) {
                     var seen = {}, added = 0;
                     $.each(D.cards, function (i, c) { seen[c.id] = true; });
@@ -962,7 +1133,7 @@ $(function () {
         if (statsTimer) { window.clearTimeout(statsTimer); }
         statsTimer = window.setTimeout(function () {
             statsTimer = null;
-            $.getJSON(D.more_url, { view: D.view_suuid, stats: 1 })
+            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, stats: 1 }, EMB))
                 .done(function (res) {
                     if (!res) { return; }
                     D.col_stats = res.flat || {};
@@ -998,18 +1169,227 @@ $(function () {
 
     /* ---------------------------------------------------------- toast ---- */
     var toastTimer = null;
-    function toast(msg, icon, kind, undoFn) {
+    function toast(msg, icon, kind, undoFn, undoLabel) {
         var $t = $('#kb-toast');
         if (!$t.length) { $t = $('<div id="kb-toast"></div>').appendTo(document.body); }
         $t.attr('class', 'kb-toast ' + (kind || ''));
         $t.html('<i class="fa ' + (icon || 'fa-info-circle') + '"></i><span class="kb-toast-msg">' + esc(msg) + '</span>' +
-            (undoFn ? '<span class="kb-undo">' + esc(L.undo) + '</span>' : ''));
+            (undoFn ? '<span class="kb-undo">' + esc(undoLabel || L.undo) + '</span>' : ''));
         $t.show();
         if (undoFn) {
             $t.find('.kb-undo').on('click', function () { $t.hide(); undoFn(); });
         }
         if (toastTimer) { clearTimeout(toastTimer); }
         toastTimer = setTimeout(function () { $t.hide(); }, 6000);
+    }
+
+    /* ------------------------------------------------------- popover ---- */
+    // Attached to <body> rather than to the card: a card sits inside two
+    // scrolling boxes and is redrawn on every render, either of which would
+    // cut the list off or take it away mid-click.
+    var $pop = null;
+    function closePop() {
+        if ($pop) { $pop.remove(); $pop = null; }
+        $(document).off('mousedown.kbpop keydown.kbpop');
+    }
+    function openPop($anchor, html, cls) {
+        closePop();
+        $pop = $('<div class="kb-pop"></div>').addClass(cls || '').html(html).appendTo(document.body);
+
+        var rect = $anchor[0].getBoundingClientRect();
+        var width = $pop.outerWidth();
+        var height = $pop.outerHeight();
+        var left = rect.left + window.pageXOffset;
+        var right = window.pageXOffset + $(window).width() - width - 8;
+        if (left > right) { left = Math.max(window.pageXOffset + 8, right); }
+        // below the thing that opened it, unless there is no room down there
+        var top = rect.bottom + window.pageYOffset + 6;
+        if (rect.bottom + height + 12 > $(window).height()) {
+            top = Math.max(window.pageYOffset + 4, rect.top + window.pageYOffset - height - 6);
+        }
+        $pop.css({ top: top + 'px', left: left + 'px' });
+
+        // bound on the next tick: the click that opened it is still travelling
+        window.setTimeout(function () {
+            $(document).on('mousedown.kbpop', function (e) {
+                if ($pop && !$pop[0].contains(e.target)) { closePop(); }
+            });
+            $(document).on('keydown.kbpop', function (e) {
+                if (e.key === 'Escape' || e.keyCode === 27) { closePop(); }
+            });
+        }, 0);
+
+        return $pop;
+    }
+
+    /* --------------------------------------------------- inline edit ----- */
+    function canEditAssignee() { return !!(D.editable && D.assignee_column && D.inline.assignee); }
+    function canEditLimit() { return !!(D.editable && D.limit_column && D.inline.limit); }
+
+    // A card is read back from the server after it has been edited. The chip,
+    // the colour, the label strip and the text all come from there, and an
+    // edit can also push the record out of the view's own filter - in which
+    // case it comes back missing and the card goes.
+    function refreshCards(ids) {
+        if (!D.more_url) { reloadBoard(); return; }
+        var wanted = $.map(ids, String);
+
+        $.getJSON(D.more_url, $.extend({ view: D.view_suuid, cards: wanted.join(',') }, EMB))
+            .done(function (res) {
+                var fresh = {};
+                $.each((res && res.cards) || [], function (i, c) { fresh[String(c.id)] = c; });
+                var kept = [];
+                $.each(D.cards, function (i, c) {
+                    var id = String(c.id);
+                    if ($.inArray(id, wanted) < 0) { kept.push(c); return; }
+                    if (!fresh[id]) { return; }
+                    // its place in the column is the browser's own, and the
+                    // server neither knows nor sends it
+                    fresh[id].rank = c.rank;
+                    kept.push(fresh[id]);
+                });
+                D.cards = kept;
+                render();
+            })
+            .fail(function () { reloadBoard(); });
+    }
+
+    function saveInline(card, column, value, message) {
+        closePop();
+        // a board grouped by the very column being written moves the card, and
+        // the per-column positions have to move with it
+        if (typeof value === 'string' && (column === D.group_column || column === groupBy)) {
+            shiftColSeq(card.values[column], value, card);
+        }
+        saveValues(card.id, buildValue(column, value))
+            .done(function () {
+                toast(message, 'fa-check-circle', 'success');
+                refreshCards([card.id]);
+            })
+            .fail(function (xhr) {
+                toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
+                refreshCards([card.id]);
+            });
+    }
+    // an empty list has to be sent as an empty string: jQuery leaves an empty
+    // array out of the request altogether, and the column would keep its value
+    function buildValue(column, value) {
+        var values = {};
+        values[column] = ($.isArray(value) && !value.length) ? '' : value;
+        return values;
+    }
+
+    function openAssignPop($anchor, card) {
+        var meta = D.inline.assignee;
+        var multiple = !!meta.multiple;
+        var current = $.map(keysOf(card, D.assignee_column), String);
+
+        var html = '<div class="kb-pop-head">' + esc(meta.label) + '</div>';
+        html += '<div class="kb-pop-search"><input type="text" class="form-control input-sm kb-pop-q" placeholder="' +
+            esc(L.keyword) + '"></div><div class="kb-pop-list">';
+        if (!multiple) {
+            html += '<a href="javascript:void(0);" class="kb-pop-item' + (current.length ? '' : ' on') +
+                '" data-key=""><i class="fa fa-user-times"></i>&nbsp;' + esc(L.unassigned) + '</a>';
+        }
+        $.each(D.assignees, function (i, o) {
+            var on = $.inArray(String(o.key), current) >= 0;
+            if (multiple) {
+                html += '<label class="kb-pop-item"><input type="checkbox" value="' + esc(o.key) + '"' +
+                    (on ? ' checked' : '') + '>&nbsp;' + esc(o.label) + '</label>';
+            } else {
+                html += '<a href="javascript:void(0);" class="kb-pop-item' + (on ? ' on' : '') +
+                    '" data-key="' + esc(o.key) + '">' + esc(o.label) + '</a>';
+            }
+        });
+        html += '</div>';
+        if (multiple) {
+            html += '<div class="kb-pop-foot"><button type="button" class="btn btn-sm btn-primary kb-pop-ok">' +
+                esc(L.save) + '</button></div>';
+        }
+
+        var $p = openPop($anchor, html, 'kb-pop-list-box');
+        $p.on('input', '.kb-pop-q', function () {
+            var q = $(this).val().toLowerCase();
+            $p.find('.kb-pop-item').each(function () {
+                $(this).toggle(!q || $(this).text().toLowerCase().indexOf(q) >= 0);
+            });
+        });
+        if (multiple) {
+            $p.on('click', '.kb-pop-ok', function () {
+                var picked = [];
+                $p.find('input[type=checkbox]:checked').each(function () { picked.push(this.value); });
+                saveInline(card, D.assignee_column, picked, fmt(L.inline_saved, meta.label));
+            });
+        } else {
+            $p.on('click', '.kb-pop-item', function () {
+                saveInline(card, D.assignee_column, String($(this).data('key')), fmt(L.inline_saved, meta.label));
+            });
+        }
+        $p.find('.kb-pop-q').focus();
+    }
+
+    function openDuePop($anchor, card) {
+        var meta = D.inline.limit;
+        var raw = String(card.values[D.limit_column] || '');
+        var value = meta.time ? raw.replace(' ', 'T').substring(0, 16) : raw.substring(0, 10);
+
+        var html = '<div class="kb-pop-head">' + esc(meta.label) + '</div>' +
+            '<div class="kb-pop-body"><input type="' + (meta.time ? 'datetime-local' : 'date') +
+            '" class="form-control input-sm kb-pop-date" value="' + esc(value) + '"></div>' +
+            '<div class="kb-pop-foot"><button type="button" class="btn btn-sm btn-default kb-pop-clear">' +
+            esc(L.inline_clear) + '</button><button type="button" class="btn btn-sm btn-primary kb-pop-ok">' +
+            esc(L.save) + '</button></div>';
+
+        var $p = openPop($anchor, html, 'kb-pop-date-box');
+        $p.on('click', '.kb-pop-clear', function () {
+            saveInline(card, D.limit_column, '', fmt(L.inline_saved, meta.label));
+        });
+        $p.on('click', '.kb-pop-ok', function () {
+            var picked = String($p.find('.kb-pop-date').val() || '');
+            // the browser writes a datetime without its seconds; the column
+            // wants the whole stamp
+            if (picked && meta.time) { picked = picked.replace('T', ' ') + (picked.length <= 16 ? ':00' : ''); }
+            saveInline(card, D.limit_column, picked, fmt(L.inline_saved, meta.label));
+        });
+        $p.find('.kb-pop-date').focus();
+    }
+
+    /* --------------------------------------------------- save as view ---- */
+    // The board narrows itself in the browser, so this writes no filter
+    // conditions: it copies the view the board was drawn from and remembers
+    // what is on screen as the state the new view opens with.
+    function openSaveViewPop($anchor) {
+        var html = '<div class="kb-pop-head">' + esc(L.save_view) + '</div>' +
+            '<div class="kb-pop-body"><input type="text" maxlength="255" class="form-control input-sm kb-pop-name" placeholder="' +
+            esc(L.save_view_name) + '"></div>' +
+            '<div class="kb-pop-foot"><button type="button" class="btn btn-sm btn-primary kb-pop-ok">' +
+            esc(L.save) + '</button></div>';
+
+        var $p = openPop($anchor, html, 'kb-pop-name-box');
+        function submit() {
+            var name = $.trim(String($p.find('.kb-pop-name').val() || ''));
+            if (!name) { $p.find('.kb-pop-name').focus(); return; }
+            var $ok = $p.find('.kb-pop-ok').prop('disabled', true);
+            $.ajax({
+                url: D.save_view_url,
+                type: 'POST',
+                data: { name: name, state: currentState() },
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+            }).done(function (res) {
+                closePop();
+                toast(fmt(L.view_saved, name), 'fa-bookmark', 'success', function () {
+                    location.href = res.url;
+                }, L.view_open);
+            }).fail(function (xhr) {
+                $ok.prop('disabled', false);
+                toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
+            });
+        }
+        $p.on('click', '.kb-pop-ok', submit);
+        $p.on('keydown', '.kb-pop-name', function (e) {
+            if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); submit(); }
+        });
+        $p.find('.kb-pop-name').focus();
     }
 
     /* ----------------------------------------------------------- move ---- */
@@ -1071,6 +1451,334 @@ $(function () {
         // no Exment js on the page: fall back to the record screen
         location.href = card.url;
     }
+
+    /* ------------------------------------------------ edit in a window --- */
+    // What "open this card" means is not the board's to decide - the screen
+    // that drew it says so. A screen with an editor of its own names a
+    // function and keeps the reader inside itself; everywhere else it is the
+    // admin's own edit form, shown in a frame over the board, so the board is
+    // still there behind it and the card can be redrawn the moment it saves.
+    function canOpenEditor() {
+        return !!(D.features.editform && D.editor && (D.editor.hook || D.editor.url));
+    }
+
+    function openEditor(id) {
+        var card = cardById(id);
+        if (!card) { return; }
+
+        var hook = (D.editor && D.editor.hook) ? window[D.editor.hook] : null;
+        if (typeof hook === 'function') {
+            destroyDrawer();
+            hook(D.table, card.id, card);
+            return;
+        }
+        openEditForm(card);
+    }
+
+    // The form is the admin's own, fetched on its own: no header, no menu,
+    // no second copy of the hundred and forty stylesheets and scripts this
+    // page is already holding. Drawing it in a frame meant building all of
+    // them again, which was the greater part of the two seconds a card took
+    // to open.
+    //
+    // id of the record whose form is in the window, while it is there
+    var formOpen = null;
+    // Forms already fetched. Opening a card, closing it and opening it again
+    // is the ordinary way a board is read, and the second open is then a
+    // paint rather than a wait. Dropped as soon as the record is written.
+    var formCache = {};
+    var formPending = {};
+    // records the server would not hand over - locked by a workflow, not this
+    // reader's to edit. Asked for again on a click, never again on a hover.
+    var formDenied = {};
+
+    function editUrl(id) {
+        return D.editor.url.replace('{id}', encodeURIComponent(id));
+    }
+
+    function fetchForm(id) {
+        if (formCache[id]) {
+            return $.Deferred().resolve(formCache[id]).promise();
+        }
+        if (formPending[id]) { return formPending[id]; }
+
+        var req = $.ajax({ url: editUrl(id), dataType: 'json' })
+            .done(function (res) {
+                if (!res || !res.body) { return; }
+                // each of these is the better part of fifty kilobytes
+                var kept = Object.keys(formCache);
+                while (kept.length >= 8) { delete formCache[kept.shift()]; }
+                formCache[id] = res;
+            })
+            .fail(function () { formDenied[id] = true; })
+            .always(function () { delete formPending[id]; });
+        formPending[id] = req;
+
+        return req;
+    }
+
+    // Reading a card and reaching for it takes about as long as the form
+    // takes to come back. Started when the pointer arrives, it is usually
+    // here by the time the click is.
+    var warmTimer = null;
+    function warmForm(id) {
+        if (!canOpenEditor() || D.editor.hook) { return; }
+        if (formCache[id] || formPending[id] || formDenied[id]) { return; }
+        if (warmTimer) { window.clearTimeout(warmTimer); }
+        // a pointer crossing the column on its way somewhere else is not a
+        // reader, and should not cost a request per card it passed over
+        warmTimer = window.setTimeout(function () { fetchForm(id); }, 150);
+    }
+    function stopWarming() {
+        if (warmTimer) { window.clearTimeout(warmTimer); warmTimer = null; }
+    }
+
+    // A field may want a script or a stylesheet this page has not got - a
+    // rich text box, a colour picker. Everything else it needs is already
+    // here, so only what is missing is fetched.
+    function assetKey(url) { return String(url).split('?')[0]; }
+    function loadAssets(assets) {
+        if (!assets) { return; }
+        var haveJs = {};
+        $('script[src]').each(function () { haveJs[assetKey(this.src)] = true; });
+        $.each(assets.js || [], function (i, src) {
+            if (haveJs[assetKey(src)]) { return; }
+            // before the form's own script runs, so it finds what it calls
+            $.ajax({ url: src, dataType: 'script', cache: true, async: false });
+        });
+        var haveCss = {};
+        $('link[rel="stylesheet"]').each(function () { haveCss[assetKey(this.href)] = true; });
+        $.each(assets.css || [], function (i, href) {
+            if (haveCss[assetKey(href)]) { return; }
+            $('<link rel="stylesheet">').attr('href', href).appendTo('head');
+        });
+    }
+
+    // A window of the board's own, and not the admin's shared one. The form
+    // has buttons that open that shared window themselves - every "search"
+    // beside a related record - and they fill it by replacing what is in it,
+    // which was this very form, with everything typed into it.
+    var $ovl = null;
+    function formOverlay() {
+        if ($ovl) { return $ovl; }
+        $ovl = $('<div class="kb-form-ovl" id="' + root.id + '-form" style="display:none">' +
+            '<div class="kb-form-box" role="dialog" aria-modal="true">' +
+            '<div class="kb-form-head"><span class="kb-form-title"></span>' +
+            '<button type="button" class="kb-form-close" aria-label="' + esc(L.close) + '"' +
+            ' title="' + esc(L.close) + '">&times;</button></div>' +
+            '<div class="kb-form-body"></div></div></div>').appendTo(document.body);
+
+        $ovl.on('click', '.kb-form-close', closeForm);
+        // The form is on this page now, so its own submit would take the
+        // whole board with it. Sent from here instead, and the answer is one
+        // of two things: the record went in, or it did not and here is why.
+        $ovl.on('submit', 'form', function (e) {
+            if (!formOpen) { return; }
+            e.preventDefault();
+            saveForm(this, formOpen);
+        });
+
+        return $ovl;
+    }
+
+    function closeForm() {
+        formOpen = null;
+        if ($ovl) { $ovl.hide().find('.kb-form-body').empty(); }
+        $('body').removeClass('kb-form-open');
+    }
+
+    function windowShell(title, body, spinning) {
+        var $o = formOverlay();
+        $o.find('.kb-form-title').text(title || '');
+        // jQuery runs the scripts that come with it, which is what starts the
+        // select boxes, the date pickers and the uploads
+        $o.find('.kb-form-body').html(body);
+        // and this is the step the admin takes after filling its own window:
+        // the filters between one field and another, number formats, the
+        // buttons that open a window of their own
+        if (!spinning && window.Exment && Exment.CommonEvent && Exment.CommonEvent.AddEvent) {
+            try { Exment.CommonEvent.AddEvent(); } catch (err) { /* none of it is fatal */ }
+        }
+        $o.toggleClass('kb-form-waiting', !!spinning);
+        $o.show();
+        $('body').addClass('kb-form-open');
+    }
+
+    // Escape closes the form - unless the admin's own window is open over it,
+    // which is then the one being closed.
+    $(document).off('keydown' + NS).on('keydown' + NS, function (e) {
+        if (!formOpen) { return; }
+        if (e.key !== 'Escape' && e.keyCode !== 27) { return; }
+        if ($('#modal-showmodal').hasClass('show')) { return; }
+        closeForm();
+    });
+
+    function openEditForm(card) {
+        // nowhere to put a form: the record screen is the same form, whole
+        if (!D.editor || !D.editor.url || !window.Exment || !Exment.ModalEvent) {
+            location.href = card.url;
+            return;
+        }
+        destroyDrawer();
+        stopWarming();
+
+        var id = String(card.id);
+        formOpen = id;
+        // cached, and this paints before the browser has drawn anything else
+        if (!formCache[id]) {
+            windowShell(card.title || card.label,
+                '<div class="kb-form-wait"><i class="fa fa-spinner fa-spin"></i></div>', true);
+        }
+
+        fetchForm(id)
+            .done(function (res) {
+                // closed again while it was on its way, or another card opened
+                if (formOpen !== id) { return; }
+                // read it, yes; write it, no. Not a form this reader gets.
+                if (res && res.noedit) { noEditFallback(card); return; }
+                loadAssets(res.assets);
+                windowShell(res.title || card.title || card.label, res.body, false);
+            })
+            .fail(function (xhr) {
+                // locked by a workflow, deleted by somebody else, not this
+                // reader's to edit. Said where the reader is, rather than by
+                // taking them off the board and onto a screen saying it.
+                closeForm();
+                toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
+                if (D.features.drawer) { openDrawer(card.id); }
+            });
+    }
+
+    function noEditFallback(card) {
+        closeForm();
+        if (D.features.drawer) { openDrawer(card.id); return; }
+        location.href = card.url;
+    }
+
+    /* ------------------------------------------------------ saving it --- */
+    function fieldOf($form, key) {
+        var parts = String(key).split('.');
+        var name = parts.shift();
+        $.each(parts, function (i, part) { name += '[' + part + ']'; });
+        var $el = $();
+        try {
+            $el = $form.find('[name="' + name + '"], [name="' + name + '[]"]');
+            if (!$el.length) { $el = $form.find('.' + String(key).replace(/\./g, '_')); }
+        } catch (err) { /* a name that is not a selector: say it on the form */ }
+
+        return $el;
+    }
+
+    function clearFormErrors($form) {
+        $form.find('.has-error').removeClass('has-error');
+        $form.find('.kb-form-err').remove();
+    }
+
+    function showFormErrors($form, errors) {
+        clearFormErrors($form);
+        var $first = null;
+        $.each(errors, function (key, text) {
+            var $group = fieldOf($form, key).closest('.form-group');
+            if (!$group.length) { $group = $form.find('.box-body').first(); }
+            if (!$group.length) { $group = $form; }
+            $group.addClass('has-error');
+            var $where = $group.children('div').first();
+            $('<label class="control-label kb-form-err"></label>')
+                .append('<i class="fa fa-times-circle-o"></i> ')
+                .append(document.createTextNode(text))
+                .prependTo($where.length ? $where : $group);
+            if (!$first) { $first = $group; }
+        });
+        if ($first && $first[0].scrollIntoView) {
+            $first[0].scrollIntoView({ block: 'center' });
+        }
+    }
+
+    // The admin's own reader, which writes the rich text boxes back into
+    // the form before reading it. Falls back to a plain read of the form:
+    // a page with no editor on it has nothing to write back.
+    function formPayload(form) {
+        try {
+            if (window.getFormData) { return getFormData(form); }
+        } catch (err) { /* no tinymce on this page */ }
+
+        return new FormData(form);
+    }
+
+    function saveForm(form, id) {
+        var $form = $(form);
+        var $btn = $form.find('#admin-submit');
+        if ($btn.prop('disabled')) { return; }
+        $btn.prop('disabled', true).addClass('disabled');
+        clearFormErrors($form);
+
+        $.ajax({
+            url: form.action,
+            type: 'POST',
+            data: formPayload(form),
+            processData: false,
+            contentType: false
+        }).done(function (res) {
+            // what it says now is not what it said when it was fetched
+            delete formCache[id];
+            if (!res || !res.saved) {
+                location.href = D.data_url + '/' + id;
+                return;
+            }
+            // Said out loud rather than done here: a board is not always the
+            // only thing on the page, and this is the same word the admin's
+            // own form window sends when it saves from a frame.
+            window.postMessage({
+                exmentFormFrame: 'saved',
+                id: String(res.id),
+                table: String(res.table)
+            }, window.location.origin);
+        }).fail(function (xhr) {
+            $btn.prop('disabled', false).removeClass('disabled');
+            var errors = xhr.responseJSON && xhr.responseJSON.errors;
+            if (errors) {
+                showFormErrors($form, errors);
+                return;
+            }
+            toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
+        });
+    }
+
+    // The form in the frame is a page of this same site, so it says when it
+    // has saved rather than leaving the board to guess by watching the url.
+    $(window).off('message' + NS).on('message' + NS, function (e) {
+        var ev = e.originalEvent || e;
+        if (!ev || ev.origin !== window.location.origin) { return; }
+        var msg = ev.data;
+        if (!msg || !msg.exmentFormFrame) { return; }
+        // another board of another table may be listening on the same page
+        if (String(msg.table) !== String(D.table)) { return; }
+
+        // This reader may read that record but not write it. The window came
+        // back empty rather than with a whole record screen squeezed into it,
+        // so the board shows what a reader without edit rights gets anyway.
+        if (msg.exmentFormFrame === 'noedit') {
+            if (!formOpen) { return; }
+            closeForm();
+            if (D.features.drawer) { openDrawer(msg.id); return; }
+            var readonly = cardById(msg.id);
+            if (readonly) { location.href = readonly.url; }
+            return;
+        }
+        if (msg.exmentFormFrame !== 'saved') { return; }
+
+        // the window belongs to the board that opened it, and only that
+        // board closes it; the record, though, may be drawn on more than one
+        if (formOpen) { closeForm(); }
+        // An editor of the screen's own - the project portal - answers with
+        // this too, and then the toast is the only word the reader gets that
+        // the save went through.
+        var saved = cardById(msg.id);
+        if (saved) {
+            toast(fmt(L.inline_saved, saved.title || saved.label));
+            refreshCards([msg.id]);
+        }
+    });
 
     // grey out the statuses this card may not reach, while it is being dragged
     // Would putting this card in that column break its WIP limit? Returns the
@@ -1279,7 +1987,10 @@ $(function () {
         if (D.cover_column && card.cover) {
             b += '<div class="kb-drawer-cover"><img src="' + esc(card.cover) + '" alt=""></div>';
         }
-        if (D.title_column && card.title) { b += '<div class="kb-drawer-title">' + esc(card.title) + '</div>'; }
+        // the head of the drawer already carries the name of the record
+        if (D.title_column && card.title && card.title !== card.label) {
+            b += '<div class="kb-drawer-title">' + esc(card.title) + '</div>';
+        }
         b += progressHTML(card);
         var tags = labelsHTML(card) + badgeHTML(card);
         if (tags) { b += '<div class="kb-drawer-tags">' + tags + '</div>'; }
@@ -1287,7 +1998,11 @@ $(function () {
         b += '<dt>' + esc(labelOfColumn(D.group_column)) + '</dt><dd>' +
             esc(card.texts[D.group_column] || D.empty_label) + '</dd>';
         $.each(card.fields, function (i, f) {
-            b += '<dt>' + esc(f.label) + '</dt><dd>' + (f.style === 'auto' ? f.html : chipHTML(f)) + '</dd>';
+            // the drawer already prints the column name next to the value, so
+            // an unstyled field shows the value alone rather than the
+            // label-and-value chip the card uses
+            var bare = !cellStyles[f.key];
+            b += '<dt>' + esc(f.label) + '</dt><dd>' + (bare ? f.html : chipHTML(f)) + '</dd>';
         });
         b += '</dl>';
 
@@ -1393,9 +2108,10 @@ $(function () {
         $('#kb-drawer').remove();
         $('#kb-backdrop').remove();
         $('#kb-toast').remove();
+        closePop();
     }
-    $(document).off('pjax:send.exmentkanban').on('pjax:send.exmentkanban', destroyDrawer);
-    $(window).off('beforeunload.exmentkanban').on('beforeunload.exmentkanban', destroyDrawer);
+    $(document).off('pjax:send' + NS).on('pjax:send' + NS, destroyDrawer);
+    $(window).off('beforeunload' + NS).on('beforeunload' + NS, destroyDrawer);
     function labelOfColumn(name) {
         var meta = metaOf(name);
         return meta ? meta.label : name;
@@ -1470,7 +2186,7 @@ $(function () {
         $.ajax({
             url: D.create_url,
             type: 'POST',
-            data: { value: values },
+            data: $.extend({ value: values }, D.embed ? { parent_type: D.embed.type, parent_id: D.embed.id } : {}),
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         }).done(function () {
             toast(fmt(L.created, text), 'fa-plus-circle', 'success');
@@ -1497,12 +2213,16 @@ $(function () {
     function buildFilterPanel() {
         var html = '';
         html += '<div class="kb-f"><label>' + esc(L.keyword) + '</label>' +
-            '<input type="text" class="kb-f-keyword" placeholder="' + esc(L.search) + '"></div>';
+            '<input type="text" class="kb-f-keyword" value="' + esc(keyword) + '" placeholder="' + esc(L.search) + '"></div>';
         $.each(D.filters, function (i, m) {
+            // drawn from the state, not blank: the panel is rebuilt after a
+            // reset and when a view opens with a filter already applied
+            var picked = filters[m.name] || '';
             html += '<div class="kb-f"><label>' + esc(m.label) + '</label><select class="kb-f-select" data-name="' + esc(m.name) + '">' +
                 '<option value="">' + esc(L.all) + '</option>';
             $.each(m.options, function (j, o) {
-                html += '<option value="' + esc(o.key) + '">' + esc(o.label) + '</option>';
+                html += '<option value="' + esc(o.key) + '"' + (String(o.key) === String(picked) ? ' selected' : '') +
+                    '>' + esc(o.label) + '</option>';
             });
             html += '</select></div>';
         });
@@ -1528,8 +2248,8 @@ $(function () {
                 (onlyUnassigned ? ' checked' : '') + '>' + esc(L.only_unassigned) + '</label>';
         }
         // left out rather than shown dead when the board cannot tell who is
-        // looking: an assignee column holding words has no "me" to match
-        if (D.assignee_column && D.me.length) {
+        // looking: a column holding words has no "me" to match
+        if (D.mine_column && D.me.length) {
             html += '<label><input type="checkbox" class="kb-f-mine"' +
                 (onlyMine ? ' checked' : '') + '>' + esc(L.only_mine) + '</label>';
         }
@@ -1608,7 +2328,7 @@ $(function () {
             var offset = parseInt($btn.attr('data-offset'), 10) || 0;
             $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
 
-            $.getJSON(D.more_url, { view: D.view_suuid, key: key, offset: offset, lane: lane })
+            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, key: key, offset: offset, lane: lane }, EMB))
                 .done(function (res) {
                     var cards = (res && res.cards) || [];
                     var seen = {};
@@ -1640,21 +2360,48 @@ $(function () {
                 });
         });
 
+        // ---- inline edit
+        $root.on('click', '.kb-inline-assignee', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var card = cardById($(this).closest('.kb-card').attr('data-id'));
+            if (card && canEditAssignee()) { openAssignPop($(this), card); }
+        });
+        $root.on('click', '.kb-inline-due', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var card = cardById($(this).closest('.kb-card').attr('data-id'));
+            if (card && canEditLimit()) { openDuePop($(this), card); }
+        });
+        $root.on('click', '.kb-saveview-btn', function () { openSaveViewPop($(this)); });
+        // The board scrolls under a popover placed against the page. Caught on
+        // the way down rather than delegated: a scroll event does not bubble,
+        // and the lists it comes from are replaced on every render.
+        root.addEventListener('scroll', closePop, true);
+
+        // ---- the form of the card under the pointer, before it is asked for
+        $root.on('mouseenter', '.kb-card', function () { warmForm(this.dataset.id); });
+        $root.on('mouseleave', '.kb-card', stopWarming);
+
         // ---- card click / selection
         $root.on('click', '.kb-card', function (e) {
             if ($(this).hasClass('dragging')) { return; }
             if (e.target.tagName === 'A') { return; }
+            // an editor on the card is not a way into the record screen
+            if ($(e.target).closest('.kb-inline').length) { return; }
             var id = this.dataset.id;
+            if ($(e.target).closest('.kb-detail-btn').length) { openDrawer(id); return; }
             if (D.features.bulk && (e.shiftKey || e.ctrlKey)) {
                 e.preventDefault();
                 if (sel[id]) { delete sel[id]; } else { sel[id] = true; }
                 render();
                 return;
             }
-            if (D.features.drawer) { openDrawer(id); }
+            if (canOpenEditor()) { openEditor(id); }
+            else if (D.features.drawer) { openDrawer(id); }
             else {
                 var card = cardById(id);
-                if (card) { location.href = card.url; }
+                if (card && !(window.ppNavigate && window.ppNavigate(card.url))) { location.href = card.url; }
             }
         });
 
@@ -1790,12 +2537,17 @@ $(function () {
 
     /* ------------------------------------------------------------ init --- */
     initColSeq();
+    // the view first, then this browser: a person who switched the filter off
+    // here means it to stay off, whatever the view was saved with
+    applyPreset();
     // before the panel is built, so a remembered "only mine" comes back with
     // its checkbox already ticked instead of filtering behind the user's back
     loadPrefs();
     buildFilterPanel();
     bindControls();
     syncMineBtn();
+    // the toolbar box is not part of the panel, so it is filled in here
+    $(root).find('.kb-search').val(keyword);
     render();
 });
 </script>

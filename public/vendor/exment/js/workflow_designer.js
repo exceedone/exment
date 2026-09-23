@@ -129,8 +129,23 @@ var Exment;
     /* =====================================================================
      * SCAN — hasManyTable の DOM からアクション一覧を読み取る
      * ===================================================================== */
+    // Two elements can share one name. The admin core prints an empty
+    // <input type="hidden"> in front of every <select> so an untouched select
+    // still posts a value - the "next status" of a common workflow is one.
+    // querySelector hands back that empty twin, so look for the editable
+    // element first and fall back to the first match only when there is none
+    // (valueModal fields are a lone hidden input and must still be found).
     function fieldEl(tr, suffix) {
-        return tr.querySelector('[name$="[' + suffix + ']"]');
+        var els = tr.querySelectorAll('[name$="[' + suffix + ']"]');
+        if (!els.length) {
+            return null;
+        }
+        for (var i = 0; i < els.length; i++) {
+            if (els[i].tagName !== 'INPUT' || els[i].type !== 'hidden') {
+                return els[i];
+            }
+        }
+        return els[0];
     }
 
     function fieldVal(tr, suffix) {

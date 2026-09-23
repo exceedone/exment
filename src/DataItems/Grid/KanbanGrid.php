@@ -3,18 +3,25 @@
 namespace Exceedone\Exment\DataItems\Grid;
 
 use ExmentAdminCore\Admin\Form;
+use Exceedone\Exment\Model\CellStylePreset;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Exceedone\Exment\Controllers\CustomValueController;
 use Exceedone\Exment\ColumnItems\GridCellStyle;
 use ExmentAdminCore\Admin\Grid\Exporter;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\ViewType;
 
 /**
  * Kanban view.
@@ -61,22 +68,6 @@ class KanbanGrid extends GridBase
     public const POS_META = 'meta';
     public const POS_META2 = 'meta2';
     public const POS_FOOT = 'foot';
-
-    /**
-     * Card field appearance.
-     */
-    public const STYLE_AUTO = 'auto';
-    public const STYLE_TEXT = 'text';
-    public const STYLE_TAG = 'tag';
-    public const STYLE_PILL = 'pill';
-    public const STYLE_DOT = 'dot';
-    public const STYLE_LVL = 'lvl';
-    public const STYLE_STATE = 'state';
-    public const STYLE_CHIP = 'chip';
-    public const STYLE_POINT = 'point';
-    public const STYLE_FLAG = 'flag';
-    public const STYLE_AVATAR = 'avatar';
-    public const STYLE_ICONTEXT = 'icontext';
 
     /**
      * How the card cover image fills its box.
@@ -127,20 +118,30 @@ class KanbanGrid extends GridBase
     // @phpstan-ignore-next-line
     public function grid($callback = null)
     {
+        // An embedded board draws no toolbar - whatever it is embedded in
+        // has its own - so the buttons are built and then dropped by the
+        // view. Skipping them takes a fifth off the time an embedded board
+        // costs, and the export grid goes with them: the only thing that
+        // asks for a file is the button that is no longer there, and the
+        // request that would carry one away cannot reach an embedded board.
+        $embed = $this->isEmbed();
+
         // An export request lands on the board url. The grid it is handed
         // renders no table: render() runs the exporter, which sends the file
         // and exits - so the board below is never built for those requests.
-        $export_grid = $this->getExportGrid();
-        if (!is_nullorempty(request(Exporter::$queryName))) {
+        $export_grid = $embed ? null : $this->getExportGrid();
+        if (!$embed && !is_nullorempty(request(Exporter::$queryName))) {
             return $export_grid;
         }
 
         // same buttons in the same order as the data grid toolbar
         $tools = [];
-        $this->setViewMenuButton($tools, true);
-        $this->setTableMenuButton($tools, true);
-        $this->setNewButton($tools, true);
-        $this->setExportImportButton($tools, $export_grid, true);
+        if (!$embed) {
+            $this->setViewMenuButton($tools, true);
+            $this->setTableMenuButton($tools, true);
+            $this->setNewButton($tools, true);
+            $this->setExportImportButton($tools, $export_grid, true);
+        }
 
         // The view is unusable until the board columns can be built. Show the
         // reason instead of an empty board, so the user knows where to go.
@@ -156,6 +157,7 @@ class KanbanGrid extends GridBase
 
         if (isset($error)) {
             return view('exment::widgets.kanban', [
+            'embed' => $this->isEmbed(),
                 'tools' => $tools,
                 'error' => $error,
                 'board' => [],
@@ -191,6 +193,7 @@ class KanbanGrid extends GridBase
         }
 
         return view('exment::widgets.kanban', [
+            'embed' => $this->isEmbed(),
             'tools' => $tools,
             'error' => null,
             'board' => $this->buildBoard($group_column, $workflow, $records, $hide_keys),
@@ -218,6 +221,7 @@ class KanbanGrid extends GridBase
         $groupables = $context['groupables'];
         $title_column = $context['title_column'];
         $assignee_column = $context['assignee_column'];
+        $mine_column = $context['mine_column'];
         $limit_column = $context['limit_column'];
         $age_column = $context['age_column'];
         $ai_column = $context['ai_column'];
@@ -240,7 +244,7 @@ class KanbanGrid extends GridBase
 
         // the workflow status behaves like one more groupable/filterable column
         $groupable_meta = $this->buildColumnMeta($groupables);
-        $filter_meta = $this->buildColumnMeta($this->getFilterColumns($groupables, $assignee_column, $card_fields, $labels_column));
+        $filter_meta = $this->buildColumnMeta($context['filter_columns']);
         $colors = $this->buildColors($value_columns);
         if ($is_workflow) {
             $status_meta = [
@@ -268,6 +272,18 @@ class KanbanGrid extends GridBase
             'update_url' => admin_url('webapi/data', [$this->custom_table->table_name]),
             'create_url' => admin_url('webapi/data', [$this->custom_table->table_name]),
             'data_url' => admin_url('data', [$this->custom_table->table_name]),
+            'table' => $this->custom_table->table_name,
+            // Where a card is opened for editing. The board knows nothing
+            // about forms - it asks whoever drew it. On the data screen that
+            // is the admin's own edit form, served bare for a frame; a screen
+            // that has an editor of its own names a function instead, and the
+            // reader never leaves the screen they were already in.
+            'editor' => [
+                'url' => admin_url('data', [$this->custom_table->table_name])
+                    . '/{id}/edit?' . CustomValueController::FORM_FRAME_KEY . '=1',
+                'hook' => $this->getEditorHook(),
+            ],
+            'embed' => $this->isEmbed() ? ['type' => $this->embed_parent_type, 'id' => $this->embed_parent_id] : null,
             'now' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
 
             'source' => $is_workflow ? static::SOURCE_WORKFLOW : static::SOURCE_COLUMN,
@@ -279,7 +295,24 @@ class KanbanGrid extends GridBase
             'swimlane_column' => isset($swimlane_column) ? $swimlane_column->column_name : '',
             'title_column' => isset($title_column) ? $title_column->column_name : '',
             'assignee_column' => isset($assignee_column) ? $assignee_column->column_name : '',
+            // "only mine" is read against this one. The assignee column unless
+            // the view says otherwise, so a board of requests can follow the
+            // person who raised the work rather than the one doing it.
+            'mine_column' => isset($mine_column) ? $mine_column->column_name : '',
             'limit_column' => isset($limit_column) ? $limit_column->column_name : '',
+            // What a card may be edited with without leaving the board: the
+            // two fields a stand-up changes most often. Both carry the label
+            // and the shape of the editor the browser has to draw.
+            'inline' => [
+                'assignee' => isset($assignee_column) ? [
+                    'label' => strval($assignee_column->column_view_name),
+                    'multiple' => $assignee_column->isMultipleEnabled(),
+                ] : null,
+                'limit' => isset($limit_column) ? [
+                    'label' => strval($limit_column->column_view_name),
+                    'time' => (array_get($limit_column, 'column_type') == ColumnType::DATETIME),
+                ] : null,
+            ],
             'age_column' => isset($age_column) ? $age_column->column_name : '',
             'ai_column' => isset($ai_column) ? $ai_column->column_name : '',
             'label_column' => $this->getQuickAddColumnName($title_column),
@@ -338,10 +371,23 @@ class KanbanGrid extends GridBase
 
             'groupables' => $groupable_meta,
             'filters' => $filter_meta,
+            // what the board starts narrowed to, when it was saved that way
+            'preset' => $this->buildPreset($filter_meta, $groupable_meta),
+            // An embedded board belongs to whatever it is embedded in, which
+            // picks the view itself - a new one there would never be opened.
+            // A view is part of the table's settings, so whoever may only read
+            // the records is not offered the button either.
+            'save_view_url' => $this->preview || $this->isEmbed()
+                || !$this->custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
+                ? '' : admin_url('data', [$this->custom_table->table_name, 'kanbanSaveView']),
             'assignees' => isset($assignee_column) ? $this->buildOptions($assignee_column) : [],
-            // assignee values that stand for whoever is looking at the board
-            'me' => $this->getMyKeys($assignee_column),
+            // values of the "mine" column that stand for whoever is looking
+            'me' => $this->getMyKeys($mine_column),
             'colors' => $colors,
+            // how each card column is painted, in the data list's own terms.
+            // Empty for a board that never picked a preset and whose columns
+            // carry no appearance either - then the chips below take over.
+            'card_styles' => (object) $this->buildCardStyles($card_fields),
 
             'wip' => $this->getWipLimits($group_column, $workflow),
             'wip_enforce' => $this->getWipEnforce(),
@@ -349,23 +395,28 @@ class KanbanGrid extends GridBase
             // may leave, written where the work happens instead of in a wiki
             'policies' => (object) $this->getPolicies($group_column, $workflow),
             'done_keys' => $this->getDoneKeys($group_column, $workflow, $statuses),
+            // Every switch here starts on in the setting form, and the form
+            // shows a switch it has no value for as on - its default. So a view
+            // saved before the switch existed, or built by a template that
+            // never mentions it, has to be read as on here too. Read as off,
+            // the setting screen says one thing and the board does another,
+            // until the view happens to be saved again.
             'features' => [
-                'kpi' => boolval($this->custom_view->kanban_kpi),
-                'quickadd' => boolval($this->custom_view->kanban_quickadd) && $this->isCreatable(),
+                'kpi' => boolval($this->custom_view->kanban_kpi ?? true),
+                // Opening a card means opening its form, the way every other
+                // screen in the admin opens a record. Switched off, a card
+                // opens the read-only drawer instead - which is all a reader
+                // without edit rights can be given anyway.
+                'editform' => boolval($this->custom_view->kanban_editform ?? true) && $this->isEditable(),
+                'quickadd' => boolval($this->custom_view->kanban_quickadd ?? true) && $this->isCreatable(),
                 // one record at a time is the only safe way through a workflow,
                 // so a bulk status change is offered for plain columns only
-                'bulk' => boolval($this->custom_view->kanban_bulk) && $this->isEditable(),
-                'bulk_move' => boolval($this->custom_view->kanban_bulk) && $this->isEditable() && !$is_workflow,
-                'drawer' => boolval($this->custom_view->kanban_drawer),
+                'bulk' => boolval($this->custom_view->kanban_bulk ?? true) && $this->isEditable(),
+                'bulk_move' => boolval($this->custom_view->kanban_bulk ?? true) && $this->isEditable() && !$is_workflow,
+                'drawer' => boolval($this->custom_view->kanban_drawer ?? true),
                 // The drawer is the only place the history is shown, and only
                 // a workflow keeps one.
-                //
-                // The switch was added after these views were saved, so it is
-                // missing from most of them - and the form shows a missing
-                // switch as on (its default). Reading it as off here made the
-                // setting screen say one thing and the board do another, until
-                // the view happened to be saved again.
-                'history' => $is_workflow && boolval($this->custom_view->kanban_drawer)
+                'history' => $is_workflow && boolval($this->custom_view->kanban_drawer ?? true)
                     && boolval($this->custom_view->kanban_history ?? true),
                 'ai' => isset($assignee_column) && isset($ai_column) && $this->isEditable(),
             ],
@@ -479,12 +530,12 @@ class KanbanGrid extends GridBase
     {
         // the moves are only ever used by drag and drop and by the drawer
         $with_actions = !$this->preview && isset($workflow)
-            && ($this->isEditable() || boolval($this->custom_view->kanban_drawer));
+            && ($this->isEditable() || boolval($this->custom_view->kanban_drawer ?? true));
 
         // one option list shared by every card, not one lookup per card
         $labels_options = [];
         if (isset($labels_column)) {
-            foreach (static::columnValueOptions($labels_column) as $key => $label) {
+            foreach ($this->boardValueOptions($labels_column) as $key => $label) {
                 $labels_options[strval($key)] = strval($label);
             }
         }
@@ -497,10 +548,18 @@ class KanbanGrid extends GridBase
         // CustomColumn::$column_item: that instance is shared for the whole
         // request, and the options set below would follow it everywhere.
         $items = [];
+        // Columns that hold more than one value. A board key is a single
+        // value by nature, so those columns are flattened to their first -
+        // but the filter panel and "only mine" have to see all of them, or
+        // the second person on a card is invisible to both.
+        $multiple_columns = [];
         foreach ($value_columns as $column_name => $custom_column) {
             $item = CustomItem::getItem($custom_column);
             if (isset($item)) {
                 $items[$column_name] = $item->options(['format' => null, 'disable_currency_symbol' => false]);
+            }
+            if (method_exists($custom_column, 'isMultipleEnabled') && $custom_column->isMultipleEnabled()) {
+                $multiple_columns[$column_name] = true;
             }
         }
 
@@ -508,6 +567,7 @@ class KanbanGrid extends GridBase
         foreach ($records as $record) {
             $values = [];
             $texts = [];
+            $multi = [];
             foreach ($value_columns as $column_name => $custom_column) {
                 $item = array_get($items, $column_name);
                 if (!isset($item)) {
@@ -516,8 +576,17 @@ class KanbanGrid extends GridBase
                     continue;
                 }
                 $item->setCustomValue($record);
-                $values[$column_name] = static::normalizeKey($item->value());
+                $raw = $item->value();
+                $values[$column_name] = static::normalizeKey($raw);
                 $texts[$column_name] = strval($item->text());
+                if (isset($multiple_columns[$column_name])) {
+                    $keys = static::normalizeKeys($raw);
+                    // one value is already in $values; sending it twice would
+                    // grow every card payload for nothing
+                    if (count($keys) > 1) {
+                        $multi[$column_name] = $keys;
+                    }
+                }
             }
 
             $wf = null;
@@ -536,18 +605,27 @@ class KanbanGrid extends GridBase
                     continue;
                 }
 
+                // What this field is worth as a board key: which color the
+                // value wears, and which icon the row named for it. Read off
+                // $values for a column of this table, which has it already,
+                // and off the field's own item for everything else - the
+                // workflow status, the parent record, a column of a parent
+                // table, none of which are board columns.
+                $value = isset($card_field['custom_column'])
+                    ? array_get($values, $card_field['custom_column']->column_name, '')
+                    : static::normalizeKey($item->value());
+
                 $fields[] = [
                     'label' => $card_field['label'],
                     'html' => strval($html),
                     'text' => $text,
                     'name' => $card_field['name'],
-                    'value' => isset($card_field['custom_column'])
-                        ? array_get($values, $card_field['custom_column']->column_name, '')
-                        : '',
+                    // which row of the card setting this came from, so the
+                    // browser can look its painting up in `card_styles`
+                    'key' => $card_field['key'],
+                    'value' => $value,
                     'pos' => $card_field['pos'],
-                    'style' => $card_field['style'],
-                    'icon' => static::resolveIcon($card_field['icon'], isset($card_field['custom_column'])
-                        ? array_get($values, $card_field['custom_column']->column_name, '') : ''),
+                    'icon' => static::resolveIcon($card_field['icon'], $value),
                 ];
             }
 
@@ -574,6 +652,9 @@ class KanbanGrid extends GridBase
                     ? strval(array_get($texts, $title_column->column_name, '')) : '',
                 'url' => $record->getUrl(),
                 'values' => $values,
+                // only the columns that carry more than one value, so a board
+                // of single-value columns pays nothing for this
+                'multi' => (object) $multi,
                 'texts' => $texts,
                 'fields' => $fields,
                 'cover' => isset($cover_column) ? $this->buildCoverUrl($record, $cover_column) : '',
@@ -661,13 +742,91 @@ class KanbanGrid extends GridBase
                 'custom_column' => (isset($custom_column) && $custom_column->custom_table_id == $this->custom_table->id) ? $custom_column : null,
                 'label' => strval($item->label()),
                 'name' => isset($custom_column) ? $custom_column->column_name : ('c' . $custom_view_column->id),
+                // The row is the key, not the column: the same column may be
+                // put on the card twice, at two positions, wearing two looks.
+                'key' => strval($custom_view_column->id),
                 'pos' => $custom_view_column->kanban_position ?: static::POS_META,
-                'style' => $custom_view_column->kanban_style ?: static::STYLE_AUTO,
+                'cell' => $this->getCardCellStyle($custom_view_column, $custom_column),
                 'icon' => strval($custom_view_column->kanban_icon),
             ];
         }
 
         return $card_fields;
+    }
+
+
+    /**
+     * How one card column is painted, in the same terms the data list uses.
+     *
+     * Two levels, read in this order:
+     *
+     *   1. the preset this board picked for the row. A view exists to show
+     *      the same table another way, so what it says wins - exactly as it
+     *      does in the data list.
+     *   2. the column's own appearance, preset or hand-made. A column that
+     *      already knows how it looks now looks that way on a card too,
+     *      without anyone configuring the board.
+     *
+     * A row with no column of this table behind it - the workflow status, a
+     * system column, the parent record - can only take the first, and takes
+     * the preset as it stands: per-value colors are a column's own setting,
+     * and there is no column here to hold them.
+     *
+     * @param \Exceedone\Exment\Model\CustomViewColumn $custom_view_column
+     * @param CustomColumn|null $custom_column
+     * @return array<string, mixed>|null
+     */
+    protected function getCardCellStyle($custom_view_column, $custom_column)
+    {
+        $preset_key = $custom_view_column->getOption('grid_preset');
+
+        if (!isset($custom_column)) {
+            $options = CellStylePreset::resolveOptions($preset_key);
+
+            return is_nullorempty($options) ? null : $options;
+        }
+
+        if (!is_nullorempty($preset_key)) {
+            $cell_style = GridCellStyle::make($custom_column, $preset_key);
+
+            return isset($cell_style) ? $cell_style->toOptions() : null;
+        }
+
+        $cell_style = GridCellStyle::make($custom_column);
+        if (!isset($cell_style)) {
+            return null;
+        }
+
+        $options = $cell_style->toOptions();
+
+        // A column that named colors but no shape has nothing to lend the
+        // card. The data list draws such a value plainly - it has a header
+        // row saying which column it is - while a card would be left with a
+        // bare value and no way to tell what it is a value of.
+        return array_get($options, 'grid_style') === GridCellStyle::STYLE_PLAIN ? null : $options;
+    }
+
+
+    /**
+     * The painting of every styled card column, by row.
+     *
+     * Sent once for the board instead of once per card: the settings are the
+     * same on all of them, and a per-value color list repeated three hundred
+     * times is a payload nobody reads.
+     *
+     * @param array<int, array<string, mixed>> $card_fields
+     * @return array<string, array<string, mixed>>
+     */
+    protected function buildCardStyles(array $card_fields)
+    {
+        $styles = [];
+        foreach ($card_fields as $card_field) {
+            if (!is_nullorempty($card_field['cell'])) {
+                $styles[$card_field['key']] = $card_field['cell'];
+            }
+        }
+
+        return $styles;
     }
 
 
@@ -682,6 +841,14 @@ class KanbanGrid extends GridBase
      */
     protected function getFilterColumns(array $groupables, $assignee_column, array $card_fields, $labels_column = null)
     {
+        // What the view asked for, when it asked. Picking up every column the
+        // board happens to read gives a wide table a panel of a dozen selects,
+        // most of which nobody filters by.
+        $chosen = $this->getChosenFilterColumns();
+        if (!empty($chosen)) {
+            return $chosen;
+        }
+
         $columns = [];
         foreach ($groupables as $custom_column) {
             $columns[$custom_column->id] = $custom_column;
@@ -700,6 +867,48 @@ class KanbanGrid extends GridBase
         }
 
         return array_values($columns);
+    }
+
+
+    /**
+     * Filter columns the view names itself, in the order they were picked.
+     *
+     * Empty means "the view has not said", not "no filters": an empty panel
+     * would leave a board with no way to narrow itself down at all.
+     *
+     * @return array<int, CustomColumn>
+     */
+    protected function getChosenFilterColumns()
+    {
+        $columns = [];
+        foreach ((array)$this->custom_view->kanban_filter_column_ids as $column_id) {
+            $custom_column = $this->getColumnById($column_id);
+            // a column since dropped from the table, or one whose values
+            // cannot be listed, has nothing to put in the panel
+            if (isset($custom_column) && static::isValueListedColumn($custom_column)) {
+                $columns[$custom_column->id] = $custom_column;
+            }
+        }
+
+        return array_values($columns);
+    }
+
+
+    /**
+     * The column the "only mine" filter is read against.
+     *
+     * @param CustomColumn|null $assignee_column
+     * @return CustomColumn|null
+     */
+    protected function getMineColumn($assignee_column)
+    {
+        $custom_column = $this->getColumnById($this->custom_view->kanban_mine_column_id);
+        if (isset($custom_column) && static::isValueListedColumn($custom_column)) {
+            return $custom_column;
+        }
+
+        // on most boards "mine" and "assigned to me" are the same sentence
+        return $assignee_column;
     }
 
 
@@ -737,7 +946,7 @@ class KanbanGrid extends GridBase
             return $options;
         }
 
-        foreach (static::columnValueOptions($custom_column) as $key => $label) {
+        foreach ($this->boardValueOptions($custom_column) as $key => $label) {
             $options[] = ['key' => strval($key), 'label' => strval($label)];
         }
 
@@ -761,11 +970,11 @@ class KanbanGrid extends GridBase
             // the data list already lets a column say what each value looks
             // like. Reuse those colors so one value never wears two of them,
             // and fall back to the palette for the values left unset.
-            $picked = GridCellStyle::parseValueColors($custom_column->getOption('grid_value_colors'));
+            $picked = GridCellStyle::valueColorsOf($custom_column);
 
             $map = [];
             $index = 0;
-            foreach (static::columnValueOptions($custom_column) as $key => $label) {
+            foreach ($this->boardValueOptions($custom_column) as $key => $label) {
                 $color = array_get($picked, strval($key) . '.color');
                 $map[strval($key)] = $color ?: static::PALETTE[$index % count(static::PALETTE)];
                 $index++;
@@ -840,12 +1049,20 @@ class KanbanGrid extends GridBase
             'card_fields' => $this->getCardFields(),
         ];
 
+        $context['mine_column'] = $this->getMineColumn($context['assignee_column']);
+        $context['filter_columns'] = $this->getFilterColumns(
+            $context['groupables'],
+            $context['assignee_column'],
+            $context['card_fields'],
+            $context['labels_column']
+        );
+
         // every column whose raw value the browser needs
         $value_columns = [];
         foreach ($context['groupables'] as $custom_column) {
             $value_columns[$custom_column->column_name] = $custom_column;
         }
-        foreach (['title_column', 'assignee_column', 'limit_column', 'age_column', 'ai_column', 'wip_column',
+        foreach (['title_column', 'assignee_column', 'mine_column', 'limit_column', 'age_column', 'ai_column', 'wip_column',
             'labels_column', 'badge_column', 'sum_column', 'progress_column', ] as $name) {
             $custom_column = $context[$name];
             if (isset($custom_column)) {
@@ -856,6 +1073,11 @@ class KanbanGrid extends GridBase
             if (isset($card_field['custom_column'])) {
                 $value_columns[$card_field['custom_column']->column_name] = $card_field['custom_column'];
             }
+        }
+        // A filter column named by the view need not be on the card at all, and
+        // the panel can only match what the card carries.
+        foreach ($context['filter_columns'] as $custom_column) {
+            $value_columns[$custom_column->column_name] = $custom_column;
         }
         $context['value_columns'] = $value_columns;
 
@@ -880,6 +1102,7 @@ class KanbanGrid extends GridBase
         // it already made
         $this->custom_view->resetSearchService();
         $this->custom_view->filterSortModel($query);
+        $this->applyEmbedFilter($query);
         if (isset($workflow)) {
             // without this every card would run its own query for the status
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
@@ -1064,7 +1287,7 @@ class KanbanGrid extends GridBase
         if (!isset($group_column)) {
             return $keys;
         }
-        foreach ($group_column->createSelectOptions() as $key => $label) {
+        foreach ($this->boardValueOptions($group_column) as $key => $label) {
             $keys[] = strval($key);
         }
 
@@ -1102,6 +1325,7 @@ class KanbanGrid extends GridBase
         $query = $this->custom_table->getValueQuery();
         $this->custom_view->resetSearchService();
         $this->custom_view->filterSortModel($query, ['sort' => false]);
+        $this->applyEmbedFilter($query);
         if (!empty($hide_keys)) {
             $this->applyBoardKeys($query, $group_column, $workflow, $hide_keys, true);
         }
@@ -1374,7 +1598,7 @@ class KanbanGrid extends GridBase
 
                 if (static::isSelectableColumn($custom_column)) {
                     $keys = [];
-                    foreach ($custom_column->createSelectOptions() as $option_key => $label) {
+                    foreach ($this->boardValueOptions($custom_column) as $option_key => $label) {
                         if (mb_stripos(strval($label), $keyword) !== false) {
                             $keys[] = strval($option_key);
                         }
@@ -1511,6 +1735,238 @@ class KanbanGrid extends GridBase
 
 
     /**
+     * Board state the view opens with, checked against the board it belongs to.
+     *
+     * A preset names columns and values that were there when it was saved. A
+     * column dropped from the filter panel since, or a value deleted from the
+     * table, would otherwise hide every card and leave no clue why - so
+     * anything the board can no longer match is left out here.
+     *
+     * @param array<int, array<string, mixed>> $filter_meta
+     * @param array<int, array<string, mixed>> $groupable_meta
+     * @return array<string, mixed>|null
+     */
+    protected function buildPreset(array $filter_meta, array $groupable_meta)
+    {
+        $preset = $this->custom_view->kanban_preset;
+        if (!is_array($preset) || empty($preset)) {
+            return null;
+        }
+
+        $option_keys = [];
+        foreach ($filter_meta as $meta) {
+            $option_keys[$meta['name']] = array_map(function ($option) {
+                return strval($option['key']);
+            }, $meta['options']);
+        }
+        $groupable_names = array_column($groupable_meta, 'name');
+
+        $filters = [];
+        foreach ((array)array_get($preset, 'filters') as $name => $value) {
+            $value = strval($value);
+            if ($value !== '' && isset($option_keys[$name]) && in_array($value, $option_keys[$name], true)) {
+                $filters[$name] = $value;
+            }
+        }
+
+        $group = strval(array_get($preset, 'group'));
+        $swimlane = strval(array_get($preset, 'swimlane'));
+
+        $only = [];
+        foreach ((array)array_get($preset, 'only') as $name => $value) {
+            if (boolval($value)) {
+                $only[$name] = true;
+            }
+        }
+
+        return [
+            'filters' => (object) $filters,
+            'keyword' => strval(array_get($preset, 'keyword')),
+            'group' => in_array($group, $groupable_names, true) ? $group : '',
+            'swimlane' => in_array($swimlane, $groupable_names, true) ? $swimlane : '',
+            'only' => (object) $only,
+        ];
+    }
+
+
+    /**
+     * Save what is on screen as a new kanban view of this table.
+     *
+     * The board filters in the browser, so these conditions are not view
+     * filters: they are the state the new view opens with. Everything else -
+     * the card fields, the view's own filters and sorts, every kanban setting -
+     * is copied from the view the board was drawn from, so the new view is the
+     * same board with the narrowing already applied.
+     *
+     * @param string $name
+     * @param array<string, mixed> $state
+     * @return CustomView
+     */
+    public function saveAsView(string $name, array $state)
+    {
+        $source = $this->custom_view;
+
+        $view = new CustomView();
+        $view->custom_table_id = $this->custom_table->id;
+        // personal by default: a board narrowed to one person's work does not
+        // belong in everybody's view list. It can be shared afterwards, the
+        // same way any other user view is.
+        $view->view_type = ViewType::USER;
+        $view->view_kind_type = ViewKindType::KANBAN;
+        $view->view_view_name = $name;
+        $view->options = $source->options;
+        $view->default_flg = false;
+        $view->kanban_preset = $this->sanitizeState($state);
+        $view->saveOrFail();
+
+        // Exment makes a new view the default when the user has none of their
+        // own yet, and that decides what the table opens with. Naming a
+        // narrowed board is not a request to be shown it from now on - so the
+        // flag is put back, past the model events that would set it again.
+        CustomView::withoutGlobalScopes()->where('id', $view->id)->update(['default_flg' => false]);
+        $view->default_flg = false;
+
+        $view->copyFromDefaultViewColumns($source);
+
+        // replicated rather than field by field: a condition carries more than
+        // the three columns it is written with - the related table, the value
+        // id, its own options - and a copy missing one of them filters
+        // differently from the board it was saved off. The suuid is left out
+        // so the copy gets its own; it is the key a template matches on.
+        $this->copyViewChildren($view->custom_view_filters(), $source->custom_view_filters_cache, $view->id);
+        $this->copyViewChildren($view->custom_view_sorts(), $source->custom_view_sorts_cache, $view->id);
+
+        return $view;
+    }
+
+
+    /**
+     * Copy the rows of one view relation onto another view.
+     *
+     * @param \Illuminate\Database\Eloquent\Relations\HasMany $relation
+     * @param \Illuminate\Support\Collection $rows
+     * @param mixed $custom_view_id
+     * @return void
+     */
+    protected function copyViewChildren($relation, $rows, $custom_view_id)
+    {
+        $children = [];
+        foreach ($rows as $from) {
+            $child = $from->replicate(['suuid']);
+            $child->custom_view_id = $custom_view_id;
+            $children[] = $child;
+        }
+        if (!empty($children)) {
+            $relation->saveMany($children);
+        }
+    }
+
+
+    /**
+     * The board state as it may be written to a view.
+     *
+     * Whatever the browser sends is narrowed to the columns of this table and
+     * to plain strings and flags here, before it reaches the settings of a
+     * saved view.
+     *
+     * @param array<string, mixed> $state
+     * @return array<string, mixed>
+     */
+    protected function sanitizeState(array $state)
+    {
+        $names = array_keys($this->custom_table->custom_columns_cache->pluck('column_name', 'column_name')->toArray());
+        // the workflow status is grouped and filtered like a column, but is
+        // not one
+        $names[] = static::WORKFLOW_KEY;
+
+        $filters = [];
+        foreach ((array)array_get($state, 'filters') as $name => $value) {
+            $value = strval($value);
+            if ($value !== '' && in_array($name, $names, true)) {
+                $filters[$name] = $value;
+            }
+        }
+
+        $only = [];
+        foreach (['over', 'unassigned', 'mine', 'blocked', 'expedite'] as $flag) {
+            if (boolval(array_get($state, 'only.' . $flag))) {
+                $only[$flag] = true;
+            }
+        }
+
+        $group = strval(array_get($state, 'group'));
+        $swimlane = strval(array_get($state, 'swimlane'));
+
+        return [
+            'filters' => $filters,
+            'keyword' => mb_substr(trim(strval(array_get($state, 'keyword'))), 0, 100),
+            'group' => in_array($group, $names, true) ? $group : '',
+            'swimlane' => in_array($swimlane, $names, true) ? $swimlane : '',
+            'only' => $only,
+        ];
+    }
+
+
+    /**
+     * Rebuild single cards by id, after they have been edited on the board.
+     *
+     * An inline edit changes more of a card than the value it wrote: the chip
+     * on the card, the colour, the label and the "entered" stamp all come from
+     * the server. Reading the card back is both shorter and safer than
+     * rebuilding those in the browser.
+     *
+     * A card the view no longer matches - the edit moved it out of the view's
+     * own filter - comes back missing, and the board drops it. That is the
+     * right answer: it is no longer a card of this view.
+     *
+     * @param array<int, mixed> $ids
+     * @return array<string, mixed>
+     */
+    public function cardsOf(array $ids)
+    {
+        $ids = array_values(array_filter(array_map('strval', $ids), function ($id) {
+            return $id !== '' && ctype_digit($id);
+        }));
+        // the board asks for the one card it has just written, a handful at
+        // the very most after a bulk change
+        $ids = array_slice($ids, 0, 100);
+        if (empty($ids)) {
+            return ['cards' => []];
+        }
+
+        $group_column = null;
+        $workflow = null;
+        if ($this->getSource() == static::SOURCE_WORKFLOW) {
+            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+        } else {
+            $group_column = $this->getGroupColumn();
+        }
+        if (!isset($workflow) && !isset($group_column)) {
+            return ['cards' => []];
+        }
+
+        $hide_keys = $this->getHideKeys($group_column, $workflow);
+        $query = $this->newBoardQuery($group_column, $workflow, $hide_keys);
+        $records = $query->whereIn($this->custom_table->getValueModel()->getTable() . '.id', $ids)->get();
+
+        $context = $this->buildCardContext($group_column, $workflow);
+
+        return [
+            'cards' => $this->buildCards(
+                $records,
+                $context['value_columns'],
+                $context['card_fields'],
+                $context['title_column'],
+                $workflow,
+                $context['statuses'],
+                $context['cover_column'],
+                $context['labels_column']
+            ),
+        ];
+    }
+
+
+    /**
      * Board columns the view leaves out.
      *
      * @param CustomColumn|null $group_column
@@ -1595,11 +2051,70 @@ class KanbanGrid extends GridBase
             }
         }
 
+        foreach ($this->lookupDoneKeys($group_column) as $key) {
+            if (!in_array($key, $keys)) {
+                $keys[] = $key;
+            }
+        }
+
         $prefix = $this->getSettingPrefix($group_column, $workflow);
         foreach ((array)$this->custom_view->kanban_done_keys as $value) {
             $key = static::stripSettingPrefix($value, $prefix);
             if (!is_null($key) && !in_array($key, $keys)) {
                 $keys[] = $key;
+            }
+        }
+
+        return $keys;
+    }
+
+
+    /**
+     * Board columns that a lookup table marks as finished itself.
+     *
+     * A per project status list cannot be named in the view setting: the ids
+     * differ in every project and the view is shared by all of them. The list
+     * carries the answer instead - one yes/no column on the table the group
+     * column points at, which is how such a list says "past this one the work
+     * is over".
+     *
+     * Only read when there is exactly one such column. Two would be a guess,
+     * and a board that quietly calls the wrong lane finished is worse than one
+     * that calls none.
+     *
+     * @param CustomColumn|null $group_column
+     * @return array<int, string>
+     */
+    protected function lookupDoneKeys($group_column)
+    {
+        if (!isset($group_column) || static::normalizedColumnType($group_column) != ColumnType::SELECT_TABLE) {
+            return [];
+        }
+        $target = $group_column->select_target_table;
+        if (!isset($target)) {
+            return [];
+        }
+
+        $flags = $target->custom_columns_cache->filter(function ($custom_column) {
+            return in_array(array_get($custom_column, 'column_type'), [ColumnType::YESNO, ColumnType::BOOLEAN]);
+        });
+        if ($flags->count() !== 1) {
+            return [];
+        }
+        $column_name = $flags->first()->column_name;
+
+        // the same rows boardValueOptions() turned into board columns
+        $query = $target->getValueModel()->query();
+        $scope = $this->embedScope($group_column);
+        if (isset($scope)) {
+            $query->where('parent_type', $scope['parent_type'])
+                ->where('parent_id', $scope['parent_id']);
+        }
+
+        $keys = [];
+        foreach ($query->get() as $value) {
+            if (boolval(array_get($value->value, $column_name))) {
+                $keys[] = strval($value->id);
             }
         }
 
@@ -1671,11 +2186,62 @@ class KanbanGrid extends GridBase
         }
 
         foreach ($custom_table->custom_columns_cache as $custom_column) {
-            if (!static::isGroupableColumn($custom_column)) {
+            if (!static::isGroupableColumn($custom_column) || !static::isListableTarget($custom_column)) {
                 continue;
             }
-            foreach ($custom_column->createSelectOptions() as $key => $value) {
+            foreach (static::columnValueOptions($custom_column) as $key => $value) {
                 $options[$custom_column->id . '::' . $key] = $custom_column->column_view_name . ' : ' . $value;
+            }
+        }
+
+        return $options;
+    }
+
+
+    /**
+     * Add to a value list whatever this view already holds that the list
+     * cannot offer.
+     *
+     * A value drops out of the list when what it named is gone: a choice taken
+     * off a select column, a deleted workflow status, a key written before
+     * keys carried the column they belong to. The board handles that already -
+     * a setting it cannot match is ignored, and the help text says so - but the
+     * form has to be able to carry it all the same:
+     *
+     *   - a required select whose value is not in its list shows up empty, and
+     *     an empty required select cannot be submitted. The whole screen stops
+     *     saving over one row of a WIP table.
+     *   - a multiple select simply drops the value, so opening the screen and
+     *     pressing save deletes a setting the user was never shown.
+     *
+     * Kept rather than cleaned away because the value may still come back - a
+     * choice removed from a column today can be added again tomorrow - and
+     * because the user is the one who should decide to drop it.
+     *
+     * @param array<string, string> $options list the form can offer
+     * @param CustomView|null $custom_view view being edited, null when new
+     * @param array<int, string|array<int, string>> $settings option name, or
+     *                                  [option name, key inside each row]
+     * @return array<string, string>
+     */
+    protected static function appendStoredValueOptions(array $options, $custom_view, array $settings): array
+    {
+        if (!isset($custom_view)) {
+            return $options;
+        }
+
+        foreach ($settings as $setting) {
+            list($option_name, $row_key) = is_array($setting) ? $setting : [$setting, null];
+
+            foreach ((array)$custom_view->{$option_name} as $stored) {
+                if (isset($row_key)) {
+                    $stored = is_array($stored) ? array_get($stored, $row_key) : null;
+                }
+                $value = strval($stored);
+                if ($value === '' || array_key_exists($value, $options)) {
+                    continue;
+                }
+                $options[$value] = sprintf(exmtrans('custom_view.kanban_value_missing'), $value);
             }
         }
 
@@ -2105,23 +2671,23 @@ class KanbanGrid extends GridBase
 
 
     /**
-     * Assignee values that stand for the logged in user.
+     * Values of the "mine" column that stand for the logged in user.
      *
-     * Empty means the board cannot tell: either there is no assignee column,
-     * or it holds words rather than people. The "only mine" filter is left out
-     * in that case instead of quietly matching nothing.
+     * Empty means the board cannot tell: either there is no such column, or it
+     * holds words rather than people. The "only mine" filter is left out in
+     * that case instead of quietly matching nothing.
      *
-     * @param CustomColumn|null $assignee_column
+     * @param CustomColumn|null $mine_column
      * @return array<int, string>
      */
-    protected function getMyKeys($assignee_column)
+    protected function getMyKeys($mine_column)
     {
-        if (!isset($assignee_column)) {
+        if (!isset($mine_column)) {
             return [];
         }
 
         // a select_table only holds people when the table it points at does
-        $column_type = static::normalizedColumnType($assignee_column);
+        $column_type = static::normalizedColumnType($mine_column);
 
         $user = \Exment::user();
         if (!isset($user)) {
@@ -2143,7 +2709,59 @@ class KanbanGrid extends GridBase
                 })->values()->toArray();
         }
 
+        if ($column_type == ColumnType::SELECT_TABLE) {
+            return $this->lookupMyKeys($mine_column);
+        }
+
         return [];
+    }
+
+
+    /**
+     * Rows of a lookup table that stand for the logged in user.
+     *
+     * A team often names its people in a table of its own - members, staff,
+     * engineers - and each row is tied to a login by one user column. Follow
+     * that tie and a board assigned from such a table knows who is reading it
+     * just as well as one assigned from the user table.
+     *
+     * Without the tie there is nothing to follow, and two of them would be a
+     * guess, so "only mine" is left out rather than matching the wrong person.
+     *
+     * @param CustomColumn $mine_column
+     * @return array<int, string>
+     */
+    protected function lookupMyKeys($mine_column)
+    {
+        $target = $mine_column->select_target_table;
+        $user_id = \Exment::getUserId();
+        if (!isset($target) || is_nullorempty($user_id)) {
+            return [];
+        }
+
+        $user_columns = $target->custom_columns_cache->filter(function ($custom_column) {
+            return array_get($custom_column, 'column_type') == ColumnType::USER;
+        });
+        if ($user_columns->count() !== 1) {
+            return [];
+        }
+        $column_name = $user_columns->first()->column_name;
+
+        $keys = [];
+        foreach ($target->getValueModel()->query()->get() as $value) {
+            $raw = array_get($value->value, $column_name);
+            if (is_nullorempty($raw)) {
+                continue;
+            }
+            foreach ((array)$raw as $one) {
+                if (strval($one) === strval($user_id)) {
+                    $keys[] = strval($value->id);
+                    break;
+                }
+            }
+        }
+
+        return $keys;
     }
 
 
@@ -2283,7 +2901,35 @@ class KanbanGrid extends GridBase
 
 
     /**
-     * Convert a raw column value into a board/lane key.
+     * Every board key a raw column value holds, without the empties.
+     *
+     * @param mixed $value
+     * @return array<int, string>
+     */
+    protected static function normalizeKeys($value)
+    {
+        if ($value instanceof \Illuminate\Support\Collection) {
+            $value = $value->all();
+        }
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        $keys = [];
+        foreach ($value as $one) {
+            $key = static::normalizeKey($one);
+            if ($key !== '' && !in_array($key, $keys, true)) {
+                $keys[] = $key;
+            }
+        }
+
+        return $keys;
+    }
+
+
+    /**
+     * The board key of one value: what a card is grouped, filtered and
+     * coloured by.
      *
      * @param mixed $value
      * @return string
@@ -2317,12 +2963,23 @@ class KanbanGrid extends GridBase
     /**
      * Whether a custom column has a fixed list of values.
      *
+     * A select_table column has one as well - the rows of the table it points
+     * at - even though that list lives in another table rather than in the
+     * column's own settings. The two that point at users and organisations
+     * have already become their own types by the time they arrive here, and
+     * those are answered separately, so a select_table reaching this line
+     * really is an ordinary lookup table.
+     *
      * @param CustomColumn $custom_column
      * @return bool
      */
     protected static function isSelectableColumn($custom_column)
     {
-        return in_array(array_get($custom_column, 'column_type'), [ColumnType::SELECT, ColumnType::SELECT_VALTEXT]);
+        return in_array(static::normalizedColumnType($custom_column), [
+            ColumnType::SELECT,
+            ColumnType::SELECT_VALTEXT,
+            ColumnType::SELECT_TABLE,
+        ]);
     }
 
 
@@ -2384,22 +3041,28 @@ class KanbanGrid extends GridBase
      * key => label of everything a column can hold.
      *
      * @param CustomColumn|null $custom_column
+     * @param array<string, mixed>|null $scope the parent record the list belongs to, see embedScope()
      * @return array<int|string, string>
      */
-    protected static function columnValueOptions($custom_column)
+    protected static function columnValueOptions($custom_column, array $scope = null)
     {
         if (!isset($custom_column)) {
             return [];
         }
-        if (static::isSelectableColumn($custom_column)) {
+
+        // a select column writes its list into its own settings; everything
+        // below reads the list off the table the column points at
+        $column_type = static::normalizedColumnType($custom_column);
+        if (in_array($column_type, [ColumnType::SELECT, ColumnType::SELECT_VALTEXT])) {
             return $custom_column->createSelectOptions();
         }
 
-        $column_type = static::normalizedColumnType($custom_column);
         if ($column_type == ColumnType::USER) {
             $target = CustomTable::getEloquent(SystemTableName::USER);
         } elseif ($column_type == ColumnType::ORGANIZATION) {
             $target = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
+        } elseif ($column_type == ColumnType::SELECT_TABLE) {
+            $target = $custom_column->select_target_table;
         } else {
             return [];
         }
@@ -2410,7 +3073,135 @@ class KanbanGrid extends GridBase
         // notAjax: the board keeps the whole list in its payload, so it has to
         // be the whole list even past the point an ordinary select box would
         // switch to searching
-        return $target->getSelectOptions(['notAjax' => true, 'custom_column' => $custom_column])->toArray();
+        $options = ['notAjax' => true, 'custom_column' => $custom_column];
+        if (isset($scope)) {
+            $options['filterCallback'] = function ($query) use ($scope) {
+                $query->where('parent_type', $scope['parent_type'])
+                    ->where('parent_id', $scope['parent_id']);
+            };
+        }
+
+        return $target->getSelectOptions($options)->toArray();
+    }
+
+
+    /**
+     * Lists already read for this board, keyed by column and by the record the
+     * board is embedded in.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    protected $board_value_options = [];
+
+
+    /**
+     * key => label of everything a column can hold on this board.
+     *
+     * The same list as columnValueOptions(), narrowed to the record this board
+     * is embedded under where that narrowing applies. Every list the board
+     * offers comes through here - the board columns, the filter panel, the
+     * drawer, the colours - so no two of them can end up disagreeing.
+     *
+     * @param CustomColumn|null $custom_column
+     * @return array<int|string, string>
+     */
+    protected function boardValueOptions($custom_column)
+    {
+        if (!isset($custom_column)) {
+            return [];
+        }
+
+        // One pass over the board asks for the same list again and again - the
+        // columns, their colours, the statistics, the keyword filter, and once
+        // more per column while the query for it is narrowed. A list behind a
+        // table costs a read and a label per row every time, where the word
+        // list this used to be cost nothing, so what was free is now thirteen
+        // reads of the status table per board. The rows cannot change while
+        // one board is being built, so read each list once.
+        $scope = $this->embedScope($custom_column);
+        $key = strval($custom_column->id) . '@' . (isset($scope)
+            ? $scope['parent_type'] . ':' . $scope['parent_id']
+            : '');
+
+        if (!array_key_exists($key, $this->board_value_options)) {
+            $this->board_value_options[$key] = static::columnValueOptions($custom_column, $scope);
+        }
+
+        return $this->board_value_options[$key];
+    }
+
+
+    /**
+     * The parent record a column's values belong to, or null to list them all.
+     *
+     * A board embedded in one project shows that project's records, and a
+     * lookup table can belong to a project in exactly the same way - a status
+     * list each project writes for itself. Listing every project's rows would
+     * give the board columns that no card here could ever reach.
+     *
+     * The 1:N relation is the whole test, so a table the install shares - a
+     * priority list, a category - keeps its full list, and nothing is assumed
+     * from a table's name.
+     *
+     * @param CustomColumn|null $custom_column
+     * @return array<string, mixed>|null
+     */
+    protected function embedScope($custom_column)
+    {
+        if (!$this->isEmbed() || !isset($custom_column)) {
+            return null;
+        }
+        if (static::normalizedColumnType($custom_column) != ColumnType::SELECT_TABLE) {
+            return null;
+        }
+
+        $target = $custom_column->select_target_table;
+        if (!isset($target)) {
+            return null;
+        }
+
+        $relation = CustomRelation::getRelationByParentChild(
+            $this->embed_parent_type,
+            $target,
+            RelationType::ONE_TO_MANY
+        );
+        if (!isset($relation)) {
+            return null;
+        }
+
+        return ['parent_type' => $this->embed_parent_type, 'parent_id' => $this->embed_parent_id];
+    }
+
+
+    /**
+     * Whether the table behind a select_table column is short enough to put on
+     * the view setting screen.
+     *
+     * A lookup list of a handful of states makes a board. A column pointing at
+     * the data itself - three thousand records - would make three thousand
+     * lanes and a settings screen nobody can scroll, so it is not offered. The
+     * limit is the one an ordinary select box already uses before it gives up
+     * listing and switches to searching.
+     *
+     * Only the offer is bounded. getSelectColumn() still accepts whatever a
+     * view already names, so a board keeps working when the list it groups on
+     * outgrows the limit later - a per project status list does exactly that,
+     * one project at a time.
+     *
+     * @param CustomColumn|null $custom_column
+     * @return bool
+     */
+    protected static function isListableTarget($custom_column)
+    {
+        if (static::normalizedColumnType($custom_column) != ColumnType::SELECT_TABLE) {
+            return true;
+        }
+
+        $target = $custom_column->select_target_table;
+
+        // notAjax false and no custom_column, so the answer is the size of the
+        // table rather than whether this one column loads its picker by ajax
+        return isset($target) && $target->isGetOptions(['notAjax' => false, 'callQuery' => true]);
     }
 
 
@@ -2442,7 +3233,7 @@ class KanbanGrid extends GridBase
     {
         $options = [];
         foreach ($custom_table->custom_columns_cache as $custom_column) {
-            if (!static::isGroupableColumn($custom_column)) {
+            if (!static::isGroupableColumn($custom_column) || !static::isListableTarget($custom_column)) {
                 continue;
             }
             $options[$custom_column->id] = $custom_column->column_view_name;
@@ -2507,30 +3298,6 @@ class KanbanGrid extends GridBase
 
 
     /**
-     * Appearance choices of a card field.
-     *
-     * @return array<string, string>
-     */
-    public static function getStyleOptions()
-    {
-        return [
-            static::STYLE_AUTO => exmtrans('custom_view.kanban_style_options.auto'),
-            static::STYLE_TEXT => exmtrans('custom_view.kanban_style_options.text'),
-            static::STYLE_TAG => exmtrans('custom_view.kanban_style_options.tag'),
-            static::STYLE_PILL => exmtrans('custom_view.kanban_style_options.pill'),
-            static::STYLE_DOT => exmtrans('custom_view.kanban_style_options.dot'),
-            static::STYLE_LVL => exmtrans('custom_view.kanban_style_options.lvl'),
-            static::STYLE_STATE => exmtrans('custom_view.kanban_style_options.state'),
-            static::STYLE_CHIP => exmtrans('custom_view.kanban_style_options.chip'),
-            static::STYLE_POINT => exmtrans('custom_view.kanban_style_options.point'),
-            static::STYLE_FLAG => exmtrans('custom_view.kanban_style_options.flag'),
-            static::STYLE_AVATAR => exmtrans('custom_view.kanban_style_options.avatar'),
-            static::STYLE_ICONTEXT => exmtrans('custom_view.kanban_style_options.icontext'),
-        ];
-    }
-
-
-    /**
      * Set custom view columns form. For controller.
      *
      * @param string $view_kind_type
@@ -2542,10 +3309,33 @@ class KanbanGrid extends GridBase
     // @phpstan-ignore-next-line
     public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
-        static::setViewInfoboxFields($form);
+        // Every list the form can offer. A select with nothing in it is not a
+        // choice: on screen it reads as something the user failed to fill in,
+        // and nothing says the table simply has no column of that kind. So each
+        // field below is left out of the form when its list is empty. Leaving a
+        // field out also leaves whatever is stored under it alone, which is the
+        // right thing to do when the column it named has since been deleted.
+        $custom_view = array_get($options, 'custom_view');
 
         $group_options = static::getKanbanGroupColumnOptions($custom_table);
-        $value_options = static::getBoardValueOptions($custom_table);
+        $value_options = static::appendStoredValueOptions(
+            static::getBoardValueOptions($custom_table),
+            $custom_view,
+            [
+                'kanban_hide_keys', 'kanban_done_keys',
+                ['kanban_wips', 'kanban_wip_key'],
+                ['kanban_policies', 'kanban_policy_key'],
+            ]
+        );
+        // Real columns only: the blocked and expedite marks are read against the
+        // card, and a card only carries its workflow status on a workflow board.
+        // Offering the statuses would let a column board be given a mark that
+        // never appears.
+        $mark_options = static::appendStoredValueOptions(
+            static::getBoardValueOptions($custom_table, false),
+            $custom_view,
+            ['kanban_blocked_keys', 'kanban_expedite_keys']
+        );
         $date_options = static::getColumnOptionsByType($custom_table, ColumnType::COLUMN_TYPE_DATE());
         $text_options = static::getColumnOptionsByType($custom_table, [
             ColumnType::TEXT, ColumnType::TEXTAREA, ColumnType::AUTO_NUMBER,
@@ -2555,16 +3345,44 @@ class KanbanGrid extends GridBase
             ColumnType::USER, ColumnType::ORGANIZATION,
         ]);
         $number_options = static::getColumnOptionsByType($custom_table, static::numberColumnTypes());
+        $image_options = static::getColumnOptionsByType($custom_table, [ColumnType::IMAGE]);
+        // select_table as well as the two choice types: the board draws labels
+        // from any column with a fixed list of values, and a column the board
+        // accepts but the form cannot show is wiped the first time these
+        // settings are saved
+        $labels_options = static::getColumnOptionsByType($custom_table, [
+            ColumnType::SELECT, ColumnType::SELECT_VALTEXT, ColumnType::SELECT_TABLE,
+        ]);
+        $badge_options = static::getColumnOptionsByType($custom_table, static::badgeColumnTypes());
+
         $has_workflow = !is_null(Workflow::getWorkflowByTable($custom_table));
         // with no column to group by, the workflow is the only board there can be
         $default_source = is_nullorempty($group_options) && $has_workflow
             ? static::SOURCE_WORKFLOW : static::SOURCE_COLUMN;
 
+        // The view menu only offers a kanban where one can be drawn, so this is
+        // the screen reached some other way. Say what is missing: a required
+        // list with nothing in it is a form the user cannot get out of.
+        if (is_nullorempty($group_options) && !$has_workflow) {
+            $form->html('<div class="alert alert-warning" style="margin:0 70px;">'
+                . esc_html(exmtrans('custom_view.message.kanban_no_group_column'))
+                . '</div>')->plain();
+        }
+
         // ------------------------------------------------- basic settings --
-        // Everything needed for a working board, nothing else.
+        // The five questions a board is made of: what the columns are, what
+        // names the cards, what else the card shows, who is on the work, and
+        // when it is due. Everything past this point changes how the board
+        // looks or behaves, has a working default, and is folded away.
+        // exmheader, switchbool and hasManyTable are registered on the form
+        // at runtime by the Initialize middleware, so static analysis cannot
+        // see them here
+        // @phpstan-ignore-next-line
         $form->exmheader(exmtrans('common.basic_setting'))->hr();
 
-        if ($has_workflow) {
+        // Only worth asking when both ways are open. With no column to group
+        // by there is nothing to choose, and the answer is already known.
+        if ($has_workflow && !is_nullorempty($group_options)) {
             $form->select('kanban_source', exmtrans("custom_view.kanban_source"))
                 ->required()
                 ->default($default_source)
@@ -2576,67 +3394,54 @@ class KanbanGrid extends GridBase
                 ->attribute(['data-filtertrigger' => true])
                 ->help(exmtrans("custom_view.help.kanban_source"));
         } else {
-            $form->hidden('kanban_source')->default(static::SOURCE_COLUMN);
+            $form->hidden('kanban_source')->default($default_source);
         }
 
         // The board cannot be drawn without it, so it is required - but only for
         // a column board. On a workflow board the field is hidden and disabled,
         // which drops it from the request and turns the rule off with it.
-        $form->select('kanban_group_column_id', exmtrans("custom_view.kanban_group_column"))
-            ->required()
-            ->options($group_options)
-            ->rules('required_if:kanban_source,' . static::SOURCE_COLUMN, [
-                'required_if' => exmtrans('custom_view.message.kanban_group_column_required'),
-            ])
-            ->attribute(['data-filter' => json_encode(['key' => 'kanban_source', 'value' => static::SOURCE_COLUMN])])
-            ->help(exmtrans("custom_view.help.kanban_group_column"));
+        //
+        // Left out when the workflow makes the columns and no column could:
+        // there is nothing to put in it. Kept, empty, when there is no workflow
+        // either, so the form cannot be saved into a board that can never be
+        // drawn - the warning above says what to do about that.
+        if (!is_nullorempty($group_options) || !$has_workflow) {
+            $form->select('kanban_group_column_id', exmtrans("custom_view.kanban_group_column"))
+                ->required()
+                ->options($group_options)
+                ->rules('required_if:kanban_source,' . static::SOURCE_COLUMN, [
+                    'required_if' => exmtrans('custom_view.message.kanban_group_column_required'),
+                ])
+                ->attribute(['data-filter' => json_encode(['key' => 'kanban_source', 'value' => static::SOURCE_COLUMN])])
+                ->help(exmtrans("custom_view.help.kanban_group_column"));
+        }
 
-        $form->select('kanban_title_column_id', exmtrans("custom_view.kanban_title_column"))
-            ->options($text_options)
-            ->help(exmtrans("custom_view.help.kanban_title_column"));
+        if (!is_nullorempty($text_options)) {
+            $form->select('kanban_title_column_id', exmtrans("custom_view.kanban_title_column"))
+                ->options($text_options)
+                ->help(exmtrans("custom_view.help.kanban_title_column"));
+        }
 
+        if (!is_nullorempty($people_options)) {
+            $form->select('kanban_assignee_column_id', exmtrans("custom_view.kanban_assignee_column"))
+                ->options($people_options)
+                ->help(exmtrans("custom_view.help.kanban_assignee_column"));
+        }
+
+        if (!is_nullorempty($date_options)) {
+            $form->select('kanban_limit_column_id', exmtrans("custom_view.kanban_limit_column"))
+                ->options($date_options)
+                ->attribute(['data-filtertrigger' => true])
+                ->help(exmtrans("custom_view.help.kanban_limit_column"));
+        }
+
+        // @phpstan-ignore-next-line
         $form->switchbool('kanban_editable', exmtrans("custom_view.kanban_editable"))
             ->default(true)
             ->help(exmtrans("custom_view.help.kanban_editable"));
 
-        // -------------------------------------------------- card settings --
-        $form->exmheader(exmtrans('custom_view.kanban_card_setting'))->hr();
-
-        // trello-style card extras: cover image, colored label strip, corner badge.
-        // Each style select only appears once its column is picked.
-        $form->select('kanban_cover_column_id', exmtrans("custom_view.kanban_cover_column"))
-            ->options(static::getColumnOptionsByType($custom_table, [ColumnType::IMAGE]))
-            ->attribute(['data-filtertrigger' => true])
-            ->help(exmtrans("custom_view.help.kanban_cover_column"));
-
-        $form->select('kanban_cover_fit', exmtrans("custom_view.kanban_cover_fit"))
-            ->options([
-                static::COVER_FIT_COVER => exmtrans("custom_view.kanban_cover_fit_options.cover"),
-                static::COVER_FIT_CONTAIN => exmtrans("custom_view.kanban_cover_fit_options.contain"),
-            ])
-            ->default(static::COVER_FIT_COVER)
-            ->attribute(['data-filter' => json_encode(['key' => 'kanban_cover_column_id', 'hasValue' => true])])
-            ->help(exmtrans("custom_view.help.kanban_cover_fit"));
-
-        $form->select('kanban_labels_column_id', exmtrans("custom_view.kanban_labels_column"))
-            ->options(static::getColumnOptionsByType($custom_table, [ColumnType::SELECT, ColumnType::SELECT_VALTEXT]))
-            ->attribute(['data-filtertrigger' => true])
-            ->help(exmtrans("custom_view.help.kanban_labels_column"));
-
-        $form->select('kanban_labels_style', exmtrans("custom_view.kanban_labels_style"))
-            ->options([
-                static::LABELS_STYLE_CHIP => exmtrans("custom_view.kanban_labels_style_options.chip"),
-                static::LABELS_STYLE_BAR => exmtrans("custom_view.kanban_labels_style_options.bar"),
-            ])
-            ->default(static::LABELS_STYLE_CHIP)
-            ->attribute(['data-filter' => json_encode(['key' => 'kanban_labels_column_id', 'hasValue' => true])])
-            ->help(exmtrans("custom_view.help.kanban_labels_style"));
-
-        $form->select('kanban_badge_column_id', exmtrans("custom_view.kanban_badge_column"))
-            ->options(static::getColumnOptionsByType($custom_table, static::badgeColumnTypes()))
-            ->help(exmtrans("custom_view.help.kanban_badge_column"));
-
         // card body columns. Not required: the record label alone is a valid card.
+        // @phpstan-ignore-next-line
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.kanban_card_columns"), function ($form) use ($custom_table) {
             $targetOptions = $custom_table->getColumnsSelectOptions([
                 'append_table' => true,
@@ -2656,9 +3461,19 @@ class KanbanGrid extends GridBase
             $form->select('kanban_position', exmtrans("custom_view.kanban_position"))
                 ->options(static::getPositionOptions())
                 ->default(static::POS_META);
-            $form->select('kanban_style', exmtrans("custom_view.kanban_style"))
-                ->options(static::getStyleOptions())
-                ->default(static::STYLE_AUTO);
+            // The same picker the data list uses, so one look is configured
+            // once and worn everywhere. Left empty the card follows the
+            // column's own appearance, and a column with none of that falls
+            // back to the label-and-value layout it has always had.
+            $form->select('grid_preset', exmtrans("custom_view.kanban_style"))
+                ->options(CellStylePreset::getPickerOptions())
+                ->attribute([
+                    'data-cellstyle-preset' => $custom_table->table_name,
+                    'data-cellstyle-preset-label' => exmtrans('cell_style_preset.edit_preset'),
+                    'data-cellstyle-preset-placeholder' => exmtrans('cell_style_preset.select_placeholder'),
+                    'data-cellstyle-types' => json_encode(static::getColumnTypeMap($targetOptions)),
+                ])
+                ->help(exmtrans("custom_view.help.kanban_style"));
             $form->icon('kanban_icon', exmtrans("custom_view.kanban_icon"))
                 ->default('')
                 ->attribute(['style' => 'width:100%']);
@@ -2668,139 +3483,206 @@ class KanbanGrid extends GridBase
         ->descriptionHtml(exmtrans("custom_view.description_custom_view_kanban_columns"));
 
         // ---------------------------------------------- advanced settings --
-        // Board tuning. A simple board never needs to open this part.
-        $form->exmheader(exmtrans('custom_view.kanban_advanced_setting'))->hr();
+        // Board tuning, behind one line the user clicks. A view that already
+        // uses any of it opens with the block unfolded - a setting the user
+        // cannot see is a setting they think they have lost.
+        static::openFoldSection(
+            $form,
+            exmtrans('custom_view.kanban_advanced_setting'),
+            static::hasKanbanAdvancedSetting($custom_view)
+        );
 
-        $form->select('kanban_swimlane_column_id', exmtrans("custom_view.kanban_swimlane_column"))
-            ->options($group_options)
-            ->help(exmtrans("custom_view.help.kanban_swimlane_column"));
+        // ------------------------------------------------ card appearance --
+        $form->exmheader(exmtrans('custom_view.kanban_card_setting'))->no(5);
 
-        // values are picked from the table itself, never typed by hand
-        $form->hasManyJsonTable('kanban_wips', exmtrans("custom_view.kanban_wips"), function ($form) use ($value_options) {
-            $form->select('kanban_wip_key', exmtrans("custom_view.kanban_wip_key"))
-                ->required()
-                ->options($value_options);
-            $form->number('kanban_wip_limit', exmtrans("custom_view.kanban_wip_limit"))
-                ->required()
+        // trello-style card extras: cover image, colored label strip, corner badge.
+        // Each style select only appears once its column is picked.
+        if (!is_nullorempty($image_options)) {
+            $form->select('kanban_cover_column_id', exmtrans("custom_view.kanban_cover_column"))
+                ->options($image_options)
+                ->attribute(['data-filtertrigger' => true])
+                ->help(exmtrans("custom_view.help.kanban_cover_column"));
+
+            $form->select('kanban_cover_fit', exmtrans("custom_view.kanban_cover_fit"))
+                ->options([
+                    static::COVER_FIT_COVER => exmtrans("custom_view.kanban_cover_fit_options.cover"),
+                    static::COVER_FIT_CONTAIN => exmtrans("custom_view.kanban_cover_fit_options.contain"),
+                ])
+                ->default(static::COVER_FIT_COVER)
+                ->attribute(['data-filter' => json_encode(['key' => 'kanban_cover_column_id', 'hasValue' => true])])
+                ->help(exmtrans("custom_view.help.kanban_cover_fit"));
+        }
+
+        if (!is_nullorempty($labels_options)) {
+            $form->select('kanban_labels_column_id', exmtrans("custom_view.kanban_labels_column"))
+                ->options($labels_options)
+                ->attribute(['data-filtertrigger' => true])
+                ->help(exmtrans("custom_view.help.kanban_labels_column"));
+
+            $form->select('kanban_labels_style', exmtrans("custom_view.kanban_labels_style"))
+                ->options([
+                    static::LABELS_STYLE_CHIP => exmtrans("custom_view.kanban_labels_style_options.chip"),
+                    static::LABELS_STYLE_BAR => exmtrans("custom_view.kanban_labels_style_options.bar"),
+                ])
+                ->default(static::LABELS_STYLE_CHIP)
+                ->attribute(['data-filter' => json_encode(['key' => 'kanban_labels_column_id', 'hasValue' => true])])
+                ->help(exmtrans("custom_view.help.kanban_labels_style"));
+        }
+
+        if (!is_nullorempty($badge_options)) {
+            $form->select('kanban_badge_column_id', exmtrans("custom_view.kanban_badge_column"))
+                ->options($badge_options)
+                ->help(exmtrans("custom_view.help.kanban_badge_column"));
+        }
+
+        if (!is_nullorempty($number_options)) {
+            $form->select('kanban_progress_column_id', exmtrans("custom_view.kanban_progress_column"))
+                ->options($number_options)
+                ->attribute(['data-filtertrigger' => true])
+                ->help(exmtrans("custom_view.help.kanban_progress_column"));
+
+            $form->number('kanban_progress_max', exmtrans("custom_view.kanban_progress_max"))
                 ->min(1)
-                ->max(999)
-                ->default(5);
-        })->setTableColumnWidth(8, 3, 1)
-        ->help(exmtrans("custom_view.help.kanban_wips"));
+                ->max(1000000)
+                ->default(100)
+                ->attribute(['data-filter' => json_encode(['key' => 'kanban_progress_column_id', 'hasValue' => true])])
+                ->help(exmtrans("custom_view.help.kanban_progress_max"));
+        }
 
-        $form->select('kanban_wip_enforce', exmtrans("custom_view.kanban_wip_enforce"))
-            ->options([
-                static::WIP_ENFORCE_OFF => exmtrans("custom_view.kanban_wip_enforce_options.off"),
-                static::WIP_ENFORCE_WARN => exmtrans("custom_view.kanban_wip_enforce_options.warn"),
-                static::WIP_ENFORCE_BLOCK => exmtrans("custom_view.kanban_wip_enforce_options.block"),
-            ])
-            ->default(static::WIP_ENFORCE_OFF)
-            ->help(exmtrans("custom_view.help.kanban_wip_enforce"));
+        if (!is_nullorempty($date_options)) {
+            // sits with the rest of the card marks, even though the date column
+            // it tunes is set in the basic block
+            $form->number('kanban_limit_warn', exmtrans("custom_view.kanban_limit_warn"))
+                ->min(0)
+                ->max(9999)
+                ->default(2)
+                ->attribute(['data-filter' => json_encode(['key' => 'kanban_limit_column_id', 'hasValue' => true])])
+                ->help(exmtrans("custom_view.help.kanban_limit_warn"));
 
-        // a rule written on the column is a rule the team reads every day
-        $form->hasManyJsonTable('kanban_policies', exmtrans("custom_view.kanban_policies"), function ($form) use ($value_options) {
-            $form->select('kanban_policy_key', exmtrans("custom_view.kanban_policy_key"))
-                ->required()
-                ->options($value_options);
-            $form->text('kanban_policy_text', exmtrans("custom_view.kanban_policy_text"))
-                ->required();
-        })->setTableColumnWidth(4, 7, 1)
-        ->help(exmtrans("custom_view.help.kanban_policies"));
+            $form->select('kanban_age_column_id', exmtrans("custom_view.kanban_age_column"))
+                ->options($date_options)
+                ->attribute(['data-filtertrigger' => true])
+                ->help(exmtrans("custom_view.help.kanban_age_column"));
 
-        $form->select('kanban_wip_column_id', exmtrans("custom_view.kanban_wip_column"))
-            ->options($number_options)
-            ->help(exmtrans("custom_view.help.kanban_wip_column"));
+            $form->text('kanban_age_steps', exmtrans("custom_view.kanban_age_steps"))
+                ->default('1,2,3')
+                ->rules(['nullable', 'regex:/^\s*\d+(\.\d+)?\s*(,\s*\d+(\.\d+)?\s*){2}$/'], [
+                    'regex' => exmtrans('custom_view.message.kanban_age_steps_format'),
+                ])
+                ->attribute([
+                    'data-filter' => json_encode(['key' => 'kanban_age_column_id', 'hasValue' => true]),
+                    'placeholder' => '1,2,3',
+                ])
+                ->help(exmtrans("custom_view.help.kanban_age_steps"));
+        }
 
-        // a running total is a display, not a limit: keeping it apart from the
-        // WIP setting is what lets a board show yen and still cap cards
-        $form->select('kanban_sum_column_id', exmtrans("custom_view.kanban_sum_column"))
-            ->options($number_options)
-            ->help(exmtrans("custom_view.help.kanban_sum_column"));
+        // -------------------------------------------- columns of the board --
+        $form->exmheader(exmtrans('custom_view.kanban_column_setting'))->no(5);
+
+        if (!is_nullorempty($group_options)) {
+            $form->select('kanban_swimlane_column_id', exmtrans("custom_view.kanban_swimlane_column"))
+                ->options($group_options)
+                ->help(exmtrans("custom_view.help.kanban_swimlane_column"));
+        }
+
+        if (!is_nullorempty($value_options)) {
+            // a board that has to show every value it can hold is a board nobody
+            // reads: closed work is most of the table and none of the work
+            $form->multipleSelect('kanban_hide_keys', exmtrans("custom_view.kanban_hide_keys"))
+                ->options($value_options)
+                ->help(exmtrans("custom_view.help.kanban_hide_keys"));
+
+            $form->multipleSelect('kanban_done_keys', exmtrans("custom_view.kanban_done_keys"))
+                ->options($value_options)
+                ->help(exmtrans("custom_view.help.kanban_done_keys"));
+        }
+
+        // Work that has stopped looks exactly like work in flight until the
+        // board is told which values mean stopped.
+        if (!is_nullorempty($mark_options)) {
+            $form->multipleSelect('kanban_blocked_keys', exmtrans("custom_view.kanban_blocked_keys"))
+                ->options($mark_options)
+                ->help(exmtrans("custom_view.help.kanban_blocked_keys"));
+
+            $form->multipleSelect('kanban_expedite_keys', exmtrans("custom_view.kanban_expedite_keys"))
+                ->options($mark_options)
+                ->help(exmtrans("custom_view.help.kanban_expedite_keys"));
+        }
+
+        if (!is_nullorempty($number_options)) {
+            // a running total is a display, not a limit: keeping it apart from
+            // the WIP setting is what lets a board show yen and still cap cards
+            $form->select('kanban_sum_column_id', exmtrans("custom_view.kanban_sum_column"))
+                ->options($number_options)
+                ->help(exmtrans("custom_view.help.kanban_sum_column"));
+        }
 
         $form->switchbool('kanban_col_age', exmtrans("custom_view.kanban_col_age"))
             ->default(false)
             ->help(exmtrans("custom_view.help.kanban_col_age"));
 
-        $form->select('kanban_progress_column_id', exmtrans("custom_view.kanban_progress_column"))
-            ->options($number_options)
-            ->attribute(['data-filtertrigger' => true])
-            ->help(exmtrans("custom_view.help.kanban_progress_column"));
+        if (!is_nullorempty($value_options)) {
+            // values are picked from the table itself, never typed by hand
+            $form->hasManyJsonTable('kanban_wips', exmtrans("custom_view.kanban_wips"), function ($form) use ($value_options) {
+                $form->select('kanban_wip_key', exmtrans("custom_view.kanban_wip_key"))
+                    ->required()
+                    ->options($value_options);
+                $form->number('kanban_wip_limit', exmtrans("custom_view.kanban_wip_limit"))
+                    ->required()
+                    ->min(1)
+                    ->max(999)
+                    ->default(5);
+            })->setTableColumnWidth(8, 3, 1)
+            ->help(exmtrans("custom_view.help.kanban_wips"));
 
-        $form->number('kanban_progress_max', exmtrans("custom_view.kanban_progress_max"))
-            ->min(1)
-            ->max(1000000)
-            ->default(100)
-            ->attribute(['data-filter' => json_encode(['key' => 'kanban_progress_column_id', 'hasValue' => true])])
-            ->help(exmtrans("custom_view.help.kanban_progress_max"));
+            if (!is_nullorempty($number_options)) {
+                $form->select('kanban_wip_column_id', exmtrans("custom_view.kanban_wip_column"))
+                    ->options($number_options)
+                    ->help(exmtrans("custom_view.help.kanban_wip_column"));
+            }
 
-        $form->multipleSelect('kanban_done_keys', exmtrans("custom_view.kanban_done_keys"))
-            ->options($value_options)
-            ->help(exmtrans("custom_view.help.kanban_done_keys"));
+            $form->select('kanban_wip_enforce', exmtrans("custom_view.kanban_wip_enforce"))
+                ->options([
+                    static::WIP_ENFORCE_OFF => exmtrans("custom_view.kanban_wip_enforce_options.off"),
+                    static::WIP_ENFORCE_WARN => exmtrans("custom_view.kanban_wip_enforce_options.warn"),
+                    static::WIP_ENFORCE_BLOCK => exmtrans("custom_view.kanban_wip_enforce_options.block"),
+                ])
+                ->default(static::WIP_ENFORCE_OFF)
+                ->help(exmtrans("custom_view.help.kanban_wip_enforce"));
 
-        // a board that has to show every value it can hold is a board nobody
-        // reads: closed work is most of the table and none of the work
-        $form->multipleSelect('kanban_hide_keys', exmtrans("custom_view.kanban_hide_keys"))
-            ->options($value_options)
-            ->help(exmtrans("custom_view.help.kanban_hide_keys"));
+            // a rule written on the column is a rule the team reads every day
+            $form->hasManyJsonTable('kanban_policies', exmtrans("custom_view.kanban_policies"), function ($form) use ($value_options) {
+                $form->select('kanban_policy_key', exmtrans("custom_view.kanban_policy_key"))
+                    ->required()
+                    ->options($value_options);
+                $form->text('kanban_policy_text', exmtrans("custom_view.kanban_policy_text"))
+                    ->required();
+            })->setTableColumnWidth(4, 7, 1)
+            ->help(exmtrans("custom_view.help.kanban_policies"));
+        }
 
-        // Work that has stopped looks exactly like work in flight until the
-        // board is told which values mean stopped.
-        //
-        // Real columns only: these two are read against the card, and a card
-        // only carries its workflow status on a workflow board. Offering the
-        // statuses here would let a column board be given a mark that never
-        // appears.
-        $mark_options = static::getBoardValueOptions($custom_table, false);
+        // ------------------------------------------------ board behaviour --
+        $form->exmheader(exmtrans('custom_view.kanban_board_setting'))->no(5);
 
-        $form->multipleSelect('kanban_blocked_keys', exmtrans("custom_view.kanban_blocked_keys"))
-            ->options($mark_options)
-            ->help(exmtrans("custom_view.help.kanban_blocked_keys"));
+        if (!is_nullorempty($people_options)) {
+            // Left empty the panel builds itself from every column the board
+            // reads, which on a wide table is a dozen selects nobody uses.
+            $form->multipleSelect('kanban_filter_column_ids', exmtrans("custom_view.kanban_filter_columns"))
+                ->options($people_options)
+                ->help(exmtrans("custom_view.help.kanban_filter_columns"));
 
-        $form->multipleSelect('kanban_expedite_keys', exmtrans("custom_view.kanban_expedite_keys"))
-            ->options($mark_options)
-            ->help(exmtrans("custom_view.help.kanban_expedite_keys"));
+            // "mine" is not always "assigned to me": on a board of requests the
+            // person who raised the work follows it, not the one carrying it out
+            $form->select('kanban_mine_column_id', exmtrans("custom_view.kanban_mine_column"))
+                ->options($people_options)
+                ->help(exmtrans("custom_view.help.kanban_mine_column"));
+        }
 
-        $form->number('kanban_col_count', exmtrans("custom_view.kanban_col_count"))
-            ->min(0)
-            ->max(500)
-            ->default(0)
-            ->help(exmtrans("custom_view.help.kanban_col_count"));
-
-        $form->select('kanban_assignee_column_id', exmtrans("custom_view.kanban_assignee_column"))
-            ->options($people_options)
-            ->help(exmtrans("custom_view.help.kanban_assignee_column"));
-
-        $form->select('kanban_limit_column_id', exmtrans("custom_view.kanban_limit_column"))
-            ->options($date_options)
-            ->attribute(['data-filtertrigger' => true])
-            ->help(exmtrans("custom_view.help.kanban_limit_column"));
-
-        $form->number('kanban_limit_warn', exmtrans("custom_view.kanban_limit_warn"))
-            ->min(0)
-            ->max(9999)
-            ->default(2)
-            ->attribute(['data-filter' => json_encode(['key' => 'kanban_limit_column_id', 'hasValue' => true])])
-            ->help(exmtrans("custom_view.help.kanban_limit_warn"));
-
-        $form->select('kanban_age_column_id', exmtrans("custom_view.kanban_age_column"))
-            ->options($date_options)
-            ->attribute(['data-filtertrigger' => true])
-            ->help(exmtrans("custom_view.help.kanban_age_column"));
-
-        $form->text('kanban_age_steps', exmtrans("custom_view.kanban_age_steps"))
-            ->default('1,2,3')
-            ->rules(['nullable', 'regex:/^\s*\d+(\.\d+)?\s*(,\s*\d+(\.\d+)?\s*){2}$/'], [
-                'regex' => exmtrans('custom_view.message.kanban_age_steps_format'),
-            ])
-            ->attribute([
-                'data-filter' => json_encode(['key' => 'kanban_age_column_id', 'hasValue' => true]),
-                'placeholder' => '1,2,3',
-            ])
-            ->help(exmtrans("custom_view.help.kanban_age_steps"));
-
-        $form->select('kanban_ai_column_id', exmtrans("custom_view.kanban_ai_column"))
-            ->options($group_options)
-            ->help(exmtrans("custom_view.help.kanban_ai_column"));
+        if (!is_nullorempty($group_options)) {
+            $form->select('kanban_ai_column_id', exmtrans("custom_view.kanban_ai_column"))
+                ->options($group_options)
+                ->help(exmtrans("custom_view.help.kanban_ai_column"));
+        }
 
         $form->switchbool('kanban_kpi', exmtrans("custom_view.kanban_kpi"))
             ->default(true)
@@ -2814,6 +3696,10 @@ class KanbanGrid extends GridBase
             ->default(true)
             ->help(exmtrans("custom_view.help.kanban_bulk"));
 
+        $form->switchbool('kanban_editform', exmtrans("custom_view.kanban_editform"))
+            ->default(true)
+            ->help(exmtrans("custom_view.help.kanban_editform"));
+
         $form->switchbool('kanban_drawer', exmtrans("custom_view.kanban_drawer"))
             ->default(true)
             ->attribute(['data-filtertrigger' => true])
@@ -2826,16 +3712,85 @@ class KanbanGrid extends GridBase
                 ->help(exmtrans("custom_view.help.kanban_history"));
         }
 
+        // ----------------------------------------------- how much to load --
+        // The two caps work together and are read wrong apart, so they are set
+        // side by side: per column first, whole board second.
+        $form->exmheader(exmtrans('custom_view.kanban_load_setting'))->no(5);
+
+        $form->number('kanban_col_count', exmtrans("custom_view.kanban_col_count"))
+            ->min(0)
+            ->max(500)
+            ->default(0)
+            ->help(exmtrans("custom_view.help.kanban_col_count"));
+
         $form->number('kanban_max_count', exmtrans("custom_view.kanban_max_count"))
             ->min(1)
             ->max(2000)
             ->default(config('exment.kanban_max_size_count', 300))
             ->help(exmtrans("custom_view.help.kanban_max_count"));
 
+        // --------------------------------------------------- view infobox --
+        $form->exmheader(exmtrans('custom_view.view_infobox_setting'))->no(5);
+
+        static::setViewInfoboxFields($form);
+
+        static::closeFoldSection($form);
+
         // sort setting
-        static::setSortFields($form, $custom_table);
+        static::setSortFields($form, $custom_table, false, $custom_view);
 
         // filter setting
-        static::setFilterFields($form, $custom_table);
+        static::setFilterFields($form, $custom_table, false, $custom_view);
+    }
+
+    /**
+     * Whether this view already uses something out of the folded block.
+     *
+     * A setting the user cannot see is a setting they think they have lost, so
+     * a view carrying any of these opens with the block already unfolded. A
+     * brand new view carries none of them and opens folded.
+     *
+     * @param CustomView|null $custom_view
+     * @return bool
+     */
+    protected static function hasKanbanAdvancedSetting($custom_view): bool
+    {
+        if (!isset($custom_view) || !isset($custom_view->id)) {
+            return false;
+        }
+
+        // options whose default is "nothing chosen"
+        $keys = [
+            'kanban_swimlane_column_id', 'kanban_cover_column_id', 'kanban_labels_column_id',
+            'kanban_badge_column_id', 'kanban_progress_column_id', 'kanban_age_column_id',
+            'kanban_mine_column_id', 'kanban_ai_column_id', 'kanban_sum_column_id',
+            'kanban_wip_column_id', 'kanban_wips', 'kanban_policies', 'kanban_done_keys',
+            'kanban_hide_keys', 'kanban_blocked_keys', 'kanban_expedite_keys',
+            'kanban_filter_column_ids', 'kanban_wip_enforce',
+        ];
+        foreach ($keys as $key) {
+            if (!is_nullorempty($custom_view->{$key})) {
+                return true;
+            }
+        }
+
+        // a count of 0 means "not used", and is_nullorempty() reads 0 as a value
+        if (intval($custom_view->kanban_col_count) > 0) {
+            return true;
+        }
+
+        if (boolval($custom_view->kanban_col_age) || boolval($custom_view->use_view_infobox)) {
+            return true;
+        }
+
+        // switches that start on: turned off is a setting too
+        foreach (['kanban_kpi', 'kanban_quickadd', 'kanban_bulk', 'kanban_editform', 'kanban_drawer', 'kanban_history'] as $key) {
+            $value = $custom_view->{$key};
+            if (!is_null($value) && !boolval($value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

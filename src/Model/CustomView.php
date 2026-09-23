@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\TemplateImportResult;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -38,6 +39,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
+    use Traits\TemplateColumnRefTrait;
     use Traits\DatabaseJsonOptionTrait;
 
     //protected $appends = ['view_calendar_target', 'pager_count'];
@@ -95,6 +97,41 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             'custom_view_grid_filters' => CustomViewGridFilter::class,
         ],
     ];
+
+
+    /**
+     * Kanban and gantt settings point at columns by numeric id, which is only
+     * meaningful on the system that produced them. Swap those ids for
+     * "table_name.column_name" so the view survives an import elsewhere.
+     *
+     * @param array<string, mixed> $array
+     * @return void
+     */
+    // @phpstan-ignore-next-line
+    protected static function exportReplaceJson(&$array)
+    {
+        $options = array_get($array, 'options');
+        if (is_array($options)) {
+            $array['options'] = static::templateExportColumnRefs($options);
+        }
+    }
+
+
+    /**
+     * @param array<string, mixed> $json
+     * @param array<string, mixed> $options
+     * @return string
+     */
+    // @phpstan-ignore-next-line
+    protected static function importReplaceJson(&$json, $options = [])
+    {
+        $viewOptions = array_get($json, 'options');
+        if (is_array($viewOptions)) {
+            $json['options'] = static::templateImportColumnRefs($viewOptions);
+        }
+
+        return TemplateImportResult::SUCCESS;
+    }
 
 
     //public function custom_table()
@@ -498,6 +535,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                         'view_pivot_column' => $column->view_pivot_column_id ?? null,
                         'view_pivot_table' => $column->view_pivot_table_id ?? null,
                         'grid_column' => true,
+                        'grid_preset' => $column->getOption('grid_preset'),
                     ]);
 
                     $valueType = ValueType::getEnum($options['valueType']);
@@ -1218,6 +1256,59 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
 
     // @phpstan-ignore-next-line
+    public function getKanbanMineColumnIdAttribute()
+    {
+        return $this->getOption('kanban_mine_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanMineColumnIdAttribute($val)
+    {
+        $this->setOption('kanban_mine_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getKanbanFilterColumnIdsAttribute()
+    {
+        return $this->getOption('kanban_filter_column_ids');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanFilterColumnIdsAttribute($val)
+    {
+        $this->setOption('kanban_filter_column_ids', $val);
+
+        return $this;
+    }
+
+
+    /**
+     * Board state a kanban view opens with: the filter panel, the keyword, the
+     * grouping and the checkboxes, exactly as they stood when the view was
+     * saved from the board. Written by the board, not by the settings screen.
+     */
+    // @phpstan-ignore-next-line
+    public function getKanbanPresetAttribute()
+    {
+        return $this->getOption('kanban_preset');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setKanbanPresetAttribute($val)
+    {
+        $this->setOption('kanban_preset', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
     public function getKanbanLimitColumnIdAttribute()
     {
         return $this->getOption('kanban_limit_column_id');
@@ -1260,6 +1351,150 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setKanbanAiColumnIdAttribute($val)
     {
         $this->setOption('kanban_ai_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getGanttStartColumnIdAttribute()
+    {
+        return $this->getOption('gantt_start_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setGanttStartColumnIdAttribute($val)
+    {
+        $this->setOption('gantt_start_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getGanttEndColumnIdAttribute()
+    {
+        return $this->getOption('gantt_end_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setGanttEndColumnIdAttribute($val)
+    {
+        $this->setOption('gantt_end_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getGanttColorColumnIdAttribute()
+    {
+        return $this->getOption('gantt_color_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setGanttColorColumnIdAttribute($val)
+    {
+        $this->setOption('gantt_color_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getGanttProgressColumnIdAttribute()
+    {
+        return $this->getOption('gantt_progress_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setGanttProgressColumnIdAttribute($val)
+    {
+        $this->setOption('gantt_progress_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getGanttGroupColumnIdAttribute()
+    {
+        return $this->getOption('gantt_group_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setGanttGroupColumnIdAttribute($val)
+    {
+        $this->setOption('gantt_group_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getGanttParentColumnIdAttribute()
+    {
+        return $this->getOption('gantt_parent_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setGanttParentColumnIdAttribute($val)
+    {
+        $this->setOption('gantt_parent_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getGanttAssigneeColumnIdAttribute()
+    {
+        return $this->getOption('gantt_assignee_column_id');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setGanttAssigneeColumnIdAttribute($val)
+    {
+        $this->setOption('gantt_assignee_column_id', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getGanttMaxCountAttribute()
+    {
+        return $this->getOption('gantt_max_count');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setGanttMaxCountAttribute($val)
+    {
+        $this->setOption('gantt_max_count', $val);
+
+        return $this;
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function getGanttEditableAttribute()
+    {
+        return $this->getOption('gantt_editable');
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setGanttEditableAttribute($val)
+    {
+        $this->setOption('gantt_editable', $val);
 
         return $this;
     }
@@ -1436,6 +1671,27 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setKanbanBulkAttribute($val)
     {
         $this->setOption('kanban_bulk', $val);
+
+        return $this;
+    }
+
+
+    /**
+     * @return mixed
+     */
+    public function getKanbanEditformAttribute()
+    {
+        return $this->getOption('kanban_editform');
+    }
+
+
+    /**
+     * @param mixed $val
+     * @return $this
+     */
+    public function setKanbanEditformAttribute($val)
+    {
+        $this->setOption('kanban_editform', $val);
 
         return $this;
     }

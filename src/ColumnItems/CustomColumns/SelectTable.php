@@ -738,14 +738,6 @@ class SelectTable extends CustomItem
     public function setCustomColumnOptionForm(&$form)
     {
         $this->setCustomColumnOptionFormSelectTable($form);
-
-        // Two-way link. Filling this in makes every pick also land in
-        // cross_item_links, which the detail screen reads from both ends - so the
-        // record on the other side shows the link back without anybody typing it
-        // there. Left blank, the column behaves as a plain one-way lookup.
-        $form->text('cross_link_relation', exmtrans("custom_column.options.cross_link_relation"))
-            ->help(exmtrans("custom_column.help.cross_link_relation"))
-            ->rules('nullable|regex:/^[a-zA-Z0-9_]{1,32}$/');
     }
 
 
