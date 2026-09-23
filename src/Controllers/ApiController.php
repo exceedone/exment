@@ -262,7 +262,18 @@ class ApiController extends AdminControllerBase
             $query->where('id', $idOrSuuid);
         }
 
-        return $query->first();
+        $view = $query->first();
+        if (!isset($view)) {
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+        }
+
+        // check permission on the view's owning table, same as sibling table()/views(). (JVN#20312919)
+        $custom_table = $view->custom_table;
+        if (!isset($custom_table) || !$custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
+        return $view;
     }
 
 
@@ -293,7 +304,18 @@ class ApiController extends AdminControllerBase
         if (!isset($select_target_table)) {
             return [];
         }
-        return CustomTable::getEloquent($select_target_table)
+
+        $target_table = CustomTable::getEloquent($select_target_table);
+        if (!isset($target_table)) {
+            return [];
+        }
+
+        // check permission on the resolved target table, same as sibling table(). (JVN#20312919)
+        if (!$target_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
+        return $target_table
             ->custom_columns()
             ->selectRaw('id as view_id, column_view_name as view_name')
             ->get();
