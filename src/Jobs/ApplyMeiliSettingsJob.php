@@ -52,6 +52,22 @@ class ApplyMeiliSettingsJob implements ShouldQueue, ShouldBeUniqueUntilProcessin
         $index = $client->index(config('meilisearch.index'));
 
         $task = $index->updateSettings(IndexSettings::build(IndexSettings::fromSystem()));
-        $client->waitForTask($task['taskUid'], 60000);
+
+        // On the sync driver this runs inside the admin's save request: sending
+        // the settings is one call, but waiting for Meilisearch to apply them
+        // takes as long as it takes, and the screen would hang on it. The
+        // settings are on their way either way - only the confirmation is
+        // skipped (see ReindexMeiliTableJob::dispatchUnlessBlocking, which skips
+        // the work itself because a whole reindex inline is a different matter).
+        if ($this->job !== null && $this->job instanceof \Illuminate\Queue\Jobs\SyncJob) {
+            return;
+        }
+
+        $result = $client->waitForTask($task['taskUid'], 60000);
+        if (($result['status'] ?? null) === 'failed') {
+            \Illuminate\Support\Facades\Log::warning(
+                '[Meili] index settings were rejected: ' . (string) ($result['error']['message'] ?? 'unknown error')
+            );
+        }
     }
 }

@@ -23,6 +23,12 @@ return [
 
     'global_search' => filter_var(env('MEILISEARCH_GLOBAL_SEARCH', false), FILTER_VALIDATE_BOOLEAN),
 
+    // select_table autocomplete (form + API) through Meilisearch. Off by default,
+    // and separate from global_search: Meilisearch matches whole words by prefix
+    // while the MySQL path matches the stored value with LIKE, so the suggestions
+    // a form offers change as soon as this is on.
+    'select_table' => filter_var(env('MEILISEARCH_SELECT_TABLE', false), FILTER_VALIDATE_BOOLEAN),
+
     'matching_strategy' => env('MEILISEARCH_MATCHING_STRATEGY', 'all'),
 
     'realtime_sync' => filter_var(env('MEILISEARCH_REALTIME_SYNC', false), FILTER_VALIDATE_BOOLEAN),
@@ -37,6 +43,11 @@ return [
 
     'settings' => [
         'searchable_attributes' => ['label', 'fields', 'table_label'],
+
+        // Query/document language hint (ISO-639-3, comma-separated env).
+        // Without it, kanji-only queries (設備点検, 顧客満足度…) are misdetected as
+        // Chinese and return 0 hits. Set MEILISEARCH_LOCALES="" to disable.
+        'locales' => array_values(array_filter(explode(',', (string) env('MEILISEARCH_LOCALES', 'jpn')))),
 
         'stop_words' => [],
         // Synonyms, e.g. ['nyc' => ['new york']]. Leave empty if unused.
@@ -58,9 +69,6 @@ return [
         'ranking_rules' => [],
 
         'max_facet_values' => (int) env('MEILISEARCH_MAX_FACET_VALUES', 1000),
-
-        // Query/document language hint (ISO-639-3, comma-separated env).
-        'locales' => array_values(array_filter(explode(',', (string) env('MEILISEARCH_LOCALES', 'jpn')))),
     ],
 
     'filter' => [

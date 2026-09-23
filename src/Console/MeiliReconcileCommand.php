@@ -77,43 +77,28 @@ class MeiliReconcileCommand extends Command
         foreach ($tables as $table) {
             $tableName = $table->table_name;
 
-            // Ids that should be indexed = current (non-deleted) records of the table.
-            $dbIds = getModelName($table)::query()
-                ->withoutGlobalScope(CustomValueModelScope::class)
-                ->pluck('id')->all();
-
             try {
-                $indexIds = $service->indexedValueIds($tableName);
+                $result = $this->reconcileTable($table, $service, $indexer, $mapper, $dryRun);
             } catch (\Throwable $e) {
-                $this->warn(sprintf('  %-30s skipped (cannot read index: %s)', $tableName, $e->getMessage()));
+                $this->warn(sprintf('  %-30s skipped (%s)', $tableName, $e->getMessage()));
                 continue;
             }
 
-            $diff = MeiliSearchService::diffIds($dbIds, $indexIds);
-            $missing = $diff['missing'];
-            $orphan = $diff['orphan'];
-
-            if (empty($missing) && empty($orphan)) {
+            if ($result['missing'] === 0 && $result['orphan'] === 0) {
                 $this->line(sprintf('  %-30s OK', $tableName));
                 continue;
             }
 
-            $totalMissing += count($missing);
-            $totalOrphan += count($orphan);
+            $totalMissing += $result['missing'];
+            $totalOrphan += $result['orphan'];
 
-            $action = $dryRun ? '(dry-run)' : '';
-            $this->line(sprintf('  %-30s missing=%d orphan=%d %s', $tableName, count($missing), count($orphan), $action));
-
-            if ($dryRun) {
-                continue;
-            }
-
-            if (!empty($missing)) {
-                $indexer->reindexIds($table, $missing);
-            }
-            if (!empty($orphan)) {
-                $service->deleteByValueIds($tableName, $orphan, $mapper);
-            }
+            $this->line(sprintf(
+                '  %-30s missing=%d orphan=%d %s',
+                $tableName,
+                $result['missing'],
+                $result['orphan'],
+                $dryRun ? '(dry-run)' : ''
+            ));
         }
 
         // A table that stopped being search-enabled leaves every one of its
@@ -131,6 +116,75 @@ class MeiliReconcileCommand extends Command
         ));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Compare ONE table against the index and repair the drift.
+     *
+     * The ids are walked from MySQL instead of being loaded whole: every id
+     * found in the index is dropped from the lookup set, so what is left in it
+     * at the end is the orphan candidates.
+     *
+     * @param \Exceedone\Exment\Model\CustomTable $table
+     * @param \Exceedone\Exment\Services\Meili\ExmentIndexer $indexer
+     * @return array{missing:int, orphan:int}
+     */
+    protected function reconcileTable($table, MeiliSearchService $service, $indexer, DocumentMapper $mapper, bool $dryRun): array
+    {
+        $tableName = $table->table_name;
+        $chunkSize = max(1, (int) config('meilisearch.batch_size', 1000));
+
+        $indexed = array_fill_keys(array_map('strval', $service->indexedValueIds($tableName)), true);
+
+        $missing = 0;
+        $buffer = [];
+
+        getModelName($table)::query()
+            ->withoutGlobalScope(CustomValueModelScope::class)
+            ->select('id')
+            ->chunkById($chunkSize, function ($records) use (&$indexed, &$missing, &$buffer, $table, $indexer, $dryRun, $chunkSize) {
+                foreach ($records as $record) {
+                    $key = (string) $record->id;
+                    if (isset($indexed[$key])) {
+                        unset($indexed[$key]);
+                        continue;
+                    }
+                    $missing++;
+                    // Dry-run only counts: keeping every id would hold the whole
+                    // table in memory on an index that was never built.
+                    if (!$dryRun) {
+                        $buffer[] = $record->id;
+                    }
+                }
+
+                if (!$dryRun && count($buffer) >= $chunkSize) {
+                    $indexer->reindexIds($table, $buffer);
+                    $buffer = [];
+                }
+            });
+
+        if (!$dryRun && !empty($buffer)) {
+            $indexer->reindexIds($table, $buffer);
+        }
+
+        // Re-check against the database before deleting anything: a record
+        // created (or restored) after the index was read is in the index but was
+        // never seen by the walk above, and its document would be dropped -
+        // making a brand new record unsearchable until the next run.
+        $orphan = 0;
+        foreach (array_chunk(array_keys($indexed), $chunkSize) as $candidates) {
+            $ids = ReindexMeiliTableJob::deletableOrphans(
+                $candidates,
+                ReindexMeiliTableJob::existingIds($table, $candidates)
+            );
+            $orphan += count($ids);
+
+            if (!$dryRun && !empty($ids)) {
+                $service->deleteByValueIds($tableName, $ids, $mapper);
+            }
+        }
+
+        return ['missing' => $missing, 'orphan' => $orphan];
     }
 
     /**
