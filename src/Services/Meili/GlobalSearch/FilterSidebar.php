@@ -215,7 +215,11 @@ class FilterSidebar
 
         // Column with its own selection -> recount with filters minus that column's OWN tokens.
         // One query per column: capped, or facets[] in the URL multiplies the requests.
-        foreach (array_slice(array_keys($selectedByCol), 0, $maxGroups) as $col) {
+        // Taken in display order, so every group shown is one that got recounted.
+        $position = array_flip(array_keys($groups));
+        $selectedCols = array_keys($selectedByCol);
+        usort($selectedCols, fn ($a, $b) => ($position[$a] ?? PHP_INT_MAX) <=> ($position[$b] ?? PHP_INT_MAX));
+        foreach (array_slice($selectedCols, 0, $maxGroups) as $col) {
             try {
                 $dist = $this->service->searchDistributions(
                     $q,

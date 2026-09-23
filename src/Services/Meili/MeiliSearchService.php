@@ -122,6 +122,9 @@ class MeiliSearchService
             // as a misconfigured cap.
             'hitsPerPage' => max(1, $perPage),
             'page' => max(1, $page),
+            // Callers only need the ids (rows are loaded from MySQL): do not carry
+            // up to permission_scan_cap whole documents per table box.
+            'attributesToRetrieve' => ['value_id'],
         ];
 
         $sortExpr = self::buildSortExpression($sort);
@@ -259,38 +262,6 @@ class MeiliSearchService
         }
 
         return implode(' AND ', $parts);
-    }
-
-    /**
-     * Compare the ids that SHOULD be indexed (from MySQL)
-     * against the value_ids currently in the index, and return the drift:
-     *  - missing: in MySQL but not in the index (need indexing)
-     *  - orphan : in the index but not in MySQL (deleted -> need removing)
-     *
-     * @param array<int,int|string> $dbIds
-     * @param array<int,int|string> $indexIds
-     * @return array{missing:array<int,int|string>, orphan:array<int,int|string>}
-     */
-    public static function diffIds(array $dbIds, array $indexIds): array
-    {
-        $db = array_fill_keys(array_map('strval', $dbIds), true);
-        $idx = array_fill_keys(array_map('strval', $indexIds), true);
-
-        $missing = [];
-        foreach ($dbIds as $id) {
-            if (!isset($idx[(string) $id])) {
-                $missing[] = $id;
-            }
-        }
-
-        $orphan = [];
-        foreach ($indexIds as $id) {
-            if (!isset($db[(string) $id])) {
-                $orphan[] = $id;
-            }
-        }
-
-        return ['missing' => $missing, 'orphan' => $orphan];
     }
 
     /**

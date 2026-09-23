@@ -69,7 +69,8 @@ class AppliedChips
         }
 
         // Status/category (facets)
-        $facets = self::stringList($qs['facets'] ?? null);
+        // Same cap as the filter itself, so no chip claims a condition that is not applied.
+        $facets = array_slice(self::stringList($qs['facets'] ?? null), 0, RequestFilters::MAX_FACETS);
         if (!empty($facets)) {
             $cols = array_map(fn ($t) => MeiliSearchService::parseFacetToken($t)['col'], $facets);
             // Only resolve column view-names for tables the user may view; alias

@@ -15,6 +15,9 @@ use Illuminate\Http\Request;
  */
 class RequestFilters
 {
+    /** Each facet token becomes a filter clause: no screen ever sends this many. */
+    public const MAX_FACETS = 100;
+
     /**
      * Read filters from the request:
      * ['date_from'=>unix, 'date_to'=>unix, 'users'=>int[], 'facets'=>string[], 'ranges'=>...].
@@ -53,8 +56,7 @@ class RequestFilters
             $facets = array_filter(explode("\n", $facets), fn ($v) => $v !== '');
         }
         if (!empty($facets) && is_array($facets)) {
-            // Each token becomes a filter clause: no screen ever sends this many.
-            $facets = array_slice(array_values(array_filter($facets, 'is_string')), 0, 100);
+            $facets = array_slice(array_values(array_filter($facets, 'is_string')), 0, self::MAX_FACETS);
             if (!empty($facets)) {
                 $filters['facets'] = $facets;
             }

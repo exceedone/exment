@@ -46,8 +46,26 @@ class MeiliSearchServiceTest extends TestCase
     public function testTableSearchOptionsUsePageAndFilter(): void
     {
         $this->assertSame(
-            ['filter' => 'table_name = "products"', 'hitsPerPage' => 5, 'page' => 2],
+            [
+                'filter' => 'table_name = "products"',
+                'hitsPerPage' => 5,
+                'page' => 2,
+                'attributesToRetrieve' => ['value_id'],
+            ],
             MeiliSearchService::buildTableSearchOptions('products', 5, 2)
+        );
+    }
+
+    /**
+     * The candidate fetch asks for up to permission_scan_cap hits; carrying the
+     * whole document (every indexed field) for each of them is pure waste - the
+     * rows themselves are loaded from MySQL afterwards.
+     */
+    public function testTableSearchOptionsOnlyRetrieveTheValueId(): void
+    {
+        $this->assertSame(
+            ['value_id'],
+            MeiliSearchService::buildTableSearchOptions('products', 1000, 1)['attributesToRetrieve']
         );
     }
 
@@ -131,31 +149,5 @@ class MeiliSearchServiceTest extends TestCase
     public function testSortFacetsEmpty(): void
     {
         $this->assertSame([], MeiliSearchService::sortFacets([]));
-    }
-
-    public function testDiffIdsFindsMissingAndOrphan(): void
-    {
-        // db has 1,2,3,4 ; index has 2,3,5 -> missing 1,4 ; orphan 5.
-        $diff = MeiliSearchService::diffIds([1, 2, 3, 4], [2, 3, 5]);
-
-        $this->assertSame([1, 4], array_values($diff['missing']));
-        $this->assertSame([5], array_values($diff['orphan']));
-    }
-
-    public function testDiffIdsInSyncReturnsEmpty(): void
-    {
-        $diff = MeiliSearchService::diffIds([1, 2, 3], [3, 2, 1]);
-
-        $this->assertSame([], $diff['missing']);
-        $this->assertSame([], $diff['orphan']);
-    }
-
-    public function testDiffIdsComparesByValueNotType(): void
-    {
-        // int in db vs string in index must be treated as equal (no false drift).
-        $diff = MeiliSearchService::diffIds([1, 2], ['1', '2']);
-
-        $this->assertSame([], $diff['missing']);
-        $this->assertSame([], $diff['orphan']);
     }
 }

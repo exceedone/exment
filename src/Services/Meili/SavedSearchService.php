@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\Meili;
 use Exceedone\Exment\Enums\JoinedMultiUserFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services\Meili\GlobalSearch\RequestFilters;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 
@@ -68,6 +69,9 @@ class SavedSearchService
         $out = [];
         foreach (['tables', 'users', 'facets'] as $k) {
             $v = self::scalarList($input[$k] ?? []);
+            if ($k === 'facets') {
+                $v = array_slice($v, 0, RequestFilters::MAX_FACETS);
+            }
             if (!empty($v)) {
                 $out[$k] = $v;
             }

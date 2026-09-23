@@ -388,7 +388,11 @@ trait ApiDataTrait
 
         // select_table autocomplete via Meilisearch (simple case only:
         // no linkage, no view filter). On error -> null -> fall back to searchValue.
-        if (boolval(config('meilisearch.global_search'))
+        // Behind its own flag, off by default: Meilisearch matches by word prefix
+        // and tolerates typos, the MySQL path matches the stored value with LIKE,
+        // so turning this on changes what every select box offers.
+        if (boolval(config('meilisearch.select_table'))
+            && boolval(config('meilisearch.global_search'))
             && class_exists(\Meilisearch\Client::class)
             && empty($relationColumn)
             && empty(array_get($expand, 'target_view_id'))
@@ -510,6 +514,11 @@ trait ApiDataTrait
                 ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
             );
         } catch (\Throwable $e) {
+            // Falling back is silent for the user; without this the cause of a
+            // permanently MySQL-served autocomplete is nowhere to be found.
+            \Illuminate\Support\Facades\Log::warning(
+                '[Meili] select_table fallback to MySQL: ' . $e->getMessage()
+            );
             return null;
         }
     }

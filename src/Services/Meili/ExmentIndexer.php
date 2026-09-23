@@ -62,14 +62,39 @@ class ExmentIndexer
     }
 
     /**
+     * Suffix of the index a --fresh rebuild is built into before the swap.
+     */
+    public const BUILD_SUFFIX = '_building';
+
+    /**
+     * Name of the index a --fresh rebuild writes to.
+     */
+    public static function buildIndexName(string $indexName): string
+    {
+        return $indexName . self::BUILD_SUFFIX;
+    }
+
+    /**
      * Index all data.
+     *
+     * $fresh rebuilds from scratch. It builds into a separate index and swaps it
+     * in at the end, because deleting the live index first leaves the search
+     * answering "no results" - a valid, empty answer, so nothing falls back to
+     * MySQL - for as long as the rebuild takes.
      *
      * @return array{total:int, perTable:array<string,int>}
      */
     public function indexAll(bool $fresh = false): array
     {
-        $this->ensureIndex($fresh);
-        $index = $this->client->index($this->indexName);
+        $target = $fresh ? self::buildIndexName($this->indexName) : $this->indexName;
+
+        if ($fresh) {
+            $this->prepareBuildIndex($target);
+        } else {
+            $this->ensureIndex();
+        }
+
+        $index = $this->client->index($target);
 
         $total = 0;
         $perTable = [];
@@ -103,7 +128,55 @@ class ExmentIndexer
             $total += $count;
         }
 
+        if ($fresh) {
+            $this->swapIn($target);
+        }
+
         return ['total' => $total, 'perTable' => $perTable];
+    }
+
+    /**
+     * Create the build index from scratch, with the full settings.
+     * A leftover from an interrupted rebuild is dropped first.
+     */
+    private function prepareBuildIndex(string $buildName): void
+    {
+        try {
+            $task = $this->client->deleteIndex($buildName);
+            $this->client->waitForTask($task['taskUid'], 60000);
+        } catch (\Throwable $e) {
+            // Nothing left over -> ignore.
+        }
+
+        $task = $this->client->createIndex($buildName, ['primaryKey' => 'id']);
+        $this->client->waitForTask($task['taskUid'], 60000);
+
+        $task = $this->client->index($buildName)->updateSettings(IndexSettings::build(IndexSettings::fromSystem()));
+        $this->client->waitForTask($task['taskUid'], 60000);
+    }
+
+    /**
+     * Put the freshly built index in place of the live one, then drop the old
+     * documents (they are under the build name after the swap).
+     *
+     * The swap itself is atomic: no request ever sees a half-built index. Both
+     * sides must exist, so the live index is created first when this is the very
+     * first run.
+     */
+    private function swapIn(string $buildName): void
+    {
+        $this->ensureIndex();
+
+        $task = $this->client->swapIndexes([[$this->indexName, $buildName]]);
+        $this->client->waitForTask($task['taskUid'], 60000);
+
+        try {
+            $task = $this->client->deleteIndex($buildName);
+            $this->client->waitForTask($task['taskUid'], 60000);
+        } catch (\Throwable $e) {
+            // The stale documents are out of the way already; leaving the index
+            // behind is untidy, not harmful.
+        }
     }
 
     /**
@@ -146,7 +219,7 @@ class ExmentIndexer
     }
 
     /**
-     * Ensure the index exists and is configured correctly. If $fresh: delete then recreate.
+     * Ensure the index exists and is configured correctly.
      * Public: SyncMeiliDocumentJob also uses it so a realtime sync arriving
      * before the first `exment:meili-index` run never lets Meilisearch auto-create
      * the index with default settings (no filterableAttributes).
@@ -178,17 +251,8 @@ class ExmentIndexer
         self::$seenAt[$indexName] = time();
     }
 
-    public function ensureIndex(bool $fresh = false): void
+    public function ensureIndex(): void
     {
-        if ($fresh) {
-            try {
-                $task = $this->client->deleteIndex($this->indexName);
-                $this->client->waitForTask($task['taskUid'], 60000);
-            } catch (\Throwable $e) {
-                // Index does not exist yet -> ignore.
-            }
-        }
-
         try {
             $task = $this->client->createIndex($this->indexName, ['primaryKey' => 'id']);
             $this->client->waitForTask($task['taskUid'], 60000);

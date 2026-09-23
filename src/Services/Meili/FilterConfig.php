@@ -137,7 +137,9 @@ class FilterConfig
     public static function aliasLabels(): array
     {
         try {
+            // By id: with several rows per alias the last one wins, as the unsorted query did.
             return self::settingRows()
+                ->sortBy('id')
                 ->filter(fn ($r) => (string) $r->alias !== '' && (string) $r->view_label !== '')
                 ->pluck('view_label', 'alias')
                 ->toArray();

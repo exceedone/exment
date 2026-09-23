@@ -23,6 +23,12 @@ return [
 
     'global_search' => filter_var(env('MEILISEARCH_GLOBAL_SEARCH', false), FILTER_VALIDATE_BOOLEAN),
 
+    // select_table autocomplete (form + API) through Meilisearch. Off by default,
+    // and separate from global_search: Meilisearch matches whole words by prefix
+    // while the MySQL path matches the stored value with LIKE, so the suggestions
+    // a form offers change as soon as this is on.
+    'select_table' => filter_var(env('MEILISEARCH_SELECT_TABLE', false), FILTER_VALIDATE_BOOLEAN),
+
     'matching_strategy' => env('MEILISEARCH_MATCHING_STRATEGY', 'all'),
 
     'realtime_sync' => filter_var(env('MEILISEARCH_REALTIME_SYNC', false), FILTER_VALIDATE_BOOLEAN),
