@@ -140,36 +140,60 @@ final class ChartFilter
      * list (too many values to show) keeps the selection as is.
      *
      * The option cap and the fixed scope are the dashboard's own (options.filter_bar
-     * max_options / scope), so a chart filter lists exactly what the bar would.
+     * max_options / scope), so a chart filter lists what the bar would, within the chart's own scope (its view, the
+     * other filters); as on the bar, only a pick elsewhere cross-filters a catalogue column.
      *
      * @param callable|null $viewScope  narrows a query to the box's view (its static filters)
+     * @param string[] $dashboardExcept  bar items the box does not filter by (its highlighted X item)
      * @return array<int, array>
      */
-    public function fields(DashboardFilter $dashboardFilter, ?callable $viewScope = null): array
+    public function fields(DashboardFilter $dashboardFilter, ?callable $viewScope = null, array $dashboardExcept = []): array
     {
         $cap = $dashboardFilter->maxOptions();
         $fields = [];
         foreach ($this->columns as $column => $customColumn) {
             $spec = $this->values[$column] ?? null;
+            // a from / to already on a number or a date keeps its from / to inputs, whatever
+            // its list would be now (a tick elsewhere can bring it back under the cap)
+            $style = FilterValue::styleFor($customColumn, null, $spec);
+            $kind = FilterValue::kind($customColumn);
+            // the chart's own scope, minus this column: what its list, or its range's ends, are read within
+            $scope = function ($query) use ($dashboardFilter, $viewScope, $column, $dashboardExcept) {
+                if ($viewScope !== null) {
+                    $viewScope($query);
+                }
+                $dashboardFilter->applyFixedScope($query, $this->table);
+                $dashboardFilter->applyTo($query, $this->table, $this->box, $dashboardExcept);
+                $this->applyTo($query, [$column]);
+            };
+            $result = null;
+            if ($style === 'select') {
+                // a pick elsewhere — on the bar, on another field of this filter — cross-filters
+                // a catalogue column; the view's own filters and the fixed scope do not
+                $narrowed = !empty(array_diff_key($dashboardFilter->columnsFor($this->table, $this->box), array_flip($dashboardExcept)))
+                    || !empty(array_diff_key($this->values, [$column => true]));
+                $result = ColumnOptions::choices($this->table, $customColumn, $scope, $narrowed, $cap);
+                // same fallback as the bar (FilterBarView): a list that will not fit gives
+                // way to from / to, which a number or a date can always answer — unless
+                // values are ticked on it, which stay listed (below) so they can be unticked
+                if ($result['capped'] && $kind !== 'text' && !isset($spec['in'])) {
+                    $style = 'range';
+                    $result = null;
+                }
+            }
             $field = [
                 'column' => $column,
                 'label' => (string) $customColumn->column_view_name,
-                'style' => FilterValue::style($customColumn),
-                'kind' => FilterValue::kind($customColumn),
+                'style' => $style,
+                'kind' => $kind,
                 'active' => $spec !== null,
             ];
-            if ($field['style'] === 'range') {
-                $field['range'] = ['from' => (string) ($spec['from'] ?? ''), 'to' => (string) ($spec['to'] ?? '')];
+            if ($result === null) {
+                // the inputs show the data's ends while nothing is typed (as on the bar,
+                // FilterBarView): dashboard.js keeps a bound equal to its end off the request
+                $field['range'] = ['from' => (string) ($spec['from'] ?? ''), 'to' => (string) ($spec['to'] ?? '')]
+                    + ColumnOptions::bounds($this->table, $customColumn, $scope);
             } else {
-                $scope = function ($query) use ($dashboardFilter, $viewScope, $column) {
-                    if ($viewScope !== null) {
-                        $viewScope($query);
-                    }
-                    $dashboardFilter->applyFixedScope($query, $this->table);
-                    $dashboardFilter->applyTo($query, $this->table, $this->box);
-                    $this->applyTo($query, [$column]);
-                };
-                $result = ColumnOptions::distinct($this->table, $customColumn, $scope, $cap);
                 $selected = $spec['in'] ?? [];
                 if (!$result['capped']) {
                     $selected = array_values(array_intersect($selected, array_column($result['options'], 'id')));
@@ -177,6 +201,14 @@ final class ChartFilter
                         $this->values[$column] = ['in' => $selected];
                     } else {
                         unset($this->values[$column]);
+                    }
+                }
+                // a capped list (no options) still shows what is ticked, so it can be unticked
+                $missing = array_values(array_diff($selected, array_column($result['options'], 'id')));
+                if (count($missing)) {
+                    $labels = ColumnOptions::labels($customColumn, $missing);
+                    foreach (array_reverse($missing) as $v) {
+                        array_unshift($result['options'], ['id' => $v, 'name' => (string) ($labels[$v] ?? $v)]);
                     }
                 }
                 $field['options'] = $result['options'];

@@ -8,7 +8,8 @@ namespace Exceedone\Exment\Services\Dashboard;
  *
  * Only configured items (FilterBarConfig) are read, so a stray df_ param can never filter
  * a dashboard that has no bar. A box is narrowed by an item when its table has the column
- * AND the item's targeting includes the box.
+ * AND the item's targeting includes the box — except a chart's own X item, which the chart
+ * highlights instead of filtering by (ChartItem::highlightColumn; applyTo's $except).
  */
 final class DashboardFilter
 {
@@ -65,7 +66,30 @@ final class DashboardFilter
     }
 
     /**
+     * The control the bar shows for this item NOW — 'select' (a list to pick from) or
+     * 'range' (from / to) — given its column, its configured style and its current value
+     * (FilterValue::styleFor). The ONE rule every consumer decides by: the bar renders by
+     * it, columnsFor honours a selection by it, a chart highlights its X item by it. A
+     * number or date item that lists its values shows from / to once a range is on it
+     * (its list outgrew the cap), and then it is a range item to everyone at once.
+     *
+     * @param mixed $customColumn  CustomColumn of the item's column
+     */
+    public function styleOf($customColumn): string
+    {
+        $column = (string) $customColumn->column_name;
+        $dim = $this->config ? $this->config->dim($column) : null;
+        return FilterValue::styleFor($customColumn, $dim['style'] ?? null, $this->values[$column] ?? null);
+    }
+
+    /**
      * Active items that narrow this box, as column => CustomColumn of the box's table.
+     *
+     * A selection counts only in the shape its item's control shows for it (styleOf):
+     * picked values need a select item; a "from / to" needs a range item, or a number /
+     * date item, which shows from / to for it. A from / to on a text item, which always
+     * lists its values, would narrow every chart while the bar displayed nothing selected,
+     * so it is dropped.
      */
     public function columnsFor($table, $box = null): array
     {
@@ -75,7 +99,11 @@ final class DashboardFilter
         $out = [];
         foreach ($this->values as $column => $spec) {
             $customColumn = $table->custom_columns->firstWhere('column_name', $column);
-            if ($customColumn !== null && $this->config->appliesTo($column, $box)) {
+            if ($customColumn === null || !$this->config->appliesTo($column, $box)) {
+                continue;
+            }
+            $style = $this->styleOf($customColumn);
+            if (isset($spec['in']) ? $style === 'select' : $style === 'range') {
                 $out[$column] = $customColumn;
             }
         }
@@ -93,14 +121,29 @@ final class DashboardFilter
     }
 
     /**
+     * The values picked on a select item ([] when none, or a range item).
+     *
+     * @return string[]
+     */
+    public function selected(string $column): array
+    {
+        return $this->values[$column]['in'] ?? [];
+    }
+
+    /**
      * AND every active item this box can honour onto $query.
      *
+     * @param string[] $except items to leave out — a chart's own X item, which it highlights
+     *                         instead of filtering by (ChartItem::highlightColumn)
      * @return string[] the columns applied
      */
-    public function applyTo($query, $table, $box = null): array
+    public function applyTo($query, $table, $box = null, array $except = []): array
     {
         $applied = [];
         foreach ($this->columnsFor($table, $box) as $column => $customColumn) {
+            if (in_array($column, $except, true)) {
+                continue;
+            }
             FilterValue::apply($query, $customColumn, $this->values[$column]);
             $applied[] = $column;
         }
@@ -113,15 +156,28 @@ final class DashboardFilter
      */
     public function applyFixedScope($query, $table): void
     {
-        if ($table === null || $this->config === null) {
-            return;
+        foreach ($this->fixedScopeColumnsFor($table) as $column => $customColumn) {
+            FilterValue::apply($query, $customColumn, $this->config->scope()[$column]);
         }
-        foreach ($this->config->scope() as $column => $spec) {
+    }
+
+    /**
+     * The fixed scope entries (filter_bar.scope) $table carries, as column => CustomColumn;
+     * [] for a table without those columns — nothing narrows its lists.
+     */
+    public function fixedScopeColumnsFor($table): array
+    {
+        if ($table === null || $this->config === null) {
+            return [];
+        }
+        $out = [];
+        foreach (array_keys($this->config->scope()) as $column) {
             $customColumn = $table->custom_columns->firstWhere('column_name', $column);
             if ($customColumn !== null) {
-                FilterValue::apply($query, $customColumn, $spec);
+                $out[$column] = $customColumn;
             }
         }
+        return $out;
     }
 
     /**
@@ -146,16 +202,33 @@ final class DashboardFilter
     }
 
     /**
-     * Stable string of the whole selection ('' when empty), for cache keys.
+     * Whether $other selects the same values on the same items (in any order).
      */
-    public function fingerprint(): string
+    public function sameAs(self $other): bool
     {
-        if (empty($this->values)) {
-            return '';
-        }
+        $tokens = function (array $values) {
+            $out = array_map([FilterValue::class, 'token'], $values);
+            ksort($out);
+            return $out;
+        };
+        return $tokens($this->values) === $tokens($other->values);
+    }
+
+    /**
+     * Stable string of the selection ('' when empty), for cache keys.
+     *
+     * @param string[] $except items left out (a pick on a highlighted item changes no data)
+     */
+    public function fingerprint(array $except = []): string
+    {
         $parts = [];
         foreach ($this->values as $column => $spec) {
-            $parts[] = $column . '=' . FilterValue::token($spec);
+            if (!in_array($column, $except, true)) {
+                $parts[] = $column . '=' . FilterValue::token($spec);
+            }
+        }
+        if (empty($parts)) {
+            return '';
         }
         sort($parts);
         return md5(implode('&', $parts));

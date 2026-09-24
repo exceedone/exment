@@ -3,26 +3,37 @@
 namespace Exceedone\Exment\DashboardBoxItems;
 
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\ChartAggregate;
 use Exceedone\Exment\Enums\ChartAxisType;
 use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\AiSummaryService;
+use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\ChartFilter;
+use Exceedone\Exment\Services\Dashboard\ChartSort;
+use Exceedone\Exment\Services\Dashboard\ChartSorter;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Exceedone\Exment\Services\Dashboard\FilterValue;
+use Exceedone\Exment\Services\Dashboard\SummaryAverage;
 
 /**
  * Chart box. On top of the configured chart, the box renders a toolbar (runtime chart-type
  * switcher + the box's own chart filter) and, when the dashboard opted in, the AI summary
  * strip. Every data path applies the dashboard filter bar (df_*) and the chart filter
  * (bf_*) of the request, so chart, popover options and AI summary see the same rows.
+ *
+ * Cross-highlight: the bar item that is this chart's own X column never filters the chart
+ * (highlightColumn) — every category stays on screen and the picked values are drawn solid,
+ * the rest faded, the way Power BI treats the visual a selection was made on. The other
+ * boxes filter as usual.
  */
 class ChartItem implements ItemInterface
 {
@@ -46,11 +57,20 @@ class ChartItem implements ItemInterface
     // @phpstan-ignore-next-line
     protected $axis_y;
 
+    /** @var string|null aggregate of the Y value on this box (ChartAggregate value), null = as the view */
+    protected $aggregate;
+
     /** @var string|null the configured type */
     protected $configured_type;
 
     /** @var string|null the type actually rendered (runtime switch applied) */
     protected $chart_type;
+
+    /** @var ChartSort|null runtime sort of the points (`cs` on the request: a field of the chart + direction), null = the view's order */
+    protected $chart_sort;
+
+    /** @var string[] display options applied from the box menu (`cd` on the request): 'labels' */
+    protected $chart_display;
 
     // @phpstan-ignore-next-line
     protected $chart_series;
@@ -70,6 +90,12 @@ class ChartItem implements ItemInterface
     /** @var ChartFilter */
     protected $chart_filter;
 
+    /** @var string|null|false highlightColumn() memo (false = not resolved yet) */
+    protected $highlight_column = false;
+
+    /** @var bool|null canEditColors() memo */
+    protected $can_edit_colors;
+
     // @phpstan-ignore-next-line
     public function __construct($dashboard_box)
     {
@@ -84,6 +110,11 @@ class ChartItem implements ItemInterface
 
         $this->axis_x = array_get($this->dashboard_box, 'options.chart_axisx');
         $this->axis_y = array_get($this->dashboard_box, 'options.chart_axisy');
+        // TEMPORARILY DISABLED (2026-09-23): 集計方法 (box option chart_aggregate). A stored value is
+        // ignored, so every box renders as its view. Re-enable by restoring the line below together
+        // with the form field in setupForm() and the sanitizer in saving().
+        // $this->aggregate = ChartAggregate::resolve(array_get($this->dashboard_box, 'options.chart_aggregate'));
+        $this->aggregate = null;
         $this->chart_series = array_get($this->dashboard_box, 'options.chart_series');
         $this->chart_options = array_get($this->dashboard_box, 'options.chart_options') ?? [];
         $this->chart_axis_label = array_get($this->dashboard_box, 'options.chart_axis_label') ?? [];
@@ -92,6 +123,8 @@ class ChartItem implements ItemInterface
         // runtime chart-type switch (`ct` on the box request): presentation only, same data
         $this->configured_type = array_get($this->dashboard_box, 'options.chart_type');
         $this->chart_type = ChartType::resolve($this->configured_type, request()->input('ct'));
+        $this->chart_sort = ChartSort::parse(request()->input('cs'));
+        $this->chart_display = static::displayOptions(request()->input('cd'));
         if ($this->chart_type !== $this->configured_type) {
             // the saved option flag belongs to the configured family — give the switched type its own default
             $this->chart_options = in_array($this->chart_type, ChartType::legendTypes(), true)
@@ -135,15 +168,18 @@ class ChartItem implements ItemInterface
             return null;
         }
 
-        // toolbar first: building the chart-filter popover also drops ticked values the
-        // current scope no longer offers, and the data query below must see that
-        $toolbar = $this->toolbarHtml();
+        // the chart-filter popover first: building it also drops ticked values the current
+        // scope no longer offers, and the data query below must see that
+        $fields = $this->chartFilterFields();
 
         $common = [
             'suuid' => $this->dashboard_box->suuid,
             'chart_type' => $this->chart_type,
             'chart_height' => 300,
             'chart_legend' => in_array(ChartOptionType::LEGEND, $this->chart_options),
+            'chart_labels_on' => in_array('labels', $this->chart_display, true),
+            // right-click a point / series to paint it (dashboard.js colorMenu)
+            'chart_color_edit' => $this->canEditColors(),
         ];
 
         if (ChartType::isMulti($this->chart_type)) {
@@ -151,13 +187,18 @@ class ChartItem implements ItemInterface
             if ($result === false) {
                 return exmtrans('dashboard.message.need_multiseries');
             }
+            $result = $this->sorted($result, true);
             $chart = view('exment::dashboard.chart.echart_multi', $common + [
                 'x_categories' => json_encode($result['x_categories'], static::JSON_FLAGS),
                 'series_names' => json_encode($result['series_names'], static::JSON_FLAGS),
                 'matrix' => json_encode($result['matrix'], static::JSON_FLAGS),
                 'chart_axisx' => $result['axisx_label'],
                 'chart_axisy' => $result['axisy_label'],
-                'chart_colors' => json_encode($this->getChartPalette()),
+                // one color per series (index-aligned with series_names); the heatmap and the
+                // boxplot paint no series, they keep the palette
+                'chart_colors' => json_encode(ChartType::supportsColorEdit($this->chart_type)
+                    ? $this->chartColors()->colorsFor(ChartColors::SERIES, $result['series_names'], $this->getChartPalette())
+                    : $this->getChartPalette()),
                 'chart_click' => json_encode($result['chart_click'], static::JSON_FLAGS),
             ]);
         } else {
@@ -165,16 +206,23 @@ class ChartItem implements ItemInterface
             if ($result === false) {
                 return exmtrans('dashboard.message.need_setting');
             }
+            // a point's color is decided in the VIEW's own order and then travels with the
+            // point through the runtime sort, so re-sorting moves the colors instead of
+            // repainting the categories (a viewer recognises a bar by its color)
+            $result['point_colors'] = $this->pointColors(collect($result['chart_label'])->values()->all());
+            $result = $this->sorted($result, false);
             $vars = $common + [
                 'chart_data' => json_encode($result['chart_data'], static::JSON_FLAGS),
                 'chart_labels' => json_encode($result['chart_label'], static::JSON_FLAGS),
                 'chart_axisx' => $result['axisx_label'],
                 'chart_axisy' => $result['axisy_label'],
                 'chart_click' => json_encode($result['chart_click'] ?? null, static::JSON_FLAGS),
+                'chart_counts' => json_encode($result['chart_counts'] ?? null, static::JSON_FLAGS),
             ];
             if (ChartType::isEcharts($this->chart_type)) {
                 $chart = view('exment::dashboard.chart.echart', $vars + [
-                    'chart_colors' => json_encode($this->getChartPalette()),
+                    'chart_colors' => json_encode($this->singleSeriesPalette()),
+                    'chart_point_colors' => json_encode($result['point_colors']),
                 ]);
             } else {
                 $chart = view('exment::dashboard.chart.chart', $vars + [
@@ -183,12 +231,12 @@ class ChartItem implements ItemInterface
                     'chart_axisx_name' => in_array(ChartAxisType::X, $this->chart_axis_name),
                     'chart_axisy_name' => in_array(ChartAxisType::Y, $this->chart_axis_name),
                     'chart_begin_zero' => in_array(ChartOptionType::BEGIN_ZERO, $this->chart_options),
-                    'chart_color' => json_encode($this->getChartColor(count($result['chart_data']))),
+                    'chart_color' => json_encode($this->getChartColor($result['point_colors'])),
                 ]);
             }
         }
 
-        return $toolbar . $chart->render() . $this->aiSummaryHtml();
+        return $this->toolbarHtml($fields) . $chart->render() . $this->aiSummaryHtml();
     }
 
     /**
@@ -206,6 +254,7 @@ class ChartItem implements ItemInterface
         if ($result === false) {
             return null;
         }
+        $result = $this->sorted($result, false);
         return [
             'title' => array_get($this->dashboard_box, 'dashboard_box_view_name'),
             'chart_type' => $this->chart_type,
@@ -226,7 +275,7 @@ class ChartItem implements ItemInterface
      */
     public function filterFingerprint(): string
     {
-        return md5($this->dashboard_filter->fingerprint() . '|' . $this->chart_filter->fingerprint());
+        return md5($this->dashboard_filter->fingerprint($this->dashboardExcept()) . '|' . $this->chart_filter->fingerprint());
     }
 
     protected function isAggregateView(): bool
@@ -235,37 +284,237 @@ class ChartItem implements ItemInterface
     }
 
     /**
-     * AND the dashboard filter (targeting-aware) and this box's chart filter onto a query.
+     * AND the dashboard filter (targeting-aware, minus the highlighted X item) and this
+     * box's chart filter onto a query.
      */
     protected function applyFilters($query): void
     {
-        $this->dashboard_filter->applyTo($query, $this->custom_table, $this->dashboard_box);
+        $this->dashboard_filter->applyTo($query, $this->custom_table, $this->dashboard_box, $this->dashboardExcept());
         $this->chart_filter->applyTo($query);
     }
 
     /**
-     * The toolbar above the chart: [フィルター ▾] [chart type ▾]; '' when neither applies.
+     * The bar items this box does not filter by: its highlighted X item, if any.
+     *
+     * @return string[]
      */
-    protected function toolbarHtml(): string
+    protected function dashboardExcept(): array
+    {
+        $column = $this->highlightColumn();
+        return $column === null ? [] : [$column];
+    }
+
+    /**
+     * The filter bar item this chart highlights instead of filtering by: its own X column,
+     * when a click on the chart picks it (clickColumn) and the item narrows this box at all
+     * (targeting). With the item picked — on the chart or on the bar — the chart keeps every
+     * category and fades the ones not picked; dashboard.js then repaints a change of the
+     * pick in place, since the data cannot have changed. null: the chart filters like any
+     * other box.
+     */
+    protected function highlightColumn(): ?string
+    {
+        if ($this->highlight_column !== false) {
+            return $this->highlight_column;
+        }
+        $this->highlight_column = null;
+        $custom_column = $this->clickColumn($this->xViewColumn());
+        $config = $this->dashboard_filter->config();
+        if ($custom_column !== null && $config !== null && $config->appliesTo($custom_column->column_name, $this->dashboard_box)) {
+            $this->highlight_column = $custom_column->column_name;
+        }
+        return $this->highlight_column;
+    }
+
+    /**
+     * The view column on the X axis as the rendered type reads the view: the sole group
+     * column of an aggregate view (a compound label has no one value), or the X column of a
+     * multi-series chart. null for a list view or a compound grouping.
+     *
+     * @return mixed CustomViewColumn|null
+     */
+    protected function xViewColumn()
+    {
+        if (is_null($this->custom_view) || !$this->isAggregateView()) {
+            return null;
+        }
+        $view_columns = collect($this->custom_view->custom_view_columns)->values();
+        if (ChartType::isMulti($this->chart_type)) {
+            return $view_columns->count() >= 2 ? $view_columns[$this->multiSeriesXPos($view_columns)] : null;
+        }
+        return $view_columns->count() === 1 ? $view_columns[0] : null;
+    }
+
+    /**
+     * The display options of the box menu named by `cd` ("labels"): the known ones, trimmed,
+     * deduplicated, in a fixed order; anything else is dropped.
+     *
+     * @param mixed $cd
+     * @return string[]
+     */
+    public static function displayOptions($cd): array
+    {
+        if (!is_string($cd) || $cd === '') {
+            return [];
+        }
+        $known = ['labels'];
+        $wanted = array_map('trim', explode(',', $cd));
+        return array_values(array_filter($known, function ($option) use ($wanted) {
+            return in_array($option, $wanted, true);
+        }));
+    }
+
+    /**
+     * The toolbar choices of a box worth remembering, from the request values ct / cs / cd:
+     * a chart type that is a legal switch AND differs from the configured one, a well-formed
+     * sort, the known display options. null when nothing is left (= the box setting).
+     *
+     * @param array<string, mixed> $input
+     * @param string|null $configured  the box's configured chart type
+     * @return array<string, string>|null
+     */
+    public static function toolbarState(array $input, $configured): ?array
+    {
+        $state = [];
+        $ct = $input['ct'] ?? null;
+        if (is_string($ct) && $ct !== $configured && ChartType::resolve($configured, $ct) === $ct) {
+            $state['ct'] = $ct;
+        }
+        $sort = ChartSort::parse($input['cs'] ?? null);
+        if ($sort !== null) {
+            $state['cs'] = $sort->field . ':' . ($sort->desc ? ChartSort::DESC : ChartSort::ASC);
+        }
+        $display = static::displayOptions($input['cd'] ?? null);
+        if (!empty($display)) {
+            $state['cd'] = implode(',', $display);
+        }
+        return empty($state) ? null : $state;
+    }
+
+    /**
+     * The result's points in the runtime sort order (`cs` on the request); untouched without one.
+     *
+     * @param array<string, mixed> $result
+     * @return array<string, mixed>
+     */
+    protected function sorted(array $result, bool $multi): array
+    {
+        if ($this->chart_sort === null) {
+            return $result;
+        }
+        return $multi ? ChartSorter::applyMulti($result, $this->chart_sort) : ChartSorter::applySingle($result, $this->chart_sort);
+    }
+
+    /**
+     * The fields a viewer can sort this chart by, in chart order: the X columns (`x{i}` — one
+     * per group column of the aggregate view, the X item of a list view; a multi-series chart
+     * has only its X column, the series column splits the legend) and the measure (`y`).
+     * Metadata only — no query.
+     *
+     * @return array<int, array{key: string, label: string}>
+     */
+    protected function sortFields(): array
+    {
+        $fields = [];
+        if ($this->isAggregateView()) {
+            $columns = collect($this->custom_view->custom_view_columns)->values();
+            if (ChartType::isMulti($this->chart_type)) {
+                $columns = $columns->count() >= 2 ? collect([$columns[$this->multiSeriesXPos($columns)]]) : collect();
+            }
+            foreach ($columns as $i => $column) {
+                $fields[] = ['key' => 'x' . $i, 'label' => array_get($column, 'view_column_name') ?? $column->column_item->label()];
+            }
+        } else {
+            $view_column_x = CustomViewSummary::getSummaryViewColumn($this->axis_x);
+            if ($view_column_x == Define::CHARTITEM_LABEL) {
+                $fields[] = ['key' => 'x0', 'label' => $this->custom_table->table_view_name];
+            } elseif (!is_nullorempty($view_column_x)) {
+                $fields[] = ['key' => 'x0', 'label' => array_get($view_column_x, 'view_column_name') ?? $view_column_x->column_item->label()];
+            }
+        }
+        $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
+        if (!is_nullorempty($view_column_y) && $view_column_y != Define::CHARTITEM_LABEL) {
+            $column = $view_column_y->custom_column;
+            $fields[] = ['key' => 'y', 'label' => array_get($view_column_y, 'view_column_name') ?? ($column ? $column->column_view_name : $view_column_y->column_item->label())];
+        }
+        return $fields;
+    }
+
+    /**
+     * Position of the X column of a multi-series chart among the view's group columns: the
+     * first column that is not the series column (chart_series, default = the 2nd column).
+     *
+     * @param \Illuminate\Support\Collection $view_columns  the group columns, re-indexed
+     */
+    protected function multiSeriesXPos($view_columns): int
+    {
+        $series_pos = 1;
+        foreach ($view_columns as $pos => $column) {
+            if (!is_nullorempty($this->chart_series) && (ViewKindType::DEFAULT . '_' . $column->id) === $this->chart_series) {
+                $series_pos = $pos;
+            }
+        }
+        return $series_pos === 0 ? 1 : 0;
+    }
+
+    /**
+     * The chart filter's popover fields ([] when none is configured). Building them prunes
+     * ticked values the current scope no longer offers, so this runs BEFORE the data query.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function chartFilterFields(): array
+    {
+        if (!$this->chart_filter->isConfigured()) {
+            return [];
+        }
+        // option lists are scoped like the chart itself: the view's own filters first
+        $viewScope = function ($query) {
+            $this->custom_view->filterModel($query);
+        };
+        return $this->chart_filter->fields($this->dashboard_filter, $viewScope, $this->dashboardExcept());
+    }
+
+    /**
+     * The toolbar above the chart: [フィルター ▾] [chart type ▾] [⋯]; '' when no control
+     * applies.
+     *
+     * @param array<int, array<string, mixed>> $fields  chartFilterFields()
+     */
+    protected function toolbarHtml(array $fields): string
     {
         $types = [];
         foreach (ChartType::switchPool($this->configured_type) as $type) {
             $types[$type] = exmtrans('chart.chart_type_options.' . $type);
         }
-        $fields = [];
-        if ($this->chart_filter->isConfigured()) {
-            // option lists are scoped like the chart itself: the view's own filters first
-            $viewScope = function ($query) {
-                $this->custom_view->filterModel($query);
-            };
-            $fields = $this->chart_filter->fields($this->dashboard_filter, $viewScope);
+        // the box menu: the chart's sort fields (the applied one checked, if still a field of the
+        // chart), the display options the type offers, the export
+        $sort_fields = $this->sortFields();
+        $sort_field = null;
+        foreach ($sort_fields as $field) {
+            if ($this->chart_sort && $field['key'] === $this->chart_sort->field) {
+                $sort_field = $field['key'];
+            }
         }
-        if (empty($types) && empty($fields)) {
+        $labels_available = ChartType::supportsDataLabels($this->chart_type);
+        $display_labels = $labels_available && in_array('labels', $this->chart_display, true);
+        // painted colors can be taken back to the palette by whoever may paint them
+        $colors_reset = $this->canEditColors() && !$this->chartColors()->isEmpty();
+        $menu = !empty($sort_fields) || $labels_available || $colors_reset;
+        if (empty($types) && empty($fields) && !$menu) {
             return '';
         }
         return view('exment::dashboard.chart.toolbar', [
             'types' => $types,
             'current_type' => $this->chart_type,
+            'configured_type' => $this->configured_type,
+            'menu' => $menu,
+            'colors_reset' => $colors_reset,
+            'sort_fields' => $sort_fields,
+            'sort_field' => $sort_field,
+            'sort_desc' => $this->chart_sort ? $this->chart_sort->desc : false,
+            'labels_available' => $labels_available,
+            'display_labels' => $display_labels,
             'fields' => $fields,
             'filter_count' => count($this->chart_filter->values()),
             'captions' => $this->chart_filter->captions(),
@@ -323,6 +572,7 @@ class ChartItem implements ItemInterface
         return [
             'chart_data'    => $chart_data,
             'chart_label'   => $chart_label,
+            'chart_fields'  => [$chart_label->values()->all()],
             'axisx_label'   => $axisx_label,
             'axisy_label'   => array_get($view_column_y, 'view_column_name') ?? $view_column_y->column_item->label(),
         ];
@@ -350,12 +600,8 @@ class ChartItem implements ItemInterface
         });
         $item_y = $view_column_y->column_item;
 
-        // create model for getting data --------------------------------------------------
-        $query = $this->custom_table->getValueQuery();
-        $this->applyFilters($query);
-
-        // get data
-        $datalist = $this->custom_view->getQuery($query)->get();
+        // get data (a box aggregate, when set, stands in for the view's summary condition)
+        $datalist = $this->summaryRows($view_column_y);
         $chart_label = $datalist->map(function ($val) use ($item_x_list) {
             $labels = $item_x_list->map(function ($item_x) use ($val) {
                 $item = $item_x->setCustomValue($val);
@@ -363,6 +609,12 @@ class ChartItem implements ItemInterface
             });
             return $labels->implode(' ');
         });
+        // the same texts per group column: what a sort by one X column (ChartSort x{i}) orders on
+        $chart_fields = $item_x_list->map(function ($item_x) use ($datalist) {
+            return $datalist->map(function ($val) use ($item_x) {
+                return $item_x->setCustomValue($val)->text();
+            })->values()->all();
+        })->values()->all();
         $chart_data = $datalist->pluck($item_y->uniqueName());
 
         // click-to-filter: a single group column only (a compound label has no one value)
@@ -379,18 +631,117 @@ class ChartItem implements ItemInterface
         return [
             'chart_data'    => $chart_data,
             'chart_label'   => $chart_label,
+            'chart_fields'  => $chart_fields,
+            'chart_counts'  => $this->aggregate === ChartAggregate::AVG ? $datalist->pluck($item_y->uniqueName() . SummaryAverage::COUNT_SUFFIX)->values()->all() : null,
             'axisx_label'   => $axisx_label,
-            'axisy_label'   => array_get($view_column_y, 'view_column_name')?? $item_y->label(),
+            'axisy_label'   => $this->axisYLabel($view_column_y),
             'chart_click'   => $chart_click,
         ];
     }
 
     /**
-     * Click-to-filter payload of a chart whose group column is an item of the dashboard
-     * filter bar: {column, values[]} with values[i] = the stored value behind data point i
-     * (what a df_{column} param compares against), so clicking a bar selects it on the bar.
-     * null when the column is not a filter item, belongs to another table, or the grouping
-     * is a derived bucket (date format) whose value never equals the stored one.
+     * Rows of the aggregate view for this box, filters applied. Without a box aggregate this
+     * is the plain view query. With one, the measure's summary condition is swapped for the
+     * engine run (sum / count / min / max) or, for avg — which the engine lacks — derived from
+     * a SUM run and a COUNT run matched on their group values (SummaryAverage): a true mean
+     * of the records, also across a joined child table. Averaged rows also carry each
+     * group's sum and count.
+     *
+     * @param CustomViewSummary $view_column_y  the measure (chart_axisy)
+     * @return \Illuminate\Support\Collection
+     */
+    protected function summaryRows($view_column_y)
+    {
+        $run = function () {
+            $query = $this->custom_table->getValueQuery();
+            $this->applyFilters($query);
+            return $this->custom_view->getQuery($query)->get();
+        };
+        if ($this->aggregate === null) {
+            return $run();
+        }
+        // every run of ours starts from a clean search service: another box sharing this view
+        // leaves its joins and order-by registered on it
+        $fresh = function () use ($run) {
+            $this->custom_view->resetSearchService();
+            return $run();
+        };
+        if ($this->aggregate !== ChartAggregate::AVG) {
+            return $this->withSummaryCondition($view_column_y, ChartAggregate::summaryCondition($this->aggregate), $fresh);
+        }
+
+        $sums = $this->withSummaryCondition($view_column_y, SummaryCondition::SUM, $fresh);
+        $counts = $this->withSummaryCondition($view_column_y, SummaryCondition::COUNT, $fresh);
+
+        $group_columns = collect($this->custom_view->custom_view_columns_cache);
+        $alias = $view_column_y->column_item->uniqueName();
+        $rows = SummaryAverage::merge($sums, $counts, $group_columns->map(function ($column) {
+            return $column->column_item->uniqueName();
+        })->all(), $alias);
+
+        // the engine ordered the SUM rows; when the measure leads that order, re-sort by the mean
+        $group_sort_orders = $group_columns->map(function ($column) {
+            return array_get($column->options, 'sort_order');
+        })->all();
+        if (SummaryAverage::valueLeadsOrder(array_get($view_column_y->options, 'sort_order'), $group_sort_orders)) {
+            $rows = SummaryAverage::sortByValue($rows, $alias, isMatchString(array_get($view_column_y->options, 'sort_type'), '-1'));
+        }
+        return $rows;
+    }
+
+    /**
+     * Run $fn with the measure's summary condition replaced in memory — the engine reads it
+     * off the model while building the query — and put the stored value back afterwards.
+     *
+     * @param CustomViewSummary $view_column_y
+     * @param string $condition  a SummaryCondition value
+     * @return mixed  what $fn returned
+     */
+    protected function withSummaryCondition($view_column_y, $condition, \Closure $fn)
+    {
+        $item = $view_column_y->column_item;
+        $original = $view_column_y->view_summary_condition;
+        // the engine PREPENDS the condition's name to the item's label on every run, and both the
+        // model and its item are shared for the whole request — keep the label we found
+        $original_label = $item->label();
+        $view_column_y->view_summary_condition = $condition;
+        try {
+            return $fn();
+        } finally {
+            $view_column_y->view_summary_condition = $original;
+            $item->options(['summary_condition' => $original]);
+            $item->setLabel($original_label);
+        }
+    }
+
+    /**
+     * The chart's Y-axis label: the view column's own name, else the item's label — which the
+     * engine has decorated with the view's summary condition. With a box aggregate and no name
+     * of its own, "<aggregate> ： <column>" in the engine's own wording instead.
+     *
+     * @param CustomViewSummary $view_column_y
+     */
+    protected function axisYLabel($view_column_y): ?string
+    {
+        $named = array_get($view_column_y, 'view_column_name');
+        if (!is_nullorempty($named)) {
+            return $named;
+        }
+        $item = $view_column_y->column_item;
+        if ($this->aggregate === null) {
+            return $item->label();
+        }
+        $column = $view_column_y->custom_column;
+        return exmtrans('common.format_keyvalue', ChartAggregate::label($this->aggregate), $column ? $column->column_view_name : $item->label());
+    }
+
+    /**
+     * Click-to-filter payload of a chart whose X column is an item of the dashboard filter
+     * bar (clickColumn): {column, values[], selected[], highlight} with values[i] = the
+     * stored value behind data point i (what a df_{column} param compares against), so
+     * clicking a point picks it on the bar. `highlight` says the chart highlights the item
+     * rather than filtering by it (highlightColumn); `selected` is then the bar's current
+     * pick on it, drawn solid on the chart. null when no click applies.
      *
      * @param mixed $view_column  the view's group CustomViewColumn
      * @param iterable $raw_values  raw group values, index-aligned with the chart's points
@@ -398,22 +749,47 @@ class ChartItem implements ItemInterface
      */
     protected function clickFilter($view_column, $raw_values)
     {
+        $custom_column = $this->clickColumn($view_column);
+        if ($custom_column === null) {
+            return null;
+        }
+        $column = $custom_column->column_name;
+        $highlight = $this->highlightColumn() === $column;
+        return [
+            'column' => $column,
+            'values' => collect($raw_values)->map(function ($v) {
+                return is_scalar($v) ? (string) $v : '';
+            })->values()->all(),
+            'selected' => $highlight ? $this->dashboard_filter->selected($column) : [],
+            'highlight' => $highlight,
+        ];
+    }
+
+    /**
+     * The custom column a click on a point of $view_column picks on the filter bar, or null:
+     * the rendered type must have pickable points (ChartType::supportsPointPick), the item
+     * must show a list for its current value (DashboardFilter::styleOf — a from / to has no
+     * one value to pick, and a chart then filters by it like every other box instead of
+     * highlighting it), the column must belong to this box's table and not be a derived
+     * bucket (date format) whose displayed value never equals the stored one.
+     *
+     * @param mixed $view_column  a group CustomViewColumn of the view
+     * @return mixed CustomColumn|null
+     */
+    protected function clickColumn($view_column)
+    {
         $config = $this->dashboard_filter->config();
         $custom_column = $view_column ? $view_column->custom_column : null;
-        if ($config === null || is_nullorempty($custom_column) || is_nullorempty($this->custom_table)) {
+        if ($config === null || is_nullorempty($custom_column) || is_nullorempty($this->custom_table) || !ChartType::supportsPointPick($this->chart_type)) {
             return null;
         }
         if (array_get($view_column, 'view_column_table_id') != $this->custom_table->id
             || !is_nullorempty(array_get($view_column, 'view_group_condition'))
-            || $config->dim($custom_column->column_name) === null) {
+            || $config->dim($custom_column->column_name) === null
+            || $this->dashboard_filter->styleOf($custom_column) !== 'select') {
             return null;
         }
-        return [
-            'column' => $custom_column->column_name,
-            'values' => collect($raw_values)->map(function ($v) {
-                return is_scalar($v) ? (string) $v : '';
-            })->values()->all(),
-        ];
+        return $custom_column;
     }
 
     /**
@@ -435,13 +811,8 @@ class ChartItem implements ItemInterface
             return false;
         }
 
-        $series_pos = 1;
-        foreach ($view_columns as $pos => $column) {
-            if (!is_nullorempty($this->chart_series) && (ViewKindType::DEFAULT . '_' . $column->id) === $this->chart_series) {
-                $series_pos = $pos;
-            }
-        }
-        $x_pos = $series_pos === 0 ? 1 : 0;
+        $x_pos = $this->multiSeriesXPos($view_columns);
+        $series_pos = $x_pos === 0 ? 1 : 0;
 
         $items = $view_columns->map(function ($item) {
             return $item->column_item->options([
@@ -453,9 +824,7 @@ class ChartItem implements ItemInterface
         $item_series = $items[$series_pos];
         $item_y = $view_column_y->column_item;
 
-        $query = $this->custom_table->getValueQuery();
-        $this->applyFilters($query);
-        $datalist = $this->custom_view->getQuery($query)->get();
+        $datalist = $this->summaryRows($view_column_y);
 
         $x_texts = $datalist->map(function ($val) use ($item_x) {
             return $item_x->setCustomValue($val)->text();
@@ -463,7 +832,11 @@ class ChartItem implements ItemInterface
         $series_texts = $datalist->map(function ($val) use ($item_series) {
             return $item_series->setCustomValue($val)->text();
         })->all();
-        $y_values = $datalist->pluck($item_y->uniqueName())->all();
+        // averaged rows: the pivot combines their sums and record counts, then divides per cell
+        $averaged = $this->aggregate === ChartAggregate::AVG;
+        $alias = $item_y->uniqueName();
+        $y_values = $datalist->pluck($averaged ? $alias . SummaryAverage::SUM_SUFFIX : $alias)->all();
+        $y_counts = $averaged ? $datalist->pluck($alias . SummaryAverage::COUNT_SUFFIX)->all() : [];
 
         // strict unique so "7" and "007" stay distinct categories
         $x_categories = collect($x_texts)->unique(null, true)->values();
@@ -472,14 +845,19 @@ class ChartItem implements ItemInterface
         $x_raws = $datalist->pluck($item_x->uniqueName())->all();
         $x_raw_by_category = [];
         $matrix = array_fill(0, $series_names->count(), array_fill(0, $x_categories->count(), 0));
+        $counts = $matrix;
         foreach ($y_values as $i => $value) {
             $x_idx = $x_categories->search($x_texts[$i], true);
             $s_idx = $series_names->search($series_texts[$i], true);
             if ($x_idx !== false && $s_idx !== false) {
                 // accumulate: a view grouped by 3+ columns yields several rows per cell
                 $matrix[$s_idx][$x_idx] += is_numeric($value) ? floatval($value) : 0;
+                $counts[$s_idx][$x_idx] += (int) ($y_counts[$i] ?? 0);
                 $x_raw_by_category[$x_idx] = $x_raw_by_category[$x_idx] ?? ($x_raws[$i] ?? null);
             }
+        }
+        if ($averaged) {
+            $matrix = SummaryAverage::cellMeans($matrix, $counts);
         }
 
         return [
@@ -487,7 +865,7 @@ class ChartItem implements ItemInterface
             'series_names' => $series_names->all(),
             'matrix'       => $matrix,
             'axisx_label'  => array_get($view_columns[$x_pos], 'view_column_name') ?? $item_x->label(),
-            'axisy_label'  => array_get($view_column_y, 'view_column_name') ?? $item_y->label(),
+            'axisy_label'  => $this->axisYLabel($view_column_y),
             'chart_click'  => $this->clickFilter($view_columns[$x_pos], $x_categories->keys()->map(function ($idx) use ($x_raw_by_category) {
                 return $x_raw_by_category[$idx] ?? null;
             })),
@@ -547,6 +925,12 @@ class ChartItem implements ItemInterface
         $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))
             ->required()
             ->options($viewColumnOptions(true));
+
+        // TEMPORARILY DISABLED (2026-09-23): 集計方法 — aggregate of the Y value on this box (aggregate
+        // views); empty = the view's own summary condition. See the constructor.
+        // $form->select('chart_aggregate', exmtrans("dashboard.dashboard_box_options.chart_aggregate"))
+        //     ->options(ChartAggregate::formOptions())
+        //     ->help(exmtrans("dashboard.dashboard_box_options.chart_aggregate_help"));
 
         // series column of a multi-series chart (shown for those types only, see the script below)
         $form->select('chart_series', exmtrans("dashboard.dashboard_box_options.chart_series"))
@@ -630,6 +1014,12 @@ EOT;
             unset($options['chart_series']);
         }
 
+        // TEMPORARILY DISABLED (2026-09-23): 集計方法 — the field is off the form, so nothing is posted.
+        // aggregate: a known value only; empty (= as the view) stores nothing
+        // if (ChartAggregate::resolve(array_get($options, 'chart_aggregate')) === null) {
+        //     unset($options['chart_aggregate']);
+        // }
+
         // chart filter: plain column names only; an empty selection posts nothing = cleared
         $filters = array_values(array_filter((array) array_get($options, 'chart_filters', []), function ($column) {
             return FilterValue::isIdentifier($column);
@@ -676,23 +1066,72 @@ EOT;
     }
 
     /**
-     * get chart color array.
+     * The Chart.js dataset color: one color for a line, else the per-point colors as the
+     * runtime sort left them.
      *
+     * @param array<int, string> $point_colors  pointColors(), carried through the sort
      * @return array|string Chart color array
      */
     // @phpstan-ignore-next-line
-    protected function getChartColor($datacnt)
+    protected function getChartColor(array $point_colors)
     {
-        $chart_color = $this->getChartPalette();
-
-        if ($this->chart_type == ChartType::PIE) {
-            $colors = [];
-            for ($i = 0; $i < $datacnt; $i++) {
-                $colors[] = $chart_color[$i % count($chart_color)];
-            }
-            return $colors;
+        // one line = one color; every other single-series type colors each point
+        if ($this->chart_type == ChartType::LINE) {
+            return $this->singleSeriesPalette()[0];
         }
-        return $chart_color[0];
+        return $point_colors;
+    }
+
+    /**
+     * One color per point: the one an editor painted on the category, else Exment's own
+     * default — a palette color per slice on the circular types, the palette's first color on
+     * every other point. Assigned in the view's own row order — body() hands the list to the
+     * sorter, which keeps each color on its own point.
+     *
+     * @param array<int, mixed> $labels  the category texts, in the view's order
+     * @return array<int, string>
+     */
+    protected function pointColors(array $labels): array
+    {
+        $palette = $this->getChartPalette();
+        if (!in_array($this->chart_type, [ChartType::PIE, ChartType::DOUGHNUT, ChartType::FUNNEL], true)) {
+            $palette = [$palette[0]];
+        }
+        return $this->chartColors()->colorsFor(ChartColors::POINT, $labels, $palette);
+    }
+
+    /**
+     * The palette with its first color — the one a one-color type (line / area / radar /
+     * gauge) draws its series in — replaced by the color an editor painted on that series.
+     *
+     * @return string[]
+     */
+    protected function singleSeriesPalette(): array
+    {
+        $palette = $this->getChartPalette();
+        $palette[0] = $this->chartColors()->get(ChartColors::SERIES, ChartColors::SINGLE) ?? $palette[0];
+        return $palette;
+    }
+
+    /**
+     * The colors painted on this box (box option chart_colors).
+     */
+    protected function chartColors(): ChartColors
+    {
+        return ChartColors::fromOption(array_get($this->dashboard_box, 'options.chart_colors'));
+    }
+
+    /**
+     * Whether the current user may paint this chart's colors: they edit the dashboard, and
+     * the rendered type has something to paint.
+     */
+    protected function canEditColors(): bool
+    {
+        if ($this->can_edit_colors === null) {
+            $dashboard = $this->dashboard_box->dashboard ?? null;
+            $this->can_edit_colors = ChartType::supportsColorEdit($this->chart_type) && $dashboard !== null && (bool) $dashboard->hasEditPermission();
+        }
+        return $this->can_edit_colors;
     }
 
     /**

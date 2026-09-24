@@ -78,6 +78,91 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertFalse($config->appliesTo('unknown', $box1), 'a column that is not an item never applies');
     }
 
+    public function testDefaultQuery()
+    {
+        $config = FilterBarConfig::fromDashboard($this->makeDashboard($this->bar([
+            'grade' => ['default' => ' 1 '],
+            'subject' => ['default' => '国語, 算数 ,'],
+            'score' => ['default' => '60~90', 'style' => 'range'],
+            'semester' => ['default' => ''],
+            'gone' => ['default' => '9'],
+            'class',
+        ])));
+        $table = new FakeCustomTable([
+            new FakeCustomColumn('grade'),
+            new FakeCustomColumn('subject'),
+            new FakeCustomColumn('score', 'integer'),
+            new FakeCustomColumn('semester'),
+            new FakeCustomColumn('class'),
+        ]);
+
+        $this->assertSame([
+            'df_grade' => '1',
+            'df_subject' => ['国語', '算数'],
+            'df_score' => ['from' => '60', 'to' => '90'],
+        ], $config->defaultQuery($table), 'trimmed; empty default and unknown column skipped; no default = no param');
+        $this->assertSame([], $config->defaultQuery(null));
+    }
+
+    public function testDefaultQueryRangeBounds()
+    {
+        $table = new FakeCustomTable([new FakeCustomColumn('score', 'integer')]);
+        $only = function ($default, $style = 'range') use ($table) {
+            return FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'score', 'default' => $default, 'style' => $style]]])
+                ->defaultQuery($table);
+        };
+        $this->assertSame(['df_score' => ['from' => '60']], $only('60~'));
+        $this->assertSame(['df_score' => ['to' => '90']], $only('~90'));
+        $this->assertSame([], $only('~'), 'both bounds empty = no param');
+
+        // left to itself a number is a list, so its default names values, not bounds
+        $this->assertSame(['df_score' => '90'], $only('90', null));
+        $this->assertSame(['df_score' => ['60', '90']], $only('60, 90', null));
+        // ... unless it is written as a range: a long number list shows from / to on the bar,
+        // and a typed range keeps its inputs on any number / date item
+        $this->assertSame(['df_score' => ['from' => '60', 'to' => '90']], $only('60~90', null));
+        $this->assertSame(['df_score' => ['from' => '60']], $only('60~', null));
+
+        // a text column never compares: its "~" is just a character of one value
+        $text = new FakeCustomTable([new FakeCustomColumn('memo', 'text')]);
+        $this->assertSame(['df_memo' => 'a~b'], FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'memo', 'default' => 'a~b']]])->defaultQuery($text));
+    }
+
+    public function testSelectionKeepsOnlyTheBarsItems()
+    {
+        $config = FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'grade'], ['column' => 'subject'], ['column' => 'score'], ['column' => 'class']]]);
+
+        $this->assertSame([
+            'df_grade' => '1',
+            'df_subject' => ['国語', '算数'],
+            'df_score' => ['from' => '60'],
+        ], $config->selection([
+            'dashboard' => 'abc',
+            'df_score' => ['from' => ' 60 ', 'to' => ''],
+            'df_gone' => '9',
+            'df_grade' => [' 1 '],
+            'df_subject' => ['国語', ['nested'], '算数', '国語'],
+            'df_class' => '',
+        ]), "bar order; items no longer on the bar, empty values and junk dropped; one value = a plain param");
+        $this->assertSame([], $config->selection([]));
+    }
+
+    public function testQueryStringUsesTheBarsOwnUrlFormat()
+    {
+        $this->assertSame(
+            'dashboard=abc&df_grade=1&df_subject%5B%5D=%E5%9B%BD%E8%AA%9E&df_subject%5B%5D=a%20b&df_score%5Bfrom%5D=60&dfr=1',
+            FilterBarConfig::queryString([
+                'dashboard' => 'abc',
+                'df_grade' => '1',
+                'df_subject' => ['国語', 'a b', ['nested']],
+                'df_score' => ['from' => '60'],
+                'dfr' => 1,
+            ]),
+            'list values as df_col[] (not df_col[0]) like dashboard.js writes them; a nested value is skipped'
+        );
+        $this->assertSame('', FilterBarConfig::queryString([]));
+    }
+
     public function testDimsForHonoursColumnsAndTargeting()
     {
         $config = FilterBarConfig::fromDashboard($this->makeDashboard($this->bar([

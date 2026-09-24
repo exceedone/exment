@@ -48,9 +48,62 @@ class FilterValueTest extends DashboardUnitTestCase
         $this->assertSame('text', FilterValue::kind(new FakeCustomColumn('s', 'select_table')));
         $this->assertSame('text', FilterValue::kind(null));
 
-        $this->assertSame('range', FilterValue::style(new FakeCustomColumn('n', 'integer')));
-        $this->assertSame('range', FilterValue::style(new FakeCustomColumn('d', 'date')));
+        // a filter lists the values the data holds, numbers included; only dates, whose
+        // input already carries a calendar, keep a from / to range
+        $this->assertSame('select', FilterValue::style(new FakeCustomColumn('n', 'integer')));
+        $this->assertSame('select', FilterValue::style(new FakeCustomColumn('n', 'decimal')));
         $this->assertSame('select', FilterValue::style(new FakeCustomColumn('s', 'select')));
+        $this->assertSame('range', FilterValue::style(new FakeCustomColumn('d', 'date')));
+        $this->assertSame('range', FilterValue::style(new FakeCustomColumn('d', 'datetime')));
+    }
+
+    public function testConfiguredStyleOverridesTheColumnDefault()
+    {
+        $number = new FakeCustomColumn('revenue', 'integer');
+        $date = new FakeCustomColumn('order_date', 'date');
+
+        $this->assertSame('range', FilterValue::style($number, 'range'), 'a continuous column can ask for from / to');
+        $this->assertSame('select', FilterValue::style($date, 'select'), 'a date can ask to be picked from a list');
+
+        foreach ([null, '', 'nonsense'] as $ignored) {
+            $this->assertSame('select', FilterValue::style($number, $ignored), 'an unusable style falls back to the default');
+        }
+    }
+
+    public function testStyleForKeepsATypedRangeOnItsInputs()
+    {
+        $number = new FakeCustomColumn('revenue', 'integer');
+        $text = new FakeCustomColumn('grade', 'text');
+        $range = FilterValue::parse(['from' => '1000']);
+
+        $this->assertSame('range', FilterValue::styleFor($number, null, $range), 'a from / to typed while the list was capped stays a from / to when the list is not');
+        $this->assertSame('select', FilterValue::styleFor($number, null, FilterValue::parse('1000')), 'a picked value keeps the list');
+        $this->assertSame('select', FilterValue::styleFor($number, null, null), 'nothing selected: the column default');
+        $this->assertSame('range', FilterValue::styleFor($number, 'range', null), 'the configured style');
+        $this->assertSame('select', FilterValue::styleFor($text, null, $range), 'a text column never compares: no control for a stale range (and no filter, DashboardFilter::columnsFor)');
+    }
+
+    public function testFormatBoundShowsTheDataEndAsTheInputDoes()
+    {
+        // MIN / MAX of a DECIMAL cast come back with four decimals: shown like a typed number
+        $this->assertSame('72', FilterValue::formatBound('72.0000', 'number'));
+        $this->assertSame('1.5', FilterValue::formatBound('1.5000', 'number'));
+        $this->assertSame('1001', FilterValue::formatBound(1001, 'number'));
+        $this->assertSame('0', FilterValue::formatBound('0.0000', 'number'));
+        $this->assertSame('-3.25', FilterValue::formatBound('-3.2500', 'number'));
+        $this->assertSame('', FilterValue::formatBound('abc', 'number'));
+        $this->assertSame('', FilterValue::formatBound(null, 'number'), 'no rows: no end');
+        $this->assertSame('', FilterValue::formatBound('', 'date'));
+        $this->assertSame('2026-01-05', FilterValue::formatBound('2026-01-05 13:45:00', 'datetime'), 'the date input takes a day');
+        $this->assertSame('2026-01-05', FilterValue::formatBound('2026-01-05', 'date'));
+        $this->assertSame('', FilterValue::formatBound('yesterday', 'date'));
+        $this->assertSame('x', FilterValue::formatBound('x', 'text'));
+    }
+
+    public function testCompareExprCastsNumbersOnly()
+    {
+        $this->assertSame('CAST(JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."score"\')) AS DECIMAL(20,4))', FilterValue::compareExpr(new FakeCustomColumn('score', 'integer')), 'so MIN / MAX and a range compare "72" before "1001"');
+        $this->assertSame('JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."d"\'))', FilterValue::compareExpr(new FakeCustomColumn('d', 'date')), 'ISO dates order as text');
     }
 
     public function testApplyOnIndexedColumn()

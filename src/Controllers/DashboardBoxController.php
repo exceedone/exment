@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
@@ -15,6 +16,7 @@ use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\DashboardBoxItems\ChartItem;
+use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Illuminate\Support\Collection;
 
@@ -104,6 +106,70 @@ class DashboardBoxController extends AdminControllerBase
     }
 
     /**
+     * Remembers the toolbar choices of a chart box for the current user — chart type, sort,
+     * display options — as user setting `dashboard_chart.{dashboard suuid}.{box suuid}`;
+     * the next dashboard entry starts the box with them (DashboardController::home). A
+     * choice equal to the box setting is not kept, so the box follows its setting again.
+     *
+     * @param Request $request
+     * @param string $suuid
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function chartState(Request $request, $suuid)
+    {
+        $box = DashboardBox::findBySuuid($suuid);
+        $user = Admin::user();
+        if (!isset($box) || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard) || $user === null) {
+            return response()->json(['status' => false], 404);
+        }
+        $state = ChartItem::toolbarState($request->only(['ct', 'cs', 'cd']), array_get($box, 'options.chart_type'));
+        $key = 'dashboard_chart.' . $box->dashboard->suuid . '.' . $box->suuid;
+        if ($user->getSettingValue($key) !== $state) {
+            $user->setSettingValue($key, $state);
+        }
+        return response()->json(['status' => true]);
+    }
+
+    /**
+     * Paints one color on a chart box (right-click a point / series on the chart, like
+     * Excel's Fill) or takes every painted color back (`reset`), for everyone who views the
+     * box: box option `chart_colors` (ChartColors). Dashboard editors only.
+     *
+     * Posted: kind (points | series), key (the category text / series name; '' = the one
+     * series of a one-color chart), color (#rrggbb; empty = back to the palette), or reset=1.
+     *
+     * @param Request $request
+     * @param string $suuid
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function chartColor(Request $request, $suuid)
+    {
+        $box = DashboardBox::findBySuuid($suuid);
+        if (!isset($box) || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard)) {
+            return response()->json(['status' => false], 404);
+        }
+        if (!$box->dashboard->hasEditPermission()) {
+            return response()->json(['status' => false], 403);
+        }
+        $kind = $request->input('kind');
+        $key = (string) $request->input('key', '');
+        if (!$request->boolean('reset') && (!in_array($kind, [ChartColors::POINT, ChartColors::SERIES], true) || mb_strlen($key) > 255)) {
+            return response()->json(['status' => false], 422);
+        }
+        $options = $box->options ?? [];
+        $colors = $request->boolean('reset') ? []
+            : ChartColors::fromOption(array_get($options, 'chart_colors'))->with($kind, $key, $request->input('color'));
+        if (empty($colors)) {
+            unset($options['chart_colors']);
+        } else {
+            $options['chart_colors'] = $colors;
+        }
+        $box->options = $options;
+        $box->save();
+        return response()->json(['status' => true]);
+    }
+
+    /**
      * Make a form builder.
      *
      * @param $id
@@ -156,14 +222,26 @@ class DashboardBoxController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected function manageFormSaving($form)
     {
+        // colors painted on the chart itself (chartColor) are no field of this form, whose
+        // embedded options keep only the fields it declares: carry them over the save
+        $painted = null;
+
         // before saving
-        $form->saving(function ($form) {
+        $form->saving(function ($form) use (&$painted) {
+            $painted = array_get($form->model()->options ?? [], 'chart_colors');
             $classname = DashboardBoxType::getEnum($form->dashboard_box_type)->getDashboardBoxItemClass();
             $classname::saving($form);
         });
 
         // saved. redirect to top
-        $form->saved(function ($form) {
+        $form->saved(function ($form) use (&$painted) {
+            $model = $form->model();
+            if (!empty($painted) && isset($model) && !array_has($model->options ?? [], 'chart_colors')) {
+                $options = $model->options ?? [];
+                $options['chart_colors'] = $painted;
+                $model->options = $options;
+                $model->save();
+            }
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url());

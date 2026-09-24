@@ -117,4 +117,33 @@ class ChartType extends EnumBase
         }
         return $configured;
     }
+
+    /**
+     * Types whose points map 1:1 to the X values, so a click on a point picks its value on
+     * the filter bar and the pick shows on the points (the picked ones solid, the rest
+     * faded). The shape types — radar, gauge, treemap, sunburst, boxplot — draw no such point.
+     */
+    public static function supportsPointPick(?string $type): bool
+    {
+        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::DOUGHNUT, self::FUNNEL, self::SCATTER, self::MBAR, self::SBAR, self::MLINE, self::SAREA, self::HEATMAP], true);
+    }
+
+    /**
+     * Types whose points can carry their value as a label (the box menu's 値ラベル): the
+     * cartesian ones and pie; doughnut / funnel always label, the shape types cannot.
+     */
+    public static function supportsDataLabels(?string $type): bool
+    {
+        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::SCATTER, self::MBAR, self::SBAR, self::MLINE, self::SAREA], true);
+    }
+
+    /**
+     * Types whose colors an editor can paint by right-clicking the chart (ChartColors): every
+     * category of a per-point type, every series of a multi-series type, the one series of a
+     * one-color type. The heatmap is colored by value and the boxplot by nothing to pick.
+     */
+    public static function supportsColorEdit(?string $type): bool
+    {
+        return $type !== null && $type !== self::HEATMAP && $type !== self::BOXPLOT;
+    }
 }

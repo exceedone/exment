@@ -584,7 +584,10 @@ return [
             'chart_options' => 'オプション設定',
             'chart_series' => '系列の項目（複数系列）',
             'chart_filters' => 'チャートフィルター項目',
-            'chart_filters_help' => 'チャートのツールバーに絞り込み用の項目を表示します（複数選択のチェックリスト。数値・日付の列は「から／まで」の範囲）。「このチャートのみ」を絞り込み、他のボックスには影響しません。ダッシュボードフィルターと両方指定した場合は両方の条件で絞り込まれます。',
+            'chart_filters_help' => 'チャートのツールバーに絞り込み用の項目を表示します（複数選択のチェックリスト。日付の列は「から／まで」の範囲）。「このチャートのみ」を絞り込み、他のボックスには影響しません。ダッシュボードフィルターと両方指定した場合は両方の条件で絞り込まれます。',
+            'chart_aggregate' => '集計方法',
+            'chart_aggregate_view' => 'ビューの設定通り',
+            'chart_aggregate_help' => '集計ビューのY軸の値を、この方法で集計し直して表示します。「平均」はレコード単位の平均です。',
             'calendar_type' => 'カレンダーの種類',
             'content' => '本文',
             'html' => 'HTML',
@@ -599,6 +602,7 @@ return [
             'dims' => 'フィルター項目',
             'dim_column' => '列',
             'dim_label' => '表示名',
+            'dim_default' => 'デフォルト値',
             'dim_targets' => '対象ボックス',
             'range_from' => 'から',
             'range_to' => 'まで',
@@ -609,6 +613,7 @@ return [
             'help' => [
                 'source_table' => 'フィルターの選択肢を取得するテーブルです。空欄にするとフィルターバーを表示しません。',
                 'dims' => 'フィルターバーに表示する項目です。各項目の選択肢は、他の項目の選択内容に応じて絞り込まれます。',
+                'dim_default' => 'ダッシュボードを開いたとき最初から選択される値です。リストの項目は選択肢から選びます（保存値のカンマ区切り）。「から／まで」の項目は「最小~最大」形式で、片側だけでも指定できます。空欄の場合は未選択で表示します。',
                 'dim_targets' => 'このフィルターを適用するチャートボックスを選択します。選択したボックスのみが絞り込まれ、それ以外のボックスは（同じ列を持っていても）影響を受けません。空欄の場合は、同じ列名を持つすべてのチャートに適用されます。',
             ],
         ],
@@ -616,6 +621,40 @@ return [
         // chart filter (box option chart_filters): toolbar button
         'chart_filter' => [
             'label' => 'フィルター',
+        ],
+
+        // chart sort (toolbar, runtime): the plotted points re-ordered per box
+        'chart_sort' => [
+            'by' => '並び替え',
+            'asc' => '昇順',
+            'desc' => '降順',
+        ],
+
+        // box menu (⋯): display options and export
+        'chart_menu' => [
+            'label' => 'オプション',
+            'display' => '表示',
+            'labels' => '値ラベル',
+            'export' => 'データをエクスポート',
+            'count_fmt' => '（%s件）',
+        ],
+
+        // colors painted on a chart by right-clicking it (box option chart_colors)
+        'chart_color' => [
+            'theme' => 'テーマの色',
+            'standard' => '標準の色',
+            'auto' => '自動',
+            'more' => 'その他の色...',
+            'reset' => '色をリセット',
+        ],
+
+        // aggregate of a chart box's Y value (box option chart_aggregate)
+        'chart_aggregate_options' => [
+            'sum' => '合計',
+            'avg' => '平均',
+            'count' => '件数',
+            'min' => '最小値',
+            'max' => '最大値',
         ],
 
         // AI summary strip under a chart

@@ -584,7 +584,10 @@ return [
             'chart_options' => 'Option settings',
             'chart_series' => 'Series column (multi-series)',
             'chart_filters' => 'Chart filter fields',
-            'chart_filters_help' => 'Adds filter fields to the toolbar of this chart (a checklist where several values can be picked; number and date columns get a from / to range). They narrow ONLY this chart — other boxes are unaffected. When the dashboard filter bar is set too, both conditions apply.',
+            'chart_filters_help' => 'Adds filter fields to the toolbar of this chart (a checklist where several values can be picked; date columns get a from / to range). They narrow ONLY this chart — other boxes are unaffected. When the dashboard filter bar is set too, both conditions apply.',
+            'chart_aggregate' => 'Aggregation',
+            'chart_aggregate_view' => 'As the view',
+            'chart_aggregate_help' => 'Re-aggregates the Y value of an aggregate view this way. "Average" is the mean of the records.',
             'calendar_type' => 'Calendar Type',
             'content' => 'Content',
             'html' => 'HTML',
@@ -599,6 +602,7 @@ return [
             'dims' => 'Filter items',
             'dim_column' => 'Column',
             'dim_label' => 'Display name',
+            'dim_default' => 'Default value',
             'dim_targets' => 'Target boxes',
             'range_from' => 'from',
             'range_to' => 'to',
@@ -609,6 +613,7 @@ return [
             'help' => [
                 'source_table' => 'Table the filter choices are read from. Leave empty to hide the filter bar.',
                 'dims' => 'Items shown on the filter bar. The choices of each item are narrowed by the selection of the other items.',
+                'dim_default' => 'Values preselected when the dashboard opens. A list item takes picks from its list (stored values, comma-separated); a from / to item takes "min~max", either side may be left empty. Empty = no initial selection.',
                 'dim_targets' => 'Chart boxes this filter applies to. Only the selected boxes are narrowed; every other box is unaffected even when its table has the same column. Empty = every chart whose table has a column with the same name.',
             ],
         ],
@@ -616,6 +621,40 @@ return [
         // chart filter (box option chart_filters): toolbar button
         'chart_filter' => [
             'label' => 'Filter',
+        ],
+
+        // chart sort (toolbar, runtime): the plotted points re-ordered per box
+        'chart_sort' => [
+            'by' => 'Sort by',
+            'asc' => 'Sort ascending',
+            'desc' => 'Sort descending',
+        ],
+
+        // box menu (⋯): display options and export
+        'chart_menu' => [
+            'label' => 'Options',
+            'display' => 'Display',
+            'labels' => 'Data labels',
+            'export' => 'Export data',
+            'count_fmt' => ' (%s records)',
+        ],
+
+        // colors painted on a chart by right-clicking it (box option chart_colors)
+        'chart_color' => [
+            'theme' => 'Theme colors',
+            'standard' => 'Standard colors',
+            'auto' => 'Automatic',
+            'more' => 'More colors...',
+            'reset' => 'Reset colors',
+        ],
+
+        // aggregate of a chart box's Y value (box option chart_aggregate)
+        'chart_aggregate_options' => [
+            'sum' => 'Total',
+            'avg' => 'Average',
+            'count' => 'Count',
+            'min' => 'Minimum',
+            'max' => 'Maximum',
         ],
 
         // AI summary strip under a chart

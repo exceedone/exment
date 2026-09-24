@@ -8,8 +8,9 @@ use Exceedone\Exment\Model\CustomTable;
 
 /**
  * The "dashboard filter bar" section of the dashboard setting form: the source table and
- * the filter items (column, display name, target boxes). Bound to the Dashboard model's
- * filter_bar_table / filter_bar_dims virtual attributes.
+ * the filter items (column, display name, default value, target boxes). Bound to the
+ * Dashboard model's filter_bar_table / filter_bar_dims virtual attributes; the table's
+ * client-side behaviour is dashboard.js (ExmentDashboardForm).
  */
 final class FilterBarForm
 {
@@ -29,6 +30,8 @@ final class FilterBarForm
             // repoints every item's column select at the newly chosen table
             ->attribute(['data-linkage' => json_encode(['column' => $columnsUrl])]);
 
+        $valuesUrl = admin_urls('dashboard', 'filter_bar_values');
+        $dashboardId = $model ? $model->id : '';
         $columns = self::columnOptions($model ? $model->getOption('filter_bar.source_table') : null);
         $boxes = self::boxOptions($model);
 
@@ -41,30 +44,29 @@ final class FilterBarForm
                     return self::columnOptions(request()->input('filter_bar_table'));
                 });
             $form->text('label', exmtrans('dashboard.filter_bar.dim_label'));
+            // posts the stored value(s) as text ("a,b" for a list column, "min~max" for a range
+            // column); dashboard.js (ExmentDashboardForm) draws a picker or from / to inputs in
+            // front of it, fetched from dashboard/filter_bar_values
+            $form->text('default', exmtrans('dashboard.filter_bar.dim_default'))
+                ->help(exmtrans('dashboard.filter_bar.help.dim_default'));
             $form->multipleSelect('targets', exmtrans('dashboard.filter_bar.dim_targets'))
                 ->options($boxes)
                 ->help(exmtrans('dashboard.filter_bar.help.dim_targets'));
         })->descriptionHtml('<span class="help-block"><i class="fa fa-info-circle"></i>&nbsp;' . exmtrans('dashboard.filter_bar.help.dims') . '</span>');
 
-        // A row added with "+ new" is cloned from a template rendered before any table was
-        // picked: fill its column select from a sibling row, or from the linkage endpoint.
-        Admin::script(<<<EOT
-$('#has-many-table-filter_bar_dims').on('admin_hasmany_row_change', function (e) {
-    if (!$(e.target).closest('.add').length) { return; }
-    var empty = $('#has-many-table-filter_bar_dims-table tbody tr:visible').last().find('select.column').filter(function () { return !this.value; });
-    if (!empty.length) { return; }
-    var fill = function (html) { empty.each(function () { $(this).html(html).val('').trigger('change.select2'); }); };
-    var loaded = $('#has-many-table-filter_bar_dims-table select.column').not(empty).filter(function () { return this.options.length > 1; }).first();
-    if (loaded.length) { fill(loaded.html()); return; }
-    var table = $('select[name="filter_bar_table"]').val();
-    if (!table) { return; }
-    $.get('{$columnsUrl}', { q: table }, function (data) {
-        var html = '<option value=""></option>';
-        $.each(data, function (i, d) { html += '<option value="' + d.id + '">' + $('<div/>').text(d.text).html() + '</option>'; });
-        fill(html);
-    });
-});
-EOT);
+        // behaviour of the items table — a "+ new" row gets its column choices, the デフォルト値
+        // cell draws a picker or from / to inputs in front of its text input — lives in
+        // dashboard.js (ExmentDashboardForm, loaded on every admin page); only what the page
+        // cannot know is passed: the linkage endpoints, the dashboard id, two texts
+        Admin::script('ExmentDashboardForm.init(' . json_encode([
+            'columnsUrl' => $columnsUrl,
+            'valuesUrl' => $valuesUrl,
+            'dashboardId' => (string) $dashboardId,
+            'lang' => [
+                'range_from' => exmtrans('dashboard.filter_bar.range_from'),
+                'range_to' => exmtrans('dashboard.filter_bar.range_to'),
+            ],
+        ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) . ');');
     }
 
     /**

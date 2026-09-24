@@ -33,19 +33,30 @@ class DashboardModelTest extends DashboardUnitTestCase
         $dashboard = $this->makeDashboard(null);
         $dashboard->filter_bar_table = 'f_score';
         $dashboard->filter_bar_dims = [
-            ['column' => 'grade', 'label' => ' 学年 ', 'targets' => ['b1', '', 'b2']],
+            ['column' => 'grade', 'label' => ' 学年 ', 'targets' => ['b1', '', 'b2'], 'default' => ' 1 '],
             ['column' => '', 'label' => 'blank row'],
-            ['column' => 'subject', 'label' => '', 'targets' => []],
+            ['column' => 'subject', 'label' => '', 'targets' => [], 'default' => '  '],
         ];
         $this->assertSame('f_score', $dashboard->filter_bar_table);
         $this->assertSame([
-            ['column' => 'grade', 'label' => '学年', 'targets' => ['b1', 'b2']],
+            ['column' => 'grade', 'label' => '学年', 'targets' => ['b1', 'b2'], 'default' => '1'],
             ['column' => 'subject', 'label' => 'subject'],
-        ], $dashboard->getOption('filter_bar.dims'));
+        ], $dashboard->getOption('filter_bar.dims'), 'default trimmed; blank default = key absent');
         $this->assertSame([
-            ['column' => 'grade', 'label' => '学年', 'targets' => ['b1', 'b2']],
-            ['column' => 'subject', 'label' => 'subject', 'targets' => []],
+            ['column' => 'grade', 'label' => '学年', 'targets' => ['b1', 'b2'], 'default' => '1'],
+            ['column' => 'subject', 'label' => 'subject', 'targets' => [], 'default' => ''],
         ], $dashboard->filter_bar_dims);
+
+        // "style" is not a form field: a re-save reads it back off the stored item of the same column
+        $styled = $this->makeDashboard(['source_table' => 'f_score', 'dims' => [
+            ['column' => 'score', 'label' => '点数', 'style' => 'range'],
+            ['column' => 'grade', 'label' => '学年', 'style' => 'nonsense'],
+        ]]);
+        $styled->filter_bar_dims = [['column' => 'grade', 'label' => '学年'], ['column' => 'score', 'label' => '点数']];
+        $this->assertSame([
+            ['column' => 'grade', 'label' => '学年'],
+            ['column' => 'score', 'label' => '点数', 'style' => 'range'],
+        ], $styled->getOption('filter_bar.dims'), 'style survives the save; an unusable one is dropped');
 
         $dashboard->filter_bar_dims = [];
         $this->assertArrayNotHasKey('dims', $dashboard->getOption('filter_bar'));

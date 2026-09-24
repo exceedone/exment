@@ -18,6 +18,16 @@ class ChartTypeTest extends DashboardUnitTestCase
         $this->assertTrue(ChartType::isMulti('heatmap'));
     }
 
+    public function testPointPickOnlyWherePointsMapToValues()
+    {
+        foreach (['bar', 'line', 'pie', 'hbar', 'area', 'doughnut', 'funnel', 'scatter', 'mbar', 'sbar', 'mline', 'sarea', 'heatmap'] as $type) {
+            $this->assertTrue(ChartType::supportsPointPick($type), $type);
+        }
+        foreach (['radar', 'gauge', 'treemap', 'sunburst', 'boxplot', null, 'xyz'] as $type) {
+            $this->assertFalse(ChartType::supportsPointPick($type), (string) $type);
+        }
+    }
+
     public function testOnlyChartTypesAreEnumValues()
     {
         $this->assertCount(18, ChartType::arrays(), 'every constant becomes a form option — no helper constants allowed');

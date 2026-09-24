@@ -61,9 +61,12 @@ class RouteServiceProvider extends ServiceProvider
         ], function (Router $router) {
             $router->get('/', 'DashboardController@home');
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
+            $router->post('dashboardbox/chart_state/{suuid}', 'DashboardBoxController@chartState');
+            $router->post('dashboardbox/chart_color/{suuid}', 'DashboardBoxController@chartColor');
             $router->delete('dashboardbox/delete/{suuid}', 'DashboardBoxController@delete');
             // linkage endpoints sit above the resource routes so `{id}` (show) cannot swallow them
             $router->get('dashboard/filter_bar_columns', 'DashboardController@filterBarColumns');
+            $router->get('dashboard/filter_bar_values', 'DashboardController@filterBarValues');
             $router->resource('dashboard', 'DashboardController');
             $router->get("dashboardbox/table_views/{dashboard_type}", 'DashboardBoxController@tableViews');
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');

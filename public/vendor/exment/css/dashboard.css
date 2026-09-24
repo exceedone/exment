@@ -14,7 +14,17 @@
 .exment-df-bar .select2-container { width: 100% !important; }
 .exment-df-bar .select2-container--default .select2-selection--multiple { min-height: 32px; border: 1px solid #d7d5e6; border-radius: 6px; background: #fbfaff; padding: 0 4px; }
 .exment-df-bar .select2-container--default.select2-container--disabled .select2-selection--multiple { background: #f3f2f7; cursor: not-allowed; }
-.exment-df-bar .df-range { display: flex; align-items: center; gap: 4px; }
+.exment-df-bar .df-range { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.exment-df-bar .df-slider-wrap { flex: 0 0 100%; }
+/* two-handle slider under a number range (laravel-admin's Ion.RangeSlider 1.8, dashboard.js initSliders): flat, in the bar's colors, no sprite images */
+.exment-df-bar .irs { height: 16px; margin: 0 7px; }
+.exment-df-bar .irs-line { height: 4px; top: 6px; background: #e2e1ee; border-radius: 2px; }
+.exment-df-bar .irs-line-left, .exment-df-bar .irs-line-mid, .exment-df-bar .irs-line-right { height: 4px; background: none; }
+.exment-df-bar .irs-diapason { height: 4px; top: 6px; background: #5b6ef5; border-radius: 2px; }
+.exment-df-bar .irs-slider { width: 14px; height: 14px; top: 1px; border: 2px solid #5b6ef5; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(43, 43, 58, .25); cursor: pointer; }
+.exment-df-bar #irs-active-slider, .exment-df-bar .irs-slider:hover { background: #eef1fd; }
+/* the numbers live in the two inputs: no labels on the slider (1.8 re-shows the handle labels inline while moving, hence !important) */
+.exment-df-bar .irs-min, .exment-df-bar .irs-max, .exment-df-bar .irs-from, .exment-df-bar .irs-to, .exment-df-bar .irs-single { display: none !important; }
 .exment-df-bar .df-range-input { flex: 1 1 0; min-width: 0; height: 32px; border: 1px solid #d7d5e6; border-radius: 6px; padding: 0 8px; font-size: 13px; background: #fbfaff; color: #2b2b3a; }
 .exment-df-bar .df-range-input.active { border-color: #5b6ef5; background: #eef1fd; }
 .exment-df-bar .df-range-sep { color: #b6b6c8; font-size: 12px; }
@@ -59,6 +69,22 @@
 .exment-chart-toolbar .exment-bf-list label span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .exment-chart-toolbar .exment-bf-list input[type=checkbox] { margin: 0; flex: none; }
 .exment-chart-toolbar .ct-pfoot { display: flex; justify-content: flex-end; margin-top: 8px; }
+/* sort menu (Power BI's "Sort by"): field rows, then direction rows, the applied ones checked */
+.exment-chart-toolbar .ct-ico { width: 28px; padding: 0; justify-content: center; color: #6b6b80; font-size: 12px; }
+.exment-chart-toolbar .ct-ico.open { color: #5b6ef5; }
+.exment-chart-toolbar .cs-pop { min-width: 180px; padding: 8px 6px 6px; }
+.exment-chart-toolbar .cs-pop h4 { padding: 0 8px; }
+.exment-chart-toolbar .cs-list { list-style: none; margin: 0; padding: 0; }
+.exment-chart-toolbar .cs-sep { margin-top: 6px; padding-top: 6px; border-top: 1px solid #ecebf5; }
+.exment-chart-toolbar .cs-pop h4.cs-sec { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ecebf5; }
+.exment-chart-toolbar .cs-row .fa-download, .exment-chart-toolbar .cs-row .fa-paint-brush { width: 12px; font-size: 11px; color: #9a9ab0; }
+.exment-chart-toolbar .cs-row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; font-size: 12.5px; color: #2b2b3a; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.exment-chart-toolbar .cs-row:hover { background: #e6e9fb; }
+.exment-chart-toolbar .cs-row.on { font-weight: 600; }
+.exment-chart-toolbar .cs-row .fa-check { width: 12px; font-size: 10px; color: #5b6ef5; visibility: hidden; }
+.exment-chart-toolbar .cs-row.on .fa-check { visibility: visible; }
+.exment-chart-toolbar .cs-row .fa-sort-amount-desc, .exment-chart-toolbar .cs-row .fa-sort-amount-asc { width: 12px; font-size: 11px; color: #9a9ab0; }
+.exment-chart-toolbar .cs-pop .ct-pfoot { padding: 0 8px; }
 .exment-chart-toolbar .ct-pfoot a { font-size: 11.5px; color: #5b6ef5; cursor: pointer; }
 .ct-active { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin: -4px 10px 6px; font-size: 11.5px; color: #6b6b80; line-height: 16px; }
 .ct-active .fa { color: #5b6ef5; font-size: 10.5px; margin-right: 2px; }
@@ -100,3 +126,40 @@
 .exment-ai-panel .ai-error { padding: 10px; background: #faf9ff; border-radius: 6px; color: #8a8aa0; font-size: 12.5px; }
 .exment-ai-panel .ai-error .fa-info-circle { color: #b0a8e0; margin-right: 4px; }
 .exment-ai-panel .ai-error a { color: #7c4dff; cursor: pointer; margin-left: 6px; }
+/* dashboard setting form, filter items table: the widget drawn in front of the デフォルト値 input (dashboard.js ExmentDashboardForm) */
+#has-many-table-filter_bar_dims-table .df-default-picker + .select2-container { min-width: 150px; }
+#has-many-table-filter_bar_dims-table .df-default-range { display: flex; align-items: center; gap: 4px; min-width: 190px; }
+#has-many-table-filter_bar_dims-table .df-default-range input { flex: 1 1 0; min-width: 0; }
+#has-many-table-filter_bar_dims-table .df-default-range span { color: #b6b6c8; font-size: 12px; }
+/* chart color menu (right-click a point / series; dashboard editors): Excel-like swatches */
+.cc-pop { position: fixed; z-index: 1060; width: 222px; background: #fff; border: 1px solid #d7d5e6; border-radius: 10px; box-shadow: 0 10px 28px rgba(43, 43, 58, .18); padding: 8px 10px; font-size: 12.5px; color: #2b2b3a; }
+.cc-pop h4 { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: #9a9ab0; margin: 6px 0 4px; }
+.cc-pop .cc-grid { display: grid; grid-template-columns: repeat(10, 18px); gap: 2px; }
+.cc-pop .cc-swatch { width: 18px; height: 18px; padding: 0; border: 1px solid rgba(0, 0, 0, .12); border-radius: 3px; cursor: pointer; }
+.cc-pop .cc-swatch:hover { outline: 2px solid #5b6ef5; outline-offset: 0; }
+.cc-pop .cc-swatch.on { outline: 2px solid #2b2b3a; outline-offset: 1px; }
+.cc-pop .cc-row { position: relative; display: flex; align-items: center; gap: 8px; margin: 6px -4px 0; padding: 5px 4px; border-radius: 6px; font-weight: normal; cursor: pointer; }
+.cc-pop .cc-row:hover { background: #e6e9fb; }
+.cc-pop .cc-row .fa { width: 12px; font-size: 11px; color: #9a9ab0; }
+.cc-pop .cc-ok { height: 24px; padding: 0 16px; border: 0; border-radius: 6px; background: #5b6ef5; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
+.cc-pop .cc-ok:hover { background: #4a5ce0; }
+/* その他の色: the picker drawn in the menu (same controls as the browser's), OK at its bottom right */
+.cc-pop .cc-picker { display: none; margin-top: 6px; padding: 8px; border: 1px solid #d7d5e6; border-radius: 8px; }
+.cc-pop .cc-picker.cc-shown { display: block; }
+.cc-pop .cc-sv { position: relative; height: 110px; border-radius: 4px; cursor: crosshair; }
+.cc-pop .cc-sv-dot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, .4); pointer-events: none; }
+.cc-pop .cc-pick-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.cc-pop .cc-drop, .cc-pop .cc-mode { flex: none; width: 22px; height: 22px; padding: 0; border: 0; background: none; color: #555; cursor: pointer; }
+.cc-pop .cc-preview { flex: none; width: 24px; height: 24px; border: 1px solid rgba(0, 0, 0, .12); border-radius: 50%; }
+.cc-pop .cc-hue { flex: 1; min-width: 0; height: 10px; margin: 0; padding: 0; border-radius: 5px; background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); outline: none; -webkit-appearance: none; appearance: none; }
+.cc-pop .cc-hue::-webkit-slider-thumb { width: 14px; height: 14px; border: 1px solid rgba(0, 0, 0, .4); border-radius: 50%; background: #fff; cursor: pointer; -webkit-appearance: none; }
+.cc-pop .cc-hue::-moz-range-thumb { width: 14px; height: 14px; border: 1px solid rgba(0, 0, 0, .4); border-radius: 50%; background: #fff; cursor: pointer; }
+.cc-pop .cc-fields { display: flex; align-items: flex-start; gap: 4px; margin-top: 8px; }
+.cc-pop .cc-f-rgb, .cc-pop .cc-f-hsl, .cc-pop .cc-f-hex { flex: 1; display: none; gap: 4px; }
+.cc-pop .cc-fields.cc-m-rgb .cc-f-rgb, .cc-pop .cc-fields.cc-m-hsl .cc-f-hsl, .cc-pop .cc-fields.cc-m-hex .cc-f-hex { display: flex; }
+.cc-pop .cc-fields label { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0; font-size: 10.5px; font-weight: normal; color: #6b6b80; }
+.cc-pop .cc-fields input { width: 100%; height: 24px; padding: 0 2px; border: 1px solid #d7d5e6; border-radius: 4px; font-size: 12px; text-align: center; -moz-appearance: textfield; }
+.cc-pop .cc-fields input::-webkit-inner-spin-button, .cc-pop .cc-fields input::-webkit-outer-spin-button { margin: 0; -webkit-appearance: none; }
+.cc-pop .cc-hexin { font-family: monospace; text-transform: uppercase; }
+.cc-pop .cc-mode { margin-top: 1px; }
+.cc-pop .cc-pick-foot { display: flex; justify-content: flex-end; margin-top: 8px; }

@@ -139,9 +139,9 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     }
 
     /**
-     * Filter bar items (options.filter_bar.dims) as form rows: column / label / targets.
+     * Filter bar items (options.filter_bar.dims) as form rows: column / label / targets / default.
      *
-     * @return array<int, array{column:?string, label:?string, targets:string[]}>
+     * @return array<int, array{column:?string, label:?string, targets:string[], default:string}>
      */
     // @phpstan-ignore-next-line
     public function getFilterBarDimsAttribute()
@@ -152,6 +152,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
                 'column' => array_get($dim, 'column'),
                 'label' => array_get($dim, 'label'),
                 'targets' => array_values(array_filter((array) array_get($dim, 'targets', []), 'is_string')),
+                'default' => strval(array_get($dim, 'default', '')),
             ];
         })->values()->toArray();
     }
@@ -159,6 +160,15 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     // @phpstan-ignore-next-line
     public function setFilterBarDimsAttribute($value)
     {
+        // "style" (the item's control) is set in the option JSON, not on the form: an item
+        // keeps the one stored under its column, or the form's save would drop it
+        $stored = [];
+        $current = $this->getOption('filter_bar.dims');
+        foreach (is_array($current) ? $current : [] as $dim) {
+            if (is_array($dim) && is_string(array_get($dim, 'column'))) {
+                $stored[$dim['column']] = $dim;
+            }
+        }
         $dims = [];
         foreach (is_array($value) ? $value : [] as $row) {
             $column = trim(strval(array_get($row, 'column', '')));
@@ -173,6 +183,15 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             }));
             if (count($targets)) {
                 $dim['targets'] = $targets;
+            }
+            // initial selection (stored values; "min~max" for range items) — empty = none
+            $default = trim(strval(array_get($row, 'default', '')));
+            if ($default !== '') {
+                $dim['default'] = $default;
+            }
+            $style = $stored[$column]['style'] ?? null;
+            if (in_array($style, ['select', 'range'], true)) {
+                $dim['style'] = $style;
             }
             $dims[] = $dim;
         }

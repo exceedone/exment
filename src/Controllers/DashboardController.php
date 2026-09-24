@@ -15,10 +15,12 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 use Exceedone\Exment\Form\Tools\ShareButton;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Services\Dashboard\ColumnOptions;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Exceedone\Exment\Services\Dashboard\FilterBarConfig;
 use Exceedone\Exment\Services\Dashboard\FilterBarForm;
 use Exceedone\Exment\Services\Dashboard\FilterBarView;
+use Exceedone\Exment\Services\Dashboard\FilterValue;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
@@ -105,6 +107,19 @@ class DashboardController extends AdminControllerBase
         $this->showVersionUpdate();
 
         $this->setDashboardInfo($request);
+
+        // keep this user's current filter selection (also reached by the ?_df_bar=1
+        // partial of every selective bar change), so it survives logout / another browser
+        $this->rememberFilterSelection($request);
+
+        // entry with no filter state: restore the user's remembered selection, or apply
+        // the filter bar's configured defaults, by redirecting to the URL that carries
+        // them — the whole filter mechanism is URL-driven, so everything downstream works
+        $redirect = $this->filterDefaultRedirect($request);
+        if ($redirect !== null) {
+            return redirect($redirect);
+        }
+
         $this->AdminContent($content);
         // add dashboard header
         $content->row((new DashboardMenu($this->dashboard))->render());
@@ -150,8 +165,22 @@ class DashboardController extends AdminControllerBase
             'ai_stable' => exmtrans('dashboard.ai.stable'),
             'filter_not_affected' => exmtrans('dashboard.filter_bar.not_affected'),
             'filter_partially_affected' => exmtrans('dashboard.filter_bar.partially_affected'),
+            'color_theme' => exmtrans('dashboard.chart_color.theme'),
+            'color_standard' => exmtrans('dashboard.chart_color.standard'),
+            'color_auto' => exmtrans('dashboard.chart_color.auto'),
+            'color_more' => exmtrans('dashboard.chart_color.more'),
         ];
-        Admin::script('ExmentDashboard.init(' . json_encode(['lang' => $lang], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) . ');');
+        // each chart box starts with the toolbar choices this user left on it
+        // (DashboardBoxController::chartState): box suuid => {ct, cs, cd}
+        $charts = Admin::user() ? Admin::user()->getSettingValue('dashboard_chart.' . $this->dashboard->suuid) : null;
+        $init = [
+            'lang' => $lang,
+            'charts' => is_array($charts) ? $charts : new \stdClass(),
+            // the two-handle slider under a number range item is laravel-admin's own Ion.RangeSlider
+            // (its Slider form field), loaded by dashboard.js only when such an item is on the bar
+            'assets' => ['ionslider' => asset('vendor/laravel-admin/AdminLTE/plugins/ionslider')],
+        ];
+        Admin::script('ExmentDashboard.init(' . json_encode($init, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) . ');');
         return $content;
     }
 
@@ -273,6 +302,77 @@ class DashboardController extends AdminControllerBase
     }
 
     /**
+     * Per-user store of the last filter selection of this dashboard (user setting
+     * `dashboard_filter.{suuid}`), written by every render that carries filter state:
+     * - the configured defaults (the entry redirect, リセット) → forgotten (null): the user
+     *   follows the defaults, so a later change of them reaches this user too
+     * - any other selection → stored (df_ params of the bar's items)
+     * - a bar the user emptied (dfr) → stored as empty ([]): no defaults on the next entry
+     * A request without df_ params or dfr carries no new state and writes nothing.
+     *
+     * @param Request $request
+     * @return void
+     */
+    protected function rememberFilterSelection(Request $request)
+    {
+        $user = Admin::user();
+        $config = FilterBarConfig::fromDashboard($this->dashboard);
+        if ($user === null || $config === null) {
+            return;
+        }
+        $params = $config->selection($request->query());
+        if (empty($params) && !$request->has('dfr')) {
+            return;
+        }
+        $atDefaults = DashboardFilter::of($this->dashboard, $params)
+            ->sameAs(DashboardFilter::of($this->dashboard, $this->filterDefaults($config)));
+        $key = 'dashboard_filter.' . $this->dashboard->suuid;
+        $value = $atDefaults ? null : $params;
+        if ($user->getSettingValue($key) !== $value) {
+            $user->setSettingValue($key, $value);
+        }
+    }
+
+    /**
+     * URL carrying the filter selection an entry with no filter state should start from:
+     * the user's remembered last selection (minus items no longer on the bar), else the
+     * configured defaults (filter_bar.dims[].default). null = no redirect: a selection or
+     * dfr present, the bar partial, a bar the user left empty, or nothing to restore.
+     *
+     * @param Request $request
+     * @return string|null
+     */
+    protected function filterDefaultRedirect(Request $request)
+    {
+        $config = FilterBarConfig::fromDashboard($this->dashboard);
+        if ($config === null || $request->boolean('_df_bar') || $request->has('dfr') || !empty($config->selection($request->query()))) {
+            return null;
+        }
+        $saved = Admin::user() ? Admin::user()->getSettingValue('dashboard_filter.' . $this->dashboard->suuid) : null;
+        if ($saved === []) {
+            return null;
+        }
+        $params = $config->selection(is_array($saved) ? $saved : []);
+        if (empty($params)) {
+            $params = $this->filterDefaults($config);
+        }
+        if (empty($params)) {
+            return null;
+        }
+        return admin_url('') . '?' . FilterBarConfig::queryString(['dashboard' => (string) $this->dashboard->suuid] + $params);
+    }
+
+    /**
+     * The df_ params of the filter bar's configured defaults ([] when none).
+     *
+     * @return array<string, string|array>
+     */
+    protected function filterDefaults(FilterBarConfig $config)
+    {
+        return $config->defaultQuery(CustomTable::getEloquent($config->sourceTable()));
+    }
+
+    /**
      * Linkage endpoint of the filter bar setting section: filter columns of the table
      * picked in `filter_bar_table` (sent as `q`).
      *
@@ -286,6 +386,57 @@ class DashboardController extends AdminControllerBase
             $results[] = ['id' => $id, 'text' => $text];
         }
         return $results;
+    }
+
+    /**
+     * Linkage endpoint of the filter bar setting section: what the デフォルト値 cell renders
+     * for one filter column (`table` + `column`) — the same control the bar shows for the
+     * item at runtime (dashboard.js ExmentDashboardForm):
+     * - `select`: the stored values to pick from (`options`; `capped` when too many to list)
+     * - `range`: from / to inputs (`input` number | date | text), with the data's ends
+     *   `min` / `max` as placeholders — a date, an item configured `style: range`, or a
+     *   number whose list outgrows the option cap and so shows from / to on the bar
+     * `dashboard` (id) applies that dashboard's fixed option scope (filter_bar.scope) and its
+     * items' configured style. A table this user may not read answers with an empty list.
+     *
+     * @param Request $request
+     * @return array{kind: string, options: array<int, array{id:string, text:string}>, capped: bool, input?: string, min?: string, max?: string}
+     */
+    public function filterBarValues(Request $request)
+    {
+        $table = CustomTable::getEloquent($request->get('table'));
+        if ($table !== null && !$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            $table = null;
+        }
+        $column = $table ? $table->custom_columns->firstWhere('column_name', $request->get('column')) : null;
+        if ($column === null) {
+            return ['kind' => 'select', 'options' => [], 'capped' => false];
+        }
+        $dashboard = Dashboard::find($request->get('dashboard'));
+        $config = FilterBarConfig::fromDashboard($dashboard);
+        $dim = $config ? $config->dim($column->column_name) : null;
+        $kind = FilterValue::kind($column);
+        $filter = DashboardFilter::of($dashboard, []);
+        // the whole catalogue — no selection cross-filters a picker; the fixed scope only bounds
+        // a list that falls back to the values in use
+        $scope = empty($filter->fixedScopeColumnsFor($table)) ? null : function ($query) use ($filter, $table) {
+            $filter->applyFixedScope($query, $table);
+        };
+        if (FilterValue::style($column, $dim['style'] ?? null) === 'select') {
+            $result = ColumnOptions::choices($table, $column, $scope, false, $filter->maxOptions());
+            // a number list too long to pick from shows from / to on the bar: so does its default
+            if (!$result['capped'] || $kind === 'text') {
+                return [
+                    'kind' => 'select',
+                    'options' => array_map(function ($option) {
+                        return ['id' => (string) $option['id'], 'text' => (string) $option['name']];
+                    }, $result['options']),
+                    'capped' => $result['capped'],
+                ];
+            }
+        }
+        return ['kind' => 'range', 'input' => $kind === 'number' ? 'number' : ($kind === 'text' ? 'text' : 'date'), 'options' => [], 'capped' => false]
+            + ColumnOptions::bounds($table, $column, $scope);
     }
 
     /**
