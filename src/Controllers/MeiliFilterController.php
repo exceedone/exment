@@ -1,0 +1,193 @@
+<?php
+
+namespace Exceedone\Exment\Controllers;
+
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\MeiliFilterSetting;
+use Exceedone\Exment\Services\Meili\DocumentMapper;
+use Exceedone\Exment\Services\Meili\FilterConfig;
+use Encore\Admin\Grid;
+use Encore\Admin\Form;
+use Encore\Admin\Layout\Content;
+use Illuminate\Http\Request;
+
+/**
+ * Admin screen for columns used as filters (facets). Active in every
+ * filter.mode - see MeiliFilterSetting. Save/delete -> auto reindex.
+ */
+class MeiliFilterController extends AdminControllerBase
+{
+    use HasResourceActions;
+
+    public function __construct()
+    {
+        $this->setPageInfo(
+            exmtrans('system.meili'),
+            exmtrans('system.meili'),
+            exmtrans('system.help.meili_global_search'),
+            'fa-filter'
+        );
+    }
+
+    public function index(Request $request, Content $content)
+    {
+        $this->AdminContent($content);
+        $content->body($this->grid());
+        return $content;
+    }
+
+    public function create(Request $request, Content $content)
+    {
+        $this->AdminContent($content);
+        $content->body($this->form());
+        return $content;
+    }
+
+    public function edit(Request $request, Content $content, $id)
+    {
+        $this->AdminContent($content);
+        $content->body($this->form()->edit($id));
+        return $content;
+    }
+
+    /**
+     * @return Grid
+     */
+    protected function grid()
+    {
+        $grid = new Grid(new MeiliFilterSetting());
+        $grid->column('custom_table.table_view_name', exmtrans('custom_table.table_view_name'));
+        $grid->column('column_name', exmtrans('custom_column.column_name'));
+        $grid->column('view_label', exmtrans('custom_column.column_view_name'));
+        $grid->column('alias', exmtrans('system.meili_filter_alias'));
+        $grid->column('filter_type', exmtrans('system.meili_filter_type'));
+        $grid->column('mode', exmtrans('system.meili_filter_include_mode'));
+        $grid->column('order', exmtrans('custom_table.order'))->sortable();
+        $grid->column('enabled', exmtrans('system.meili_enabled'))->bool();
+
+        $grid->disableExport();
+        $grid->disableColumnSelector();
+        return $grid;
+    }
+
+    /**
+     * $id is passed by HasResourceActions::update().
+     *
+     * @param int|string|null $id
+     * @return Form
+     */
+    protected function form($id = null)
+    {
+        $form = new Form(new MeiliFilterSetting());
+
+        $form->select('custom_table_id', exmtrans('custom_table.table_view_name'))
+            ->required()
+            ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
+            ->load('column_name', admin_url('meili-filter/columns'));
+
+        // Columns of the edited row's table (or the table re-submitted after an error);
+        // ->load() above replaces them when the table changes.
+        // edit() and update() call form() without the id: take it from the {id} route parameter.
+        $id = $id ?? request()->route('id');
+        $tableId = request('custom_table_id')
+            ?? old('custom_table_id', $id ? MeiliFilterSetting::find($id)?->custom_table_id : null);
+        $form->select('column_name', exmtrans('custom_column.column_name'))
+            ->required()
+            ->options($tableId ? self::columnsForTable($tableId) : []);
+
+        $form->select('filter_type', exmtrans('system.meili_filter_type'))
+            ->required()
+            ->options(exmtrans('system.meili_filter_type_options'))
+            ->default('equality');
+
+        $form->select('mode', exmtrans('system.meili_filter_include_mode'))
+            ->required()
+            ->options(exmtrans('system.meili_filter_include_mode_options'))
+            ->default('include')
+            ->help(exmtrans('system.help.meili_filter_include_mode'));
+
+        $form->text('view_label', exmtrans('custom_column.column_view_name'));
+        // max:40 = column width (silently truncated otherwise); the charset must
+        // exclude '::', which splitColumnPrefix() reads as a table qualifier.
+        $form->text('alias', exmtrans('system.meili_filter_alias'))
+            ->rules(['nullable', 'max:40', 'regex:/^[A-Za-z0-9_]+$/'])
+            ->help(exmtrans('system.help.meili_filter_alias'));
+        $form->number('order', exmtrans('custom_table.order'))->default(0);
+        $form->switchbool('enabled', exmtrans('system.meili_enabled'))->default(1);
+
+        $form->saving(function (Form $form) {
+            // The table has a unique index on (custom_table_id, column_name);
+            $duplicate = MeiliFilterSetting::where('custom_table_id', $form->custom_table_id)
+                ->where('column_name', $form->column_name)
+                ->when($form->model()->getKey(), fn ($q, $id) => $q->where('id', '<>', $id))
+                ->exists();
+            if ($duplicate) {
+                admin_toastr(exmtrans('system.meili_filter_duplicate'), 'error');
+                return back()->withInput();
+            }
+
+            // The column must belong to the chosen table and be a filterable type.
+            if (!array_key_exists((string) $form->column_name, self::columnsForTable($form->custom_table_id))) {
+                admin_toastr(exmtrans('system.meili_filter_column_invalid'), 'error');
+                return back()->withInput();
+            }
+
+            // A range needs a comparable number; user/organization resolve to a
+            // CustomValue, so the column would index nothing and never match.
+            if ($form->filter_type !== 'range') {
+                return;
+            }
+            $column = CustomColumn::getEloquent($form->column_name, $form->custom_table_id);
+            if ($column && !DocumentMapper::supportsRange((string) $column->column_type)) {
+                admin_toastr(exmtrans('system.meili_filter_range_unsupported', ['type' => $column->column_type]), 'error');
+                return back()->withInput();
+            }
+        });
+
+        return $form;
+    }
+
+    /**
+     * AJAX: return the columns (filtered by valid type) of the selected table (dependent select).
+     *
+     * @return \Illuminate\Support\Collection<int,array{id:string,text:string}>
+     */
+    public function columnOptions(Request $request)
+    {
+        $id = $request->get('q');
+        return collect(self::columnsForTable($id))
+            ->map(fn ($text, $val) => ['id' => $val, 'text' => $text])
+            ->values();
+    }
+
+    /**
+     * [column_name => label] the filterable columns of a table (excludes text/auto_number...).
+     *
+     * @param \Exceedone\Exment\Model\CustomTable|string|int|null $customTableId
+     * @return array<string,string>
+     */
+    public static function columnsForTable($customTableId): array
+    {
+        $table = CustomTable::getEloquent($customTableId);
+        if (!$table) {
+            return [];
+        }
+
+        // Equality types + everything a range filter can index
+        // (DocumentMapper::RANGE_COLUMN_TYPES) + user/organization, which are
+        // offered for equality only. Leaving a range-capable type out of this
+        // list makes it unselectable, so a decimal or time column could never be
+        // configured as a range filter even though the indexer supports it.
+        $allowed = array_merge(
+            FilterConfig::equalityTypes(),
+            DocumentMapper::RANGE_COLUMN_TYPES,
+            ['user', 'organization']
+        );
+
+        return collect($table->custom_columns)
+            ->filter(fn ($c) => in_array((string) $c->column_type, $allowed, true))
+            ->mapWithKeys(fn ($c) => [$c->column_name => $c->column_view_name . " ({$c->column_type})"])
+            ->toArray();
+    }
+}

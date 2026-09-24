@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Validator;
 
 /**
@@ -385,6 +386,25 @@ trait ApiDataTrait
             }
         }
 
+        // select_table autocomplete via Meilisearch (simple case only:
+        // no linkage, no view filter). On error -> null -> fall back to searchValue.
+        // Behind its own flag, off by default: Meilisearch matches by word prefix
+        // and tolerates typos, the MySQL path matches the stored value with LIKE,
+        // so turning this on changes what every select box offers.
+        if (boolval(config('meilisearch.select_table'))
+            && boolval(config('meilisearch.global_search'))
+            && class_exists(\Meilisearch\Client::class)
+            && empty($relationColumn)
+            && empty(array_get($expand, 'target_view_id'))
+            && !in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION], true)) {
+            $paginator = $this->searchSelectByMeilisearch($q, $count, $request);
+            if ($paginator !== null) {
+                return $this->modifyAfterGetValue($request, $paginator, [
+                    'appends' => ['q' => $q, 'count' => $count],
+                ]);
+            }
+        }
+
         $getLabel = $this->isAppendLabel($request);
         $paginator = $this->custom_table->searchValue($q, [
             'paginate' => true,
@@ -407,6 +427,100 @@ trait ApiDataTrait
                 'count' => $count,
             ]
         ]);
+    }
+
+    /**
+     * select_table autocomplete with a SINGLE Meilisearch query.
+     * Returns a LengthAwarePaginator of CustomValues (like searchValue), or null
+     * whenever Meilisearch cannot answer authoritatively - the caller then falls
+     * back to searchValue (MySQL). Models are loaded through the global scope,
+     * so record permission still applies.
+     *
+     * @param string $q
+     * @param int|null $count
+     * @param Request $request
+     * @return \Illuminate\Pagination\LengthAwarePaginator<int,\Exceedone\Exment\Model\CustomValue>|null
+     */
+    protected function searchSelectByMeilisearch($q, $count, Request $request)
+    {
+        try {
+            $custom_table = $this->custom_table;
+
+            // A table outside the indexing criteria has no document at all, so
+            // Meili could only ever answer "no results".
+            if (!\Exceedone\Exment\Services\Meili\ExmentIndexer::isIndexable($custom_table)) {
+                return null;
+            }
+
+            $perPage = max(1, (int) ($count ?: 10));
+            $page = (int) $request->input('page', 1);
+            if ($page < 1) {
+                $page = 1;
+            }
+
+            $service = new \Exceedone\Exment\Services\Meili\MeiliSearchService(
+                \Exceedone\Exment\Services\Meili\MeiliClientFactory::make(),
+                config('meilisearch.index')
+            );
+
+            $cap = max(1, min(
+                (int) config('meilisearch.permission_scan_cap', 1000),
+                $perPage * 20
+            ));
+            $result = $service->searchTablePaginated($q, $custom_table->table_name, $cap, 1);
+            $candidateIds = $result['ids'];
+            if (empty($candidateIds)) {
+                return null;
+            }
+
+            // Paging and the total below are computed over this list alone. When
+            // Meilisearch matched more than it returned, the total and the last
+            // pages would stop at the cap (select2 stops loading more, the API
+            // reports a wrong total), so leave large result sets to searchValue.
+            if (!\Exceedone\Exment\Services\Meili\MeiliSearchService::isCompleteCandidateSet(
+                count($candidateIds),
+                $cap,
+                $service->maxTotalHits(),
+                $result['total']
+            )) {
+                return null;
+            }
+
+            $accessibleIds = getModelName($custom_table)::whereIn('id', $candidateIds)->pluck('id')->all();
+            $paged = \Exceedone\Exment\Services\Meili\MeiliSearchService::pageAccessibleIds(
+                $candidateIds,
+                $accessibleIds,
+                $page,
+                $perPage
+            );
+
+            // Must be an Eloquent Collection (has makeHidden) because modifyAfterGetValue calls makeHidden().
+            $models = new Collection();
+            if (!empty($paged['pageIds'])) {
+                $loaded = getModelName($custom_table)::whereIn('id', $paged['pageIds'])->get()->keyBy('id');
+                foreach ($paged['pageIds'] as $id) {
+                    $m = $loaded->get($id);
+                    if ($m) {
+                        $models->push($m);
+                    }
+                }
+            }
+
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                $models,
+                $paged['total'],
+                $perPage,
+                $page,
+                ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+            );
+        } catch (\Throwable $e) {
+            // Falling back is silent for the user; without this the cause of a
+            // permanently MySQL-served autocomplete is nowhere to be found.
+            \Illuminate\Support\Facades\Log::warning(
+                '[Meili] select_table fallback to MySQL: ' . $e->getMessage()
+            );
+            return null;
+        }
     }
 
 

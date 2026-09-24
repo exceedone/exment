@@ -1,0 +1,268 @@
+<?php
+
+namespace Exceedone\Exment\Controllers;
+
+use Encore\Admin\Grid\Linker;
+use Encore\Admin\Widgets\Table as WidgetTable;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Services\Meili\GlobalSearch\AppliedChips;
+use Exceedone\Exment\Services\Meili\GlobalSearch\FilterSidebar;
+use Exceedone\Exment\Services\Meili\GlobalSearch\HeaderSuggester;
+use Exceedone\Exment\Services\Meili\GlobalSearch\RequestFilters;
+use Exceedone\Exment\Services\Meili\GlobalSearch\ResultPaginator;
+use Exceedone\Exment\Services\Meili\GlobalSearch\SavedSearchBar;
+use Exceedone\Exment\Services\Meili\GlobalSearch\SearchExporter;
+use Exceedone\Exment\Services\Meili\MeiliClientFactory;
+use Exceedone\Exment\Services\Meili\MeiliSearchService;
+use Illuminate\Http\Request;
+
+/**
+ * Global search via Meilisearch: the entry points used by SearchController
+ * (header suggestions, results page, per-table pagination, filter sidebar,
+ * saved-search bar, applied chips, export).
+ *
+ * This trait is a thin facade: each entry method delegates to a focused class
+ * under Services\Meili\GlobalSearch. When Meilisearch is disabled or fails, the
+ * controller falls back to the original MySQL logic.
+ *
+ * meilisearch-php is a "suggest" dependency, so meiliEnabled() also checks that
+ * the client class exists.
+ */
+trait MeiliGlobalSearchTrait
+{
+    protected function meiliEnabled(): bool
+    {
+        return boolval(config('meilisearch.global_search'))
+            && class_exists(\Meilisearch\Client::class);
+    }
+
+    /**
+     * Whether the search screen should actually go through Meilisearch.
+     *
+     * exment.search_document makes the MySQL path search document contents,
+     * which the index does not hold. Every entry point must agree on this, or
+     * the page renders Meili's sidebar/sort/export over MySQL results and the
+     * filters quietly do nothing.
+     */
+    protected function meiliActive(): bool
+    {
+        return $this->meiliEnabled() && !boolval(config('exment.search_document', false));
+    }
+
+    protected function makeService(): MeiliSearchService
+    {
+        return new MeiliSearchService(
+            MeiliClientFactory::make(),
+            config('meilisearch.index')
+        );
+    }
+
+    /**
+     * Log when we must fall back from Meilisearch to MySQL.
+     */
+    protected function logMeiliFallback(string $where, \Throwable $e): void
+    {
+        \Illuminate\Support\Facades\Log::warning(
+            "[Meili] {$where} fallback to MySQL: " . $e->getMessage()
+        );
+    }
+
+    /**
+     * Global search header suggestions (same response structure as header()).
+     *
+     * @param string $q
+     * @return array<int,array<string,mixed>>
+     */
+    protected function headerByMeilisearch($q)
+    {
+        return (new HeaderSuggester($this->makeService()))->suggest((string) $q);
+    }
+
+    /**
+     * Render the left column of the search results page (unified filter sidebar).
+     */
+    protected function renderFilterSidebarHtml(Request $request, string $q): string
+    {
+        return (new FilterSidebar($this->makeService()))->render($request, $q);
+    }
+
+    /**
+     * Render the saved-search quickbar (chips + save modal share targets).
+     */
+    protected function renderSavedSearchBarHtml(Request $request): string
+    {
+        return SavedSearchBar::render($request);
+    }
+
+    /**
+     * "Applied filters" chips above the results + clear-all link.
+     *
+     * @return array{chips:array<int,array{label:string,url:string}>,clearUrl:string}
+     */
+    protected function appliedChips(Request $request): array
+    {
+        return AppliedChips::build($request);
+    }
+
+    /**
+     * Sort key from the request: null = relevance (default).
+     */
+    protected function sortFromRequest(Request $request): ?string
+    {
+        return RequestFilters::sort($request);
+    }
+
+    /**
+     * Export the search results of ONE table (CSV/XLSX). Reuses Exment's export
+     * engine fed with Meili-derived, permission-matched ids.
+     *
+     * @param CustomTable $custom_table
+     * @return mixed  Normally never returns: FormatBase::sendResponse() sends the
+     *   file and exits. The value is still propagated for the paths that do return.
+     */
+    protected function exportByMeili(Request $request, string $q, $custom_table)
+    {
+        return (new SearchExporter($this->makeService()))->export($request, $q, $custom_table);
+    }
+
+    /**
+     * Result box for a filtered search Meilisearch could not run. No 'total':
+     * the box must stay visible (total 0 would hide it) and must not count
+     * towards the "N results" line.
+     *
+     * @param string $q
+     * @param string $table_name
+     * @return array<string,mixed>
+     */
+    protected function meiliFilterUnavailableItem($q, $table_name)
+    {
+        $custom_table = CustomTable::getEloquent($table_name);
+        if (empty($custom_table)) {
+            return [];
+        }
+
+        return [
+            'table_name' => array_get($custom_table, 'table_name'),
+            'header' => $this->getBoxHeaderHtml($custom_table, ['query' => $q]),
+            'body' => '<p class="text-warning">' . e(exmtrans('search.filter_unavailable')) . '</p>',
+        ];
+    }
+
+    /**
+     * Body of getListItem paginated via Meilisearch. Glue between the Meili
+     * paginator (ResultPaginator) and Exment's grid/view rendering; kept separate
+     * so the caller can wrap it with the MySQL fallback.
+     *
+     * @param string $q
+     * @param string $table_name
+     * @return array<string,mixed>
+     */
+    protected function getListItemByMeili(Request $request, $q, $table_name)
+    {
+        $custom_table = CustomTable::getEloquent($table_name);
+        if (empty($custom_table)) {
+            return [];
+        }
+
+        $boxHeader = $this->getBoxHeaderHtml($custom_table, ['query' => $q]);
+
+        // A table outside the user's searchable tables answers like an empty one:
+        // the capped flag and warning would reveal how many hidden records match.
+        if (!in_array($custom_table->table_name, \Exceedone\Exment\Services\Meili\SavedSearchService::searchableTableNames(), true)) {
+            return [
+                'table_name' => array_get($custom_table, 'table_name'),
+                'header' => $boxHeader,
+                'body' => exmtrans('search.no_result'),
+                'total' => 0,
+                'total_capped' => false
+            ];
+        }
+
+        $paged = (new ResultPaginator($this->makeService()))->paginate($custom_table, $q, $request);
+        $paginate = $paged['paginator'];
+        // capped = the count is a floor (the over-fetch cap was reached) -> the UI
+        // renders it as "N+" instead of an exact number.
+        $capped = $paged['capped'];
+        $paginate->setPath(admin_urls('search', 'list') . '?' . http_build_query(['query' => $q, 'table_name' => $table_name]));
+        // Pagination links are generated server-side (data-ajax-link), so they
+        // must carry the current filters; otherwise moving to page 2 would drop
+        // date/users/facets/range/sort.
+        $paginate->appends(array_filter($request->only(['date_from', 'date_to', 'users', 'facets', 'range', 'sort'])));
+        $datalist = $paginate->items();
+
+        $partial = $this->meiliMayHidePermittedRows($custom_table, $capped);
+
+        if (count($datalist) == 0) {
+            // Nothing accessible among the candidates. If the cap was reached,
+            // rows this user may see can still sit beyond it, so the box must
+            // stay visible to carry the warning: 'total' => 0 would hide it.
+            if ($partial) {
+                return [
+                    'table_name' => array_get($custom_table, 'table_name'),
+                    'header' => $boxHeader,
+                    'body' => self::meiliPartialNotice(),
+                ];
+            }
+
+            return [
+                'table_name' => array_get($custom_table, 'table_name'),
+                'header' => $boxHeader,
+                'body' => exmtrans('search.no_result'),
+                // total = number of PERMISSION-MATCHED records (scope-filtered), used to
+                // show the count on the header box + hide boxes with no results.
+                'total' => 0,
+                'total_capped' => false
+            ];
+        }
+        $links = $paginate->links('exment::search.links')->toHtml();
+        $view = CustomView::getAllData($custom_table);
+
+        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($datalist, [
+            'action_callback' => function (&$link, $custom_table, $data) {
+                if (count($custom_table->getRelationTables()) > 0) {
+                    $link .= (new Linker())
+                    ->url($data->getRelationSearchUrl(true))
+                    ->icon('fa-compress')
+                    ->tooltip(exmtrans('search.header_relation'));
+                }
+            }
+        ]);
+        $table = (new WidgetTable($headers, $bodies))->class('table table-hover')
+            ->setColumnStyle($columnStyles)
+            ->setColumnClasses($columnClasses);
+
+        return [
+            'table_name' => array_get($custom_table, 'table_name'),
+            'header' => $boxHeader,
+            'body' => ($partial ? self::meiliPartialNotice() : '') . $table->render(),
+            'footer' => $links,
+            'total' => $paginate->total(),
+            'total_capped' => $capped
+        ];
+    }
+
+    /**
+     * Whether this result list may be hiding rows the user is allowed to see:
+     * Meilisearch stopped at the over-fetch cap and the user may view only part
+     * of the table, so their rows can sit beyond the cap (see
+     * MeiliSearchService::shouldWarnPartial).
+     *
+     * @param \Exceedone\Exment\Model\CustomTable $custom_table
+     */
+    protected function meiliMayHidePermittedRows($custom_table, bool $capped): bool
+    {
+        return MeiliSearchService::shouldWarnPartial(
+            $capped,
+            \Exceedone\Exment\Services\Meili\SavedSearchService::canViewAllRows($custom_table)
+        );
+    }
+
+    /**
+     * The warning itself: what happened and the two ways out of it.
+     */
+    protected static function meiliPartialNotice(): string
+    {
+        return '<p class="text-warning">' . e(exmtrans('search.partial_results')) . '</p>';
+    }
+}

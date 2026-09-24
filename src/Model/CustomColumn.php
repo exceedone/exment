@@ -373,6 +373,20 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $items->each(function ($item) {
             $item->delete();
         });
+
+        // Meilisearch filter settings name the column by column_name, with no
+        // foreign key to it. Left behind, the column stays declared filterable,
+        // is listed on the settings screen as if it existed, and a bookmarked
+        // search using it returns nothing without a word. One by one, so each
+        // delete reindexes the table and re-applies the index settings.
+        if (hasTable((new MeiliFilterSetting())->getTable())) {
+            $items = MeiliFilterSetting::where('custom_table_id', $this->custom_table_id)
+                ->where('column_name', $this->column_name)
+                ->get();
+            $items->each(function ($item) {
+                $item->delete();
+            });
+        }
     }
 
     protected static function boot()

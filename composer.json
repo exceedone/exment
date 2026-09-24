@@ -47,7 +47,11 @@
     "require-dev": {
         "symfony/css-selector": "~5.2",
         "laravel/browser-kit-testing": "~6.3",
-        "dms/phpunit-arraysubset-asserts": "~0.1"
+        "dms/phpunit-arraysubset-asserts": "~0.1",
+        "meilisearch/meilisearch-php": "^1.10"
+    },
+    "suggest": {
+        "meilisearch/meilisearch-php": "Enable Meilisearch-powered global search (config('meilisearch.global_search')). Requires a guzzlehttp/guzzle compatible HTTP client."
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

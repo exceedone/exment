@@ -181,6 +181,20 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('search/list', 'SearchController@getList');
             $router->get('search/header', 'SearchController@header');
             $router->get('search/relation', 'SearchController@getRelationList');
+            // Export search results per table (CSV/XLSX).
+            $router->get('search/export', 'SearchController@export');
+
+            // Saved Search for global search.
+            $router->post('search/saved', 'MeiliSavedSearchController@store');
+            $router->get('search/saved/{id}/apply', 'MeiliSavedSearchController@apply');
+            $router->delete('search/saved/{id}', 'MeiliSavedSearchController@destroy');
+
+            // filter column config screen (facets).
+            $router->get('meili-filter/columns', 'MeiliFilterController@columnOptions');
+            $this->setResouce($router, 'meili-filter', 'MeiliFilterController');
+
+            // Relevance dictionary (synonyms / stop words).
+            $this->setResouce($router, 'meili-dictionary', 'MeiliDictionaryController');
 
             $router->get('backup', 'BackupController@index');
             $router->delete('backup/delete', 'BackupController@delete');

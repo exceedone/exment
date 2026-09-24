@@ -105,6 +105,17 @@ class Define
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
         'filter_multi_user' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
 
+        // Meilisearch (full-text search) — 'config' maps let get_system_value fall back to .env.
+        'meili_host' => ['config' => 'meilisearch.host', 'group' => 'advanced'],
+        'meili_key' => ['type' => 'password', 'config' => 'meilisearch.key', 'group' => 'advanced'],
+        'meili_index' => ['config' => 'meilisearch.index', 'group' => 'advanced'],
+        'meili_global_search' => ['type' => 'boolean', 'config' => 'meilisearch.global_search', 'group' => 'advanced'],
+        'meili_realtime_sync' => ['type' => 'boolean', 'config' => 'meilisearch.realtime_sync', 'group' => 'advanced'],
+        'meili_batch_size' => ['type' => 'int', 'config' => 'meilisearch.batch_size', 'group' => 'advanced'],
+        'meili_repair_enabled' => ['type' => 'boolean', 'config' => 'meilisearch.repair_enabled', 'group' => 'advanced'],
+        'meili_repair_at' => ['config' => 'meilisearch.repair_at', 'group' => 'advanced'],
+        'meili_filter_mode' => ['config' => 'meilisearch.filter.mode', 'group' => 'advanced'],
+
 
         // notify
         'system_mail_host' => ['config' => 'mail.host', 'group' => 'notify'],
@@ -243,6 +254,14 @@ class Define
         'system' => [
             'uri' => 'system',
             'icon' => 'fa-cogs',
+        ],
+        'meili_filter' => [
+            'uri' => 'meili-filter',
+            'icon' => 'fa-filter',
+        ],
+        'meili_dictionary' => [
+            'uri' => 'meili-dictionary',
+            'icon' => 'fa-language',
         ],
         'custom_table' => [
             'uri' => 'table',

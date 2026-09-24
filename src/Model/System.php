@@ -84,6 +84,15 @@ use Cache;
  * @method static string|void recaptcha_site_key($arg = null)
  * @method static string|void recaptcha_secret_key($arg = null)
  * @method static string|void recaptcha_type($arg = null)
+ * @method static string|void meili_host($arg = null)
+ * @method static string|void meili_key($arg = null)
+ * @method static string|void meili_index($arg = null)
+ * @method static boolean|void meili_global_search($arg = null)
+ * @method static boolean|void meili_realtime_sync($arg = null)
+ * @method static int|void meili_batch_size($arg = null)
+ * @method static boolean|void meili_repair_enabled($arg = null)
+ * @method static string|void meili_repair_at($arg = null)
+ * @method static string|void meili_filter_mode($arg = null)
  * @phpstan-consistent-constructor
  */
 class System extends ModelBase

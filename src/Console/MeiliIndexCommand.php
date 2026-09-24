@@ -1,0 +1,101 @@
+<?php
+
+namespace Exceedone\Exment\Console;
+
+use Exceedone\Exment\Services\Meili\DocumentMapper;
+use Exceedone\Exment\Services\Meili\ExmentIndexer;
+use Exceedone\Exment\Services\Meili\MeiliClientFactory;
+use Illuminate\Console\Command;
+
+class MeiliIndexCommand extends Command
+{
+    use CommandTrait;
+    use MeiliCommandTrait;
+
+    protected $signature = 'exment:meili-index {--fresh : Delete and recreate the index before indexing}
+        {--force : Skip the confirmation prompt of --fresh}';
+
+    protected $description = 'Index Exment data (search-enabled custom tables) into Meilisearch';
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->initExmentCommand();
+    }
+
+    public function handle(): int
+    {
+        if (!$this->assertMeiliSdkInstalled()) {
+            return self::FAILURE;
+        }
+
+        $client = MeiliClientFactory::make();
+
+        // Check the Meilisearch connection.
+        try {
+            $health = $client->health();
+            if (($health['status'] ?? null) !== 'available') {
+                $this->error('Meilisearch is not available: ' . json_encode($health));
+                return self::FAILURE;
+            }
+        } catch (\Throwable $e) {
+            $this->error('Could not connect to Meilisearch (' . config('meilisearch.host') . '): ' . $e->getMessage());
+            return self::FAILURE;
+        }
+
+        $indexName = config('meilisearch.index');
+        $indexer = new ExmentIndexer(
+            $client,
+            new DocumentMapper(),
+            $indexName,
+            (int) config('meilisearch.batch_size')
+        );
+
+        $tables = $indexer->searchableTables();
+        if ($tables->isEmpty()) {
+            $this->warn('No search-enabled custom table with a freeword column to index.');
+            return self::SUCCESS;
+        }
+
+        // --fresh rebuilds every document: confirm, or require --force when non-interactive.
+        if ($this->option('fresh') && !$this->option('force')) {
+            if (!$this->input->isInteractive()) {
+                $this->error('--fresh rebuilds every document. Add --force to run it non-interactively.');
+                return self::FAILURE;
+            }
+            if (!$this->confirm(sprintf(
+                'This rebuilds every document of "%s" into "%s" and swaps it in at the end.'
+                . ' Search keeps working meanwhile, but records changed DURING the rebuild are lost'
+                . ' from the index (run exment:meili-reconcile afterwards). Continue?',
+                $indexName,
+                ExmentIndexer::buildIndexName($indexName)
+            ))) {
+                $this->info('Aborted.');
+                return self::FAILURE;
+            }
+        }
+
+        $this->info(sprintf(
+            'Indexing %d table(s) into "%s"%s...',
+            $tables->count(),
+            $indexName,
+            $this->option('fresh') ? ' (fresh)' : ''
+        ));
+
+        $result = $indexer->indexAll((bool) $this->option('fresh'));
+
+        foreach ($result['perTable'] as $name => $count) {
+            $this->line(sprintf('  - %-30s %d records', $name, $count));
+        }
+        $this->info('Total: ' . $result['total'] . ' documents indexed.');
+
+        if ($this->option('fresh')) {
+            // Realtime sync wrote into the live index while this ran; those
+            // writes are on the index that has just been swapped out.
+            $this->warn('Run `php artisan exment:meili-reconcile` to pick up records changed during the rebuild.');
+        }
+
+        return self::SUCCESS;
+    }
+}
