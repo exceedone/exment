@@ -39,9 +39,9 @@ And more and more and more functions....
 
 ## Operating environment
 ### Server
-- PHP 7.3.0 or upper
-- MySQL 5.7.8 or upper and less than 8.0.0, or MariaDB 10.2.7 or upper
-- Laravel8.X
+- PHP 8.2.0 or upper
+- MySQL 5.7.8 or upper, or MariaDB 10.2.7 or upper
+- Laravel 10.X
 
 ### Support Browser
 - Google Chrome
