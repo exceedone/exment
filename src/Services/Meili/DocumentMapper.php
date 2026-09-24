@@ -44,6 +44,14 @@ class DocumentMapper
             if (is_array($value)) {
                 $value = implode(' ', array_filter($value, fn ($v) => $v !== null && $v !== ''));
             }
+            // Editor columns hold HTML: index the text only.
+            if ($column->column_type === \Exceedone\Exment\Enums\ColumnType::EDITOR && is_string($value)) {
+                $value = self::htmlToText($value);
+            }
+            // Formatted numbers ("¥1,500") also get the raw value, so "1500" matches.
+            if (in_array($column->column_type, \Exceedone\Exment\Enums\ColumnType::COLUMN_TYPE_CALC())) {
+                $value = self::withRawNumber($value, $record->getValue($column));
+            }
             $fields[$column->column_name] = $value;
         }
 
@@ -72,6 +80,44 @@ class DocumentMapper
         }
 
         return $this->buildDocument($tableName, $tableLabel, $record->id, $record->label, $fields, $extra);
+    }
+
+    /**
+     * Plain text of an HTML value. Meilisearch does not split words at '>', so the
+     * first word after a tag ("<p>aaaa") would not be searchable; tag names would.
+     */
+    public static function htmlToText(string $html): string
+    {
+        // Space before each tag so adjacent blocks ("</p><p>", "<br>") do not glue words.
+        $text = strip_tags(str_replace('<', ' <', $html));
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // \x{00A0} = decoded &nbsp;
+        return trim(preg_replace('/[\s\x{00A0}]+/u', ' ', $text) ?? $text);
+    }
+
+    /**
+     * Append the raw number to its display text when they differ: Meilisearch
+     * splits "1,500" into "1" and "500", so "1500" would not match.
+     *
+     * @param  mixed  $display
+     * @param  mixed  $raw
+     * @return mixed
+     */
+    public static function withRawNumber($display, $raw)
+    {
+        if (!is_numeric($raw)) {
+            return $display;
+        }
+        $raw = (string) $raw;
+        if ($display === null || $display === '') {
+            return $raw;
+        }
+        if ((string) $display === $raw) {
+            return $display;
+        }
+
+        return $display . ' ' . $raw;
     }
 
     /**
