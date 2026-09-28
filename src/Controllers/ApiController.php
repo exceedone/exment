@@ -528,6 +528,82 @@ class ApiController extends AdminControllerBase
     }
 
     /**
+     * Feature 1: Get the current user's un-actioned workflow tasks for the navbar icon.
+     * Mirrors notifyPage(): returns the unseen count for the badge and the top tasks for the
+     * dropdown list.
+     *
+     * @param Request $request
+     * @return array
+     */
+    // @phpstan-ignore-next-line
+    public function workflowTaskPage(Request $request)
+    {
+        // Cached per user for one poll interval. The scan behind this answer walks every
+        // pending record of every workflow table - it grows with the TABLES, not with the
+        // caller's own tasks (measured: ~0.6s for a user with 269 tasks once one table held
+        // 53,000 rows) - and it runs on a timer in EVERY open browser. The cache bounds that
+        // to one scan per user per interval, however many tabs are open. WorkflowTaskService
+        // bumps the key's version whenever this user's own view changes (marking, unmarking,
+        // acting on a workflow, deleting a record), so their very next poll is fresh; what
+        // OTHER users change becomes visible when the cache expires - within one interval,
+        // the same delay polling itself already has.
+        $cacheKey = \Exceedone\Exment\Services\Workflow\WorkflowTaskService::navbarCacheKey();
+        if (is_null($cacheKey)) {
+            // no user record to key on (and nothing to scan for either: every read of such
+            // an account answers empty)
+            return $this->buildWorkflowTaskPage();
+        }
+
+        return \Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\WorkflowTaskNav::interval(), function () {
+            return $this->buildWorkflowTaskPage();
+        });
+    }
+
+    /**
+     * The payload workflowTaskPage() serves and caches: the unseen count for the badge and
+     * the top tasks for the dropdown.
+     *
+     * @return array{count: int, items: \Illuminate\Support\Collection<int, array<string, mixed>>, noItemMessage: mixed}
+     */
+    protected function buildWorkflowTaskPage(): array
+    {
+        $service = new \Exceedone\Exment\Services\Workflow\WorkflowTaskService();
+
+        // Two different numbers on purpose:
+        //   count = tasks the user has not OPENED yet   -> the red badge
+        //   items = tasks that still need an ACTION     -> the dropdown list
+        // Returning an empty item list whenever count is 0 is what made "mark all as seen" print
+        // "there is no un-actioned task" over a list screen that still had every one of them: the
+        // badge went to zero, the tasks did not go anywhere.
+        //
+        // Both reads stay deliberately small: one COUNT per workflow table for the badge, and at
+        // most NAVBAR_ITEM_COUNT rows per table for the list. This runs on a timer, in every open
+        // browser.
+        $count = $service->countUnseen();
+
+        /** @var \Illuminate\Support\Collection<int, array<string, mixed>> $items */
+        $items = $service->topPending()->map(function ($row) {
+            return [
+                'icon' => $row['icon'],
+                'color' => $row['color'],
+                'table_view_name' => $row['table_view_name'],
+                'label' => $row['label'],
+                'status_name' => $row['status_name'],
+                // seen and unseen tasks are listed together now, so the dropdown prints the
+                // unseen ones in bold - otherwise the badge number cannot be explained
+                'seen' => $row['seen'],
+                'href' => admin_url('workflow_task/read') . '?key=' . rawurlencode($row['task_key']),
+            ];
+        });
+
+        return [
+            'count' => $count,
+            'items' => $items,
+            'noItemMessage' => exmtrans('workflow_task.empty'),
+        ];
+    }
+
+    /**
      * Get user or organization for select
      *
      * @param Request $request

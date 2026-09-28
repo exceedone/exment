@@ -375,6 +375,12 @@ class WorkflowAction extends ModelBase
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
 
+        // capture the other members of the assigned organization(s)
+        // BEFORE forwarding (ACTION_SELECT authorities are read from the current workflow value).
+        $sameOrgUserIds = ($next === true)
+            ? \Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::getOtherOrgMemberIds($this, $custom_value)
+            : [];
+
         \ExmentDB::transaction(function () use ($custom_value, $data, $is_edit, $next, &$workflow_value, &$status_to) {
             $workflow_value = $this->forwardWorkflowValue($custom_value, $data);
 
@@ -410,6 +416,9 @@ class WorkflowAction extends ModelBase
             foreach ($workflow->notifies as $notify) {
                 $notify->notifyWorkflow($custom_value, $this, $workflow_value, $status_to);
             }
+
+            // Feature 1 (part B): notify the other members of the assigned organization(s)
+            \Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::notify($this, $custom_value, $sameOrgUserIds);
         }
 
         // execute plugin
@@ -473,7 +482,25 @@ class WorkflowAction extends ModelBase
             $createData['action_executed_flg'] = true;
         }
 
-        return WorkflowValue::create($createData);
+        $workflow_value = WorkflowValue::create($createData);
+
+        // The record moved to another status, so every "already seen" mark on it is stale and
+        // the navbar has to show it as a new task again. Clearing it here - where the status
+        // change itself happens - is what lets the badge query stay a plain lookup on the
+        // record id, with no join to workflow_values.
+        // withoutGlobalScopes(): WorkflowTaskRead is scoped to the login user, but the marks of
+        // ALL users must be cleared, not only those of the one pressing the button.
+        WorkflowTaskRead::withoutGlobalScopes()
+            ->where('custom_table_id', $custom_value->custom_table->id)
+            ->where('morph_id', $morph_id)
+            ->delete();
+
+        // the user who just acted is looking at their task list right now: their next navbar
+        // poll must recompute instead of answering from the cache. Everyone else's cache
+        // simply expires within one poll interval.
+        \Exceedone\Exment\Services\Workflow\WorkflowTaskService::navbarCacheForget();
+
+        return $workflow_value;
     }
 
     /**

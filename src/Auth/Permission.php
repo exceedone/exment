@@ -244,6 +244,7 @@ class Permission
             case "assign-jan-code":
                 return true;
             case "notify_navbar":
+            case "workflow_task":
             case "tmpfiles":
             case "tmpimages":
                 return true;
