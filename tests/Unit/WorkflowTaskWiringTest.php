@@ -59,6 +59,7 @@ class WorkflowTaskWiringTest extends TestCase
             'public/vendor/exment/js/workflow_task_navbar.js',
             'database/migrations/2026_07_01_000000_create_workflow_task_reads_table.php',
             'database/migrations/2026_09_05_000000_workflow_task_reads_rebuild.php',
+            'database/migrations/2026_09_29_000000_add_hidden_flg_to_workflow_task_reads.php',
         ];
 
         foreach ($files as $file) {
@@ -80,7 +81,40 @@ class WorkflowTaskWiringTest extends TestCase
         $this->assertStringContainsString('"workflow_task/readAll", \'WorkflowTaskController@readAll\'', $content);
         $this->assertStringContainsString('"workflow_task/unreadAll", \'WorkflowTaskController@unreadAll\'', $content);
         $this->assertStringContainsString('"workflow_task/rowCheck", \'WorkflowTaskController@rowCheck\'', $content);
+        $this->assertStringContainsString('"workflow_task/rowDelete", \'WorkflowTaskController@rowDelete\'', $content);
+        $this->assertStringContainsString('"workflow_task/rowRestore", \'WorkflowTaskController@rowRestore\'', $content);
         $this->assertStringContainsString('"workflowTaskPage", \'ApiController@workflowTaskPage\'', $content);
+    }
+
+    /**
+     * Through the OAuth API the task list - tables, record labels, statuses - goes only to a client
+     * allowed to read workflows, like the wf/ read endpoints. Found in review: it asked for
+     * notify_read, so a client granted the notifications alone read the user's workflow data.
+     * The navbar's own route (webapi) runs on the session and takes no token scope.
+     *
+     * @return void
+     */
+    public function testTaskListApiNeedsAWorkflowScope()
+    {
+        $api = null;
+        $webapi = null;
+        foreach (\Route::getRoutes()->getRoutes() as $route) {
+            if (!str_ends_with($route->uri(), '/workflowTaskPage')) {
+                continue;
+            }
+            $middleware = array_values(array_filter($route->gatherMiddleware(), 'is_string'));
+            if (in_array('adminapi', $middleware, true)) {
+                $api = $middleware;
+            }
+            if (in_array('adminwebapi', $middleware, true)) {
+                $webapi = $middleware;
+            }
+        }
+
+        $this->assertNotNull($api, 'the OAuth API route is gone');
+        $this->assertNotNull($webapi, 'the navbar route is gone');
+        $this->assertContains('scope:workflow_read,workflow_execute', $api);
+        $this->assertSame([], array_values(preg_grep('/^scope:/', $webapi) ?: []), 'the navbar runs on the session and must not need a token scope');
     }
 
     /**
@@ -90,7 +124,7 @@ class WorkflowTaskWiringTest extends TestCase
      */
     public function testControllerExposesRoutedActions()
     {
-        foreach (['index', 'read', 'readAll', 'unreadAll', 'rowCheck'] as $action) {
+        foreach (['index', 'read', 'readAll', 'unreadAll', 'rowCheck', 'rowDelete', 'rowRestore'] as $action) {
             $this->assertTrue(
                 method_exists(\Exceedone\Exment\Controllers\WorkflowTaskController::class, $action),
                 "WorkflowTaskController::{$action}() is routed but missing"
@@ -175,7 +209,7 @@ class WorkflowTaskWiringTest extends TestCase
 
         // the same renderer notify_navbar uses, fed from the controller
         $this->assertStringContainsString('SwalMenuButton($menulist)', $blade);
-        $this->assertStringContainsString("'menulist' => \$this->getMenuList(\$service->filter())", $controller);
+        $this->assertStringContainsString("'menulist' => \$this->getMenuList(\$service->filter(), \$service->isFiltered())", $controller);
 
         // both directions are offered, and both go through a confirm dialog
         $this->assertStringContainsString("admin_url('workflow_task/readAll')", $controller);
@@ -211,9 +245,13 @@ class WorkflowTaskWiringTest extends TestCase
         $controller = $this->read('src/Controllers/WorkflowTaskController.php');
         $service = $this->read('src/Services/Workflow/WorkflowTaskService.php');
 
-        // the endpoint must never reach markSeen() directly
-        $this->assertStringContainsString('markSeenSelected($keys)', $controller);
+        // the endpoints must never reach markSeen() directly: the keys go through the
+        // checking entry points only (the delete endpoint included)
+        $this->assertStringContainsString('->markSeenSelected($this->requestKeys($request))', $controller);
+        $this->assertStringContainsString('$keys = $this->requestKeys($request);', $controller);
+        $this->assertStringContainsString('->hideSelected($keys, ', $controller);
         $this->assertStringNotContainsString('->markSeen($keys)', $controller);
+        $this->assertStringNotContainsString('->markSeen($this->requestKeys', $controller);
 
         $start = strpos($service, 'public function markSeenSelected');
         $this->assertNotFalse($start, 'markSeenSelected() is gone');
@@ -271,18 +309,26 @@ class WorkflowTaskWiringTest extends TestCase
             $api
         );
 
-        // every own write bumps the version: marking, unmarking, acting, deleting
-        foreach (['public function markSeen(', 'public function markAllUnseen('] as $method) {
+        // every own write bumps the version: marking, unmarking, acting, deleting - AFTER the write,
+        // or a poll in between stores the old list under the new version
+        foreach (['public function markSeen(' => 'WorkflowTaskRead::insert(', 'public function markAllUnseen(' => '->delete();'] as $method => $write) {
             $start = strpos($service, $method);
             $this->assertNotFalse($start, $method . ' is gone');
-            $this->assertStringContainsString(
-                'static::navbarCacheForget();',
-                substr($service, $start, 1200),
-                $method . ' must make the next poll recompute'
-            );
+            $end = strpos($service, "\n    /**", $start);
+            $body = substr($service, $start, ($end === false ? strlen($service) : $end) - $start);
+
+            $bump = strrpos($body, 'static::navbarCacheForget();');
+            $this->assertNotFalse($bump, $method . ' must make the next poll recompute');
+            $writeAt = strpos($body, $write);
+            $this->assertNotFalse($writeAt, $method . ' no longer writes the way this test looks for');
+            $this->assertGreaterThan((int)$writeAt, $bump, $method . ' must move the version after its write');
         }
-        $this->assertStringContainsString('WorkflowTaskService::navbarCacheForget();', $action);
-        $this->assertStringContainsString('WorkflowTaskService::navbarCacheForget();', $value);
+        // core writes inside a transaction: once it has committed (a deadlock on the database cache
+        // store rolled the whole action back, see WorkflowTaskService::navbarCacheForgetAfterCommit())
+        $this->assertStringContainsString('WorkflowTaskService::navbarCacheForgetAfterCommit();', $action);
+        $this->assertStringContainsString('WorkflowTaskService::navbarCacheForgetAfterCommit();', $value);
+        $this->assertStringNotContainsString('WorkflowTaskService::navbarCacheForget();', $action);
+        $this->assertStringNotContainsString('WorkflowTaskService::navbarCacheForget();', $value);
     }
 
     /**
@@ -461,48 +507,62 @@ class WorkflowTaskWiringTest extends TestCase
     }
 
     /**
-     * The delete action must not be a second implementation of "delete a custom value". It
-     * points at the record's own url with method DELETE, which is CustomValueController@destroy
-     * - the same endpoint the grid delete button calls, with its permission checks, its
-     * relation validation and its plugin hooks.
+     * "Delete" on the task list takes the task off the user's OWN list. It must never reach the
+     * record: the first version pointed the button at the record's own url with method DELETE
+     * (CustomValueController@destroy), so deleting a task deleted the data for everybody.
      *
      * @return void
      */
-    public function testDeleteReusesTheCustomValueEndpoint()
+    public function testDeleteNeverReachesTheRecord()
     {
         $blade = $this->read('resources/views/workflow_task/index.blade.php');
 
-        $this->assertStringContainsString('data-add-swal="{{ $row[\'url\'] }}"', $blade, 'the button must target the record itself');
-        $this->assertStringContainsString('data-add-swal-method="delete"', $blade);
-        $this->assertStringContainsString('data-add-swal-confirm=', $blade, 'a delete must be confirmed');
-        $this->assertStringContainsString('$row[\'can_delete\']', $blade, 'the button is only drawn where the delete is allowed');
+        // nothing on this screen may send a DELETE, or aim at a record's own url
+        $this->assertStringNotContainsString('data-add-swal-method="delete"', $blade, 'the row button deletes the record');
+        $this->assertStringNotContainsString("method: 'delete'", $blade, 'the batch deletes the records');
+        $this->assertStringNotContainsString('data-add-swal="{{ $row[\'url\'] }}"', $blade, 'the row button targets the record');
+        $this->assertStringNotContainsString('tableUrls', $blade, 'the batch is grouped by record endpoints again');
+        $this->assertStringNotContainsString('can_delete', $blade, 'the record delete permission has nothing to do with this list');
 
-        // no delete route and no delete action of its own
+        // both the row button and the batch send task keys to the screen's own endpoint
+        $this->assertStringContainsString("admin_url('workflow_task/rowDelete')", $blade);
+        $this->assertStringContainsString("'keys' => \$row['task_key']", $blade, 'the row button must send its task key');
+        $this->assertStringContainsString('data-add-swal-confirm=', $blade, 'taking a task off the list must be confirmed');
+
         $routes = $this->read('src/Providers/RouteServiceProvider.php');
-        $this->assertStringNotContainsString('workflow_task/delete', $routes, 'the feature must not add its own delete route');
+        $this->assertStringContainsString('"workflow_task/rowDelete", \'WorkflowTaskController@rowDelete\'', $routes);
 
+        // the endpoint writes this user's own mark and nothing else
         $controller = $this->read('src/Controllers/WorkflowTaskController.php');
-        $this->assertStringNotContainsString('function destroy', $controller, 'deleting is CustomValueController\'s job');
+        $this->assertStringContainsString('->hideSelected(', $controller);
+        $this->assertStringNotContainsString('function destroy', $controller);
         $this->assertStringNotContainsString('->delete()', $controller, 'this screen must not delete anything itself');
+        $this->assertStringNotContainsString('forceDelete', $controller);
 
-        // and the flag is the answer Exment itself gives
         $service = $this->read('src/Services/Workflow/WorkflowTaskService.php');
+        $start = strpos($service, 'public function hideSelected(');
+        $this->assertNotFalse($start, 'hideSelected() is gone');
+        $end = strpos($service, "\n    }", $start);
+        $body = substr($service, $start, $end === false ? null : $end - $start);
+
+        $this->assertStringNotContainsString('getModelName(', $body, 'taking a task off the list must not open a record model');
+        $this->assertStringNotContainsString('->delete()', $body);
+        $this->assertStringContainsString('WorkflowTaskRead::', $body, 'the mark belongs in workflow_task_reads');
         $this->assertStringContainsString(
-            "\$row['can_delete'] = \$value->enableDelete(true) === true;",
-            $service,
-            'the button must agree with the check the delete endpoint runs'
+            '$this->pendingQuery($custom_table, false)',
+            $body,
+            'the keys come from the browser: only my own, still listed tasks may be taken off'
         );
     }
 
     /**
-     * Selecting several rows and deleting them must stay the same operation as deleting them
-     * one by one. The ids are per table, so the checked rows are grouped by their table and
-     * each group is sent to that table's own CustomValueController@destroy - which already
-     * accepts a comma separated id list. No new route, no second delete implementation.
+     * The batch menu works on the grid selection, like notify_navbar, and sends the selected TASK
+     * KEYS to the delete endpoint - one request, whatever tables the rows come from. A task key
+     * carries its table, so rows of two tables that share a record id cannot be confused.
      *
      * @return void
      */
-    public function testBatchDeleteGroupsByTableAndReusesTheEndpoint()
+    public function testBatchDeleteSendsTheSelectedTaskKeys()
     {
         $blade = $this->read('resources/views/workflow_task/index.blade.php');
 
@@ -518,89 +578,108 @@ class WorkflowTaskWiringTest extends TestCase
         $this->assertStringContainsString('$.admin.grid.selects = {};', $blade);
         $this->assertStringContainsString('$.admin.grid.selected()', $blade);
 
-        // the checkbox is drawn on EVERY row, because the dropdown can also mark a row as
-        // seen - a row the user may not delete is still a row they may tick
+        // the checkbox is drawn on every row and carries the task key
         $start = strpos($blade, '<td class="column-__row_selector__ workflow-task-check">');
         $this->assertNotFalse($start, 'the row selector cell is gone');
         $cell = substr($blade, $start, strpos($blade, '</td>', $start) - $start);
-        $this->assertStringNotContainsString('can_delete', $cell, 'the checkbox must not be behind a delete guard');
         $this->assertStringContainsString("data-id=\"{{ \$row['task_key'] }}\"", $cell);
 
-        // grouping key: the task key carries the table, and the view maps it to that table's
-        // delete endpoint. Two tables can both have a record 1, so the id alone is not enough.
-        $this->assertStringContainsString("\$tableUrls = \$rows->pluck('table_url', 'custom_table_id');", $blade);
-        $this->assertStringContainsString('var tableUrls = {!! json_encode($tableUrls,', $blade);
-        $this->assertStringContainsString("var parts = String(key).split(':');", $blade);
-        $this->assertStringContainsString('groups[url].push(parts[1]);', $blade);
-        $this->assertStringContainsString("url + '/' + ids.join(',')", $blade);
+        // confirmed with Exment's dialog, then one plain post of the keys
+        $batch = strpos($blade, "find('.grid-batch-0')");
+        $this->assertNotFalse($batch, 'the batch delete handler is gone');
+        $handler = substr($blade, $batch, strpos($blade, "find('.grid-batch-1')") - $batch);
+        $this->assertStringContainsString('Exment.CommonEvent.ShowSwal(deleteUrl', $handler);
+        $this->assertStringContainsString("keys: keys.join(',')", $handler);
+        $this->assertStringNotContainsString('postEvent', $handler, 'a single request needs no hand made chain');
+    }
 
-        // the confirm dialog is Exment's, and postEvent is its documented hook for sending
-        // something other than one plain request
-        $this->assertStringContainsString('Exment.CommonEvent.ShowSwal(', $blade);
-        $this->assertStringContainsString('postEvent: function (data)', $blade);
-        $this->assertStringContainsString("method: 'delete'", $blade);
-        $this->assertStringContainsString('CallbackExmentAjax', $blade);
+    /**
+     * The date filter is drawn like every other date input of the admin screens: a text box with
+     * the bootstrap datetimepicker, in the format the service reads (yyyy-mm-dd) and in the
+     * language of APP_LOCALE - the same setup as the 更新日時 filter of the data grid
+     * (laravel-admin Grid\Filter\Between::date()).
+     *
+     * <input type="date"> is drawn by the browser instead, in the date format of the OS, so the
+     * same screen showed 2026/09/29 on one PC and 09/29/2026 on the next whatever APP_LOCALE says.
+     *
+     * @return void
+     */
+    public function testDateFilterUsesTheSharedDatePicker()
+    {
+        $blade = $this->read('resources/views/workflow_task/index.blade.php');
 
-        // one table refusing (a relation check, a lock) must not silently cancel the rest
-        $this->assertStringContainsString('failed.push(', $blade);
+        $this->assertStringNotContainsString('type="date"', $blade, 'the browser draws type=date in the OS locale');
+        $this->assertStringContainsString('.datetimepicker(', $blade);
+        $this->assertStringContainsString('var options = {!! json_encode($dateOptions, ', $blade, 'the pickers must get the options the controller sets up');
+        $this->assertStringContainsString('autocomplete="off"', $blade, 'the browser history would cover the calendar');
 
-        // HasResourceTableActions::destroy() walks the whole comma separated list and only
-        // reports the verdict at the end, so a request that answers "failed" may still have
-        // deleted some of its rows. Nothing in the answer says how many, so the list has to be
-        // reloaded whatever came back - a screen still offering deleted rows is the worse bug.
-        $failPos = strpos($blade, 'if (failed.length === 0)');
-        $this->assertNotFalse($failPos, 'the failure branch is gone');
-        $this->assertStringContainsString(
-            "$.pjax.reload('#pjax-container');",
-            substr($blade, $failPos),
-            'a batch that reports failure must still refresh the list'
-        );
-        $this->assertStringNotContainsString(
-            'if (deleted > 0)',
-            $blade,
-            'the reload must not depend on a count the answer never gives'
-        );
+        // what the options say - language and format - is asserted on what the controller hands
+        // over: WorkflowTaskServiceTest::testDatePickerSpeaksTheScreenLanguageAndWritesWhatTheFilterReads
+        $this->assertStringContainsString("'dateOptions' => [", $this->read('src/Controllers/WorkflowTaskController.php'));
+    }
 
-        // and still no delete of its own anywhere
-        $routes = $this->read('src/Providers/RouteServiceProvider.php');
-        $this->assertStringNotContainsString('workflow_task/delete', $routes);
-        $this->assertStringNotContainsString('workflow_task/batch', $routes);
-
-        $controller = $this->read('src/Controllers/WorkflowTaskController.php');
-        $this->assertStringNotContainsString('function destroy', $controller);
-        $this->assertStringNotContainsString('->delete()', $controller);
-        $this->assertStringNotContainsString('forceDelete', $controller);
-
-        // the whole grouping rests on one property of the endpoint: it takes a comma
-        // separated id list. If that ever became a single id, every batch would delete only
-        // the first row of each table and say it succeeded.
-        $endpoint = $this->read('src/Controllers/CustomValueController.php');
-        $this->assertStringContainsString(
-            'foreach (stringtoArray($id) as $i)',
-            $endpoint,
-            'destroy() must still accept a comma separated id list'
-        );
-        $this->assertStringContainsString(
-            '$router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy")',
-            $routes,
-            'the delete route must stay unconstrained, a comma list has to match {id}'
-        );
-
-        // the base url must come from the record itself, not be assembled in the view
+    /**
+     * A task is a record the user can act on right now. The work-user query only knows who an
+     * action is FOR; whether its execution condition (実行条件) matches the record, and whether
+     * this user has already done their part of a multi-approver step, is added to it per action
+     * - in baseQuery(), the one place every count, page and batch action passes through, or the
+     * badge and the list would disagree - and in SQL, so no record is loaded to decide it.
+     *
+     * @return void
+     */
+    public function testTasksAreLimitedToActionsThatCanRun()
+    {
         $service = $this->read('src/Services/Workflow/WorkflowTaskService.php');
+
+        $start = strpos($service, 'private function baseQuery(');
+        $this->assertNotFalse($start, 'baseQuery() is gone');
+        $end = strpos($service, "\n    }", $start);
+        $body = substr($service, $start, $end === false ? null : $end - $start);
+
         $this->assertStringContainsString(
-            "\$row['table_url'] = \$value->getUrl(['list' => true]);",
-            $service,
-            'the batch base must be the same builder the single url uses'
+            'RelationTable::setWorkflowWorkUsersSubQuery($query, $custom_table, false, $this->executableActionFilter($custom_table))',
+            $body
         );
 
-        // the view splits the task key on ":" to find the table, so the separator is a
-        // contract between the two files, not an implementation detail of the service
-        $this->assertStringContainsString(
-            "return \$customTableId . ':' . \$morphId;",
-            $service,
-            'the task key separator changed - the batch delete would group by the wrong table'
-        );
+        // per action: the condition, and "not executed by me yet" for a multi-approver step
+        $filter = strpos($service, 'private function executableActionFilter(');
+        $this->assertNotFalse($filter, 'executableActionFilter() is gone');
+        $filterBody = substr($service, $filter, strpos($service, 'private function whereExecutionCondition(') - $filter);
+        $this->assertStringContainsString(".workflow_action_id', \$actionId)", $filterBody, 'the check must be per action');
+        $this->assertStringContainsString('action_executed_flg', $filterBody, 'an approver who already acted has nothing to press');
+        $this->assertStringContainsString('$this->whereExecutionCondition(', $filterBody);
+
+        // a condition is the SQL twin of the record page's comparison: both halves of the same
+        // view filter class
+        $plan = strpos($service, 'private static function conditionHeaders(');
+        $this->assertNotFalse($plan, 'conditionHeaders() is gone');
+        $planBody = substr($service, $plan, strpos($service, 'private function whereExecutionCondition(') - $plan);
+        $this->assertStringContainsString('ViewFilterBase::makeForCondition($condition)', $planBody, 'what the record page compares with');
+        $this->assertStringContainsString('ViewFilterBase::make($condition->condition_key', $planBody);
+
+        $condition = strpos($service, 'private function whereCondition(');
+        $this->assertNotFalse($condition, 'whereCondition() is gone');
+        $conditionBody = substr($service, $condition);
+        // an empty value never reaches the operator on the record page - compareValue() answers
+        // for it - so each empty shape is asked there, not left to "<>" / NOT (NULL) in SQL
+        foreach (['$compare->compareValue(null, $conditionValue)', '$compare->compareValue([], $conditionValue)', "\$compare->compareValue('', \$conditionValue)"] as $emptyShape) {
+            $this->assertStringContainsString($emptyShape, $conditionBody);
+        }
+        $this->assertStringContainsString('$filter->setFilter($query, $conditionValue)', $conditionBody);
+        $this->assertStringNotContainsString('->getWorkflowActions(', $service, 'deciding in PHP loads every candidate record');
+
+        // the hook is applied to both halves of the union, before joinSub() compiles them
+        $relation = $this->read('src/Model/RelationTable.php');
+        $hookStart = strpos($relation, 'public static function setWorkflowWorkUsersSubQuery(');
+        $this->assertNotFalse($hookStart);
+        $hook = substr($relation, $hookStart);
+        $joinPos = strpos($hook, '$query->{$joinFunc}($subquery2');
+        $this->assertNotFalse($joinPos);
+        foreach (['$actionFilter($subquery, SystemTableName::VIEW_WORKFLOW_VALUE_UNION)', '$actionFilter($subquery2, SystemTableName::VIEW_WORKFLOW_START)'] as $call) {
+            $pos = strpos($hook, $call);
+            $this->assertNotFalse($pos, $call . ' is gone');
+            $this->assertLessThan($joinPos, $pos, 'joinSub() compiles the sub query at once: ' . $call . ' comes too late');
+        }
     }
 
     /**
@@ -668,6 +747,30 @@ class WorkflowTaskWiringTest extends TestCase
             'workflow_task.message.mark_all_unseen_succeeded',
             'workflow_task.message.check_succeeded',
             'workflow_task.message.check_notfound',
+            // what a filtered list says instead
+            'workflow_task.empty_filtered',
+            'workflow_task.confirm_text.mark_all_seen_filtered',
+            'workflow_task.confirm_text.mark_all_unseen_filtered',
+            'workflow_task.message.mark_all_seen_filtered_succeeded',
+            'workflow_task.message.mark_all_unseen_filtered_succeeded',
+            // taking tasks off the list
+            'workflow_task.delete_title',
+            'workflow_task.confirm_text.delete',
+            'workflow_task.confirm_text.delete_selected',
+            'workflow_task.message.delete_succeeded',
+            'workflow_task.message.delete_partial',
+            'workflow_task.message.delete_notfound',
+            // ... and putting them back (the 削除済み list), which the list counts and leads to
+            'workflow_task.seen_options.2',
+            'workflow_task.restore',
+            'workflow_task.restore_selected',
+            'workflow_task.message.restore_succeeded',
+            'workflow_task.message.restore_notfound',
+            'workflow_task.removed_count',
+            'workflow_task.empty_removed',
+            'workflow_task.empty_removed_list',
+            // the free-word box of the list
+            'search.freeword',
             'workflow.same_org_notify.subject',
             'workflow.same_org_notify.body',
         ];
@@ -704,7 +807,18 @@ class WorkflowTaskWiringTest extends TestCase
         $keys = [
             'workflow_task.count' => 1,
             'workflow_task.unseen_count' => 1,
+            'workflow_task.removed_count' => 1,
+            'workflow_task.empty_removed' => 1,
+            'workflow_task.empty_removed_list' => 0,
             'workflow.same_org_notify.body' => 4,
+            // the label of the row
+            'workflow_task.confirm_text.delete' => 1,
+            // how many went, how many stayed
+            'workflow_task.message.delete_partial' => 2,
+            // exmtrans() is called without arguments for these, so a %s would reach the screen as it is
+            'workflow_task.confirm_text.delete_selected' => 0,
+            'workflow_task.message.delete_notfound' => 0,
+            'workflow_task.empty_filtered' => 0,
         ];
 
         $localeDirs = glob($this->root() . '/resources/lang/*', GLOB_ONLYDIR) ?: [];
@@ -741,22 +855,28 @@ class WorkflowTaskWiringTest extends TestCase
     public function testReadValidatesTheKeyBeforeWriting()
     {
         $content = $this->read('src/Controllers/WorkflowTaskController.php');
+        $start = strpos($content, 'public function read(');
+        $this->assertNotFalse($start, 'read() is gone');
+        $end = strpos($content, "\n    /**", $start);
+        $body = substr($content, $start, ($end === false ? strlen($content) : $end) - $start);
 
         $this->assertStringContainsString(
             'WorkflowTaskService::parseTaskKey($key)',
-            $content,
+            $body,
             'the key must go through the single shared validator'
         );
 
-        $markPos = strpos($content, 'markSeen(');
-        $checkPos = strpos($content, 'parseTaskKey($key)');
-        $resolvePos = strpos($content, 'getValueModel(');
-
-        $this->assertNotFalse($markPos);
-        $this->assertNotFalse($checkPos);
-        $this->assertNotFalse($resolvePos);
-        $this->assertLessThan($markPos, $checkPos, 'the key must be validated before markSeen()');
-        $this->assertLessThan($markPos, $resolvePos, 'the record must be resolved before markSeen()');
+        // in this order: the shape of the key; a table the list reads (found in review: a record of
+        // the document table answered to anybody, and the redirect gave its file address away); the
+        // record, under the permission scope; and only then a mark, on an unread task of the user
+        $last = -1;
+        foreach (['parseTaskKey($key)', 'WorkflowTaskService::tableOptions()', 'getValueModel(', 'markSeenSelected(['] as $step) {
+            $pos = strpos($body, $step);
+            $this->assertNotFalse($pos, "read() no longer does {$step}");
+            $this->assertGreaterThan($last, $pos, "read() must do {$step} after the step before it");
+            $last = $pos;
+        }
+        $this->assertStringNotContainsString('->markSeen(', $body, 'read() must not mark what is no unread task of the user');
     }
 
     /**
@@ -774,9 +894,14 @@ class WorkflowTaskWiringTest extends TestCase
     }
 
     /**
-     * The task list must hide workflows the rest of the product considers inactive.
-     * Workflow::getWorkflowByTable() is the single source of truth (active_flg + active period
-     * + setting_completed_flg); a raw active_flg query silently disagrees with it.
+     * Two rules of the product decide which workflow counts, and the task list follows both, like
+     * the record page does:
+     *  - what a record that has not started would start in is Workflow::getWorkflowByTable()
+     *    (active_flg + active period + setting_completed_flg) - it narrows the start half;
+     *  - a record already underway goes on in its own workflow, as long as that one is switched on
+     *    for the table (attachedWorkflows()), whether or not its period is over.
+     * WorkflowTaskServiceTest::testExpiredWorkflowStartsNothingAndCarriesWhatIsUnderway() holds
+     * the behaviour; this keeps the two rules where they belong.
      *
      * @return void
      */
@@ -785,10 +910,12 @@ class WorkflowTaskWiringTest extends TestCase
         $content = $this->read('src/Services/Workflow/WorkflowTaskService.php');
 
         $this->assertStringContainsString('Workflow::getWorkflowByTable(', $content);
+        $this->assertStringContainsString('private static function attachedWorkflows(', $content);
+        $this->assertStringContainsString("\$query->where(\$viewName . '.workflow_id', \$startWorkflowId)", $content, 'the start half keeps the workflow in use today only');
         $this->assertStringNotContainsString(
             "where('active_flg'",
             $content,
-            'do not re-implement the active check: it drops the active period and setting_completed_flg'
+            'do not re-implement the active check in SQL: the work-user views already read active_flg'
         );
     }
 
@@ -1131,6 +1258,129 @@ class WorkflowTaskWiringTest extends TestCase
     }
 
     /**
+     * A mark names a record by table id + record id. What wipes records without deleting them one
+     * by one has to take the marks along: deleting the table, and the two data refresh commands,
+     * which truncate - so the table starts over at id 1, and a mark left behind would sit on a NEW
+     * record with the same id, hiding its task or showing it as read.
+     *
+     * A truncate cannot run inside the transaction the behaviour tests roll back, so this pins
+     * the clean-up where it has to be.
+     *
+     * @return void
+     */
+    public function testWipingRecordsInBulkClearsTheirMarks()
+    {
+        $refresh = $this->read('src/Services/RefreshDataService.php');
+
+        $all = strpos($refresh, 'public static function refresh()');
+        $one = strpos($refresh, 'public static function refreshTable(');
+        $this->assertNotFalse($all, 'refresh() is gone');
+        $this->assertNotFalse($one, 'refreshTable() is gone');
+
+        // exment:refreshdata truncates every record table
+        $this->assertStringContainsString("'workflow_task_reads'", substr($refresh, $all, $one - $all), 'exment:refreshdata leaves the task marks behind');
+
+        // exment:refreshtable truncates the tables it is given
+        $tableRefresh = substr($refresh, $one);
+        $this->assertStringContainsString("\\DB::table('workflow_task_reads')", $tableRefresh, 'exment:refreshtable leaves the task marks behind');
+        $this->assertStringContainsString("->where('custom_table_id', \$custom_table->id)", $tableRefresh);
+
+        // deleting the table itself
+        $table = $this->read('src/Model/CustomTable.php');
+        $start = strpos($table, 'public function deletingChildren()');
+        $this->assertNotFalse($start, 'deletingChildren() is gone');
+        $end = strpos($table, "\n    }", $start);
+        $method = substr($table, $start, $end === false ? null : $end - $start);
+        $this->assertStringContainsString('WorkflowTaskRead::withoutGlobalScopes()', $method, 'deleting a table leaves its task marks behind');
+        $this->assertStringContainsString("->where('custom_table_id', \$this->id)", $method);
+    }
+
+    /**
+     * A task key names a record, not the step it is at. Both delete paths of the list send the
+     * moment the list was drawn, and the controller hands it to hideSelected(), which leaves a
+     * record somebody acted on after that moment alone (the behaviour is pinned by
+     * WorkflowTaskServiceTest::testDeleteFromAListDrawnBeforeTheLastActionIsRefused).
+     *
+     * @return void
+     */
+    public function testDeleteCarriesTheMomentTheListWasDrawn()
+    {
+        $view = $this->read('resources/views/workflow_task/index.blade.php');
+        $this->assertStringContainsString("'listed_at' => \$listedAt", $view, 'the row delete button does not send the moment');
+        $this->assertStringContainsString('listed_at: listedAt', $view, 'the batch delete does not send the moment');
+
+        $controller = $this->read('src/Controllers/WorkflowTaskController.php');
+        $this->assertStringContainsString("'listedAt' => \$listedAt", $controller, 'the list is drawn without its moment');
+        $this->assertStringContainsString(
+            "->hideSelected(\$keys, \$request->get('listed_at'))",
+            $controller,
+            'the moment does not reach hideSelected()'
+        );
+    }
+
+    /**
+     * The navbar sits outside the pjax container. What the task list screen changes - opening a
+     * task marks it seen, the delete button and the batch menu take tasks off the list or mark
+     * them - reaches the badge only because a click inside the list makes the next pjax load
+     * fetch it again. Without that, the badge kept counting the old tasks until the next poll.
+     *
+     * @return void
+     */
+    public function testActionsOnTheListRefreshTheNavbar()
+    {
+        $js = $this->read('public/vendor/exment/js/workflow_task_navbar.js');
+
+        $pos = strpos($js, "'.workflow-task-list a, .workflow-task-list button'");
+        $this->assertNotFalse($pos, 'a click on the task list no longer re-fetches the navbar');
+        $this->assertStringContainsString('reget_flg = true', substr($js, $pos, 200));
+
+        $this->assertStringContainsString(
+            'class="box box-default workflow-task-list"',
+            $this->read('resources/views/workflow_task/index.blade.php'),
+            'the list lost the class the navbar listens on'
+        );
+    }
+
+    /**
+     * An empty list under a filter must not say "you have no pending tasks": the tasks the filter
+     * hides are still there.
+     *
+     * @return void
+     */
+    public function testAnEmptyFilteredListDoesNotClaimThereIsNoTask()
+    {
+        $this->assertStringContainsString(
+            "\$isFiltered ? exmtrans('workflow_task.empty_filtered') : exmtrans('workflow_task.empty')",
+            $this->read('resources/views/workflow_task/index.blade.php')
+        );
+    }
+
+    /**
+     * A % or _ the user typed, or one in the value of a LIKE execution condition, is a character
+     * to find. How to say so is not the same on every database: MySQL and MariaDB take a
+     * backslash, SQL Server has no escape character in LIKE unless the statement names one, and
+     * reads a wildcard between brackets literally instead. Both LIKEs of the service go through
+     * the one helper that knows.
+     *
+     * @return void
+     */
+    public function testLikePatternsAreEscapedPerDatabase()
+    {
+        $service = $this->read('src/Services/Workflow/WorkflowTaskService.php');
+
+        $start = strpos($service, 'private static function containsPattern(');
+        $this->assertNotFalse($start, 'containsPattern() is gone');
+        $end = strpos($service, "\n    }", $start);
+        $helper = substr($service, $start, $end === false ? null : $end - $start);
+        $this->assertStringContainsString('\\Exment::isSqlServer()', $helper);
+        $this->assertStringContainsString("['[[]', '[%]', '[_]']", $helper, 'SQL Server needs the bracket escape');
+
+        // the keyword search and the LIKE / NOT LIKE condition, and no escape of their own
+        $this->assertSame(2, substr_count($service, 'self::containsPattern('), 'a LIKE builds its own pattern');
+        $this->assertSame(1, substr_count($service, "str_replace(['\\\\', '%', '_']"), 'a second, MySQL-only escape is back');
+    }
+
+    /**
      * The badge polls on every page for every user, and building one work-user query costs
      * about as much as running it. Tables the user cannot read at all must be dropped before
      * any query is built - and that filter must mirror CustomValueModelScope, including the
@@ -1212,9 +1462,10 @@ class WorkflowTaskWiringTest extends TestCase
             'the missing rows must go in with one INSERT per chunk'
         );
         // "mark all as seen" can hand over every pending record of the installation; one INSERT
-        // carrying all of them would exceed max_allowed_packet and fail as a whole
+        // carrying all of them would exceed max_allowed_packet (or SQL Server's 2,100 parameters)
+        // and fail as a whole. WorkflowTaskServiceTest counts the values of each statement.
         $this->assertStringContainsString(
-            'array_chunk($inserts, 1000)',
+            'array_chunk($inserts, self::INSERT_CHUNK_ROWS)',
             $method,
             'the bulk INSERT must be chunked'
         );
@@ -1364,7 +1615,8 @@ class WorkflowTaskWiringTest extends TestCase
         $method = substr($content, $start);
 
         $this->assertStringContainsString('NotifyNavbar::insert($chunk)', $method);
-        $this->assertStringContainsString('array_chunk($rows, 500)', $method);
+        // sized for SQL Server's 2,100 parameters: WorkflowTaskServiceTest counts them
+        $this->assertStringContainsString('array_chunk($rows, self::INSERT_CHUNK_ROWS)', $method);
         $this->assertStringNotContainsString(
             '$notify_navbar->save()',
             $method,
@@ -1390,16 +1642,21 @@ class WorkflowTaskWiringTest extends TestCase
     {
         $blade = $this->read('resources/views/workflow_task/index.blade.php');
 
-        $this->assertStringContainsString('var tableUrls = {!! json_encode($tableUrls,', $blade);
+        // the three payloads: the translations of the row script, the options of the date
+        // picker, and the moment the list was drawn
+        $this->assertStringContainsString('var lang = {!! json_encode([', $blade);
+        $this->assertStringContainsString('var options = {!! json_encode($dateOptions, ', $blade);
+        $this->assertStringContainsString('var listedAt = {!! json_encode($listedAt, ', $blade);
 
-        // Both payloads name the flags by hand, and both must keep naming them. Blade's
+        // Every payload names the flags by hand, and every one must keep naming them. Blade's
         // own directive is not an option for the lang array - it compiles by splitting its
         // argument on every comma (value, flags, depth), so an inline array literal loses
-        // everything after its first comma and the view stops compiling - so this counts
-        // TWO occurrences: one of them silently reverting to json_encode()'s defaults is
-        // exactly the regression worth catching.
+        // everything after its first comma and the view stops compiling - so this counts the
+        // flags once per unescaped payload: one of them silently reverting to json_encode()'s
+        // defaults is exactly the regression worth catching.
+        $this->assertSame(3, substr_count($blade, '{!! json_encode('), 'a payload was added or removed: count it here');
         $this->assertSame(
-            2,
+            3,
             substr_count($blade, 'JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT'),
             'every json payload in this view must carry the flags the directive would apply'
         );
@@ -1410,9 +1667,9 @@ class WorkflowTaskWiringTest extends TestCase
             'an empty blade echo compiles to echo e( ) and 500s the page'
         );
         $this->assertSame(
-            1,
+            substr_count($blade, '<script'),
             substr_count($blade, '</script'),
-            'only the real closing tag may appear - the HTML parser ends the script element '
+            'only the real closing tags may appear - the HTML parser ends the script element '
             . 'at that sequence even inside a javascript comment'
         );
         $this->assertSame(

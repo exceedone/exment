@@ -985,8 +985,8 @@ abstract class CustomValue extends ModelBase
         });
 
         // Feature 1: drop the "seen" marks of this record.
-        // WorkflowAction::forwardWorkflowValue() only clears them on a status change, so without
-        // this a hard-deleted record would leave one row per user in workflow_task_reads with
+        // WorkflowAction::forwardWorkflowValue() only clears them when an action is executed, so
+        // without this a hard-deleted record would leave one row per user in workflow_task_reads with
         // nothing left to point at - and nothing would ever clean them up.
         // withoutGlobalScopes(): the marks of every user have to go, not only those of the one
         // pressing delete. A soft delete deliberately keeps them, so a restore keeps its state.
@@ -1003,8 +1003,10 @@ abstract class CustomValue extends ModelBase
         }
 
         // the deleting user sees this record leave their own task list on their very next
-        // navbar poll; other users' caches expire within one poll interval
-        \Exceedone\Exment\Services\Workflow\WorkflowTaskService::navbarCacheForget();
+        // navbar poll; other users' caches expire within one poll interval. Once the delete has
+        // committed, when it runs in a transaction (see
+        // WorkflowTaskService::navbarCacheForgetAfterCommit()).
+        \Exceedone\Exment\Services\Workflow\WorkflowTaskService::navbarCacheForgetAfterCommit();
     }
 
     /**
