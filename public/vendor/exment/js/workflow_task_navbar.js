@@ -13,6 +13,15 @@ var Exment;
             $(document).on('click', '.navbar-workflow-task .notifications-menu-dropdown li', {}, function (event) {
                 WorkflowTaskNavbarEvent.reget_flg = true;
             });
+            // The same for the task list screen: opening a task marks it seen, and its delete
+            // button and batch menu take tasks off the list or mark them. Each of them ends in a
+            // pjax load (the task, or the list again), which is what re-fetches. The navbar sits
+            // outside the pjax container, so without this the badge and the dropdown kept the
+            // old tasks until the next poll. A click that ends in nothing (a cancelled dialog)
+            // only makes the next page load fetch once more.
+            $(document).on('click', '.workflow-task-list a, .workflow-task-list button', {}, function (event) {
+                WorkflowTaskNavbarEvent.reget_flg = true;
+            });
             $(document).on('pjax:complete', function (event) {
                 if (WorkflowTaskNavbarEvent.reget_flg) {
                     WorkflowTaskNavbarEvent.workflowTaskNavbar();
