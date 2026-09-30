@@ -20,6 +20,11 @@ class Url extends CustomItem
         $value = $this->_value($v);
         $url = $this->_value($v);
 
+        // reject dangerous URL schemes (defense-in-depth; the 'url' validation rule already blocks these on write)
+        if (is_string($url) && preg_match('/^\s*(javascript|data|vbscript):/i', $url)) {
+            $url = '#';
+        }
+
         $value = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($value) : $value;
 
         return \Exment::getUrlTag($url, $value, UrlTagType::BLANK);

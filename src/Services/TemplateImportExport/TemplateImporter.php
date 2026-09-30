@@ -17,7 +17,9 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ExportImportLibrary;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Exceedone\Exment\Storage\Disk\TemplateDiskService;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -143,6 +145,15 @@ class TemplateImporter
     // @phpstan-ignore-next-line
     public function deleteTemplate($teplate_name)
     {
+        $isUserTemplate = collect($this->getUserTemplates())
+            ->contains(function ($template) use ($teplate_name) {
+                return array_get($template, 'template_type') === 'user'
+                    && array_get($template, 'template_name') === $teplate_name;
+            });
+        if (!$isUserTemplate) {
+            return;
+        }
+
         $diskItem = $this->diskService->diskItem();
         $disk = $diskItem->disk();
 
@@ -356,6 +367,13 @@ class TemplateImporter
         $res = $zip->open($fullpath);
         if ($res !== true) {
             return $emptyResult;
+        }
+
+        // check every entry name before the extractTo() further down
+        $zipEntryError = ZipService::validateZipEntries($zip);
+        if ($zipEntryError !== null) {
+            $zip->close();
+            throw new InvalidZipEntryException($zipEntryError);
         }
 
         //Check existed file config (config.json)
