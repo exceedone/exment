@@ -70,6 +70,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\MeiliSettingsCommand::class,
         \Exceedone\Exment\Console\MeiliHealthCommand::class,
         \Exceedone\Exment\Console\MeiliReconcileCommand::class,
+        \Exceedone\Exment\Console\MeiliAttachmentBackfillCommand::class,
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
         \Exceedone\Exment\Console\UpdateCommand::class,
@@ -316,7 +317,7 @@ class ExmentServiceProvider extends ServiceProvider
         // Push the saved values (systems table) into config('meilisearch.*').
         \Exceedone\Exment\Services\Meili\MeiliConfig::apply();
 
-        if (!boolval(config('meilisearch.realtime_sync'))) {
+        if (!\Exceedone\Exment\Services\Meili\MeiliRuntime::realtimeSyncEnabled()) {
             return;
         }
         if (!class_exists(\Meilisearch\Client::class)) {
@@ -326,15 +327,21 @@ class ExmentServiceProvider extends ServiceProvider
         // Record changed -> dispatch a sync job; table/column config changed -> reindex the table.
         \Illuminate\Support\Facades\Event::listen('eloquent.updating: *', function ($eventName, $payload) {
             \Exceedone\Exment\Services\Meili\MeiliSync::rememberLabel($payload[0] ?? null);
+            \Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextSync::rememberUpdating($payload[0] ?? null);
         });
         \Illuminate\Support\Facades\Event::listen('eloquent.saved: *', function ($eventName, $payload) {
             \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'upsert');
             \Exceedone\Exment\Services\Meili\MeiliSync::handleLabelChange($payload[0] ?? null);
             \Exceedone\Exment\Services\Meili\MeiliDefinitionSync::handle($payload[0] ?? null);
+            \Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextSync::handleSaved($payload[0] ?? null);
+        });
+        \Illuminate\Support\Facades\Event::listen('eloquent.deleting: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextSync::rememberDeleting($payload[0] ?? null);
         });
         \Illuminate\Support\Facades\Event::listen('eloquent.deleted: *', function ($eventName, $payload) {
             \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'delete');
             \Exceedone\Exment\Services\Meili\MeiliDefinitionSync::handle($payload[0] ?? null);
+            \Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextSync::handleDeleted($payload[0] ?? null);
         });
         // Restore also fires 'saved' (restore() calls save()), but listen to
         // 'restored' explicitly so the intent is covered even if that
@@ -486,7 +493,7 @@ class ExmentServiceProvider extends ServiceProvider
             // Daily index repair (fix drift accumulated from missed/failed sync
             // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
             // orphans) instead of a full exment:meili-index reindex, so it is cheap.
-            if (boolval(config('meilisearch.repair_enabled'))) {
+            if (\Exceedone\Exment\Services\Meili\MeiliRuntime::reconcileScheduleEnabled()) {
                 $schedule->command('exment:meili-reconcile')
                     ->dailyAt(config('meilisearch.repair_at', '03:00'))
                     ->withoutOverlapping()

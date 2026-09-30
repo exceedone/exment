@@ -323,6 +323,7 @@ class MeiliSearchService
         if (empty($valueIds)) {
             return;
         }
+
         $docIds = array_map(fn ($id) => $mapper->makeDocumentId($tableName, $id), $valueIds);
         $task = $this->client->index($this->indexName)->deleteDocuments($docIds);
         $this->client->waitForTask($task['taskUid'], 60000);
@@ -569,12 +570,7 @@ class MeiliSearchService
      */
     public function searchHighlighted(string $q, int $limit = 10, array $filters = []): array
     {
-        $options = [
-            'limit' => $limit,
-            'attributesToHighlight' => ['*'],
-            'highlightPreTag' => self::HIGHLIGHT_PRE,
-            'highlightPostTag' => self::HIGHLIGHT_POST,
-        ];
+        $options = self::highlightedSearchOptions($limit);
 
         // Filtering here rather than only after the fact.
         $expr = self::buildFilterExpression(null, $filters);
@@ -589,19 +585,62 @@ class MeiliSearchService
                 'table_name' => $hit['table_name'] ?? null,
                 'value_id' => $hit['value_id'] ?? null,
                 'label' => $hit['label'] ?? null,
-                'snippet' => self::pickHighlightedSnippet($hit['_formatted'] ?? []),
+                'snippet' => self::pickHighlightedSnippet($hit['_formatted'] ?? [], self::HIGHLIGHT_PRE, $hit['attachments'] ?? []),
             ];
         }, $result->getHits());
     }
 
+    /** Only retrieve fields used by the header; crop excerpts around matches. */
+    public static function highlightedSearchOptions(int $limit): array
+    {
+        return [
+            'limit' => $limit,
+            // _formatted supplies cropped text. Fetch only file metadata in
+            // the raw hit so autocomplete never transfers full extracted text.
+            'attributesToRetrieve' => ['table_name', 'value_id', 'label', 'fields', 'attachments.file_uuid', 'attachments.name'],
+            'attributesToHighlight' => ['label', 'fields', 'attachments.name', 'attachments.text'],
+            'attributesToCrop' => ['fields', 'attachments.text'],
+            'cropLength' => 16,
+            'highlightPreTag' => self::HIGHLIGHT_PRE,
+            'highlightPostTag' => self::HIGHLIGHT_POST,
+        ];
+    }
+
     /**
-     * Pick the highlight excerpt to display (pure logic): prefer label, and if label
-     * does not match, take the first field containing the highlighted keyword.
+     * Pick one matched file for attachment hits, otherwise the highlighted
+     * record label or field. The header adds the parent label separately.
      *
      * @param  array<string,mixed>  $formatted  the hit's _formatted
      */
-    public static function pickHighlightedSnippet(array $formatted, string $preTag = self::HIGHLIGHT_PRE): string
+    public static function pickHighlightedSnippet(array $formatted, string $preTag = self::HIGHLIGHT_PRE, array $rawAttachments = []): string
     {
+        $attachments = [];
+        foreach (($formatted['attachments'] ?? []) as $position => $file) {
+            if (!is_array($file)) {
+                continue;
+            }
+            $raw = $rawAttachments[$position] ?? [];
+            $attachments[] = [
+                'uuid' => (string) ($raw['file_uuid'] ?? $file['file_uuid'] ?? ''),
+                'name' => (string) ($file['name'] ?? $raw['name'] ?? ''),
+                'text' => (string) ($file['text'] ?? $raw['text'] ?? ''),
+            ];
+        }
+        usort($attachments, fn ($a, $b) => strcmp($a['uuid'], $b['uuid']));
+        foreach (['name', 'text'] as $attribute) {
+            foreach ($attachments as $file) {
+                if (strpos($file[$attribute], $preTag) === false) {
+                    continue;
+                }
+                // The excerpt and filename must come from the same array item.
+                $text = $file['text'];
+                if (strpos($text, $preTag) === false) {
+                    $text = mb_substr($text, 0, 160, 'UTF-8');
+                }
+                return $file['name'] . ($text === '' ? '' : ' — ' . $text);
+            }
+        }
+
         $label = (string) ($formatted['label'] ?? '');
         if ($label !== '' && strpos($label, $preTag) !== false) {
             return $label;

@@ -4,6 +4,9 @@ namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
+use Exceedone\Exment\Services\Meili\MeiliRuntime;
+use Exceedone\Exment\Services\Meili\ExmentIndexer;
+use Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextCache;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueModelScope;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -51,6 +54,9 @@ class SyncMeiliDocumentJob implements ShouldQueue
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
+        if (!MeiliRuntime::realtimeSyncEnabled()) {
+            return;
+        }
 
         $client = MeiliClientFactory::make();
         $indexName = config('meilisearch.index');
@@ -81,7 +87,8 @@ class SyncMeiliDocumentJob implements ShouldQueue
         }
 
         $table = CustomTable::getEloquent($this->tableName);
-        if (!$table) {
+        if (!ExmentIndexer::isAttachmentCapable($table)) {
+            $index->deleteDocument($mapper->makeDocumentId($this->tableName, $this->valueId));
             return;
         }
 
@@ -93,8 +100,20 @@ class SyncMeiliDocumentJob implements ShouldQueue
             $index->deleteDocument($mapper->makeDocumentId($this->tableName, $this->valueId));
             return;
         }
+        if (method_exists($record, 'trashed') && $record->trashed()) {
+            $index->deleteDocument($mapper->makeDocumentId($this->tableName, $this->valueId));
+            return;
+        }
+        // A table without normal freeword columns is present solely because it
+        // has an attachment. Once the last file disappears, remove its stub
+        // document instead of making every label in that table searchable.
+        if (!ExmentIndexer::isIndexable($table)
+            && !AttachmentTextCache::hasAttachmentForRecord($table->table_name, $this->valueId)) {
+            $index->deleteDocument($mapper->makeDocumentId($this->tableName, $this->valueId));
+            return;
+        }
 
-        $doc = $mapper->map($record, $table->getFreewordSearchColumns(), $table->table_name, $table->table_view_name, \Exceedone\Exment\Services\Meili\FilterConfig::equalityColumns($table), \Exceedone\Exment\Services\Meili\FilterConfig::rangeColumns($table), \Exceedone\Exment\Services\Meili\FilterConfig::aliasMap($table));
+        $doc = $mapper->map($record, $table->getFreewordSearchColumns(), $table->table_name, $table->table_view_name, \Exceedone\Exment\Services\Meili\FilterConfig::equalityColumns($table), \Exceedone\Exment\Services\Meili\FilterConfig::rangeColumns($table), \Exceedone\Exment\Services\Meili\FilterConfig::aliasMap($table), null);
         $index->addDocuments([$doc], 'id');
     }
 }

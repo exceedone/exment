@@ -6,7 +6,6 @@ use Exceedone\Exment\Jobs\ReindexMeiliTableJob;
 use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\ExmentIndexer;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
-use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
 use Illuminate\Console\Command;
 
@@ -78,8 +77,7 @@ class MeiliReconcileCommand extends Command
             $tableName = $table->table_name;
 
             // Ids that should be indexed = current (non-deleted) records of the table.
-            $dbIds = getModelName($table)::query()
-                ->withoutGlobalScope(CustomValueModelScope::class)
+            $dbIds = ExmentIndexer::recordsQuery($table)
                 ->pluck('id')->all();
 
             try {

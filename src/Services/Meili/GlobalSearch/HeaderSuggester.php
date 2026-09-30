@@ -40,7 +40,7 @@ class HeaderSuggester
             // [Highlight] displayed text contains <mark>; the value filled into
             // the input box is the plain label.
             $snippet = array_get($hit, 'snippet') ?: $label;
-            $text = self::toHighlightedHtml((string) $snippet);
+            $text = self::suggestionText((string) $label, (string) $snippet);
             $results[] = [
                 'value' => $label
                 , 'text' => $text
@@ -68,6 +68,21 @@ class HeaderSuggester
             ['<mark>', '</mark>'],
             e($snippet)
         );
+    }
+
+    /** Show the record name first, adding a distinct matched excerpt once. */
+    public static function suggestionText(string $label, string $snippet): string
+    {
+        $plainSnippet = str_replace(
+            [MeiliSearchService::HIGHLIGHT_PRE, MeiliSearchService::HIGHLIGHT_POST],
+            '',
+            $snippet
+        );
+        if ($snippet === '' || $plainSnippet === $label) {
+            return self::toHighlightedHtml($snippet !== '' ? $snippet : $label);
+        }
+
+        return e($label) . ' — ' . self::toHighlightedHtml($snippet);
     }
 
     /**

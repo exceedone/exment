@@ -54,8 +54,7 @@ class MeiliIndexCommand extends Command
 
         $tables = $indexer->searchableTables();
         if ($tables->isEmpty()) {
-            $this->warn('No search-enabled custom table with a freeword column to index.');
-            return self::SUCCESS;
+            $this->warn('No currently searchable table to index. Continuing to remove stale indexed documents.');
         }
 
         // --fresh drops the whole index: confirm, or require --force when non-interactive.
@@ -86,6 +85,11 @@ class MeiliIndexCommand extends Command
             $this->line(sprintf('  - %-30s %d records', $name, $count));
         }
         $this->info('Total: ' . $result['total'] . ' documents indexed.');
+        $this->info(sprintf(
+            'Stale documents removed: %d orphaned record(s), %d document(s) from de-indexed table(s).',
+            $result['pruned']['orphaned_records'],
+            $result['pruned']['deindexed_table_documents'],
+        ));
 
         return self::SUCCESS;
     }

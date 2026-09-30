@@ -145,7 +145,7 @@ return [
             'sat' => '土',
             'sun' => '日',
         ],
-        
+
         'bootstrap_duallistbox_container' => [
             'nonSelectedListLabel' => '候補データ一覧',
             'selectedListLabel' => '選択済データ一覧',
@@ -242,7 +242,7 @@ return [
         'email_multiline' => 'Eメールアドレスでない行が含まれています。',
         'duplicate_relation' => 'すでに関連付けられているテーブルです。',
         'filename_not_allow' => ':attributeには、禁則文字が使用されています。ファイル名を変更して再度実施してください。',
-        
+
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
         'not_gt' => ':attribute1の値は、:attribute2より大きい値である必要があります。',
@@ -370,7 +370,7 @@ return [
         'recaptcha_type' => 'Google reCAPTCHA',
         'recaptcha_site_key' => 'Google reCAPTCHA サイトキー',
         'recaptcha_secret_key' => 'Google reCAPTCHA シークレットキー',
-        
+
         'release_note' => 'リリースノート',
         'call_update_header' => 'アップデート実施（β）',
         'call_update' => 'アップデート実施',
@@ -396,30 +396,30 @@ return [
             "skin-black" => "ヘッダー：白&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
             "skin-black-light" => "ヘッダー：白&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：白",
         ],
-        
+
         'site_layout_options' => [
             "layout_default" => "標準",
             "layout_mini" => "小アイコン",
         ],
-        
+
         'date_format_options' => [
             'format_default' => '標準（Y-m-d H:i:s）',
             'format_slash' => 'カスタム（Y/m/d H:i:s）',
             'format_local' => 'ローカル（Y年m月d日 H時i分s秒）',
         ],
-        
+
         'filter_search_type_options' => [
             'forward' => '前方一致',
             'all' => '部分一致',
         ],
-        
+
         'system_values_pos_options' => [
             'default' => 'システム設定に合わせる',
             'top' => '上部',
             'bottom' => '下部',
             'hide' => '非表示',
         ],
-        
+
         'date_format_list' => [
             'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
             'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
@@ -432,14 +432,14 @@ return [
             'only_downer' => '役割グループが設定された組織の、子階層のユーザーも役割の範囲に含める',
             'only_join' => '役割グループが設定された組織のユーザーのみ',
         ],
-          
+
         'joined_org_filter_custom_value_options' => [
             'all' => 'データが共有された組織の、親子階層のユーザーも共有範囲に含める',
             'only_upper' => 'データが共有された組織の、親階層のユーザーも共有範囲に含める',
             'only_downer' => 'データが共有された組織の、子階層のユーザーも共有範囲に含める',
             'only_join' => 'データが共有された組織のユーザーのみ',
         ],
-          
+
         'filter_multi_orguser_options' => [
             'not_filter' => '絞り込みを行わない',
             'all' => 'ログインユーザーが所属する組織と、親子階層の組織。ならびに、それらの所属ユーザー',
@@ -463,12 +463,12 @@ return [
             "repeat" => "繰り返し表示",
             "cover" => "画像サイズをページに合わせて表示",
         ],
-        
+
         'system_mail_body_type_options' => [
             "html" => "HTML",
             "plain" => "テキスト",
         ],
-        
+
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -492,7 +492,7 @@ return [
             'meili_global_search' => 'オフにすると Exment 標準の MySQL 検索に戻ります。',
             'meili_realtime_sync' => 'オンにするとレコード変更時に Meilisearch へ自動反映します（キュー経由）。キューワーカーは起動時に設定を読み込むため、Meilisearch 設定変更後はワーカーを再起動してください。',
             'meili_batch_size' => '一括インデックス時に1回で送信するドキュメント数（例: 1000）。',
-            'meili_repair_enabled' => 'オンにすると毎日インデックスを再構築し、ズレを修復します（スケジューラ必須）。',
+            'meili_repair_enabled' => 'オンにすると毎日レコード ID の不足・余剰を確認して修復します（スケジューラ必須）。既存ドキュメントの内容は更新しません。',
             'meili_repair_at' => '修復を実行する時刻（24時間表記 HH:MM、例: 03:00）。',
             'meili_filter_mode' => '「自動＋カスタム」＝列タイプで自動選択し、設定画面で列を追加/除外。「カスタムのみ」＝設定画面で指定した列だけ。※変更後は再インデックスが必要。',
             'meili_dictionary' => '類義語とストップワードで検索精度を調整します。インデックス設定のみ変更するため、保存後は再インデックス不要（数秒で反映）。',
@@ -617,7 +617,7 @@ return [
             'calendar' => 'カレンダー',
             'plugin' => 'プラグイン',
         ],
-        
+
         'dashboard_box_options' => [
             'target_table_id' => '対象のテーブル',
             'target_view_id' => '対象のビュー',
@@ -757,7 +757,7 @@ return [
             'crud_autherror_auth_help' => '認証されていないか、認証の有効期限が切れています。<br/>このページを表示するためには、ログインを実施し、認証を行ってください。',
             'crud_autherror_setting_auth_help' => '認証設定が行われていません。プラグイン設定画面に遷移し、認証設定を行ってください。',
         ],
-    
+
         'plugin_type_options' => [
             'page' => '画面',
             'trigger' => '機能',
@@ -880,7 +880,7 @@ return [
             'email' => 'システム通知を受信できるメールアドレスを入力してください。',
             'password' => '英数記号で8文字以上記入してください。',
             'change_only' => '変更を行う場合のみ入力します。',
-            
+
             'use_loginuser' => 'YESにすることで、このユーザーがシステムにログインすることができるようになります。',
             'reset_password' => 'YESにすることで、パスワードが再設定されます。',
             'create_password_auto' => 'YESにすることで、パスワードが自動生成されます。(該当ユーザーにメールが送信されます)',
@@ -922,9 +922,9 @@ return [
         'oauth_client_secret' => 'クライアントシークレット',
         'oauth_scope' => 'スコープ',
 
-        'oauth_option' => 'オプション設定',         
+        'oauth_option' => 'オプション設定',
         'oauth_option_single_logout' => 'シングル・サインアウト',
-        
+
         'user_setting' => 'ユーザー設定',
         'mapping_user_column' => 'アカウント検索列',
         'mapping_setting' => 'マッピング設定',
@@ -941,7 +941,7 @@ return [
         'saml_idp_sso_url' => 'IdP サインオンURL',
         'saml_idp_ssout_url' => 'IdP サインアウトURL',
         'saml_idp_x509' => 'IdP X.509 Certificate',
-        
+
         'saml_sp' => 'SP設定',
         'saml_sp_entityid' => 'SP Entity ID',
         'saml_sp_name_id_format' => 'SP Name ID Format',
@@ -954,7 +954,7 @@ return [
         'saml_option_logout_request_signed' => 'Sign LogoutRequest',
         'saml_option_logout_response_signed' => 'Sign LogoutResponse',
         'saml_option_proxy_vars' => 'Proxy使用',
-        
+
         'ldap_setting' => 'LDAP設定',
         'ldap_name' => 'LDAP名(英数字)',
         'ldap_hosts' => 'ホスト名',
@@ -978,7 +978,7 @@ return [
         'login_button_font_color_hover' => '文字色(オンマウス)',
 
         'custom_setting' => '独自設定',
-        
+
         'login_test' => 'ログインテスト',
         'login_test_redirect' => 'テスト用リダイレクトURL',
 
@@ -1005,7 +1005,7 @@ return [
             'login_test_sso' => 'テスト用の:login_typeリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダの:login_type設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
 
             'oauth_option_single_logout' => 'Exmentだけでなく、IDプロバイダーからもログアウトする場合は、YESにしてください。<span class="red">※現在、Oktaには対応しておりません。</span>',
-            
+
             'ldap_base_dn' => '認証に使用する基本DN(識別名)を入力してください。',
             'ldap_filter' => 'openLDAPの認証時に利用する、属性と属性値を入力してください。(例：(objectClass=inetOrgPerson)(objectClass=person))',
             'ldap_search_key' => '認証時に使用する、ログインコードの属性を入力してください。',
@@ -1167,7 +1167,7 @@ return [
         'first_executed_user' => '最初の実行ユーザー',
         'executed_user' => '実行ユーザー',
         'created_user' => 'データ作成ユーザー',
-        
+
 
         'help' => [
             'saved_redirect_column' => '保存しました！次はアクションを設定してください。',
@@ -1210,7 +1210,7 @@ return [
             'nextuser_not_found' => '次の作業ユーザーが存在しません。管理者に問い合わせください。',
             'status_changed' => 'このアクションは実行できません。他のユーザーがワークフローを実行した可能性があります。',
         ],
-        
+
         'comment_options' => [
             'required' => '必須',
             'nullable' => '任意',
@@ -1407,7 +1407,7 @@ return [
                 'edit' => '編集',
                 'view' => '閲覧',
             ],
-                
+
             'filter_condition_compare_options' => [
                 'eq' => 'AとBで合致する',
                 'ne' => 'AとBで合致しない',
@@ -1416,13 +1416,13 @@ return [
                 'gte' => 'AはB以上である',
                 'lte' => 'AはB以下である',
             ],
-            
+
             'compare_column_options' => [
                 'system_date' => 'システム日付',
             ],
         ],
     ],
-    
+
     'custom_column' => [
         'header' => 'カスタム列設定',
         'description' => 'カスタム列ごとの設定を行います。列の必須項目、検索可能フィールドなどを定義します。',
@@ -1599,7 +1599,7 @@ return [
             'dot' => '"."(ドット)',
             'symbol' => '記号',
         ],
-        
+
         'calc_formula' => [
             'calc_formula' => '計算式',
             'dynamic' => '列',
@@ -2050,7 +2050,7 @@ return [
             'select-eq' => '検索値を含む',
             'select-ne' => '検索値を含まない',
         ],
-        
+
         'custom_view_menulist' => [
             'setting' => '設定を開く',
             'current_view_edit' => '現在のビュー設定変更',
@@ -2253,6 +2253,7 @@ return [
     ],
 
     'search' => [
+        'attachment_sync_queue_skipped' => 'キュードライバーが sync のため添付ファイルの本文抽出を省略しました。ファイル名は検索できます。本文を検索するには CLI で「php artisan exment:meili-attachments-backfill --sync」を実行し、続いて「php artisan exment:meili-index」を実行してください。',
         'placeholder' => 'データ検索',
         'header_freeword' => '全データ検索',
         'description_freeword' => '全データ検索の結果一覧です。',
@@ -2306,7 +2307,7 @@ return [
             'parent_node' => '親階層',
             'custom' => 'カスタムURL',
         ],
-        
+
         'system_definitions' => [
             'home' => 'HOME',
             'system' => 'システム設定',
@@ -2351,7 +2352,7 @@ return [
         'upload_template' => 'アップロード',
         'export_target' => 'エクスポート対象',
         'target_tables' => 'エクスポート対象テーブル',
-        
+
         'help' => [
             'thumbnail' => '推奨サイズ：256px*256px',
             'upload_template' => 'エクスポートしたテンプレートzipファイルや、Excelフォーマットで作成した設定ファイルをアップロードして、このシステムに設定をインポートします。',
@@ -2617,7 +2618,7 @@ return [
             'notify_moved' => '通知設定は移動しました。メニューから削除をお願いします。',
         ],
     ],
-    
+
     'operation_log' => [
         'description' => '操作ログを一覧表示します。',
         'user_id' => 'ユーザーID',
@@ -2641,7 +2642,7 @@ return [
         'automatic_hour_help' => '未選択の場合、時間を問わず実行します。',
         'automatic_minute_help' => '未選択の場合、分を問わず実行します。',
     ],
-    
+
     'chart' => [
         'chartitem_label' => 'データ見出し',
         'chartitem_manual' => 'チャートの設定内容',
@@ -2668,13 +2669,13 @@ return [
             'day' => '日',
         ]
     ],
-    
+
     'validator' => [
         'required_if_ex' => [
             'notify_actions' => '実施アクション'
         ]
     ],
-    
+
     'api' => [
         'scopes' => [
             'me' => 'ログインユーザー情報の取得',
@@ -2715,7 +2716,7 @@ return [
             'not_contains_custom_form' => 'このフォームでは、指定のAPIは実行できません。',
             'one_record_already' => 'このテーブルは1レコードのみ登録可能です。',
         ],
-        
+
         'help' =>[
             'redirect' => '認証後にリダイレクトするURLを入力してください。',
             'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',

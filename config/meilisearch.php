@@ -31,12 +31,28 @@ return [
 
     'reindex_queue' => env('MEILISEARCH_REINDEX_QUEUE', 'meili-reindex'),
 
+    'attachment_queue' => env('MEILISEARCH_ATTACHMENT_QUEUE', 'meili-attachments'),
+
+    // Phase 2 attachment-text extraction limits. These protect queue workers
+    // independently of the application upload-size limit.
+    'attachment_extraction' => [
+        'max_bytes' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_BYTES', 25 * 1024 * 1024),
+        'max_characters' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_CHARACTERS', 500000),
+        'max_zip_entries' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_ZIP_ENTRIES', 5000),
+        'max_zip_uncompressed_bytes' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_ZIP_UNCOMPRESSED_BYTES', 100 * 1024 * 1024),
+        'max_zip_compression_ratio' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_ZIP_COMPRESSION_RATIO', 100),
+        'max_spreadsheet_cells' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_SPREADSHEET_CELLS', 200000),
+        // A record can own more than one file. Keep the resulting Meili
+        // document bounded independently from each individual extraction.
+        'max_record_characters' => (int) env('MEILISEARCH_ATTACHMENT_INDEX_MAX_CHARACTERS', 1000000),
+    ],
+
     'repair_enabled' => filter_var(env('MEILISEARCH_REPAIR_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
 
     'repair_at' => env('MEILISEARCH_REPAIR_AT', '03:00'),
 
     'settings' => [
-        'searchable_attributes' => ['label', 'fields', 'table_label'],
+        'searchable_attributes' => ['label', 'fields', 'attachments.name', 'attachments.text', 'table_label'],
 
         'stop_words' => [],
         // Synonyms, e.g. ['nyc' => ['new york']]. Leave empty if unused.

@@ -9,7 +9,7 @@ namespace Exceedone\Exment\Services\Meili;
  */
 class IndexSettings
 {
-    public const DEFAULT_SEARCHABLE = ['label', 'fields', 'table_label'];
+    public const DEFAULT_SEARCHABLE = ['label', 'fields', 'attachments.name', 'attachments.text', 'table_label'];
 
     public const DEFAULT_RANKING = ['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness'];
 
@@ -71,7 +71,7 @@ class IndexSettings
             : [['attributePatterns' => ['*'], 'locales' => $locales]];
 
         return [
-            'searchableAttributes' => empty($searchable) ? self::DEFAULT_SEARCHABLE : $searchable,
+            'searchableAttributes' => self::searchableAttributes($searchable),
             'filterableAttributes' => $filterable,
             'sortableAttributes' => $sortable,
             'stopWords' => array_values($opts['stop_words'] ?? []),
@@ -100,5 +100,41 @@ class IndexSettings
                 'sortFacetValuesBy' => ['*' => 'count'],
             ],
         ];
+    }
+
+    /** Translate Phase 2 names and keep file ranking after record fields. */
+    private static function searchableAttributes(array $searchable): array
+    {
+        if ($searchable === []) {
+            return self::DEFAULT_SEARCHABLE;
+        }
+
+        $aliases = [
+            'attachment_names' => 'attachments.name',
+            'attachment_text' => 'attachments.text',
+        ];
+        $out = [];
+        foreach ($searchable as $attribute) {
+            $attribute = $aliases[$attribute] ?? $attribute;
+            if (!in_array($attribute, $out, true)) {
+                $out[] = $attribute;
+            }
+        }
+
+        $attachmentAttributes = [];
+        foreach (['attachments.name', 'attachments.text'] as $attribute) {
+            if (in_array($attribute, $out, true)) {
+                $attachmentAttributes[] = $attribute;
+            }
+        }
+        $out = array_values(array_diff($out, $attachmentAttributes));
+        $insertAt = 0;
+        foreach ($out as $position => $attribute) {
+            if (in_array($attribute, ['label', 'fields'], true)) {
+                $insertAt = $position + 1;
+            }
+        }
+        array_splice($out, $insertAt, 0, $attachmentAttributes);
+        return $out;
     }
 }

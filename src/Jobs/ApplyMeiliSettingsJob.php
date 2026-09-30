@@ -47,7 +47,6 @@ class ApplyMeiliSettingsJob implements ShouldQueue, ShouldBeUniqueUntilProcessin
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
-
         $client = MeiliClientFactory::make();
         $index = $client->index(config('meilisearch.index'));
 

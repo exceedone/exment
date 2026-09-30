@@ -10,8 +10,8 @@ use Exceedone\Exment\Jobs\SyncMeiliReferencesJob;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextCache;
 
 /**
  * Decide and dispatch the Meilisearch sync job when an Exment record changes.
@@ -27,11 +27,11 @@ class MeiliSync
     public static function handle($model, string $action): void
     {
         // Disabled via config -> do nothing.
-        if (!boolval(config('meilisearch.realtime_sync'))) {
+        if (!MeiliRuntime::realtimeSyncEnabled()) {
             return;
         }
 
-        if (!self::shouldSync($model)) {
+        if (!self::shouldSync($model, $action)) {
             return;
         }
 
@@ -59,7 +59,7 @@ class MeiliSync
      */
     public static function handleLabelChange($model): void
     {
-        if (!boolval(config('meilisearch.realtime_sync')) || !($model instanceof CustomValue)) {
+        if (!MeiliRuntime::realtimeSyncEnabled() || !($model instanceof CustomValue)) {
             return;
         }
 
@@ -80,7 +80,7 @@ class MeiliSync
      */
     public static function handleRestoredChildren($model): void
     {
-        if (!boolval(config('meilisearch.realtime_sync')) || !($model instanceof CustomValue)) {
+        if (!MeiliRuntime::realtimeSyncEnabled() || !($model instanceof CustomValue)) {
             return;
         }
 
@@ -88,11 +88,10 @@ class MeiliSync
             $limit = max(1, (int) config('meilisearch.reindex_chunk_size', 500));
             foreach (CustomRelation::getRelationsByParent($model->custom_table, RelationType::ONE_TO_MANY) as $relation) {
                 $child = $relation->child_custom_table;
-                if (!ExmentIndexer::isIndexable($child)) {
+                if (!ExmentIndexer::isSearchable($child)) {
                     continue;
                 }
-                $ids = getModelName($child)::query()
-                    ->withoutGlobalScope(CustomValueModelScope::class)
+                $ids = ExmentIndexer::recordsQuery($child)
                     ->where('parent_type', $model->custom_table->table_name)
                     ->where('parent_id', $model->id)
                     ->limit($limit + 1)
@@ -150,7 +149,7 @@ class MeiliSync
      */
     public static function rememberLabel($model): void
     {
-        if (!boolval(config('meilisearch.realtime_sync')) || !($model instanceof CustomValue)) {
+        if (!MeiliRuntime::realtimeSyncEnabled() || !($model instanceof CustomValue)) {
             return;
         }
 
@@ -210,16 +209,28 @@ class MeiliSync
     }
 
     /**
-     * Only sync records of a search-enabled custom table that has freeword columns.
+     * Sync record changes for freeword tables and attachment-owning records.
+     * Deletes are always forwarded so a removed final file cannot strand a doc.
      *
      * @param  mixed  $model
      */
-    public static function shouldSync($model): bool
+    public static function shouldSync($model, string $action = 'upsert'): bool
     {
         if (!($model instanceof CustomValue)) {
             return false;
         }
 
-        return ExmentIndexer::isIndexable($model->custom_table);
+        $table = $model->custom_table;
+        if (!$table) {
+            return false;
+        }
+        // A deleted record may already have lost its last file by the time
+        // this event fires. Deleting a missing document is harmless.
+        if ($action === 'delete') {
+            return true;
+        }
+        return ExmentIndexer::isIndexable($table)
+            || (ExmentIndexer::isAttachmentCapable($table)
+                && AttachmentTextCache::hasAttachmentForRecord($table->table_name, $model->id));
     }
 }

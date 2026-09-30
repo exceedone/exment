@@ -8,6 +8,7 @@ use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\FilterConfig;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
 use Exceedone\Exment\Services\Meili\MeiliSync;
+use Exceedone\Exment\Services\Meili\MeiliRuntime;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
@@ -42,6 +43,9 @@ class SyncMeiliReferencesJob implements ShouldQueue
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
+        if (!MeiliRuntime::realtimeSyncEnabled()) {
+            return;
+        }
 
         $refTable = CustomTable::getEloquent($this->tableName);
         $refs = $refTable ? MeiliSync::referencingColumns($refTable) : [];
@@ -63,10 +67,11 @@ class SyncMeiliReferencesJob implements ShouldQueue
             $facetColumns = FilterConfig::equalityColumns($table);
             $rangeColumns = FilterConfig::rangeColumns($table);
             $aliases = FilterConfig::aliasMap($table);
+            $attachments = \Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextCache::forRecords($table->table_name, $records->pluck('id')->all());
 
             $docs = [];
             foreach ($records as $record) {
-                $docs[] = $mapper->map($record, $columns, $table->table_name, $table->table_view_name, $facetColumns, $rangeColumns, $aliases);
+                $docs[] = $mapper->map($record, $columns, $table->table_name, $table->table_view_name, $facetColumns, $rangeColumns, $aliases, $attachments);
             }
             $client = MeiliClientFactory::make();
             $task = $client->index(config('meilisearch.index'))->addDocuments($docs, 'id');

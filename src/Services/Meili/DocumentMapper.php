@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Services\Meili;
 
+use Exceedone\Exment\Enums\ColumnType;
+
 /**
  * Map Exment data (CustomValue) to a Meilisearch document.
  *
@@ -35,10 +37,16 @@ class DocumentMapper
      * @param  array<string,string>  $aliases
      * @return array<string,mixed>
      */
-    public function map($record, iterable $columns, string $tableName, ?string $tableLabel, iterable $facetColumns = [], iterable $rangeColumns = [], array $aliases = []): array
+    public function map($record, iterable $columns, string $tableName, ?string $tableLabel, iterable $facetColumns = [], iterable $rangeColumns = [], array $aliases = [], ?array $attachmentsByRecord = null): array
     {
         $fields = [];
         foreach ($columns as $column) {
+            // File/image accessors return download URLs (including UUIDs), not
+            // searchable business text. Type-1/2 names and contents are indexed
+            // separately through attachments.name and attachments.text.
+            if (in_array($column->column_type, [ColumnType::FILE, ColumnType::IMAGE], true)) {
+                continue;
+            }
             $value = $record->getValue($column, true);
             // A multi-select value may be an array -> merge into a string for easier search.
             if (is_array($value)) {
@@ -49,6 +57,14 @@ class DocumentMapper
 
         // unified filter fields: creation time + creator.
         $extra = self::filterFieldsV1($record->created_at ?? null, $record->created_user_id ?? null);
+
+        // Attachment text is cached independently of this record so a full
+        // reindex never reparses Office/PDF files. It joins the same document,
+        // therefore the existing table/record permission checks still apply.
+        $attachmentFields = $attachmentsByRecord === null
+            ? \Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextCache::forRecord($tableName, $record->id)
+            : ($attachmentsByRecord[(string) $record->id] ?? ['attachments' => []]);
+        $extra = array_merge($extra, $attachmentFields);
 
         // facets["<prefix>=value"] from status/classification columns.
         $facets = [];
@@ -137,6 +153,7 @@ class DocumentMapper
             'table_label' => $tableLabel,
             'label' => $label,
             'fields' => $cleanFields,
+            'attachments' => [],
         ], $extra);
     }
 

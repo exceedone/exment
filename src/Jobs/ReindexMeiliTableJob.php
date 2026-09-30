@@ -4,9 +4,9 @@ namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
+use Exceedone\Exment\Services\Meili\MeiliRuntime;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomValueModelScope;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
@@ -187,7 +187,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
      */
     protected static function wouldBlockTheCaller(string $tableName): bool
     {
-        if (config('queue.default') !== 'sync') {
+        if (!MeiliRuntime::queueUsesSyncDriver()) {
             return false;
         }
 
@@ -218,6 +218,9 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
+        if (!MeiliRuntime::realtimeSyncEnabled()) {
+            return;
+        }
 
         $client = MeiliClientFactory::make();
         $indexName = config('meilisearch.index');
@@ -255,8 +258,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         }
 
         // Scope dropped: see ExmentIndexer's class docblock.
-        $records = getModelName($table)::query()
-            ->withoutGlobalScope(CustomValueModelScope::class)
+        $records = \Exceedone\Exment\Services\Meili\ExmentIndexer::recordsQuery($table)
             ->when($this->afterId !== null, fn ($query) => $query->where('id', '>', $this->afterId))
             ->orderBy('id')
             ->limit($chunkSize)
@@ -264,9 +266,10 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
         $ids = [];
         $docs = [];
+        $attachments = \Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextCache::forRecords($tableName, $records->pluck('id')->all());
         foreach ($records as $record) {
             $ids[] = $record->id;
-            $docs[] = $mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
+            $docs[] = $mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases, $attachments);
         }
 
         if (!empty($docs)) {
@@ -285,8 +288,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
         // Last slice: records deleted since the previous run keep a document
         // nothing points at. Ids only, so this stays cheap on a large table.
-        $dbIds = getModelName($table)::query()
-            ->withoutGlobalScope(CustomValueModelScope::class)
+        $dbIds = \Exceedone\Exment\Services\Meili\ExmentIndexer::recordsQuery($table)
             ->pluck('id')->all();
         $service = new MeiliSearchService($client, $indexName);
         $orphan = MeiliSearchService::diffIds($dbIds, $service->indexedValueIds($this->tableName))['orphan'];
@@ -294,8 +296,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         // Re-check just before deleting: a record created during the scan exists now.
         $existingNow = [];
         foreach (array_chunk($orphan, 1000) as $chunk) {
-            $existingNow = array_merge($existingNow, getModelName($table)::query()
-                ->withoutGlobalScope(CustomValueModelScope::class)
+            $existingNow = array_merge($existingNow, \Exceedone\Exment\Services\Meili\ExmentIndexer::recordsQuery($table)
                 ->whereIn('id', $chunk)
                 ->pluck('id')->all());
         }
@@ -338,6 +339,6 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
      */
     private function shouldIndex($table): bool
     {
-        return \Exceedone\Exment\Services\Meili\ExmentIndexer::isIndexable($table);
+        return \Exceedone\Exment\Services\Meili\ExmentIndexer::isSearchable($table);
     }
 }

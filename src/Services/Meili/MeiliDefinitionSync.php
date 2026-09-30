@@ -24,7 +24,7 @@ class MeiliDefinitionSync
      */
     public static function handle($model): void
     {
-        if (!boolval(config('meilisearch.realtime_sync'))) {
+        if (!MeiliRuntime::realtimeSyncEnabled()) {
             return;
         }
 
