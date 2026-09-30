@@ -3,10 +3,13 @@
 namespace Exceedone\Exment\Model;
 
 /**
- * Feature 1: per-user "seen" state for un-actioned workflow tasks.
+ * Feature 1: per-user state of un-actioned workflow tasks.
+ * One row = this user has seen the task of this record; with hidden_flg, they have also taken
+ * it off their list (the "delete" of the task list - the record itself is never touched).
  *
  * @property mixed $target_user_id
  * @property mixed $task_key
+ * @property mixed $hidden_flg
  */
 class WorkflowTaskRead extends ModelBase
 {

@@ -2,13 +2,17 @@
 
 namespace Exceedone\Exment\Services\Notify;
 
+use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 /**
  * Feature 1 (part B):
@@ -42,9 +46,16 @@ class SameOrganizationWorkflowNotify
     private const MAX_LABEL_LENGTH = 300;
 
     /**
+     * Rows per bulk INSERT. A row has 11 columns and SQL Server takes at most 2,100 parameters in
+     * one statement, so 190 rows at most; 150 leaves room. With 500 rows, any organization of more
+     * than 190 other members notified nobody there - the failure only reached the log.
+     */
+    private const INSERT_CHUNK_ROWS = 150;
+
+    /**
      * Collect the user ids of the OTHER members of the organizations that are
-     * authorities of the action being executed (excluding the executer and
-     * excluding individually-assigned users).
+     * authorities of the action being executed (excluding the executer,
+     * individually-assigned users and the members who may not open the table).
      *
      * IMPORTANT: must be called BEFORE the workflow value is forwarded, because
      * for ACTION_SELECT actions the assignees are read from the CURRENT
@@ -122,6 +133,14 @@ class SameOrganizationWorkflowNotify
             ->whereNull($userTableName . '.deleted_at')
             ->distinct()
             ->pluck($pivotTableName . '.child_id');
+        if ($memberIds->isEmpty()) {
+            return [];
+        }
+
+        // Only the members who may open the table hear about it: the organization says who the
+        // action is FOR, not who may read the record. A member without any access to the table was
+        // told the label and the status of a record they cannot open (found in review).
+        $memberIds = self::membersWhoMayOpen($custom_value->custom_table, $memberIds);
 
         // the executer is dropped here, not in SQL: getUserId() can be null and
         // "child_id <> null" would silently match nothing
@@ -130,6 +149,65 @@ class SameOrganizationWorkflowNotify
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * The members who may open records of the table.
+     *
+     * Asked the way core asks who has access to a table - the roles of the user and of their
+     * organizations, and the system administrators (AuthUserOrgHelper) - on a plain builder of the
+     * user table, for the reason given in collectOtherOrgMemberIds(). A member whose permission
+     * covers shared records only sees this one through the share the workflow gives the
+     * organization when the record reaches the step
+     * (CustomValueAuthoritable::setAuthoritableByUserOrgArray()). On a child table that inherits
+     * the permission of its parent, whoever may open every record of the parent may open the
+     * child's too (CustomValueModelScope) - core's helper reads the roles of the child table only,
+     * so those members lost the notice (found in review).
+     *
+     * The ids core allows are compared here, not in SQL: its builder binds every one of them as a
+     * parameter already, and the members on top could pass the 2,100 SQL Server takes in one
+     * statement - the notice would then go to nobody (found in review).
+     *
+     * Known limit, shared with core's own notifications to 権限のあるユーザー: the helper expands
+     * the organizations that hold a role through the models, under the permission scope of the
+     * user who pressed the button - with filter_multi_user on, an organization that user cannot
+     * see adds nobody.
+     *
+     * @param CustomTable $custom_table
+     * @param \Illuminate\Support\Collection<int, mixed> $memberIds
+     * @return \Illuminate\Support\Collection<int, mixed>
+     */
+    private static function membersWhoMayOpen(CustomTable $custom_table, \Illuminate\Support\Collection $memberIds): \Illuminate\Support\Collection
+    {
+        $checks = [[$custom_table, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE]];
+        if (boolval($custom_table->getOption('inherit_parent_permission'))) {
+            $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
+            $parent_table = !is_nullorempty($relation) ? $relation->parent_custom_table : null;
+            if (isset($parent_table)) {
+                $checks[] = [$parent_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE];
+            }
+        }
+
+        $userTableName = getDBTableName(SystemTableName::USER);
+        $allowed = [];
+        foreach ($checks as [$table, $permission]) {
+            // a table every user may open: the builder would read the whole user table for it
+            if ($table->allUserAccessable()) {
+                return $memberIds;
+            }
+
+            $query = AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($table, $permission, \DB::table($userTableName));
+            if (is_nullorempty($query)) {
+                continue;
+            }
+            foreach ($query->pluck('id') as $id) {
+                $allowed[(int)$id] = true;
+            }
+        }
+
+        return $memberIds->filter(function ($id) use ($allowed) {
+            return isset($allowed[(int)$id]);
+        })->values();
     }
 
     /**
@@ -172,17 +250,22 @@ class SameOrganizationWorkflowNotify
             $custom_table = $custom_value->custom_table;
 
             $subject = self::fit(exmtrans('workflow.same_org_notify.subject'), self::MAX_SUBJECT_LENGTH);
+            // The notification page prints the body as HTML (NotifyNavbarController runs it
+            // through html_clean() and does not escape it), so every value put into the sentence
+            // is escaped here. A label is whatever a user typed: "<a href=...>" in it used to
+            // reach every colleague as a live link, inside a message that reads like the system's.
             $body = self::fit(exmtrans(
                 'workflow.same_org_notify.body',
                 // getUserName() takes a string id (or the user record) while getUserId() is
                 // int|string|null. Casting keeps a null executer a null name: the helper's
                 // first act is is_nullorempty(), and "" fails that the same way null does.
-                getUserName((string)$executerId),
-                $custom_table->table_view_name,
+                esc_html(getUserName((string)$executerId)),
+                esc_html($custom_table->table_view_name),
                 // cut the LABEL, not the finished sentence: this is the only unbounded part,
-                // and trimming the end of the sentence would drop the status it reports
-                self::fit($custom_value->getLabel(), self::MAX_LABEL_LENGTH),
-                $custom_value->workflow_status_name
+                // and trimming the end of the sentence would drop the status it reports.
+                // Cut before escaping, so no entity is cut in half.
+                esc_html(self::fit($custom_value->getLabel(), self::MAX_LABEL_LENGTH)),
+                esc_html($custom_value->workflow_status_name)
             ), self::MAX_BODY_LENGTH);
 
             // One INSERT for the whole organization instead of one per member: a 200-person
@@ -212,7 +295,8 @@ class SameOrganizationWorkflowNotify
             }
 
             // chunked so a very large organization cannot build a statement over max_allowed_packet
-            foreach (array_chunk($rows, 500) as $chunk) {
+            // or over SQL Server's parameter limit
+            foreach (array_chunk($rows, self::INSERT_CHUNK_ROWS) as $chunk) {
                 NotifyNavbar::insert($chunk);
             }
         } catch (\Throwable $ex) {
