@@ -157,7 +157,10 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     // @phpstan-ignore-next-line
     public function getRelationInfo(?CustomTable $custom_form_table = null)
     {
-        $target_table = $this->target_table;
+        $attributes = $this->getAttributes();
+        $target_table = $attributes['target_table'] ?? ($this->relationLoaded('target_table')
+            ? $this->getRelation('target_table')
+            : $this->target_table_cache);
         // get label hasmany
         $block_label = $this->form_block_view_name;
 
@@ -174,10 +177,14 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         // if has args $custom_form_table, use $custom_form_table. Almost use preview
         if ($custom_form_table) {
             $relation_custom_table = $custom_form_table;
-        } elseif ($this->custom_form) {
-            $relation_custom_table = $this->custom_form->custom_table;
         } else {
-            return [null, null, $block_label];
+            $custom_form = $this->relationLoaded('custom_form')
+                ? $this->getRelation('custom_form')
+                : $this->custom_form_cache;
+            $relation_custom_table = $custom_form ? $custom_form->custom_table_cache : null;
+            if (!isset($relation_custom_table)) {
+                return [null, null, $block_label];
+            }
         }
 
         $relation = CustomRelation::getRelationByParentChild($relation_custom_table, $target_table);

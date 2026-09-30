@@ -153,7 +153,7 @@ class AuthUserOrgHelper
         } else {
             // if set $tablePermission, always call
             // @phpstan-ignore-next-line
-            if (isset($tablePermission) || is_null($target_ids = System::requestSession($key))) {
+            if (isset($tablePermission) || is_null($target_ids = System::cache($key))) {
                 // get user ids
                 // @phpstan-ignore-next-line
                 $target_ids = static::getRoleUserOrgId($target_table ?? [], $table_name, $tablePermission);
@@ -163,7 +163,7 @@ class AuthUserOrgHelper
                 }
 
                 if (!isset($tablePermission)) {
-                    System::requestSession($key, $target_ids);
+                    System::cache($key, $target_ids);
                 }
             }
         }

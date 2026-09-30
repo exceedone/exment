@@ -20,6 +20,10 @@ namespace Exment {
                 CommonEvent.addSelect2();
                 CommonEvent.setFormFilter($(ev.target));
             });
+            // Lazy relations load sequentially after the initial page becomes idle; keep submits disabled until they hydrate.
+            CommonEvent.bindLazyRelationLoad();
+            CommonEvent.startLazyRelationAutoload();
+            CommonEvent.syncLazyRelationSubmitState();
             $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev: JQueryEventObject) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
@@ -32,6 +36,8 @@ namespace Exment {
 
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
+                // PJAX replaces the form DOM, so recalculate whether a deferred relation still blocks submit.
+                CommonEvent.syncLazyRelationSubmitState();
             });
                         
             $(document).on('pjax:error', function(xhr, textStatus, error, options) {
@@ -52,6 +58,103 @@ namespace Exment {
             }
 
             $.numberformat('[number_format]:not(".disableNumberFormat")');
+        }
+
+        /** Bind manual lazy-relation load clicks once for the document. */
+        private static bindLazyRelationLoad() {
+            $(document).on('click', '.lazy-relation-load', {}, (ev: JQueryEventObject) => {
+                CommonEvent.loadLazyRelation($(ev.target).closest('.lazy-relation-load'));
+            });
+        }
+
+        /** Fetch one relation fragment, then allow the next queued relation to load. */
+        private static async loadLazyRelation($button) {
+            const $tbody = $button.closest('tbody[data-lazy-relation-url]');
+            const $form = $tbody.closest('form');
+            const url = $tbody.data('lazy-relation-url');
+            if (!hasValue(url) || $button.data('lazy-relation-loading')) {
+                return;
+            }
+
+            $button.data('lazy-relation-loading', true).prop('disabled', true);
+            try {
+                const response = await $.get(url);
+                CommonEvent.hydrateLazyRelation($tbody, response);
+            }
+            catch (_error) {
+                $button.data('lazy-relation-loading', false).prop('disabled', false);
+                toastr.error('Failed to load relation data.');
+            }
+            finally {
+                CommonEvent.syncLazyRelationSubmitState($form);
+                $(document).trigger('exment:lazy-relation:complete');
+            }
+        }
+
+        /** Replace a placeholder with its relation rows and initialize fragment scripts. */
+        private static hydrateLazyRelation($tbody, response) {
+            const $fragment = $('<div>').html(response.html);
+            const $sourceTable = $fragment.find('table.has-many-table').first();
+            const $targetTable = $tbody.closest('table.has-many-table');
+
+            $targetTable.find('tbody').replaceWith($sourceTable.find('tbody'));
+            $targetTable.closest('.has-many-table-div').find('template').replaceWith($fragment.find('template'));
+            $.each(response.scripts || [], function(_index, script) {
+                const formClasses = script.match(/\.form-[a-z0-9]+/g) || [];
+                const $form = $targetTable.closest('form');
+                $.each(formClasses, function(_classIndex, formClass) {
+                    $form.addClass(formClass.substring(1));
+                });
+                $.globalEval(script);
+            });
+            CommonEvent.AddEvent();
+        }
+
+        /** Start the single sequential auto-loader after the browser becomes idle. */
+        private static startLazyRelationAutoload() {
+            if ((<any>window).__exmentLazyRelationAutoloadStarted) {
+                return;
+            }
+
+            (<any>window).__exmentLazyRelationAutoloadStarted = true;
+            const loadNext = () => {
+                const $button = $('.lazy-relation-load').filter(function() {
+                    return !$(this).data('lazy-relation-autoload-attempted');
+                }).first();
+                if ($button.length === 0) {
+                    return;
+                }
+                $button.data('lazy-relation-autoload-attempted', true).trigger('click');
+            };
+            $(document).on('exment:lazy-relation:complete', loadNext);
+            if ('requestIdleCallback' in window) {
+                (<any>window).requestIdleCallback(loadNext, { timeout: 1000 });
+            }
+            else {
+                setTimeout(loadNext, 500);
+            }
+        }
+
+        /** Disable submits while relation inputs are absent, then restore their prior state. */
+        private static syncLazyRelationSubmitState($forms = $('form')) {
+            $forms.each(function() {
+                const $form = $(this);
+                const hasPendingLazyRelations = $form.find('tbody[data-lazy-relation-url]').length > 0;
+
+                $form.find(':submit').each(function() {
+                    const $submit = $(this);
+                    const originalDisabled = $submit.data('lazy-relation-original-disabled');
+                    if (hasPendingLazyRelations) {
+                        if (typeof originalDisabled === 'undefined') {
+                            $submit.data('lazy-relation-original-disabled', $submit.prop('disabled'));
+                        }
+                        $submit.prop('disabled', true);
+                    }
+                    else if (typeof originalDisabled !== 'undefined') {
+                        $submit.prop('disabled', originalDisabled).removeData('lazy-relation-original-disabled');
+                    }
+                });
+            });
         }
 
         /**
@@ -1025,10 +1128,7 @@ namespace Exment {
             }).addClass('added-select2');
         }
 
-
-        
         /**
-         * Get form block erea. (hasmany or default form)
          * @param block_name block name
          */
         public static getBlockElement(block_name) : JQuery<HTMLElement>{

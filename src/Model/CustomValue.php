@@ -1320,13 +1320,13 @@ abstract class CustomValue extends ModelBase
      * Get vustom_value's label
      * @return string
      */
-    public function getLabel()
+    public function getLabel($label_columns = null)
     {
         if (!is_null($this->_label)) {
             return $this->_label;
         }
 
-        $label_columns = $this->custom_table->getLabelColumns();
+        $label_columns = $label_columns ?? $this->custom_table->getLabelColumns();
 
         if (isset($label_columns) && is_string($label_columns)) {
             $this->_label = $this->getExpansionLabel($label_columns);
@@ -1347,6 +1347,8 @@ abstract class CustomValue extends ModelBase
 
         if (!isset($label_columns) || count($label_columns) == 0) {
             $columns = [$custom_table->custom_columns_cache->first()];
+        } elseif ($label_columns->first() instanceof CustomColumn) {
+            $columns = $label_columns;
         } else {
             $columns = $label_columns->map(function ($label_column) {
                 return CustomColumn::getEloquent($label_column->table_label_id);

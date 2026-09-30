@@ -48,6 +48,10 @@ class DefaultGrid extends GridBase
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname());
 
+        if (!$this->modal && boolval($this->custom_table->getOption('lazy_grid_enabled'))) {
+            $grid->lazyLoad();
+        }
+
         // if modal, Change view model
         if ($this->modal) {
             $this->gridFilterForModal($grid, $this->callback);

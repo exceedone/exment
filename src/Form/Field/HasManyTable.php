@@ -21,6 +21,9 @@ class HasManyTable extends HasMany
     // @phpstan-ignore-next-line
     protected $enableHeader = true;
 
+    /** @var string|null */
+    protected $lazyLoadUrl;
+
     /**
      * Show row up down button
      *
@@ -138,6 +141,19 @@ class HasManyTable extends HasMany
     }
 
     /**
+     * Render table metadata now and existing rows on an explicit AJAX request.
+     *
+     * @param string $url
+     * @return $this
+     */
+    public function lazyLoad($url)
+    {
+        $this->lazyLoadUrl = $url;
+
+        return $this;
+    }
+
+    /**
      * Disable Options.
      *
      * @return $this
@@ -171,7 +187,9 @@ class HasManyTable extends HasMany
         $requires = [];
         $helps = [];
 
-        foreach ($form->fields() as &$field) {
+        $fields = $form->fields();
+
+        foreach ($fields as &$field) {
             // when embeds item,
             if ($field instanceof NestedEmbeds) {
                 $embedfields = $field->fields();
@@ -385,8 +403,10 @@ EOT;
 
         // set related forms
         $relatedforms = [];
+        $builtRelatedForms = isset($this->lazyLoadUrl) ? [] : $this->buildRelatedForms();
+
         // set labelclass hidden
-        foreach ($this->buildRelatedForms() as $k => &$relatedform) {
+        foreach ($builtRelatedForms as $k => &$relatedform) {
             list($relatedtableitems, $relatedhiddens, $relatedrequires, $relatedhelps) = $this->getTableItem($relatedform);
 
             $relatedforms[$k] = [
@@ -417,9 +437,9 @@ EOT;
             'options'      => $this->options,
             'enableHeader' => $this->enableHeader,
             'hideDeleteButtonRow' => $this->hideDeleteButtonRow,
+            'lazyLoadUrl' => $this->lazyLoadUrl,
         ]);
     }
-
 
     // @phpstan-ignore-next-line
     protected function getParentRenderClass()

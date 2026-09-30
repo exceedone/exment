@@ -49,6 +49,13 @@ abstract class CustomItem implements ItemInterface
     // @phpstan-ignore-next-line
     public static $availableFields = [];
 
+    /**
+     * Sanitized form help, scoped to the current PHP request.
+     *
+     * @var array<string, string|null>
+     */
+    protected static $cleanedHelpCache = [];
+
 
     // @phpstan-ignore-next-line
     public function __construct($custom_column, $custom_value, $view_column_target = null)
@@ -515,7 +522,10 @@ abstract class CustomItem implements ItemInterface
         // get help
         $help = $this->getHelp();
         if (isset($help)) {
-            $field->help(html_clean($help));
+            if (!array_key_exists($help, static::$cleanedHelpCache)) {
+                static::$cleanedHelpCache[$help] = html_clean($help);
+            }
+            $field->help(static::$cleanedHelpCache[$help]);
         }
         // append help
         $this->appendHelp($field);

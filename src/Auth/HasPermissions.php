@@ -378,6 +378,7 @@ trait HasPermissions
         $permissions = [];
 
         $tables = CustomTable::allRecords();
+        $tablesById = $tables->keyBy('id');
         foreach ($roles as $role) {
             /** @var RoleGroupPermission $role_group_permission */
             foreach ($role->role_group_permissions as $role_group_permission) {
@@ -388,9 +389,7 @@ trait HasPermissions
                     continue;
                 }
 
-                $custom_table = $tables->first(function($item) use ($role_group_permission) {
-                    return $item->id == $role_group_permission->role_group_target_id;
-                });
+                $custom_table = $tablesById->get($role_group_permission->role_group_target_id);
                 if (!isset($custom_table)) {
                     continue;
                 }

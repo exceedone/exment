@@ -576,7 +576,7 @@ class SelectTable extends CustomItem
         }
         // only single search column, search
         elseif (!$use_table_label_id && count($labelColumns) == 1) {
-            if ($this->setSelectTableQuery($query, array_get($labelColumns[0], 'table_label_id'), $label)) {
+            if ($this->setSelectTableQuery($query, array_get($labelColumns->first(), 'table_label_id'), $label)) {
                 $executeSearch = true;
             }
         } else {

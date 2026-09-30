@@ -95,7 +95,7 @@ class DefaultForm extends FormBase
             // one_to_many or manytomany
             else {
                 list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo($this->custom_table);
-                $target_table = $custom_form_block->target_table;
+                $target_table = $custom_form_block->target_table_cache;
                 // if user doesn't have edit permission, hide child block
                 if ($target_table->enableEdit() !== true) {
                     continue;
@@ -106,15 +106,10 @@ class DefaultForm extends FormBase
                     $form_block_options = array_get($custom_form_block, 'options', []);
                     // if form_block_options.hasmany_type is 1, hasmanytable
                     if (boolval(array_get($form_block_options, 'hasmany_type'))) {
-                        $hasmany = $form->hasManyTable(
-                            $relation_name,
-                            $block_label,
-                            function ($form) use ($custom_form_block, $relation_name) {
-                                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
-                                    $this->setCustomFormColumns($form, $custom_form_block);
-                                })->setRelationName($relation_name);
-                            }
-                        )->setTableWidth(12, 0);
+                        $lazyLoadUrl = isset($this->id) && boolval(array_get($form_block_options, 'lazy_load_enabled'))
+                            ? admin_url("data/{$this->custom_table->table_name}/{$this->id}/lazy-relation/{$custom_form_block->id}")
+                            : null;
+                        $this->addHasManyTable($form, $custom_form_block, $relation_name, $block_label, $lazyLoadUrl);
                     }
                     // default,hasmany
                     else {
@@ -142,7 +137,7 @@ class DefaultForm extends FormBase
 
                     $field = new $class(
                         CustomRelation::getRelationNameByTables($this->custom_table, $target_table),
-                        [$custom_form_block->target_table->table_view_name]
+                        [$target_table->table_view_name]
                     );
                     $custom_table = $this->custom_table;
                     $field->options(function ($select) use ($custom_table, $target_table, $isListbox) {
@@ -217,12 +212,79 @@ EOT;
     }
 
     /**
+     * Add a table-style one-to-many relation field.
+     *
+     * @param Form $form
+     * @param CustomFormBlock $customFormBlock
+     * @param string $relationName
+     * @param string $blockLabel
+     * @param string|null $lazyLoadUrl
+     * @return \Exceedone\Exment\Form\Field\HasManyTable
+     */
+    protected function addHasManyTable($form, $customFormBlock, $relationName, $blockLabel, $lazyLoadUrl = null)
+    {
+        $customFormColumns = $customFormBlock->custom_form_columns_cache;
+        $hasmany = $form->hasManyTable(
+            $relationName,
+            $blockLabel,
+            function ($form) use ($customFormColumns, $relationName) {
+                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($customFormColumns) {
+                    $this->setCustomFormColumns($form, $customFormColumns);
+                })->setRelationName($relationName);
+            }
+        )->setTableWidth(12, 0);
+
+        if (isset($lazyLoadUrl)) {
+            $hasmany->lazyLoad($lazyLoadUrl);
+        }
+
+        return $hasmany;
+    }
+
+    /**
+     * Render a single configured relation block for the lazy-load endpoint.
+     *
+     * @param int|string $blockId
+     * @return array<string, mixed>
+     */
+    public function renderLazyRelationBlock($blockId)
+    {
+        $customFormBlock = $this->custom_form->custom_form_blocks->firstWhere('id', $blockId);
+        if (!isset($customFormBlock) || $customFormBlock->form_block_type != FormBlockType::ONE_TO_MANY) {
+            abort(404);
+        }
+
+        $formBlockOptions = array_get($customFormBlock, 'options', []);
+        if (!boolval(array_get($formBlockOptions, 'hasmany_type')) || !boolval(array_get($formBlockOptions, 'lazy_load_enabled'))) {
+            abort(404);
+        }
+
+        list($relation, $relationName, $blockLabel) = $customFormBlock->getRelationInfo($this->custom_table);
+        $targetTable = $customFormBlock->target_table_cache;
+        if ($targetTable->enableEdit() !== true) {
+            abort(403);
+        }
+
+        $classname = getModelName($this->custom_table);
+        $form = new Form(new $classname());
+        $form->setHorizontal(boolval($this->custom_form->getOption('form_label_type') ?? true));
+
+        $scriptCount = count(\Encore\Admin\Admin::$script);
+        $hasmany = $this->addHasManyTable($form, $customFormBlock, $relationName, $blockLabel);
+        $form->edit($this->id);
+
+        return [
+            'html' => (string) $hasmany->render(),
+            'scripts' => array_values(array_slice(\Encore\Admin\Admin::$script, $scriptCount)),
+        ];
+    }
+
+    /**
      * set custom form columns
      */
     // @phpstan-ignore-next-line
-    protected function setCustomFormColumns($form, $custom_form_block)
+    protected function setCustomFormColumns($form, $custom_form_columns)
     {
-        $custom_form_columns = $custom_form_block->custom_form_columns; // setting fields.
         // $target_id = $this->id;
         if (method_exists($form, 'getDataKey')) {
             // @phpstan-ignore-next-line
@@ -241,6 +303,7 @@ EOT;
             if (isset($target_id)) {
                 $item->id($target_id);
             }
+
             $this->setColumnItemOption($item, $custom_form_columns);
 
             $form->pushField($item->getAdminField($form_column));
@@ -263,7 +326,7 @@ EOT;
         }
 
         return function ($form) use ($custom_form_block, $target_custom_value) {
-            $custom_form_columns = $custom_form_block->custom_form_columns;
+            $custom_form_columns = $custom_form_block->custom_form_columns_cache;
             // setting fields.
             foreach ($custom_form_columns as $form_column) {
                 if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
@@ -310,7 +373,7 @@ EOT;
             $force_caculate_column[$force_caculate_column_key] = [];
             $calc_formula_array[$calc_formula_key] = CalcService::getCalcFormArray($this->custom_table, $custom_form_block);
             /** @var CustomFormColumn $form_column */
-            foreach ($custom_form_block->custom_form_columns as $form_column) {
+            foreach ($custom_form_block->custom_form_columns_cache as $form_column) {
                 if ($form_column->form_column_type != FormColumnType::COLUMN) {
                     continue;
                 }
@@ -368,15 +431,10 @@ EOT;
                 $message = $message->merge($validateResult);
             }
 
-
             // validation relations ----------------------------------------------------
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
                 // if available is false, continue
                 if (!$custom_form_block->available) {
-                    continue;
-                }
-                // when not 1:n, set as normal form columns.
-                if (!isMatchString($custom_form_block->form_block_type, FormBlockType::ONE_TO_MANY)) {
                     continue;
                 }
                 list($custom_relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
@@ -386,13 +444,10 @@ EOT;
                 if (!method_exists($model, $relation_name)) {
                     continue;
                 }
-
                 // get relation value
                 $relation = $model->$relation_name();
-                $keyName = $relation->getRelated()->getKeyName();
                 $relationValues = array_get($input, $relation_name, []);
-
-                // ignore ids
+                $keyName = $relation->getRelated()->getKeyName();
                 $ignoreIds = collect($relationValues)->filter(function ($val, $key) {
                     return is_int($key);
                 })->map(function ($val) {
@@ -578,7 +633,7 @@ EOT;
     protected function setChangeDataArray(CustomColumn $column, CustomFormBlock $custom_form_block, array $form_column_options, $options, &$changedata_array)
     {
         // get this table
-        $column_table = $column->custom_table;
+        $column_table = $column->custom_table_cache;
 
         // get getting target model name
         $changedata_target_column_id = array_get($form_column_options, 'changedata_target_column_id');
@@ -587,7 +642,7 @@ EOT;
             return;
         }
 
-        $changedata_target_table = $changedata_target_column->custom_table;
+        $changedata_target_table = $changedata_target_column->custom_table_cache;
         if (is_nullorempty($changedata_target_table)) {
             return;
         }
@@ -599,7 +654,7 @@ EOT;
             return;
         }
 
-        $changedata_table = $changedata_column->custom_table;
+        $changedata_table = $changedata_column->custom_table_cache;
         if (is_nullorempty($changedata_table)) {
             return;
         }
