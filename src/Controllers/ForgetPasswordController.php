@@ -11,7 +11,9 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ForgetPasswordController extends Controller
 {
-    use SendsPasswordResetEmails;
+    use SendsPasswordResetEmails {
+        sendResetLinkFailedResponse as protected sendResetLinkFailedResponseDefault;
+    }
     use \Exceedone\Exment\Controllers\AuthTrait;
 
     /**
@@ -55,6 +57,8 @@ class ForgetPasswordController extends Controller
         // We will send the password reset link to this user. Once we have attempted
         // to send the link, we will examine the response then see the message we
         // need to show to the user. Finally, we'll send out a proper response.
+        // getUser() and deleteToken() are not on the contract, only on the broker itself
+        /** @var \Illuminate\Auth\Passwords\PasswordBroker $broker */
         $broker = $this->broker();
         $array = [
             'login_type' => LoginType::PURE,
@@ -69,7 +73,32 @@ class ForgetPasswordController extends Controller
                         : $this->sendResetLinkFailedResponse($request, $response);
         } catch (TransportExceptionInterface $ex) {
             \Log::error($ex);
+
+            // The token is created before the mail is sent. If it is left, the user waits for throttle though no mail was sent
+            $user = $broker->getUser($array);
+            if (!is_null($user)) {
+                $broker->deleteToken($user);
+            }
+
             return back()->with('status_error', exmtrans('error.mailsend_failed'));
         }
+    }
+
+    /**
+     * Get the response for a failed password reset link.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $response
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+     */
+    protected function sendResetLinkFailedResponse(Request $request, $response)
+    {
+        // 'passwords.throttled' lives in the app's lang files (published from lang_vendor without --force),
+        // so an app installed before the key existed has no translation for the current locale.
+        if ($response == Password::RESET_THROTTLED && !\Lang::has($response, null, false)) {
+            $response = 'exment::exment.login.password_reset_throttled';
+        }
+
+        return $this->sendResetLinkFailedResponseDefault($request, $response);
     }
 }
