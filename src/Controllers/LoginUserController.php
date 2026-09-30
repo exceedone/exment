@@ -173,7 +173,7 @@ class LoginUserController extends AdminControllerBase
             \Log::error($ex);
             admin_error('Error', exmtrans('error.mailsend_failed'));
             DB::rollback();
-            return back()->withInput();
+            return back()->withInput(get_flash_input());
         } catch (\Exception $ex) {
             DB::rollback();
             throw $ex;

@@ -85,7 +85,7 @@ class ResetPasswordController extends Controller
         $email = $this->getEmailByToken($request->get('token'));
         if (!isset($email)) {
             admin_toastr(trans('passwords.token'));
-            return back()->withInput();
+            return back();
         }
 
         $array = [

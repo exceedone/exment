@@ -126,19 +126,19 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             // user surpasses their maximum number of attempts they will get locked out.
             $this->incrementLoginAttempts($request);
 
-            return back()->withInput()->withErrors([
+            return back()->withInput(get_flash_input())->withErrors([
                 $this->username() => $this->getFailedLoginMessage(),
             ]);
         }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
             \Log::error($ex);
-            return redirect($error_url)->withInput()->withErrors(
+            return redirect($error_url)->withInput(get_flash_input())->withErrors(
                 [$this->username() => $ex->getSsoErrorMessage()]
             );
         } catch (\Exception $ex) {
             \Log::error($ex);
-            return redirect($error_url)->withInput()->withErrors(
+            return redirect($error_url)->withInput(get_flash_input())->withErrors(
                 [$this->username() => exmtrans('login.sso_provider_error')]
             );
         }

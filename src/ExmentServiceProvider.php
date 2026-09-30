@@ -120,6 +120,7 @@ class ExmentServiceProvider extends ServiceProvider
     // @phpstan-ignore-next-line
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
+        'admin.auth-session'       => \Exceedone\Exment\Middleware\AuthenticateSession::class,
         'log.exec.time' => \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
         'check.logging.enabled' => \Exceedone\Exment\Middleware\CheckLoggingEnabled::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
@@ -162,6 +163,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
+            'admin.auth-session',
             'admin.auth',
             'log.exec.time',
             'check.logging.enabled',
@@ -180,6 +182,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
+            'admin.auth-session',
             'admin.login',
             'admin.morph',
             'admin.bootstrap2',
@@ -203,6 +206,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment plugin's css and js.
         'admin_plugin_public' => [
+            'admin.auth-session',
             'admin.auth',
             'admin.auth-2factor',
             'admin.bootstrap2',
@@ -568,7 +572,15 @@ class ExmentServiceProvider extends ServiceProvider
                 $m = 'adminwebapi.auth';
             }
         }
-        $middlewareGroups['adminwebapi'] = $middleware;
+        unset($m);
+        // web api signs in by session, so check session before auth
+        $middlewareGroups['adminwebapi'] = [];
+        foreach ($middleware as $name) {
+            if ($name == 'adminwebapi.auth') {
+                $middlewareGroups['adminwebapi'][] = 'admin.auth-session';
+            }
+            $middlewareGroups['adminwebapi'][] = $name;
+        }
 
         $middleware = $middlewareGroups['adminapi'];
         foreach ($middleware as &$m) {

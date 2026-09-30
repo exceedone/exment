@@ -207,12 +207,12 @@ class LoginUserItem extends ProviderBase
                 ];
                 $validation = \Validator::make($data, $rules);
                 if ($validation->fails()) {
-                    return back()->withInput()->withErrors($validation);
+                    return back()->withInput(get_flash_input())->withErrors($validation);
                 }
                 $password = array_get($data, 'password');
                 $has_change = true;
             } else {
-                return back()->withInput()->withErrors([
+                return back()->withInput(get_flash_input())->withErrors([
                     'create_password_auto' => exmtrans('user.message.required_password')]);
             }
         }

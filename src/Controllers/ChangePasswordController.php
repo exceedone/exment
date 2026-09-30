@@ -53,12 +53,17 @@ class ChangePasswordController extends Controller
      */
     public function change(Request $request)
     {
+        // This route does not check login. ex. the session expired, or was signed out as the password was changed
+        $user = \Exment::user();
+        if (is_null($user)) {
+            return redirect(admin_url('auth/login'));
+        }
+
         $validator = \Validator::make($request->all(), $this->rules());
         if ($validator->fails()) {
             return back()->withErrors($validator);
         }
 
-        $user = \Exment::user();
         $password = $request->get('password');
 
         $this->changePassword($user, $password);

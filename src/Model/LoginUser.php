@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Auth\HasPermissions;
+use Exceedone\Exment\Auth\SessionPasswordHash;
 use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Enums\MailKeyName;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * @phpstan-consistent-constructor
@@ -321,6 +323,11 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 
         static::saving(function ($model) {
             $model->setBcryptPassword();
+
+            // "remember me" cookies issued before the password was changed must not sign in any more
+            if ($model->exists && $model->isDirty('password')) {
+                $model->setRememberToken(Str::random(60));
+            }
         });
 
         static::saved(function ($model) {
@@ -330,6 +337,10 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
                     'login_user_id' => $model->id,
                     'password' => $model->password
                 ]);
+            }
+
+            if ($model->wasChanged('password')) {
+                SessionPasswordHash::passwordChanged($model);
             }
         });
 

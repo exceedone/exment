@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\ErrorCode;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -1258,6 +1259,19 @@ if (!function_exists('get_password_rule')) {
     function get_password_rule($required = true, ?LoginUser $login_user = null)
     {
         return \Exment::get_password_rule($required, $login_user);
+    }
+}
+
+if (!function_exists('get_flash_input')) {
+    /**
+     * Get request input to flash to the session when redirecting with input. Passwords are removed.
+     * Same input as withInput() flashes: input(), not all(), so that empty file inputs are not flashed as null.
+     *
+     * @return array<mixed>
+     */
+    function get_flash_input(): array
+    {
+        return Arr::except(request()->input(), Define::DONT_FLASH_INPUT_KEYS);
     }
 }
 

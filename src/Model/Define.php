@@ -33,6 +33,11 @@ class Define
     public const RESTORE_CONFIRM_KEYWORD = 'restore me';
     public const YES_KEYWORD = 'yes';
 
+    /**
+     * Input keys not to flash to the session when redirecting with input
+     */
+    public const DONT_FLASH_INPUT_KEYS = ['password', 'password_confirmation', 'current_password'];
+
     public const API_FEATURE_TEST = 'API_FEATURE_TEST';
     public const API_FEATURE_TEST_APIKEY = 'API_FEATURE_TEST_APIKEY';
 
@@ -203,6 +208,9 @@ class Define
     public const SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS = "plugin_all_setting_ids";
     public const SYSTEM_KEY_SESSION_PASSWORD_LIMIT = "password_limit";
     public const SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD = "first_change_password";
+    public const SYSTEM_KEY_SESSION_PASSWORD_HASH = "password_hash";
+    public const SYSTEM_KEY_SESSION_PASSWORD_CHANGED_LOGOUT = "password_changed_logout";
+    public const SYSTEM_KEY_SESSION_PASSWORD_CHANGED_SESSION = "password_changed_session_%s";
     public const SYSTEM_KEY_SESSION_HAS_WORLFLOW = "has_worlflow";
     public const SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE = "workflow_select_table_%s";
     public const SYSTEM_KEY_SESSION_WORKFLOW_DESIGNATED_TABLE = "workflow_designated_table_%s";

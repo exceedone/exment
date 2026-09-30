@@ -74,10 +74,13 @@ class LoginService
                 catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     admin_error(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
-                    return back()->withInput();
+                    return back()->withInput(get_flash_input());
                 }
             }
-            $login_user->save();
+            // Mail is sent when login user is saved. If sending mail fails, the password is left as it was
+            \DB::transaction(function () use ($login_user) {
+                $login_user->save();
+            });
         } catch (\Exception $ex) {
             throw $ex;
         }
@@ -531,7 +534,10 @@ class LoginService
             ]);
             $login_user->base_user_id = $exment_user->getUserId();
             $login_user->login_provider = $custom_login_user->provider_name;
-            $login_user->password = make_password(32);
+            // Only when created. If set at every login, the other browsers of the user are signed out as the password was changed
+            if (!$login_user->exists) {
+                $login_user->password = make_password(32);
+            }
         }
 
         // get avatar
