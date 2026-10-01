@@ -106,8 +106,8 @@ class DefaultForm extends FormBase
                     $form_block_options = array_get($custom_form_block, 'options', []);
                     // if form_block_options.hasmany_type is 1, hasmanytable
                     if (boolval(array_get($form_block_options, 'hasmany_type'))) {
-                        $lazyLoadUrl = isset($this->id) && boolval(array_get($form_block_options, 'lazy_load_enabled'))
-                            ? admin_url("data/{$this->custom_table->table_name}/{$this->id}/lazy-relation/{$custom_form_block->id}")
+                        $lazyLoadUrl = isset($this->id) && is_null(old($relation_name)) && boolval(array_get($form_block_options, 'lazy_load_enabled'))
+                            ? admin_urls_query('data', $this->custom_table->table_name, $this->id, 'lazy-relation', $custom_form_block->id, ['formid' => $this->custom_form->suuid])
                             : null;
                         $this->addHasManyTable($form, $custom_form_block, $relation_name, $block_label, $lazyLoadUrl);
                     }
@@ -223,7 +223,7 @@ EOT;
      */
     protected function addHasManyTable($form, $customFormBlock, $relationName, $blockLabel, $lazyLoadUrl = null)
     {
-        $customFormColumns = $customFormBlock->custom_form_columns_cache;
+        $customFormColumns = $customFormBlock->custom_form_columns;
         $hasmany = $form->hasManyTable(
             $relationName,
             $blockLabel,
@@ -250,7 +250,7 @@ EOT;
     public function renderLazyRelationBlock($blockId)
     {
         $customFormBlock = $this->custom_form->custom_form_blocks->firstWhere('id', $blockId);
-        if (!isset($customFormBlock) || $customFormBlock->form_block_type != FormBlockType::ONE_TO_MANY) {
+        if (!isset($customFormBlock) || !$customFormBlock->available || $customFormBlock->form_block_type != FormBlockType::ONE_TO_MANY) {
             abort(404);
         }
 
@@ -326,7 +326,7 @@ EOT;
         }
 
         return function ($form) use ($custom_form_block, $target_custom_value) {
-            $custom_form_columns = $custom_form_block->custom_form_columns_cache;
+            $custom_form_columns = $custom_form_block->custom_form_columns;
             // setting fields.
             foreach ($custom_form_columns as $form_column) {
                 if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
@@ -373,7 +373,7 @@ EOT;
             $force_caculate_column[$force_caculate_column_key] = [];
             $calc_formula_array[$calc_formula_key] = CalcService::getCalcFormArray($this->custom_table, $custom_form_block);
             /** @var CustomFormColumn $form_column */
-            foreach ($custom_form_block->custom_form_columns_cache as $form_column) {
+            foreach ($custom_form_block->custom_form_columns as $form_column) {
                 if ($form_column->form_column_type != FormColumnType::COLUMN) {
                     continue;
                 }
@@ -435,6 +435,10 @@ EOT;
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
                 // if available is false, continue
                 if (!$custom_form_block->available) {
+                    continue;
+                }
+                // Only one-to-many blocks submit nested rows for validation.
+                if (!isMatchString($custom_form_block->form_block_type, FormBlockType::ONE_TO_MANY)) {
                     continue;
                 }
                 list($custom_relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();

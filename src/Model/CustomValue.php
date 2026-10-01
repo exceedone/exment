@@ -1318,6 +1318,7 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get vustom_value's label
+    * @param \Illuminate\Support\Collection|string|null $label_columns
      * @return string
      */
     public function getLabel($label_columns = null)

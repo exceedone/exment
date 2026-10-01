@@ -390,7 +390,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param string $tableKey
      * @param int|string $id
      * @param int|string $blockId
-     * @return \Illuminate\Http\JsonResponse
+      * @return \Illuminate\Http\JsonResponse|Response
      */
     public function lazyRelation(Request $request, $tableKey, $id, $blockId)
     {

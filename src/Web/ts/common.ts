@@ -38,6 +38,7 @@ namespace Exment {
                 CommonEvent.AddEvent();
                 // PJAX replaces the form DOM, so recalculate whether a deferred relation still blocks submit.
                 CommonEvent.syncLazyRelationSubmitState();
+                $(document).trigger('exment:lazy-relation:complete');
             });
                         
             $(document).on('pjax:error', function(xhr, textStatus, error, options) {
@@ -83,7 +84,7 @@ namespace Exment {
             }
             catch (_error) {
                 $button.data('lazy-relation-loading', false).prop('disabled', false);
-                toastr.error('Failed to load relation data.');
+                toastr.error($('#exment_lazy_relation_load_failed').val());
             }
             finally {
                 CommonEvent.syncLazyRelationSubmitState($form);

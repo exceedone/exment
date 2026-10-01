@@ -269,6 +269,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('tmpimages', 'FileController@uploadTempImage');
             $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFile');
 
+            $router->get('data/{tableKey}/{id}/lazy-relation/{blockId}', 'CustomValueController@lazyRelation')->name('exment.data.lazy-relation');
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
             $this->setTableResouce($router, 'form', 'CustomFormController');
@@ -536,7 +537,6 @@ class RouteServiceProvider extends ServiceProvider
         $router->get("{$endpointName}/{tableKey}/create", "$controllerName@create")->name("exment.$endpointName.create");
         $router->post("{$endpointName}/{tableKey}", "$controllerName@store")->name("exment.$endpointName.store");
         $router->get("{$endpointName}/{tableKey}/{id}/edit", "$controllerName@edit")->name("exment.$endpointName.edit");
-        $router->get("{$endpointName}/{tableKey}/{id}/lazy-relation/{blockId}", "$controllerName@lazyRelation")->name("exment.$endpointName.lazy-relation");
         $router->put("{$endpointName}/{tableKey}/{id}", "$controllerName@update")->name("exment.$endpointName.update");
         $router->patch("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
         $router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy")->name("exment.$endpointName.destroy");

@@ -180,6 +180,7 @@ return [
         'captcha' => 'Failed to implement Google reCAPTCHA. Please reload and enter again.',
         'expired_error' => 'The page has expired. Please update the screen.',
         'expired_error_reinput' => 'The page has expired. Sorry to trouble you, but please re-enter.',
+        'lazy_relation_load_failed' => 'Failed to load relation data. Please try again.',
         'maintenance' => 'The site is currently under maintenance. This screen is mainly displayed during the Exment update.<br />* If this screen is displayed forever, follow the procedure at the URL below to cancel the maintenance.',
         'maintenance_id' => 'Release maintenance mode',
         'check_error_log' => 'The error details are output to the log file. Please contact the administrator.',

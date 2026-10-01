@@ -446,7 +446,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get Label Columns.
      *
-     * @return Collection|string
+        * @return Collection<int, CustomColumnMulti>|string
      */
 
     // @phpstan-ignore-next-line
@@ -458,10 +458,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             if (boolval(config('exment.expart_mode', false)) && isset($table_label_format)) {
                 return $table_label_format;
             }
-            return CustomColumnMulti::allRecords(function ($labelColumn) {
+            $labelColumns = CustomColumnMulti::allRecords(function ($labelColumn) {
                 return $labelColumn->custom_table_id == $this->id
                     && $labelColumn->multisetting_type == MultisettingType::TABLE_LABELS;
             }, false);
+            return $labelColumns->values();
         });
     }
 
@@ -2272,14 +2273,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected function getAccessibleUserOrganizationIds($target_table)
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE, $target_table, $this->table_name);
-        return System::cache($key, function () use ($target_table) {
+        $userId = \Exment::getUserId();
+        $key .= '.user.' . md5((string) ($userId ?? 'guest'));
+        $resolver = function () use ($target_table) {
             // $target_table : user or org
             $table = CustomTable::getEloquent($target_table);
             $query = $table->getValueQuery();
             $table->filterDisplayTable($query, $this);
 
             return $query->select(['id'])->pluck('id');
-        });
+        };
+
+        return isset($userId) ? System::cache($key, $resolver) : System::requestSession($key, $resolver);
     }
 
 
@@ -2419,9 +2424,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'display_table' => $displayTable,
             'all' => boolval(array_get($options, 'all')),
             'permission' => array_get($options, 'permission'),
-        ]));
+        ]) ?: '');
 
-        return System::requestSession($key, $resolver);
+        return clone System::requestSession($key, $resolver);
     }
     /**
      * get ajax uri for options for select, multipleselect.

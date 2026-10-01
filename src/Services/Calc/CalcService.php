@@ -55,7 +55,7 @@ class CalcService
 
         // @phpstan-ignore-next-line
         $relationInfo = $custom_form_block ? $custom_form_block->getRelationInfo($custom_table) : null;
-        foreach ($custom_form_block->custom_form_columns_cache as $form_column) {
+        foreach ($custom_form_block->custom_form_columns as $form_column) {
             if ($form_column->form_column_type != FormColumnType::COLUMN) {
                 continue;
             }

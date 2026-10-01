@@ -49,7 +49,7 @@ class AuthUserOrgHelper
             return null;
         }
 
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS, $target_table->id);
+        $key = static::getUserScopedCacheKey(sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS, $target_table->id));
         // @phpstan-ignore-next-line
         return static::_getRoleUserOrOrgQueryTable(SystemTableName::ORGANIZATION, $key, $target_table, $tablePermission, $builder);
     }
@@ -73,7 +73,7 @@ class AuthUserOrgHelper
             return null;
         }
 
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS, $target_table->id);
+        $key = static::getUserScopedCacheKey(sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS, $target_table->id));
         // @phpstan-ignore-next-line
         return static::_getRoleUserOrOrgQueryTable(SystemTableName::USER, $key, $target_table, $tablePermission, $builder);
     }
@@ -97,7 +97,7 @@ class AuthUserOrgHelper
             return null;
         }
         $target_table = CustomTable::getEloquent($target_table);
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS_ORGS, $target_table->id);
+        $key = static::getUserScopedCacheKey(sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS_ORGS, $target_table->id));
 
         // @phpstan-ignore-next-line
         return static::_getRoleUserOrOrgQueryTable(SystemTableName::USER, $key, $target_table, $tablePermission, $builder, function ($target_ids, $target_table) use ($tablePermission) {
@@ -147,13 +147,12 @@ class AuthUserOrgHelper
         // get custom_value's users
         $target_ids = [];
         $all = false;
+        $userId = \Exment::getUserId();
 
         if ($target_table->allUserAccessable()) {
             $all = true;
         } else {
-            // if set $tablePermission, always call
-            // @phpstan-ignore-next-line
-            if (isset($tablePermission) || is_null($target_ids = System::cache($key))) {
+            $resolver = function () use ($target_table, $table_name, $tablePermission, $target_ids_callback) {
                 // get user ids
                 // @phpstan-ignore-next-line
                 $target_ids = static::getRoleUserOrgId($target_table ?? [], $table_name, $tablePermission);
@@ -162,10 +161,14 @@ class AuthUserOrgHelper
                     $target_ids = $target_ids_callback($target_ids, $target_table);
                 }
 
-                if (!isset($tablePermission)) {
-                    System::cache($key, $target_ids);
-                }
-            }
+                return $target_ids;
+            };
+
+            // Explicit permission checks and unauthenticated contexts must not use persistent cache.
+            // @phpstan-ignore-next-line
+            $target_ids = isset($tablePermission)
+                ? $resolver()
+                : (!is_null($userId) ? System::cache($key, $resolver) : System::requestSession($key, $resolver));
         }
 
         $target_ids = array_unique($target_ids);
@@ -178,6 +181,17 @@ class AuthUserOrgHelper
         }
 
         return $builder;
+    }
+
+    /**
+     * Scope a permission cache key to the current Exment user.
+     *
+     * @param string $key Base cache key for the target table and permission query.
+     * @return string Cache key that cannot be shared by different users.
+     */
+    protected static function getUserScopedCacheKey(string $key): string
+    {
+        return $key . '.user.' . md5((string) (\Exment::getUserId() ?? 'guest'));
     }
 
 
