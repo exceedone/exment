@@ -354,6 +354,8 @@ EOT;
             }
         });
 
+        $this->manageViewOnlyColumns($form);
+
         // form validation saving event
         $form->validatorSavingCallback(function ($input, $message, $form) {
             $model = $form->model();
@@ -431,6 +433,77 @@ EOT;
         $form->prepareCallback(function ($input) {
             array_forget($input, 'updated_at');
             return $input;
+        });
+    }
+
+    /**
+     * View only (表示のみ) columns: the field posts its value back (hidden input in form/field/display.blade.php),
+     * so a new record (create, copy, new child row) saves the default or copied value.
+     * When the record already exists, drop the posted value: CustomValue::prepareValue() then keeps the stored one,
+     * so the column cannot be changed from the browser.
+     */
+    // @phpstan-ignore-next-line
+    protected function manageViewOnlyColumns($form)
+    {
+        // input key ("value" for the default block, relation name for a 1:n block) => view only column names
+        $viewOnlyColumns = [];
+        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            if (!$custom_form_block->available) {
+                continue;
+            }
+            if ($custom_form_block->form_block_type == FormBlockType::DEFAULT) {
+                $input_key = 'value';
+            } elseif ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
+                list(, $input_key) = $custom_form_block->getRelationInfo($this->custom_table);
+            } else {
+                continue;
+            }
+            if (is_null($input_key)) {
+                continue;
+            }
+            foreach ($custom_form_block->custom_form_columns as $form_column) {
+                if ($form_column->form_column_type != FormColumnType::COLUMN) {
+                    continue;
+                }
+                $options = $form_column->options ?? [];
+                if (!boolval(array_get($options, 'view_only')) && array_get($options, 'field_showing_type') != 'view_only') {
+                    continue;
+                }
+                $custom_column = $form_column->custom_column_cache;
+                if (isset($custom_column)) {
+                    $viewOnlyColumns[$input_key][] = $custom_column->column_name;
+                }
+            }
+        }
+        if (count($viewOnlyColumns) == 0) {
+            return;
+        }
+
+        $form->saving(function ($form) use ($viewOnlyColumns) {
+            // new record (create, copy): keep the posted default / copied values
+            if (!$form->model()->exists) {
+                return;
+            }
+            foreach ($viewOnlyColumns as $input_key => $column_names) {
+                $input = $form->input($input_key);
+                if (!is_array($input)) {
+                    continue;
+                }
+                if ($input_key == 'value') {
+                    array_forget($input, $column_names);
+                } else {
+                    foreach ($input as $row_key => $row) {
+                        // a new child row (no id) keeps its default value
+                        if (!is_array($row) || is_nullorempty(array_get($row, 'id'))) {
+                            continue;
+                        }
+                        foreach ($column_names as $column_name) {
+                            array_forget($input[$row_key], "value.{$column_name}");
+                        }
+                    }
+                }
+                $form->input($input_key, $input);
+            }
         });
     }
 

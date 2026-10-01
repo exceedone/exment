@@ -39,6 +39,12 @@ namespace Exment {
             });
         }
         public static AddEvent() {
+            // Safety: never keep the pre-show guard across screen transitions.
+            try {
+                document.documentElement.classList.remove('exment-dtp-opening');
+            }
+            catch (e) {
+            }
             CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
             CommonEvent.addShowModalEvent();
@@ -1051,13 +1057,562 @@ namespace Exment {
 
         
         /**
+         * Keep an open calendar (moved to <body> on dp.show) at the same distance from its field.
+         * Re-placed when the page or any scroll container scrolls, when the window is resized
+         * (bootstrap-datetimepicker then puts the widget back into its parent; move it out again),
+         * and when the calendar changes height (days/months/years views). Above the field, its bottom edge is kept.
+         */
+        public static followDatetimepickerWidget($widget: JQuery<HTMLElement>, $anchor: JQuery<HTMLElement>) {
+            if ((window as any).__exment_dtp_follow_stop) {
+                (window as any).__exment_dtp_follow_stop();
+            }
+            if (!$widget || !$widget.length || !$anchor || !$anchor.length) {
+                return;
+            }
+            // use css top/left, not offset(): .dropdown-menu has a 2px top margin that offset() includes
+            var anchorStart = $anchor.offset();
+            var cssTop = parseFloat($widget.css('top'));
+            var above = $widget.hasClass('top');
+            var dTop = cssTop - anchorStart.top;
+            var dBottom = cssTop + $widget.outerHeight() - anchorStart.top;
+            var dLeft = parseFloat($widget.css('left')) - anchorStart.left;
+            var placeClasses = {
+                top: above,
+                bottom: $widget.hasClass('bottom'),
+                pullRight: $widget.hasClass('pull-right'),
+            };
+            var frame: number = null;
+            var observer: ResizeObserver = null;
+            var stop: () => void;
+            var replace = function () {
+                frame = null;
+                if (!$.contains(document.documentElement, $widget[0])) {
+                    stop();
+                    return;
+                }
+                if ($widget.parent()[0] !== document.body) {
+                    $(document.body).append($widget);
+                }
+                var off = $anchor.offset();
+                var maxLeft = $(window).scrollLeft() + $(window).width() - $widget.outerWidth();
+                $widget
+                    .toggleClass('top', placeClasses.top)
+                    .toggleClass('bottom', placeClasses.bottom)
+                    .toggleClass('pull-right', placeClasses.pullRight)
+                    .css({
+                        position: 'absolute',
+                        top: above ? off.top + dBottom - $widget.outerHeight() : off.top + dTop,
+                        left: Math.max(0, Math.min(off.left + dLeft, maxLeft)),
+                        bottom: 'auto',
+                        right: 'auto',
+                        'z-index': 9999,
+                    });
+            };
+            var schedule = function () {
+                if (frame === null) {
+                    frame = window.requestAnimationFrame(replace);
+                }
+            };
+            stop = function () {
+                document.removeEventListener('scroll', schedule, true);
+                $(window).off('resize.exmentDtpFollow');
+                $(document).off('dp.hide.exmentDtpFollow');
+                if (observer) {
+                    observer.disconnect();
+                    observer = null;
+                }
+                if (frame !== null) {
+                    window.cancelAnimationFrame(frame);
+                    frame = null;
+                }
+                (window as any).__exment_dtp_follow_stop = null;
+            };
+            // capture phase: scroll events of containers do not bubble
+            document.addEventListener('scroll', schedule, true);
+            // runs after the plugin's own resize handler (bound earlier, in show())
+            $(window).on('resize.exmentDtpFollow', replace);
+            $(document).on('dp.hide.exmentDtpFollow', stop);
+            if (typeof window.ResizeObserver === 'function') {
+                observer = new ResizeObserver(schedule);
+                observer.observe($widget[0]);
+            }
+            (window as any).__exment_dtp_follow_stop = stop;
+        }
+        /**
          * add field event (datepicker, icheck)
          */
         private static addFieldEvent() {
-            $('[data-add-date]').not('.added-datepicker').each(function (index, elem: Element) {
-                $(elem).datetimepicker({"useCurrent":false, "format":"YYYY-MM-DD", "locale":"ja", "allowInputToggle":true});
-                $(elem).addClass('added-datepicker');
-            });
+            // Lazy init/show (installed once): fixes pages where datetimepicker plugin loads after the initial AddEvent().
+            if (!(window as any).__exment_datepicker_lazy_init) {
+                (window as any).__exment_datepicker_lazy_init = true;
+                $(document)
+                    .off('click.exmentDtpLazy')
+                    .on('click.exmentDtpLazy', '[data-add-date], input[data-column_type="date"]', function () {
+                        try {
+                            if (typeof ($.fn as any).datetimepicker !== 'function') {
+                                return;
+                            }
+                            var $src = $(this);
+                            var $initElem = $src.is('.input-group.date') ? $src : $src.closest('.input-group.date');
+                            if ($initElem.length === 0) {
+                                $initElem = $src;
+                            }
+
+                            // bootstrap-datetimepicker requires a relative positioned container.
+                            // Prefer the input-group, else fall back to a nearby parent/form-group and enforce position:relative.
+                            var $widgetParent = $src.closest('.input-group');
+                            if ($widgetParent.length === 0) {
+                                $widgetParent = $src.closest('.form-group');
+                            }
+                            if ($widgetParent.length === 0) {
+                                $widgetParent = $src.parent();
+                            }
+                            try {
+                                if ($widgetParent && $widgetParent.length && $widgetParent.css('position') === 'static') {
+                                    $widgetParent.css('position', 'relative');
+                                }
+                            }
+                            catch (eWp) {
+                            }
+
+                            // Already initialized?
+                            var picker = $src.data('DateTimePicker') || $initElem.data('DateTimePicker') || $src.closest('.input-group').data('DateTimePicker');
+                            if (!picker) {
+                                ($initElem as any).datetimepicker({ "useCurrent": false, "format": "YYYY-MM-DD", "locale": "ja", "allowInputToggle": true, "widgetParent": $widgetParent });
+                                $initElem.addClass('added-datepicker');
+                                picker = $src.data('DateTimePicker') || $initElem.data('DateTimePicker') || $src.closest('.input-group').data('DateTimePicker');
+                            }
+
+                            // Ensure it opens on click.
+                            if (picker && typeof picker.show === 'function') {
+                                picker.show();
+                            }
+                        }
+                        catch (e) {
+                        }
+                    });
+            }
+
+            if (typeof ($.fn as any).datetimepicker === 'function') {
+                // Global handler: dp.show may be triggered on a plain `.input-group` wrapper (no `.date` class).
+                // We only act when it is related to Exment date inputs.
+                if (!(window as any).__exment_datetimepicker_body_fix) {
+                    (window as any).__exment_datetimepicker_body_fix = true;
+
+                    // Pre-show guard: set a class before the picker becomes visible.
+                    // This lets CSS force the widget to fixed/hidden at (0,0) so it can't create temporary scrollbars.
+                    $(document)
+                        .off('mousedown.exmentDtpPrep pointerdown.exmentDtpPrep touchstart.exmentDtpPrep focusin.exmentDtpPrep')
+                        .on('mousedown.exmentDtpPrep pointerdown.exmentDtpPrep touchstart.exmentDtpPrep focusin.exmentDtpPrep', '[data-add-date], input[data-column_type="date"], .input-group .input-group-addon, .input-group .btn', function (e) {
+                            try {
+                                var $src = $(this);
+                                var $group = $src.closest('.input-group');
+                                var $dateInput = $src.is('[data-add-date], input[data-column_type="date"]')
+                                    ? $src
+                                    : $group.find('input[data-column_type="date"], input[data-add-date]').first();
+                                if ($dateInput && $dateInput.length && $dateInput.closest('.table-responsive').length) {
+                                    document.documentElement.classList.add('exment-dtp-opening');
+
+                                    // Safety timeout: if dp.show never fires (not initialized yet, etc.), don't leave the guard stuck.
+                                    try {
+                                        if ((window as any).__exment_dtp_opening_timer) {
+                                            clearTimeout((window as any).__exment_dtp_opening_timer);
+                                        }
+                                        (window as any).__exment_dtp_opening_timer = setTimeout(function () {
+                                            try {
+                                                document.documentElement.classList.remove('exment-dtp-opening');
+                                            }
+                                            catch (eT) {
+                                            }
+                                        }, 1500);
+                                    }
+                                    catch (eTimer) {
+                                    }
+
+                                    if (e && (e.type === 'mousedown' || e.type === 'pointerdown' || e.type === 'touchstart')) {
+                                        // IMPORTANT:
+                                        // - Clicking the input itself already triggers DateTimePicker via allowInputToggle.
+                                        // - If we also call picker.show() here, some pages end up with two widgets.
+                                        // So we only force-show when the user clicked an addon/button (not the input).
+                                        var isDirectInputClick = $src.is('input');
+
+                                        // Ensure the picker still opens when we preventDefault (addon/button click).
+                                        if (!isDirectInputClick) {
+                                            try {
+                                                var picker = $dateInput.data('DateTimePicker');
+                                                if (!picker) {
+                                                    picker = $dateInput.closest('.input-group').data('DateTimePicker');
+                                                }
+                                                if (picker && typeof picker.show === 'function') {
+                                                    picker.show();
+                                                }
+                                            }
+                                            catch (eShow) {
+                                            }
+
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                            catch (e) {
+                            }
+                        })
+                        .off('dp.hide.exmentDtpPrep')
+                        .on('dp.hide.exmentDtpPrep', function () {
+                            try {
+                                document.documentElement.classList.remove('exment-dtp-opening');
+                            }
+                            catch (e2) {
+                            }
+                        });
+
+                    $(document)
+                        .off('dp.show.exmentFix')
+                        .on('dp.show.exmentFix', function (ev) {
+                            try {
+                                var $t = $(ev.target);
+
+                                // Detect whether this dp.show is for an Exment date field.
+                                var isExmentDate = $t.is('[data-add-date], input[data-column_type="date"]') ||
+                                    $t.closest('[data-add-date]').length > 0 ||
+                                    $t.closest('.input-group').find('input[data-column_type="date"]').length > 0;
+                                if (!isExmentDate) {
+                                    return;
+                                }
+
+                                // If another datepicker plugin is also bound, hide it to avoid "two calendars".
+                                try {
+                                    $('.datepicker.datepicker-dropdown:visible').hide();
+                                }
+                                catch (eHideDp0) {
+                                }
+
+                                // Anchor input used for positioning.
+                                var $anchorInput = null;
+                                if ($t && $t.length) {
+                                    if ($t.is('input')) {
+                                        $anchorInput = $t;
+                                    }
+                                    else {
+                                        $anchorInput = $t.closest('.input-group').find('input[data-column_type="date"], input[data-add-date], input').first();
+                                    }
+                                }
+
+                                // Ensure pre-show guard is set even for keyboard-triggered show.
+                                try {
+                                    if ($anchorInput && $anchorInput.length && $anchorInput.closest('.table-responsive').length) {
+                                        document.documentElement.classList.add('exment-dtp-opening');
+                                    }
+                                }
+                                catch (e0) {
+                                }
+
+                                // Try to locate the picker instance from target, input-group wrapper, or input.
+                                var picker = $t.data('DateTimePicker');
+                                if (!picker) {
+                                    picker = $t.closest('.input-group').data('DateTimePicker');
+                                }
+                                if (!picker) {
+                                    var $input = $t.is('input') ? $t : $t.find('input');
+                                    if ($input.length === 0) {
+                                        $input = $t.closest('.input-group').find('input');
+                                    }
+                                    picker = $input.data('DateTimePicker');
+                                }
+
+                                // IMPORTANT: Do NOT call picker.widgetParent() here; that method triggers hide/show.
+                                var $pickerWidget = null;
+                                if (picker && typeof picker.widget === 'function') {
+                                    var $w = picker.widget();
+                                    if ($w && $w.length) {
+                                        $pickerWidget = $w;
+                                        // Ensure the widget never affects document scrollbars while moving.
+                                        $w.css({ position: 'absolute', top: 0, left: 0, right: 'auto', bottom: 'auto' });
+                                        if ($w.parent()[0] !== document.body) {
+                                            $(document.body).append($w);
+                                        }
+                                        // Prevent a visible "jump" while we move/reposition the widget.
+                                        $w.css('visibility', 'hidden');
+                                        $w.css('z-index', 1060);
+                                    }
+                                }
+
+                                // Fallback: some pages store the instance differently; always move visible widgets to body.
+                                // Do it synchronously to avoid a one-frame "jump" from setTimeout.
+                                (function () {
+                                    try {
+                                        var $visibleDtp = ($pickerWidget && $pickerWidget.length)
+                                            ? $pickerWidget
+                                            : $('.bootstrap-datetimepicker-widget:visible').first();
+                                        if ($visibleDtp.length) {
+                                            // If multiple widgets exist (can happen with repeated init or race),
+                                            // force-hide any other visible widgets to prevent a "second calendar".
+                                            try {
+                                                var $otherVisibleDtp = $('.bootstrap-datetimepicker-widget:visible').not($visibleDtp);
+                                                if ($otherVisibleDtp.length) {
+                                                    $otherVisibleDtp
+                                                        .css({ position: 'absolute', top: 0, left: 0, right: 'auto', bottom: 'auto', visibility: 'hidden' })
+                                                        .hide();
+                                                }
+                                            }
+                                            catch (eHide1) {
+                                            }
+
+                                            // Move widget to body to avoid overflow clipping.
+                                            $visibleDtp.css('visibility', 'hidden');
+                                            // Use absolute positioning so the widget follows the page scroll like the input/icon.
+                                            $visibleDtp.css({ position: 'absolute', top: 0, left: 0, right: 'auto', bottom: 'auto' });
+                                            if ($visibleDtp.parent()[0] !== document.body) {
+                                                $(document.body).append($visibleDtp);
+                                            }
+                                            $visibleDtp.css('z-index', 9999);
+
+                                            // Reposition under the input (since moving to body breaks relative positioning).
+                                            if ($anchorInput && $anchorInput.length) {
+                                                var off = $anchorInput.offset();
+                                                if (off) {
+                                                    var winTop = $(window).scrollTop();
+                                                    var winLeft = $(window).scrollLeft();
+                                                    var winH = $(window).height();
+                                                    var winW = $(window).width();
+
+                                                    var anchorH = $anchorInput.outerHeight();
+                                                    var anchorW = $anchorInput.outerWidth();
+                                                    var anchorTopVp = off.top - winTop;
+                                                    var anchorLeftVp = off.left - winLeft;
+
+                                                    var widgetH = $visibleDtp.outerHeight();
+                                                    var widgetW = $visibleDtp.outerWidth();
+
+                                                    // Vertical: prefer fit below/above; otherwise clamp toward side with more space.
+                                                    var spaceBelow = winH - (anchorTopVp + anchorH);
+                                                    var spaceAbove = anchorTopVp;
+                                                    var desiredTopVp;
+                                                    var placeBelow;
+                                                    if (widgetH <= spaceBelow) {
+                                                        placeBelow = true;
+                                                        desiredTopVp = anchorTopVp + anchorH;
+                                                    }
+                                                    else if (widgetH <= spaceAbove) {
+                                                        placeBelow = false;
+                                                        desiredTopVp = anchorTopVp - widgetH;
+                                                    }
+                                                    else {
+                                                        // Not enough space either side; choose the side with more space.
+                                                        placeBelow = spaceBelow >= spaceAbove;
+                                                        desiredTopVp = placeBelow
+                                                            ? Math.min(anchorTopVp + anchorH, Math.max(0, winH - widgetH))
+                                                            : Math.max(0, anchorTopVp - widgetH);
+                                                    }
+                                                    // Convert viewport coords to document coords (absolute positioning).
+                                                    var top = winTop + desiredTopVp;
+
+                                                    // Horizontal: prefer align left, else align right edge, else clamp.
+                                                    var desiredLeftVp;
+                                                    if (anchorLeftVp + widgetW <= winW) {
+                                                        desiredLeftVp = anchorLeftVp;
+                                                    }
+                                                    else if (anchorLeftVp + anchorW - widgetW >= 0) {
+                                                        desiredLeftVp = anchorLeftVp + anchorW - widgetW;
+                                                    }
+                                                    else {
+                                                        desiredLeftVp = Math.max(0, winW - widgetW);
+                                                    }
+                                                    // Fine-tune: shift popup slightly left only when there's an addon/icon.
+                                                    // For plain inputs (no icon), keep aligned so the arrow points correctly.
+                                                    var fineTuneLeft = 0;
+                                                    try {
+                                                        if ($anchorInput && $anchorInput.length) {
+                                                            var $ig = $anchorInput.closest('.input-group');
+                                                            if ($ig.length && ($ig.find('.input-group-addon, .input-group-btn, .btn').length > 0)) {
+                                                                fineTuneLeft = 36;
+                                                            }
+                                                        }
+                                                    }
+                                                    catch (eTune) {
+                                                    }
+                                                    desiredLeftVp = Math.max(0, Math.min(desiredLeftVp - fineTuneLeft, winW - widgetW));
+                                                    // Convert viewport coords to document coords (absolute positioning).
+                                                    var left = winLeft + desiredLeftVp;
+
+                                                    // Keep arrow direction consistent.
+                                                    $visibleDtp.toggleClass('top', !placeBelow).toggleClass('bottom', placeBelow);
+                                                    $visibleDtp.css({ position: 'absolute', top: top, left: left, bottom: 'auto', right: 'auto' });
+                                                }
+                                            }
+
+                                            // Show after repositioning.
+                                            $visibleDtp.css('visibility', 'visible');
+
+                                            // The widget now lives in <body>: keep it attached to the field while the page,
+                                            // a scroll container (has-many table, modal) or the window moves.
+                                            CommonEvent.followDatetimepickerWidget($visibleDtp, $anchorInput);
+
+                                            // Safety: hide any other widgets again before releasing the global guard.
+                                            try {
+                                                var $otherVisibleDtp2 = $('.bootstrap-datetimepicker-widget:visible').not($visibleDtp);
+                                                if ($otherVisibleDtp2.length) {
+                                                    $otherVisibleDtp2
+                                                        .css({ position: 'absolute', top: 0, left: 0, right: 'auto', bottom: 'auto', visibility: 'hidden' })
+                                                        .hide();
+                                                }
+                                            }
+                                            catch (eHide2) {
+                                            }
+
+                                            // Clear pre-show guard once positioned.
+                                            try {
+                                                document.documentElement.classList.remove('exment-dtp-opening');
+                                            }
+                                            catch (e3) {
+                                            }
+                                        }
+                                        var $visibleDp = $('.datepicker.datepicker-dropdown:visible');
+                                        if ($visibleDp.length) {
+                                            // Same issue can happen with bootstrap-datepicker: ensure only one is visible.
+                                            try {
+                                                var $otherVisibleDp = $('.datepicker.datepicker-dropdown:visible').not($visibleDp);
+                                                if ($otherVisibleDp.length) {
+                                                    $otherVisibleDp
+                                                        .css({ position: 'fixed', top: 0, left: 0, right: 'auto', bottom: 'auto', visibility: 'hidden' })
+                                                        .hide();
+                                                }
+                                            }
+                                            catch (eHide3) {
+                                            }
+
+                                            var scrollTopBefore2 = $(window).scrollTop();
+                                            var scrollLeftBefore2 = $(window).scrollLeft();
+
+                                            $visibleDp.css('visibility', 'hidden');
+                                            $(document.body).append($visibleDp);
+                                            if ($(window).scrollTop() !== scrollTopBefore2 || $(window).scrollLeft() !== scrollLeftBefore2) {
+                                                window.scrollTo(scrollLeftBefore2, scrollTopBefore2);
+                                            }
+                                            $visibleDp.css('z-index', 9999);
+                                            if ($anchorInput && $anchorInput.length) {
+                                                var off2 = $anchorInput.offset();
+                                                if (off2) {
+                                                    var winTop2 = $(window).scrollTop();
+                                                    var winLeft2 = $(window).scrollLeft();
+                                                    var winH2 = $(window).height();
+                                                    var winW2 = $(window).width();
+
+                                                    var anchorH2 = $anchorInput.outerHeight();
+                                                    var anchorW2 = $anchorInput.outerWidth();
+                                                    var anchorTopVp2 = off2.top - winTop2;
+                                                    var anchorLeftVp2 = off2.left - winLeft2;
+
+                                                    var widgetH2 = $visibleDp.outerHeight();
+                                                    var widgetW2 = $visibleDp.outerWidth();
+
+                                                    var spaceBelow2 = winH2 - (anchorTopVp2 + anchorH2);
+                                                    var spaceAbove2 = anchorTopVp2;
+                                                    var desiredTopVp2;
+                                                    var placeBelow2;
+                                                    if (widgetH2 <= spaceBelow2) {
+                                                        placeBelow2 = true;
+                                                        desiredTopVp2 = anchorTopVp2 + anchorH2;
+                                                    }
+                                                    else if (widgetH2 <= spaceAbove2) {
+                                                        placeBelow2 = false;
+                                                        desiredTopVp2 = anchorTopVp2 - widgetH2;
+                                                    }
+                                                    else {
+                                                        placeBelow2 = spaceBelow2 >= spaceAbove2;
+                                                        desiredTopVp2 = placeBelow2
+                                                            ? Math.min(anchorTopVp2 + anchorH2, Math.max(0, winH2 - widgetH2))
+                                                            : Math.max(0, anchorTopVp2 - widgetH2);
+                                                    }
+                                                    var top2 = winTop2 + desiredTopVp2;
+
+                                                    var desiredLeftVp2;
+                                                    if (anchorLeftVp2 + widgetW2 <= winW2) {
+                                                        desiredLeftVp2 = anchorLeftVp2;
+                                                    }
+                                                    else if (anchorLeftVp2 + anchorW2 - widgetW2 >= 0) {
+                                                        desiredLeftVp2 = anchorLeftVp2 + anchorW2 - widgetW2;
+                                                    }
+                                                    else {
+                                                        desiredLeftVp2 = Math.max(0, winW2 - widgetW2);
+                                                    }
+                                                    var left2 = winLeft2 + desiredLeftVp2;
+
+                                                    $visibleDp.toggleClass('top', !placeBelow2).toggleClass('bottom', placeBelow2);
+                                                    $visibleDp.css({ top: top2, left: left2, bottom: 'auto', right: 'auto' });
+                                                }
+                                            }
+
+                                            // Show after repositioning.
+                                            $visibleDp.css('visibility', 'visible');
+                                        }
+                                    }
+                                    catch (e2) {
+                                    }
+                                })();
+                            }
+                            catch (e) {
+                                // swallow to avoid breaking picker display
+                            }
+                        });
+                }
+
+                // exment date fields can be marked by data-add-date or data-column_type="date".
+                // Prefer initializing on the .input-group.date wrapper (when present) to keep bootstrap-datetimepicker happy.
+                var initTargets = [];
+                $('[data-add-date], input[data-column_type="date"]').each(function (index, elem) {
+                    var $elem = $(elem);
+                    var $initElem = $elem.is('.input-group.date') ? $elem : $elem.closest('.input-group.date');
+                    if ($initElem.length === 0) {
+                        $initElem = $elem;
+                    }
+                    var dom = $initElem.get(0);
+                    if (initTargets.indexOf(dom) === -1) {
+                        initTargets.push(dom);
+                    }
+                });
+
+                $(initTargets).not('.added-datepicker').each(function (index, elem) {
+                    var $elem = $(elem);
+                    // If already initialized elsewhere, force widgetParent/body and ensure z-index/move on show.
+                    var existingPicker = $elem.data('DateTimePicker');
+                    if (!existingPicker) {
+                        var $input = $elem.is('input') ? $elem : $elem.find('input');
+                        existingPicker = $input.data('DateTimePicker');
+                    }
+                    if (!existingPicker) {
+                        var $group = $elem.closest('.input-group');
+                        if ($group.length) {
+                            existingPicker = $group.data('DateTimePicker');
+                        }
+                    }
+                    if (existingPicker) {
+                        $elem.addClass('added-datepicker');
+                        return;
+                    }
+
+                    // bootstrap-datetimepicker requires a relative positioned container for its widget parent.
+                    // Use the input-group/date wrapper if possible; otherwise use the element's parent and enforce position:relative.
+                    var $widgetParent = $elem.is('.input-group') ? $elem : $elem.closest('.input-group');
+                    if ($widgetParent.length === 0) {
+                        $widgetParent = $elem.closest('.form-group');
+                    }
+                    if ($widgetParent.length === 0) {
+                        $widgetParent = $elem.parent();
+                    }
+                    try {
+                        if ($widgetParent && $widgetParent.length && $widgetParent.css('position') === 'static') {
+                            $widgetParent.css('position', 'relative');
+                        }
+                    }
+                    catch (eWp2) {
+                    }
+
+                    ($elem as any).datetimepicker({ "useCurrent": false, "format": "YYYY-MM-DD", "locale": "ja", "allowInputToggle": true, "widgetParent": $widgetParent });
+                    $elem.addClass('added-datepicker');
+                });
+            }
             $('[data-add-icheck]').not('.added-icheck').each(function (index, elem: Element) {
                 $(elem).iCheck({checkboxClass:'icheckbox_minimal-blue'});
                 $(elem).addClass('added-icheck');

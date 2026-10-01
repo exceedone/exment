@@ -216,40 +216,32 @@
         }
     }
 
+    function onSubmit(e) {
+        var fields = findHiddenRequired();
+        if (!fields.length) return;
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        showAlert(fields);
+
+        if (fields[0].element) {
+            $('html, body').animate({
+                scrollTop: fields[0].element.closest('.has-many-table-div').offset().top - 100
+            }, 500);
+        }
+
+        return false;
+    }
+
+    // Bind on the form itself so it runs before the document-level pjax submit.
     function init() {
-        var $form = $('form').has('.has-many-table');
-        if (!$form.length) return;
-
-        $form.on('submit', function(e) {
-            var fields = findHiddenRequired();
-            if (!fields.length) return;
-
-            e.preventDefault();
-            e.stopImmediatePropagation();
-
-            showAlert(fields);
-
-            if (fields[0].element) {
-                $('html, body').animate({
-                    scrollTop: fields[0].element.closest('.has-many-table-div').offset().top - 100
-                }, 500);
-            }
-
-            return false;
-        });
-
-        $(document).on('pjax:beforeSend', function(e) {
-            var $targetForm = $(e.relatedTarget).closest('form');
-            if (!$targetForm.has('.has-many-table').length) return;
-
-            var fields = findHiddenRequired();
-            if (!fields.length) return;
-
-            e.preventDefault();
-            showAlert(fields);
-            return false;
+        $('form').has('.has-many-table').each(function() {
+            $(this).off('submit.exmentHmValidation').on('submit.exmentHmValidation', onSubmit);
         });
     }
 
     $(init);
+    // Exment loads pages with PJAX: bind again for every new page content.
+    $(document).on('pjax:end', init);
 })(jQuery);

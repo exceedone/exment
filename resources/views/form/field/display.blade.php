@@ -26,7 +26,9 @@
                     @endif
                 @endif
                 </span>
-                {{-- Hidden input to save value to database (array-safe for multi-value columns) --}}
+                {{-- Hidden input to save value to database (array-safe for multi-value columns).
+                     A new record (create, copy, new child row) saves the default / copied value through it.
+                     For an existing record the server drops it and keeps the stored value (DefaultForm::manageViewOnlyColumns). --}}
                 @if(is_array($value))
                     @foreach(\Illuminate\Support\Arr::flatten($value) as $hiddenValue)
                     <input type="hidden" name="{{$name}}[]" value="{{ $hiddenValue }}" />

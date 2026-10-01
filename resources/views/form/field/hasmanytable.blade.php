@@ -123,7 +123,7 @@
     .has-many-table .form-group-vertical{
         margin-bottom: 0 !important;
     }
-    .has-many-table td .form-group-vertical label.control-label {
+    .has-many-table td .form-group-vertical > label.control-label {
         display: none !important;
     }
     .table-container {

@@ -369,6 +369,8 @@ class File extends CustomItem
         // required
         if ($this->required()) {
             $field->removeRule('required');
+            // file-required.js may set "required" again only on these inputs
+            $field->attribute(['data-file-required' => '1']);
         }
 
         // if not has value "old", and $custom_value has file path value, set again

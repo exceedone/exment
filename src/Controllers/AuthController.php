@@ -281,6 +281,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                     }
                     if ($editable_userinfo == EditableUserInfoType::VIEW) {
                         $column_item->setFormColumnOptions(['view_only' => true]);
+                        // display only: never save a posted value for this column
+                        $form->ignore("base_user.value.{$custom_column->column_name}");
                     }
                     $field = $column_item
                         ->setCustomValue(\Exment::user()->base_user)
