@@ -120,6 +120,54 @@ class MeiliSearchServiceTest extends TestCase
         $this->assertSame('iPhone 15', MeiliSearchService::pickHighlightedSnippet($formatted));
     }
 
+    public function testHeaderSearchRetrievesAndCropsOnlyUsefulAttributes(): void
+    {
+        $options = MeiliSearchService::highlightedSearchOptions(40);
+
+        $this->assertSame(40, $options['limit']);
+        $this->assertSame(
+            ['table_name', 'value_id', 'label', 'fields', 'attachments.file_uuid', 'attachments.name'],
+            $options['attributesToRetrieve']
+        );
+        $this->assertSame(['fields', 'attachments.text'], $options['attributesToCrop']);
+        $this->assertSame(['label', 'fields', 'attachments.name', 'attachments.text'], $options['attributesToHighlight']);
+        $this->assertGreaterThan(0, $options['cropLength']);
+        $this->assertLessThanOrEqual(30, $options['cropLength']);
+        $this->assertSame(MeiliSearchService::HIGHLIGHT_PRE, $options['highlightPreTag']);
+    }
+
+    public function testPickHighlightShowsTheMatchedAttachmentBeforeRecordFields(): void
+    {
+        $pre = MeiliSearchService::HIGHLIGHT_PRE;
+        $post = MeiliSearchService::HIGHLIGHT_POST;
+        $formatted = [
+            'label' => 'Customer 007',
+            'fields' => ['notes' => "contract {$pre}renewal{$post}"],
+            'attachments' => [
+                ['file_uuid' => 'b', 'name' => 'other.pdf', 'text' => "Budget {$pre}renewal{$post} approved"],
+                ['file_uuid' => 'a', 'name' => "{$pre}renewal{$post}.pdf", 'text' => 'Summary'],
+            ],
+        ];
+
+        $this->assertSame("{$pre}renewal{$post}.pdf — Summary", MeiliSearchService::pickHighlightedSnippet($formatted));
+        unset($formatted['fields']);
+        $this->assertSame("{$pre}renewal{$post}.pdf — Summary", MeiliSearchService::pickHighlightedSnippet($formatted));
+        $formatted['attachments'][1]['name'] = 'renewal.pdf';
+        $this->assertSame("other.pdf — Budget {$pre}renewal{$post} approved", MeiliSearchService::pickHighlightedSnippet($formatted));
+    }
+
+    public function testAttachmentSnippetUsesNameAndTextFromTheSameUuid(): void
+    {
+        $pre = MeiliSearchService::HIGHLIGHT_PRE;
+        $post = MeiliSearchService::HIGHLIGHT_POST;
+        $formatted = ['label' => 'Parent', 'attachments' => [
+            ['file_uuid' => 'z', 'name' => '<script>bad</script>.pdf', 'text' => 'Unrelated text'],
+            ['file_uuid' => 'a', 'name' => 'matched.pdf', 'text' => "Hello {$pre}world{$post}"],
+        ]];
+
+        $this->assertSame("matched.pdf — Hello {$pre}world{$post}", MeiliSearchService::pickHighlightedSnippet($formatted));
+    }
+
     public function testSortFacetsDescendingByCount(): void
     {
         $this->assertSame(

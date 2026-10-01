@@ -12,7 +12,7 @@ class IndexSettingsTest extends TestCase
         $s = IndexSettings::build();
 
         // label first in searchableAttributes -> highest weight (ranking rule 'attribute').
-        $this->assertSame(['label', 'fields', 'table_label'], $s['searchableAttributes']);
+        $this->assertSame(['label', 'fields', 'attachments.name', 'attachments.text', 'table_label'], $s['searchableAttributes']);
         // table_name + v1 filter axes are always filterable.
         $this->assertSame(['table_name', 'f_date', 'f_user', 'facets'], $s['filterableAttributes']);
         // f_date sortable (range filter + time ordering).
@@ -45,6 +45,36 @@ class IndexSettingsTest extends TestCase
         $this->assertFalse($s['typoTolerance']['enabled']);
         $this->assertSame(4, $s['typoTolerance']['minWordSizeForTypos']['oneTypo']);
         $this->assertSame(8, $s['typoTolerance']['minWordSizeForTypos']['twoTypos']);
+    }
+
+    public function testLegacyAttachmentAttributesAreMappedAndDeduplicated(): void
+    {
+        $s = IndexSettings::build(['searchable_attributes' => [
+            'label', 'fields', 'attachment_names', 'attachments.name', 'attachment_text', 'table_label',
+        ]]);
+
+        $this->assertSame(
+            ['label', 'fields', 'attachments.name', 'attachments.text', 'table_label'],
+            $s['searchableAttributes']
+        );
+    }
+
+    public function testOldDefaultSearchableOrderMovesNamesBeforeText(): void
+    {
+        $s = IndexSettings::build(['searchable_attributes' => [
+            'label', 'fields', 'attachment_text', 'attachment_names', 'table_label',
+        ]]);
+
+        $this->assertSame(IndexSettings::DEFAULT_SEARCHABLE, $s['searchableAttributes']);
+    }
+
+    public function testLegacyAttachmentAttributesMoveAfterRecordFields(): void
+    {
+        $s = IndexSettings::build(['searchable_attributes' => [
+            'attachment_text', 'label', 'fields', 'attachment_names', 'table_label',
+        ]]);
+
+        $this->assertSame(IndexSettings::DEFAULT_SEARCHABLE, $s['searchableAttributes']);
     }
 
     public function testEmptyOverrideFallsBackToDefault(): void

@@ -129,7 +129,7 @@ class IndexPipelineTest extends TestCase
             . ' so IndexPipelineTest is obsolete.'
         );
         $this->assertSame(
-            ['facetColumns', 'rangeColumns', 'aliases'],
+            ['facetColumns', 'rangeColumns', 'aliases', 'attachmentsByRecord'],
             array_map(fn ($p) => $p->getName(), $optional)
         );
     }

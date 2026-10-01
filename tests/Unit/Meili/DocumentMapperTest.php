@@ -43,6 +43,7 @@ class DocumentMapperTest extends TestCase
             'table_label' => 'Products',
             'label' => 'iPhone 15 Pro',
             'fields' => ['name' => 'iPhone 15 Pro', 'description' => 'High-end phone'],
+            'attachments' => [],
         ], $doc);
     }
 
@@ -57,6 +58,69 @@ class DocumentMapperTest extends TestCase
         );
 
         $this->assertSame(['name' => 'iPhone'], $doc['fields']);
+    }
+
+    public function testMapSkipsFileAndImageUrlsButKeepsStructuredAttachments(): void
+    {
+        $record = new class {
+            public int $id = 7;
+            public string $label = 'Customer 007';
+            public array $readColumns = [];
+
+            public function getValue($column, $label = false)
+            {
+                $this->readColumns[] = $column->column_name;
+                if ($column->column_name === 'notes') {
+                    return 'Active customer';
+                }
+                throw new \LogicException('File and image accessors must not be called');
+            }
+        };
+        $columns = [
+            (object) ['column_name' => 'file', 'column_type' => 'file'],
+            (object) ['column_name' => 'files', 'column_type' => 'file'],
+            (object) ['column_name' => 'avatar', 'column_type' => 'image'],
+            (object) ['column_name' => 'notes', 'column_type' => 'textarea'],
+        ];
+        $attachments = [7 => ['attachments' => [
+            ['file_uuid' => 'first', 'name' => 'report.pdf', 'text' => 'PDF report'],
+            ['file_uuid' => 'second', 'name' => 'budget.xlsx', 'text' => 'Excel budget'],
+        ]]];
+
+        $doc = $this->mapper->map($record, $columns, 'customer', 'Customer', [], [], [], $attachments);
+
+        $this->assertSame(['notes'], $record->readColumns);
+        $this->assertSame(['notes' => 'Active customer'], $doc['fields']);
+        $this->assertSame($attachments[7]['attachments'], $doc['attachments']);
+        $this->assertStringNotContainsString('http://', json_encode($doc));
+    }
+
+    public function testMapDropsFileFieldsEvenWithoutAnAttachmentPayload(): void
+    {
+        $record = new class {
+            public int $id = 8;
+            public string $label = 'Customer 008';
+
+            public function getValue($column, $label = false)
+            {
+                throw new \LogicException('File accessor must not be called');
+            }
+        };
+
+        $doc = $this->mapper->map(
+            $record,
+            [(object) ['column_name' => 'file', 'column_type' => 'file']],
+            'customer',
+            'Customer',
+            [],
+            [],
+            [],
+            [8 => []]
+        );
+
+        $this->assertSame([], $doc['fields']);
+        $this->assertSame([], $doc['attachments']);
+        $this->assertArrayNotHasKey('attachment_names', $doc);
     }
 
     public function testFacetTokenUsesColumnNameAsPrefix(): void

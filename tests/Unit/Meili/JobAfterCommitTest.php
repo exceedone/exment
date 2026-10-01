@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Tests\Unit\Meili;
 
 use Exceedone\Exment\Jobs\ApplyMeiliSettingsJob;
+use Exceedone\Exment\Jobs\ExtractAttachmentTextJob;
+use Exceedone\Exment\Jobs\ForgetAttachmentTextJob;
 use Exceedone\Exment\Jobs\ReindexMeiliTableJob;
 use Exceedone\Exment\Jobs\SyncMeiliDocumentJob;
 use PHPUnit\Framework\TestCase;
@@ -20,6 +22,8 @@ class JobAfterCommitTest extends TestCase
             new SyncMeiliDocumentJob('invoices', 1, 'upsert'),
             new ReindexMeiliTableJob('invoices'),
             new ApplyMeiliSettingsJob(),
+            new ExtractAttachmentTextJob('00000000-0000-0000-0000-000000000001', 'invoices', 1),
+            new ForgetAttachmentTextJob('00000000-0000-0000-0000-000000000001', 'invoices', 1),
         ];
 
         foreach ($jobs as $job) {
