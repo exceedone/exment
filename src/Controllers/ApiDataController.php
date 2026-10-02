@@ -284,6 +284,14 @@ class ApiDataController extends AdminControllerTableBase
             return null;
         }
 
+        // The suuid arrives in the url, so it can name any view in the system.
+        // Only a view of the table being drawn has anything to say about this
+        // column: a name that belongs elsewhere is read as no view at all,
+        // rather than as an invitation to go and look at one.
+        if ($custom_view->custom_table_id != $custom_column->custom_table_id) {
+            return null;
+        }
+
         foreach ($custom_view->custom_view_columns_cache as $custom_view_column) {
             if ($custom_view_column->view_column_target_id == $custom_column->id
                 && $custom_view_column->view_column_type == ConditionType::COLUMN) {

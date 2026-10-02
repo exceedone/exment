@@ -44,7 +44,8 @@ $(function () {
 
     /* ---------------------------------------------------------- state ---- */
     var groupBy = D.group_column;
-    var swimBy = D.swimlane_column || '';
+    // one column cannot be both dimensions at once: see applyPreset()
+    var swimBy = (D.swimlane_column && D.swimlane_column !== D.group_column) ? D.swimlane_column : '';
     var filters = {};
     var keyword = '';
     var onlyOver = false;
@@ -106,6 +107,10 @@ $(function () {
         keyword = String(p.keyword || '');
         if (p.group) { groupBy = p.group; }
         if (p.swimlane) { swimBy = p.swimlane; }
+        // One column cannot be both dimensions at once: a cell would then stand
+        // for two different values of the same property, and a drop into it
+        // would write one of them over the other.
+        if (swimBy && swimBy === groupBy) { swimBy = ''; }
         var only = p.only || {};
         onlyOver = !!only.over && !!D.limit_column;
         onlyUnassigned = !!only.unassigned && !!D.assignee_column;
@@ -174,9 +179,13 @@ $(function () {
     }
 
     /* --------------------------------------------------------- helpers --- */
+    // The apostrophe is escaped too. Every attribute written below happens to
+    // be double quoted today, but a single quoted one added later would other-
+    // wise turn a stored column value into markup.
     function esc(s) {
         return String(s == null ? '' : s)
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
     function fmt(text) {
         var args = Array.prototype.slice.call(arguments, 1);
@@ -621,6 +630,17 @@ $(function () {
         var v = c.values[groupBy] || '';
         return (v !== '' && keys[v]) ? v : EMPTY;
     }
+    // Which column a card is drawn in on the board as it stands right now.
+    // A stored value that is no longer one of the column's options lands in
+    // the unset column, so only this answer - not the raw value - can tell
+    // whether a drop actually changed column.
+    function cardColKey(c) {
+        var keys = {};
+        $.each(boardColumns(), function (i, col) {
+            if (col.key !== EMPTY) { keys[col.key] = true; }
+        });
+        return colKeyOf(c, keys);
+    }
     function laneKeyOf(c) { return swimBy ? (c.values[swimBy] || EMPTY) : ''; }
     // which cell a list on the page belongs to, so it can be found again after
     // the board has been rebuilt
@@ -878,6 +898,7 @@ $(function () {
                     col.key !== EMPTY && (!onWorkflow() || col.key === D.workflow_start);
                 if (canQuickAdd) {
                     html += '<div class="kb-quickadd"><input type="text" class="kb-quick" data-col="' + esc(col.key) +
+                        '" data-lane="' + esc(swimBy ? lane : '') +
                         '" placeholder="' + esc(L.quickadd) + '"></div>';
                 }
                 html += '</div>';
@@ -1111,14 +1132,80 @@ $(function () {
     }
 
     /* --------------------------------------------------------- saving ---- */
+    // A bulk change is one write per record. $.when gives up on the first
+    // refusal and does not wait for the rest, so reloading there reads the
+    // board back while the other writes are still in the air and paints the
+    // cards they had not reached yet as though nothing had happened to them.
+    // Every call is watched to the end instead, and the board is only re-read
+    // once they have all landed.
+    //
+    // `icon` is the mark on the toast when they all went through, and `ids`
+    // the records written, which are read back so the cards stop showing what
+    // they said before.
+    function afterAll(calls, message, icon, ids) {
+        var settled = $.map(calls, function (call) {
+            var done = $.Deferred();
+            call.always(function () { done.resolve(); });
+            return done.promise();
+        });
+        var failure = null;
+        $.each(calls, function (i, call) {
+            call.fail(function (xhr) { if (!failure) { failure = xhr; } });
+        });
+        $.when.apply($, settled).done(function () {
+            if (!failure) {
+                toast(message, icon || 'fa-exchange', 'success');
+                // A card draws its chips from markup the server built, and
+                // nothing here can rebuild it: a colour or a label can depend
+                // on more of the record than the one column that was written,
+                // and the edit can push the record out of the view's own
+                // filter altogether. So the records written are read back, the
+                // same as after a single edit.
+                if (ids && ids.length) { refreshCards(ids); }
+                return;
+            }
+            toast(errorMessage(failure), 'fa-exclamation-triangle', 'danger');
+            reloadBoard();
+        });
+    }
+
+    // Every board-side write to a record is stamped. A callback that comes
+    // back late - a refusal the server took its time over, an undo link the
+    // reader left on screen - can then ask whether the card has been written
+    // again since it left, and stand down if it has. Comparing the stored
+    // value instead would miss a card moved away and straight back again,
+    // and would read whichever column happens to be grouping the board at
+    // the moment the callback runs rather than the one that was moved.
+    var writeSeq = {};
+    function stampWrite(id) {
+        var k = String(id);
+        writeSeq[k] = (writeSeq[k] || 0) + 1;
+        return writeSeq[k];
+    }
+    function writeCurrent(id, stamp) {
+        return (writeSeq[String(id)] || 0) === stamp;
+    }
+
     function saveValues(id, values) {
+        var stamp = stampWrite(id);
         var payload = { _method: 'PUT', value: values };
-        return $.ajax({
+        var req = $.ajax({
             url: D.update_url + '/' + id,
             type: 'POST',
             data: payload,
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-        }).done(refreshStats);
+        }).done(function () {
+            // The kept form is a picture of the record as it was fetched. This
+            // write moved on from it, so opening the card again would paint
+            // the old value into the field - and saving that form would post
+            // it back over what was just saved here.
+            forgetForm(id);
+            refreshStats();
+        });
+        // carried on the request so a caller can recognise its own write
+        // without having to stamp separately and risk counting twice
+        req.writeStamp = stamp;
+        return req;
     }
 
     // The column figures were measured in sql when the page was built, so the
@@ -1127,15 +1214,25 @@ $(function () {
     // them here: the breach count and the average age depend on the column a
     // record sits in, and cannot be corrected card by card.
     var statsTimer = null;
+    // Which read of the board is the current one. Answers stamped with an
+    // older number are thrown away rather than drawn: see refreshCards() and
+    // refreshStats().
+    var statsGen = 0;
+    var refreshGen = 0;
+    var refreshClaim = {};
     function refreshStats() {
         if (!(D.col_count > 0) || !D.more_url) { return; }
         // a bulk change saves one record per call: ask once, after the last one
         if (statsTimer) { window.clearTimeout(statsTimer); }
         statsTimer = window.setTimeout(function () {
             statsTimer = null;
+            // the wait above only keeps one request per burst; two bursts far
+            // enough apart can still be in the air together, and the older
+            // totals must not land on top of the newer ones
+            var gen = ++statsGen;
             $.getJSON(D.more_url, $.extend({ view: D.view_suuid, stats: 1 }, EMB))
                 .done(function (res) {
-                    if (!res) { return; }
+                    if (!res || gen !== statsGen) { return; }
                     D.col_stats = res.flat || {};
                     D.col_stats_lane = res.lanes || {};
                     render();
@@ -1233,6 +1330,29 @@ $(function () {
     function refreshCards(ids) {
         if (!D.more_url) { reloadBoard(); return; }
         var wanted = $.map(ids, String);
+        // read again because somebody wrote them - a workflow action, the
+        // admin's own form window - so whatever was kept for them is old
+        $.each(wanted, forgetFormAt);
+
+        // The server answers for a hundred records at a time. Asking for more
+        // would leave the ones it left out showing what they said before, with
+        // nothing on the card to say so, so the whole board is read instead.
+        if (wanted.length > 100) { reloadBoard(); return; }
+
+        // Two reads for the same card can be in the air at once - a second
+        // edit sent while the first read is still out - and they can come back
+        // in either order. The older one was asked before the second write, so
+        // letting it land would put the card back to the value it held before
+        // that write, with nothing on screen to say the board is behind. Each
+        // read claims the ids it asked for; an answer only speaks for the ids
+        // still claimed by it.
+        var gen = ++refreshGen;
+        $.each(wanted, function (i, id) { refreshClaim[id] = gen; });
+        function release() {
+            $.each(wanted, function (i, id) {
+                if (refreshClaim[id] === gen) { delete refreshClaim[id]; }
+            });
+        }
 
         $.getJSON(D.more_url, $.extend({ view: D.view_suuid, cards: wanted.join(',') }, EMB))
             .done(function (res) {
@@ -1242,31 +1362,61 @@ $(function () {
                 $.each(D.cards, function (i, c) {
                     var id = String(c.id);
                     if ($.inArray(id, wanted) < 0) { kept.push(c); return; }
-                    if (!fresh[id]) { return; }
+                    // a newer read owns this card now, and it will redraw it
+                    if (refreshClaim[id] !== gen) { kept.push(c); return; }
+                    if (!fresh[id]) { recountCard(c, null); return; }
                     // its place in the column is the browser's own, and the
                     // server neither knows nor sends it
                     fresh[id].rank = c.rank;
+                    recountCard(c, fresh[id]);
                     kept.push(fresh[id]);
                 });
+                release();
                 D.cards = kept;
                 render();
             })
-            .fail(function () { reloadBoard(); });
+            .fail(function () { release(); reloadBoard(); });
     }
 
     function saveInline(card, column, value, message) {
         closePop();
         // a board grouped by the very column being written moves the card, and
         // the per-column positions have to move with it
-        if (typeof value === 'string' && (column === D.group_column || column === groupBy)) {
-            shiftColSeq(card.values[column], value, card);
+        var shifted = (typeof value === 'string' && (column === D.group_column || column === groupBy));
+        var before = card.values[column];
+        var beforeText = card.texts[column];
+        var seqToken = null;
+        if (shifted) {
+            seqToken = shiftColSeq(before, value, card);
+            // the counters have moved, so the card moves with them - the same
+            // order bulkSave uses. recountCard() reads card.values to work out
+            // which column a refreshed card is leaving, and a value left
+            // behind here would have it counted out of the wrong one
+            card.values[column] = value;
+            card.texts[column] = labelOfValue(column, value);
         }
-        saveValues(card.id, buildValue(column, value))
+        var req = saveValues(card.id, buildValue(column, value));
+        var stamp = req.writeStamp;
+        req
             .done(function () {
                 toast(message, 'fa-check-circle', 'success');
                 refreshCards([card.id]);
             })
             .fail(function (xhr) {
+                // the card never moved, so put the counters back the way
+                // moveCard does - refreshCards() only redraws, it does not
+                // rebuild them, and a stale counter skips a card on load more
+                //
+                // Only while this is still the last thing sent for the card.
+                // A refusal the server took its time over can arrive after the
+                // reader has written the card again, and `before` is older than
+                // that write: putting it back would throw the newer value away
+                // and replay a token the later write has already shifted past.
+                if (shifted && writeCurrent(card.id, stamp)) {
+                    card.values[column] = before;
+                    card.texts[column] = beforeText;
+                    replaySeq(seqToken, true);
+                }
                 toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
                 refreshCards([card.id]);
             });
@@ -1398,6 +1548,28 @@ $(function () {
         $.each(boardColumns(), function (i, col) { if (col.key !== EMPTY) { keys[col.key] = true; } });
         var items = $.grep(D.cards, function (c) { return c !== card && colKeyOf(c, keys) === colKey; })
             .sort(function (a, b) { return (a.rank || 0) - (b.rank || 0); });
+
+        // On a split board the drop reads a position out of the cards it can
+        // see, which is one lane's worth, while rank orders the whole column.
+        // Turning that lane-local position into a column-wide one is what puts
+        // the card where it was dropped instead of somewhere inside another
+        // lane. Every caller has already written the destination lane onto the
+        // card, so laneKeyOf() answers for the lane it is landing in.
+        if (swimBy) {
+            var lane = laneKeyOf(card);
+            var laneItems = $.grep(items, function (c) { return laneKeyOf(c) === lane; });
+            if (index < 0) { index = 0; }
+            if (index >= laneItems.length) {
+                // past the last card of the lane, or a lane that has none yet:
+                // straight after that lane's last card, else at the very end
+                index = laneItems.length
+                    ? ($.inArray(laneItems[laneItems.length - 1], items) + 1)
+                    : items.length;
+            } else {
+                index = $.inArray(laneItems[index], items);
+            }
+        }
+
         if (index < 0 || index > items.length) { index = items.length; }
         items.splice(index, 0, card);
         $.each(items, function (i, c) { c.rank = i; });
@@ -1405,22 +1577,122 @@ $(function () {
 
     // "load more" asks for what the server has not handed over yet, counted
     // per board column. A card that leaves one column for another is one fewer
-    // read out of the first and one more out of the second. Takes plain values,
-    // so the same call runs it backwards when a save fails or a move is undone.
+    // read out of the first and one more out of the second.
+    //
+    // Returns a record of the counters it actually moved, or null when it
+    // counted nothing. Hand that record to replaySeq() to put them back: the
+    // reverse must not be worked out a second time from the controls, because
+    // the reader may have regrouped the board in between, and this function
+    // would then decline to touch counters it had already moved.
     function shiftColSeq(fromValue, toValue, card) {
-        if (groupBy !== D.group_column) { return; }
+        if (groupBy !== D.group_column) { return null; }
         var keys = {};
         $.each(boardColumns(), function (i, col) { if (col.key !== EMPTY) { keys[col.key] = true; } });
         function keyOf(v) { return (v != null && v !== '' && keys[v]) ? v : EMPTY; }
         var from = keyOf(fromValue), to = keyOf(toValue);
-        if (from === to) { return; }
-        if (colSeq[from]) { colSeq[from]--; }
-        colSeq[to] = (colSeq[to] || 0) + 1;
-        // it left one cell of its lane for another
-        if (!D.swimlane_column || !card) { return; }
+        if (from === to) { return null; }
+        // Only a card the pager actually handed over is counted. A zero source
+        // means it arrived some other way - server search appends cards without
+        // touching the cursors - and counting it into the destination would
+        // push that column's next page past a record, which is then never
+        // drawn at all. Leaving both alone risks re-reading a card that is
+        // already on screen, and cards are keyed by id, so that costs nothing.
+        var steps = [];
+        var colStep = seqStep(colSeq, from, to);
+        if (colStep) { steps.push(colStep); }
+        var cellStep = shiftCardCellSeq(card, from, to);
+        if (cellStep) { steps.push(cellStep); }
+        return steps.length ? steps : null;
+    }
+
+    // One counter moving one step, and the note that says it happened. The
+    // "never read from" rule lives here so every pager shares it.
+    function seqStep(map, from, to) {
+        if (!map[from]) { return null; }
+        map[from]--;
+        map[to] = (map[to] || 0) + 1;
+        return { map: map, from: from, to: to };
+    }
+
+    // Walks a record from shiftColSeq()/shiftCellSeq() forwards again, or
+    // backwards with `back`. It asks nothing of the board's current state:
+    // the counters were moved when the board was grouped its own way, so they
+    // have to come back even if the reader has regrouped since. Floored at
+    // zero because a page read in the meantime can have lowered them.
+    function replaySeq(steps, back) {
+        if (!steps) { return; }
+        $.each(steps, function (i, s) {
+            if (!s) { return; }
+            var from = back ? s.to : s.from;
+            var to = back ? s.from : s.to;
+            s.map[from] = Math.max(0, (s.map[from] || 0) - 1);
+            s.map[to] = (s.map[to] || 0) + 1;
+        });
+    }
+
+    // The cell half of shiftColSeq, counted on its own: a card can be handed
+    // over by the cell pager without the column pager having seen it.
+    function shiftCardCellSeq(card, from, to) {
+        if (!D.swimlane_column || !card) { return null; }
         var lane = card.values[D.swimlane_column] || EMPTY;
-        if (cellSeq[cellKey(lane, from)]) { cellSeq[cellKey(lane, from)]--; }
-        cellSeq[cellKey(lane, to)] = (cellSeq[cellKey(lane, to)] || 0) + 1;
+        return seqStep(cellSeq, cellKey(lane, from), cellKey(lane, to));
+    }
+
+    // The lane half of the same bookkeeping. colSeq counts a board column
+    // across every lane and does not move when a card only changes row, but
+    // cellSeq counts one lane's share of that column, and that does.
+    function shiftCellSeq(fromLane, toLane, colValue) {
+        // the counts belong to the board the server handed over; once the user
+        // regroups the rows by another column they describe something else
+        // entirely and must be left alone
+        if (groupBy !== D.group_column || swimBy !== D.swimlane_column) { return null; }
+        if (!D.swimlane_column || fromLane === toLane) { return null; }
+        var keys = {};
+        $.each(boardColumns(), function (i, col) { if (col.key !== EMPTY) { keys[col.key] = true; } });
+        var key = (colValue != null && colValue !== '' && keys[colValue]) ? colValue : EMPTY;
+        // see shiftColSeq(): a cell the pager never read from is not counted
+        var step = seqStep(cellSeq, cellKey(fromLane, key), cellKey(toLane, key));
+        return step ? [step] : null;
+    }
+
+    // A card read back from the server can come back in a different column or
+    // lane than it left in - somebody else moved it while it sat on screen -
+    // or not come back at all, because the edit pushed it out of the view's
+    // filter. "Load more" asks for what has already been handed over, counted
+    // per column and per cell, so those counts have to follow it either way:
+    // one left too high makes the next page start past a record, and that
+    // record is then never drawn at all.
+    //
+    // `after` is null when the card is gone.
+    function recountCard(before, after) {
+        if (groupBy !== D.group_column) { return; }
+        var keys = {};
+        $.each(boardColumns(), function (i, col) { if (col.key !== EMPTY) { keys[col.key] = true; } });
+        function keyOf(c) {
+            var v = c.values[D.group_column] || '';
+            return (v !== '' && keys[v]) ? v : EMPTY;
+        }
+        function laneOf(c) { return c.values[D.swimlane_column] || EMPTY; }
+
+        var from = keyOf(before);
+        var to = after ? keyOf(after) : null;
+        if (to !== null && from === to &&
+            (!D.swimlane_column || laneOf(before) === laneOf(after))) { return; }
+
+        if (colSeq[from]) {
+            colSeq[from]--;
+            if (to !== null) { colSeq[to] = (colSeq[to] || 0) + 1; }
+        }
+        if (!D.swimlane_column) { return; }
+
+        var a = cellKey(laneOf(before), from);
+        if (cellSeq[a]) {
+            cellSeq[a]--;
+            if (to !== null) {
+                var b = cellKey(laneOf(after), to);
+                cellSeq[b] = (cellSeq[b] || 0) + 1;
+            }
+        }
     }
 
     /* -------------------------------------------------------- workflow --- */
@@ -1428,12 +1700,21 @@ $(function () {
     // leads to the target status, through the same modal the record screen uses,
     // so authority, conditions, comment, next assignee and notify all behave the
     // same. A status with no action from here is simply not a valid drop.
+    // Which action would carry this card to that column, if any. Asked on its
+    // own because a drop can mean two edits at once - the status and the row -
+    // and the row must not be written for a drop the flow is going to refuse.
+    function wfActionFor(card, toKey) {
+        if (!card || !card.wf) { return null; }
+        if (toKey === card.wf.status || toKey === EMPTY) { return null; }
+        return card.wf.moves[toKey] || null;
+    }
+
     function moveCardWorkflow(id, toKey) {
         var card = cardById(id);
         if (!card || !card.wf) { return; }
         if (toKey === card.wf.status || toKey === EMPTY) { return; }
 
-        var actionId = card.wf.moves[toKey];
+        var actionId = wfActionFor(card, toKey);
         if (!actionId) {
             toast(fmt(L.wf_no_action, card.label, labelOfValue(D.group_column, toKey)), 'fa-ban', 'danger');
             return;
@@ -1491,6 +1772,26 @@ $(function () {
     // records the server would not hand over - locked by a workflow, not this
     // reader's to edit. Asked for again on a click, never again on a hover.
     var formDenied = {};
+    // how many times each record has been written since the page was opened,
+    // so an answer can be matched against the state it was asked for
+    var formEpoch = {};
+
+    // Every way the board writes a record ends here. Kept as one call rather
+    // than a delete at each write, so a path added later cannot forget.
+    function forgetForm(id) {
+        var k = String(id);
+        delete formCache[k];
+        // A fetch already in the air was asked for the record as it stood
+        // before this write. It cannot be called back, and it answers into
+        // this same cache, so its answer has to be recognisable as old when
+        // it arrives. Dropping it from the pending list as well means the
+        // next reader to ask gets a fresh request rather than being handed
+        // the one that is already out of date.
+        delete formPending[k];
+        formEpoch[k] = (formEpoch[k] || 0) + 1;
+    }
+    // $.each hands over (index, value); named so the argument order is plain
+    function forgetFormAt(i, id) { forgetForm(id); }
 
     function editUrl(id) {
         return D.editor.url.replace('{id}', encodeURIComponent(id));
@@ -1502,16 +1803,25 @@ $(function () {
         }
         if (formPending[id]) { return formPending[id]; }
 
+        var era = formEpoch[String(id)] || 0;
         var req = $.ajax({ url: editUrl(id), dataType: 'json' })
             .done(function (res) {
                 if (!res || !res.body) { return; }
+                // written while this was out: what came back shows the record
+                // as it was before that write, and keeping it would undo the
+                // forgetting the write asked for
+                if ((formEpoch[String(id)] || 0) !== era) { return; }
                 // each of these is the better part of fifty kilobytes
                 var kept = Object.keys(formCache);
                 while (kept.length >= 8) { delete formCache[kept.shift()]; }
                 formCache[id] = res;
             })
             .fail(function () { formDenied[id] = true; })
-            .always(function () { delete formPending[id]; });
+            .always(function () {
+                // a newer request owns the slot now - see forgetForm
+                if ((formEpoch[String(id)] || 0) !== era) { return; }
+                delete formPending[id];
+            });
         formPending[id] = req;
 
         return req;
@@ -1850,7 +2160,7 @@ $(function () {
     }
     function clearDropTargets() { $(root).find('.kb-col').removeClass('kb-nodrop'); }
 
-    function moveCard(id, toKey, index) {
+    function moveCard(id, toKey, index, toLane) {
         var card = cardById(id);
         if (!card) { return; }
 
@@ -1872,53 +2182,261 @@ $(function () {
             }
         }
 
+        // A split board puts a list in every cell and lights up whichever one
+        // the pointer is over, so a drop can mean "change lane" every bit as
+        // much as "change column". The lane is an ordinary column of the
+        // record, so it is written the same way. Without this the card springs
+        // back to the row it was dragged out of and nothing is saved, after a
+        // gesture the board itself invited.
+        //
+        // An empty data-lane is the unsplit board, not a lane: there is no
+        // lane to move to, so the drop is about the column alone.
+        var laneNow = swimBy ? laneKeyOf(card) : '';
+        // Held from here on. Which column groups the board and which one
+        // splits it are both the reader's to change, and they can change
+        // while this move's own callbacks are still to come. Everything
+        // below has to go on meaning the columns the card was dragged
+        // across, not whichever pair is selected when the callback runs.
+        var laneName = swimBy;
+        var laneTo = (swimBy && toLane) ? String(toLane) : laneNow;
+        var laneMoved = !!swimBy && laneTo !== laneNow;
+        var laneNext = (laneTo === EMPTY) ? '' : laneTo;
+        var laneBack = (laneNow === EMPTY) ? '' : laneNow;
+        var laneBackText = card.texts[swimBy];
+
         if (onWorkflow()) {
+            // the column is a workflow status and only an action may write it,
+            // but the lane is still just a column and moves on its own
+            //
+            // Two things let the row be written. Either the flow has an
+            // action that carries the card to the column it was dropped in -
+            // without that, a drop the flow is about to refuse in a toast
+            // would still change the row, which is the board contradicting
+            // itself over a single gesture. Or the card was dropped in the
+            // column it was already in, where there is no status to change
+            // and moveCardWorkflow() returns without a word: there the row is
+            // the whole of what was asked for, and leaving it unwritten makes
+            // a gesture the board itself invited do nothing at all.
+            var sameCol = (cardColKey(card) === toKey);
+            var laneMove = null;
+            if (laneMoved && D.editable && (sameCol || wfActionFor(card, toKey))) {
+                laneMove = moveCardLane(card, laneNow, laneTo);
+                // where in the lane it was let go of. A status change draws
+                // its own position from the reading that follows it.
+                reorderInColumn(card, toKey, index);
+            }
+            // Only when the status is really changing: a drop inside the same
+            // column opens no window, so there would be nothing to wait for
+            // and the handler would be left armed for the next dialog the
+            // reader happened to close.
+            if (!sameCol) { revertLaneIfCancelled(laneMove); }
             moveCardWorkflow(id, toKey);
+            render();
             return;
         }
 
         var prev = card.values[groupBy] || '';
+        var colName = groupBy;
         var next = (toKey === EMPTY) ? '' : toKey;
-        if (prev === next) {
+        // Asked in board keys, not in stored values: a record whose value is
+        // not one of the current options is drawn in the unset column, and
+        // dragging it around inside that column must stay a reorder. Comparing
+        // prev to next would call it a move and write the value away.
+        var colMoved = (cardColKey(card) !== toKey);
+        if (!colMoved && !laneMoved) {
             reorderInColumn(card, toKey, index);
             render();
             return;
         }
-        if (!D.editable) { return; }
+        if (!D.editable) { render(); return; }
+        if (!colMoved) {
+            moveCardLane(card, laneNow, laneTo);
+            reorderInColumn(card, toKey, index);
+            render();
+            return;
+        }
 
         // move first so the board feels instant, roll back if the save fails
         card.values[groupBy] = next;
         card.texts[groupBy] = labelOfValue(groupBy, next);
-        shiftColSeq(prev, next, card);
+        var colToken = shiftColSeq(prev, next, card);
+        var laneToken = null;
+        if (laneMoved) {
+            // after shiftColSeq, which reads the lane off the card to work out
+            // which cell the card is leaving - so it has to run while the card
+            // still says the old one
+            laneToken = shiftCellSeq(laneNow, laneTo, next);
+            card.values[swimBy] = laneNext;
+            card.texts[swimBy] = labelOfValue(swimBy, laneNext);
+        }
         reorderInColumn(card, toKey, index);
         render();
 
+        // Has this card been written again since? The undo link lives for as
+        // long as the toast does, and a failed save answers whenever the
+        // server gets round to it - long enough for the reader to drag the
+        // same card somewhere else first. Both paths below write `prev` back,
+        // which would throw that later write away and leave the board
+        // disagreeing with the record. So neither runs unless this move is
+        // still the last thing to have been sent for this card. Standing down
+        // is also right for the counters: the later move already shifted them
+        // on from `next`, so the board's arithmetic matches the record
+        // without a reverse shift here.
+        //
+        // Asked of the write stamp rather than of the card's current value,
+        // because a card moved away and straight back again reads as though
+        // it had never left.
+        var stamp = 0;
+        function movedOn() {
+            return !writeCurrent(id, stamp);
+        }
+
+        function undoMove() {
+            if (laneMoved) {
+                replaySeq(laneToken, true);
+                card.values[laneName] = laneBack;
+                card.texts[laneName] = laneBackText;
+            }
+            card.values[colName] = prev;
+            card.texts[colName] = labelOfValue(colName, prev);
+            replaySeq(colToken, true);
+            render();
+        }
+
+        function redoMove() {
+            card.values[colName] = next;
+            card.texts[colName] = labelOfValue(colName, next);
+            replaySeq(colToken, false);
+            if (laneMoved) {
+                replaySeq(laneToken, false);
+                card.values[laneName] = laneNext;
+                card.texts[laneName] = labelOfValue(laneName, laneNext);
+            }
+            render();
+        }
+
         var values = {};
-        values[groupBy] = next;
-        saveValues(id, values).done(function () {
-            toast(fmt(L.moved, card.label, labelOfValue(groupBy, next) || D.empty_label), 'fa-arrow-circle-right', '', function () {
+        values[colName] = next;
+        if (laneMoved) { values[laneName] = laneNext; }
+        var req = saveValues(id, values);
+        stamp = req.writeStamp;
+        req.done(function () {
+            toast(fmt(L.moved, card.label, labelOfValue(colName, next) || D.empty_label), 'fa-arrow-circle-right', '', function () {
+                if (movedOn()) { return; }
                 var back = {};
-                back[groupBy] = prev;
-                card.values[groupBy] = prev;
-                card.texts[groupBy] = labelOfValue(groupBy, prev);
-                shiftColSeq(next, prev, card);
-                render();
-                saveValues(id, back).fail(function (xhr) {
-                    card.values[groupBy] = next;
-                    card.texts[groupBy] = labelOfValue(groupBy, next);
-                    shiftColSeq(prev, next, card);
-                    render();
+                back[colName] = prev;
+                if (laneMoved) { back[laneName] = laneBack; }
+                undoMove();
+                // Same rule as the move itself: this take-back is now the last
+                // write sent for the card, and only stays that way until the
+                // reader touches it again. If it does not, a refusal here must
+                // not redo a move the newer write has already moved on from.
+                var backReq = saveValues(id, back);
+                var backStamp = backReq.writeStamp;
+                backReq.fail(function (xhr) {
+                    if (writeCurrent(id, backStamp)) { redoMove(); }
                     toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
                 });
             });
         }).fail(function (xhr) {
-            card.values[groupBy] = prev;
-            card.texts[groupBy] = labelOfValue(groupBy, prev);
-            shiftColSeq(next, prev, card);
-            render();
+            if (!movedOn()) { undoMove(); }
             toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
         });
     }
+
+    // A drop that changed only the row. Same shape as a column move with one
+    // value instead of the other, and no undo offer: a lane is a property of
+    // the record, not a step in a flow, so the toast would be noise.
+    function moveCardLane(card, fromLane, toLane) {
+        if (!swimBy || fromLane === toLane) { return null; }
+        // see the note in moveCard: the reader can change which column splits
+        // the board while this request is still out
+        var laneName = swimBy;
+        var colValue = card.values[groupBy] || '';
+        var before = card.values[laneName];
+        var beforeText = card.texts[laneName];
+        var next = (toLane === EMPTY) ? '' : toLane;
+
+        var laneToken = shiftCellSeq(fromLane, toLane, colValue);
+        card.values[laneName] = next;
+        card.texts[laneName] = labelOfValue(laneName, next);
+
+        var values = {};
+        values[laneName] = next;
+        var req = saveValues(card.id, values);
+        var stamp = req.writeStamp;
+
+        // Put the card back in the row it came from, in the model and on the
+        // board. Left alone when the record has been written again since this
+        // move was sent: that later write is the newer word, and restoring
+        // `before` over it would leave the board showing a row the record no
+        // longer holds.
+        //
+        // Once only. Two callers can reach it for the same move - the refusal
+        // of the lane write, and the reader closing the action window - and
+        // the write stamp cannot tell them apart, because neither of them
+        // writes anything. A second pass would replay the same token again and
+        // leave both cell counters off by one, which skips a card on load more.
+        var restored = false;
+        function restore() {
+            if (restored || !writeCurrent(card.id, stamp)) { return false; }
+            restored = true;
+            replaySeq(laneToken, true);
+            card.values[laneName] = before;
+            card.texts[laneName] = beforeText;
+            render();
+            return true;
+        }
+
+        req.fail(function (xhr) {
+            restore();
+            toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
+        });
+
+        // Taking back a move the server did accept, so the row has to be
+        // written as well as redrawn. One shot: the caller arms it on a
+        // dialog that can only be answered once, and a second pass would
+        // write the old row back over whatever came after it.
+        var reverted = false;
+        function revert() {
+            if (reverted) { return; }
+            reverted = true;
+            if (!restore()) { return; }
+            var back = {};
+            back[laneName] = before;
+            saveValues(card.id, back);
+        }
+
+        return { revert: revert };
+    }
+
+    // A drop that changes the status as well as the row ends at the action
+    // window, and the reader can still close it without acting. The row is
+    // written by then, so the gesture would have half happened: the card back
+    // in its old column, but in the new row.
+    //
+    // Acting on that window ends in a pjax reload of the page, and on the way
+    // there Exment clears every hidden.bs.modal handler on the dialog before
+    // binding its own - so a handler bound here is still there only when
+    // nothing was done, which is exactly when the row has to be taken back.
+    function revertLaneIfCancelled(laneMove) {
+        if (!laneMove) { return; }
+        if (!(window.Exment && Exment.ModalEvent && Exment.ModalEvent.ShowModal)) { return; }
+        var $modal = $('#modal-showmodal');
+        if (!$modal.length) { $modal = $('.modal').first(); }
+        $modal.one('hidden.bs.modal', function () {
+            // Belt and braces for the one case the handler could outlive the
+            // action: a pjax navigation means the action did go through and
+            // the board is about to be read again from the server, so nothing
+            // here may write after it.
+            if (navigating) { return; }
+            laneMove.revert();
+        });
+    }
+    // Own namespace so re-running this script does not stack the handler, and
+    // so it is not swept away with the drawer's own pjax binding.
+    var navigating = false;
+    $(document).off('pjax:send.kblane').on('pjax:send.kblane', function () { navigating = true; });
 
     function labelOfValue(name, value) {
         if (value === '' || value == null) { return ''; }
@@ -2137,12 +2655,7 @@ $(function () {
         });
         render();
 
-        $.when.apply($, calls).done(function () {
-            toast(message || fmt(L.assigned, targets.length), 'fa-user-plus', 'success');
-        }).fail(function (xhr) {
-            toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
-            reloadBoard();
-        });
+        afterAll(calls, message || fmt(L.assigned, targets.length), 'fa-user-plus', $.map(targets, function (t) { return t.id; }));
     }
     function autoAssign() {
         // only act on the confident ones; the rest stay as a visible suggestion
@@ -2158,13 +2671,26 @@ $(function () {
     }
 
     /* ------------------------------------------------------- quick add --- */
-    function quickAdd(colKey, text, $input) {
+    function quickAdd(colKey, text, $input, laneKey) {
+        var values = {};
+        values[D.label_column] = text;
+        // a workflow status is not a column: a new record starts at the start
+        // status on its own, there is nothing to send
+        if (colKey !== EMPTY && D.source !== 'workflow') { values[D.group_column] = colKey; }
+        // The box belongs to one cell, not to the column: a card typed into a
+        // lane has to come back in that lane after the reload. The unset lane
+        // sends an empty value rather than nothing at all - an absent column
+        // is filled in with whatever default the column setting carries, so
+        // saying nothing would drop the new card into a lane the reader did
+        // not type into.
+        if (swimBy && laneKey) { values[swimBy] = (laneKey === EMPTY) ? '' : laneKey; }
+
         // A new card is one more card arriving in that column, so the limit has
         // to hold here as well - a full column that can still be typed into is
-        // not being limited at all. Nothing but a title is set, so on a board
-        // whose limit counts an amount column this adds nothing and never gets
-        // in the way.
-        var full = wipStop({ values: {}, texts: {} }, colKey);
+        // not being limited at all. Asked with the values actually being sent,
+        // so that a card typed into a lane that marks an interruption is read
+        // as one, the same as a card dragged into it.
+        var full = wipStop({ values: values, texts: {} }, colKey);
         if (full) {
             var stop = (D.wip_enforce === 'block');
             if (stop) {
@@ -2176,12 +2702,6 @@ $(function () {
                 return;
             }
         }
-
-        var values = {};
-        values[D.label_column] = text;
-        // a workflow status is not a column: a new record starts at the start
-        // status on its own, there is nothing to send
-        if (colKey !== EMPTY && D.source !== 'workflow') { values[D.group_column] = colKey; }
 
         $.ajax({
             url: D.create_url,
@@ -2228,12 +2748,15 @@ $(function () {
         });
         html += '<div class="kb-f"><label>' + esc(L.groupby) + '</label><select class="kb-f-groupby">';
         $.each(D.groupables, function (i, m) {
+            // the swimlane column is left out: see applyPreset()
+            if (swimBy && m.name === swimBy && m.name !== groupBy) { return; }
             html += '<option value="' + esc(m.name) + '"' + (m.name === groupBy ? ' selected' : '') + '>' + esc(m.label) + '</option>';
         });
         html += '</select></div>';
         html += '<div class="kb-f"><label>' + esc(L.swimlane) + '</label><select class="kb-f-swim">' +
             '<option value="">' + esc(L.none) + '</option>';
         $.each(D.groupables, function (i, m) {
+            if (m.name === groupBy) { return; }
             html += '<option value="' + esc(m.name) + '"' + (m.name === swimBy ? ' selected' : '') + '>' + esc(m.label) + '</option>';
         });
         html += '</select></div>';
@@ -2282,8 +2805,25 @@ $(function () {
             filters[$(this).data('name')] = $(this).val();
             render();
         });
-        $root.on('change', '.kb-f-groupby', function () { groupBy = $(this).val(); render(); });
-        $root.on('change', '.kb-f-swim', function () { swimBy = $(this).val(); render(); });
+        $root.on('change', '.kb-f-groupby', function () {
+            groupBy = $(this).val();
+            // picking the swimlane column as the column drops the swimlane:
+            // see applyPreset()
+            if (swimBy && swimBy === groupBy) { swimBy = ''; }
+            // Each list leaves the other's column out, so changing one makes
+            // the other's options wrong: the column just released is missing
+            // from it and the one just taken is still offered. Picking that
+            // one would then be silently dropped by the line above, leaving a
+            // select showing a choice the board is not obeying.
+            buildFilterPanel();
+            render();
+        });
+        $root.on('change', '.kb-f-swim', function () {
+            swimBy = $(this).val();
+            if (swimBy && swimBy === groupBy) { swimBy = ''; }
+            buildFilterPanel();
+            render();
+        });
         $root.on('change', '.kb-f-over', function () { onlyOver = this.checked; render(); });
         $root.on('change', '.kb-f-unassigned', function () { onlyUnassigned = this.checked; render(); });
         $root.on('change', '.kb-f-blocked', function () { onlyBlocked = this.checked; render(); });
@@ -2298,7 +2838,8 @@ $(function () {
         $root.on('click', '.kb-reset', function () {
             keyword = ''; filters = {}; onlyOver = false; onlyUnassigned = false;
             onlyMine = false; onlyBlocked = false; onlyExpedite = false;
-            groupBy = D.group_column; swimBy = D.swimlane_column || '';
+            groupBy = D.group_column;
+            swimBy = (D.swimlane_column && D.swimlane_column !== D.group_column) ? D.swimlane_column : '';
             if (searchTimer) { window.clearTimeout(searchTimer); searchTimer = null; }
             savePrefs();
             buildFilterPanel();
@@ -2429,7 +2970,7 @@ $(function () {
             // keep the text: on success the board reloads anyway, on failure
             // the user gets it back to fix instead of typing it again
             $(this).prop('disabled', true);
-            quickAdd(this.dataset.col, text, $(this));
+            quickAdd(this.dataset.col, text, $(this), this.dataset.lane);
         });
 
         // ---- drag & drop
@@ -2458,7 +2999,9 @@ $(function () {
             $(this).removeClass('drag-over');
             if (!dragId) { return; }
             clearDropTargets();
-            moveCard(dragId, this.dataset.col, insertionIndex(this, e.originalEvent.clientY));
+            // the row it landed in counts as well as the column: on a split
+            // board every cell has a list of its own
+            moveCard(dragId, this.dataset.col, insertionIndex(this, e.originalEvent.clientY), laneOfElement(this));
             dragId = null;
         });
 
@@ -2478,9 +3021,15 @@ $(function () {
             clearDropTargets();
             // its cards are hidden, so there is no gap to read a position from:
             // the card goes to the end, the way a drop below the last one would
-            moveCard(dragId, String(this.dataset.col), 999999);
+            moveCard(dragId, String(this.dataset.col), 999999, laneOfElement(this));
             dragId = null;
         });
+    }
+
+    // The lane a piece of the board belongs to. An unsplit board draws one
+    // row with an empty name, which is not a lane and must not read as one.
+    function laneOfElement(el) {
+        return $(el).closest('.kb-swimlane').attr('data-lane') || '';
     }
 
     function insertionIndex(list, y) {
@@ -2527,12 +3076,13 @@ $(function () {
         });
         sel = {};
         render();
-        $.when.apply($, calls).done(function () {
-            toast(message, 'fa-exchange', 'success');
-        }).fail(function (xhr) {
-            toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
-            reloadBoard();
-        });
+
+        // $.when gives up on the first refusal and does not wait for the rest.
+        // Reloading there would read the board back while the other writes are
+        // still in the air, and paint the cards they had not reached yet as
+        // though nothing had happened to them. So every call is watched to the
+        // end, and the board is only re-read once they have all landed.
+        afterAll(calls, message, '', ids);
     }
 
     /* ------------------------------------------------------------ init --- */

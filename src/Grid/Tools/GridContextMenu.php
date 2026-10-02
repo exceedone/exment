@@ -4,9 +4,11 @@ namespace Exceedone\Exment\Grid\Tools;
 
 use ExmentAdminCore\Admin\Grid\Tools\AbstractTool;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
 
 /**
  * Right-click menu for a data grid row.
@@ -28,15 +30,24 @@ use Exceedone\Exment\Model\CustomTable;
  */
 class GridContextMenu extends AbstractTool
 {
+    use TrashedScopeTrait;
+
     /** @var CustomTable */
     protected $custom_table;
 
+    /** @var CustomView|null */
+    protected $custom_view;
+
     /**
      * @param CustomTable $custom_table
+     * @param CustomView|null $custom_view view the grid is showing, so a
+     *                                     repainted cell keeps the view's
+     *                                     style rather than the column's
      */
-    public function __construct(CustomTable $custom_table)
+    public function __construct(CustomTable $custom_table, ?CustomView $custom_view = null)
     {
         $this->custom_table = $custom_table;
+        $this->custom_view = $custom_view;
     }
 
     /**
@@ -73,13 +84,35 @@ class GridContextMenu extends AbstractTool
     public function render()
     {
         $canAccess = $this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
-        $canEdit = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+        // enableEdit(true) rather than the bare permission: an administrator
+        // who turned Edit off for this table meant "not from a screen", and
+        // this menu is a screen.
+        $canEdit = $this->custom_table->enableEdit(true) === true;
         // enableCreate() returns true or an ErrorCode - a copy is a create.
         $canCopy = $this->custom_table->enableCreate(true) === true;
+        // Delete is its own switch. Deriving it from $canEdit would hide the
+        // entry when only Edit was turned off, and - worse - show it when only
+        // Delete was. There is no table-level enableDelete(): the right to
+        // delete is a per-record decision, so the table-wide test is the edit
+        // permission plus this table's own Delete form action.
+        $canDelete = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)
+            && !$this->custom_table->formActionDisable(FormActionType::DELETE);
+
+        // Every row on screen is already deleted in the trashed scope, and
+        // no write action can reach one - see TrashedScopeTrait. Read-only
+        // entries (peek, open, filter, copy cell) stay: they are still
+        // useful on a deleted row.
+        if (self::isTrashedScope($this->custom_table)) {
+            // Clearing $canEdit also drops "assign to me": the assignee
+            // column below is only looked up when editing is possible.
+            $canEdit = false;
+            $canCopy = false;
+            $canDelete = false;
+        }
 
         // No entry at all is worth showing - skip the wrapper too so the
         // JS has nothing to bind to.
-        if (!$canAccess && !$canEdit && !$canCopy) {
+        if (!$canAccess && !$canEdit && !$canCopy && !$canDelete) {
             return '';
         }
 
@@ -92,6 +125,11 @@ class GridContextMenu extends AbstractTool
         // here as well so "assign to me" can repaint the cell it changed
         // even on a grid where inline editing is switched off.
         $cellBase = e(admin_urls('webapi', 'data', $tableName, 'cell'));
+        // ...and which view is on screen, because a cell's appearance can be
+        // a setting of the view rather than of the column. Without it the
+        // repainted cell would wear the column style while every other row
+        // kept the view style, until the next reload.
+        $cellView = e(strval($this->custom_view->suuid ?? ''));
         $csrf = e(csrf_token());
 
         // "Assign to me" needs both a column to write into and a user to
@@ -125,6 +163,12 @@ class GridContextMenu extends AbstractTool
             'copy_cell' => e(exmtrans('common.grid_ctx_copy_cell')),
             'delete' => e(exmtrans('common.grid_ctx_delete')),
             'confirm' => e(exmtrans('common.grid_ctx_delete_confirm')),
+            // The menu is built once for the table, but the right to delete
+            // is decided per record - a row locked by a workflow, or one
+            // this reader does not own, refuses from the server. The entry
+            // has to be there for the rows that can be deleted, so the ones
+            // that cannot need something to say.
+            'delete_error' => e(exmtrans('common.grid_ctx_delete_error')),
             // Strings for the "filtering this page" chip grid_tools.js
             // raises above the table. They ride on this div because the JS
             // is a static file with no access to the translations, and
@@ -178,7 +222,7 @@ HTML;
 <a href="#" data-act="copy-cell"><i class="fa fa-clipboard"></i>&nbsp;{$labels['copy_cell']}</a>
 HTML;
 
-        if ($canEdit) {
+        if ($canDelete) {
             $items .= <<<HTML
 <div class="exm-ctx-sep"></div>
 <a href="#" data-act="delete" class="exm-ctx-danger"><i class="fa fa-trash"></i>&nbsp;{$labels['delete']}</a>
@@ -191,6 +235,7 @@ HTML;
     data-view-url="{$viewUrlBase}"
     data-webapi-url="{$webapiBase}"
     data-cell-url="{$cellBase}"
+    data-cell-view="{$cellView}"
     data-assign-col="{$assignName}"
     data-assign-user="{$assignUserId}"
     data-assign-done="{$labels['assign_done']}"
@@ -201,6 +246,7 @@ HTML;
     data-peek-close="{$labels['peek_close']}"
     data-csrf="{$csrf}"
     data-confirm="{$labels['confirm']}"
+    data-delete-error="{$labels['delete_error']}"
     data-filter-label="{$labels['filter']}"
     data-filter-active="{$labels['filter_active']}"
     data-filter-hidden="{$labels['filter_hidden']}"

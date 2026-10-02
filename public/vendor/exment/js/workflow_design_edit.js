@@ -112,6 +112,18 @@ var Exment;
         return Math.round(v / GRID) * GRID;
     }
 
+    /**
+     * Number(v) with a fallback that only fires when v carries no number at
+     * all, so that a legitimate 0 survives the round trip.
+     */
+    function numberOr(v, fallback) {
+        if (v === null || v === undefined || v === '') {
+            return fallback;
+        }
+        var n = Number(v);
+        return isNaN(n) ? fallback : n;
+    }
+
     function nextKey(prefix) {
         seq++;
         return prefix + seq;
@@ -170,6 +182,44 @@ var Exment;
         };
     }
 
+    /** Fields the action dialog is allowed to write back. */
+    var ACTION_EDITABLE = ['name', 'from', 'ignore', 'targetType', 'flowType', 'flowCount', 'commentType'];
+
+    /**
+     * Deep copy of an action, used as the dialog's working object.
+     *
+     * The dialog edits in place and its "add branch" / "remove branch"
+     * buttons read the form back before redrawing, so without a copy a
+     * cancelled dialog would still have changed the diagram.
+     */
+    function cloneAction(a) {
+        var c = {
+            key: a.key,
+            id: a.id,
+            targets: cloneTargets(a.targets),
+            destinations: (a.destinations || []).map(function (d) {
+                var o = {};
+                Object.keys(d).forEach(function (k) {
+                    o[k] = Array.isArray(d[k]) ? d[k].slice() : d[k];
+                });
+                return o;
+            })
+        };
+        ACTION_EDITABLE.forEach(function (k) {
+            c[k] = a[k];
+        });
+        return c;
+    }
+
+    /** Copies the dialog's working object onto the action the diagram holds. */
+    function commitAction(live, draft) {
+        ACTION_EDITABLE.forEach(function (k) {
+            live[k] = draft[k];
+        });
+        live.targets = draft.targets;
+        live.destinations = draft.destinations;
+    }
+
     function buildState(data) {
         var s = {
             name: data.workflow_view_name,
@@ -221,7 +271,9 @@ var Exment;
                 targetType: a.work_target_type || TYPE_FIX,
                 targets: cloneTargets(a.targets),
                 flowType: a.flow_next_type || 'some',
-                flowCount: Number(a.flow_next_count) || 1,
+                // a stored zero is a real setting, not a missing one, and || 1
+                // would rewrite it the moment the designer is opened and saved
+                flowCount: numberOr(a.flow_next_count, 1),
                 commentType: a.comment_type || 'nullable',
                 destinations: dests
             });
@@ -543,7 +595,9 @@ var Exment;
             // 実行可能ユーザー
             if (a.targetType !== TYPE_ACTION_SELECT) {
                 var has = false;
-                TARGET_KEYS.forEach(function (k) {
+                // Same list the server keeps, so a leftover from a previous
+                // type cannot make an action without targets look complete.
+                (TARGET_VISIBLE[a.targetType] || []).forEach(function (k) {
                     if ((a.targets[k] || []).length) {
                         has = true;
                     }
@@ -553,6 +607,14 @@ var Exment;
                 }
             } else if (a.ignore) {
                 list.push({ level: 'err', akey: a.key, text: t('issue_ignore_action_select', { action: label }) });
+            }
+
+            // The first action cannot read its users from the previous one,
+            // because a record that has not been applied for yet has no
+            // previous one. The server rejects this too; flagging it here
+            // means the diagram says so before the save is attempted.
+            if (a.targetType === TYPE_ACTION_SELECT && a.from === START) {
+                list.push({ level: 'err', akey: a.key, text: t('issue_action_select_on_start', { action: label }) });
             }
 
             // 人数
@@ -600,6 +662,19 @@ var Exment;
 
         if (S.actions.length && !hasStart) {
             list.push({ level: 'err', text: t('issue_no_start', { status: S.startName }) });
+        }
+
+        // The server refuses a flow with no status, no completed status or no
+        // action outright. Without these three the panel can show nothing
+        // blocking while Save still comes back 422, leaving the reader with a
+        // refusal and no word on screen about what is missing.
+        if (!S.statuses.length) {
+            list.push({ level: 'err', text: t('issue_no_status') });
+        } else if (!S.statuses.some(function (s) { return !!s.completed; })) {
+            list.push({ level: 'err', text: t('issue_no_completed') });
+        }
+        if (!S.actions.length) {
+            list.push({ level: 'err', text: t('issue_no_action') });
         }
 
         // 到達できるか
@@ -861,10 +936,78 @@ var Exment;
         };
     }
 
+    // Focus handling for the hand-built dialog. `role="dialog"` names the
+    // box for a screen reader but does nothing to stop Tab walking out of
+    // it into the designer behind, and a handler bound on the modal element
+    // only hears Escape while focus is still inside it. Both are therefore
+    // taken on the document for as long as a dialog is up.
+    var modalKeyHandler = null;
+    var modalOpener = null;
+
+    function releaseModalFocus() {
+        if (modalKeyHandler) {
+            document.removeEventListener('keydown', modalKeyHandler, true);
+            modalKeyHandler = null;
+        }
+        if (modalOpener && typeof modalOpener.focus === 'function' && modalOpener.isConnected) {
+            modalOpener.focus();
+        }
+        modalOpener = null;
+    }
+
+    function trapModalFocus() {
+        var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), ' +
+            'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        if (modalKeyHandler) {
+            document.removeEventListener('keydown', modalKeyHandler, true);
+        }
+        modalKeyHandler = function (ev) {
+            if (!els.modal.classList.contains('on')) {
+                return;
+            }
+            if (ev.key === 'Escape') {
+                ev.preventDefault();
+                closeModal();
+                return;
+            }
+            if (ev.key !== 'Tab') {
+                return;
+            }
+            var list = [];
+            Array.prototype.forEach.call(els.modal.querySelectorAll(FOCUSABLE), function (el) {
+                // offsetParent is null for anything display:none, which must
+                // not become a stop on the way round.
+                if (el.offsetParent !== null) {
+                    list.push(el);
+                }
+            });
+            if (!list.length) {
+                return;
+            }
+            var first = list[0];
+            var last = list[list.length - 1];
+            var active = document.activeElement;
+            if (!els.modal.contains(active)) {
+                ev.preventDefault();
+                first.focus();
+                return;
+            }
+            if (ev.shiftKey && active === first) {
+                ev.preventDefault();
+                last.focus();
+            } else if (!ev.shiftKey && active === last) {
+                ev.preventDefault();
+                first.focus();
+            }
+        };
+        document.addEventListener('keydown', modalKeyHandler, true);
+    }
+
     function closeModal() {
         els.modal.classList.remove('on');
         els.modal.innerHTML = '';
         document.body.classList.remove('wfd-modal-open');
+        releaseModalFocus();
     }
 
     /**
@@ -872,7 +1015,11 @@ var Exment;
      * run が false を返したときは閉じない（入力エラー時など）。
      */
     function openModal(title, body, buttons, wide) {
-        var html = '<div class="wfd-dlg' + (wide ? ' wide' : '') + '">' +
+        // Read before the markup is replaced, so closing can put the reader
+        // back on the control they opened the dialog from.
+        modalOpener = document.activeElement;
+        var html = '<div class="wfd-dlg' + (wide ? ' wide' : '') + '"' +
+            ' role="dialog" aria-modal="true" aria-label="' + esc(title) + '">' +
             '<div class="wfd-dlg-h">' + esc(title) + '<button type="button" class="wfd-x" data-close>×</button></div>' +
             '<div class="wfd-dlg-b">' + body + '</div><div class="wfd-dlg-f">';
 
@@ -885,6 +1032,7 @@ var Exment;
         els.modal.innerHTML = html;
         els.modal.classList.add('on');
         document.body.classList.add('wfd-modal-open');
+        trapModalFocus();
 
         els.modal.onclick = function (ev) {
             if (ev.target.closest('[data-close]') || ev.target === els.modal) {
@@ -1461,6 +1609,13 @@ var Exment;
         a.targetType = tt ? tt.value : TYPE_FIX;
 
         TARGET_KEYS.forEach(function (k) {
+            // A hidden picker keeps whatever was selected in it before the type
+            // was switched, and the server discards any key the chosen type
+            // cannot carry, so only the pickers on screen are read back.
+            if ((TARGET_VISIBLE[a.targetType] || []).indexOf(k) < 0) {
+                a.targets[k] = [];
+                return;
+            }
             var el = m.querySelector('#wfd-tg-' + k);
             if (!el) {
                 return;
@@ -1514,10 +1669,16 @@ var Exment;
     }
 
     function editActionModal(key, draftAction) {
-        var a = draftAction || actionOf(key);
-        if (!a) {
+        var live = actionOf(key);
+        if (!live) {
             return;
         }
+        // The dialog works on a copy, so Cancel, Escape and a click on the
+        // backdrop really do throw the edits away. The branch buttons hand
+        // that copy back through reopenActionModal() instead of reading the
+        // diagram again, which is what keeps a half-finished edit alive
+        // across a redraw without committing it.
+        var a = draftAction || cloneAction(live);
 
         openModal(t('action_menu', { name: actionLabel(a) }), actionFormHtml(a), [
             { label: t('label_cancel') },
@@ -1527,7 +1688,8 @@ var Exment;
                     if (!readActionForm(m, a, false)) {
                         return false;
                     }
-                    sel = { type: 'edge', key: a.key };
+                    commitAction(live, a);
+                    sel = { type: 'edge', key: live.key };
                     render();
                 }
             }

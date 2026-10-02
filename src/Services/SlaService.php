@@ -411,9 +411,12 @@ class SlaService
         }
 
         $pdo = DB::connection()->getPdo();
+        // SQL Server spells json_set() json_modify(); the argument shape is
+        // the same, so only the name changes.
+        $setter = \Exment::isSqlServer() ? 'json_modify' : 'json_set';
         $expression = 'value';
         foreach ($changes as $column => $newValue) {
-            $expression = 'json_set(' . $expression . ', '
+            $expression = $setter . '(' . $expression . ', '
                 . $pdo->quote('$."' . $column . '"') . ', '
                 . $pdo->quote(strval($newValue)) . ')';
         }
