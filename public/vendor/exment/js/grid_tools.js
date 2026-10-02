@@ -27,6 +27,10 @@
   var PIN_RIGHT_PREFIX = 'exment_grid_pinright_';
   var PIN_HEAD_PREFIX = 'exment_grid_pinhead_';
   var GROUP_PREFIX = 'exment_grid_group_';
+  // Marks each row with the position the server gave it, so grouping can
+  // be undone. On the element rather than in a variable because pjax
+  // replaces the tbody wholesale and a stale index list would outlive it.
+  var ROW_SEQ_ATTR = 'data-exm-row-seq';
   var NOWRAP_KEY = 'exment_grid_nowrap';
   // sessionStorage, both of them, and on purpose: which groups are folded
   // and what the page is filtered on are "this sitting" state like the
@@ -329,6 +333,73 @@
     window.location.href = url;
   }
 
+  /**
+   * Hold keyboard focus inside a dialog that was built by hand.
+   *
+   * `role="dialog"` tells a screen reader what the box is; it does nothing
+   * to stop Tab walking straight out of it into the page behind, which is
+   * still fully operable under the shade. Bootstrap does this for its own
+   * modals, but these dialogs are plain elements it knows nothing about.
+   *
+   * Listening on the document rather than on the box keeps Escape working
+   * after a click on the shaded area has moved focus off the dialog.
+   *
+   * @param {Element} box the dialog element
+   * @param {Function} onEscape run when Escape is pressed
+   * @return {Function} call to stop trapping and restore focus
+   */
+  function trapFocus(box, onEscape) {
+    var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), ' +
+      'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    var previous = document.activeElement;
+
+    function stops() {
+      var out = [];
+      each(box.querySelectorAll(FOCUSABLE), function (el) {
+        // offsetParent is null for anything display:none, which must not
+        // become a stop on the way round.
+        if (el.offsetParent !== null) out.push(el);
+      });
+      return out;
+    }
+
+    function onKey(e) {
+      if (!box.isConnected) return;
+      if (e.key === 'Escape' || e.keyCode === 27) {
+        e.preventDefault();
+        if (onEscape) onEscape();
+        return;
+      }
+      if (e.key !== 'Tab' && e.keyCode !== 9) return;
+      var list = stops();
+      if (!list.length) return;
+      var first = list[0];
+      var last = list[list.length - 1];
+      var active = document.activeElement;
+      if (!box.contains(active)) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener('keydown', onKey, true);
+    return function () {
+      document.removeEventListener('keydown', onKey, true);
+      // Put the reader back on the control that opened the dialog.
+      if (previous && typeof previous.focus === 'function' && previous.isConnected) {
+        previous.focus();
+      }
+    };
+  }
+
   function hideModal(modal) {
     if (!modal) return;
     try {
@@ -347,6 +418,29 @@
     modal.removeAttribute('aria-modal');
     modal.style.display = 'none';
     cleanupBackdrops();
+  }
+
+  /**
+   * Lift the column picker out of the toolbar onto <body>.
+   *
+   * The toolbar is rendered inside #main, a flex item with a z-index of
+   * its own - which makes it a stacking context, so nothing inside it can
+   * rise above the backdrop Bootstrap appends to <body>. Left where it is
+   * rendered, the picker opens underneath its own backdrop: greyed out,
+   * and every click aimed at a checkbox lands on the backdrop instead.
+   */
+  function initColModal() {
+    // One already on <body> came from an earlier pass. It is still the
+    // live one while a button on this page opens it; otherwise its grid
+    // went with the last pjax swap and it would only pile up.
+    each(document.querySelectorAll('body > .exm-col-modal'), function (modal) {
+      var id = modal.id;
+      if (id && document.querySelector('[data-bs-target="#' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]')) return;
+      modal.remove();
+    });
+    each(document.querySelectorAll('.exm-col-modal'), function (modal) {
+      if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    });
   }
 
   /**
@@ -560,7 +654,20 @@
     // share of the box. The STORED choice is kept whole on purpose - the
     // same grid pins fully again the moment it gets a wider screen.
     var scBox = scrollBoxOf(table);
-    var budget = scBox ? scBox.clientWidth * 0.6 : Infinity;
+    var boxWidth = scBox ? scBox.clientWidth : Infinity;
+
+    // Room the frozen action column takes on the other side. Both blocks
+    // stop inside this same box, so a left block sized without counting
+    // the buttons ends up sliding underneath them.
+    var rightWidth = 0;
+    if (pinRight) {
+      each(table.querySelectorAll('.column-' + ACTION_COLUMN), function (cell) {
+        var w = cell.getBoundingClientRect().width;
+        if (w > rightWidth) rightWidth = w;
+      });
+    }
+
+    var budget = scBox ? Math.max(0, boxWidth * 0.6 - rightWidth) : Infinity;
 
     var left = 0;
     var keptData = 0;
@@ -617,7 +724,12 @@
 
     // On by default (see above). On a table that fits, sticky-right
     // resolves to the cell's own place, so it costs nothing there.
-    if (pinRight) {
+    // The first data column freezes even when it is over budget, so the
+    // left block can still grow past what the box can hold. Freezing the
+    // buttons as well would park them on top of that frozen text, and the
+    // buttons are the easier of the two to reach by scrolling. The stored
+    // choice is untouched - it applies again on a wider screen.
+    if (pinRight && left + rightWidth <= boxWidth) {
       each(table.querySelectorAll('.column-' + ACTION_COLUMN), function (cell) {
         cell.classList.add('exm-pin', 'exm-pin-right-first');
         cell.style.right = '0px';
@@ -706,6 +818,39 @@
    * that is the only thing the browser has, and it is also what the user
    * is reading, so two rows group together exactly when they look alike.
    */
+  /**
+   * Stamps the order the server sent the rows in, once per table.
+   *
+   * Grouping moves rows around with appendChild, which destroys the order
+   * the sort produced. Without a record of it, turning grouping off - or
+   * switching to another column - would leave the page in whatever order
+   * the previous grouping happened to build.
+   */
+  function markRowOrder(tbody) {
+    var rows = [];
+    each(tbody.querySelectorAll(':scope > tr'), function (tr) {
+      if (tr.classList.contains('exm-group-row')) return;
+      rows.push(tr);
+    });
+    if (!rows.length || rows[0].hasAttribute(ROW_SEQ_ATTR)) return;
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].setAttribute(ROW_SEQ_ATTR, String(i));
+    }
+  }
+
+  /** Puts the rows back in the order markRowOrder recorded. */
+  function restoreRowOrder(tbody) {
+    var rows = [];
+    each(tbody.querySelectorAll(':scope > tr'), function (tr) {
+      if (tr.hasAttribute(ROW_SEQ_ATTR)) rows.push(tr);
+    });
+    if (!rows.length) return;
+    rows.sort(function (a, b) {
+      return Number(a.getAttribute(ROW_SEQ_ATTR)) - Number(b.getAttribute(ROW_SEQ_ATTR));
+    });
+    each(rows, function (tr) { tbody.appendChild(tr); });
+  }
+
   function applyGroup(box) {
     var table = gridOf(box);
     if (!table) return;
@@ -715,12 +860,18 @@
     var key = box.getAttribute('data-key');
     var col = readStore('sessionStorage', GROUP_PREFIX + key) || '';
 
+    markRowOrder(tbody);
+
     each(tbody.querySelectorAll('tr.exm-group-row'), function (tr) {
       tr.remove();
     });
     each(tbody.querySelectorAll('tr.exm-row-hidden'), function (tr) {
       tr.classList.remove('exm-row-hidden');
     });
+    // Back to the sort order before anything is bucketed, so that the
+    // groups come out the same whether or not another column was grouped
+    // on first, and so that switching grouping off really does undo it.
+    restoreRowOrder(tbody);
 
     markActive(box, '.exm-group-item', 'data-col', col);
     var btn = box.querySelector('.exm-group-btn');
@@ -729,7 +880,10 @@
 
     var order = [];
     var buckets = {};
-    each(tbody.querySelectorAll('tr'), function (tr) {
+    // Direct children only, so that the set bucketed here is exactly the
+    // set restoreRowOrder() can put back. A nested table's rows belong to
+    // that table and must not be lifted out of it by appendChild.
+    each(tbody.querySelectorAll(':scope > tr'), function (tr) {
       // A row the page filter took out is not part of any group, so it is
       // neither counted nor moved. Leaving it out is what keeps the count
       // on a group header equal to the number of rows actually under it.
@@ -888,6 +1042,16 @@
       '.exm-grid-group[data-grid="' + table.id + '"], .exm-grid-pin[data-grid="' + table.id + '"]'
     );
     return box ? (box.getAttribute('data-key') || '') : '';
+  }
+
+  /**
+   * Draw the groups again after rows were added or taken away. A no-op when
+   * nothing is grouped, so callers do not have to ask first.
+   */
+  function regroupAfterRowChange(table) {
+    if (!table || !table.id || !groupColumnOf(table)) return;
+    var box = document.querySelector('.exm-grid-group[data-grid="' + table.id + '"]');
+    if (box) applyGroup(box);
   }
 
   /* --------------------------------------------------- page filter --- */
@@ -1177,7 +1341,13 @@
     // dropdown, nor a static bulk-edit / bulk-export button that the
     // renderer chose to include) the bar would be a dead label.
     var hasActions = bar.querySelectorAll('.exm-bulk-act, .exm-bulk-edit, .exm-bulk-export').length > 0;
-    bar.classList.toggle('show', selected > 0 && hasActions);
+    var barVisible = selected > 0 && hasActions;
+    bar.classList.toggle('show', barVisible);
+    // The bar is fixed to the bottom of the viewport, so once the page is
+    // scrolled to its end the bar covers whatever sits down there - which
+    // on a list is the pager and the last rows. Room is made for it while
+    // it is up, and taken back the moment it goes.
+    document.body.classList.toggle('exm-bulkbar-open', barVisible);
 
     syncStockSelection(bar);
   }
@@ -1475,7 +1645,9 @@
       });
     });
 
+    var releaseTrap = null;
     function close() {
+      if (releaseTrap) { releaseTrap(); releaseTrap = null; }
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
     }
 
@@ -1569,7 +1741,9 @@
     });
 
     // Focus the first editable field on open so keyboard users can
-    // start picking a value without a hunt-and-click first.
+    // start picking a value without a hunt-and-click first, and hold it
+    // in the dialog until the dialog goes.
+    releaseTrap = trapFocus(overlay, close);
     setTimeout(function () {
       var first = overlay.querySelector('[data-role="exm-bulk-editor"]');
       if (first) first.focus();
@@ -1749,10 +1923,78 @@
     return null;
   }
 
+  /**
+   * The cell this save should paint into, looked up in the page that is
+   * on screen now rather than the one the edit started on.
+   *
+   * A pjax navigation - paging, sorting, the column picker - replaces the
+   * whole grid, and a save that was still queued behind another one for
+   * the same record then answers into a `<td>` that is no longer in the
+   * document. Painting there is invisible: the record holds the new value
+   * while the grid the user is looking at still shows the old one, until
+   * some later reload. Finding the row again by record id puts the answer
+   * where it can be seen.
+   *
+   * Returns null when the record is not on the replacement page at all -
+   * there is nothing to paint then - and also when the cell found is being
+   * edited right now, because overwriting it would throw away whatever the
+   * reader has typed since.
+   *
+   * The search is held to the one grid the edit came from. Record ids are
+   * only unique within a table, so a page showing two grids can hold two
+   * different records under the same id, and they can easily share a column
+   * name as well. `gridKey` is the grid's own stored identity rather than
+   * its element id, because the element id is a `uniqid()` the server makes
+   * afresh on every render and so never survives the swap. With no key to
+   * match on, the lookup is only made when the page holds a single grid.
+   *
+   * @param {Element} td the cell the edit was opened on
+   * @param {string} id record id
+   * @param {string} column column name
+   * @param {string} gridKey stable key of the grid the edit came from
+   * @return {Element|null}
+   */
+  function liveInlineCell(td, id, column, gridKey) {
+    if (td && td.isConnected) return td;
+    var tables = [];
+    each(document.querySelectorAll('table.exm-grid'), function (t) {
+      if (!gridKey || storeKeyOf(t) === gridKey) tables.push(t);
+    });
+    if (tables.length !== 1) return null;
+    var table = tables[0];
+    var safe = String(id).replace(/"/g, '\\"');
+    var tr = table.querySelector('tr[data-key="' + safe + '"], tr[data-id="' + safe + '"]');
+    if (!tr) {
+      var cb = table.querySelector('input.grid-row-checkbox[data-id="' + safe + '"]');
+      tr = cb ? closest(cb, 'tr') : null;
+    }
+    if (!tr) return null;
+    var found = null;
+    each(tr.querySelectorAll('td.exm-editable'), function (cell) {
+      if (!found && columnNameOf(cell) === column) found = cell;
+    });
+    if (!found || found.classList.contains('exm-editing')) return null;
+    return found;
+  }
+
   // One-at-a-time guard. `activeInlineTd` is the cell currently being
   // edited; a second open call on a different cell finishes the first
   // one before opening the new editor.
   var activeInlineTd = null;
+
+  // One save at a time per record, keyed by record id.
+  //
+  // A save sends only the column it changed, but the server writes the
+  // whole value JSON back: it loads the record, replaces that one key and
+  // stores the lot. Two saves of the SAME record that overlap therefore
+  // both start from the state before either of them, and whichever
+  // finishes last puts the other one's column back the way it was - both
+  // report success and one edit is gone at the next reload.
+  //
+  // Editing two cells of one row in quick succession is ordinary use, so
+  // the second save waits for the first to finish rather than racing it.
+  // Different records keep their own chain and still overlap freely.
+  var inlineSaveChains = {};
 
   function openInlineEditor(td) {
     if (!td || !td.classList.contains('exm-editable')) return;
@@ -1767,7 +2009,13 @@
     if (!cfg) return;
 
     if (activeInlineTd && activeInlineTd !== td) {
-      finishInlineEditor(activeInlineTd, false);
+      // Committed, not reverted: opening another cell IS clicking away from
+      // this one, and clicking away is what the editor documents as the way
+      // to keep an edit. The blur that this click also fires would commit
+      // too, but only after an 80 ms delay, so this synchronous call always
+      // gets there first - reverting here would silently drop what the user
+      // typed while every other way of leaving the cell keeps it.
+      finishInlineEditor(activeInlineTd, true);
     }
     activeInlineTd = td;
 
@@ -2156,6 +2404,10 @@
   function saveInlineCell(cfg, id, column, value, td, snapshot) {
     var body = { value: {} };
     body.value[column] = value;
+    // True once the server has accepted the write. After that point a
+    // failure belongs to the repaint, not to the data, and the two must
+    // not be reported the same way.
+    var written = false;
 
     var updateUrl = cfg.updateUrl + '/' + encodeURIComponent(id);
     var cellUrl = cfg.cellUrl + '/' + encodeURIComponent(id) + '/' + encodeURIComponent(column);
@@ -2170,13 +2422,24 @@
     };
     if (cfg.csrf) headers['X-CSRF-TOKEN'] = cfg.csrf;
 
-    fetch(updateUrl, {
-      method: 'PUT',
-      credentials: 'same-origin',
-      headers: headers,
-      body: JSON.stringify(body)
+    // Queue behind any save still in flight for this same record - see the
+    // note on inlineSaveChains. The chain is kept alive past a failure so
+    // one rejected save cannot strand every later edit of that row.
+    var chainKey = String(id);
+    // Read now, while the cell is still in the document: after a pjax swap
+    // there is no way back from the detached cell to the grid it sat in.
+    var gridKey = storeKeyOf(closest(td, 'table.exm-grid'));
+    var previous = inlineSaveChains[chainKey] || Promise.resolve();
+    var run = previous.then(function () {
+      return fetch(updateUrl, {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: headers,
+        body: JSON.stringify(body)
+      });
     }).then(function (r) {
       if (!r.ok) throw new Error('put:' + r.status);
+      written = true;
       // Skip parsing the JSON body - we do not use it, and dataUpdate
       // may return an object OR an array of objects depending on the
       // call shape.
@@ -2190,12 +2453,24 @@
       return r.json();
     }).then(function (payload) {
       td.classList.remove('exm-saving');
+      // The grid may have been replaced while this save waited its turn -
+      // see liveInlineCell. Paint the row where it is now, not where it was.
+      td = liveInlineCell(td, id, column, gridKey);
+      if (!td) return;
       var html = (payload && payload.html != null) ? String(payload.html) : '';
       // Server returns the value markup only (badge, bar, plain text).
       // Replace the whole cell content with it and re-attach the pen -
       // writing `wrap.innerHTML = html` where `wrap` was the previous
       // badge would just nest the new one inside it.
       td.innerHTML = html;
+      // A cell the previous attempt left amber is now showing real server
+      // markup, so the warning goes with it. The tooltip has to go too, or
+      // syncCellTitles() keeps treating the cell as one that came with its
+      // own title and never offers the cut-off text again.
+      if (td.classList.contains('exm-stale')) {
+        td.classList.remove('exm-stale');
+        td.removeAttribute('title');
+      }
       addPenIcon(td);
       td.classList.add('exm-saved');
       setTimeout(function () { td.classList.remove('exm-saved'); }, 1200);
@@ -2208,10 +2483,71 @@
       each(document.querySelectorAll('.exm-grid-pin[data-key]'), applyPins);
     }).catch(function () {
       td.classList.remove('exm-saving');
-      td.innerHTML = snapshot;
-      td.classList.add('exm-error');
-      setTimeout(function () { td.classList.remove('exm-error'); }, 2500);
+      var wasOnScreen = !!(td && td.isConnected);
+      td = liveInlineCell(td, id, column, gridKey);
+      if (!td) return;
+      if (!written) {
+        // The write never landed, so the cell goes back the way it was.
+        // A grid replaced in the meantime was drawn from the stored value
+        // this save failed to change, so it is already showing it.
+        if (!wasOnScreen) return;
+        td.innerHTML = snapshot;
+        td.classList.add('exm-error');
+        setTimeout(function () { td.classList.remove('exm-error'); }, 2500);
+        return;
+      }
+      // The value is stored and only the repaint failed. Restoring the
+      // old markup here would tell the user the edit was lost and invite
+      // a second one, so the cell keeps the value that was sent and is
+      // marked as needing a reload to get its real appearance back.
+      td.textContent = inlineStaleText(td, value);
+      // Rebuilt because textContent just removed the one the server sent.
+      // Without it readCurrentValue() would try to match a label against
+      // a stored key, find nothing, and open the next edit on no option
+      // at all - one stray blur away from saving a value nobody picked.
+      td.appendChild(rawCellMarker(value));
+      addPenIcon(td);
+      td.classList.add('exm-stale');
+      td.setAttribute('title', getInlineLabel(td, 'stale'));
+      // The value is stored, so the row can belong under a different heading
+      // or outside the page filter now, exactly as when the repaint worked.
+      // Skipping it here would leave the cell reading one thing while the
+      // place it sits in says another, over a save that did go through.
+      refreshRowPlacement(td);
+      each(document.querySelectorAll('.exm-grid-pin[data-key]'), applyPins);
     });
+
+    var tail = run.then(function () {
+      // Drop the entry once this is the last save queued for the record, so
+      // a long-lived grid does not keep one settled promise per row edited.
+      if (inlineSaveChains[chainKey] === tail) delete inlineSaveChains[chainKey];
+    });
+    inlineSaveChains[chainKey] = tail;
+  }
+
+  /**
+   * What a cell should read after a save whose repaint failed. The PUT
+   * body carries the stored key, while the cell is read by a person, so
+   * a column with a choice list is shown by its label.
+   */
+  function inlineStaleText(td, value) {
+    var meta = inlineColumnMeta(td);
+    if (meta && meta.type === 'select' && meta.choices) {
+      for (var i = 0; i < meta.choices.length; i++) {
+        if (String(meta.choices[i].v) === String(value)) {
+          return String(meta.choices[i].l);
+        }
+      }
+    }
+    return (value == null) ? '' : String(value);
+  }
+
+  /** The hidden marker the grid carries a cell's stored value in. */
+  function rawCellMarker(value) {
+    var marker = document.createElement('span');
+    marker.className = 'exm-cell-raw';
+    marker.setAttribute('data-v', value == null ? '' : String(value));
+    return marker;
   }
 
   // Add a fresh pen icon to a cell if it's editable and does not have
@@ -2480,6 +2816,7 @@
     var user = menu.getAttribute('data-assign-user');
     var webapi = menu.getAttribute('data-webapi-url') || '';
     var cellBase = menu.getAttribute('data-cell-url') || '';
+    var cellView = menu.getAttribute('data-cell-view') || '';
     var csrf = menu.getAttribute('data-csrf') || '';
     if (!col || !user || !webapi) return;
 
@@ -2505,7 +2842,11 @@
     }).then(function (r) {
       if (!r.ok) throw new Error('assign:' + r.status);
       if (!td || !cellBase) return null;
-      return fetch(cellBase + '/' + encodeURIComponent(id) + '/' + encodeURIComponent(col), {
+      // Same view the inline editor sends, so a cell repainted from here
+      // keeps the style the rest of the column is wearing.
+      var cellUrl = cellBase + '/' + encodeURIComponent(id) + '/' + encodeURIComponent(col);
+      if (cellView) cellUrl += '?view=' + encodeURIComponent(cellView);
+      return fetch(cellUrl, {
         credentials: 'same-origin',
         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
       }).then(function (r2) {
@@ -2615,13 +2956,23 @@
       }).then(function (r) {
         if (!r.ok && r.status !== 204) throw new Error('delete:' + r.status);
         var tr3 = findRowById(id);
+        var gtable3 = tr3 ? closest(tr3, 'table.exm-grid') : null;
         if (tr3 && tr3.parentNode) tr3.parentNode.removeChild(tr3);
+        // The headings carry a count of the rows under them, so one fewer row
+        // leaves the number a lie - and a group the row was alone in keeps a
+        // heading with nothing beneath it. applyGroup rebuilds from whatever
+        // is in the table now, so re-running it is enough.
+        regroupAfterRowChange(gtable3);
         // A deleted row was probably still selected. Keep the bulk bar
         // in sync so its count does not sit one high.
         setTimeout(syncBulk, 0);
       }).catch(function () {
-        // Rely on the user-visible bar - a full alert would be too much
-        // for a one-row delete. The row simply stays.
+        // The row stays where it is, which on its own looks like nothing
+        // happened at all: the reader pressed delete, answered the
+        // confirmation, and the list is unchanged. Most refusals here are
+        // per-record - a workflow lock, or a row this reader may read but
+        // not remove - so the menu carries a line to show for them.
+        notify('error', menu.getAttribute('data-delete-error') || '');
         console.warn('exment: inline delete failed');
       });
       return;
@@ -2969,6 +3320,7 @@
     // filter actually exists.
     initFilter();
     initBulk();
+    initColModal();
     initInline();
     initCtxMenu();
   }
@@ -3047,6 +3399,7 @@
         each(document.querySelectorAll('body > .exm-bulkbar'), function (bar) {
           bar.classList.remove('show');
         });
+        document.body.classList.remove('exm-bulkbar-open');
       })
       .on('pjax:complete pjax:end pjax:error', function () {
         pjaxInFlight = false;

@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Grid\Tools;
 
 use ExmentAdminCore\Admin\Grid\Tools\AbstractTool;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 
@@ -46,6 +45,8 @@ use Exceedone\Exment\Model\CustomView;
  */
 class GridInlineEditor extends AbstractTool
 {
+    use TrashedScopeTrait;
+
     /** @var CustomTable */
     protected $custom_table;
 
@@ -63,6 +64,36 @@ class GridInlineEditor extends AbstractTool
     }
 
     /**
+     * May this grid be inline-edited at all, before looking at any column?
+     *
+     * The single source of truth for that question. DefaultGrid asks it
+     * before hanging `.exm-editable` on a cell and GridBulkBar asks it
+     * before offering bulk edit, so the class, the JSON config and the
+     * bulk button can never disagree - a cell marked editable but missing
+     * from the config would open nothing on double click.
+     *
+     * enableEdit(true) rather than the bare permission: an administrator
+     * who turned Edit off for this table meant "not from a screen", and a
+     * grid is a screen. The form-action check goes with it, otherwise the
+     * editor becomes the one way left to change a record from the screen
+     * that setting disabled.
+     *
+     * The trashed scope is excluded because every row on it is already
+     * deleted: the webapi resolves the record without `withTrashed()`, so
+     * the PUT would come back "not found" and the user would get a bare
+     * error toast instead of a saved cell.
+     *
+     * @param CustomTable|null $custom_table
+     * @return bool
+     */
+    public static function isEditableGrid($custom_table): bool
+    {
+        return $custom_table instanceof CustomTable
+            && $custom_table->enableEdit(true) === true
+            && !self::isTrashedScope($custom_table);
+    }
+
+    /**
      * @return string
      */
     public function render()
@@ -70,7 +101,7 @@ class GridInlineEditor extends AbstractTool
         // No edit right, no editor. The `.exm-editable` class never made
         // it onto the cells either, so grid_tools.js has nothing to
         // react to - the config would be dead weight.
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!self::isEditableGrid($this->custom_table)) {
             return '';
         }
 
@@ -102,6 +133,7 @@ class GridInlineEditor extends AbstractTool
                 'saving' => exmtrans('common.grid_inline_saving'),
                 'saved' => exmtrans('common.grid_inline_saved'),
                 'error' => exmtrans('common.grid_inline_error'),
+                'stale' => exmtrans('common.grid_inline_stale'),
                 'edit' => exmtrans('common.grid_inline_edit'),
                 // Bulk-edit modal shares the inline editor's config
                 // (columns, choices, update URL, CSRF), so its user
@@ -352,6 +384,16 @@ HTML;
         if (!isset($custom_column)) {
             return false;
         }
+
+        // "Only set when the record is created". The grid never creates one,
+        // and InitOnlyRule refuses every change to such a column on a row
+        // that already exists, so an editor here could only ever be refused.
+        // Same reading as the calculated columns below: an editor that looks
+        // like it works and then loses the value is worse than no editor.
+        if (boolval($custom_column->getOption('init_only'))) {
+            return false;
+        }
+
         $type = $custom_column->column_type;
 
         if ($type === ColumnType::SELECT || $type === ColumnType::SELECT_VALTEXT) {
@@ -409,6 +451,11 @@ HTML;
      * everything but digits, dot and minus) does not land back on the
      * stored value.
      *
+     * Date and datetime columns get one unconditionally. Their display
+     * format is a system setting with a locale-dependent list, and a
+     * column may override it, so there is no single shape the client
+     * could read a date back from - see the note at the check itself.
+     *
      * Only those cells get a marker. It is the same data twice in the
      * page, and the vast majority of cells are neither shortened nor
      * reformatted - there the text the user is reading IS the value.
@@ -443,9 +490,25 @@ HTML;
             $needed = true;
         }
 
-        if (!$needed && isset($html)
-            && method_exists($item, 'getCustomColumn')
-            && ($custom_column = $item->getCustomColumn())
+        $custom_column = (!$needed && method_exists($item, 'getCustomColumn'))
+            ? $item->getCustomColumn()
+            : null;
+
+        if (!$needed && $custom_column
+            && in_array($custom_column->column_type, [ColumnType::DATE, ColumnType::DATETIME], true)) {
+            // A date is always written out, whatever it looks like on screen.
+            // The display format is a setting - 'Y-m-d', 'Y/m/d', the Japanese
+            // 'Y年m月d日' and, in the English locale, the day-first 'd/m/Y'
+            // (system.date_format_list) - and a column may override it with
+            // any format of its own. The client cannot read them all back, and
+            // a date it fails to read opens the editor empty: the stored date
+            // then looks like no date at all, so clearing the cell sends
+            // nothing and the value cannot be removed inline. Handing over the
+            // database value settles every format at once.
+            $needed = true;
+        }
+
+        if (!$needed && isset($html) && $custom_column
             && in_array($custom_column->column_type, [ColumnType::INTEGER, ColumnType::DECIMAL, ColumnType::CURRENCY], true)) {
             // Same recovery the client runs on the cell text, then the same
             // trailing-zero blindness ("9800.00" and "9800" are one number).

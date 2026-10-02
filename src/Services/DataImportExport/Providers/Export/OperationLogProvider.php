@@ -49,11 +49,13 @@ class OperationLogProvider extends ProviderBase
         // create 2 rows.
         $rows = [];
 
-        // 1st row, column name
+        // 1st row, column name.
+        // Kept in the same order as the 2nd row and getBodies(): method first,
+        // then path.
         $rows[] = [
             'user_name',
-            'path',
             'method',
+            'path',
             'ip',
             'input',
             'created_at',
@@ -103,6 +105,14 @@ class OperationLogProvider extends ProviderBase
 
         $bodies = [];
 
+        // the grid hides the request body from a reader who only holds
+        // "operation log", because it is the edited record written out in full
+        // and the log applies no table or record authority of its own. An
+        // export that carried it would hand over exactly what the screen
+        // refuses to show.
+        $showInput = \Exceedone\Exment\Controllers\LogController::canManageLog();
+        $hidden = exmtrans('operation_log.value_hidden');
+
         foreach ($records as $record) {
             $body_items = [];
             // add items
@@ -110,7 +120,7 @@ class OperationLogProvider extends ProviderBase
             $body_items[] = $record->method;
             $body_items[] = $record->path;
             $body_items[] = $record->ip;
-            $body_items[] = $record->input;
+            $body_items[] = $showInput ? $record->input : $hidden;
             $body_items[] = $record->created_at;
 
             $bodies[] = $body_items;

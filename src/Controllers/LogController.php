@@ -49,9 +49,16 @@ class LogController extends AdminControllerBase
      * Reading is enough for PermissionEnum::OPERATION_LOG; changing what is kept
      * would let a reader erase their own trail, so it stays on the system role.
      *
+     * Also decides whether the recorded values themselves may be read. The log
+     * answers "who did what" for an auditor who holds no table rights at all,
+     * and the before/after snapshots are taken straight from the database
+     * without any table or record authority applied - so handing them to that
+     * auditor would hand over every table in the system. The system role
+     * already has all of it by other means.
+     *
      * @return bool
      */
-    protected static function canManageLog(): bool
+    public static function canManageLog(): bool
     {
         $user = \Exment::user();
         return $user ? $user->hasSystemPermission() : false;
@@ -99,11 +106,21 @@ class LogController extends AdminControllerBase
 
         $allLabel = exmtrans('operation_log.schedule_all');
 
-        $weekOptions = [1 => '月曜日', 2 => '火曜日', 3 => '水曜日', 4 => '木曜日', 5 => '金曜日', 6 => '土曜日', 7 => '日曜日'];
+        // Day and month names come from the calendar, not from the source:
+        // written out here they were Japanese on every screen, including an
+        // English one. Carbon prints the same words for ja that were typed
+        // here before, so nothing changes for a Japanese reader.
+        $locale = app()->getLocale();
+        // any Monday; only the day of the week is read off it
+        $monday = Carbon::create(2026, 1, 5);
+        $weekOptions = [];
+        for ($w = 1; $w <= 7; $w++) {
+            $weekOptions[$w] = $monday->copy()->addDays($w - 1)->locale($locale)->translatedFormat('l');
+        }
 
         $monthOptions = [];
         for ($m = 1; $m <= 12; $m++) {
-            $monthOptions[$m] = "{$m}月";
+            $monthOptions[$m] = Carbon::create(2026, $m, 1)->locale($locale)->translatedFormat('F');
         }
 
         $dayOptions = array_combine(range(1, 31), range(1, 31));
@@ -194,12 +211,21 @@ class LogController extends AdminControllerBase
      * Render diff_json as "column: before -> after" lines for the log grid.
      *
      * @param array<mixed>|null $diff
+     * @param bool $showValues false hides the values and keeps only the names
+     *                         of the columns that changed
      * @return string
      */
-    public static function formatAuditDiff($diff): string
+    public static function formatAuditDiff($diff, bool $showValues = true): string
     {
         if (!is_array($diff) || empty($diff)) {
             return '';
+        }
+
+        if (!$showValues) {
+            // which columns were touched is the audit trail; what they held is
+            // the data itself, and reading the log is not a right to read that
+            return '<div>' . esc_html(implode(', ', array_keys($diff))) . '</div>'
+                . '<div class="text-muted">' . esc_html(exmtrans('operation_log.value_hidden')) . '</div>';
         }
 
         $html = [];
@@ -217,6 +243,49 @@ class LogController extends AdminControllerBase
     }
 
     /**
+     * Columns of admin_operation_log that the URL is allowed to search or sort on.
+     *
+     * The table also holds diff_json, before_json, after_json and input. Those
+     * are raw snapshots taken straight from the database with no table or
+     * record authority applied, and formatAuditDiff() hides them from anyone
+     * without the system role. Hiding them on screen is not enough on its own:
+     * a LIKE or an ORDER BY on a hidden column answers questions about its
+     * contents one request at a time, so they are kept out of the query too.
+     *
+     * @var array<string>
+     */
+    protected static $queryable_columns = [
+        'id',
+        'user_id',
+        'method',
+        'event_type',
+        'path',
+        'resource_type',
+        'resource_id',
+        'ip',
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
+     * Columns the quick search box is allowed to look in.
+     *
+     * Kept as its own list rather than reusing $queryable_columns, because a
+     * column can be safe to order by and still be the wrong place to look for
+     * a word - and because a LIKE needs a real column of this table, which
+     * rules out the relation columns an ORDER BY can reach.
+     *
+     * @var array<string>
+     */
+    protected static $searchable_columns = [
+        'path',
+        'resource_type',
+        'method',
+        'event_type',
+        'ip',
+    ];
+
+    /**
      * @return Grid
      */
     protected function grid()
@@ -224,6 +293,8 @@ class LogController extends AdminControllerBase
         $grid = new Grid(new OperationLog());
 
         $grid->model()->orderBy('id', 'DESC');
+
+        $canManage = static::canManageLog();
 
         $grid->column('user.user_name', exmtrans('operation_log.user_name'))->display(function ($foo, $column, $model) {
             return $model->user_name;
@@ -237,13 +308,28 @@ class LogController extends AdminControllerBase
             }
             return esc_html($model->resource_type) . ' #' . intval($model->resource_id);
         });
-        $grid->column('diff_json', exmtrans('operation_log.diff'))->display(function ($value, $column, $model) {
-            return LogController::formatAuditDiff($model->diff_json);
+        $grid->column('diff_json', exmtrans('operation_log.diff'))->display(function ($value, $column, $model) use ($canManage) {
+            return LogController::formatAuditDiff($model->diff_json, $canManage);
         });
         $grid->column('ip', exmtrans('operation_log.ip'));
         $grid->column('created_at', trans('admin.created_at'));
 
-        $canManage = static::canManageLog();
+        // Bind the quick search explicitly. Left unbound, the grid falls back to
+        // addWhereBindings(), which lets "?query=diff_json:%secret%" build a LIKE
+        // or a REGEXP against any declared column - including the redacted one.
+        $grid->quickSearch(function ($model, $input) {
+            $input = trim(strval($input));
+            if ($input === '') {
+                return;
+            }
+            // Grouped so the OR chain cannot widen whatever the filter selected.
+            $model->where(function ($query) use ($input) {
+                foreach (static::$searchable_columns as $column) {
+                    $query->orWhere($column, 'like', '%' . $input . '%');
+                }
+            });
+        });
+
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($canManage) {
             $actions->disableEdit();
             if (!$canManage) {
@@ -289,7 +375,43 @@ class LogController extends AdminControllerBase
             $tools->append($button);
         });
 
+        // Last, so that it reads the sort key the grid will actually use: any
+        // setSortName() call above this line is already in place.
+        $this->guardGridSort($grid);
+
         return $grid;
+    }
+
+    /**
+     * Drop a sort instruction that names a column outside the allow-list.
+     *
+     * Grid\Model::setSort() takes "_sort[column]" straight from the URL and
+     * passes it to orderBy() without checking it against the declared columns,
+     * so "?_sort[column]=before_json" would order the whole log by a column the
+     * reader is not allowed to see. The values never reach the page, but the
+     * order they come back in does, and that is enough to read them a row at a
+     * time.
+     *
+     * @param Grid $grid
+     * @return void
+     */
+    protected function guardGridSort(Grid $grid)
+    {
+        $request = request();
+        $name = $grid->model()->getSortName();
+
+        $sort = $request->get($name);
+        if (!is_array($sort) || !array_key_exists('column', $sort)) {
+            return;
+        }
+        $column = $sort['column'];
+        if (is_string($column) && in_array($column, static::$queryable_columns, true)) {
+            return;
+        }
+
+        foreach ([$request->attributes, $request->query, $request->request] as $bag) {
+            $bag->remove($name);
+        }
     }
 
     /**
@@ -301,15 +423,23 @@ class LogController extends AdminControllerBase
     protected function detail($id)
     {
         $model = OperationLog::findOrFail($id);
+        $canManage = static::canManageLog();
         // @phpstan-ignore-next-line
-        return new Show($model, function (Show $show) {
+        return new Show($model, function (Show $show) use ($canManage) {
             $show->field('user.user_name', exmtrans('operation_log.user_name'))->as(function ($foo, $model) {
                 return ($model->user ? $model->user->user_name : null);
             });
             $show->field('method', exmtrans('operation_log.method'));
             $show->field('path', exmtrans('operation_log.path'));
             $show->field('ip', exmtrans('operation_log.ip'));
-            $show->field('input', exmtrans('operation_log.input'))->as(function ($input) {
+            $show->field('input', exmtrans('operation_log.input'))->as(function ($input) use ($canManage) {
+                // the request body carries whatever was typed into the form, so
+                // it is the record itself by another name - same rule as the
+                // before/after snapshots in the grid
+                if (!$canManage) {
+                    return exmtrans('operation_log.value_hidden');
+                }
+
                 $input = json_decode_ex($input, true);
                 // @phpstan-ignore-next-line
                 $input = Arr::except($input, ['_pjax', '_token', '_method', '_previous_']);

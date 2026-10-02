@@ -1296,6 +1296,64 @@ class KanbanGrid extends GridBase
 
 
     /**
+     * The current timestamp, spelled the way the connected engine spells it.
+     * SQL Server has no now().
+     *
+     * @return string
+     */
+    protected function sqlNow(): string
+    {
+        return \Exment::isSqlServer() ? 'getdate()' : 'now()';
+    }
+
+    /**
+     * Seconds elapsed between $from and now, spelled the way the connected
+     * engine spells it. SQL Server calls timestampdiff() datediff().
+     *
+     * datediff_big rather than datediff, because both ends of this are wider
+     * than an int. The column is whichever date the view was pointed at, so
+     * a contract start of 1950 is a legitimate value and datediff raises
+     * error 535 on it; and every caller sums the result over a whole table,
+     * where sum() of an int overflows at about 2.1 billion - a few thousand
+     * year-old records reach that. MySQL's timestampdiff is a bigint already.
+     *
+     * @param string $from an already wrapped column or expression
+     * @return string
+     */
+    protected function sqlSecondsSince(string $from): string
+    {
+        $now = $this->sqlNow();
+        return \Exment::isSqlServer()
+            ? "datediff_big(second, $from, $now)"
+            : "timestampdiff(second, $from, $now)";
+    }
+
+    /**
+     * A stored value made safe to add up, spelled the way the connected
+     * engine spells it.
+     *
+     * Custom column values live inside the json `value` field. Reading one
+     * back gives text on both engines: an indexed column is a generated
+     * column over json_unquote / JSON_VALUE, and an unindexed one is the
+     * json path itself. MySQL converts that text to a number on its own when
+     * it is summed, so nothing is wrapped there and the query stays exactly
+     * as it has always been. SQL Server refuses - "operand data type nvarchar
+     * is invalid for sum operator" - so it is converted first. try_convert
+     * rather than convert because a blank or a stray non-number must not fail
+     * the whole board; it yields null, and sum() passes over nulls, which is
+     * the same total MySQL reaches by reading them as zero. float rather than
+     * decimal because the figure is read back through floatval() and a wide
+     * decimal sum can overflow where a float cannot.
+     *
+     * @param string $expr an already wrapped column or expression
+     * @return string
+     */
+    protected function sqlNumeric(string $expr): string
+    {
+        return \Exment::isSqlServer() ? "try_convert(float, $expr)" : $expr;
+    }
+
+    /**
      * Count, total and average age of every board column, straight from the
      * database.
      *
@@ -1356,13 +1414,13 @@ class KanbanGrid extends GridBase
         $selects = [
             \DB::raw($group_expr . ' as kb_key'),
             \DB::raw('count(*) as kb_count'),
-            \DB::raw('sum(timestampdiff(second, ' . $entered_expr . ', now())) as kb_seconds'),
+            \DB::raw('sum(' . $this->sqlSecondsSince($entered_expr) . ') as kb_seconds'),
         ];
         if (isset($sum_column)) {
-            $selects[] = \DB::raw('sum(' . $grammar->wrap($sum_column->getQueryKey()) . ') as kb_sum');
+            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($sum_column->getQueryKey())) . ') as kb_sum');
         }
         if (isset($wip_column)) {
-            $selects[] = \DB::raw('sum(' . $grammar->wrap($wip_column->getQueryKey()) . ') as kb_load');
+            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($wip_column->getQueryKey())) . ') as kb_load');
         }
         // the KPI row is counted here as well: it sits right above these column
         // heads, so it has to be reading the same table, not the page
@@ -1372,11 +1430,13 @@ class KanbanGrid extends GridBase
         }
         if (isset($limit_column)) {
             $due = $grammar->wrap($limit_column->getQueryKey());
-            $selects[] = \DB::raw("sum(case when $due is not null and $due <> '' and $due < now() then 1 else 0 end) as kb_breach");
+            $now = $this->sqlNow();
+            $selects[] = \DB::raw("sum(case when $due is not null and $due <> '' and $due < $now then 1 else 0 end) as kb_breach");
         }
         if (isset($age_column)) {
             $since = $grammar->wrap($age_column->getQueryKey());
-            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 else timestampdiff(second, $since, now()) end) as kb_agesum");
+            $elapsed = $this->sqlSecondsSince($since);
+            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 else $elapsed end) as kb_agesum");
             $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 else 1 end) as kb_agen");
         }
 
@@ -2847,7 +2907,10 @@ class KanbanGrid extends GridBase
             return false;
         }
 
-        return $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+        // enableEdit(true): dragging a card writes the grouping column, which
+        // is editing a record from a screen. An administrator who turned Edit
+        // off for this table meant that to include this board.
+        return $this->custom_table->enableEdit(true) === true;
     }
 
 
@@ -2862,7 +2925,9 @@ class KanbanGrid extends GridBase
             return false;
         }
 
-        return $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+        // enableCreate(true) also refuses a one-record table that already has
+        // its record, which quick add must honour as much as the New button.
+        return $this->custom_table->enableCreate(true) === true;
     }
 
 

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use ExmentAdminCore\Admin\Layout\Content;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
@@ -50,6 +51,38 @@ trait WorkflowDesignTrait
             ConditionTypeDetail::SYSTEM()->lowerKey(),             // system
             ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerKey(),  // login_user_column
         ];
+    }
+
+    /**
+     * work_targets keys that a given work_target_type is allowed to carry.
+     *
+     * The picker shows one group of targets per type and hides the others, but
+     * a hidden picker keeps whatever was selected in it. Without this filter,
+     * switching an action from "fixed users" to "read from user info" would
+     * still submit the users that are no longer on screen, setActionAuthority()
+     * would store them as workflow_authorities rows, and getAuthorityTargets()
+     * reads those rows for both of those types - so people the administrator
+     * meant to remove would keep the right to run the action.
+     *
+     * @param string $work_target_type
+     * @return array<string>
+     */
+    protected static function designTargetKeysFor(string $work_target_type): array
+    {
+        if ($work_target_type === WorkflowWorkTargetType::FIX) {
+            return [
+                ConditionTypeDetail::USER()->lowerKey(),
+                ConditionTypeDetail::ORGANIZATION()->lowerKey(),
+                ConditionTypeDetail::COLUMN()->lowerKey(),
+                ConditionTypeDetail::SYSTEM()->lowerKey(),
+            ];
+        }
+        if ($work_target_type === WorkflowWorkTargetType::GET_BY_USERINFO) {
+            return [ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerKey()];
+        }
+
+        // ACTION_SELECT picks its users while the workflow runs, so it stores none.
+        return [];
     }
 
     /**
@@ -162,8 +195,12 @@ trait WorkflowDesignTrait
         $payload = $this->readDesignPayload($request);
 
         // 別のタブや他の利用者が先に保存していたら、上書きせずに知らせる
+        // Answered early so that an out of date tab is told without the cost
+        // of validating a payload that is going to be refused anyway. The
+        // decision is not made here: saveWorkflowDesign() asks again with the
+        // row locked, which is the check that actually holds.
         $posted_at = array_get($payload, 'updated_at');
-        if (!is_nullorempty($posted_at) && strval($workflow->updated_at) !== strval($posted_at)) {
+        if (!is_nullorempty($posted_at) && static::designToken($workflow) !== strval($posted_at)) {
             $message = exmtrans('workflow.design.message.conflict');
             return response()->json([
                 'result' => false,
@@ -264,6 +301,43 @@ trait WorkflowDesignTrait
     }
 
     /**
+     * The token the designer sends back to say which version it was editing.
+     *
+     * Not the timestamp on its own. workflows.updated_at is stored to the
+     * second, so two saves inside the same second leave it unmoved and a tab
+     * that read the row between them would look up to date. The counter is
+     * raised by every design save while the row is held, so it moves even
+     * when the clock does not. The designer treats this as an opaque string
+     * and posts back whatever it was given, so both halves travel together.
+     *
+     * @param Workflow $workflow
+     * @return string
+     */
+    protected static function designToken(Workflow $workflow): string
+    {
+        return strval($workflow->updated_at) . '#' . strval($workflow->getOption('design_version'));
+    }
+
+    /**
+     * A fresh value for the second half of the token.
+     *
+     * Drawn at random rather than counted up. The standard workflow screen
+     * saves `options` through an embedded form, and that form drops every
+     * key it has no field for - design_version among them - so the value can
+     * disappear between two designer saves. A counter would then start again
+     * from zero and hand out a number it has already given away, and a screen
+     * still holding that number would be told its copy was current when it
+     * was not. A new random value can never be one already handed out, so
+     * losing the old one costs nothing.
+     *
+     * @return string
+     */
+    protected static function newDesignStamp(): string
+    {
+        return bin2hex(random_bytes(6));
+    }
+
+    /**
      * 図の内容をまとめて保存する。新規（$workflow->exists が false）でも同じ流れ。
      *
      * @param Workflow $workflow
@@ -278,6 +352,40 @@ trait WorkflowDesignTrait
 
         \ExmentDB::transaction(function () use ($workflow, $payload, $custom_table_id, &$status_map, &$action_map) {
             $isNew = !$workflow->exists;
+
+            // Checked again here, with the row held, because the check the
+            // request made before opening this transaction can go stale: two
+            // tabs can both read the same token, both find it unchanged, and
+            // both start writing. Taking the lock first means the second one
+            // waits for the first to commit and then reads the token it
+            // actually left behind. The comparison is deliberately against
+            // the freshly locked row rather than the model loaded earlier.
+            if (!$isNew) {
+                $posted_at = array_get($payload, 'updated_at');
+                $locked = Workflow::where('id', $workflow->id)->lockForUpdate()->first();
+                // Gone while this screen was open. Writing the children now
+                // would hang them off a workflow_id that is no longer there,
+                // and Model::save() on a row that has been deleted updates
+                // nothing and says nothing.
+                $stale = !isset($locked)
+                    || (!is_nullorempty($posted_at) && static::designToken($locked) !== strval($posted_at));
+                if ($stale) {
+                    $message = exmtrans('workflow.design.message.conflict');
+                    throw new HttpResponseException(response()->json([
+                        'result' => false,
+                        'toastr' => $message,
+                        'errors' => [$message],
+                    ], 409));
+                }
+                // Moved while the row is still held, so the next save sees a
+                // token this one changed even if it lands in the same second.
+                //
+                // Set to a fresh value rather than one counted up from what
+                // the row holds: see newDesignStamp(). That also keeps a save
+                // carrying no token - which skips the check above - from
+                // landing on a value the row has already used.
+                $workflow->setOption('design_version', static::newDesignStamp());
+            }
 
             $workflow->workflow_view_name = trim(strval(array_get($payload, 'workflow_view_name')));
             $workflow->start_status_name = trim(strval(array_get($payload, 'start_status_name')));
@@ -295,6 +403,13 @@ trait WorkflowDesignTrait
             $action_map = $this->saveDesignActions($workflow, array_get($payload, 'actions', []), $status_map);
 
             $this->saveDesignLayout($workflow, array_get($payload, 'layout', []), $status_map);
+
+            // Everything the designer edits lives in the child tables, so the
+            // parent row can come out of a save untouched - Model::save() does
+            // nothing when nothing is dirty. The conflict check above compares
+            // workflows.updated_at, so it has to be moved forward by hand or
+            // two people editing the same design never notice each other.
+            $workflow->touch();
         });
 
         System::clearCache();
@@ -304,7 +419,7 @@ trait WorkflowDesignTrait
         $workflow->unsetRelations();
 
         return [
-            'updated_at' => strval($workflow->updated_at),
+            'updated_at' => static::designToken($workflow),
             'status_map' => $status_map,
             'action_map' => $action_map,
             'activated' => boolval($workflow->setting_completed_flg),
@@ -410,7 +525,7 @@ trait WorkflowDesignTrait
             'can_activate' => $isNew ? false : boolval($workflow->canActivate()),
             // 完了が複数。この画面では保てるが、ステップ1で保存すると1件に絞られる
             'multi_completed' => $completed_count > 1,
-            'updated_at' => strval($workflow->updated_at),
+            'updated_at' => static::designToken($workflow),
             // 分岐の最大本数。ステップ2の条件モーダルと同じ（テーブル専用=3 / 汎用=1）
             'max_branch' => $isTable ? 3 : 1,
             'urls' => [
@@ -891,7 +1006,9 @@ trait WorkflowDesignTrait
                 $errors[] = $required(exmtrans('workflow.work_targets')) . ' (' . $label . ')';
             } elseif ($work_target_type != WorkflowWorkTargetType::ACTION_SELECT) {
                 $has_target = false;
-                foreach (static::designTargetKeys() as $key) {
+                // Only the keys this type can carry count: the others are about
+                // to be discarded, so they must not satisfy the requirement.
+                foreach (static::designTargetKeysFor($work_target_type) as $key) {
                     if (count((array)array_get($action, "targets.$key", [])) > 0) {
                         $has_target = true;
                         break;
@@ -905,6 +1022,17 @@ trait WorkflowDesignTrait
             // 「前アクションの実行ユーザーが選択」と「特殊なアクション」は併用できない
             if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT && array_boolval($action, 'ignore_work')) {
                 $errors[] = exmtrans('workflow.message.ignore_work_and_action_select') . ' (' . $label . ')';
+            }
+
+            // The same option on the first action leaves the workflow with no
+            // way in. ACTION_SELECT reads who may act from the authorities the
+            // previous action stored on the record, and a record that has not
+            // started yet has no workflow_value to read them from, so
+            // hasAuthority() returns false for everybody and the first action
+            // can never be pressed.
+            if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT
+                && $status_from === Define::WORKFLOW_START_KEYNAME) {
+                $errors[] = exmtrans('workflow.design.message.action_select_on_start') . ' (' . $label . ')';
             }
 
             // 同じ実行前ステータスで「前アクションの実行ユーザーが選択」と他の設定を混ぜられない
@@ -1016,6 +1144,32 @@ trait WorkflowDesignTrait
         $removed = WorkflowStatus::where('workflow_id', $workflow->id)
             ->whereNotIn('id', count($keep_ids) > 0 ? $keep_ids : [0])
             ->get();
+
+        // Asked again here, with the transaction already open. The same
+        // question was answered in validateWorkflowDesign(), but a record can
+        // reach one of these statuses in between: the overwrite guard only
+        // watches the workflows row, and a workflow action run elsewhere does
+        // not touch it. deletingChildren() below hard-deletes the
+        // workflow_values of whatever it finds, so being a moment out of date
+        // here costs that record its whole approval trail.
+        if ($removed->count() > 0) {
+            $in_use_ids = $this->getUsedStatusIds($removed->pluck('id')->all());
+            $conflicts = $removed->filter(function ($status) use ($in_use_ids) {
+                return in_array(strval($status->id), $in_use_ids, true);
+            });
+            if ($conflicts->count() > 0) {
+                $errors = $conflicts->map(function ($status) {
+                    return exmtrans('workflow.design.message.status_in_use', ['name' => $status->status_name]);
+                })->values()->all();
+
+                throw new HttpResponseException(response()->json([
+                    'result' => false,
+                    'toastr' => exmtrans('workflow.design.message.conflict'),
+                    'errors' => $errors,
+                ], 409));
+            }
+        }
+
         foreach ($removed as $status) {
             $status->deletingChildren();
             $status->delete();
@@ -1075,15 +1229,21 @@ trait WorkflowDesignTrait
 
             // 実行可能ユーザー。保存後の setActionAuthority() が
             // workflow_authorities へ反映する。
-            // 種別を切り替えても選んだ相手は消さない（ステップ2のモーダルと同じ動き）。
-            $work_targets = ['work_target_type' => strval(array_get($item, 'work_target_type'))];
+            // A key the chosen type cannot carry is written back as an empty
+            // list, so that setActionAuthority() removes the rows left over
+            // from whichever type the action had before.
+            $work_target_type = strval(array_get($item, 'work_target_type'));
+            $allowed_keys = static::designTargetKeysFor($work_target_type);
+            $work_targets = ['work_target_type' => $work_target_type];
             foreach (static::designTargetKeys() as $key) {
+                if (!in_array($key, $allowed_keys, true)) {
+                    $work_targets[$key] = [];
+                    continue;
+                }
                 $values = array_values(array_filter((array)array_get($item, "targets.$key", []), function ($v) {
                     return !is_nullorempty($v);
                 }));
-                if (count($values) > 0) {
-                    $work_targets[$key] = $values;
-                }
+                $work_targets[$key] = $values;
             }
             $action->work_targets = $work_targets;
 

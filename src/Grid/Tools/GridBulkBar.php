@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Grid\Tools;
 
 use ExmentAdminCore\Admin\Grid\Tools\AbstractTool;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 
@@ -79,9 +78,14 @@ class GridBulkBar extends AbstractTool
         // The bar can expose two more actions when the table permits.
         // Bulk edit needs an edit permission AND at least one column the
         // inline editor would pick up - otherwise there is nothing to
-        // change. `GridInlineEditor::isEditable` is the source of truth
-        // for that list, so the two never drift apart.
-        $canEdit = $this->custom_table && $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+        // change. `GridInlineEditor` is the source of truth for both
+        // halves, so the button and the editor never drift apart: it
+        // covers the edit permission, the "cannot change from display"
+        // form action, and the trashed scope, where every row is already
+        // deleted and the PUT could not reach one. Batch restore and hard
+        // delete still work in that scope - those are copied from the
+        // stock dropdown, which swaps itself over.
+        $canEdit = GridInlineEditor::isEditableGrid($this->custom_table);
         $hasEditableColumn = $canEdit && $this->hasAnyEditableColumn();
         // Bulk export reuses the standard Exment export route, so it is
         // available exactly when the whole-table export is.

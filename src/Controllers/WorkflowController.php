@@ -204,12 +204,48 @@ class WorkflowController extends AdminControllerBase
 
         switch ($action) {
             case 2:
-                return $this->actionForm($id);
+                return $this->stampDesignToken($this->actionForm($id), $id);
             case 3:
                 return $this->beginningForm();
             default:
-                return $this->statusForm($id);
+                return $this->stampDesignToken($this->statusForm($id), $id);
         }
+    }
+
+    /**
+     * Move the design token whenever the standard screens save a flow.
+     *
+     * These screens and the visual designer edit the same workflow. The
+     * designer guards itself with a token built from the workflow row, but a
+     * save here can leave that token standing: the statuses and actions are
+     * child rows, so the workflow row itself need not come out dirty at all,
+     * and the embedded options form drops every key it has no field for -
+     * design_version among them. A designer tab open on the same flow would
+     * then still recognise its own token and write straight over what was
+     * just saved here.
+     *
+     * Writing a fresh stamp puts the key back and moves the token in one go,
+     * so that tab is answered with a conflict and reloads instead.
+     *
+     * The hook has to be savedInTransaction rather than saved: update() returns
+     * early on a formid request and never reaches the saved hooks.
+     *
+     * @param Form $form
+     * @param mixed $id
+     * @return Form
+     */
+    protected function stampDesignToken($form, $id)
+    {
+        $form->savedInTransaction(function ($form) use ($id) {
+            $saved = Workflow::find($id);
+            if (!isset($saved)) {
+                return;
+            }
+            $saved->setOption('design_version', static::newDesignStamp());
+            $saved->save();
+        });
+
+        return $form;
     }
 
     /**

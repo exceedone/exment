@@ -758,6 +758,13 @@
   transform: translateX(-50%) translateY(0);
 }
 
+/* The bar is fixed to the viewport, so at the foot of a scrolled page it
+   lies over the pager and the last rows. While it is up the page is given
+   that much more room to scroll past, so everything stays reachable. */
+body.exm-bulkbar-open .content-wrapper {
+  padding-bottom: 84px;
+}
+
 .exm-bulkbar .exm-bulk-count {
   padding-right: 4px;
   font-weight: 700;
@@ -1125,6 +1132,13 @@
 
 .table.exm-grid > tbody > tr > td.exm-error {
   box-shadow: inset 0 0 0 2px #c0392b;
+}
+
+/* The write landed but the cell could not be redrawn from the server, so
+   what is on screen is the plain value without its real styling. Amber,
+   not red: nothing was lost, the page just needs a reload. */
+.table.exm-grid > tbody > tr > td.exm-stale {
+  box-shadow: inset 0 0 0 2px #e0a800;
 }
 
 @keyframes exm-cell-flash {

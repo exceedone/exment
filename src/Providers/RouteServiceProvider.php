@@ -453,19 +453,21 @@ class RouteServiceProvider extends ServiceProvider
                     $router->get("data/{tableKey}/query-column", "ApiDataController@dataQueryColumn")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     $router->get("data/{tableKey}/query", "ApiDataController@dataQuery")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     $router->get("data/{tableKey}/calendar", "ApiDataController@calendarList")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                    // Grid inline editor uses this to fetch back the exact HTML the grid
+                    // would render for one cell after a PUT succeeds - the badge, bar
+                    // and colour choices live in the column setting, so re-rendering on
+                    // the server is the only way to keep the cell honest. Registered
+                    // before the shorter data/{tableKey}/{id} entry below because Laravel
+                    // matches the first route that fits, and kept out of the shared block
+                    // because a public form has no grid and its controller has no such
+                    // method - the route would only exist to answer with a 500.
+                    $router->get("data/{tableKey}/cell/{id}/{column_name}", "ApiDataController@dataCellHtml")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 }
 
                 // Change class name if public form api for segment
                 $router->get("data/{tableKey}/relatedLinkage", "$className@relatedLinkage")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/select", "$className@dataSelect")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/column/{column_name}", "$className@columnData")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                // Grid inline editor uses this to fetch back the exact HTML the grid
-                // would render for one cell after a PUT succeeds - the badge, bar
-                // and colour choices live in the column setting, so re-rendering on
-                // the server is the only way to keep the cell honest. Registered
-                // before the shorter data/{tableKey}/{id} entry below because Laravel
-                // matches the first route that fits.
-                $router->get("data/{tableKey}/cell/{id}/{column_name}", "$className@dataCellHtml")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/{id}", "$className@dataFind")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
 
                 // only private

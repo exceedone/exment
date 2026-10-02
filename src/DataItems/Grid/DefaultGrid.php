@@ -133,7 +133,12 @@ class DefaultGrid extends GridBase
         // once so the per-column loop below does one array walk instead of
         // one permission lookup per column, and so grid_tools.js only sees
         // `.exm-editable` cells when the write path is actually open.
-        $inlineEditAllowed = $this->custom_table->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+        //
+        // The test lives in GridInlineEditor: the same call decides whether
+        // the JSON config is rendered at all, so the class here and that
+        // config can never disagree. It covers the edit permission, the
+        // "cannot change from display" form action, and the trashed scope.
+        $inlineEditAllowed = GridTools\GridInlineEditor::isEditableGrid($this->custom_table);
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item;
             if (!isset($item)) {
@@ -582,7 +587,7 @@ class DefaultGrid extends GridBase
             // toolbar (i.e. inside #pjax-container) so a page swap
             // rebuilds it with the same current CSRF token instead of
             // leaving one behind on <body>.
-            $tools->append(new GridTools\GridContextMenu($this->custom_table));
+            $tools->append(new GridTools\GridContextMenu($this->custom_table, $this->custom_view));
 
             // JSON config for the inline editor. Renders no visible
             // widget - just a `<script>` tag grid_tools.js reads on boot
