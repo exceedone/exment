@@ -30,6 +30,24 @@ namespace Exment {
 
             $(document).off('click', '[copyScript]').on('click', '[copyScript]', {}, CommonEvent.copyScriptEvent);
 
+            const sanitizeDayCount = (el: HTMLInputElement) => {
+                const s = String(el.value).replace(/[０-９]/g, (c: string) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+                const clean = s.replace(/[^0-9]/g, '').slice(0, 5);
+                if (el.value !== clean) {
+                    el.value = clean;
+                }
+            };
+            $(document)
+                .on('input', 'input[data-day-count]', {}, (ev: any) => {
+                    if (ev && ev.originalEvent && (ev.originalEvent as any).isComposing) {
+                        return;
+                    }
+                    sanitizeDayCount(ev.currentTarget as HTMLInputElement);
+                })
+                .on('compositionend', 'input[data-day-count]', {}, (ev: any) => {
+                    sanitizeDayCount(ev.currentTarget as HTMLInputElement);
+                });
+
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
@@ -39,6 +57,12 @@ namespace Exment {
             });
         }
         public static AddEvent() {
+            // Safety: never keep the pre-show guard across screen transitions.
+            try {
+                document.documentElement.classList.remove('exment-dtp-opening');
+            }
+            catch (e) {
+            }
             CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
             CommonEvent.addShowModalEvent();
@@ -1051,19 +1075,282 @@ namespace Exment {
 
         
         /**
-         * add field event (datepicker, icheck)
+         * Whether the element is a genuine Exment date-picker input.
+         *
+         * The "X days before/after" view-condition value field is a Number input, but it
+         * still inherits data-column_type="date" from its (date-type) column. So matching
+         * on input[data-column_type="date"] alone wrongly catches that Number field and
+         * turns it into a date picker. A real date field is marked with data-add-date, or
+         * is rendered by laravel-admin with a calendar icon (.fa-calendar) in its input-group;
+         * the Number field has neither (it has bootstrapNumber up/down buttons instead).
+         */
+        private static isExmentDatePickerInput($el: any): boolean {
+            if (!$el || !$el.length) {
+                return false;
+            }
+            if ($el.is('[data-add-date]') || $el.find('[data-add-date]').length > 0) {
+                return true;
+            }
+            return $el.closest('.input-group').find('.fa-calendar').length > 0;
+        }
+        /**
+         * Datepicker helpers used by addFieldEvent().
+         * Exment date inputs are matched by DATE_INPUT_SELECTOR; isExmentDatePickerInput() then excludes
+         * inputs that only inherit data-column_type="date" (the "X days" Number filter field).
+         */
+        private static get DATE_INPUT_SELECTOR(): string {
+            return '[data-add-date], input[data-column_type="date"]';
+        }
+        /**
+         * Element the datetimepicker is bound to: the .input-group.date wrapper when present, else the element itself.
+         */
+        private static datePickerTarget($el: JQuery): JQuery {
+            var $wrapper = $el.closest('.input-group.date');
+            return $wrapper.length ? $wrapper : $el;
+        }
+        /**
+         * Find an existing DateTimePicker instance on the element, its input-group, or the input inside.
+         */
+        private static findDatePicker($el: JQuery): any {
+            if (!$el || !$el.length) {
+                return null;
+            }
+            var $group = $el.closest('.input-group');
+            var $input = $el.is('input') ? $el : $el.find('input');
+            if (!$input.length) {
+                $input = $group.find('input');
+            }
+            return $el.data('DateTimePicker') || $group.data('DateTimePicker') || $input.data('DateTimePicker') || null;
+        }
+        /**
+         * Initialize a datetimepicker for the element and return the instance.
+         * bootstrap-datetimepicker needs a relatively positioned widget parent: the input-group, else the form-group, else the parent.
+         */
+        private static initDatePicker($el: JQuery): any {
+            var $parent = $el.closest('.input-group');
+            if (!$parent.length) {
+                $parent = $el.closest('.form-group');
+            }
+            if (!$parent.length) {
+                $parent = $el.parent();
+            }
+            if ($parent.css('position') === 'static') {
+                $parent.css('position', 'relative');
+            }
+            CommonEvent.datePickerTarget($el)
+                .datetimepicker({ "useCurrent": false, "format": "YYYY-MM-DD", "locale": "ja", "allowInputToggle": true, "widgetParent": $parent })
+                .addClass('added-datepicker');
+            return CommonEvent.findDatePicker($el);
+        }
+        /**
+         * Toggle the "exment-dtp-opening" class on <html>. CSS uses it to keep the widget fixed and hidden at (0,0)
+         * until it is positioned, so opening a picker inside a scrollable table cannot create temporary scrollbars.
+         * A safety timeout clears it in case dp.show never fires (picker not initialized yet, etc.).
+         */
+        private static setDatePickerOpeningGuard(on: boolean): void {
+            var classList = document.documentElement.classList;
+            if ((window as any).__exment_dtp_opening_timer) {
+                clearTimeout((window as any).__exment_dtp_opening_timer);
+                (window as any).__exment_dtp_opening_timer = null;
+            }
+            if (!on) {
+                classList.remove('exment-dtp-opening');
+                return;
+            }
+            classList.add('exment-dtp-opening');
+            (window as any).__exment_dtp_opening_timer = setTimeout(function () {
+                classList.remove('exment-dtp-opening');
+            }, 1500);
+        }
+        /**
+         * Move the widget to <body> (absolute positioning, so it follows the page scroll and is never clipped by
+         * overflow containers) and place it below the anchor input, or above when there is no room below.
+         */
+        private static placeDatePickerWidget($widget: JQuery, $anchor: JQuery): void {
+            $widget.css({ position: 'absolute', top: 0, left: 0, right: 'auto', bottom: 'auto', visibility: 'hidden', 'z-index': 9999 });
+            if ($widget.parent()[0] !== document.body) {
+                $(document.body).append($widget);
+            }
+            var off: any = $anchor.length ? $anchor.offset() : null;
+            if (off) {
+                var $win = $(window);
+                var winTop = $win.scrollTop(), winLeft = $win.scrollLeft(), winH = $win.height(), winW = $win.width();
+                var anchorTop = off.top - winTop, anchorLeft = off.left - winLeft;
+                var anchorH = $anchor.outerHeight(), anchorW = $anchor.outerWidth();
+                var widgetH = $widget.outerHeight(), widgetW = $widget.outerWidth();
+
+                // Vertical: prefer below, then above; otherwise clamp toward the side with more space.
+                var spaceBelow = winH - (anchorTop + anchorH), spaceAbove = anchorTop;
+                var placeBelow: boolean, top: number;
+                if (widgetH <= spaceBelow) {
+                    placeBelow = true;
+                    top = anchorTop + anchorH;
+                }
+                else if (widgetH <= spaceAbove) {
+                    placeBelow = false;
+                    top = anchorTop - widgetH;
+                }
+                else {
+                    placeBelow = spaceBelow >= spaceAbove;
+                    top = placeBelow ? Math.min(anchorTop + anchorH, Math.max(0, winH - widgetH)) : Math.max(0, anchorTop - widgetH);
+                }
+
+                // Horizontal: align left, else align the right edge, else clamp to the viewport.
+                var left: number;
+                if (anchorLeft + widgetW <= winW) {
+                    left = anchorLeft;
+                }
+                else if (anchorLeft + anchorW - widgetW >= 0) {
+                    left = anchorLeft + anchorW - widgetW;
+                }
+                else {
+                    left = Math.max(0, winW - widgetW);
+                }
+                // Shift slightly left when the input has an addon/icon so the arrow still points at the input.
+                var hasAddon = $anchor.closest('.input-group').find('.input-group-addon, .input-group-btn, .btn').length > 0;
+                left = Math.max(0, Math.min(left - (hasAddon ? 36 : 0), winW - widgetW));
+
+                $widget.toggleClass('top', !placeBelow).toggleClass('bottom', placeBelow)
+                    .css({ top: winTop + top, left: winLeft + left, bottom: 'auto', right: 'auto' });
+            }
+            $widget.css('visibility', 'visible');
+        }
+        /**
+         * add field event (datepicker positioning fix + icheck)
          */
         private static addFieldEvent() {
-            $('[data-add-date]').not('.added-datepicker').each(function (index, elem: Element) {
-                $(elem).datetimepicker({"useCurrent":false, "format":"YYYY-MM-DD", "locale":"ja", "allowInputToggle":true});
-                $(elem).addClass('added-datepicker');
-            });
-            $('[data-add-icheck]').not('.added-icheck').each(function (index, elem: Element) {
-                $(elem).iCheck({checkboxClass:'icheckbox_minimal-blue'});
+            var SELECTOR = CommonEvent.DATE_INPUT_SELECTOR;
+
+            // Lazy init/show (installed once): covers pages where the datetimepicker plugin loads after the initial AddEvent().
+            if (!(window as any).__exment_datepicker_lazy_init) {
+                (window as any).__exment_datepicker_lazy_init = true;
+                $(document)
+                    .off('click.exmentDtpLazy')
+                    .on('click.exmentDtpLazy', SELECTOR, function (this: any) {
+                        try {
+                            if (typeof $.fn.datetimepicker !== 'function') {
+                                return;
+                            }
+                            var $src = $(this);
+                            // Skip Number filter fields that merely inherit data-column_type="date".
+                            if (!CommonEvent.isExmentDatePickerInput($src)) {
+                                return;
+                            }
+                            var picker: any = CommonEvent.findDatePicker($src) || CommonEvent.initDatePicker($src);
+                            if (picker && typeof picker.show === 'function') {
+                                picker.show();
+                            }
+                        }
+                        catch (e) {
+                        }
+                    });
+            }
+
+            if (typeof $.fn.datetimepicker === 'function') {
+                if (!(window as any).__exment_datetimepicker_body_fix) {
+                    (window as any).__exment_datetimepicker_body_fix = true;
+
+                    // Pre-show guard for pickers inside scrollable tables (see setDatePickerOpeningGuard).
+                    $(document)
+                        .off('mousedown.exmentDtpPrep pointerdown.exmentDtpPrep touchstart.exmentDtpPrep focusin.exmentDtpPrep')
+                        .on('mousedown.exmentDtpPrep pointerdown.exmentDtpPrep touchstart.exmentDtpPrep focusin.exmentDtpPrep', SELECTOR + ', .input-group .input-group-addon, .input-group .btn', function (this: any, e: any) {
+                            try {
+                                var $src = $(this);
+                                var $dateInput = $src.is(SELECTOR) ? $src : $src.closest('.input-group').find('input[data-column_type="date"], input[data-add-date]').first();
+                                // Skip Number filter fields (e.g. "X days before/after") that only inherit
+                                // data-column_type="date"; their up/down buttons must keep working.
+                                if (!CommonEvent.isExmentDatePickerInput($dateInput) || !$dateInput.closest('.table-responsive').length) {
+                                    return;
+                                }
+                                CommonEvent.setDatePickerOpeningGuard(true);
+
+                                // Clicking the input itself already opens the picker (allowInputToggle); calling show() too
+                                // would open two widgets. For an addon/button click, open it ourselves and stop the default.
+                                if (e && (e.type === 'mousedown' || e.type === 'pointerdown' || e.type === 'touchstart') && !$src.is('input')) {
+                                    var picker: any = CommonEvent.findDatePicker($dateInput);
+                                    if (picker && typeof picker.show === 'function') {
+                                        picker.show();
+                                    }
+                                    return false;
+                                }
+                            }
+                            catch (e2) {
+                            }
+                        })
+                        .off('dp.hide.exmentDtpPrep')
+                        .on('dp.hide.exmentDtpPrep', function () {
+                            CommonEvent.setDatePickerOpeningGuard(false);
+                        });
+
+                    // dp.show may be triggered on a plain .input-group wrapper (no .date class); only act for Exment date inputs.
+                    $(document)
+                        .off('dp.show.exmentFix')
+                        .on('dp.show.exmentFix', function (ev: any) {
+                            try {
+                                var $t = $(ev.target);
+                                var isExmentDate = $t.is(SELECTOR) ||
+                                    $t.closest('[data-add-date]').length > 0 ||
+                                    $t.closest('.input-group').find('input[data-column_type="date"]').length > 0;
+                                if (!isExmentDate) {
+                                    return;
+                                }
+
+                                // If another datepicker plugin is also bound, hide it to avoid "two calendars".
+                                $('.datepicker.datepicker-dropdown:visible').hide();
+
+                                var $anchor = $t.is('input') ? $t : $t.closest('.input-group').find('input[data-column_type="date"], input[data-add-date], input').first();
+                                // Ensure the pre-show guard is set even for a keyboard-triggered show.
+                                if ($anchor.length && $anchor.closest('.table-responsive').length) {
+                                    CommonEvent.setDatePickerOpeningGuard(true);
+                                }
+
+                                // IMPORTANT: do not call picker.widgetParent() here; that method triggers hide/show.
+                                var picker: any = CommonEvent.findDatePicker($t);
+                                var $widget: any = (picker && typeof picker.widget === 'function') ? picker.widget() : null;
+                                if (!$widget || !$widget.length) {
+                                    // Fallback: some pages store the instance differently.
+                                    $widget = $('.bootstrap-datetimepicker-widget:visible').first();
+                                }
+                                if (!$widget.length) {
+                                    return;
+                                }
+                                // Repeated init or a race can leave more than one widget; keep only this one visible.
+                                $('.bootstrap-datetimepicker-widget:visible').not($widget)
+                                    .css({ position: 'absolute', top: 0, left: 0, right: 'auto', bottom: 'auto', visibility: 'hidden' })
+                                    .hide();
+                                CommonEvent.placeDatePickerWidget($widget, $anchor);
+                                CommonEvent.setDatePickerOpeningGuard(false);
+                            }
+                            catch (e) {
+                                // swallow to avoid breaking picker display
+                            }
+                        });
+                }
+
+                // Initialize pickers for the date inputs already on the page.
+                var targets: any[] = $(SELECTOR).filter(function (this: any) {
+                    return CommonEvent.isExmentDatePickerInput($(this));
+                }).map(function (this: any) {
+                    return CommonEvent.datePickerTarget($(this)).get(0);
+                }).get();
+                targets = targets.filter(function (dom: any, i: number) {
+                    return targets.indexOf(dom) === i;
+                });
+                $(targets).not('.added-datepicker').each(function (index: number, elem: any) {
+                    var $elem = $(elem);
+                    if (CommonEvent.findDatePicker($elem)) {
+                        // Already initialized elsewhere.
+                        $elem.addClass('added-datepicker');
+                        return;
+                    }
+                    CommonEvent.initDatePicker($elem);
+                });
+            }
+            $('[data-add-icheck]').not('.added-icheck').each(function (index: number, elem: Element) {
+                $(elem).iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
                 $(elem).addClass('added-icheck');
             });
         }
-
         private static getFilterVal($parent: JQuery, a) {
             // get filter object
             let $filterObj = $parent.find(CommonEvent.getClassKey(a.key));
