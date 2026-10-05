@@ -624,6 +624,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $item->deletingChildren();
             $item->delete();
         }
+
+        // the task list marks of this table's records, of every user: nothing reads them once the
+        // table is gone, and a later table given the same id would inherit them
+        WorkflowTaskRead::withoutGlobalScopes()
+            ->where('custom_table_id', $this->id)
+            ->delete();
     }
 
     protected static function boot()
