@@ -163,6 +163,30 @@ class MeiliSearchService
     }
 
     /**
+     * A number as the filter parser accepts it: never exponent notation ("1.0E+19"),
+     * null for INF/NAN or a non-number.
+     *
+     * @param mixed $value
+     */
+    public static function filterNumber($value): ?string
+    {
+        if (!is_int($value) && !is_float($value)) {
+            return null;
+        }
+        if (is_int($value)) {
+            return (string) $value;
+        }
+        if (!is_finite($value)) {
+            return null;
+        }
+        $s = (string) $value;
+        if (stripos($s, 'e') === false) {
+            return $s;
+        }
+        return rtrim(rtrim(sprintf('%.20F', $value), '0'), '.');
+    }
+
+    /**
      * Build the Meili filter expression: table + date range + creator.
      * $tableName null -> no table constraint (used for system-wide facets).
      *
@@ -226,14 +250,11 @@ class MeiliSearchService
             $quoted = '"' . $field . '"';
             $rangeFrom = $r['from'] ?? null;
             $rangeTo = $r['to'] ?? null;
-            // floatval instead of arithmetic: a non-numeric string would make
-            // `$v + 0` throw a TypeError in PHP 8. RequestFilters::parse() already
-            // narrows these to int|float|null, so only the null check remains.
-            if ($rangeFrom !== null) {
-                $parts[] = $quoted . ' >= ' . floatval($rangeFrom);
+            if (($num = self::filterNumber($rangeFrom)) !== null) {
+                $parts[] = $quoted . ' >= ' . $num;
             }
-            if ($rangeTo !== null) {
-                $parts[] = $quoted . ' <= ' . floatval($rangeTo);
+            if (($num = self::filterNumber($rangeTo)) !== null) {
+                $parts[] = $quoted . ' <= ' . $num;
             }
         }
 
@@ -288,29 +309,41 @@ class MeiliSearchService
         $pageSize = max(1, $pageSize);
 
         while (true) {
-            $query = (new \Meilisearch\Contracts\DocumentsQuery())
-                ->setFilter(['table_name = ' . self::quoteFilterValue($tableName)])
-                ->setFields(['value_id'])
-                ->setLimit($pageSize)
-                ->setOffset($offset);
-
-            $results = $this->client->index($this->indexName)->getDocuments($query);
-            $rows = $results->getResults();
-            if (empty($rows)) {
+            $page = $this->indexedValueIdsPage($tableName, $offset, $pageSize);
+            if ($page['count'] === 0) {
                 break;
             }
-            foreach ($rows as $row) {
-                if (isset($row['value_id'])) {
-                    $ids[] = $row['value_id'];
-                }
-            }
+            array_push($ids, ...$page['ids']);
             $offset += $pageSize;
-            if ($offset >= $results->getTotal()) {
+            if ($offset >= $page['total']) {
                 break;
             }
         }
 
         return $ids;
+    }
+
+    /**
+     * One page of the value_ids indexed for a table.
+     *
+     * @return array{ids: array<int,mixed>, count: int, total: int}  count = documents read
+     */
+    public function indexedValueIdsPage(string $tableName, int $offset, int $limit): array
+    {
+        $query = (new \Meilisearch\Contracts\DocumentsQuery())
+            ->setFilter(['table_name = ' . self::quoteFilterValue($tableName)])
+            ->setFields(['value_id'])
+            ->setLimit(max(1, $limit))
+            ->setOffset(max(0, $offset));
+
+        $results = $this->client->index($this->indexName)->getDocuments($query);
+        $rows = $results->getResults();
+
+        return [
+            'ids' => array_values(array_filter(array_map(fn ($row) => $row['value_id'] ?? null, $rows), fn ($id) => $id !== null)),
+            'count' => count($rows),
+            'total' => $results->getTotal(),
+        ];
     }
 
     /**

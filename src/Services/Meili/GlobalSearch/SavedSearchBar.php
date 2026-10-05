@@ -2,10 +2,13 @@
 
 namespace Exceedone\Exment\Services\Meili\GlobalSearch;
 
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\MeiliSavedSearch;
 use Exceedone\Exment\Model\RoleGroup;
+use Exceedone\Exment\Model\System;
 use Illuminate\Http\Request;
 
 /**
@@ -55,6 +58,7 @@ class SavedSearchBar
 
             return view('exment::search.saved-quickbar', [
                 'savedSearches' => $savedSearches,
+                'canShareAll' => self::canShareAll(),
                 'roleGroups' => self::roleGroupOptions(),
                 'organizations' => self::organizationOptions(),
             ])->render();
@@ -67,14 +71,34 @@ class SavedSearchBar
     }
 
     /**
-     * List of role groups to choose from when sharing a saved search.
+     * Publishing to every user (and to any group or organization) is reserved to
+     * the system permission, like a system view.
+     */
+    public static function canShareAll(): bool
+    {
+        try {
+            $user = \Exment::user();
+            return $user !== null && $user->hasPermission(Permission::SYSTEM);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * List of role groups to choose from when sharing a saved search: the user's
+     * own groups only, unless they hold the system permission.
      *
      * @return array<int,array{id:int,name:string}>
      */
     public static function roleGroupOptions(): array
     {
         try {
-            return RoleGroup::orderBy('role_group_order')->get()
+            $query = RoleGroup::orderBy('role_group_order');
+            if (!self::canShareAll()) {
+                $base = \Exment::user()?->base_user;
+                $query->whereIn('id', $base ? $base->belong_role_groups_all()->pluck('id')->all() : []);
+            }
+            return $query->get()
                 ->map(fn ($r) => [
                     'id' => (int) $r->id,
                     'name' => (string) ($r->role_group_view_name ?: $r->role_group_name),
@@ -85,8 +109,9 @@ class SavedSearchBar
     }
 
     /**
-     * List of organizations to choose from when sharing a saved search. Wrapped
-     * in try/catch: if organizations are not enabled, return empty (UI hides it).
+     * List of organizations to choose from when sharing a saved search: the user's
+     * own organizations (same hierarchy rule as the share itself), unless they hold
+     * the system permission. Empty when organizations are not enabled (UI hides it).
      *
      * @return array<int,array{id:int,name:string}>
      */
@@ -97,7 +122,13 @@ class SavedSearchBar
             if (!$table) {
                 return [];
             }
-            return getModelName($table)::query()->get()
+            $query = getModelName($table)::query();
+            if (!self::canShareAll()) {
+                $base = \Exment::user()?->base_user;
+                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                $query->whereIn('id', $base ? (array) $base->getOrganizationIdsForQuery($enum) : []);
+            }
+            return $query->get()
                 ->map(fn ($o) => ['id' => (int) $o->id, 'name' => (string) $o->label])
                 ->all();
         } catch (\Throwable $e) {

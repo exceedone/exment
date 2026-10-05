@@ -244,7 +244,8 @@ class DocumentMapper
      * The unqualified n_<column> shape is rejected on purpose: it matches no
      * attribute, so sanitize() drops it with a warning instead of returning 0 rows.
      */
-    public const RANGE_FIELD_PATTERN = '/^n_[A-Za-z0-9_-]+::[A-Za-z0-9_-]+$/';
+    // D: without it `$` also matches before a trailing "\n".
+    public const RANGE_FIELD_PATTERN = '/^n_[A-Za-z0-9_-]+::[A-Za-z0-9_-]+$/D';
 
     /**
      * Name of the Meilisearch attribute holding a column's range value:

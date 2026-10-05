@@ -151,6 +151,33 @@ class ExmentIndexer
      * before the first `exment:meili-index` run never lets Meilisearch auto-create
      * the index with default settings (no filterableAttributes).
      */
+    /** @var array<string,int> index name => when it was last seen to exist, per process */
+    private static array $seenAt = [];
+
+    /**
+     * Make sure the index exists WITH its settings. Writing into a missing index makes
+     * Meilisearch create it with defaults (nothing filterable), so "exists" is not enough.
+     * $maxAge > 0 reuses a check that recent (per-record writers).
+     */
+    public static function ensureIndexExists(Client $client, string $indexName, int $maxAge = 0): void
+    {
+        if ($maxAge > 0 && time() - (self::$seenAt[$indexName] ?? 0) < $maxAge) {
+            return;
+        }
+        try {
+            $configured = in_array('table_name', $client->index($indexName)->getFilterableAttributes(), true);
+        } catch (\Meilisearch\Exceptions\ApiException $e) {
+            if ($e->httpStatus !== 404) {
+                throw $e;
+            }
+            $configured = false;
+        }
+        if (!$configured) {
+            (new self($client, new DocumentMapper(), $indexName, (int) config('meilisearch.batch_size')))->ensureIndex();
+        }
+        self::$seenAt[$indexName] = time();
+    }
+
     public function ensureIndex(bool $fresh = false): void
     {
         if ($fresh) {
