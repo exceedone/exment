@@ -417,7 +417,13 @@ abstract class CustomItem implements ItemInterface
         $this->custom_column->setOption('number_format', false);
         $this->options['disable_number_format'] = true;
 
-        return $this->getCustomField($classname);
+        $field = $this->getCustomField($classname);
+
+        if ($value_type == FilterType::NUMBER) {
+            $field->default(0)->attribute(['min' => 0, 'max' => 99999, 'maxlength' => 5, 'data-day-count' => 1]);
+        }
+
+        return $field;
     }
 
 
