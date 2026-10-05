@@ -1262,6 +1262,8 @@ return [
             // System config secrets (admin/system): reCAPTCHA secret, SMTP password
             'recaptcha_secret_key',
             'system_mail_password',
+            // Meilisearch API key (admin/system)
+            'meili_key',
             // Plugin DB connection password
             'custom_password',
             // Plugin CRUD page auth (key / id+password)

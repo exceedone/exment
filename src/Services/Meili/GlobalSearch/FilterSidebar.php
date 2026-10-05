@@ -210,8 +210,16 @@ class FilterSidebar
         // Groups with more results come first (groups with 1-2 stray values go last).
         uasort($groups, fn ($a, $b) => array_sum($b) <=> array_sum($a));
 
+        $maxGroups = max(1, (int) config('meilisearch.filter.max_groups', 12));
+        $maxVals = max(1, (int) config('meilisearch.filter.max_values_per_group', 20));
+
         // Column with its own selection -> recount with filters minus that column's OWN tokens.
-        foreach (array_keys($selectedByCol) as $col) {
+        // One query per column: capped, or facets[] in the URL multiplies the requests.
+        // Taken in display order, so every group shown is one that got recounted.
+        $position = array_flip(array_keys($groups));
+        $selectedCols = array_keys($selectedByCol);
+        usort($selectedCols, fn ($a, $b) => ($position[$a] ?? PHP_INT_MAX) <=> ($position[$b] ?? PHP_INT_MAX));
+        foreach (array_slice($selectedCols, 0, $maxGroups) as $col) {
             try {
                 $dist = $this->service->searchDistributions(
                     $q,
@@ -236,8 +244,6 @@ class FilterSidebar
             return [];
         }
 
-        $maxGroups = max(1, (int) config('meilisearch.filter.max_groups', 12));
-        $maxVals = max(1, (int) config('meilisearch.filter.max_values_per_group', 8));
         // Group label: alias (merged group) takes priority first, then the column's
         // view_label, finally fall back to the column display name. An alias column
         // token has key = alias so only aliasLabels matches; a normal column token

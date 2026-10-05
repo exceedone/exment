@@ -41,13 +41,6 @@ class SyncMeiliDocumentJob implements ShouldQueue
         }
     }
 
-    /**
-     * Per-process memo: whether the index is known to exist with settings
-     * applied. Avoids one extra HTTP check per synced record on long-running
-     * workers.
-     */
-    protected static bool $indexVerified = false;
-
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
@@ -63,22 +56,8 @@ class SyncMeiliDocumentJob implements ShouldQueue
             return;
         }
 
-        // Upserting into a missing index would let Meilisearch auto-create it
-        // with default settings (no filterableAttributes), breaking every
-        // filtered search until `exment:meili-index` runs. Create it properly instead.
-        if (!self::$indexVerified) {
-            try {
-                $client->getRawIndex($indexName);
-            } catch (\Throwable $e) {
-                (new \Exceedone\Exment\Services\Meili\ExmentIndexer(
-                    $client,
-                    $mapper,
-                    $indexName,
-                    (int) config('meilisearch.batch_size')
-                ))->ensureIndex();
-            }
-            self::$indexVerified = true;
-        }
+        // Re-checked every minute, not once per worker: the index can be dropped under a running worker.
+        \Exceedone\Exment\Services\Meili\ExmentIndexer::ensureIndexExists($client, $indexName, 60);
 
         $table = CustomTable::getEloquent($this->tableName);
         if (!$table) {

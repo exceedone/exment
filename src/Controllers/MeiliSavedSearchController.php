@@ -27,6 +27,11 @@ class MeiliSavedSearchController extends AdminControllerBase
             return response()->json(['message' => exmtrans('search.saved_name_invalid')], 422);
         }
 
+        $limit = max(1, (int) config('meilisearch.saved_search_limit', 50));
+        if (MeiliSavedSearch::where('owner_user_id', (int) $user->getUserId())->count() >= $limit) {
+            return response()->json(['message' => sprintf(exmtrans('search.saved_limit_reached'), $limit)], 422);
+        }
+
         $shareType = RequestFilters::str($request, 'share_type', MeiliSavedSearch::SHARE_PERSONAL);
         if (!in_array($shareType, [
             MeiliSavedSearch::SHARE_PERSONAL,
@@ -35,6 +40,13 @@ class MeiliSavedSearchController extends AdminControllerBase
             MeiliSavedSearch::SHARE_ORGANIZATION,
         ], true)) {
             $shareType = MeiliSavedSearch::SHARE_PERSONAL;
+        }
+        if ($shareType === MeiliSavedSearch::SHARE_ALL && !SavedSearchBar::canShareAll()) {
+            return response()->json(['message' => exmtrans('search.share_all_denied')], 403);
+        }
+        $targets = self::validShareTargets($shareType, (array) $request->input('share_targets', []));
+        if (in_array($shareType, [MeiliSavedSearch::SHARE_ROLE_GROUP, MeiliSavedSearch::SHARE_ORGANIZATION], true) && empty($targets)) {
+            return response()->json(['message' => exmtrans('search.share_targets_invalid')], 422);
         }
 
         // with_query=0 -> save only the conditions (quick filter); applying keeps the current keyword.
@@ -46,7 +58,7 @@ class MeiliSavedSearchController extends AdminControllerBase
             'query' => $withQuery ? RequestFilters::str($request, 'query') : '',
             'filters' => SavedSearchService::filtersFromInput($request->all()),
             'share_type' => $shareType,
-            'share_targets' => self::validShareTargets($shareType, (array) $request->input('share_targets', [])),
+            'share_targets' => $targets,
         ]);
 
         return response()->json(['id' => $saved->id, 'name' => $saved->name]);

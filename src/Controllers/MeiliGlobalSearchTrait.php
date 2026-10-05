@@ -167,6 +167,18 @@ trait MeiliGlobalSearchTrait
 
         $boxHeader = $this->getBoxHeaderHtml($custom_table, ['query' => $q]);
 
+        // A table outside the user's searchable tables answers like an empty one:
+        // the capped flag and warning would reveal how many hidden records match.
+        if (!in_array($custom_table->table_name, \Exceedone\Exment\Services\Meili\SavedSearchService::searchableTableNames(), true)) {
+            return [
+                'table_name' => array_get($custom_table, 'table_name'),
+                'header' => $boxHeader,
+                'body' => exmtrans('search.no_result'),
+                'total' => 0,
+                'total_capped' => false
+            ];
+        }
+
         $paged = (new ResultPaginator($this->makeService()))->paginate($custom_table, $q, $request);
         $paginate = $paged['paginator'];
         // capped = the count is a floor (the over-fetch cap was reached) -> the UI

@@ -15,6 +15,9 @@ use Illuminate\Http\Request;
  */
 class RequestFilters
 {
+    /** Each facet token becomes a filter clause: no screen ever sends this many. */
+    public const MAX_FACETS = 100;
+
     /**
      * Read filters from the request:
      * ['date_from'=>unix, 'date_to'=>unix, 'users'=>int[], 'facets'=>string[], 'ranges'=>...].
@@ -53,7 +56,7 @@ class RequestFilters
             $facets = array_filter(explode("\n", $facets), fn ($v) => $v !== '');
         }
         if (!empty($facets) && is_array($facets)) {
-            $facets = array_values(array_filter($facets, 'is_string'));
+            $facets = array_slice(array_values(array_filter($facets, 'is_string')), 0, self::MAX_FACETS);
             if (!empty($facets)) {
                 $filters['facets'] = $facets;
             }
@@ -71,7 +74,12 @@ class RequestFilters
                 if (!is_scalar($v) || $v === '') {
                     continue;
                 }
-                $out[$field][$k] = is_numeric($v) ? ($v + 0) : self::rangeBound((string) $v, $k === 'to');
+                $num = is_numeric($v) ? ($v + 0) : self::rangeBound((string) $v, $k === 'to');
+                // "1e999" is numeric but INF, which no filter expression can hold.
+                if (is_float($num) && !is_finite($num)) {
+                    continue;
+                }
+                $out[$field][$k] = $num;
             }
         }
         if (!empty($out)) {

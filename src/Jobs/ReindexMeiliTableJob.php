@@ -31,14 +31,22 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     /** Hold the unique lock for at most 5 minutes in case the job hangs. */
     public int $uniqueFor = 300;
 
+    /** Seconds one run may spend on the orphan scan before a continuation takes over. */
+    public const ORPHAN_SCAN_BUDGET = 40;
+
+    /** Index documents read per orphan-scan page. */
+    public const ORPHAN_SCAN_PAGE = 1000;
+
     /**
      * @param string $tableName
      * @param int|null $afterId Start of this slice: the last id the previous run
      *   indexed. null = start at the beginning of the table.
      * @param string|null $configHash configHash() the earlier slices of this
      *   chain indexed with. null = first slice, or unknown.
+     * @param int|null $orphanOffset Set: this run only continues the orphan scan
+     *   from that index position.
      */
-    public function __construct(public string $tableName, public ?int $afterId = null, public ?string $configHash = null)
+    public function __construct(public string $tableName, public ?int $afterId = null, public ?string $configHash = null, public ?int $orphanOffset = null)
     {
         // Below the connection's retry_after (database: 90s) so a second worker
         // cannot re-reserve a still-running job. Set here, not as a property:
@@ -146,20 +154,18 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
      * Say it on screen, not only in the log: the settings screen otherwise
      * reports a plain success while the index silently stays stale.
      */
-    protected static function warnAdmin(): void
+    public static function warnAdmin(): void
     {
         try {
             if (app()->runningInConsole()) {
                 return;
             }
-            // admin_warning, not admin_toastr: every toastr shares one session
-            // key, so the "saved" toast the controller flashes right after would
-            // replace this warning and the admin would never see it.
-            if (function_exists('admin_warning')) {
-                admin_warning(exmtrans('search.reindex_skipped'));
-            } elseif (function_exists('admin_toastr')) {
-                admin_toastr(exmtrans('search.reindex_skipped'), 'warning');
-            }
+            // Flash, not admin_warning: it only lives for the current request on
+            // exment-admin-core and is lost on the redirect after saving.
+            session()->flash('warning', new \Illuminate\Support\MessageBag([
+                'title' => exmtrans('search.reindex_skipped'),
+                'message' => '',
+            ]));
         } catch (\Throwable $e) {
             // A notification must never break the user's save.
         }
@@ -218,6 +224,8 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
+        // The orphan budget counts from here: the last slice has already spent part of the timeout.
+        $deadline = microtime(true) + static::ORPHAN_SCAN_BUDGET;
 
         $client = MeiliClientFactory::make();
         $indexName = config('meilisearch.index');
@@ -245,6 +253,17 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         // Computed from the very values this slice maps with, so it describes
         // exactly what these documents are built from.
         $hash = self::configHash((string) $tableLabel, $columns, $facetColumns, $rangeColumns, $aliases);
+
+        if ($this->orphanOffset !== null) {
+            // A save made while this continuation waited was dropped by its lock: redo the pass.
+            if ($this->configHash !== null && $this->configHash !== $hash) {
+                self::dispatch($this->tableName)->delay(now()->addSeconds(self::DISPATCH_DELAY));
+                return;
+            }
+            $this->removeOrphans($client, $indexName, $table, $mapper, $this->orphanOffset, $hash, $deadline);
+            return;
+        }
+
         if (self::configChangedMidChain($this->afterId, $this->configHash, $hash)) {
             // The earlier slices carry the old configuration. Start over rather
             // than finish: every slice still to come would be redone anyway. If
@@ -270,6 +289,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         }
 
         if (!empty($docs)) {
+            \Exceedone\Exment\Services\Meili\ExmentIndexer::ensureIndexExists($client, $indexName);
             $task = $index->addDocuments($docs, 'id');
             $client->waitForTask($task['taskUid'], 60000);
         }
@@ -283,23 +303,53 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
             return;
         }
 
-        // Last slice: records deleted since the previous run keep a document
-        // nothing points at. Ids only, so this stays cheap on a large table.
-        $dbIds = getModelName($table)::query()
-            ->withoutGlobalScope(CustomValueModelScope::class)
-            ->pluck('id')->all();
-        $service = new MeiliSearchService($client, $indexName);
-        $orphan = MeiliSearchService::diffIds($dbIds, $service->indexedValueIds($this->tableName))['orphan'];
+        // Last slice: records deleted since the previous run keep a document nothing points at.
+        $this->removeOrphans($client, $indexName, $table, $mapper, 0, $hash, $deadline);
+    }
 
-        // Re-check just before deleting: a record created during the scan exists now.
-        $existingNow = [];
-        foreach (array_chunk($orphan, 1000) as $chunk) {
-            $existingNow = array_merge($existingNow, getModelName($table)::query()
-                ->withoutGlobalScope(CustomValueModelScope::class)
-                ->whereIn('id', $chunk)
-                ->pluck('id')->all());
+    /**
+     * Delete documents whose record no longer exists, one index page at a time
+     * (a whole table's ids do not fit a 60s job on a large table).
+     *
+     * @param \Meilisearch\Client $client
+     */
+    private function removeOrphans($client, string $indexName, CustomTable $table, DocumentMapper $mapper, int $offset, string $hash, float $deadline): void
+    {
+        $service = new MeiliSearchService($client, $indexName);
+        $read = 0;
+        $orphans = [];
+        do {
+            $page = $service->indexedValueIdsPage($this->tableName, $offset + $read, static::ORPHAN_SCAN_PAGE);
+            $read += $page['count'];
+            if (!empty($page['ids'])) {
+                array_push($orphans, ...self::deletableOrphans($page['ids'], $this->existingIds($table, $page['ids'])));
+            }
+            $more = $page['count'] === static::ORPHAN_SCAN_PAGE && $offset + $read < $page['total'];
+        } while ($more && microtime(true) < $deadline);
+
+        // Re-check just before deleting: a record restored during the scan exists again.
+        $orphans = self::deletableOrphans($orphans, $this->existingIds($table, $orphans));
+        $service->deleteByValueIds($this->tableName, $orphans, $mapper);
+
+        if ($more) {
+            // The deleted documents shift the rest of the table forward by as many positions.
+            self::dispatch($this->tableName, null, $hash, $offset + $read - count($orphans));
         }
-        $service->deleteByValueIds($this->tableName, self::deletableOrphans($orphan, $existingNow), $mapper);
+    }
+
+    /**
+     * @param array<int,mixed> $ids
+     * @return array<int,mixed>
+     */
+    private function existingIds(CustomTable $table, array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+        return getModelName($table)::query()
+            ->withoutGlobalScope(CustomValueModelScope::class)
+            ->whereIn('id', $ids)
+            ->pluck('id')->all();
     }
 
     /**
