@@ -64,21 +64,38 @@ class PluginPageController extends Controller
     // @phpstan-ignore-next-line
     public function _readPublicFile(Request $request, ...$args)
     {
+        // reject any traversal segments before joining
+        foreach ($args as $arg) {
+            if (!is_string($arg) || $arg === '' || strpos($arg, "\0") !== false
+                || $arg === '..' || $arg === '.'
+                || strpos($arg, '/') !== false || strpos($arg, '\\') !== false) {
+                abort(404);
+            }
+        }
+
         // get file path
         $path = implode('/', $args);
 
         // get base path
         $base_path = $this->plugin->getFullPath();
-        $filePath = path_join($base_path, 'public', $path);
+        $publicDir = path_join($base_path, 'public');
+        $filePath = path_join($publicDir, $path);
 
         // if not exists, return 404
         if (!\File::exists($filePath)) {
             abort(404);
         }
 
-        $file = \File::get($filePath);
-        // @phpstan-ignore-next-line
-        $extension = pathinfo($filePath)['extension'];
+        // ensure resolved path is contained within the plugin's public directory
+        $realFile = realpath($filePath);
+        $realPublic = realpath($publicDir);
+        if ($realFile === false || $realPublic === false
+            || strpos($realFile, rtrim($realPublic, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR) !== 0) {
+            abort(404);
+        }
+
+        $file = \File::get($realFile);
+        $extension = pathinfo($realFile)['extension'] ?? '';
 
         switch ($extension) {
             case 'css':
@@ -88,7 +105,7 @@ class PluginPageController extends Controller
                 $mimeType = 'text/javascript';
                 break;
             default:
-                $mimeType = \File::mimeType($filePath);
+                $mimeType = \File::mimeType($realFile);
                 break;
         }
 

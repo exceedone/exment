@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Exment;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomTable;
@@ -462,6 +463,9 @@ class SystemController extends AdminControllerBase
         try {
             $result = $this->postInitializeForm($request, ($advanced ? ['advanced', 'notify'] : ['initialize', 'system']), false, !$advanced);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
+                // close the transaction before leaving, so nothing else in this request
+                // (a database session write, for one) runs inside an open transaction
+                DB::rollback();
                 return $result;
             }
 
@@ -475,6 +479,11 @@ class SystemController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('system') . ($advanced ? '?advanced=1' : ''));
+        } catch (InvalidZipEntryException $exception) {
+            // a refused template zip is a bad upload, not a crash. roll back here, where
+            // the transaction was opened, then show the reason under the file field.
+            DB::rollback();
+            return back()->withInput()->withErrors(['upload_template' => $exception->getMessage()]);
         } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();

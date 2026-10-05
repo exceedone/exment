@@ -24,7 +24,7 @@
                 </div>
             </div>
             @if(session()->has('errorMess'))
-                <span class="font-weight-bold" style="color: red"><i class="fa fa-times-circle-o"></i> {!! session('errorMess') !!}</span>
+                <span class="font-weight-bold" style="color: red"><i class="fa fa-times-circle-o"></i> {{ session('errorMess') }}</span>
             @endif
              
         </div>

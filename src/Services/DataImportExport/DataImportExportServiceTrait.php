@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
@@ -232,7 +233,17 @@ trait DataImportExportServiceTrait
         $formatObj->filebasename($this->filebasename);
 
         // get table data
-        $datalist = $formatObj->getDataTable($request);
+        try {
+            $datalist = $formatObj->getDataTable($request);
+        } catch (InvalidZipEntryException $ex) {
+            // a refused zip is a user mistake, not a server fault: show it in the modal
+            // instead of letting the exception turn into a blank 500.
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error'),
+                'errors' => ['import_error_message' => ['type' => 'input', 'message' => $ex->getMessage()]],
+            ];
+        }
 
         // if over count, return over length
         if (is_int($datalist)) {
