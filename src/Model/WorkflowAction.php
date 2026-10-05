@@ -375,6 +375,12 @@ class WorkflowAction extends ModelBase
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
 
+        // capture the other members of the assigned organization(s)
+        // BEFORE forwarding (ACTION_SELECT authorities are read from the current workflow value).
+        $sameOrgUserIds = ($next === true)
+            ? \Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::getOtherOrgMemberIds($this, $custom_value)
+            : [];
+
         \ExmentDB::transaction(function () use ($custom_value, $data, $is_edit, $next, &$workflow_value, &$status_to) {
             $workflow_value = $this->forwardWorkflowValue($custom_value, $data);
 
@@ -402,6 +408,14 @@ class WorkflowAction extends ModelBase
                     $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $status_to);
                     CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities, $is_edit);
                 }
+            } else {
+                // One approval of a step that waits for several: the record stays at its status, and
+                // so do the users picked for it (next_work_users). The record page finds them by
+                // looking back from the newest workflow value (getWorkflowValueAutorities()), but
+                // view_workflow_value_unions reads the newest one only - without this copy, the
+                // approvers who have not acted yet drop out of the task list and of the work user
+                // filter, while the record page still asks them to approve.
+                static::carryWorkflowValueAuthorities($workflow_value);
             }
         });
 
@@ -410,6 +424,9 @@ class WorkflowAction extends ModelBase
             foreach ($workflow->notifies as $notify) {
                 $notify->notifyWorkflow($custom_value, $this, $workflow_value, $status_to);
             }
+
+            // Feature 1 (part B): notify the other members of the assigned organization(s)
+            \Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::notify($this, $custom_value, $sameOrgUserIds);
         }
 
         // execute plugin
@@ -473,7 +490,59 @@ class WorkflowAction extends ModelBase
             $createData['action_executed_flg'] = true;
         }
 
-        return WorkflowValue::create($createData);
+        $workflow_value = WorkflowValue::create($createData);
+
+        // Somebody acted on the record - it moved to another status, or a step waiting for
+        // several approvers got one more approval - so every mark on it is stale: "already seen"
+        // and "taken off my list" (hidden_flg) alike, and the navbar has to show it as a new
+        // task again. Clearing it here - where the action itself is recorded - is what lets the
+        // badge query stay a plain lookup on the record id, with no join to workflow_values.
+        // withoutGlobalScopes(): WorkflowTaskRead is scoped to the login user, but the marks of
+        // ALL users must be cleared, not only those of the one pressing the button.
+        WorkflowTaskRead::withoutGlobalScopes()
+            ->where('custom_table_id', $custom_value->custom_table->id)
+            ->where('morph_id', $morph_id)
+            ->delete();
+
+        // the user who just acted is looking at their task list right now: their next navbar
+        // poll must recompute instead of answering from the cache. Everyone else's cache
+        // simply expires within one poll interval. Once the action has committed: this runs
+        // inside its transaction (see WorkflowTaskService::navbarCacheForgetAfterCommit()).
+        \Exceedone\Exment\Services\Workflow\WorkflowTaskService::navbarCacheForgetAfterCommit();
+
+        return $workflow_value;
+    }
+
+    /**
+     * Copy the users picked for the current status onto the newest workflow value of the record,
+     * when it has none of its own: the ones getWorkflowValueAutorities() looks back to. See
+     * executeAction(); exment:patchdata (workflow_value_authorities) does the same for the records
+     * that were already waiting for more approvals.
+     *
+     * @param WorkflowValue $workflow_value the newest workflow value of a record
+     * @return int how many authorities were copied
+     */
+    public static function carryWorkflowValueAuthorities(WorkflowValue $workflow_value): int
+    {
+        if (count($workflow_value->workflow_value_authorities) > 0) {
+            return 0;
+        }
+
+        $rows = [];
+        foreach ($workflow_value->getWorkflowValueAutorities() ?? [] as $authority) {
+            $rows[] = [
+                'related_id' => $authority->related_id,
+                'related_type' => $authority->related_type,
+                'workflow_value_id' => $workflow_value->id,
+            ];
+        }
+
+        if (!empty($rows)) {
+            WorkflowValueAuthority::insert($rows);
+            $workflow_value->unsetRelation('workflow_value_authorities');
+        }
+
+        return count($rows);
     }
 
     /**
