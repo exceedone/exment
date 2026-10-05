@@ -24,7 +24,7 @@
             <small>
                 {{ exmtrans('workflow_task.count', $total) }}
                 @if($unseenTotal > 0)
-                    / <span class="label label-danger">{{ exmtrans('workflow_task.unseen_count', $unseenTotal) }}</span>
+                    / <span class="badge bg-danger">{{ exmtrans('workflow_task.unseen_count', $unseenTotal) }}</span>
                 @endif
                 {{-- the tasks taken off the list are still waiting for this user: the way to them
                      is in sight whenever there are any --}}
@@ -52,7 +52,7 @@
             <input type="checkbox" class="grid-select-all" />&nbsp;
             <div class="btn-group grid-select-all-btn" style="display:none;margin-right: 5px;">
                 <a class="btn btn-sm btn-default"><span class="hidden-xs selected"></span></a>
-                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">
+                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown">
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>
                 </button>
@@ -65,14 +65,14 @@
                     @endif
                 </ul>
             </div>
-            <div class="btn-group" style="margin-right: 5px" data-toggle="buttons">
-                <label class="btn btn-sm btn-dropbox workflow-task-filter-btn {{ $expandFilter ? 'active' : '' }}" title="{{ trans('admin.filter') }}">
-                    <input type="checkbox"><i class="fa fa-filter"></i><span class="hidden-xs">&nbsp;&nbsp;{{ trans('admin.filter') }}</span>
+            <div class="btn-group" style="margin-right: 5px">
+                <label class="btn btn-sm d-flex align-items-center text-nowrap btn-primary btn-dropbox workflow-task-filter-btn {{ $expandFilter ? 'active' : '' }}" title="{{ trans('admin.filter') }}">
+                    <input type="checkbox" style="display: none"><i class="fa fa-filter"></i><span class="d-none d-md-block">&nbsp;&nbsp;{{ trans('admin.filter') }}</span>
                 </label>
                 {{-- the scopes of a grid filter button (admin::filter.button), where the data grid
                      offers its deleted data: the list in use named on the button, キャンセル to
                      leave it --}}
-                <button type="button" class="btn btn-sm btn-dropbox dropdown-toggle" data-toggle="dropdown">
+                <button type="button" class="btn btn-sm btn-primary btn-dropbox dropdown-toggle" data-bs-toggle="dropdown">
                     <span>@if($removedView)&nbsp;{{ exmtrans('workflow_task.seen_options.2') }}&nbsp;@endif</span>
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>
@@ -80,7 +80,7 @@
                 <ul class="dropdown-menu" role="menu">
                     <li><a href="{{ $removedUrl }}">{{ exmtrans('workflow_task.seen_options.2') }}</a></li>
                     @if($removedView)
-                        <li role="separator" class="divider"></li>
+                        <li role="separator" class="dropdown-divider"></li>
                         <li><a href="{{ $cancelUrl }}">{{ trans('admin.cancel') }}</a></li>
                     @endif
                 </ul>
@@ -122,10 +122,10 @@
                             {{-- admin::filter.radio. Not in the 削除済み list, whose tasks are neither
                                  read nor unread: panelKeep carries that list instead. --}}
                             @if(!$removedView)
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label"> {{ exmtrans('workflow_task.seen_flg') }}</label>
+                            <div class="form-group row">
+                                <label class="col-sm-2 control-label col-form-label"> {{ exmtrans('workflow_task.seen_flg') }}</label>
                                 <div class="col-sm-8">
-                                    <div class="input-group input-group-sm">
+                                    <div class="input-group">
                                         @foreach($seenOptions as $seenValue => $seenLabel)
                                             <span class="icheck">
                                                 <label class="radio-inline">
@@ -139,8 +139,8 @@
                             @endif
 
                             {{-- admin::filter.select --}}
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label"> {{ exmtrans('workflow_task.table') }}</label>
+                            <div class="form-group row">
+                                <label class="col-sm-2 control-label col-form-label"> {{ exmtrans('workflow_task.table') }}</label>
                                 <div class="col-sm-8">
                                     <select class="form-control workflow-task-filter-table" name="custom_table_id" style="width: 100%;">
                                         <option></option>
@@ -153,8 +153,8 @@
 
                             {{-- admin::filter.select, on the status NAME the column shows (see
                                  WorkflowTaskService::statusOptions()) --}}
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label"> {{ exmtrans('workflow_task.status') }}</label>
+                            <div class="form-group row">
+                                <label class="col-sm-2 control-label col-form-label"> {{ exmtrans('workflow_task.status') }}</label>
                                 <div class="col-sm-8">
                                     <select class="form-control workflow-task-filter-status" name="status" style="width: 100%;">
                                         <option></option>
@@ -169,15 +169,15 @@
                                  the script below, like the 更新日時 filter of the data grid. A type=date
                                  input is drawn by the browser, in the date format of the OS, whatever
                                  APP_LOCALE says. --}}
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label">{{ exmtrans('workflow_task.updated_at') }}</label>
+                            <div class="form-group row">
+                                <label class="col-sm-2 control-label col-form-label">{{ exmtrans('workflow_task.updated_at') }}</label>
                                 <div class="col-sm-8">
-                                    <div class="input-group input-group-sm workflow-task-dates">
-                                        <div class="input-group-addon">
+                                    <div class="input-group workflow-task-dates">
+                                        <div class="input-group-text">
                                             <i class="fa fa-calendar"></i>
                                         </div>
                                         <input type="text" class="form-control" placeholder="{{ exmtrans('workflow_task.updated_at') }}" autocomplete="off" name="from" value="{{ $filter['from'] }}" />
-                                        <span class="input-group-addon" style="border-left: 0; border-right: 0;">-</span>
+                                        <span class="input-group-text" style="border-left: 0; border-right: 0;">-</span>
                                         <input type="text" class="form-control" placeholder="{{ exmtrans('workflow_task.updated_at') }}" autocomplete="off" name="to" value="{{ $filter['to'] }}" />
                                     </div>
                                 </div>
@@ -187,9 +187,9 @@
                 </div>
             </div>
 
-            <div class="box-footer">
+            <div class="box-footer" style="padding: 10px;">
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-12 row">
                         <div class="col-md-2"></div>
                         <div class="col-md-8">
                             <div class="btn-group pull-left">
@@ -245,11 +245,11 @@
                         </td>
                         <td>
                             @if($removedView)
-                                <span class="label label-warning">{{ exmtrans('workflow_task.seen_options.2') }}</span>
+                                <span class="badge bg-warning text-dark">{{ exmtrans('workflow_task.seen_options.2') }}</span>
                             @elseif($row['seen'])
-                                <span class="label label-default">{{ exmtrans('workflow_task.seen_options.1') }}</span>
+                                <span class="badge bg-secondary">{{ exmtrans('workflow_task.seen_options.1') }}</span>
                             @else
-                                <span class="label label-danger">{{ exmtrans('workflow_task.seen_options.0') }}</span>
+                                <span class="badge bg-danger">{{ exmtrans('workflow_task.seen_options.0') }}</span>
                             @endif
                         </td>
                         <td>{{ $row['table_view_name'] }}</td>
@@ -378,10 +378,11 @@
 
         // ------------------------------------------------------------------- filter panel
         // The filter button of a grid (Grid\Tools\FilterButton) opens and closes the panel. The
-        // button group carries data-toggle="buttons", whose click handler keeps the "active" look
-        // of the button and stops the click from reaching the hidden checkbox inside it, so this
-        // runs once per click.
-        $box.find('.workflow-task-filter-btn').on('click', function () {
+        // checkbox sits inside the label, so a click on the label is passed on to it and comes
+        // back here as a second click, closing the panel it just opened. preventDefault() stops
+        // that, as FilterButton's own script does, so this runs once per click.
+        $box.find('.workflow-task-filter-btn').on('click', function (ev) {
+            ev.preventDefault();
             var $panel = $('#workflow-task-filter-box');
             if ($panel.is(':visible')) {
                 $panel.addClass('hide');
