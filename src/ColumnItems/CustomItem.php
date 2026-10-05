@@ -460,6 +460,34 @@ abstract class CustomItem implements ItemInterface
         return $this->getCustomField($classname, $column_name_prefix);
     }
 
+    /**
+     * Get the display html of this column for the given stored value,
+     * without changing the value this item currently holds.
+     *
+     * @param mixed $value stored value of this column
+     * @return mixed escaped html, or null when there is nothing to show
+     */
+    public function htmlFromValue($value)
+    {
+        if (is_nullorempty($value)) {
+            return null;
+        }
+
+        $original = $this->value;
+        $this->value = $value;
+        try {
+            // same as setCustomValue(), so the value is formatted like on the main form (e.g. decimal digits)
+            $this->prepare();
+            return $this->html();
+        } catch (\Throwable $ex) {
+            // never break the form for one cell: report it, the caller falls back to the escaped raw value
+            report($ex);
+            return null;
+        } finally {
+            $this->value = $original;
+        }
+    }
+
     // @phpstan-ignore-next-line
     protected function getCustomField($classname, $column_name_prefix = null)
     {
@@ -475,11 +503,25 @@ abstract class CustomItem implements ItemInterface
         if (!$this->hidden()) {
             if ($this->initonly()) {
                 $field->displayText($this->html())->escape(false)->default($this->value)->prepareDefault();
-            } elseif ($this->viewonly() && is_null($this->id) && !isset($this->value)) {
-                // if view only and create (no id), set default value
-                $this->value = $this->getDefaultValue();
-                $field->displayText($this->html())->escape(false);
+            } elseif ($this->viewonly() && !isset($this->value)) {
+                // The item has no value while the form is built: a create form (no id), a record whose
+                // column is empty, or a row of a has-many table - there the row's value only reaches
+                // the field when it is rendered.
+                if (is_null($this->id)) {
+                    // if view only and create (no id), set default value
+                    $this->value = $this->getDefaultValue();
+                }
+                $emptyHtml = $this->html();
                 $this->value = null;
+
+                // So resolve the display html from the field's value at render time. Without a value,
+                // show what the item shows for none (the default on a create form).
+                // Display::render() runs the closure with Closure::call($field, $value), which rebinds
+                // $this to the field: keep the item in a variable, and the closure must not be static.
+                $item = $this;
+                $field->displayText(function ($value) use ($item, $emptyHtml) {
+                    return is_nullorempty($value) ? $emptyHtml : $item->htmlFromValue($value);
+                })->escape(false);
             } elseif ($this->viewonly()) {
                 $field->displayText($this->html())->escape(false);
             }

@@ -177,7 +177,8 @@ class CustomFormPublicController extends AdminControllerTableBase
                     })
                     ->caption(function ($caption) {
                         $file = ExmentFile::getData($caption);
-                        return $file->filename ?? basename($caption);
+                        // the upload widget inserts the caption into the page as html, so escape the file name
+                        return esc_html($file->filename ?? basename($caption));
                     })
                     ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_header', 'value' => '1'])])
                 ;

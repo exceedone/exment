@@ -236,8 +236,12 @@ class HasManyTable extends HasMany
     {
         $removeClass = NestedForm::REMOVE_FLAG_CLASS;
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
-        $title = exmtrans("common.error");
-        $message = sprintf(exmtrans("common.message.exists_row"), $this->label);
+        // Both values are written into the page script as js string literals, and the alert renders
+        // its message as html. The label is set by table administrators, so escape it for html and
+        // let json_encode build the literal (quotes and "</script>" can then not leave the string).
+        $jsonFlags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
+        $title = json_encode(exmtrans("common.error"), $jsonFlags);
+        $message = json_encode(sprintf(exmtrans("common.message.exists_row"), esc_html($this->label)), $jsonFlags);
         $count = $this->getHasManyCount();
         $indexName = "index_{$this->column}";
 
@@ -312,7 +316,7 @@ $("button[type='submit']").click(function(){
     }
     var cnt = $('#has-many-table-{$this->column}-table tr.has-many-table-{$this->column}-row').filter(':visible').length;
     if (cnt == 0) {
-        swal("$title", "$message", "error");
+        swal($title, $message, "error");
         return false;
     };
     return true;

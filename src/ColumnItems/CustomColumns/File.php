@@ -165,7 +165,8 @@ class File extends CustomItem
             return $file->uuid ?? 0;
         })->caption(function ($caption, $key) {
             $file = ExmentFile::getData($key);
-            return $file->filename ?? basename($caption);
+            // the upload widget inserts the caption into the page as html, so escape the file name
+            return esc_html($file->filename ?? basename($caption));
         })
         // get tmp file from request
         ->getTmp(function ($files) {

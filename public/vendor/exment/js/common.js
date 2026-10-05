@@ -733,8 +733,10 @@ var Exment;
                 if (hasValue($elem.data('add-select2-ajax'))) {
                     // get ue
                     options['ajax'] = Exment.WebApi.make().getSelect2AjaxOption($elem);
+                    // Ajax results and the selected value are server-provided record labels. Escape them
+                    // for html so a label like "<img onerror=...>" cannot run when select2 renders it.
                     options['escapeMarkup'] = function (markup) {
-                        return markup;
+                        return $('<div/>').text(markup == null ? '' : markup).html();
                     };
                     options['minimumInputLength'] = 1;
                 }
