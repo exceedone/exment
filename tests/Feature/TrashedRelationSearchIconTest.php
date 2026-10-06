@@ -182,7 +182,9 @@ class TrashedRelationSearchIconTest extends FeatureTestBase
     {
         $response = $this->get($url);
         $response->assertStatus(200);
+        $content = $response->getContent();
+        $this->assertIsString($content);
 
-        return html_entity_decode($response->getContent());
+        return html_entity_decode($content);
     }
 }
