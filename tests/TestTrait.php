@@ -20,10 +20,11 @@ trait TestTrait
     /**
      * Assert that the response is a superset of the given JSON.
      *
-     * @param  array<mixed>  $data1
-     * @param  array<mixed>  $data2
+     * @param  array<mixed>  $subset
+     * @param  array<mixed>  $array
+     * @param  string  $message
      * @param  bool  $strict
-     * @return $this
+     * @return void
      */
     public function assertArraySubset(array $subset, array $array, string $message = '', bool $strict = false): void
     {
@@ -59,12 +60,7 @@ trait TestTrait
      */
     protected function assertMatchRegex(string $pattern, string $string, string $message = ''): void
     {
-        if (method_exists($this, 'assertMatchesRegularExpression')) {
-            $this->assertMatchesRegularExpression($pattern, $string, $message);
-            return;
-        }
-        /* @phpstan-ignore-next-line delete next line. it's deprecated function */
-        $this->assertRegExp($pattern, $string, $message);
+        $this->assertMatchesRegularExpression($pattern, $string, $message);
     }
 
     /**

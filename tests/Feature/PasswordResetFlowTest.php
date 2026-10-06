@@ -6,6 +6,7 @@ use Exceedone\Exment\Middleware\VerifyCsrfToken;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Testing\TestResponse;
 
 /**
  * "Forgot password" flow: GET/POST auth/reset/{token}.
@@ -72,7 +73,10 @@ class PasswordResetFlowTest extends FeatureTestBase
         return $login_user;
     }
 
-    protected function postReset(string $token, string $password, string $confirmation)
+    /**
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
+    protected function postReset(string $token, string $password, string $confirmation): TestResponse
     {
         return $this->withoutMiddleware(VerifyCsrfToken::class)
             ->from(admin_url('auth/reset/' . $token))

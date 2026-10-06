@@ -3204,27 +3204,22 @@ class WorkflowTaskServiceTest extends UnitTestBase
                     'target_column_id' => $custom_column->id,
                     'condition_value' => $value,
                 ])]));
-                // an action whose only header is the one above
-                $action = new class ($header) extends WorkflowAction {
-                    /** @var WorkflowConditionHeader|null */
-                    private $testHeader;
-
-                    // optional: booting the model registers its observers, and Eloquent builds an
-                    // instance for that with no argument at all (HasEvents::registerObserver())
-                    public function __construct(?WorkflowConditionHeader $testHeader = null)
-                    {
-                        parent::__construct();
-                        $this->testHeader = $testHeader;
-                    }
+                // an action whose only header is the one above. No constructor of its own: ModelBase
+                // is @phpstan-consistent-constructor, and booting the model registers its observers
+                // with an instance built with no argument at all (HasEvents::registerObserver())
+                $action = new class () extends WorkflowAction {
+                    /** @var WorkflowConditionHeader */
+                    public $testHeader;
 
                     /**
-                     * @return \Illuminate\Support\Collection<int, WorkflowConditionHeader|null>
+                     * @return \Illuminate\Support\Collection<int, WorkflowConditionHeader>
                      */
                     public function getWorkflowConditionHeadersCacheAttribute()
                     {
                         return new \Illuminate\Support\Collection([$this->testHeader]);
                     }
                 };
+                $action->testHeader = $header;
 
                 $page = $records->filter(function ($record) use ($header) {
                     return $header->isMatchCondition($record);
