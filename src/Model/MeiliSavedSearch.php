@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\SystemTableName;
 
 /**
  * Saved Search for global search: stores keyword + filter (generic JSON params:
@@ -90,13 +91,50 @@ class MeiliSavedSearch extends ModelBase
         // Constrain in SQL first (own rows + anything non-personal) so this
         // never hydrates every user's personal searches; the PHP pass then
         // matches role-group/organization share targets precisely.
-        return static::where(function ($query) use ($userId) {
+        $rows = static::where(function ($query) use ($userId) {
             $query->where('owner_user_id', $userId)
                     ->orWhere('share_type', '!=', self::SHARE_PERSONAL);
         })
-            ->orderBy('order')->orderBy('id')->get()
-            ->filter(fn ($r) => static::visibleToUser($r, $userId, $roleGroupIds, $orgIds))
+            ->orderBy('order')->orderBy('id')->get();
+
+        // A deleted owner's shares stop showing (kept stored: a soft delete can be restored).
+        $alive = static::existingUserIds($rows->pluck('owner_user_id')->unique()->all());
+
+        return $rows
+            ->filter(fn ($r) => isset($alive[(int) $r->owner_user_id]) && static::visibleToUser($r, $userId, $roleGroupIds, $orgIds))
             ->values();
+    }
+
+    /**
+     * @param array<int,mixed> $userIds
+     * @return array<int,int>  existing (not deleted) user id => index
+     */
+    protected static function existingUserIds(array $userIds): array
+    {
+        if (empty($userIds)) {
+            return [];
+        }
+        return array_flip(getModelName(SystemTableName::USER)::query()
+            ->withoutGlobalScope(CustomValueModelScope::class)
+            ->whereIn('id', $userIds)
+            ->pluck('id')->map(fn ($id) => (int) $id)->all());
+    }
+
+    /**
+     * A user deleted for good takes their saved searches along.
+     *
+     * @param mixed $model
+     */
+    public static function deleteOwnedBy($model): void
+    {
+        if (!($model instanceof CustomValue) || !$model->isForceDeleting() || $model->custom_table->table_name !== SystemTableName::USER) {
+            return;
+        }
+        try {
+            static::where('owner_user_id', $model->id)->delete();
+        } catch (\Throwable $e) {
+            // Before migration the table does not exist: nothing to clean.
+        }
     }
 
     /**

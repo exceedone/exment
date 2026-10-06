@@ -73,9 +73,8 @@ namespace Exment {
                 let div = $('<div/>', {
                     'tabindex' : -1,
                     'class' : 'ui-menu-item-wrapper',
-                    // item.text is server-escaped html with <mark> highlights
-                    // (see HeaderSuggester::toHighlightedHtml).
-                    'html' : [p, $('<span/>', {'html':item.text})]
+                    // text_html: html the server already escaped (<mark> highlights).
+                    'html' : [p, $('<span/>', {'html':item.text_html})]
                 });
                 return $('<li class="ui-menu-item-with-icon"></li>')
                     .data("item.autocomplete", item)

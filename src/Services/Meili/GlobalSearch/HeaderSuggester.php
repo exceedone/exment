@@ -43,7 +43,7 @@ class HeaderSuggester
             $text = self::suggestionText((string) $label, (string) $snippet);
             $results[] = [
                 'value' => $label
-                , 'text' => $text
+                , 'text_html' => $text
                 , 'icon' => array_get($table, 'options.icon')
                 , 'table_view_name' => array_get($table, 'table_view_name')
                 , 'table_name' => array_get($table, 'table_name')
