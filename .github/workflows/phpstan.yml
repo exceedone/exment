@@ -13,7 +13,6 @@ env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
   EXMENT_ADMIN_CORE_REPOSITORY: exceedone/exment-admin-core
-  EXMENT_REPOSITORY: exceedone/exment
 
 jobs:
   phpstan:
@@ -30,14 +29,14 @@ jobs:
           path: ./docker-exment/exment-boilerplate
           ref: feature/laravel-12
 
-      # pull_request chay CI o repo base cua PR. Khi PR mo sang repo khac (vi du
-      # ex1nhatvh/exment) thi checkout mac dinh tro ve repo base, ma repo do khong
-      # co branch nay -> fail. Ghim repository de luon lay code tu exceedone/exment.
+      # Code duoc kiem tra la code cua chinh PR (head). pull_request chay CI o repo base cua PR,
+      # ma PR co the mo tu repo khac (vi du exceedone/exment -> ex1nhatvh/exment): checkout mac
+      # dinh se tim nhanh head o repo base va fail, nen lay theo repo + sha cua head.
       - uses: actions/checkout@v4
         with:
-          repository: ${{ env.EXMENT_REPOSITORY}}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
           path: ./docker-exment/exment-boilerplate/exment
-          ref: feature/laravel-12-new-code
 
       # exment-boilerplate require ca exceedone/exment-admin-core (dev-master).
       # Bat buoc branch master: composer doan version cua path repository theo ten branch
