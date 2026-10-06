@@ -97,7 +97,7 @@ class ResetPasswordController extends Controller
         // get user for password history validation
         $this->login_user = $broker->getUser($array);
 
-        $this->validate($request, $this->rules(), $this->validationErrorMessages());
+        $request->validate($this->rules(), $this->validationErrorMessages());
 
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the
@@ -146,6 +146,9 @@ class ResetPasswordController extends Controller
         //$user->password = Hash::make($password);
 
         //$user->setRememberToken(Str::random(60));
+
+        // the user chose a password: an admin-imposed "change password at next login" is satisfied
+        $user->password_reset_flg = false;
 
         $user->saveOrFail();
 

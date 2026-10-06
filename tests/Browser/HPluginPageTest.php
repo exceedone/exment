@@ -37,7 +37,7 @@ class HPluginPageTest extends ExmentKitTestCase
         $this->visit($url)
             ->seePageIs($url)
             ->seeInElement('h1', '独自ページテスト')
-            ->seeInElement('div', 'Laravel')
+            ->seeInElement('div', 'exment-admin-core')
             ->see('welcome-TestPluginPage')
         ;
     }

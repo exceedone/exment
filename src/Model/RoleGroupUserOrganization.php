@@ -15,6 +15,30 @@ class RoleGroupUserOrganization extends ModelBase
     use Traits\ClearCacheTrait;
 
     /**
+     * Scope: only rows whose target (user / organization) still exists and is not soft-deleted.
+     *
+     * Rows of this table are intentionally kept while the target is only soft-deleted
+     * (they are removed on permanent delete only, see CustomValue::deleteRelationValues),
+     * so anything that counts or lists the *current* members must use this scope.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $role_group_user_org_type SystemTableName::USER or SystemTableName::ORGANIZATION
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    // @phpstan-ignore-next-line
+    public function scopeWhereTargetNotDeleted($query, string $role_group_user_org_type)
+    {
+        $db_table_name = getDBTableName($role_group_user_org_type);
+
+        return $query->where($query->qualifyColumn('role_group_user_org_type'), $role_group_user_org_type)
+            ->whereIn($query->qualifyColumn('role_group_target_id'), function ($sub) use ($db_table_name) {
+                $sub->select("{$db_table_name}.id")
+                    ->from($db_table_name)
+                    ->whereNull("{$db_table_name}.deleted_at");
+            });
+    }
+
+    /**
      * Delete Custom Value Authoritable after custom value save
      *
      * @return void

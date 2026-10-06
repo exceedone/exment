@@ -723,8 +723,7 @@ class PublicForm extends ModelBase
     public static function isEnableRecaptcha()
     {
         $message = null;
-        // checking NoCaptcha
-        // Exment helper class not recognized
+        // checking the optional google/recaptcha library is installed
         if (!\Exment::isAvailableGoogleRecaptcha()) {
             $message = exmtrans('login.message.not_install_library', [
                 'name' => 'Google reCaptcha',

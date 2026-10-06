@@ -141,9 +141,13 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
+        // Resolved by name on purpose: any system table added by a later version shifts every
+        // id after it, and a hard-coded id then points at a different table or at nothing.
+        $id = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG)->id;
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'table').'?id=7')
+        ])->get(admin_urls('api', 'table').'?id=' . $id)
             ->assertStatus(200)
             ->assertJsonCount(1, 'data')
             ->assertJsonFragment([
@@ -158,9 +162,18 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
+        // Resolved by name for the same reason as testGetTablesById.
+        $ids = collect([
+            SystemTableName::USER,
+            SystemTableName::ORGANIZATION,
+            SystemTableName::MAIL_TEMPLATE,
+        ])->map(function ($tableName) {
+            return CustomTable::getEloquent($tableName)->id;
+        })->implode(',');
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'table').'?id=3,5,8')
+        ])->get(admin_urls('api', 'table').'?id=' . $ids)
             ->assertStatus(200)
             ->assertJsonCount(3, 'data');
     }
@@ -172,9 +185,12 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
+        // The organization table owns the parent_organization column asserted below.
+        $id = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->id;
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'table').'?id=5&expands=columns')
+        ])->get(admin_urls('api', 'table').'?id=' . $id . '&expands=columns')
             ->assertStatus(200)
             ->assertJsonFragment([
                 'column_name' => 'parent_organization',
@@ -2479,7 +2495,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'files', $document->file_uuid))
         ->assertStatus(200);
 
-        $file = $response->baseResponse->getContent();
+        $file = $this->getDownloadedContent($response);
 
         $this->assertMatch($file, TestDefine::FILE_TESTSTRING);
     }
@@ -3019,6 +3035,13 @@ class Api2Test extends ApiTestBase
         \Config::set('exment.api_max_data_count', 1000000);
         $token = $this->getAdminAccessToken([ApiScope::LOG]);
 
+        // The call below is itself written to the operation log, and that row is created after
+        // the endpoint has already run its query, so it can never appear in the response. The
+        // "not contains" check further down therefore has to stop at the last row that existed
+        // when the call was made, otherwise the log of the call is compared against the filter
+        // and fails it (a request logged with the very ip / user / time being filtered on).
+        $lastIdBeforeCall = OperationLog::max('id') ?? 0;
+
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls_query('api', 'log', $filters))
@@ -3041,7 +3064,9 @@ class Api2Test extends ApiTestBase
 
         // Check not contains
         $query = OperationLog::query();
-        $notResults = $query->whereNotIn('id', collect($results)->pluck('id')->toArray())->get();
+        $notResults = $query->where('id', '<=', $lastIdBeforeCall)
+            ->whereNotIn('id', collect($results)->pluck('id')->toArray())
+            ->get();
         foreach ($notResults as $result) {
             foreach ($filters as $key => $value) {
                 if ($key == 'count') {
@@ -3084,7 +3109,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get($url);
 
-        $file = $response->baseResponse->getContent();
+        $file = $this->getDownloadedContent($response);
 
         $this->assertMatch($file, 'test');
 
@@ -3104,7 +3129,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'files', str_replace("\\", "/", $path)));
 
-        $file = $response->baseResponse->getContent();
+        $file = $this->getDownloadedContent($response);
 
         $this->assertMatch($file, 'test');
     }
@@ -3139,7 +3164,7 @@ class Api2Test extends ApiTestBase
                 'Authorization' => "Bearer $token",
             ])->get($url);
 
-            $file = $response->baseResponse->getContent();
+            $file = $this->getDownloadedContent($response);
 
             $this->assertMatch($file, $matchValues[$index]);
         }
@@ -3162,7 +3187,7 @@ class Api2Test extends ApiTestBase
                 'Authorization' => "Bearer $token",
             ])->get(admin_urls('api', 'files', str_replace("\\", "/", $path)));
 
-            $file = $response->baseResponse->getContent();
+            $file = $this->getDownloadedContent($response);
 
             $this->assertMatch($file, $matchValues[$index]);
         }

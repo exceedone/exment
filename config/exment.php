@@ -373,6 +373,40 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Workflow task navbar
+    |--------------------------------------------------------------------------
+    |
+    | Show the un-actioned workflow task navbar icon
+    |
+    */
+    'workflow_task_navbar' => env('EXMENT_WORKFLOW_TASK_NAVBAR', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Workflow task navbar interval
+    |--------------------------------------------------------------------------
+    |
+    | How often (SECONDS) the browser re-fetches the workflow task badge.
+    | Default 300 (5 minutes). Values below 30 are raised to 30: this endpoint scans
+    | every pending record of every workflow table, once per logged-in browser.
+    |
+    */
+    'workflow_task_navbar_interval' => env('EXMENT_WORKFLOW_TASK_NAVBAR_INTERVAL', 300),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Same organization workflow notify
+    |--------------------------------------------------------------------------
+    |
+    | When a member of an assigned organization executes a workflow action, also
+    | notify the other members of that organization. The notification body contains
+    | the record label, so set false to keep it off other members' navbar.
+    |
+    */
+    'same_org_workflow_notify' => env('EXMENT_SAME_ORG_WORKFLOW_NOTIFY', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Chart BackgroundColor
     |--------------------------------------------------------------------------
     |
@@ -1030,6 +1064,34 @@ return [
     |
     */
     'publicform_urlparam_suuid' => env('EXMENT_PUBLICFORM_URLPARAM_SUUID', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google reCAPTCHA v3 score threshold
+    |--------------------------------------------------------------------------
+    |
+    | reCAPTCHA v3 does not ask the visitor anything: it returns a score from
+    | 0.0 (almost certainly a bot) to 1.0 (almost certainly a human), and this
+    | is the value below which a submission is rejected. 0.5 is Google's own
+    | recommended starting point. Raise it if spam still gets through, lower it
+    | if real visitors are being blocked. Only used when the system settings
+    | screen selects v3; v2 answers pass or fail and ignores this.
+    | Values outside 0..1 are ignored and 0.5 is used instead.
+    |
+    */
+    'recaptcha_v3_score_threshold' => env('EXMENT_RECAPTCHA_V3_SCORE_THRESHOLD', 0.5),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google reCAPTCHA skip ips
+    |--------------------------------------------------------------------------
+    |
+    | Ip addresses that are never asked to pass reCAPTCHA, e.g. an office
+    | address used for testing the public form. Leave empty in production: an
+    | entry here disables the check completely for that address.
+    |
+    */
+    'recaptcha_skip_ips' => [],
 
     /*
     |--------------------------------------------------------------------------

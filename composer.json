@@ -41,6 +41,9 @@
         "simplesoftwareio/simple-qrcode": "2.0",
         "elibyy/tcpdf-laravel": "^11.4"
     },
+    "suggest": {
+        "google/recaptcha": "Required to use Google reCAPTCHA (v2 or v3) on public forms. Install with: composer require google/recaptcha"
+    },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
         "intervention/image": "~2.3",

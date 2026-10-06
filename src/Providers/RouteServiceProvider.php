@@ -107,6 +107,17 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
+            // Feature 1 (part A): user's un-actioned workflow tasks across all tables
+            $router->get("workflow_task", 'WorkflowTaskController@index');
+            $router->get("workflow_task/read", 'WorkflowTaskController@read');
+            $router->post("workflow_task/readAll", 'WorkflowTaskController@readAll');
+            $router->post("workflow_task/unreadAll", 'WorkflowTaskController@unreadAll');
+            $router->post("workflow_task/rowCheck", 'WorkflowTaskController@rowCheck');
+            // takes tasks off the user's own list; the records themselves are never deleted
+            $router->post("workflow_task/rowDelete", 'WorkflowTaskController@rowDelete');
+            // and puts them back (the 削除済み filter of the list)
+            $router->post("workflow_task/rowRestore", 'WorkflowTaskController@rowRestore');
+
             $router->post('login_setting/{id}/activate', 'LoginSettingController@activate')->name('exment.login_activate');
             $router->post('login_setting/{id}/deactivate', 'LoginSettingController@deactivate')->name('exment.login_deactivate');
             $router->get('login_setting/{id}/testModal', 'LoginSettingController@loginTestModal')->name('exment.logintest_modal');
@@ -449,6 +460,8 @@ class RouteServiceProvider extends ServiceProvider
                     $router->get("version", 'ApiController@version');
 
                     $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
+                    // workflow data - tables, record labels, statuses - so the scopes of the wf/ read endpoints
+                    $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
                     $router->get("notify", 'ApiController@notifyList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ, ApiScope::NOTIFY_WRITE));
                     $router->post("notify", 'ApiController@notifyCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_WRITE));
 

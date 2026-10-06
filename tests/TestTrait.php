@@ -20,10 +20,11 @@ trait TestTrait
     /**
      * Assert that the response is a superset of the given JSON.
      *
-     * @param  array<mixed>  $data1
-     * @param  array<mixed>  $data2
+     * @param  array<mixed>  $subset
+     * @param  array<mixed>  $array
+     * @param  string  $message
      * @param  bool  $strict
-     * @return $this
+     * @return void
      */
     public function assertArraySubset(array $subset, array $array, string $message = '', bool $strict = false): void
     {
@@ -59,12 +60,7 @@ trait TestTrait
      */
     protected function assertMatchRegex(string $pattern, string $string, string $message = ''): void
     {
-        if (method_exists($this, 'assertMatchesRegularExpression')) {
-            $this->assertMatchesRegularExpression($pattern, $string, $message);
-            return;
-        }
-        /* @phpstan-ignore-next-line delete next line. it's deprecated function */
-        $this->assertRegExp($pattern, $string, $message);
+        $this->assertMatchesRegularExpression($pattern, $string, $message);
     }
 
     /**
@@ -92,6 +88,36 @@ trait TestTrait
         $this->assertTrue($result === $isTrue, "value1 is $messageV1, but value2 is $messageV2. Expect result is " . ($isTrue ? 'match' : 'not match') . '.');
 
         return $this;
+    }
+
+    /**
+     * Get the body of a file download response.
+     *
+     * FileController::responseStream() never builds the body as a string: a local file is sent
+     * as a BinaryFileResponse and any other disk as a streamed response, because reading a whole
+     * file into memory is what breaks the memory_limit of php.ini on a large file.
+     *
+     * getContent() returns false for both of those responses, so the body has to be read from
+     * the file itself or captured while the response writes it out.
+     *
+     * @param mixed $response
+     * @return string
+     */
+    protected function getDownloadedContent($response)
+    {
+        $baseResponse = $response->baseResponse ?? $response;
+
+        if ($baseResponse instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse) {
+            return (string)file_get_contents($baseResponse->getFile()->getPathname());
+        }
+
+        if ($baseResponse instanceof \Symfony\Component\HttpFoundation\StreamedResponse) {
+            ob_start();
+            $baseResponse->sendContent();
+            return (string)ob_get_clean();
+        }
+
+        return (string)$baseResponse->getContent();
     }
 
 

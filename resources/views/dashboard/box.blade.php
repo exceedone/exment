@@ -11,9 +11,9 @@
                 @if(isset($suuid))
                 @foreach($icons as $icon)
                 @if(isset($icon['link']))
-                <a class="btn btn-outline-secondary btn-outline-secondary-active btn-sm" href="{{$icon['link']}}" data-bs-toggle="tooltip"  data-placement="left" title="{{$icon['tooltip']}}"><i class="fa {{$icon['icon']}} text-secondary"></i></a>
+                <a class="btn btn-outline-secondary btn-outline-secondary-active btn-sm" href="{{$icon['link']}}" data-bs-toggle="tooltip"  data-bs-placement="left" title="{{$icon['tooltip']}}"><i class="fa {{$icon['icon']}} text-secondary"></i></a>
                 @else
-                <button class="btn btn-outline-secondary btn-outline-secondary-active btn-sm" data-exment-widget="{{$icon['widget']}}" data-bs-toggle="tooltip"  data-placement="left" title="{{$icon['tooltip']}}"><i class="fa {{$icon['icon']}} text-secondary"></i></button>
+                <button class="btn btn-outline-secondary btn-outline-secondary-active btn-sm" data-exment-widget="{{$icon['widget']}}" data-bs-toggle="tooltip"  data-bs-placement="left" title="{{$icon['tooltip']}}"><i class="fa {{$icon['icon']}} text-secondary"></i></button>
                 @endif
                 @endforeach
                 
