@@ -90,6 +90,13 @@ jobs:
         run: |
           make mysql-init
 
+      # google/recaptcha chi nam o "suggest" cua exment nen khong duoc cai theo, nhung
+      # ReCaptchaService goi den no: cai them de phpstan doc duoc code reCAPTCHA.
+      - name: Install suggested packages used by exment
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php composer require google/recaptcha:^1.3 --no-interaction --no-progress
+
       - name: setup phpstan
         working-directory: docker-exment
         run: |
