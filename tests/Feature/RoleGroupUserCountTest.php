@@ -83,7 +83,7 @@ class RoleGroupUserCountTest extends FeatureTestBase
         $this->assertSame('2', $this->getUserCountOnList($roleGroup));
 
         CustomTable::getEloquent(SystemTableName::USER)->getValueModel()
-            ->withTrashed()->find($users[0]->id)->restore();
+            ->withTrashed()->whereKey($users[0]->id)->firstOrFail()->restore();
 
         $this->assertSame('3', $this->getUserCountOnList($roleGroup));
         $this->assertSame(3, $this->countAssignments($roleGroup, SystemTableName::USER));
@@ -239,6 +239,7 @@ class RoleGroupUserCountTest extends FeatureTestBase
             }
 
             $rows = (new \Exceedone\Exment\Services\DataImportExport\Providers\Export\RoleGroupProvider(['grid' => $grid]))->data();
+            $this->assertIsArray($rows);
             $names = collect($rows)->slice(2)->pluck(1)->all(); // skip 2 header rows, column 1 = role_group_name
             $this->assertContains($roleGroup->role_group_name, $names, 'role group must be exported (disablePagination=' . var_export($disablePagination, true) . ')');
 
@@ -247,6 +248,7 @@ class RoleGroupUserCountTest extends FeatureTestBase
                 $grid->disablePagination();
             }
             $rows = (new \Exceedone\Exment\Services\DataImportExport\Providers\Export\RoleGroupUserOrganizationProvider(['grid' => $grid]))->data();
+            $this->assertIsArray($rows);
             $targets = collect($rows)->slice(2)
                 ->filter(fn ($row) => (int) $row[0] === (int) $roleGroup->id && $row[1] === SystemTableName::USER)
                 ->pluck(2)->map(fn ($id) => (int) $id)->all();
@@ -369,7 +371,7 @@ class RoleGroupUserCountTest extends FeatureTestBase
         return $orgs;
     }
 
-    protected function assign(RoleGroup $roleGroup, string $type, $targetId): void
+    protected function assign(RoleGroup $roleGroup, string $type, int|string $targetId): void
     {
         RoleGroupUserOrganization::create([
             'role_group_id' => $roleGroup->id,
@@ -414,6 +416,7 @@ class RoleGroupUserCountTest extends FeatureTestBase
      * ['row' => whole row text, 'value' => text of the cell under the column whose header label is $headerLabel].
      * (header and body cells are rendered from the same visible column list, so indexes align)
      *
+     * @param array<string, mixed> $query
      * @return array<int, array{row: string, value: string}>
      */
     protected function getListCells(array $query, string $headerLabel): array
@@ -433,6 +436,7 @@ class RoleGroupUserCountTest extends FeatureTestBase
         $this->assertNotFalse($headers);
         $columnIndex = null;
         foreach ($headers as $index => $th) {
+            $this->assertInstanceOf(\DOMElement::class, $th);
             if (mb_strpos(trim($th->textContent), $headerLabel) !== false) {
                 $columnIndex = $index;
                 break;
@@ -444,14 +448,17 @@ class RoleGroupUserCountTest extends FeatureTestBase
         $rows = $xpath->query('//table//tbody/tr');
         $this->assertNotFalse($rows);
         foreach ($rows as $row) {
+            $this->assertInstanceOf(\DOMElement::class, $row);
             $cells = $xpath->query('td', $row);
             $this->assertNotFalse($cells);
             if ($cells->length <= $columnIndex) {
                 continue; // e.g. "no data" row
             }
+            $cell = $cells->item($columnIndex);
+            $this->assertInstanceOf(\DOMElement::class, $cell);
             $result[] = [
                 'row' => preg_replace('/\s+/', ' ', trim($row->textContent)),
-                'value' => trim($cells->item($columnIndex)->textContent),
+                'value' => trim($cell->textContent),
             ];
         }
 

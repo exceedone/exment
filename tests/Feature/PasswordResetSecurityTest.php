@@ -6,6 +6,7 @@ use Exceedone\Exment\Middleware\VerifyCsrfToken;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 
 /**
  * "Forgot password" flow hardening (auth/forget, auth/reset/{token}).
@@ -124,12 +125,15 @@ class PasswordResetSecurityTest extends FeatureTestBase
         return $login_user;
     }
 
+    /**
+     * @param array<string, mixed> $values
+     */
     protected function setLoginUser(LoginUser $login_user, array $values): void
     {
         \DB::table('login_users')->where('id', $login_user->id)->update($values);
     }
 
-    protected function column(LoginUser $login_user, string $column)
+    protected function column(LoginUser $login_user, string $column): mixed
     {
         return \DB::table('login_users')->where('id', $login_user->id)->value($column);
     }
@@ -139,26 +143,39 @@ class PasswordResetSecurityTest extends FeatureTestBase
         return \Password::broker('exment_admins')->createToken($login_user);
     }
 
-    protected function postReset(string $token, string $password)
+    /**
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
+    protected function postReset(string $token, string $password): TestResponse
     {
         return $this->postResetRaw($token, ['token' => $token, 'password' => $password, 'password_confirmation' => $password]);
     }
 
-    protected function postResetRaw(string $token, array $data)
+    /**
+     * @param array<string, mixed> $data
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
+    protected function postResetRaw(string $token, array $data): TestResponse
     {
         return $this->withoutMiddleware(VerifyCsrfToken::class)
             ->from(admin_url('auth/reset/' . $token))
             ->post(admin_url('auth/reset/' . $token), $data);
     }
 
-    protected function postForget(string $email)
+    /**
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
+    protected function postForget(string $email): TestResponse
     {
         return $this->withoutMiddleware(VerifyCsrfToken::class)
             ->from(admin_url('auth/forget'))
             ->post(admin_url('auth/forget'), ['email' => $email]);
     }
 
-    protected function postLogin(LoginUser $login_user, string $password)
+    /**
+     * @return TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
+    protected function postLogin(LoginUser $login_user, string $password): TestResponse
     {
         return $this->withoutMiddleware(VerifyCsrfToken::class)
             ->post(admin_url('auth/login'), [
