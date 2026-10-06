@@ -90,9 +90,14 @@ class PasswordResetSecurityTest extends FeatureTestBase
             ->assertSessionHas('status', trans(\Password::RESET_LINK_SENT))
             ->assertSessionHasNoErrors();
 
-        $this->postForget($login_user->email)
-            ->assertRedirect()
-            ->assertSessionHasErrors(['email' => trans(\Password::RESET_THROTTLED)]);
+        $response = $this->postForget($login_user->email)->assertRedirect();
+        // an app whose lang files predate 'passwords.throttled' is shown Exment's own text instead
+        // (ForgetPasswordController::sendResetLinkFailedResponse()). Read after the request, which
+        // set the locale the message was written in.
+        $throttled = \Lang::has(\Password::RESET_THROTTLED, null, false)
+            ? trans(\Password::RESET_THROTTLED)
+            : trans('exment::exment.login.password_reset_throttled');
+        $response->assertSessionHasErrors(['email' => $throttled]);
 
         Notification::assertCount(1);
         $this->assertNotSame(\Password::RESET_THROTTLED, trans(\Password::RESET_THROTTLED), 'throttled message must be translated');
