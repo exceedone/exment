@@ -163,17 +163,12 @@ final class AttachmentTextExtractor
             if ($output === false) {
                 return $this->result(ExtractionResult::FAILED, $extension, null, null, null, null, 'temporary_file_unavailable');
             }
-            $written = 0;
-            while (!feof($input)) {
-                $chunk = fread($input, 8192);
-                if ($chunk === false) {
-                    return $this->result(ExtractionResult::FAILED, $extension, null, null, null, null, 'storage_read_failed');
-                }
-                $written += strlen($chunk);
-                if ($written > $this->config->maxBytes) {
-                    return $this->result(ExtractionResult::TOO_LARGE, $extension, null, $written, null, null, 'file_size_limit');
-                }
-                fwrite($output, $chunk);
+            $copy = self::copyStream($input, $output, $this->config->maxBytes);
+            if ($copy['status'] === 'file_size_limit') {
+                return $this->result(ExtractionResult::TOO_LARGE, $extension, null, $copy['written'], null, null, 'file_size_limit');
+            }
+            if ($copy['status'] !== 'ok') {
+                return $this->result(ExtractionResult::FAILED, $extension, null, null, null, null, $copy['status']);
             }
             fclose($output);
 
@@ -185,6 +180,41 @@ final class AttachmentTextExtractor
             fclose($input);
             @unlink($temporary);
         }
+    }
+
+    /**
+     * Copy a stored file into a local temporary file, stopping as soon as the
+     * byte limit is passed so an unbounded remote object is never read whole.
+     *
+     * A short write is reported rather than ignored: a truncated copy parses as
+     * a complete document and would be cached as READY with partial text.
+     *
+     * @param resource $input
+     * @param resource $output
+     * @return array{status:string,written:int} status: ok|storage_read_failed|file_size_limit|write_failed
+     */
+    public static function copyStream($input, $output, int $maxBytes): array
+    {
+        $written = 0;
+        while (!feof($input)) {
+            $chunk = fread($input, 8192);
+            if ($chunk === false) {
+                return ['status' => 'storage_read_failed', 'written' => $written];
+            }
+            if ($chunk === '') {
+                continue;
+            }
+            $written += strlen($chunk);
+            if ($written > $maxBytes) {
+                return ['status' => 'file_size_limit', 'written' => $written];
+            }
+            $put = @fwrite($output, $chunk);
+            if ($put === false || $put < strlen($chunk)) {
+                return ['status' => 'write_failed', 'written' => $written];
+            }
+        }
+
+        return ['status' => 'ok', 'written' => $written];
     }
 
     /** @return array{text:string,parser:string,metadata:array<string,int>} */
@@ -205,6 +235,13 @@ final class AttachmentTextExtractor
         // PhpSpreadsheet expands the archive during load(), so enforce every
         // OOXML ZIP limit before it has a chance to allocate workbook XML.
         OoxmlPackageValidator::entries($path, $this->config);
+
+        // load() builds the whole workbook object graph and a memory fatal is
+        // not catchable, so judge the xl/ parts before it allocates anything.
+        $workbookBytes = OoxmlPackageValidator::uncompressedBytes($path, 'xl/');
+        if ($workbookBytes > $this->config->maxSpreadsheetBytes) {
+            throw new \LengthException('xlsx_workbook_too_large');
+        }
 
         $reader = new Xlsx();
         // Do not call setReadDataOnly(true): date, currency and percentage

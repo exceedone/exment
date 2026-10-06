@@ -37,13 +37,45 @@ final class OoxmlPackageValidator
                 if ($totalUncompressed > $config->maxZipUncompressedBytes) {
                     throw new \LengthException('office_package_uncompressed_limit');
                 }
-                if ($size > 0 && ($compressed === 0 || $size / $compressed > $config->maxZipCompressionRatio)) {
+                // The ratio only means something for an entry large enough to
+                // matter: ordinary XML with repeated rows compresses far past
+                // 100:1, and the absolute uncompressed cap already bounds a bomb.
+                $ratioApplies = $size > $config->minZipRatioBytes;
+                if ($size > 0 && ($compressed === 0
+                    || ($ratioApplies && $size / $compressed > $config->maxZipCompressionRatio))) {
                     throw new \LengthException('office_package_compression_ratio');
                 }
                 $entries[] = $name;
             }
 
             return $entries;
+        } finally {
+            $zip->close();
+        }
+    }
+
+    /**
+     * Uncompressed bytes of the entries under one prefix. Reads only ZIP
+     * metadata, so it answers before any part is expanded into memory.
+     */
+    public static function uncompressedBytes(string $path, string $prefix = ''): int
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            throw new \RuntimeException('office_package_unreadable');
+        }
+
+        try {
+            $total = 0;
+            for ($index = 0; $index < $zip->numFiles; $index++) {
+                $stat = $zip->statIndex($index);
+                $name = $stat['name'] ?? '';
+                if ($prefix === '' || (is_string($name) && str_starts_with($name, $prefix))) {
+                    $total += (int) ($stat['size'] ?? 0);
+                }
+            }
+
+            return $total;
         } finally {
             $zip->close();
         }

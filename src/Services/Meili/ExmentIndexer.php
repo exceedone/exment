@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Services\Meili;
 
+use Exceedone\Exment\Jobs\ReindexMeiliTableJob;
+use Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextCache;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\File;
@@ -74,7 +76,7 @@ class ExmentIndexer
     {
         return File::query()
             ->where('parent_type', $tableName)
-            ->whereIn('file_type', [FileType::CUSTOM_VALUE_COLUMN, FileType::CUSTOM_VALUE_DOCUMENT])
+            ->tap(fn ($query) => AttachmentTextCache::scopeBusinessFiles($query, $tableName))
             ->exists();
     }
 
@@ -93,7 +95,7 @@ class ExmentIndexer
             $query->whereIn('id', File::query()
                 ->select('parent_id')
                 ->where('parent_type', $table->table_name)
-                ->whereIn('file_type', [FileType::CUSTOM_VALUE_COLUMN, FileType::CUSTOM_VALUE_DOCUMENT])
+                ->tap(fn ($query) => AttachmentTextCache::scopeBusinessFiles($query, $table->table_name))
                 ->distinct());
         }
         return $query;
@@ -190,9 +192,23 @@ class ExmentIndexer
             $dbIds = self::recordsQuery($table)->pluck('id')->all();
             $indexIds = $service->indexedValueIds($tableName);
             $orphan = MeiliSearchService::diffIds($dbIds, $indexIds)['orphan'];
-            if (!empty($orphan)) {
-                $service->deleteByValueIds($tableName, $orphan, $this->mapper);
-                $orphanedRecords += count($orphan);
+            if (empty($orphan)) {
+                continue;
+            }
+
+            // Re-check right before deleting, the same way ReindexMeiliTableJob
+            // does: $dbIds was read before the index listing, so a record
+            // created in between looks orphaned although its document is new.
+            $existingNow = [];
+            foreach (array_chunk($orphan, 1000) as $chunk) {
+                $existingNow = array_merge($existingNow, self::recordsQuery($table)
+                    ->whereIn('id', $chunk)
+                    ->pluck('id')->all());
+            }
+            $deletable = ReindexMeiliTableJob::deletableOrphans($orphan, $existingNow);
+            if (!empty($deletable)) {
+                $service->deleteByValueIds($tableName, $deletable, $this->mapper);
+                $orphanedRecords += count($deletable);
             }
         }
 

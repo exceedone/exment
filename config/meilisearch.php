@@ -41,7 +41,13 @@ return [
         'max_zip_entries' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_ZIP_ENTRIES', 5000),
         'max_zip_uncompressed_bytes' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_ZIP_UNCOMPRESSED_BYTES', 100 * 1024 * 1024),
         'max_zip_compression_ratio' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_ZIP_COMPRESSION_RATIO', 100),
+        // An entry below this size is never judged by the compression ratio:
+        // legitimate OOXML with repeated rows compresses well past 100:1.
+        'min_zip_ratio_bytes' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MIN_ZIP_RATIO_BYTES', 1024 * 1024),
         'max_spreadsheet_cells' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_SPREADSHEET_CELLS', 200000),
+        // Checked before PhpSpreadsheet expands the workbook: the cell cap
+        // above is only reached once load() has already allocated it.
+        'max_spreadsheet_bytes' => (int) env('MEILISEARCH_ATTACHMENT_EXTRACT_MAX_SPREADSHEET_BYTES', 20 * 1024 * 1024),
         // A record can own more than one file. Keep the resulting Meili
         // document bounded independently from each individual extraction.
         'max_record_characters' => (int) env('MEILISEARCH_ATTACHMENT_INDEX_MAX_CHARACTERS', 1000000),

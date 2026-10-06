@@ -225,9 +225,10 @@ class MeiliSync
             return false;
         }
         // A deleted record may already have lost its last file by the time
-        // this event fires. Deleting a missing document is harmless.
+        // this event fires. Deleting a missing document is harmless,
+        // but a table with search off can hold none at all.
         if ($action === 'delete') {
-            return true;
+            return ExmentIndexer::isAttachmentCapable($table);
         }
         return ExmentIndexer::isIndexable($table)
             || (ExmentIndexer::isAttachmentCapable($table)

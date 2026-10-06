@@ -305,6 +305,19 @@ class SystemController extends AdminControllerBase
         $this->setNotifyForm($form);
 
         // full-text search setting
+        // Say it where the switches are: the attachment queue needs a worker of
+        // its own, and without one nothing errors - file contents just never
+        // become searchable.
+        $backlog = \Exceedone\Exment\Services\Meili\MeiliRuntime::attachmentQueueBacklog();
+        if (\Exceedone\Exment\Services\Meili\MeiliRuntime::attachmentQueueLooksUnworked($backlog)
+            && function_exists('admin_warning')) {
+            admin_warning(sprintf(
+                exmtrans('search.attachment_queue_unworked'),
+                $backlog['pending'],
+                \Exceedone\Exment\Services\Meili\MeiliRuntime::attachmentQueueName()
+            ));
+        }
+
         $form->exmheader(exmtrans('system.meili'))->hr();
         $form->text('meili_host', exmtrans('system.meili_host'))->help(exmtrans('system.help.meili_host'));
         $form->password('meili_key', exmtrans('system.meili_key'))->help(exmtrans('system.help.meili_key'));

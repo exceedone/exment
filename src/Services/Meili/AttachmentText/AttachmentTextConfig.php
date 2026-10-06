@@ -16,6 +16,8 @@ final class AttachmentTextConfig
         public readonly int $maxZipUncompressedBytes = 104857600,
         public readonly int $maxZipCompressionRatio = 100,
         public readonly int $maxSpreadsheetCells = 200000,
+        public readonly int $minZipRatioBytes = 1048576,
+        public readonly int $maxSpreadsheetBytes = 20971520,
     ) {
     }
 
@@ -30,6 +32,8 @@ final class AttachmentTextConfig
             max(1, (int) ($values['max_zip_uncompressed_bytes'] ?? 104857600)),
             max(1, (int) ($values['max_zip_compression_ratio'] ?? 100)),
             max(1, (int) ($values['max_spreadsheet_cells'] ?? 200000)),
+            max(0, (int) ($values['min_zip_ratio_bytes'] ?? 1048576)),
+            max(1, (int) ($values['max_spreadsheet_bytes'] ?? 20971520)),
         );
     }
 }

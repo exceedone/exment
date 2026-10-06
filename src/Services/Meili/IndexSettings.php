@@ -134,7 +134,12 @@ class IndexSettings
                 $insertAt = $position + 1;
             }
         }
-        array_splice($out, $insertAt, 0, $attachmentAttributes);
-        return $out;
+        // array_merge, not array_splice: the codebase guard forbids splicing an
+        // array a nearby foreach iterates (tests/Unit/Security).
+        return array_merge(
+            array_slice($out, 0, $insertAt),
+            $attachmentAttributes,
+            array_slice($out, $insertAt),
+        );
     }
 }

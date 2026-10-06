@@ -71,11 +71,16 @@ class MeiliAttachmentBackfillCommand extends Command
         $cache = $this->option('sync') ? AttachmentTextCache::fromApplicationConfig() : null;
 
         $this->info(($this->option('sync') ? 'Extracting' : 'Queueing extraction for') . ' attachments in ' . count($tableNames) . ' table(s)...');
+        // Ordered by owner so the per-record sync below can be emitted once the
+        // last file of a record has been seen, with no set of ids held in memory.
+        $owner = null;
         File::query()
             ->whereIn('file_type', [FileType::CUSTOM_VALUE_COLUMN, FileType::CUSTOM_VALUE_DOCUMENT])
             ->whereIn('parent_type', $tableNames)
+            ->orderBy('parent_type')
+            ->orderBy('parent_id')
             ->orderBy('uuid')
-            ->chunk(100, function ($files) use (&$counts, $cache, $syncDriver) {
+            ->chunk(100, function ($files) use (&$counts, &$owner, $cache, $syncDriver) {
                 foreach ($files as $file) {
                     $counts['files']++;
                     if ($cache === null) {
@@ -84,7 +89,17 @@ class MeiliAttachmentBackfillCommand extends Command
                         continue;
                     }
 
-                    $row = $cache->refresh($file);
+                    // Extraction must never abort the whole backfill: refresh()
+                    // rethrows when it cannot clear a stale cache row.
+                    try {
+                        $row = $cache->refresh($file);
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning(
+                            '[Meili] attachment backfill skipped a file: ' . $e->getMessage(),
+                            ['file_uuid' => $file->uuid]
+                        );
+                        $row = null;
+                    }
                     if ($row === null) {
                         $counts['failed']++;
                         continue;
@@ -94,13 +109,18 @@ class MeiliAttachmentBackfillCommand extends Command
                     } else {
                         $counts['skipped']++;
                     }
-                    // A sync queue would send one HTTP request per file inline.
-                    // Publish the cached text with a full index after this run.
-                    if (!$syncDriver && !$this->option('reindex') && MeiliRuntime::realtimeSyncEnabled()) {
-                        SyncMeiliDocumentJob::dispatch((string) $file->parent_type, $file->parent_id, 'upsert');
+
+                    $key = $file->parent_type . '|' . $file->parent_id;
+                    if ($owner !== null && $owner['key'] !== $key) {
+                        $this->syncOwner($owner, $syncDriver);
+                        $owner = null;
                     }
+                    $owner ??= ['key' => $key, 'table' => (string) $file->parent_type, 'id' => $file->parent_id];
                 }
             });
+        if ($owner !== null) {
+            $this->syncOwner($owner, $syncDriver);
+        }
 
         if ($this->option('reindex')) {
             if (!MeiliRuntime::realtimeSyncEnabled()) {
@@ -129,4 +149,19 @@ class MeiliAttachmentBackfillCommand extends Command
 
         return self::SUCCESS;
     }
+    /**
+     * One document covers every file of a record, so it is mapped once per
+     * record. A sync queue would run that inline per file instead.
+     *
+     * @param array{key:string,table:string,id:mixed} $owner
+     */
+    private function syncOwner(array $owner, bool $syncDriver): void
+    {
+        if ($syncDriver || $this->option('reindex') || !MeiliRuntime::realtimeSyncEnabled()) {
+            return;
+        }
+
+        SyncMeiliDocumentJob::dispatch($owner['table'], $owner['id'], 'upsert');
+    }
+
 }

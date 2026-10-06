@@ -55,6 +55,23 @@ class MeiliHealthCommand extends Command
             $this->warn('  Could not read index stats: ' . $e->getMessage());
         }
 
+        // Attachment extraction has its own queue. Report it unconditionally:
+        // when no worker consumes it nothing fails, the jobs simply pile up and
+        // file contents never become searchable.
+        $backlog = \Exceedone\Exment\Services\Meili\MeiliRuntime::attachmentQueueBacklog();
+        $queueName = \Exceedone\Exment\Services\Meili\MeiliRuntime::attachmentQueueName();
+        $this->line(sprintf(
+            '  Attachments: queue=%s, waiting=%s, in-flight=%s, oldest=%s',
+            $queueName,
+            $backlog['pending'] ?? '?',
+            $backlog['reserved'] ?? '?',
+            $backlog['oldest_seconds'] === null ? '?' : $backlog['oldest_seconds'] . 's'
+        ));
+        if (\Exceedone\Exment\Services\Meili\MeiliRuntime::attachmentQueueLooksUnworked($backlog)) {
+            $this->warn('  Nothing is consuming the attachment queue; file contents are not being indexed.');
+            $this->warn('  Start a worker: php artisan queue:work --queue=' . $queueName . ',default');
+        }
+
         if ($this->option('failed')) {
             // Only meaningful with the database queue driver; count only the
             // Meili jobs so unrelated failures are not reported as sync issues.

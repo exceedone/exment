@@ -49,6 +49,10 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
         // Own queue so a long reindex never blocks the per-record sync jobs:
         //   php artisan queue:work --queue=default,<reindex_queue>
+        // Attachment extraction has a third queue of its own, and a worker
+        // started without it drains nothing and fails nothing - the jobs just
+        // pile up and file contents never become searchable:
+        //   php artisan queue:work --queue=<attachment_queue>
         // try/catch: a bare unit test constructs this with no app/config.
         try {
             $this->onQueue(config('meilisearch.reindex_queue', 'meili-reindex'));
@@ -218,10 +222,9 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
-        if (!MeiliRuntime::realtimeSyncEnabled()) {
-            return;
-        }
-
+        // Deliberately not gated on realtime sync: with sync off the only
+        // things that queue this are a filter-setting save and the CLI, and
+        // ApplyMeiliSettingsJob from that same save is not gated either.
         $client = MeiliClientFactory::make();
         $indexName = config('meilisearch.index');
         $index = $client->index($indexName);

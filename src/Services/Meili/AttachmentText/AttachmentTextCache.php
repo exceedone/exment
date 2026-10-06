@@ -3,8 +3,10 @@
 namespace Exceedone\Exment\Services\Meili\AttachmentText;
 
 use Exceedone\Exment\Enums\FileType;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\MeiliAttachmentText;
+use Exceedone\Exment\Services\Meili\ExmentIndexer;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -32,6 +34,8 @@ final class AttachmentTextCache
      * failed outcomes) is reused only when its source bytes are unchanged.
      *
      * @return MeiliAttachmentText|null null when the cache table/storage cannot be used
+     * @throws \Throwable when a stale row could not be cleared - the caller must
+     *   decide between retrying and skipping rather than publish old text
      */
     public function refresh(File $file): ?MeiliAttachmentText
     {
@@ -93,16 +97,185 @@ final class AttachmentTextCache
     }
 
     /**
+     * Delete cache rows whose File row no longer exists. Nothing else prunes
+     * this table: a file deleted while the attachment queue had no worker, or
+     * an extraction that finished after its file was removed, leaves a row
+     * behind forever.
+     *
+     * @return int rows deleted
+     */
+    public static function pruneOrphanRows(int $chunkSize = 1000): int
+    {
+        $deleted = 0;
+        $chunkSize = max(1, $chunkSize);
+
+        while (true) {
+            $uuids = MeiliAttachmentText::query()
+                ->whereNotExists(function ($query) {
+                    $query->selectRaw('1')
+                        ->from('files')
+                        ->whereColumn('files.uuid', 'meili_attachment_texts.file_uuid');
+                })
+                ->limit($chunkSize)
+                ->pluck('file_uuid')
+                ->all();
+            if (empty($uuids)) {
+                break;
+            }
+            $deleted += MeiliAttachmentText::query()->whereIn('file_uuid', $uuids)->delete();
+        }
+
+        return $deleted;
+    }
+
+    /**
+     * Attachment file uuids a table currently owns, per record - the database
+     * side of the drift comparison.
+     *
+     * @return array<string,array<int,string>>
+     */
+    public static function currentAttachmentUuids(string $tableName): array
+    {
+        $table = CustomTable::getEloquent($tableName);
+        if (!$table) {
+            return [];
+        }
+
+        $rows = File::query()
+            ->where('parent_type', $tableName)
+            ->tap(fn ($query) => self::scopeBusinessFiles($query, $tableName))
+            // Restricted to the records that SHOULD hold a document. A
+            // soft-deleted record keeps its file rows, and reporting it as
+            // drifted is a dead end: reindexIds() cannot write a document for a
+            // record recordsQuery() excludes, so it would drift forever.
+            ->whereIn('parent_id', ExmentIndexer::recordsQuery($table)->select('id'))
+            ->get(['uuid', 'parent_id']);
+
+        $out = [];
+        foreach ($rows as $row) {
+            $out[(string) $row->parent_id][] = (string) $row->uuid;
+        }
+        foreach ($out as $id => $uuids) {
+            sort($uuids);
+            $out[$id] = $uuids;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Narrow a files query to the search corpus: types 1/2, minus any file
+     * column an administrator excluded from attachment search.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder<File> $query
+     */
+    public static function scopeBusinessFiles($query, string $tableName): void
+    {
+        $query->whereIn('file_type', [FileType::CUSTOM_VALUE_COLUMN, FileType::CUSTOM_VALUE_DOCUMENT]);
+
+        $excluded = self::excludedColumnIdsFor($tableName);
+        if (empty($excluded)) {
+            return;
+        }
+        // A document-tab file belongs to no column, so it must survive this.
+        $query->where(function ($query) use ($excluded) {
+            $query->whereNull('custom_column_id')->orWhereNotIn('custom_column_id', $excluded);
+        });
+    }
+
+    /**
+     * Columns whose attachments stay out of the corpus. Absent option means
+     * searched: the feature is on by default, and only an explicit switch
+     * takes a column out.
+     *
+     * @param iterable<object> $columns
+     * @return array<int,int>
+     */
+    public static function excludedColumnIds($columns): array
+    {
+        $ids = [];
+        foreach ($columns as $column) {
+            if (boolval($column->getOption('attachment_search_excluded'))) {
+                $ids[] = (int) $column->id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /** @return array<int,int> */
+    private static function excludedColumnIdsFor(string $tableName): array
+    {
+        try {
+            $table = CustomTable::getEloquent($tableName);
+            return $table ? self::excludedColumnIds($table->custom_columns) : [];
+        } catch (\Throwable $e) {
+            // An unreadable definition must not quietly drop attachments that
+            // are supposed to be searchable.
+            Log::warning('[Meili] attachment column exclusion lookup failed: ' . $e->getMessage(), [
+                'table' => $tableName,
+            ]);
+            return [];
+        }
+    }
+
+    /**
      * The reusable-cache decision is deliberately kept independent of storage
      * and the database so it has a small, deterministic unit-test boundary.
      */
     public static function canReuse(?MeiliAttachmentText $cached, ?string $sourceHash): bool
     {
         return $cached !== null
-            && $sourceHash !== null
-            && $cached->file_hash !== null
-            && hash_equals((string) $cached->file_hash, $sourceHash)
+            && self::canReuseIdentity($cached->file_hash === null ? null : (string) $cached->file_hash, $sourceHash)
             && $cached->extractor_version === self::EXTRACTOR_VERSION;
+    }
+
+    /** The identity half of canReuse(), independent of the cache row. */
+    public static function canReuseIdentity(?string $cached, ?string $source): bool
+    {
+        return $cached !== null && $source !== null && hash_equals($cached, $source);
+    }
+
+    /**
+     * Stable cache key for one stored file. Past $maxBytes nothing will be
+     * parsed, but the row still needs a key that moves when the file does -
+     * returning null there made canReuse() never hold, so an oversized file was
+     * re-read in full on every save.
+     *
+     * @param mixed $disk Laravel filesystem adapter
+     */
+    public static function identityFor($disk, string $path, int $maxBytes): ?string
+    {
+        try {
+            if (!$disk->exists($path)) {
+                return null;
+            }
+
+            $size = (int) $disk->size($path);
+            if ($size > $maxBytes) {
+                return hash('sha256', 'oversize:' . $size . ':' . (int) $disk->lastModified($path));
+            }
+
+            $stream = $disk->readStream($path);
+            if (!is_resource($stream)) {
+                return null;
+            }
+            try {
+                $hash = hash_init('sha256');
+                while (!feof($stream)) {
+                    $chunk = fread($stream, 8192);
+                    if ($chunk === false) {
+                        return null;
+                    }
+                    hash_update($hash, $chunk);
+                }
+                return hash_final($hash);
+            } finally {
+                fclose($stream);
+            }
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /** Whether a record still owns any business attachment (including a file
@@ -113,7 +286,7 @@ final class AttachmentTextCache
             return File::query()
                 ->where('parent_type', $tableName)
                 ->where('parent_id', $recordId)
-                ->whereIn('file_type', [FileType::CUSTOM_VALUE_COLUMN, FileType::CUSTOM_VALUE_DOCUMENT])
+                ->tap(fn ($query) => self::scopeBusinessFiles($query, $tableName))
                 ->exists();
         } catch (\Throwable $e) {
             // Do not delete an existing document merely because the files table
@@ -139,7 +312,7 @@ final class AttachmentTextCache
             $files = File::query()
                 ->where('parent_type', $tableName)
                 ->where('parent_id', $recordId)
-                ->whereIn('file_type', [FileType::CUSTOM_VALUE_COLUMN, FileType::CUSTOM_VALUE_DOCUMENT])
+                ->tap(fn ($query) => self::scopeBusinessFiles($query, $tableName))
                 ->orderBy('uuid')
                 ->get(['uuid', 'filename', 'local_filename']);
             return self::buildPayload($files, self::cachedTexts($files));
@@ -170,7 +343,7 @@ final class AttachmentTextCache
             $files = File::query()
                 ->where('parent_type', $tableName)
                 ->whereIn('parent_id', $recordIds)
-                ->whereIn('file_type', [FileType::CUSTOM_VALUE_COLUMN, FileType::CUSTOM_VALUE_DOCUMENT])
+                ->tap(fn ($query) => self::scopeBusinessFiles($query, $tableName))
                 ->orderBy('uuid')
                 ->get(['uuid', 'parent_id', 'filename', 'local_filename']);
             if ($files->isEmpty()) {
@@ -249,32 +422,13 @@ final class AttachmentTextCache
     private function sourceHash(File $file): ?string
     {
         try {
-            $disk = Storage::disk(config('admin.upload.disk'));
-            $stream = $disk->readStream((string) $file->path);
-            if (!is_resource($stream)) {
-                return null;
-            }
-            $hash = hash_init('sha256');
             $maxBytes = max(1, (int) config('meilisearch.attachment_extraction.max_bytes', 25 * 1024 * 1024));
-            $read = 0;
-            try {
-                while (!feof($stream)) {
-                    $chunk = fread($stream, 8192);
-                    if ($chunk === false) {
-                        return null;
-                    }
-                    $read += strlen($chunk);
-                    // Do not hash an unbounded remote object just to discover
-                    // it will be rejected by the extractor's size limit.
-                    if ($read > $maxBytes) {
-                        return null;
-                    }
-                    hash_update($hash, $chunk);
-                }
-                return hash_final($hash);
-            } finally {
-                fclose($stream);
-            }
+
+            return self::identityFor(
+                Storage::disk(config('admin.upload.disk')),
+                (string) $file->path,
+                $maxBytes
+            );
         } catch (\Throwable $e) {
             return null;
         }

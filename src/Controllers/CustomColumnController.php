@@ -317,6 +317,10 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['file', 'image']])])
                 ->help(exmtrans("custom_column.help.dropzone_title"));
 
+            $form->switchbool('attachment_search_excluded', exmtrans("custom_column.options.attachment_search_excluded"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['file', 'image']])])
+                ->help(exmtrans("custom_column.help.attachment_search_excluded"));
+
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
 
             $form->numberRange('min_width', 'max_width', exmtrans("custom_column.options.min_max_width"))

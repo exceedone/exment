@@ -36,10 +36,10 @@ final class OoxmlTextExtractor
 
             if ($slideText !== '') {
                 $title = trim((string) strtok($slideText, "\n"));
-                $chunks[] = sprintf('[Slide %d%s]\n%s', $index + 1, $title === '' ? '' : ': ' . $title, $slideText);
+                $chunks[] = sprintf("[Slide %d%s]\n%s", $index + 1, $title === '' ? '' : ': ' . $title, $slideText);
             }
             if ($noteText !== '') {
-                $chunks[] = sprintf('[Notes for Slide %d]\n%s', $index + 1, $noteText);
+                $chunks[] = sprintf("[Notes for Slide %d]\n%s", $index + 1, $noteText);
             }
         }
 

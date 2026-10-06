@@ -1457,6 +1457,7 @@ return [
             'default_type' => 'Initial value type',
             'placeholder' => 'PlaceHolder',
             'dropzone_title' => 'Title for drag and drop zone',
+            'attachment_search_excluded' => 'Exclude attachment contents from search',
             'help' => 'Help',
             'min_max_width' => 'Column Min / Max Width',
             'text_align' => 'Align of custom view',
@@ -1547,6 +1548,7 @@ return [
             'default' => 'The initial value of the item at the time of new registration.',
             'placeholder' => 'A string that is displayed in a light color as guidance in the field before input.',
             'dropzone_title' => 'A string that is displayed in a light color as guidance in the drag and drop area.',
+            'attachment_search_excluded' => 'On: files in this column are left out of the search index entirely, filename included. Off (default): their contents are searchable. A reindex is required after changing this.',
             'help' => 'Help string displayed below the field.',
             'min_max_width' => 'Enter the minimum and maximum values ​​of the column width when displaying the list as integers(px).',
             'text_align' => 'Please select the layout when displaying the list.',
@@ -2253,6 +2255,7 @@ return [
 
     'search' => [
         'attachment_sync_queue_skipped' => 'Attachment text extraction was skipped because the queue driver is sync. Filenames remain searchable. Run "php artisan exment:meili-attachments-backfill --sync" from CLI, then "php artisan exment:meili-index" to search file contents.',
+        'attachment_queue_unworked' => '%1$s attachment extraction job(s) have been waiting on the "%2$s" queue for a while, so file contents are not being indexed. Filenames remain searchable. Start a worker for that queue: php artisan queue:work --queue=%2$s,default',
         'placeholder' => 'Search Data',
         'header_freeword' => 'Search All Data',
         'description_freeword' => 'A result list of all data search.',

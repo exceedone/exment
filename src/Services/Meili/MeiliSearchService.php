@@ -25,6 +25,13 @@ class MeiliSearchService
      */
     public const NO_TABLE_SENTINEL = '__exm_no_table__';
 
+    /**
+     * The attributes a record carries itself. The select_table picker is
+     * limited to these so it keeps mirroring the MySQL searchValue()
+     * fallback, which never looks inside an attachment.
+     */
+    public const RECORD_SEARCHABLE = ['label', 'fields'];
+
     /** Cached index pagination ceiling; see maxTotalHits(). */
     private ?int $maxTotalHits = null;
     private bool $maxTotalHitsRead = false;
@@ -97,10 +104,10 @@ class MeiliSearchService
      * @param MeiliFilters $filters
      * @return array{ids:array<int,mixed>, total:int}
      */
-    public function searchTablePaginated(string $q, string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null): array
+    public function searchTablePaginated(string $q, string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null, ?array $attributesToSearchOn = null): array
     {
         $result = $this->client->index($this->indexName)
-            ->search(self::normalizeQuery($q), $this->applyMatchingStrategy(self::buildTableSearchOptions($tableName, $perPage, $page, $filters, $sort)));
+            ->search(self::normalizeQuery($q), $this->applyMatchingStrategy(self::buildTableSearchOptions($tableName, $perPage, $page, $filters, $sort, $attributesToSearchOn)));
 
         $ids = array_map(fn ($hit) => $hit['value_id'] ?? null, $result->getHits());
 
@@ -113,7 +120,7 @@ class MeiliSearchService
      * @param MeiliFilters $filters
      * @return array<string,mixed>
      */
-    public static function buildTableSearchOptions(string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null): array
+    public static function buildTableSearchOptions(string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null, ?array $attributesToSearchOn = null): array
     {
         $options = [
             'filter' => self::buildFilterExpression($tableName, $filters),
@@ -127,6 +134,10 @@ class MeiliSearchService
         $sortExpr = self::buildSortExpression($sort);
         if (!empty($sortExpr)) {
             $options['sort'] = $sortExpr;
+        }
+
+        if (!empty($attributesToSearchOn)) {
+            $options['attributesToSearchOn'] = array_values($attributesToSearchOn);
         }
 
         return $options;
@@ -270,6 +281,93 @@ class MeiliSearchService
         }
 
         return ['missing' => $missing, 'orphan' => $orphan];
+    }
+
+    /**
+     * Attachment file uuids per indexed record, so drift against the database
+     * can be found without downloading the extracted text.
+     *
+     * @return array<string,array<int,string>> record id => sorted uuids
+     */
+    public function indexedAttachmentUuids(string $tableName, int $pageSize = 1000): array
+    {
+        $out = [];
+        $offset = 0;
+        $pageSize = max(1, $pageSize);
+
+        while (true) {
+            $query = (new \Meilisearch\Contracts\DocumentsQuery())
+                ->setFilter(['table_name = ' . self::quoteFilterValue($tableName)])
+                // Dotted path on purpose: 'attachments' would return each
+                // entry whole, extracted text included, so a drift check
+                // over a large index would download the whole corpus.
+                ->setFields(['value_id', 'attachments.file_uuid'])
+                ->setLimit($pageSize)
+                ->setOffset($offset);
+
+            $results = $this->client->index($this->indexName)->getDocuments($query);
+            $rows = $results->getResults();
+            if (empty($rows)) {
+                break;
+            }
+            foreach ($rows as $row) {
+                if (!isset($row['value_id'])) {
+                    continue;
+                }
+                $uuids = [];
+                foreach (($row['attachments'] ?? []) as $attachment) {
+                    if (is_array($attachment) && !empty($attachment['file_uuid'])) {
+                        $uuids[] = (string) $attachment['file_uuid'];
+                    }
+                }
+                sort($uuids);
+                $out[(string) $row['value_id']] = $uuids;
+            }
+            $offset += $pageSize;
+            if ($offset >= $results->getTotal()) {
+                break;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Records whose indexed attachment set differs from the database. Order
+     * inside a record does not matter; presence does.
+     *
+     * $onlyRecordIds restricts the comparison to the records that should hold a
+     * document at all. Without it a record recordsQuery() excludes - soft
+     * deleted, or the last file of an attachment-only table - is reported on
+     * every run forever, because reindexIds() cannot write a document for it.
+     * Removing that document is the id comparison's job, not this one's.
+     *
+     * @param array<string,array<int,string>> $indexed
+     * @param array<string,array<int,string>> $current
+     * @param array<int,int|string>|null $onlyRecordIds
+     * @return array<int,string> record ids to re-map
+     */
+    public static function recordsWithDriftedAttachments(array $indexed, array $current, ?array $onlyRecordIds = null): array
+    {
+        $ids = array_unique(array_merge(array_keys($indexed), array_keys($current)));
+        if ($onlyRecordIds !== null) {
+            $allowed = array_flip(array_map('strval', $onlyRecordIds));
+            $ids = array_filter($ids, fn ($id) => isset($allowed[(string) $id]));
+        }
+        sort($ids, SORT_NATURAL);
+
+        $drifted = [];
+        foreach ($ids as $id) {
+            $a = $indexed[$id] ?? [];
+            $b = $current[$id] ?? [];
+            sort($a);
+            sort($b);
+            if ($a !== $b) {
+                $drifted[] = (string) $id;
+            }
+        }
+
+        return $drifted;
     }
 
     /**

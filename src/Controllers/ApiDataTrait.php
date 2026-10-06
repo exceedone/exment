@@ -463,7 +463,7 @@ trait ApiDataTrait
                 (int) config('meilisearch.permission_scan_cap', 1000),
                 $perPage * 20
             ));
-            $result = $service->searchTablePaginated($q, $custom_table->table_name, $cap, 1);
+            $result = $service->searchTablePaginated($q, $custom_table->table_name, $cap, 1, [], null, \Exceedone\Exment\Services\Meili\MeiliSearchService::RECORD_SEARCHABLE);
             $candidateIds = $result['ids'];
             if (empty($candidateIds)) {
                 return null;

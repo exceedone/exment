@@ -19,6 +19,11 @@ use Illuminate\Console\Command;
  *  - indexes documents that are missing (new records not yet synced);
  *  - removes orphan documents (records deleted but still in the index).
  *
+ * The id comparison alone never notices that a document's ATTACHMENTS drifted:
+ * a file added or removed while the attachment queue had no worker leaves the
+ * record present but its file list stale. --attachments adds that comparison
+ * and prunes extraction-cache rows whose file is gone.
+ *
  * Use --dry-run to report the drift without changing anything.
  */
 class MeiliReconcileCommand extends Command
@@ -27,7 +32,8 @@ class MeiliReconcileCommand extends Command
     use MeiliCommandTrait;
 
     protected $signature = 'exment:meili-reconcile {--dry-run : Report drift only, do not modify the index}
-        {--table= : Reconcile only this table_name}';
+        {--table= : Reconcile only this table_name}
+        {--attachments : Also repair attachment drift and prune the extraction cache}';
 
     protected $description = 'Reconcile the Meilisearch index against MySQL and repair drift (missing/orphan documents)';
 
@@ -114,6 +120,27 @@ class MeiliReconcileCommand extends Command
             }
         }
 
+        $totalAttachments = 0;
+        $prunedCacheRows = 0;
+        if ($this->option('attachments')) {
+            foreach ($tables as $table) {
+                $totalAttachments += $this->repairAttachments($table, $service, $indexer, $dryRun);
+            }
+            if (!$dryRun) {
+                try {
+                    $prunedCacheRows = \Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextCache::pruneOrphanRows();
+                } catch (\Throwable $e) {
+                    $this->warn('  Could not prune the extraction cache: ' . $e->getMessage());
+                }
+            }
+            $this->line(sprintf(
+                '  attachments: %d record(s) drifted, %d orphan cache row(s) %s',
+                $totalAttachments,
+                $prunedCacheRows,
+                $dryRun ? '(dry-run, cache left alone)' : 'pruned'
+            ));
+        }
+
         // A table that stopped being search-enabled leaves every one of its
         // documents behind: the per-table loop above only visits tables that
         // still qualify, so nothing would ever come back for them.
@@ -129,6 +156,41 @@ class MeiliReconcileCommand extends Command
         ));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Re-map the records of one table whose indexed attachment set no longer
+     * matches the database. Returns how many records that covered.
+     *
+     * @param \Exceedone\Exment\Model\CustomTable $table
+     * @param \Exceedone\Exment\Services\Meili\MeiliSearchService $service
+     * @param \Exceedone\Exment\Services\Meili\ExmentIndexer $indexer
+     */
+    protected function repairAttachments($table, $service, $indexer, bool $dryRun): int
+    {
+        $tableName = $table->table_name;
+
+        try {
+            $indexed = $service->indexedAttachmentUuids($tableName);
+            $current = \Exceedone\Exment\Services\Meili\AttachmentText\AttachmentTextCache::currentAttachmentUuids($tableName);
+        } catch (\Throwable $e) {
+            $this->warn(sprintf('  %-30s attachment check skipped (%s)', $tableName, $e->getMessage()));
+            return 0;
+        }
+
+        // Only records that should hold a document: the id loop above already
+        // removes the documents of the ones that should not.
+        $allowed = ExmentIndexer::recordsQuery($table)->pluck('id')->all();
+        $drifted = MeiliSearchService::recordsWithDriftedAttachments($indexed, $current, $allowed);
+        if (empty($drifted)) {
+            return 0;
+        }
+
+        if (!$dryRun) {
+            $indexer->reindexIds($table, $drifted);
+        }
+
+        return count($drifted);
     }
 
     /**

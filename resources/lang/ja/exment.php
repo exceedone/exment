@@ -1458,6 +1458,7 @@ return [
             'default_type' => '初期値種類',
             'placeholder' => 'プレースホルダー',
             'dropzone_title' => 'ドラッグ＆ドロップエリアの表示文言',
+            'attachment_search_excluded' => '添付ファイルの内容を検索対象から除外',
             'help' => 'ヘルプ',
             'min_max_width' => '列の幅',
             'text_align' => '一覧の配置',
@@ -1548,6 +1549,7 @@ return [
             'default' => 'データを新規登録する時の、項目の初期値です。',
             'placeholder' => '入力前のフィールドにガイダンスとして薄い色で表示される文字列です。',
             'dropzone_title' => 'ドラッグ＆ドロップエリアにガイダンスとして薄い色で表示される文字列です。',
+            'attachment_search_excluded' => 'オンにすると、この列のファイルはファイル名も含めて検索インデックスから除外されます。オフ（既定）では本文が検索できます。変更後は再インデックスが必要です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
             'min_max_width' => '一覧表示する時の、列の幅の最小値と最大値を、整数(px)で入力してください。',
             'text_align' => '一覧表示する時の配置を選択してください。',
@@ -2254,6 +2256,7 @@ return [
 
     'search' => [
         'attachment_sync_queue_skipped' => 'キュードライバーが sync のため添付ファイルの本文抽出を省略しました。ファイル名は検索できます。本文を検索するには CLI で「php artisan exment:meili-attachments-backfill --sync」を実行し、続いて「php artisan exment:meili-index」を実行してください。',
+        'attachment_queue_unworked' => '添付ファイルの本文抽出ジョブが「%2$s」キューに %1$s 件滞留しています。本文がインデックスされていません（ファイル名は検索できます）。このキュー用のワーカーを起動してください: php artisan queue:work --queue=%2$s,default',
         'placeholder' => 'データ検索',
         'header_freeword' => '全データ検索',
         'description_freeword' => '全データ検索の結果一覧です。',
