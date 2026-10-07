@@ -72,7 +72,10 @@ class ViewOnlyChildRowDisplayTest extends TestCase
 
         $field->fill([$custom_column->column_name => $value]);
 
-        return (string)$field->render();
+        $rendered = $field->render();
+        $this->assertInstanceOf(\Illuminate\Contracts\View\View::class, $rendered);
+
+        return $rendered->render();
     }
 
     /**
