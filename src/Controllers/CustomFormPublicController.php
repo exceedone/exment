@@ -580,9 +580,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                         'label' => exmtrans('template.header_export'),
                         'icon' => 'fa-clone',
                         'btn_class' => 'btn-warning',
-                        'attributes' => [
-                            'target' => '_blank',
-                        ],
+                        'target' => '_blank',
                     ])->render());
                 }
             }

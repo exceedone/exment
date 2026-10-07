@@ -417,7 +417,18 @@ abstract class CustomItem implements ItemInterface
         $this->custom_column->setOption('number_format', false);
         $this->options['disable_number_format'] = true;
 
-        return $this->getCustomField($classname);
+        $field = $this->getCustomField($classname);
+
+        // For day-count filter (X日前/X日後の日付): default value 0, integer in [0, 99999].
+        // - min 0: disallow negative input.
+        // - max 99999 / maxlength 5: a larger value overflows the Carbon date math on the server
+        //   (Carbon::today()->addDays(-x)) so the filter returns no rows; the spinner honours max
+        //   and maxlength caps typed/pasted input. The client also strips non-digit characters.
+        if ($value_type == FilterType::NUMBER) {
+            $field->default(0)->attribute(['min' => 0, 'max' => 99999, 'maxlength' => 5, 'data-day-count' => 1]);
+        }
+
+        return $field;
     }
 
 
