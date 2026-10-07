@@ -1072,7 +1072,7 @@ return [
         'header' => 'Workflow Setting',
         'description' => 'Set the workflow. Specific users can execute the flow, such as request, approval, and rejection.',
         'same_org_notify' => [
-            'subject' => 'A member of your organization processed a workflow',
+            'subject' => 'A workflow assigned to your organization has been processed',
             'body' => '%s changed the status of "%s: %s" to "%s".',
         ],
         'workflow_view_name' => 'Workflow View Name',
