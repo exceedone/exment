@@ -28,11 +28,9 @@
                     {{ $displayTextSafe }}
                     @endif
                 @else
-                    @if(!$escape)
-                    {!! $valueSafe !!}
-                    @else
+                    {{-- No prepared display text: $value is the raw stored value, so it is always escaped.
+                         $escape only applies to $displayText, which the caller built as safe HTML. --}}
                     {{ $valueSafe }}
-                    @endif
                 @endif
                 </span>&nbsp;
             </div><!-- /.box-body -->

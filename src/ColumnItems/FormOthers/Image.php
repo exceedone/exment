@@ -37,7 +37,7 @@ class Image extends FormOtherItem
             ]);
         }
 
-        $imageTag = '<img src="'.$url.'" class="mw-100 image_html" />';
+        $imageTag = '<img src="'.esc_html($url).'" class="mw-100 image_html" />';
         if (!boolval(array_get($this->form_column, 'options.image_aslink', false))) {
             return $imageTag;
         }
