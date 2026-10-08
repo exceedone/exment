@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\Notify;
 
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -55,7 +56,7 @@ class SameOrganizationWorkflowNotify
     /**
      * Collect the user ids of the OTHER members of the organizations that are
      * authorities of the action being executed (excluding the executer,
-     * individually-assigned users and the members who may not open the table).
+     * individually-assigned users and the members who may not open the record).
      *
      * IMPORTANT: must be called BEFORE the workflow value is forwarded, because
      * for ACTION_SELECT actions the assignees are read from the CURRENT
@@ -137,10 +138,10 @@ class SameOrganizationWorkflowNotify
             return [];
         }
 
-        // Only the members who may open the table hear about it: the organization says who the
+        // Only the members who may open the record hear about it: the organization says who the
         // action is FOR, not who may read the record. A member without any access to the table was
         // told the label and the status of a record they cannot open (found in review).
-        $memberIds = self::membersWhoMayOpen($custom_value->custom_table, $memberIds);
+        $memberIds = self::membersWhoMayOpen($custom_value, $memberIds);
 
         // the executer is dropped here, not in SQL: getUserId() can be null and
         // "child_id <> null" would silently match nothing
@@ -152,62 +153,179 @@ class SameOrganizationWorkflowNotify
     }
 
     /**
-     * The members who may open records of the table.
+     * The members who may open the record - asked the way the page of the record lets a user in,
+     * for each member instead of the login user:
+     *  - the table: a role with any data permission of the table (AVAILABLE_ACCESS_CUSTOM_VALUE) or
+     *    a system administrator. CustomValue::enableAccess() asks it before it looks at the record,
+     *    so whatever the parent table lets them open, a member without it is refused there;
+     *  - then the record, the way the permission scope lets a user in (CustomValueModelScope):
+     *    every record of the table for a role with every record (AVAILABLE_ALL_CUSTOM_VALUE) or - on
+     *    a child table that inherits the permission of its parent - with every record of the parent;
+     *    this record only for the others, when it is shared with the member or one of their
+     *    organizations (custom_value_authoritables). On an inheriting child table, a share of the
+     *    parent record counts too, for a member with the shared records of the parent.
      *
-     * Asked the way core asks who has access to a table - the roles of the user and of their
-     * organizations, and the system administrators (AuthUserOrgHelper) - on a plain builder of the
-     * user table, for the reason given in collectOtherOrgMemberIds(). A member whose permission
-     * covers shared records only sees this one through the share the workflow gives the
-     * organization when the record reaches the step
-     * (CustomValueAuthoritable::setAuthoritableByUserOrgArray()). On a child table that inherits
-     * the permission of its parent, whoever may open every record of the parent may open the
-     * child's too (CustomValueModelScope) - core's helper reads the roles of the child table only,
-     * so those members lost the notice (found in review).
+     * Asking for the table alone took "may open shared records" for "may open this record". The
+     * workflow shares a record with the organizations of the next NORMAL actions only
+     * (WorkflowAction::getNextActionAuthorities()), so a member of the organization of a special
+     * action (特殊なアクション) who may open shared records only was told the label and the status of
+     * a record they cannot open (found in review). So was a member with every record of the parent
+     * and no role on the child table (found in review).
      *
-     * The ids core allows are compared here, not in SQL: its builder binds every one of them as a
-     * parameter already, and the members on top could pass the 2,100 SQL Server takes in one
-     * statement - the notice would then go to nobody (found in review).
+     * Roles are expanded the way core asks who has access to a table - the roles of the user and of
+     * their organizations, and the system administrators (AuthUserOrgHelper) - on a plain builder
+     * of the user table, for the reason given in collectOtherOrgMemberIds(). The ids core allows are
+     * compared here, not in SQL: its builder binds every one of them as a parameter already, and the
+     * members on top could pass the 2,100 SQL Server takes in one statement - the notice would then
+     * go to nobody (found in review).
      *
      * Known limit, shared with core's own notifications to 権限のあるユーザー: the helper expands
      * the organizations that hold a role through the models, under the permission scope of the
      * user who pressed the button - with filter_multi_user on, an organization that user cannot
      * see adds nobody.
      *
-     * @param CustomTable $custom_table
+     * @param CustomValue $custom_value
      * @param \Illuminate\Support\Collection<int, mixed> $memberIds
      * @return \Illuminate\Support\Collection<int, mixed>
      */
-    private static function membersWhoMayOpen(CustomTable $custom_table, \Illuminate\Support\Collection $memberIds): \Illuminate\Support\Collection
+    private static function membersWhoMayOpen(CustomValue $custom_value, \Illuminate\Support\Collection $memberIds): \Illuminate\Support\Collection
     {
-        $checks = [[$custom_table, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE]];
+        $custom_table = $custom_value->custom_table;
+
+        // the table: true when every user may open every record of it (allUserAccessable())
+        $tableAccess = self::usersWithPermission($custom_table, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        if ($tableAccess === true) {
+            return $memberIds->values();
+        }
+        $memberIds = $memberIds->filter(function ($id) use ($tableAccess) {
+            return isset($tableAccess[(int)$id]);
+        })->values();
+        if ($memberIds->isEmpty()) {
+            return $memberIds;
+        }
+
+        $parent_table = null;
         if (boolval($custom_table->getOption('inherit_parent_permission'))) {
             $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
             $parent_table = !is_nullorempty($relation) ? $relation->parent_custom_table : null;
-            if (isset($parent_table)) {
-                $checks[] = [$parent_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE];
+        }
+
+        // every record of the table
+        $everyRecord = self::usersWithPermission($custom_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE);
+        if ($everyRecord !== true && isset($parent_table)) {
+            $parentEveryRecord = self::usersWithPermission($parent_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE);
+            $everyRecord = $parentEveryRecord === true ? true : $everyRecord + $parentEveryRecord;
+        }
+        if ($everyRecord === true) {
+            return $memberIds;
+        }
+
+        $others = $memberIds->reject(function ($id) use ($everyRecord) {
+            return isset($everyRecord[(int)$id]);
+        });
+        if ($others->isEmpty()) {
+            return $memberIds;
+        }
+
+        // this record only, for the others: their role on the table covers the shared records (the
+        // table check above), so it takes a share of the record
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+        $shares = self::sharesOf($custom_table->table_name, $custom_value->id);
+        $parentSharedRecords = [];
+        // new, not collect(): phpstan on CI types collect() as Tightenco\Collect\Support\Collection,
+        // which isSharedWith() does not take
+        $parentShares = new \Illuminate\Support\Collection();
+        if (isset($parent_table)) {
+            $parentSharedRecords = self::usersWithPermission($parent_table, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+            $parentShares = self::sharesOf($custom_value->parent_type, $custom_value->parent_id);
+        }
+
+        $shared = [];
+        foreach ($others as $id) {
+            $id = (int)$id;
+            if (self::isSharedWith($shares, $id, $enum)
+                || (($parentSharedRecords === true || isset($parentSharedRecords[$id])) && self::isSharedWith($parentShares, $id, $enum))) {
+                $shared[$id] = true;
             }
         }
 
-        $userTableName = getDBTableName(SystemTableName::USER);
-        $allowed = [];
-        foreach ($checks as [$table, $permission]) {
-            // a table every user may open: the builder would read the whole user table for it
-            if ($table->allUserAccessable()) {
-                return $memberIds;
-            }
-
-            $query = AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($table, $permission, \DB::table($userTableName));
-            if (is_nullorempty($query)) {
-                continue;
-            }
-            foreach ($query->pluck('id') as $id) {
-                $allowed[(int)$id] = true;
-            }
-        }
-
-        return $memberIds->filter(function ($id) use ($allowed) {
-            return isset($allowed[(int)$id]);
+        return $memberIds->filter(function ($id) use ($everyRecord, $shared) {
+            return isset($everyRecord[(int)$id]) || isset($shared[(int)$id]);
         })->values();
+    }
+
+    /**
+     * The users a permission on the table covers, by the roles of the user and of their
+     * organizations and the system administrators (AuthUserOrgHelper) - true when it covers
+     * every user.
+     *
+     * @param CustomTable $table
+     * @param string|array<string> $permission
+     * @return array<int, true>|true user id => true
+     */
+    private static function usersWithPermission(CustomTable $table, $permission): array|bool
+    {
+        // a table every user may open: the builder would read the whole user table for it
+        if ($table->allUserAccessable()) {
+            return true;
+        }
+
+        $users = [];
+        $query = AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($table, $permission, \DB::table(getDBTableName(SystemTableName::USER)));
+        if (!is_nullorempty($query)) {
+            foreach ($query->pluck('id') as $id) {
+                $users[(int)$id] = true;
+            }
+        }
+
+        return $users;
+    }
+
+    /**
+     * Who a record is shared with: its rows of custom_value_authoritables.
+     *
+     * @param string|null $parentType table name of the record
+     * @param mixed $parentId id of the record
+     * @return \Illuminate\Support\Collection<int, \stdClass>
+     */
+    private static function sharesOf(?string $parentType, $parentId): \Illuminate\Support\Collection
+    {
+        if (is_nullorempty($parentType) || is_nullorempty($parentId)) {
+            return new \Illuminate\Support\Collection();
+        }
+
+        return \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
+            ->where('parent_type', $parentType)
+            ->where('parent_id', $parentId)
+            ->get(['authoritable_user_org_type', 'authoritable_target_id']);
+    }
+
+    /**
+     * Whether a share is the user's: to the user, or to an organization of theirs as the scope
+     * counts them (org_joined_type_custom_value) - LoginUser::getUserAndOrganizationIds() for
+     * another user than the login one.
+     *
+     * @param \Illuminate\Support\Collection<int, \stdClass> $shares
+     * @param int $userId
+     * @param mixed $enum JoinedOrgFilterType
+     * @return bool
+     */
+    private static function isSharedWith(\Illuminate\Support\Collection $shares, int $userId, $enum): bool
+    {
+        if ($shares->isEmpty()) {
+            return false;
+        }
+
+        $orgIds = array_map('intval', AuthUserOrgHelper::getOrganizationIdsForQuery($enum, $userId));
+
+        return $shares->contains(function ($share) use ($userId, $orgIds) {
+            if (isMatchString($share->authoritable_user_org_type, SystemTableName::USER)) {
+                return (int)$share->authoritable_target_id === $userId;
+            }
+
+            return isMatchString($share->authoritable_user_org_type, SystemTableName::ORGANIZATION)
+                && in_array((int)$share->authoritable_target_id, $orgIds, true);
+        });
     }
 
     /**
