@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Auth2factor\Providers;
 
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\Login\LoginHistoryService;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Enums\MailKeyName;
@@ -69,6 +70,7 @@ class Email
 
         // set session for 2factor
         session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+        LoginHistoryService::verified2factor();
         admin_toastr(trans('admin.login_successful'));
 
         return redirect(admin_url(''));

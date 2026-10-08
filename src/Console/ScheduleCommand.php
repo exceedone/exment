@@ -5,6 +5,9 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\LoginHistory;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services\GeoIp\GeoIpService;
 use Carbon\Carbon;
 
 class ScheduleCommand extends Command
@@ -49,6 +52,8 @@ class ScheduleCommand extends Command
         $this->notify();
         $this->backup();
         $this->clearOperationLog();
+        $this->clearLoginHistory();
+        $this->updateGeoIp();
         $this->pluginBatch();
         return 0;
     }
@@ -191,6 +196,129 @@ class ScheduleCommand extends Command
         }
 
         return true;
+    }
+
+    /**
+     * Auto-delete login histories older than the configured retention period. Runs once a day.
+     *
+     * @return void
+     */
+    protected function clearLoginHistory()
+    {
+        $now = Carbon::now();
+        $keepDays = System::login_history_keep_days();
+
+        if (!self::isLoginHistoryClearDue(
+            boolval(System::login_history_enable_automatic()),
+            $keepDays,
+            System::login_history_automatic_executed(),
+            $now
+        )) {
+            return;
+        }
+
+        if (!hasTable(SystemTableName::LOGIN_HISTORY)) {
+            return;
+        }
+
+        LoginHistory::deleteOlderThan($now->copy()->subDays((int)$keepDays)->startOfDay());
+
+        System::login_history_automatic_executed($now);
+    }
+
+    /**
+     * Decide whether the login-history auto-delete should run at $now.
+     * Pure function (no DB / no side effects), same as isOperationLogClearDue().
+     *
+     * @param bool $enabled
+     * @param mixed $keepDays
+     * @param Carbon|null $lastExecuted
+     * @param Carbon $now
+     * @return bool
+     */
+    public static function isLoginHistoryClearDue(bool $enabled, $keepDays, ?Carbon $lastExecuted, Carbon $now): bool
+    {
+        if (!$enabled) {
+            return false;
+        }
+        if (is_nullorempty($keepDays) || (int)$keepDays <= 0) {
+            return false;
+        }
+
+        // Run-once guard: never purge more than once per calendar day.
+        if ($lastExecuted instanceof Carbon && $lastExecuted->isSameDay($now)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Auto-update GeoIP database, used for login history. The database is published monthly.
+     *
+     * @return void
+     */
+    protected function updateGeoIp()
+    {
+        // Checked first: the database file is not opened at all while the auto-update is off,
+        // nor on the other (hourly) ticks of the day the update was already tried.
+        $enabled = boolval(System::login_history_geoip_auto_update());
+        if (!$enabled) {
+            return;
+        }
+
+        $now = Carbon::now();
+        $lastExecuted = System::login_history_geoip_update_executed();
+        if ($lastExecuted instanceof Carbon && $lastExecuted->isSameDay($now)) {
+            return;
+        }
+
+        $buildDate = array_get(GeoIpService::getDatabaseInfo(), 'build_date');
+
+        if (!self::isGeoIpUpdateDue($enabled, $buildDate, $lastExecuted, $now)) {
+            return;
+        }
+
+        // Record before downloading, so a failing download is retried next day, not on every (hourly) tick.
+        System::login_history_geoip_update_executed($now);
+
+        // No database yet: also accept last month's file. Otherwise only this month's file is worth downloading.
+        $url = is_null($buildDate) ? null : array_get(GeoIpService::getDownloadUrls($now), 0);
+        \Artisan::call('exment:geoip-update', is_null($url) ? [] : ['--url' => $url]);
+    }
+
+    /**
+     * Decide whether the GeoIP database auto-update should run at $now.
+     * Pure function (no DB / no side effects).
+     *
+     * @param bool $enabled
+     * @param Carbon|null $buildDate build date of the current database. null if no database.
+     * @param Carbon|null $lastExecuted
+     * @param Carbon $now
+     * @return bool
+     */
+    public static function isGeoIpUpdateDue(bool $enabled, ?Carbon $buildDate, ?Carbon $lastExecuted, Carbon $now): bool
+    {
+        if (!$enabled) {
+            return false;
+        }
+
+        // Run-once guard: never try more than once per calendar day.
+        if ($lastExecuted instanceof Carbon && $lastExecuted->isSameDay($now)) {
+            return false;
+        }
+
+        if (is_null($buildDate)) {
+            return true;
+        }
+
+        // This month's file may not be published yet on the 1st day.
+        if ($now->copy()->utc()->day < 2) {
+            return false;
+        }
+
+        // Update when the current database was built before this month.
+        return $buildDate->copy()->utc()->format('Ym') < $now->copy()->utc()->format('Ym');
     }
 
     /**

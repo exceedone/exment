@@ -528,8 +528,13 @@ class ApiController extends AdminControllerBase
         return [
             'count' => $count,
             'items' => $list->map(function ($l) {
-                $custom_table = CustomTable::getEloquent(array_get($l, 'parent_type'));
-                if (isset($custom_table)) {
+                // Warning of login history: shown as a warning, to be distinguished from normal notifications.
+                // Judged before looking for a custom table, because its parent is the system table "login_histories".
+                if ($l->isLoginHistory()) {
+                    $icon = 'fa-exclamation-triangle';
+                    $color = '#dd4b39';
+                    $table_view_name = exmtrans('login_history.header');
+                } elseif (!is_null($custom_table = CustomTable::getEloquent(array_get($l, 'parent_type')))) {
                     $icon = $custom_table->getOption('icon');
                     $color = $custom_table->getOption('color');
                     $table_view_name = $custom_table->table_view_name;

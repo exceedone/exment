@@ -23,18 +23,7 @@ class RefreshDataService
     public static function refresh()
     {
         // trancate tables
-        $tables = [
-            'admin_operation_log',
-            'email_code_verifies',
-            'notify_navbars',
-            'revisions',
-            'workflow_value_authorities',
-            'workflow_values',
-            'custom_value_authoritables',
-            // the task list marks name records by id, and the truncate below starts every record
-            // table over at id 1: a mark left behind would hide or "read" a task of a NEW record
-            'workflow_task_reads',
-        ];
+        $tables = static::getTruncateSystemTables();
 
         // get user and org table info
         $userTable = CustomTable::getEloquent(SystemTableName::USER);
@@ -79,6 +68,33 @@ class RefreshDataService
 
         // remove attachment files
         static::removeAttachmentFiles($custom_tables);
+    }
+
+    /**
+     * System tables truncated by refresh(), besides the custom data tables and the pivot tables.
+     *
+     * @return array<string>
+     */
+    public static function getTruncateSystemTables(): array
+    {
+        $tables = [
+            'admin_operation_log',
+            'email_code_verifies',
+            'notify_navbars',
+            'revisions',
+            'workflow_value_authorities',
+            'workflow_values',
+            'custom_value_authoritables',
+            // the task list marks name records by id, and the truncate below starts every record
+            // table over at id 1: a mark left behind would hide or "read" a task of a NEW record
+            'workflow_task_reads',
+        ];
+        // login histories are transaction data too. (The table does not exist before "exment:update" of the version that added it.)
+        if (hasTable(SystemTableName::LOGIN_HISTORY)) {
+            $tables[] = SystemTableName::LOGIN_HISTORY;
+        }
+
+        return $tables;
     }
 
 

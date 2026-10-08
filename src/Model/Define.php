@@ -138,6 +138,18 @@ class Define
         'operation_log_automatic_minute' => ['group' => 'operation_log'],
         'operation_log_automatic_executed' => ['type' => 'datetime'],
 
+        // Login history
+        // Auto-delete and auto-update are opt-in (default '0'), same policy as the operation log above.
+        'login_history_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'login_history'],
+        'login_history_keep_days' => ['type' => 'int', 'default' => '365', 'group' => 'login_history'],
+        'login_history_automatic_executed' => ['type' => 'datetime'],
+        'login_history_geoip_auto_update' => ['type' => 'boolean', 'default' => '0', 'group' => 'login_history'],
+        'login_history_geoip_update_executed' => ['type' => 'datetime'],
+        'login_history_notify_mail' => ['type' => 'boolean', 'default' => '0', 'group' => 'login_history'],
+        // Warning of a login from a new IP address: compared with the last N logins, notified on the bell icon by default.
+        'login_history_new_ip_count' => ['type' => 'int', 'default' => '10', 'group' => 'login_history'],
+        'login_history_notify_new_ip' => ['type' => 'boolean', 'default' => '1', 'group' => 'login_history'],
+
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
         'login_2factor_provider' => ['default' => 'email', 'group' => '2factor'],
@@ -195,6 +207,7 @@ class Define
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
+    public const SYSTEM_KEY_SESSION_LOGIN_HISTORY_ID = "login_history_id";
     public const SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER = "custom_login_user";
     public const SYSTEM_KEY_SESSION_PROVIDER_TOKEN = "provider_token";
     public const SYSTEM_KEY_SESSION_SAML_SESSION = "saml_session";
@@ -283,6 +296,10 @@ class Define
         'operation_log' => [
             'uri' => 'auth/logs',
             'icon' => 'fa-file-text',
+        ],
+        'login_history' => [
+            'uri' => 'login_history',
+            'icon' => 'fa-history',
         ],
         'api_setting' => [
             'uri' => 'api_setting',
@@ -470,6 +487,7 @@ class Define
         ['uri'=> 'auth/logs', 'help_uri'=> 'logs'],
         ['uri'=> 'notify', 'help_uri'=> 'notify'],
         ['uri'=> 'loginuser', 'help_uri'=> 'user'],
+        ['uri'=> 'login_history', 'help_uri'=> 'login_history'],
         ['uri'=> 'data/user', 'help_uri'=> 'user'],
         ['uri'=> 'data/mail_template', 'help_uri'=> 'mail'],
         ['uri'=> 'data/base_info', 'help_uri'=> 'base_info'],

@@ -23,7 +23,10 @@ use Exceedone\Exment\Auth\PublicFormGuard;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
+use Exceedone\Exment\Services\Login\LoginHistoryService;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
@@ -95,6 +98,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
+        \Exceedone\Exment\Console\GeoIpUpdateCommand::class,
     ];
 
 
@@ -291,6 +295,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootSetting();
         $this->bootDatabase();
         $this->bootSchedule();
+        $this->bootEvent();
 
         $this->publish();
         $this->load();
@@ -447,6 +452,16 @@ class ExmentServiceProvider extends ServiceProvider
             // Log debug
             \Exceedone\Exment\Middleware\ExmentDebug::logSchedule($schedule);
         });
+    }
+
+    /**
+     * Boot event listeners
+     *
+     * @return void
+     */
+    protected function bootEvent()
+    {
+        Event::listen(Login::class, [LoginHistoryService::class, 'handleLogin']);
     }
 
     // @phpstan-ignore-next-line

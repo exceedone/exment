@@ -2253,6 +2253,7 @@ return [
             'mail_template' => 'メールテンプレート',
             'mail' => 'メール送信履歴',
             'operation_log' => '操作ログ',
+            'login_history' => 'ログイン履歴',
             'api_setting' => 'APIアプリ設定',
             'login_setting' => 'ログイン設定',
         ],
@@ -2615,7 +2616,77 @@ return [
         'automatic_hour_help' => '未選択の場合、時間を問わず実行します。',
         'automatic_minute_help' => '未選択の場合、分を問わず実行します。',
     ],
-    
+
+    'login_history' => [
+        'header' => 'ログイン履歴',
+        'description' => 'ユーザーのログイン履歴を一覧表示します。',
+        'login_at' => 'ログイン日時',
+        'user_code' => 'ユーザーコード',
+        'user_name' => 'ユーザー名',
+        'ip_address' => 'IPアドレス',
+        'country_code' => '国コード',
+        'country' => '国',
+        'location' => '地域',
+        'region' => '都道府県・州',
+        'city' => '市区町村',
+        'login_type' => 'ログイン方法',
+        'login_provider' => 'ログインプロバイダ',
+        'via_remember' => '自動ログイン',
+        'is_new_ip' => '警告',
+        'auth_2factor_verified' => '2段階認証',
+        'user_agent' => 'ブラウザ情報',
+        'setting' => 'ログイン履歴設定',
+        'new_ip_count' => '比較するログイン回数',
+        'enable_automatic' => 'ログイン履歴自動削除',
+        'keep_days' => '履歴保存期間（日数）',
+        'geoip_database' => 'GeoIPデータベース',
+        'geoip_auto_update' => 'GeoIPデータベース自動更新',
+
+        'login_type_options' => [
+            'pure' => '通常ログイン',
+            'oauth' => 'OAuth認証',
+            'saml' => 'SAML認証',
+            'ldap' => 'LDAP認証',
+        ],
+
+        'is_new_ip_options' => [
+            '0' => '通常',
+            '1' => '通常と異なるIPアドレス',
+        ],
+
+        'auth_2factor_verified_options' => [
+            'none' => '対象外',
+            '0' => '未完了',
+            '1' => '完了',
+        ],
+
+        'notify' => [
+            'header' => '通常と異なるIPアドレスからのログイン警告',
+            'enable' => 'システム管理者へ通知',
+            'mail' => '警告メール送信',
+            'subject' => '【ログイン警告】通常と異なるIPアドレスからのログイン : %s',
+            'body' => '以下のユーザーが、通常と異なるIPアドレスからログインしました。ユーザー本人に確認し、本人によるログインでない場合は、パスワードをリセットしてください。',
+            'link' => 'ログイン履歴を表示',
+        ],
+
+        'help' => [
+            'notify' => 'ユーザーが直近のログインで使用していないIPアドレスからログインした場合、一覧の「警告」列に「通常と異なるIPアドレス」と表示します。あわせて、システム管理者に通知することができます。',
+            'new_ip_count' => '直近何回分のログインのIPアドレスと比較するかを指定します（1～%s）。この回数のログインで使用されていないIPアドレスからログインした場合、警告の対象になります。初回ログインは比較対象がないため、警告しません。',
+            'notify_new_ip' => 'YESにした場合、通常と異なるIPアドレスからのログインをシステム管理者に通知します。通知は、画面上部のベルアイコンから確認できます。',
+            'notify_mail' => 'YESにした場合、上記の通知に加えて、システム管理者にメールでも通知します。',
+            'enable_automatic' => 'YESにした場合、保存期間を過ぎたログイン履歴を1日1回、自動的に削除します。',
+            'keep_days' => '指定した日数より古いログイン履歴を自動的に削除します。1以上の値を入力してください。',
+            'geoip_available' => '国・地域の判定に使用しているデータベース : %s (作成日 : %s)',
+            'geoip_not_available' => 'GeoIPデータベースが配置されていないため、国・地域は記録されません。サーバーで「php artisan exment:geoip-update」を実行するか、下記の自動更新をYESにしてください。',
+            'geoip_auto_update' => 'YESにした場合、国・地域の判定に使用するデータベースを毎月自動的にダウンロードして更新します。サーバーからインターネットに接続できる必要があります。',
+        ],
+
+        'message' => [
+            'new_ip_count_invalid' => '比較するログイン回数には、1～%sの整数を入力してください。',
+            'keep_days_invalid' => '履歴保存期間（日数）には、1以上の整数を入力してください。',
+        ],
+    ],
+
     'chart' => [
         'chartitem_label' => 'データ見出し',
         'chartitem_manual' => 'チャートの設定内容',

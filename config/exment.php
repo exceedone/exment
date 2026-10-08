@@ -302,6 +302,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | GeoIP database path
+    |--------------------------------------------------------------------------
+    |
+    | Full path of GeoIP database file (.mmdb), used for resolving country and
+    | location of login history. If null, use the first *.mmdb file in
+    | "storage/app/geoip". If the file does not exist, country and location are
+    | not recorded.
+    |
+    */
+    'geoip_db_path' => env('EXMENT_GEOIP_DB_PATH', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | GeoIP database download url
+    |--------------------------------------------------------------------------
+    |
+    | Download url used by "php artisan exment:geoip-update".
+    | {year} and {month} are replaced with the current year(4 digits) and month(2 digits).
+    | Default is DB-IP City Lite (https://db-ip.com), licensed under CC BY 4.0.
+    |
+    */
+    'geoip_download_url' => env('EXMENT_GEOIP_DOWNLOAD_URL', 'https://download.db-ip.com/free/dbip-city-lite-{year}-{month}.mmdb.gz'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Login Provider
     |--------------------------------------------------------------------------
     |

@@ -164,6 +164,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
 
+            $router->post('login_history/setting', 'LoginHistoryController@postSetting');
+            $router->resource('login_history', 'LoginHistoryController', ['only' => ['index', 'show', 'destroy']]);
+
             $router->get("role_group/importModal", 'RoleGroupController@importModal');
             $router->post("role_group/import", 'RoleGroupController@import');
             $this->setResouce($router, 'role_group', 'RoleGroupController');

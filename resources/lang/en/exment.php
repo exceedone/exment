@@ -2252,6 +2252,7 @@ return [
             'mail_template' => 'Mail template',
             'mail' => 'Email transmission history',
             'operation_log' => 'Operation log',
+            'login_history' => 'Login history',
             'api_setting' => 'API Setting',
             'login_setting' => 'Login Setting',
         ],
@@ -2615,7 +2616,77 @@ return [
         'automatic_hour_help' => 'If not specified, runs regardless of the hour.',
         'automatic_minute_help' => 'If not specified, runs regardless of the minute.',
     ],
-    
+
+    'login_history' => [
+        'header' => 'Login history',
+        'description' => 'View login history of users.',
+        'login_at' => 'Login date',
+        'user_code' => 'User code',
+        'user_name' => 'User name',
+        'ip_address' => 'IP Address',
+        'country_code' => 'Country code',
+        'country' => 'Country',
+        'location' => 'Location',
+        'region' => 'Region',
+        'city' => 'City',
+        'login_type' => 'Login method',
+        'login_provider' => 'Login provider',
+        'via_remember' => 'Auto login',
+        'is_new_ip' => 'Warning',
+        'auth_2factor_verified' => 'Two-factor authentication',
+        'user_agent' => 'Browser information',
+        'setting' => 'Login history setting',
+        'new_ip_count' => 'Number of recent logins to compare',
+        'enable_automatic' => 'Auto-delete login histories',
+        'keep_days' => 'History retention period (days)',
+        'geoip_database' => 'GeoIP database',
+        'geoip_auto_update' => 'Auto-update GeoIP database',
+
+        'login_type_options' => [
+            'pure' => 'Default login',
+            'oauth' => 'OAuth',
+            'saml' => 'SAML',
+            'ldap' => 'LDAP',
+        ],
+
+        'is_new_ip_options' => [
+            '0' => 'Normal',
+            '1' => 'Different from usual IP address',
+        ],
+
+        'auth_2factor_verified_options' => [
+            'none' => 'Not applicable',
+            '0' => 'Not completed',
+            '1' => 'Completed',
+        ],
+
+        'notify' => [
+            'header' => 'Warning of login from an IP address different from usual',
+            'enable' => 'Notify system administrators',
+            'mail' => 'Send warning mail',
+            'subject' => '[Login warning] Login from an IP address different from usual : %s',
+            'body' => 'The following user logged in from an IP address different from usual. Please confirm with the user, and reset the password if the user did not log in.',
+            'link' => 'Show login history',
+        ],
+
+        'help' => [
+            'notify' => 'When a user logs in from an IP address not used in the user\'s recent logins, "Different from usual IP address" is shown in the "Warning" column of the list. System administrators can also be notified.',
+            'new_ip_count' => 'Number of the most recent logins whose IP addresses are compared with (1 to %s). A login from an IP address not used in these logins is warned. The first login is not warned because there is nothing to compare with.',
+            'notify_new_ip' => 'If YES, system administrators are notified of a login from an IP address different from usual. The notification can be checked from the bell icon at the top of the page.',
+            'notify_mail' => 'If YES, system administrators are also notified by mail, in addition to the notification above.',
+            'enable_automatic' => 'If YES, login histories older than the retention period are deleted automatically once a day.',
+            'keep_days' => 'Automatically delete login histories older than the specified number of days. Enter a value of 1 or more.',
+            'geoip_available' => 'Database used for resolving country and location : %s (Built on : %s)',
+            'geoip_not_available' => 'Country and location are not recorded because the GeoIP database is not placed. Execute "php artisan exment:geoip-update" on the server, or set the auto-update below to YES.',
+            'geoip_auto_update' => 'If YES, the database used for resolving country and location is downloaded and updated automatically every month. The server needs to be able to connect to the internet.',
+        ],
+
+        'message' => [
+            'new_ip_count_invalid' => 'Enter an integer from 1 to %s for the number of recent logins to compare.',
+            'keep_days_invalid' => 'Enter an integer of 1 or more for the history retention period (days).',
+        ],
+    ],
+
     'chart' => [
         'chartitem_label' => 'Chart Label',
         'chartitem_manual' => 'Chart Setting',

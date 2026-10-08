@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
+use Exceedone\Exment\Enums\SystemTableName;
 
 /**
  * @property mixed $notify_id
@@ -32,6 +33,17 @@ class NotifyNavbar extends ModelBase
     }
 
     /**
+     * Whether this notification is a warning of login history.
+     * (parent_type is "login_histories", parent_id is the id of the login history.)
+     *
+     * @return bool
+     */
+    public function isLoginHistory(): bool
+    {
+        return isMatchString($this->parent_type, SystemTableName::LOGIN_HISTORY) && !is_nullorempty($this->parent_id);
+    }
+
+    /**
      * Get the custom tables appearing in the login user's own notifications,
      * as options of the "target table" filter on the notification list.
      * Key is table_name (the value stored in parent_type), value is table_view_name.
@@ -40,6 +52,7 @@ class NotifyNavbar extends ModelBase
      * table permissions, so a user without any table permission still gets the list.
      * Notifications without parent_type, and parent_type of a table that no longer exists, are skipped.
      * Hidden tables (showlist_flg false) are kept, because their notification rows are listed anyway.
+     * The warning of login history (parent_type is the system table "login_histories") is listed under its own name.
      *
      * @return array<string, string>
      */
@@ -62,8 +75,15 @@ class NotifyNavbar extends ModelBase
             return [];
         }
 
-        return CustomTable::whereIn('table_name', $parent_types->all())
+        $options = CustomTable::whereIn('table_name', $parent_types->all())
             ->pluck('table_view_name', 'table_name')
             ->toArray();
+
+        // Set after the custom tables, so that a custom table of the same name never takes the place of the warning.
+        if ($parent_types->contains(SystemTableName::LOGIN_HISTORY)) {
+            $options[SystemTableName::LOGIN_HISTORY] = exmtrans('login_history.header');
+        }
+
+        return $options;
     }
 }
