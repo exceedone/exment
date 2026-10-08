@@ -50,7 +50,7 @@ class SyncMeiliReferencesJob implements ShouldQueue
      */
     public static function wouldBlockTheCaller($refTable, $valueId): bool
     {
-        if (config('queue.default') !== 'sync') {
+        if (!MeiliRuntime::queueUsesSyncDriver()) {
             return false;
         }
 

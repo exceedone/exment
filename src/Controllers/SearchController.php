@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Meili\ExmentIndexer;
 use Exceedone\Exment\Services\Meili\GlobalSearch\RequestFilters;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SearchType;
@@ -141,7 +142,13 @@ class SearchController extends AdminControllerBase
         $title = sprintf(exmtrans("search.result_label"), $q);
         $this->setPageInfo($title, $title, exmtrans("plugin.description"));
 
-        $tableArrays = $this->getSearchTargetTable()->map(function ($table) {
+        // Meili indexes attachment-only tables (no freeword column, but owning
+        // files), so the results page must offer a box for them too; the MySQL
+        // fallback can only search freeword columns, so it keeps the old list.
+        $targetTables = $this->meiliActive()
+            ? $this->getMeiliSearchTargetTable()
+            : $this->getSearchTargetTable();
+        $tableArrays = $targetTables->map(function ($table) {
             return $this->getTableArray($table);
         });
 
@@ -241,6 +248,24 @@ class SearchController extends AdminControllerBase
             }
         }
         return collect($results);
+    }
+
+    /**
+     * Tables that get a result box when Meilisearch serves the page: every table
+     * the user may view that holds (or can hold) a document in the index. Unlike
+     * getSearchTargetTable() this does NOT require a freeword column, so an
+     * attachment-only table still gets a box - otherwise its records are findable
+     * through the header/list endpoints yet never shown on the results page.
+     */
+    // @phpstan-ignore-next-line
+    protected function getMeiliSearchTargetTable()
+    {
+        return CustomTable::with('custom_columns')->searchEnabled()->get()
+            ->filter(function ($table) {
+                return $table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
+                    && ExmentIndexer::isSearchable($table);
+            })
+            ->values();
     }
 
 

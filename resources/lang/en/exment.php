@@ -2285,6 +2285,7 @@ return [
         'range_min' => 'min',
         'range_max' => 'max',
         'result_unit' => 'results',
+        'load_failed' => 'Could not load this table. Please reload the page.',
         'saved_search' => 'Saved searches',
         'no_saved_search' => 'No saved searches',
         'save_current' => 'Save current conditions',

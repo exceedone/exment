@@ -73,6 +73,68 @@ class MeiliSearchFilterTest extends FeatureTestBase
     }
 
     /**
+     * An attachment-only table (search_enabled, no freeword column, but owning a
+     * business file) is indexed by Meilisearch, so its records are findable via
+     * the header/list endpoints. The results page must therefore render a box for
+     * it too; getSearchTargetTable() requires a freeword column, so before the fix
+     * the record was searchable yet never shown on the page.
+     */
+    public function testAttachmentOnlyTableGetsAResultBox(): void
+    {
+        $table = CustomTable::searchEnabled()->get()
+            ->first(function ($t) {
+                return $t->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
+                    && $t->getFreewordSearchColumns()->isEmpty()
+                    && !\Exceedone\Exment\Services\Meili\ExmentIndexer::isIndexable($t)
+                    && getModelName($t)::query()->exists();
+            });
+        if (!$table) {
+            $this->markTestSkipped('no attachment-only candidate table seeded in this environment');
+        }
+        $recordId = getModelName($table)::query()->value('id');
+
+        $boxes = fn () => $this->boxTableNames($this->get(admin_url('search') . '?query=test')->getContent());
+
+        // No file yet -> not in the index -> no box (and the fix must not add one).
+        $this->assertNotContains($table->table_name, $boxes());
+
+        // Give it one business attachment (type 2 = document tab).
+        \Illuminate\Support\Facades\DB::table('files')->insert([
+            'uuid' => 'zz-attachbox-regression',
+            'parent_type' => $table->table_name,
+            'parent_id' => $recordId,
+            'file_type' => \Exceedone\Exment\Enums\FileType::CUSTOM_VALUE_DOCUMENT,
+            'filename' => 'attachment.docx',
+            'local_filename' => 'attachment.docx',
+            'local_dirname' => 'documents',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Now it owns a file -> it is indexed -> the page must offer its box.
+        $this->assertContains($table->table_name, $boxes());
+    }
+
+    /**
+     * Pull the table_names the results page rendered a box for, out of the hidden
+     * `.tables` input the AJAX loader reads.
+     *
+     * @return array<int,string>
+     */
+    private function boxTableNames(string $html): array
+    {
+        if (!preg_match('/class="tables" value="([^"]*)"/', $html, $m)) {
+            return [];
+        }
+        $decoded = json_decode(html_entity_decode($m[1], ENT_QUOTES), true) ?: [];
+
+        return array_values(array_filter(array_map(
+            fn ($b) => is_array($b) ? ($b['table_name'] ?? null) : null,
+            $decoded
+        )));
+    }
+
+    /**
      * A crafted `?range[n_t::c][from][]=1` made FilterSidebar::rangeInputs() and
      * AppliedChips::build() cast an array to string. That is an E_WARNING, which
      * Laravel turns into an ErrorException - and getFreeWord() catches Throwable,

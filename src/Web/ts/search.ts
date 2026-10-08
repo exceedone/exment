@@ -7,6 +7,8 @@ namespace Exment {
         private static meiliPending: number = 0;
         private static meiliHasTotal: boolean = false;
         private static meiliCapped: boolean = false;
+        /** A box request failed -> the total is a floor and "no result" must not be claimed. */
+        private static meiliFailed: boolean = false;
 
         /**
          * Call only once. It's $(document).on event.
@@ -150,6 +152,7 @@ namespace Exment {
             SearchEvent.meiliPending = 0;
             SearchEvent.meiliHasTotal = false;
             SearchEvent.meiliCapped = false;
+            SearchEvent.meiliFailed = false;
 
             // search target table names
             let searchTables = [];
@@ -211,10 +214,16 @@ namespace Exment {
                 box.find('.box-body .box-body-inner-header').html(data.header);
                 box.find('.box-body .box-body-inner-body').html(data.body);
                 box.find('.box-body .box-body-inner-footer').html(data.footer);
-                box.find('.overlay').hide();
                 Exment.CommonEvent.tableHoverLink();
             })
+            // Say the load failed instead of leaving an empty box behind.
+            .fail(function(){
+                this.box.find('.box-body .box-body-inner-body').html(SearchEvent.loadFailedHtml());
+            })
+            // Hide the overlay whatever the outcome: on failure the box used to
+            // keep spinning forever, and only a reload cleared it.
             .always(function(data){
+                this.box.find('.overlay').hide();
             });
         }
 
@@ -251,14 +260,12 @@ namespace Exment {
                     
                     let data = datalist[searchTables[i].table_name];
                     if(!hasValue(data)){
-                        box.find('.overlay').hide();
                         continue;
                     }
 
                     box.find('.box-body .box-body-inner-header').html(data.header);
                     box.find('.box-body .box-body-inner-body').html(data.body);
                     box.find('.box-body .box-body-inner-footer').html(data.footer);
-                    box.find('.overlay').hide();
 
                     // total is only present when running through Meili; the MySQL fallback keeps the old behavior.
                     if(typeof data.total !== 'undefined'){
@@ -280,10 +287,30 @@ namespace Exment {
                 
                 Exment.CommonEvent.tableHoverLink();
             })
+            // One failed batch used to leave its five boxes spinning forever while
+            // the header reported a total that silently omitted them.
+            .fail(function(){
+                SearchEvent.meiliFailed = true;
+                let searchTables = this.searchTables;
+                for(let i = 0; i < searchTables.length; i++){
+                    $('[data-box_key="' + searchTables[i].box_key + '"]')
+                        .find('.box-body .box-body-inner-body').html(SearchEvent.loadFailedHtml());
+                }
+            })
             .always(function(data){
+                let searchTables = this.searchTables;
+                for(let i = 0; i < searchTables.length; i++){
+                    $('[data-box_key="' + searchTables[i].box_key + '"]').find('.overlay').hide();
+                }
                 SearchEvent.meiliPending--;
                 SearchEvent.updateResultMeta();
             });
+        }
+
+        /** Message put in a box whose data could not be loaded (escaped: it is shown as html). */
+        private static loadFailedHtml(): string {
+            const text = String($('.meili-result-meta').data('error') || '');
+            return $('<p class="text-warning" style="margin:6px 0;"></p>').text(text).prop('outerHTML');
         }
 
         /**
@@ -291,13 +318,18 @@ namespace Exment {
          */
         private static updateResultMeta(){
             const meta = $('.meili-result-meta');
-            if(!meta.length || !SearchEvent.meiliHasTotal || SearchEvent.meiliPending > 0){
+            if(!meta.length || SearchEvent.meiliPending > 0){
+                return;
+            }
+            if(!SearchEvent.meiliHasTotal && !SearchEvent.meiliFailed){
                 return;
             }
             const ms = new Date().getTime() - SearchEvent.meiliStart;
-            const suffix = SearchEvent.meiliCapped ? '+' : '';
+            // '+' also when a box failed: what is counted below is a floor, not an exact total.
+            const suffix = (SearchEvent.meiliCapped || SearchEvent.meiliFailed) ? '+' : '';
             meta.text('— ' + SearchEvent.meiliTotal.toLocaleString() + suffix + ' ' + meta.data('unit') + ' (' + ms + ' ms)');
-            if(SearchEvent.meiliTotal === 0){
+            // Never claim "no result" while part of the page failed to load.
+            if(SearchEvent.meiliTotal === 0 && !SearchEvent.meiliFailed){
                 $('.meili-empty').show();
             }
         }

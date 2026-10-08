@@ -30,9 +30,4 @@ final class ExtractionResult
         public readonly array $metadata = [],
     ) {
     }
-
-    public function isReady(): bool
-    {
-        return $this->status === self::READY;
-    }
 }

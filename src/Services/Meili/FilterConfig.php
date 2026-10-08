@@ -165,11 +165,6 @@ class FilterConfig
     }
 
     /**
-     * The n_<col> numeric field names of all included range columns (system-wide).
-     *
-     * @return array<int,string>
-     */
-    /**
      * Every alias currently configured, system-wide.
      *
      * An alias is used as a facet prefix in place of "table::column", so it is

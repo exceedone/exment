@@ -2286,6 +2286,7 @@ return [
         'range_min' => '下限',
         'range_max' => '上限',
         'result_unit' => '件',
+        'load_failed' => 'この表の読み込みに失敗しました。再読み込みしてください。',
         'saved_search' => '保存した検索',
         'no_saved_search' => '保存した検索はありません',
         'save_current' => '現在の条件を保存',

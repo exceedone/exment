@@ -1,7 +1,7 @@
 <div class="box box-info box-search card custom-border-info border-start-0 border-end-0">
     <div class="box-header with-border p-2 mb-2">
         <h3 class="box-title">{{ sprintf(exmtrans('search.result_label'), $query) }}
-            <small class="result-meta meili-result-meta" data-unit="{{ exmtrans('search.result_unit') }}"></small>
+            <small class="result-meta meili-result-meta" data-unit="{{ exmtrans('search.result_unit') }}" data-error="{{ exmtrans('search.load_failed') }}"></small>
         </h3>
         @if(isset($sort))
         {{-- Sort: applies to all tables; changing it reloads the page with the sort param. --}}
