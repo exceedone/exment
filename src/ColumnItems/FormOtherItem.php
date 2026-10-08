@@ -212,7 +212,7 @@ abstract class FormOtherItem implements ItemInterface
             return new $className($form_column);
         }
 
-        admin_error('Error', "Field type [$form_column_name] does not exist.");
+        admin_error('Error', 'Field type [' . e($form_column_name) . '] does not exist.');
 
         return null;
     }

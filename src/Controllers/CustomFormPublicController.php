@@ -23,6 +23,7 @@ use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\TemplateImportExport;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Exceptions\PublicFormNotFoundException;
 use Illuminate\Http\Request;
 use Symfony\Component\Console\Input\Input;
@@ -176,7 +177,8 @@ class CustomFormPublicController extends AdminControllerTableBase
                     })
                     ->caption(function ($caption) {
                         $file = ExmentFile::getData($caption);
-                        return $file->filename ?? basename($caption);
+                        // the upload widget inserts the caption into the page as html, so escape the file name
+                        return esc_html($file->filename ?? basename($caption));
                     })
                     ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_header', 'value' => '1'])])
                 ;
@@ -633,7 +635,12 @@ class CustomFormPublicController extends AdminControllerTableBase
         // get json from zip
         $importer = new TemplateImportExport\TemplateImporter();
         $file = $request->file('upload_template');
-        $json = $importer->getJsonFromZip($file);
+        try {
+            $json = $importer->getJsonFromZip($file);
+        } catch (InvalidZipEntryException $ex) {
+            // show the reason under the file field, like validateRedirect() above does
+            return back()->withInput()->withErrors(['upload_template' => $ex->getMessage()]);
+        }
 
         $public_form = null;
         \ExmentDB::transaction(function () use (&$public_form, $json, $request) {
