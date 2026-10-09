@@ -47,6 +47,21 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->assertEquals('not_answered', $this->freshAnswerRow($row->id)->getValue('answer_status'));
     }
 
+    public function testAnswerFormUsesBootstrap5Controls()
+    {
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $event = $this->createEvent();
+        $this->createAnswerRow($event->id, $userId);
+
+        $response = $this->get($this->signedAnswerUrl($event->id, $userId));
+
+        $response->assertStatus(200);
+        $response->assertSee('class="form-check-input"', false);
+        $response->assertSee('class="form-check-label"', false);
+        $response->assertSee('btn btn-primary w-100', false);
+        $response->assertDontSee('class="radio"', false);
+    }
+
     public function testInvalidSignatureRejected()
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
