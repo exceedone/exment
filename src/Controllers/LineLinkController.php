@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\System;
-use Encore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Services\Line\LineAccountLinker;
 use Exceedone\Exment\Services\Line\QrRenderer;
 use Illuminate\Http\Request;
