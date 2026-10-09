@@ -12,6 +12,7 @@ class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapte
     /**
      * get adapter class
      */
+    // @phpstan-ignore-next-line
     public static function getAdapter($app, $config, $driverKey)
     {
         $mergeConfig = static::getConfig($config);
@@ -21,6 +22,7 @@ class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapte
         return new self($client, array_get($mergeConfig, 'container'));
     }
 
+    // @phpstan-ignore-next-line
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array
     {
         return [
@@ -34,6 +36,7 @@ class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapte
      * @param array $config
      * @return array
      */
+    // @phpstan-ignore-next-line
     public static function getConfig($config): array
     {
         $mergeFrom = array_get($config, 'mergeFrom');

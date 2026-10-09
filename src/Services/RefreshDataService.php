@@ -18,6 +18,7 @@ class RefreshDataService
      * Refresh transaction data
      *
      * @return void
+     * @throws \Throwable
      */
     public static function refresh()
     {
@@ -30,6 +31,9 @@ class RefreshDataService
             'workflow_value_authorities',
             'workflow_values',
             'custom_value_authoritables',
+            // the task list marks name records by id, and the truncate below starts every record
+            // table over at id 1: a mark left behind would hide or "read" a task of a NEW record
+            'workflow_task_reads',
         ];
 
         // get user and org table info
@@ -81,8 +85,9 @@ class RefreshDataService
     /**
      * Refresh transaction data selecting table
      *
-     * @param array $tables
+     * @param array<int, mixed> $tables
      * @return void
+     * @throws \Throwable
      */
     public static function refreshTable(array $tables)
     {
@@ -137,6 +142,13 @@ class RefreshDataService
                         ->where($deleteTable['type'], $custom_table->table_name)->delete();
                 }
 
+                // the task list marks of these records. They name the table by id, not by name, so
+                // they are not in the list above. The truncate below starts the table over at id 1,
+                // and a mark left behind would hide or "read" a task of a NEW record.
+                \DB::table('workflow_task_reads')
+                    ->where('custom_table_id', $custom_table->id)
+                    ->delete();
+
                 // update select table's value
                 collect($custom_table->getSelectedTableColumns())->each(function ($custom_column) {
                     $custom_table = $custom_column->custom_table_cache;
@@ -173,6 +185,7 @@ class RefreshDataService
      * @param array|\Illuminate\Support\Collection $custom_tables
      * @return void
      */
+    // @phpstan-ignore-next-line
     public static function removeAttachmentFiles($custom_tables)
     {
         $disk = \Storage::disk(Define::DISKNAME_ADMIN);
@@ -200,6 +213,7 @@ class RefreshDataService
      * @param array|\Illuminate\Support\Collection $custom_tables
      * @return void
      */
+    // @phpstan-ignore-next-line
     public static function removeDocumentComments($custom_tables)
     {
         // delete tables

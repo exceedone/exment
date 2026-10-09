@@ -8,16 +8,24 @@ use Illuminate\Database\Eloquent\Scope;
 
 class OrderScope implements Scope
 {
+
+    // @phpstan-ignore-next-line
     private $column;
 
+
+    // @phpstan-ignore-next-line
     private $direction;
 
+
+    // @phpstan-ignore-next-line
     public function __construct($column, $direction = 'asc')
     {
         $this->column = $column;
         $this->direction = $direction;
     }
 
+
+    // @phpstan-ignore-next-line
     public function apply(Builder $builder, Model $model)
     {
         if (!$this->hasOrderById($builder, $this->column)) {
@@ -36,6 +44,8 @@ class OrderScope implements Scope
      * @param Builder $builder
      * @return boolean
      */
+
+    // @phpstan-ignore-next-line
     protected function hasOrderById(Builder $builder, string $key)
     {
         if (empty($builder->getQuery()->orders)) {

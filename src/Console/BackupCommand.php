@@ -27,6 +27,9 @@ class BackupCommand extends Command
      */
     protected $description = 'Backup database definition, table data, files in selected folder';
 
+    /**
+     * @var \Exceedone\Exment\Services\BackupRestore\Backup
+     */
     protected $backup;
 
     /**
@@ -52,12 +55,12 @@ class BackupCommand extends Command
     {
         try {
             $target = $this->option("target") ?? BackupTarget::arrays();
-            /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
+            // @phpstan-ignore-next-line
             $schedule = boolval($this->option("schedule") ?? false);
 
             if (is_string($target)) {
                 $target = collect(explode(",", $target))->map(function ($t) {
-                    /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
+                    // @phpstan-ignore-next-line
                     return new BackupTarget($t) ?? null;
                 })->filter()->toArray();
             }

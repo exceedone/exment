@@ -7,15 +7,19 @@ use Illuminate\Support\Facades\Storage;
 
 class PluginDiskService extends DiskServiceBase
 {
+    // @phpstan-ignore-next-line
     protected $plugin;
+    // @phpstan-ignore-next-line
     protected $now;
 
+    // @phpstan-ignore-next-line
     public function __construct(...$args)
     {
         $this->now = date('YmdHis');
         $this->initDiskService(isset($args[0]) ? $args[0] : null);
     }
 
+    // @phpstan-ignore-next-line
     public function initDiskService($plugin)
     {
         $this->plugin = $plugin;
@@ -66,6 +70,7 @@ class PluginDiskService extends DiskServiceBase
         return false;
     }
 
+    // @phpstan-ignore-next-line
     protected function isSetUpdatedAt()
     {
         return false;

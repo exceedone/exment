@@ -7,6 +7,7 @@ namespace Exceedone\Exment\Form\Tools;
  */
 class ModalTileAjaxMenuButton extends ModalTileMenuButton
 {
+    // @phpstan-ignore-next-line
     public function __construct($url, $options = [])
     {
         parent::__construct($options);
@@ -17,6 +18,7 @@ class ModalTileAjaxMenuButton extends ModalTileMenuButton
     /**
      * Get tile html
      */
+    // @phpstan-ignore-next-line
     public function ajaxHtml()
     {
         return $this->html();

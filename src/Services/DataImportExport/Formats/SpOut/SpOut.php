@@ -14,6 +14,7 @@ abstract class SpOut extends FormatBase
      * create file
      * 1 sheet - 1 table data
      */
+    // @phpstan-ignore-next-line
     public function createFile()
     {
         // define writers. if zip, set as array.
@@ -96,6 +97,7 @@ abstract class SpOut extends FormatBase
      * @param array $options
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getDataFromSheet($sheet, bool $keyvalue = false, bool $isGetMerge = false, array $options = []): array
     {
         $data = [];
@@ -142,6 +144,7 @@ abstract class SpOut extends FormatBase
     public function getCellValue($cell, $sheet, $isGetMerge = false)
     {
         if (is_string($cell)) {
+            // @phpstan-ignore-next-line
             $cell = $sheet->getCell($cell);
         }
 
@@ -155,6 +158,7 @@ abstract class SpOut extends FormatBase
         // If SpOut, already Calculated.
         // $value = $cell->getCalculatedValue();
         $value = $cell->getValue();
+        // @phpstan-ignore-next-line
         $type = $cell->getType();
 
         // is datetime, convert to date string

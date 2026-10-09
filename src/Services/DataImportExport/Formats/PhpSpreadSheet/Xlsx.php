@@ -9,11 +9,13 @@ class Xlsx extends PhpSpreadSheet
 {
     use XlsxTrait;
 
+    // @phpstan-ignore-next-line
     protected $accept_extension = 'xlsx';
 
     /**
      * get data table list. contains self table, and relations (if contains)
      */
+    // @phpstan-ignore-next-line
     public function getDataTable($request, array $options = [])
     {
         $options = $this->getDataOptions($options);
@@ -37,6 +39,7 @@ class Xlsx extends PhpSpreadSheet
     }
 
 
+    // @phpstan-ignore-next-line
     protected function _getData($request, $callback)
     {
         // get file
@@ -74,11 +77,13 @@ class Xlsx extends PhpSpreadSheet
     }
 
 
+    // @phpstan-ignore-next-line
     protected function createWriter($spreadsheet)
     {
         return IOFactory::createWriter($spreadsheet, 'Xlsx');
     }
 
+    // @phpstan-ignore-next-line
     protected function createReader()
     {
         return IOFactory::createReader('Xlsx');

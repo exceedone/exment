@@ -99,6 +99,7 @@ abstract class ApiTestBase extends FeatureTestBase
     {
         $response = $this->getPasswordToken('admin', 'adminadmin', $scope);
 
+        // @phpstan-ignore-next-line
         return array_get(json_decode_ex($response->baseResponse->getContent(), true), 'access_token');
     }
 
@@ -111,6 +112,7 @@ abstract class ApiTestBase extends FeatureTestBase
     {
         $response = $this->getApiKey($scope);
 
+        // @phpstan-ignore-next-line
         return array_get(json_decode_ex($response->baseResponse->getContent(), true), 'access_token');
     }
 
@@ -123,6 +125,7 @@ abstract class ApiTestBase extends FeatureTestBase
     {
         $response = $this->getPasswordToken('user1', 'user1user1', $scope);
 
+        // @phpstan-ignore-next-line
         return array_get(json_decode_ex($response->baseResponse->getContent(), true), 'access_token');
     }
 
@@ -135,6 +138,7 @@ abstract class ApiTestBase extends FeatureTestBase
     {
         $response = $this->getPasswordToken('user2', 'user2user2', $scope);
 
+        // @phpstan-ignore-next-line
         return array_get(json_decode_ex($response->baseResponse->getContent(), true), 'access_token');
     }
 
@@ -147,6 +151,7 @@ abstract class ApiTestBase extends FeatureTestBase
     {
         $response = $this->getPasswordToken('dev0-userB', 'dev0-userB', $scope);
 
+        // @phpstan-ignore-next-line
         return array_get(json_decode_ex($response->baseResponse->getContent(), true), 'access_token');
     }
 
@@ -159,6 +164,7 @@ abstract class ApiTestBase extends FeatureTestBase
     {
         $response = $this->getPasswordToken('dev1-userC', 'dev1-userC', $scope);
 
+        // @phpstan-ignore-next-line
         return array_get(json_decode_ex($response->baseResponse->getContent(), true), 'access_token');
     }
 
@@ -173,6 +179,7 @@ abstract class ApiTestBase extends FeatureTestBase
     {
         $response = $this->getPasswordToken($userid, $password, $scope);
 
+        // @phpstan-ignore-next-line
         return array_get(json_decode_ex($response->baseResponse->getContent(), true), 'access_token');
     }
 

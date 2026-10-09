@@ -13,6 +13,12 @@ use Symfony\Component\HttpFoundation\IpUtils;
  */
 abstract class IpFilterBase
 {
+    /**
+     * @param Request $request
+     * @param \Closure $next
+     * @param string $filterFuncName
+     * @return mixed
+     */
     public function handleBase(Request $request, \Closure $next, $filterFuncName)
     {
         if (config('exment.ip_filter_disabled', false)) {
@@ -40,5 +46,8 @@ abstract class IpFilterBase
         return $next($request);
     }
 
+    /**
+     * @return mixed
+     */
     abstract protected function returnError();
 }

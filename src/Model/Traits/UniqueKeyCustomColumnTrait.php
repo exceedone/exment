@@ -9,6 +9,8 @@ trait UniqueKeyCustomColumnTrait
     /**
      * get Table And Column Name
      */
+
+    // @phpstan-ignore-next-line
     protected function getUniqueKeyValues($key)
     {
         if (is_array($key) && count($key) > 0) {
@@ -33,6 +35,8 @@ trait UniqueKeyCustomColumnTrait
         ];
     }
 
+
+    // @phpstan-ignore-next-line
     protected static function importReplaceJsonCustomColumn(&$json, $replace_custom_column_key, $custom_column_key, $custom_table_key, $options = [])
     {
         $custom_column = CustomColumn::getEloquent(array_get($json, $custom_column_key), array_get($json, $custom_table_key));

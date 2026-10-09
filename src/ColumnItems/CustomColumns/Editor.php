@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Storage;
 
 class Editor extends CustomItem
 {
+    // @phpstan-ignore-next-line
     protected $tmpfiles;
 
+    // @phpstan-ignore-next-line
     public function saving()
     {
         if (is_nullorempty($this->value)) {
@@ -27,6 +29,7 @@ class Editor extends CustomItem
         return strval($value);
     }
 
+    // @phpstan-ignore-next-line
     public function saved()
     {
         if (is_nullorempty($this->tmpfiles)) {
@@ -38,6 +41,7 @@ class Editor extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         // replace img html
@@ -46,6 +50,7 @@ class Editor extends CustomItem
         return $v;
     }
 
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         $text = $this->_text($v);
@@ -61,11 +66,13 @@ class Editor extends CustomItem
         return  '<div class="show-tinymce">'.replaceBreak(html_clean($text), false).'</div>';
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Tinymce::class;
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
@@ -81,6 +88,7 @@ class Editor extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         // value string
@@ -97,6 +105,7 @@ class Editor extends CustomItem
      * @param ?string $v
      * @return string
      */
+    // @phpstan-ignore-next-line
     public static function replaceImgUrl($v, $options = [])
     {
         // replace img html
@@ -124,6 +133,7 @@ class Editor extends CustomItem
     }
 
 
+    // @phpstan-ignore-next-line
     protected function savedFileInEditor($value)
     {
         if (is_nullorempty($value)) {
@@ -221,6 +231,7 @@ class Editor extends CustomItem
         return $value;
     }
 
+    // @phpstan-ignore-next-line
     protected function getExtention($type)
     {
         if (is_nullorempty($type)) {

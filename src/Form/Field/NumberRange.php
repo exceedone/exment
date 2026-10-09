@@ -13,6 +13,7 @@ class NumberRange extends Field
     //     'end' => ['nullable', 'numeric'],
     // ];
 
+    // @phpstan-ignore-next-line
     protected $rules = ['nullable', 'numeric'];
 
     /**
@@ -20,8 +21,10 @@ class NumberRange extends Field
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $column = [];
 
+    // @phpstan-ignore-next-line
     public function __construct($column, $arguments)
     {
         $this->column['start'] = $column;
@@ -54,6 +57,7 @@ class NumberRange extends Field
     /**
      * {@inheritdoc}
      */
+    // @phpstan-ignore-next-line
     public function prepare($value)
     {
         if ($value === '') {

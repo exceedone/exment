@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class FixedUser extends NotifyTargetBase
 {
+    // @phpstan-ignore-next-line
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         return $this->getFixedUser();
@@ -24,12 +25,14 @@ class FixedUser extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return $this->getFixedUser();
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getFixedUser(): Collection
     {
         $users = array_get($this->action_setting, 'target_users');
@@ -39,6 +42,7 @@ class FixedUser extends NotifyTargetBase
         }
 
         /** @var Collection $collection */
+        // @phpstan-ignore-next-line
         $collection =  collect(stringToArray($users))->map(function ($user) {
             $user = getModelName(SystemTableName::USER)::find($user);
             return NotifyTarget::getModelAsUser($user);

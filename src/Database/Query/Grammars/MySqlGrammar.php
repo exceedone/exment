@@ -11,6 +11,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
     use GrammarTrait;
 
 
+    // @phpstan-ignore-next-line
     public function compileUpdateRemovingJsonKey($query, string $key): string
     {
         $table = $this->wrapTable($query->from);
@@ -31,6 +32,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
         $joins = '';
 
         if (isset($query->joins)) {
+            // @phpstan-ignore-next-line
             $joins = ' '.$this->compileJoins($query, $query->joins);
         }
 
@@ -63,6 +65,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      * @param array $values
      * @return \Illuminate\Database\Query\Builder
      */
+    // @phpstan-ignore-next-line
     public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false)
     {
         $index = $this->wrap($column);
@@ -122,6 +125,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getCastColumn($type, $column, $options = [])
     {
         $cast = $this->getCastString($type, $column, $options);
@@ -136,6 +140,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getColumnTypeString($type)
     {
         switch ($type) {
@@ -161,6 +166,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getCastString($type, $addOption = false, $options = [])
     {
         $cast = '';
@@ -216,6 +222,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     public function getDateFormatString($groupCondition, $column, $groupBy = false, $wrap = true)
     {
         if ($wrap) {

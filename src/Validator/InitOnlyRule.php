@@ -13,7 +13,9 @@ use Illuminate\Contracts\Validation\Rule;
  */
 class InitOnlyRule implements Rule
 {
+    /** @var mixed */
     protected $custom_column;
+    /** @var mixed */
     protected $custom_value;
 
     public function __construct(CustomColumn $custom_column, ?CustomValue $custom_value)
@@ -61,6 +63,7 @@ class InitOnlyRule implements Rule
         ]);
     }
 
+    // @phpstan-ignore-next-line
     protected function getOriginalValue()
     {
         return array_get($this->custom_value->value, $this->custom_column->column_name);

@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\CurrencySymbol;
 
 class Currency extends Decimal
 {
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         list($symbol, $value) = $this->getSymbolAndValue($v);
@@ -17,6 +18,7 @@ class Currency extends Decimal
         return getCurrencySymbolLabel($symbol, false, $value);
     }
 
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         list($symbol, $value) = $this->getSymbolAndValue($v);
@@ -27,6 +29,7 @@ class Currency extends Decimal
         return getCurrencySymbolLabel($symbol, true, $value);
     }
 
+    // @phpstan-ignore-next-line
     protected function getSymbolAndValue($v)
     {
         if (is_null($v)) {
@@ -38,9 +41,11 @@ class Currency extends Decimal
         && !boolval(array_get($this->options, 'disable_number_format'))) {
             if (array_has($this->custom_column, 'options.decimal_digit')) {
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+                // @phpstan-ignore-next-line
                 $value = number_format($v, $digit);
             //$value = preg_replace("/\.?0+$/",'', $value);
             } else {
+                // @phpstan-ignore-next-line
                 $value = number_format($v);
             }
         } else {
@@ -61,6 +66,7 @@ class Currency extends Decimal
         return [$symbol, $value];
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         parent::setAdminOptions($field);

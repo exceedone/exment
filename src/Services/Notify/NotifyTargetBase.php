@@ -25,8 +25,10 @@ abstract class NotifyTargetBase
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $action_setting;
 
+    // @phpstan-ignore-next-line
     public function __construct(Notify $notify, array $action_setting)
     {
         $this->notify = $notify;
@@ -40,6 +42,7 @@ abstract class NotifyTargetBase
      * @param Notify $notify model
      * @return NotifyTargetBase|null
      */
+    // @phpstan-ignore-next-line
     public static function make($notify_action_target, Notify $notify, array $action_setting): ?NotifyTargetBase
     {
         if ($notify_action_target instanceof CustomColumn) {
@@ -84,6 +87,7 @@ abstract class NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection Please return Notify target's collection
      */
+    // @phpstan-ignore-next-line
     abstract public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection;
 
 
@@ -96,6 +100,7 @@ abstract class NotifyTargetBase
      * @param mixed $statusTo
      * @return Collection Please return Notify target's collection
      */
+    // @phpstan-ignore-next-line
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return collect();

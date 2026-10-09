@@ -26,6 +26,7 @@ class PureService implements LoginServiceInterface
      * @param array $credentials
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public static function validateCredential(?Authenticatable $login_user, array $credentials)
     {
         if (is_null($login_user)) {

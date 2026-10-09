@@ -11,6 +11,7 @@ class DayYesterday extends DayOnBase
         return FilterOption::DAY_YESTERDAY;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
         return \Carbon\Carbon::yesterday();

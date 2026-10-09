@@ -137,6 +137,7 @@ trait InitializeFormTrait
     }
 
 
+    // @phpstan-ignore-next-line
     protected function setNotifyForm($form)
     {
         // use mail setting
@@ -174,6 +175,7 @@ trait InitializeFormTrait
     }
 
 
+    // @phpstan-ignore-next-line
     protected function postInitializeForm(Request $request, $group = null, $initialize = false, $validateUser = false)
     {
         $rules = [
@@ -215,6 +217,7 @@ trait InitializeFormTrait
         return true;
     }
 
+    // @phpstan-ignore-next-line
     protected function addTemplateTile($form)
     {
         $form->exmheader(exmtrans('template.header'))->hr();
@@ -237,7 +240,9 @@ trait InitializeFormTrait
         //     ->options(Define::FILE_OPTION());
 
         // template search url
-        $template_search_url = admin_urls('api', 'template', 'search');
+        $template_search_url = System::initialized()
+            ? admin_urls('webapi', 'template', 'search')
+            : admin_urls('api', 'template', 'search');
         $script = <<<EOT
 
     $(function(){
@@ -270,6 +275,7 @@ EOT;
     /**
      * Upload Template
      */
+    // @phpstan-ignore-next-line
     protected function uploadTemplate(Request $request)
     {
         // upload zip file
@@ -280,14 +286,15 @@ EOT;
             $file = $request->file('upload_template');
 
             // upload excel file
+            // @phpstan-ignore-next-line
             if ($file->getClientOriginalExtension() == 'xlsx') {
                 $json = $importer->uploadTemplateExcel($file);
                 $importer->import($json, false, false, true);
             }
             // upload zip file
+            // @phpstan-ignore-next-line
             elseif ($file->getClientOriginalExtension() == 'zip') {
-                $upload_template = $importer->uploadTemplate($file);
-                $importer->importTemplate($upload_template);
+                $importer->uploadTemplate($file);
             }
         }
     }
@@ -295,6 +302,7 @@ EOT;
     /**
      * file delete system.
      */
+    // @phpstan-ignore-next-line
     public function filedelete(Request $request)
     {
         // get file delete flg column name
@@ -306,17 +314,20 @@ EOT;
         ]);
     }
 
+    // @phpstan-ignore-next-line
     protected function guard()
     {
         return Auth::guard('admin');
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getUserOrgSlackColumns(string $table_name)
     {
         return $this->getUserOrgColumns($table_name, Enums\ColumnType::TEXT);
     }
 
+    // @phpstan-ignore-next-line
     protected function getUserOrgColumns(string $table_name, string $column_type)
     {
         $custom_table = CustomTable::getEloquent($table_name);
@@ -337,6 +348,7 @@ EOT;
      * @param bool $isAdvanced
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getProgressInfo(bool $isAdvanced): array
     {
         $steps = [];

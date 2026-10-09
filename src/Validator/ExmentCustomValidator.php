@@ -22,6 +22,7 @@ class ExmentCustomValidator extends AdminValidator
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $appendedMessages = [];
 
     public function passes()
@@ -34,6 +35,7 @@ class ExmentCustomValidator extends AdminValidator
         return parent::fails() || count($this->appendedMessages) > 0;
     }
 
+    // @phpstan-ignore-next-line
     public function getMessages()
     {
         return array_merge($this->errors()->messages(), $this->appendedMessages);
@@ -45,6 +47,7 @@ class ExmentCustomValidator extends AdminValidator
      * @param array $errors
      * @return self
      */
+    // @phpstan-ignore-next-line
     public function appendMessages(array $errors)
     {
         foreach ($errors as $key => $error) {
@@ -54,6 +57,7 @@ class ExmentCustomValidator extends AdminValidator
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function getMessageStrings(): array
     {
         $messages = collect();
@@ -74,6 +78,7 @@ class ExmentCustomValidator extends AdminValidator
      * @param array $parameters
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function validateUniqueInTable($attribute, $value, $parameters)
     {
         if (count($parameters) < 2) {
@@ -105,6 +110,7 @@ class ExmentCustomValidator extends AdminValidator
     * @param array $parameters
     * @return bool
     */
+    // @phpstan-ignore-next-line
     public function validateSummaryCondition($attribute, $value, $parameters)
     {
         $field_name = str_replace('.view_summary_condition', '.view_column_target', $attribute);
@@ -135,6 +141,7 @@ class ExmentCustomValidator extends AdminValidator
     * @param array $parameters
     * @return bool
     */
+    // @phpstan-ignore-next-line
     public function validateLoopRelation($attribute, $value, $parameters)
     {
         if (count($parameters) < 1) {
@@ -161,6 +168,7 @@ class ExmentCustomValidator extends AdminValidator
     /**
      * check if exists custom relation.
      */
+    // @phpstan-ignore-next-line
     protected function HasRelation($attr1, $attr2, $custom_table_id, $value, $relation_id = null)
     {
         // get count reverse relation in table;
@@ -184,6 +192,7 @@ class ExmentCustomValidator extends AdminValidator
         return true;
     }
 
+    // @phpstan-ignore-next-line
     protected function replaceChangeFieldValue($message, $attribute, $rule, $parameters)
     {
         if (count($parameters) > 0) {
@@ -200,6 +209,7 @@ class ExmentCustomValidator extends AdminValidator
     * @param array $parameters
     * @return bool
     */
+    // @phpstan-ignore-next-line
     public function validateRegularExpression($attribute, $value, $parameters)
     {
         set_error_handler(

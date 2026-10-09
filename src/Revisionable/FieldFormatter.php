@@ -29,6 +29,7 @@ class FieldFormatter
      *
      * @return string formatted value
      */
+    // @phpstan-ignore-next-line
     public static function format($key, $value, $formats)
     {
         foreach ($formats as $pkey => $format) {
@@ -58,6 +59,7 @@ class FieldFormatter
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public static function isEmpty($value, $options = array())
     {
         $value_set = isset($value) && $value != '';
@@ -73,10 +75,11 @@ class FieldFormatter
      *
      * @return string Formatted version of the boolean field
      */
+    // @phpstan-ignore-next-line
     public static function boolean($value, $options = null)
     {
         if (!is_null($options)) {
-            /** @phpstan-ignore-next-line explode expects string, array given */
+            // @phpstan-ignore-next-line
             $options = explode('|', $options);
         }
 

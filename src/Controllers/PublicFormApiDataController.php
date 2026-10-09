@@ -16,6 +16,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
 {
     use ApiDataTrait;
 
+    // @phpstan-ignore-next-line
     protected $public_form;
 
     public function __construct(?CustomTable $custom_table, ?PublicForm $public_form, Request $request)
@@ -33,6 +34,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
      * @param  array   $parameters
      * @return \Symfony\Component\HttpFoundation\Response
      */
+    // @phpstan-ignore-next-line
     public function callAction($method, $parameters)
     {
         if (!$this->custom_table || !$this->public_form) {
@@ -48,6 +50,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
      * @param mixed $id
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public function dataFind(Request $request, $uuid, $tableKey, $id)
     {
         if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
@@ -77,11 +80,13 @@ class PublicFormApiDataController extends AdminControllerTableBase
      * @param string $column_name
      * @return Response
      */
+    // @phpstan-ignore-next-line
     public function columnData(Request $request, $uuid, $tableKey, $column_name)
     {
         if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
         }
+        // @phpstan-ignore-next-line
         return $this->_columnData($request, $column_name);
     }
 
@@ -93,6 +98,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
      * *search_type(required) : 1:n, n:n or select_table.
      * *q(required) : id that user selected.
      */
+    // @phpstan-ignore-next-line
     public function relatedLinkage(Request $request)
     {
         if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {

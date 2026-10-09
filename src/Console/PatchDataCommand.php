@@ -240,6 +240,9 @@ class PatchDataCommand extends Command
             case 'patch_editable_userinfo':
                 $this->patchEditableUserInfo();
                 return 0;
+            case 'workflow_value_authorities':
+                $this->carryWorkflowValueAuthorities();
+                return 0;
         }
 
         $this->error('patch name not found.');
@@ -249,6 +252,7 @@ class PatchDataCommand extends Command
     /**
      * patch mail template
      *
+     * @param array<int, string> $mail_key_names
      * @return void
      */
     protected function patchMailTemplate($mail_key_names = [])
@@ -524,6 +528,7 @@ class PatchDataCommand extends Command
         $this->reAlterIndex($index_custom_columns);
     }
 
+    // @phpstan-ignore-next-line
     protected function reAlterIndex($index_custom_columns)
     {
         foreach ($index_custom_columns as  $index_custom_column) {
@@ -632,6 +637,7 @@ class PatchDataCommand extends Command
         $json = json_decode_ex(\File::get($configPath), true);
 
         // re-loop columns. because we have to get other column id --------------------------------------------------
+        // @phpstan-ignore-next-line
         foreach (array_get($json, "custom_tables", []) as $table) {
             // find tables. --------------------------------------------------
             $obj_table = CustomTable::getEloquent(array_get($table, 'table_name'));
@@ -752,6 +758,7 @@ class PatchDataCommand extends Command
 
 
 
+    // @phpstan-ignore-next-line
     protected function patchSystemAuthoritable()
     {
         if (!\Schema::hasTable('system_authoritable')) {
@@ -788,6 +795,7 @@ class PatchDataCommand extends Command
         System::system_admin_users(array_unique($system_admin_users));
     }
 
+    // @phpstan-ignore-next-line
     protected function patchValueAuthoritable()
     {
         if (!\Schema::hasTable('roles') || !\Schema::hasTable('value_authoritable') || !\Schema::hasTable(CustomValueAuthoritable::getTableName())) {
@@ -805,6 +813,7 @@ class PatchDataCommand extends Command
         foreach ($valueRoles as $valueRole) {
             $val = (array)$valueRole;
             $permissions = json_decode_ex($val['permissions'], true);
+            // @phpstan-ignore-next-line
             if (array_has($permissions, 'custom_value_edit')) {
                 $editRoles[] = $val['id'];
             } else {
@@ -888,6 +897,7 @@ class PatchDataCommand extends Command
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function removeDeletedTableNotify($mail_key_names = [])
     {
         // get custom table id
@@ -920,6 +930,7 @@ class PatchDataCommand extends Command
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function moveAppToStorageFolder($pathName, $diskName)
     {
         // get app/$pathName folder
@@ -1004,6 +1015,7 @@ class PatchDataCommand extends Command
         $parent_organization->save();
     }
 
+    // @phpstan-ignore-next-line
     protected function removeDeletedColumn()
     {
         $classes = [
@@ -1020,6 +1032,7 @@ class PatchDataCommand extends Command
          * @var Model\CustomViewColumn|Model\CustomViewSort|Model\CustomViewFilter|Model\CustomViewSummary|Model\CustomOperationColumn|Model\Condition|Model\CustomFormColumn $class
          * @var array $val
          */
+        // @phpstan-ignore-next-line
         foreach ($classes as $class => $val) {
             $items = $class::where($val['type'], $val['whereval'])
                 ->get();
@@ -1437,6 +1450,7 @@ class PatchDataCommand extends Command
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function patchViewSuuid(array $classes)
     {
         if (!canConnection() || !hasTable('custom_view_columns')) {
@@ -1545,6 +1559,7 @@ class PatchDataCommand extends Command
     }
 
 
+    // @phpstan-ignore-next-line
     protected function updateNotifyDifinition()
     {
         Model\Notify::get()
@@ -1683,6 +1698,7 @@ class PatchDataCommand extends Command
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function patchFormColumnRowNo()
     {
         $columns = CustomFormColumn::all();
@@ -1840,7 +1856,7 @@ class PatchDataCommand extends Command
         Model\File::where('parent_type', $custom_table->table_name)
             ->chunk(1000, function ($files) use ($custom_table) {
                 foreach ($files as $file) {
-                    /** @phpstan-ignore-next-line not found withTrashed method */
+                    // @phpstan-ignore-next-line
                     $exists = $custom_table->getValueModel()->query()
                         ->where('id', $file->parent_id)
                         ->withoutGlobalScopes()
@@ -1929,6 +1945,7 @@ class PatchDataCommand extends Command
         $this->appendCustomColumn('mail_template', 'custom_attachments');
     }
 
+    // @phpstan-ignore-next-line
     public function notifyTargetId()
     {
         Model\Notify::get()
@@ -2123,17 +2140,17 @@ class PatchDataCommand extends Command
                 }
 
                 // Set view pivot info
-                /** @phpstan-ignore-next-line maybe $notify not implement setOption method */
+                // @phpstan-ignore-next-line
                 $notify->setOption('view_pivot_table_id', $custom_table_id);
 
                 // If select table, set pivot column info
                 if (isMatchString($relation_table->searchType, Enums\SearchType::SELECT_TABLE)) {
-                    /** @phpstan-ignore-next-line maybe $notify not implement setOption method */
+                    // @phpstan-ignore-next-line
                     $notify->setOption('view_pivot_column_id', $relation_table->selectTablePivotColumn->id);
                 }
                 // relation, set "parent_id".
                 else {
-                    /** @phpstan-ignore-next-line maybe $notify not implement setOption method */
+                    // @phpstan-ignore-next-line
                     $notify->setOption('view_pivot_column_id', Define::PARENT_ID_NAME);
                 }
                 $notify->save();
@@ -2193,5 +2210,35 @@ class PatchDataCommand extends Command
                 $custom_column->save();
             }
         });
+    }
+
+    /**
+     * Records already waiting for more approvals at a step whose users were picked when the record
+     * got there: carry the picks onto their newest workflow value, as executeAction() now does on
+     * every approval (see WorkflowAction::carryWorkflowValueAuthorities()). Only adds what the
+     * record page already reads, so running it again changes nothing.
+     *
+     * @return void
+     */
+    protected function carryWorkflowValueAuthorities()
+    {
+        if (!\Schema::hasTable(SystemTableName::WORKFLOW_VALUE) || !\Schema::hasTable(SystemTableName::WORKFLOW_VALUE_AUTHORITY)) {
+            return;
+        }
+
+        // the newest value of a record carries action_executed_flg only while its step waits for
+        // more approvals (forwardWorkflowValue() clears the flag when the record moves on)
+        Model\WorkflowValue::where('latest_flg', true)
+            ->where('action_executed_flg', true)
+            ->whereNotExists(function ($query) {
+                $query->select(\DB::raw(1))
+                    ->from(SystemTableName::WORKFLOW_VALUE_AUTHORITY)
+                    ->whereColumn(SystemTableName::WORKFLOW_VALUE_AUTHORITY . '.workflow_value_id', SystemTableName::WORKFLOW_VALUE . '.id');
+            })
+            ->chunkById(1000, function ($workflow_values) {
+                foreach ($workflow_values as $workflow_value) {
+                    Model\WorkflowAction::carryWorkflowValueAuthorities($workflow_value);
+                }
+            });
     }
 }

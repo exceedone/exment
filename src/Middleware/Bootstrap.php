@@ -15,6 +15,10 @@ class Bootstrap
 {
     use BootstrapTrait;
 
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
         $this->setCssJs($request, $next);
@@ -42,6 +46,7 @@ class Bootstrap
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
             $navbar->left(new \Exceedone\Exment\Form\Navbar\Hidden());
+            $navbar->right(new \Exceedone\Exment\Form\Navbar\WorkflowTaskNav());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\NotifyNav());
         });
@@ -53,6 +58,7 @@ class Bootstrap
         static::setCssJsList([
             'vendor/exment/css/common.css',
             'vendor/exment/css/workflow.css',
+            'vendor/exment/css/workflow_task_navbar.css',
             'vendor/exment/css/customform.css',
             'vendor/exment/codemirror/codemirror.css',
             'vendor/exment/jstree/themes/default/style.min.css',
@@ -82,6 +88,7 @@ class Bootstrap
             'vendor/exment/js/search.js',
             'vendor/exment/js/calc.js',
             'vendor/exment/js/notify_navbar.js',
+            'vendor/exment/js/workflow_task_navbar.js',
             'vendor/exment/js/modal.js',
             'vendor/exment/js/workflow.js',
             'vendor/exment/js/changefield.js',
@@ -108,7 +115,7 @@ class Bootstrap
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }
-        /** @phpstan-ignore-next-line jslast() expects null, string given */
+        // @phpstan-ignore-next-line
         Ad::jslast(asset('vendor/exment/js/customscript.js?ver='.$ver));
 
         // delete object

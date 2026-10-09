@@ -24,6 +24,7 @@ abstract class SystemRequireBase
     protected $systemRequireCalledType;
 
 
+    // @phpstan-ignore-next-line
     public function systemRequireCalledType(string $systemRequireCalledType)
     {
         $this->systemRequireCalledType = $systemRequireCalledType;
@@ -31,6 +32,7 @@ abstract class SystemRequireBase
     }
 
 
+    // @phpstan-ignore-next-line
     public function getResult()
     {
         return $this->result;
@@ -57,6 +59,7 @@ abstract class SystemRequireBase
         return null;
     }
 
+    // @phpstan-ignore-next-line
     public function getResultClassSet(): ?array
     {
         switch ($this->checkResult()) {

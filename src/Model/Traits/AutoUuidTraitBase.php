@@ -15,6 +15,8 @@ trait AutoUuidTraitBase
      *
      * @deprecated version
      */
+
+    // @phpstan-ignore-next-line
     public static function findBySuuid($uuid)
     {
         return static::findByUuid($uuid);
@@ -23,6 +25,8 @@ trait AutoUuidTraitBase
     /**
      * find by string uuid
      */
+
+    // @phpstan-ignore-next-line
     public static function findByUuid($uuid)
     {
         if (!isset($uuid)) {

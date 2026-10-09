@@ -17,6 +17,9 @@ class FileColumnImportCommand extends Command
      */
     protected $signature = 'exment:file-import {dir}';
 
+    /**
+     * @var string|null
+     */
     protected $directory;
 
     /**
@@ -27,10 +30,13 @@ class FileColumnImportCommand extends Command
     protected $description = 'File Import Exment data';
 
 
+    // @phpstan-ignore-next-line
     protected static $actionClassName = DataImportExport\Actions\Import\FileColumnAction::class;
 
+    // @phpstan-ignore-next-line
     protected static $directoryName = 'file-import';
 
+    // @phpstan-ignore-next-line
     protected static $files_name = 'files';
 
     /**

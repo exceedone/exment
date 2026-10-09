@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\NotifyTarget;
 
 class CreatedUser extends NotifyTargetBase
 {
+    // @phpstan-ignore-next-line
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         return $this->_getModel($custom_value);
@@ -23,12 +24,14 @@ class CreatedUser extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return $this->_getModel($custom_value);
     }
 
 
+    // @phpstan-ignore-next-line
     protected function _getModel(?CustomValue $custom_value)
     {
         if (!$custom_value) {

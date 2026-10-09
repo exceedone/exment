@@ -12,8 +12,12 @@ use Exceedone\Exment\Model\CustomRelation;
  */
 class DuplicateRelationRule implements Rule
 {
+    /** @var mixed */
     protected $relation_id;
 
+    /**
+     * @param mixed $relation_id
+     */
     public function __construct($relation_id)
     {
         $this->relation_id = $relation_id;

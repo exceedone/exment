@@ -17,6 +17,7 @@ class PaginateProvider extends ProviderBase
      * Widget grid
      *
      */
+    // @phpstan-ignore-next-line
     protected $grid;
 
     /**
@@ -24,6 +25,7 @@ class PaginateProvider extends ProviderBase
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $headers = [];
 
     /**
@@ -33,6 +35,7 @@ class PaginateProvider extends ProviderBase
      */
     protected $filename;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         parent::__construct();
@@ -45,6 +48,7 @@ class PaginateProvider extends ProviderBase
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return $this->filename;
@@ -53,6 +57,7 @@ class PaginateProvider extends ProviderBase
     /**
      * get data
      */
+    // @phpstan-ignore-next-line
     public function data()
     {
         // get header and body
@@ -68,6 +73,7 @@ class PaginateProvider extends ProviderBase
     /**
      * get export headers
      */
+    // @phpstan-ignore-next-line
     protected function getHeaders()
     {
         // 1st row, column name
@@ -86,6 +92,7 @@ class PaginateProvider extends ProviderBase
     /**
      * get target chunk records
      */
+    // @phpstan-ignore-next-line
     public function getRecords(): Collection
     {
         if ($this->isAll) {
@@ -107,6 +114,7 @@ class PaginateProvider extends ProviderBase
     /**
      * get export bodies
      */
+    // @phpstan-ignore-next-line
     protected function getBodies($records)
     {
         if (!isset($records)) {

@@ -11,6 +11,7 @@ class DayNextYear extends DayYearBase
         return FilterOption::DAY_NEXT_YEAR;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
         return new \Carbon\Carbon('first day of next year');

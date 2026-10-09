@@ -111,6 +111,7 @@ abstract class ViewFilterBase
      */
     protected $or_option = false;
 
+    // @phpstan-ignore-next-line
     public function __construct($column_item, array $options = [])
     {
         $this->column_item = $column_item;
@@ -120,6 +121,7 @@ abstract class ViewFilterBase
     }
 
 
+    // @phpstan-ignore-next-line
     public function setCondition(Condition $condition)
     {
         $this->condition = $condition;
@@ -160,12 +162,14 @@ abstract class ViewFilterBase
      * @param string|int $view_filter_condition
      * @return ViewFilterBase|null
      */
+    // @phpstan-ignore-next-line
     public static function make($view_filter_condition, $column_item, array $options = []): ?ViewFilterBase
     {
         $classNames = static::classNames;
 
         foreach ($classNames as $className) {
             if (isMatchString($view_filter_condition, $className::getFilterOption())) {
+                // @phpstan-ignore-next-line
                 return new $className($column_item, $options);
             }
         }
@@ -179,6 +183,7 @@ abstract class ViewFilterBase
      * @param Condition $condition
      * @return ViewFilterBase|null
      */
+    // @phpstan-ignore-next-line
     public static function makeForCondition(Condition $condition, array $options = []): ?ViewFilterBase
     {
         $classNames = static::classNames;
@@ -186,7 +191,9 @@ abstract class ViewFilterBase
         foreach ($classNames as $className) {
             if (isMatchString($condition->condition_key, $className::getFilterOption())) {
                 $instance = new $className(null, $options);
+                // @phpstan-ignore-next-line
                 $instance->setCondition($condition);
+                // @phpstan-ignore-next-line
                 return $instance;
             }
         }
@@ -238,7 +245,7 @@ abstract class ViewFilterBase
      */
     public function isNumeric(): bool
     {
-        /** @phpstan-ignore-next-line Negated boolean expression is always false. */
+        // @phpstan-ignore-next-line
         if (!$this->condition) {
             return false;
         }

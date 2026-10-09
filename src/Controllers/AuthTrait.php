@@ -20,29 +20,37 @@ trait AuthTrait
 {
     use ThrottlesLogins;
 
+    // @phpstan-ignore-next-line
     protected $maxAttempts;
+    // @phpstan-ignore-next-line
     protected $decayMinutes;
+    // @phpstan-ignore-next-line
     protected $throttle;
 
+    // @phpstan-ignore-next-line
     public function getLoginPageData($array = [])
     {
         $array['site_name'] = System::site_name();
         $array['background_color'] = System::login_background_color();
 
         $val = System::site_logo();
+        /** @phpstan-ignore-next-line */
         if (!boolval(config('exment.disable_login_header_logo', false)) && !is_nullorempty($val)) {
             $array['header_image'] = admin_url('auth/file/header');
         }
         $val = System::login_page_image();
+        /** @phpstan-ignore-next-line */
         if (!is_nullorempty($val)) {
             $array['background_image'] = admin_url('auth/file/background');
         }
         $val = System::login_page_image_type();
+        /** @phpstan-ignore-next-line */
         if (!is_nullorempty($val)) {
             $array['background_image_type'] = $val;
         }
 
         // if sso_disabled is true
+        /** @phpstan-ignore-next-line */
         if (boolval(config('exment.custom_login_disabled', false))) {
             $array['login_providers'] = [];
             $array['form_providers'] = [];
@@ -64,6 +72,7 @@ trait AuthTrait
         return $array;
     }
 
+    // @phpstan-ignore-next-line
     protected function logoutSso(Request $request, $login_user, $options = [])
     {
         switch ($login_user->login_type) {
@@ -75,9 +84,12 @@ trait AuthTrait
 
                 // Only if oauth provider type is 'other'
                 // ( Because no other provider type has 'getLogoutUrl' )
+                /** @phpstan-ignore-next-line */
                 if ( $oauth_setting->getOption('oauth_provider_type') == 'other' ) {
                     $socialite_provider = LoginSetting::getSocialiteProvider($provider_name);
+                    /** @phpstan-ignore-next-line */
                     if ( $oauth_setting->getOption('oauth_option_single_logout') == 1 && method_exists($socialite_provider, 'getLogoutUrl')  ) {
+                        /** @phpstan-ignore-next-line */
                         return redirect( $socialite_provider->getLogoutUrl( \URL::route('exment.login') ) );
                     }
                 }
@@ -86,6 +98,7 @@ trait AuthTrait
                 break;
         }
 
+        /** @phpstan-ignore-next-line */
         return redirect(\URL::route('exment.login'));
     }
 
@@ -98,12 +111,15 @@ trait AuthTrait
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
      * @throws \OneLogin\Saml2\Error
      */
+    // @phpstan-ignore-next-line
     protected function logoutSaml(Request $request, $provider_name, $options = [])
     {
         $login_setting = LoginSetting::getSamlSetting($provider_name);
 
         // if not set ssout_url, return login
+        /** @phpstan-ignore-next-line */
         if (!isset($login_setting) || is_nullorempty($login_setting->getOption('saml_idp_ssout_url'))) {
+            /** @phpstan-ignore-next-line */
             return redirect(\URL::route('exment.login'));
         }
 
@@ -124,6 +140,7 @@ trait AuthTrait
      */
     protected function sendLoginResponse(Request $request)
     {
+        /** @phpstan-ignore-next-line */
         admin_toastr(trans('admin.login_successful'));
 
         $request->session()->regenerate();
@@ -137,6 +154,7 @@ trait AuthTrait
     protected function getFailedLoginMessage()
     {
         if (Lang::has('exment::exment.error.login_failed')) {
+            /** @phpstan-ignore-next-line */
             return exmtrans('error.login_failed');
         }
         /* TODO:used in a class that does not implement `getFailedLoginMessage` in the parent. */

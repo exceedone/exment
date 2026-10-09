@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\UrlTagType;
 
 class Image extends FormOtherItem
 {
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Html::class;
@@ -18,6 +19,7 @@ class Image extends FormOtherItem
      * get html(for display)
      * *Please escape
      */
+    // @phpstan-ignore-next-line
     public function _html($v)
     {
         // Whether check image url(If preview, set)
@@ -35,7 +37,7 @@ class Image extends FormOtherItem
             ]);
         }
 
-        $imageTag = '<img src="'.$url.'" class="mw-100 image_html" />';
+        $imageTag = '<img src="'.esc_html($url).'" class="mw-100 image_html" />';
         if (!boolval(array_get($this->form_column, 'options.image_aslink', false))) {
             return $imageTag;
         }

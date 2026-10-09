@@ -10,11 +10,18 @@ use Illuminate\Http\Request;
  */
 class WebIPFilter extends IpFilterBase
 {
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
         return $this->handleBase($request, $next, 'web_ip_filters');
     }
 
+    /**
+     * @return mixed
+     */
     protected function returnError()
     {
         return response(view('exment::exception.ipfilter'));

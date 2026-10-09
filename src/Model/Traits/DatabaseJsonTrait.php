@@ -6,6 +6,10 @@ trait DatabaseJsonTrait
 {
     /**
      * get value from json
+     * @param string $dbcolumnname
+     * @param string|null $key
+     * @param mixed $default
+     * @return mixed
      */
     protected function getJson($dbcolumnname, $key, $default = null)
     {
@@ -18,10 +22,16 @@ trait DatabaseJsonTrait
 
     /**
      * set value from json
-     *
+     * @param string $dbcolumnname
+     * @param string|array<string, mixed>|\Illuminate\Support\Collection<string, mixed> $key
+     * @param mixed $val
+     * @param bool $forgetIfNull
+     * @return $this
      */
     protected function setJson($dbcolumnname, $key, $val = null, $forgetIfNull = false)
     {
+
+        // @phpstan-ignore-next-line
         if (!isset($key)) {
             return $this;
         }
@@ -50,10 +60,14 @@ trait DatabaseJsonTrait
 
     /**
      * forget value from json
-     *
+     * @param string $dbcolumnname
+     * @param string $key
+     * @return $this
      */
     protected function forgetJson($dbcolumnname, $key)
     {
+
+        // @phpstan-ignore-next-line
         if (!isset($key)) {
             return $this;
         }
@@ -69,7 +83,8 @@ trait DatabaseJsonTrait
     }
     /**
      * clear value from json
-     *
+     * @param string $dbcolumnname
+     * @return $this
      */
     protected function clearJson($dbcolumnname)
     {
@@ -77,8 +92,12 @@ trait DatabaseJsonTrait
         return $this;
     }
 
-    // re-set field data --------------------------------------------------
-    // if user update form and save, but other field remove if not conatins form field, so re-set field before update
+    /**
+     * re-set field data
+     * if user update form and save, but other field remove if not conatins form field, so re-set field before update
+     * @param string $dbcolumnname
+     * @return void
+     */
     protected function prepareJson($dbcolumnname)
     {
         ///// saving event for image, file event
@@ -87,7 +106,11 @@ trait DatabaseJsonTrait
 
         // loop columns
         $update_flg = false;
+
+        // @phpstan-ignore-next-line
         foreach ($original as $key => $o) {
+
+            // @phpstan-ignore-next-line
             if ($this->setAgainOriginalValue($value, $original, $key)) {
                 $update_flg = true;
             }
@@ -110,6 +133,10 @@ trait DatabaseJsonTrait
 
     /**
      * whether setting original data. and return setting or not.
+     * @param array<string, mixed>|null $value
+     * @param array<string, mixed> $original
+     * @param string $key
+     * @return bool
      */
     protected function setAgainOriginalValue(&$value, $original, $key)
     {
@@ -145,6 +172,7 @@ trait DatabaseJsonTrait
     protected function convertSetValue($value)
     {
         if ($value instanceof \Carbon\Carbon) {
+
             return \Exment::carbonToArray($value);
         }
 

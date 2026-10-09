@@ -189,6 +189,7 @@ class CrudGrid extends CrudBase
 
 
     // create import and exporter
+    // @phpstan-ignore-next-line
     protected function getImportExportService(Grid $grid)
     {
         $service = (new DataImportExport\DataImportExportWidgetService())

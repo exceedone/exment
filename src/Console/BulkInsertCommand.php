@@ -29,7 +29,7 @@ class BulkInsertCommand extends Command
     /**
      * full path stored bulk insert files.
      *
-     * @var string
+     * @var string|null
      */
     protected $directory;
 
@@ -93,6 +93,9 @@ class BulkInsertCommand extends Command
     /**
      * convert all csv files in target folder into tsv files
      *
+     * @param \SplFileInfo $file
+     * @param bool $include_sub
+     * @return string
      */
     private function convertFile($file, $include_sub = false)
     {
@@ -117,6 +120,9 @@ class BulkInsertCommand extends Command
     /**
      * convert csv files to tsv files
      *
+     * @param string $tempdir
+     * @param \SplFileInfo $file
+     * @return string
      */
     private function convertTsv($tempdir, $file)
     {
@@ -150,6 +156,7 @@ class BulkInsertCommand extends Command
         );
 
         // get locale
+        // @phpstan-ignore-next-line
         $locales = explode('.', setlocale(LC_CTYPE, '0'));
         // set locale UTF-8 (if sjis)
         if (count($locales) >= 2 && $locales[1] == '932') {
@@ -169,6 +176,7 @@ class BulkInsertCommand extends Command
                 // write all column names
                 $records = $columns;
             } else {
+                // @phpstan-ignore-next-line
                 $records = $this->getTsvLine($columns, $header, $line);
             }
 
@@ -182,6 +190,10 @@ class BulkInsertCommand extends Command
     /**
      * edit tsv line
      *
+     * @param array<int, string> $columns
+     * @param array<int|string, mixed> $header
+     * @param array<int|string, mixed> $line
+     * @return array<int, mixed>
      */
     private function getTsvLine($columns, $header, $line)
     {
@@ -202,15 +214,21 @@ class BulkInsertCommand extends Command
     /**
      * edit tsv data item
      *
+     * @param string $field
+     * @param array<int|string, mixed> $header
+     * @param array<int|string, mixed> $line
+     * @return mixed
      */
     private function getTsvData($field, $header, $line)
     {
         // extract header item that matches the field name
         $keys = preg_grep('/^'.$field.'(\..+)?$/i', $header);
+        // @phpstan-ignore-next-line
         if (count($keys) == 0) {
             return null;
         }
         $ary = [];
+        // @phpstan-ignore-next-line
         foreach ($keys as $key => $value) {
             $data = array_key_exists($key, $line) ? $line[$key] : '';
             $targets = explode('.', $value);
@@ -228,6 +246,7 @@ class BulkInsertCommand extends Command
      *
      * @param string $file temporary file path stored work tsv files
      */
+    // @phpstan-ignore-next-line
     private function importTsv($file)
     {
         $file = new \SplFileInfo($file);

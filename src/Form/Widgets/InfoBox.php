@@ -27,6 +27,7 @@ class InfoBox extends AdminInfoBox
         $this->target();
     }
 
+    // @phpstan-ignore-next-line
     public function showLink($showLink = true)
     {
         $this->data['showLink'] = $showLink;
@@ -34,6 +35,7 @@ class InfoBox extends AdminInfoBox
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function linkText($linkText)
     {
         $this->data['linkText'] = $linkText;
@@ -41,6 +43,7 @@ class InfoBox extends AdminInfoBox
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function target($target = '_self')
     {
         $this->data['target'] = $target;

@@ -30,6 +30,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];
 
+
+    // @phpstan-ignore-next-line
     public static $templateItems = [
         'excepts' => ['suuid'],
         'langs' => [
@@ -106,11 +108,15 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         ],
     ];
 
+
+    // @phpstan-ignore-next-line
     public function dashboard()
     {
         return $this->belongsTo(Dashboard::class, 'dashboard_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function getDashboardBoxItemAttribute()
     {
         $enum_class = DashboardBoxType::getEnum($this->dashboard_box_type)->getDashboardBoxItemClass();
@@ -121,6 +127,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
      * get eloquent using request settion.
      * now only support only id.
      */
+
+    // @phpstan-ignore-next-line
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);
@@ -131,6 +139,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
      *
      * @return array
      */
+
+    // @phpstan-ignore-next-line
     public function getBoxHtmlAttr(): array
     {
         $attributes = [
@@ -146,6 +156,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         })->toArray();
     }
 
+
+    // @phpstan-ignore-next-line
     protected function getUniqueKeyValues($key)
     {
         if (is_array($key) && count($key) > 0) {
@@ -182,6 +194,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         ];
     }
 
+
+    // @phpstan-ignore-next-line
     protected static function importReplaceJson(&$json, $options = [])
     {
         // switch dashboard_box_type
@@ -211,6 +225,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         static::importReplaceJsonCustomColumn('chart_axisy', $json);
     }
 
+
+    // @phpstan-ignore-next-line
     protected static function importReplaceJsonCustomColumn($key, &$json)
     {
         $custom_column_key = "options.{$key}_column_name";

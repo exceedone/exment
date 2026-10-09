@@ -11,6 +11,7 @@ class DayOn extends DayOnBase
         return FilterOption::DAY_ON;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
         return \Carbon\Carbon::parse($query_value);

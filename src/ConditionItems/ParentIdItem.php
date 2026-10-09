@@ -16,6 +16,7 @@ class ParentIdItem extends SystemItem
      * @param CustomViewSort $custom_view_sort
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function setQuerySort($query, CustomViewSort $custom_view_sort)
     {
         $column_item = $custom_view_sort->column_item;
@@ -58,6 +59,7 @@ class ParentIdItem extends SystemItem
      *
      * @return array offset 0 : column id, 1 : table id
      */
+    // @phpstan-ignore-next-line
     public function getColumnAndTableId($column_name, $custom_table): array
     {
         $target_column_id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;

@@ -33,6 +33,9 @@ class RoutePublicFormServiceProvider extends ServiceProvider
         $this->mapExmentPublicFormWebRotes();
     }
 
+    /**
+     * @return void
+     */
     protected function mapExmentPublicFormWebRotes()
     {
         if (!canConnection() || !hasTable(SystemTableName::SYSTEM) || !System::publicform_available()) {
@@ -64,6 +67,7 @@ class RoutePublicFormServiceProvider extends ServiceProvider
         }
 
         foreach ($public_form->getCssJsPlugins() as $plugin) {
+            /** @var \Exceedone\Exment\Model\Plugin $plugin */
             $this->pluginScriptStyleRoute($plugin, $public_form->getBasePath(), 'publicform_plugin_public');
         }
     }

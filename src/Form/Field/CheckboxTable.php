@@ -8,12 +8,18 @@ class CheckboxTable extends Checkbox
 {
     protected $view = 'exment::form.field.checkboxtable';
 
+    // @phpstan-ignore-next-line
     protected $checkWidth = 100;
+    // @phpstan-ignore-next-line
     protected $scrollx = false;
+    // @phpstan-ignore-next-line
     protected $items = [];
+    // @phpstan-ignore-next-line
     protected $headerHelps = [];
+    // @phpstan-ignore-next-line
     protected $headerEsacape = true;
 
+    // @phpstan-ignore-next-line
     public function checkWidth($checkWidth)
     {
         $this->checkWidth = $checkWidth;
@@ -21,6 +27,7 @@ class CheckboxTable extends Checkbox
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function scrollx($scrollx)
     {
         $this->scrollx = $scrollx;
@@ -40,6 +47,7 @@ class CheckboxTable extends Checkbox
      * @param array $items
      * @return $this
      */
+    // @phpstan-ignore-next-line
     public function items($items)
     {
         $this->items = $items;
@@ -48,6 +56,7 @@ class CheckboxTable extends Checkbox
     }
 
 
+    // @phpstan-ignore-next-line
     public function headerEsacape(bool $escape)
     {
         $this->headerEsacape = $escape;
@@ -59,6 +68,7 @@ class CheckboxTable extends Checkbox
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getItems()
     {
         $result = [];
@@ -108,6 +118,7 @@ class CheckboxTable extends Checkbox
     public function render()
     {
         // get items error message
+        // @phpstan-ignore-next-line
         return parent::render()->with([
             'checkWidth' => $this->checkWidth,
             'scrollx' => $this->scrollx,

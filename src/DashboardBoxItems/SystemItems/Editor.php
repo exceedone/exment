@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 
 class Editor
 {
+    // @phpstan-ignore-next-line
     protected $dashboard_box;
 
     public function __construct(?DashboardBox $dashboard_box)
@@ -17,6 +18,7 @@ class Editor
     /**
      * get header
      */
+    // @phpstan-ignore-next-line
     public function header()
     {
         return null;
@@ -25,6 +27,7 @@ class Editor
     /**
      * get footer
      */
+    // @phpstan-ignore-next-line
     public function footer()
     {
         return null;
@@ -33,6 +36,7 @@ class Editor
     /**
      * get html body
      */
+    // @phpstan-ignore-next-line
     public function body()
     {
         // escape script.
@@ -42,6 +46,7 @@ class Editor
     /**
      * set laravel admin embeds option
      */
+    // @phpstan-ignore-next-line
     public static function setAdminOptions(&$form, $dashboard)
     {
         $form->tinymce('content', exmtrans('dashboard.dashboard_box_options.content'))

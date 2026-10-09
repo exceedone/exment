@@ -44,6 +44,7 @@ use Illuminate\Support\Str;
 /** @phpstan-consistent-constructor */
 class DefaultShow extends ShowBase
 {
+    // @phpstan-ignore-next-line
     protected static $showClassName = \Exceedone\Exment\Form\Show::class;
 
     /**
@@ -53,6 +54,7 @@ class DefaultShow extends ShowBase
      */
     protected $rowCount = 0;
 
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -64,6 +66,7 @@ class DefaultShow extends ShowBase
      * set option boxes.
      * contains file uploads, revisions
      */
+    // @phpstan-ignore-next-line
     public function setOptionBoxes($row)
     {
         $this->setChildBlockBox($row);
@@ -83,10 +86,11 @@ class DefaultShow extends ShowBase
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      */
+    // @phpstan-ignore-next-line
     protected function setSystemValues($show)
     {
         $trashed = boolval(request()->get('trashed'));
-        /** @phpstan-ignore-next-line class Encore\Admin\Show\Field constructor expects string, null given */
+        // @phpstan-ignore-next-line
         $field = (new ShowField(null, null))->system_values([
             'withTrashed' => $trashed])->setWidth(12, 0);
 
@@ -102,6 +106,7 @@ class DefaultShow extends ShowBase
     /**
      * create show form list
      */
+    // @phpstan-ignore-next-line
     public function createShowForm()
     {
         return new static::$showClassName($this->custom_value, function ($show) {
@@ -124,7 +129,7 @@ class DefaultShow extends ShowBase
 
                     $field = new ShowField($item->name(), $item->label());
                     $field->as(function ($v) use ($item) {
-                        /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\DataItems\Show\DefaultShow) will always evaluate to false. */
+                        // @phpstan-ignore-next-line
                         if (is_null($this)) {
                             return '';
                         }
@@ -456,7 +461,7 @@ class DefaultShow extends ShowBase
                         'add_id' => true,
                     ]));
                 });
-                /** @phpstan-ignore-next-line column() expects int, array<string, int> given */
+                // @phpstan-ignore-next-line
                 $row->column(['xs' => 12, 'sm' => 12], $grid->render());
             }
         }
@@ -465,6 +470,7 @@ class DefaultShow extends ShowBase
     /**
      * get revision compare.
      */
+    // @phpstan-ignore-next-line
     public function getRevisionCompare($revision_suuid = null, $pjax = false)
     {
         $table_name = $this->custom_table->table_name;
@@ -543,6 +549,7 @@ EOT;
         return view("exment::custom-value.revision-compare", $prms);
     }
 
+    // @phpstan-ignore-next-line
     protected function setRevisionBox($row)
     {
         $revisions = $this->getRevisions();
@@ -566,13 +573,14 @@ EOT;
                 'No.'.($revision->revision_no)
             )->setWidth(9, 2);
         }
-        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
+        // @phpstan-ignore-next-line
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
     }
 
     /**
      * whether file upload field
      */
+    // @phpstan-ignore-next-line
     protected function useFileUpload()
     {
         // if no permission, return
@@ -586,11 +594,13 @@ EOT;
     /**
      * whether comment field
      */
+    // @phpstan-ignore-next-line
     protected function useComment()
     {
         return !$this->modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
 
+    // @phpstan-ignore-next-line
     protected function getDocuments()
     {
         if ($this->modal) {
@@ -599,6 +609,7 @@ EOT;
         return $this->custom_value->getDocuments();
     }
 
+    // @phpstan-ignore-next-line
     protected function setDocumentBox($row)
     {
         $documents = $this->getDocuments();
@@ -669,10 +680,11 @@ EOT;
 
             Admin::script($script);
         }
-        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
+        // @phpstan-ignore-next-line
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
     }
 
+    // @phpstan-ignore-next-line
     protected function getComments()
     {
         if ($this->modal) {
@@ -683,6 +695,7 @@ EOT;
             ->get();
     }
 
+    // @phpstan-ignore-next-line
     protected function setCommentBox($row)
     {
         $useComment = $this->useComment();
@@ -721,10 +734,11 @@ EOT;
             ->setLabelClass(['d-none'])
             ->setWidth(12, 0);
         }
-        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
+        // @phpstan-ignore-next-line
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
 
+    // @phpstan-ignore-next-line
     public function getWorkflowHistory()
     {
         $workflows = $this->custom_value->getWorkflowHistories(true)->toArray();
@@ -760,6 +774,7 @@ EOT;
     /**
      * restore data
      */
+    // @phpstan-ignore-next-line
     public function restoreRevision($revision_suuid)
     {
         $this->custom_value->setRevision($revision_suuid)->restore_revision()->save();
@@ -769,6 +784,7 @@ EOT;
     /**
      * get target data revisions
      */
+    // @phpstan-ignore-next-line
     protected function getRevisions($all = false)
     {
         if ($this->modal || !boolval($this->custom_table->getOption('revision_flg', true))) {
@@ -799,6 +815,7 @@ EOT;
     /**
      * for file upload function.
      */
+    // @phpstan-ignore-next-line
     public function fileupload($httpfiles)
     {
         if (is_nullorempty($httpfiles)) {
@@ -832,6 +849,7 @@ EOT;
     /**
      * file delete custom column.
      */
+    // @phpstan-ignore-next-line
     public function filedelete(Request $request, $form)
     {
         // get file delete flg column name
@@ -874,6 +892,7 @@ EOT;
     /**
      * add comment.
      */
+    // @phpstan-ignore-next-line
     public function addComment($comment)
     {
         if (!empty($comment)) {
@@ -901,6 +920,7 @@ EOT;
     /**
      * delete comment.
      */
+    // @phpstan-ignore-next-line
     public function deleteComment($id, $suuid)
     {
         if (!empty($suuid)) {

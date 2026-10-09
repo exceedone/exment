@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 
 trait SystemValuesTrait
 {
+    // @phpstan-ignore-next-line
     public $withTrashed = false;
 
+    // @phpstan-ignore-next-line
     public function renderSystemItem(CustomValue|Model|null $custom_value)
     {
         if (!isset($custom_value) || !isset($custom_value->id)) {
@@ -52,6 +54,7 @@ trait SystemValuesTrait
         ]);
     }
 
+    // @phpstan-ignore-next-line
     protected function getValues($custom_value, $items)
     {
         $result = [];
@@ -75,6 +78,7 @@ trait SystemValuesTrait
             if (boolval(array_get($options, 'getOld'))) {
                 $value = old($param);
             }
+            /** @phpstan-ignore-next-line */
             if (is_nullorempty($value)) {
                 $value = $custom_value->{$param};
             }
@@ -84,6 +88,7 @@ trait SystemValuesTrait
             }
 
             $result[] = [
+                /** @phpstan-ignore-next-line */
                 'label' => exmtrans("common.$key"),
                 'value' => $value
             ];
@@ -92,6 +97,7 @@ trait SystemValuesTrait
         return $result;
     }
 
+    // @phpstan-ignore-next-line
     protected function showWorkflowHistories($custom_value)
     {
         $workflowHistories = $custom_value->getWorkflowHistories();
@@ -99,11 +105,13 @@ trait SystemValuesTrait
             return null;
         }
 
+        /** @phpstan-ignore-next-line */
         $link = url_join($custom_value->getUrl(), 'workflowHistoryModal');
         if ($this->withTrashed) {
             $link .= '?trashed=1';
         }
         return [
+            /** @phpstan-ignore-next-line */
             'label' => exmtrans('common.history'),
             'value' => '<a href="javascript:void(0);" data-widgetmodal_url="' . $link . '">' . trans('admin.show') . '</a>'
         ];

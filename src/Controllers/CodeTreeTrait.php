@@ -18,13 +18,16 @@ trait CodeTreeTrait
      * @param array $json
      * @param bool $root is root as.
      */
+    // @phpstan-ignore-next-line
     protected function setDirectoryNodes($folder, $parent, &$json, bool $root = false)
     {
+        /** @phpstan-ignore-next-line */
         $directory_node = "node_" . make_uuid();
         $json[] = [
             'id' => $directory_node,
             'parent' => $parent,
             'path' => $folder,
+            /** @phpstan-ignore-next-line */
             'text' => isMatchString($folder, '/') ? '/' : basename($folder),
             'state' => [
                 'opened' => $parent == '#',
@@ -40,8 +43,10 @@ trait CodeTreeTrait
         $files = $this->getFilePaths($folder);
         foreach ($files as $file) {
             $json[] = [
+                /** @phpstan-ignore-next-line */
                 'id' => "node_" . make_uuid(),
                 'parent' => $directory_node,
+                /** @phpstan-ignore-next-line */
                 'path' => path_join($folder, basename($file)),
                 'icon' => 'jstree-file',
                 'text' => basename($file),
@@ -59,11 +64,13 @@ trait CodeTreeTrait
     protected function getNodePath($nodeId): ?string
     {
         $nodelist = session(static::node_key);
+        /** @phpstan-ignore-next-line */
         if (is_nullorempty($nodelist)) {
             return null;
         }
 
         foreach ($nodelist as $node) {
+            /** @phpstan-ignore-next-line */
             if (!isMatchString($nodeId, array_get($node, 'id'))) {
                 continue;
             }

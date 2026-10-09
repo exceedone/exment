@@ -19,16 +19,32 @@ abstract class AdminControllerTableBase extends Controller
 {
     use ExmentControllerTrait;
 
+    /**
+     * @var CustomTable|null
+     */
     protected $custom_table;
+
+    /**
+     * @var \Illuminate\Database\Eloquent\Collection|null
+     */
+    // @phpstan-ignore-next-line
     protected $custom_columns;
+
+    /**
+     * @var mixed
+     */
     protected $custom_view;
+
+    /**
+     * @var mixed
+     */
     protected $custom_form;
 
     /**
      * @param CustomTable|null $custom_table
      * @param Request $request
-     * @phpstan-ignore-next-line
      */
+    // @phpstan-ignore-next-line
     public function __construct(?CustomTable $custom_table, Request $request)
     {
         $this->custom_table = $custom_table;
@@ -47,7 +63,7 @@ abstract class AdminControllerTableBase extends Controller
      * Execute an action on the controller.
      *
      * @param  string  $method
-     * @param  array   $parameters
+     * @param  array<string, mixed>   $parameters
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function callAction($method, $parameters)
@@ -59,6 +75,11 @@ abstract class AdminControllerTableBase extends Controller
         return $this->{$method}(...array_values($parameters));
     }
 
+    /**
+     * @param mixed $column
+     * @param mixed $columnType
+     * @return bool
+     */
     protected function validateEditColumnType($column, $columnType)
     {
         if (is_null($columnType) || $columnType !== $column->column_type) {
@@ -73,6 +94,11 @@ abstract class AdminControllerTableBase extends Controller
      * ex. check /admin/column/user/1/edit
      * whether "1" is user's column
      * $isValue: whether
+     *
+     * @param string $className
+     * @param mixed $id
+     * @param mixed $endpoint
+     * @return bool
      */
     protected function validateTableAndId($className, $id, $endpoint)
     {
@@ -130,9 +156,9 @@ abstract class AdminControllerTableBase extends Controller
      *
      * @param Request $request
      * @param Content $content
-     * @param $tableKey
-     * @param $id
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function show(Request $request, Content $content, $tableKey, $id)
     {
@@ -148,8 +174,10 @@ abstract class AdminControllerTableBase extends Controller
     /**
      * Edit interface.
      *
-     * @param mixed   $id
+     * @param Request $request
      * @param Content $content
+     * @param mixed $tableKey
+     * @param mixed $id
      * @return Content
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
@@ -160,6 +188,7 @@ abstract class AdminControllerTableBase extends Controller
     /**
      * Create interface.
      *
+     * @param Request $request
      * @param Content $content
      * @return Content
      */

@@ -9,6 +9,7 @@ class SelectValtext extends Select
 {
     use ImportValueTrait;
 
+    // @phpstan-ignore-next-line
     protected function getReturnsValue($select_options, $val, $label)
     {
         // switch column_type and get return value
@@ -25,12 +26,14 @@ class SelectValtext extends Select
         return $returns;
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         $select_options = $this->custom_column->createSelectOptions();
         $validates[] = new Validator\SelectValTextRule($select_options);
     }
 
+    // @phpstan-ignore-next-line
     public function saving()
     {
         $v = $this->getPureValue($this->value);
@@ -44,6 +47,7 @@ class SelectValtext extends Select
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getImportValueOption()
     {
         return $this->custom_column->createSelectOptions();

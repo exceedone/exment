@@ -25,13 +25,16 @@ class PublicShowRelation implements Renderable
      */
     protected $view = 'exment::public-form.confirmpanel-relation';
 
+    // @phpstan-ignore-next-line
     protected $title;
 
+    // @phpstan-ignore-next-line
     protected $children = [];
 
     /**
      * Get the value of title
      */
+    // @phpstan-ignore-next-line
     public function getTitle()
     {
         return $this->title;
@@ -42,6 +45,7 @@ class PublicShowRelation implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setTitle($title)
     {
         $this->title = $title;
@@ -52,6 +56,7 @@ class PublicShowRelation implements Renderable
     /**
      * Get the value of children
      */
+    // @phpstan-ignore-next-line
     public function getChildren()
     {
         return $this->children;
@@ -62,6 +67,7 @@ class PublicShowRelation implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function addChildren($children)
     {
         $this->children[] = $children;

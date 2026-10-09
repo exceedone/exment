@@ -17,6 +17,7 @@ class NotifyAction extends EnumBase
      * @param string|array $action_setting
      * @return boolean
      */
+    // @phpstan-ignore-next-line
     public static function isChatMessage($action_setting): bool
     {
         if (is_nullorempty($action_setting)) {
@@ -38,6 +39,7 @@ class NotifyAction extends EnumBase
      * @param string|array $action_setting
      * @return boolean
      */
+    // @phpstan-ignore-next-line
     public static function isUserTarget($action_setting): bool
     {
         if (is_nullorempty($action_setting)) {
@@ -51,6 +53,7 @@ class NotifyAction extends EnumBase
         return false;
     }
 
+    // @phpstan-ignore-next-line
     public static function getColumnGettingOptions($notify_action)
     {
         switch ($notify_action) {

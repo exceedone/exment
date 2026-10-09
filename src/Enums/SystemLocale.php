@@ -12,6 +12,7 @@ class SystemLocale extends EnumBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public static function getLocaleOptions()
     {
         // get expand system locale

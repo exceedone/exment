@@ -6,10 +6,15 @@ use Encore\Admin\Grid\Tools\BatchAction;
 
 class BatchUpdate extends BatchAction
 {
+    /**
+     * @var mixed
+     */
     protected $operation;
 
     /**
      * Create a new Tools instance.
+     *
+     * @param mixed $operation
      */
     public function __construct($operation)
     {
@@ -18,6 +23,8 @@ class BatchUpdate extends BatchAction
 
     /**
      * Script of batch delete action.
+     *
+     * @return string
      */
     public function script()
     {
@@ -38,7 +45,7 @@ class BatchUpdate extends BatchAction
      *
      * @param string $title
      *
-     * @return $this
+     * @return static
      */
     public function setTitle($title)
     {
@@ -47,6 +54,12 @@ class BatchUpdate extends BatchAction
         return $this;
     }
 
+    /**
+     * Generate script for Swal dialog.
+     *
+     * @param string $suuid
+     * @return string
+     */
     protected function scriptSwal($suuid)
     {
         $url = url($this->resource);
@@ -79,6 +92,12 @@ $('{$this->getElementClass()}').on('click', function() {
 EOT;
     }
 
+    /**
+     * Generate script for Modal dialog.
+     *
+     * @param string $suuid
+     * @return string
+     */
     protected function scriptModal($suuid)
     {
         $url = url($this->resource);

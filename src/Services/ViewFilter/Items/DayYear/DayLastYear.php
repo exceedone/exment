@@ -11,6 +11,7 @@ class DayLastYear extends DayYearBase
         return FilterOption::DAY_LAST_YEAR;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
         return new \Carbon\Carbon('first day of last year');

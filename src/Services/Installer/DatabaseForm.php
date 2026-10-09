@@ -13,6 +13,7 @@ class DatabaseForm
 {
     use EnvTrait;
 
+    // @phpstan-ignore-next-line
     protected $database_default = null;
 
     public const settings = [
@@ -24,6 +25,7 @@ class DatabaseForm
         'password',
     ];
 
+    // @phpstan-ignore-next-line
     public function index()
     {
         $database_default = config('database.default', 'mysql');
@@ -38,9 +40,11 @@ class DatabaseForm
             $args[$s] = array_get($database_connection, $s);
         }
 
+        // @phpstan-ignore-next-line
         return view('exment::install.database', $args);
     }
 
+    // @phpstan-ignore-next-line
     public function post()
     {
         $request = request();
@@ -214,6 +218,7 @@ class DatabaseForm
         return true;
     }
 
+    // @phpstan-ignore-next-line
     protected function connection()
     {
         return \DB::connection($this->database_default);

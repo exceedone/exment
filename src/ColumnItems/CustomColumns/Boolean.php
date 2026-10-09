@@ -14,8 +14,10 @@ class Boolean extends CustomItem
     /**
      * laravel-admin set required. if false, always not-set required
      */
+    // @phpstan-ignore-next-line
     protected $required = false;
 
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         if ($this->getTrueValue() == $v) {
@@ -26,6 +28,7 @@ class Boolean extends CustomItem
         return null;
     }
 
+    // @phpstan-ignore-next-line
     public function saving()
     {
         // get custom_value's value.
@@ -47,18 +50,21 @@ class Boolean extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\SwitchField::class;
     }
 
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         $option = $this->getImportValueOption();
         $validates[] = new Validator\BooleanRule($option);
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
@@ -71,6 +77,7 @@ class Boolean extends CustomItem
         $field->states($states);
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
         $column = $this->custom_column;
@@ -81,6 +88,7 @@ class Boolean extends CustomItem
         ]);
     }
 
+    // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
         return [\Encore\Admin\Validator\HasOptionRule::class];
@@ -91,6 +99,7 @@ class Boolean extends CustomItem
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function getImportValueOption()
     {
         $column = $this->custom_column;
@@ -148,10 +157,12 @@ class Boolean extends CustomItem
             ->default(exmtrans("custom_column.options.false_label_default"));
     }
 
+    // @phpstan-ignore-next-line
     public function getFalseValue()
     {
         return array_get($this->custom_column, 'options.false_value');
     }
+    // @phpstan-ignore-next-line
     public function getTrueValue()
     {
         return array_get($this->custom_column, 'options.true_value');

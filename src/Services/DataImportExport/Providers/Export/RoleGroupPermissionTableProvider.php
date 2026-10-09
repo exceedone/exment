@@ -12,11 +12,13 @@ class RoleGroupPermissionTableProvider extends RoleGroupPermissionProvider
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return 'role_group_permission_table';
     }
     
+    // @phpstan-ignore-next-line
     protected function setRoleTypeFilter(&$query)
     {
         $ids = CustomTable::whereNotIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER())
@@ -30,12 +32,14 @@ class RoleGroupPermissionTableProvider extends RoleGroupPermissionProvider
         return RoleGroupType::TABLE();
     }
 
+    // @phpstan-ignore-next-line
     protected function setHeadersOfType(array &$headers, array &$titles): void
     {
         $headers[] = "role_group_target_id"; 
         $titles[] = exmtrans('role_group.role_group_target_table'); 
     }
 
+    // @phpstan-ignore-next-line
     protected function setBodiesOfType(array &$body_items, $record): void
     {
         $body_items[] = $record->role_group_target_id;

@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\WorkflowValue;
 
 class Administrator extends NotifyTargetBase
 {
+    // @phpstan-ignore-next-line
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         return $this->_getModel();
@@ -25,12 +26,14 @@ class Administrator extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return $this->_getModel();
     }
 
 
+    // @phpstan-ignore-next-line
     protected function _getModel()
     {
         $admins = System::system_admin_users();

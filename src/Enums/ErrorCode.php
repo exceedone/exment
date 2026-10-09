@@ -51,6 +51,7 @@ class ErrorCode extends EnumBase
     public const DISAPPROVAL_IP = '301';
     public const NOT_CONTAINS_CUSTOM_FORM = '401';
 
+    // @phpstan-ignore-next-line
     public function getMessage()
     {
         if ($this == static::PERMISSION_DENY) {

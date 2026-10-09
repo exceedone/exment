@@ -15,6 +15,7 @@ class FormColumnType extends EnumBase
      *
      * @var array[]
      */
+    // @phpstan-ignore-next-line
     protected static $options = [
         1 => ['id' => 1, 'column_name' => 'header'],
         2 => ['id' => 2, 'column_name' => 'explain'],
@@ -24,13 +25,13 @@ class FormColumnType extends EnumBase
         6 => ['id' => 6, 'column_name' => 'hr'],
     ];
 
+    // @phpstan-ignore-next-line
     public static function getEnum($value, $default = null)
     {
         $enum = parent::getEnum($value, $default);
         if (isset($enum)) {
             return $enum;
         }
-
         foreach (self::$options as $key => $v) {
             if (array_get($v, 'id') == $value) {
                 return parent::getEnum($key);

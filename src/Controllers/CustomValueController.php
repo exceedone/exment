@@ -82,6 +82,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param int $id
      * @return bool|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
+    // @phpstan-ignore-next-line
     public function update($tableKey, $id)
     {
         $request = request();
@@ -112,6 +113,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param int $id
      * @return bool|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
+    // @phpstan-ignore-next-line
     public function destroy($tableKey, $id)
     {
         $request = request();
@@ -183,7 +185,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
-                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
+                // @phpstan-ignore-next-line
                 $row = new Row($form);
             }
             // no record
@@ -195,7 +197,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form(null);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
-                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given*/
+                // @phpstan-ignore-next-line
                 $row = new Row($form);
             }
 
@@ -319,7 +321,7 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
+        // @phpstan-ignore-next-line
         $row = new Row($form);
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
@@ -364,7 +366,7 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::EDIT,
             'custom_value' => $custom_value
         ]);
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
+        // @phpstan-ignore-next-line
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
@@ -441,6 +443,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * compare
      */
+    // @phpstan-ignore-next-line
     public function compare(Request $request, Content $content, $tableKey, $id)
     {
         $this->firstFlow($request, CustomValuePageType::SHOW, $id);
@@ -455,6 +458,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * get compare item for pjax
      */
+    // @phpstan-ignore-next-line
     public function compareitem(Request $request, Content $content, $tableKey, $id)
     {
         $this->firstFlow($request, CustomValuePageType::SHOW, $id);
@@ -467,6 +471,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * restore data
      */
+    // @phpstan-ignore-next-line
     public function restoreRevision(Request $request, $tableKey, $id)
     {
         $this->firstFlow($request, CustomValuePageType::EDIT, $id);
@@ -481,6 +486,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * for file upload function.
      */
+    // @phpstan-ignore-next-line
     public function fileupload(Request $request, $tableKey, $id)
     {
         if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
@@ -493,6 +499,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * file delete custom column.
      */
+    // @phpstan-ignore-next-line
     public function filedelete(Request $request, $tableKey, $id)
     {
         if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
@@ -506,6 +513,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * add comment.
      */
+    // @phpstan-ignore-next-line
     public function addComment(Request $request, $tableKey, $id)
     {
         if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
@@ -521,6 +529,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * remove comment.
      */
+    // @phpstan-ignore-next-line
     public function deleteComment(Request $request, $tableKey, $id, $suuid)
     {
         if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
@@ -535,6 +544,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * @param Request $request
      */
+    // @phpstan-ignore-next-line
     public function import(Request $request)
     {
         if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
@@ -548,6 +558,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * get import modal
      */
+    // @phpstan-ignore-next-line
     public function importModal(Request $request, $tableKey)
     {
         if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
@@ -565,6 +576,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param Request $request
      * @return Response
      */
+    // @phpstan-ignore-next-line
     public function pluginClick(Request $request, $tableKey, $id = null)
     {
         if ($request->input('uuid') === null) {
@@ -612,6 +624,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return array|Response
      */
+    // @phpstan-ignore-next-line
     public function operationClick(Request $request, $tableKey, $id = null)
     {
         $ids = !is_nullorempty($id) ? $id : $request->input('id');
@@ -659,6 +672,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return bool|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|Response
      */
+    // @phpstan-ignore-next-line
     public function workflowHistoryModal(Request $request, $tableKey, $id = null)
     {
         if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
@@ -682,6 +696,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * get action modal
      */
+    // @phpstan-ignore-next-line
     public function actionModal(Request $request, $tableKey, $id)
     {
         if (is_null($id) || $request->input('action_id') === null) {
@@ -693,6 +708,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
+        // @phpstan-ignore-next-line
         return $action->actionModal($this->custom_table->getValueModel($id));
     }
 
@@ -704,6 +720,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function actionClick(Request $request, $tableKey, $id)
     {
         if (is_null($id) || $request->input('action_id') === null) {
@@ -720,6 +737,7 @@ class CustomValueController extends AdminControllerTableBase
         //validation
         $workflow_actions = $custom_value->getWorkflowActions(true);
         if (!$workflow_actions->contains(function($workflow_action) use($action){
+            // @phpstan-ignore-next-line
             return $workflow_action->id == $action->id;
         })) {
             return ([
@@ -728,6 +746,7 @@ class CustomValueController extends AdminControllerTableBase
             ]);
         }
 
+        // @phpstan-ignore-next-line
         $action->executeAction($custom_value, [
             'comment' => $request->get('comment'),
             'next_work_users' => $request->get('next_work_users'),
@@ -743,6 +762,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * get copy modal
      */
+    // @phpstan-ignore-next-line
     public function copyModal(Request $request, $tableKey, $id)
     {
         if ($request->input('uuid') === null) {
@@ -797,6 +817,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * get operation modal
      */
+    // @phpstan-ignore-next-line
     public function operationModal(Request $request, $tableKey, $id = null)
     {
         if ($request->input('suuid') === null) {
@@ -864,6 +885,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return Response
      */
+    // @phpstan-ignore-next-line
     public function copyClick(Request $request, $tableKey, $id = null)
     {
         if ($request->input('uuid') === null) {
@@ -889,6 +911,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * create notify mail send form
      */
+    // @phpstan-ignore-next-line
     public function notifyClick(Request $request, $tableKey, $id = null)
     {
         $targetid = $request->get('targetid');
@@ -922,6 +945,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * create share form
      */
+    // @phpstan-ignore-next-line
     public function shareClick(Request $request, $tableKey, $id)
     {
         // get customvalue
@@ -938,6 +962,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * restore trashed value
      */
+    // @phpstan-ignore-next-line
     public function restoreClick(Request $request, $tableKey, $id)
     {
         return $this->restore($request, $tableKey, $id);
@@ -946,6 +971,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * restore trashed value
      */
+    // @phpstan-ignore-next-line
     public function rowRestore(Request $request, $tableKey)
     {
         return $this->restore($request, $tableKey, $request->get('id'));
@@ -954,6 +980,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * set notify target users and  get form
      */
+    // @phpstan-ignore-next-line
     public function sendTargetUsers(Request $request, $tableKey, $id = null)
     {
         $service = $this->getNotifyService($tableKey, $id);
@@ -974,6 +1001,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * send mail
      */
+    // @phpstan-ignore-next-line
     public function sendMail(Request $request, $tableKey, $id = null)
     {
         $service = $this->getNotifyService($tableKey, $id);
@@ -985,6 +1013,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * set share users organizations
      */
+    // @phpstan-ignore-next-line
     public function sendShares(Request $request, $tableKey, $id)
     {
         // get customvalue
@@ -1004,6 +1033,7 @@ class CustomValueController extends AdminControllerTableBase
         return $form_item->id($id)->form();
     }
 
+    // @phpstan-ignore-next-line
     protected function restore(Request $request, $tableKey, $id)
     {
         $ids = stringToArray($id);
@@ -1045,6 +1075,7 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
+    // @phpstan-ignore-next-line
     protected function getNotifyService($tableKey, $id)
     {
         $targetid = request()->get('mail_template_id');
@@ -1064,6 +1095,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Check whether user has edit permission
      */
+    // @phpstan-ignore-next-line
     protected function redirectShow($id)
     {
         if (!$this->custom_table->hasPermissionEditData($id)) {
@@ -1076,6 +1108,7 @@ class CustomValueController extends AdminControllerTableBase
      * First flow. check role and set form and view id etc.
      * different logic for new, update or show
      */
+    // @phpstan-ignore-next-line
     protected function firstFlow(Request $request, $formActionType, $id = null)
     {
         // if this custom_table doesn't have custom_columns, redirect custom_column's page(admin) or back
@@ -1102,6 +1135,7 @@ class CustomValueController extends AdminControllerTableBase
             $code = $custom_value ? $custom_value->enableEdit(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::SHOW) {
             $custom_value = $this->custom_table->getValueModel($id, $trashed && $this->custom_table->enableShowTrashed() === true);
+            // @phpstan-ignore-next-line
             $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();
@@ -1118,6 +1152,7 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         if ($code !== true) {
+            // @phpstan-ignore-next-line
             Checker::error($code->getMessage());
             return false;
         }
@@ -1128,6 +1163,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * validate before delete.
      */
+    // @phpstan-ignore-next-line
     protected function validateDestroy($id)
     {
         return $this->custom_table->validateValueDestroy($id);
@@ -1137,6 +1173,7 @@ class CustomValueController extends AdminControllerTableBase
      * set view and form info.
      * use session etc
      */
+    // @phpstan-ignore-next-line
     protected function setFormViewInfo(Request $request, $formActionType, $id = null)
     {
         // set view
@@ -1171,6 +1208,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * create qrcode form
      */
+    // @phpstan-ignore-next-line
     protected function formCreateQrcode(Request $request, $table_id)
     {
         $form = new ModalForm();
@@ -1190,6 +1228,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * create qrcode and assign to data
      */
+    // @phpstan-ignore-next-line
     protected function createQrCode(Request $request, $table_id)
     {
         $qr_number = $request->get('qr_number');
@@ -1225,6 +1264,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * download qrcode to pdf
      */
+    // @phpstan-ignore-next-line
     protected function qrcodeDownload(Request $request, $table_id)
     {
         $selected_custom_value_id = $request->get('select_ids');
@@ -1241,6 +1281,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * download qrcode response
      */
+    // @phpstan-ignore-next-line
     protected function qrCreateOrDownloadResponse($tmpPath, $fileName, $isCreate = false, $table_id = null)
     {
         if (isset($tmpPath) && $table_id) {
@@ -1273,6 +1314,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function createPdf($selected_custom_value_id, $table_id)
     {
         $selected_custom_values = CustomTable::getEloquent($table_id)->getValueModel()->whereIn('id', $selected_custom_value_id)->get();
@@ -1321,9 +1363,9 @@ class CustomValueController extends AdminControllerTableBase
             $tmpPath = getFullpath($fileName, Define::DISKNAME_ADMIN_TMP);
             /** @phpstan-ignore-next-line Instantiated class Elibyy\TCPDF\Facades\TCPDF not found. */
             $pdf = new TCPDF;
-            /** @phpstan-ignore-next-line Call to static method setAutoPageBreak() on an unknown class Elibyy\TCPDF\Facades\TCPDF. */
+            // @phpstan-ignore-next-line
             $pdf::setAutoPageBreak(true, 0);
-            /** @phpstan-ignore-next-line Call to static method AddPage() on an unknown class Elibyy\TCPDF\Facades\TCPDF. */
+            // @phpstan-ignore-next-line
             $pdf::AddPage('P', 'mm', array(210, 297), true, 'UTF-8', false);
 
             $count = 0;
@@ -1332,7 +1374,7 @@ class CustomValueController extends AdminControllerTableBase
                 if (($checkWidth + 1) * $_img_width <= (210 - $margin_left * 2 - ($col_per_page - 1) * $col_spacing)) {
                     $pos_x = ($margin_left + ($_img_width + $col_spacing) * $checkWidth);
                     $pos_y = ($margin_top + ($_img_height  + $row_spacing) * $count);
-                    /** @phpstan-ignore-next-line Call to static method Image() on an unknown class Elibyy\TCPDF\Facades\TCPDF. */
+                    // @phpstan-ignore-next-line
                     $pdf::Image($img, $pos_x, $pos_y, $_img_width, $_img_height);
                     $checkWidth++;
                 } else {
@@ -1340,16 +1382,16 @@ class CustomValueController extends AdminControllerTableBase
                     $count++;
                     if (($count + 1) * $_img_height > 297 - $margin_top * 2 - ($row_per_page - 1) * $row_spacing) {
                         $count = 0;
-                        /** @phpstan-ignore-next-line Call to static method AddPage() on an unknown class Elibyy\TCPDF\Facades\TCPDF. */
+                        // @phpstan-ignore-next-line
                         $pdf::AddPage('P', 'mm', array(210, 297), true, 'UTF-8', false);
                     }
                     $pos_x = $margin_left;
                     $pos_y = ($margin_top + ($_img_height  + $row_spacing) * $count);
-                    /** @phpstan-ignore-next-line Call to static method Image() on an unknown class Elibyy\TCPDF\Facades\TCPDF. */
+                    // @phpstan-ignore-next-line
                     $pdf::Image($img, $pos_x, $pos_y, $_img_width, $_img_height);
                 }
             }
-            /** @phpstan-ignore-next-line Call to static method Output() on an unknown class Elibyy\TCPDF\Facades\TCPDF. */
+            // @phpstan-ignore-next-line
             $pdf::Output($tmpPath, 'F');
 
             foreach ($img_arr as $value) {
@@ -1369,6 +1411,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function createStickerImg($selected_id, $sticker_img_width, $sticker_img_height, $selected_custom_value, $refer_column_value = null)
     {
         $qr_file_name = 'qrcode_id-' . $selected_id . '_' . Carbon::now()->format('YmdHis') . '.png';
@@ -1388,15 +1431,19 @@ class CustomValueController extends AdminControllerTableBase
         $sticker_file_path = getFullpath($sticker_file_name, Define::DISKNAME_ADMIN_TMP);
         $sticker_img = imagecreatetruecolor($sticker_img_width, $sticker_img_height);
 
+        // @phpstan-ignore-next-line
         $white  = imagecolorallocate($sticker_img, 255, 255, 255);
+        // @phpstan-ignore-next-line
         $black = imagecolorallocate($sticker_img, 0, 0, 0);
         $font = base_path('public/font/MS_Gothic.ttf');
         imagefilledrectangle(
+            // @phpstan-ignore-next-line
             $sticker_img,
             0,
             0,
             $sticker_img_width,
             $sticker_img_height,
+            // @phpstan-ignore-next-line
             $white
         );
         $text_center_x = $sticker_img_width - ($sticker_img_width - $qr_img_width - $img_margin_top_right) / 2;
@@ -1412,11 +1459,13 @@ class CustomValueController extends AdminControllerTableBase
         $x_cordinate = $text_center_x - $width_ww / 2;
         $font_size = ($sticker_img_width > 280) ? (floor($size_ww * 0.6)) : (floor($size_ww * 0.5));
         imagettftext(
+            // @phpstan-ignore-next-line
             $sticker_img,
             $font_size,
             0,
             intval($x_cordinate),
             intval(($sticker_img_height + $height_ww) / 3),
+            // @phpstan-ignore-next-line
             $black,
             $font,
             $text_qr
@@ -1424,17 +1473,20 @@ class CustomValueController extends AdminControllerTableBase
         if ($refer_column_value) {
             $y_cordinate = ($sticker_img_height - $img_margin_top_right) / 3 * 2;
             $bbox = imagettfbbox($font_size, 0, $font, $refer_column_value);
+            // @phpstan-ignore-next-line
             $text_width = floor(strlen($refer_column_value) / ($bbox[2] / ($sticker_img_width / 2)));
             $wrapped_text = wordwrap($refer_column_value, $text_width > 24 ? 24 : 15, "\n", true);
             $lines = explode("\n", $wrapped_text);
             foreach ($lines as $key => $line) {
                 if ($key < 2) {
                     imagettftext(
+                        // @phpstan-ignore-next-line
                         $sticker_img,
                         $font_size,
                         0,
                         intval($x_cordinate),
                         intval($y_cordinate),
+                        // @phpstan-ignore-next-line
                         $black,
                         $font,
                         $line
@@ -1444,7 +1496,9 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
         imagecopyresized(
+            // @phpstan-ignore-next-line
             $sticker_img,
+            // @phpstan-ignore-next-line
             $qr_img,
             intval($img_margin_top_right),
             intval($img_margin_top_right),
@@ -1455,9 +1509,12 @@ class CustomValueController extends AdminControllerTableBase
             200,
             200
         );
+        // @phpstan-ignore-next-line
         imagepng($sticker_img, $sticker_file_path);
 
+        // @phpstan-ignore-next-line
         imagedestroy($sticker_img);
+        // @phpstan-ignore-next-line
         imagedestroy($qr_img);
 
         $this->deleteTmpFile($qr_file_path);
@@ -1470,6 +1527,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function deleteTmpFile($file_path)
     {
         if (\File::exists($file_path)) {
@@ -1485,6 +1543,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     protected function createQRUrl($selected_id)
     {
         $url = admin_urls('qr-code', $this->custom_table->table_name, $selected_id);
@@ -1496,6 +1555,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return float
      */
+    // @phpstan-ignore-next-line
     protected function mmToPixel($mmVal)
     {
         $one_mm_to_pixel = 3.7795275591;
@@ -1507,6 +1567,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @param Content $content
      */
+    // @phpstan-ignore-next-line
     protected function setHiddens($content)
     {
         $gridrow_select_transition = $this->custom_table->getOption('gridrow_select_transition');

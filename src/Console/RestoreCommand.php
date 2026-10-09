@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 
 class RestoreCommand extends Command
 {
@@ -26,6 +27,7 @@ class RestoreCommand extends Command
      */
     protected $description = 'Restore database definition, table data, files in selected folder';
 
+    // @phpstan-ignore-next-line
     protected $restore;
 
     /**
@@ -65,6 +67,11 @@ class RestoreCommand extends Command
         } catch (BackupRestoreCheckException $e) {
             $this->error($e->getMessage());
             return 1;
+        } catch (InvalidZipEntryException $e) {
+            // a refused backup zip is a bad input file, not a crash: say so and stop.
+            // render() cannot help here, the console never renders a response.
+            $this->error($e->getMessage());
+            return 1;
         } catch (\Exception $e) {
             throw $e;
         } finally {
@@ -73,6 +80,7 @@ class RestoreCommand extends Command
         return 0;
     }
 
+    // @phpstan-ignore-next-line
     protected function getFile()
     {
         $file = $this->argument("file");

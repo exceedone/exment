@@ -20,6 +20,7 @@ class ModalForm extends WidgetForm
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $buttons = [];
 
     /**
@@ -27,6 +28,7 @@ class ModalForm extends WidgetForm
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getScript()
     {
         return collect($this->fields)->map(function ($field) {

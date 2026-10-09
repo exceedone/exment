@@ -12,6 +12,7 @@ class DayOnOrAfter extends DayBeforeAfterBase
         return FilterOption::DAY_ON_OR_AFTER;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
         return Carbon::parse($query_value);

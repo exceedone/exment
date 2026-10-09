@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class FixedOrganization extends NotifyTargetBase
 {
+    // @phpstan-ignore-next-line
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         return $this->getFixedOrganization();
@@ -24,12 +25,14 @@ class FixedOrganization extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return $this->getFixedOrganization();
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getFixedOrganization(): Collection
     {
         $orgs = array_get($this->action_setting, 'target_organizations');

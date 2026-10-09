@@ -15,6 +15,7 @@ class OrgazanizationTreeItem extends ProviderBase
     /**
      * set laravel admin grid's content
      */
+    // @phpstan-ignore-next-line
     public function setGridContent(&$content)
     {
         if (!boolval(config('exment.show_organization_tree', false))) {
@@ -39,7 +40,8 @@ class OrgazanizationTreeItem extends ProviderBase
             });
 
             $tree->branch(function ($branch) {
-                return array_get($branch, 'label');
+                // the tree view prints the branch callback result as raw html, so escape the label here
+                return esc_html(array_get($branch, 'label'));
             });
         });
 

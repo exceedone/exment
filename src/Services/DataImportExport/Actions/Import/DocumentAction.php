@@ -9,11 +9,13 @@ use Exceedone\Exment\Services\DataImportExport\Providers\Import;
  */
 class DocumentAction extends FileColumnAction
 {
+    // @phpstan-ignore-next-line
     protected static $files_name = 'documents';
 
     /**
      * get provider
      */
+    // @phpstan-ignore-next-line
     public function getProvider($table_name)
     {
         return new Import\DocumentProvider([

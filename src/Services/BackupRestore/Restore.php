@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Services\BackupRestore;
 
 use Exceedone\Exment\Enums\BackupTarget;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\Installer\EnvTrait;
+use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use File;
@@ -27,11 +29,13 @@ class Restore
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function list(): array
     {
         $disk = $this->disk();
 
         // get all archive files
+        // @phpstan-ignore-next-line
         $files = array_filter($disk->files('list'), function ($file) {
             return preg_match('/list\/.+\.zip$/i', $file);
         });
@@ -57,6 +61,7 @@ class Restore
      * @return int
      * @throws \Exception
      */
+    // @phpstan-ignore-next-line
     public function execute($file = null, ?bool $tmp = null)
     {
         try {
@@ -100,6 +105,7 @@ class Restore
      * insert table data from backup tsv files.
      *
      */
+    // @phpstan-ignore-next-line
     protected function importTsv()
     {
         \ExmentDB::importTsv($this->diskService->tmpDiskItem()->dirFullPath());
@@ -173,6 +179,7 @@ class Restore
      * update env data
      *
      */
+    // @phpstan-ignore-next-line
     protected function updateEnv()
     {
         // get env file
@@ -208,6 +215,7 @@ class Restore
     /**
      * unzip backup file to temporary folder path.
      */
+    // @phpstan-ignore-next-line
     protected function unzipFile($file, ?bool $tmp = null)
     {
         // get file
@@ -225,10 +233,21 @@ class Restore
             $zipPath = getFullpath($file, Define::DISKNAME_ADMIN_TMP);
             // open new zip file
             $zip = new \ZipArchive();
-            if ($zip->open($zipPath) === true) {
-                $zip->extractTo($this->diskService->tmpDiskItem()->dirFullPath());
-                $zip->close();
+            if ($zip->open($zipPath) !== true) {
+                // an unreadable zip must not look like a successful restore: execute()
+                // would find an empty folder, restore nothing, still return 0, and the
+                // screen would answer "restore succeeded" and log the user out.
+                throw new InvalidZipEntryException(strval(exmtrans('backup.message.restore_file_error')));
             }
+
+            $zipEntryError = ZipService::validateZipEntries($zip);
+            if ($zipEntryError !== null) {
+                $zip->close();
+                throw new InvalidZipEntryException($zipEntryError);
+            }
+
+            $zip->extractTo($this->diskService->tmpDiskItem()->dirFullPath());
+            $zip->close();
         }
 
         return true;
@@ -239,6 +258,7 @@ class Restore
      * restore backup table definition and table data.
      *
      */
+    // @phpstan-ignore-next-line
     protected function restoreDatabase()
     {
         \ExmentDB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath());

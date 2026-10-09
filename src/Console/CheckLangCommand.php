@@ -59,6 +59,14 @@ class CheckLangCommand extends Command
         return $hasError ? 1 : 0;
     }
 
+    /**
+     * Check translation recursively
+     *
+     * @param array<int, string> $keys
+     * @param mixed $jat
+     * @param string $lang
+     * @return bool
+     */
     protected function checkTrans(array $keys, $jat, $lang)
     {
         $hasError = false;

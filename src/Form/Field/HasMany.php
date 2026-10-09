@@ -31,6 +31,7 @@ class HasMany extends AdminHasMany
         // specify a view to render.
         $this->view = $this->views[$this->viewMode];
 
+        // @phpstan-ignore-next-line
         $form = $this->buildNestedForm($this->column, $this->builder);
         list($template, $script) = $this->getTemplateHtmlAndScript($form);
 
@@ -50,6 +51,7 @@ class HasMany extends AdminHasMany
      * TODO: I don't know the best way
      * set html and script. It has bug about nested
      */
+    // @phpstan-ignore-next-line
     protected function getTemplateHtmlAndScript($form)
     {
         list($template, $script) = $form->getTemplateHtmlAndScript();
@@ -81,8 +83,12 @@ class HasMany extends AdminHasMany
         $count = $this->getHasManyCount();
         $indexName = "index_{$this->column}";
 
-        $errortitle = exmtrans("common.error");
-        $requiremessage = sprintf(exmtrans("common.message.exists_row"), $this->label);
+        // Both values are written into the page script as js string literals, and the alert renders
+        // its message as html. The label is set by table administrators, so escape it for html and
+        // let json_encode build the literal (quotes and "</script>" can then not leave the string).
+        $jsonFlags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
+        $errortitle = json_encode(exmtrans("common.error"), $jsonFlags);
+        $requiremessage = json_encode(sprintf(exmtrans("common.message.exists_row"), esc_html($this->label)), $jsonFlags);
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -119,7 +125,7 @@ $("button[type='submit']").click(function(){
     }
     var cnt = $('#has-many-{$this->column} .has-many-{$this->column}-forms > .fields-group').filter(':visible').length;
     if (cnt == 0) {
-        swal("$errortitle", "$requiremessage", "error");
+        swal($errortitle, $requiremessage, "error");
         return false;
     };
     return true;
@@ -134,6 +140,7 @@ EOT;
 
     public function getScript()
     {
+        // @phpstan-ignore-next-line
         list($template, $script) = $this->buildNestedForm($this->column, $this->builder)
             ->getTemplateHtmlAndScript();
 
@@ -147,8 +154,10 @@ EOT;
      *
      * @return bool|\Illuminate\Contracts\Validation\Validator
      */
+    // @phpstan-ignore-next-line
     public function getValidator(array $input)
     {
+        // @phpstan-ignore-next-line
         if (!array_key_exists($this->column, $input)) {
             return false;
         }
@@ -178,6 +187,7 @@ EOT;
             $column = $field->column();
             // if NestedEmbeds, loop hasmany items
             if ($field instanceof NestedEmbeds) {
+                // @phpstan-ignore-next-line
                 $nestedValues = Arr::get($input, $this->column);
                 if (!is_array($nestedValues)) {
                     continue;
@@ -186,6 +196,7 @@ EOT;
                     if (!$fieldRules = $field->getRules()) {
                         continue;
                     }
+                    // @phpstan-ignore-next-line
                     foreach ($fieldRules as $key => $fieldRule) {
                         $r = Arr::has($rules, "$column.$key") ? $rules["$column.$key"]['rules'] : [];
                         $r[$nestedKey] = $fieldRule;
@@ -266,7 +277,7 @@ EOT;
         }
 
         if (!empty($v = $this->getOld())) {
-            /** @phpstan-ignore-next-line Parameter #1 $value of function count expects array|Countable, string given. need to fix laravel-admin */
+            // @phpstan-ignore-next-line
             return count($v);
         }
 
@@ -274,6 +285,7 @@ EOT;
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getParentRenderClass()
     {
         return get_parent_class(get_parent_class($this));
