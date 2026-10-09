@@ -1,4 +1,4 @@
-<div class="box">
+<div class="box card p-3">
     <div class="box-body">
         @if($link->isLinked())
             <p style="font-size:16px;">LINE連携済み

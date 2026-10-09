@@ -97,8 +97,8 @@ class SafetyCheckController extends AdminControllerBase
             return exmtrans('safety.trigger_type_' . $value);
         });
         $grid->column($columnKey('event_status'), exmtrans('safety.col_event_status'))->sortable()->display(function ($value) {
-            $class = $value === SafetyCheckDefine::EVENT_CLOSED ? 'default' : 'success';
-            return '<span class="label label-' . $class . '">' . esc_html(exmtrans('safety.event_status_' . $value)) . '</span>';
+            $class = $value === SafetyCheckDefine::EVENT_CLOSED ? 'bg-secondary' : 'bg-success';
+            return '<span class="badge ' . $class . '">' . esc_html(exmtrans('safety.event_status_' . $value)) . '</span>';
         })->escape(false);
         $grid->column($columnKey('triggered_at'), exmtrans('safety.col_triggered_at'))->sortable();
         $grid->column('sent_count', exmtrans('safety.col_sent_count'))->display(function () {
@@ -168,7 +168,7 @@ class SafetyCheckController extends AdminControllerBase
     {
         return sprintf(
             '<form id="%1$s" method="POST" action="%2$s" style="display:none;">%3$s</form>'
-            . '<a href="javascript:void(0);" class="btn btn-sm btn-default" style="margin-right:5px;"'
+            . '<a href="javascript:void(0);" class="btn btn-sm btn-default me-1"'
             . ' data-safety-submit="%1$s" data-safety-title="%4$s" data-safety-text="%5$s">%4$s</a>',
             esc_html($formId),
             esc_html($url),

@@ -60,6 +60,17 @@ class LineLinkPageTest extends FeatureTestBase
         $response->assertStatus(200);
         $response->assertSee('line/link/generate');
     }
+
+    public function testLinkPageRendersBootstrap5Card()
+    {
+        $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
+
+        $response = $this->get('admin/line/link');
+
+        $response->assertStatus(200);
+        $response->assertSee('class="box card p-3"', false);
+    }
+
     public function testGenerateRefusedWhenOaBasicIdNotConfigured()
     {
         $loginUser = $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
