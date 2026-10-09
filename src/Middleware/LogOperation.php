@@ -67,6 +67,9 @@ class LogOperation extends BaseLogOperation
         if ($request->is(ltrim(admin_base_path('webapi/notifyPage'), '/'))) {
             return true;
         }
+        if ($request->is(ltrim(admin_base_path('safety/answer'), '/'))) {
+            return true;
+        }
 
         return parent::inExceptArray($request);
     }

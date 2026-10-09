@@ -10,6 +10,7 @@ class NotifyAction extends EnumBase
     public const SHOW_PAGE = "2";
     public const SLACK = "3";
     public const MICROSOFT_TEAMS = "4";
+    public const LINE = "5";
 
     /**
      * Whether this action is chat message.
@@ -47,7 +48,7 @@ class NotifyAction extends EnumBase
         }
         $notify_action = is_array($action_setting) ? array_get($action_setting, 'notify_action') : $action_setting;
 
-        if (in_array($notify_action, [static::EMAIL, static::SHOW_PAGE])) {
+        if (in_array($notify_action, [static::EMAIL, static::SHOW_PAGE, static::LINE])) {
             return true;
         }
         return false;
@@ -81,6 +82,11 @@ class NotifyAction extends EnumBase
 
             case static::MICROSOFT_TEAMS:
                 return [
+                ];
+
+            case static::LINE:
+                return [
+                    'get_user' => true,
                 ];
         }
 
