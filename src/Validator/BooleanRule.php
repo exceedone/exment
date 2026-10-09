@@ -9,8 +9,12 @@ use Illuminate\Contracts\Validation\Rule;
  */
 class BooleanRule implements Rule
 {
+    /** @var array<string, mixed> */
     protected $options;
 
+    /**
+     * @param array<string, mixed> $parameters
+     */
     public function __construct($parameters)
     {
         $this->options = $parameters;

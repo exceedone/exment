@@ -29,6 +29,10 @@ class MailChannel
     }
 
 
+    /**
+     * @param MailMessage $mailMessage
+     * @return void
+     */
     protected function sendMail(MailMessage $mailMessage)
     {
         // if use archive attachments, after sending, removing file
@@ -63,6 +67,12 @@ class MailChannel
     }
 
 
+    /**
+     * @param Message $message
+     * @param MailMessage $mailMessage
+     * @param string|null $tmpZipPath
+     * @return void
+     */
     protected function setAttachments(Message $message, MailMessage $mailMessage, &$tmpZipPath)
     {
         if (collect($mailMessage->getAttachments())->count() == 0) {
@@ -86,7 +96,8 @@ class MailChannel
     /**
      * Archive tmp attachment
      *
-     * @return array offset 0 : zip path, offset 1 : filename
+     * @param MailMessage $mailMessage
+     * @return array<int, string> offset 0 : zip path, offset 1 : filename
      */
     protected function archiveAttachments(MailMessage $mailMessage)
     {

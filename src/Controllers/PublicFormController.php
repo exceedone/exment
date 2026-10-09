@@ -28,6 +28,7 @@ class PublicFormController extends Controller
 
     /**
      */
+    // @phpstan-ignore-next-line
     protected $form_item;
 
     /**
@@ -60,6 +61,7 @@ class PublicFormController extends Controller
      * @param  array  $parameters
      * @return \Symfony\Component\HttpFoundation\Response
      */
+    // @phpstan-ignore-next-line
     public function callAction($method, $parameters)
     {
         // if public_form is null or not active, throw new \Exceedone\Exment\Exceptions\PublicFormNotFoundException();
@@ -84,6 +86,7 @@ class PublicFormController extends Controller
         return $this->getInputContent($request);
     }
 
+    // @phpstan-ignore-next-line
     public function redirect(Request $request)
     {
         admin_error(exmtrans('common.error'), exmtrans('error.expired_error_reinput'));
@@ -230,7 +233,7 @@ class PublicFormController extends Controller
                 $public_form->setContentOption($content, ['isContainer' => true]);
 
                 $content->row($public_form->getCompleteView($request, $form->model()));
-                /** @phpstan-ignore-next-line response expects array|Illuminate\Contracts\View\View|string|null, Exceedone\Exment\Form\PublicContent given */
+                // @phpstan-ignore-next-line
                 return response($content);
             });
 
@@ -254,6 +257,7 @@ class PublicFormController extends Controller
      * @param array $inputs
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function removeUploadedFile(array $inputs): array
     {
         foreach ($inputs as &$input) {

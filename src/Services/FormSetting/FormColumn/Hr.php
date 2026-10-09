@@ -16,6 +16,7 @@ class Hr extends OtherBase
      * @param array $parameters
      * @return WidgetForm|null
      */
+    // @phpstan-ignore-next-line
     public function getSettingModalForm(BlockBase $block_item, array $parameters): ?WidgetForm
     {
         return null;
@@ -27,6 +28,7 @@ class Hr extends OtherBase
      * @param array $options
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function prepareSavingOptions(array $options): array
     {
         return [];

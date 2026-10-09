@@ -9,13 +9,16 @@ class LoginUserAction extends ExportActionBase implements ActionInterface
     /**
      * laravel-admin grid
      */
+    // @phpstan-ignore-next-line
     protected $grid;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         $this->grid = array_get($args, 'grid');
     }
 
+    // @phpstan-ignore-next-line
     public function datalist()
     {
         $provider = new Export\LoginUserProvider([
@@ -29,6 +32,7 @@ class LoginUserAction extends ExportActionBase implements ActionInterface
         return $datalist;
     }
 
+    // @phpstan-ignore-next-line
     public function filebasename()
     {
         return 'login_user';

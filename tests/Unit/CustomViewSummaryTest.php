@@ -921,6 +921,7 @@ class CustomViewSummaryTest extends UnitTestBase
      * FilterOption = Group(parent:user,order:2), Summary(integer/sum/child_table,order:1)
      * bugfix: set order to child table column occurs exception. 
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryChildOrder()
     {
         $this->init();
@@ -964,6 +965,7 @@ class CustomViewSummaryTest extends UnitTestBase
      * FilterOption = Group(parent:user,order:1), Summary(integer/sum/child_table)
      * check if user sort by id as number
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryChildOrder2()
     {
         if (\Exment::isSqlServer()) {
@@ -1503,7 +1505,7 @@ class CustomViewSummaryTest extends UnitTestBase
                 }
                 $column_data = $this->getColumnValue($data, $column_name, $condition_type);
 
-                /** @phpstan-ignore-next-line Instanceof between Exceedone\Exment\Model\CustomValue|null and Illuminate\Support\Collection will always evaluate to false. */
+                // @phpstan-ignore-next-line
                 if ($column_data instanceof \Illuminate\Support\Collection) {
                     $column_data = $column_data->map(function ($item) {
                         if ($item instanceof Model) {

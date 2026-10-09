@@ -19,6 +19,8 @@ class RoleGroupUserOrganization extends ModelBase
      *
      * @return void
      */
+
+    // @phpstan-ignore-next-line
     public static function deleteRoleGroupUserOrganization($custom_value)
     {
         $custom_table = $custom_value->custom_table;

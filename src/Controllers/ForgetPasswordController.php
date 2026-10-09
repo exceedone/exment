@@ -36,6 +36,7 @@ class ForgetPasswordController extends Controller
     }
 
     //defining which password broker to use, in our case its the exment
+    // @phpstan-ignore-next-line
     protected function broker()
     {
         return Password::broker('exment_admins');

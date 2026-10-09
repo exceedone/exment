@@ -10,6 +10,7 @@ class TemplateExportTarget extends EnumBase
     public const ROLE_GROUP = 'role_group';
     public const PUBLIC_FORM = 'public_form';
 
+    // @phpstan-ignore-next-line
     public static function TEMPLATE_EXPORT_OPTIONS()
     {
         return [

@@ -11,6 +11,7 @@ class ExmentAdapterLocal extends LocalFilesystemAdapter implements ExmentAdapter
     /**
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected static $permissions = [
         'file' => [
             'public' => 0644,
@@ -26,12 +27,14 @@ class ExmentAdapterLocal extends LocalFilesystemAdapter implements ExmentAdapter
     /**
      * get adapter class
      */
+    // @phpstan-ignore-next-line
     public static function getAdapter($app, $config, $driverKey)
     {
         $mergeConfig = static::getConfig($config);
         return new self(array_get($mergeConfig, 'root'));
     }
 
+    // @phpstan-ignore-next-line
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array
     {
         return [];
@@ -43,6 +46,7 @@ class ExmentAdapterLocal extends LocalFilesystemAdapter implements ExmentAdapter
      * @param array $config
      * @return array
      */
+    // @phpstan-ignore-next-line
     public static function getConfig($config): array
     {
         $mergeFrom = array_get($config, 'mergeFrom');

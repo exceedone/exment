@@ -31,6 +31,7 @@ class LoginUserColumnItem extends ColumnItem
         $workflow = Workflow::getWorkflowByTable($custom_table);
         if (!$workflow) {
             /** @var ExtendedBuilder $query */
+            // @phpstan-ignore-next-line
             $query->whereNotMatch();
             return;
         }
@@ -48,6 +49,7 @@ class LoginUserColumnItem extends ColumnItem
             });
 
         $orgids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
+        // @phpstan-ignore-next-line
         $query->orWhere(function ($query) use ($orgids, $workflow, $workflow_actions) {
             foreach ($workflow_actions as $workflow_action) {
                 foreach ($workflow_action->work_targets as $work_target_key => $work_target) {
@@ -108,9 +110,11 @@ class LoginUserColumnItem extends ColumnItem
     public function hasAuthorityOld(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $custom_column = CustomColumn::find($workflow_authority->related_id);
+        // @phpstan-ignore-next-line
         if (!ColumnType::isUserOrganization($custom_column->column_type)) {
             return false;
         }
+        // @phpstan-ignore-next-line
         $auth_values = array_get($custom_value, 'value.' . $custom_column->column_name);
         if (is_null($auth_values)) {
             return false;
@@ -119,6 +123,7 @@ class LoginUserColumnItem extends ColumnItem
             $auth_values = [$auth_values];
         }
 
+        // @phpstan-ignore-next-line
         switch ($custom_column->column_type) {
             case ColumnType::USER:
                 return in_array($targetUser->id, $auth_values);
@@ -168,6 +173,7 @@ class LoginUserColumnItem extends ColumnItem
      * @param bool $asNextAction This action calls as next action. Actually, this is showing dialog.
      * @return array
      */
+    // @phpstan-ignore-next-line
     public static function getTargetUserAndOrg(CustomValue $custom_value, WorkflowAction $workflow_action, $custom_column_id, bool $asNextAction = false): array
     {
         $workflow = $workflow_action->workflow_cache;

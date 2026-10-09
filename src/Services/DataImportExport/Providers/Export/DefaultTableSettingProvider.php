@@ -10,10 +10,14 @@ use Illuminate\Support\Collection;
 
 class DefaultTableSettingProvider extends ProviderBase
 {
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $custom_columns;
+    // @phpstan-ignore-next-line
     protected $outputs = [];
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         parent::__construct();
@@ -25,6 +29,7 @@ class DefaultTableSettingProvider extends ProviderBase
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return Define::SETTING_SHEET_NAME;
@@ -33,11 +38,13 @@ class DefaultTableSettingProvider extends ProviderBase
     /**
      * get data
      */
+    // @phpstan-ignore-next-line
     public function data()
     {
         return $this->outputs;
     }
 
+    // @phpstan-ignore-next-line
     protected function setOutputData()
     {
         // get header and body
@@ -90,6 +97,7 @@ class DefaultTableSettingProvider extends ProviderBase
      * get export headers
      * contains custom column name, column view name
      */
+    // @phpstan-ignore-next-line
     protected function getHeaders()
     {
         // create 2 rows.
@@ -108,6 +116,7 @@ class DefaultTableSettingProvider extends ProviderBase
      *
      * @return \Illuminate\Support\Collection
      */
+    // @phpstan-ignore-next-line
     protected static function getTargetColumns($custom_table)
     {
         // get custom columns. only select_valtext, select_table
@@ -117,6 +126,7 @@ class DefaultTableSettingProvider extends ProviderBase
     }
 
 
+    // @phpstan-ignore-next-line
     public function getRecords(): Collection
     {
         return new Collection();

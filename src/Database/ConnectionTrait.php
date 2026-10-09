@@ -18,6 +18,7 @@ trait ConnectionTrait
      *
      * @return \Exceedone\Exment\Database\Query\ExtendedBuilder
      */
+    // @phpstan-ignore-next-line
     public function query()
     {
         return new \Exceedone\Exment\Database\Query\ExtendedBuilder(
@@ -57,6 +58,7 @@ trait ConnectionTrait
         return $this->getSchemaBuilder()->isSqlServer();
     }
 
+    // @phpstan-ignore-next-line
     public function canConnection()
     {
         try {

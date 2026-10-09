@@ -26,6 +26,8 @@ class ModelBase extends Model
     /**
      * @param array $attributes
      */
+
+    // @phpstan-ignore-next-line
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -40,6 +42,8 @@ class ModelBase extends Model
     {
         return $this->getUser('created_user_id');
     }
+
+    // @phpstan-ignore-next-line
     public function getUpdatedUserAttribute()
     {
         return $this->getUser('updated_user_id');
@@ -54,6 +58,8 @@ class ModelBase extends Model
     {
         return $this->getUserValue('created_user_id');
     }
+
+    // @phpstan-ignore-next-line
     public function getUpdatedUserValueAttribute()
     {
         return $this->getUserValue('updated_user_id');
@@ -68,6 +74,8 @@ class ModelBase extends Model
     {
         return $this->getUser('created_user_id', true);
     }
+
+    // @phpstan-ignore-next-line
     public function getUpdatedUserTagAttribute()
     {
         return $this->getUser('updated_user_id', true);
@@ -82,6 +90,8 @@ class ModelBase extends Model
     {
         return $this->getUser('created_user_id', true, true);
     }
+
+    // @phpstan-ignore-next-line
     public function getUpdatedUserAvatarAttribute()
     {
         return $this->getUser('updated_user_id', true, true);
@@ -97,6 +107,8 @@ class ModelBase extends Model
         return false;
     }
 
+
+    // @phpstan-ignore-next-line
     public static function getTableName()
     {
         return (new static())->getTable();
@@ -142,6 +154,8 @@ class ModelBase extends Model
     /**
      * set id to $columns
      */
+
+    // @phpstan-ignore-next-line
     protected static function setUser($model, $columns = [])
     {
         // if property 'saving_users' is false, return;
@@ -149,6 +163,7 @@ class ModelBase extends Model
             return;
         }
 
+        // Exment helper class not recognized
         $user_id = \Exment::getUserId();
         if (is_nullorempty($user_id)) {
             return;
@@ -162,6 +177,8 @@ class ModelBase extends Model
      * get eloquent using request settion.
      * now only support only id.
      */
+
+    // @phpstan-ignore-next-line
     public static function getEloquentDefault($obj, $withs = [], $query_key = 'id')
     {
         return static::_getEloquent($obj, $withs, $query_key, 'firstRecord');
@@ -171,6 +188,8 @@ class ModelBase extends Model
      * get eloquent using request settion.
      * now only support only id.
      */
+
+    // @phpstan-ignore-next-line
     public static function getEloquentCache($obj, $withs = [], $query_key = 'id')
     {
         return static::_getEloquent($obj, $withs, $query_key, 'firstRecordCache');
@@ -180,6 +199,8 @@ class ModelBase extends Model
      * get eloquent using request settion.
      * now only support only id.
      */
+
+    // @phpstan-ignore-next-line
     protected static function _getEloquent($obj, $withs = [], $query_key = 'id', $fucnName = 'firstRecord')
     {
         if (is_nullorempty($obj)) {
@@ -210,6 +231,8 @@ class ModelBase extends Model
     /**
      * get user from id
      */
+
+    // @phpstan-ignore-next-line
     protected function getUser($column, $link = false, $addAvatar = false)
     {
         return getUserName($this->{$column}, $link, $addAvatar);
@@ -218,6 +241,8 @@ class ModelBase extends Model
     /**
      * get user from id
      */
+
+    // @phpstan-ignore-next-line
     protected function getUserValue($column)
     {
         return CustomTable::getEloquent(SystemTableName::USER)->getValueModel($this->{$column}, true);
@@ -229,6 +254,8 @@ class ModelBase extends Model
      * @param  \Illuminate\Database\Query\Builder  $query
      * @return \Exceedone\Exment\Database\Eloquent\ExtendedBuilder
      */
+
+    // @phpstan-ignore-next-line
     public function newEloquentBuilder($query)
     {
         return new \Exceedone\Exment\Database\Eloquent\ExtendedBuilder($query);

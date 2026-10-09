@@ -21,26 +21,31 @@ class Count extends ItemBase
         $this->child_custom_table = $child_custom_table;
     }
 
+    // @phpstan-ignore-next-line
     public function type()
     {
         return 'count';
     }
 
+    // @phpstan-ignore-next-line
     public function text()
     {
         return exmtrans('custom_column.calc_text.child_count', array_get($this->child_custom_table, 'table_view_name'));
     }
 
+    // @phpstan-ignore-next-line
     public function val()
     {
         return '${count:' . array_get($this->child_custom_table, 'table_name') .'}';
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(?CustomTable $custom_table, ?CustomTable $child_custom_table)
     {
         return new self($custom_table, $child_custom_table);
     }
 
+    // @phpstan-ignore-next-line
     public static function getItemBySplits($splits, ?CustomTable $custom_table)
     {
         $child_table = CustomTable::getEloquent($splits[0]);
@@ -52,6 +57,7 @@ class Count extends ItemBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getTriggeredKeys(): array
     {
         return [
@@ -60,6 +66,7 @@ class Count extends ItemBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public function toArray()
     {
         $child_relation_name = CustomRelation::getRelationNameByTables($this->custom_table, $this->child_custom_table);
@@ -70,6 +77,7 @@ class Count extends ItemBase
         ], parent::toArray());
     }
 
+    // @phpstan-ignore-next-line
     public static function setCalcCustomColumnOptions($options, $id, $custom_table)
     {
         // add child columns

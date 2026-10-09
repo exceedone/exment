@@ -9,14 +9,23 @@ use Illuminate\Contracts\Support\Renderable;
  */
 class ModalMenuButton implements Renderable
 {
+    // @phpstan-ignore-next-line
     protected $url;
+    // @phpstan-ignore-next-line
     protected $label;
+    // @phpstan-ignore-next-line
     protected $expand;
+    // @phpstan-ignore-next-line
     protected $button_class;
+    // @phpstan-ignore-next-line
     protected $icon;
+    // @phpstan-ignore-next-line
     protected $html;
+    // @phpstan-ignore-next-line
     protected $modal_title;
+    // @phpstan-ignore-next-line
     protected $uuid;
+    // @phpstan-ignore-next-line
     protected $attributes = [];
 
     /**
@@ -24,8 +33,10 @@ class ModalMenuButton implements Renderable
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $menulist = [];
 
+    // @phpstan-ignore-next-line
     public function __construct($url, $options = [])
     {
         $this->url = $url;

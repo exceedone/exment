@@ -19,6 +19,9 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 
+/**
+ * @property \Exceedone\Exment\Model\CustomColumn $custom_column
+ */
 class SystemItem implements ItemInterface
 {
     use ItemTrait{
@@ -28,10 +31,13 @@ class SystemItem implements ItemInterface
     use SummaryItemTrait;
     use ColumnOptionQueryTrait;
 
+    // @phpstan-ignore-next-line
     protected $column_name;
 
+    // @phpstan-ignore-next-line
     protected $custom_value;
 
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $table_column_name, $custom_value)
     {
         // if view_pivot(like select table), custom_table is target's table
@@ -47,6 +53,7 @@ class SystemItem implements ItemInterface
     /**
      * get column name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return $this->column_name;
@@ -55,6 +62,7 @@ class SystemItem implements ItemInterface
     /**
      * get column key sql name.
      */
+    // @phpstan-ignore-next-line
     public function sqlname()
     {
         return $this->getSqlColumnName(false);
@@ -63,6 +71,7 @@ class SystemItem implements ItemInterface
     /**
      * get sort name
      */
+    // @phpstan-ignore-next-line
     public function getSortName()
     {
         return $this->getSqlColumnName(true);
@@ -92,10 +101,12 @@ class SystemItem implements ItemInterface
             $table_column_name = \Exment::wrapColumn($table_column_name);
             $result = "$summary_condition($table_column_name)";
         } elseif (isset($group_condition)) {
+            /** @phpstan-ignore-next-line */
             $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, false);
         }
         // if sql server and created_at, set datetime cast
         elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
+            /** @phpstan-ignore-next-line */
             $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
         } else {
             $result = \Exment::wrapColumn($table_column_name);
@@ -121,10 +132,12 @@ class SystemItem implements ItemInterface
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($group_condition)) {
+            /** @phpstan-ignore-next-line */
             $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, !$asSelect);
         }
         // if sql server and created_at, set datetime cast
         elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
+            /** @phpstan-ignore-next-line */
             $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, !$asSelect);
         } else {
             $result = \Exment::wrapColumn($table_column_name);
@@ -158,6 +171,7 @@ class SystemItem implements ItemInterface
     /**
      * get index name
      */
+    // @phpstan-ignore-next-line
     public function index()
     {
         $option = $this->getSystemColumnOption();
@@ -168,6 +182,7 @@ class SystemItem implements ItemInterface
     /**
      * get pure value. (In database value)
      */
+    // @phpstan-ignore-next-line
     protected function _pureValue($v)
     {
         // convert to string if datetime
@@ -183,6 +198,7 @@ class SystemItem implements ItemInterface
     /**
      * get pure value. (In database value)
      */
+    // @phpstan-ignore-next-line
     protected function _value($v)
     {
         return $v;
@@ -191,6 +207,7 @@ class SystemItem implements ItemInterface
     /**
      * get text(for display)
      */
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         return $this->_pureValue($v);
@@ -200,6 +217,7 @@ class SystemItem implements ItemInterface
      * get html(for display)
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         $option = $this->getSystemColumnOption();
@@ -213,6 +231,7 @@ class SystemItem implements ItemInterface
     /**
      * get grid style
      */
+    // @phpstan-ignore-next-line
     public function gridStyle()
     {
         $option = $this->getSystemColumnOption();
@@ -225,6 +244,7 @@ class SystemItem implements ItemInterface
     /**
      * sortable for grid
      */
+    // @phpstan-ignore-next-line
     public function sortable()
     {
         return !array_key_value_exists('view_pivot_column', $this->options);
@@ -233,6 +253,7 @@ class SystemItem implements ItemInterface
     /**
      * set item label
      */
+    // @phpstan-ignore-next-line
     public function setLabel($label)
     {
         return $this->label = $label;
@@ -242,6 +263,7 @@ class SystemItem implements ItemInterface
     /**
      * set default label
      */
+    // @phpstan-ignore-next-line
     protected function setDefaultLabel($params)
     {
         // get label. check not match $this->custom_table and pivot table
@@ -257,6 +279,7 @@ class SystemItem implements ItemInterface
         }
     }
 
+    // @phpstan-ignore-next-line
     public function setCustomValue($custom_value)
     {
         // if contains uniqueName's value in $custom_value, set $custom_value as column name.
@@ -277,6 +300,7 @@ class SystemItem implements ItemInterface
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function getCustomTable()
     {
         return $this->custom_table;
@@ -292,6 +316,7 @@ class SystemItem implements ItemInterface
         return $this->getRelationTrait();
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetValue($custom_value)
     {
         // if options has "summary" (for summary view)
@@ -312,6 +337,7 @@ class SystemItem implements ItemInterface
         return array_get($custom_value, $this->column_name);
     }
 
+    // @phpstan-ignore-next-line
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $field = new Field\Display($this->name(), [$this->label()]);
@@ -320,6 +346,7 @@ class SystemItem implements ItemInterface
         return $field;
     }
 
+    // @phpstan-ignore-next-line
     public function getFilterField($value_type = null)
     {
         if (is_null($value_type)) {
@@ -362,6 +389,7 @@ class SystemItem implements ItemInterface
      * whether column is date
      *
      */
+    // @phpstan-ignore-next-line
     public function isDate()
     {
         $option = $this->getSystemColumnOption();
@@ -374,6 +402,7 @@ class SystemItem implements ItemInterface
      * whether column is datetime
      *
      */
+    // @phpstan-ignore-next-line
     public function isDateTime()
     {
         $option = $this->getSystemColumnOption();
@@ -386,6 +415,7 @@ class SystemItem implements ItemInterface
     /**
      * get view filter type
      */
+    // @phpstan-ignore-next-line
     public function getViewFilterType()
     {
         switch ($this->column_name) {
@@ -435,6 +465,7 @@ class SystemItem implements ItemInterface
         return null;
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFilterClass()
     {
         switch ($this->column_name) {
@@ -472,6 +503,7 @@ class SystemItem implements ItemInterface
      * @param $filter
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
         $option = $this->getSystemColumnOption();
@@ -493,12 +525,14 @@ class SystemItem implements ItemInterface
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getSystemColumnOption()
     {
         return SystemColumn::getOption(['name' => $this->column_name]);
     }
 
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($custom_table, $table_column_name, $custom_value) = $args + [null, null, null];

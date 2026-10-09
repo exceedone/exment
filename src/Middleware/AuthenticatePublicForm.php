@@ -11,7 +11,7 @@ class AuthenticatePublicForm extends Middleware
      * Determine if the user is logged in to any of the given guards.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  array  $guards
+     * @param  array<int, string>  $guards
      * @return void
      *
      * @throws \Illuminate\Auth\AuthenticationException

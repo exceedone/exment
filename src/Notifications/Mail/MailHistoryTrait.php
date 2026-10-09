@@ -53,6 +53,7 @@ trait MailHistoryTrait
      */
     public function getMailTemplateId()
     {
+        // @phpstan-ignore-next-line
         return $this->mailHistory->getMailTemplateId();
     }
 
@@ -114,16 +115,19 @@ trait MailHistoryTrait
         return $this->mailHistory->setUser($user);
     }
 
+    // @phpstan-ignore-next-line
     public function setCustomValue(?CustomValue $custom_value)
     {
         return $this->mailHistory->setCustomValue($custom_value);
     }
 
+    // @phpstan-ignore-next-line
     public function setHistory(bool $isSetHistory)
     {
         return $this->mailHistory->setHistory($isSetHistory);
     }
 
+    // @phpstan-ignore-next-line
     public function setHistoryBody(bool $isSetHistoryBody)
     {
         return $this->mailHistory->setHistoryBody($isSetHistoryBody);

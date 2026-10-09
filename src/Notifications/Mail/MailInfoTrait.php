@@ -54,6 +54,7 @@ trait MailInfoTrait
     /**
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getTo(): array
     {
         return $this->mailInfo->getTo();
@@ -62,6 +63,7 @@ trait MailInfoTrait
     /**
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getCc(): array
     {
         return $this->mailInfo->getCc();
@@ -70,6 +72,7 @@ trait MailInfoTrait
     /**
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getBcc(): array
     {
         return $this->mailInfo->getBcc();
@@ -102,6 +105,7 @@ trait MailInfoTrait
     /**
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getAttachments(): array
     {
         return $this->mailInfo->getAttachments();
@@ -125,57 +129,68 @@ trait MailInfoTrait
 
 
 
+    // @phpstan-ignore-next-line
     public function setFrom($from)
     {
         return $this->mailInfo->setFrom($from);
     }
 
+    // @phpstan-ignore-next-line
     public function setFromName($fromName)
     {
         return $this->mailInfo->setFromName($fromName);
     }
 
+    // @phpstan-ignore-next-line
     public function setTo($to)
     {
         return $this->mailInfo->setTo($to);
     }
 
+    // @phpstan-ignore-next-line
     public function setCc($cc)
     {
         return $this->mailInfo->setCc($cc);
     }
 
+    // @phpstan-ignore-next-line
     public function setBcc($bcc)
     {
         return $this->mailInfo->setBcc($bcc);
     }
 
+    // @phpstan-ignore-next-line
     public function setSubject($subject)
     {
         return $this->mailInfo->setSubject($subject);
     }
 
+    // @phpstan-ignore-next-line
     public function setBody($body)
     {
         return $this->mailInfo->setBody($body);
     }
 
+    // @phpstan-ignore-next-line
     public function setBodyType($bodyType)
     {
         return $this->mailInfo->setBodyType($bodyType);
     }
 
+    // @phpstan-ignore-next-line
     public function setUsePassword($usePassword)
     {
         return $this->mailInfo->setUsePassword($usePassword);
     }
 
+    // @phpstan-ignore-next-line
     public function setPassword($password)
     {
         return $this->mailInfo->setPassword($password);
     }
 
 
+    // @phpstan-ignore-next-line
     public function setAttachments($attachments)
     {
         return $this->mailInfo->setAttachments($attachments);

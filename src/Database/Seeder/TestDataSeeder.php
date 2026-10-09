@@ -176,7 +176,7 @@ class TestDataSeeder extends Seeder
                     \DB::table($relationName)->insert($inserts);
                 }
 
-                /** @phpstan-ignore-next-line Right side of && is always true. */
+                // @phpstan-ignore-next-line
                 if (isset($rolegroups[$type][$user_key]) && is_array($rolegroups[$type][$user_key])) {
                     foreach ($rolegroups[$type][$user_key] as $rolegroup) {
                         $roleGroupUserOrg = new RoleGroupUserOrganization();
@@ -1186,6 +1186,7 @@ class TestDataSeeder extends Seeder
             case 0:
                 break;
             case 1:
+                // @phpstan-ignore-next-line
                 $result = $date->addDays($new_id-4);
                 break;
             case 2:
@@ -1213,11 +1214,13 @@ class TestDataSeeder extends Seeder
                 $result = $date;
                 break;
             default:
+                // @phpstan-ignore-next-line
                 $result = \Carbon\Carbon::create(2019, 12, 28)->addDays($new_id);
                 break;
         }
 
         if (isset($result)) {
+            // @phpstan-ignore-next-line
             return $result->format('Y-m-d');
         }
         return null;
@@ -1576,9 +1579,10 @@ class TestDataSeeder extends Seeder
             $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::AGGREGATE, $custom_table->table_name . '-view-summary', []);
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::DATE;
-                /** @phpstan-ignore-next-line Illuminate\Support\Collection<(int|string),mixed>::first() expects
+                /** Illuminate\Support\Collection<(int|string),mixed>::first() expects
                  * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
                  * given.   */
+            // @phpstan-ignore-next-line
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
                 /** @phpstan-ignore-next-line  */
                 return $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
@@ -1587,20 +1591,22 @@ class TestDataSeeder extends Seeder
             });
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->column_type == ColumnType::INTEGER;
-                /** @phpstan-ignore-next-line Parameter #1 $callback of method
+                /** Parameter #1 $callback of method
                  * Illuminate\Support\Collection<(int|string),mixed>::first() expects
                  * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
                  * given.   */
+            // @phpstan-ignore-next-line
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
                 /** @phpstan-ignore-next-line */
                 return $this->createSummaryColumn($custom_view->id, $custom_table->id, $custom_column->id, SummaryCondition::SUM);
             });
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_name == 'select';
-                /** @phpstan-ignore-next-line Parameter #1 $callback of method
+                /** Parameter #1 $callback of method
                  * Illuminate\Support\Collection<(int|string),mixed>::first() expects
                  * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
                  * given.   */
+            // @phpstan-ignore-next-line
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
                 /** @phpstan-ignore-next-line */
                 return $this->createCustomViewFilter(
@@ -1858,6 +1864,7 @@ class TestDataSeeder extends Seeder
             }
 
             // copy file
+            // @phpstan-ignore-next-line
             PluginInstaller::copySavePlugin($config_paths[0], pathinfo($testPluginDir, PATHINFO_BASENAME), $diskService);
         }
     }

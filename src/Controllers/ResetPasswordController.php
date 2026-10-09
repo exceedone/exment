@@ -19,7 +19,9 @@ class ResetPasswordController extends Controller
     use ResetsPasswords;
     use \Exceedone\Exment\Controllers\AuthTrait;
 
+    // @phpstan-ignore-next-line
     protected $login_user;
+    // @phpstan-ignore-next-line
     protected $redirectTo;
 
     /**
@@ -37,6 +39,7 @@ class ResetPasswordController extends Controller
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function rules()
     {
         return [
@@ -53,6 +56,7 @@ class ResetPasswordController extends Controller
      * @param $token
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
+    // @phpstan-ignore-next-line
     public function showResetForm(Request $request, $token)
     {
         // get email
@@ -149,11 +153,13 @@ class ResetPasswordController extends Controller
     }
 
     //defining which password broker to use, in our case its the exment
+    // @phpstan-ignore-next-line
     protected function broker()
     {
         return Password::broker('exment_admins');
     }
 
+    // @phpstan-ignore-next-line
     protected function guard()
     {
         return Auth::guard('admin');
@@ -164,6 +170,7 @@ class ResetPasswordController extends Controller
      *
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     protected function getEmailByToken($token)
     {
         $broker = $this->broker();

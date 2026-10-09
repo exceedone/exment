@@ -12,9 +12,11 @@ use Exceedone\Exment\Model\CustomValue;
 trait PluginEventTrait
 {
     // workflow action(if call as workflow)
+    // @phpstan-ignore-next-line
     public $workflow_action;
 
     // notify(if call as notify)
+    // @phpstan-ignore-next-line
     public $notify;
 
     /**
@@ -26,6 +28,7 @@ trait PluginEventTrait
      * @param array $options
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function _initEvent($plugin, $custom_table, $custom_value, $options = [])
     {
         $this->plugin = $plugin;

@@ -8,6 +8,8 @@ class BatchCheck extends BatchAction
 {
     /**
      * Script of batch delete action.
+     *
+     * @return string
      */
     public function script()
     {

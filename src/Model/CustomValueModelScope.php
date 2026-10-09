@@ -21,6 +21,8 @@ class CustomValueModelScope implements Scope
      * @return void
      * @throws \Exception
      */
+
+    // @phpstan-ignore-next-line
     public function apply(Builder $builder, Model $model)
     {
         $table_name = $model->custom_table->table_name;

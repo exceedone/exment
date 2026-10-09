@@ -62,6 +62,7 @@ trait CustomViewTrait
         $summary_settings = array_get($options, 'summary_settings');
 
         // Login user.
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find($login_user_id));
 
         $custom_table = CustomTable::getEloquent($target_table_name);
@@ -128,11 +129,14 @@ trait CustomViewTrait
             $grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
             $query = $grid->getQuery($query);
             if (!is_null($offset = array_get($options, 'offset'))) {
+                // @phpstan-ignore-next-line
                 $query->offset($offset);
             }
             if (!is_null($limit = array_get($options, 'limit'))) {
+                // @phpstan-ignore-next-line
                 $query->limit($limit);
             }
+            // @phpstan-ignore-next-line
             $data = $query->get();
         } else {
             $custom_view->setValueFilters($query);

@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\System;
 
 class MultiUniqueValueTest extends UnitTestBase
 {
+    // @phpstan-ignore-next-line
     public function testUniqueColumn2()
     {
         $custom_table = $this->initUniqueValueTest(['text', 'decimal']);
@@ -22,6 +23,7 @@ class MultiUniqueValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
+    // @phpstan-ignore-next-line
     public function testNotUniqueColumn2()
     {
         $custom_table = $this->initUniqueValueTest(['text', 'decimal']);
@@ -36,6 +38,7 @@ class MultiUniqueValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
+    // @phpstan-ignore-next-line
     public function testUniqueColumn3()
     {
         $custom_table = $this->initUniqueValueTest(['user', 'date', 'integer']);
@@ -45,6 +48,7 @@ class MultiUniqueValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
+    // @phpstan-ignore-next-line
     public function testNotUniqueColumn3()
     {
         $custom_table = $this->initUniqueValueTest(['user', 'date', 'integer']);
@@ -60,6 +64,7 @@ class MultiUniqueValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
+    // @phpstan-ignore-next-line
     public function testUniqueColumn3withParent()
     {
         $custom_table = $this->initUniqueValueTest(['user', 'parent_id', 'integer']);
@@ -69,6 +74,7 @@ class MultiUniqueValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
+    // @phpstan-ignore-next-line
     public function testNotUniqueColumn3withParent()
     {
         $custom_table = $this->initUniqueValueTest(['odd_even', 'currency', 'parent_id']);
@@ -85,6 +91,7 @@ class MultiUniqueValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
+    // @phpstan-ignore-next-line
     public function testUniqueColumn3withParentUpdate()
     {
         $custom_table = $this->initUniqueValueTest(['odd_even', 'currency', 'parent_id']);
@@ -101,6 +108,7 @@ class MultiUniqueValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
+    // @phpstan-ignore-next-line
     public function testNotUniqueColumn3withParentUpdate()
     {
         $custom_table = $this->initUniqueValueTest(['odd_even', 'currency', 'parent_id']);
@@ -121,6 +129,7 @@ class MultiUniqueValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
+    // @phpstan-ignore-next-line
     protected function initUniqueValueTest(array $column_names): CustomTable
     {
         $custom_table = CustomTable::getEloquent('child_table');

@@ -6,6 +6,11 @@ use Encore\Admin\Grid\Tools\BatchAction;
 
 class BatchHardDelete extends BatchAction
 {
+    /**
+     * Constructor.
+     *
+     * @param string $title
+     */
     public function __construct($title)
     {
         $this->title = $title;
@@ -13,6 +18,8 @@ class BatchHardDelete extends BatchAction
 
     /**
      * Script of batch delete action.
+     *
+     * @return string
      */
     public function script()
     {

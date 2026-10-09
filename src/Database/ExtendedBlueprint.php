@@ -9,6 +9,7 @@ class ExtendedBlueprint extends Blueprint
     /**
      * set created_user, updated_user, deleted_user
      */
+    // @phpstan-ignore-next-line
     public function timeusers($precision = 0)
     {
         $this->unsignedInteger('created_user_id', $precision)->nullable();
@@ -22,6 +23,7 @@ class ExtendedBlueprint extends Blueprint
      *
      * @param  array|mixed  $columns
      */
+    // @phpstan-ignore-next-line
     public function dropColumn($columns)
     {
         $columns = is_array($columns) ? $columns : func_get_args();

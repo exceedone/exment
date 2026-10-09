@@ -10,13 +10,17 @@ use Exceedone\Exment\Validator\ExmentCustomValidator;
 
 class RoleGroupPermissionProvider extends ProviderBase
 {
+    // @phpstan-ignore-next-line
     protected $role_group_permission_type = 0;
+    // @phpstan-ignore-next-line
     protected $role_group_target_id;
+    // @phpstan-ignore-next-line
     protected $permission_keys = [];
 
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return '';
@@ -26,6 +30,7 @@ class RoleGroupPermissionProvider extends ProviderBase
      * get data and object.
      * set matched model data
      */
+    // @phpstan-ignore-next-line
     public function getDataObject($data, $options = [])
     {
         $results = [];
@@ -66,6 +71,7 @@ class RoleGroupPermissionProvider extends ProviderBase
      * @param mixed $dataObjects
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function validateImportData($dataObjects)
     {
         $error_data = [];
@@ -89,6 +95,7 @@ class RoleGroupPermissionProvider extends ProviderBase
      * @param $dataAndModel
      * @return array|true
      */
+    // @phpstan-ignore-next-line
     public function validateDataRow($line_no, $dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
@@ -129,6 +136,7 @@ class RoleGroupPermissionProvider extends ProviderBase
      * 
      * @param array $rules
      */
+    // @phpstan-ignore-next-line
     protected function addValidateTypeRules(&$rules) : void
     {
     }
@@ -140,6 +148,7 @@ class RoleGroupPermissionProvider extends ProviderBase
      * @param int $line_no
      * @param array $errors
      */
+    // @phpstan-ignore-next-line
     protected function validateExtraRules($data, $line_no, &$errors) : void
     {
     }
@@ -147,6 +156,7 @@ class RoleGroupPermissionProvider extends ProviderBase
     /**
      * import data
      */
+    // @phpstan-ignore-next-line
     public function importData($dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
@@ -189,6 +199,7 @@ class RoleGroupPermissionProvider extends ProviderBase
         return $model;
     }
 
+    // @phpstan-ignore-next-line
     protected function getPermissions(int|string $role_type, array $values)
     {
         $result = [];
@@ -214,6 +225,7 @@ class RoleGroupPermissionProvider extends ProviderBase
         return $result;
     }
     
+    // @phpstan-ignore-next-line
     protected function getTargetRoleGroupType($role_type)
     {
         switch ($role_type) {

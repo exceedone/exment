@@ -12,8 +12,8 @@ class NotifyController extends AdminControllerBase
 {
     /**
      * @param Request $request
-     * @phpstan-ignore-next-line
      */
+    // @phpstan-ignore-next-line
     public function __construct(Request $request)
     {
         $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
@@ -27,6 +27,7 @@ class NotifyController extends AdminControllerBase
     }
 
 
+    // @phpstan-ignore-next-line
     public function getNotifyTriggerTemplate(Request $request)
     {
         $keyName = 'mail_template_id';

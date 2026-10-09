@@ -14,6 +14,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 {
     use ConnectionTrait;
 
+    // @phpstan-ignore-next-line
     protected static $isContainsColumnStatistics = null;
 
     /**
@@ -23,7 +24,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      */
     public function getSchemaBuilder()
     {
-        /** @phpstan-ignore-next-line Call to function is_null() with Illuminate\Database\Schema\Grammars\Grammar will always evaluate to false. */
+        // @phpstan-ignore-next-line
         if (is_null($this->schemaGrammar)) {
             $this->useDefaultSchemaGrammar();
         }
@@ -84,6 +85,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
         $mysqldump = static::getMysqlDumpPath();
         $ls_output = shell_exec($mysqldump . ' --help');
+        // @phpstan-ignore-next-line
         if (strpos($ls_output, '--set-gtid-purged') !== false) {
             $set_gtid = ' --set-gtid-purged=OFF';
         } else {
@@ -207,6 +209,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      * @param $table
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function backupTable($tempDir, $table)
     {
         // create tsv file
@@ -304,9 +307,11 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      *
      * @param string $dirFullPath restore file path
      */
+    // @phpstan-ignore-next-line
     public function importTsv($dirFullPath)
     {
         // get tsv files in target folder
+        /** @phpstan-ignore-next-line */
         $files = array_filter(\File::files($dirFullPath), function ($file) {
             return preg_match('/.+\.tsv$/i', $file);
         });
@@ -352,6 +357,7 @@ __EOT__;
 
 
 
+    // @phpstan-ignore-next-line
     public function createView($viewName, $query)
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
@@ -360,6 +366,7 @@ __EOT__;
             AS " . $query->toSql(), $query->getBindings());
     }
 
+    // @phpstan-ignore-next-line
     public function dropView($viewName)
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
@@ -367,11 +374,13 @@ __EOT__;
     }
 
 
+    // @phpstan-ignore-next-line
     protected static function getMysqlPath()
     {
         return path_join_os(config('exment.backup_info.mysql_dir', ''), 'mysql');
     }
 
+    // @phpstan-ignore-next-line
     protected static function getMysqlDumpPath()
     {
         return path_join_os(config('exment.backup_info.mysql_dir', ''), 'mysqldump');

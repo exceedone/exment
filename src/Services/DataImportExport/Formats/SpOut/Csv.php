@@ -10,6 +10,7 @@ class Csv extends SpOut
 {
     use CsvTrait;
 
+    // @phpstan-ignore-next-line
     protected $accept_extension = 'csv,zip';
 
 
@@ -19,6 +20,7 @@ class Csv extends SpOut
      * @param string|array|\Illuminate\Support\Collection $files
      * @return int
      */
+    // @phpstan-ignore-next-line
     protected function getRowCount($files): int
     {
         $count = 0;
@@ -45,9 +47,10 @@ class Csv extends SpOut
         return $count;
     }
 
+    // @phpstan-ignore-next-line
     protected function getCsvArray($file, array $options = [])
     {
-        /** @phpstan-ignore-next-line setlocale expects array|string|null, int given*/
+        // @phpstan-ignore-next-line
         $original_locale = setlocale(LC_CTYPE, 0);
 
         // set C locale
@@ -68,6 +71,7 @@ class Csv extends SpOut
         }
 
         // revert to original locale
+        // @phpstan-ignore-next-line
         setlocale(LC_CTYPE, $original_locale);
 
         return $array;
@@ -77,6 +81,7 @@ class Csv extends SpOut
     /**
      * @return \Box\Spout\Writer\CSV\Writer
      */
+    // @phpstan-ignore-next-line
     protected function createWriter($spreadsheet)
     {
         return WriterEntityFactory::createCSVWriter();

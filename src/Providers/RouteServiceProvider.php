@@ -27,6 +27,7 @@ class RouteServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        /** @var int $rate_limit */
         $rate_limit = config('exment.api_max_rate_limit', 60);
         RateLimiter::for('api', function (Request $request) use ($rate_limit) {
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
@@ -49,6 +50,7 @@ class RouteServiceProvider extends ServiceProvider
 
     /**
      * Web web routes
+     * @return void
      */
     protected function mapExmentWebRotes()
     {
@@ -68,6 +70,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('dashboardbox', 'DashboardBoxController');
 
             $router->resource('auth/logs', 'LogController', ['except' => ['create', 'edit']]);
+            $router->post('auth/logs/setting', 'LogController@postSetting');
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
@@ -105,6 +108,17 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
+
+            // Feature 1 (part A): user's un-actioned workflow tasks across all tables
+            $router->get("workflow_task", 'WorkflowTaskController@index');
+            $router->get("workflow_task/read", 'WorkflowTaskController@read');
+            $router->post("workflow_task/readAll", 'WorkflowTaskController@readAll');
+            $router->post("workflow_task/unreadAll", 'WorkflowTaskController@unreadAll');
+            $router->post("workflow_task/rowCheck", 'WorkflowTaskController@rowCheck');
+            // takes tasks off the user's own list; the records themselves are never deleted
+            $router->post("workflow_task/rowDelete", 'WorkflowTaskController@rowDelete');
+            // and puts them back (the 削除済み filter of the list)
+            $router->post("workflow_task/rowRestore", 'WorkflowTaskController@rowRestore');
 
             $router->post('login_setting/{id}/activate', 'LoginSettingController@activate')->name('exment.login_activate');
             $router->post('login_setting/{id}/deactivate', 'LoginSettingController@deactivate')->name('exment.login_deactivate');
@@ -279,6 +293,9 @@ class RouteServiceProvider extends ServiceProvider
     }
 
 
+    /**
+     * @return void
+     */
     protected function mapExmentAnonymousWebRotes()
     {
         Route::group([
@@ -327,6 +344,9 @@ class RouteServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * @return void
+     */
     protected function mapExmentInstallWebRotes()
     {
         Route::group([
@@ -340,6 +360,9 @@ class RouteServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * @return void
+     */
     protected function mapExmentApiRotes()
     {
         // define adminapi(for webapi), api(for web)
@@ -442,6 +465,8 @@ class RouteServiceProvider extends ServiceProvider
                     $router->get("version", 'ApiController@version');
 
                     $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
+                    // workflow data - tables, record labels, statuses - so the scopes of the wf/ read endpoints
+                    $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
                     $router->get("notify", 'ApiController@notifyList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ, ApiScope::NOTIFY_WRITE));
                     $router->post("notify", 'ApiController@notifyCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_WRITE));
 
@@ -474,6 +499,7 @@ class RouteServiceProvider extends ServiceProvider
 
     /**
      * define api and anonynous routes
+     * @return void
      */
     protected function mapExmentAnonymousApiRotes()
     {
@@ -498,6 +524,11 @@ class RouteServiceProvider extends ServiceProvider
     /**
      * set table resource.
      * (We cannot create endpoint using resouce function if contains {tableKey}).
+     * @param \Illuminate\Routing\Router $router
+     * @param string $endpointName
+     * @param string $controllerName
+     * @param bool $isShow
+     * @return void
      */
     protected function setTableResouce($router, $endpointName, $controllerName, $isShow = false)
     {
@@ -513,6 +544,11 @@ class RouteServiceProvider extends ServiceProvider
 
     /**
      * set resource.
+     * @param \Illuminate\Routing\Router $router
+     * @param string $endpointName
+     * @param string $controllerName
+     * @param bool $isShow
+     * @return void
      */
     protected function setResouce($router, $endpointName, $controllerName, $isShow = false)
     {

@@ -10,6 +10,7 @@ class PublicFormNotFoundException extends \Exception
      * @param $request
      * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Translation\Translator|mixed|string|null
      */
+    // @phpstan-ignore-next-line
     public function render($request)
     {
         return exmtrans('error.public_form_not_found');

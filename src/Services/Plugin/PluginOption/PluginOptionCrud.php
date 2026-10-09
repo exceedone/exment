@@ -11,16 +11,18 @@ class PluginOptionCrud extends PluginOptionBase
      * @param $plugin
      * @param $pluginClass
      * @param $options
-     * @phpstan-ignore-next-line
      */
+    // @phpstan-ignore-next-line
     public function __construct($plugin, $pluginClass, $options = [])
     {
         $this->plugin = $plugin;
         $this->pluginClass = $pluginClass;
     }
 
+    // @phpstan-ignore-next-line
     protected $plugin;
 
+    // @phpstan-ignore-next-line
     protected $pluginClass;
 
     /**
@@ -49,6 +51,7 @@ class PluginOptionCrud extends PluginOptionBase
     /**
      * Login OAuth.
      */
+    // @phpstan-ignore-next-line
     public function loginOAuth()
     {
         $login_setting = $this->getOauthSetting();

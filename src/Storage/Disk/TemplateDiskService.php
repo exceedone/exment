@@ -7,14 +7,17 @@ use Illuminate\Support\Facades\Storage;
 
 class TemplateDiskService extends DiskServiceBase
 {
+    // @phpstan-ignore-next-line
     protected $now;
 
+    // @phpstan-ignore-next-line
     public function __construct(...$args)
     {
         $this->now = date('YmdHis');
         $this->initDiskService(isset($args[0]) ? $args[0] : null);
     }
 
+    // @phpstan-ignore-next-line
     public function initDiskService($template_name)
     {
         $this->diskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_TEMPLATE_SYNC), $template_name, $template_name);

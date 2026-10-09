@@ -18,6 +18,7 @@ class RoleGroupPermissionPluginProvider extends RoleGroupPermissionProvider
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return 'role_group_permission_plugin';
@@ -28,6 +29,7 @@ class RoleGroupPermissionPluginProvider extends RoleGroupPermissionProvider
      * 
      * @param $rules
      */
+    // @phpstan-ignore-next-line
     protected function addValidateTypeRules(&$rules) : void
     {
         $model = new Plugin();
@@ -41,11 +43,13 @@ class RoleGroupPermissionPluginProvider extends RoleGroupPermissionProvider
      * @param int $line_no
      * @param array $errors
      */
+    // @phpstan-ignore-next-line
     protected function validateExtraRules($data, $line_no, &$errors) : void
     {
         $role_group_target_id = array_get($data, 'role_group_target_id');
         $plugin_access = array_get($data, 'permissions:plugin_access');
         $plugin = Plugin::find($role_group_target_id);
+        // @phpstan-ignore-next-line
         $enabledPluginAccess = collect($plugin->plugin_types)->contains(function ($plugin_type) {
             return in_array($plugin_type, PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE());
         });

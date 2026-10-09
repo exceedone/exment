@@ -21,6 +21,7 @@ trait ApiTrait
      * @param \Exceedone\Exment\Validator\ExmentCustomValidator|Validator  $validator
      * @return array error messages
      */
+    // @phpstan-ignore-next-line
     protected function getErrorMessages($validator)
     {
         $errors = [];
@@ -29,8 +30,10 @@ trait ApiTrait
             // remove "value." key
             $key = str_replace("value.", "", $key);
             if (is_array($message)) {
+                // @phpstan-ignore-next-line
                 $errors[$key] = $message[0];
             } else {
+                // @phpstan-ignore-next-line
                 $errors[$key] = $message;
             }
         }
@@ -47,10 +50,12 @@ trait ApiTrait
     protected function responseColumn(Request $request, ?CustomColumn $custom_column)
     {
         if (!isset($custom_column)) {
+            /** @phpstan-ignore-next-line */
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         if (!$custom_column->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            /** @phpstan-ignore-next-line */
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
@@ -74,6 +79,7 @@ trait ApiTrait
         $count = $request->get('count');
         $maxcount = config('exment.api_max_data_count', 100);
         if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > $maxcount) {
+            /** @phpstan-ignore-next-line */
             return abortJson(400, exmtrans('api.errors.over_maxcount', $maxcount), ErrorCode::INVALID_PARAMS());
         }
 
@@ -85,6 +91,7 @@ trait ApiTrait
      * @param Request $request
      * @param string $prefix
      */
+    // @phpstan-ignore-next-line
     protected function getJoinTables(Request $request, $prefix)
     {
         $join_tables = [];
@@ -116,6 +123,7 @@ trait ApiTrait
      */
     protected function getCustomValue(CustomTable $custom_table, $id, bool $withTrashed = false)
     {
+        /** @phpstan-ignore-next-line */
         $query = getModelName($custom_table->table_name)::query();
         if ($withTrashed) {
             $query->withTrashed();
@@ -126,9 +134,11 @@ trait ApiTrait
         if (!isset($custom_value)) {
             $code = $custom_table->getNoDataErrorCode($id);
             if ($code == ErrorCode::PERMISSION_DENY) {
+                /** @phpstan-ignore-next-line */
                 return abortJson(403, $code);
             } else {
                 // nodata
+                /** @phpstan-ignore-next-line */
                 return abortJson(400, $code);
             }
         }

@@ -31,8 +31,8 @@ class AdminControllerBase extends Controller
      *
      * @param Request $request
      * @param Content $content
-     * @param $id
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @param mixed $id
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function show(Request $request, Content $content, $id)
     {

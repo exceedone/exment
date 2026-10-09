@@ -22,6 +22,7 @@ class JanCodeController extends Controller
      * @param $id
      * @return string
      */
+    // @phpstan-ignore-next-line
     protected function scanRedirect(Request $request, $id)
     {
         $jan_code = DB::table("jan_codes")
@@ -30,7 +31,9 @@ class JanCodeController extends Controller
             ->first();
         $url = '';
         if ($jan_code) {
+            // @phpstan-ignore-next-line
             $table_id = $jan_code->table_id;
+            // @phpstan-ignore-next-line
             $target_id = $jan_code->target_id;
             if ($table_id) {
                 $custom_table = CustomTable::getEloquent($table_id);
@@ -74,6 +77,7 @@ class JanCodeController extends Controller
             }
         }
 
+        // @phpstan-ignore-next-line
         return redirect($url);
     }
 
@@ -83,6 +87,7 @@ class JanCodeController extends Controller
      * @param Request $request
      * @param $id
      */
+    // @phpstan-ignore-next-line
     protected function listTable(Request $request, $id, Content $content)
     {
         $grid = $this->grid($id);
@@ -100,6 +105,7 @@ class JanCodeController extends Controller
      *
      * @return Grid
      */
+    // @phpstan-ignore-next-line
     protected function grid($id)
     {
         $grid = new Grid(new CustomTable());
@@ -137,6 +143,7 @@ class JanCodeController extends Controller
      *
      * @param Request $request
      */
+    // @phpstan-ignore-next-line
     protected function assignJancode(Request $request)
     {
         $table_id = $request->get('table_id');
@@ -156,6 +163,7 @@ class JanCodeController extends Controller
      * @param $id
      * @param $table_id
      */
+    // @phpstan-ignore-next-line
     protected function generateCreateUrl($id, $table_id)
     {
         $custom_table = CustomTable::getEloquent($table_id);

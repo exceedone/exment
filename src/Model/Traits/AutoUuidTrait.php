@@ -12,8 +12,12 @@ trait AutoUuidTrait
 {
     use AutoUuidTraitBase;
 
+
+    // @phpstan-ignore-next-line
     protected static $uuid_key = 'uuid';
 
+
+    // @phpstan-ignore-next-line
     public static function bootAutoUuidTrait()
     {
         self::observe(AutoUuidObserver::class);

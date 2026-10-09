@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Database\Query\Grammars;
 
 trait GrammarTrait
 {
+    // @phpstan-ignore-next-line
     public function wrapWhereInMultiple(array $columns)
     {
         return array_map(function ($column) {
@@ -16,6 +17,7 @@ trait GrammarTrait
      *
      * @return array offset 0: bind string for wherein (?, ?, )
      */
+    // @phpstan-ignore-next-line
     public function bindValueWhereInMultiple(array $values)
     {
         $count = 0;

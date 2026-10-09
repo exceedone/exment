@@ -19,6 +19,7 @@ class LoginType extends EnumBase
     public const SAML = 'saml';
     public const LDAP = 'ldap';
 
+    // @phpstan-ignore-next-line
     public static function SETTING()
     {
         return [LoginType::OAUTH(), LoginType::SAML(), LoginType::LDAP()];
@@ -29,6 +30,7 @@ class LoginType extends EnumBase
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public static function getLoginServiceClassName($login_type): string
     {
         switch ($login_type) {

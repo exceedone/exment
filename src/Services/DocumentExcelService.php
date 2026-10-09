@@ -12,19 +12,25 @@ use Exceedone\Exment\Storage\Disk\AdminDiskService;
 
 class DocumentExcelService
 {
-    /**
-     *
-     */
+    /** @var mixed */
     protected $baseInfo;
+
+    /** @var string */
     protected $templateFileFullPath;
+
+    /** @var string */
     protected $outputfilename;
+
+    /** @var string|null */
     protected $filename;
+
+    /** @var string|null */
     protected $uniqueFileName;
 
     /**
      * Image setted disk services
      *
-     * @var array
+     * @var array<int, \Exceedone\Exment\Storage\Disk\AdminDiskService>
      */
     protected $diskServies = [];
 
@@ -130,6 +136,7 @@ class DocumentExcelService
     /**
      * Write Table
      */
+    // @phpstan-ignore-next-line
     protected function lfTable($sheet)
     {
         // first time, define loop value
@@ -230,6 +237,7 @@ class DocumentExcelService
     /**
      * Write default value
      */
+    // @phpstan-ignore-next-line
     protected function lfValue($sheet)
     {
         // first time, define loop value
@@ -246,6 +254,7 @@ class DocumentExcelService
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function callbackSheetCell($sheet, $callback)
     {
         foreach ($sheet->getRowIterator() as $row) {
@@ -271,6 +280,7 @@ class DocumentExcelService
     /**
      * get output text from document item
      */
+    // @phpstan-ignore-next-line
     protected function getText($text, $options = [], $model = null)
     {
         $options['disable_currency_symbol'] = true;
@@ -301,10 +311,12 @@ class DocumentExcelService
     /**
      * replace text. ex.comma, &yen, etc...
      */
+    // @phpstan-ignore-next-line
     protected function replaceText($text, $documentItem = [])
     {
         // add comma if number_format
         if (array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)) {
+            // @phpstan-ignore-next-line
             $text = number_format($text);
         }
 
@@ -399,6 +411,7 @@ class DocumentExcelService
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function saveFile($writer)
     {
         // save file to local
@@ -423,6 +436,7 @@ class DocumentExcelService
      * @param string|null $path
      * @return Drawing|null
      */
+    // @phpstan-ignore-next-line
     protected function getImage(?string $path, $matchOptions)
     {
         $diskService = new AdminDiskService($path);

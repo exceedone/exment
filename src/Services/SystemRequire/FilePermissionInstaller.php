@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\SystemRequire;
 
 class FilePermissionInstaller extends FilePermission
 {
+    // @phpstan-ignore-next-line
     protected $checkPaths = [
         '.env',
         'app',

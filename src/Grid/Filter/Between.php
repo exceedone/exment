@@ -13,7 +13,7 @@ class Between extends \Encore\Admin\Grid\Filter\Between
      *
      * @param \Closure $query
      * @param string   $label
-     * @param string   $column
+     * @param string|null   $column
      */
     public function __construct(\Closure $query, $label, $column = null)
     {
@@ -28,9 +28,9 @@ class Between extends \Encore\Admin\Grid\Filter\Between
     /**
      * Get condition of this filter.
      *
-     * @param array $inputs
+     * @param array<string, mixed> $inputs
      *
-     * @return array|mixed|void
+     * @return array<string, mixed>|mixed|null
      */
     public function condition($inputs)
     {
@@ -56,6 +56,12 @@ class Between extends \Encore\Admin\Grid\Filter\Between
         });
     }
 
+    /**
+     * Convert value.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
     protected function convertValue($value)
     {
         return $value;

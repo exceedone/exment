@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\LoginType;
  */
 class LdapUser extends CustomLoginUserBase
 {
+    // @phpstan-ignore-next-line
     public static function with($login_setting, $ldapUser)
     {
         $user = new LdapUser();
@@ -37,6 +38,7 @@ class LdapUser extends CustomLoginUserBase
      * @param array $replaceMaps
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     protected static function getMappingItemValue($ldapuser, $mappingKey, $replaceMaps)
     {
         $hasValue = false;
@@ -56,7 +58,7 @@ class LdapUser extends CustomLoginUserBase
             $ldap_attr = strtolower($ldap_attr);
 
             if (!isset($ldapuser_attrs[$ldap_attr])) {
-                /** @phpstan-ignore-next-line str_replace expects array|string, null given */
+                // @phpstan-ignore-next-line
                 $mappingKey = str_replace($replaceValue, null, $mappingKey);
                 continue;
             }
@@ -68,7 +70,7 @@ class LdapUser extends CustomLoginUserBase
             }
 
             if (count($ldapuser_attrs[$ldap_attr]) == 0) {
-                /** @phpstan-ignore-next-line str_replace expects array|string, null given */
+                // @phpstan-ignore-next-line
                 $mappingKey = str_replace($replaceValue, null, $mappingKey);
                 continue;
             }
@@ -87,6 +89,7 @@ class LdapUser extends CustomLoginUserBase
         return $mappingKey;
     }
 
+    // @phpstan-ignore-next-line
     protected static function accessProtected($obj, $prop)
     {
         $reflection = new \ReflectionClass($obj);

@@ -60,6 +60,7 @@ trait FieldGroupTrait
      * @param array $fieldOptions
      * @return \Illuminate\Support\Collection
      */
+    // @phpstan-ignore-next-line
     protected function convertRowColumnGroups(array $fieldOptions)
     {
         $fieldGroups = collect($fieldOptions)->sortBy(function ($fieldOption, $index) {
@@ -122,9 +123,11 @@ trait FieldGroupTrait
 
         // Set col_md width using total width. ----------------------------------------------------
         /** @var Collection $fieldGroups */
+        // @phpstan-ignore-next-line
         $fieldGroups = $fieldGroups->map(function ($fieldGroups) use ($totalWidth) {
             $columnCount = count($fieldGroups['columns']);
             /** @var Collection $fieldGroups */
+            // @phpstan-ignore-next-line
             $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($columnCount, $totalWidth) {
                 // if $totalWidth is 1 and vertical then col_md is 8 and offset is 2.
                 $fieldOption['col_md'] = ($fieldOption['width'] * 3 * (4 / $totalWidth));

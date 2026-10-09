@@ -24,7 +24,7 @@
             <thead>
             <tr class="active">
                 @foreach($tableitems as $tableitem)
-                    <th class="text-center {{$loop->index < count($tablecolumnwidths) ? 'col-sm-'.$tablecolumnwidths[$loop->index] : ''}} {{$loop->index < count($requires) && boolval($requires[$loop->index]) ? 'asterisk' : ''}}">
+                    <th class="text-center {{$loop->index < count($tablecolumnwidths) ? 'col-sm-' . $tablecolumnwidths[$loop->index] : ''}} {{$loop->index < count($requires) && boolval($requires[$loop->index]) ? 'asterisk' : ''}}">
                         {{ $tableitem->label() }}
 
                         @if($loop->index < count($helps) && isset($helps[$loop->index]))
@@ -34,7 +34,7 @@
                 @endforeach
 
                 @if($options['allowOptions'])
-                <th class="text-center {{count($tableitems) < count($tablecolumnwidths) ? 'col-sm-'.$tablecolumnwidths[count($tableitems)] : ''}}">{{trans('admin.action')}}</th>
+                <th class="text-center {{count($tableitems) < count($tablecolumnwidths) ? 'col-sm-' . $tablecolumnwidths[count($tableitems)] : ''}}">{{trans('admin.action')}}</th>
                 @else
                 <th style="display:none;"></th>
                 @endif
@@ -118,6 +118,13 @@
     <style type="text/css">
     .has-many-table .form-group{
         margin-bottom: 0;
+    }
+    /* Vertical layout uses .form-group-vertical (margin-bottom:10px by default). */
+    .has-many-table .form-group-vertical{
+        margin-bottom: 0 !important;
+    }
+    .has-many-table td .form-group-vertical label.control-label {
+        display: none !important;
     }
     .table-container {
         width: 100%;

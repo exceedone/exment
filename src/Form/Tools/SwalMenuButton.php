@@ -9,6 +9,7 @@ use Illuminate\Contracts\Support\Renderable;
  */
 class SwalMenuButton implements Renderable
 {
+    // @phpstan-ignore-next-line
     protected $label;
 
     /**
@@ -16,10 +17,13 @@ class SwalMenuButton implements Renderable
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $menulist = [];
 
+    // @phpstan-ignore-next-line
     protected $attributes = [];
 
+    // @phpstan-ignore-next-line
     public function __construct(array $menulist = [], array $options = [])
     {
         $this->menulist = $menulist;

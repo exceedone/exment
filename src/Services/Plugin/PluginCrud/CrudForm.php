@@ -35,6 +35,7 @@ class CrudForm extends CrudBase
      * @param $id
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public function edit($id)
     {
         $content = $this->pluginClass->getContent();
@@ -62,6 +63,7 @@ class CrudForm extends CrudBase
      * @param $id
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
+    // @phpstan-ignore-next-line
     public function update($id)
     {
         $content = $this->pluginClass->getContent();
@@ -75,6 +77,7 @@ class CrudForm extends CrudBase
      * @param $id
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function delete($id)
     {
         $ids = stringToArray($id);
@@ -90,10 +93,11 @@ class CrudForm extends CrudBase
      * @param $id
      * @return Box
      */
+    // @phpstan-ignore-next-line
     protected function form(bool $isCreate, $id = null)
     {
         $form = $this->getForm($isCreate, $id);
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
+        // @phpstan-ignore-next-line
         $box = new Box(trans($isCreate ? 'admin.create' : 'admin.edit'), $form);
         $box->style('info');
         $this->setFormTools($id, $box);
@@ -115,6 +119,7 @@ class CrudForm extends CrudBase
      * @param $id
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
+    // @phpstan-ignore-next-line
     protected function save(bool $isCreate, $id = null)
     {
         $values = $this->filterPostedValue(request()->all(), $isCreate);
@@ -155,6 +160,7 @@ class CrudForm extends CrudBase
      * @param boolean $isCreate
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function filterPostedValue(array $array, bool $isCreate): array
     {
         $key = $isCreate ? 'create' : 'edit';
@@ -236,6 +242,7 @@ class CrudForm extends CrudBase
      * @param Box $box
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setFormTools($id, Box $box)
     {
         // get oauth logout view

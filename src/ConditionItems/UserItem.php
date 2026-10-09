@@ -16,6 +16,7 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
 {
     use UserOrganizationItemTrait;
 
+    // @phpstan-ignore-next-line
     public function getFilterOption()
     {
         return $this->getFilterOptionConditon();
@@ -85,6 +86,7 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
         return $workflow_authority->related_id == $targetUser->id;
     }
 
+    // @phpstan-ignore-next-line
     public static function setWorkflowConditionQuery($query, $tableName, $custom_table)
     {
         $query->orWhere(function ($query) {

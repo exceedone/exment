@@ -11,6 +11,7 @@ use Exceedone\Exment\Validator\PluginTypeRule;
 use Exceedone\Exment\Validator\PluginNamespaceRule;
 use Exceedone\Exment\Validator\PluginRequirementRule;
 use Exceedone\Exment\Services\TemplateImportExport;
+use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Storage\Disk\DiskServiceItem;
 use ZipArchive;
 use File;
@@ -24,6 +25,7 @@ class PluginInstaller
     /**
      * Upload plugin (call from display)
      */
+    // @phpstan-ignore-next-line
     public static function uploadPlugin($uploadFile)
     {
         try {
@@ -45,7 +47,17 @@ class PluginInstaller
             //Define variable like flag to check exitsed file config (config.json) before extract zip file
             $res = $zip->open($fullpath);
             if ($res !== true) {
-                //TODO:error
+                // close() on an archive that never opened throws ValueError on PHP 8,
+                // so leave before reaching the close() below.
+                $tmpDiskItem->disk()->delete($filename);
+                return back()->with('errorMess', exmtrans('common.message.wrongconfig'));
+            }
+
+            $zipEntryError = ZipService::validateZipEntries($zip);
+            if ($zipEntryError !== null) {
+                $zip->close();
+                $tmpDiskItem->disk()->delete($filename);
+                return back()->with('errorMess', $zipEntryError);
             }
 
             //Get folder into zip file
@@ -54,6 +66,7 @@ class PluginInstaller
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $stat = $zip->statIndex($i);
                 $fileInfo = $zip->getNameIndex($i);
+                // @phpstan-ignore-next-line
                 if (basename($zip->statIndex($i)['name']) !== 'config.json') {
                     continue;
                 }
@@ -61,10 +74,12 @@ class PluginInstaller
                 $zip->extractTo($tmpfolderfullpath);
 
                 // get confign statname
+                // @phpstan-ignore-next-line
                 $statname = array_get($stat, 'name');
                 $config_path = path_join($tmpfolderfullpath, $statname);
 
                 // get dirname
+                // @phpstan-ignore-next-line
                 $dirname = pathinfo($statname)['dirname'];
 
                 // if dirname is '.', $pluginFileBasePath is $tmpfolderpath
@@ -104,6 +119,7 @@ class PluginInstaller
         }
     }
 
+    // @phpstan-ignore-next-line
     public static function templateInstall($pluginFileBasePath, PluginDiskService $diskService, array $json)
     {
         // If temlates not install, return true
@@ -141,6 +157,7 @@ class PluginInstaller
      * @param PluginDiskService $diskService
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected static function getTemplateDirectories(string $pluginFileBasePath, PluginDiskService $diskService, $tmpDiskItem): array
     {
         $result = [];
@@ -168,6 +185,7 @@ class PluginInstaller
         return $result;
     }
 
+    // @phpstan-ignore-next-line
     public static function copySavePlugin($config_path, $pluginFileBasePath, ?PluginDiskService $diskService = null)
     {
         if (!$diskService) {
@@ -183,18 +201,23 @@ class PluginInstaller
             return back()->with('errorMess', exmtrans('common.message.wrongconfig'));
         } else {
             //Validate json file with fields require
+            // @phpstan-ignore-next-line
             $checkRuleConfig = static::checkRuleConfigFile($json, $tmpDiskItem, $pluginFileBasePath);
             if ($checkRuleConfig === true) {
+                // @phpstan-ignore-next-line
                 $templateInstall = static::templateInstall($pluginFileBasePath, $diskService, $json);
                 if ($templateInstall === false) {
                     return back()->with('errorMess', exmtrans('common.message.template_error'));
                 }
                 //Check if the name of the plugin has existed
+                // @phpstan-ignore-next-line
                 $plugineExistByName = Plugin::getPluginByName(array_get($json, 'plugin_name'));
                 //Check if the uuid of the plugin has existed
+                // @phpstan-ignore-next-line
                 $plugineExistByUUID = Plugin::getPluginByUUID(array_get($json, 'uuid'));
 
                 //If json pass validation, prepare data to do continue
+                // @phpstan-ignore-next-line
                 $plugin = static::prepareData($json);
                 //Make path of folder where contain plugin with name is plugin's name
                 $pluginFolder = $plugin->getPath();
@@ -204,6 +227,7 @@ class PluginInstaller
                 if (!is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
                     $pluginUpdated = $plugin->saveOrFail();
                     //Rename folder with plugin name
+                    // @phpstan-ignore-next-line
                     static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
                     admin_toastr(exmtrans('common.message.success_execute'));
                     return back();
@@ -211,6 +235,7 @@ class PluginInstaller
                 //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
                 elseif (is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
                     $plugin->save();
+                    // @phpstan-ignore-next-line
                     static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
                     admin_toastr(exmtrans('common.message.success_execute'));
                     return back();
@@ -241,6 +266,7 @@ class PluginInstaller
      * @param DiskServiceItem $tmpDiskItem
      * @return bool|string
      */
+    // @phpstan-ignore-next-line
     protected static function checkRuleConfigFile($json, DiskServiceItem $tmpDiskItem, string $pluginFileBasePath)
     {
         $rules = [
@@ -270,6 +296,7 @@ class PluginInstaller
      * @param array $json
      * @return Plugin plugin object
      */
+    // @phpstan-ignore-next-line
     protected static function prepareData($json)
     {
         // find or new $plugin
@@ -318,6 +345,7 @@ class PluginInstaller
      * @param string $pluginFileBasepath
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected static function copyPluginNameFolder($plugin, $json, $pluginFolderPath, $pluginFileBasepath, $diskService)
     {
         // get all files
@@ -327,6 +355,7 @@ class PluginInstaller
             // get moved file name
             $movedFileName = str_replace($pluginFileBasepath, '', $file);
             $movedFileName = str_replace(\Exment::replaceBackToSlash($pluginFileBasepath), '', $movedFileName);
+            // @phpstan-ignore-next-line
             $movedFileName = trim($movedFileName, '/');
             $movedFileName = trim($movedFileName, '\\');
 

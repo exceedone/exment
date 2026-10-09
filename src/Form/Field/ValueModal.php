@@ -13,11 +13,13 @@ class ValueModal extends Field
 {
     protected $view = 'exment::form.field.valuemodal';
 
+    // @phpstan-ignore-next-line
     protected $valueTextScript;
 
     /**
      * @var string|array|\Closure|Collection
      */
+    // @phpstan-ignore-next-line
     protected $text;
 
     /**
@@ -55,11 +57,13 @@ class ValueModal extends Field
      */
     protected $ajax;
 
+    // @phpstan-ignore-next-line
     protected $escape = true;
 
     /**
      * @var array modal ajax posting names
      */
+    // @phpstan-ignore-next-line
     protected $post_names = [];
 
     /**
@@ -71,6 +75,7 @@ class ValueModal extends Field
      */
     public function text($text = '')
     {
+        // @phpstan-ignore-next-line
         $this->text = $text;
         return $this;
     }
@@ -153,6 +158,7 @@ class ValueModal extends Field
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function escape(bool $escape = true)
     {
         $this->escape = $escape;
@@ -160,6 +166,7 @@ class ValueModal extends Field
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     protected function script()
     {
         $classname = $this->getElementClassSelector();
@@ -259,7 +266,7 @@ EOT;
     {
         // set text
         if ($this->text instanceof \Closure) {
-            /** @phpstan-ignore-next-line Left side of && is always true and Right side of && is always true. */
+            // @phpstan-ignore-next-line
             if ($this->form && $this->form->model()) {
                 $this->text = $this->text->bindTo($this->form->model());
             }
@@ -302,6 +309,7 @@ EOT;
         // set script
         $this->script();
 
+        // @phpstan-ignore-next-line
         return parent::render()->with([
             'text'   => $this->text,
             'hidden' => $hidden,
@@ -319,9 +327,11 @@ EOT;
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     protected function convertString($value)
     {
         if (is_array($value)) {
+            // @phpstan-ignore-next-line
             return json_encode($value);
         }
 

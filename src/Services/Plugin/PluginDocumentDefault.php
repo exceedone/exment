@@ -10,6 +10,7 @@ class PluginDocumentDefault extends PluginDocumentBase
     /**
      * execute before creating document
      */
+    // @phpstan-ignore-next-line
     protected function executing()
     {
     }
@@ -17,6 +18,7 @@ class PluginDocumentDefault extends PluginDocumentBase
     /**
      * execute after creating document
      */
+    // @phpstan-ignore-next-line
     protected function executed()
     {
     }

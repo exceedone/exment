@@ -7,7 +7,9 @@ use Exceedone\Exment\Model\Define;
 
 class Composer extends SystemRequireBase
 {
+    // @phpstan-ignore-next-line
     protected $composer_version;
+    // @phpstan-ignore-next-line
     protected $command_path;
 
     /**
@@ -105,6 +107,7 @@ class Composer extends SystemRequireBase
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     protected function checkComposerVersion($composer_version)
     {
         if ($composer_version === false) {

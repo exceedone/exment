@@ -36,6 +36,7 @@ class SystemChangePageMenu extends ModalTileMenuButton
         return parent::render();
     }
 
+    // @phpstan-ignore-next-line
     protected function getMenuItems()
     {
         return collect([

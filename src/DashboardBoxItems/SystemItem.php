@@ -11,9 +11,12 @@ use Exceedone\Exment\Model\Notify;
 
 class SystemItem implements ItemInterface
 {
+    // @phpstan-ignore-next-line
     protected $dashboard_box;
+    // @phpstan-ignore-next-line
     protected $systemItem;
 
+    // @phpstan-ignore-next-line
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -33,6 +36,7 @@ class SystemItem implements ItemInterface
     /**
      * get header
      */
+    // @phpstan-ignore-next-line
     public function header()
     {
         return $this->systemItem->header();
@@ -41,6 +45,7 @@ class SystemItem implements ItemInterface
     /**
      * get footer
      */
+    // @phpstan-ignore-next-line
     public function footer()
     {
         return $this->systemItem->footer();
@@ -49,6 +54,7 @@ class SystemItem implements ItemInterface
     /**
      * get html body
      */
+    // @phpstan-ignore-next-line
     public function body()
     {
         return $this->systemItem->body();
@@ -59,6 +65,7 @@ class SystemItem implements ItemInterface
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function attributes()
     {
         $target_system_id = $this->dashboard_box->getOption('target_system_id');
@@ -73,6 +80,7 @@ class SystemItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
+    // @phpstan-ignore-next-line
     public static function setAdminOptions(&$form, $dashboard)
     {
         // show system item list
@@ -100,10 +108,12 @@ class SystemItem implements ItemInterface
     /**
      * saving event
      */
+    // @phpstan-ignore-next-line
     public static function saving(&$form)
     {
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($dashboard_box) = $args + [null];

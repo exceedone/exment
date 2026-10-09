@@ -12,6 +12,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      * @param  array  $results
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function processGetVersion($results)
     {
         $versionArray = $this->versionAray($results);
@@ -25,6 +26,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      * @param  array  $results
      * @return array|bool
      */
+    // @phpstan-ignore-next-line
     public function processIsMariaDB($results)
     {
         $versionArray = $this->versionAray($results);
@@ -36,6 +38,7 @@ class MySqlProcessor extends BaseMySqlProcessor
         return strtolower($versionArray[1]) == 'mariadb';
     }
 
+    // @phpstan-ignore-next-line
     protected function versionAray($results)
     {
         $version = collect(collect($results)->first())->first();
@@ -48,6 +51,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      * @param  array  $results
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function processTableListing($results)
     {
         return array_map(function ($result) {
@@ -61,6 +65,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      * @param  array  $results
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function processColumnDefinitions($tableName, $results)
     {
         return collect($results)->map(function ($result) use ($tableName) {
@@ -80,6 +85,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      * @param  array  $results
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function processIndexDefinitions($tableName, $results)
     {
         return collect($results)->map(function ($result) use ($tableName) {

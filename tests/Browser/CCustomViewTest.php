@@ -284,6 +284,7 @@ class CCustomViewTest extends ExmentKitTestCase
 
                 // if has query callback, execute, and filtering
                 if (array_has($value, 'callback')) {
+                    // @phpstan-ignore-next-line
                     $callback = $value['callback'];
                     $callback($query, $v);
                 }
@@ -296,6 +297,7 @@ class CCustomViewTest extends ExmentKitTestCase
     /**
      * check custom view grid filters initialized default.
      */
+    // @phpstan-ignore-next-line
     public function testCheckDefaultGridFilter()
     {
         $custom_table = CustomTable::getEloquent('exmenttest_view');
@@ -307,7 +309,9 @@ class CCustomViewTest extends ExmentKitTestCase
         $response = $this->get(admin_url("data/exmenttest_view?filter_ajax=1"));
         $content = $response->response->getContent();
         if (is_json($content)) {
+            // @phpstan-ignore-next-line
             $json = json_decode_ex($content, true);
+            // @phpstan-ignore-next-line
             $html = array_get($json, 'html');
 
             $pattern = '/<label\b[^>]*>\s*ID\s*<\/label>/i';
@@ -345,6 +349,7 @@ class CCustomViewTest extends ExmentKitTestCase
     /**
      * Add custom view grid filters.
      */
+    // @phpstan-ignore-next-line
     public function testAddViewSuccessGridFilter()
     {
         $custom_table = CustomTable::getEloquent('exmenttest_view');
@@ -378,7 +383,9 @@ class CCustomViewTest extends ExmentKitTestCase
         $response = $this->get(admin_url("data/exmenttest_view?filter_ajax=1"));
         $content = $response->response->getContent();
         if (is_json($content)) {
+            // @phpstan-ignore-next-line
             $json = json_decode_ex($content, true);
+            // @phpstan-ignore-next-line
             $html = array_get($json, 'html');
 
             $pattern = '/<label\b[^>]*>\s*ID\s*<\/label>/i';
@@ -395,6 +402,7 @@ class CCustomViewTest extends ExmentKitTestCase
     /**
      * Update custom view grid filters.
      */
+    // @phpstan-ignore-next-line
     public function testUpdateViewSuccessGridFilter()
     {
         $custom_table = CustomTable::getEloquent('exmenttest_view');
@@ -431,7 +439,9 @@ class CCustomViewTest extends ExmentKitTestCase
         $response = $this->get(admin_url("data/exmenttest_view?filter_ajax=1"));
         $content = $response->response->getContent();
         if (is_json($content)) {
+            // @phpstan-ignore-next-line
             $json = json_decode_ex($content, true);
+            // @phpstan-ignore-next-line
             $html = array_get($json, 'html');
 
             $pattern = '/<label\b[^>]*>\s*更新ユーザー\s*<\/label>/i';

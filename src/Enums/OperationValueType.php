@@ -13,6 +13,7 @@ class OperationValueType extends EnumBase
     public const BERONG_ORGANIZATIONS = 'berong_organizations';
 
 
+    // @phpstan-ignore-next-line
     public static function getOperationValueOptions($operation_update_type, $custom_column)
     {
         if ($operation_update_type != OperationUpdateType::SYSTEM) {
@@ -38,6 +39,7 @@ class OperationValueType extends EnumBase
      * @param mixed  $operation_update_type
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public static function getOperationValue(CustomColumn $custom_column, $operation_update_type, $custom_value)
     {
         switch ($operation_update_type) {

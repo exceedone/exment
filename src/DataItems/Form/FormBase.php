@@ -4,9 +4,13 @@ namespace Exceedone\Exment\DataItems\Form;
 
 abstract class FormBase
 {
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $custom_form;
+    // @phpstan-ignore-next-line
     protected $id;
+    // @phpstan-ignore-next-line
     protected $custom_value;
 
     /**
@@ -52,6 +56,7 @@ abstract class FormBase
     protected $asConfirm = false;
 
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($custom_table, $custom_form) = $args + [null, null];
@@ -61,6 +66,7 @@ abstract class FormBase
         return new static($custom_table, $custom_form);
     }
 
+    // @phpstan-ignore-next-line
     public function id($id = null)
     {
         $this->id = $id;
@@ -137,6 +143,7 @@ abstract class FormBase
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     abstract public function form();
 
     /**

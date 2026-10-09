@@ -41,6 +41,7 @@ class SystemColumn extends EnumBase
      *
      * @var array[]
      */
+    // @phpstan-ignore-next-line
     protected static $options = [
         'id' => ['id' => 1, 'name' => 'id', 'sqlname' => 'id', 'default' => true, 'order' => 1, 'header' => true, 'summary' => true, 'min_width' => 30, 'max_width' => 100, 'grid_filter' => true, 'grid_filter_system' => true],
         'suuid' => ['id' => 2, 'name' => 'suuid', 'sqlname' => 'suuid', 'default' => false, 'order' => 2, 'header' => true, 'min_width' => 100, 'max_width' => 300],
@@ -57,26 +58,31 @@ class SystemColumn extends EnumBase
         'comment' => ['id' => 301, 'name' => 'comment', 'tagname' => 'comment_tag', 'default' => false, 'grid_filter' => true, 'grid_filter_system' => false],
     ];
 
+    // @phpstan-ignore-next-line
     public function id()
     {
         return array_get($this->option(), 'id');
     }
 
+    // @phpstan-ignore-next-line
     public function name()
     {
         return $this->lowerKey();
     }
 
+    // @phpstan-ignore-next-line
     public static function isWorkflow($key)
     {
         return in_array($key, [static::WORKFLOW_STATUS, static::WORKFLOW_WORK_USERS]);
     }
 
+    // @phpstan-ignore-next-line
     public static function isComment($key)
     {
         return in_array($key, [static::COMMENT]);
     }
 
+    // @phpstan-ignore-next-line
     public static function getEnum($value, $default = null, $include_id = true)
     {
         $enum = parent::getEnum($value, $default);
@@ -94,6 +100,7 @@ class SystemColumn extends EnumBase
         return $default;
     }
 
+    // @phpstan-ignore-next-line
     public static function isSqlValid($value)
     {
         foreach (self::$options as $key => $v) {

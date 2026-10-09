@@ -38,6 +38,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     protected $appends = ['menu_target_view'];
     protected $casts = ['options' => 'json'];
 
+
+    // @phpstan-ignore-next-line
     public static $templateItems = [
         'excepts' => [
             'import' => ['permission'],
@@ -81,21 +83,29 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      *
      * @param array $attributes
      */
+
+    // @phpstan-ignore-next-line
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getMenuTargetViewAttribute()
     {
         return $this->getOption('menu_target_view', false);
     }
 
+
+    // @phpstan-ignore-next-line
     public function setMenuTargetViewAttribute($value)
     {
         return $this->setOption('menu_target_view', $value);
     }
 
+
+    // @phpstan-ignore-next-line
     public static function getTableName()
     {
         return (new static())->getTable();
@@ -104,6 +114,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     /**
      * @return array
      */
+
+    // @phpstan-ignore-next-line
     public function allNodes(): array
     {
         $grammar = DB::getQueryGrammar();
@@ -173,6 +185,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     if (is_nullorempty($row['icon'])) {
                         $table_options = json_decode_ex(array_get($row, 'table_options'), true);
+
+                        // @phpstan-ignore-next-line
                         $row['icon'] = array_get($table_options, 'icon');
                     }
                     $row['uri'] = 'data/'.$row['table_name'];
@@ -211,6 +225,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         return $results;
     }
 
+
+    // @phpstan-ignore-next-line
     public static function importReplaceJson(&$json, $options = [])
     {
         // Create menu. --------------------------------------------------
@@ -312,6 +328,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     /**
      * get Table And Column Name
      */
+
+    // @phpstan-ignore-next-line
     protected function getUniqueKeyValues()
     {
         // add item

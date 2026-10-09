@@ -11,8 +11,10 @@ class Embeds extends AdminField\Embeds
 
     protected $view = 'exment::form.field.embeds';
 
+    // @phpstan-ignore-next-line
     protected $enableHeader = true;
 
+    // @phpstan-ignore-next-line
     protected $footer_hr = false;
 
     /**
@@ -22,6 +24,7 @@ class Embeds extends AdminField\Embeds
      */
     protected $gridEmbeds = false;
 
+    // @phpstan-ignore-next-line
     public function disableHeader()
     {
         $this->enableHeader = false;
@@ -29,6 +32,7 @@ class Embeds extends AdminField\Embeds
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function footerHr($footer_hr = true)
     {
         $this->footer_hr = $footer_hr;
@@ -50,6 +54,7 @@ class Embeds extends AdminField\Embeds
     /**
      * get fields in NestedEmbeddedForm
      */
+    // @phpstan-ignore-next-line
     public function fields()
     {
         return $this->buildEmbeddedForm()->fields();
@@ -62,6 +67,7 @@ class Embeds extends AdminField\Embeds
      */
     protected function buildEmbeddedForm()
     {
+        // @phpstan-ignore-next-line
         $form = new EmbeddedForm($this->column);
         return $this->setFormField($form);
     }

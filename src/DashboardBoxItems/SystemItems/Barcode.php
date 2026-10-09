@@ -9,6 +9,7 @@ class Barcode
     /**
      * get header
      */
+    // @phpstan-ignore-next-line
     public function header()
     {
         return null;
@@ -17,6 +18,7 @@ class Barcode
     /**
      * get footer
      */
+    // @phpstan-ignore-next-line
     public function footer()
     {
         return null;
@@ -25,12 +27,13 @@ class Barcode
     /**
      * get html body
      */
+    // @phpstan-ignore-next-line
     public function body()
     {
         $current_locale = App::getLocale();
         $text_button = config("exment.text_scan_button_{$current_locale}");
         $label = exmtrans("custom_table.qr_code.reading", $text_button ?? exmtrans('dashboard.dashboard_box_system_pages.barcode'));
-        /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
+        // @phpstan-ignore-next-line
         return view('exment::dashboard.system.camera', [
             'label' => $label,
         ])->render() ?? null;

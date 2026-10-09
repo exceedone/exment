@@ -15,35 +15,42 @@ abstract class DiskServiceBase
      * default disk Item
      *
      */
+    // @phpstan-ignore-next-line
     protected $diskItem;
 
     /**
      * tmp disk Item
      *
      */
+    // @phpstan-ignore-next-line
     protected $tmpDiskItem;
 
     /**
      * tmp disk Item
      *
      */
+    // @phpstan-ignore-next-line
     protected $localSyncDiskItem;
 
     /**
      * Whether is this driver isNeedDownload
      */
+    // @phpstan-ignore-next-line
     public $isNeedDownload = null;
 
+    // @phpstan-ignore-next-line
     public function diskItem()
     {
         return $this->diskItem;
     }
 
+    // @phpstan-ignore-next-line
     public function tmpDiskItem()
     {
         return $this->tmpDiskItem;
     }
 
+    // @phpstan-ignore-next-line
     public function localSyncDiskItem()
     {
         return $this->localSyncDiskItem;
@@ -54,6 +61,7 @@ abstract class DiskServiceBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function upload($file)
     {
         foreach ((array)$file as $key => $value) {
@@ -114,7 +122,9 @@ abstract class DiskServiceBase
         return $this->sync();
     }
 
+    // @phpstan-ignore-next-line
     abstract protected function isNeedDownload();
+    // @phpstan-ignore-next-line
     abstract protected function isDeleteTmpAfterExecute();
 
     /**

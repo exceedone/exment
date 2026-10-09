@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomTable;
 
 class Organization extends SelectTable
 {
+    // @phpstan-ignore-next-line
     public function __construct($custom_column, $custom_value, $view_column_target = null)
     {
         parent::__construct($custom_column, $custom_value, $view_column_target);

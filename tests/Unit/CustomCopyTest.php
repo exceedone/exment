@@ -204,6 +204,7 @@ class CustomCopyTest extends UnitTestBase
         $input_columns = $options['input_columns'];
 
         // Login user.
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find($login_user_id));
 
         $custom_table = CustomTable::getEloquent($from_table_name);

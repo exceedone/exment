@@ -13,6 +13,7 @@ trait PluginPageTrait
      *
      * @return array|null|void
      */
+    // @phpstan-ignore-next-line
     public function _getLoadView()
     {
         $base_path = $this->plugin->getFullPath(path_join('resources', 'views'));
@@ -30,6 +31,7 @@ trait PluginPageTrait
      * @param array $data
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     protected function pluginView($bladeName, $data = [])
     {
         $blade = 'exment_' . snake_case($this->plugin->plugin_name) . '::' . $bladeName;

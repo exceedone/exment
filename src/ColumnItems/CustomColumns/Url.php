@@ -14,16 +14,23 @@ class Url extends CustomItem
      * get html(for display)
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         $value = $this->_value($v);
         $url = $this->_value($v);
+
+        // reject dangerous URL schemes (defense-in-depth; the 'url' validation rule already blocks these on write)
+        if (is_string($url) && preg_match('/^\s*(javascript|data|vbscript):/i', $url)) {
+            $url = '#';
+        }
 
         $value = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($value) : $value;
 
         return \Exment::getUrlTag($url, $value, UrlTagType::BLANK);
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Url::class;

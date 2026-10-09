@@ -17,26 +17,31 @@ class Dynamic extends ItemBase
         parent::__construct($custom_column, $custom_table);
     }
 
+    // @phpstan-ignore-next-line
     public function type()
     {
         return 'dynamic';
     }
 
+    // @phpstan-ignore-next-line
     public function text()
     {
         return array_get($this->custom_column, 'column_view_name');
     }
 
+    // @phpstan-ignore-next-line
     public function val()
     {
         return '${value:' . array_get($this->custom_column, 'column_name') . '}';
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(?CustomColumn $custom_column, ?CustomTable $custom_table)
     {
         return new self($custom_column, $custom_table);
     }
 
+    // @phpstan-ignore-next-line
     public static function getItemBySplits($splits, ?CustomTable $custom_table)
     {
         $custom_column = CustomColumn::getEloquent($splits[0], $custom_table);
@@ -49,6 +54,7 @@ class Dynamic extends ItemBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getTriggeredKeys(): array
     {
         $trigger_block = (!$this->custom_form_block || $this->custom_form_block->form_block_type == FormBlockType::DEFAULT) ? 'default' : $this->getRelationName();
@@ -59,6 +65,7 @@ class Dynamic extends ItemBase
     }
 
 
+    // @phpstan-ignore-next-line
     public static function setCalcCustomColumnOptions($options, $id, $custom_table)
     {
         // get calc options

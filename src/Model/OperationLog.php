@@ -12,6 +12,8 @@ class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
     use Traits\SerializeDateTrait;
     //protected $appends = ['base_user_id'];
 
+
+    // @phpstan-ignore-next-line
     public function getBaseUserIdAttribute()
     {
         if (isMatchString($this->user_id, 0)) {
@@ -22,6 +24,8 @@ class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
         return $user ? $user->base_user_id : "0";
     }
 
+
+    // @phpstan-ignore-next-line
     public function getUserNameAttribute()
     {
         if (isMatchString($this->user_id, 0)) {

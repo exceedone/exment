@@ -10,7 +10,7 @@ class NavbarChannel
     /**
      * Notify
      *
-     * @param $notifiable
+     * @param mixed $notifiable
      * @param Notification $notification
      * @return void
      */

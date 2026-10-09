@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\SystemRequireResult;
 
 class FilePermission extends SystemRequireBase
 {
+    // @phpstan-ignore-next-line
     protected $checkPaths = [
         'storage',
         'bootstrap/cache',

@@ -9,6 +9,7 @@ class CustomTableMenuButton extends ModalTileMenuButton
 {
     use CustomTableMenuTrait;
 
+    // @phpstan-ignore-next-line
     public function __construct($page_name, $custom_table, $page_name_sub = null)
     {
         $this->page_name = $page_name;

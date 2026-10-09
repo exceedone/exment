@@ -55,6 +55,7 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
         return $workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER && $custom_value->created_user_id == $targetUser->id;
     }
 
+    // @phpstan-ignore-next-line
     public static function setWorkflowConditionQuery($query, $tableName, $custom_table)
     {
         $query->orWhere(function ($query) use ($tableName) {
@@ -72,6 +73,7 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
      * @param CustomViewSort $custom_view_sort
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function setQuerySort($query, CustomViewSort $custom_view_sort)
     {
         $column_item = $custom_view_sort->column_item;
@@ -129,6 +131,7 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
      *
      * @return array offset 0 : column id, 1 : table id
      */
+    // @phpstan-ignore-next-line
     public function getColumnAndTableId($column_name, $custom_table): array
     {
         $target_column_id = SystemColumn::getOption(['name' => $column_name])['id'] ?? null;

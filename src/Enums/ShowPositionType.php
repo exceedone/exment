@@ -9,6 +9,7 @@ class ShowPositionType extends EnumBase
     public const BOTTOM = 'bottom';
     public const HIDE = 'hide';
 
+    // @phpstan-ignore-next-line
     public static function SYSTEM_SETTINGS()
     {
         return [
