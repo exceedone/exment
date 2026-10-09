@@ -21,7 +21,7 @@ class LineInstallerTest extends FeatureTestBase
         $this->initAllTest();
     }
 
-    public function testEnsureAllCreatesTablesAndMenu()
+    public function testEnsureAllCreatesTablesAndMenu(): void
     {
         LineInstaller::ensureAll();
 
@@ -42,7 +42,7 @@ class LineInstallerTest extends FeatureTestBase
         $this->assertTrue(Menu::where('menu_name', 'line_link')->exists());
     }
 
-    public function testSendLogFlexTemplateColumnPointsAtFlexTemplateTable()
+    public function testSendLogFlexTemplateColumnPointsAtFlexTemplateTable(): void
     {
         LineInstaller::ensureAll();
 
@@ -53,7 +53,7 @@ class LineInstallerTest extends FeatureTestBase
         $this->assertEquals($flex->id, array_get($column->options, 'select_target_table'));
     }
 
-    public function testEnsureAllIsIdempotent()
+    public function testEnsureAllIsIdempotent(): void
     {
         LineInstaller::ensureAll();
         LineInstaller::ensureAll();
@@ -62,7 +62,7 @@ class LineInstallerTest extends FeatureTestBase
         $this->assertEquals(1, CustomTable::where('table_name', 'line_send_log')->count());
         $this->assertEquals(1, Menu::where('menu_name', 'line_link')->count());
     }
-    public function testEnsureAllRefusesForeignTableWithSameName()
+    public function testEnsureAllRefusesForeignTableWithSameName(): void
     {
         LineInstaller::ensureAll();
         $real = CustomTable::getEloquent('line_flex_template');
@@ -84,7 +84,7 @@ class LineInstallerTest extends FeatureTestBase
             $thrown = $e;
         }
         $this->assertNotNull($thrown, 'ensureAll() must refuse a same-name table that is not the feature\'s.');
-        $this->assertFalse(boolval(CustomTable::find($foreign->id)->system_flg));
+        $this->assertFalse(boolval(CustomTable::where('id', $foreign->id)->firstOrFail()->system_flg));
         $this->assertEquals(0, CustomColumn::where('custom_table_id', $foreign->id)->count());
     }
 
@@ -96,7 +96,7 @@ class LineInstallerTest extends FeatureTestBase
      * Pin: deleting a custom table must not require workflow_task_reads to exist.
      * RENAME TABLE is DDL and commits the test transaction: everything is restored in finally.
      */
-    public function testCustomTableCanBeDeletedWhenWorkflowTaskReadsTableIsAbsent()
+    public function testCustomTableCanBeDeletedWhenWorkflowTaskReadsTableIsAbsent(): void
     {
         $reads = (new \Exceedone\Exment\Model\WorkflowTaskRead())->getTable();
         $probeName = 'zz_line_rollback_probe';

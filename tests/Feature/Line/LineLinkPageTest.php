@@ -23,7 +23,7 @@ class LineLinkPageTest extends FeatureTestBase
 
     protected function loginAndReset(string $loginUserId): LoginUser
     {
-        /** @var LoginUser $loginUser */
+        /** @var LoginUser|null $loginUser */
         $loginUser = LoginUser::find($loginUserId);
         $this->assertNotNull($loginUser, "Fixture: login user {$loginUserId} is required.");
         LineAccountLink::where('user_id', $loginUser->base_user_id)->delete();
@@ -31,7 +31,7 @@ class LineLinkPageTest extends FeatureTestBase
         return $loginUser;
     }
 
-    public function testEmployeeCanOpenLineLinkPage()
+    public function testEmployeeCanOpenLineLinkPage(): void
     {
         $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
@@ -41,7 +41,7 @@ class LineLinkPageTest extends FeatureTestBase
         $response->assertSee('line/link/generate');
     }
 
-    public function testLineLinkMenuVisibleForEmployee()
+    public function testLineLinkMenuVisibleForEmployee(): void
     {
         $loginUser = $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
@@ -51,7 +51,7 @@ class LineLinkPageTest extends FeatureTestBase
         );
     }
 
-    public function testAdminCanOpenLineLinkPage()
+    public function testAdminCanOpenLineLinkPage(): void
     {
         $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
 
@@ -61,7 +61,7 @@ class LineLinkPageTest extends FeatureTestBase
         $response->assertSee('line/link/generate');
     }
 
-    public function testLinkPageRendersBootstrap5Card()
+    public function testLinkPageRendersBootstrap5Card(): void
     {
         $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
@@ -71,7 +71,7 @@ class LineLinkPageTest extends FeatureTestBase
         $response->assertSee('class="box card p-3"', false);
     }
 
-    public function testGenerateRefusedWhenOaBasicIdNotConfigured()
+    public function testGenerateRefusedWhenOaBasicIdNotConfigured(): void
     {
         $loginUser = $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
         config(['exment.line.oa_basic_id' => null]);

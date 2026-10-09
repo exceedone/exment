@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Log;
 
 class SafetyCheckAction
 {
+    /**
+     * @param array<mixed> $data parsed postback query: event, st
+     */
     public static function handle(array $data, ?string $lineUserId): string
     {
         if (empty($lineUserId)) {
@@ -77,8 +80,8 @@ class SafetyCheckAction
                 return \DB::transaction(function () use ($answerTable, $eventIds, $userId, $text) {
                     $answerRow = null;
                     foreach ($eventIds as $eventId) {
-                        $row = static::findAnswerRow($answerTable, $eventId, $userId);
-                        if ($row && static::isCommentWindowOpen($row)) {
+                        $row = self::findAnswerRow($answerTable, $eventId, $userId);
+                        if ($row && self::isCommentWindowOpen($row)) {
                             $answerRow = $row;
                             break;
                         }
@@ -100,6 +103,12 @@ class SafetyCheckAction
         }
     }
 
+    /**
+     * @param CustomTable $answerTable
+     * @param int|string $eventId
+     * @param int|string $userId
+     * @return \Exceedone\Exment\Model\CustomValue|null
+     */
     private static function findAnswerRow($answerTable, $eventId, $userId, bool $lock = true)
     {
         $indexEvent = CustomColumn::getEloquent('event', $answerTable)->getIndexColumnName();
@@ -115,6 +124,9 @@ class SafetyCheckAction
         return $query->first();
     }
 
+    /**
+     * @param int|string $eventId
+     */
     public static function recordAnswer($eventId, int $userId, string $status, string $channel, ?string $comment = null): bool
     {
         $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
@@ -123,7 +135,7 @@ class SafetyCheckAction
         }
 
         return \DB::transaction(function () use ($answerTable, $eventId, $userId, $status, $channel, $comment) {
-            $answerRow = static::findAnswerRow($answerTable, $eventId, $userId);
+            $answerRow = self::findAnswerRow($answerTable, $eventId, $userId);
             if (!$answerRow) {
                 return false;
             }
@@ -143,15 +155,22 @@ class SafetyCheckAction
         });
     }
 
+    /**
+     * @param int|string $eventId
+     * @return \Exceedone\Exment\Model\CustomValue|null
+     */
     public static function currentAnswer($eventId, int $userId)
     {
         $answerTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_ANSWER);
         if (!$answerTable) {
             return null;
         }
-        return static::findAnswerRow($answerTable, $eventId, $userId, false);
+        return self::findAnswerRow($answerTable, $eventId, $userId, false);
     }
 
+    /**
+     * @param \Exceedone\Exment\Model\CustomValue $answerRow
+     */
     private static function isCommentWindowOpen($answerRow): bool
     {
         if ($answerRow->getValue('answer_status') === SafetyCheckDefine::ANSWER_NOT_ANSWERED) {

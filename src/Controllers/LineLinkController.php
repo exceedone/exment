@@ -27,6 +27,9 @@ class LineLinkController extends AdminControllerBase
             ->body(view('exment::line.link', ['link' => $link, 'qr' => $qr]));
     }
 
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function generate(Request $request)
     {
         $userId = (int) \Exment::user()->getUserId();
@@ -42,6 +45,9 @@ class LineLinkController extends AdminControllerBase
         return redirect(admin_url('line/link'));
     }
 
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function unlink(Request $request)
     {
         $userId = (int) \Exment::user()->getUserId();

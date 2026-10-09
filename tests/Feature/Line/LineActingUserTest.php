@@ -28,7 +28,7 @@ class LineActingUserTest extends FeatureTestBase
         return CustomTable::getEloquent('safety_check_event')->hasPermission();
     }
 
-    public function testRunAsDoesNotInheritPermissionsCachedForPreviousUser()
+    public function testRunAsDoesNotInheritPermissionsCachedForPreviousUser(): void
     {
         $admin = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         $user2 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
@@ -43,7 +43,7 @@ class LineActingUserTest extends FeatureTestBase
         $this->assertFalse($seenAsUser2, 'user2 must be evaluated with their own permissions, not the admin set cached earlier in the request.');
     }
 
-    public function testRunAsLeavesNoPermissionCacheBehindForNextUser()
+    public function testRunAsLeavesNoPermissionCacheBehindForNextUser(): void
     {
         $admin = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         $user2 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);

@@ -6,12 +6,18 @@ use Exceedone\Exment\Model\CustomTable;
 
 class LineWorkflowAction
 {
+    /**
+     * @return array<mixed>
+     */
     public static function parsePostback(string $data): array
     {
         parse_str($data, $out);
         return $out;
     }
 
+    /**
+     * @param array<mixed> $data parsed postback query: table, id, action
+     */
     public static function handle(array $data, ?string $lineUserId): string
     {
         if (empty($lineUserId)) {

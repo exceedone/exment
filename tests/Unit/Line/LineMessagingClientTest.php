@@ -16,7 +16,7 @@ class LineMessagingClientTest extends UnitTestBase
     public const TOKEN  = 'test-channel-token';
     public const SECRET = 'test-channel-secret';
 
-    /** @var array<int, array> */
+    /** @var array<int, array<string, mixed>> Guzzle history: request, response per call */
     protected $history = [];
 
     /**
@@ -26,9 +26,10 @@ class LineMessagingClientTest extends UnitTestBase
     protected function makeClient(int $status = 200, string $body = '{}'): LineMessagingClient
     {
         $this->history = [];
+        $history = &$this->history; // alias: Guzzle appends to the property through this reference
 
         $stack = HandlerStack::create(new MockHandler([new Response($status, [], $body)]));
-        $stack->push(Middleware::history($this->history));
+        $stack->push(Middleware::history($history));
 
         $http = new Client(['handler' => $stack]);
 
@@ -109,7 +110,7 @@ class LineMessagingClientTest extends UnitTestBase
         $res = $client->reply('reply-token-xyz', [LineMessagingClient::text('x')]);
 
         $this->assertFalse($res['ok']);
-        Log::shouldHaveReceived('warning')
+        Log::getFacadeRoot()->shouldHaveReceived('warning')
             ->once()
             ->withArgs(function ($message, $context = []) {
                 return $message === 'LINE reply failed' && ($context['status'] ?? null) === 401;

@@ -27,12 +27,15 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         auth('admin')->logout();
     }
 
+    /**
+     * @param int|string $eventId
+     */
     protected function signedAnswerUrl($eventId, int $userId): string
     {
         return URL::signedRoute('exment.safety_answer', ['event' => $eventId, 'user' => $userId]);
     }
 
-    public function testGetShowsFormWithValidSignature()
+    public function testGetShowsFormWithValidSignature(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();
@@ -47,7 +50,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->assertEquals('not_answered', $this->freshAnswerRow($row->id)->getValue('answer_status'));
     }
 
-    public function testAnswerFormUsesBootstrap5Controls()
+    public function testAnswerFormUsesBootstrap5Controls(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();
@@ -62,7 +65,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $response->assertDontSee('class="radio"', false);
     }
 
-    public function testInvalidSignatureRejected()
+    public function testInvalidSignatureRejected(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();
@@ -75,7 +78,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->get('admin/safety/answer?event=' . $event->id . '&user=' . $userId)->assertStatus(403);
     }
 
-    public function testPostRecordsAnswerWithChannelMail()
+    public function testPostRecordsAnswerWithChannelMail(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();
@@ -94,7 +97,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->assertStringContainsString('leg injured', (string) $fresh->getValue('comment'));
     }
 
-    public function testPostAgainUpdatesAnswer()
+    public function testPostAgainUpdatesAnswer(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();
@@ -107,7 +110,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->assertEquals('need_help', $this->freshAnswerRow($row->id)->getValue('answer_status'));
     }
 
-    public function testClosedEventBlocksGetAndPost()
+    public function testClosedEventBlocksGetAndPost(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent(['event_status' => 'closed']);
@@ -119,7 +122,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->assertEquals('not_answered', $this->freshAnswerRow($row->id)->getValue('answer_status'));
     }
 
-    public function testInvalidStatusRejected()
+    public function testInvalidStatusRejected(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();
@@ -131,7 +134,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->assertEquals('not_answered', $this->freshAnswerRow($row->id)->getValue('answer_status'));
     }
 
-    public function testMissingRowShowsError()
+    public function testMissingRowShowsError(): void
     {
         $event = $this->createEvent();
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
@@ -139,7 +142,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->post($this->signedAnswerUrl($event->id, $userId), ['st' => 'safe'])->assertStatus(404);
     }
 
-    public function testAnsweredRowShowsCurrentAnswerAndAnsweredAt()
+    public function testAnsweredRowShowsCurrentAnswerAndAnsweredAt(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();
@@ -156,7 +159,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $response->assertSee((string) $this->freshAnswerRow($row->id)->getValue('answered_at'));
     }
 
-    public function testSubmitDoesNotClaimSuccessWhenRecordAnswerFails()
+    public function testSubmitDoesNotClaimSuccessWhenRecordAnswerFails(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();
@@ -179,7 +182,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $response->assertDontSee(exmtrans('safety.answer_done_title'));
     }
 
-    public function testSignedUrlBypassesWebIpFilter()
+    public function testSignedUrlBypassesWebIpFilter(): void
     {
         System::web_ip_filters('203.0.113.5');
 
@@ -194,7 +197,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $response->assertDontSee(exmtrans('error.ip_address_filtered'));
     }
 
-    public function testLoggedInNonAdminUserGetsAnswerFormAndCanAnswer()
+    public function testLoggedInNonAdminUserGetsAnswerFormAndCanAnswer(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $loginUser = LoginUser::find($userId);
@@ -220,7 +223,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->assertEquals('mail', $fresh->getValue('channel'));
     }
 
-    public function testEventMissingReturns404ForGetAndPost()
+    public function testEventMissingReturns404ForGetAndPost(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $url = $this->signedAnswerUrl(999999999, $userId);
@@ -229,7 +232,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->post($url, ['st' => 'safe'])->assertStatus(404);
     }
 
-    public function testMissingRowOnGetShowsError()
+    public function testMissingRowOnGetShowsError(): void
     {
         $event = $this->createEvent();
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
@@ -237,7 +240,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $this->get($this->signedAnswerUrl($event->id, $userId))->assertStatus(404);
     }
 
-    public function testCsrfMiddlewareExemptsSafetyAnswerPath()
+    public function testCsrfMiddlewareExemptsSafetyAnswerPath(): void
     {
         $middleware = new \Exceedone\Exment\Middleware\VerifyCsrfToken(app(), app('encrypter'));
         $request = \Illuminate\Http\Request::create(admin_url('safety/answer'), 'POST');
@@ -251,7 +254,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         );
     }
 
-    public function testResponsesCarryNoStoreAndNoindexHeaders()
+    public function testResponsesCarryNoStoreAndNoindexHeaders(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();
@@ -262,7 +265,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $response->assertHeader('Cache-Control', 'no-store, private');
         $response->assertHeader('X-Robots-Tag', 'noindex');
     }
-    public function testAnswerPageIsNotWrittenToOperationLog()
+    public function testAnswerPageIsNotWrittenToOperationLog(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $event = $this->createEvent();

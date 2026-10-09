@@ -19,7 +19,7 @@ class SafetyCheckConfigTest extends FeatureTestBase
         $this->initAllTest();
     }
 
-    public function testDefaults()
+    public function testDefaults(): void
     {
         $this->assertFalse(boolval(System::safety_check_auto_enabled()));
         $this->assertEquals(45, (int) System::safety_check_min_scale());
@@ -29,7 +29,7 @@ class SafetyCheckConfigTest extends FeatureTestBase
         $this->assertEquals(5, (int) System::safety_check_resend_throttle_minutes());
     }
 
-    public function testSetAndGet()
+    public function testSetAndGet(): void
     {
         System::safety_check_auto_enabled(true);
         System::safety_check_min_scale(50);
@@ -41,13 +41,13 @@ class SafetyCheckConfigTest extends FeatureTestBase
         $this->assertEquals('2026-08-11 10:00:00', (string) System::safety_check_last_feed_time());
     }
 
-    public function testScaleOptions()
+    public function testScaleOptions(): void
     {
         $this->assertArrayHasKey(45, SafetyCheckDefine::scaleOptions());
         $this->assertCount(6, SafetyCheckDefine::scaleOptions());
     }
 
-    public function testScaleLabelRendersIntensityNotRawCode()
+    public function testScaleLabelRendersIntensityNotRawCode(): void
     {
         \App::setLocale('ja');
         $this->assertEquals('最大震度1', SafetyCheckDefine::scaleLabel(10));
@@ -64,12 +64,12 @@ class SafetyCheckConfigTest extends FeatureTestBase
         $this->assertEquals('Max Shindo Unknown', SafetyCheckDefine::scaleLabel(-1));
     }
 
-    public function testScaleLabelKeepsUnknownCodeVisible()
+    public function testScaleLabelKeepsUnknownCodeVisible(): void
     {
         $this->assertStringContainsString('99', SafetyCheckDefine::scaleLabel(99));
     }
 
-    public function testFeedCursorResetMigrationClearsStoredCursor()
+    public function testFeedCursorResetMigrationClearsStoredCursor(): void
     {
         System::safety_check_last_feed_time('2099-01-01 00:00:00');
         System::clearCache();

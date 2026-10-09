@@ -10,11 +10,17 @@ class LineSender extends SenderBase
 {
     public const TEXT_MAX_LENGTH = 5000;
 
-    /** @var string */
+    /** @var string|null */
     protected $to;
-    /** @var array */
+    /** @var array<string, mixed> */
     protected $context;
 
+    /**
+     * @param string|null $to
+     * @param string|null $subject
+     * @param string|null $body
+     * @param array<string, mixed> $context
+     */
     public function __construct($to, $subject, $body, array $context = [])
     {
         $this->to      = $to;
@@ -23,6 +29,12 @@ class LineSender extends SenderBase
         $this->context = $context;
     }
 
+    /**
+     * @param string|null $to
+     * @param string|null $subject
+     * @param string|null $body
+     * @param array<string, mixed> $context
+     */
     public static function make($to, $subject, $body, array $context = []): LineSender
     {
         return new self($to, $subject, $body, $context);
@@ -51,6 +63,9 @@ class LineSender extends SenderBase
         LineSendJob::dispatchAfterResponse($this->to, [LineMessagingClient::text($text)], $context);
     }
 
+    /**
+     * @param string|null $html
+     */
     protected static function htmlToLineText($html): string
     {
         $s = (string) $html;

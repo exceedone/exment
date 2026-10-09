@@ -145,7 +145,9 @@ class SafetyCheckSender
             }
 
             try {
-                $mailSender = static::buildMailSender($mailUsers->get($userId), $eventValue, $title, $mailBody);
+                /** @var \Exceedone\Exment\Model\CustomValue|null $mailUser */
+                $mailUser = $mailUsers->get($userId);
+                $mailSender = static::buildMailSender($mailUser, $eventValue, $title, $mailBody);
                 if ($mailSender) {
                     $mailSender->send();
                     $result['mail']++;
@@ -185,6 +187,10 @@ class SafetyCheckSender
         return $result;
     }
 
+    /**
+     * @param \Exceedone\Exment\Model\CustomValue|null $userValue
+     * @param \Exceedone\Exment\Model\CustomValue $eventValue
+     */
     public static function buildMailSender($userValue, $eventValue, string $title, string $body): ?MailSender
     {
         if (!$userValue || is_nullorempty($userValue->getValue('email'))) {

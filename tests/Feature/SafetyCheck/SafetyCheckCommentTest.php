@@ -23,6 +23,9 @@ class SafetyCheckCommentTest extends FeatureTestBase
         $this->setUpLineWebhookMock();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function messageEvent(string $text, string $lineUserId, string $replyToken = 'rt-comment'): array
     {
         return [
@@ -33,6 +36,10 @@ class SafetyCheckCommentTest extends FeatureTestBase
         ];
     }
 
+    /**
+     * @param int|string $eventId
+     * @return \Exceedone\Exment\Model\CustomValue
+     */
     protected function createAnsweredRow($eventId, int $userId, string $status = 'safe')
     {
         return $this->createAnswerRow($eventId, $userId, [
@@ -42,6 +49,9 @@ class SafetyCheckCommentTest extends FeatureTestBase
         ]);
     }
 
+    /**
+     * @param int|string $rowId
+     */
     protected function backdateRowUpdatedAt($rowId, \Carbon\Carbon $to): void
     {
         \DB::table(getDBTableName(CustomTable::getEloquent('safety_check_answer')))
@@ -49,7 +59,7 @@ class SafetyCheckCommentTest extends FeatureTestBase
             ->update(['updated_at' => $to->format('Y-m-d H:i:s')]);
     }
 
-    public function testTextMessageAttachesCommentWithTimestampAndReplies()
+    public function testTextMessageAttachesCommentWithTimestampAndReplies(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -68,7 +78,7 @@ class SafetyCheckCommentTest extends FeatureTestBase
         $this->assertEquals(exmtrans('safety.comment_added'), $this->lastReplyText());
     }
 
-    public function testSecondMessageAppendsAsSecondLineInsteadOfOverwriting()
+    public function testSecondMessageAppendsAsSecondLineInsteadOfOverwriting(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -93,7 +103,7 @@ class SafetyCheckCommentTest extends FeatureTestBase
         $this->assertEquals(exmtrans('safety.comment_added'), $this->lastReplyText());
     }
 
-    public function testClosedEventLeavesCommentUnchangedAndRepliesInvalidCommand()
+    public function testClosedEventLeavesCommentUnchangedAndRepliesInvalidCommand(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -110,7 +120,7 @@ class SafetyCheckCommentTest extends FeatureTestBase
         $this->assertEquals(exmtrans('line.invalid_command'), $this->lastReplyText());
     }
 
-    public function testTextBeforeAnsweringIsNotAttachedAsComment()
+    public function testTextBeforeAnsweringIsNotAttachedAsComment(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -126,7 +136,7 @@ class SafetyCheckCommentTest extends FeatureTestBase
         $this->assertEquals(exmtrans('line.invalid_command'), $this->lastReplyText());
     }
 
-    public function testTextAfterCommentWindowExpiredIsNotAttachedAsComment()
+    public function testTextAfterCommentWindowExpiredIsNotAttachedAsComment(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -143,7 +153,7 @@ class SafetyCheckCommentTest extends FeatureTestBase
         $this->assertEquals(exmtrans('line.invalid_command'), $this->lastReplyText());
     }
 
-    public function testLinkCommandIsNotSwallowedByCommentHandling()
+    public function testLinkCommandIsNotSwallowedByCommentHandling(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -162,7 +172,7 @@ class SafetyCheckCommentTest extends FeatureTestBase
         $this->assertNull(array_get($fresh->value, 'comment'), 'A LINK command must not be recorded as a comment.');
     }
 
-    public function testRegularUserWithoutTablePermissionCanComment()
+    public function testRegularUserWithoutTablePermissionCanComment(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $lineUserId = $this->linkUser($userId);
@@ -180,7 +190,7 @@ class SafetyCheckCommentTest extends FeatureTestBase
         $this->assertEquals(exmtrans('safety.comment_added'), $this->lastReplyText());
     }
 
-    public function testEmptyCommentWindowFallsBackToDefault()
+    public function testEmptyCommentWindowFallsBackToDefault(): void
     {
         \Exceedone\Exment\Model\System::safety_check_comment_window_minutes(0);
         \Exceedone\Exment\Model\System::clearCache();

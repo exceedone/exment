@@ -10,6 +10,9 @@ use Illuminate\Routing\Controller;
 
 class LineWebhookController extends Controller
 {
+    /**
+     * @return \Illuminate\Http\Response
+     */
     public function handle(Request $request)
     {
         $client = app(LineMessagingClient::class);
@@ -38,6 +41,9 @@ class LineWebhookController extends Controller
         return response('', 200);
     }
 
+    /**
+     * @param array<string, mixed> $event LINE webhook event
+     */
     protected function markEventProcessed(array $event): bool
     {
         $eventId = $event['webhookEventId'] ?? null;
@@ -47,6 +53,9 @@ class LineWebhookController extends Controller
         return \Cache::add('line_webhook_event.' . $eventId, 1, 60 * 60 * 25);
     }
 
+    /**
+     * @param array<string, mixed> $event LINE webhook event
+     */
     protected function forgetEventProcessed(array $event): void
     {
         $eventId = $event['webhookEventId'] ?? null;
@@ -55,6 +64,9 @@ class LineWebhookController extends Controller
         }
     }
 
+    /**
+     * @param array<string, mixed> $event LINE webhook event
+     */
     protected function dispatchEvent(array $event, LineMessagingClient $client, LineAccountLinker $linker): void
     {
         $type       = $event['type'] ?? null;

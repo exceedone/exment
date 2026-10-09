@@ -22,6 +22,9 @@ class LineActingUser
         return LoginUser::where('base_user_id', $userId)->first();
     }
 
+    /**
+     * @return mixed the callback's return value
+     */
     public static function runAs(LoginUser $loginUser, \Closure $callback)
     {
         $guard = \Auth::guard(config('admin.auth.guard', 'admin'));

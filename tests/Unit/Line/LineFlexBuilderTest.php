@@ -86,7 +86,7 @@ class LineFlexBuilderTest extends TestCase
         foreach ($formats as $pair) {
             $this->assertCount(2, $pair, 'Each element must be [exmtrans_key, format].');
             [$labelKey, $format] = $pair;
-            $this->assertIsString($labelKey);
+            $this->assertNotSame('', $labelKey, 'exmtrans key must not be empty');
             $this->assertMatchesRegularExpression('/\$\{.+\}/', $format);
         }
     }

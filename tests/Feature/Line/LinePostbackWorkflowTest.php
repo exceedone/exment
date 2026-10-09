@@ -30,6 +30,9 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
+    /**
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
     protected function postPostback(string $data, string $lineUserId)
     {
         $payload = ['events' => [[
@@ -38,7 +41,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
             'source' => ['userId' => $lineUserId],
             'postback' => ['data' => $data],
         ]]];
-        $body = json_encode($payload);
+        $body = (string) json_encode($payload);
         $signature = base64_encode(hash_hmac('sha256', $body, static::SECRET, true));
 
         return $this->call(
@@ -52,21 +55,32 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         );
     }
 
+    /**
+     * @return \Exceedone\Exment\Model\CustomValue|null
+     */
     protected function createWorkflowValue(string $text)
     {
         $ct = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $cv = $ct->getValueModel()->setValue(['text' => $text]);
         $cv->save();
-        return $ct->getValueModel()->find($cv->id);
+        /** @var \Exceedone\Exment\Model\CustomValue|null $saved */
+        $saved = $ct->getValueModel()->find($cv->id);
+        return $saved;
     }
 
+    /**
+     * @param \Exceedone\Exment\Model\CustomValue $cv
+     * @return \Exceedone\Exment\Model\CustomValue|null
+     */
     protected function reload($cv)
     {
-        return CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL)
+        /** @var \Exceedone\Exment\Model\CustomValue|null $fresh */
+        $fresh = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL)
             ->getValueModel()->find($cv->id);
+        return $fresh;
     }
 
-    public function testPostbackExecutesWorkflowActionAndAdvancesStatus()
+    public function testPostbackExecutesWorkflowActionAndAdvancesStatus(): void
     {
         Bus::fake();
 
@@ -90,7 +104,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $this->assertEquals('middle', $this->reload($cv)->workflow_status_name, 'Status must advance to middle after the postback.');
     }
 
-    public function testPostbackFromUnlinkedLineUserDoesNotChangeStatus()
+    public function testPostbackFromUnlinkedLineUserDoesNotChangeStatus(): void
     {
         Bus::fake();
 
@@ -107,7 +121,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $this->assertEquals('start', $this->reload($cv)->workflow_status_name, 'An unlinked user must not change the status.');
     }
 
-    public function testPostbackForActionUserHasNoAuthorityDoesNotChangeStatus()
+    public function testPostbackForActionUserHasNoAuthorityDoesNotChangeStatus(): void
     {
         Bus::fake();
 
@@ -127,7 +141,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $this->assertEquals('start', $this->reload($cv)->workflow_status_name, 'A user without action authority leaves the status unchanged.');
     }
 
-    public function testInvalidPostbackDataReturns200AndChangesNothing()
+    public function testInvalidPostbackDataReturns200AndChangesNothing(): void
     {
         Bus::fake();
 
@@ -142,7 +156,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $this->assertEquals('start', $this->reload($cv)->workflow_status_name);
     }
 
-    public function testUnknownActionIdIsRejectedAndStatusUnchanged()
+    public function testUnknownActionIdIsRejectedAndStatusUnchanged(): void
     {
         Bus::fake();
 

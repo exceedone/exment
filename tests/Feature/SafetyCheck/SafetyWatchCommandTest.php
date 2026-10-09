@@ -35,6 +35,9 @@ class SafetyWatchCommandTest extends FeatureTestBase
         System::clearCache();
     }
 
+    /**
+     * @param array<int, array<string, mixed>> $items
+     */
     protected function bindFeed(array $items = []): FakeEarthquakeFeed
     {
         $feed = new FakeEarthquakeFeed();
@@ -45,6 +48,10 @@ class SafetyWatchCommandTest extends FeatureTestBase
         return $feed;
     }
 
+    /**
+     * @param array<string, mixed> $overrides
+     * @return array<string, mixed>
+     */
     protected function feedItem(array $overrides = []): array
     {
         $item = array_merge([
@@ -58,12 +65,19 @@ class SafetyWatchCommandTest extends FeatureTestBase
         return $item;
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Database\Eloquent\Model> safety_check_event rows (CustomValue at runtime)
+     */
     protected function eventRows()
     {
         $eventTable = CustomTable::getEloquent('safety_check_event');
         return $eventTable->getValueQuery()->get();
     }
 
+    /**
+     * @param array<string, mixed> $overrides
+     * @return \Exceedone\Exment\Model\CustomValue
+     */
     protected function createExistingEvent(array $overrides = [])
     {
         $value = array_merge([
@@ -78,7 +92,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         return $event;
     }
 
-    public function testQuakeInfoShowsIntensityLabelNotRawScaleCode()
+    public function testQuakeInfoShowsIntensityLabelNotRawScaleCode(): void
     {
         $this->bindFeed([$this->feedItem(['id' => 'quake-label', 'max_scale' => 50])]);
 
@@ -90,7 +104,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertStringNotContainsString('/ 50 /', $quakeInfo);
     }
 
-    public function testScaleAboveThresholdCreatesEventAndDispatches()
+    public function testScaleAboveThresholdCreatesEventAndDispatches(): void
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
 
@@ -111,12 +125,13 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
         Bus::assertDispatchedTimes(LineSendJob::class, 1);
 
+        /** @var \Carbon\Carbon|null $lastFeedTime fresh read; phpstan remembers the earlier assertNull() on this call */
         $lastFeedTime = System::safety_check_last_feed_time();
         $this->assertNotNull($lastFeedTime);
         $this->assertEquals($itemTime->format('Y-m-d H:i:s'), $lastFeedTime->format('Y-m-d H:i:s'));
     }
 
-    public function testScaleBelowThresholdCreatesNoEvent()
+    public function testScaleBelowThresholdCreatesNoEvent(): void
     {
         $itemTime = Carbon::now()->subMinute();
         $item = $this->feedItem(['id' => 'quake-below', 'max_scale' => 40, 'time' => $itemTime]);
@@ -127,12 +142,13 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(0, $this->eventRows()->count());
         Bus::assertNotDispatched(LineSendJob::class);
 
+        /** @var \Carbon\Carbon|null $lastFeedTime fresh read; phpstan remembers the earlier assertNull() on this call */
         $lastFeedTime = System::safety_check_last_feed_time();
         $this->assertNotNull($lastFeedTime);
         $this->assertEquals($itemTime->format('Y-m-d H:i:s'), $lastFeedTime->format('Y-m-d H:i:s'));
     }
 
-    public function testDuplicateJmaEventIdCreatesNoNewEvent()
+    public function testDuplicateJmaEventIdCreatesNoNewEvent(): void
     {
         $this->createExistingEvent([
             'jma_event_id' => 'dup-1',
@@ -148,7 +164,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
-    public function testCorrectionBulletinForSameQuakeIsSuppressedByCooldown()
+    public function testCorrectionBulletinForSameQuakeIsSuppressedByCooldown(): void
     {
         Log::spy();
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -176,7 +192,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(1, $this->eventRows()->count(), 'A correction bulletin for an already-triggered quake must not create a second event.');
         Bus::assertDispatchedTimes(LineSendJob::class, 1);
 
-        Log::shouldHaveReceived('info')
+        Log::getFacadeRoot()->shouldHaveReceived('info')
             ->once()
             ->withArgs(function ($message, $context = []) {
                 return $message === 'safety check suppressed by cooldown'
@@ -184,7 +200,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             });
     }
 
-    public function testDistinctQuakeWithinCooldownStillTriggers()
+    public function testDistinctQuakeWithinCooldownStillTriggers(): void
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
 
@@ -213,7 +229,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         Bus::assertDispatchedTimes(LineSendJob::class, 2);
     }
 
-    public function testStaleBulletinCreatesNoEventButAdvancesCursor()
+    public function testStaleBulletinCreatesNoEventButAdvancesCursor(): void
     {
         $itemTime = Carbon::now()->subHours(2);
         $item = $this->feedItem(['id' => 'quake-stale', 'max_scale' => 60, 'time' => $itemTime]);
@@ -226,12 +242,13 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(0, $this->eventRows()->count());
         Bus::assertNotDispatched(LineSendJob::class);
 
+        /** @var \Carbon\Carbon|null $lastFeedTime fresh read; phpstan remembers the earlier assertNull() on this call */
         $lastFeedTime = System::safety_check_last_feed_time();
         $this->assertNotNull($lastFeedTime);
         $this->assertEquals($itemTime->format('Y-m-d H:i:s'), $lastFeedTime->format('Y-m-d H:i:s'));
     }
 
-    public function testBulletinAgeSettingControlsStaleness()
+    public function testBulletinAgeSettingControlsStaleness(): void
     {
         System::safety_check_max_bulletin_age_minutes(180);
         System::clearCache();
@@ -247,7 +264,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals('quake-old-but-allowed', array_get($rows->first()->value, 'jma_event_id'));
     }
 
-    public function testUpgradeBulletinSharingQuakeTimeStillTriggers()
+    public function testUpgradeBulletinSharingQuakeTimeStillTriggers(): void
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
 
@@ -277,7 +294,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         Bus::assertDispatchedTimes(LineSendJob::class, 1);
     }
 
-    public function testPromptBulletinWithoutHypocenterUsesPendingPlaceholder()
+    public function testPromptBulletinWithoutHypocenterUsesPendingPlaceholder(): void
     {
         $this->bindFeed([$this->feedItem(['id' => 'eq-nohypo', 'hypocenter' => '', 'max_scale' => 50])]);
 
@@ -291,7 +308,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertStringNotContainsString(' ）', (string) array_get($event->value, 'title'));
     }
 
-    public function testDetailBulletinBackfillsHypocenterWithoutResending()
+    public function testDetailBulletinBackfillsHypocenterWithoutResending(): void
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
         $quakeTime = Carbon::now()->subMinutes(10)->startOfSecond();
@@ -318,7 +335,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertStringNotContainsString(exmtrans('safety.hypocenter_pending'), (string) array_get($event->value, 'quake_info'));
     }
 
-    public function testStaleQualifyingBulletinLogsWarning()
+    public function testStaleQualifyingBulletinLogsWarning(): void
     {
         Log::spy();
         $this->bindFeed([
@@ -329,7 +346,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         \Artisan::call('exment:safetywatch');
 
         $this->assertEquals(0, $this->eventRows()->count());
-        Log::shouldHaveReceived('warning')
+        Log::getFacadeRoot()->shouldHaveReceived('warning')
             ->once()
             ->withArgs(function ($message, $context = []) {
                 return $message === 'safety check stale bulletin skipped'
@@ -337,7 +354,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             });
     }
 
-    public function testEventSaveFailureDoesNotAdvanceCursorSoBulletinIsRetried()
+    public function testEventSaveFailureDoesNotAdvanceCursorSoBulletinIsRetried(): void
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
 
@@ -355,7 +372,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertNull(System::safety_check_last_feed_time(), 'The cursor must not advance past a bulletin whose event row was never saved.');
     }
 
-    public function testWatcherDoesNotFlushWholeCacheStore()
+    public function testWatcherDoesNotFlushWholeCacheStore(): void
     {
         config(['exment.use_cache' => true]);
         \Cache::put('unrelated-sentinel', 'keep-me', 300);
@@ -369,7 +386,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertNotNull(System::safety_check_last_feed_time());
     }
 
-    public function testScheduleRegistersSafetywatchWithoutOverlapping()
+    public function testScheduleRegistersSafetywatchWithoutOverlapping(): void
     {
         $schedule = app(\Illuminate\Console\Scheduling\Schedule::class);
         $event = collect($schedule->events())->first(function ($e) {
@@ -380,7 +397,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertTrue($event->withoutOverlapping, 'exment:safetywatch must use withoutOverlapping().');
     }
 
-    public function testEmptyMaxBulletinAgeFallsBackToDefault()
+    public function testEmptyMaxBulletinAgeFallsBackToDefault(): void
     {
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
         System::safety_check_max_bulletin_age_minutes(0);
@@ -394,7 +411,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(1, $this->eventRows()->count(), 'max_bulletin_age=0 must fall back to the default, not mark every bulletin stale.');
     }
 
-    public function testEmptyMinScaleFallsBackToDefault()
+    public function testEmptyMinScaleFallsBackToDefault(): void
     {
         System::safety_check_min_scale(0);
         System::clearCache();
@@ -407,7 +424,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(0, $this->eventRows()->count(), 'min_scale=0 must fall back to the default, not trigger on every quake.');
     }
 
-    public function testEmptyCooldownFallsBackToDefault()
+    public function testEmptyCooldownFallsBackToDefault(): void
     {
         System::safety_check_cooldown_minutes(0);
         System::clearCache();
@@ -428,7 +445,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
-    public function testFeedLimitConfigPassedToFeed()
+    public function testFeedLimitConfigPassedToFeed(): void
     {
         config(['exment.safety_check.feed_limit' => 25]);
 
@@ -440,7 +457,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(25, $feed->receivedLimit);
     }
 
-    public function testFeedLimitClampedTo100()
+    public function testFeedLimitClampedTo100(): void
     {
         config(['exment.safety_check.feed_limit' => 250]);
 
@@ -452,7 +469,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $this->assertEquals(100, $feed->receivedLimit);
     }
 
-    public function testMissingSafetyTablesLogsErrorInsteadOfFataling()
+    public function testMissingSafetyTablesLogsErrorInsteadOfFataling(): void
     {
         Log::spy();
 
@@ -467,14 +484,14 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
         $this->assertEquals(0, $exitCode);
         Bus::assertNotDispatched(LineSendJob::class);
-        Log::shouldHaveReceived('error')
+        Log::getFacadeRoot()->shouldHaveReceived('error')
             ->once()
             ->withArgs(function ($message) {
                 return str_contains($message, 'safety check tables are not installed');
             });
     }
 
-    public function testAutoDisabledSkipsFeedEntirely()
+    public function testAutoDisabledSkipsFeedEntirely(): void
     {
         System::safety_check_auto_enabled(false);
         System::clearCache();
@@ -492,7 +509,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
 class FakeEarthquakeFeed implements EarthquakeFeedInterface
 {
-    /** @var array */
+    /** @var array<int, array<string, mixed>> */
     public $items = [];
 
     /** @var bool */
@@ -501,6 +518,9 @@ class FakeEarthquakeFeed implements EarthquakeFeedInterface
     /** @var int|null */
     public $receivedLimit = null;
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function fetchRecent(int $limit = 10): array
     {
         $this->called = true;

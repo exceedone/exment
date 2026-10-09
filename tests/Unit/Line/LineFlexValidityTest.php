@@ -23,6 +23,10 @@ class LineFlexValidityTest extends TestCase
         }
     }
 
+    /**
+     * @param mixed $node any Flex node (array) or leaf value
+     * @param array<int, mixed> $out collected "text" values (whatever the node holds; the test asserts they are strings)
+     */
     private function collectTextValues($node, array &$out): void
     {
         if (!is_array($node)) {
