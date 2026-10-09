@@ -75,6 +75,44 @@ class FilterSidebar
     }
 
     /**
+     * Hit counts for one checkbox group, highest first.
+     *
+     * A group the user has ticked something in is counted again without its own
+     * selection (disjunctive faceting): counted under the full filters, every
+     * option the user did not tick would read 0 and the group would collapse to
+     * the one value already chosen.
+     *
+     * @param array<string,mixed> $filters
+     * @param array<string,int> $baseDist  distribution under the full filters
+     * @param array<int,mixed> $selected
+     * @param string $key        filter key this group owns ('tables', 'users')
+     * @param string $attribute  index attribute to facet on ('table_name', 'f_user')
+     * @param string $label      what to call the group in the log line
+     * @return array<string,int>
+     */
+    private function disjunctiveDist(string $q, array $filters, array $baseDist, array $selected, string $key, string $attribute, string $label): array
+    {
+        $dist = $baseDist;
+        if (!empty($selected)) {
+            try {
+                $dist = $this->service->searchDistributions(
+                    $q,
+                    MeiliSearchService::filtersWithoutKey($filters, $key),
+                    [$attribute]
+                )[$attribute] ?? [];
+            } catch (\Throwable $e) {
+                // An empty group beats a half-counted one: the caller still adds
+                // the ticked values back, so the user can undo the selection.
+                \Illuminate\Support\Facades\Log::warning('[Meili] ' . $label . ' facet recount unavailable: ' . $e->getMessage());
+                $dist = [];
+            }
+        }
+        arsort($dist);
+
+        return $dist;
+    }
+
+    /**
      * "Table" checkbox group: one checkbox per table with its hit count.
      * Nothing checked = show every table (default); checked = only those tables.
      * Counts follow the current filters (minus the table selection itself).
@@ -86,21 +124,7 @@ class FilterSidebar
      */
     private function tableFacetGroup(string $q, array $filters, array $baseDist, array $selectedTables): ?array
     {
-        // Group with its own selection -> recount with filters minus 'tables' (disjunctive).
-        $dist = $baseDist;
-        if (!empty($selectedTables)) {
-            try {
-                $dist = $this->service->searchDistributions(
-                    $q,
-                    MeiliSearchService::filtersWithoutKey($filters, 'tables'),
-                    ['table_name']
-                )['table_name'] ?? [];
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('[Meili] table facet recount unavailable: ' . $e->getMessage());
-                $dist = [];
-            }
-        }
-        arsort($dist);
+        $dist = $this->disjunctiveDist($q, $filters, $baseDist, $selectedTables, 'tables', 'table_name', 'table');
 
         // A ticked table with 0 results is still shown (so the user can untick it).
         foreach ($selectedTables as $t) {
@@ -143,21 +167,7 @@ class FilterSidebar
      */
     private function creatorFacetGroup(string $q, array $filters, array $baseDist, array $selectedUsers): ?array
     {
-        // Group with its own selection -> recount with filters minus 'users' (disjunctive).
-        $dist = $baseDist;
-        if (!empty($selectedUsers)) {
-            try {
-                $dist = $this->service->searchDistributions(
-                    $q,
-                    MeiliSearchService::filtersWithoutKey($filters, 'users'),
-                    ['f_user']
-                )['f_user'] ?? [];
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('[Meili] creator facet recount unavailable: ' . $e->getMessage());
-                $dist = [];
-            }
-        }
-        arsort($dist);
+        $dist = $this->disjunctiveDist($q, $filters, $baseDist, $selectedUsers, 'users', 'f_user', 'creator');
         // Any org with more creators than this loses the rest, so keep it in step
         // with the equality groups rather than a tighter number of its own.
         $dist = array_slice($dist, 0, max(1, (int) config('meilisearch.filter.max_values_per_group', 20)), true);
