@@ -43,9 +43,85 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->mapExmentWebRotes();
         $this->mapExmentAnonymousWebRotes();
+        $this->mapExmentLineWebhookRoute();
+        $this->mapExmentLineLinkRoute();
+        $this->mapExmentSafetyCheckRoute();
+        $this->mapExmentSafetyAnswerRoute();
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
+    }
+
+    /**
+     * @return void
+     */
+    protected function mapExmentLineWebhookRoute()
+    {
+        Route::group([
+            'prefix'    => config('admin.route.prefix'),
+            'namespace' => $this->namespace,
+        ], function (Router $router) {
+            $router->post('line/webhook', 'LineWebhookController@handle')->name('exment.line_webhook');
+        });
+    }
+
+    /**
+     * @return void
+     */
+    protected function mapExmentLineLinkRoute()
+    {
+        Route::group([
+            'prefix'     => config('admin.route.prefix'),
+            'namespace'  => $this->namespace,
+            'middleware' => ['adminweb', 'admin'],
+        ], function (Router $router) {
+            $router->get('line/link', 'LineLinkController@index')->name('exment.line_link');
+            $router->post('line/link/generate', 'LineLinkController@generate')->name('exment.line_link_generate');
+            $router->post('line/link/unlink', 'LineLinkController@unlink')->name('exment.line_link_unlink');
+        });
+    }
+
+    /**
+     * @return void
+     */
+    protected function mapExmentSafetyCheckRoute()
+    {
+        Route::group([
+            'prefix'     => config('admin.route.prefix'),
+            'namespace'  => $this->namespace,
+            'middleware' => ['adminweb', 'admin'],
+        ], function (Router $router) {
+            $router->get('safety_check', 'SafetyCheckController@index')->name('exment.safety_check');
+            $router->post('safety_check/send', 'SafetyCheckController@send')->name('exment.safety_check_send');
+            $router->post('safety_check/{id}/resend', 'SafetyCheckController@resend')->name('exment.safety_check_resend');
+            $router->post('safety_check/{id}/close', 'SafetyCheckController@close')->name('exment.safety_check_close');
+        });
+    }
+
+    /**
+     * @return void
+     */
+    protected function mapExmentSafetyAnswerRoute()
+    {
+        Route::group([
+            'prefix'     => config('admin.route.prefix'),
+            'namespace'  => $this->namespace,
+            'middleware' => [
+                'adminweb',
+                'admin.browser',
+                'admin.initialize',
+                'admin.login',
+                'admin.morph',
+                'admin.bootstrap2',
+                'admin.pjax',
+                'admin.log',
+                'admin.bootstrap',
+                'admin.session',
+            ],
+        ], function (Router $router) {
+            $router->get('safety/answer', 'SafetyCheckAnswerController@form')->name('exment.safety_answer');
+            $router->post('safety/answer', 'SafetyCheckAnswerController@submit')->name('exment.safety_answer_submit');
+        });
     }
 
     /**
