@@ -35,12 +35,7 @@ class MeiliSettingsCommand extends Command
 
         $client = MeiliClientFactory::make();
 
-        // Same friendly connection guard as the other meili:* commands
-        // (otherwise a down Meilisearch surfaces as a raw HTTP stack trace).
-        try {
-            $client->health();
-        } catch (\Throwable $e) {
-            $this->error('Could not connect to Meilisearch (' . config('meilisearch.host') . '): ' . $e->getMessage());
+        if (!$this->assertMeiliReachable($client)) {
             return self::FAILURE;
         }
 

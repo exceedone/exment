@@ -47,10 +47,7 @@ class MeiliReconcileCommand extends Command
 
         $client = MeiliClientFactory::make();
 
-        try {
-            $client->health();
-        } catch (\Throwable $e) {
-            $this->error('Could not connect to Meilisearch (' . config('meilisearch.host') . '): ' . $e->getMessage());
+        if (!$this->assertMeiliReachable($client)) {
             return self::FAILURE;
         }
 

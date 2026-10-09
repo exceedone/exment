@@ -32,15 +32,7 @@ class MeiliIndexCommand extends Command
 
         $client = MeiliClientFactory::make();
 
-        // Check the Meilisearch connection.
-        try {
-            $health = $client->health();
-            if (($health['status'] ?? null) !== 'available') {
-                $this->error('Meilisearch is not available: ' . json_encode($health));
-                return self::FAILURE;
-            }
-        } catch (\Throwable $e) {
-            $this->error('Could not connect to Meilisearch (' . config('meilisearch.host') . '): ' . $e->getMessage());
+        if (!$this->assertMeiliReachable($client)) {
             return self::FAILURE;
         }
 
