@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
@@ -50,6 +51,34 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
 
         $response->assertStatus(200);
         $response->assertSee(exmtrans('safety.menu_title'));
+    }
+
+    public function testIndexRendersEventStatusAsBadgeAndBootstrap5Form()
+    {
+        $this->createEvent(['title' => 'Badge event open']);
+        $this->createEvent(['title' => 'Badge event closed', 'event_status' => SafetyCheckDefine::EVENT_CLOSED]);
+
+        $response = $this->get('admin/safety_check');
+
+        $response->assertStatus(200);
+        $response->assertSee('badge bg-success', false);
+        $response->assertSee('badge bg-secondary', false);
+        $response->assertSee('class="form-select"', false);
+        $response->assertSee('swal({', false);
+        $response->assertDontSee('label label-', false);
+        $response->assertDontSee('form-inline', false);
+    }
+
+    public function testAdminCoreBundlesLegacySwalAliasUsedByRowActionScript()
+    {
+        // rowActionScript() gọi swal({type:'warning'}) — API của sweetalert2 7.x.
+        // Nếu admin-core nâng sweetalert2 (bỏ alias window.swal ở v11), test này đỏ trước khi user thấy nút 再送/締切 chết.
+        $asset = base_path('vendor/exceedone/exment-admin-core/resources/assets/sweetalert2/dist/sweetalert2.min.js');
+
+        $this->assertFileExists($asset);
+        $js = file_get_contents($asset);
+        $this->assertStringContainsString('window.swal=', $js);
+        $this->assertStringContainsString('version="7.', $js);
     }
 
     public function testSendCreatesManualEventAndDispatchesJobs()
