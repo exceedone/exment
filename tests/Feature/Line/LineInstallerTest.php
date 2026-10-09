@@ -87,4 +87,37 @@ class LineInstallerTest extends FeatureTestBase
         $this->assertFalse(boolval(CustomTable::find($foreign->id)->system_flg));
         $this->assertEquals(0, CustomColumn::where('custom_table_id', $foreign->id)->count());
     }
+
+    /**
+     * migrate:reset (exment:inittest) rolls migrations back newest-first: upstream
+     * 2026_07_01_000000_create_workflow_task_reads_table drops workflow_task_reads BEFORE
+     * LINE 2026_06_29_000001_create_line_flex_template_table deletes its custom table, and
+     * CustomTable::deletingChildren() clears workflow_task_reads for the deleted table.
+     * Pin: deleting a custom table must not require workflow_task_reads to exist.
+     * RENAME TABLE is DDL and commits the test transaction: everything is restored in finally.
+     */
+    public function testCustomTableCanBeDeletedWhenWorkflowTaskReadsTableIsAbsent()
+    {
+        $reads = (new \Exceedone\Exment\Model\WorkflowTaskRead())->getTable();
+        $probeName = 'zz_line_rollback_probe';
+        CustomTable::where('table_name', $probeName)->delete();
+        $probe = CustomTable::create([
+            'table_name'      => $probeName,
+            'table_view_name' => 'rollback probe',
+            'options'         => [],
+        ]);
+        \Exceedone\Exment\Model\System::clearCache();
+
+        \DB::statement("RENAME TABLE `{$reads}` TO `{$reads}_zz_bak`");
+        try {
+            $probe->delete();
+            \Exceedone\Exment\Model\System::clearCache();
+
+            $this->assertNull(CustomTable::find($probe->id), 'custom table row must be deleted even without workflow_task_reads');
+        } finally {
+            \DB::statement("RENAME TABLE `{$reads}_zz_bak` TO `{$reads}`");
+            CustomTable::where('table_name', $probeName)->delete();
+            \Exceedone\Exment\Model\System::clearCache();
+        }
+    }
 }
