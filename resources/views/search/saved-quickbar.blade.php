@@ -74,6 +74,11 @@ $(function () {
     var $modal = $('#meili-ss-modal');
     var curQuery = new URLSearchParams(window.location.search).get('query') || '';
 
+    // Pjax reload leaves the previous modal behind, and Bootstrap would show that
+    // stale one: drop the leftovers and keep this partial's modal directly on body.
+    $('body').children('#meili-ss-modal').not($modal).remove();
+    $modal.appendTo('body');
+
     $('#meili-ss-save').on('click', function () {
         $('#meili-ss-name').val('');
         $('#meili-ss-sharetype').val('personal');
