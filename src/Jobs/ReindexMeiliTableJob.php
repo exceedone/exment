@@ -241,7 +241,6 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public function handle(): void
     {
         $this->resetRequestSessionOnWorker();
-        $deadline = microtime(true) + static::orphanScanSeconds($this->timeout);
 
         $client = MeiliClientFactory::make();
         $indexName = config('meilisearch.index');
@@ -276,7 +275,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
                 self::dispatch($this->tableName)->delay(now()->addSeconds(self::DISPATCH_DELAY));
                 return;
             }
-            $this->removeOrphans($client, $indexName, $table, $mapper, $this->orphanOffset, $hash, $deadline);
+            $this->removeOrphans($client, $indexName, $table, $mapper, $this->orphanOffset, $hash);
             return;
         }
 
@@ -332,8 +331,11 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
      *
      * @param \Meilisearch\Client $client
      */
-    private function removeOrphans($client, string $indexName, CustomTable $table, DocumentMapper $mapper, int $offset, string $hash, float $deadline): void
+    private function removeOrphans($client, string $indexName, CustomTable $table, DocumentMapper $mapper, int $offset, string $hash): void
     {
+        // The budget counts from here: this job does nothing but the scan.
+        $deadline = microtime(true) + static::orphanScanSeconds($this->timeout);
+
         $service = new MeiliSearchService($client, $indexName);
         $read = 0;
         $orphans = [];

@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use ExmentAdminCore\Admin\Grid\Linker;
-use ExmentAdminCore\Admin\Widgets\Table as WidgetTable;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Services\Meili\GlobalSearch\AppliedChips;
@@ -218,24 +216,13 @@ trait MeiliGlobalSearchTrait
         $links = $paginate->links('exment::search.links')->toHtml();
         $view = CustomView::getAllData($custom_table);
 
-        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($datalist, [
-            'action_callback' => function (&$link, $custom_table, $data) {
-                if (count($custom_table->getRelationTables()) > 0) {
-                    $link .= (new Linker())
-                    ->url($data->getRelationSearchUrl(true))
-                    ->icon('fa-compress')
-                    ->tooltip(exmtrans('search.header_relation'));
-                }
-            }
-        ]);
-        $table = (new WidgetTable($headers, $bodies))->class('table table-hover')
-            ->setColumnStyle($columnStyles)
-            ->setColumnClasses($columnClasses);
-
         return [
             'table_name' => array_get($custom_table, 'table_name'),
             'header' => $boxHeader,
-            'body' => ($partial ? self::meiliPartialNotice() : '') . $table->render(),
+            // Rendered by the controller's helper: a Meili result box is the same
+            // table as a MySQL one, only the rows were found elsewhere.
+            'body' => ($partial ? self::meiliPartialNotice() : '')
+                . self::resultTableHtml($view, $datalist, self::relationLinkOption()),
             'footer' => $links,
             'total' => $paginate->total(),
             'total_capped' => $capped

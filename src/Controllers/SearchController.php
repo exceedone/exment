@@ -328,25 +328,11 @@ class SearchController extends AdminControllerBase
         // get headers and bodies
         $view = CustomView::getAllData($custom_table);
 
-        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($datalist, [
-            'action_callback' => function (&$link, $custom_table, $data) {
-                if (count($custom_table->getRelationTables()) > 0) {
-                    $link .= (new Linker())
-                    ->url($data->getRelationSearchUrl(true))
-                    ->icon('fa-compress')
-                    ->tooltip(exmtrans('search.header_relation'));
-                }
-            }
-        ]);
-        $table = (new WidgetTable($headers, $bodies))->class('table table-hover')
-            ->setColumnStyle($columnStyles)
-            ->setColumnClasses($columnClasses);
-
-
         return [
             'table_name' => array_get($custom_table, 'table_name'),
             'header' => $boxHeader,
-            'body' => ($sortNotApplied ? '<p class="text-warning">' . e(exmtrans('search.sort_unavailable')) . '</p>' : '') . $table->render(),
+            'body' => ($sortNotApplied ? '<p class="text-warning">' . e(exmtrans('search.sort_unavailable')) . '</p>' : '')
+                . self::resultTableHtml($view, $datalist, self::relationLinkOption()),
             'footer' => $links
         ];
     }
@@ -447,31 +433,12 @@ class SearchController extends AdminControllerBase
         // get headers and bodies
         $view = CustomView::getAllData($search_table);
         // definition action_callback is not $search_type is SELF
-        if ($search_type != SearchType::SELF) {
-            $option = [
-                'action_callback' => function (&$link, $custom_table, $data) {
-                    if (count($custom_table->getRelationTables()) > 0) {
-                        $link .= (new Linker())
-                        ->url($data->getRelationSearchUrl(true))
-                        ->icon('fa-compress')
-                        ->tooltip(exmtrans('search.header_relation'));
-                    }
-                }
-            ];
-        } else {
-            $option = [];
-        }
-
-        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($data, $option);
-        $table = (new WidgetTable($headers, $bodies))
-            ->class('table table-hover')
-            ->setColumnStyle($columnStyles)
-            ->setColumnClasses($columnClasses);
+        $option = $search_type != SearchType::SELF ? self::relationLinkOption() : [];
 
         return [
             'table_name' => array_get($search_table, 'table_name'),
             'header' => $boxHeader,
-            'body' => $table->render(),
+            'body' => self::resultTableHtml($view, $data, $option),
             'footer' => $links
         ];
     }
@@ -526,6 +493,46 @@ class SearchController extends AdminControllerBase
         $array['box_key'] = short_uuid();
         return $array;
     }
+
+    /**
+     * convertDataTable option that puts the relation-search icon in each row's
+     * action column. A table without relations has nothing to link to.
+     *
+     * @return array<string,\Closure>
+     */
+    protected static function relationLinkOption(): array
+    {
+        return [
+            'action_callback' => function (&$link, $custom_table, $data) {
+                if (count($custom_table->getRelationTables()) > 0) {
+                    $link .= (new Linker())
+                    ->url($data->getRelationSearchUrl(true))
+                    ->icon('fa-compress')
+                    ->tooltip(exmtrans('search.header_relation'));
+                }
+            }
+        ];
+    }
+
+    /**
+     * The table HTML of one result box. Shared by the MySQL and the Meilisearch
+     * path: only how the rows are found differs, not how they are rendered.
+     *
+     * @param \Exceedone\Exment\Model\CustomView $view
+     * @param mixed $datalist
+     * @param array<string,mixed> $option
+     */
+    protected static function resultTableHtml($view, $datalist, array $option): string
+    {
+        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($datalist, $option);
+        $table = (new WidgetTable($headers, $bodies))
+            ->class('table table-hover')
+            ->setColumnStyle($columnStyles)
+            ->setColumnClasses($columnClasses);
+
+        return $table->render();
+    }
+
     // @phpstan-ignore-next-line
     protected function getBoxHeaderHtml($custom_table, $query = [])
     {
