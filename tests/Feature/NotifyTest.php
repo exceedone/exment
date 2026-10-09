@@ -179,42 +179,55 @@ class NotifyTest extends FeatureTestBase
     {
         $this->init(false);
 
-        $hh = Carbon::now()->format('G');
-        $target_date = Carbon::today()->addDays(100)->format('Y-m-d');
+        // Freeze "now" so the notify_hour set below always matches the hour
+        // exment:notifyschedule reads, even if the test crosses an hour boundary.
+        Carbon::setTestNow(Carbon::now());
 
-        // Login user.
-        $user_id = \Exment::user()->base_user_id;
+        try {
+            $hh = Carbon::now()->format('G');
+            // Use an offset OUTSIDE the seeded date range: TestDataSeeder sets
+            // date = today + rand(0, 100), so a target of today+100 can collide with
+            // seeded records (same creator) and the newest notify_navbar row would
+            // point to that record instead of $model ("1 matches expected '8'" flake).
+            $notify_day = 365;
+            $target_date = Carbon::today()->addDays($notify_day)->format('Y-m-d');
 
-        // change notify setting
-        /** @var Notify $notify */
-        $notify = Notify::where('notify_trigger', NotifyTrigger::TIME)->first();
-        $notify->setTriggerSetting('notify_hour', $hh);
-        $notify->setTriggerSetting('notify_day', 100);
-        $notify->setTriggerSetting('notify_beforeafter', -1);
-        $notify->save();
+            // Login user.
+            $user_id = \Exment::user()->base_user_id;
 
-        // change target data's date value
-        /** @var CustomTable $custom_table */
-        $custom_table = CustomTable::find($notify->target_id);
-        /** @var Model\CustomValue $model */
-        $model = $custom_table->getValueModel()
-            ->where('created_user_id', '<>', $user_id)->first();
-        $model->update([
-            'value->date' => $target_date,
-        ]);
+            // change notify setting
+            /** @var Notify $notify */
+            $notify = Notify::where('notify_trigger', NotifyTrigger::TIME)->first();
+            $notify->setTriggerSetting('notify_hour', $hh);
+            $notify->setTriggerSetting('notify_day', $notify_day);
+            $notify->setTriggerSetting('notify_beforeafter', -1);
+            $notify->save();
 
-        \Artisan::call('exment:notifyschedule');
+            // change target data's date value
+            /** @var CustomTable $custom_table */
+            $custom_table = CustomTable::find($notify->target_id);
+            /** @var Model\CustomValue $model */
+            $model = $custom_table->getValueModel()
+                ->where('created_user_id', '<>', $user_id)->first();
+            $model->update([
+                'value->date' => $target_date,
+            ]);
 
-        $data = NotifyNavbar::withoutGlobalScopes()
-            ->where('target_user_id', $model->created_user_id)
-            ->where('parent_type', $custom_table->table_name)
-            ->orderBy('created_at', 'desc')
-            ->orderBy('id', 'desc')
-            ->first();
-        $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
-        $this->assertEquals(array_get($data, 'parent_id'), $model->id);
-        $this->assertEquals(array_get($data, 'target_user_id'), $model->created_user_id);
-        $this->assertEquals(array_get($data, 'trigger_user_id'), $user_id);
+            \Artisan::call('exment:notifyschedule');
+
+            $data = NotifyNavbar::withoutGlobalScopes()
+                ->where('target_user_id', $model->created_user_id)
+                ->where('parent_type', $custom_table->table_name)
+                ->orderBy('created_at', 'desc')
+                ->orderBy('id', 'desc')
+                ->first();
+            $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
+            $this->assertEquals(array_get($data, 'parent_id'), $model->id);
+            $this->assertEquals(array_get($data, 'target_user_id'), $model->created_user_id);
+            $this->assertEquals(array_get($data, 'trigger_user_id'), $user_id);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     /**

@@ -2,10 +2,13 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\TemplateExportTarget;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
@@ -41,6 +44,13 @@ class TemplateController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function searchTemplate(Request $request)
     {
+        if (System::initialized()) {
+            $login_user = \Exment::user();
+            if (!$login_user || !$login_user->hasPermission(Permission::SYSTEM)) {
+                abort(403);
+            }
+        }
+
         // search from exment api
         // $client = new Client();
 
@@ -109,12 +119,16 @@ class TemplateController extends AdminControllerBase
                     $delete_url = null;
                 }
 
+                $thumbnailExt = strtolower(pathinfo(array_get($a, 'thumbnail', ''), PATHINFO_EXTENSION));
+                $mimeMap = ['jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
+                $mimeType = $mimeMap[$thumbnailExt] ?? 'image/png';
+
                 $datalist[] = [
                     'id' => json_encode(['template_type' => array_get($a, 'template_type'), 'template_name' => array_get($a, 'template_name')]),
                     'title' => array_get($a, 'template_view_name'),
                     'description' => array_get($a, 'description'),
                     'author' => array_get($a, 'author'),
-                    'thumbnail' => 'data:image/png;base64,'.$thumbnail_file,
+                    'thumbnail' => "data:{$mimeType};base64,{$thumbnail_file}",
                     'delete_url' => $delete_url,
                 ];
             }
@@ -266,7 +280,13 @@ class TemplateController extends AdminControllerBase
         \Exment::setTimeLimitLong();
 
         // upload template file and install
-        $this->uploadTemplate($request);
+        try {
+            $this->uploadTemplate($request);
+        } catch (InvalidZipEntryException $ex) {
+            // the message is already translated and carries no attacker controlled text
+            admin_toastr($ex->getMessage(), 'error');
+            return back();
+        }
 
         // install templates selected tiles.
         if ($request->has('template')) {
@@ -284,6 +304,13 @@ class TemplateController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function delete(Request $request)
     {
+        if (System::initialized()) {
+            $login_user = \Exment::user();
+            if (!$login_user || !$login_user->hasPermission(Permission::SYSTEM)) {
+                abort(403);
+            }
+        }
+
         // install templates selected tiles.
         if ($request->has('template')) {
             $importer = new TemplateImportExport\TemplateImporter();

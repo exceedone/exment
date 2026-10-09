@@ -42,7 +42,7 @@ trait TestTrait
     /**
      * @param  mixed $value1
      * @param mixed $value2
-     * @return Browser\ExmentKitTestCase|Feature\ApiTestBase|Feature\CustomValueDeleteTest|Feature\DocumentImportTest|Feature\FeatureTestBase|Feature\FileImportTest|Feature\FileImportTestBase|Feature\ImportExportTest|Feature\NotifyTest|Feature\PluginTest|Unit\LaravelAdminFieldTest|Unit\NotifyTest|Unit\OAuthLoginTest|Unit\UnitTestBase|Unit\ViewWithParentTest
+     * @return $this
      */
     protected function assertMatch($value1, $value2)
     {
@@ -69,7 +69,7 @@ trait TestTrait
     /**
      * @param mixed $value1
      * @param mixed $value2
-     * @return Browser\ExmentKitTestCase|Feature\ApiTestBase|Feature\CustomValueDeleteTest|Feature\DocumentImportTest|Feature\FeatureTestBase|Feature\FileImportTest|Feature\FileImportTestBase|Feature\ImportExportTest|Feature\NotifyTest|Feature\PluginTest|Unit\LaravelAdminFieldTest|Unit\NotifyTest|Unit\OAuthLoginTest|Unit\UnitTestBase|Unit\ViewWithParentTest
+     * @return $this
      */
     protected function assertNotMatch($value1, $value2)
     {

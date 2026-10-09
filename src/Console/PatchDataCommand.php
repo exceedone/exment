@@ -240,6 +240,9 @@ class PatchDataCommand extends Command
             case 'patch_editable_userinfo':
                 $this->patchEditableUserInfo();
                 return 0;
+            case 'workflow_value_authorities':
+                $this->carryWorkflowValueAuthorities();
+                return 0;
         }
 
         $this->error('patch name not found.');
@@ -2207,5 +2210,35 @@ class PatchDataCommand extends Command
                 $custom_column->save();
             }
         });
+    }
+
+    /**
+     * Records already waiting for more approvals at a step whose users were picked when the record
+     * got there: carry the picks onto their newest workflow value, as executeAction() now does on
+     * every approval (see WorkflowAction::carryWorkflowValueAuthorities()). Only adds what the
+     * record page already reads, so running it again changes nothing.
+     *
+     * @return void
+     */
+    protected function carryWorkflowValueAuthorities()
+    {
+        if (!\Schema::hasTable(SystemTableName::WORKFLOW_VALUE) || !\Schema::hasTable(SystemTableName::WORKFLOW_VALUE_AUTHORITY)) {
+            return;
+        }
+
+        // the newest value of a record carries action_executed_flg only while its step waits for
+        // more approvals (forwardWorkflowValue() clears the flag when the record moves on)
+        Model\WorkflowValue::where('latest_flg', true)
+            ->where('action_executed_flg', true)
+            ->whereNotExists(function ($query) {
+                $query->select(\DB::raw(1))
+                    ->from(SystemTableName::WORKFLOW_VALUE_AUTHORITY)
+                    ->whereColumn(SystemTableName::WORKFLOW_VALUE_AUTHORITY . '.workflow_value_id', SystemTableName::WORKFLOW_VALUE . '.id');
+            })
+            ->chunkById(1000, function ($workflow_values) {
+                foreach ($workflow_values as $workflow_value) {
+                    Model\WorkflowAction::carryWorkflowValueAuthorities($workflow_value);
+                }
+            });
     }
 }
