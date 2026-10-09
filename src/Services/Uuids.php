@@ -8,6 +8,8 @@ trait Uuids
 {
     /**
      * Boot function from laravel.
+     *
+     * @return void
      */
     protected static function boot()
     {

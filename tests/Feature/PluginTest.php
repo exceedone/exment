@@ -97,6 +97,7 @@ class PluginTest extends FeatureTestBase
         // get action
         $action = $custom_value->getWorkflowActions()->first();
         $action_user = $action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::CURRENT_WORK_USER)->first();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find($action_user->id));
 
         $action->executeAction($custom_value, [

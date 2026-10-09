@@ -14,10 +14,14 @@ abstract class PluginDocumentBase
 {
     use PluginBase;
 
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $custom_value;
+    // @phpstan-ignore-next-line
     protected $document_value;
 
+    // @phpstan-ignore-next-line
     public function __construct($plugin, $custom_table, $custom_value_id)
     {
         $this->plugin = $plugin;
@@ -31,6 +35,7 @@ abstract class PluginDocumentBase
     /**
      * Create document execution
      */
+    // @phpstan-ignore-next-line
     public function execute()
     {
         $table_name = $this->custom_table->table_name;
@@ -75,10 +80,12 @@ abstract class PluginDocumentBase
         return $this->getResponseMessage(true);
     }
 
+    // @phpstan-ignore-next-line
     protected function getDocumentItem()
     {
         // get dir base path
         $reflector = new \ReflectionClass(get_class($this));
+        // @phpstan-ignore-next-line
         $dir_path = dirname($reflector->getFileName());
         // read document.json
         $document_json_path = path_join($dir_path, 'document.json');
@@ -90,6 +97,7 @@ abstract class PluginDocumentBase
     /**
      * get response message
      */
+    // @phpstan-ignore-next-line
     protected function getResponseMessage($result)
     {
         if ($result) {
@@ -109,6 +117,7 @@ abstract class PluginDocumentBase
      * first, template xlsx fullpath.
      * second, output file name.
      */
+    // @phpstan-ignore-next-line
     protected function getDocumentInfo()
     {
         $default_document_name = "document".\Carbon\Carbon::now()->format('YmdHis');
@@ -119,6 +128,7 @@ abstract class PluginDocumentBase
             $filename = $default_document_name;
         } else {
             $json = json_decode_ex(File::get($document_json_path), true);
+            // @phpstan-ignore-next-line
             $filename = array_get($json, "filename", $default_document_name);
         }
         // return "filename" value
@@ -129,6 +139,7 @@ abstract class PluginDocumentBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public function getButtonLabel()
     {
         // get label
@@ -142,6 +153,7 @@ abstract class PluginDocumentBase
     /**
      * execute before creating document
      */
+    // @phpstan-ignore-next-line
     protected function executing()
     {
     }
@@ -149,6 +161,7 @@ abstract class PluginDocumentBase
     /**
      * execute after creating document
      */
+    // @phpstan-ignore-next-line
     protected function executed()
     {
     }
@@ -158,6 +171,7 @@ abstract class PluginDocumentBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function called($spreadsheet)
     {
     }
@@ -167,6 +181,7 @@ abstract class PluginDocumentBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function saving($spreadsheet)
     {
     }

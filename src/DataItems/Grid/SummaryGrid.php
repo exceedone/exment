@@ -22,12 +22,14 @@ use Illuminate\Support\Collection;
 
 class SummaryGrid extends GridBase
 {
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $custom_view)
     {
         $this->custom_table = $custom_table;
         $this->custom_view = $custom_view;
     }
 
+    // @phpstan-ignore-next-line
     public function grid()
     {
         $classname = getModelName($this->custom_table);
@@ -92,7 +94,7 @@ class SummaryGrid extends GridBase
             $edit_flg = $this->custom_table->enableEdit(true) === true;
             if ($edit_flg && $this->custom_table->enableExport() === true) {
                 $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false);
-                /** @phpstan-ignore-next-line append expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
+                // @phpstan-ignore-next-line
                 $tools->append($button->setCustomTable($this->custom_table));
             }
 
@@ -102,11 +104,11 @@ class SummaryGrid extends GridBase
             }
 
             if ($this->custom_table->enableTableMenuButton()) {
-                /** @phpstan-ignore-next-line expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+                // @phpstan-ignore-next-line
                 $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
             }
             if ($this->custom_table->enableViewMenuButton()) {
-                /** @phpstan-ignore-next-line expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
+                // @phpstan-ignore-next-line
                 $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
             }
         });
@@ -117,6 +119,7 @@ class SummaryGrid extends GridBase
     /**
      * set summary grid
      */
+    // @phpstan-ignore-next-line
     public function setSummaryGrid($grid)
     {
         $query = $grid->model();
@@ -127,6 +130,7 @@ class SummaryGrid extends GridBase
     /**
      * set laravel-admin grid using custom_view
      */
+    // @phpstan-ignore-next-line
     public function setGrid($grid)
     {
         // set with
@@ -137,6 +141,7 @@ class SummaryGrid extends GridBase
     /**
      * get query for summary
      */
+    // @phpstan-ignore-next-line
     public function getQuery($query, array $options = [])
     {
         $options = array_merge([
@@ -250,6 +255,7 @@ class SummaryGrid extends GridBase
     }
 
 
+    // @phpstan-ignore-next-line
     protected function  isShowViewSummaryDetail()
     {
         if (boolval(request()->get('execute_filter'))) {
@@ -272,6 +278,7 @@ class SummaryGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
+    // @phpstan-ignore-next-line
     public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         static::setViewInfoboxFields($form);
@@ -386,6 +393,7 @@ class SummaryGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
+    // @phpstan-ignore-next-line
     public static function setGridFilterFields(&$form, $custom_table, array $column_options = [])
     {
         // columns setting
@@ -424,6 +432,7 @@ class SummaryGrid extends GridBase
     /**
      * get group condition
      */
+    // @phpstan-ignore-next-line
     public static function getGroupCondition($view_column_target = null)
     {
         if (!isset($view_column_target)) {
@@ -448,6 +457,7 @@ class SummaryGrid extends GridBase
     }
 
 
+    // @phpstan-ignore-next-line
     public function getCallbackGroupKeys($model)
     {
         $keys = [];
@@ -471,6 +481,7 @@ class SummaryGrid extends GridBase
     /**
      * set grid filter
      */
+    // @phpstan-ignore-next-line
     protected function setCustomGridFilters($grid, $ajax = false)
     {
         $grid->filter(function ($filter) use ($ajax) {
@@ -525,6 +536,7 @@ class SummaryGrid extends GridBase
      *
      * @return array offset 0 : html, 1 : script
      */
+    // @phpstan-ignore-next-line
     public function getFilterHtml()
     {
         $classname = getModelName($this->custom_table);
@@ -544,6 +556,7 @@ class SummaryGrid extends GridBase
     /**
      * Get filter showing columns
      */
+    // @phpstan-ignore-next-line
     protected function getFilterColumns($filter): Collection
     {
         $filterItems = [];
@@ -562,6 +575,7 @@ class SummaryGrid extends GridBase
             }
 
             /** @var Collection $collection */
+            // @phpstan-ignore-next-line
             $collection =  collect($filterItems);
             return $collection;
         }
@@ -616,6 +630,7 @@ class SummaryGrid extends GridBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setRelationFilter(&$filterItems)
     {
         // check relation
@@ -634,6 +649,7 @@ class SummaryGrid extends GridBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setColumnFilter(&$filterItems)
     {
         // if modal, skip

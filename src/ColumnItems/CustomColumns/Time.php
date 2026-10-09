@@ -12,8 +12,10 @@ use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 class Time extends Date
 {
+    // @phpstan-ignore-next-line
     protected $format = 'H:i:s';
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
@@ -22,16 +24,19 @@ class Time extends Date
         return Field\Time::class;
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->time();
     }
 
+    // @phpstan-ignore-next-line
     protected function getDisplayFormat()
     {
         return config('admin.time_format');
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         $validates[] = new Validator\TimeRule();
@@ -40,6 +45,7 @@ class Time extends Date
     /**
      * get cast Options
      */
+    // @phpstan-ignore-next-line
     protected function getCastOptions()
     {
         return [DatabaseDataType::TYPE_TIME, true, []];

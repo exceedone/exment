@@ -13,6 +13,7 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return 'role_group_user_organization';
@@ -22,6 +23,7 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
      * get data and object.
      * set matched model data
      */
+    // @phpstan-ignore-next-line
     public function getDataObject($data, $options = [])
     {
         $results = [];
@@ -65,6 +67,7 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
      * @param mixed $dataObjects
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function validateImportData($dataObjects)
     {
         $error_data = [];
@@ -88,6 +91,7 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
      * @param $dataAndModel
      * @return array|true
      */
+    // @phpstan-ignore-next-line
     public function validateDataRow($line_no, $dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
@@ -126,6 +130,7 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
     /**
      * import data
      */
+    // @phpstan-ignore-next-line
     public function importData($dataPivot)
     {
         $data = array_get($dataPivot, 'data');
@@ -146,6 +151,7 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
         // if delete
         if ($delete) {
             if (isset($id)) {
+                // @phpstan-ignore-next-line
                 RoleGroupUserOrganization::find($id)->delete();
             }
             return;

@@ -15,12 +15,15 @@ class MariaDBGrammar extends MySqlGrammar
         if (!in_array('Check', $this->modifiers)) {
             array_splice(
                 $this->modifiers,
+                // @phpstan-ignore-next-line
                 array_search('After', $this->modifiers),
                 count($this->modifiers),
+                // @phpstan-ignore-next-line
                 array_merge(['Check'], array_slice($this->modifiers, array_search('After', $this->modifiers)))
             );
         }
     }
+    // @phpstan-ignore-next-line
     protected function modifyCheck(Blueprint $blueprint, Fluent $column)
     {
         if ($this->getType($column) == 'json') {

@@ -10,12 +10,16 @@ trait DefaultFlgTrait
     /**
      * set default flg. default flg is only 1 record in 1 table
      */
+
+    // @phpstan-ignore-next-line
     protected function setDefaultFlgInTable($filterCallback = null, $setCallback = null)
     {
         // get custom table_id
         $this->setDefaultFlg('custom_table_id', $filterCallback);
     }
 
+
+    // @phpstan-ignore-next-line
     protected function setDefaultFlg($key = null, $filterCallback = null, $setCallback = null)
     {
         // create query

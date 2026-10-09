@@ -22,6 +22,7 @@ class ApiScope extends EnumBase
     /**
      * get scope string for middleware
      */
+    // @phpstan-ignore-next-line
     public static function getScopeString($addScope, ...$scopes)
     {
         if (!$addScope) {

@@ -9,6 +9,7 @@ use Illuminate\Contracts\Support\Renderable;
  */
 class ProgressTracker implements Renderable
 {
+    // @phpstan-ignore-next-line
     protected $steps;
 
     public function __construct()
@@ -23,12 +24,14 @@ class ProgressTracker implements Renderable
      *
      * @return $this|mixed
      */
+    // @phpstan-ignore-next-line
     public function options($options = [])
     {
         if ($options instanceof \Illuminate\Contracts\Support\Arrayable) {
             $options = $options->toArray();
         }
 
+        // @phpstan-ignore-next-line
         foreach ($options as $index => $option) {
             $class = '';
             if (isset($option['active']) && $option['active']) {

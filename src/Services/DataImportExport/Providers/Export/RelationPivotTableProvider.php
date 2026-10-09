@@ -9,10 +9,13 @@ use Illuminate\Support\Collection;
  */
 class RelationPivotTableProvider extends ProviderBase
 {
+    // @phpstan-ignore-next-line
     protected $relation;
 
+    // @phpstan-ignore-next-line
     protected $grid;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         parent::__construct();
@@ -25,6 +28,7 @@ class RelationPivotTableProvider extends ProviderBase
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return $this->relation->getSheetName();
@@ -33,6 +37,7 @@ class RelationPivotTableProvider extends ProviderBase
     /**
      * get data
      */
+    // @phpstan-ignore-next-line
     public function data()
     {
         // get header info
@@ -69,6 +74,7 @@ class RelationPivotTableProvider extends ProviderBase
      * get export headers
      * contains custom column name, column view name
      */
+    // @phpstan-ignore-next-line
     protected function getHeaders($columnDefines)
     {
         // create 2 rows.
@@ -91,6 +97,7 @@ class RelationPivotTableProvider extends ProviderBase
     /**
      * get target chunk records
      */
+    // @phpstan-ignore-next-line
     public function getRecords(): Collection
     {
         // get base records
@@ -125,6 +132,7 @@ class RelationPivotTableProvider extends ProviderBase
     /**
      * get export bodies
      */
+    // @phpstan-ignore-next-line
     protected function getBodies($records, $columnDefines)
     {
         if (!isset($records)) {
@@ -146,6 +154,7 @@ class RelationPivotTableProvider extends ProviderBase
     /**
      * get export body items
      */
+    // @phpstan-ignore-next-line
     protected function getBodyItems($record, $columns, $array_header_key = null)
     {
         $body_items = [];

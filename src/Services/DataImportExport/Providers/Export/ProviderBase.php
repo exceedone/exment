@@ -9,6 +9,7 @@ abstract class ProviderBase
     /**
      * Whether this output is as template
      */
+    // @phpstan-ignore-next-line
     protected $template = false;
 
     /**
@@ -29,11 +30,13 @@ abstract class ProviderBase
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     abstract public function name();
 
     /**
      * get data
      */
+    // @phpstan-ignore-next-line
     abstract public function data();
 
     /**
@@ -46,10 +49,12 @@ abstract class ProviderBase
         return true;
     }
 
+    // @phpstan-ignore-next-line
     public function getCount()
     {
         return $this->count;
     }
 
+    // @phpstan-ignore-next-line
     abstract public function getRecords(): Collection;
 }

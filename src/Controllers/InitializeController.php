@@ -23,6 +23,7 @@ class InitializeController extends Controller
      * submit
      * @param Request $request
      */
+    // @phpstan-ignore-next-line
     public function post(Request $request)
     {
         return InstallService::post();

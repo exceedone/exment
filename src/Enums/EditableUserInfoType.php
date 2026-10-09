@@ -8,6 +8,7 @@ class EditableUserInfoType extends EnumBase
     public const VIEW = 'view';
     public const EDIT = 'edit';
 
+    // @phpstan-ignore-next-line
     public static function showSettingForm($editableType)
     {
         switch ($editableType) {

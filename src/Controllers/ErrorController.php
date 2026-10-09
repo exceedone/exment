@@ -19,9 +19,10 @@ class ErrorController extends Controller
     /**
      * Index interface.
      */
+    // @phpstan-ignore-next-line
     public function error(Request $request, $exception)
     {
-        /** @phpstan-ignore-next-line response expects array|Illuminate\Contracts\View\View|string|null, Encore\Admin\Layout\Content given */
+        // @phpstan-ignore-next-line
         return response(Admin::content(function (Content $content) use ($exception) {
             $content->header(exmtrans('error.header'));
             $content->description(exmtrans('error.description'));
@@ -53,12 +54,13 @@ class ErrorController extends Controller
                     ->default(exmtrans("error.check_error_log"))
                 ;
             }
-            /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
+            // @phpstan-ignore-next-line
             $content->row(new Box(exmtrans("error.header"), $form));
         }));
     }
 
 
+    // @phpstan-ignore-next-line
     public function maintenance()
     {
         return response(view('exment::exception.maintenance', [

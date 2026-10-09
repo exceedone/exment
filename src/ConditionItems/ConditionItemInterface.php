@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 interface ConditionItemInterface
 {
+    // @phpstan-ignore-next-line
     public function getFilterOption();
 
     /**
@@ -34,6 +35,7 @@ interface ConditionItemInterface
      */
     public function getConditionText(Condition $condition);
 
+    // @phpstan-ignore-next-line
     public function getText($key, $value, $showFilter = true);
 
     /**

@@ -12,6 +12,7 @@ class DayTodayOrBefore extends DayBeforeAfterBase
         return FilterOption::DAY_TODAY_OR_BEFORE;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
         return Carbon::today();

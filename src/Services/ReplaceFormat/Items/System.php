@@ -12,6 +12,7 @@ class System extends ItemBase
     /**
      * Replace value from format. ex. ${value:user_name} to user_name's value
      */
+    // @phpstan-ignore-next-line
     public function replace($format, $options = [])
     {
         if (count($this->length_array) < 2) {

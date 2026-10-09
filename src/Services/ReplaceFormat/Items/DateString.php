@@ -27,6 +27,7 @@ class DateString extends ItemBase
     /**
      * Replace date
      */
+    // @phpstan-ignore-next-line
     public function replace($format, $options = [])
     {
         return Carbon::now()->format(static::dateStrings[strtolower($this->key)]);

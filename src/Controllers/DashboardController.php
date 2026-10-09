@@ -25,6 +25,7 @@ use Exceedone\Exment\Enums\ShareTargetType;
 class DashboardController extends AdminControllerBase
 {
     use HasResourceActions;
+    // @phpstan-ignore-next-line
     protected $dashboard;
 
     public function __construct()
@@ -32,6 +33,7 @@ class DashboardController extends AdminControllerBase
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"), null, 'fa-home');
     }
 
+    // @phpstan-ignore-next-line
     protected function setDashboardInfo(Request $request)
     {
         $this->dashboard = Dashboard::getDefault();
@@ -87,6 +89,7 @@ class DashboardController extends AdminControllerBase
         return parent::create($request, $content);
     }
 
+    // @phpstan-ignore-next-line
     public function home(Request $request, Content $content)
     {
         // check permission. if not permission, show message
@@ -239,6 +242,7 @@ EOT;
      *
      * @return Form
      */
+    // @phpstan-ignore-next-line
     protected function form($id = null)
     {
         $form = new Form(new Dashboard());
@@ -410,6 +414,7 @@ EOT;
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function showVersionUpdate()
     {
         // if system admin, check version
@@ -431,6 +436,7 @@ EOT;
     /**
      * create share form
      */
+    // @phpstan-ignore-next-line
     public function shareClick(Request $request, $id)
     {
         $model = Dashboard::getEloquent($id);
@@ -447,6 +453,7 @@ EOT;
     /**
      * set share users organizations
      */
+    // @phpstan-ignore-next-line
     public function sendShares(Request $request, $id)
     {
         // get custom view

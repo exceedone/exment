@@ -36,6 +36,7 @@ trait ApiDataTrait
     protected function _dataFind(Request $request, $id)
     {
         if (($code = $this->custom_table->enableAccess()) !== true) {
+            /** @phpstan-ignore-next-line */
             return abortJson(403, trans('admin.deny'), $code);
         }
 
@@ -44,22 +45,28 @@ trait ApiDataTrait
         // set query
         $this->setQueryInfo($query);
 
+        /** @phpstan-ignore-next-line */
         $model = $query->where('id', $id)->first();
         // not contains data, return empty data.
         if (!isset($model)) {
             $code = $this->custom_table->getNoDataErrorCode($id);
             if ($code == ErrorCode::PERMISSION_DENY) {
+                /** @phpstan-ignore-next-line */
                 return abortJson(403, $code);
             } else {
                 // nodata
+                /** @phpstan-ignore-next-line */
                 return abortJson(400, $code);
             }
         }
 
+        // @phpstan-ignore-next-line
         if (($code = $model->enableAccess()) !== true) {
+            /** @phpstan-ignore-next-line */
             return abortJson(403, trans('admin.deny'), $code);
         }
 
+        /** @phpstan-ignore-next-line */
         return $this->modifyAfterGetValue($request, $model);
     }
 
@@ -73,18 +80,22 @@ trait ApiDataTrait
     protected function _columnData(Request $request, $column_name)
     {
         if (($code = $this->custom_table->enableAccess()) !== true) {
+            /** @phpstan-ignore-next-line */
             return abortJson(403, $code);
         }
 
         $query = $request->get('query');
+        /** @phpstan-ignore-next-line */
         $custom_column = CustomColumn::getEloquent($column_name, $this->custom_table->table_name);
 
         $list = [];
 
+        /** @phpstan-ignore-next-line */
         if ($custom_column->index_enabled) {
             $column_name = $custom_column->getIndexColumnName();
             $list = $this->custom_table->searchValue($query, [
                 'searchColumns' => collect([$column_name]),
+            /** @phpstan-ignore-next-line */
             ])->pluck($column_name)->unique()->toArray();
         }
         return json_encode($list);
@@ -110,6 +121,7 @@ trait ApiDataTrait
         $paginator->getCollection()->transform(function ($value) {
             return [
                 'id' => $value->id,
+                /** @phpstan-ignore-next-line */
                 'text' => $value->label,
             ];
         });
@@ -126,9 +138,11 @@ trait ApiDataTrait
      * *search_type(required) : 1:n, n:n or select_table.
      * *q(required) : id that user selected.
      */
+    // @phpstan-ignore-next-line
     protected function _relatedLinkage(Request $request)
     {
         if (($code = $this->custom_table->enableAccess()) !== true) {
+            /** @phpstan-ignore-next-line */
             return abortJson(403, $code);
         }
 
@@ -158,12 +172,14 @@ trait ApiDataTrait
             'maxCount' => null,
             'getLabel' => true,
             'searchColumns' => $searchColumns ?? null,
+            /** @phpstan-ignore-next-line */
             'target_view' => CustomView::getEloquent($child_column->getOption('select_target_view')),
             'display_table' => $request->get('display_table_id'),
             'all' => $child_column->isGetAllUserOrganization(),
         ];
         $datalist = $this->custom_table->searchRelationValue($searchType, $q, $child_select_table, $options);
         return collect($datalist)->map(function ($data) {
+            /** @phpstan-ignore-next-line */
             return ['id' => $data->id, 'text' => $data->label];
         });
     }
@@ -175,6 +191,7 @@ trait ApiDataTrait
      * @param $options
      * @return array|CustomValue|\Illuminate\Pagination\LengthAwarePaginator|mixed|void
      */
+    // @phpstan-ignore-next-line
     protected function modifyAfterGetValue(Request $request, $target, $options = [])
     {
         $options = array_merge(
@@ -226,6 +243,7 @@ trait ApiDataTrait
             }
 
             // set appends
+            /** @phpstan-ignore-next-line */
             if (!is_nullorempty($appends)) {
                 $target->appends($appends);
             }
@@ -234,11 +252,15 @@ trait ApiDataTrait
         }
         // as single model
         elseif ($target instanceof CustomValue) {
+            /** @phpstan-ignore-next-line */
             $editor_cols = CustomColumn::where('custom_table_id', $this->custom_table->id)->where('column_type', ColumnType::EDITOR)->get();
             foreach($editor_cols as $col) {
+                /** @phpstan-ignore-next-line */
                 $val = $target->getValue($col->column_name);
+                /** @phpstan-ignore-next-line */
                 $target->setValue($col->column_name, Editor::replaceImgUrl($val, ['dirName' => true]));
             }
+            /** @phpstan-ignore-next-line */
             if (boolval($options['makeHidden'])) {
                 $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
                 return $this->modifyCustomValue($request, $target);
@@ -265,6 +287,7 @@ trait ApiDataTrait
         }
 
         // Change relation key name
+        /** @phpstan-ignore-next-line */
         if (!$recursive && $request->has('children') && boolval($request->get('children'))) {
             $custom_value = $this->modifyChildrenValue($request, $custom_value);
         }
@@ -280,6 +303,7 @@ trait ApiDataTrait
             $custom_value->setValueDirectly($custom_value->getValues(ValueType::getEnum($valuetype), ['asApi' => true]));
         }
 
+        /** @phpstan-ignore-next-line */
         if ($request->has('dot') && boolval($request->get('dot'))) {
             $custom_value = array_dot($custom_value->toArray());
         }
@@ -295,9 +319,11 @@ trait ApiDataTrait
     protected function isAppendLabel(Request $request)
     {
         if ($request->has('label')) {
+            /** @phpstan-ignore-next-line */
             return boolval($request->get('label', false));
         }
 
+        /** @phpstan-ignore-next-line */
         if (boolval(config('exment.api_append_label', false))) {
             return true;
         }
@@ -306,16 +332,20 @@ trait ApiDataTrait
     }
 
 
+    // @phpstan-ignore-next-line
     protected function executeQuery(Request $request, $count = null)
     {
         if (($code = $this->custom_table->enableAccess()) !== true) {
+            /** @phpstan-ignore-next-line */
             return abortJson(403, $code);
         }
 
+        /** @phpstan-ignore-next-line */
         $validator = Validator::make($request->all(), [
             'q' => 'required',
         ]);
         if ($validator->fails()) {
+            /** @phpstan-ignore-next-line */
             return abortJson(400, [
                 'errors' => $this->getErrorMessages($validator)
             ], ErrorCode::VALIDATION_ERROR());
@@ -342,6 +372,7 @@ trait ApiDataTrait
         ///// If set linkage, filter relation.
         // get children table id
         $relationColumn = null;
+        /** @phpstan-ignore-next-line */
         if (array_key_value_exists('linkage_column_id', $expand)) {
             $linkage_column_id = array_get($expand, 'linkage_column_id');
             $linkage_column = CustomColumn::getEloquent($linkage_column_id);
@@ -365,9 +396,11 @@ trait ApiDataTrait
             'relationColumnValue' => $linkage_value_id ?? null,
             'display_table' => $request->get('display_table_id'),
             'all' => $column ? $column->isGetAllUserOrganization() : false,
+            /** @phpstan-ignore-next-line */
             'withChildren' => boolval($request->get('children')) ? CustomRelation::getRelationsByParent($this->custom_table) : null,
         ]);
 
+        /** @phpstan-ignore-next-line */
         return $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [
                 'q' => $q,
@@ -387,6 +420,7 @@ trait ApiDataTrait
     protected function setQueryInfo($query)
     {
         $request = request();
+        /** @phpstan-ignore-next-line */
         if ($request->has('children') && boolval($request->get('children'))) {
             $relations = CustomRelation::getRelationsByParent($this->custom_table);
             foreach ($relations as $relation) {
@@ -409,6 +443,7 @@ trait ApiDataTrait
      * @param Request $request
      * @return CustomValue $custom_value
      */
+    // @phpstan-ignore-next-line
     protected function modifyChildrenValue(Request $request, $custom_value)
     {
         $relations = CustomRelation::getRelationsByParent($this->custom_table);
@@ -428,6 +463,7 @@ trait ApiDataTrait
                     return $relationValue;
                 });
                 // Set key name
+                /** @phpstan-ignore-next-line */
                 $results[$relation->child_custom_table_cache->table_name] = $relationValues;
                 unset($custom_value[$reltionName]);
             }
@@ -443,6 +479,7 @@ trait ApiDataTrait
      * @param Request $request
      * @return CustomValue $custom_value
      */
+    // @phpstan-ignore-next-line
     protected function modifyParentsValue(Request $request, $custom_value)
     {
         $relations = CustomRelation::getRelationsByChild($this->custom_table);

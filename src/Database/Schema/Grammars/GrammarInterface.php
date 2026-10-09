@@ -25,6 +25,7 @@ interface GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function compileColumnDefinitions($tableName);
 
     /**
@@ -41,9 +42,12 @@ interface GrammarInterface
      */
     public function compileCreateRelationValueTable(string $tableName);
 
+    // @phpstan-ignore-next-line
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column);
 
+    // @phpstan-ignore-next-line
     public function compileGetIndex($tableName);
 
+    // @phpstan-ignore-next-line
     public function compileGetUnique($tableName);
 }

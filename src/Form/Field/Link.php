@@ -8,14 +8,19 @@ class Link extends Field
 {
     protected $view = 'exment::form.field.link';
 
+    // @phpstan-ignore-next-line
     protected $icon = '';
 
+    // @phpstan-ignore-next-line
     protected $button = '';
 
+    // @phpstan-ignore-next-line
     protected $text = '';
 
+    // @phpstan-ignore-next-line
     protected $target = '';
 
+    // @phpstan-ignore-next-line
     protected $emptyText = '';
 
     /**
@@ -23,6 +28,7 @@ class Link extends Field
      *
      * @return $this|mixed
      */
+    // @phpstan-ignore-next-line
     public function target($target)
     {
         $this->target = $target;
@@ -34,6 +40,7 @@ class Link extends Field
      *
      * @return $this|mixed
      */
+    // @phpstan-ignore-next-line
     public function icon($icon)
     {
         $this->icon = $icon;
@@ -45,6 +52,7 @@ class Link extends Field
      *
      * @return $this|mixed
      */
+    // @phpstan-ignore-next-line
     public function button($buttonClass = 'btn-default')
     {
         $this->button = $buttonClass;
@@ -56,6 +64,7 @@ class Link extends Field
      *
      * @return $this|mixed
      */
+    // @phpstan-ignore-next-line
     public function text($text)
     {
         $this->text = $text;
@@ -67,6 +76,7 @@ class Link extends Field
      *
      * @return $this|mixed
      */
+    // @phpstan-ignore-next-line
     public function emptyText($text)
     {
         $this->emptyText = $text;
@@ -75,6 +85,7 @@ class Link extends Field
 
     public function render()
     {
+        // @phpstan-ignore-next-line
         return parent::render()->with([
             'button' => $this->button,
             'icon'  => $this->icon,

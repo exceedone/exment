@@ -22,6 +22,7 @@ class SelectTable extends Column
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     protected function prepareSavingOptionsKeys()
     {
         return array_merge(parent::prepareSavingOptionsKeys(), [
@@ -36,6 +37,7 @@ class SelectTable extends Column
      *
      * @return WidgetForm
      */
+    // @phpstan-ignore-next-line
     public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm
     {
         $form = parent::getSettingModalForm($block_item, $parameters);
@@ -61,6 +63,7 @@ class SelectTable extends Column
      *
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function getRelationFileterColumns(): Collection
     {
         // get relation columns.

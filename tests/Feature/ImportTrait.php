@@ -28,6 +28,7 @@ trait ImportTrait
         $array = $spreadsheet->getActiveSheet()->toArray();
 
         // revert to original locale
+        // @phpstan-ignore-next-line
         setlocale(LC_CTYPE, $original_locale);
 
         return $array;

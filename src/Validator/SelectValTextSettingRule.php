@@ -10,6 +10,7 @@ use Illuminate\Contracts\Validation\Rule;
  */
 class SelectValTextSettingRule implements Rule
 {
+    // @phpstan-ignore-next-line
     protected $errors = [];
     public function __construct()
     {

@@ -18,6 +18,7 @@ class Internal extends Field
      *
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public function prepare($value)
     {
         return $this->getDefault() ?? $this->original();

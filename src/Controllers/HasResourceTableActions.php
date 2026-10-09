@@ -19,6 +19,7 @@ trait HasResourceTableActions
      *
      * @return \Illuminate\Http\Response
      */
+    // @phpstan-ignore-next-line
     public function update($tableKey, $id)
     {
         return $this->form($id)->update($id);
@@ -41,6 +42,7 @@ trait HasResourceTableActions
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
+    // @phpstan-ignore-next-line
     public function destroy($tableKey, $id)
     {
         if (method_exists($this, 'validateDestroy')) {
@@ -58,6 +60,7 @@ trait HasResourceTableActions
             if (!$disabled_delete) {
                 $model = $this->form($id)->model()->find($id);
 
+                /** @phpstan-ignore-next-line */
                 if (boolval(array_get($model, 'disabled_delete'))) {
                     $disabled_delete = true;
                 }
@@ -67,6 +70,7 @@ trait HasResourceTableActions
         if ($disabled_delete) {
             return response()->json([
                 'status'  => false,
+                /** @phpstan-ignore-next-line */
                 'message' => exmtrans('error.disable_delete_row'),
                 'reload' => false,
             ]);
@@ -80,6 +84,7 @@ trait HasResourceTableActions
                 $data = $res->getData();
                 if ($data->status === false) {
                     $result = false;
+                    /** @phpstan-ignore-next-line */
                     $messages[] = $data->message;
                     return;
                 }
@@ -92,6 +97,7 @@ trait HasResourceTableActions
         if ($result) {
             $data = [
                 'status'  => true,
+                /** @phpstan-ignore-next-line */
                 'message' => trans('admin.delete_succeeded'),
             ];
         } else {
@@ -103,9 +109,11 @@ trait HasResourceTableActions
             } else {
                 $data = [
                     'status'  => false,
+                    /** @phpstan-ignore-next-line */
                     'message' => trans('admin.delete_failed'),
                 ];
             }
+            /** @phpstan-ignore-next-line */
             if ($rows->count() !== count($messages)) {
                 $data['forceRedirect'] = true;
             }

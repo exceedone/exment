@@ -23,6 +23,7 @@ trait ColumnOptionQueryTrait
      */
     protected static function getOptionKey($column_key, $append_table = true, $table_id = null, $options = [])
     {
+
         return \Exment::getOptionKey($column_key, $append_table, $table_id, $options);
     }
 

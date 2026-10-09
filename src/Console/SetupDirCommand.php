@@ -74,6 +74,7 @@ class SetupDirCommand extends AdminInstallCommand
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getGroup()
     {
         $group = $this->option('group');
@@ -81,6 +82,7 @@ class SetupDirCommand extends AdminInstallCommand
             // get current group
             $current_group = null;
             if (function_exists('posix_getgrgid')) {
+                // @phpstan-ignore-next-line
                 $current_group = array_get(posix_getgrgid(filegroup(base_path(path_join('public', 'index.php')))), 'name');
             }
 

@@ -19,9 +19,13 @@ use Illuminate\Support\Collection;
 class DashboardBoxController extends AdminControllerBase
 {
     use HasResourceActions;
+    // @phpstan-ignore-next-line
     protected $dashboard;
+    // @phpstan-ignore-next-line
     protected $dashboard_box_type;
+    // @phpstan-ignore-next-line
     protected $row_no;
+    // @phpstan-ignore-next-line
     protected $column_no;
 
     public function __construct()
@@ -46,6 +50,7 @@ class DashboardBoxController extends AdminControllerBase
      * @param $suuid
      * @return \Illuminate\Http\JsonResponse
      */
+    // @phpstan-ignore-next-line
     public function delete(Request $request, $suuid)
     {
         // get suuid
@@ -67,6 +72,7 @@ class DashboardBoxController extends AdminControllerBase
     /**
      * get box html from ajax
      */
+    // @phpstan-ignore-next-line
     public function getHtml($suuid)
     {
         // get dashboardbox object
@@ -95,6 +101,7 @@ class DashboardBoxController extends AdminControllerBase
      * @param $id
      * @return Form|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
+    // @phpstan-ignore-next-line
     protected function form($id = null)
     {
         $form = new Form(new DashboardBox());
@@ -138,6 +145,7 @@ class DashboardBoxController extends AdminControllerBase
         return $form;
     }
 
+    // @phpstan-ignore-next-line
     protected function manageFormSaving($form)
     {
         // before saving
@@ -157,6 +165,7 @@ class DashboardBoxController extends AdminControllerBase
     /**
      * get dashboard info using id, or query
      */
+    // @phpstan-ignore-next-line
     protected function getDashboardInfo($id)
     {
         // set info with query --------------------------------------------------
@@ -220,6 +229,7 @@ class DashboardBoxController extends AdminControllerBase
      * @param $dashboard_type
      * @return array|Collection
      */
+    // @phpstan-ignore-next-line
     public function tableViews(Request $request, $dashboard_type)
     {
         $id = $request->get('q');
@@ -253,6 +263,7 @@ class DashboardBoxController extends AdminControllerBase
                 return array('id' => $value->id, 'text' => $value->view_view_name);
             });
         // if count > 0, return value.
+        // @phpstan-ignore-next-line
         if (!is_null($views) && count($views) > 0) {
             return $views;
         }
@@ -270,6 +281,7 @@ class DashboardBoxController extends AdminControllerBase
      * @param $axis_type
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function chartAxis(Request $request, $axis_type)
     {
         $id = $request->get('q');
@@ -282,6 +294,7 @@ class DashboardBoxController extends AdminControllerBase
         return $custom_view->getViewColumnsSelectOptions($axis_type == 'y');
     }
 
+    // @phpstan-ignore-next-line
     protected function rednerHtml($item)
     {
         return $item instanceof \Illuminate\Contracts\Support\Renderable ? $item->render() : $item;

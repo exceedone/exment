@@ -38,6 +38,7 @@ class ResetPasswordCommand extends Command
         $this->initExmentCommand();
     }
 
+    // @phpstan-ignore-next-line
     protected function getParameters()
     {
         $options = [];

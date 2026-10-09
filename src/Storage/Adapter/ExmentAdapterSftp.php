@@ -13,6 +13,7 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
     /**
      * get adapter class
      */
+    // @phpstan-ignore-next-line
     public static function getAdapter($app, $config, $driverKey)
     {
         $mergeConfig = static::getConfig($config);
@@ -26,6 +27,7 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
         return $driver;
     }
 
+    // @phpstan-ignore-next-line
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array
     {
         return [
@@ -39,6 +41,7 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
      * @param array $config
      * @return array
      */
+    // @phpstan-ignore-next-line
     public static function getConfig($config): array
     {
         $mergeFrom = array_get($config, 'mergeFrom');

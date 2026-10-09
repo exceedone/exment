@@ -16,6 +16,7 @@ class WorkflowWorkTargetType extends EnumBase
     public const FIX = "fix";
 
 
+    // @phpstan-ignore-next-line
     public static function getTargetTypeDefault($index)
     {
         $result = [
@@ -29,6 +30,7 @@ class WorkflowWorkTargetType extends EnumBase
         return json_encode($result);
     }
 
+    // @phpstan-ignore-next-line
     public static function getTargetTypeNameDefault($index)
     {
         $targetTypeDefault = jsonToArray(static::getTargetTypeDefault($index));

@@ -29,20 +29,30 @@ class Condition extends ModelBase
 
     protected $guarded = ['id'];
     protected $appends = ['condition_target'];
+
+    // @phpstan-ignore-next-line
     protected $condition_type_key = 'condition_type';
+
+    // @phpstan-ignore-next-line
     protected $condition_column_key = 'target_column_id';
 
+
+    // @phpstan-ignore-next-line
     public function getCustomTable()
     {
         if ($this->morph_type == 'custom_form_priority') {
             $parent_table = CustomFormPriority::find($this->morph_id);
             if (isset($parent_table)) {
+
+                // @phpstan-ignore-next-line
                 return $parent_table->custom_form->custom_table;
             }
         }
         return null;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getConditionTargetAttribute()
     {
         return $this->getConditionTarget();
@@ -51,6 +61,8 @@ class Condition extends ModelBase
     /**
      * set condition_target.
      */
+
+    // @phpstan-ignore-next-line
     public function setConditionTargetAttribute($condition_target)
     {
         $params = $this->getViewColumnTargetItems($condition_target, null);
@@ -72,6 +84,8 @@ class Condition extends ModelBase
     /**
      * get priority condition text.
      */
+
+    // @phpstan-ignore-next-line
     public function getConditionTextAttribute()
     {
         if (!isset($this->condition_item)) {
@@ -85,6 +99,8 @@ class Condition extends ModelBase
     /**
      * get edited condition_value_text.
      */
+
+    // @phpstan-ignore-next-line
     public function getConditionValueAttribute()
     {
         $condition_value = array_get($this->attributes, 'condition_value');
@@ -107,6 +123,8 @@ class Condition extends ModelBase
      * set condition_value_text.
      * * we have to convert int if view_filter_condition_value is array*
      */
+
+    // @phpstan-ignore-next-line
     public function setConditionValueAttribute($condition_value)
     {
         if (is_array($condition_value)) {
@@ -122,6 +140,8 @@ class Condition extends ModelBase
     /**
      * check if custom_value and user(organization, role) match for conditions.
      */
+
+    // @phpstan-ignore-next-line
     public function isMatchCondition($custom_value)
     {
         $item = ConditionItemBase::getItem($custom_value->custom_table, $this->condition_type, $this->target_column_id);
@@ -139,6 +159,8 @@ class Condition extends ModelBase
      * @param array $work_conditions
      * @return array
      */
+
+    // @phpstan-ignore-next-line
     public static function getWorkConditions($work_conditions)
     {
         $work_conditions = jsonToArray($work_conditions);

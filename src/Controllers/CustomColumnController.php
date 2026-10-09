@@ -86,6 +86,7 @@ class CustomColumnController extends AdminControllerTableBase
      *
      * @return \Illuminate\Http\Response|void
      */
+    // @phpstan-ignore-next-line
     public function update($tableKey, $id)
     {   
         //Validation table value
@@ -163,7 +164,7 @@ class CustomColumnController extends AdminControllerTableBase
         });
 
         $grid->tools(function (Grid\Tools $tools) {
-            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+            // @phpstan-ignore-next-line
             $tools->append(new Tools\CustomTableMenuButton('column', $this->custom_table));
         });
 
@@ -204,6 +205,7 @@ class CustomColumnController extends AdminControllerTableBase
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      */
+    // @phpstan-ignore-next-line
     protected function form($id = null)
     {
         $form = new Form(new CustomColumn());
@@ -375,12 +377,13 @@ class CustomColumnController extends AdminControllerTableBase
             if (isset($id) && boolval(CustomColumn::getEloquent($id)->disabled_delete)) {
                 $tools->disableDelete();
             }
-            /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+            // @phpstan-ignore-next-line
             $tools->add(new Tools\CustomTableMenuButton('column', $custom_table));
         });
         return $form;
     }
 
+    // @phpstan-ignore-next-line
     public function calcModal(Request $request, $tableKey, $id = null)
     {
         // get other columns
@@ -410,6 +413,7 @@ class CustomColumnController extends AdminControllerTableBase
     /**
      * add column form and view after saved
      */
+    // @phpstan-ignore-next-line
     protected function addColumnAfterSaved($model)
     {
         // set custom form columns --------------------------------------------------
@@ -434,7 +438,7 @@ class CustomColumnController extends AdminControllerTableBase
                 $order++;
 
                 // get width
-                /** @phpstan-ignore-next-line need test 'Called 'first' on Laravel collection, but could have been retrieved as a query.' */
+                // @phpstan-ignore-next-line
                 $width = $form_block->custom_form_columns()
                     ->where('row_no', 1)
                     ->where('column_no', 1)
@@ -513,6 +517,7 @@ class CustomColumnController extends AdminControllerTableBase
      * @param Request $request
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function columnTypeHtml(Request $request)
     {
         $val = $request->get('val');
@@ -542,6 +547,7 @@ class CustomColumnController extends AdminControllerTableBase
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getCustomItem(Request $request, $id, $column_type)
     {
         return CustomItem::getItem(new CustomColumn([

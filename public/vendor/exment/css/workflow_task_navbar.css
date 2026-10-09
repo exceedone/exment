@@ -1,0 +1,63 @@
+/* Feature 1: navbar workflow-task icon + floating unseen-count badge */
+
+.navbar-workflow-task .container-workflow-task {
+    position: relative;
+    font-size: 20px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+/* inherit the navbar text color (white on the blue header), same as the help/bell icons */
+.navbar-workflow-task .container-workflow-task .fa-sitemap {
+    color: inherit;
+}
+
+/* floating red circle badge overlapping the top-right corner of the icon */
+.navbar-workflow-task .container-workflow-task .label-danger {
+    position: absolute;
+    top: 7px;
+    right: 3px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    line-height: 18px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 9px;
+    background-color: #dd4b39;
+    color: #fff;
+    border: 2px solid #fff;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+/* AdminLTE caps .menu at 200px and lets it scroll. A notification row there is one line
+   of small text; a task row is a table badge plus a label plus a status, so five of them
+   are taller than the box and the fifth is cut in half by the scroll edge. The dropdown
+   shows a fixed, small number of rows, so it can size to its content instead: the
+   slimScroll heights below were already released for the same reason, and releasing them
+   without the max-height left the clipping in place.
+   The important is not decoration: laravel-admin prints this file 4th and AdminLTE.min.css
+   30th, both selectors weigh the same, so without it the later sheet simply wins. The
+   slimScroll rule below carries one for exactly this reason. */
+.navbar-workflow-task .dropdown-menu > li .menu {
+    max-height: none !important;
+}
+
+.navbar-workflow-task .slimScrollDiv,
+.navbar-workflow-task .slimScrollDiv .menu {
+    height: auto !important;
+}
+
+/* reuse the notify ring keyframes (defined in common.css) */
+.navbar-workflow-task .fa-sitemap.ring {
+    animation: ring_notify 2.4s ease;
+    transform-origin: 50% 0%;
+}
+
+.skin-red .navbar-workflow-task .label-danger,
+.skin-red-light .navbar-workflow-task .label-danger {
+    background-color: yellow !important;
+    color: black !important;
+    border-color: #fff;
+}

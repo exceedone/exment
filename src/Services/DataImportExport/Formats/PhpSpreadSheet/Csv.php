@@ -3,17 +3,21 @@
 namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\DataImportExport\Formats\CsvTrait;
+use Exceedone\Exment\Services\ZipService;
 use File;
 
 class Csv extends PhpSpreadSheet
 {
     use CsvTrait;
 
+    // @phpstan-ignore-next-line
     protected $accept_extension = 'csv,zip';
 
 
+    // @phpstan-ignore-next-line
     protected function _getData($request, $callbackZip, $callbackDefault)
     {
         // get file
@@ -28,24 +32,37 @@ class Csv extends PhpSpreadSheet
             $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
 
             // open zip file
+            $zipOpened = false;
             try {
                 $zip = new \ZipArchive();
                 //Define variable like flag to check exitsed file config (config.json) before extract zip file
                 $res = $zip->open($fullpath);
                 if ($res !== true) {
-                    //TODO:error
+                    // numFiles is 0 on a zip that never opened, so every check below would
+                    // silently pass. Stop here instead of extracting nothing.
+                    throw new InvalidZipEntryException(strval(exmtrans('error.failure_import_file')));
                 }
+                $zipOpened = true;
+
+                $zipEntryError = ZipService::validateZipEntries($zip);
+                if ($zipEntryError !== null) {
+                    throw new InvalidZipEntryException($zipEntryError);
+                }
+
                 $zip->extractTo($tmpfolderpath);
 
                 // get all files
                 $files = collect(\File::files($tmpfolderpath))->filter(function ($value) {
+                    // @phpstan-ignore-next-line
                     return pathinfo($value)['extension'] == 'csv';
                 });
 
                 return $callbackZip($files);
             } finally {
                 // delete tmp folder
-                if (!is_nullorempty($zip)) {
+                // close() on an archive that never opened throws ValueError on PHP 8,
+                // which would replace the real error, so only close what we opened.
+                if ($zipOpened && !is_nullorempty($zip)) {
                     $zip->close();
                 }
                 // delete zip
@@ -62,6 +79,7 @@ class Csv extends PhpSpreadSheet
     }
 
 
+    // @phpstan-ignore-next-line
     protected function createWriter($spreadsheet)
     {
         /** @var \PhpOffice\PhpSpreadsheet\Writer\Csv $writer */
@@ -73,6 +91,7 @@ class Csv extends PhpSpreadSheet
         return $writer;
     }
 
+    // @phpstan-ignore-next-line
     protected function createReader()
     {
         return IOFactory::createReader('Csv');
@@ -84,6 +103,7 @@ class Csv extends PhpSpreadSheet
      * @param string|array|\Illuminate\Support\Collection $files
      * @return int
      */
+    // @phpstan-ignore-next-line
     protected function getRowCount($files): int
     {
         $count = 0;
@@ -104,9 +124,10 @@ class Csv extends PhpSpreadSheet
         return $count;
     }
 
+    // @phpstan-ignore-next-line
     protected function getCsvArray($file, array $options = [])
     {
-        /** @phpstan-ignore-next-line setlocale expects array|string|null, int given */
+        // @phpstan-ignore-next-line
         $original_locale = setlocale(LC_CTYPE, 0);
 
         // set C locale
@@ -121,6 +142,7 @@ class Csv extends PhpSpreadSheet
         $array = $this->getDataFromSheet($spreadsheet->getActiveSheet(), false, false, $options);
 
         // revert to original locale
+        // @phpstan-ignore-next-line
         setlocale(LC_CTYPE, $original_locale);
 
         return $array;

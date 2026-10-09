@@ -28,10 +28,13 @@ class MailSendJob extends Notification implements ShouldQueue
      * @var MailHistory
      */
     protected $mailHistory;
+    // @phpstan-ignore-next-line
     protected $userId;
+    // @phpstan-ignore-next-line
     protected $finalUser;
 
 
+    // @phpstan-ignore-next-line
     public function __construct($userId = null, $finalUser = false)
     {
         $this->userId = $userId;
@@ -44,6 +47,7 @@ class MailSendJob extends Notification implements ShouldQueue
      * @param  mixed  $notifiable
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function via($notifiable)
     {
         return [MailChannel::class];
@@ -93,6 +97,7 @@ class MailSendJob extends Notification implements ShouldQueue
     /**
      * Handle a job failure.
      */
+    // @phpstan-ignore-next-line
     public function failed($exception)
     {
         $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)

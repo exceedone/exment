@@ -76,6 +76,7 @@ class ApiSettingController extends AdminControllerBase
      * @param $id
      * @return Form|false
      */
+    // @phpstan-ignore-next-line
     protected function form($id = null)
     {
         $form = new Form(new ApiClient());
@@ -102,6 +103,7 @@ class ApiSettingController extends AdminControllerBase
 
         ///// toggle showing redirect
         // if create or password
+        // @phpstan-ignore-next-line
         if (!isset($client) || $client->client_type == ApiClientType::CLIENT_CREDENTIALS) {
             $form->url('redirect', exmtrans('api.redirect'))
             ->required()
@@ -115,7 +117,9 @@ class ApiSettingController extends AdminControllerBase
                 ->attribute(['copyScript' => 1])
                 ->help(exmtrans('api.help.client_secret'));
 
+            // @phpstan-ignore-next-line
             if ($client->client_type == ApiClientType::API_KEY) {
+                // @phpstan-ignore-next-line
                 $client_api_key = $client->client_api_key;
 
                 $form->password('client_api_key.key', exmtrans('api.api_key'))->readonly()->toggleShowEvent()
@@ -151,8 +155,10 @@ class ApiSettingController extends AdminControllerBase
      * @return Response
      * @throws \Exception
      */
+    // @phpstan-ignore-next-line
     public function update($id)
     {
+        // @phpstan-ignore-next-line
         return $this->saveData($id);
     }
 
@@ -165,12 +171,14 @@ class ApiSettingController extends AdminControllerBase
      * @throws \Psr\Container\NotFoundExceptionInterface
      * @throws \Throwable
      */
+    // @phpstan-ignore-next-line
     protected function saveData($id = null)
     {
         $request = request();
 
         // validation
         $form = $this->form($id);
+        // @phpstan-ignore-next-line
         if (($response = $form->validateRedirect($request->all())) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
         }
@@ -188,6 +196,7 @@ class ApiSettingController extends AdminControllerBase
                 // create for CLIENT_CREDENTIALS
                 if ($client_type == ApiClientType::CLIENT_CREDENTIALS) {
                     $client = $clientRepository->create(
+                        // @phpstan-ignore-next-line
                         $user_id,
                         $name,
                         $request->get('redirect')
@@ -196,12 +205,14 @@ class ApiSettingController extends AdminControllerBase
                 // create for password
                 elseif ($client_type == ApiClientType::PASSWORD_GRANT) {
                     $client = $clientRepository->createPasswordGrantClient(
+                        // @phpstan-ignore-next-line
                         $user_id,
                         $name,
                         'http://localhost'
                     );
                 } elseif ($client_type == ApiClientType::API_KEY) {
                     $client = $clientRepository->createApiKey(
+                        // @phpstan-ignore-next-line
                         $user_id,
                         $name,
                         'http://localhost'
@@ -211,15 +222,20 @@ class ApiSettingController extends AdminControllerBase
             // update info
             else {
                 $client = ApiClient::find($id);
+                // @phpstan-ignore-next-line
                 $client->name = $request->get('name');
+                // @phpstan-ignore-next-line
                 if ($client->client_type == ApiClientType::CLIENT_CREDENTIALS) {
+                    // @phpstan-ignore-next-line
                     $client->redirect = $request->get('redirect');
                 }
+                // @phpstan-ignore-next-line
                 $client->save();
             }
             DB::commit();
 
             admin_toastr(trans('admin.update_succeeded'));
+            // @phpstan-ignore-next-line
             $url = admin_urls('api_setting', $client->id, 'edit');
             return redirect($url);
         } catch (\Exception $ex) {

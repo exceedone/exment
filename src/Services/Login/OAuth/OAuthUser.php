@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\LoginSetting;
  */
 class OAuthUser extends CustomLoginUserBase
 {
+    // @phpstan-ignore-next-line
     public $avatar;
 
     /**
@@ -28,8 +29,10 @@ class OAuthUser extends CustomLoginUserBase
      * @var string
      */
     public $refreshToken;
+    // @phpstan-ignore-next-line
     public $expiresIn;
 
+    // @phpstan-ignore-next-line
     public static function with($provider_name, $provider_user, $isTest = false)
     {
         $user = new OAuthUser();

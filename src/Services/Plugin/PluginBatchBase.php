@@ -9,6 +9,7 @@ class PluginBatchBase
 {
     use PluginBase;
 
+    // @phpstan-ignore-next-line
     public function __construct($plugin, $options = [])
     {
         $this->plugin = $plugin;

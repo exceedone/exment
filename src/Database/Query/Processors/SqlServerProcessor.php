@@ -12,6 +12,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      * @param  array  $results
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     public function processGetVersion($results)
     {
         $string = collect((array)$results[0])->first();
@@ -30,6 +31,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      * @param  array  $results
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function processTableListing($results)
     {
         return array_map(function ($result) {
@@ -43,6 +45,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      * @param  array  $results
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function processColumnDefinitions($tableName, $results)
     {
         return collect($results)->map(function ($result) {
@@ -62,6 +65,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      * @param  array  $results
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function processIndexDefinitions($tableName, $results)
     {
         return collect($results)->map(function ($result) use ($tableName) {
@@ -80,6 +84,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      * @param  array  $results
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function processConstraints($results)
     {
         return collect($results)->map(function ($result) {

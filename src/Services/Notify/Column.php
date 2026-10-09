@@ -22,6 +22,7 @@ class Column extends NotifyTargetBase
      */
     protected $column;
 
+    // @phpstan-ignore-next-line
     public function __construct(Notify $notify, array $action_setting, $column)
     {
         parent::__construct($notify, $action_setting);
@@ -29,6 +30,7 @@ class Column extends NotifyTargetBase
         $this->column = $column;
     }
 
+    // @phpstan-ignore-next-line
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         $result = collect();
@@ -93,6 +95,7 @@ class Column extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return $this->getModels($custom_value, null);

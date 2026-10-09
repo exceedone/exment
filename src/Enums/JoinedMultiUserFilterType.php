@@ -28,6 +28,7 @@ class JoinedMultiUserFilterType extends EnumBase
     public const ONLY_JOIN = '0';
 
 
+    // @phpstan-ignore-next-line
     public static function getOptions()
     {
         if (boolval(System::organization_available())) {

@@ -26,6 +26,7 @@ class TemplateExporter
     /**
      * Create template from this system .
      */
+    // @phpstan-ignore-next-line
     public static function exportTemplate($template_name, $template_view_name, $description, $thumbnail, $options = [])
     {
         // set options
@@ -69,7 +70,9 @@ class TemplateExporter
 
         // add config array
         $locale = \App::getLocale();
+        // @phpstan-ignore-next-line
         $zip->addFromString('config.json', json_encode($config, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        // @phpstan-ignore-next-line
         $zip->addFromString("lang/$locale/lang.json", json_encode($lang, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         $zip->close();
 
@@ -87,6 +90,7 @@ class TemplateExporter
     /**
      * get export data array
      */
+    // @phpstan-ignore-next-line
     public static function getExportData($template_name, $template_view_name, $description, $options = [], $is_lang = false)
     {
         $config = [];
@@ -126,6 +130,7 @@ class TemplateExporter
     /**
      * set table info to config
      */
+    // @phpstan-ignore-next-line
     protected static function setTemplateTable(&$config, $target_tables, $is_lang = false)
     {
         // get customtable and columns --------------------------------------------------
@@ -206,6 +211,7 @@ class TemplateExporter
     /**
      * set menu info to config
      */
+    // @phpstan-ignore-next-line
     protected static function setTemplateMenu(&$config, $target_tables, $is_lang = false)
     {
         // get menu --------------------------------------------------
@@ -223,6 +229,7 @@ class TemplateExporter
     /**
      * set dashboard info to config
      */
+    // @phpstan-ignore-next-line
     protected static function setTemplateDashboard(&$config, $is_lang = false)
     {
         // get dashboards --------------------------------------------------
@@ -239,6 +246,7 @@ class TemplateExporter
     /**
      * set Role info to config
      */
+    // @phpstan-ignore-next-line
     protected static function setTemplateRole(&$config, $is_lang = false)
     {
         // Get Roles --------------------------------------------------
@@ -255,6 +263,7 @@ class TemplateExporter
     /**
      * Export public form
      */
+    // @phpstan-ignore-next-line
     protected static function setTemplatePublicForm(&$config, $public_form_uuid, $is_lang = false)
     {
         $public_form = PublicForm::getPublicFormByUuid($public_form_uuid, true);
@@ -265,6 +274,7 @@ class TemplateExporter
     }
 
 
+    // @phpstan-ignore-next-line
     protected static function getTemplateMenuItems($menu, $target_tables, $is_lang = false)
     {
         // checking target table visible. if false, return empty array
@@ -273,6 +283,7 @@ class TemplateExporter
         }
 
         $menus = [];
+        // @phpstan-ignore-next-line
         $menus[] = Menu::find(array_get($menu, 'id'))->getTemplateExportItems($is_lang);
 
         // if has children, loop

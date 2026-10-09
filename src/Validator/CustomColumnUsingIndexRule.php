@@ -13,8 +13,10 @@ use Exceedone\Exment\Model\CustomViewSort;
  */
 class CustomColumnUsingIndexRule implements Rule
 {
+    /** @var mixed */
     protected $custom_column_id;
 
+    // @phpstan-ignore-next-line
     public function __construct(...$parameters)
     {
         $this->custom_column_id = $parameters[0];

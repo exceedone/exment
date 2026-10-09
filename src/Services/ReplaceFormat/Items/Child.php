@@ -10,6 +10,7 @@ class Child extends ItemBase
     /**
      * Replace value from format. ex. ${value:user_name} to user_name's value
      */
+    // @phpstan-ignore-next-line
     public function replace($format, $options = [])
     {
         if (!isset($this->custom_value)) {

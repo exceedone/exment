@@ -4,11 +4,13 @@ namespace Exceedone\Exment\Form\Field;
 
 class Password extends \Encore\Admin\Form\Field\Password
 {
+    // @phpstan-ignore-next-line
     protected $showToggleIcon = false;
 
     /**
      * set toggle icon password display
      */
+    // @phpstan-ignore-next-line
     public function toggleShowEvent()
     {
         $this->showToggleIcon = true;

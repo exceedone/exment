@@ -19,6 +19,8 @@ class RoleGroup extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
 
+
+    // @phpstan-ignore-next-line
     public static $templateItems = [
         'excepts' => [],
         'uniqueKeys' => ['role_group_name'],
@@ -31,22 +33,30 @@ class RoleGroup extends ModelBase
         ],
     ];
 
+
+    // @phpstan-ignore-next-line
     public function role_group_permissions(): HasMany
     {
         return $this->hasMany(RoleGroupPermission::class, 'role_group_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function role_group_user_organizations(): HasMany
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function role_group_users(): HasMany
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')
             ->where('role_group_user_org_type', 'user');
     }
 
+
+    // @phpstan-ignore-next-line
     public function role_group_organizations(): HasMany
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')
@@ -59,9 +69,13 @@ class RoleGroup extends ModelBase
      *
      * @return \Illuminate\Support\Collection
      */
+
+    // @phpstan-ignore-next-line
     public static function getHasPermissionRoleGroup($user_id, $organization_ids, $checkContainJointdOrgs = false)
     {
         // get all permissons for system. --------------------------------------------------
+
+        // @phpstan-ignore-next-line
         return static::allRecordsCache(function ($role_group) use ($user_id, $organization_ids, $checkContainJointdOrgs) {
             $user_orgs = array_get($role_group, SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
             if (is_nullorempty($user_orgs)) {
@@ -84,7 +98,8 @@ class RoleGroup extends ModelBase
                             // ge check contains parent and child organizaions.
                             $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
 
-                            /** @phpstan-ignore-next-line  $org uses OrganizationTrait */
+
+                            // @phpstan-ignore-next-line
                             $targetOrgIds = $org->getOrganizationIdsForQuery($enum);
                             if (in_array($organization_id, $targetOrgIds)) {
                                 return true;

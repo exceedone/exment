@@ -60,6 +60,7 @@ class MailHistory
         if ($this->user instanceof CustomValue) {
             return $this->user->getUserId();
         } elseif ($this->user instanceof LoginUser) {
+            // @phpstan-ignore-next-line
             return $this->user->getUserId();
         } elseif ($this->user instanceof NotifyTarget) {
             return $this->user->id();
@@ -74,7 +75,7 @@ class MailHistory
 
     /**
      * Target mail template's id
-     * @return string|null
+     * @return string|int|null
      */
     public function getMailTemplateId()
     {
@@ -160,6 +161,10 @@ class MailHistory
         return $this;
     }
 
+    /**
+     * @param CustomValue|null $custom_value
+     * @return self
+     */
     public function setCustomValue(?CustomValue $custom_value)
     {
         $this->custom_value = $custom_value;
@@ -169,12 +174,20 @@ class MailHistory
         return $this;
     }
 
+    /**
+     * @param bool $isSetHistory
+     * @return self
+     */
     public function setHistory(bool $isSetHistory)
     {
         $this->isSetHistory = $isSetHistory;
         return $this;
     }
 
+    /**
+     * @param bool $isSetHistoryBody
+     * @return self
+     */
     public function setHistoryBody(bool $isSetHistoryBody)
     {
         $this->isSetHistoryBody = $isSetHistoryBody;

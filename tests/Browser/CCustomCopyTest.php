@@ -112,6 +112,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         $custom_copy = CustomCopy::find($id);
 
+        // @phpstan-ignore-next-line
         foreach ($custom_copy->custom_copy_columns as $custom_copy_column) {
             $row_id = $custom_copy_column->id;
             $this->seeIsSelected(
@@ -124,6 +125,7 @@ class CCustomCopyTest extends ExmentKitTestCase
             );
         }
 
+        // @phpstan-ignore-next-line
         foreach ($custom_copy->custom_copy_input_columns as $custom_copy_column) {
             $row_id = $custom_copy_column->id;
             $this->seeIsSelected(

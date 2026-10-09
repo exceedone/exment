@@ -14,6 +14,10 @@ class BootstrapPublicForm
 {
     use BootstrapTrait;
 
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
         $this->setCssJs($request, $next);
@@ -85,6 +89,9 @@ class BootstrapPublicForm
     }
 
 
+    /**
+     * @return void
+     */
     public static function setPublicFormCssJs(?PublicForm $public_form)
     {
         if ($public_form) {
@@ -93,7 +100,10 @@ class BootstrapPublicForm
             }
 
             if (!is_null($css = $public_form->getOption("custom_css"))) {
-                Ad::style($css);
+                // custom_css is intentional, but it must stay inside the <style> block:
+                // css_clean() neutralizes any "</style>" breakout that would escalate the
+                // documented CSS injection (JVN#92835104) into stored XSS.
+                Ad::style(css_clean($css));
             }
             if (!is_null($js = $public_form->getOption("custom_js"))) {
                 Ad::script($js);

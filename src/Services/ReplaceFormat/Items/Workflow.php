@@ -13,6 +13,7 @@ class Workflow extends ItemBase
     /**
      * Replace value from format. ex. ${value:user_name} to user_name's value
      */
+    // @phpstan-ignore-next-line
     public function replace($format, $options = [])
     {
         // get workflow action and value

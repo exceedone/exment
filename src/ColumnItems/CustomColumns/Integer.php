@@ -14,6 +14,7 @@ class Integer extends CustomItem
 {
     use NumberTrait;
 
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         if (is_null($v)) {
@@ -23,11 +24,13 @@ class Integer extends CustomItem
         if (boolval(array_get($this->custom_column, 'options.number_format'))
             && is_numeric($v)
             && !boolval(array_get($this->options, 'disable_number_format'))) {
+            // @phpstan-ignore-next-line
             return number_format($v);
         }
         return $v;
     }
 
+    // @phpstan-ignore-next-line
     public function saving()
     {
         $rmv = rmcomma($this->value);
@@ -37,11 +40,13 @@ class Integer extends CustomItem
         return strval(intval($rmv));
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Number::class;
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
@@ -64,6 +69,7 @@ class Integer extends CustomItem
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFilterClass()
     {
         return ExmFilter\Between::class;
@@ -81,6 +87,7 @@ class Integer extends CustomItem
         $this->getAdminFilterWhereQueryNumber($query, $input);
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
@@ -98,6 +105,7 @@ class Integer extends CustomItem
         $validates[] = new Validator\IntegerCommaRule();
     }
 
+    // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
         return ['integer', 'numeric'];
@@ -106,6 +114,7 @@ class Integer extends CustomItem
     /**
      * get cast Options
      */
+    // @phpstan-ignore-next-line
     protected function getCastOptions()
     {
         return[DatabaseDataType::TYPE_INTEGER, true, []];

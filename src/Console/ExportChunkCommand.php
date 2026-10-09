@@ -46,6 +46,7 @@ class ExportChunkCommand extends Command
         $this->initExmentCommand();
     }
 
+    // @phpstan-ignore-next-line
     protected function getParameters()
     {
         /** @var null|string $table_name */

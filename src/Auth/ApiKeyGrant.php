@@ -54,6 +54,9 @@ class ApiKeyGrant extends AbstractGrant
         return $responseType;
     }
 
+    /**
+     * @return UserEntityInterface
+     */
     protected function validateUser(ServerRequestInterface $request, ClientEntityInterface $client)
     {
         $api_key = $this->getRequestParameter('api_key', $request);
@@ -82,6 +85,8 @@ class ApiKeyGrant extends AbstractGrant
 
     /**
      * {@inheritdoc}
+     * @param string $api_key
+     * @return UserEntityInterface|null
      */
     public function getUserEntityByUserCredentials($api_key)
     {

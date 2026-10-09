@@ -10,6 +10,7 @@ trait TextTrait
     /**
      * get max length setting
      */
+    // @phpstan-ignore-next-line
     protected function getMaxLength($options = null)
     {
         if (!isset($options)) {

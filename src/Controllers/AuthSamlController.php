@@ -31,6 +31,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response
      * @throws \Exception
      */
+    // @phpstan-ignore-next-line
     public function metadata(Request $request, $provider_name)
     {
         $saml2Auth = LoginSetting::getSamlAuth($provider_name);
@@ -50,6 +51,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
      * @param $provider_name
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
      */
+    // @phpstan-ignore-next-line
     public function login(Request $request, $provider_name)
     {
         if ($this->guard()->check()) {
@@ -89,6 +91,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
      * @param $provider_name
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
+    // @phpstan-ignore-next-line
     public function acs(Request $request, $provider_name)
     {
         if ($this->guard()->check()) {
@@ -114,6 +117,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
                     'nameId' => $saml2Auth->getSaml2User()->getNameId(),
                 ]]);
 
+                // @phpstan-ignore-next-line
                 return $this->sendLoginResponse($request);
             }
 

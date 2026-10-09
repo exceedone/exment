@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\PasswordHistory;
  */
 class PasswordHistoryRule implements Rule
 {
+    /** @var mixed */
     protected $login_user;
 
     public function __construct(?LoginUser $login_user)

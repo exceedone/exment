@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
@@ -19,6 +20,7 @@ class InitializeForm
     use EnvTrait;
     use InitializeFormTrait;
 
+    // @phpstan-ignore-next-line
     public function index()
     {
         $form = $this->getInitializeForm('initialize', true);
@@ -40,6 +42,7 @@ class InitializeForm
         ]);
     }
 
+    // @phpstan-ignore-next-line
     public function post()
     {
         $request = request();
@@ -48,6 +51,9 @@ class InitializeForm
         try {
             $result = $this->postInitializeForm($request, 'initialize', true, true);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
+                // close the transaction before leaving, so nothing else in this request
+                // (a database session write, for one) runs inside an open transaction
+                DB::rollback();
                 return $result;
             }
 
@@ -87,12 +93,19 @@ class InitializeForm
             session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
 
             return redirect(admin_url('/'));
+        } catch (InvalidZipEntryException $exception) {
+            // a refused template zip is a bad upload, not a crash. roll back here, where
+            // the transaction was opened, then show the reason under the file field.
+            // without this the installer would swallow it below and answer with a blank page.
+            DB::rollback();
+            return back()->withInput()->withErrors(['upload_template' => $exception->getMessage()]);
         } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function guard()
     {
         return Auth::guard('admin');

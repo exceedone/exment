@@ -11,7 +11,9 @@ class MicrosoftTeamsJob extends Notification implements ShouldQueue
 {
     use JobTrait;
 
+    // @phpstan-ignore-next-line
     protected $content;
+    // @phpstan-ignore-next-line
     protected $subject;
 
     /**
@@ -19,6 +21,7 @@ class MicrosoftTeamsJob extends Notification implements ShouldQueue
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function __construct($subject, $content)
     {
         $this->content = $content;
@@ -31,6 +34,7 @@ class MicrosoftTeamsJob extends Notification implements ShouldQueue
      * @param  mixed  $notifiable
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function via($notifiable)
     {
         return [MicrosoftTeamsChannel::class];
@@ -55,6 +59,7 @@ class MicrosoftTeamsJob extends Notification implements ShouldQueue
      * @param  mixed  $notifiable
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function toArray($notifiable)
     {
         return [

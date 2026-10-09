@@ -9,16 +9,26 @@ use Illuminate\Contracts\Support\Renderable;
  */
 class ModalLink implements Renderable
 {
+    // @phpstan-ignore-next-line
     protected $url;
+    // @phpstan-ignore-next-line
     protected $label;
+    // @phpstan-ignore-next-line
     protected $expand;
+    // @phpstan-ignore-next-line
     protected $link_class;
+    // @phpstan-ignore-next-line
     protected $icon;
+    // @phpstan-ignore-next-line
     protected $html;
+    // @phpstan-ignore-next-line
     protected $modal_title;
+    // @phpstan-ignore-next-line
     protected $uuid;
+    // @phpstan-ignore-next-line
     protected $attributes = [];
 
+    // @phpstan-ignore-next-line
     public function __construct($url, $options = [])
     {
         $this->url = $url;

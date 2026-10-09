@@ -12,6 +12,7 @@ class DashboardBoxType extends EnumBase
     public const CALENDAR = 'calendar';
     public const PLUGIN = 'plugin';
 
+    // @phpstan-ignore-next-line
     public static function DASHBOARD_BOX_TYPE_OPTIONS()
     {
         return
@@ -24,6 +25,7 @@ class DashboardBoxType extends EnumBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public function getDashboardBoxItemClass()
     {
         switch ($this) {

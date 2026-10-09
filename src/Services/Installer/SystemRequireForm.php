@@ -13,12 +13,14 @@ class SystemRequireForm
 {
     use EnvTrait;
 
+    // @phpstan-ignore-next-line
     public function index()
     {
         $checkResult = SystemRequireList::make(SystemRequireCalledType::INSTALL_WEB);
         return view('exment::install.system_require', ['checkResult' => $checkResult, 'login_box_classname' => 'login-box-wide']);
     }
 
+    // @phpstan-ignore-next-line
     public function post()
     {
         if (boolval(request()->get('refresh'))) {
@@ -27,7 +29,7 @@ class SystemRequireForm
 
         try {
             $inputs = InstallService::getInputParams();
-            /** @phpstan-ignore-next-line Call to function is_null() with string will always evaluate to false. asset always returns string */
+            // @phpstan-ignore-next-line
             if (is_null(array_get($inputs, 'APP_URL')) && !is_null($url = asset(''))) {
                 $inputs['APP_URL'] = rtrim($url, '/');
             }

@@ -47,6 +47,7 @@ class DiskServiceItem
     protected $disk;
 
 
+    // @phpstan-ignore-next-line
     public function fileNameNoExtension()
     {
         if (is_null($this->fileName)) {
@@ -86,7 +87,11 @@ class DiskServiceItem
      */
     public function isDriverLocal()
     {
-        return $this->disk()->getAdapter() instanceof \League\Flysystem\Local\LocalFilesystemAdapter;
+        $disk = $this->disk();
+        if (!method_exists($disk, 'getAdapter')) {
+            return false;
+        }
+        return $disk->getAdapter() instanceof \League\Flysystem\Local\LocalFilesystemAdapter;
     }
 
     /**

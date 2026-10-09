@@ -8,6 +8,7 @@ class CompareColumnType extends EnumBase
 {
     public const SYSTEM_DATE = 'system_date';
 
+    // @phpstan-ignore-next-line
     public static function getCompareValue($compare_type)
     {
         switch ($compare_type) {

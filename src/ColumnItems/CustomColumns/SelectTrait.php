@@ -4,11 +4,13 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 trait SelectTrait
 {
+    // @phpstan-ignore-next-line
     public function getSelectFilterQuery($query, $input)
     {
         return $query->whereInArrayString($this->index(), $input);
     }
 
+    // @phpstan-ignore-next-line
     public function isMultipleEnabledTrait()
     {
         return boolval(array_get($this->custom_column, 'options.multiple_enabled', false));
@@ -19,6 +21,7 @@ trait SelectTrait
      *
      * @return array offset 0: type, 1: value
      */
+    // @phpstan-ignore-next-line
     protected function getDefaultSetting()
     {
         list($default_type, $default) = parent::getDefaultSetting();
