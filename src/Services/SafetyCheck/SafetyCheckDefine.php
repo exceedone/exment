@@ -30,6 +30,9 @@ class SafetyCheckDefine
         return (int) array_get(Define::SYSTEM_SETTING_NAME_VALUE, $name . '.default', 0);
     }
 
+    /**
+     * @return array<int, string> JMA scale code => label
+     */
     public static function scaleOptions(): array
     {
         return [

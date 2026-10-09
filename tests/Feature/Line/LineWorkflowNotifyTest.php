@@ -30,6 +30,9 @@ class LineWorkflowNotifyTest extends FeatureTestBase
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
     }
 
+    /**
+     * @return mixed
+     */
     protected function jobProperty(LineSendJob $job, string $name)
     {
         $prop = (new \ReflectionClass($job))->getProperty($name);
@@ -41,7 +44,7 @@ class LineWorkflowNotifyTest extends FeatureTestBase
      * @return void
      * @throws \ReflectionException
      */
-    public function testWorkflowStatusChangeSendsLineText()
+    public function testWorkflowStatusChangeSendsLineText(): void
     {
         $this->init();
         Bus::fake();
@@ -108,7 +111,7 @@ class LineWorkflowNotifyTest extends FeatureTestBase
      * @return void
      * @throws \ReflectionException
      */
-    public function testWorkflowStatusChangeSkipsUnlinkedUser()
+    public function testWorkflowStatusChangeSkipsUnlinkedUser(): void
     {
         $this->init();
         Bus::fake();

@@ -14,15 +14,19 @@ class LineSendJob implements ShouldQueue
 
     /** @var string */
     protected $to;
-    /** @var array */
+    /** @var array<mixed> one message or a list of messages */
     protected $messages;
-    /** @var array */
+    /** @var array<string, mixed> */
     protected $context;
     /**
      * @var bool
      */
     protected $throwOnFailure;
 
+    /**
+     * @param array<mixed> $messages
+     * @param array<string, mixed> $context
+     */
     public function __construct(string $to, array $messages, array $context = [], bool $throwOnFailure = false)
     {
         $this->to = $to;
@@ -31,11 +35,17 @@ class LineSendJob implements ShouldQueue
         $this->throwOnFailure = $throwOnFailure;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getContext(): array
     {
         return $this->context;
     }
 
+    /**
+     * @return array<int, int>
+     */
     public function backoff(): array
     {
         return [10, 30];

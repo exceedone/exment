@@ -45,11 +45,12 @@ class SafetyCheckSenderSyncFailureTest extends FeatureTestBase
     {
         $userTable = CustomTable::getEloquent('user');
         foreach ($userTable->getValueQuery()->get() as $user) {
+            /** @var \Exceedone\Exment\Model\CustomValue $user */
             $user->setValue('email', null)->save();
         }
     }
 
-    public function testRejectedPushIsNotCountedAsSent()
+    public function testRejectedPushIsNotCountedAsSent(): void
     {
         $this->bindClientReturning(401);
         $this->removeAllEmails();
@@ -59,12 +60,13 @@ class SafetyCheckSenderSyncFailureTest extends FeatureTestBase
         $result = SafetyCheckSender::send($event);
 
         $this->assertEquals(0, $result['line'], 'A push LINE rejected must not count as a LINE delivery.');
+        /** @var \Exceedone\Exment\Model\CustomValue $fresh */
         $fresh = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
         $this->assertEquals(0, (int) $fresh->getValue('sent_count'));
         $this->assertEquals($this->totalUserCount(), (int) $fresh->getValue('target_count'), 'target_count is unaffected by delivery failures.');
     }
 
-    public function testAcceptedPushIsCounted()
+    public function testAcceptedPushIsCounted(): void
     {
         $this->bindClientReturning(200);
         $this->removeAllEmails();
@@ -74,6 +76,7 @@ class SafetyCheckSenderSyncFailureTest extends FeatureTestBase
         $result = SafetyCheckSender::send($event);
 
         $this->assertEquals(1, $result['line']);
+        /** @var \Exceedone\Exment\Model\CustomValue $fresh */
         $fresh = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
         $this->assertEquals(1, (int) $fresh->getValue('sent_count'));
     }

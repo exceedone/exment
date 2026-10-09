@@ -79,7 +79,7 @@ class SafetyWatchCommand extends Command
                 $newLast = $receivedAt;
                 continue;
             }
-            $affected = collect($item['points'])->filter(function ($p) use ($minScale) {
+            $affected = collect((array) $item['points'])->filter(function ($p) use ($minScale) {
                 return $p['scale'] >= $minScale;
             });
 

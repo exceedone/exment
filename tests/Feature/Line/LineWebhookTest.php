@@ -24,7 +24,7 @@ class LineWebhookTest extends FeatureTestBase
     public const SECRET = 'webhook-test-secret';
     public const WEBHOOK_URL = 'admin/line/webhook';
 
-    /** @var \ArrayObject */
+    /** @var \ArrayObject<int, array<string, mixed>> Guzzle history: request, response per LINE API call */
     protected $lineHistory;
 
     protected function setUp(): void
@@ -35,8 +35,9 @@ class LineWebhookTest extends FeatureTestBase
         config(['exment.line.channel_access_token' => 'webhook-test-token']);
 
         $this->lineHistory = new \ArrayObject();
+        $history = $this->lineHistory; // same object; a local keeps the by-reference parameter off the typed property
         $stack = HandlerStack::create(new MockHandler(array_fill(0, 20, new GuzzleResponse(200, [], '{}'))));
-        $stack->push(Middleware::history($this->lineHistory));
+        $stack->push(Middleware::history($history));
         $guzzle = new Client(['handler' => $stack, 'base_uri' => 'https://api.line.me']);
         $this->app->bind(LineMessagingClient::class, function () use ($guzzle) {
             return new LineMessagingClient(null, static::SECRET, $guzzle);
@@ -45,6 +46,9 @@ class LineWebhookTest extends FeatureTestBase
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
+    /**
+     * @return array<int, string>
+     */
     protected function lineRequestPaths(): array
     {
         $paths = [];
@@ -54,9 +58,13 @@ class LineWebhookTest extends FeatureTestBase
         return $paths;
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
     protected function postWebhook(array $payload)
     {
-        $body = json_encode($payload);
+        $body = (string) json_encode($payload);
         $signature = base64_encode(hash_hmac('sha256', $body, static::SECRET, true));
 
         return $this->call(
@@ -70,6 +78,9 @@ class LineWebhookTest extends FeatureTestBase
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function messageEvent(string $text, string $lineUserId = 'Uwebhooktest', string $replyToken = 'rt-1'): array
     {
         return [
@@ -80,7 +91,7 @@ class LineWebhookTest extends FeatureTestBase
         ];
     }
 
-    public function testRejectsRequestWithoutSignature()
+    public function testRejectsRequestWithoutSignature(): void
     {
         $response = $this->call(
             'POST',
@@ -89,15 +100,15 @@ class LineWebhookTest extends FeatureTestBase
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
-            json_encode(['events' => []])
+            (string) json_encode(['events' => []])
         );
 
         $response->assertStatus(400);
     }
 
-    public function testRejectsForgedSignature()
+    public function testRejectsForgedSignature(): void
     {
-        $body = json_encode(['events' => []]);
+        $body = (string) json_encode(['events' => []]);
         $forged = base64_encode(hash_hmac('sha256', $body, 'secret-cua-ke-gia-mao', true));
 
         $response = $this->call(
@@ -113,12 +124,12 @@ class LineWebhookTest extends FeatureTestBase
         $response->assertStatus(400);
     }
 
-    public function testAcceptsValidSignatureAndReturns200()
+    public function testAcceptsValidSignatureAndReturns200(): void
     {
         $this->postWebhook(['events' => []])->assertStatus(200);
     }
 
-    public function testFollowEventReturns200()
+    public function testFollowEventReturns200(): void
     {
         $response = $this->postWebhook(['events' => [[
             'type' => 'follow',
@@ -129,7 +140,7 @@ class LineWebhookTest extends FeatureTestBase
         $response->assertStatus(200);
     }
 
-    public function testFollowSendsNoReply()
+    public function testFollowSendsNoReply(): void
     {
         $this->postWebhook(['events' => [[
             'type' => 'follow',
@@ -148,7 +159,7 @@ class LineWebhookTest extends FeatureTestBase
         $this->assertNotContains('/v2/bot/message/reply', $this->lineRequestPaths(), 'A follow event must not send any reply.');
     }
 
-    public function testTextMessageSendsReply()
+    public function testTextMessageSendsReply(): void
     {
         $this->postWebhook(['events' => [
             $this->messageEvent('hello', 'Uplaintext'),
@@ -157,7 +168,7 @@ class LineWebhookTest extends FeatureTestBase
         $this->assertContains('/v2/bot/message/reply', $this->lineRequestPaths());
     }
 
-    public function testLinkMessageLinksAccount()
+    public function testLinkMessageLinksAccount(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $code = LineAccountLink::forUser($userId)->generateCode();
@@ -175,7 +186,7 @@ class LineWebhookTest extends FeatureTestBase
         $this->assertNotNull($link->linked_at);
     }
 
-    public function testWrongCodeDoesNotLink()
+    public function testWrongCodeDoesNotLink(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         LineAccountLink::forUser($userId)->generateCode();
@@ -188,7 +199,7 @@ class LineWebhookTest extends FeatureTestBase
         $this->assertNull($link->line_user_id, 'Linked despite a wrong code.');
     }
 
-    public function testAlreadyLinkedLineCannotStealAnotherAccount()
+    public function testAlreadyLinkedLineCannotStealAnotherAccount(): void
     {
         $user1 = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $user2 = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;

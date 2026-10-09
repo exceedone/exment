@@ -22,6 +22,10 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->setUpLineWebhookMock();
     }
 
+    /**
+     * @param array<string, mixed> $overrides
+     * @return array<string, mixed>
+     */
     protected function postbackEvent(string $data, string $lineUserId, string $replyToken = 'rt-safety', array $overrides = []): array
     {
         return array_merge([
@@ -32,7 +36,7 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         ], $overrides);
     }
 
-    public function testTapSafeRecordsAnswerAndReplies()
+    public function testTapSafeRecordsAnswerAndReplies(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -51,7 +55,7 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals($expected, $this->lastReplyText());
     }
 
-    public function testTapNeedHelpChangesExistingAnswer()
+    public function testTapNeedHelpChangesExistingAnswer(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -68,7 +72,7 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals($expected, $this->lastReplyText());
     }
 
-    public function testEventClosedLeavesRowUnchangedAndRepliesClosed()
+    public function testEventClosedLeavesRowUnchangedAndRepliesClosed(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -85,7 +89,7 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals(exmtrans('safety.answer_closed'), $this->lastReplyText());
     }
 
-    public function testUnlinkedLineUserLeavesRowUnchangedAndRepliesNotLinked()
+    public function testUnlinkedLineUserLeavesRowUnchangedAndRepliesNotLinked(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $event = $this->createEvent();
@@ -100,7 +104,7 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals(exmtrans('line.account_not_linked'), $this->lastReplyText());
     }
 
-    public function testInvalidStatusLeavesRowUnchangedAndRepliesInvalid()
+    public function testInvalidStatusLeavesRowUnchangedAndRepliesInvalid(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -116,7 +120,7 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals(exmtrans('line.invalid_action_data'), $this->lastReplyText());
     }
 
-    public function testRegularUserWithoutTablePermissionCanAnswer()
+    public function testRegularUserWithoutTablePermissionCanAnswer(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
         $lineUserId = $this->linkUser($userId);
@@ -134,7 +138,7 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals($expected, $this->lastReplyText());
     }
 
-    public function testRedeliveredWebhookEventDoesNotOverwriteNewerAnswer()
+    public function testRedeliveredWebhookEventDoesNotOverwriteNewerAnswer(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -167,7 +171,7 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals('need_help', array_get($fresh->value, 'answer_status'), 'A redelivered older webhook event must not overwrite the newer answer.');
     }
 
-    public function testFailedProcessingReleasesWebhookEventIdForRedelivery()
+    public function testFailedProcessingReleasesWebhookEventIdForRedelivery(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $lineUserId = $this->linkUser($userId);
@@ -199,7 +203,7 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertEquals('safe', array_get($fresh->value, 'answer_status'), 'The redelivered event must be processed after the first attempt failed.');
     }
 
-    public function testRecordAnswerWritesRowWithChannel()
+    public function testRecordAnswerWritesRowWithChannel(): void
     {
         $event = $this->createEvent();
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
@@ -215,13 +219,13 @@ class SafetyCheckPostbackTest extends FeatureTestBase
         $this->assertStringContainsString('from web', (string) $fresh->getValue('comment'));
     }
 
-    public function testRecordAnswerReturnsFalseWhenRowMissing()
+    public function testRecordAnswerReturnsFalseWhenRowMissing(): void
     {
         $event = $this->createEvent();
         $this->assertFalse(\Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::recordAnswer($event->id, 99999, 'safe', 'mail'));
     }
 
-    public function testCurrentAnswerFindsRow()
+    public function testCurrentAnswerFindsRow(): void
     {
         $event = $this->createEvent();
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;

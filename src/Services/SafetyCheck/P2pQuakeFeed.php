@@ -15,6 +15,9 @@ class P2pQuakeFeed implements EarthquakeFeedInterface
 
     protected const FEED_TIMEZONE = 'Asia/Tokyo';
 
+    /**
+     * @return array<int, array<string, mixed>> parsed bulletins, oldest first
+     */
     public function fetchRecent(int $limit = 10): array
     {
         try {
@@ -67,8 +70,8 @@ class P2pQuakeFeed implements EarthquakeFeedInterface
     }
 
     /**
-     * @param array $item
-     * @return array|null
+     * @param array<string, mixed> $item
+     * @return array<string, mixed>|null
      */
     protected function parseItem(array $item): ?array
     {
@@ -116,7 +119,7 @@ class P2pQuakeFeed implements EarthquakeFeedInterface
     }
 
     /**
-     * @param array $item
+     * @param array<string, mixed> $item
      * @return Carbon|null
      */
     protected function parseReceivedAt(array $item): ?Carbon
@@ -135,7 +138,7 @@ class P2pQuakeFeed implements EarthquakeFeedInterface
     }
 
     /**
-     * @param array $item
+     * @param array<string, mixed> $item
      * @return Carbon|null
      */
     protected function parseTime(array $item): ?Carbon

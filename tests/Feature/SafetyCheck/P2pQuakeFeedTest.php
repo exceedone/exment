@@ -11,10 +11,10 @@ class P2pQuakeFeedTest extends FeatureTestBase
 {
     use TestTrait;
 
-    public function testFetchRecentNormalizesAndSkipsBroken()
+    public function testFetchRecentNormalizesAndSkipsBroken(): void
     {
         Http::fake(['api.p2pquake.net/*' => Http::response(
-            file_get_contents(__DIR__ . '/fixtures/p2p_551.json'),
+            (string) file_get_contents(__DIR__ . '/fixtures/p2p_551.json'),
             200
         )]);
 
@@ -26,21 +26,21 @@ class P2pQuakeFeedTest extends FeatureTestBase
         $this->assertInstanceOf(\Carbon\Carbon::class, $first['time']);
         $this->assertLessThanOrEqual($items[1]['time'], $first['time']);
         $this->assertEquals(45, collect($items)->max('max_scale'));
-        $prefs = collect($items[array_key_last($items)]['points'])->pluck('pref');
+        $prefs = collect((array) $items[array_key_last($items)]['points'])->pluck('pref');
         $this->assertTrue($prefs->contains('千葉県') || $prefs->contains('大阪府'));
     }
 
-    public function testNetworkErrorReturnsEmpty()
+    public function testNetworkErrorReturnsEmpty(): void
     {
         Http::fake(['api.p2pquake.net/*' => Http::response('error', 500)]);
         $this->assertEquals([], (new P2pQuakeFeed())->fetchRecent());
     }
 
-    public function testFeedUrlConfigOverride()
+    public function testFeedUrlConfigOverride(): void
     {
         config(['exment.safety_check.feed_url' => 'https://feed.example.test/history']);
         Http::fake(['feed.example.test/*' => Http::response(
-            file_get_contents(__DIR__ . '/fixtures/p2p_551.json'),
+            (string) file_get_contents(__DIR__ . '/fixtures/p2p_551.json'),
             200
         )]);
 
@@ -52,9 +52,9 @@ class P2pQuakeFeedTest extends FeatureTestBase
         });
     }
 
-    public function testFeedTimesAreParsedAsJst()
+    public function testFeedTimesAreParsedAsJst(): void
     {
-        Http::fake(['api.p2pquake.net/*' => Http::response(json_encode([[
+        Http::fake(['api.p2pquake.net/*' => Http::response((string) json_encode([[
             'id' => 'jst-test-1',
             'code' => 551,
             'time' => '2026/08/17 10:00:30.123',
@@ -76,9 +76,9 @@ class P2pQuakeFeedTest extends FeatureTestBase
         $this->assertEquals(config('app.timezone'), $items[0]['time']->timezone->getName());
     }
 
-    public function testReceivedAtComesFromTopLevelTimeWithMilliseconds()
+    public function testReceivedAtComesFromTopLevelTimeWithMilliseconds(): void
     {
-        Http::fake(['api.p2pquake.net/*' => Http::response(json_encode([[
+        Http::fake(['api.p2pquake.net/*' => Http::response((string) json_encode([[
             'id' => 'recv-test-1',
             'code' => 551,
             'time' => '2026/08/17 10:02:30.550',

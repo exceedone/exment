@@ -34,6 +34,9 @@ class LineInstaller
         'line_send_log'      => ['line_user_id', 'send_datetime'],
     ];
 
+    /**
+     * @param array<int, string> $markerColumns column names that only the feature's table has
+     */
     public static function isOwnedTable(CustomTable $table, array $markerColumns): bool
     {
         if (boolval($table->system_flg)) {
@@ -47,7 +50,10 @@ class LineInstaller
         return false;
     }
 
-    /** @throws \RuntimeException */
+    /**
+     * @param array<int, string> $markerColumns column names that only the feature's table has
+     * @throws \RuntimeException
+     */
     public static function assertOwnedTable(CustomTable $table, array $markerColumns): void
     {
         if (!static::isOwnedTable($table, $markerColumns)) {

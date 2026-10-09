@@ -34,6 +34,9 @@ class LineSendJobRetryTest extends FeatureTestBase
         parent::tearDown();
     }
 
+    /**
+     * @param array<int, GuzzleResponse> $responses
+     */
     protected function bindClient(array $responses): void
     {
         $stack = HandlerStack::create(new MockHandler($responses));
@@ -43,8 +46,12 @@ class LineSendJobRetryTest extends FeatureTestBase
         });
     }
 
+    /**
+     * @return Job&\Mockery\MockInterface
+     */
     protected function queueJobMock(string $connection, int $attempts): Job
     {
+        /** @var Job&\Mockery\MockInterface $mock */
         $mock = Mockery::mock(Job::class);
         $mock->shouldReceive('getConnectionName')->andReturn($connection);
         $mock->shouldReceive('attempts')->andReturn($attempts);
@@ -55,12 +62,15 @@ class LineSendJobRetryTest extends FeatureTestBase
         return $mock;
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Database\Eloquent\Model> line_send_log rows (CustomValue at runtime)
+     */
     protected function sendLogRows()
     {
         return CustomTable::getEloquent('line_send_log')->getValueQuery()->get();
     }
 
-    public function testRetryableFailureOnRealQueueIsReleasedWithoutFinalLog()
+    public function testRetryableFailureOnRealQueueIsReleasedWithoutFinalLog(): void
     {
         $this->bindClient([new GuzzleResponse(429, [], '{"message":"rate limited"}')]);
 
@@ -76,7 +86,7 @@ class LineSendJobRetryTest extends FeatureTestBase
         $this->assertEquals($before, $this->sendLogRows()->count(), 'No final log row while the job will still be retried.');
     }
 
-    public function testRetryableFailureOnFinalAttemptWritesFailureLog()
+    public function testRetryableFailureOnFinalAttemptWritesFailureLog(): void
     {
         $this->bindClient([new GuzzleResponse(429, [], '{"message":"rate limited"}')]);
 
@@ -94,7 +104,7 @@ class LineSendJobRetryTest extends FeatureTestBase
         $this->assertEquals('failed', array_get($rows->last()->value, 'status'));
     }
 
-    public function testRetryableFailureOnSyncQueueWritesLogImmediately()
+    public function testRetryableFailureOnSyncQueueWritesLogImmediately(): void
     {
         $this->bindClient([new GuzzleResponse(500, [], '{"message":"server error"}')]);
 
@@ -122,7 +132,7 @@ class LineSendJobRetryTest extends FeatureTestBase
         $this->assertEquals($before + 1, $this->sendLogRows()->count(), 'failed() must not log the API failure twice.');
     }
 
-    public function testNonRetryableFailureIsNotReleased()
+    public function testNonRetryableFailureIsNotReleased(): void
     {
         $this->bindClient([new GuzzleResponse(400, [], '{"message":"invalid to"}')]);
 
@@ -140,7 +150,7 @@ class LineSendJobRetryTest extends FeatureTestBase
         $this->assertEquals('failed', array_get($rows->last()->value, 'status'));
     }
 
-    public function testExhaustedNetworkFailureWritesFailureLog()
+    public function testExhaustedNetworkFailureWritesFailureLog(): void
     {
         $before = $this->sendLogRows()->count();
 
@@ -155,7 +165,7 @@ class LineSendJobRetryTest extends FeatureTestBase
         $this->assertStringContainsString('Connection timed out', (string) array_get($last->value, 'error_message'));
     }
 
-    public function testSuccessWritesSuccessLogWithoutRelease()
+    public function testSuccessWritesSuccessLogWithoutRelease(): void
     {
         $this->bindClient([new GuzzleResponse(200, [], '{}')]);
 
@@ -172,7 +182,7 @@ class LineSendJobRetryTest extends FeatureTestBase
         $this->assertEquals($before + 1, $rows->count());
         $this->assertEquals('success', array_get($rows->last()->value, 'status'));
     }
-    public function testRejectedAfterResponsePushDoesNotAbortLaterPushes()
+    public function testRejectedAfterResponsePushDoesNotAbortLaterPushes(): void
     {
         $this->bindClient([
             new GuzzleResponse(401, [], '{"message":"invalid token"}'),

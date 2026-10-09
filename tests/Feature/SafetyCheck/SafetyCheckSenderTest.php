@@ -35,11 +35,12 @@ class SafetyCheckSenderTest extends FeatureTestBase
     {
         return CustomTable::getEloquent('user')->getValueQuery()->get()
             ->filter(function ($u) {
+                /** @var \Exceedone\Exment\Model\CustomValue $u */
                 return !is_nullorempty($u->getValue('email'));
             })->count();
     }
 
-    public function testSendCreatesAnswerRowsForAllUsers()
+    public function testSendCreatesAnswerRowsForAllUsers(): void
     {
         $event = $this->createEvent();
         $userCount = $this->totalUserCount();
@@ -53,7 +54,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
         }
     }
 
-    public function testSendDispatchesJobOnlyForLinkedUsers()
+    public function testSendDispatchesJobOnlyForLinkedUsers(): void
     {
         $event = $this->createEvent();
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -65,7 +66,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertEquals(2, $result['line']);
     }
 
-    public function testUnlinkedFlagSet()
+    public function testUnlinkedFlagSet(): void
     {
         $event = $this->createEvent();
         $linkedUserId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
@@ -82,7 +83,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertTrue(boolval(array_get($rows->get($unlinkedUserId)->value, 'unlinked_flg')));
     }
 
-    public function testDrillTitleHasPrefix()
+    public function testDrillTitleHasPrefix(): void
     {
         $event = $this->createEvent(['trigger_type' => 'drill', 'title' => 'Earthquake Drill']);
         $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -96,7 +97,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
         });
     }
 
-    public function testResendOnlyUnanswered()
+    public function testResendOnlyUnanswered(): void
     {
         $userCount = $this->totalUserCount();
         $event = $this->createEvent();
@@ -115,7 +116,9 @@ class SafetyCheckSenderTest extends FeatureTestBase
             return (int) array_get($row->value, 'user') === $userA;
         });
         $answerTable = CustomTable::getEloquent('safety_check_answer');
-        $answerTable->getValueQuery()->find($rowA->id)->setValue(['answer_status' => 'safe'])->save();
+        /** @var \Exceedone\Exment\Model\CustomValue $rowAFresh */
+        $rowAFresh = $answerTable->getValueQuery()->find($rowA->id);
+        $rowAFresh->setValue(['answer_status' => 'safe'])->save();
 
         $this->assertNull($event->getValue('resent_at'));
 
@@ -139,13 +142,14 @@ class SafetyCheckSenderTest extends FeatureTestBase
 
         $this->assertNotNull($event->getValue('resent_at'));
 
+        /** @var \Exceedone\Exment\Model\CustomValue $freshEvent */
         $freshEvent = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
         $this->assertEquals($userCount, (int) $freshEvent->getValue('target_count'));
 
         $this->assertEquals($this->mailableUserCount(), (int) $freshEvent->getValue('sent_count'));
     }
 
-    public function testResendCreatesMissingAnswerRowAndSends()
+    public function testResendCreatesMissingAnswerRowAndSends(): void
     {
         $userCount = $this->totalUserCount();
         $event = $this->createEvent();
@@ -180,10 +184,11 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertEquals($userCount, $result['target']);
     }
 
-    public function testLinkedUserWithEmailAlsoReceivesMail()
+    public function testLinkedUserWithEmailAlsoReceivesMail(): void
     {
         $event = $this->createEvent();
         $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
+        /** @var \Exceedone\Exment\Model\CustomValue $linkedValue */
         $linkedValue = CustomTable::getEloquent('user')->getValueQuery()->find($linked);
         $this->assertFalse(is_nullorempty($linkedValue->getValue('email')), 'fixture: linked user must have an email');
         $this->linkUser($linked);
@@ -196,7 +201,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertEquals(1, $result['line']);
     }
 
-    public function testSentCountCountsDistinctUsersAcrossChannels()
+    public function testSentCountCountsDistinctUsersAcrossChannels(): void
     {
         $event = $this->createEvent();
         $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
@@ -205,13 +210,15 @@ class SafetyCheckSenderTest extends FeatureTestBase
 
         SafetyCheckSender::send($event);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $freshEvent */
         $freshEvent = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($event->id);
         $this->assertEquals($allWithEmail, (int) $freshEvent->getValue('sent_count'));
     }
 
-    public function testBuildMailSenderContainsSignedUrl()
+    public function testBuildMailSenderContainsSignedUrl(): void
     {
         $event = $this->createEvent(['title' => 'Big quake']);
+        /** @var \Exceedone\Exment\Model\CustomValue $userValue */
         $userValue = CustomTable::getEloquent('user')->getValueQuery()
             ->find((int) TestDefine::TESTDATA_USER_LOGINID_USER2);
         $this->assertFalse(is_nullorempty($userValue->getValue('email')));
@@ -226,16 +233,21 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertStringContainsString('user=' . $userValue->id, $sender->getBody());
     }
 
-    public function testBuildMailSenderNullWithoutEmail()
+    public function testBuildMailSenderNullWithoutEmail(): void
     {
         $event = $this->createEvent();
         $userTable = CustomTable::getEloquent('user');
         $noMail = $userTable->getValueModel();
         $noMail->setValue(['user_name' => 'nomail user', 'user_code' => 'nomail_' . time()])->save();
 
-        $this->assertNull(SafetyCheckSender::buildMailSender($userTable->getValueQuery()->find($noMail->id), $event, 't', 'b'));
+        /** @var \Exceedone\Exment\Model\CustomValue|null $noMailFresh */
+        $noMailFresh = $userTable->getValueQuery()->find($noMail->id);
+        $this->assertNull(SafetyCheckSender::buildMailSender($noMailFresh, $event, 't', 'b'));
     }
 
+    /**
+     * @return mixed
+     */
     protected function finalUserOf(MailSender $sender)
     {
         $property = new \ReflectionProperty(MailSender::class, 'final_user');
@@ -243,12 +255,13 @@ class SafetyCheckSenderTest extends FeatureTestBase
         return $property->getValue($sender);
     }
 
-    public function testBuildMailSenderFlagsFinalUserWhenAdminTriggered()
+    public function testBuildMailSenderFlagsFinalUserWhenAdminTriggered(): void
     {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'admin');
         $this->assertNotNull(\Exment::getUserId(), 'Fixture: the send must be attributable to a logged-in user.');
 
         $event = $this->createEvent();
+        /** @var \Exceedone\Exment\Model\CustomValue $userValue */
         $userValue = CustomTable::getEloquent('user')->getValueQuery()
             ->find((int) TestDefine::TESTDATA_USER_LOGINID_USER2);
 
@@ -258,12 +271,13 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $this->assertTrue((bool) $this->finalUserOf($sender));
     }
 
-    public function testBuildMailSenderLeavesFinalUserOffWhenNoLoggedInUser()
+    public function testBuildMailSenderLeavesFinalUserOffWhenNoLoggedInUser(): void
     {
         auth('admin')->logout();
         $this->assertNull(\Exment::getUserId(), 'Fixture: this send must be unattributable.');
 
         $event = $this->createEvent();
+        /** @var \Exceedone\Exment\Model\CustomValue $userValue */
         $userValue = CustomTable::getEloquent('user')->getValueQuery()
             ->find((int) TestDefine::TESTDATA_USER_LOGINID_USER2);
 
@@ -275,7 +289,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
         Notification::assertSentTimes(MailSendJob::class, 1);
     }
 
-    public function testResendMailsOnlyUnanswered()
+    public function testResendMailsOnlyUnanswered(): void
     {
         $event = $this->createEvent();
         $linked = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;

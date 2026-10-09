@@ -64,6 +64,9 @@ class SafetyCheckController extends AdminControllerBase
         return true;
     }
 
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
     protected function notInstalledResponse()
     {
         admin_toastr(exmtrans('safety.message_not_installed'), 'error');
@@ -93,22 +96,27 @@ class SafetyCheckController extends AdminControllerBase
         };
 
         $grid->column($columnKey('title'), exmtrans('safety.col_title'))->sortable();
+        /** @phpstan-ignore-next-line sortable() is typed Column|string in exment-admin-core */
         $grid->column($columnKey('trigger_type'), exmtrans('safety.col_trigger_type'))->sortable()->display(function ($value) {
             return exmtrans('safety.trigger_type_' . $value);
         });
+        /** @phpstan-ignore-next-line sortable() is typed Column|string in exment-admin-core */
         $grid->column($columnKey('event_status'), exmtrans('safety.col_event_status'))->sortable()->display(function ($value) {
             $class = $value === SafetyCheckDefine::EVENT_CLOSED ? 'bg-secondary' : 'bg-success';
             return '<span class="badge ' . $class . '">' . esc_html(exmtrans('safety.event_status_' . $value)) . '</span>';
         })->escape(false);
         $grid->column($columnKey('triggered_at'), exmtrans('safety.col_triggered_at'))->sortable();
         $grid->column('sent_count', exmtrans('safety.col_sent_count'))->display(function () {
+            /** @phpstan-ignore-next-line $this is the row CustomValue inside a Grid display closure */
             return (int) $this->getValue('sent_count');
         });
         $grid->column('target_count', exmtrans('safety.col_target_count'))->display(function () {
+            /** @phpstan-ignore-next-line $this is the row CustomValue inside a Grid display closure */
             return (int) $this->getValue('target_count');
         });
         $controller = $this;
         $grid->column('answered_count', exmtrans('safety.col_answered_count'))->display(function () use ($controller) {
+            /** @phpstan-ignore-next-line $this is the row CustomValue inside a Grid display closure */
             return $controller->getAnsweredCount($this->id);
         });
 
@@ -159,6 +167,9 @@ class SafetyCheckController extends AdminControllerBase
         return $grid;
     }
 
+    /**
+     * @param int|string $eventId
+     */
     public function getAnsweredCount($eventId): int
     {
         return (int) ($this->answeredCounts[$eventId] ?? 0);
@@ -202,6 +213,9 @@ $('a[data-safety-submit]').off('click.safety').on('click.safety', function () {
 EOT;
     }
 
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function send(Request $request)
     {
         if (!$this->isInstalled()) {
@@ -256,6 +270,10 @@ EOT;
         SafetyCheckSender::send($event, $onlyUnanswered);
     }
 
+    /**
+     * @param int|string $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function resend(Request $request, $id)
     {
         if (!$this->isInstalled()) {
@@ -292,6 +310,10 @@ EOT;
         return redirect(admin_url('safety_check'));
     }
 
+    /**
+     * @param int|string $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function close(Request $request, $id)
     {
         if (!$this->isInstalled()) {
@@ -307,9 +329,13 @@ EOT;
         return redirect(admin_url('safety_check'));
     }
 
-    /** @return CustomValue */
+    /**
+     * @param int|string $id
+     * @return CustomValue
+     */
     protected function findEventOrFail(CustomTable $eventTable, $id)
     {
+        /** @var CustomValue|null $event */
         $event = $eventTable->getValueQuery()->find($id);
         if (!$event) {
             abort(404);
@@ -319,7 +345,7 @@ EOT;
 
     /**
      * @param CustomTable $answerTable
-     * @param \Illuminate\Support\Collection $events
+     * @param \Illuminate\Support\Collection<int, CustomValue> $events
      * @return array<int|string, int>
      */
     protected function answeredCounts(CustomTable $answerTable, $events): array

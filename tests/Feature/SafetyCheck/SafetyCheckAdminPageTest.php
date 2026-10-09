@@ -34,18 +34,29 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->be($loginUser, 'admin');
     }
 
+    /**
+     * @param int|string $id
+     * @return \Exceedone\Exment\Model\CustomValue|null
+     */
     protected function freshEvent($id)
     {
-        return CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($id);
+        /** @var \Exceedone\Exment\Model\CustomValue|null $event */
+        $event = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($id);
+        return $event;
     }
 
+    /**
+     * @return \Exceedone\Exment\Model\CustomValue|null
+     */
     protected function latestEvent()
     {
-        return CustomTable::getEloquent('safety_check_event')->getValueQuery()
+        /** @var \Exceedone\Exment\Model\CustomValue|null $event */
+        $event = CustomTable::getEloquent('safety_check_event')->getValueQuery()
             ->orderBy('id', 'desc')->first();
+        return $event;
     }
 
-    public function testIndexPageShowsMenuTitle()
+    public function testIndexPageShowsMenuTitle(): void
     {
         $response = $this->get('admin/safety_check');
 
@@ -53,7 +64,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $response->assertSee(exmtrans('safety.menu_title'));
     }
 
-    public function testIndexRendersEventStatusAsBadgeAndBootstrap5Form()
+    public function testIndexRendersEventStatusAsBadgeAndBootstrap5Form(): void
     {
         $this->createEvent(['title' => 'Badge event open']);
         $this->createEvent(['title' => 'Badge event closed', 'event_status' => SafetyCheckDefine::EVENT_CLOSED]);
@@ -69,19 +80,19 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $response->assertDontSee('form-inline', false);
     }
 
-    public function testAdminCoreBundlesLegacySwalAliasUsedByRowActionScript()
+    public function testAdminCoreBundlesLegacySwalAliasUsedByRowActionScript(): void
     {
         // rowActionScript() gọi swal({type:'warning'}) — API của sweetalert2 7.x.
         // Nếu admin-core nâng sweetalert2 (bỏ alias window.swal ở v11), test này đỏ trước khi user thấy nút 再送/締切 chết.
         $asset = base_path('vendor/exceedone/exment-admin-core/resources/assets/sweetalert2/dist/sweetalert2.min.js');
 
         $this->assertFileExists($asset);
-        $js = file_get_contents($asset);
+        $js = (string) file_get_contents($asset);
         $this->assertStringContainsString('window.swal=', $js);
         $this->assertStringContainsString('version="7.', $js);
     }
 
-    public function testSendCreatesManualEventAndDispatchesJobs()
+    public function testSendCreatesManualEventAndDispatchesJobs(): void
     {
         LineAccountLink::forUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1)->markLinked('U_admin_page_test_1');
         $userCount = $this->totalUserCount();
@@ -106,7 +117,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         Bus::assertDispatchedTimes(LineSendJob::class, 1);
     }
 
-    public function testSendDrillSetsTriggerType()
+    public function testSendDrillSetsTriggerType(): void
     {
         $response = $this->post('admin/safety_check/send', [
             'title' => 'Drill event',
@@ -120,7 +131,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertEquals('drill', $event->getValue('trigger_type'));
     }
 
-    public function testResendThrottledWithinFiveMinutesDispatchesNoJob()
+    public function testResendThrottledWithinFiveMinutesDispatchesNoJob(): void
     {
         $linkedUserId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         LineAccountLink::forUser($linkedUserId)->markLinked('U_admin_page_test_resend');
@@ -138,7 +149,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertEquals($seededResentAt, $fresh->getValue('resent_at'), 'A throttled resend must not update resent_at.');
     }
 
-    public function testResendThrottleSettingRespected()
+    public function testResendThrottleSettingRespected(): void
     {
         System::safety_check_resend_throttle_minutes(1);
         System::clearCache();
@@ -162,7 +173,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         );
     }
 
-    public function testPerPageSelectorControlsListSize()
+    public function testPerPageSelectorControlsListSize(): void
     {
         $this->createEvent(['title' => 'zz_older_event_hidden']);
         $this->createEvent(['title' => 'zz_newer_event_visible']);
@@ -174,7 +185,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $response->assertDontSee('zz_older_event_hidden');
     }
 
-    public function testResendSendsOnlyToUnansweredUsersAndUpdatesResentAt()
+    public function testResendSendsOnlyToUnansweredUsersAndUpdatesResentAt(): void
     {
         $answeredUser = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         $unansweredUser = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
@@ -206,7 +217,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertNotNull($fresh->getValue('resent_at'), 'A successful resend must set resent_at.');
     }
 
-    public function testResendOnClosedEventIsBlocked()
+    public function testResendOnClosedEventIsBlocked(): void
     {
         $linkedUserId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
         LineAccountLink::forUser($linkedUserId)->markLinked('U_admin_page_resend_closed');
@@ -224,7 +235,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertNull($fresh->getValue('resent_at'), 'A blocked resend must not set resent_at.');
     }
 
-    public function testSendWithEmptyTitleCreatesNoEventAndDispatchesNoJob()
+    public function testSendWithEmptyTitleCreatesNoEventAndDispatchesNoJob(): void
     {
         $countBefore = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
 
@@ -241,7 +252,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
-    public function testSendRefusedWhileAnotherSendIsInProgress()
+    public function testSendRefusedWhileAnotherSendIsInProgress(): void
     {
         $countBefore = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
         $lockKey = SafetyCheckController::sendLockKey();
@@ -262,12 +273,12 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
-    public function testSendLockOutlivesALongSyncSend()
+    public function testSendLockOutlivesALongSyncSend(): void
     {
         $this->assertGreaterThanOrEqual(600, SafetyCheckController::SEND_LOCK_SECONDS);
     }
 
-    public function testSendReleasesLockAndAllowsNextSend()
+    public function testSendReleasesLockAndAllowsNextSend(): void
     {
         $countBefore = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
 
@@ -279,7 +290,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertEquals($countBefore + 2, $countAfter);
     }
 
-    public function testCloseSetsEventStatusClosed()
+    public function testCloseSetsEventStatusClosed(): void
     {
         $event = $this->createEvent();
 

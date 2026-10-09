@@ -31,6 +31,9 @@ class SafetyCheckInstaller
         static::ensureChannelMailOption();
     }
 
+    /**
+     * @return array<int, array{0: string, 1: string, 2: string, 3: array<string, mixed>}> [column_name, view_name, column_type, options]
+     */
     protected static function eventColumns(): array
     {
         return [
@@ -80,6 +83,9 @@ class SafetyCheckInstaller
         static::markSystem($table);
     }
 
+    /**
+     * @return array<int, array{0: string, 1: string, 2: string, 3: array<string, mixed>}> [column_name, view_name, column_type, options]
+     */
     protected static function answerColumns(): array
     {
         $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
@@ -217,7 +223,7 @@ class SafetyCheckInstaller
         if (!$channel) {
             return;
         }
-        $items = preg_split('/\r?\n/', (string) array_get($channel->options, 'select_item'), -1, PREG_SPLIT_NO_EMPTY);
+        $items = preg_split('/\r?\n/', (string) array_get($channel->options, 'select_item'), -1, PREG_SPLIT_NO_EMPTY) ?: [];
         if (in_array('mail', $items, true)) {
             return;
         }
@@ -240,6 +246,9 @@ class SafetyCheckInstaller
         $sentCount->save();
     }
 
+    /**
+     * @param array<int, array{0: string, 1: string, 2: string, 3: array<string, mixed>}> $columns [column_name, view_name, column_type, options]
+     */
     protected static function ensureColumns(CustomTable $table, array $columns): void
     {
         foreach ($columns as $order => [$name, $view, $type, $options]) {

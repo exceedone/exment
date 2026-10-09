@@ -21,7 +21,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->initAllTest();
     }
 
-    public function testEnsureAllCreatesTablesMenuTemplate()
+    public function testEnsureAllCreatesTablesMenuTemplate(): void
     {
         SafetyCheckInstaller::ensureAll();
 
@@ -45,7 +45,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertNotNull($tmpl);
     }
 
-    public function testEnsureAllIsIdempotent()
+    public function testEnsureAllIsIdempotent(): void
     {
         SafetyCheckInstaller::ensureAll();
         SafetyCheckInstaller::ensureAll();
@@ -59,7 +59,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         );
     }
 
-    public function testEnsureMailTemplateSeedsSystemTemplate()
+    public function testEnsureMailTemplateSeedsSystemTemplate(): void
     {
         SafetyCheckInstaller::ensureAll();
 
@@ -75,7 +75,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertEquals(1, $count);
     }
 
-    public function testChannelSelectHasMailOption()
+    public function testChannelSelectHasMailOption(): void
     {
         SafetyCheckInstaller::ensureAll();
 
@@ -84,7 +84,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertStringContainsString('mail', (string) array_get($channel->options, 'select_item'));
     }
 
-    public function testSentCountLabelRenamed()
+    public function testSentCountLabelRenamed(): void
     {
         SafetyCheckInstaller::ensureAll();
 
@@ -99,7 +99,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertEquals(exmtrans('safety.col_sent_count'), $sentCount->column_view_name);
     }
 
-    public function testEnsureAllDoesNotOverwriteAdminEditedColumnLabel()
+    public function testEnsureAllDoesNotOverwriteAdminEditedColumnLabel(): void
     {
         SafetyCheckInstaller::ensureAll();
 
@@ -114,7 +114,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertEquals('送信数（管理者が変更）', $sentCount->column_view_name);
     }
 
-    public function testEnsureAllRecreatesMissingAnswerColumn()
+    public function testEnsureAllRecreatesMissingAnswerColumn(): void
     {
         SafetyCheckInstaller::ensureAll();
 
@@ -126,11 +126,12 @@ class SafetyCheckInstallerTest extends FeatureTestBase
 
         SafetyCheckInstaller::ensureAll();
 
+        /** @var CustomColumn|null $recreated phpstan remembers the identical call above as null; this is a fresh lookup */
         $recreated = CustomColumn::getEloquent('unlinked_flg', CustomTable::getEloquent('safety_check_answer'));
         $this->assertNotNull($recreated, 'ensureAll() must recreate a missing answer-table column');
         $this->assertEquals(exmtrans('safety.col_unlinked_flg'), $recreated->column_view_name);
     }
-    public function testEnsureAllRefusesForeignTableWithSameName()
+    public function testEnsureAllRefusesForeignTableWithSameName(): void
     {
         SafetyCheckInstaller::ensureAll();
         $real = CustomTable::getEloquent('safety_check_event');
@@ -152,7 +153,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
             $thrown = $e;
         }
         $this->assertNotNull($thrown, 'ensureAll() must refuse a same-name table that is not the feature\'s.');
-        $this->assertFalse(boolval(CustomTable::find($foreign->id)->system_flg), 'The foreign table must not be marked as a system table.');
+        $this->assertFalse(boolval(CustomTable::where('id', $foreign->id)->firstOrFail()->system_flg), 'The foreign table must not be marked as a system table.');
         $this->assertEquals(0, CustomColumn::where('custom_table_id', $foreign->id)->count(), 'No feature column may be added to the foreign table.');
     }
 }

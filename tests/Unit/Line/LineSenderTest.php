@@ -11,6 +11,9 @@ class LineSenderTest extends UnitTestBase
 {
     public const TO = 'Uabcdef';
 
+    /**
+     * @return array<mixed>|null the messages handed to LineSendJob, or null when nothing was dispatched
+     */
     protected function sentMessages(string $subject, string $body): ?array
     {
         Bus::fake();

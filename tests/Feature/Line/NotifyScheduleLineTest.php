@@ -33,6 +33,9 @@ class NotifyScheduleLineTest extends FeatureTestBase
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
+    /**
+     * @return mixed
+     */
     protected function jobProperty(LineSendJob $job, string $name)
     {
         $prop = (new \ReflectionClass($job))->getProperty($name);
@@ -41,7 +44,8 @@ class NotifyScheduleLineTest extends FeatureTestBase
     }
 
     /**
-     * @return array
+     * @param int|string|null $flexTemplateId
+     * @return array<int, mixed> [notify, table, recordId, recipientUserId, lineUserId]
      */
     protected function setupTimeReminder($flexTemplateId = null): array
     {
@@ -96,7 +100,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         );
     }
 
-    public function testReminderTextDispatchesLineJobForLinkedUser()
+    public function testReminderTextDispatchesLineJobForLinkedUser(): void
     {
         Bus::fake();
         [$notify, $table, $recordId, , $lineUserId] = $this->setupTimeReminder();
@@ -115,7 +119,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         });
     }
 
-    public function testReminderSkipsUnlinkedUser()
+    public function testReminderSkipsUnlinkedUser(): void
     {
         Bus::fake();
         [$notify, , , $recipientUserId] = $this->setupTimeReminder();
@@ -126,7 +130,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         Bus::assertNotDispatchedAfterResponse(LineSendJob::class);
     }
 
-    public function testReminderWithFlexTemplateDispatchesFlexJob()
+    public function testReminderWithFlexTemplateDispatchesFlexJob(): void
     {
         Bus::fake();
 
@@ -152,7 +156,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         });
     }
 
-    public function testDedupeOffSendsOnEveryRun()
+    public function testDedupeOffSendsOnEveryRun(): void
     {
         Bus::fake();
         config(['exment.line.dedupe_minutes' => 0]);
@@ -164,7 +168,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         Bus::assertDispatchedAfterResponseTimes(LineSendJob::class, 2);
     }
 
-    public function testScheduleCommandDispatchesReminder()
+    public function testScheduleCommandDispatchesReminder(): void
     {
         Bus::fake();
         [, , , , $lineUserId] = $this->setupTimeReminder();
@@ -176,7 +180,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         });
     }
 
-    public function testDedupeBlocksSecondSendWithinWindow()
+    public function testDedupeBlocksSecondSendWithinWindow(): void
     {
         Bus::fake();
         config(['exment.line.dedupe_minutes' => 60]);
@@ -189,7 +193,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         Bus::assertNotDispatchedAfterResponse(LineSendJob::class);
     }
 
-    public function testDedupeAllowsSendWhenLogOlderThanWindow()
+    public function testDedupeAllowsSendWhenLogOlderThanWindow(): void
     {
         Bus::fake();
         config(['exment.line.dedupe_minutes' => 60]);
@@ -204,7 +208,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         Bus::assertDispatchedAfterResponse(LineSendJob::class);
     }
 
-    public function testDedupeDoesNotApplyToNonTimeTrigger()
+    public function testDedupeDoesNotApplyToNonTimeTrigger(): void
     {
         Bus::fake();
         config(['exment.line.dedupe_minutes' => 60]);
@@ -215,7 +219,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         $record = $table->getValueModel()->find($recordId);
         $wfNotify = Notify::where('notify_trigger', NotifyTrigger::WORKFLOW)->first();
         $this->assertNotNull($wfNotify, 'Fixture: a WORKFLOW notify is required.');
-        $user = \Exceedone\Exment\Model\NotifyTarget::getModelAsUser(LoginUser::find($recipientUserId)->base_user);
+        $user = \Exceedone\Exment\Model\NotifyTarget::getModelAsUser(LoginUser::where('id', $recipientUserId)->firstOrFail()->base_user);
 
         \Exceedone\Exment\Services\NotifyService::notifyLine([
             'notify' => $wfNotify,

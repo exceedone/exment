@@ -10,6 +10,9 @@ use Illuminate\Routing\Controller;
 
 class SafetyCheckAnswerController extends Controller
 {
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function form(Request $request)
     {
         return $this->resolve($request, function ($eventValue, $userId, $answerRow) use ($request) {
@@ -22,6 +25,9 @@ class SafetyCheckAnswerController extends Controller
         });
     }
 
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function submit(Request $request)
     {
         return $this->resolve($request, function ($eventValue, $userId, $answerRow) use ($request) {
@@ -47,6 +53,9 @@ class SafetyCheckAnswerController extends Controller
         });
     }
 
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response the callback's response, or the error page
+     */
     protected function resolve(Request $request, \Closure $callback)
     {
         if (!$request->hasValidSignature()) {

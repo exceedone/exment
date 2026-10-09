@@ -4,10 +4,13 @@ namespace Exceedone\Exment\Services\Line;
 
 class LineFlexBuilder
 {
+    /**
+     * @return array<int, array{label: string, format: string}>
+     */
     public static function parseBodyItems(string $raw): array
     {
         $items = [];
-        foreach (preg_split('/\r\n|\r|\n/', $raw) as $line) {
+        foreach ((preg_split('/\r\n|\r|\n/', $raw) ?: []) as $line) {
             if (strpos($line, '=') === false) {
                 continue;
             }
@@ -22,16 +25,26 @@ class LineFlexBuilder
         return $items;
     }
 
+    /**
+     * @param int|string $valueId
+     * @param int|string $actionId
+     */
     public static function postbackData(string $tableKey, $valueId, $actionId): string
     {
         return "act=workflow&table={$tableKey}&id={$valueId}&action={$actionId}";
     }
 
+    /**
+     * @param int|string $eventId
+     */
     public static function safetyPostbackData($eventId, string $status): string
     {
         return "act=safety&event={$eventId}&st={$status}";
     }
 
+    /**
+     * @return array<int, array{0: string, 1: string}> [lang key, format]
+     */
     public static function workflowDetailFormats(): array
     {
         return [
@@ -59,8 +72,9 @@ class LineFlexBuilder
 
     /**
      * @param string $title
-     * @param array $rows
-     * @param array $buttons
+     * @param array<int, array<string, mixed>> $rows    each: label, value
+     * @param array<int, array<string, mixed>> $buttons each: label + uri (link) or data (postback)
+     * @return array<string, mixed> Flex bubble
      */
     public static function buildBubble(string $title, array $rows, array $buttons): array
     {

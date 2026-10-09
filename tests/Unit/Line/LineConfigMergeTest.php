@@ -10,20 +10,20 @@ use Exceedone\Exment\Tests\Unit\UnitTestBase;
  */
 class LineConfigMergeTest extends UnitTestBase
 {
-    public function testLineBlockSurvivedMerge()
+    public function testLineBlockSurvivedMerge(): void
     {
         $this->assertSame(10, (int) config('exment.line.link_code_ttl_minutes'));
         $this->assertSame(5, (int) config('exment.line.link_max_attempts'));
         $this->assertSame('https://api.line.me', config('exment.line.api_base'));
     }
 
-    public function testSafetyCheckBlockSurvivedMerge()
+    public function testSafetyCheckBlockSurvivedMerge(): void
     {
         $this->assertSame('https://api.p2pquake.net/v2/history', config('exment.safety_check.feed_url'));
         $this->assertSame(10, (int) config('exment.safety_check.feed_limit'));
     }
 
-    public function testLaravel12OperationLogBlockSurvivedMerge()
+    public function testLaravel12OperationLogBlockSurvivedMerge(): void
     {
         $this->assertIsArray(config('exment.operation_log'));
         $this->assertNotEmpty(config('exment.operation_log'));

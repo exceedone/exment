@@ -18,6 +18,11 @@ class LineSendLogger
     public const STATUS_SUCCESS = 'success';
     public const STATUS_FAILED  = 'failed';
 
+    /**
+     * @param array<string, mixed> $context
+     * @param array<mixed> $messages
+     * @param array<string, mixed> $result
+     */
     public static function record(array $context, array $messages, array $result): void
     {
         $table = CustomTable::getEloquent(static::TABLE_NAME);
@@ -50,6 +55,9 @@ class LineSendLogger
         }
     }
 
+    /**
+     * @param int|string|null $parentId
+     */
     public static function recentlySent(int $userId, $parentId, ?string $parentType, int $minutes): bool
     {
         if ($minutes <= 0 || is_nullorempty($parentId) || is_nullorempty($parentType)) {
@@ -69,6 +77,9 @@ class LineSendLogger
             ->exists();
     }
 
+    /**
+     * @param array<mixed> $messages
+     */
     public static function buildBody(array $messages, bool $saveBody): string
     {
         if (!$saveBody) {
@@ -77,11 +88,17 @@ class LineSendLogger
         return json_encode($messages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '';
     }
 
+    /**
+     * @param array<string, mixed> $result
+     */
     public static function resolveStatus(array $result): string
     {
         return !empty($result['ok']) ? static::STATUS_SUCCESS : static::STATUS_FAILED;
     }
 
+    /**
+     * @param array<string, mixed> $result
+     */
     public static function formatError(array $result): ?string
     {
         if (!empty($result['ok'])) {

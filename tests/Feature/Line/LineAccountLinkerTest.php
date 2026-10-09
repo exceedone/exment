@@ -31,7 +31,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         return (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
     }
 
-    public function testGenerateCodeCreatesUnlinkedRecord()
+    public function testGenerateCodeCreatesUnlinkedRecord(): void
     {
         $code = $this->linker->generateCodeForUser($this->user1());
 
@@ -43,7 +43,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertFalse($link->isLinked());
     }
 
-    public function testGenerateCodeIsIdempotentPerUser()
+    public function testGenerateCodeIsIdempotentPerUser(): void
     {
         $first  = $this->linker->generateCodeForUser($this->user1());
         $second = $this->linker->generateCodeForUser($this->user1());
@@ -53,7 +53,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertEquals($second, LineAccountLink::where('user_id', $this->user1())->first()->line_link_code);
     }
 
-    public function testDeepLinkContainsEncodedLinkCommand()
+    public function testDeepLinkContainsEncodedLinkCommand(): void
     {
         $url = $this->linker->deepLink('ABC123');
 
@@ -61,7 +61,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertStringContainsString(rawurlencode('LINK ABC123'), $url);
     }
 
-    public function testHandleMessageLinksOnValidCode()
+    public function testHandleMessageLinksOnValidCode(): void
     {
         $code = $this->linker->generateCodeForUser($this->user1());
         $lineUserId = 'Uhandlelink';
@@ -74,7 +74,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertTrue($link->fresh()->isLinked());
     }
 
-    public function testHandleMessageRejectsExpiredCode()
+    public function testHandleMessageRejectsExpiredCode(): void
     {
         $code = $this->linker->generateCodeForUser($this->user1());
         $link = LineAccountLink::where('user_id', $this->user1())->first();
@@ -90,7 +90,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         }
     }
 
-    public function testHandleMessageIsRateLimitedPerLineUser()
+    public function testHandleMessageIsRateLimitedPerLineUser(): void
     {
         $lineUserId = 'Ubruteforce';
         RateLimiter::clear(LineAccountLinker::attemptKey($lineUserId));
@@ -111,7 +111,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         }
     }
 
-    public function testHandleMessageIsCaseInsensitiveForCommand()
+    public function testHandleMessageIsCaseInsensitiveForCommand(): void
     {
         $code = $this->linker->generateCodeForUser($this->user1());
 
@@ -121,7 +121,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertEquals('Ulowercase', $link->line_user_id);
     }
 
-    public function testHandleMessageReturnsNullForNonLinkText()
+    public function testHandleMessageReturnsNullForNonLinkText(): void
     {
         $this->linker->generateCodeForUser($this->user1());
 
@@ -130,7 +130,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertNull($this->linker->handleMessage('', 'Uchat'));
     }
 
-    public function testHandleMessageReturnsNullWhenLineUserIdMissing()
+    public function testHandleMessageReturnsNullWhenLineUserIdMissing(): void
     {
         $code = $this->linker->generateCodeForUser($this->user1());
 
@@ -138,7 +138,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertNull($this->linker->handleMessage('LINK ' . $code, ''));
     }
 
-    public function testHandleMessageRejectsWhenLineAlreadyBoundToAnotherUser()
+    public function testHandleMessageRejectsWhenLineAlreadyBoundToAnotherUser(): void
     {
         $user1 = $this->user1();
         $user2 = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
@@ -153,7 +153,7 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertNull(LineAccountLink::where('user_id', $user2)->first()->line_user_id);
     }
 
-    public function testHandleMessageAllowsRelinkingSameUser()
+    public function testHandleMessageAllowsRelinkingSameUser(): void
     {
         $user1 = $this->user1();
         $lineUserId = 'Usameuser';
