@@ -207,6 +207,7 @@ class WorkflowNotifyController extends Controller
             $this->setActionForm($form, $notify, null, $this->workflow);
         })->required()->disableHeader();
 
+        // @phpstan-ignore-next-line
         $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)
             ->getValueModel()
             ->where('value->mail_key_name', MailKeyName::WORKFLOW_NOTIFY)

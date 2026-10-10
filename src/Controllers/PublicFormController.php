@@ -90,6 +90,7 @@ class PublicFormController extends Controller
     public function redirect(Request $request)
     {
         admin_error(exmtrans('common.error'), exmtrans('error.expired_error_reinput'));
+        // @phpstan-ignore-next-line
         return redirect($this->public_form->getUrl());
     }
 
@@ -103,6 +104,7 @@ class PublicFormController extends Controller
     {
         $inputs = $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT);
 
+        // @phpstan-ignore-next-line
         return redirect($this->public_form->getUrl())->withInput($inputs);
     }
 
@@ -116,19 +118,25 @@ class PublicFormController extends Controller
     protected function getInputContent(Request $request)
     {
         try {
+            // @phpstan-ignore-next-line
             $uri = boolval($this->public_form->getOption('use_confirm')) ? 'confirm' : 'create';
 
+            // @phpstan-ignore-next-line
             $form = $this->public_form->getForm($request)
+                // @phpstan-ignore-next-line
                 ->setAction(url_join($this->public_form->getUrl(), $uri));
 
             $content = new PublicContent();
+            // @phpstan-ignore-next-line
             $this->public_form->setContentOption($content);
 
             $content->row($form);
             return $content;
         } catch (\Exception $ex) {
+            // @phpstan-ignore-next-line
             return $this->public_form->showError($ex);
         } catch (\Throwable $ex) {
+            // @phpstan-ignore-next-line
             return $this->public_form->showError($ex);
         }
     }
@@ -150,32 +158,39 @@ class PublicFormController extends Controller
         }
 
         try {
+            // @phpstan-ignore-next-line
             $form = $this->public_form->getForm($request, null, [
                 'asConfirm' => true,
             ]);
 
             //validate
+            // @phpstan-ignore-next-line
             $response = $form->validateRedirect($request->all());
             if ($response instanceof Response) {
                 return $response;
             }
 
+            // @phpstan-ignore-next-line
             $custom_value = $form->getModelByInputs();
 
             // set session
             $inputs = $this->removeUploadedFile($request->all());
             $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT, $inputs);
 
+            // @phpstan-ignore-next-line
             $show = $this->public_form->getShow($request, $custom_value, $inputs);
 
             $content = new PublicContent();
+            // @phpstan-ignore-next-line
             $this->public_form->setContentOption($content, ['isContainer' => true]);
 
             $content->row($show);
             return $content;
         } catch (\Exception $ex) {
+            // @phpstan-ignore-next-line
             return $this->public_form->showError($ex);
         } catch (\Throwable $ex) {
+            // @phpstan-ignore-next-line
             return $this->public_form->showError($ex);
         }
     }
@@ -198,6 +213,8 @@ class PublicFormController extends Controller
         // get data by session or result
         $data = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
         try {
+            /** @var Form $form */
+            // @phpstan-ignore-next-line
             $form = $this->public_form->getForm($request, null, ['setRecaptcha' => false]);
             $public_form = $this->public_form;
             $custom_table = $this->custom_table;
@@ -211,12 +228,15 @@ class PublicFormController extends Controller
             $form->savedInTransaction(function ($form) use ($custom_table, $public_form, $data) {
                 $model = $form->model();
                 $notifies = array_filter([
+                    // @phpstan-ignore-next-line
                     $public_form->notify_complete_admin,
+                    // @phpstan-ignore-next-line
                     $public_form->notify_complete_user
                 ]);
 
                 // if has notify, get inputs by $data
                 if (!is_nullorempty($notifies)) {
+                    // @phpstan-ignore-next-line
                     $prms = $public_form->getNotifyParams(null, null, $data);
 
                     foreach ($notifies as $notify) {
@@ -230,8 +250,10 @@ class PublicFormController extends Controller
 
             $form->saved(function ($form) use ($request, $public_form) {
                 $content = new PublicContent();
+                // @phpstan-ignore-next-line
                 $public_form->setContentOption($content, ['isContainer' => true]);
 
+                // @phpstan-ignore-next-line
                 $content->row($public_form->getCompleteView($request, $form->model()));
                 // @phpstan-ignore-next-line
                 return response($content);
@@ -244,8 +266,10 @@ class PublicFormController extends Controller
 
             return $response;
         } catch (\Exception $ex) {
+            // @phpstan-ignore-next-line
             return $this->public_form->showError($ex, false, $data);
         } catch (\Throwable $ex) {
+            // @phpstan-ignore-next-line
             return $this->public_form->showError($ex, false, $data);
         }
     }

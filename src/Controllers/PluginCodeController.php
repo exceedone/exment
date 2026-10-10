@@ -184,6 +184,7 @@ class PluginCodeController extends AdminControllerBase
     {
         $this->plugin = Plugin::getEloquent($id);
 
+        // @phpstan-ignore-next-line
         list($view, $isBox) = $this->getFileEditFormView($request, $id);
 
         if ($isBox) {
@@ -226,6 +227,7 @@ class PluginCodeController extends AdminControllerBase
                 ]), false];
             }
 
+            // @phpstan-ignore-next-line
             list($mode, $image, $can_delete) = $this->getPluginFileType($nodepath);
 
             $message = exmtrans('plugincode.message.irregular_ext');

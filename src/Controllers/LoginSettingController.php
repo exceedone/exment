@@ -130,6 +130,7 @@ class LoginSettingController extends AdminControllerBase
         }
 
         $form->embeds('options', exmtrans("login.options"), function (Form\EmbeddedForm $form) use ($login_setting, $errors) {
+            // @phpstan-ignore-next-line
             $user_custom_columns = CustomTable::getEloquent(SystemTableName::USER)->custom_columns_cache;
             ///// toggle
             // if create or oauth

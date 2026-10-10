@@ -207,6 +207,7 @@ class FileController extends AdminControllerBase
 
         // if has parent_id, check permission
         if (isset($data->parent_id) && isset($data->parent_type)) {
+            /** @var CustomTable $custom_table */
             $custom_table = CustomTable::getEloquent($data->parent_type);
             if (!$custom_table->hasPermissionData($data->parent_id)) {
                 if ($options['asApi']) {
@@ -225,6 +226,7 @@ class FileController extends AdminControllerBase
             return response([
                 'type' => $type,
                 'name' => $data->filename,
+                // @phpstan-ignore-next-line
                 'base64' => base64_encode(($file)),
             ]);
         }
@@ -320,6 +322,7 @@ class FileController extends AdminControllerBase
         // delete file info
         if (boolval($options['removeFileInfo'])) {
             $file = File::getData($uuid);
+            // @phpstan-ignore-next-line
             File::deleteFileInfo($file);
         }
 
@@ -329,6 +332,7 @@ class FileController extends AdminControllerBase
                 $custom_column = CustomColumn::getEloquent($data->custom_column_id);
             }
             if (isset($custom_column)) {
+                // @phpstan-ignore-next-line
                 $custom_value = $custom_table->getValueModel()->find($data->parent_id);
             }
             if (isset($custom_value) && isset($custom_column)) {

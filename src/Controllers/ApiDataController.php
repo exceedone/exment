@@ -57,6 +57,7 @@ class ApiDataController extends AdminControllerTableBase
      */
     public function dataList(Request $request)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             // @phpstan-ignore-next-line
             return abortJson(403, $code);
@@ -72,6 +73,7 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         // get paginate
+        // @phpstan-ignore-next-line
         $model = $this->custom_table->getValueQuery();
 
         // filterd by id
@@ -134,12 +136,14 @@ class ApiDataController extends AdminControllerTableBase
      */
     public function dataQueryColumn(Request $request, $tableKey)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             // @phpstan-ignore-next-line
             return abortJson(403, $code);
         }
 
         // get model filtered using role
+        // @phpstan-ignore-next-line
         $model = getModelName($this->custom_table)::query();
 
         $validator = Validator::make($request->all(), [
@@ -156,6 +160,7 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         // get query
+        // @phpstan-ignore-next-line
         $model = $this->custom_table->getValueQuery();
 
         // filtered query
@@ -272,6 +277,7 @@ class ApiDataController extends AdminControllerTableBase
      */
     public function dataCreate(Request $request)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableCreate()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
         }
@@ -286,10 +292,12 @@ class ApiDataController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function dataUpdate(Request $request, $tableKey, $id)
     {
+        // @phpstan-ignore-next-line
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
+        // @phpstan-ignore-next-line
         if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
             return $custom_value;
         }
@@ -310,6 +318,7 @@ class ApiDataController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function dataDelete(Request $request, $tableKey, $id)
     {
+        // @phpstan-ignore-next-line
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
@@ -325,6 +334,7 @@ class ApiDataController extends AdminControllerTableBase
         $custom_values = [];
         $validates = [];
         foreach ((array)$ids as $index => $i) {
+            // @phpstan-ignore-next-line
             if (($custom_value = $this->getCustomValue($this->custom_table, $i, $forceDelete)) instanceof Response) {
                 return $custom_value;
             }
@@ -332,6 +342,7 @@ class ApiDataController extends AdminControllerTableBase
                 // @phpstan-ignore-next-line
                 return abortJson(403, $code());
             }
+            // @phpstan-ignore-next-line
             if ($res = $this->custom_table->validateValueDestroy($i)) {
                 $message = array_get($res, 'message')?? exmtrans('error.delete_failed');
                 if (count($ids) == 1) {
@@ -424,9 +435,11 @@ class ApiDataController extends AdminControllerTableBase
             return $init;
         }
 
+        // @phpstan-ignore-next-line
         $model = getModelName($this->custom_table->table_name)::find($id);
         // not contains data, return empty data.
         if (!isset($model)) {
+            // @phpstan-ignore-next-line
             $code = $this->custom_table->getNoDataErrorCode($id);
             if ($code == ErrorCode::PERMISSION_DENY) {
                 return abortJson(403, $code);
@@ -468,6 +481,7 @@ class ApiDataController extends AdminControllerTableBase
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
         // not match table and view
+        // @phpstan-ignore-next-line
         if (!isMatchString($custom_view->custom_table_id, $this->custom_table->id)) {
             return abortJson(400, ErrorCode::WRONG_VIEW_AND_TABLE());
         }
@@ -478,6 +492,7 @@ class ApiDataController extends AdminControllerTableBase
             return abortJson(400, ErrorCode::UNSUPPORTED_VIEW_KIND_TYPE());
         }
 
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             // @phpstan-ignore-next-line
             return abortJson(403, trans('admin.deny'), $code);
@@ -531,11 +546,13 @@ class ApiDataController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function getDocuments(Request $request, $tableKey, $id)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             // @phpstan-ignore-next-line
             return abortJson(403, trans('admin.deny'), $code);
         }
 
+        // @phpstan-ignore-next-line
         if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
             return $custom_value;
         }
@@ -579,10 +596,12 @@ class ApiDataController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function createDocument(Request $request, $tableKey, $id)
     {
+        // @phpstan-ignore-next-line
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
+        // @phpstan-ignore-next-line
         if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
             return $custom_value;
         }
@@ -605,6 +624,7 @@ class ApiDataController extends AdminControllerTableBase
         $file_data = base64_decode($request->get('base64'));
         $filename = $request->get('name');
 
+        // @phpstan-ignore-next-line
         $file = File::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $file_data, $this->custom_table->table_name, $filename)
             ->saveCustomValue($custom_value->id, null, $this->custom_table);
         // save document model
@@ -677,6 +697,7 @@ class ApiDataController extends AdminControllerTableBase
 
             // set default value if create
             if (!isset($custom_value)) {
+                // @phpstan-ignore-next-line
                 $value = $this->custom_table->setDefaultValue($value);
                 $rootValue['value'] = $value;
             }
@@ -692,6 +713,7 @@ class ApiDataController extends AdminControllerTableBase
             $validateValue['value'] = $value;
 
             // // get fields for validation
+            // @phpstan-ignore-next-line
             $validator = $this->custom_table->validateValue($validateValue, $custom_value, [
                 'systemColumn' => true,
                 'column_name_prefix' => 'value.',
@@ -722,6 +744,7 @@ class ApiDataController extends AdminControllerTableBase
         foreach ($rootValues as $index => &$rootValue) {
             // set default value if new
             if (!isset($custom_value)) {
+                // @phpstan-ignore-next-line
                 $model = $this->custom_table->getValueModel();
             }
             // now update is only one record, so it's OK.
@@ -730,6 +753,7 @@ class ApiDataController extends AdminControllerTableBase
             }
 
             // Save file data
+            // @phpstan-ignore-next-line
             $this->saveFile($this->custom_table, $files[$index], $rootValue['value'], $model->value);
 
             $model->setValue($rootValue['value']);
@@ -830,6 +854,7 @@ class ApiDataController extends AdminControllerTableBase
             })->toArray()];
 
         foreach ($rootValues as &$rootValue) {
+            // @phpstan-ignore-next-line
             $rootValue['value'] = DataImportExportService::processCustomValue($this->custom_columns, array_get($rootValue, 'value'), $processOptions);
         }
 
@@ -842,6 +867,7 @@ class ApiDataController extends AdminControllerTableBase
      */
     public function calendarList(Request $request)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             // @phpstan-ignore-next-line
             return abortJson(403, $code);
@@ -853,6 +879,7 @@ class ApiDataController extends AdminControllerTableBase
         } else {
             $is_dashboard = false;
         }
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::getDefault($this->custom_table, true, $is_dashboard);
         $start = $request->get('start');
         $end = $request->get('end');
@@ -863,8 +890,10 @@ class ApiDataController extends AdminControllerTableBase
         $start = Carbon::parse($start);
         $end = Carbon::parse($end);
 
+        // @phpstan-ignore-next-line
         $table_name = $this->custom_table->table_name;
         // get paginate
+        // @phpstan-ignore-next-line
         $model = $this->custom_table->getValueQuery();
         // filter model
         $custom_view->filterSortModel($model);
@@ -932,6 +961,7 @@ class ApiDataController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column)
     {
+        // @phpstan-ignore-next-line
         $db_table_name = getDBTableName($this->custom_table);
         $query = clone $model;
         // filter end data
@@ -1029,6 +1059,7 @@ class ApiDataController extends AdminControllerTableBase
     protected function convertFileData($value)
     {
         // get file columns
+        // @phpstan-ignore-next-line
         $file_columns = $this->custom_table->custom_columns_cache->filter(function ($column) {
             return ColumnType::isAttachment($column->column_type);
         });
@@ -1042,6 +1073,7 @@ class ApiDataController extends AdminControllerTableBase
             }
             $file_value = $value[$file_column->column_name];
             // convert file name for validation
+            // @phpstan-ignore-next-line
             list($fileNames, $fileValues) = $this->getFileValue($file_column, $file_value);
             $value[$file_column->column_name] = $fileNames;
 

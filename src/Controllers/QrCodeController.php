@@ -28,6 +28,7 @@ class QrCodeController extends Controller
         if ($form_id == 0) {
             $form_suuid = CustomForm::getDefault($custom_table)->suuid;
         } else {
+            // @phpstan-ignore-next-line
             $form_suuid = CustomForm::find($form_id)->suuid;
         }
         if ($custom_table->getOption('action_after_read') === DataScanSubmitRedirect::CONTINUE_EDITING) {

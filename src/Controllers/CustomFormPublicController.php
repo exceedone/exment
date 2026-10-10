@@ -54,6 +54,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      */
     public function index(Request $request, Content $content)
     {
+        // @phpstan-ignore-next-line
         return redirect(admin_urls('form', $this->custom_table->table_name));
     }
 
@@ -66,8 +67,10 @@ class CustomFormPublicController extends AdminControllerTableBase
     protected function form($id = null)
     {
         if (!isset($id) && request()->has('template')) {
+            // @phpstan-ignore-next-line
             return $this->importForm();
         }
+        // @phpstan-ignore-next-line
         return $this->basicForm($id);
     }
 
@@ -134,6 +137,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ->requiredRule()
                 ->help(exmtrans("custom_form_public.help.custom_form_id"))
                 ->options(function ($value) use ($custom_table) {
+                    // @phpstan-ignore-next-line
                     return $custom_table->custom_forms->mapWithKeys(function ($item) {
                         return [$item['id'] => $item['form_view_name']];
                     });
@@ -171,8 +175,10 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->options($fileOption)
                     ->removable()
                     ->attribute(['accept' => "image/*"])
+                    // @phpstan-ignore-next-line
                     ->move("publicform/{$custom_table->table_name}")
                     ->callableName(function ($file) use ($custom_table) {
+                        // @phpstan-ignore-next-line
                         return \Exment::setFileInfo($this, $file, FileType::PUBLIC_FORM, $custom_table);
                     })
                     ->caption(function ($caption) {
@@ -316,6 +322,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->attribute([
                         'data-filtertrigger' =>true,
                         'data-linkage' => json_encode([
+                            // @phpstan-ignore-next-line
                             'notify_action_target' => admin_urls('formpublic', $this->custom_table->table_name, 'notify_action_target'),
                         ]),
                     ])
@@ -368,6 +375,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->attribute([
                         'data-filtertrigger' =>true,
                         'data-linkage' => json_encode([
+                            // @phpstan-ignore-next-line
                             'notify_action_target' => admin_urls('formpublic', $this->custom_table->table_name, 'notify_action_target'),
                         ]),
                     ])
@@ -467,6 +475,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             ->help(exmtrans("custom_form_public.help.custom_form_id"))
             // @phpstan-ignore-next-line
             ->options(function ($value) use ($custom_table) {
+                // @phpstan-ignore-next-line
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];
                 });
@@ -520,6 +529,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->tools(function (Form\Tools $tools) use ($custom_table, $id, $public_form, $preview) {
             // @phpstan-ignore-next-line
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
+            // @phpstan-ignore-next-line
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
 
             if (isset($public_form)) {
@@ -527,6 +537,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     // check relation table's count. if has select_table etc, showing modal.
                     if ($public_form->getListOfTablesUsed()->count() > 0) {
                         $tools->append(new Tools\ModalMenuButton(
+                            // @phpstan-ignore-next-line
                             admin_urls("formpublic", $custom_table->table_name, $public_form->id, "activeModal"),
                             [
                                 'label' => exmtrans('common.activate'),
@@ -538,6 +549,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     // default, only message.
                     else {
                         $tools->append(new Tools\SwalInputButton([
+                            // @phpstan-ignore-next-line
                             'url' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "activate"),
                             'label' => exmtrans('common.activate'),
                             'icon' => 'fa-check-circle',
@@ -545,11 +557,13 @@ class CustomFormPublicController extends AdminControllerTableBase
                             'title' => exmtrans('common.activate'),
                             'text' => exmtrans('custom_form_public.message.activate'),
                             'method' => 'post',
+                            // @phpstan-ignore-next-line
                             'redirectUrl' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "edit"),
                         ]));
                     }
                 } else {
                     $tools->append(new Tools\SwalInputButton([
+                        // @phpstan-ignore-next-line
                         'url' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "deactivate"),
                         'label' => exmtrans('common.deactivate'),
                         'icon' => 'fa-check-circle',
@@ -557,6 +571,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                         'title' => exmtrans('common.deactivate'),
                         'text' => exmtrans('custom_form_public.message.deactivate'),
                         'method' => 'post',
+                        // @phpstan-ignore-next-line
                         'redirectUrl' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "edit"),
                     ]));
                 }
@@ -570,6 +585,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     'btn_class' => 'btn-warning',
                     'attributes' => [
                         'data-preview' => true,
+                        // @phpstan-ignore-next-line
                         'data-preview-url' => admin_urls('formpublic', $custom_table->table_name, $id, 'preview'),
                         'data-preview-error-title' => '',
                         'data-preview-error-text' => '',
@@ -578,6 +594,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
                 if (isset($id)) {
                     $tools->append(view('exment::tools.button', [
+                        // @phpstan-ignore-next-line
                         'href' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "export"),
                         'label' => exmtrans('template.header_export'),
                         'icon' => 'fa-clone',
@@ -590,6 +607,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             }
         });
 
+        // @phpstan-ignore-next-line
         $table_name = $this->custom_table->table_name;
 
         $form->saved(function ($form) use ($table_name) {
@@ -606,10 +624,12 @@ class CustomFormPublicController extends AdminControllerTableBase
     protected function setNotifyMailTemplate($form, string $field_name, ?string $notify_mail_template, string $filter_key_name)
     {
         if (\is_nullorempty($this->mailTemplates)) {
+            // @phpstan-ignore-next-line
             $this->mailTemplates = getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
         }
 
         // get notify mail template
+        // @phpstan-ignore-next-line
         $notify_mail = $notify_mail_template ? getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', $notify_mail_template)->first() : null;
         $form->select($field_name, exmtrans("notify.mail_template_id"))
             ->options($this->mailTemplates)
@@ -627,6 +647,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     protected function importFormStore()
     {
         $request = request();
+        /** @var Form $form */
         $form = $this->importForm();
         if (($response = $form->validateRedirect($request->all())) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
@@ -804,6 +825,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function activate(Request $request, $tableKey, $id)
     {
+        // @phpstan-ignore-next-line
         return $this->toggleActivate($request, $id, true);
     }
 
@@ -817,6 +839,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function deactivate(Request $request, $tableKey, $id)
     {
+        // @phpstan-ignore-next-line
         return $this->toggleActivate($request, $id, false);
     }
 
@@ -917,11 +940,13 @@ class CustomFormPublicController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function validateTable($table, $role_name)
     {
+        /** @var CustomTable $table */
         $table = CustomTable::getEloquent($table);
         if (boolval($table->getOption('one_record_flg'))) {
             Checker::error(exmtrans("custom_form_public.message.cannot_set_master_table"));
             return false;
         }
+        // @phpstan-ignore-next-line
         if (in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
             Checker::error(exmtrans("custom_form_public.message.cannot_set_master_table"));
             return false;

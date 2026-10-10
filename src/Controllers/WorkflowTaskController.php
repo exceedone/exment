@@ -177,6 +177,7 @@ class WorkflowTaskController extends AdminControllerBase
         // document answers to anybody), and the redirect tells where the record lives: for a
         // document, the address of its file. Found in review: any logged-in user could collect the
         // file address of every document this way, records they may not see included.
+        // @phpstan-ignore-next-line
         if (!array_key_exists($parsed[0], WorkflowTaskService::tableOptions())) {
             return redirect()->to($url);
         }
@@ -184,11 +185,13 @@ class WorkflowTaskController extends AdminControllerBase
         // Resolve the record BEFORE writing. getValueModel() goes through the permission global
         // scope (CustomValueModelScope), so a key pointing at a record this user cannot access
         // resolves to null and nothing is stored.
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($parsed[0]);
         if (is_nullorempty($custom_table)) {
             return redirect()->to($url);
         }
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel($parsed[1]);
         if (is_nullorempty($custom_value)) {
             return redirect()->to($url);

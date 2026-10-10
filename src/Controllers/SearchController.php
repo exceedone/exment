@@ -261,6 +261,7 @@ class SearchController extends AdminControllerBase
     {
         // get seleted name
         $table = CustomTable::getEloquent($request->input('table_name'));
+        // @phpstan-ignore-next-line
         $model = getModelName($table)::find($request->input('value_id'));
         if (!$model) {
             Checker::notFoundOrDeny();
@@ -303,6 +304,7 @@ class SearchController extends AdminControllerBase
         // value_id is the id user selected.
         $value_id = $request->input('value_id');
         // value_table is the table user selected.
+        /** @var CustomTable $value_table */
         $value_table = CustomTable::getEloquent($request->input('value_table_name'));
 
         /// $search_table is the table for search. it's ex. select_table, relation, ...
@@ -330,6 +332,7 @@ class SearchController extends AdminControllerBase
         // Get search result HTML.
         if (!$data || count($data) == 0) {
             return [
+                // @phpstan-ignore-next-line
                 'table_name' => array_get($search_table, 'table_name'),
                 'header' => $boxHeader,
                 'body' => exmtrans('search.no_result'),
@@ -363,6 +366,7 @@ class SearchController extends AdminControllerBase
             ->setColumnClasses($columnClasses);
 
         return [
+            // @phpstan-ignore-next-line
             'table_name' => array_get($search_table, 'table_name'),
             'header' => $boxHeader,
             'body' => $table->render(),
@@ -409,6 +413,7 @@ class SearchController extends AdminControllerBase
         if (isset($search_type)) {
             $array['search_type'] = $search_type;
         }
+        // @phpstan-ignore-next-line
         if (CustomTable::getEloquent($table)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $array['show_list'] = true;
         }

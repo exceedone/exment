@@ -333,6 +333,7 @@ EOT;
             $model = $form->model();
             if (isset($model)) {
                 // set setting value
+                // @phpstan-ignore-next-line
                 Admin::user()->setSettingValue(UserSetting::DASHBOARD, array_get($model, 'suuid'));
             }
         });

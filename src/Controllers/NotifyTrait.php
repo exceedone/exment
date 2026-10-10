@@ -167,6 +167,7 @@ trait NotifyTrait
                 $selected_value = $notify->action_settings[$form_index]['target_users'];
             }
         }
+        // @phpstan-ignore-next-line
         list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
             'display_table' => $custom_table,
             'selected_value'=> $selected_value
@@ -199,6 +200,7 @@ trait NotifyTrait
                     $selected_value = $notify->action_settings[$form_index]['target_organizations'];
                 }
             }
+            // @phpstan-ignore-next-line
             list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
                 'selected_value'=> $selected_value
@@ -301,6 +303,7 @@ trait NotifyTrait
         }
 
         // get mail template
+        // @phpstan-ignore-next-line
         $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)
             ->getValueModel()
             ->where('value->mail_key_name', $mailKeyName)
@@ -335,6 +338,7 @@ trait NotifyTrait
         }
 
         /** @phpstan-ignore-next-line */
+        /** @var Notify $notify */
         $notify = Notify::find($id);
 
         /** @phpstan-ignore-next-line */

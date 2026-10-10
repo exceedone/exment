@@ -272,6 +272,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
             // $form->text('base_user.value.user_name', exmtrans('user.user_name'));
 
+            /** @var CustomTable $user_table */
             $user_table = CustomTable::getEloquent(SystemTableName::USER);
             foreach ($user_table->custom_columns as $custom_column) {
                 $editable_userinfo = $custom_column->getOption('editable_userinfo');

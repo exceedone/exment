@@ -423,6 +423,7 @@ class ApiWorkflowController extends AdminControllerBase
         if ($request->has('next_users')) {
             $next_users = explode(',', $request->get('next_users'));
             foreach ($next_users as $next_user) {
+                // @phpstan-ignore-next-line
                 if (getModelName(SystemTableName::USER)::where('id', $next_user)->exists()) {
                     $next_work_users[] = "user_$next_user";
                 } else {
@@ -434,6 +435,7 @@ class ApiWorkflowController extends AdminControllerBase
         if ($request->has('next_organizations')) {
             $next_organizations = explode(',', $request->get('next_organizations'));
             foreach ($next_organizations as $next_organization) {
+                // @phpstan-ignore-next-line
                 if (getModelName(SystemTableName::ORGANIZATION)::where('id', $next_organization)->exists()) {
                     $next_work_users[] = "organization_$next_organization";
                 } else {

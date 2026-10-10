@@ -904,6 +904,7 @@ class WorkflowController extends AdminControllerBase
     protected function appendWorkflowNotify($workflow)
     {
         // get mail template
+        // @phpstan-ignore-next-line
         $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::WORKFLOW_NOTIFY)
             ->first();
 
@@ -1083,6 +1084,7 @@ class WorkflowController extends AdminControllerBase
                         ->options($options);
 
                     ///// Select by userinfo
+                    // @phpstan-ignore-next-line
                     $options = CustomTable::getEloquent(SystemTableName::USER)->custom_columns()
                         ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
                         ->indexEnabled()
@@ -1331,6 +1333,7 @@ class WorkflowController extends AdminControllerBase
             $options['prependCallback']($form);
         }
 
+        // @phpstan-ignore-next-line
         list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
             'display_table' => $custom_table,
             'selected_value' => array_get($value, SystemTableName::USER),
@@ -1351,6 +1354,7 @@ class WorkflowController extends AdminControllerBase
         }
 
         if (System::organization_available()) {
+            // @phpstan-ignore-next-line
             list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
                 'selected_value' => array_get($value, SystemTableName::ORGANIZATION),

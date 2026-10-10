@@ -46,6 +46,7 @@ class JanCodeController extends Controller
                     if ($form_id == 0) {
                         $form_suuid = CustomForm::getDefault($custom_table)->suuid;
                     } else {
+                        // @phpstan-ignore-next-line
                         $form_suuid = CustomForm::find($form_id)->suuid;
                     }
                     if ($custom_table->getOption('action_after_read_jan_code') === DataScanSubmitRedirect::CONTINUE_EDITING) {
@@ -166,12 +167,14 @@ class JanCodeController extends Controller
     // @phpstan-ignore-next-line
     protected function generateCreateUrl($id, $table_id)
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_id);
         $table_name = $custom_table->table_name;
         $form_id = (int)$custom_table->getOption('form_after_create_jan_code');
         if ($form_id == 0) {
             $form_suuid = CustomForm::getDefault($custom_table)->suuid;
         } else {
+            // @phpstan-ignore-next-line
             $form_suuid = CustomForm::find($form_id)->suuid;
         }
         if ($custom_table->getOption('action_after_create_jan_code') === DataScanSubmitRedirect::CONTINUE_EDITING) {

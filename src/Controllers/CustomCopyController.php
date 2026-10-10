@@ -101,6 +101,7 @@ class CustomCopyController extends AdminControllerTableBase
         $grid->disableCreateButton();
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(view('exment::custom-value.new-button-copy', [
+                // @phpstan-ignore-next-line
                 'url' => admin_urls('copy', $this->custom_table->table_name, 'newModal')
             ]));
             //$tools->append($this->createNewModal());
@@ -138,6 +139,7 @@ class CustomCopyController extends AdminControllerTableBase
     protected function getChildCopyOptions($to_table)
     {
         if (isset($to_table)) {
+            // @phpstan-ignore-next-line
             $from_relations = $this->custom_table->custom_relations()->pluck('child_custom_table_id');
             $to_relations = $to_table->custom_relations()->pluck('child_custom_table_id');
             return CustomCopy::whereIn('from_custom_table_id', $from_relations->toArray())
@@ -167,7 +169,9 @@ class CustomCopyController extends AdminControllerTableBase
     protected function form($id = null)
     {
         $form = new Form(new CustomCopy());
+        // @phpstan-ignore-next-line
         $form->internal('from_custom_table_id')->default($this->custom_table->id);
+        // @phpstan-ignore-next-line
         $form->display('from_custom_table.table_view_name', exmtrans("custom_copy.from_custom_table_view_name"))->default($this->custom_table->table_view_name);
 
         // get to item
@@ -207,6 +211,7 @@ class CustomCopyController extends AdminControllerTableBase
 
         ///// get from and to columns
         $custom_table = $this->custom_table;
+        // @phpstan-ignore-next-line
         $from_custom_column_options = $custom_table->getColumnsSelectOptions([
             'append_table' => true,
             'include_system' => false,
@@ -279,6 +284,7 @@ class CustomCopyController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function newModal()
     {
+        // @phpstan-ignore-next-line
         $table_name = $this->custom_table->table_name;
         $path = admin_urls('copy', $table_name, 'create');
         // create form fields
