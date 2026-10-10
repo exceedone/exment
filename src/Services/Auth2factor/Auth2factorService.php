@@ -59,6 +59,7 @@ class Auth2factorService
      */
     public static function verifyCode($verify_type, $verify_code, $matchDelete = false)
     {
+        /** @var \Illuminate\Contracts\Auth\Authenticatable $loginuser */
         $loginuser = \Admin::user();
 
         // remove old datetime value
@@ -152,6 +153,7 @@ class Auth2factorService
     // @phpstan-ignore-next-line
     protected static function sendVerify($mail_template, $mail_prms = []): MailSender
     {
+        /** @var \Illuminate\Contracts\Auth\Authenticatable $loginuser */
         $loginuser = \Admin::user();
 
         // send mail
@@ -167,6 +169,7 @@ class Auth2factorService
     // @phpstan-ignore-next-line
     public static function deleteCode($verify_type, $verify_code)
     {
+        /** @var \Illuminate\Contracts\Auth\Authenticatable $loginuser */
         $loginuser = \Admin::user();
         \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->where('verify_code', $verify_code)

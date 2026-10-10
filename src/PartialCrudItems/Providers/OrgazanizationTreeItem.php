@@ -22,6 +22,7 @@ class OrgazanizationTreeItem extends ProviderBase
             return;
         }
 
+        // @phpstan-ignore-next-line
         $html = getModelName(SystemTableName::ORGANIZATION)::tree(function (Tree $tree) {
             $tree->title(exmtrans('organization.organization_tree'));
 

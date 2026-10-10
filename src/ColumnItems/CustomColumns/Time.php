@@ -107,10 +107,12 @@ class Time extends Date
     public function getAdminFilterWhereQuery($query, $input)
     {
         if (array_key_value_exists('start', $input)) {
+            /** @var ViewFilterBase $viewFilterItem */
             $viewFilterItem = ViewFilterBase::make(FilterOption::TIME_ON_OR_AFTER, $this);
             $viewFilterItem->setFilter($query, $input['start']);
         }
         if (array_key_value_exists('end', $input)) {
+            /** @var ViewFilterBase $viewFilterItem */
             $viewFilterItem = ViewFilterBase::make(FilterOption::TIME_ON_OR_BEFORE, $this);
             $viewFilterItem->setFilter($query, $input['end']);
         }

@@ -114,6 +114,7 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
         } else {
             $role_group_user_org_type = array_get($data, 'role_group_user_org_type');
             $role_group_target_id = array_get($data, 'role_group_target_id');
+            // @phpstan-ignore-next-line
             if (!CustomTable::getEloquent($role_group_user_org_type)->getValueModel()->withoutGlobalScopes()->where('id', $role_group_target_id)->exists()) {
                 $message = exmtrans('custom_value.import.message.user_org_not_exists', exmtrans("$role_group_user_org_type.default_table_name"));
                 $errors[] = sprintf(exmtrans('custom_value.import.import_error_format_sheet'), $this->name(), ($line_no+1), $message);

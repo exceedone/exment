@@ -96,6 +96,7 @@ class RoleGroup extends ModelBase
                         $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
                         foreach ((array)$organization_ids as $organization_id) {
                             // ge check contains parent and child organizaions.
+                            // @phpstan-ignore-next-line
                             $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
 
 

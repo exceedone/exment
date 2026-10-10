@@ -134,6 +134,7 @@ class DefaultTableProvider extends ProviderBase
             }
 
             if ($records->count() > 0) {
+                // @phpstan-ignore-next-line
                 return getModelName($this->name())::whereIn('parent_id', $records->pluck('id'))
                     ->where('parent_type', $this->parent_table)
                     ->get();
@@ -301,11 +302,13 @@ class DefaultTableProvider extends ProviderBase
             return $value;
         }
 
+        /** @var CustomTable $parent_table */
         $parent_table = CustomTable::getEloquent($parent_table);
         if (is_nullorempty($parent_table)) {
             return $value;
         }
 
+        /** @var \Exceedone\Exment\Model\CustomValue $parent_custom_value */
         $parent_custom_value = $parent_table->getValueModel($value);
         if (is_nullorempty($parent_custom_value)) {
             return $value;

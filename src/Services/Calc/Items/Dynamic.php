@@ -26,12 +26,14 @@ class Dynamic extends ItemBase
     // @phpstan-ignore-next-line
     public function text()
     {
+        // @phpstan-ignore-next-line
         return array_get($this->custom_column, 'column_view_name');
     }
 
     // @phpstan-ignore-next-line
     public function val()
     {
+        // @phpstan-ignore-next-line
         return '${value:' . array_get($this->custom_column, 'column_name') . '}';
     }
 
@@ -60,6 +62,7 @@ class Dynamic extends ItemBase
         $trigger_block = (!$this->custom_form_block || $this->custom_form_block->form_block_type == FormBlockType::DEFAULT) ? 'default' : $this->getRelationName();
         return [
             'trigger_block' => $trigger_block,
+            // @phpstan-ignore-next-line
             'trigger_column' => array_get($this->custom_column, 'column_name'),
         ];
     }

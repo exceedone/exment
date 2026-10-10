@@ -199,6 +199,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
 
         // get form_block_type
         if (!isset($json['form_block_type'])) {
+            /** @var CustomTable $target_table */
             $target_table = CustomTable::getEloquent($json['form_block_target_table_name']);
             $self = $target_table->id == $custom_table->id;
             if ($self) {

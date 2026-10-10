@@ -50,12 +50,14 @@ class WorkflowClearCommand extends Command
             return;
         }
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
         if (is_nullorempty($custom_table)) {
             $this->error('table is not found.');
             return;
         }
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel($id);
         if (is_nullorempty($custom_value)) {
             $this->error('id ' . $id . ' is not found.');

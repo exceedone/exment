@@ -63,6 +63,7 @@ class PluginValidatorBase
     public function __construct(PluginModel $plugin, ?CustomTable $custom_table, $original_value, array $options = [])
     {
         $this->plugin = $plugin;
+        // @phpstan-ignore-next-line
         $this->custom_table = $custom_table;
         $this->input_value = array_get($options, 'input_value');
         $this->called_type = array_get($options, 'called_type');
@@ -70,6 +71,7 @@ class PluginValidatorBase
         if ($original_value instanceof CustomValue) {
             $this->original_value = $original_value;
         } elseif (!is_nullorempty($original_value) && !is_nullorempty($custom_table)) {
+            // @phpstan-ignore-next-line
             $this->original_value = $custom_table->getValueModel($original_value);
         }
     }

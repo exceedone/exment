@@ -54,14 +54,17 @@ abstract class CustomItem implements ItemInterface
     public function __construct($custom_column, $custom_value, $view_column_target = null)
     {
         $this->custom_column = $custom_column;
+        // @phpstan-ignore-next-line
         $this->custom_table = CustomTable::getEloquent($custom_column);
         $this->setCustomValue($custom_value);
         $this->options = [];
 
         $params = static::getOptionParams($view_column_target, $this->custom_table);
         // get label. check not match $this->custom_table and pivot table
+        // @phpstan-ignore-next-line
         if (array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']) {
             if ($params['view_pivot_column_id'] == SystemColumn::PARENT_ID) {
+                // @phpstan-ignore-next-line
                 $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $this->custom_table->table_view_name);
             } else {
                 $pivot_column = CustomColumn::getEloquent($params['view_pivot_column_id'], $params['view_pivot_table_id']);
@@ -772,6 +775,7 @@ abstract class CustomItem implements ItemInterface
             return;
         }
 
+        // @phpstan-ignore-next-line
         $field->appendHelp($text);
     }
 

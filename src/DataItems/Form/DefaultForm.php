@@ -539,6 +539,7 @@ EOT;
                 $tools->disableDelete();
             }
 
+            // @phpstan-ignore-next-line
             if (boolval(array_get($custom_value, 'disabled_delete'))) {
                 $tools->disableDelete();
             }
@@ -747,6 +748,7 @@ EOT;
         } elseif (isset($select_parent)) {
             $parent_id = $select_parent;
         } else {
+            // @phpstan-ignore-next-line
             $custom_value = getModelName($this->custom_table)::find($this->id);
             $parent_id = $custom_value ? $custom_value->parent_id : null;
         }

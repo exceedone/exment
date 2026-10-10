@@ -604,6 +604,7 @@ class SearchService
         // if not match this table and order table, setJoin relation table.
         if (!isMatchString($order_table_id, $this->custom_table->id)) {
             // get RelationTable info.
+            // @phpstan-ignore-next-line
             $relationTable = $this->getRelationTable($orderCustomTable, $asSummary, $column);
 
             if (!$relationTable) {
@@ -613,6 +614,7 @@ class SearchService
             }
             // set relation query using relation type class.
             else {
+                // @phpstan-ignore-next-line
                 $this->setJoin($relationTable, $orderCustomTable);
 
                 // set database unique name

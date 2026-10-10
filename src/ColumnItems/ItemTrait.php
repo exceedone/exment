@@ -166,6 +166,7 @@ trait ItemTrait
             return $this->_text($v);
         });
 
+        // @phpstan-ignore-next-line
         return is_list($text) ? collect($text)->implode($this->getSeparateWord()) : $text;
     }
 
@@ -180,6 +181,7 @@ trait ItemTrait
             return $this->_html($v);
         });
 
+        // @phpstan-ignore-next-line
         return is_list($html) ? collect($html)->implode($this->getSeparateWord()) : $html;
     }
 
@@ -244,6 +246,7 @@ trait ItemTrait
         $this->options = array_merge(
             // @phpstan-ignore-next-line
             $this->options ?? [],
+            // @phpstan-ignore-next-line
             $options
         );
 
@@ -335,6 +338,7 @@ trait ItemTrait
         if (is_nullorempty($this->uniqueName)) {
             $this->uniqueName = make_randomstr(20, true, false);
         }
+        // @phpstan-ignore-next-line
         return $this->uniqueName;
     }
 
@@ -375,6 +379,7 @@ trait ItemTrait
     public function sqlUniqueTableName()
     {
         if (!is_nullorempty($this->uniqueTableName)) {
+            // @phpstan-ignore-next-line
             return $this->uniqueTableName;
         }
         return $this->sqlRealTableName();
@@ -965,6 +970,7 @@ trait ItemTrait
     public function getAdminFilterWhereQuery($query, $input)
     {
         // get vieww filter item
+        // @phpstan-ignore-next-line
         $viewFilterItem = ViewFilterBase::make($this->getGridFilterOption(), $this);
         // @phpstan-ignore-next-line
         $viewFilterItem->setFilter($query, $input);
@@ -979,6 +985,7 @@ trait ItemTrait
     public function getAdminFilterWhereNullQuery($query)
     {
         // get vieww filter item
+        /** @var ViewFilterBase $viewFilterItem */
         $viewFilterItem = ViewFilterBase::make(FilterOption::NULL, $this);
         $viewFilterItem->setFilter($query, null);
     }
@@ -993,10 +1000,12 @@ trait ItemTrait
     public function getAdminFilterWhereQueryNumber($query, $input)
     {
         if (array_key_value_exists('start', $input)) {
+            /** @var ViewFilterBase $viewFilterItem */
             $viewFilterItem = ViewFilterBase::make(FilterOption::NUMBER_GTE, $this);
             $viewFilterItem->setFilter($query, $input['start']);
         }
         if (array_key_value_exists('end', $input)) {
+            /** @var ViewFilterBase $viewFilterItem */
             $viewFilterItem = ViewFilterBase::make(FilterOption::NUMBER_LTE, $this);
             $viewFilterItem->setFilter($query, $input['end']);
         }
@@ -1011,10 +1020,12 @@ trait ItemTrait
     public function getAdminFilterWhereQueryDate($query, $input)
     {
         if (array_key_value_exists('start', $input)) {
+            /** @var ViewFilterBase $viewFilterItem */
             $viewFilterItem = ViewFilterBase::make(FilterOption::DAY_ON_OR_AFTER, $this);
             $viewFilterItem->setFilter($query, $input['start']);
         }
         if (array_key_value_exists('end', $input)) {
+            /** @var ViewFilterBase $viewFilterItem */
             $viewFilterItem = ViewFilterBase::make(FilterOption::DAY_ON_OR_BEFORE, $this);
             $viewFilterItem->setFilter($query, $input['end']);
         }

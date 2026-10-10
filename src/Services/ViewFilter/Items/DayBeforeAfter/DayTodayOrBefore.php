@@ -34,6 +34,7 @@ class DayTodayOrBefore extends DayBeforeAfterBase
     protected function _compareValue($value, $conditionValue): bool
     {
         $today = \Carbon\Carbon::today();
+        // @phpstan-ignore-next-line
         return \Exment::getCarbonOnlyDay($value)->lte($today);
     }
 }

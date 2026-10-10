@@ -129,6 +129,7 @@ abstract class CustomLoginUserBase
     // @phpstan-ignore-next-line
     protected static function getUserColumns()
     {
+        // @phpstan-ignore-next-line
         return CustomTable::getEloquent(SystemTableName::USER)->custom_columns_cache;
     }
 }

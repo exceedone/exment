@@ -366,6 +366,7 @@ class SystemItem implements ItemInterface
                 $field = new MultipleSelect($this->name(), [$this->label()]);
                 $field->options(function ($value) {
                     // get DB option value
+                    // @phpstan-ignore-next-line
                     return CustomTable::getEloquent(SystemTableName::USER)
                         ->getSelectOptions(
                             [
@@ -510,6 +511,7 @@ class SystemItem implements ItemInterface
         if (array_get($option, 'type') == 'datetime') {
             $filter->date();
         } elseif (array_get($option, 'type') == 'user') {
+            /** @var CustomTable $target_table */
             $target_table = CustomTable::getEloquent(SystemTableName::USER);
             $selectOption = [
                 'display_table' => $target_table

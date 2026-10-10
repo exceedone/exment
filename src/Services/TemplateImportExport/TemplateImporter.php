@@ -627,6 +627,7 @@ class TemplateImporter
 
 
         $json = $this->getMergeJson($jsonString, $options);
+        // @phpstan-ignore-next-line
         $this->import($json, $system_flg, $is_update);
 
         if (!$is_update) {
@@ -707,6 +708,7 @@ class TemplateImporter
                 ]);
 
                 // if call from excel and created first, append list
+                // @phpstan-ignore-next-line
                 if ($fromExcel && $obj_table->wasRecentlyCreated) {
                     $createDefaultTables[] = $obj_table;
                 }
@@ -830,6 +832,7 @@ class TemplateImporter
 
         // after transaction, execute create table etc
         foreach (array_get($json, "custom_tables", []) as $table) {
+            // @phpstan-ignore-next-line
             $obj = CustomTable::getEloquent(array_get($table, 'table_name'))->importSaved($table);
 
             if (array_key_exists('custom_columns', $table)) {

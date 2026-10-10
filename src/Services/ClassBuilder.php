@@ -241,6 +241,7 @@ class ClassBuilder
     // @phpstan-ignore-next-line
     public static function createCustomValue($namespace, $className, $fillpath, $table, $obj)
     {
+        /** @var CustomTable $table */
         $table = CustomTable::getEloquent($table);
 
         $builder = static::startBuild($className)

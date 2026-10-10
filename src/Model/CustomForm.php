@@ -194,6 +194,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     public static function getDefault($tableObj)
     {
         $user = Admin::user();
+        /** @var CustomTable $tableObj */
         $tableObj = CustomTable::getEloquent($tableObj);
 
         // get default form.
@@ -244,6 +245,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
             // loop for index_enabled columns, and add form.
             foreach ($tableObj->custom_columns_cache as $index => $custom_column) {
                 $form_column = new CustomFormColumn();
+                // @phpstan-ignore-next-line
                 $form_column->custom_form_block_id = $form_block->id;
                 $form_column->form_column_type = FormColumnType::COLUMN;
                 $form_column->form_column_target_id = array_get($custom_column, 'id');
@@ -253,6 +255,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $form_column->width = 2;
                 $form_columns[] = $form_column;
             }
+            // @phpstan-ignore-next-line
             $form_block->custom_form_columns()->saveMany($form_columns);
 
             // re-get form

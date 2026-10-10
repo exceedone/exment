@@ -69,6 +69,7 @@ class ScheduleCommand extends Command
         // set date as minute and second is 0
         $nowHour = Carbon::create($now->year, $now->month, $now->day, $now->hour, 0, 0);
 
+        /** @var Carbon $last_executed */
         $last_executed = System::backup_automatic_executed();
         if (!is_nullorempty($last_executed)) {
             $term = System::backup_automatic_term();

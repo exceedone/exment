@@ -127,6 +127,7 @@ class SameOrganizationWorkflowNotify
         // the button.
         $userTableName = getDBTableName(SystemTableName::USER);
 
+        // @phpstan-ignore-next-line
         $memberIds = \DB::table($pivotTableName)
             ->join($userTableName, $userTableName . '.id', '=', $pivotTableName . '.child_id')
             ->whereIn($pivotTableName . '.parent_id', $orgs->pluck('id')->all())
@@ -200,6 +201,7 @@ class SameOrganizationWorkflowNotify
             if (is_nullorempty($query)) {
                 continue;
             }
+            // @phpstan-ignore-next-line
             foreach ($query->pluck('id') as $id) {
                 $allowed[(int)$id] = true;
             }

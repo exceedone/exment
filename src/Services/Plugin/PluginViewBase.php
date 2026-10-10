@@ -48,7 +48,9 @@ abstract class PluginViewBase extends PluginPublicBase
     public function __construct(Plugin $plugin, ?CustomTable $custom_table, ?CustomView $custom_view)
     {
         $this->plugin = $plugin;
+        // @phpstan-ignore-next-line
         $this->custom_table = $custom_table;
+        // @phpstan-ignore-next-line
         $this->custom_view = $custom_view;
     }
 

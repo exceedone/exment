@@ -69,6 +69,7 @@ class Xlsx extends PhpSpreadSheet
 
         // get data count
         foreach ($spreadsheet->getSheetNames() as $sheetName) {
+            /** @var \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet */
             $sheet = $spreadsheet->getSheetByName($sheetName);
             $count += intval($sheet->getHighestRow());
         }

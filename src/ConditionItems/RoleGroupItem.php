@@ -43,6 +43,7 @@ class RoleGroupItem extends ConditionDetailBase implements ConditionItemInterfac
      */
     public function getText($key, $value, $showFilter = true)
     {
+        /** @var RoleGroup $model */
         $model = RoleGroup::find($value);
         // @phpstan-ignore-next-line
         if ($model instanceof Collection) {

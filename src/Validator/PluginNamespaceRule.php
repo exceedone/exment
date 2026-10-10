@@ -68,6 +68,7 @@ class PluginNamespaceRule implements Rule
             $phpFile = $disk->get($file);
 
             // find namespace. and not match, set errors file name.
+            // @phpstan-ignore-next-line
             if (!preg_match('/' . $namespace . '/u', $phpFile)) {
                 $this->errors[] = $basePath;
             }

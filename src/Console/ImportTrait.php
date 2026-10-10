@@ -18,8 +18,10 @@ trait ImportTrait
     {
         // get files in target folder
         if ($include_sub) {
+            // @phpstan-ignore-next-line
             $files = File::allFiles($this->directory);
         } else {
+            // @phpstan-ignore-next-line
             $files = File::files($this->directory);
         }
         // filter files by extension

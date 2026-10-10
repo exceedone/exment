@@ -33,6 +33,7 @@ class UserBelongOrganizationItem extends ProviderBase
             return;
         }
 
+        // @phpstan-ignore-next-line
         if (!CustomTable::getEloquent(SystemTableName::ORGANIZATION)->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return;
         }
@@ -96,6 +97,7 @@ class UserBelongOrganizationItem extends ProviderBase
     // @phpstan-ignore-next-line
     protected function setOptions()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
         if (config('exment.sort_org_by_default_view', false)) {
             $custom_view = CustomView::getDefault($custom_table);

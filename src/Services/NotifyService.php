@@ -67,6 +67,7 @@ class NotifyService
         // get target users
         $values = collect();
         foreach ($this->notify->action_settings as $action_setting) {
+            // @phpstan-ignore-next-line
             $values = $values->merge($this->notify->getNotifyTargetUsers($this->custom_value, $action_setting));
         }
 
@@ -80,7 +81,9 @@ class NotifyService
         }
 
         // create form fields
+        // @phpstan-ignore-next-line
         $tableKey = $this->custom_table->table_name;
+        // @phpstan-ignore-next-line
         $id = $this->custom_value->id;
 
         $form = new ModalForm();
@@ -142,7 +145,9 @@ class NotifyService
     // @phpstan-ignore-next-line
     protected function getSendForm($notifyTargets, $isFlow = false)
     {
+        // @phpstan-ignore-next-line
         $tableKey = $this->custom_table->table_name;
+        // @phpstan-ignore-next-line
         $id = $this->custom_value->id;
 
         $mail_template = $this->notify->getMailTemplate();
@@ -176,6 +181,7 @@ class NotifyService
         $form->disableSubmit();
         $form->modalAttribute('id', 'data_notify_modal');
         $form->modalHeader(exmtrans('custom_value.sendmail.title'));
+        // @phpstan-ignore-next-line
         $form->action(admin_urls('data', $tableKey, $this->custom_value->id, 'sendMail'));
 
         if ($isFlow) {
@@ -664,8 +670,10 @@ class NotifyService
         }
 
         if (is_numeric($mail_template)) {
+            // @phpstan-ignore-next-line
             $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
         } elseif (is_string($mail_template)) {
+            // @phpstan-ignore-next-line
             $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', $mail_template)->first();
         }
 

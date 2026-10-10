@@ -85,6 +85,7 @@ trait CustomViewColumnTrait
      */
     public function getViewColumnTargetAttribute()
     {
+        // @phpstan-ignore-next-line
         return $this->getViewColumnTarget();
     }
 
@@ -439,6 +440,7 @@ trait CustomViewColumnTrait
             ];
         }
 
+        // @phpstan-ignore-next-line
         $table_name = CustomTable::getEloquent($this->view_pivot_table_id)->table_name;
 
         if ($this->view_pivot_column_id == 'parent_id') {

@@ -126,6 +126,7 @@ trait ConnectionTrait
 
                 /** @phpstan-ignore-next-line Using nullsafe method call on non-nullable type Illuminate\Database\DatabaseTransactionsManager. Use -> instead. */
                 $this->transactionsManager?->commit(
+                    // @phpstan-ignore-next-line
                     $this->getName(),
                     $levelBeingCommitted,
                     $this->transactions

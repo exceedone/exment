@@ -164,7 +164,9 @@ class SetupDirCommand extends AdminInstallCommand
         if (\File::isDirectory($path)) {
             $dirs = \Exment::allDirectories($path);
             foreach ($dirs as $dir) {
+                // @phpstan-ignore-next-line
                 chown($dir, $user);
+                // @phpstan-ignore-next-line
                 chgrp($dir, $group);
                 if ($isMod) {
                     chmod($dir, 02775);
@@ -176,14 +178,18 @@ class SetupDirCommand extends AdminInstallCommand
 
             $files = \File::allFiles($path, true);
             foreach ($files as $file) {
+                // @phpstan-ignore-next-line
                 chown($file, $user);
+                // @phpstan-ignore-next-line
                 chgrp($file, $group);
                 if ($isMod) {
                     chmod($file, 0664);
                 }
             }
         } elseif (\File::exists($path)) {
+            // @phpstan-ignore-next-line
             chown($path, $user);
+            // @phpstan-ignore-next-line
             chgrp($path, $group);
             if ($isMod) {
                 chmod($path, 0664);

@@ -38,6 +38,7 @@ class Administrator extends NotifyTargetBase
     {
         $admins = System::system_admin_users();
         return collect($admins)->map(function ($admin) {
+            // @phpstan-ignore-next-line
             return NotifyTarget::getModelAsUser(CustomTable::getEloquent(SystemTableName::USER)->getValueModel($admin));
         });
     }

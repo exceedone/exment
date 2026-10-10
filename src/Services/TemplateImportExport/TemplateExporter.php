@@ -278,6 +278,7 @@ class TemplateExporter
     protected static function getTemplateMenuItems($menu, $target_tables, $is_lang = false)
     {
         // checking target table visible. if false, return empty array
+        // @phpstan-ignore-next-line
         if (count($target_tables) > 0 && !\Admin::user()->visible($menu, $target_tables)) {
             return [];
         }

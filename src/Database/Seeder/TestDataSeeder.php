@@ -108,6 +108,7 @@ class TestDataSeeder extends Seeder
     {
         // First, create "boss" column.
         CustomColumn::create([
+            // @phpstan-ignore-next-line
             'custom_table_id' => CustomTable::getEloquent(SystemTableName::USER)->id,
             'column_name' => 'boss',
             'column_view_name' => 'Boss',
@@ -118,7 +119,9 @@ class TestDataSeeder extends Seeder
         ]);
 
         \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            // @phpstan-ignore-next-line
             'user' => ltrim(getModelName('user', true), "\\"),
+            // @phpstan-ignore-next-line
             'organization' => ltrim(getModelName('organization', true), "\\"),
         ]);
 
@@ -146,6 +149,7 @@ class TestDataSeeder extends Seeder
             }
 
             foreach ($typevalue as $user_key => &$user) {
+                /** @var \Exceedone\Exment\Model\CustomValue $model */
                 $model = $custom_table->getValueModel();
                 foreach ($user['value'] as $key => $value) {
                     $model->setValue($key, $value);
@@ -173,6 +177,7 @@ class TestDataSeeder extends Seeder
                         return ['parent_id' => $model->id, 'child_id' => $item];
                     })->toArray();
 
+                    // @phpstan-ignore-next-line
                     \DB::table($relationName)->insert($inserts);
                 }
 
@@ -301,6 +306,7 @@ class TestDataSeeder extends Seeder
                     $relationName = CustomRelation::getRelationNamebyTables($parent_table, $custom_table);
 
                     $parent_custom_value_ids->each(function ($parent_custom_value_id) use ($relationName, $custom_value) {
+                        // @phpstan-ignore-next-line
                         \DB::table($relationName)->insert([
                             'parent_id' => $parent_custom_value_id,
                             'child_id' => $custom_value->id,
@@ -328,12 +334,16 @@ class TestDataSeeder extends Seeder
                     $columns = [
                         ['column_name' => 'child', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id]],
                         ['column_name' => 'parent', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $parent_table->id]],
+                        // @phpstan-ignore-next-line
                         ['column_name' => 'child_view', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id, 'select_target_view' => $child_table_view->id]],
                         ['column_name' => 'child_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id, 'select_load_ajax' => 1]],
+                        // @phpstan-ignore-next-line
                         ['column_name' => 'child_ajax_view', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id, 'select_target_view' => $child_table_view->id, 'select_load_ajax' => 1]],
                         ['column_name' => 'child_relation_filter', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id]],
+                        // @phpstan-ignore-next-line
                         ['column_name' => 'child_relation_filter_view', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id, 'select_target_view' => $child_table_view->id]],
                         ['column_name' => 'child_relation_filter_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id]],
+                        // @phpstan-ignore-next-line
                         ['column_name' => 'child_relation_filter_ajax_view', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id, 'select_target_view' => $child_table_view->id]],
                         ['column_name' => 'parent_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'multiple_enabled' => '1', 'select_target_table' => $parent_table->id]],
                         ['column_name' => 'child_relation_filter_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
@@ -413,6 +423,7 @@ class TestDataSeeder extends Seeder
 
         // cerate pivot table for user org  ----------------------------------------------------
         // get user table's view
+        // @phpstan-ignore-next-line
         $user_table_view = CustomTable::getEloquent(SystemTableName::USER)->custom_views->first(function ($view) {
             return $view->view_kind_type == ViewKindType::FILTER;
         });
@@ -425,12 +436,16 @@ class TestDataSeeder extends Seeder
                 $columns = [
                     ['column_name' => 'user', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
                     ['column_name' => 'organization', 'column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1']],
+                    // @phpstan-ignore-next-line
                     ['column_name' => 'user_view', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'select_target_view' => $user_table_view->id]],
                     ['column_name' => 'user_ajax', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'select_load_ajax' => 1]],
+                    // @phpstan-ignore-next-line
                     ['column_name' => 'user_ajax_view', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'select_target_view' => $user_table_view->id, 'select_load_ajax' => 1]],
                     ['column_name' => 'user_relation_filter', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
+                    // @phpstan-ignore-next-line
                     ['column_name' => 'user_relation_filter_view', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'select_target_view' => $user_table_view->id]],
                     ['column_name' => 'user_relation_filter_ajax', 'column_type' => ColumnType::USER, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1']],
+                    // @phpstan-ignore-next-line
                     ['column_name' => 'user_relation_filter_ajax_view', 'column_type' => ColumnType::USER, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'select_target_view' => $user_table_view->id]],
                     ['column_name' => 'organization_multi', 'column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1']],
                     ['column_name' => 'user_relation_filter_multi', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1']],
@@ -475,6 +490,7 @@ class TestDataSeeder extends Seeder
      */
     protected function createAllColumnsTable($menu, $users)
     {
+        /** @var CustomTable $custom_table_view_all */
         $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
         $custom_table_edit = CustomTable::getEloquent('custom_value_edit');
         // cerate table
@@ -529,7 +545,9 @@ class TestDataSeeder extends Seeder
      */
     protected function createAllColumnsTableForTest($menu, $users)
     {
+        /** @var CustomTable $custom_table_view_all */
         $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
+        /** @var CustomTable $custom_table_edit */
         $custom_table_edit = CustomTable::getEloquent('custom_value_edit');
         // create table
         $custom_table = $this->createTable(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, [
@@ -845,6 +863,7 @@ class TestDataSeeder extends Seeder
     protected function createTables($users, $menu)
     {
         // create user view ----------------------------------------------------
+        /** @var CustomTable $custom_table_user */
         $custom_table_user = CustomTable::getEloquent(SystemTableName::USER);
         $custom_view = $this->createCustomView($custom_table_user, ViewType::SYSTEM, ViewKindType::DEFAULT, $custom_table_user->table_name . '-view-dev', []);
         $order = 1;
@@ -961,6 +980,7 @@ class TestDataSeeder extends Seeder
 
         System::clearRequestSession();
         \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            // @phpstan-ignore-next-line
             $keyName => ltrim(getModelName($custom_table, true), "\\")
         ]);
 
@@ -1146,8 +1166,10 @@ class TestDataSeeder extends Seeder
      */
     protected function createMailTemplate()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
 
+        // @phpstan-ignore-next-line
         $custom_table->getValueModel()->setValue([
             'mail_key_name' => 'test_template_1',
             'mail_view_name' => 'test_template_1',
@@ -1156,6 +1178,7 @@ class TestDataSeeder extends Seeder
             'mail_body' => 'test_mail_1',
         ])->save();
 
+        // @phpstan-ignore-next-line
         $custom_table->getValueModel()->setValue([
             'mail_key_name' => 'test_template_2',
             'mail_view_name' => 'test_template_2',

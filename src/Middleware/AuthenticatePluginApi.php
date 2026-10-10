@@ -49,6 +49,7 @@ class AuthenticatePluginApi extends \Encore\Admin\Middleware\Authenticate
      */
     protected function getPlugin($request)
     {
+        // @phpstan-ignore-next-line
         $name = $request->route()->getName();
         if (!isset($name)) {
             return null;

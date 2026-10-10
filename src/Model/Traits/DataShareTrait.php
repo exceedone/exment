@@ -39,6 +39,7 @@ trait DataShareTrait
                     return str_replace("{$key}_", "", $s);
                 })->toArray();
             }
+            // @phpstan-ignore-next-line
             list($optionItem, $ajaxItem) = CustomTable::getEloquent($key)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
                 'selected_value' => $selected_value,

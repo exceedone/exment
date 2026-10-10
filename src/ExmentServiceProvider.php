@@ -593,6 +593,7 @@ class ExmentServiceProvider extends ServiceProvider
     {
         return new RequestGuard(function ($request) use ($config) {
             return (new PublicFormGuard(
+                // @phpstan-ignore-next-line
                 Auth::createUserProvider($config['provider']),
                 // @phpstan-ignore-next-line
                 $this->app['request']

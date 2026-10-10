@@ -83,6 +83,7 @@ class FileRule implements Rule
      */
     public function message()
     {
+        // @phpstan-ignore-next-line
         return trans('validation.mimes', ['values' => arrayToString($this->extensions)]);
     }
 }

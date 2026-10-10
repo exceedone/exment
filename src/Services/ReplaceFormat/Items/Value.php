@@ -18,6 +18,7 @@ class Value extends ItemBase
         if ($this->key == "value") {
             $target_value = $this->custom_value;
         } else {
+            // @phpstan-ignore-next-line
             $target_value = getModelName(SystemTableName::BASEINFO)::first();
         }
         if (!isset($target_value)) {

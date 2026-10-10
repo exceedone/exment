@@ -57,6 +57,7 @@ class MailSender extends SenderBase
         $this->setUsePassword(boolval(config('exment.archive_attachment', false)));
 
         // get mail template
+        /** @var CustomValue $mail_template */
         $mail_template = $this->getMailTemplateFromKey($mail_template);
         if (!is_nullorempty($mail_template)) {
             $this->mailHistory->setMailTemplate($mail_template);
@@ -256,6 +257,7 @@ class MailSender extends SenderBase
      */
     public function getTo()
     {
+        // @phpstan-ignore-next-line
         return arrayToString($this->mailInfo->getTo());
     }
 
@@ -293,6 +295,7 @@ class MailSender extends SenderBase
 
         // set header as password
         if ($this->getUsePassword()) {
+            // @phpstan-ignore-next-line
             $password_notify_header = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', 'password_notify_header')->first();
             if (isset($password_notify_header)) {
                 list($headerBody, $headerBodyType) = $this->getBodyAndBodyType(array_get($password_notify_header->value, 'mail_body'));
@@ -323,6 +326,7 @@ class MailSender extends SenderBase
         }
 
         // get password notify mail template
+        // @phpstan-ignore-next-line
         $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', 'password_notify')->first();
         $subject = array_get($mail_template->value, 'mail_subject');
         $body = array_get($mail_template->value, 'mail_body');
@@ -394,8 +398,10 @@ class MailSender extends SenderBase
 
         $result = null;
         if (is_numeric($mail_template)) {
+            // @phpstan-ignore-next-line
             $result = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
         } else {
+            // @phpstan-ignore-next-line
             $result = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', $mail_template)->first();
         }
         // if not found, return exception

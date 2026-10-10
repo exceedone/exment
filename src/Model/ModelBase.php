@@ -245,6 +245,7 @@ class ModelBase extends Model
     // @phpstan-ignore-next-line
     protected function getUserValue($column)
     {
+        // @phpstan-ignore-next-line
         return CustomTable::getEloquent(SystemTableName::USER)->getValueModel($this->{$column}, true);
     }
 

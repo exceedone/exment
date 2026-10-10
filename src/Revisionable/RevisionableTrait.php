@@ -163,14 +163,17 @@ trait RevisionableTrait
             // the below is ugly, for sure, but it's required so we can save the standard model
             // then use the keep / dontkeep values for later, in the isRevisionable method
             $this->dontKeep = isset($this->dontKeepRevisionOf) ?
+                // @phpstan-ignore-next-line
                 array_merge($this->dontKeepRevisionOf, $this->dontKeep)
                 : $this->dontKeep;
 
             $this->doKeep = isset($this->keepRevisionOf) ?
+                // @phpstan-ignore-next-line
                 array_merge($this->keepRevisionOf, $this->doKeep)
                 : $this->doKeep;
 
             $this->doKeepTrigger = isset($this->keepRevisionOfTrigger) ?
+                // @phpstan-ignore-next-line
                 array_merge($this->keepRevisionOfTrigger, $this->doKeepTrigger)
                 : $this->doKeepTrigger;
 
@@ -300,6 +303,7 @@ trait RevisionableTrait
                 $this->saveData($revisions);
                 \Event::dispatch('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
             } elseif ($this->isRevisionableTrigger($this->getDeletedAtColumn())) {
+                // @phpstan-ignore-next-line
                 $triggerKey = array_get($this->doKeepTrigger, $this->getDeletedAtColumn());
                 $revisions[] = array(
                     'revisionable_type' => $this->getMorphClass(),
@@ -360,6 +364,7 @@ trait RevisionableTrait
                 $this->saveData($revisions);
                 \Event::dispatch('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
             } elseif ($this->isRevisionableTrigger($this->getDeletedAtColumn())) {
+                // @phpstan-ignore-next-line
                 $triggerKey = array_get($this->doKeepTrigger, $this->getDeletedAtColumn());
                 $revisions[] = array(
                     'revisionable_type' => $this->getMorphClass(),
@@ -396,6 +401,7 @@ trait RevisionableTrait
                 $user = $class::user();
                 return isset($user) ? $user->getUserId() : null;
             } elseif (\Auth::check()) {
+                // @phpstan-ignore-next-line
                 return \Auth::user()->getAuthIdentifier();
             }
         } catch (\Exception $e) {

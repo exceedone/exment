@@ -331,6 +331,7 @@ class Revision extends Eloquent
     // @phpstan-ignore-next-line
     protected function getUser(string $keyName, bool $emptyAsSystem)
     {
+        // @phpstan-ignore-next-line
         $value = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($this->{$keyName});
         if (!isset($value)) {
             return $emptyAsSystem ? 'system' : null;

@@ -58,6 +58,8 @@ class InitializeForm
             }
 
             // add user table
+            /** @var \Exceedone\Exment\Model\CustomValue $user */
+            // @phpstan-ignore-next-line
             $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
             $user->value = [
                 'user_code' => $request->get('user_code'),

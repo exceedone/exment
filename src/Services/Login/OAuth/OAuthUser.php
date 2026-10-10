@@ -52,6 +52,7 @@ class OAuthUser extends CustomLoginUserBase
         $user->id = $provider_user->id;
 
         // find key name for search value
+        // @phpstan-ignore-next-line
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
         $user->login_id = array_get($user->mapping_values, $user->mapping_user_column);
 

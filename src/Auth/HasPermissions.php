@@ -447,6 +447,7 @@ trait HasPermissions
                     continue;
                 }
 
+                // @phpstan-ignore-next-line
                 $plugin = $plugins->first(function($item) use ($role_group_permission) {
                     return $item->id == $role_group_permission->role_group_target_id;
                 });

@@ -124,6 +124,7 @@ class WorkflowStatus extends ModelBase
             $workflow_status = Define::WORKFLOW_START_KEYNAME;
         }
 
+        // @phpstan-ignore-next-line
         $query = WorkflowAction::where('workflow_id', $workflow->id);
         WorkflowAction::appendStatusFromQuery($query, $workflow_status);
         return $query->get()

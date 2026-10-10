@@ -294,6 +294,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     $json['icon'] = array_get(Define::MENU_SYSTEM_DEFINITION, $json['menu_name'].".icon");
                     break;
                 case MenuType::TABLE:
+                    // @phpstan-ignore-next-line
                     $json['icon'] = array_get(CustomTable::getEloquent($json['menu_name']), 'options.icon');
                     break;
             }

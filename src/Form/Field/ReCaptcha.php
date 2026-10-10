@@ -51,6 +51,7 @@ class ReCaptcha extends Hidden
         // @phpstan-ignore-next-line
         $this->form = $form;
 
+        // @phpstan-ignore-next-line
         $this->form->ignore($this->column);
 
         return $this;

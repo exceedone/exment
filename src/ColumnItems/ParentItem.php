@@ -225,6 +225,7 @@ class ParentItem implements ItemInterface
         } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
         } else {
             // get target value
+            // @phpstan-ignore-next-line
             $target_value = $this->custom_table->getValueModel()->where("value->$target_column_name", $value)->first();
 
             if (!isset($target_value)) {

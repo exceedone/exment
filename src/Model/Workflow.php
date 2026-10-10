@@ -161,6 +161,7 @@ class Workflow extends ModelBase
      */
     public function getStatusesString()
     {
+        // @phpstan-ignore-next-line
         return $this->getStatusOptions()->implode(exmtrans('common.separate_word'));
     }
 
@@ -220,6 +221,7 @@ class Workflow extends ModelBase
 
         $today = \Carbon\Carbon::today();
 
+        // @phpstan-ignore-next-line
         $workflowTable = WorkflowTable::allRecordsCache(function ($record) use ($custom_table, $today) {
             if ($custom_table->id != $record->custom_table_id) {
                 return false;

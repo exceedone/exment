@@ -515,6 +515,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public static function getAllData($tableObj)
     {
+        /** @var CustomTable $tableObj */
         $tableObj = CustomTable::getEloquent($tableObj);
 
         // get all data view
@@ -560,6 +561,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public static function getDefault($tableObj, $getSettingValue = true, $is_dashboard = false)
     {
         $user = Admin::user();
+        /** @var CustomTable $tableObj */
         $tableObj = CustomTable::getEloquent($tableObj);
 
         // get request
@@ -666,6 +668,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     // @phpstan-ignore-next-line
     public static function createDefaultView($tableObj)
     {
+        /** @var CustomTable $tableObj */
         $tableObj = CustomTable::getEloquent($tableObj);
 
         $view = new CustomView();

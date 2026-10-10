@@ -145,6 +145,7 @@ class LoginUserItem extends ProviderBase
         }
 
         // return [$login_user, $has_change, $send_password, boolval(array_get($data, 'password_reset_flg'))];
+        // @phpstan-ignore-next-line
         list($login_user, $password, $has_change, $send_password, $password_reset_flg) = $info;
 
         try {
@@ -171,6 +172,7 @@ class LoginUserItem extends ProviderBase
     // @phpstan-ignore-next-line
     protected function getLoginUserInfo($data, $id)
     {
+        // @phpstan-ignore-next-line
         $user = getModelName(SystemTableName::USER)::find($id);
 
         // get login user
@@ -252,6 +254,7 @@ class LoginUserItem extends ProviderBase
     protected function setEditDelete($tools, $custom_value)
     {
         if (is_numeric($custom_value)) {
+            // @phpstan-ignore-next-line
             $custom_value = getModelName(SystemTableName::USER)::find($custom_value);
         }
 

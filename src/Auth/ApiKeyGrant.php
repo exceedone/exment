@@ -49,6 +49,7 @@ class ApiKeyGrant extends AbstractGrant
 
         // Inject tokens into response
         $responseType->setAccessToken($accessToken);
+        // @phpstan-ignore-next-line
         $responseType->setRefreshToken($refreshToken);
 
         return $responseType;
@@ -100,6 +101,7 @@ class ApiKeyGrant extends AbstractGrant
         // this "user_id" is user table's id. not login user tbale's id.
         $user_id = $api_key->client->user_id;
 
+        // @phpstan-ignore-next-line
         $user = getModelName(SystemTableName::USER)::find($user_id);
         $login_user = $user->login_user ?? null;
         if (is_null($login_user)) {

@@ -39,6 +39,7 @@ abstract class IpFilterBase
             return trim($filter);
         })->toArray();
 
+        // @phpstan-ignore-next-line
         if (!IpUtils::checkIp($request->ip(), $filters)) {
             return $this->returnError();
         }

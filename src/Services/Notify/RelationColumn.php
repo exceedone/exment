@@ -51,8 +51,10 @@ class RelationColumn extends Column
 
         if (SearchType::isSelectTable($this->relationTable->searchType)) {
             // get pivot value
+            // @phpstan-ignore-next-line
             $pivotValue = $custom_value->getValue($this->relationTable->selectTablePivotColumn);
         } else {
+            // @phpstan-ignore-next-line
             $pivotValue = $custom_value->getParentValue($this->relationTable->relation);
         }
 

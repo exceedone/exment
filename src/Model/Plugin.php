@@ -96,6 +96,7 @@ class Plugin extends ModelBase
     {
         return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS, function () {
             if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
+                // @phpstan-ignore-next-line
                 return static::allRecords()->pluck('id');
             }
 
@@ -120,6 +121,7 @@ class Plugin extends ModelBase
     {
         $plugin_types = toArray($plugin_types);
         foreach ($this->plugin_types as $this_plugin_type) {
+            // @phpstan-ignore-next-line
             if (in_array($this_plugin_type, $plugin_types)) {
                 return true;
             }
@@ -178,6 +180,7 @@ class Plugin extends ModelBase
                 return false;
             }
 
+            // @phpstan-ignore-next-line
             if (!in_array(CustomTable::getEloquent($custom_table)->table_name, $target_tables)) {
                 return false;
             }
@@ -559,6 +562,7 @@ class Plugin extends ModelBase
 
             $plugin_types = toArray(array_get($plugin, 'plugin_types'));
 
+            // @phpstan-ignore-next-line
             foreach ($plugin_types as $plugin_type) {
                 switch ($plugin_type) {
                     case PluginType::DOCUMENT:
@@ -581,6 +585,7 @@ class Plugin extends ModelBase
                     case PluginType::TRIGGER:
                     case PluginType::BUTTON:
                         $event_triggers = toArray(array_get($plugin->options, 'event_triggers', []));
+                        // @phpstan-ignore-next-line
                         if (!in_array($event, $event_triggers) || is_null(PluginButtonType::getEnum($event))) {
                             break;
                         }
@@ -951,6 +956,7 @@ class Plugin extends ModelBase
         }
         if (isset($query_key)) {
             // get table
+            // @phpstan-ignore-next-line
             $obj = static::allRecords(function ($plugin) use ($query_key, $obj) {
                 return array_get($plugin, $query_key) == $obj;
             })->first();

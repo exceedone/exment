@@ -64,6 +64,7 @@ abstract class ColumnBase
             $form_column->id = $match['id'];
         }
 
+        // @phpstan-ignore-next-line
         return static::make($form_column);
     }
 

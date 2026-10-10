@@ -31,6 +31,7 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
      */
     public function getChangeField($key, $show_condition_key = true)
     {
+        // @phpstan-ignore-next-line
         return $this->getChangeFieldUserOrg(CustomTable::getEloquent(SystemTableName::USER), $key, $show_condition_key);
     }
 
@@ -56,6 +57,7 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
      */
     public function getText($key, $value, $showFilter = true)
     {
+        // @phpstan-ignore-next-line
         $model = getModelName(SystemTableName::USER)::find($value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
             $result = $model->filter()->map(function ($row) {

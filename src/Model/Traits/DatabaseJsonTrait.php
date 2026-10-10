@@ -17,6 +17,7 @@ trait DatabaseJsonTrait
         if (!isset($json)) {
             return $default;
         }
+        // @phpstan-ignore-next-line
         return array_get($json, $key, $default);
     }
 

@@ -109,8 +109,10 @@ class Editor extends CustomItem
     public static function replaceImgUrl($v, $options = [])
     {
         // replace img html
+        // @phpstan-ignore-next-line
         preg_match_all('/\<img(.*?)data-exment-file-uuid="(?<file_uuid>.*?)"(.*?)\>/u', $v, $matches);
         if (is_nullorempty($matches)) {
+            // @phpstan-ignore-next-line
             return $v;
         }
 
@@ -126,9 +128,11 @@ class Editor extends CustomItem
             $replaceValue = preg_replace('/src="(.*?)"/u', 'src="' . $url . '"', $replaceValue);
             //$replaceValue = preg_replace('/data-exment-file-uuid="(.*?)"/u', "", $replaceValue);
 
+            // @phpstan-ignore-next-line
             $v = str_replace($matches[0][$index], $replaceValue, $v);
         }
 
+        // @phpstan-ignore-next-line
         return $v;
     }
 

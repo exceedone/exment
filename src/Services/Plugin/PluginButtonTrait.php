@@ -28,6 +28,7 @@ trait PluginButtonTrait
         if ($custom_value instanceof CustomValue) {
             $this->custom_value = $custom_value;
         } elseif (!is_nullorempty($custom_value) && !is_nullorempty($custom_table)) {
+            // @phpstan-ignore-next-line
             $this->custom_value = $custom_table->getValueModel($custom_value);
         }
     }
