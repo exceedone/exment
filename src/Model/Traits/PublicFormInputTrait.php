@@ -50,6 +50,7 @@ trait PublicFormInputTrait
     // @phpstan-ignore-next-line
     public function setBasicSettingAttribute(?array $options)
     {
+        // @phpstan-ignore-next-line
         $this->setOption($options);
         return $this;
     }
@@ -64,6 +65,7 @@ trait PublicFormInputTrait
     // @phpstan-ignore-next-line
     public function setDesignSettingAttribute(?array $options)
     {
+        // @phpstan-ignore-next-line
         $this->setOption($options);
         return $this;
     }
@@ -78,6 +80,7 @@ trait PublicFormInputTrait
     // @phpstan-ignore-next-line
     public function setConfirmCompleteSettingAttribute(?array $options)
     {
+        // @phpstan-ignore-next-line
         $this->setOption($options);
         return $this;
     }
@@ -91,6 +94,7 @@ trait PublicFormInputTrait
     // @phpstan-ignore-next-line
     public function setConfirmCompleteSetting2Attribute(?array $options)
     {
+        // @phpstan-ignore-next-line
         $this->setOption($options);
         return $this;
     }
@@ -105,6 +109,7 @@ trait PublicFormInputTrait
     // @phpstan-ignore-next-line
     public function setErrorSettingAttribute(?array $options)
     {
+        // @phpstan-ignore-next-line
         $this->setOption($options);
         return $this;
     }
@@ -119,6 +124,7 @@ trait PublicFormInputTrait
     // @phpstan-ignore-next-line
     public function setOptionSettingAttribute(?array $options)
     {
+        // @phpstan-ignore-next-line
         $this->setOption($options);
         return $this;
     }
@@ -133,6 +139,7 @@ trait PublicFormInputTrait
     // @phpstan-ignore-next-line
     public function setCssJsSettingAttribute(?array $options)
     {
+        // @phpstan-ignore-next-line
         $this->setOption($options);
         return $this;
     }
@@ -334,6 +341,8 @@ trait PublicFormInputTrait
             }
 
             // Get mail template ----------------------------------------------------
+            /** @var \Exceedone\Exment\Model\CustomValue $mail_template */
+            // @phpstan-ignore-next-line
             $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)->getValueModel($notify->mail_template_id);
 
             $json[$key] = [
@@ -399,6 +408,7 @@ trait PublicFormInputTrait
             $notify->action_settings = $action_settings;
 
             // get mail template ----------------------------------------------------
+            // @phpstan-ignore-next-line
             $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)->findValue('mail_key_name', $notify_json['mail_template_key_name']);
             $notify->mail_template_id = $mail_template ? $mail_template->id : 0;
 

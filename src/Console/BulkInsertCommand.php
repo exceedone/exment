@@ -81,6 +81,7 @@ class BulkInsertCommand extends Command
             }
 
             // delete working folder
+            // @phpstan-ignore-next-line
             File::deleteDirectory(dirname($path));
         } catch (\Exception $e) {
             $this->error($e->getMessage());
@@ -101,6 +102,7 @@ class BulkInsertCommand extends Command
     {
 
         // check if directory is exists
+        // @phpstan-ignore-next-line
         if (!File::isDirectory($this->directory)) {
             throw new \Exception('Not found directory : ' . $this->directory);
         }

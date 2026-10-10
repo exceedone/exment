@@ -380,9 +380,13 @@ class MenuController extends AdminControllerBase
             case MenuType::TABLE:
                 $item = CustomTable::getEloquent($value);
                 $result = [
+                    // @phpstan-ignore-next-line
                     'menu_name' => array_get($item, 'table_name'),
+                    // @phpstan-ignore-next-line
                     'title' => array_get($item, 'table_view_name'),
+                    // @phpstan-ignore-next-line
                     'icon' => array_get($item, 'options.icon'),
+                    // @phpstan-ignore-next-line
                     'uri' => array_get($item, 'table_name'),
                 ];
                 break;
@@ -438,8 +442,10 @@ class MenuController extends AdminControllerBase
     protected function isAddSystemMenuOptions($k, $value)
     {
         if ($k == 'role_group') {
+            // @phpstan-ignore-next-line
             return System::permission_available();
         } elseif ($k == 'api_setting') {
+            // @phpstan-ignore-next-line
             return System::api_available();
         } elseif ($k == 'notify') {
             return false;

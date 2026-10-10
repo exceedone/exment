@@ -305,6 +305,7 @@ class MailInfo
         if ($value instanceof \Illuminate\Database\Eloquent\Model || $value instanceof \Exceedone\Exment\Model\NotifyTarget) {
             return [$value];
         }
+        // @phpstan-ignore-next-line
         return toArray($value);
     }
 }

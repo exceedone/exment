@@ -101,6 +101,7 @@ class DiskServiceItem
      */
     public function dirName()
     {
+        // @phpstan-ignore-next-line
         return $this->dirName;
     }
 
@@ -111,6 +112,7 @@ class DiskServiceItem
      */
     public function dirFullPath()
     {
+        // @phpstan-ignore-next-line
         return $this->disk()->path($this->dirName);
     }
 

@@ -65,9 +65,11 @@ class Plugin extends PluginDashboardBase
     protected function getData($id = null)
     {
         if (isset($id)) {
+            // @phpstan-ignore-next-line
             return CustomTable::getEloquent('custom_value_edit_all')
                 ->getValueModel($id);
         } else {
+            // @phpstan-ignore-next-line
             return CustomTable::getEloquent('custom_value_edit_all')
             ->getValueModel()->where('value->user', \Exment::user()->base_user->id)->first();
         }

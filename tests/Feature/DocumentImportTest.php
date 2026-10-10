@@ -66,6 +66,7 @@ class DocumentImportTest extends FileImportTestBase
             if (strpos($baseName, '~') === 0) {
                 continue;
             }
+            /** @var CustomTable $custom_table */
             $custom_table = CustomTable::getEloquent($baseName);
 
             $fileArray = $isCsv ? $this->_getCsvArray($file->getPathName()) : $this->_getXlsxArray($file->getPathName())[$baseName];
@@ -76,6 +77,7 @@ class DocumentImportTest extends FileImportTestBase
                 }
 
                 // get custom value
+                /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
                 $custom_value = $custom_table->getValueModel($array[0]);
 
                 // get documents
@@ -85,6 +87,7 @@ class DocumentImportTest extends FileImportTestBase
                         return array_get($document->value, 'file_uuid');
                     });
                 $this->assertTrue(!is_nullorempty($documents));
+                /** @var \Exceedone\Exment\Model\File $fileInfo */
                 $fileInfo = $this->getMatchedPath($documents, $array);
 
                 // check file
@@ -97,7 +100,9 @@ class DocumentImportTest extends FileImportTestBase
 
     protected function getMatchedPath($documents, $array)
     {
+        // @phpstan-ignore-next-line
         foreach (toArray($documents) as $document) {
+            /** @var \Exceedone\Exment\Model\File $fileInfo */
             $fileInfo = Model\File::getData($document);
             if (isMatchString($array[2], $fileInfo->filename)) {
                 return $fileInfo;

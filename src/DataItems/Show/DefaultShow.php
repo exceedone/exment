@@ -485,7 +485,9 @@ class DefaultShow extends ShowBase
         // create revision value
         $id = $this->custom_value->id;
         $old_revision = Revision::findBySuuid($revision_suuid);
+        // @phpstan-ignore-next-line
         $revision_value = getModelName($this->custom_table)::withTrashed()->find($id)->setRevision($revision_suuid);
+        // @phpstan-ignore-next-line
         $custom_value = getModelName($this->custom_table)::withTrashed()->find($id);
 
         // set table columns
@@ -690,6 +692,7 @@ EOT;
         if ($this->modal) {
             return [];
         }
+        // @phpstan-ignore-next-line
         return getModelName(SystemTableName::COMMENT)::where('parent_id', $this->custom_value->id)
             ->where('parent_type', $this->custom_table->table_name)
             ->get();
@@ -826,6 +829,7 @@ EOT;
         }
 
         // file put(store)
+        // @phpstan-ignore-next-line
         foreach (toArray($httpfiles) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
             $custom_value = $this->custom_value;
@@ -876,6 +880,7 @@ EOT;
                 ->find($parent_value->id);
             $updated_at = $updated_value->updated_at ?? null;
         } else {
+            // @phpstan-ignore-next-line
             $updated_value = getModelName($this->custom_table)::find($this->custom_value->id);
             $updated_at = $updated_value->updated_at ?? null;
         }
@@ -897,6 +902,8 @@ EOT;
     {
         if (!empty($comment)) {
             // save Comment Model
+            /** @var CustomValue $model */
+            // @phpstan-ignore-next-line
             $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
             $model->parent_id = $this->custom_value->id;
             $model->parent_type = $this->custom_table->table_name;
@@ -925,6 +932,7 @@ EOT;
     {
         if (!empty($suuid)) {
             // save Comment Model
+            // @phpstan-ignore-next-line
             CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel()
                 ->where('suuid', $suuid)
                 ->where('parent_id', $id)

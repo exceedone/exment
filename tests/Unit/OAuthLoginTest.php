@@ -200,6 +200,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUser1()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -226,6 +228,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUser2()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -251,6 +255,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUser3()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -278,6 +284,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUser4()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -304,6 +312,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUserEmail1()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -326,6 +336,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUserEmail2()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -350,6 +362,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUserEmail3()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -373,6 +387,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUserEmail4()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -399,6 +415,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testValidateErrorUpdate()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -424,6 +442,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testValidateErrorNoUpdate()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -450,7 +470,11 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testOtherUserCodeMatch1()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user1 */
+        // @phpstan-ignore-next-line
         $user1 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        /** @var \Exceedone\Exment\Model\CustomValue $user2 */
+        // @phpstan-ignore-next-line
         $user2 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -474,7 +498,11 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testOtherUserCodeMatch2()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user1 */
+        // @phpstan-ignore-next-line
         $user1 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        /** @var \Exceedone\Exment\Model\CustomValue $user2 */
+        // @phpstan-ignore-next-line
         $user2 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -500,7 +528,11 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testOtherUserCodeMatch3()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user1 */
+        // @phpstan-ignore-next-line
         $user1 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        /** @var \Exceedone\Exment\Model\CustomValue $user2 */
+        // @phpstan-ignore-next-line
         $user2 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -525,7 +557,11 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testOtherUserCodeMatch4()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user1 */
+        // @phpstan-ignore-next-line
         $user1 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        /** @var \Exceedone\Exment\Model\CustomValue $user2 */
+        // @phpstan-ignore-next-line
         $user2 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -552,6 +588,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUserUserCode1()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -578,6 +616,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUserUserCode2()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -603,6 +643,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUserUserCode3()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -630,6 +672,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testExistsUserUserCode4()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -656,6 +700,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testValidateErrorEmailUpdate()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -681,6 +727,8 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testValidateErrorEmailNoUpdate()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -708,7 +756,11 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testOtherEmailMatch1()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user1 */
+        // @phpstan-ignore-next-line
         $user1 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        /** @var \Exceedone\Exment\Model\CustomValue $user2 */
+        // @phpstan-ignore-next-line
         $user2 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -733,7 +785,11 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testOtherEmailMatch2()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user1 */
+        // @phpstan-ignore-next-line
         $user1 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        /** @var \Exceedone\Exment\Model\CustomValue $user2 */
+        // @phpstan-ignore-next-line
         $user2 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -760,7 +816,11 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testOtherEmailMatch3()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user1 */
+        // @phpstan-ignore-next-line
         $user1 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        /** @var \Exceedone\Exment\Model\CustomValue $user2 */
+        // @phpstan-ignore-next-line
         $user2 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         list($custom_login_user, $validator) = $this->_commonProcess([
@@ -786,7 +846,11 @@ class OAuthLoginTest extends UnitTestBase
      */
     public function testOtherEmailMatch4()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $user1 */
+        // @phpstan-ignore-next-line
         $user1 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        /** @var \Exceedone\Exment\Model\CustomValue $user2 */
+        // @phpstan-ignore-next-line
         $user2 = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         list($custom_login_user, $validator) = $this->_commonProcess([

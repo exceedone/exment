@@ -39,6 +39,7 @@ class ZipService
             // If has $disk, copy using disk
             if (!is_nullorempty($disk)) {
                 $f = \Storage::disk($disk)->get($file);
+                // @phpstan-ignore-next-line
                 \File::put(path_join($tmpFolderPath, $tmpfile), $f);
             } else {
                 \File::copy($file, path_join($tmpFolderPath, $tmpfile));

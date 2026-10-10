@@ -78,6 +78,7 @@ class IMenuTest extends ExmentKitTestCase
     {
         $menu_name  = short_uuid();
 
+        /** @var \Exceedone\Exment\Model\CustomTable $custom_table */
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
 
         $this->_testCreateMenu($menu_name, [
@@ -98,12 +99,14 @@ class IMenuTest extends ExmentKitTestCase
     {
         $menu_name  = short_uuid();
 
+        /** @var \Exceedone\Exment\Model\CustomTable $custom_table */
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
 
         $this->_testCreateMenu($menu_name, [
             'parent_id' => $this->getParentMenuTestModel()->id,
             'menu_type' => 'table',
             'menu_target' => $custom_table->id,
+            // @phpstan-ignore-next-line
             'menu_target_view' => Model\CustomView::getDefault($custom_table)->id,
             'uri' => $custom_table->table_name,
             'title' => $custom_table->table_view_name,
@@ -163,6 +166,7 @@ class IMenuTest extends ExmentKitTestCase
      */
     public function testEditMenuTable()
     {
+        /** @var \Exceedone\Exment\Model\CustomTable $custom_table */
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW);
         $menu = $this->getMenuEditTestModel('table');
         $this->_testEditMenu($menu, [
@@ -240,6 +244,7 @@ class IMenuTest extends ExmentKitTestCase
 
         $model = Menu::find($menu->id);
         foreach ($data as $key => $value) {
+            // @phpstan-ignore-next-line
             $this->assertMatch($model->{$key}, $value);
         }
     }

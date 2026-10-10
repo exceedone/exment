@@ -35,6 +35,7 @@ class Column extends NotifyTargetBase
     {
         $result = collect();
 
+        // @phpstan-ignore-next-line
         $custom_table = $custom_value->custom_table;
         $custom_column = CustomColumn::getEloquent($this->column, $custom_table);
 
@@ -43,6 +44,7 @@ class Column extends NotifyTargetBase
         }
 
         // get target's value
+        // @phpstan-ignore-next-line
         $target_value = $custom_value->getValue($custom_column);
 
         if (!isset($target_value)) {

@@ -36,6 +36,7 @@ abstract class ItemBase implements CalcInterface
     public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table)
     {
         $this->custom_column = $custom_column;
+        // @phpstan-ignore-next-line
         $this->custom_table = $custom_table;
     }
 

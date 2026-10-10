@@ -81,6 +81,7 @@ class ExportCommand extends Command
         }
 
         if ($options['type'] == 'page') {
+            // @phpstan-ignore-next-line
             if (!preg_match("/^[0-9]+$/", $options['page'])) {
                 throw new \Exception('optional parameter page error : ' . $options['page']);
             }

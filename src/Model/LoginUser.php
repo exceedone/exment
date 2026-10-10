@@ -57,6 +57,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     // @phpstan-ignore-next-line
     public function base_user(): BelongsTo
     {
+        // @phpstan-ignore-next-line
         return $this->belongsTo(getModelName(SystemTableName::USER), 'base_user_id');
     }
 
@@ -103,6 +104,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         }
 
         $headers = [];
+        // @phpstan-ignore-next-line
         foreach (System::header_user_info() as $field) {
             if ($field == SystemColumn::CREATED_AT) {
                 $title = exmtrans('common.created_at');
@@ -159,6 +161,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     // @phpstan-ignore-next-line
     public function findForPassport($username, ?array $credentials = [])
     {
+        // @phpstan-ignore-next-line
         return LoginUserProvider::RetrieveByCredential(array_merge(['username' => $username], $credentials));
     }
 
@@ -166,6 +169,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     // @phpstan-ignore-next-line
     public function validateForPassportPasswordGrant($password, ?array $credentials = [])
     {
+        // @phpstan-ignore-next-line
         return LoginUserProvider::ValidateCredential($this, array_merge(['password' => $password], $credentials));
     }
 

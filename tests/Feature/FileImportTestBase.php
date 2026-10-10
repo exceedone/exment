@@ -49,6 +49,7 @@ abstract class FileImportTestBase extends FeatureTestBase
     {
         try {
             $this->initAllTest();
+            // @phpstan-ignore-next-line
             $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
             $import_path = $this->getImportPath();
             \Exment::makeDirectory($import_path);
@@ -126,7 +127,9 @@ abstract class FileImportTestBase extends FeatureTestBase
      */
     protected function getMatchedPath($fileColumns, $array)
     {
+        // @phpstan-ignore-next-line
         foreach (toArray($fileColumns) as $fileColumn) {
+            /** @var \Exceedone\Exment\Model\File $fileInfo */
             $fileInfo = Model\File::getData($fileColumn);
             if (isMatchString($array[3], $fileInfo->filename)) {
                 return $fileInfo;

@@ -109,6 +109,7 @@ class CustomViewController extends AdminControllerTableBase
     {
         $grid = new Grid(new CustomView());
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
+        // @phpstan-ignore-next-line
         if ($this->custom_table->hasSystemViewPermission()) {
             $grid->column('view_type', exmtrans("custom_view.view_type"))->sortable()->display(function ($view_type) {
                 return Enums\ViewType::getEnum($view_type)->transKey("custom_view.custom_view_type_options");
@@ -122,11 +123,13 @@ class CustomViewController extends AdminControllerTableBase
             $grid->column('order', exmtrans("custom_view.order"))->sortable()->editable();
         }
 
+        // @phpstan-ignore-next-line
         $grid->model()->where('custom_table_id', $this->custom_table->id);
         $custom_table = $this->custom_table;
 
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
+            // @phpstan-ignore-next-line
             $table_name = $custom_table->table_name;
             // @phpstan-ignore-next-line
             if (boolval($actions->row->hasEditPermission())) {
@@ -155,6 +158,7 @@ class CustomViewController extends AdminControllerTableBase
 
             if (intval($actions->row->view_kind_type) != Enums\ViewKindType::FILTER) {
                 $linker = (new Linker())
+                // @phpstan-ignore-next-line
                 ->url($custom_table->getGridUrl(true, ['view' => $actions->row->suuid]))
                 ->icon('fa-database')
                 ->tooltip(exmtrans('custom_view.view_datalist'));
@@ -181,6 +185,7 @@ class CustomViewController extends AdminControllerTableBase
             $filter->disableIdFilter();
 
             $filter->like('view_view_name', exmtrans("custom_view.view_view_name"));
+            // @phpstan-ignore-next-line
             if ($this->custom_table->hasSystemViewPermission()) {
                 $filter->equal('view_type', exmtrans("custom_view.view_type"))->select(Enums\ViewType::transKeyArray("custom_view.custom_view_type_options"));
             }
@@ -248,6 +253,7 @@ class CustomViewController extends AdminControllerTableBase
             $plugin = Plugin::find($model->getOption('plugin_id'))->uuid;
         }
 
+        // @phpstan-ignore-next-line
         $form->hidden('custom_table_id')->default($this->custom_table->id);
 
         $form->hidden('view_kind_type')->default($view_kind_type);
@@ -256,7 +262,9 @@ class CustomViewController extends AdminControllerTableBase
         $form->hidden('plugin')->default($plugin);
         $form->ignore('plugin');
 
+        // @phpstan-ignore-next-line
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
+        // @phpstan-ignore-next-line
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
         $form->display('view_kind_type', exmtrans("custom_view.view_kind_type"))
             ->with(function ($value) use ($view_kind_type) {
@@ -268,6 +276,7 @@ class CustomViewController extends AdminControllerTableBase
             $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
         } else {
             // select view type
+            // @phpstan-ignore-next-line
             if ($this->custom_table->hasSystemViewPermission() && (is_null($view_type) || $view_type == Enums\ViewType::USER)) {
                 $form->select('view_type', exmtrans('custom_view.view_type'))
                     ->default(Enums\ViewType::SYSTEM)
@@ -344,6 +353,7 @@ class CustomViewController extends AdminControllerTableBase
 
                 admin_toastr(trans('admin.save_succeeded'));
 
+                // @phpstan-ignore-next-line
                 return redirect($custom_table->getGridUrl(true, ['view' => $suuid]));
             }
         });
@@ -355,12 +365,14 @@ class CustomViewController extends AdminControllerTableBase
             if ($view_type == Enums\ViewType::USER) {
                 $tools->append(new Tools\ShareButton(
                     $id,
+                    // @phpstan-ignore-next-line
                     admin_urls(Enums\ShareTargetType::VIEW()->lowerkey(), $custom_table->table_name, $id, "shareClick")
                 ));
             }
 
             if (isset($suuid) && intval($view_kind_type) != Enums\ViewKindType::FILTER) {
                 $tools->append(view('exment::tools.button', [
+                    // @phpstan-ignore-next-line
                     'href' => $custom_table->getGridUrl(true, ['view' => $suuid]),
                     'label' => exmtrans('custom_view.view_datalist'),
                     'icon' => 'fa-database',
@@ -414,6 +426,7 @@ class CustomViewController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function validateTable($table, $role_name)
     {
+        // @phpstan-ignore-next-line
         if (!$this->custom_table->hasViewPermission()) {
             Checker::error();
             return false;

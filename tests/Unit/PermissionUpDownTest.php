@@ -510,6 +510,7 @@ class PermissionUpDownTest extends UnitTestBase
     {
         $this->init();
 
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent('user')->getValueModel($loginId);
         // @phpstan-ignore-next-line
         $organizations = $user->getOrganizationIdsForQuery($joinedOrgFilterType);
@@ -546,6 +547,7 @@ class PermissionUpDownTest extends UnitTestBase
     {
         $this->init();
 
+        // @phpstan-ignore-next-line
         $organization = CustomTable::getEloquent('organization')->getValueModel($id);
         // @phpstan-ignore-next-line
         $organizations = $organization->getOrganizationIdsForQuery($joinedOrgFilterType);
@@ -580,10 +582,12 @@ class PermissionUpDownTest extends UnitTestBase
     protected function executeTestRoleGroup($loginId, $joinedOrgFilterType, bool $result)
     {
         $this->init();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find($loginId));
         System::org_joined_type_role_group($joinedOrgFilterType);
 
         $func = $result ? 'assertTrue' : 'assertFalse';
+        // @phpstan-ignore-next-line
         $this->{$func}(CustomTable::getEloquent('custom_value_edit')->hasPermission());
     }
 
@@ -596,11 +600,13 @@ class PermissionUpDownTest extends UnitTestBase
     protected function executeTestCustomValue($loginId, $joinedOrgFilterType, bool $result)
     {
         $this->init();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find($loginId));
         System::org_joined_type_role_group($joinedOrgFilterType);
         System::org_joined_type_custom_value($joinedOrgFilterType);
 
         $func = $result ? 'assertTrue' : 'assertFalse';
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find(51); // 51 --- created by dev user
         $this->{$func}(isset($custom_value));
     }

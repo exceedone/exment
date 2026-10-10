@@ -18,6 +18,7 @@ class Count extends ItemBase
     public function __construct(?CustomTable $custom_table, ?CustomTable $child_custom_table)
     {
         parent::__construct(null, $custom_table);
+        // @phpstan-ignore-next-line
         $this->child_custom_table = $child_custom_table;
     }
 

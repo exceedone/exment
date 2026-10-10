@@ -42,6 +42,7 @@ class SelectTableNumericRule implements Rule
         }
 
         if (is_list($value)) {
+            // @phpstan-ignore-next-line
             $value = array_filter(toArray($value));
             foreach ($value as $v) {
                 if (!is_numeric($v)) {

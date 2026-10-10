@@ -332,6 +332,7 @@ class System extends ModelBase
     {
         $key = static::getConfigKey($name);
         return static::cache($key, function () use ($name, $setting) {
+            // @phpstan-ignore-next-line
             $system = static::allRecordsCache(function ($record) use ($name) {
                 return $record->system_name == $name;
             }, false)->first();

@@ -91,6 +91,7 @@ class WorkflowItem extends SystemItem
             if (isset($val)) {
                 $model = WorkflowStatus::find($val);
 
+                // @phpstan-ignore-next-line
                 $status_name = array_get($model, 'status_name');
 
                 return $html ? esc_html($status_name) : $status_name;
@@ -121,6 +122,7 @@ class WorkflowItem extends SystemItem
         $field = new MultipleSelect($this->name(), [$this->label()]);
 
         // get workflow statuses
+        /** @var Workflow $workflow */
         $workflow = Workflow::getWorkflowByTable($this->custom_table);
         $options = $workflow->getStatusOptions() ?? [];
 

@@ -23,6 +23,7 @@ abstract class ApiTestBase extends FeatureTestBase
     protected function getClientIdAndSecret()
     {
         // get client id and secret token
+        /** @var ApiClient $client */
         $client = ApiClient::withoutGlobalScope('only_self')->where('name', Define::API_FEATURE_TEST)->first();
 
         return [$client->id, $client->secret];
@@ -36,6 +37,7 @@ abstract class ApiTestBase extends FeatureTestBase
     protected function getClientIdAndSecretAndKey()
     {
         // get client id and secret token
+        /** @var ApiClient $client */
         $client = ApiClient::withoutGlobalScope('only_self')->where('name', Define::API_FEATURE_TEST_APIKEY)->first();
 
         return [$client->id, $client->secret, $client->client_api_key->key];
@@ -192,6 +194,7 @@ abstract class ApiTestBase extends FeatureTestBase
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $custom_form = CustomForm::getDefault($custom_table);
+        /** @var PublicForm $public_form */
         $public_form = PublicForm::where('custom_form_id', $custom_form->id)->first();
 
         return $public_form->getApiUrl();

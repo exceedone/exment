@@ -19,6 +19,7 @@ trait ExmentKitPrepareTrait
         $row = CustomTable::where('table_name', $child_table)->first();
 
         $data = [
+            // @phpstan-ignore-next-line
             'child_custom_table_id' => array_get($row, 'id'),
             'relation_type' => $relation_type,
         ];
@@ -26,6 +27,7 @@ trait ExmentKitPrepareTrait
         $this->visit(admin_url("relation/$parent_table/create"))
                 ->submitForm('admin-submit', $data)
                 ->seePageIs(admin_url('relation/' . $parent_table))
+                // @phpstan-ignore-next-line
                 ->seeInElement('td', array_get($row, 'table_view_name'));
     }
 

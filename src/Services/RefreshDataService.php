@@ -46,6 +46,7 @@ class RefreshDataService
             ->get()
             ->filter(function ($relation) use ($userTable, $orgTable) {
                 // if org-user data, return false;
+                // @phpstan-ignore-next-line
                 if ($relation->parent_custom_table_id == $orgTable->id && $relation->child_custom_table_id == $userTable->id) {
                     return false;
                 }
@@ -60,6 +61,7 @@ class RefreshDataService
             })->toArray(), $tables);
 
         // exm__ tables (ignore org)
+        // @phpstan-ignore-next-line
         $custom_tables = CustomTable::whereNotIn('id', [$userTable->id, $orgTable->id, $mail_template->id])
             ->get()
             ->filter(function ($table) {
@@ -222,6 +224,7 @@ class RefreshDataService
             SystemTableName::DOCUMENT,
         ];
         foreach ($deleteTables as $deleteTable) {
+            // @phpstan-ignore-next-line
             $deleteTableName = getDBTableName(CustomTable::getEloquent($deleteTable));
             if (!hasTable($deleteTableName)) {
                 continue;

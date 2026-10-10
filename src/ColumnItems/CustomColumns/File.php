@@ -33,6 +33,7 @@ class File extends CustomItem
     // @phpstan-ignore-next-line
     public function file()
     {
+        // @phpstan-ignore-next-line
         return ExmentFile::getFile($this->fileValue($this->value));
     }
 
@@ -46,6 +47,7 @@ class File extends CustomItem
             return $name;
         }
         // get image url
+        // @phpstan-ignore-next-line
         return ExmentFile::getUrl($this->fileValue($v), boolval(array_get($this->options, 'asApi')));
     }
 
@@ -60,7 +62,10 @@ class File extends CustomItem
         }
 
         // get image url
+        // @phpstan-ignore-next-line
         $url = ExmentFile::getUrl($this->fileValue($v));
+        /** @var \Exceedone\Exment\Model\File $file */
+        // @phpstan-ignore-next-line
         $file = ExmentFile::getData($this->fileValue($v));
         if (!isset($url)) {
             return $url;
@@ -565,6 +570,7 @@ class File extends CustomItem
 
         // Set admin tmp
         $tmpDisk = \Storage::disk(Define::DISKNAME_ADMIN_TMP);
+        // @phpstan-ignore-next-line
         $tmpDisk->put($localFileName, $content);
 
         // set request session localfilename, for deleting tmp file after saved

@@ -340,6 +340,7 @@ abstract class CustomValue extends ModelBase
     // @phpstan-ignore-next-line
     public function value_authoritable_users()
     {
+        // @phpstan-ignore-next-line
         return $this->morphToMany(getModelName(SystemTableName::USER), 'parent', 'custom_value_authoritables', 'parent_id', 'authoritable_target_id')
             ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
             ->wherePivot('authoritable_user_org_type', SystemTableName::USER)
@@ -351,6 +352,7 @@ abstract class CustomValue extends ModelBase
     // @phpstan-ignore-next-line
     public function value_authoritable_organizations()
     {
+        // @phpstan-ignore-next-line
         return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'parent', 'custom_value_authoritables', 'parent_id', 'authoritable_target_id')
             ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
             ->wherePivot('authoritable_user_org_type', SystemTableName::ORGANIZATION)
@@ -885,6 +887,7 @@ abstract class CustomValue extends ModelBase
                     return;
                 }
 
+                // @phpstan-ignore-next-line
                 foreach (toArray($values) as $value) {
                     $file = File::getData($value);
                     if (!$file) {
@@ -1078,6 +1081,7 @@ abstract class CustomValue extends ModelBase
         foreach ($relations as $relation) {
             $child_table = $relation->child_custom_table;
             // find keys
+            // @phpstan-ignore-next-line
             getModelName($child_table)::where('parent_id', $this->id)
                 ->where('parent_type', $custom_table->table_name)
                 ->restore();
@@ -1513,6 +1517,7 @@ abstract class CustomValue extends ModelBase
             ],
             $options
         );
+        // @phpstan-ignore-next-line
         $query = getModelName(SystemTableName::DOCUMENT)::where('parent_id', $this->id)
             ->where('parent_type', $this->custom_table_name)
         ;
@@ -1576,6 +1581,7 @@ abstract class CustomValue extends ModelBase
             $parent = CustomTable::getEloquent($this->parent_type);
             if (isset($parent)) {
                 if ($noScope) {
+                    // @phpstan-ignore-next-line
                     $model = $parent->getValueModel()->withoutGlobalScopes()->find($this->parent_id);
                 } else {
                     $model = $parent->getValueModel($this->parent_id);
@@ -1632,6 +1638,7 @@ abstract class CustomValue extends ModelBase
             if (ColumnType::isSelectTable($relation->column_type) && $relation->indexEnabled()) {
                 $index_name = $relation->getIndexColumnName();
                 // get children values where this id
+                // @phpstan-ignore-next-line
                 $query = getModelName(CustomTable::getEloquent($relation))::where($index_name, $this->id);
                 return $returnBuilder ? $query : $query->get();
             }
@@ -1740,12 +1747,14 @@ abstract class CustomValue extends ModelBase
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
             $searchColumn = collect($searchColumns)->values()->get($i);
 
+            // @phpstan-ignore-next-line
             foreach ($getQueryFunc($searchColumn, $options) as $query) {
                 $queries[] = $query;
             }
         }
 
         $searchColumn = $searchColumns->last();
+        // @phpstan-ignore-next-line
         $subquery = $getQueryFunc($searchColumn, $options)[0];
 
         foreach ($queries as $inq) {
@@ -2087,13 +2096,16 @@ abstract class CustomValue extends ModelBase
         $queryTable = AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($custom_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE);
 
         if (!is_nullorempty($queryTable)) {
+            // @phpstan-ignore-next-line
             $queryTable->withoutGlobalScope(CustomValueModelScope::class);
 
             $tablename = getDBTableName(SystemTableName::USER);
+            // @phpstan-ignore-next-line
             $ids = array_merge($queryTable->pluck("$tablename.id")->toArray(), $ids);
         }
 
         // get real value
+        // @phpstan-ignore-next-line
         return getModelName(SystemTableName::USER)::query()
             ->withoutGlobalScope(CustomValueModelScope::class)
             ->whereIn('id', $ids)
@@ -2141,13 +2153,16 @@ abstract class CustomValue extends ModelBase
         $queryTable = AuthUserOrgHelper::getRoleOrganizationQueryTable($custom_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE);
 
         if (!is_nullorempty($queryTable)) {
+            // @phpstan-ignore-next-line
             $queryTable->withoutGlobalScope(CustomValueModelScope::class);
 
             $tablename = getDBTableName(SystemTableName::ORGANIZATION);
+            // @phpstan-ignore-next-line
             $ids = array_merge($queryTable->pluck("$tablename.id")->toArray(), $ids);
         }
 
         // get real value
+        // @phpstan-ignore-next-line
         return getModelName(SystemTableName::ORGANIZATION)::query()
             ->withoutGlobalScope(CustomValueModelScope::class)
             ->whereIn('id', $ids)

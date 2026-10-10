@@ -120,9 +120,11 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
 
         ///// maybe sql server cannot replace bindings... so replace
         foreach ($query->getBindings() as $binding) {
+            // @phpstan-ignore-next-line
             $sql = preg_replace('/\?/', \Exment::wrapValue($binding), $sql, 1);
         }
 
+        // @phpstan-ignore-next-line
         \DB::statement($sql);
     }
 

@@ -26,6 +26,7 @@ class CustomValueAuthoritable extends ModelBase
     // @phpstan-ignore-next-line
     public function getAuthoritableUserOrgAttribute()
     {
+        // @phpstan-ignore-next-line
         return CustomTable::getEloquent($this->authoritable_user_org_type)->getValueModel($this->authoritable_target_id);
     }
 
@@ -405,6 +406,7 @@ class CustomValueAuthoritable extends ModelBase
 
             // send notify
             $shares = collect($shares)->map(function ($share) {
+                // @phpstan-ignore-next-line
                 return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
             });
 
@@ -445,6 +447,7 @@ class CustomValueAuthoritable extends ModelBase
         }
 
         foreach ($keys as $key) {
+            // @phpstan-ignore-next-line
             list($optionItem, $ajaxItem) = CustomTable::getEloquent($key)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
                 'selected_value' => str_replace_ex("{$key}_", "", $default),

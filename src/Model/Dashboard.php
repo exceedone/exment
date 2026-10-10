@@ -275,6 +275,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     public static function hasSystemPermission()
     {
 
+        // @phpstan-ignore-next-line
         return \Admin::user()->hasPermission(Permission::SYSTEM);
     }
 

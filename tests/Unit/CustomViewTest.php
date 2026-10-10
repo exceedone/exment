@@ -107,6 +107,7 @@ class CustomViewTest extends UnitTestBase
                 'filter_condition' => FilterOption::USER_EQ_USER,
             ]]
         ];
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
         $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $custom_table->id)->get();
 
@@ -152,6 +153,7 @@ class CustomViewTest extends UnitTestBase
                 'filter_condition' => FilterOption::USER_EQ_USER,
             ]]
         ];
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY);
         $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $custom_table->id)->get();
 
@@ -264,6 +266,7 @@ class CustomViewTest extends UnitTestBase
                 'filter_value_text' => 1
             ]]
         ];
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         foreach (SystemColumn::getOptions() as $option) {
             if (boolval(array_get($option, 'header')) || boolval(array_get($option, 'footer'))) {
@@ -448,6 +451,7 @@ class CustomViewTest extends UnitTestBase
      */
     protected function getData($table_name, $view_name, $page_count = 100)
     {
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(1));
         $classname = getModelName($table_name);
         $grid = new Grid(new $classname());

@@ -98,13 +98,16 @@ class SystemController extends AdminControllerBase
         $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
             ->help(exmtrans('system.help.system_admin_users'))
             ->required()
+            // @phpstan-ignore-next-line
             ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl())
             ->options(function ($option) use ($admin_users) {
+                // @phpstan-ignore-next-line
                 return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
                     'selected_value' => $admin_users,
                 ]);
             })
             ->validationOptions(function ($option) use ($admin_users) {
+                // @phpstan-ignore-next-line
                 return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
                     'selected_value' => $admin_users,
                     'all' => true,
@@ -212,6 +215,7 @@ class SystemController extends AdminControllerBase
             ->help(exmtrans('system.help.header_user_info'))
             ->config('maximumSelectionLength', 2)
             ->options(function ($option) {
+                // @phpstan-ignore-next-line
                 $options = CustomTable::getEloquent(SystemTableName::USER)->getColumnsSelectOptions([
                     'include_system' => false,
                     'ignore_attachment' => true

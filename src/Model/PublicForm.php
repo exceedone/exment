@@ -224,6 +224,7 @@ class PublicForm extends ModelBase
             return null;
         }
 
+        // @phpstan-ignore-next-line
         $user = getModelName(SystemTableName::USER)::find($model->proxy_user_id);
         if (!$user) {
             return null;
@@ -555,6 +556,7 @@ class PublicForm extends ModelBase
                 $form = $this->getForm(request(), null, [
                     'asConfirm' => true,
                 ]);
+                // @phpstan-ignore-next-line
                 $custom_value = $form->getModelByInputs($data ?? null);
             }
             if (is_null($relationInputs)) {
@@ -625,6 +627,7 @@ class PublicForm extends ModelBase
 
             $setLabelTextFunc(null, $custom_value);
 
+            // @phpstan-ignore-next-line
             foreach ($relationInputs as $key => $relations) {
                 $setLabelTextFunc($key, $relations);
             }

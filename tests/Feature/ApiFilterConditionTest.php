@@ -316,6 +316,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
             $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         }
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
         $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
 
@@ -342,6 +343,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
             $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         }
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
         $syetem_column = SystemColumn::getOption(['name' => $system_column_name]);
 
@@ -368,6 +370,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
             $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         }
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
 
         $url = admin_urls_query('view', $custom_table->table_name, 'filter-condition', [
@@ -392,6 +395,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
         if (!$table_name) {
             $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
         }
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
 
         $url = admin_urls_query('view', $custom_table->table_name, 'filter-condition', [

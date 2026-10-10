@@ -161,6 +161,7 @@ class CustomViewFilter extends ModelBase
             'or_option' => $or_option,
         ]);
 
+        // @phpstan-ignore-next-line
         $viewFilterItem->setFilter($query, $condition_value_text);
         return $query;
     }

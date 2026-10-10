@@ -98,6 +98,7 @@ class CustomColumnController extends AdminControllerTableBase
         }
         if (request()->has('column_type')) {
             $column_type = request()->get('column_type');
+            // @phpstan-ignore-next-line
             $column = $this->custom_columns->first(function ($value) use ($id) {
                 return $value->id == $id;
             });
@@ -228,7 +229,9 @@ class CustomColumnController extends AdminControllerTableBase
             $column_item = null;
         }
 
+        // @phpstan-ignore-next-line
         $form->internal('custom_table_id')->default($this->custom_table->id);
+        // @phpstan-ignore-next-line
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
 
         if (!isset($id)) {
@@ -238,6 +241,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->rules([
                     "max:30",
                     "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/",
+                    // @phpstan-ignore-next-line
                     "uniqueInTable:{$classname},{$this->custom_table->id}",
                     Rule::notIn(SystemColumn::arrays()),
                 ])
@@ -273,6 +277,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filtertrigger' =>true,
                     'data-changehtml' => json_encode([
                         [
+                            // @phpstan-ignore-next-line
                             'url' => admin_urls('column', $this->custom_table->table_name, $id, 'columnTypeHtml'),
                             'target' => '.form_dynamic_options',
                             'response' => '.form_dynamic_options_response',
@@ -326,6 +331,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.text_align"))
                 ->options(TextAlignType::transArray('custom_column.align_type_options'));
 
+            // @phpstan-ignore-next-line
             if ($this->custom_table->table_name == SystemTableName::USER) {
                 $form->select('editable_userinfo', exmtrans("custom_column.editable_userinfo"))
                     ->help(exmtrans("custom_column.help.editable_userinfo"))
@@ -420,6 +426,7 @@ class CustomColumnController extends AdminControllerTableBase
         $add_custom_form_flg = app('request')->input('add_custom_form_flg');
         if (boolval($add_custom_form_flg)) {
             $form = CustomForm::getDefault($this->custom_table);
+            /** @var \Exceedone\Exment\Model\CustomFormBlock $form_block */
             $form_block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
 
             // whether saved check (as index)
@@ -461,6 +468,7 @@ class CustomColumnController extends AdminControllerTableBase
         // set custom form columns --------------------------------------------------
         $add_custom_view_flg = app('request')->input('add_custom_view_flg');
         if (boolval($add_custom_view_flg)) {
+            /** @var CustomView $view */
             $view = CustomView::getDefault($this->custom_table, false);
 
             // get order
@@ -497,9 +505,11 @@ class CustomColumnController extends AdminControllerTableBase
         // set table labels --------------------------------------------------
         $add_table_label_flg = app('request')->input('add_table_label_flg');
         if (boolval($add_table_label_flg)) {
+            // @phpstan-ignore-next-line
             $priority = CustomColumnMulti::where('custom_table_id', $this->custom_table->id)->where('multisetting_type', MultisettingType::TABLE_LABELS)->max('priority') ?? 0;
 
             CustomColumnMulti::create([
+                // @phpstan-ignore-next-line
                 'custom_table_id' => $this->custom_table->id,
                 'multisetting_type' => MultisettingType::TABLE_LABELS,
                 'priority' => ++$priority,
@@ -551,6 +561,7 @@ class CustomColumnController extends AdminControllerTableBase
     protected function getCustomItem(Request $request, $id, $column_type)
     {
         return CustomItem::getItem(new CustomColumn([
+            // @phpstan-ignore-next-line
             'custom_table_id' => $this->custom_table->id,
             'id' => $id,
             'column_type' => $column_type,

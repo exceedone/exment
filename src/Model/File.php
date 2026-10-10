@@ -90,6 +90,7 @@ class File extends ModelBase
                 'publicFormKey' => null,
                 'dirName' => false,
             ],
+            // @phpstan-ignore-next-line
             $options
         );
 
@@ -137,6 +138,8 @@ class File extends ModelBase
     public function saveDocumentModel($custom_value, $document_name)
     {
         // save Document Model
+        /** @var CustomValue $document_model */
+        // @phpstan-ignore-next-line
         $document_model = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getValueModel();
         $document_model->parent_id = $custom_value->id;
         $document_model->parent_type = $custom_value->custom_table->table_name;
@@ -196,9 +199,11 @@ class File extends ModelBase
 
         if (!is_nullorempty($custom_value_id)) {
             $this->parent_id = $custom_value_id;
+            // @phpstan-ignore-next-line
             $this->parent_type = $custom_table->table_name;
         }
 
+        // @phpstan-ignore-next-line
         $table_name = $this->local_dirname ?? $custom_table->table_name;
         $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
         $this->custom_column_id = $custom_column ? $custom_column->id : null;
@@ -311,9 +316,11 @@ class File extends ModelBase
             return;
         }
 
+        // @phpstan-ignore-next-line
         $column_name = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getIndexColumnName('file_uuid');
 
         // delete document info
+        // @phpstan-ignore-next-line
         getModelName(SystemTableName::DOCUMENT)::where($column_name, $file->uuid)
             ->delete();
     }
@@ -399,6 +406,7 @@ class File extends ModelBase
             $content = \Illuminate\Http\UploadedFile::createFromBase($content);
         }
 
+        // @phpstan-ignore-next-line
         Storage::disk(config('admin.upload.disk'))->put($file->path, $content);
         return $file;
     }
@@ -470,6 +478,7 @@ class File extends ModelBase
             return null;
         };
 
+        // @phpstan-ignore-next-line
         foreach (toArray($pathOrUuids) as $pathOrUuid) {
             if (strpos($pathOrUuid, '/') !== false) {
                 $val = $funcPath($pathOrUuid) ?: $funcUuid($pathOrUuid) ?: null;

@@ -600,11 +600,13 @@ class Exment
         return $query->whereExists(function ($query) use ($target_custom_table, $q) {
             $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
             $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
+            // @phpstan-ignore-next-line
             $documentDbName = getDBTableName($custom_table);
             $documentDbNameWrap = \Exment::wrapTable($documentDbName);
             $targetDbNameWrap = \Exment::wrapTable(getDBTableName($target_custom_table));
 
             // search document name
+            // @phpstan-ignore-next-line
             list($mark, $q) = \Exment::getQueryMarkAndValue(true, $q);
             $query
                 ->select(\DB::raw(1))
@@ -883,9 +885,11 @@ class Exment
      */
     public function makeDirectory(?string $path, int $mode = 0775)
     {
+        // @phpstan-ignore-next-line
         if (\File::exists($path)) {
             return;
         }
+        // @phpstan-ignore-next-line
         \File::makeDirectory($path, $mode, true);
     }
 

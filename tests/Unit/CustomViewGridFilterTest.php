@@ -375,7 +375,10 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
+        /** @var CustomValue $target */
+        // @phpstan-ignore-next-line
         $target = $custom_table->getValueModel()->find(10);
         $auto_number = substr($target->getValue('auto_number'), 0, 5);
 
@@ -528,6 +531,7 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->__testGridFilter([$db_column_name => 'test1'], function ($data) {
             $actual = array_get($data, 'value.file_multiple');
             return collect($actual)->contains(function($path) {
+                /** @var \Exceedone\Exment\Model\File $file */
                 $file = ExmentFile::getData($path);
                 return Str::startsWith($file->filename, 'test1');
             });
@@ -544,6 +548,8 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
 
         $custom_table = CustomTable::getEloquent($this->table_name);
+        /** @var Workflow $workflow */
+        // @phpstan-ignore-next-line
         $workflow = Workflow::getWorkflowByTable($custom_table);
         $workflow_status = $workflow->workflow_statuses->first(function($data) {
             return $data->status_name == 'status1';
@@ -568,6 +574,7 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
 
         // Login user.
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC));
 
         $this->__testGridFilter(['workflow_work_users' => 1], function ($data) {
@@ -658,8 +665,10 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
         // 対象データを抽出
+        // @phpstan-ignore-next-line
         $values = $custom_table->getValueModel()
             ->where('id', 1)
             ->get();
@@ -721,9 +730,11 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $targets = [TestDefine::TESTDATA_USER_LOGINID_USER2, TestDefine::TESTDATA_USER_LOGINID_DEV_USERB];
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
 
         // 対象データを抽出
+        // @phpstan-ignore-next-line
         $values = $custom_table->getValueModel()
             ->whereIn('updated_user_id', $targets)
             ->whereIn('value->select', ['bar', 'baz'])
@@ -744,10 +755,12 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
         $custom_column = CustomColumn::getEloquent('integer', $custom_table);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
+        // @phpstan-ignore-next-line
         $values = $custom_table->getValueModel()
             ->whereBetween('value->integer', [100, 100000])
             ->whereIn('value->select', ['bar', 'baz'])
@@ -768,10 +781,12 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
         $custom_column = CustomColumn::getEloquent('select_valtext', $custom_table);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
+        // @phpstan-ignore-next-line
         $values = $custom_table->getValueModel()
             ->whereIn('value->select_valtext', ['foo', 'baz'])
             ->whereIn('value->select', ['bar', 'baz'])
@@ -793,13 +808,16 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $this->table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
+        /** @var Workflow $workflow */
         $workflow = Workflow::getWorkflowByTable($custom_table);
         $workflow_status = $workflow->workflow_statuses->first(function($data) {
             return $data->status_name == 'status1';
         });
         $target_id = $workflow_status->id;
 
+        // @phpstan-ignore-next-line
         $values = $custom_table->getValueModel()
             ->get()
             ->filter(function($item) {
@@ -822,8 +840,10 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $this->table_name = TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
 
+        // @phpstan-ignore-next-line
         $values = $custom_table->getValueModel()
             ->where('parent_id', 5)
             ->get();
@@ -843,15 +863,19 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
+        /** @var CustomTable $parent_table */
         $parent_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
         $target_column = CustomColumn::getEloquent('odd_even', $parent_table);
 
         $this->table_name = TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
 
+        // @phpstan-ignore-next-line
         $values = $custom_table->getValueModel()
             ->get()
             ->filter(function($data) use($parent_table) {
+                /** @var CustomValue $parent_data */
                 $parent_data = $parent_table->getValueModel($data->parent_id);
                 return $parent_data->getValue('odd_even') == 'odd';
             })
@@ -876,9 +900,11 @@ class CustomViewGridFilterTest extends UnitTestBase
         $target_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL);
         $target_column = CustomColumn::getEloquent('multiples_of_3', $target_table);
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
         $pivot_column = CustomColumn::getEloquent('select_table', $custom_table);
 
+        // @phpstan-ignore-next-line
         $values = $custom_table->getValueModel()
             ->whereIn('value->select', ['bar', 'baz'])
             ->get()
@@ -927,6 +953,8 @@ class CustomViewGridFilterTest extends UnitTestBase
     protected function saveComment($id, $comment)
     {
         // save Comment Model
+        /** @var CustomValue $model */
+        // @phpstan-ignore-next-line
         $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
         $model->parent_id = $id;
         $model->parent_type = $this->table_name;
@@ -981,7 +1009,9 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($this->table_name);
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::where('view_view_name', $custom_table->table_name . '-view-summary')->first();
         $default = new SummaryGrid($custom_table, $custom_view);
 

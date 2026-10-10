@@ -36,6 +36,7 @@ class DayLastXDayOrBefore extends DayBeforeAfterBase
     {
         $today = \Carbon\Carbon::today();
         $target_day = $today->addDays(-1 * intval($conditionValue));
+        // @phpstan-ignore-next-line
         return \Exment::getCarbonOnlyDay($value)->lte($target_day);
     }
 }

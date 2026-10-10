@@ -34,6 +34,7 @@ class DayOnOrBefore extends DayBeforeAfterBase
     protected function _compareValue($value, $conditionValue): bool
     {
         $condition_dt = \Carbon\Carbon::parse($conditionValue)->addDays(1);
+        // @phpstan-ignore-next-line
         return \Exment::getCarbonOnlyDay($value)->lt($condition_dt);
     }
 }

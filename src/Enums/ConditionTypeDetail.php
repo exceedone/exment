@@ -47,12 +47,14 @@ class ConditionTypeDetail extends EnumBase
 
         switch ($form_priority_type) {
             case ConditionTypeDetail::USER:
+                // @phpstan-ignore-next-line
                 $model = getModelName(SystemTableName::USER)::get();
                 foreach ($model as $m) {
                     $result[$m->id] = $m->getLabel();
                 }
                 break;
             case ConditionTypeDetail::ORGANIZATION:
+                // @phpstan-ignore-next-line
                 $model = getModelName(SystemTableName::ORGANIZATION)::get();
                 foreach ($model as $m) {
                     $result[$m->id] = $m->getLabel();

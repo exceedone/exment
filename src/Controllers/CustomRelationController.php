@@ -132,13 +132,16 @@ class CustomRelationController extends AdminControllerTableBase
     protected function form($id = null)
     {
         $form = new Form(new CustomRelation());
+        // @phpstan-ignore-next-line
         $form->internal('parent_custom_table_id')->default($this->custom_table->id);
 
         $form->descriptionHtml(sprintf(exmtrans('custom_relation.help.relation_caution'), getManualUrl('relation')));
 
+        // @phpstan-ignore-next-line
         $form->display('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table"))->default($this->custom_table->table_view_name);
 
         $custom_table = $this->custom_table;
+        // @phpstan-ignore-next-line
         $custom_table_id = $this->custom_table->id;
 
         if (isset($id)) {
@@ -182,6 +185,7 @@ class CustomRelationController extends AdminControllerTableBase
                 ->help(exmtrans("custom_relation.help.parent_import_column_id", $manual_url))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'relation_type', 'value' => [RelationType::ONE_TO_MANY]])])
                 ->options(function ($select_table, $form) use ($custom_table) {
+                    // @phpstan-ignore-next-line
                     return CustomTable::getEloquent($custom_table)->getColumnsSelectOptions([
                         'append_table' => false,
                         'include_system' => false
@@ -192,6 +196,7 @@ class CustomRelationController extends AdminControllerTableBase
                 ->help(exmtrans("custom_relation.help.parent_export_column_id", $manual_url))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'relation_type', 'value' => [RelationType::ONE_TO_MANY]])])
                 ->options(function ($select_table, $form) use ($custom_table) {
+                    // @phpstan-ignore-next-line
                     return CustomTable::getEloquent($custom_table)->getColumnsSelectOptions([
                         'append_table' => false,
                         'include_system' => false

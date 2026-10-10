@@ -20,7 +20,9 @@ class Plugin extends PluginValidatorBase
         $currency = array_get($this->input_value, 'currency');
 
         // 元の値を取得する
+        // @phpstan-ignore-next-line
         $old_integer = $this->original_value->getValue('integer');
+        // @phpstan-ignore-next-line
         $old_currency = $this->original_value->getValue('currency');
 
         if (isset($integer) && isset($currency)) {

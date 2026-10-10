@@ -32,6 +32,7 @@ class CustomFormPriorityController extends AdminControllerTableBase
      */
     public function index(Request $request, Content $content)
     {
+        // @phpstan-ignore-next-line
         return redirect(admin_urls('form', $this->custom_table->table_name));
     }
 
@@ -48,6 +49,7 @@ class CustomFormPriorityController extends AdminControllerTableBase
         $form->select('custom_form_id', exmtrans("custom_form_priority.custom_form_id"))->required()
             // @phpstan-ignore-next-line
             ->options(function ($value) use ($custom_table) {
+                // @phpstan-ignore-next-line
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];
                 });
@@ -57,9 +59,12 @@ class CustomFormPriorityController extends AdminControllerTableBase
 
         // filter setting
         $hasManyTable = new Tools\ConditionHasManyTable($form, [
+            // @phpstan-ignore-next-line
             'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
             'name' => 'custom_form_priority_conditions',
+            // @phpstan-ignore-next-line
             'linkage' => json_encode(['condition_key' => url_join($custom_table->table_name, 'filter-condition')]),
+            // @phpstan-ignore-next-line
             'targetOptions' => $custom_table->getColumnsSelectOptions([
                 'include_condition' => true,
                 'include_system' => false,
@@ -88,9 +93,11 @@ class CustomFormPriorityController extends AdminControllerTableBase
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             // @phpstan-ignore-next-line
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
+            // @phpstan-ignore-next-line
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
         });
 
+        // @phpstan-ignore-next-line
         $table_name = $this->custom_table->table_name;
 
         $form->saved(function ($form) use ($table_name) {

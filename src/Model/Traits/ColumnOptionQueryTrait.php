@@ -159,6 +159,7 @@ trait ColumnOptionQueryTrait
         $is_index = $options['is_index'];
         $add_options = $options['add_options'];
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
         // create from custom column
         $array = $custom_table->custom_columns->filter(function ($custom_column) use ($is_index, $options) {

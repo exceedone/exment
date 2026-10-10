@@ -134,6 +134,7 @@ class SupportForV12 extends Migration
         foreach (static::ADD_INDEX_TABLES as $table_name => $column_name) {
             $columns = \Schema::getIndexDefinitions($table_name, $column_name);
  
+            // @phpstan-ignore-next-line
             if (count($columns) > 0) {
                 continue;
             }
@@ -151,6 +152,7 @@ class SupportForV12 extends Migration
     protected function addDeletedIndex()
     {
         // add deleted_at index in custom values table
+        // @phpstan-ignore-next-line
         if (count(Schema::getIndexDefinitions('custom_values', 'deleted_at')) == 0) {
             Schema::table('custom_values', function (Blueprint $t) {
                 $t->index(['deleted_at']);
@@ -172,6 +174,7 @@ class SupportForV12 extends Migration
             }
 
             // check index
+            // @phpstan-ignore-next-line
             if (count(Schema::getIndexDefinitions($table, 'deleted_at')) > 0) {
                 continue;
             }
@@ -214,10 +217,12 @@ class SupportForV12 extends Migration
     protected function dropSuuidUnique($table)
     {
         $columns = \Schema::getUniqueDefinitions($table, 'suuid');
+        // @phpstan-ignore-next-line
         if (count($columns) == 0) {
             return;
         }
 
+        // @phpstan-ignore-next-line
         foreach ($columns as $column) {
             $keyName = array_get($column, 'key_name');
             

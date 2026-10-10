@@ -178,6 +178,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
             $custom_table = CustomTable::getEloquent($this->getOption('target_table_id'));
             $custom_view = CustomView::getEloquent($this->getOption('target_view_id'));
             return [
+                // @phpstan-ignore-next-line
                 'table_name' => array_get($custom_table, 'table_name'),
                 'column_name' => $view_column,
                 'view_column_type' => $view_column,

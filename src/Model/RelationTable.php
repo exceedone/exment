@@ -110,6 +110,7 @@ class RelationTable
             ],
             $options
         );
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($custom_table);
 
         // check already execute
@@ -244,11 +245,14 @@ class RelationTable
      */
     public static function getRelationTableByKey(?string $key): ?RelationTable
     {
+        // @phpstan-ignore-next-line
         if (is_nullorempty($key) || strpos($key, '?') === false) {
             return null;
         }
 
+        // @phpstan-ignore-next-line
         $custom_column_id = explode('?', $key)[0];
+        // @phpstan-ignore-next-line
         parse_str(explode('?', $key)[1], $prms);
 
         return static::getRelationTable(
@@ -442,12 +446,15 @@ class RelationTable
     public static function setQuery($query, $searchType, $value, $params = [])
     {
         $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
+        /** @var CustomTable $child_table */
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
 
         switch ($searchType) {
             case SearchType::ONE_TO_MANY:
+                // @phpstan-ignore-next-line
                 return static::setQueryOneMany($query, $parent_table, $child_table, $value);
             case SearchType::MANY_TO_MANY:
+                // @phpstan-ignore-next-line
                 return static::setQueryManyMany($query, $parent_table, $child_table, $value);
             case SearchType::SELECT_TABLE:
                 $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
@@ -553,19 +560,23 @@ class RelationTable
     public function setParentJoin($query, $params = [])
     {
         $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
+        /** @var CustomTable $child_table */
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
         $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
         $leftJoin = boolval(array_get($params, 'leftJoin'));
 
         switch ($this->searchType) {
             case SearchType::ONE_TO_MANY:
+                // @phpstan-ignore-next-line
                 return $this->setParentJoinOneMany($query, $parent_table, $child_table, $leftJoin);
             case SearchType::MANY_TO_MANY:
+                // @phpstan-ignore-next-line
                 return $this->setParentJoinManyMany($query, $parent_table, $child_table, $leftJoin);
             case SearchType::SELECT_TABLE:
                 if (\is_nullorempty($custom_column) && !\is_nullorempty($child_table)) {
                     $custom_column = $child_table->getSelectTableColumns($parent_table)->first();
                 }
+                // @phpstan-ignore-next-line
                 return $this->setParentJoinSelectTable($query, $parent_table, $custom_column, $leftJoin);
         }
 
@@ -583,6 +594,7 @@ class RelationTable
     // @phpstan-ignore-next-line
     public function setSummaryChildJoin($query, $params = [])
     {
+        /** @var CustomTable $parent_table */
         $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
         $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));

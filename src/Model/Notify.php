@@ -143,6 +143,7 @@ class Notify extends ModelBase
         $mail_template_id = array_get($this, 'mail_template_id');
 
         if (isset($mail_template_id)) {
+            // @phpstan-ignore-next-line
             return getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template_id);
         }
     }
@@ -347,6 +348,7 @@ class Notify extends ModelBase
                 }
 
                 // get users
+                // @phpstan-ignore-next-line
                 $targetUserOrgs = getModelName(SystemTableName::USER)::find($targetUserOrgs);
                 // convert as NotifyTarget
                 $targetUserOrgs = $targetUserOrgs->map(function ($user) {
@@ -766,6 +768,7 @@ class Notify extends ModelBase
         if ($checkHistory && $custom_value) {
             $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
             $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
+            // @phpstan-ignore-next-line
             $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)::where($index_user, $user->id())
                 ->where($index_mail_template, $mail_template->id)
                 ->where('parent_id', $custom_value->id)

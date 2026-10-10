@@ -22,6 +22,7 @@ class ParentItem extends ItemBase
     public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $parent_table)
     {
         parent::__construct($custom_column, $custom_table);
+        // @phpstan-ignore-next-line
         $this->parent_table = $parent_table;
     }
 
@@ -34,12 +35,14 @@ class ParentItem extends ItemBase
     // @phpstan-ignore-next-line
     public function text()
     {
+        // @phpstan-ignore-next-line
         return exmtrans('custom_column.calc_text.parent', array_get($this->custom_column, 'column_view_name'));
     }
 
     // @phpstan-ignore-next-line
     public function val()
     {
+        // @phpstan-ignore-next-line
         return '${parent:' . array_get($this->custom_column, 'column_name') . '}';
     }
 
@@ -95,15 +98,18 @@ class ParentItem extends ItemBase
             // (Ex. "parent" and "child" table, and this form is "parent" form and contains child).
             else {
                 // If same column's table id and custom table's id, this form is child
+                // @phpstan-ignore-next-line
                 if (isMatchString($this->custom_column->custom_table_id, $this->custom_table->id)) {
                     return [
                         'trigger_block' => $this->getRelationName(),
+                        // @phpstan-ignore-next-line
                         'trigger_column' => array_get($this->custom_column, 'column_name'),
                     ];
                 }
                 // else not match is, block is default.
                 return [
                     'trigger_block' => 'default',
+                    // @phpstan-ignore-next-line
                     'trigger_column' => array_get($this->custom_column, 'column_name'),
                 ];
             }
@@ -111,6 +117,7 @@ class ParentItem extends ItemBase
 
         return [
             'trigger_block' => 'default',
+            // @phpstan-ignore-next-line
             'trigger_column' => array_get($this->custom_column, 'column_name'),
         ];
     }

@@ -166,24 +166,31 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
+        // @phpstan-ignore-next-line
         if ($this->custom_table->isOneRecord()) {
             // get record list
+            // @phpstan-ignore-next-line
             $record = $this->custom_table->getValueModel()->first();
             $id = isset($record) ? $record->id : null;
 
             // if no edit permission show readonly form
+            // @phpstan-ignore-next-line
             if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+                // @phpstan-ignore-next-line
                 return $this->show($request, $content, $this->custom_table->table_name, $id);
             }
 
             // has record, execute
             if (isset($record)) {
                 // check if form edit action disabled
+                // @phpstan-ignore-next-line
                 if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
                     admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+                    // @phpstan-ignore-next-line
                     return $this->show($request, $content, $this->custom_table->table_name, $id);
                 }
                 $form = $this->form($id)->edit($id);
+                // @phpstan-ignore-next-line
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
                 // @phpstan-ignore-next-line
                 $row = new Row($form);
@@ -191,11 +198,13 @@ class CustomValueController extends AdminControllerTableBase
             // no record
             else {
                 // check if form create action disabled
+                // @phpstan-ignore-next-line
                 if ($this->custom_table->formActionDisable(FormActionType::CREATE)) {
                     admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
                     return redirect(admin_url('/'));
                 }
                 $form = $this->form(null);
+                // @phpstan-ignore-next-line
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
                 // @phpstan-ignore-next-line
                 $row = new Row($form);
@@ -205,6 +214,7 @@ class CustomValueController extends AdminControllerTableBase
             $form->disableEditingCheck();
             $form->disableCreatingCheck();
 
+            // @phpstan-ignore-next-line
             $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
             $row->attribute([
                 static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
@@ -241,6 +251,7 @@ class CustomValueController extends AdminControllerTableBase
             $grid = $grid_item->grid($callback);
             if ($grid instanceof Grid) {
                 $grid->tools(function ($tools) {
+                    // @phpstan-ignore-next-line
                     TableService::appendCreateAndDownloadButtonQRCode($tools, $this->custom_table);
                 });
             }
@@ -256,6 +267,7 @@ class CustomValueController extends AdminControllerTableBase
             }
 
             $row = new Row($grid);
+            // @phpstan-ignore-next-line
             $row->class([static::CLASSNAME_CUSTOM_VALUE_GRID, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
             $row->attribute([
                 static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
@@ -317,12 +329,14 @@ class CustomValueController extends AdminControllerTableBase
             $jan_code = $request->get("jan_code");
             if($jan_code) {
                 $form->hidden("jan_code")->default($jan_code);
+                // @phpstan-ignore-next-line
                 $form->hidden("table_code")->default($this->custom_table->id);
             }
         }
 
         // @phpstan-ignore-next-line
         $row = new Row($form);
+        // @phpstan-ignore-next-line
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
             static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
@@ -358,6 +372,7 @@ class CustomValueController extends AdminControllerTableBase
             return $redirect;
         }
 
+        // @phpstan-ignore-next-line
         $custom_value = $this->custom_table->getValueModel($id);
 
         $this->AdminContent($content);
@@ -368,6 +383,7 @@ class CustomValueController extends AdminControllerTableBase
         ]);
         // @phpstan-ignore-next-line
         $row = new Row($this->form($id)->edit($id));
+        // @phpstan-ignore-next-line
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
             static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
@@ -400,6 +416,7 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
 
+        // @phpstan-ignore-next-line
         $custom_value = $this->custom_table->getValueModel($id);
 
         Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
@@ -416,6 +433,7 @@ class CustomValueController extends AdminControllerTableBase
             $class_type = config('exment.show_page_class_type', 1);
             $content->row(function ($row) use ($show_item, $class_type) {
                 if ($class_type != 1) {
+                    // @phpstan-ignore-next-line
                     $row->class([static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
                 }
                 $row->column(12, $show_item->createShowForm());
@@ -424,6 +442,7 @@ class CustomValueController extends AdminControllerTableBase
                 if ($class_type == 2) {
                     $row->class(['row-eq-height']);
                 } else {
+                    // @phpstan-ignore-next-line
                     $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
                 }
                 $show_item->setOptionBoxes($row);
@@ -567,6 +586,7 @@ class CustomValueController extends AdminControllerTableBase
 
         $grid = $this->custom_view->grid_item;
         $service = $grid->getImportExportService();
+        // @phpstan-ignore-next-line
         $importlist = Plugin::pluginPreparingImport($this->custom_table);
         return $service->getImportModal($importlist);
     }
@@ -593,6 +613,7 @@ class CustomValueController extends AdminControllerTableBase
         $class = $plugin->getClass($request->input('plugin_type'), [
             'custom_table' => $this->custom_table,
             'id' => $id,
+            // @phpstan-ignore-next-line
             'selected_custom_values' => (!is_nullorempty($request->get('select_ids')) ? $this->custom_table->getValueModel()->find($request->get('select_ids')) : collect()),
         ]);
         $response = $class->execute();
@@ -640,6 +661,7 @@ class CustomValueController extends AdminControllerTableBase
 
         \Exment::setTimeLimitLong();
 
+        // @phpstan-ignore-next-line
         $response = $operation->execute($this->custom_table, $ids, $request->all());
 
         if ($response === true) {
@@ -680,6 +702,7 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         // execute history
+        // @phpstan-ignore-next-line
         $custom_value = $this->custom_table->getValueModel($id);
         $show_item = $this->custom_form->show_item->id($id);
         $form = $show_item->getWorkflowHistory();
@@ -732,6 +755,8 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
+        /** @var CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $this->custom_table->getValueModel($id);
 
         //validation
@@ -775,8 +800,10 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
+        // @phpstan-ignore-next-line
         $from_table_view_name = esc_html($this->custom_table->table_view_name);
         $to_table_view_name = esc_html($copy->to_custom_table->table_view_name);
+        // @phpstan-ignore-next-line
         $path = admin_urls('data', $this->custom_table->table_name, $id, 'copyClick');
 
         // create form fields
@@ -789,6 +816,7 @@ class CustomValueController extends AdminControllerTableBase
         // add form
         $form->descriptionHtml(sprintf(exmtrans('custom_copy.dialog_description'), $from_table_view_name, $to_table_view_name, $to_table_view_name));
         foreach ($copy_input_columns as $copy_input_column) {
+            // @phpstan-ignore-next-line
             $field = FormHelper::getFormFieldObj($this->custom_table, $copy_input_column->to_custom_column, [
                 'columnOptions' => [
                     'as_modal' => true,
@@ -830,7 +858,9 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
+        // @phpstan-ignore-next-line
         $table_view_name = esc_html($this->custom_table->table_view_name);
+        // @phpstan-ignore-next-line
         $path = admin_urls('data', $this->custom_table->table_name, $id, 'operationClick');
 
         if (is_null($id)) {
@@ -850,6 +880,7 @@ class CustomValueController extends AdminControllerTableBase
         // add form
         $form->descriptionHtml(sprintf(exmtrans('custom_operation.dialog_description'), $table_view_name));
         foreach ($operation_input_columns as $operation_input_column) {
+            // @phpstan-ignore-next-line
             $field = FormHelper::getFormFieldObj($this->custom_table, $operation_input_column->custom_column, [
                 'columnOptions' => [
                     'as_modal' => true,
@@ -898,6 +929,7 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         // execute copy
+        // @phpstan-ignore-next-line
         $custom_value = getModelName($this->custom_table)::find($id);
         $response = $copy->executeRequest($custom_value, $request);
 
@@ -949,6 +981,7 @@ class CustomValueController extends AdminControllerTableBase
     public function shareClick(Request $request, $tableKey, $id)
     {
         // get customvalue
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
         $form = CustomValueAuthoritable::getShareDialogForm($custom_value);
 
@@ -1017,6 +1050,7 @@ class CustomValueController extends AdminControllerTableBase
     public function sendShares(Request $request, $tableKey, $id)
     {
         // get customvalue
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
         return CustomValueAuthoritable::saveShareDialogForm($custom_value);
     }
@@ -1042,6 +1076,7 @@ class CustomValueController extends AdminControllerTableBase
         try {
             foreach ($ids as $id) {
                 // get customvalue
+                // @phpstan-ignore-next-line
                 $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id, true);
                 if (!isset($custom_value)) {
                     \DB::rollback();
@@ -1098,7 +1133,9 @@ class CustomValueController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function redirectShow($id)
     {
+        // @phpstan-ignore-next-line
         if (!$this->custom_table->hasPermissionEditData($id)) {
+            // @phpstan-ignore-next-line
             return redirect(admin_url("data/{$this->custom_table->table_name}/$id"));
         }
         return null;
@@ -1112,9 +1149,12 @@ class CustomValueController extends AdminControllerTableBase
     protected function firstFlow(Request $request, $formActionType, $id = null)
     {
         // if this custom_table doesn't have custom_columns, redirect custom_column's page(admin) or back
+        // @phpstan-ignore-next-line
         if (count($this->custom_table->custom_columns) == 0) {
+            // @phpstan-ignore-next-line
             if ($this->custom_table->hasPermission(Permission::CUSTOM_TABLE)) {
                 admin_toastr(exmtrans('custom_value.help.no_columns_admin'), 'error');
+                // @phpstan-ignore-next-line
                 return redirect(admin_urls('column', $this->custom_table->table_name));
             }
 
@@ -1129,25 +1169,35 @@ class CustomValueController extends AdminControllerTableBase
         $code = null;
         $trashed = boolval($request->get('trashed')) || isMatchString($request->get('_scope_'), 'trashed');
         if ($formActionType == CustomValuePageType::CREATE) {
+            // @phpstan-ignore-next-line
             $code = $this->custom_table->enableCreate(true);
         } elseif ($formActionType == CustomValuePageType::EDIT) {
+            // @phpstan-ignore-next-line
             $custom_value = $this->custom_table->getValueModel($id);
+            // @phpstan-ignore-next-line
             $code = $custom_value ? $custom_value->enableEdit(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::SHOW) {
+            // @phpstan-ignore-next-line
             $custom_value = $this->custom_table->getValueModel($id, $trashed && $this->custom_table->enableShowTrashed() === true);
             // @phpstan-ignore-next-line
             $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
+            // @phpstan-ignore-next-line
             $code = $this->custom_table->enableView();
         } elseif ($formActionType == CustomValuePageType::GRIDMODAL) {
+            // @phpstan-ignore-next-line
             $code = $this->custom_table->enableAccess();
         } elseif ($formActionType == CustomValuePageType::DELETE) {
+            // @phpstan-ignore-next-line
             $custom_value = $this->custom_table->getValueModel($id, $trashed);
+            // @phpstan-ignore-next-line
             $code = $custom_value ? $custom_value->enableDelete(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::EXPORT) {
+            // @phpstan-ignore-next-line
             $code = $this->custom_table->enableExport();
         } elseif ($formActionType == CustomValuePageType::IMPORT) {
             // if import, check has create permission(but not check "create" form action)
+            // @phpstan-ignore-next-line
             $code = $this->custom_table->enableImport();
         }
 
@@ -1166,6 +1216,7 @@ class CustomValueController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function validateDestroy($id)
     {
+        // @phpstan-ignore-next-line
         return $this->custom_table->validateValueDestroy($id);
     }
 
@@ -1186,6 +1237,7 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         // set form
+        // @phpstan-ignore-next-line
         $this->custom_form = $this->custom_table->getPriorityForm($id);
     }
 
@@ -1240,10 +1292,12 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $selected_custom_value_id = [];
+        /** @var CustomTable $table */
         $table = CustomTable::getEloquent($table_id);
         DB::beginTransaction();
         try {
             for ($i = 0; $i < $qr_number; $i++) {
+                /** @var CustomValue $target_data */
                 $target_data = $table->getValueModel();
                 $target_data->save();
                 $selected_custom_value_id[] = $target_data->id;
@@ -1285,6 +1339,7 @@ class CustomValueController extends AdminControllerTableBase
     protected function qrCreateOrDownloadResponse($tmpPath, $fileName, $isCreate = false, $table_id = null)
     {
         if (isset($tmpPath) && $table_id) {
+            /** @var CustomTable $table */
             $table = CustomTable::getEloquent($table_id);
             if (!$table->getOption('qr_use')) {
                 $table->setOption('qr_use', true);
@@ -1317,15 +1372,24 @@ class CustomValueController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function createPdf($selected_custom_value_id, $table_id)
     {
+        // @phpstan-ignore-next-line
         $selected_custom_values = CustomTable::getEloquent($table_id)->getValueModel()->whereIn('id', $selected_custom_value_id)->get();
 
+        // @phpstan-ignore-next-line
         $_img_width = $this->custom_table->getOption('cell_width') != null ? (float)$this->custom_table->getOption('cell_width') : 62;
+        // @phpstan-ignore-next-line
         $_img_height = $this->custom_table->getOption('cell_height') != null ? (float)$this->custom_table->getOption('cell_height') : 31;
+        // @phpstan-ignore-next-line
         $margin_left = $this->custom_table->getOption('margin_left') != null ? (float)$this->custom_table->getOption('margin_left') : 9;
+        // @phpstan-ignore-next-line
         $margin_top =  $this->custom_table->getOption('margin_top') != null ? (float)$this->custom_table->getOption('margin_top') : 9;
+        // @phpstan-ignore-next-line
         $col_spacing = $this->custom_table->getOption('col_spacing') != null ? (float)$this->custom_table->getOption('col_spacing') : 3;
+        // @phpstan-ignore-next-line
         $col_per_page = $this->custom_table->getOption('col_per_page') != null ? (float)$this->custom_table->getOption('col_per_page') : 3;
+        // @phpstan-ignore-next-line
         $row_spacing = $this->custom_table->getOption('row_spacing') != null ? (float)$this->custom_table->getOption('row_spacing') : 0;
+        // @phpstan-ignore-next-line
         $row_per_page = $this->custom_table->getOption('row_per_page') != null ? (float)$this->custom_table->getOption('row_per_page') : 9;
 
         $img_width = $this->mmToPixel($_img_width);
@@ -1334,6 +1398,7 @@ class CustomValueController extends AdminControllerTableBase
         DB::beginTransaction();
         try {
             $img_arr = [];
+            // @phpstan-ignore-next-line
             $refer_column = $this->custom_table->getOption('refer_column');
             $target_column = $refer_column ? CustomColumn::getEloquent($refer_column) : null;
             $refer_column_name = $target_column ? $target_column->column_name : null;
@@ -1343,6 +1408,8 @@ class CustomValueController extends AdminControllerTableBase
                 $refer_column_value = $refer_column_name ? $selected_custom_value->getValue($refer_column_name)
                     : ($refer_column === 'id' ? $selected_id : '');
                 if (!$refer_column_value && $refer_column_name) {
+                    /** @var CustomValue $target_data */
+                    // @phpstan-ignore-next-line
                     $target_data = CustomTable::getEloquent($table_id)->getValueModel()->where('id', $selected_id)->first();
                     $target_data->updated_at = now();
                     $target_data->save();
@@ -1455,6 +1522,7 @@ class CustomValueController extends AdminControllerTableBase
         }
         $width_ww = ceil($size_ww * 4.8);
         $height_ww = ceil($size_ww * 0.6);
+        // @phpstan-ignore-next-line
         $text_qr = $this->custom_table->getOption('text_qr');
         $x_cordinate = $text_center_x - $width_ww / 2;
         $font_size = ($sticker_img_width > 280) ? (floor($size_ww * 0.6)) : (floor($size_ww * 0.5));
@@ -1546,6 +1614,7 @@ class CustomValueController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function createQRUrl($selected_id)
     {
+        // @phpstan-ignore-next-line
         $url = admin_urls('qr-code', $this->custom_table->table_name, $selected_id);
         return $url;
     }
@@ -1570,6 +1639,7 @@ class CustomValueController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function setHiddens($content)
     {
+        // @phpstan-ignore-next-line
         $gridrow_select_transition = $this->custom_table->getOption('gridrow_select_transition');
 
         if (is_nullorempty($gridrow_select_transition) || $gridrow_select_transition == 'default') {

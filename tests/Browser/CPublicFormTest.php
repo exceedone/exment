@@ -133,6 +133,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         /** @var CustomTable $table */
         $table = CustomTable::where('table_name', 'custom_value_edit_all')->first();
+        /** @var CustomForm $target_form */
         $target_form = $table->custom_forms->first();
 
         /** @var CustomColumn $email */

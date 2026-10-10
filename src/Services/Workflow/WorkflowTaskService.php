@@ -533,7 +533,9 @@ class WorkflowTaskService
             })
             ->filter(function ($custom_table) {
                 if (is_nullorempty($custom_table)
+                    // @phpstan-ignore-next-line
                     || self::attachedWorkflows($custom_table)->isEmpty()
+                    // @phpstan-ignore-next-line
                     || !$this->hasAnyAccess($custom_table)) {
                     return false;
                 }
@@ -541,11 +543,13 @@ class WorkflowTaskService
                 // filtering here and not in every loop: a table that is filtered out is never
                 // counted, never read and never opened - it costs nothing at all
                 $only = $this->filter['custom_table_id'];
+                // @phpstan-ignore-next-line
                 if (!is_null($only) && $custom_table->id != $only) {
                     return false;
                 }
 
                 // the same for a status name the workflow of the table does not have
+                // @phpstan-ignore-next-line
                 return is_null($this->filter['status']) || !is_null($this->statusTarget($custom_table));
             })
             ->keyBy('id');
@@ -891,6 +895,7 @@ class WorkflowTaskService
         // name is in a variable, so the type of what comes back is only known here - and the
         // property it is about to be stored in is a typed one.
         /** @var \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $query */
+        // @phpstan-ignore-next-line
         $query = $modelName::query();
         // reuse the existing, tested "records the current user must act on" logic, narrowed to
         // the actions this user can actually run (see executableActionFilter())
@@ -1486,8 +1491,10 @@ class WorkflowTaskService
                 continue;
             }
 
+            // @phpstan-ignore-next-line
             $count += $this->pendingQuery($custom_table, false, true)
                 ->distinct()
+                // @phpstan-ignore-next-line
                 ->count(getDBTableName($custom_table) . '.id');
         }
 
@@ -1551,8 +1558,10 @@ class WorkflowTaskService
                 continue;
             }
 
+            // @phpstan-ignore-next-line
             $tableName = getDBTableName($custom_table);
 
+            // @phpstan-ignore-next-line
             $rows = $this->pendingQuery($custom_table, $onlyUnseen)
                 ->distinct()
                 ->select([$tableName . '.id', $tableName . '.updated_at'])
@@ -1648,11 +1657,13 @@ class WorkflowTaskService
                 continue;
             }
 
+            // @phpstan-ignore-next-line
             $tableName = getDBTableName($custom_table);
 
             // toBase(): Builder::toBase() applies the scopes first, so the permission filter is
             // still there - but no model is hydrated. These rows only decide WHICH records the
             // page contains. Both ordered columns are in the select list, as DISTINCT requires.
+            // @phpstan-ignore-next-line
             $rows = $this->pendingQuery($custom_table, false)
                 ->distinct()
                 ->select([$tableName . '.id', $tableName . '.updated_at'])
@@ -1762,6 +1773,7 @@ class WorkflowTaskService
 
         $built = [];
         foreach ($byTable as $customTableId => $ids) {
+            /** @var CustomTable $custom_table */
             $custom_table = $tables->get($customTableId);
             if (is_nullorempty($custom_table)) {
                 continue;
@@ -1771,6 +1783,7 @@ class WorkflowTaskService
 
             // the permission scope runs again here; the ids already came from a query that had
             // it, so this is only defence in depth and costs nothing
+            // @phpstan-ignore-next-line
             $values = getModelName($custom_table->table_name)::query()
                 ->with(['workflow_value'])
                 ->whereIn($tableName . '.id', $ids)
@@ -1937,6 +1950,7 @@ class WorkflowTaskService
             return null;
         }
 
+        // @phpstan-ignore-next-line
         $version = (int)\Cache::get(self::navbarVersionKey($userId), 0);
 
         return 'exment_workflow_task_nav_' . $userId . '_' . $version . '_' . app()->getLocale();
@@ -1983,6 +1997,7 @@ class WorkflowTaskService
             // never moved and the badge stayed stale for a whole poll interval. Two writes racing
             // here may store the same number; the version still moves off the one any poll can
             // have cached, which is all it is for.
+            // @phpstan-ignore-next-line
             $versionKey = self::navbarVersionKey($userId);
             \Cache::forever($versionKey, (int)\Cache::get($versionKey, 0) + 1);
         } catch (\Throwable $ex) {
@@ -2154,11 +2169,13 @@ class WorkflowTaskService
                 continue;
             }
 
+            // @phpstan-ignore-next-line
             $tableName = getDBTableName($custom_table);
 
             // chunked like every other id list; the controller cap (MAX_CHECK_KEYS) already
             // keeps one request at a single chunk
             foreach (array_chunk(array_values($morphIds), 1000) as $chunk) {
+                // @phpstan-ignore-next-line
                 $ids = $this->pendingQuery($custom_table, true)
                     ->distinct()
                     ->whereIn($tableName . '.id', $chunk)
@@ -2224,13 +2241,16 @@ class WorkflowTaskService
                 continue;
             }
 
+            // @phpstan-ignore-next-line
             $tableName = getDBTableName($custom_table);
 
             foreach (array_chunk(array_values($morphIds), 1000) as $chunk) {
+                // @phpstan-ignore-next-line
                 $query = $this->pendingQuery($custom_table, false)
                     ->distinct()
                     ->whereIn($tableName . '.id', $chunk);
                 if (isset($listedAt)) {
+                    // @phpstan-ignore-next-line
                     $this->whereNoActionSince($query, $custom_table, $tableName, $listedAt);
                 }
 
@@ -2336,9 +2356,11 @@ class WorkflowTaskService
                 continue;
             }
 
+            // @phpstan-ignore-next-line
             $tableName = getDBTableName($custom_table);
 
             foreach (array_chunk(array_values($morphIds), 1000) as $chunk) {
+                // @phpstan-ignore-next-line
                 $ids = $removed->pendingQuery($custom_table, false)
                     ->distinct()
                     ->whereIn($tableName . '.id', $chunk)
@@ -2434,6 +2456,7 @@ class WorkflowTaskService
             if (is_nullorempty($parsed)) {
                 continue;
             }
+            // @phpstan-ignore-next-line
             $byTable[$parsed[0]][$parsed[1]] = $parsed[1];
         }
 

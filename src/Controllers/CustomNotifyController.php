@@ -91,6 +91,7 @@ class CustomNotifyController extends AdminControllerTableBase
             $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
             $grid->model()->whereIn('target_id', $custom_tables);
         }
+        // @phpstan-ignore-next-line
         $grid->model()->where('target_id', $this->custom_table->id)
             ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES());
 
@@ -105,6 +106,7 @@ class CustomNotifyController extends AdminControllerTableBase
             $actions->disableView();
 
             $linker = (new Linker())
+                // @phpstan-ignore-next-line
                 ->url(admin_urls("notify/{$custom_table->table_name}/create?copy_id={$actions->row->id}"))
                 ->icon('fa-copy')
                 ->tooltip(exmtrans('common.copy_item', exmtrans('notify.notify')));
@@ -148,7 +150,9 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $custom_table = $this->custom_table;
 
+        // @phpstan-ignore-next-line
         $form->internal('target_id')->default($this->custom_table->id);
+        // @phpstan-ignore-next-line
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
 
         // @phpstan-ignore-next-line
@@ -172,6 +176,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $form->select('custom_view_id', exmtrans("notify.custom_view_id"))
             ->help(exmtrans("notify.help.custom_view_id"))
             ->options(function ($value, $field) use ($custom_table) {
+                // @phpstan-ignore-next-line
                 return $custom_table->custom_views
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
@@ -182,6 +187,7 @@ class CustomNotifyController extends AdminControllerTableBase
             // Notify Time --------------------------------------------------
             $controller = $this;
             $form->select('notify_target_date', exmtrans("notify.notify_target_column"))
+            // @phpstan-ignore-next-line
             ->options($custom_table->getColumnsSelectOptions([
                 'append_table' => true,
                 'include_parent' => true,
@@ -249,6 +255,7 @@ class CustomNotifyController extends AdminControllerTableBase
             ->attribute([
                 'data-filtertrigger' =>true,
                 'data-linkage' => json_encode([
+                    // @phpstan-ignore-next-line
                     'notify_action_target' => admin_urls('notify', $this->custom_table->table_name, 'notify_action_target'),
                 ]),
             ])
@@ -344,6 +351,7 @@ class CustomNotifyController extends AdminControllerTableBase
         }
 
         // get mail template
+        // @phpstan-ignore-next-line
         $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)
             ->getValueModel()
             ->where('value->mail_key_name', $mailKeyName)

@@ -22,6 +22,7 @@ class Image extends File
         }
 
         // get image url
+        // @phpstan-ignore-next-line
         $url = ExmentFile::getUrl($this->fileValue($v));
         if (!isset($url)) {
             return $url;

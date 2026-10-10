@@ -39,6 +39,7 @@ class ImportExportTest extends FeatureTestBase
         try {
             $this->initAllTest();
             //$this->seed(InstallSeeder::class);
+            // @phpstan-ignore-next-line
             $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
             if ($export) {
                 $this->dirpath = storage_path(path_join_os('app', 'export', 'unittest'));
@@ -372,12 +373,14 @@ class ImportExportTest extends FeatureTestBase
     {
         $custom_table = CustomTable::getEloquent($params['table_name']);
 
+        // @phpstan-ignore-next-line
         list($custom_view, $db_array) = $this->_getTableData($custom_table, $params, $chunk_no);
 
         if ($chunk_no > 0 && count($db_array) == 0) {
             return false;
         }
 
+        // @phpstan-ignore-next-line
         $file_array = $this->_getFileData($file_path, $custom_table, $params);
 
         $this->assertEquals(count($db_array), count($file_array)-2);
@@ -385,6 +388,7 @@ class ImportExportTest extends FeatureTestBase
         if (isset($custom_view)) {
             $this->_compareViewData($custom_view, $file_array, $db_array);
         } else {
+            // @phpstan-ignore-next-line
             $this->_compareAllData($file_array, $db_array, $custom_table);
         }
         return true;

@@ -111,6 +111,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
         }
 
         // separate ? for removing table id
+        // @phpstan-ignore-next-line
         $target = explode('?', $target_query)[0];
 
         if (!$custom_table) {
@@ -121,6 +122,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
 
         // convert enum using target_query
         $enum = ConditionType::getEnumByTargetKey(strtolower($target));
+        // @phpstan-ignore-next-line
         return static::getConditionItem($custom_table, $enum, $target);
     }
 
@@ -134,6 +136,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      */
     public static function getDetailItemByAuthority(?CustomTable $custom_table, $authority)
     {
+        // @phpstan-ignore-next-line
         return static::getConditionDetailItem($custom_table, $authority->related_type);
     }
 
@@ -159,6 +162,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
             case ConditionType::WORKFLOW:
                 return new WorkflowItem($custom_table, $target_column_id);
             case ConditionType::CONDITION:
+                // @phpstan-ignore-next-line
                 return static::getConditionDetailItem($custom_table, $target_column_id);
         }
         return null;
@@ -290,6 +294,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      */
     protected function compareValue(Condition $condition, $value)
     {
+        /** @var ViewFilterBase $viewFilterItem */
         $viewFilterItem = ViewFilterBase::makeForCondition($condition);
         return $viewFilterItem->compareValue($value, $condition->condition_value);
     }

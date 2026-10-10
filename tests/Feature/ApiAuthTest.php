@@ -68,6 +68,7 @@ class ApiAuthTest extends ApiTestBase
      */
     public function testApiAuthReadFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
         $this->get(admin_urls('api', 'data', 'custom_value_edit'))
@@ -88,6 +89,7 @@ class ApiAuthTest extends ApiTestBase
      */
     public function testApiAuthWriteFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
         $text = 'test' . date('YmdHis');
@@ -114,6 +116,7 @@ class ApiAuthTest extends ApiTestBase
      */
     public function testWebApiAuthTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
         $this->get(admin_urls('webapi', 'data', 'custom_value_edit'))

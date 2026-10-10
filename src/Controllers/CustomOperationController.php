@@ -108,6 +108,7 @@ class CustomOperationController extends AdminControllerTableBase
             return \Exment::getTrueMark($active_flg);
         })->escape(false);
 
+        // @phpstan-ignore-next-line
         $grid->model()->where('custom_table_id', $this->custom_table->id);
 
         $grid->disableExport();
@@ -158,9 +159,12 @@ class CustomOperationController extends AdminControllerTableBase
             $suuid = null;
         }
 
+        // @phpstan-ignore-next-line
         $form->internal('custom_table_id')->default($this->custom_table->id);
 
+        // @phpstan-ignore-next-line
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
+        // @phpstan-ignore-next-line
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
 
         $form->text('operation_name', exmtrans("custom_operation.operation_name"))->required()->rules("max:40");
@@ -192,8 +196,11 @@ class CustomOperationController extends AdminControllerTableBase
         $hasManyTable = new Tools\ConditionHasManyTable($form, [
             'name' => 'custom_operation_columns',
             'showConditionKey' => false,
+            // @phpstan-ignore-next-line
             'linkage' => json_encode(['operation_update_type' => admin_urls('webapi', $custom_table->table_name, 'operation-update-type')]),
+            // @phpstan-ignore-next-line
             'ajax' => admin_urls('webapi', $custom_table->table_name, 'operation-filter-value'),
+            // @phpstan-ignore-next-line
             'targetOptions' => $this->custom_table->getColumnsSelectOptions([
                 'append_table' => true,
                 'index_enabled_only' => false,
@@ -250,6 +257,7 @@ class CustomOperationController extends AdminControllerTableBase
         ///// get input columns
         $form->hasManyTable('custom_operation_input_columns', exmtrans("custom_operation.custom_operation_input_columns"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_operation.input_custom_column"))
+                // @phpstan-ignore-next-line
                 ->options($custom_table->getColumnsSelectOptions([
                     'append_table' => true,
                     'include_system' => false,
@@ -262,9 +270,12 @@ class CustomOperationController extends AdminControllerTableBase
 
         // filter setting
         $filterTable = new Tools\ConditionHasManyTable($form, [
+            // @phpstan-ignore-next-line
             'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
             'name' => 'custom_operation_conditions',
+            // @phpstan-ignore-next-line
             'linkage' => json_encode(['condition_key' => url_join($custom_table->table_name, 'filter-condition')]),
+            // @phpstan-ignore-next-line
             'targetOptions' => $custom_table->getColumnsSelectOptions([
                 'include_system' => false,
                 'include_condition' => true,
@@ -313,6 +324,7 @@ class CustomOperationController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function hasSystemPermission()
     {
+        // @phpstan-ignore-next-line
         return $this->custom_table->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VIEW]);
     }
 

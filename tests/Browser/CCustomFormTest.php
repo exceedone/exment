@@ -88,6 +88,7 @@ class CCustomFormTest extends ExmentKitTestCase
     public function testAddFormSuccess()
     {
         $custom_table = CustomTable::where('table_name', 'exmenttest_form')->first();
+        // @phpstan-ignore-next-line
         $custom_table_id = array_get($custom_table, 'id');
 
         $pre_cnt = CustomForm::count();
@@ -102,6 +103,7 @@ class CCustomFormTest extends ExmentKitTestCase
         ;
 
         $raw = CustomForm::where('custom_table_id', $custom_table_id)->orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $id = array_get($raw, 'id');
 
         // Update custom form
@@ -113,6 +115,7 @@ class CCustomFormTest extends ExmentKitTestCase
                 ->seeInElement('td', '更新したフォーム');
 
         $block = CustomFormBlock::where('custom_form_id', $id)->where('form_block_type', '0')->first();
+        // @phpstan-ignore-next-line
         $block_id = array_get($block, 'id');
 
         $columns = CustomColumn::where('custom_table_id', $custom_table_id)->get();
@@ -149,9 +152,11 @@ class CCustomFormTest extends ExmentKitTestCase
     public function testRelationFormSuccess()
     {
         $custom_table = CustomTable::where('table_name', 'parent_table')->first();
+        // @phpstan-ignore-next-line
         $custom_table_id = array_get($custom_table, 'id');
 
         $raw = CustomForm::where('custom_table_id', $custom_table_id)->where('default_flg', 1)->first();
+        // @phpstan-ignore-next-line
         $id = array_get($raw, 'id');
 
         $blocks = CustomFormBlock::where('custom_form_id', $id)->get();

@@ -32,6 +32,7 @@ class Google
      */
     public function index()
     {
+        /** @var \Illuminate\Contracts\Auth\Authenticatable $loginUser */
         $loginUser = \Admin::user();
 
         // if not available, send email
@@ -90,6 +91,7 @@ class Google
         }
 
         $verify_code = $request->get('code');
+        /** @var \Illuminate\Contracts\Auth\Authenticatable $loginuser */
         $loginuser = \Admin::user();
 
         if (!Auth2factorService::verifyCode('google', $verify_code)) {
@@ -117,13 +119,16 @@ class Google
             $loginuser->email,
             $key
         );
+        // @phpstan-ignore-next-line
         $qrSrc = base64_encode(\QrCode::format('png')->size(200)->generate($qrUrl));
 
         // android and iphone url
         $urlAndroid = 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2';
         $urlIphone = 'https://apps.apple.com/jp/app/google-authenticator/id388497605';
 
+        // @phpstan-ignore-next-line
         $qrSrcAndroid = base64_encode(\QrCode::format('png')->size(100)->generate($urlAndroid));
+        // @phpstan-ignore-next-line
         $qrSrcIphone = base64_encode(\QrCode::format('png')->size(100)->generate($urlIphone));
 
         return view('exment::auth.2factor.2factor-google-register', $this->getLoginPageData([
@@ -158,6 +163,7 @@ class Google
 
         $verify_code = $request->get('verify_code');
         $g2fa = $this->getG2fa();
+        /** @var \Illuminate\Contracts\Auth\Authenticatable $loginuser */
         $loginuser = \Admin::user();
         $key = decrypt($loginuser->auth2fa_key);
 

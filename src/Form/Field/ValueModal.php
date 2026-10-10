@@ -268,9 +268,11 @@ EOT;
         if ($this->text instanceof \Closure) {
             // @phpstan-ignore-next-line
             if ($this->form && $this->form->model()) {
+                // @phpstan-ignore-next-line
                 $this->text = $this->text->bindTo($this->form->model());
             }
 
+            // @phpstan-ignore-next-line
             $this->text(call_user_func($this->text, $this->value, $this));
         }
 

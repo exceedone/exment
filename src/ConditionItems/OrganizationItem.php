@@ -30,6 +30,7 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
      */
     public function getChangeField($key, $show_condition_key = true)
     {
+        // @phpstan-ignore-next-line
         return $this->getChangeFieldUserOrg(CustomTable::getEloquent(SystemTableName::ORGANIZATION), $key, $show_condition_key);
     }
 
@@ -55,6 +56,7 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
      */
     public function getText($key, $value, $showFilter = true)
     {
+        // @phpstan-ignore-next-line
         $model = getModelName(SystemTableName::ORGANIZATION)::find($value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
             $result = $model->filter()->map(function ($row) {

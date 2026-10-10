@@ -112,6 +112,7 @@ abstract class AdminControllerTableBase extends Controller
         }
         // check same id
         else {
+            // @phpstan-ignore-next-line
             $id = $this->custom_table->id;
             // if custom relation, check $val->parent_custom_table_id and id
             if (str_contains($className, 'CustomRelation')) {

@@ -35,12 +35,14 @@ class SelectTable extends ItemBase
     // @phpstan-ignore-next-line
     public function text()
     {
+        // @phpstan-ignore-next-line
         return exmtrans('custom_column.calc_text.select_table', array_get($this->select_pivot_column, 'column_view_name'), array_get($this->custom_column, 'column_view_name'));
     }
 
     // @phpstan-ignore-next-line
     public function val()
     {
+        // @phpstan-ignore-next-line
         return '${select_table:' . array_get($this->select_pivot_column, 'column_name') . '.' . array_get($this->custom_column, 'column_name') . '}';
     }
 

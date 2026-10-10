@@ -599,6 +599,7 @@ class WorkflowTestDataSeeder extends Seeder
                         'password' => array_get($user, 'password')
                     ]);
 
+                    /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
                     // @phpstan-ignore-next-line
                     $custom_value = CustomTable::getEloquent($table['custom_table'])->getValueModel();
                     $custom_value->setValue("text", "test_$userKey");
@@ -700,6 +701,7 @@ class WorkflowTestDataSeeder extends Seeder
         $is_edit = boolval($workflowObj->workflow_edit_flg);
 
         if (is_null($custom_value)) {
+            // @phpstan-ignore-next-line
             $custom_value = CustomTable::getEloquent($wfValue->morph_type)->getValueModel()->find($wfValue->morph_id);
         }
 
@@ -752,6 +754,7 @@ class WorkflowTestDataSeeder extends Seeder
         $notify->notify_view_name = $workflow->workflow_view_name;
         $notify->target_id = $workflow->id;
         $notify->notify_trigger = Enums\NotifyTrigger::WORKFLOW;
+        // @phpstan-ignore-next-line
         $notify->mail_template_id = $this->getMailTemplateFromKey(Enums\MailKeyName::WORKFLOW_NOTIFY)->id;
         $notify->action_settings = [[
             "notify_action" => Enums\NotifyAction::SHOW_PAGE,

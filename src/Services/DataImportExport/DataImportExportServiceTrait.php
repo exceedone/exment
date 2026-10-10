@@ -363,6 +363,7 @@ trait DataImportExportServiceTrait
     // @phpstan-ignore-next-line
     protected function customImport($import_plugin, $file, $custom_table_id = null)
     {
+        /** @var Plugin $plugin */
         $plugin = Plugin::find($import_plugin);
         $options = ['file' => $file];
         if (isset($custom_table_id)) {
@@ -607,6 +608,7 @@ trait DataImportExportServiceTrait
                     })->first();
                 }
 
+                /** @var CustomTable $target_table */
                 $target_table = CustomTable::getEloquent(array_get($data, 'parent_type'));
                 $parent_item = ParentItem::getItem($target_table);
                 if (isset($parent_item)) {

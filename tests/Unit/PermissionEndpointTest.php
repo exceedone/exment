@@ -210,6 +210,7 @@ class PermissionEndpointTest extends UnitTestBase
     public function testPermissionNoPermissionPass()
     {
         $this->init();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(9)); // dev2-userE
         $user = \Exment::user();
 
@@ -229,6 +230,7 @@ class PermissionEndpointTest extends UnitTestBase
     public function testPermissionNoPermissionDeny()
     {
         $this->init();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(9)); // dev2-userE
         $user = \Exment::user();
 
@@ -248,6 +250,7 @@ class PermissionEndpointTest extends UnitTestBase
     public function testPermissionAllEditPass()
     {
         $this->init();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(3)); // manage
         $user = \Exment::user();
 
@@ -267,6 +270,7 @@ class PermissionEndpointTest extends UnitTestBase
     public function testPermissionAllEditDeny()
     {
         $this->init();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(3)); // manage
         $user = \Exment::user();
 
@@ -285,6 +289,7 @@ class PermissionEndpointTest extends UnitTestBase
     public function testPermissionAdminPass()
     {
         $this->init();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(1)); // admin
         $user = \Exment::user();
 

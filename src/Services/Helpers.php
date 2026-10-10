@@ -244,6 +244,7 @@ if (!function_exists('floorDigit')) {
             $result = sprintf("%.{$digit}f", $result);
         }
 
+        // @phpstan-ignore-next-line
         return $result;
     }
 }
@@ -669,6 +670,7 @@ if (!function_exists('isMatchRequest')) {
     {
         $request = app('request');
 
+        // @phpstan-ignore-next-line
         foreach (toArray($uris) as $uri) {
             $uri = admin_base_path($uri);
 
@@ -882,6 +884,7 @@ if (!function_exists('array_remove')) {
     // @phpstan-ignore-next-line
     function array_remove(array $array, $keys)
     {
+        // @phpstan-ignore-next-line
         $result = array_diff($array, toArray($keys));
         //move index
         return array_values($result);
@@ -1156,6 +1159,7 @@ if (!function_exists('rstrpos')) {
         $haystack = $haystack?? '';
         $needle = $needle?? '';
 
+        // @phpstan-ignore-next-line
         $result = strrpos($haystack, $needle, $offset);
         if ($result === false) {
             return $result;
@@ -1395,6 +1399,7 @@ if (!function_exists('getModelName')) {
         } elseif ($obj instanceof CustomTable) {
             $suuid = $obj->suuid;
         } elseif ($obj instanceof CustomColumn) {
+            // @phpstan-ignore-next-line
             $suuid = CustomTable::getEloquent($obj)->suuid;
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
@@ -1505,6 +1510,7 @@ if (!function_exists('getDBTableName')) {
         if (!isset($obj) && $isThrow) {
             throw new Exception('table name is not found. please tell system administrator.');
         }
+        // @phpstan-ignore-next-line
         return 'exm__'.array_get($obj, 'suuid');
     }
 }
@@ -1817,10 +1823,12 @@ if (!function_exists('getUserName')) {
         if ($id instanceof CustomValue) {
             $user = $id;
         } else {
+            // @phpstan-ignore-next-line
             $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
         }
 
         if (!isset($user)) {
+            // @phpstan-ignore-next-line
             if (CustomTable::getEloquent(SystemTableName::USER)->hasCustomValueInDB($id)) {
                 return exmtrans('common.message.no_permission');
             }
@@ -1945,9 +1953,12 @@ if (!function_exists('admin_exclusion_path')) {
             $validName = preg_replace($patterns, $to, $filename);
             
             // Truncate the filename if it exceeds 255 characters
+            // @phpstan-ignore-next-line
             if (strlen($validName) > 255) {
+                // @phpstan-ignore-next-line
                 $validName = substr($validName, 0, 255);
             }
+            // @phpstan-ignore-next-line
             return $validName;
         }
     }

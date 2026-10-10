@@ -2419,6 +2419,7 @@ class CompareValueTest extends UnitTestBase
      */
     protected function initCompareValueTest($column_type, $filter_option): CustomTable
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('custom_value_view_all');
 
         $columns = [

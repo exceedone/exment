@@ -95,6 +95,7 @@ class ViewWithParentTest extends TestCase
         $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
+                // @phpstan-ignore-next-line
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE)::find($id);
             }
             $parent = $data?->getParentValue();
@@ -165,6 +166,7 @@ class ViewWithParentTest extends TestCase
         $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
+                // @phpstan-ignore-next-line
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE)::find($id);
             }
             $parent = $data?->getParentValue();
@@ -229,7 +231,9 @@ class ViewWithParentTest extends TestCase
          * Exceedone\Exment\Tests\Unit\ViewWithParentTest::getColumnFilterData()
          * (void) is used.     */
         $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($sort_column, $parent_table) {
+            // @phpstan-ignore-next-line
             $prev_parent = $parent_table::find(array_get($prev_data, 'parent_id'));
+            // @phpstan-ignore-next-line
             $parent = $parent_table::find(array_get($data, 'parent_id'));
             return $prev_parent->getValue($sort_column) <= $parent?->getValue($sort_column);
         }, $options);
@@ -291,7 +295,9 @@ class ViewWithParentTest extends TestCase
          * Exceedone\Exment\Tests\Unit\ViewWithParentTest::getColumnFilterData()
          * (void) is used.     */
         $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($parent_table) {
+            // @phpstan-ignore-next-line
             $prev_parent = $parent_table::find(array_get($prev_data, 'parent_id'));
+            // @phpstan-ignore-next-line
             $parent = $parent_table::find(array_get($data, 'parent_id'));
             return $prev_parent->id <= $parent->id;
         }, $options);
@@ -362,6 +368,7 @@ class ViewWithParentTest extends TestCase
         $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
+                // @phpstan-ignore-next-line
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)::find($id);
             }
             $select_table = $data?->getValue('select_table');
@@ -433,6 +440,7 @@ class ViewWithParentTest extends TestCase
         $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
+                // @phpstan-ignore-next-line
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)::find($id);
             }
             $select_table = $data?->getValue('select_table');
@@ -499,7 +507,9 @@ class ViewWithParentTest extends TestCase
          * Exceedone\Exment\Tests\Unit\ViewWithParentTest::getColumnFilterData()
          * (void) is used.     */
         $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($select_table, $sort_column) {
+            // @phpstan-ignore-next-line
             $prev_select = $select_table::find(array_get($prev_data, 'value.select_table'));
+            // @phpstan-ignore-next-line
             $select = $select_table::find(array_get($data, 'value.select_table'));
             return $prev_select?->getValue($sort_column) <= $select->getValue($sort_column);
         }, $options);
@@ -564,7 +574,9 @@ class ViewWithParentTest extends TestCase
          * Exceedone\Exment\Tests\Unit\ViewWithParentTest::getColumnFilterData()
          * (void) is used.     */
         $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($select_table, $sort_column) {
+            // @phpstan-ignore-next-line
             $prev_select = $select_table::find(array_get($prev_data, 'value.select_table'));
+            // @phpstan-ignore-next-line
             $select = $select_table::find(array_get($data, 'value.select_table'));
             return array_get($prev_select, $sort_column) >= array_get($select, $sort_column);
         }, $options);
@@ -640,6 +652,7 @@ class ViewWithParentTest extends TestCase
         $array = $this->getColumnFilterData(function ($data, $custom_view) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
+                // @phpstan-ignore-next-line
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE)::find($id);
             }
             $parent = $data?->getParentValue();
@@ -719,6 +732,7 @@ class ViewWithParentTest extends TestCase
         $array = $this->getColumnFilterData(function ($data, $custom_view) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
+                // @phpstan-ignore-next-line
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE)::find($id);
             }
             $parent = $data?->getParentValue();
@@ -794,7 +808,9 @@ class ViewWithParentTest extends TestCase
          * (void) is used.     */
         $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($child_table) {
             if (!($data instanceof CustomValue)) {
+                // @phpstan-ignore-next-line
                 $data = $child_table::find(array_get($data, 'id'));
+                // @phpstan-ignore-next-line
                 $prev_data = $child_table::find(array_get($prev_data, 'id'));
             }
             $parent = $data?->getParentValue();
@@ -877,7 +893,9 @@ class ViewWithParentTest extends TestCase
          * (void) is used.     */
         $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($child_table) {
             if (!($data instanceof CustomValue)) {
+                // @phpstan-ignore-next-line
                 $data = $child_table::find(array_get($data, 'id'));
+                // @phpstan-ignore-next-line
                 $prev_data = $child_table::find(array_get($prev_data, 'id'));
             }
             $parent = $data?->getParentValue();
@@ -974,6 +992,7 @@ class ViewWithParentTest extends TestCase
         $array = $this->getColumnFilterData(function ($data, $custom_view) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
+                // @phpstan-ignore-next-line
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE)::find($id);
             }
             $child = $data?->getValue('child');
@@ -1002,6 +1021,7 @@ class ViewWithParentTest extends TestCase
             ['child_table.id.child', 'child_table.id.child_view', 'child_table.id.child_ajax']
         );
 
+        // @phpstan-ignore-next-line
         $target_data =  getModelName(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE)::find(5);
         $target_id_1 = $target_data?->getValue('child', ValueType::PURE_VALUE);
         $target_id_2 = $target_data?->getValue('child_view', ValueType::PURE_VALUE);
@@ -1057,6 +1077,7 @@ class ViewWithParentTest extends TestCase
             ['child_table.created_user.child', 'child_table.created_user.child_view', 'child_table.created_user.child_ajax']
         );
 
+        // @phpstan-ignore-next-line
         $target_data = getModelName(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE)::find(3);
         $target_id_1 = array_get($target_data?->getValue('child'), 'created_user_id');
         $target_id_2 = array_get($target_data?->getValue('child_view'), 'created_user_id');
@@ -1076,6 +1097,7 @@ class ViewWithParentTest extends TestCase
         $array = $this->getColumnFilterData(function ($data, $custom_view) use ($target_id_1, $target_id_2, $target_id_3) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
+                // @phpstan-ignore-next-line
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE)::find($id);
             }
             $child = $data?->getValue('child');
@@ -1169,7 +1191,9 @@ class ViewWithParentTest extends TestCase
          * (void) is used.     */
         $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($pivot_table) {
             if (!($data instanceof CustomValue)) {
+                // @phpstan-ignore-next-line
                 $data = $pivot_table::find(array_get($data, 'id'));
+                // @phpstan-ignore-next-line
                 $prev_data = $pivot_table::find(array_get($prev_data, 'id'));
             }
             $child = $data?->getValue('child');
@@ -1276,7 +1300,9 @@ class ViewWithParentTest extends TestCase
          * (void) is used.     */
         $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($pivot_table) {
             if (!($data instanceof CustomValue)) {
+                // @phpstan-ignore-next-line
                 $data = $pivot_table::find(array_get($data, 'id'));
+                // @phpstan-ignore-next-line
                 $prev_data = $pivot_table::find(array_get($prev_data, 'id'));
             }
             $child = $data?->getValue('child');
@@ -1385,6 +1411,7 @@ class ViewWithParentTest extends TestCase
         $grid->build();
         $data = $grid->rows();
 
+        // @phpstan-ignore-next-line
         $this->__testFilter($data, $custom_view, $testCallback, $options);
     }
 
@@ -1425,6 +1452,7 @@ class ViewWithParentTest extends TestCase
             }
 
             // check not getted values.
+            /** @var CustomTable $custom_table */
             $custom_table = CustomTable::getEloquent($options['target_table_name']);
             $ids = $collection->map(function ($data) {
                 return array_get($data?->model(), 'id');

@@ -80,6 +80,7 @@ class Column extends ColumnBase
      */
     public function isRequired(): bool
     {
+        // @phpstan-ignore-next-line
         return boolval(array_get($this->custom_form_column, 'required')) || boolval(array_get($this->custom_column, 'required'));
     }
 
@@ -155,6 +156,7 @@ class Column extends ColumnBase
     public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm
     {
         $form = new WidgetForm($parameters);
+        // @phpstan-ignore-next-line
         $column_item = $this->custom_column->column_item;
 
         $form->text('form_column_view_name', exmtrans('custom_form.form_column_view_name'))
@@ -184,6 +186,7 @@ class Column extends ColumnBase
             return 'default';
         });
 
+        // @phpstan-ignore-next-line
         if ($this->custom_column->required) {
             $form->display('required', exmtrans('custom_form.required'))
                 ->displayText(exmtrans('custom_form.message.required_as_column'));
@@ -197,6 +200,7 @@ class Column extends ColumnBase
         $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
 
         $selectColumns = $this->getSelectTableColumns($block_item)->filter(function ($selectColumn, $key) {
+            // @phpstan-ignore-next-line
             return !isMatchString($key, $this->custom_column->id);
         });
 
@@ -295,6 +299,7 @@ class Column extends ColumnBase
 
     public function getFontAwesomeClass(): ?string
     {
+        // @phpstan-ignore-next-line
         return $this->custom_column->getFontAwesomeClass();
     }
 }

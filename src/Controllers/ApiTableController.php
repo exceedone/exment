@@ -41,6 +41,7 @@ class ApiTableController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function tableColumns(Request $request)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             // @phpstan-ignore-next-line
             return abortJson(403, $code);
@@ -76,11 +77,13 @@ class ApiTableController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function views(Request $request, $tableKey)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             // @phpstan-ignore-next-line
             return abortJson(403, $code);
         }
 
+        // @phpstan-ignore-next-line
         $query = CustomView::where('custom_table_id', $this->custom_table->id);
 
         // set filter

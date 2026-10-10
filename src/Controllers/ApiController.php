@@ -52,6 +52,7 @@ class ApiController extends AdminControllerBase
         if (!isset($base_user)) {
             return null;
         }
+        // @phpstan-ignore-next-line
         $base_user = $base_user->makeHidden(CustomTable::getEloquent(SystemTableName::USER)->getMakeHiddenArray())
             ->toArray();
 
@@ -94,6 +95,7 @@ class ApiController extends AdminControllerBase
         }
 
         if ($isBase64) {
+            // @phpstan-ignore-next-line
             return response()->json(['base64' => base64_encode(\Storage::disk(config('admin.upload.disk'))->get($avatar))]);
         }
         return \Storage::disk(config('admin.upload.disk'))->response($avatar);
@@ -179,8 +181,10 @@ class ApiController extends AdminControllerBase
         }
 
         if ($onlyIndex) {
+            // @phpstan-ignore-next-line
             return CustomTable::getEloquent($table)->custom_columns()->indexEnabled()->get();
         } else {
+            // @phpstan-ignore-next-line
             return CustomTable::getEloquent($table)->custom_columns()->get();
         }
     }
@@ -348,6 +352,7 @@ class ApiController extends AdminControllerBase
             $query->where('user_id', $request->get('login_user_id'));
         }
         if ($request->has('base_user_id')) {
+            // @phpstan-ignore-next-line
             $base_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($request->get('base_user_id'));
             if ($base_user) {
                 $query->whereIn('user_id', $base_user->login_users->pluck('id')->toArray());
@@ -441,6 +446,7 @@ class ApiController extends AdminControllerBase
         }
 
         $error_users = collect($target_users)->filter(function ($target_user) {
+            // @phpstan-ignore-next-line
             return is_null(getModelName(SystemTableName::USER)::find($target_user));
         });
 
@@ -642,6 +648,7 @@ class ApiController extends AdminControllerBase
         // default count
         $count = config('exment.api_default_data_count', 20);
         foreach ($keys as $key) {
+            /** @var CustomTable $custom_table */
             $custom_table = CustomTable::getEloquent($key);
 
             if (($code = $custom_table->enableAccess()) !== true) {

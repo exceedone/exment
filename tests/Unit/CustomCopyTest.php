@@ -42,6 +42,7 @@ class CustomCopyTest extends UnitTestBase
         $copy = $this->_prepareCustomCopy($copy_settings);
         $id = array_get($copy, 'id');
 
+        // @phpstan-ignore-next-line
         $custom_value = getModelName($copy_settings['from_table_name'])::find(5);
         $response = $copy->execute($custom_value);
 
@@ -73,6 +74,7 @@ class CustomCopyTest extends UnitTestBase
         ];
         $copy = $this->_prepareCustomCopy($copy_settings);
 
+        // @phpstan-ignore-next-line
         $custom_value = getModelName($copy_settings['from_table_name'])::find(11);
 
         $response = $copy->execute($custom_value, $copy_settings['input_columns']);
@@ -96,6 +98,7 @@ class CustomCopyTest extends UnitTestBase
         ];
         $copy = $this->_prepareCustomCopy($copy_settings);
 
+        // @phpstan-ignore-next-line
         $custom_value = getModelName($copy_settings['from_table_name'])::find(5);
         $response = $copy->execute($custom_value);
 
@@ -123,6 +126,7 @@ class CustomCopyTest extends UnitTestBase
         ];
         $copy = $this->_prepareCustomCopy($copy_settings);
 
+        // @phpstan-ignore-next-line
         $custom_value = getModelName($copy_settings['from_table_name'])::find(3);
         $response = $copy->execute($custom_value, $copy_settings['input_columns']);
 
@@ -147,8 +151,10 @@ class CustomCopyTest extends UnitTestBase
         $id = array_get($copy, 'id');
 
         // test delete custom table with copy setting
+        // @phpstan-ignore-next-line
         $res = CustomTable::getEloquent($copy_settings['from_table_name'])->delete();
         $this->assertTrue($res);
+        // @phpstan-ignore-next-line
         $res = CustomTable::getEloquent($copy_settings['to_table_name'])->delete();
         $this->assertTrue($res);
 
@@ -168,6 +174,7 @@ class CustomCopyTest extends UnitTestBase
         $new_id = end($path_array);
         $table_name = prev($path_array);
 
+        // @phpstan-ignore-next-line
         $new_value = getModelName($table_name)::find($new_id);
 
         foreach ($custom_value->getValues() as $key => $value) {
@@ -207,6 +214,7 @@ class CustomCopyTest extends UnitTestBase
         // @phpstan-ignore-next-line
         $this->be(LoginUser::find($login_user_id));
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($from_table_name);
 
         if (isset($to_table_name)) {
@@ -258,6 +266,7 @@ class CustomCopyTest extends UnitTestBase
         if ($custom_copy->from_custom_table_id !== $custom_copy->to_custom_table_id) {
             $to_column = CustomColumn::where('custom_table_id', $custom_copy->to_custom_table_id)
                 ->where('column_name', $custom_column->column_name)->first();
+            // @phpstan-ignore-next-line
             $copy_column['to_column_target_id'] = $to_column->id;
         }
         return $copy_column;

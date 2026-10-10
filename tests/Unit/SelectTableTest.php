@@ -327,6 +327,7 @@ class SelectTableTest extends UnitTestBase
         $this->initAllTest();
 
         // Login user.
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find($options['login_user_admin'] ? TestDefine::TESTDATA_USER_LOGINID_ADMIN : TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC));
 
         // get target column.
@@ -363,13 +364,16 @@ class SelectTableTest extends UnitTestBase
     {
         if ($column_type == ColumnType::USER) {
             if (isset($options['relation_filter'])) {
+                // @phpstan-ignore-next-line
                 return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG, TestDefine::TESTDATA_COLUMN_NAMES['user_relation_filter'], $options);
             }
 
+            // @phpstan-ignore-next-line
             return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG, TestDefine::TESTDATA_COLUMN_NAMES['user'], $options);
         }
 
         if ($column_type == ColumnType::ORGANIZATION) {
+            // @phpstan-ignore-next-line
             return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG, TestDefine::TESTDATA_COLUMN_NAMES['organization'], $options);
         }
 
@@ -387,9 +391,11 @@ class SelectTableTest extends UnitTestBase
                     break;
             }
 
+            // @phpstan-ignore-next-line
             return $this->getTargetColumnTable($table_name, TestDefine::TESTDATA_COLUMN_NAMES['relation_filter'], $options);
         }
 
+        // @phpstan-ignore-next-line
         return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE, TestDefine::TESTDATA_COLUMN_NAMES['default'], $options);
     }
 

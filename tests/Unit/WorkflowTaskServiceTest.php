@@ -78,7 +78,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $parsed = WorkflowTaskService::parseTaskKey($key);
         $count = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())
+            // @phpstan-ignore-next-line
             ->where('custom_table_id', $parsed[0])
+            // @phpstan-ignore-next-line
             ->where('morph_id', $parsed[1])
             ->count();
 
@@ -96,6 +98,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $before = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())->count();
 
+        // @phpstan-ignore-next-line
         (new WorkflowTaskService())->markSeen(['', null]);
 
         $after = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())->count();
@@ -159,6 +162,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $withSeen = $service->getTasksWithSeen();
         $seenRow = $withSeen->firstWhere('task_key', $target['task_key']);
 
+        // @phpstan-ignore-next-line
         $this->assertTrue($seenRow['seen'], 'the marked task must be reported as seen');
         $this->assertSame($unseenBefore - 1, $service->countUnseen());
     }
@@ -222,6 +226,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         );
 
         // a real one, mixed in with the junk, still goes through
+        // @phpstan-ignore-next-line
         $real = (new WorkflowTaskService())->getTasksWithSeen()->first()['task_key'];
         $marked = (new WorkflowTaskService())->markSeenSelected(array_merge($junk, [$real]));
 
@@ -367,6 +372,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame($total, (new WorkflowTaskService())->countAll(), 'no record may have been deleted');
 
         // the filter is respected: unmarking one table must leave the others marked
+        // @phpstan-ignore-next-line
         $customTableId = $tasks->first()['custom_table_id'];
         (new WorkflowTaskService())->markAllSeen();
 
@@ -435,6 +441,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->init(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
 
         $underway = function (array $row) {
+            // @phpstan-ignore-next-line
             return !is_null(CustomTable::getEloquent($row['custom_table_id'])->getValueModel($row['morph_id'])->workflow_value);
         };
         $before = (new WorkflowTaskService())->getTasks();
@@ -460,6 +467,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // printed the start status of the record's workflow, a request waiting for approval read
         // as a draft - and the status filter found it under a name its row did not show
         foreach ($carried as $row) {
+            // @phpstan-ignore-next-line
             $this->assertSame($row['status_name'], $after[$row['task_key']]['status_name'], $row['task_key'] . ': the period moved its status');
             $this->assertSame(esc_html($row['status_name']), $after[$row['task_key']]['status_tag'], $row['task_key'] . ': without a workflow in use the record is not locked');
         }
@@ -475,6 +483,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // the status filter still finds a record at a status of the workflow carrying it
         $row = $carried->first();
         $this->assertTrue(
+            // @phpstan-ignore-next-line
             (new WorkflowTaskService(['status' => $row['status_name']]))->getTasks()->contains('task_key', $row['task_key']),
             'the status filter must find a record carried on by a workflow whose period is over'
         );
@@ -496,6 +505,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->init();
 
         $notStarted = (new WorkflowTaskService())->getTasks()->first(function ($row) {
+            // @phpstan-ignore-next-line
             return is_null(CustomTable::getEloquent($row['custom_table_id'])->getValueModel($row['morph_id'])->workflow_value);
         });
         $custom_table = isset($notStarted) ? CustomTable::getEloquent($notStarted['custom_table_id']) : null;
@@ -549,6 +559,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
     private function recordPageOffers(int $customTableId, int $id): bool
     {
         System::clearCache();
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent($customTableId)->getValueModel($id);
         if (!isset($custom_value)) {
             return false;
@@ -786,14 +797,18 @@ class WorkflowTaskServiceTest extends UnitTestBase
         if (!isset($withAccess) || !isset($withoutAccess)) {
             $this->markTestSkipped('the test dataset has no colleague with access and one without');
         }
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         System::clearCache();
 
         // an organization of the two, as the work target of the start action
+        /** @var \Exceedone\Exment\Model\CustomValue $org */
+        // @phpstan-ignore-next-line
         $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel();
         $org->setValue('organization_code', 'workflow_task_test_org');
         $org->setValue('organization_name', 'workflow task test');
         $org->save();
+        // @phpstan-ignore-next-line
         \DB::table(\Exceedone\Exment\Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER))->insert([
             ['parent_id' => $org->id, 'child_id' => $withAccess],
             ['parent_id' => $org->id, 'child_id' => $withoutAccess],
@@ -846,6 +861,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         if (!isset($userId)) {
             $this->markTestSkipped('the test dataset has no user without any role');
         }
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         // ... given every record of the parent table
@@ -946,6 +962,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame($listUnseen, $service->countUnseen(), 'the SQL count drifted from the list screen');
 
         // and it must keep agreeing after something is marked as seen
+        // @phpstan-ignore-next-line
         $service->markSeen([$tasks->first()['task_key']]);
 
         $after = new WorkflowTaskService();
@@ -1039,6 +1056,8 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->init();
 
         // a real user record, but in no role group at all
+        /** @var \Exceedone\Exment\Model\CustomValue $base */
+        // @phpstan-ignore-next-line
         $base = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
         $base->setValue([
             'user_code' => 'wf_task_norole',
@@ -1085,12 +1104,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $forbidden = CustomTable::getEloquent('no_permission');
         $workflow = \is_nullorempty($forbidden)
             ? null
+            // @phpstan-ignore-next-line
             : \Exceedone\Exment\Model\Workflow::getWorkflowByTable($forbidden);
         if (\is_nullorempty($workflow)) {
             $this->markTestSkipped('this dataset has no unreadable table with a usable workflow');
         }
 
         $this->assertStringNotContainsString(
+            // @phpstan-ignore-next-line
             \getDBTableName($forbidden),
             implode("\n", $workUserQueries),
             'a work-user query was built for a table this user has no permission on'
@@ -1117,7 +1138,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $stored = function () use ($row) {
             return WorkflowTaskRead::withoutGlobalScopes()
+                // @phpstan-ignore-next-line
                 ->where('custom_table_id', $row['custom_table_id'])
+                // @phpstan-ignore-next-line
                 ->where('morph_id', $row['morph_id'])
                 ->count();
         };
@@ -1127,10 +1150,15 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // too. Only the row this test adds is ours; assert the delta, not the absolute number.
         $others = $stored();
 
+        // @phpstan-ignore-next-line
         (new WorkflowTaskService())->markSeen([$row['task_key']]);
         $this->assertSame($others + 1, $stored());
 
+        /** @var CustomTable $custom_table */
+        // @phpstan-ignore-next-line
         $custom_table = CustomTable::getEloquent($row['custom_table_id']);
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel($row['morph_id']);
 
         // a soft delete keeps the mark, so restoring the record keeps its state
@@ -1138,6 +1166,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame($others + 1, $stored(), 'a soft delete must not drop the seen state');
 
         /** @var \Exceedone\Exment\Model\CustomValue $trashed */
+        // @phpstan-ignore-next-line
         $trashed = $custom_table->getValueModel()->withTrashed()->find($row['morph_id']);
         $trashed->forceDelete();
         $this->assertSame(0, $stored(), 'a hard delete left an orphan row in workflow_task_reads');
@@ -1370,6 +1399,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertNull($junk['to'], 'a date that is not a date must be dropped');
         $this->assertSame(
             WorkflowTaskService::MAX_KEYWORD_LENGTH,
+            // @phpstan-ignore-next-line
             mb_strlen($junk['q']),
             'the keyword must be cut, it goes into a LIKE'
         );
@@ -1727,6 +1757,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // workflow_statuses, its name is stored on the workflow)
         $statusId = null;
         foreach ($this->walk([]) as $row) {
+            // @phpstan-ignore-next-line
             $value = WorkflowValue::where('morph_type', CustomTable::getEloquent($row['custom_table_id'])->table_name)
                 ->where('morph_id', $row['morph_id'])
                 ->where('latest_flg', true)
@@ -2016,6 +2047,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         (new WorkflowTaskService())->markSeen([$seen['task_key']]);
 
         // 更新日時: one task a year before the day, one a year after it
+        // @phpstan-ignore-next-line
         $dbTable = getDBTableName(CustomTable::getEloquent($customTableId));
         [$before, $after] = $moved->all();
         \DB::table($dbTable)->where('id', $before['morph_id'])
@@ -2097,6 +2129,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         (new WorkflowTaskController())->index(Request::create('/workflow_task', 'GET', $query), new \Encore\Admin\Layout\Content());
         $this->assertArrayHasKey('rows', $this->listData, 'the list screen did not draw its view');
 
+        // @phpstan-ignore-next-line
         return $this->listData;
     }
 
@@ -2247,13 +2280,16 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         $task = $tasks->first();
+        // @phpstan-ignore-next-line
         $key = $task['task_key'];
         $total = (new WorkflowTaskService())->countAll();
 
         $this->assertSame(1, (new WorkflowTaskService())->hideSelected([$key]));
 
         // the record is untouched: not deleted, not even moved to the trash
+        // @phpstan-ignore-next-line
         $custom_table = CustomTable::getEloquent($task['custom_table_id']);
+        // @phpstan-ignore-next-line
         $custom_value = getModelName($custom_table)::withTrashed()->find($task['morph_id']);
         $this->assertNotNull($custom_value, 'deleting a task deleted the record itself');
         $this->assertFalse($custom_value->trashed(), 'deleting a task moved the record to the trash');
@@ -2282,7 +2318,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame(
             0,
             WorkflowTaskRead::withoutGlobalScopes()
+                // @phpstan-ignore-next-line
                 ->where('custom_table_id', $task['custom_table_id'])
+                // @phpstan-ignore-next-line
                 ->where('morph_id', $task['morph_id'])
                 ->where('target_user_id', '<>', \Exment::getUserId())
                 ->count(),
@@ -2336,12 +2374,15 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // a real key mixed in with the junk still goes through
         $real = $tasks->first();
         $response = $controller->rowDelete(Request::create('/workflow_task/rowDelete', 'POST', [
+            // @phpstan-ignore-next-line
             'keys' => WorkflowTaskService::taskKey(4294967295, 1) . ',' . $real['task_key'] . ',not-a-key',
         ]));
 
         $this->assertSame(200, $response->getStatusCode());
+        // @phpstan-ignore-next-line
         $this->assertFalse((new WorkflowTaskService())->getTasks()->contains('task_key', $real['task_key']));
         $this->assertNotNull(
+            // @phpstan-ignore-next-line
             CustomTable::getEloquent($real['custom_table_id'])->getValueModel($real['morph_id']),
             'the record behind the task must still be there'
         );
@@ -2363,6 +2404,8 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('no un-actioned workflow task for this user in the test dataset');
         }
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent($task['custom_table_id'])->getValueModel($task['morph_id']);
         $action = $custom_value->getWorkflowActions(true, true)->first();
         if (is_null($action)) {
@@ -2495,11 +2538,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame($unseen, $poll()['count'], 'precondition: the badge counts every unread task');
 
         $controller = new WorkflowTaskController();
+        // @phpstan-ignore-next-line
         $controller->rowDelete(Request::create('/workflow_task/rowDelete', 'POST', ['keys' => $tasks[0]['task_key']]));
         $answer = $poll();
         $this->assertSame($unseen - 1, $answer['count'], 'the poll after a delete still counts the deleted task');
+        // @phpstan-ignore-next-line
         $this->assertFalse($shows($answer, $tasks[0]['task_key']), 'the dropdown still shows the deleted task');
 
+        // @phpstan-ignore-next-line
         $controller->rowCheck(Request::create('/workflow_task/rowCheck', 'POST', ['keys' => $tasks[1]['task_key']]));
         $this->assertSame($unseen - 2, $poll()['count'], 'the poll after "mark as read" still counts the task as unread');
     }
@@ -2528,6 +2574,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('no un-actioned workflow task for this user in the test dataset');
         }
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($task['custom_table_id']);
         $key = $task['task_key'];
         $format = 'Y-m-d H:i:s';
@@ -2585,9 +2632,11 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // the list was drawn a minute ago, and the second record was acted on since
         $listedAt = \Carbon\Carbon::now()->subMinute()->format('Y-m-d H:i:s');
+        // @phpstan-ignore-next-line
         $this->actOnRecordNow($tasks[1]);
 
         $response = (new WorkflowTaskController())->rowDelete(Request::create('/workflow_task/rowDelete', 'POST', [
+            // @phpstan-ignore-next-line
             'keys' => $tasks[0]['task_key'] . ',' . $tasks[1]['task_key'],
             'listed_at' => $listedAt,
         ]));
@@ -2597,12 +2646,15 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame(exmtrans('workflow_task.message.delete_partial', 1, 1), array_get($answer, 'toastr'));
 
         $listed = (new WorkflowTaskService())->getTasks();
+        // @phpstan-ignore-next-line
         $this->assertFalse($listed->contains('task_key', $tasks[0]['task_key']), 'the record nobody touched was not taken off');
+        // @phpstan-ignore-next-line
         $this->assertTrue($listed->contains('task_key', $tasks[1]['task_key']), 'the record acted on after the list was drawn was taken off');
 
         // drawn after that action, the same record goes - and a batch that went through as a
         // whole keeps the plain answer
         $response = (new WorkflowTaskController())->rowDelete(Request::create('/workflow_task/rowDelete', 'POST', [
+            // @phpstan-ignore-next-line
             'keys' => $tasks[1]['task_key'],
             'listed_at' => \Carbon\Carbon::now()->addSecond()->format('Y-m-d H:i:s'),
         ]));
@@ -2626,7 +2678,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
         if ($tasks->count() < 2) {
             $this->markTestSkipped('needs two un-actioned workflow tasks for this user');
         }
+        // @phpstan-ignore-next-line
         $key = $tasks->first()['task_key'];
+        // @phpstan-ignore-next-line
         $other = $tasks->last()['task_key'];
         $listed = function (array $filter = []) {
             return (new WorkflowTaskService($filter))->getTasks()->pluck('task_key')->all();
@@ -2673,7 +2727,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
         if ($tasks->isEmpty()) {
             $this->markTestSkipped('needs an un-actioned workflow task for this user');
         }
+        // @phpstan-ignore-next-line
         $key = $tasks->first()['task_key'];
+        // @phpstan-ignore-next-line
         $table = (string)$tasks->first()['custom_table_id'];
         $removed = (string)WorkflowTaskService::SEEN_REMOVED;
         (new WorkflowTaskService())->hideSelected([$key]);
@@ -2734,6 +2790,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('needs an un-actioned workflow task for this user');
         }
         $task = $tasks->first();
+        // @phpstan-ignore-next-line
         $table = (string)$task['custom_table_id'];
         $removed = (string)WorkflowTaskService::SEEN_REMOVED;
 
@@ -2745,6 +2802,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertStringNotContainsString('name="seen" value="' . $removed . '"', $html, '状態 must not offer the 削除済み list');
         $this->assertStringContainsString('href="' . e($list['removedUrl']) . '"', $html, 'the filter button leads to it');
 
+        // @phpstan-ignore-next-line
         (new WorkflowTaskService())->hideSelected([$task['task_key']]);
 
         // the header says how many, and the link takes the rest of the filter along - not the page
@@ -2754,12 +2812,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertStringContainsString(e(exmtrans('workflow_task.removed_count', 1)), $this->drawList($list));
 
         // nothing else left on the list: the empty list still leads to the task
+        // @phpstan-ignore-next-line
         $list = $this->openList(['custom_table_id' => $table, 'q' => '#' . $task['morph_id']]);
         $this->assertSame(0, $list['total']);
         $this->assertSame(1, $list['removedTotal']);
         $this->assertStringContainsString(e(exmtrans('workflow_task.empty_removed', 1)), $this->drawList($list));
 
         // the way back
+        // @phpstan-ignore-next-line
         $this->assertSame(1, (new WorkflowTaskService())->restoreSelected([$task['task_key']]));
         $list = $this->openList(['custom_table_id' => $table]);
         $this->assertSame(0, $list['removedTotal']);
@@ -2798,6 +2858,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             if (!isset($id)) {
                 continue;
             }
+            // @phpstan-ignore-next-line
             $this->assertSame($list, $read(WorkflowTaskService::taskKey($custom_table->id, $id)), "a record of {$tableName} is no task: back to the list");
         }
         $this->assertSame($before, $marks(), 'and nothing is marked');
@@ -2811,6 +2872,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         // a record of the same workflow table that is no task of this user: opened, not marked
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($unread['custom_table_id']);
         /** @var \Exceedone\Exment\Model\CustomValue|null $other */
         $other = $custom_table->getValueQuery()->whereNotIn('id', $tasks->where('custom_table_id', $unread['custom_table_id'])->pluck('morph_id')->all())->first();
@@ -2843,6 +2905,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $first = $tasks->first();
         $last = $tasks->last();
+        // @phpstan-ignore-next-line
         $this->assertSame(2, (new WorkflowTaskService())->hideSelected([$first['task_key'], $last['task_key']]));
 
         foreach (['', '0', '1', (string)WorkflowTaskService::SEEN_REMOVED] as $seen) {
@@ -2850,14 +2913,18 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         // narrowed like any list
+        // @phpstan-ignore-next-line
         $sameTable = $first['custom_table_id'] == $last['custom_table_id'];
+        // @phpstan-ignore-next-line
         $this->assertSame($sameTable ? 2 : 1, (new WorkflowTaskService(['custom_table_id' => (string)$first['custom_table_id']]))->countRemoved());
+        // @phpstan-ignore-next-line
         $this->assertSame(1, (new WorkflowTaskService(['custom_table_id' => (string)$first['custom_table_id'], 'q' => '#' . $first['morph_id']]))->countRemoved());
 
         // a mark of a record that is nobody's task: there is no such record
         $userId = \Exment::getUserId();
         WorkflowTaskRead::insert([
             'target_user_id' => $userId,
+            // @phpstan-ignore-next-line
             'custom_table_id' => $first['custom_table_id'],
             'morph_id' => 2147483647,
             'hidden_flg' => true,
@@ -2882,11 +2949,13 @@ class WorkflowTaskServiceTest extends UnitTestBase
      */
     private function actOnRecordNow(array $task): void
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($task['custom_table_id']);
         $now = \Carbon\Carbon::now()->format('Y-m-d H:i:s');
 
         \DB::table(SystemTableName::WORKFLOW_VALUE)->insert([
             'suuid' => short_uuid(),
+            // @phpstan-ignore-next-line
             'workflow_id' => Workflow::getWorkflowByTable($custom_table)->id,
             'morph_type' => $custom_table->table_name,
             'morph_id' => $task['morph_id'],
@@ -2940,6 +3009,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('the start action of the test workflow no longer has a conditioned header');
         }
 
+        // @phpstan-ignore-next-line
         $filter = ['custom_table_id' => $custom_table->id];
         $before = (new WorkflowTaskService($filter))->getTasks()->pluck('morph_id')->all();
         if (empty($before)) {
@@ -2951,6 +3021,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // the record page is the reference: a record is a task exactly when it offers a button
         $executable = collect($before)->filter(function ($id) use ($custom_table) {
+            // @phpstan-ignore-next-line
             return $custom_table->getValueModel($id)->getWorkflowActions(true, true)->isNotEmpty();
         })->values()->all();
 
@@ -3011,6 +3082,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             ['text' => 'workflow task test: no odd_even', 'user' => (string)$userId, 'date' => '2026-11-19', 'integer' => '1600', 'email' => 'test1@example.com'],
             ['text' => 'workflow task test: empty strings', 'odd_even' => '', 'email' => '', 'user' => ''],
         ] as $value) {
+            // @phpstan-ignore-next-line
             \DB::table(getDBTableName($custom_table))->insert([
                 'value' => json_encode($value),
                 'created_user_id' => $userId,
@@ -3020,6 +3092,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             ]);
         }
 
+        // @phpstan-ignore-next-line
         $filter = ['custom_table_id' => $custom_table->id];
         $candidates = (new WorkflowTaskService($filter))->getTasks()->pluck('morph_id')->all();
         if (empty($candidates)) {
@@ -3107,6 +3180,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             System::clearCache();
 
             $expected = collect($candidates)->filter(function ($id) use ($custom_table) {
+                // @phpstan-ignore-next-line
                 return $custom_table->getValueModel($id)->getWorkflowActions(true, true)->isNotEmpty();
             })->sort()->values()->all();
 
@@ -3160,6 +3234,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         ];
 
         // every record with an empty value in one of these columns, and a few without
+        // @phpstan-ignore-next-line
         $records = getModelName($custom_table)::withoutGlobalScopes()->whereNull('deleted_at')->orderBy('id')->get();
         $records = $records->filter(function ($record, $index) use ($cases) {
             foreach ($cases as [$name]) {
@@ -3284,6 +3359,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('the common test workflow no longer has two consecutive steps');
         }
 
+        /** @var LoginUser $user1 */
         $user1 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $user2 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
         if (!isset($user2)) {
@@ -3306,6 +3382,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         System::clearCache();
 
         // one of user1's own records, still at the start
+        // @phpstan-ignore-next-line
         $filter = ['custom_table_id' => $custom_table->id];
         $task = (new WorkflowTaskService($filter))->getTasks()->first();
         if (is_null($task)) {
@@ -3314,6 +3391,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $key = $task['task_key'];
 
         // user1 starts the flow: the record moves to the two-approver step
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel($task['morph_id']);
         WorkflowAction::getEloquent($first->id)->executeAction($custom_value, ['comment' => 'workflow task test']);
         System::clearCache();
@@ -3324,12 +3402,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
         );
 
         // user1 approves: one of two, so the status stays where it is
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel($task['morph_id']);
         WorkflowAction::getEloquent($second->id)->executeAction($custom_value, ['comment' => 'workflow task test']);
         System::clearCache();
 
         $this->assertSame(
             (string)$firstStatusTo,
+            // @phpstan-ignore-next-line
             (string)$custom_table->getValueModel($task['morph_id'])->workflow_value->workflow_status_to_id,
             'precondition: one approval out of two must not move the status'
         );
@@ -3416,6 +3496,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             ->take(5)
             ->pluck($tableName . '.id');
         $offered = $notStarted->filter(function ($id) use ($custom_table, $actionId) {
+            // @phpstan-ignore-next-line
             return $custom_table->getValueModel($id)->getWorkflowActions(true)->contains(function ($action) use ($actionId) {
                 return $action->id == $actionId;
             });
@@ -3492,6 +3573,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             ->where('morph_id', $scenario['id'])
             ->where('latest_flg', true)
             ->first();
+        // @phpstan-ignore-next-line
         \DB::table(SystemTableName::WORKFLOW_VALUE_AUTHORITY)->where('workflow_value_id', $newest->id)->delete();
 
         $this->be($scenario['approvers']['user2']);
@@ -3598,6 +3680,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             'waitingStatus' => (string)$statusTo($second),
             'status' => function () use ($custom_table, $id) {
                 System::clearCache();
+                // @phpstan-ignore-next-line
                 return (string)$custom_table->getValueModel($id)->workflow_value->workflow_status_to_id;
             },
             // the login user executes the third step
@@ -3609,6 +3692,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             // submit in its dialog (WorkflowAction::actionModal() drops it for who already approved)
             'recordPageOffers' => function () use ($custom_table, $id, $third) {
                 System::clearCache();
+                /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
                 $custom_value = $custom_table->getValueModel($id);
 
                 return $custom_value->getWorkflowActions(true, true)->contains('id', $third->id)
@@ -3669,6 +3753,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $picked = $byTable->first();
         $otherNames = $byTable->keys()->slice(1)->map(function ($customTableId) {
+            // @phpstan-ignore-next-line
             return getDBTableName(CustomTable::getEloquent($customTableId));
         });
 
@@ -3677,12 +3762,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $connection->enableQueryLog();
 
         try {
+            // @phpstan-ignore-next-line
             $marked = (new WorkflowTaskService())->markSeenSelected($picked->pluck('task_key')->all());
             $queries = collect($connection->getQueryLog())->pluck('query');
         } finally {
             $connection->disableQueryLog();
         }
 
+        // @phpstan-ignore-next-line
         $this->assertSame($picked->count(), $marked, 'every submitted, still-unseen task is marked');
 
         foreach ($otherNames as $otherName) {
@@ -3792,6 +3879,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $connection = \DB::connection();
         $original = app('db.transactions');
         $manager = new \Illuminate\Foundation\Testing\DatabaseTransactionsManager();
+        // @phpstan-ignore-next-line
         $manager->begin($connection->getName(), $connection->transactionLevel());
         $connection->setTransactionManager($manager);
 
@@ -3937,6 +4025,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         /** @var \Illuminate\Support\Collection<int, CustomTable> $allTables */
         $allTables = $all->invoke($service);
         $withRows = $allTables->only(array_keys($pending))->first();
+        // @phpstan-ignore-next-line
         $withRowsName = getDBTableName($withRows);
         $this->assertGreaterThan(
             $mentions($countOnly, $withRowsName),

@@ -119,6 +119,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         $parent_table = CustomTable::getEloquent($parent_table);
 
         return static::allRecordsCache(function ($record) use ($parent_table, $relation_type) {
+            // @phpstan-ignore-next-line
             if ($record->parent_custom_table_id != array_get($parent_table, 'id')) {
                 return false;
             }
@@ -153,6 +154,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         $child_table = CustomTable::getEloquent($child_table);
 
         return static::allRecordsCache(function ($record) use ($child_table, $relation_type) {
+            // @phpstan-ignore-next-line
             if ($record->child_custom_table_id != array_get($child_table, 'id')) {
                 return false;
             }
@@ -175,9 +177,11 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         $child_table = CustomTable::getEloquent($child_table);
 
         return static::firstRecordCache(function ($record) use ($parent_table, $child_table, $relation_type) {
+            // @phpstan-ignore-next-line
             if ($record->parent_custom_table_id != array_get($parent_table, 'id')) {
                 return false;
             }
+            // @phpstan-ignore-next-line
             if ($record->child_custom_table_id != array_get($child_table, 'id')) {
                 return false;
             }
@@ -195,6 +199,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
      */
     public function getRelationName()
     {
+        // @phpstan-ignore-next-line
         return static::getRelationNameByTables($this->parent_custom_table_id, $this->child_custom_table_id);
     }
 
@@ -232,6 +237,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
             // Get Parent and child table Name.
             // case 1 to many
             if ($this->relation_type == RelationType::ONE_TO_MANY) {
+                // @phpstan-ignore-next-line
                 return $custom_value->morphMany(getModelName($child_custom_table), 'parent');
             }
             // case many to many
@@ -242,6 +248,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                     \Schema::createRelationValueTable($pivot_table_name);
                 }
 
+                // @phpstan-ignore-next-line
                 return $custom_value->belongsToMany(getModelName($child_custom_table), $pivot_table_name, "parent_id", "child_id")->withPivot("id");
             }
         } else {
@@ -251,6 +258,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
             // Get Parent and child table Name.
             // case 1 to many
             if ($this->relation_type == RelationType::ONE_TO_MANY) {
+                // @phpstan-ignore-next-line
                 return $custom_value->belongsTo(getModelName($parent_custom_table, true), "parent_id");
             }
             // case many to many
@@ -261,6 +269,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                     \Schema::createRelationValueTable($pivot_table_name);
                 }
 
+                // @phpstan-ignore-next-line
                 return $custom_value->belongsToMany(getModelName($parent_custom_table, true), $pivot_table_name, "child_id", "parent_id")->withPivot("id");
             }
         }

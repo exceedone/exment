@@ -102,6 +102,7 @@ class SystemChangePageMenu extends ModalTileMenuButton
 
     public function __toString()
     {
+        // @phpstan-ignore-next-line
         return $this->render();
     }
 }

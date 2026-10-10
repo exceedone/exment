@@ -339,6 +339,7 @@ class Initialize
             // Logo
             $val = System::site_logo();
             if (!is_nullorempty($val)) {
+                // @phpstan-ignore-next-line
                 Config::set('admin.logo', Html::image($val, 'header logo'));
             } else {
                 $val = System::site_name();
@@ -350,6 +351,7 @@ class Initialize
             // Logo(Short)
             $val = System::site_logo_mini();
             if (!is_nullorempty($val)) {
+                // @phpstan-ignore-next-line
                 Config::set('admin.logo-mini', Html::image($val, 'header logo mini'));
             } else {
                 $val = System::site_name_short();
@@ -367,6 +369,7 @@ class Initialize
             // Site layout
             $val = System::site_layout();
             if (!is_nullorempty($val)) {
+                // @phpstan-ignore-next-line
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
 

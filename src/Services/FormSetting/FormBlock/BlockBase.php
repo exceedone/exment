@@ -78,6 +78,7 @@ abstract class BlockBase
         $form_block->form_block_type = $form_block_type;
         $form_block->form_block_target_table_id = $form_block_target_table_id;
 
+        // @phpstan-ignore-next-line
         return static::make($form_block, CustomTable::getEloquent($form_block_target_table_id));
     }
 

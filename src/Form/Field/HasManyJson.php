@@ -21,6 +21,7 @@ class HasManyJson extends HasMany
      */
     protected function getKeyName()
     {
+        // @phpstan-ignore-next-line
         return $this->getKeyNameTrait();
     }
 

@@ -81,6 +81,7 @@ class LogOperation extends BaseLogOperation
     protected function hidePasswords($stringToLog)
     {
         $columns = implode("|", static::getHideColumns());
+        // @phpstan-ignore-next-line
         return preg_replace('#("(' . $columns . ')"\s*:\s*")([^"]*)"#', '\1***"', $stringToLog);
     }
 

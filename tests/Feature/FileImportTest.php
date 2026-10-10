@@ -65,6 +65,7 @@ class FileImportTest extends FileImportTestBase
             if (strpos($baseName, '~') === 0) {
                 continue;
             }
+            /** @var CustomTable $custom_table */
             $custom_table = CustomTable::getEloquent($baseName);
 
             $fileArray = $isCsv ? $this->_getCsvArray($file->getPathName()) : $this->_getXlsxArray($file->getPathName())[$baseName];
@@ -75,11 +76,13 @@ class FileImportTest extends FileImportTestBase
                 }
 
                 // get custom value
+                /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
                 $custom_value = $custom_table->getValueModel($array[0]);
 
                 // get column's value
                 $fileColumns = $custom_value->getValue($array[1]);
                 $this->assertTrue(!is_nullorempty($fileColumns));
+                /** @var \Exceedone\Exment\Model\File $fileInfo */
                 $fileInfo = $this->getMatchedPath($fileColumns, $array);
 
                 // check file

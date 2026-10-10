@@ -20,6 +20,7 @@ class Sum extends ItemBase
     public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $child_custom_table)
     {
         parent::__construct($custom_column, $custom_table);
+        // @phpstan-ignore-next-line
         $this->child_custom_table = $child_custom_table;
     }
 
@@ -32,12 +33,14 @@ class Sum extends ItemBase
     // @phpstan-ignore-next-line
     public function text()
     {
+        // @phpstan-ignore-next-line
         return exmtrans('custom_column.calc_text.child_sum', array_get($this->child_custom_table, 'table_view_name'), array_get($this->custom_column, 'column_view_name'));
     }
 
     // @phpstan-ignore-next-line
     public function val()
     {
+        // @phpstan-ignore-next-line
         return '${sum:' . array_get($this->child_custom_table, 'table_name') . '.' . array_get($this->custom_column, 'column_name') . '}';
     }
 

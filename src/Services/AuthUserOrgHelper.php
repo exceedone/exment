@@ -96,6 +96,7 @@ class AuthUserOrgHelper
         if (is_null($target_table)) {
             return null;
         }
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($target_table);
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS_ORGS, $target_table->id);
 
@@ -142,6 +143,7 @@ class AuthUserOrgHelper
         if (is_null($target_table)) {
             return [];
         }
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($target_table);
 
         // get custom_value's users
@@ -171,6 +173,7 @@ class AuthUserOrgHelper
         $target_ids = array_unique($target_ids);
         // return target values
         if (!isset($builder)) {
+            // @phpstan-ignore-next-line
             $builder = getModelName($table_name)::query();
         }
         if (!$all) {
@@ -192,6 +195,7 @@ class AuthUserOrgHelper
     public static function getRoleUserAndOrganizations($custom_value, $tablePermission = null, ?CustomTable $custom_table = null)
     {
         if (!$custom_table) {
+            // @phpstan-ignore-next-line
             $custom_table = $custom_value->custom_table;
         }
 
@@ -230,6 +234,7 @@ class AuthUserOrgHelper
                 }
 
                 // get real value
+                // @phpstan-ignore-next-line
                 $results[$idkey] = getModelName($idkey)::query()
                     ->withoutGlobalScope(CustomValueModelScope::class)
                     ->whereIn('id', $ids[$idkey])
@@ -255,6 +260,7 @@ class AuthUserOrgHelper
     // @phpstan-ignore-next-line
     protected static function getRoleUserOrgId($target_table, $related_type, $tablePermission = null)
     {
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($target_table);
 
         // Get role group contains target_table's
@@ -360,9 +366,11 @@ class AuthUserOrgHelper
     {
         return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_TREE, function () {
             $modelname = getModelName(SystemTableName::ORGANIZATION);
+            // @phpstan-ignore-next-line
             $indexName = $modelname::getParentOrgIndexName();
 
             // get query
+            // @phpstan-ignore-next-line
             $orgs = $modelname::with([
                 'users' => function ($query) {
                     // pass aborting

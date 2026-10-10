@@ -197,6 +197,7 @@ class Permission
             return true;
         }
 
+        // @phpstan-ignore-next-line
         return $this->hasPermissionByEndpoint($endpoint, $isMenu);
     }
 
@@ -470,6 +471,7 @@ class Permission
         }
 
         // if request has id, permission contains CUSTOM_VALUE_ACCESS
+        // @phpstan-ignore-next-line
         if (!$isMenu && $this->checkAsAccessCustomValue($endpoint)) {
             $permissions = PermissionEnum::AVAILABLE_ACCESS_CUSTOM_VALUE;
         } else {

@@ -243,6 +243,7 @@ class DashboardBoxController extends AdminControllerBase
         }
 
         // get custom views
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($id);
         $views = $custom_table->custom_views
             ->where('view_kind_type', '<>', ViewKindType::FILTER)

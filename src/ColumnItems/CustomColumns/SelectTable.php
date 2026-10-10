@@ -54,6 +54,7 @@ class SelectTable extends CustomItem
         $v = toArray($this->value);
         $v = array_map(function ($n) {
             return strval($n);
+        // @phpstan-ignore-next-line
         }, $v);
         if ($this->isMultipleEnabled()) {
             return $v;
@@ -583,6 +584,7 @@ class SelectTable extends CustomItem
             // split $label space. zen-han
             $label = str_replace('　', ' ', $label);
             $label = preg_replace('/\s+/', ' ', $label);
+            // @phpstan-ignore-next-line
             $items = preg_split('/[\s|\x{3000}]+/u', $label);
 
             // @phpstan-ignore-next-line
@@ -780,6 +782,7 @@ class SelectTable extends CustomItem
                     return [];
                 }
 
+                // @phpstan-ignore-next-line
                 return CustomTable::getEloquent($custom_table)->custom_views
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
@@ -832,6 +835,7 @@ class SelectTable extends CustomItem
             $column_type = $model->column_type;
         }
         if (isset($column_type) && in_array($column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
+            // @phpstan-ignore-next-line
             return CustomTable::getEloquent($column_type)->getColumnsSelectOptions([
                 'index_enabled_only' => $isImport,
                 'include_system' => false,

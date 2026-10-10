@@ -43,6 +43,7 @@ class FixedOrganization extends NotifyTargetBase
 
         $values = collect([]);
         foreach (stringToArray($orgs) as $org) {
+            // @phpstan-ignore-next-line
             $org = getModelName(SystemTableName::ORGANIZATION)::find($org);
             $values_inner = NotifyTarget::getModelsAsOrganization($org);
             foreach ($values_inner as $u) {

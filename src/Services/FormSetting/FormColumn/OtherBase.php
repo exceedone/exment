@@ -44,6 +44,7 @@ abstract class OtherBase extends ColumnBase
         $form_column->form_column_type = FormColumnType::OTHER;
         $form_column->form_column_target_id = $form_column_type_id;
 
+        // @phpstan-ignore-next-line
         return static::make($form_column);
     }
 

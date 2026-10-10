@@ -41,6 +41,7 @@ class ViewOnlyChildRowDisplayTest extends TestCase
      */
     private function makeColumn(string $column_type, array $options = []): CustomColumn
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('information');
         $custom_column = new CustomColumn([
             'column_name' => 'vo_' . $column_type,

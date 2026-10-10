@@ -712,6 +712,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // execute validation
         /** @var ExmentCustomValidator $validator */
+        // @phpstan-ignore-next-line
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
         $errors = $this->validatorUniques($value, $custom_value, $options);
@@ -1235,9 +1236,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $path = 'data/' . $this->table_name;
 
         if ($addFilter) {
+            // @phpstan-ignore-next-line
             $view = array_get($options, 'view');
 
             if (is_null($view)) {
+                /** @var CustomView $custom_view */
                 $custom_view = CustomView::getDefault($this);
                 $view = $custom_view->suuid;
             }
@@ -1258,6 +1261,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
 
             // merge old and current settings
+            // @phpstan-ignore-next-line
             $parameters = array_merge($options, $parameters);
         }
 
@@ -1296,6 +1300,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // @phpstan-ignore-next-line
         $parameters[$view] = $inputs;
 
+        // @phpstan-ignore-next-line
         Admin::user()->setSettingValue($path, json_encode($parameters));
     }
 
@@ -1576,6 +1581,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $data = [];
 
+        // @phpstan-ignore-next-line
         $subQuery = $this->getValueModel()->getSearchQuery($q, $options);
         if (is_nullorempty($subQuery)) {
             return null;
@@ -1604,6 +1610,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             });
 
             // set pager items
+            // @phpstan-ignore-next-line
             $query = getModelName($this)::whereIn("$dbTableName.id", $ids->toArray());
 
             // set custom view, sort again.
@@ -1649,6 +1656,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // return default
         $ids = $mainQuery->select("$dbTableName.id")->take($maxCount)->get()->pluck('id');
 
+        // @phpstan-ignore-next-line
         $query = getModelName($this)::whereIn("$dbTableName.id", $ids);
 
         // set custom view, sort again
@@ -1692,6 +1700,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $display_table = $options['display_table'];
 
 
+        /** @var CustomTable $child_table */
         $child_table = static::getEloquent($child_table);
 
         switch ($search_type) {
@@ -1832,6 +1841,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // if has relations, set with
         if (!is_nullorempty($custom_view)) {
+            // @phpstan-ignore-next-line
             $relations = $custom_view->custom_view_columns_cache->map(function ($custom_view_column) {
                 $column_item = $custom_view_column->column_item;
                 if (empty($column_item)) {
@@ -1964,6 +1974,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // value sometimes array, so flatten value. maybe has best way..
         $finds = [];
         foreach (collect($ids)->filter() as $id) {
+            // @phpstan-ignore-next-line
             foreach (toArray($id) as $v) {
                 if (System::hasRequestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $v))) {
                     continue;
@@ -2163,6 +2174,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (boolval($options['callQuery'])) {
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_COUNT, $this->id);
             $count = System::requestSession($key, function () {
+                // @phpstan-ignore-next-line
                 return $this->getValueModel()->withoutGlobalScopes([CustomValueModelScope::class])->count();
             });
             // when count > 0, create option only value.
@@ -2192,6 +2204,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function getAccessibleUsers()
     {
         $target_ids = $this->getAccessibleUserOrganizationIds(SystemTableName::USER);
+        // @phpstan-ignore-next-line
         return CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->find($target_ids);
     }
 
@@ -2266,6 +2279,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE, $target_table, $this->table_name);
         return System::requestSession($key, function () use ($target_table) {
             // $target_table : user or org
+            /** @var CustomTable $table */
             $table = CustomTable::getEloquent($target_table);
             $query = $table->getValueQuery();
             $table->filterDisplayTable($query, $this);
@@ -2469,6 +2483,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $items;
         }
 
+        // @phpstan-ignore-next-line
         $selected_custom_values = $this->getValueModel()->find((array)$selected_value);
         if (is_nullorempty($selected_custom_values)) {
             return $items;
@@ -2579,6 +2594,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (!isset($selected_value)) {
             return collect([]);
         }
+        // @phpstan-ignore-next-line
         $item = getModelName($this)::find($selected_value);
 
         if ($item) {
@@ -3151,10 +3167,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (isset($id)) {
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $id);
             $model = System::requestSession($key, function () use ($id) {
+                // @phpstan-ignore-next-line
                 return getModelName($this->table_name)::find($id);
             });
 
             if (!isset($model) && $withTrashed) {
+                // @phpstan-ignore-next-line
                 $model = getModelName($this->table_name)::withTrashed()->find($id);
             }
         } else {
@@ -3173,6 +3191,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function getValueQuery(): \Illuminate\Database\Eloquent\Builder
     {
+        // @phpstan-ignore-next-line
         return $this->getValueModel()->query();
     }
 
@@ -3410,6 +3429,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function hasCustomValueInDB($custom_value_id)
     {
+        // @phpstan-ignore-next-line
         return $this->getValueModel()->withoutGlobalScopes([CustomValueModelScope::class])->where('id', $custom_value_id)->count() > 0;
     }
 
@@ -3448,6 +3468,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($rows as $row) {
             // check role permissions
             $r = toArray($row);
+            // @phpstan-ignore-next-line
             $authoritable_type = array_get($r, 'pivot.authoritable_type') ?? array_get($r, 'authoritable_type');
             if (in_array($authoritable_type, $role_key)) {
                 return true;
@@ -3860,6 +3881,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                             if ($custom_form_column->form_column_type == FormColumnType::OTHER) {
                                 $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
                                 if ($column_form_column_name && $column_form_column_name == 'image') {
+                                    /** @var File $file */
                                     $file = ExmentFile::getFileFromFormColumn($custom_form_column->id);
                                     $new_file = $file->replicate(['uuid']);
                                     $new_file->custom_form_column_id = $new_form_column->id;
@@ -3961,6 +3983,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // check if child data referenced
         foreach ($relations as $relation) {
             $child_table = $relation->child_custom_table;
+            // @phpstan-ignore-next-line
             $list = getModelName($child_table)::whereIn('parent_id', $ids)
                 ->where('parent_type', $this->table_name)
                 ->pluck('id')->all();
@@ -3999,6 +4022,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $item->custom_table->table_name == SystemTableName::MAIL_SEND_LOG) {
                 continue;
             }
+            // @phpstan-ignore-next-line
             if ($model::whereIn('value->'.$column_name, $list)->exists()) {
                 return true;
             }

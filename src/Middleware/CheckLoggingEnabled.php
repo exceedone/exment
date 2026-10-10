@@ -31,6 +31,7 @@ class CheckLoggingEnabled
             $email = $user->getValue('email');
             $url = $request->fullUrl();
             $date_time = Carbon::now()->toDateTimeString();
+            /** @var \Exceedone\Exment\Model\CustomValue $system_logs */
             $system_logs = $table->getValueModel();
             $system_logs->parent_id = null;
             $system_logs->parent_type = null;

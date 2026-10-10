@@ -148,6 +148,7 @@ class LoginUserColumnItem extends ColumnItem
         $custom_column = CustomColumn::getEloquent($workflow_authority->related_id);
         $workflow_action = WorkflowAction::getEloquent($workflow_authority->workflow_action_id);
 
+        // @phpstan-ignore-next-line
         $userAndOrgs = static::getTargetUserAndOrg($custom_value, $workflow_action, $workflow_authority->related_id);
 
         switch ($custom_column->column_type) {
@@ -203,6 +204,7 @@ class LoginUserColumnItem extends ColumnItem
                 if ($asNextAction) {
                     $wv = null;
                 } else {
+                    /** @var WorkflowValue $wv */
                     $wv = WorkflowValue::getLastExecutedWorkflowValue($custom_value);
                 }
                 break;
@@ -215,10 +217,13 @@ class LoginUserColumnItem extends ColumnItem
             if ($getAsLoginUser) {
                 $created_user_id = \Exment::getUserId();
             } else {
+                // @phpstan-ignore-next-line
                 $created_user_id = $wv->created_user_id;
             }
         }
 
+        /** @var CustomValue $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($created_user_id);
         $column_values = $user->getValue($column);
         if (is_nullorempty($column_values)) {

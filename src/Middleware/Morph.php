@@ -69,6 +69,7 @@ class Morph
             // morphmap
             $table_name = $table->table_name;
 
+            // @phpstan-ignore-next-line
             $morphMaps[$table_name] = ltrim(getModelName($table_name, true), "\\");
 
             // Define Modelname

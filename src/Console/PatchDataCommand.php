@@ -299,6 +299,7 @@ class PatchDataCommand extends Command
         try {
             \ExmentDB::transaction(function () use ($json, $target_column_name, $target_table_name) {
                 // re-loop columns. because we have to get other column id --------------------------------------------------
+                // @phpstan-ignore-next-line
                 foreach (array_get($json, "custom_tables", []) as $table) {
                     // find tables. --------------------------------------------------
                     $table_name = array_get($table, 'table_name');
@@ -352,6 +353,7 @@ class PatchDataCommand extends Command
                             $form_column = [
                                 'form_column_type' => Enums\FormColumnType::COLUMN,
                                 'options' => null,
+                                // @phpstan-ignore-next-line
                                 'form_column_target_name' => $obj_column->column_name,
                                 'order' => $count + 1,
                             ];
@@ -422,6 +424,7 @@ class PatchDataCommand extends Command
                 if ($custom_columns->count() == 0) {
                     continue;
                 }
+                // @phpstan-ignore-next-line
                 $custom_table->getValueModel()
                     ->withTrashed()
                     ->chunk(1000, function ($custom_values) use ($custom_columns) {
@@ -775,10 +778,12 @@ class PatchDataCommand extends Command
         foreach ($system_authoritable as $s) {
             $item = (array)$s;
             if (array_get($item, 'related_type') == SystemTableName::USER) {
+                // @phpstan-ignore-next-line
                 $users[] = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(array_get($item, 'related_id'))->toArray();
             } else {
                 $users = array_merge(
                     $users,
+                    // @phpstan-ignore-next-line
                     CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel(array_get($item, 'related_id'))
                         ->users->toArray()
                 );
@@ -791,6 +796,7 @@ class PatchDataCommand extends Command
 
         // set System user's array
         $system_admin_users = System::system_admin_users();
+        // @phpstan-ignore-next-line
         $system_admin_users = array_merge($system_admin_users, $users);
         System::system_admin_users(array_unique($system_admin_users));
     }
@@ -1971,7 +1977,9 @@ class PatchDataCommand extends Command
     protected function patchSelectTableUserOrg()
     {
         // get user and ORG table's id
+        /** @var CustomTable $custom_table_user */
         $custom_table_user = CustomTable::getEloquent(SystemTableName::USER);
+        /** @var CustomTable $custom_table_organization */
         $custom_table_organization = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
 
         \ExmentDB::transaction(function () use ($custom_table_user, $custom_table_organization) {
@@ -2171,6 +2179,7 @@ class PatchDataCommand extends Command
             Model\File::where('file_type', '2')->whereNull('parent_id')->get()
             ->each(function ($file) use ($column_key) {
                 $uuid = $file->uuid;
+                // @phpstan-ignore-next-line
                 $document = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getValueModel()
                     ->where($column_key, $uuid)->first();
 

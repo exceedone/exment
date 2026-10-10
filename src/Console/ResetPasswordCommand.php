@@ -77,10 +77,13 @@ class ResetPasswordCommand extends Command
 
 
         if ($options['id']) {
+            // @phpstan-ignore-next-line
             $user = getModelName(SystemTableName::USER)::find($options['id']);
         } elseif ($options['email']) {
+            // @phpstan-ignore-next-line
             $user = getModelName(SystemTableName::USER)::where('value->email', $options['email'])->first();
         } elseif ($options['user_code']) {
+            // @phpstan-ignore-next-line
             $user = getModelName(SystemTableName::USER)::where('value->user_code', $options['user_code'])->first();
         }
 

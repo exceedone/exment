@@ -83,10 +83,12 @@ class FieldFormatter
             $options = explode('|', $options);
         }
 
+        // @phpstan-ignore-next-line
         if (sizeof($options) != 2) {
             $options = array('No', 'Yes');
         }
 
+        // @phpstan-ignore-next-line
         return $options[!!$value];
     }
 

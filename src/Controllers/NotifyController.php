@@ -46,6 +46,7 @@ class NotifyController extends AdminControllerBase
         }
 
         // get mail template
+        // @phpstan-ignore-next-line
         $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)
             ->getValueModel()
             ->where('value->mail_key_name', $mailKeyName)

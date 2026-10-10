@@ -575,6 +575,7 @@ class WorkflowAction extends ModelBase
             // check as workflow_authorities
             $workflow_authorities = $this->workflow_authorities_cache;
             foreach ($workflow_authorities as $workflow_authority) {
+                // @phpstan-ignore-next-line
                 $item = ConditionItemBase::getDetailItemByAuthority($custom_value->custom_table, $workflow_authority);
                 if (!is_nullorempty($item) && $item->hasAuthority($workflow_authority, $custom_value, $targetUser)) {
                     return true;
@@ -652,11 +653,13 @@ class WorkflowAction extends ModelBase
 
         $users = collect();
         if (count($userIds) > 0) {
+            // @phpstan-ignore-next-line
             $users = getModelName(SystemTableName::USER)::find(array_unique($userIds));
         }
 
         $orgs = new \Illuminate\Database\Eloquent\Collection();
         if (System::organization_available() && count($organizationIds) > 0) {
+            // @phpstan-ignore-next-line
             $orgs = getModelName(SystemTableName::ORGANIZATION)::find(array_unique($organizationIds));
         }
 

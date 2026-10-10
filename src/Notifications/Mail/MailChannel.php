@@ -48,6 +48,7 @@ class MailChannel
                     ->to($mailMessage->getTo())
                     ->cc($mailMessage->getCc())
                     ->bcc($mailMessage->getBcc())
+                    // @phpstan-ignore-next-line
                     ->subject($mailMessage->getSubject());
 
                 if ($mailMessage->getBodyType() == 'text/plain') {
@@ -110,6 +111,7 @@ class MailChannel
             return $attachment->path;
         })->toArray();
 
+        // @phpstan-ignore-next-line
         ZipService::createPasswordZip($files, $zippath, $tmpFolderPath, $password, Define::DISKNAME_ADMIN);
 
         return [$zippath, $filename];

@@ -103,6 +103,7 @@ class CustomTableController extends AdminControllerBase
      */
     protected function toggleActivateQr(Request $request, $id, $active_qr_flg)
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($id);
         $custom_table->setOption('active_qr_flg', $active_qr_flg);
         $custom_table->setOption('qr_use', true);
@@ -148,6 +149,7 @@ class CustomTableController extends AdminControllerBase
      */
     protected function toggleActivateJancode(Request $request, $id, $active_jan_flg)
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($id);
         $custom_table->setOption('active_jan_flg', $active_jan_flg);
         $custom_table->setOption('jan_use', true);
@@ -397,6 +399,7 @@ class CustomTableController extends AdminControllerBase
 
             // redirect custom column page
             if (!$this->exists) {
+                // @phpstan-ignore-next-line
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
                 $custom_column_url = admin_urls('column', $table_name);
 
@@ -483,6 +486,7 @@ HTML;
         $form->hidden('columnmulti')->default(1);
         $form->ignore('columnmulti');
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($id);
 
         $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
@@ -675,6 +679,7 @@ HTML;
                 $model = CustomTable::getEloquent($id);
                 $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
             }
+            // @phpstan-ignore-next-line
             TableService::appendActivateSwalButtonQRCode($tools, $custom_table);
         });
 
@@ -733,6 +738,7 @@ HTML;
                 $model = CustomTable::getEloquent($id);
                 $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
             }
+            // @phpstan-ignore-next-line
             TableService::appendActivateSwalButtonJanCode($tools, $custom_table);
         });
 
@@ -878,6 +884,7 @@ HTML;
         }
 
         // get mail template
+        // @phpstan-ignore-next-line
         $mail_template_id = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::DATA_SAVED_NOTIFY)
             ->first()
             ->id;
@@ -937,6 +944,7 @@ HTML;
      */
     public function copyModal(Request $request, $id)
     {
+        /** @var CustomTable $copy_table */
         $copy_table = CustomTable::getEloquent($id);
         $actionPath = admin_urls('table', $id, 'copy');
         // create form fields
@@ -1002,6 +1010,7 @@ HTML;
             ]);
         }
 
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($id);
         $inputs = $request->only(['table_name','table_view_name']);
         $include_view = boolval($request->get('include_view_flg', 0));

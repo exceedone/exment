@@ -100,6 +100,7 @@ class MailSendJob extends Notification implements ShouldQueue
     // @phpstan-ignore-next-line
     public function failed($exception)
     {
+        // @phpstan-ignore-next-line
         $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)
             ->getValueModel()
             ->where('value->mail_key_name', 'sendmail_error')

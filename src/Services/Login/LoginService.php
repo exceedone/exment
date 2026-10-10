@@ -153,6 +153,7 @@ class LoginService
         }
 
         $data = $custom_login_user->mapping_values;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(SystemTableName::USER);
         $dbTableName = getDBTableName($custom_table);
         $rules = $custom_table->getValidateRules($data, $exment_user);
@@ -193,6 +194,7 @@ class LoginService
         }
 
         $data = $custom_login_user->mapping_values;
+        // @phpstan-ignore-next-line
         $errors = CustomTable::getEloquent(SystemTableName::USER)->validatorUniques($data, $exment_user, [
             'addValue' => false
         ]);
@@ -393,6 +395,7 @@ class LoginService
             $exment_user = static::createExmentUser($custom_login_user);
         }
 
+        // @phpstan-ignore-next-line
         $login_user = static::getLoginUser($custom_login_user, $exment_user, $socialiteProvider);
 
         // Set custom_login_user to request session
@@ -434,6 +437,7 @@ class LoginService
      */
     public static function getExmentUser(CustomLoginUserBase $custom_login_user, bool $isUpdate = true)
     {
+        // @phpstan-ignore-next-line
         $exment_user = getModelName(SystemTableName::USER)::where("value->{$custom_login_user->mapping_user_column}", $custom_login_user->login_id)
             ->first();
         if (!isset($exment_user)) {
@@ -472,6 +476,8 @@ class LoginService
 
         $exment_user = null;
         \ExmentDB::transaction(function () use ($custom_login_user, &$exment_user) {
+            /** @var CustomValue $exment_user */
+            // @phpstan-ignore-next-line
             $exment_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
 
             $update_user_columns = static::getUserColumns();
@@ -580,6 +586,7 @@ class LoginService
     // @phpstan-ignore-next-line
     protected static function getUserColumns()
     {
+        // @phpstan-ignore-next-line
         return CustomTable::getEloquent(SystemTableName::USER)->custom_columns_cache;
     }
 

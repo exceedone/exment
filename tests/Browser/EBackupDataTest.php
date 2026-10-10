@@ -208,6 +208,7 @@ class EBackupDataTest extends ExmentKitTestCase
         // loop target
         $targets = BackupTarget::toArray();
         foreach ($targets as $target) {
+            // @phpstan-ignore-next-line
             $func = in_array($target, $backup_target) ? 'seeElement' : 'dontSeeElement';
             $this->{$func}('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=' . $target . '][checked]');
         }

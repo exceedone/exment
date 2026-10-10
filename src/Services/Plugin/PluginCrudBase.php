@@ -247,6 +247,7 @@ abstract class PluginCrudBase extends PluginPublicBase
             return get_class($this);
         }
 
+        // @phpstan-ignore-next-line
         foreach ($allEndpoints as $allEndpoint) {
             if ($allEndpoint == $endpoint) {
                 return get_class($this);

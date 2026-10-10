@@ -14,6 +14,7 @@ trait PluginTestTrait
      */
     protected function getPluginInfo(string $plugin_name, string $pluginType, array $options = [])
     {
+        /** @var Plugin $plugin */
         $plugin = Plugin::where('plugin_name', $plugin_name)->first();
         $pluginClass = $plugin->getClass($pluginType, $options);
 

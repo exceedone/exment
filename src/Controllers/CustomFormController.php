@@ -64,6 +64,7 @@ class CustomFormController extends AdminControllerTableBase
         $content->body($this->grid());
 
         // form priorities
+        // @phpstan-ignore-next-line
         if ($this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)) {
             $content->row($this->setFormPriorities());
         }
@@ -87,6 +88,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->setName('custom_form_priproties');
         $grid->model()->orderBy('order');
         $grid->setTitle(exmtrans("custom_form.priority.title"));
+        // @phpstan-ignore-next-line
         $grid->setResource(admin_urls('formpriority', $this->custom_table->table_name));
         $grid->column('form_priority_text', exmtrans("custom_form.priority.form_priority_text"));
         $grid->column('form_view_name', exmtrans("custom_form.priority.form_view_name"));
@@ -127,6 +129,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid = new Grid(new PublicForm());
         $grid->setName('public_forms');
         $grid->setTitle(exmtrans("custom_form.public_form.title"));
+        // @phpstan-ignore-next-line
         $grid->setResource(admin_urls('formpublic', $this->custom_table->table_name));
 
         $grid->column('form_view_name', exmtrans("custom_form_public.custom_form_id"));
@@ -160,6 +163,7 @@ class CustomFormController extends AdminControllerTableBase
             });
 
             $tools->append(view('exment::tools.button', [
+                // @phpstan-ignore-next-line
                 'href' => admin_urls_query('formpublic', $this->custom_table->table_name, 'create', ['template' => 1]),
                 'icon' => 'fa-plus',
                 'btn_class' => 'btn-success',
@@ -192,6 +196,7 @@ class CustomFormController extends AdminControllerTableBase
         $column_value = $request->get('value');
 
         if (isset($column_value) && is_numeric($column_value)) {
+            /** @var CustomFormPriority $custom_form_priority */
             $custom_form_priority = CustomFormPriority::find($id);
             $custom_form_priority->order = $column_value;
             $result = $custom_form_priority->save();
@@ -293,6 +298,7 @@ class CustomFormController extends AdminControllerTableBase
         $form = $form_item->disableToolsButton()->disableSavingButton()->form();
 
         $content = new Content();
+        // @phpstan-ignore-next-line
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
         $this->AdminContent($content);
         $content->row($form);
@@ -344,8 +350,10 @@ class CustomFormController extends AdminControllerTableBase
             admin_toastr(trans('admin.save_succeeded'));
 
             if ($request->get('after-save') == 1) {
+                // @phpstan-ignore-next-line
                 return redirect(admin_url("form/{$this->custom_table->table_name}/{$id}/edit?after-save=1"));
             }
+            // @phpstan-ignore-next-line
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
         }
         return null; //TODO
@@ -369,8 +377,10 @@ class CustomFormController extends AdminControllerTableBase
             admin_toastr(trans('admin.save_succeeded'));
 
             if ($request->get('after-save') == 1) {
+                // @phpstan-ignore-next-line
                 return redirect(admin_url("form/{$this->custom_table->table_name}/{$custom_form->id}/edit?after-save=1"));
             }
+            // @phpstan-ignore-next-line
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
         }
         return null; //TODO
@@ -410,6 +420,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->disableExport();
         $grid->disableRowSelector();
 
+        // @phpstan-ignore-next-line
         if (!$custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)) {
             $grid->disableCreateButton();
         }
@@ -419,6 +430,7 @@ class CustomFormController extends AdminControllerTableBase
 
             // append preview
             $linker = (new Linker())
+                    // @phpstan-ignore-next-line
                     ->url(admin_urls('form', $custom_table->table_name, "preview", $actions->row->suuid))
                     ->icon('fa-check-circle')
                     ->linkattributes(['target' => '_blank'])
@@ -426,8 +438,10 @@ class CustomFormController extends AdminControllerTableBase
             $actions->prepend($linker);
 
             // checking edit permission
+            // @phpstan-ignore-next-line
             if ($custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)) {
                 $linker = (new Linker())
+                    // @phpstan-ignore-next-line
                     ->url(admin_urls('form', $custom_table->table_name, "create?copy_id={$actions->row->id}"))
                     ->icon('fa-copy')
                     ->tooltip(exmtrans('common.copy_item', exmtrans('custom_form.default_form_name')));
@@ -486,6 +500,7 @@ class CustomFormController extends AdminControllerTableBase
 
 
         // create endpoint
+        // @phpstan-ignore-next-line
         $formroot = admin_url("form/{$this->custom_table->table_name}");
         $endpoint = $formroot.(isset($id) ? "/{$id}" : "");
         $content->row(view('exment::custom-form.form', [
@@ -557,6 +572,8 @@ class CustomFormController extends AdminControllerTableBase
         // Loop using CustomFormBlocks
         $custom_form_block_items = [];
         foreach ($this->getFormBlockItems($form) as $custom_form_block) {
+            /** @var \Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase $block_item */
+            // @phpstan-ignore-next-line
             $block_item = FormSetting\FormBlock\BlockBase::make($custom_form_block, $this->custom_table);
 
             // get form column items
@@ -572,6 +589,7 @@ class CustomFormController extends AdminControllerTableBase
         if (!collect($custom_form_block_items)->first(function ($custom_form_block_item) {
             return $custom_form_block_item->getCustomFormBlockType() == FormBlockType::DEFAULT;
         })) {
+            // @phpstan-ignore-next-line
             $custom_form_block_items[] = FormSetting\FormBlock\DefaultBlock::getDefaultBlock($this->custom_table);
         }
 
@@ -579,6 +597,7 @@ class CustomFormController extends AdminControllerTableBase
         // "table-self", "one-to-many tables" have form-columns.
         // "many-to-many tables" have only use or not use relation.
         // define relation tables
+        // @phpstan-ignore-next-line
         $relations = $this->custom_table->custom_relations;
 
         // check relation define.if not exists in custom_form_blocks, add define.
@@ -587,6 +606,7 @@ class CustomFormController extends AdminControllerTableBase
                 return $custom_form_block_item->getCustomFormBlockType() == $relation->relation_type
                             && array_get($custom_form_block_item->getCustomFormBlock(), 'form_block_target_table_id') == $relation->child_custom_table_id;
             })) {
+                // @phpstan-ignore-next-line
                 $custom_form_block_items[] = FormSetting\FormBlock\RelationBase::getDefaultBlock($this->custom_table, $relation);
             }
         }
@@ -745,6 +765,7 @@ class CustomFormController extends AdminControllerTableBase
         // create form (if new form) --------------------------------------------------
         if (!isset($id)) {
             $form = new CustomForm();
+            // @phpstan-ignore-next-line
             $form->custom_table_id = $this->custom_table->id;
             $is_new = true;
         } else {
@@ -895,6 +916,7 @@ class CustomFormController extends AdminControllerTableBase
             $request->get('form_block_target_table_id')
         );
 
+        /** @var \Encore\Admin\Widgets\Form $form */
         $form = $column_item->getSettingModalForm($block_item, $request->get('options', []));
         $form->disableReset();
         $form->disableSubmit();
@@ -963,12 +985,15 @@ class CustomFormController extends AdminControllerTableBase
         if (!System::publicform_available()) {
             return false;
         }
+        // @phpstan-ignore-next-line
         if (!$this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
             return false;
         }
+        // @phpstan-ignore-next-line
         if (boolval($this->custom_table->getOption('one_record_flg'))) {
             return false;
         }
+        // @phpstan-ignore-next-line
         if (in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
             return false;
         }

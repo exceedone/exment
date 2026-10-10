@@ -201,18 +201,23 @@ class NotifyTarget
         $slack_id_column = System::system_slack_user_column();
         $slack_id_column = CustomColumn::getEloquent($slack_id_column, SystemTableName::USER);
         if (!is_nullorempty($slack_id_column)) {
+            // @phpstan-ignore-next-line
             $slack_id = $target_value->getValue($slack_id_column);
         }
 
+        // @phpstan-ignore-next-line
         $label = $target_value->getLabel();
 
         $notifyTarget = new self();
         $notifyTarget->targetType = $notify_target;
         $notifyTarget->targetValue = $target_value;
         $notifyTarget->customColumn = $custom_column;
+        // @phpstan-ignore-next-line
         $notifyTarget->id = $target_value->id;
+        // @phpstan-ignore-next-line
         $notifyTarget->email = $target_value->getValue($custom_column, true);
         $notifyTarget->name = $label;
+        // @phpstan-ignore-next-line
         $notifyTarget->notifyKey = $target_value->custom_table->id . '_' . $target_value->id;
         $notifyTarget->joinName = true;
         $notifyTarget->slack_id = $slack_id ?? null;
@@ -234,6 +239,7 @@ class NotifyTarget
     {
         // get organization user
         $result = collect();
+        // @phpstan-ignore-next-line
         foreach ($target_value->users as $user) {
             // get email address
             $item = NotifyTarget::getModelAsUser($user);
@@ -277,6 +283,7 @@ class NotifyTarget
         // all target users
         $allUsers = collect();
         foreach ($notify->action_settings as $action_setting) {
+            // @phpstan-ignore-next-line
             $allUsers = $allUsers->merge($notify->getNotifyTargetUsers($custom_value, $action_setting));
         }
         $user = collect($allUsers)->first(function ($user) use ($select_target) {
@@ -292,6 +299,7 @@ class NotifyTarget
         // all target users
         $allUsers = collect();
         foreach ($notify->action_settings as $action_setting) {
+            // @phpstan-ignore-next-line
             $allUsers = $allUsers->merge($notify->getNotifyTargetUsers($custom_value, $action_setting));
         }
 

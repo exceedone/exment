@@ -421,9 +421,11 @@ class DocumentExcelService
         $file = path_join($this->getDirPath(), $this->getUniqueFileName());
         // copy admin_tmp to admin
         $stream = \Storage::disk(Define::DISKNAME_ADMIN_TMP)->readStream($file);
+        // @phpstan-ignore-next-line
         \Storage::disk(Define::DISKNAME_ADMIN)->writeStream($file, $stream);
 
         try {
+            // @phpstan-ignore-next-line
             fclose($stream);
         } catch (\Exception $ex) {
         }

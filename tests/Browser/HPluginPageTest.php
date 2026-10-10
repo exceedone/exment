@@ -63,6 +63,7 @@ class HPluginPageTest extends ExmentKitTestCase
                 ->assertEquals($pre_cnt + 1, Dashboard::count());
 
         $row = Dashboard::orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $suuid = array_get($row, 'suuid');
         $param = "?column_no=1&dashboard_box_type=plugin&dashboard_suuid=$suuid&row_no=1";
 
@@ -87,8 +88,10 @@ class HPluginPageTest extends ExmentKitTestCase
         System::clearCache();
 
         /** @var CustomValue $data */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('custom_value_edit_all')
                     ->getValueModel()->where('value->user', \Exment::user()->base_user->id)->first();
+        /** @var DashboardBox $box */
         $box = DashboardBox::where('dashboard_box_view_name', 'unit test box')->first();
 
         $integer = $data->getValue('integer');

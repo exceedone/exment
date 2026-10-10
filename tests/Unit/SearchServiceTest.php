@@ -18,6 +18,7 @@ class SearchServiceTest extends UnitTestBase
     public function testSearchDefault()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        // @phpstan-ignore-next-line
         $service = new SearchService($custom_table);
 
         $service->where('index_text', 'index_001_001');
@@ -38,6 +39,7 @@ class SearchServiceTest extends UnitTestBase
     public function testSearchDefaultMultiWhere()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        // @phpstan-ignore-next-line
         $service = new SearchService($custom_table);
 
         $service->where('text', 'test_1')
@@ -58,6 +60,7 @@ class SearchServiceTest extends UnitTestBase
     public function testSearchRelationOneMany()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
+        // @phpstan-ignore-next-line
         $service = new SearchService($custom_table);
 
         // get parent custom column
@@ -82,6 +85,7 @@ class SearchServiceTest extends UnitTestBase
     public function testSearchRelationOneManyMultiWhere()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
+        // @phpstan-ignore-next-line
         $service = new SearchService($custom_table);
 
         // get parent custom column
@@ -107,6 +111,7 @@ class SearchServiceTest extends UnitTestBase
     public function testSearchRelationManyMany()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY);
+        // @phpstan-ignore-next-line
         $service = new SearchService($custom_table);
 
         // get parent custom column
@@ -134,6 +139,7 @@ class SearchServiceTest extends UnitTestBase
     public function testSearchSelectTable()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_SELECT);
+        // @phpstan-ignore-next-line
         $service = new SearchService($custom_table);
 
         // get parent custom column
@@ -188,6 +194,7 @@ class SearchServiceTest extends UnitTestBase
     public function _testOrderDefault($column, $direction = 'asc')
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        // @phpstan-ignore-next-line
         $service = new SearchService($custom_table);
 
         $service->orderBy($column, $direction);
@@ -231,6 +238,7 @@ class SearchServiceTest extends UnitTestBase
     public function _testOrderOneMany($column, $direction = 'asc')
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
+        // @phpstan-ignore-next-line
         $service = new SearchService($custom_table);
 
         $service->orderBy($column, $direction);
@@ -261,6 +269,7 @@ class SearchServiceTest extends UnitTestBase
             $column = CustomColumn::getEloquent('index_text', $custom_table);
             $direction = 'desc';
 
+            // @phpstan-ignore-next-line
             $service = new SearchService($custom_table);
             $service->orderBy($column, $direction);
 
@@ -276,6 +285,7 @@ class SearchServiceTest extends UnitTestBase
     public function testOrderSelectTable()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_SELECT);
+        // @phpstan-ignore-next-line
         $service = new SearchService($custom_table);
 
         $parent_custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_SELECT);

@@ -41,6 +41,7 @@ class VersionCommand extends Command
      */
     public function handle()
     {
+        // @phpstan-ignore-next-line
         $this->line(\Exment::getExmentCurrentVersion());
         return 0;
     }

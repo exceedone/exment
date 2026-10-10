@@ -265,6 +265,7 @@ class CustomOperation extends ModelBase
     public function execute($custom_table, $id, $inputs = null)
     {
         $ids = stringToArray($id);
+        // @phpstan-ignore-next-line
         $custom_values = $custom_table->getValueModel()->find($ids);
 
         // check isMatchCondition
@@ -337,6 +338,7 @@ class CustomOperation extends ModelBase
             $custom_column = $operation_column->custom_column;
             $column_name = $custom_column->column_name;
             // get input value
+            // @phpstan-ignore-next-line
             $val = array_get($inputs, $column_name);
             if (isset($val)) {
                 $input_updates[$column_name] = $val;

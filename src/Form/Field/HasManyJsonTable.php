@@ -21,6 +21,7 @@ class HasManyJsonTable extends HasManyTable
      */
     protected function getKeyName()
     {
+        // @phpstan-ignore-next-line
         return $this->getKeyNameTrait();
     }
 

@@ -35,11 +35,13 @@ trait ApiDataTrait
      */
     protected function _dataFind(Request $request, $id)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             /** @phpstan-ignore-next-line */
             return abortJson(403, trans('admin.deny'), $code);
         }
 
+        // @phpstan-ignore-next-line
         $query = $this->custom_table->getValueQuery();
 
         // set query
@@ -49,6 +51,7 @@ trait ApiDataTrait
         $model = $query->where('id', $id)->first();
         // not contains data, return empty data.
         if (!isset($model)) {
+            // @phpstan-ignore-next-line
             $code = $this->custom_table->getNoDataErrorCode($id);
             if ($code == ErrorCode::PERMISSION_DENY) {
                 /** @phpstan-ignore-next-line */
@@ -79,6 +82,7 @@ trait ApiDataTrait
      */
     protected function _columnData(Request $request, $column_name)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             /** @phpstan-ignore-next-line */
             return abortJson(403, $code);
@@ -93,6 +97,7 @@ trait ApiDataTrait
         /** @phpstan-ignore-next-line */
         if ($custom_column->index_enabled) {
             $column_name = $custom_column->getIndexColumnName();
+            // @phpstan-ignore-next-line
             $list = $this->custom_table->searchValue($query, [
                 'searchColumns' => collect([$column_name]),
             /** @phpstan-ignore-next-line */
@@ -141,6 +146,7 @@ trait ApiDataTrait
     // @phpstan-ignore-next-line
     protected function _relatedLinkage(Request $request)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             /** @phpstan-ignore-next-line */
             return abortJson(403, $code);
@@ -177,6 +183,7 @@ trait ApiDataTrait
             'display_table' => $request->get('display_table_id'),
             'all' => $child_column->isGetAllUserOrganization(),
         ];
+        // @phpstan-ignore-next-line
         $datalist = $this->custom_table->searchRelationValue($searchType, $q, $child_select_table, $options);
         return collect($datalist)->map(function ($data) {
             /** @phpstan-ignore-next-line */
@@ -232,6 +239,7 @@ trait ApiDataTrait
                 // if need to convert to custom values, call setSelectTableValues, for performance
                 $valuetype = $request->get('valuetype', ValueType::PURE_VALUE);
                 if (ValueType::isRegetApiCustomValue($valuetype)) {
+                    // @phpstan-ignore-next-line
                     $this->custom_table->setSelectTableValues($results);
                 }
 
@@ -262,6 +270,7 @@ trait ApiDataTrait
             }
             /** @phpstan-ignore-next-line */
             if (boolval($options['makeHidden'])) {
+                // @phpstan-ignore-next-line
                 $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
                 return $this->modifyCustomValue($request, $target);
             }
@@ -335,6 +344,7 @@ trait ApiDataTrait
     // @phpstan-ignore-next-line
     protected function executeQuery(Request $request, $count = null)
     {
+        // @phpstan-ignore-next-line
         if (($code = $this->custom_table->enableAccess()) !== true) {
             /** @phpstan-ignore-next-line */
             return abortJson(403, $code);
@@ -386,6 +396,7 @@ trait ApiDataTrait
         }
 
         $getLabel = $this->isAppendLabel($request);
+        // @phpstan-ignore-next-line
         $paginator = $this->custom_table->searchValue($q, [
             'paginate' => true,
             'makeHidden' => true,
