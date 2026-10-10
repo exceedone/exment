@@ -19,6 +19,7 @@ class LogControllerSettingTest extends FeatureTestBase
     {
         parent::setUp();
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
     }
 

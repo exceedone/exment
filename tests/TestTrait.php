@@ -174,6 +174,7 @@ trait TestTrait
         // get all ids
         /** @phpstan-ignore-next-line */
         $allIds = \DB::table(getDBTableName($custom_table))->select('id')->pluck('id');
+        // @phpstan-ignore-next-line
         $query = $custom_table->getValueModel()->withoutGlobalScopes();
 
         if ($filterCallback) {

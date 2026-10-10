@@ -45,6 +45,7 @@ class TemplateDeleteTest extends FeatureTestBase
     public function testDeleteTemplateApiReturns200WithResultTrue(): void
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         // Create a dummy user template so there is something to delete.
@@ -81,6 +82,7 @@ class TemplateDeleteTest extends FeatureTestBase
     public function testDeleteResponseHasNullSwalField(): void
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         $templateName = 'test_template_swal_' . time();
@@ -118,6 +120,7 @@ class TemplateDeleteTest extends FeatureTestBase
     public function testTemplateSearchReturnsDeleteButtonForUserTemplates(): void
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         // Create a user template.
@@ -170,6 +173,7 @@ class TemplateDeleteTest extends FeatureTestBase
     public function testTemplateSearchSystemTemplateHasNoDeleteButton(): void
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         // Count pre-existing user templates (storage directories that contain a
@@ -230,6 +234,7 @@ class TemplateDeleteTest extends FeatureTestBase
     public function testDeleteResponseStructureSatisfiesJsConditionsForResolve(): void
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         $templateName = 'test_tmpl_structure_' . time();

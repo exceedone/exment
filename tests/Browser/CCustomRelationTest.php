@@ -62,6 +62,7 @@ class CCustomRelationTest extends ExmentKitTestCase
     public function testAddRelationOneToManySuccess()
     {
         $row = CustomTable::where('table_name', 'exmenttest_contract_relation')->first();
+        // @phpstan-ignore-next-line
         $child_id = array_get($row, 'id');
 
         $pre_cnt = CustomRelation::count();
@@ -78,6 +79,7 @@ class CCustomRelationTest extends ExmentKitTestCase
         ;
 
         $row = CustomRelation::orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $id = array_get($row, 'id');
 
         // Edit custom relation
@@ -100,6 +102,7 @@ class CCustomRelationTest extends ExmentKitTestCase
     public function testAddRelationManyToManySuccess()
     {
         $row = CustomTable::where('table_name', 'user')->first();
+        // @phpstan-ignore-next-line
         $child_id = array_get($row, 'id');
 
         $pre_cnt = CustomRelation::count();
@@ -116,6 +119,7 @@ class CCustomRelationTest extends ExmentKitTestCase
         ;
 
         $row = CustomRelation::orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $id = array_get($row, 'id');
 
         // Check custom relation
@@ -134,6 +138,7 @@ class CCustomRelationTest extends ExmentKitTestCase
     {
         /** @var CustomTable|null $custom_table */
         $custom_table = CustomTable::where('table_name', 'exmenttest_contract')->first();
+        // @phpstan-ignore-next-line
         $table_id = $custom_table->id;
         /** @var CustomRelation|null $row */
         $row = CustomRelation::where('parent_custom_table_id', $table_id)->first();

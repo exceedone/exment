@@ -28,6 +28,7 @@ class NotifyTest extends FeatureTestBase
     protected function init(bool $fake)
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
         if ($fake) {
@@ -207,6 +208,7 @@ class NotifyTest extends FeatureTestBase
             /** @var CustomTable $custom_table */
             $custom_table = CustomTable::find($notify->target_id);
             /** @var Model\CustomValue $model */
+            // @phpstan-ignore-next-line
             $model = $custom_table->getValueModel()
                 ->where('created_user_id', '<>', $user_id)->first();
             $model->update([
@@ -221,9 +223,13 @@ class NotifyTest extends FeatureTestBase
                 ->orderBy('created_at', 'desc')
                 ->orderBy('id', 'desc')
                 ->first();
+            // @phpstan-ignore-next-line
             $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
+            // @phpstan-ignore-next-line
             $this->assertEquals(array_get($data, 'parent_id'), $model->id);
+            // @phpstan-ignore-next-line
             $this->assertEquals(array_get($data, 'target_user_id'), $model->created_user_id);
+            // @phpstan-ignore-next-line
             $this->assertEquals(array_get($data, 'trigger_user_id'), $user_id);
         } finally {
             Carbon::setTestNow();
@@ -245,6 +251,7 @@ class NotifyTest extends FeatureTestBase
         /** @var CustomTable $custom_table */
         $custom_table = CustomTable::find($notify->target_id);
         /** @var Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
 
@@ -268,11 +275,17 @@ class NotifyTest extends FeatureTestBase
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc')
             ->first();
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'parent_id'), $custom_value->id);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'target_user_id'), $custom_value->created_user_id);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'trigger_user_id'), $user_id);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'notify_subject'), $subject);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'notify_body'), $body);
     }
 
@@ -288,11 +301,14 @@ class NotifyTest extends FeatureTestBase
 
         /** @var Model\Workflow $workflow */
         $workflow = Model\Workflow::where('workflow_view_name', 'workflow_common_company')->first();
+        /** @var \Exceedone\Exment\Model\WorkflowAction $workflow_action */
         $workflow_action = Model\WorkflowAction::where('action_name', 'middle_action')->where('workflow_id', $workflow->id)->first();
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
 
         // create customvalue
         /** @var mixed $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()->setValue([
             'text' => 'test',
         ]);
@@ -302,6 +318,7 @@ class NotifyTest extends FeatureTestBase
         $workflow_value = $this->callProtectedMethod($workflow_action, 'forwardWorkflowValue', $custom_value);
         // reget custom value
         /** @var mixed $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()->find($custom_value->id);
 
         // get notify users
@@ -350,6 +367,8 @@ class NotifyTest extends FeatureTestBase
         $this->init(false);
 
         // save custom value
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT)->getValueModel();
         $custom_value->setValue([
             'text' => 'test',
@@ -369,6 +388,7 @@ class NotifyTest extends FeatureTestBase
      */
     protected function getMailTemplate($keyName)
     {
+        // @phpstan-ignore-next-line
         return CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', $keyName)->first();
     }
 }

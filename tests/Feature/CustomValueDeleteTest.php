@@ -35,6 +35,7 @@ class CustomValueDeleteTest extends FeatureTestBase
     protected function init(bool $isDeleteHardForce)
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         \Config::set('exment.delete_force_custom_value', $isDeleteHardForce);
@@ -50,6 +51,7 @@ class CustomValueDeleteTest extends FeatureTestBase
      */
     protected function initTestData(CustomTable $custom_table, CustomColumn $custom_column, \Closure $setValueCallback = null)
     {
+        /** @var CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel();
 
         $file = Model\File::storeAs(FileType::CUSTOM_VALUE_COLUMN, TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt');
@@ -86,6 +88,7 @@ class CustomValueDeleteTest extends FeatureTestBase
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $custom_column = CustomColumn::getEloquent('file', $custom_table);
 
+        // @phpstan-ignore-next-line
         return $this->initTestData($custom_table, $custom_column);
     }
 
@@ -97,6 +100,7 @@ class CustomValueDeleteTest extends FeatureTestBase
      */
     protected function initTestDataRelation1n()
     {
+        /** @var CustomTable $custom_table_parent */
         $custom_table_parent = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
         $custom_column_parent = CustomColumn::getEloquent('file', $custom_table_parent);
 
@@ -108,6 +112,7 @@ class CustomValueDeleteTest extends FeatureTestBase
             $custom_table_child = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
             $custom_column_child = CustomColumn::getEloquent('file', $custom_table_child);
 
+            // @phpstan-ignore-next-line
             $children[] = $this->initTestData($custom_table_child, $custom_column_child, function ($child_custom_value) use ($custom_table_parent, $custom_value) {
                 $child_custom_value->parent_id = $custom_value->id;
                 $child_custom_value->parent_type = $custom_table_parent->table_name;
@@ -318,6 +323,7 @@ class CustomValueDeleteTest extends FeatureTestBase
             ->toArray();
 
         // get documents
+        // @phpstan-ignore-next-line
         $documents = CustomTable::getEloquent(SystemTableName::DOCUMENT)
             ->getValueModel()
             ->query()

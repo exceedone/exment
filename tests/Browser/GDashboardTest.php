@@ -119,7 +119,9 @@ class GDashboardTest extends ExmentKitTestCase
     public function testCreateBoxList()
     {
         $model = $this->getDashboardTestModel();
+        /** @var \Exceedone\Exment\Model\CustomTable $custom_table */
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        /** @var \Exceedone\Exment\Model\CustomView $custom_view */
         $custom_view = $custom_table->custom_views->first();
 
         // cannot press 'target_view_id', so execute as post.
@@ -412,7 +414,9 @@ class GDashboardTest extends ExmentKitTestCase
     protected function _testCreateDashboardChart($dashboard_box_view_name, $chart_type, $row_no, $column_no, array $options = [])
     {
         $model = $this->getDashboardTestModel();
+        /** @var \Exceedone\Exment\Model\CustomTable $custom_table */
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        /** @var \Exceedone\Exment\Model\CustomView $custom_view */
         $custom_view = $custom_table->custom_views->first();
 
         // get select option item
@@ -466,6 +470,7 @@ class GDashboardTest extends ExmentKitTestCase
     protected function _testCreateDashboardCalendar($dashboard_box_view_name, $calendar_type, $row_no, $column_no, array $options = [])
     {
         $model = $this->getDashboardTestModel();
+        /** @var \Exceedone\Exment\Model\CustomTable $custom_table */
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_view = $custom_table->custom_views->first(function ($custom_view) {
             return $custom_view->view_kind_type == Enums\ViewKindType::CALENDAR;
@@ -475,6 +480,7 @@ class GDashboardTest extends ExmentKitTestCase
             [
                 'calendar_type' => $calendar_type,
                 'target_table_id' => $custom_table->id,
+                // @phpstan-ignore-next-line
                 'target_view_id' => $custom_view->id,
             ],
             $options

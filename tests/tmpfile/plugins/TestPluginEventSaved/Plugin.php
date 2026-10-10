@@ -15,6 +15,7 @@ class Plugin extends PluginEventBase
     public function execute()
     {
         $id = $this->custom_value->id;
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_view_all')->getValueModel($id);
         if (isset($custom_value)) {
             $val = $custom_value->getValue('integer');

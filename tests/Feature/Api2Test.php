@@ -793,6 +793,7 @@ class Api2Test extends ApiTestBase
             return array_get($j, 'id');
         })->toArray();
 
+        // @phpstan-ignore-next-line
         $this->checkCustomValuePermission(CustomTable::getEloquent('custom_value_edit'), $ids);
     }
 
@@ -984,6 +985,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
 
         $response = $this->withHeaders([
@@ -1000,6 +1002,7 @@ class Api2Test extends ApiTestBase
         $user_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'user';
         })->keys()->first();
+        // @phpstan-ignore-next-line
         $this->assertMatch(array_get($data[0], $user_key), '1');
     }
 
@@ -1010,6 +1013,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
 
         $this->withHeaders([
@@ -1026,6 +1030,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
 
         $this->withHeaders([
@@ -1042,6 +1047,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
 
         $response = $this->withHeaders([
@@ -1058,6 +1064,7 @@ class Api2Test extends ApiTestBase
         $user_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'user';
         })->keys()->first();
+        // @phpstan-ignore-next-line
         $this->assertMatch(array_get($data[0], $user_key), 'admin');
     }
 
@@ -1070,6 +1077,7 @@ class Api2Test extends ApiTestBase
 
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST . '-select-table-1')->first();
 
         $response = $this->withHeaders([
@@ -1089,6 +1097,7 @@ class Api2Test extends ApiTestBase
             return array_get($val, 'column_name') == 'id';
         })->keys()->first();
         foreach ($data as $index => $row) {
+            // @phpstan-ignore-next-line
             $this->assertMatch(array_get($row, $id_key), array_get($check_data[$index], 'id'));
         }
     }
@@ -1100,6 +1109,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
 
         $response = $this->withHeaders([
@@ -1116,6 +1126,7 @@ class Api2Test extends ApiTestBase
         $id_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'id';
         })->keys()->first();
+        // @phpstan-ignore-next-line
         $this->assertMatch(array_get($data, $id_key), '3');
     }
 
@@ -1126,6 +1137,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::ME]);
 
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
 
         $this->withHeaders([
@@ -1157,6 +1169,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var CustomView $custom_view */
         $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
 
         $this->withHeaders([
@@ -1262,6 +1275,7 @@ class Api2Test extends ApiTestBase
     public function testCreateMultipleValue()
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        // @phpstan-ignore-next-line
         $pre_count = CustomTable::getEloquent('custom_value_edit')->getValueModel()->count();
         $values = [];
         for ($i = 1; $i <= 3; $i++) {
@@ -1271,6 +1285,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->post(admin_urls('api', 'data', 'custom_value_edit'), ['value' => $values])
             ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $count = CustomTable::getEloquent('custom_value_edit')->getValueModel()->count();
         $this->assertMatch(($pre_count + 3), $count);
     }
@@ -1281,6 +1296,7 @@ class Api2Test extends ApiTestBase
     public function testCreateMultipleValueWithParent()
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        // @phpstan-ignore-next-line
         $pre_count = getModelName('parent_table')::find(4)
             ->getChildrenValues('child_table')->count();
         $values = [];
@@ -1295,6 +1311,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->post(admin_urls('api', 'data', 'child_table'), ['value' => $values])
             ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $count = getModelName('parent_table')::find(4)
             ->getChildrenValues('child_table')->count();
         $this->assertMatch(($pre_count + 3), $count);
@@ -1329,6 +1346,7 @@ class Api2Test extends ApiTestBase
     public function testCreateMultipleValueWithParent2()
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        // @phpstan-ignore-next-line
         $parents = getModelName('parent_table')::find([1,2,3]);
         $pre_count = $parents->sum(function ($parent) {
             return $parent->getChildrenValues('child_table')->count();
@@ -1348,6 +1366,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->post(admin_urls('api', 'data', 'child_table'), ['data' => $data])
             ->assertStatus(200);
+        // @phpstan-ignore-next-line
         $parents = getModelName('parent_table')::find([1,2,3]);
         $count = $parents->sum(function ($parent) {
             return $parent->getChildrenValues('child_table')->count();
@@ -1514,6 +1533,7 @@ class Api2Test extends ApiTestBase
     public function testUpdateValue()
     {
         /** @var mixed $data */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('updated_user_id', '<>', '1')->first();
         $index_text = array_get($data->value, 'index_text');
@@ -1547,6 +1567,7 @@ class Api2Test extends ApiTestBase
     public function testUpdateValueWithFindKey()
     {
         /** @var mixed $data */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('updated_user_id', '<>', '2')->first();
         $old_text = array_get($data->value, 'text');
@@ -1584,6 +1605,7 @@ class Api2Test extends ApiTestBase
     public function testUpdateValueWithParent()
     {
         /** @var mixed $data */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('child_table')->getValueModel()
             ->where('parent_id', 1)->first();
 
@@ -1616,6 +1638,7 @@ class Api2Test extends ApiTestBase
     public function testUpdateValueOnlyParent()
     {
         /** @var mixed $data */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('child_table')->getValueModel()
             ->where('parent_id', 3)->first();
 
@@ -1645,6 +1668,7 @@ class Api2Test extends ApiTestBase
     public function testUpdateValueWithParent2()
     {
         /** @var mixed $data */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('child_table')->getValueModel()
             ->where('parent_id', 2)->first();
 
@@ -1701,6 +1725,7 @@ class Api2Test extends ApiTestBase
     public function testUpdateValueNoPermissionData()
     {
         /** @var mixed $data */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('created_user_id', '<>', '3')->first();
 
@@ -1726,6 +1751,7 @@ class Api2Test extends ApiTestBase
     public function testUpdateValueInitOnly()
     {
         /** @var mixed $data */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('updated_user_id', '<>', '1')->first();
         $init_text = array_get($data->value, 'init_text');
@@ -1807,6 +1833,7 @@ class Api2Test extends ApiTestBase
 
         $id = 80;
         for ($i = 0; $i < 100; $i++) {
+            // @phpstan-ignore-next-line
             $query = CustomTable::getEloquent('custom_value_edit')->getValueModel()->query();
             if ($isAlreadyTrashed) {
                 // @phpstan-ignore-next-line
@@ -1828,6 +1855,7 @@ class Api2Test extends ApiTestBase
             ->assertStatus(204);
 
         // check not exists (and contains trashed data)
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find($id);
         $this->assertTrue(!isset($data));
 
@@ -1862,6 +1890,7 @@ class Api2Test extends ApiTestBase
     public function testDeleteValueNoPermissionData()
     {
         /** @var mixed $data */
+        // @phpstan-ignore-next-line
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('created_user_id', '<>', '3')->first();
 
@@ -1973,6 +2002,7 @@ class Api2Test extends ApiTestBase
             return array_get($j, 'id');
         })->toArray();
 
+        // @phpstan-ignore-next-line
         $this->checkCustomValuePermission(CustomTable::getEloquent('custom_value_edit'), $ids, function ($query) {
             $query->where('value->index_text', 'LIKE', 'index_001%');
         });
@@ -2045,6 +2075,7 @@ class Api2Test extends ApiTestBase
             return array_get($j, 'id');
         })->toArray();
 
+        // @phpstan-ignore-next-line
         $this->checkCustomValuePermission(CustomTable::getEloquent('custom_value_edit'), $ids, function ($query) {
             $query->where('value->odd_even', 'odd');
         });
@@ -2335,6 +2366,7 @@ class Api2Test extends ApiTestBase
         $custom_column = CustomColumn::getEloquent('file_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
 
         /** @var CustomTable $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
             ->getValueQuery()
             ->whereNull($custom_column->getQueryKey())
@@ -2373,6 +2405,7 @@ class Api2Test extends ApiTestBase
         $custom_column = CustomColumn::getEloquent('file_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
 
         /** @var CustomTable $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
             ->getValueQuery()
             ->whereNull($custom_column->getQueryKey())
@@ -2446,6 +2479,8 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $document = $custom_value->getDocuments()->first();
 
@@ -2473,6 +2508,8 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $document = $custom_value->getDocuments()->sortBy('id')->first();
 
@@ -2493,6 +2530,8 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $document = $custom_value->getDocuments()->sortBy('id')->first();
 
@@ -2552,6 +2591,8 @@ class Api2Test extends ApiTestBase
         /// check not permission by user
         $token = $this->getUser2AccessToken([ApiScope::VALUE_WRITE]);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $document = $custom_value->getDocuments()->first();
 
@@ -2572,6 +2613,8 @@ class Api2Test extends ApiTestBase
         /// check not permission by user
         $token = $this->getUser2AccessToken([ApiScope::VALUE_WRITE]);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $document = $custom_value->getDocuments()->first();
 
@@ -2629,6 +2672,8 @@ class Api2Test extends ApiTestBase
         /// check not permission by user
         $token = $this->getAdminAccessToken([ApiScope::ME]);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $document = $custom_value->getDocuments()->first();
 
@@ -2649,6 +2694,8 @@ class Api2Test extends ApiTestBase
         /// check not permission by user
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $document = $custom_value->getDocuments()->first();
 
@@ -2668,6 +2715,8 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $document = $custom_value->getDocuments()->first();
 
@@ -2841,6 +2890,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::LOG]);
 
+        /** @var OperationLog $data */
         $data = OperationLog::first();
 
         $this->withHeaders([
@@ -2870,6 +2920,8 @@ class Api2Test extends ApiTestBase
     public function testGetLogsFilterBaseUserId()
     {
         $filters = ['base_user_id' => 1, 'count' => 1000000];
+        /** @var \Exceedone\Exment\Model\CustomValue $base_user */
+        // @phpstan-ignore-next-line
         $base_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(1);
         $login_user_ids = $base_user->login_users->pluck('id')->toArray();
         $this->assertLogsFilterResult($filters, function ($result, $filterValue) use ($login_user_ids) {

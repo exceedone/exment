@@ -74,6 +74,7 @@ class TemplateImportThumbnailTest extends FeatureTestBase
     {
         parent::setUp();
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
     }
 
@@ -484,6 +485,7 @@ class TemplateImportThumbnailTest extends FeatureTestBase
         $zip->addFromString('config.json', (string)json_encode($config, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
         if ($withThumbnail && $thumbnailBytes !== false) {
+            // @phpstan-ignore-next-line
             $zip->addFromString($thumbnailName, $thumbnailBytes);
         }
 

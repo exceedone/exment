@@ -34,6 +34,7 @@ class PluginTest extends FeatureTestBase
     protected function init(bool $fake)
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
     }
 
@@ -45,7 +46,9 @@ class PluginTest extends FeatureTestBase
      */
     public function testButton()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()->where('value->multiples_of_3', '1')->first();
 
         list($plugin, $pluginClass) = $this->getPluginInfo('TestPluginButton', PluginType::BUTTON, [
@@ -67,15 +70,21 @@ class PluginTest extends FeatureTestBase
     {
         $id = 3;
 
+        /** @var \Exceedone\Exment\Model\CustomValue $old_value */
+        // @phpstan-ignore-next-line
         $old_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL)->getValueModel($id);
         $old_int = $old_value->getValue('integer');
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel($id);
         $change_val = $custom_value->getValue('multiples_of_3') == '1' ? '0' : '1';
         $custom_value->setValue('multiples_of_3', $change_val);
         $custom_value->save();
 
+        /** @var \Exceedone\Exment\Model\CustomValue $new_value */
+        // @phpstan-ignore-next-line
         $new_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL)->getValueModel($id);
         $new_int = $new_value->getValue('integer');
 
@@ -91,7 +100,9 @@ class PluginTest extends FeatureTestBase
     {
         $id = 4;
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel($id);
 
         // get action
@@ -118,12 +129,16 @@ class PluginTest extends FeatureTestBase
     {
         $id = 5;
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW);
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel($id);
 
         $notify = Notify::where('custom_table_id', $custom_table->id)->where('notify_trigger', NotifyTrigger::BUTTON)->first();
+        // @phpstan-ignore-next-line
         $target_user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
+        // @phpstan-ignore-next-line
         NotifyService::executeNotifyAction($notify, [
             'custom_value' => $custom_value,
             'subject' => 'プラグインテスト',
@@ -145,15 +160,19 @@ class PluginTest extends FeatureTestBase
     {
         $id = 3;
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel($id);
         $custom_value->delete();
 
+        // @phpstan-ignore-next-line
         $trash_value = $custom_table->getValueModel()->withTrashed()->find($id);
         $this->assertTrue(isset($trash_value));
 
         \Artisan::call('exment:batch', ['--name' => 'TestPluginBatch']);
 
+        // @phpstan-ignore-next-line
         $trash_value = $custom_table->getValueModel()->withTrashed()->find($id);
         $this->assertTrue(is_null($trash_value));
     }
@@ -165,6 +184,7 @@ class PluginTest extends FeatureTestBase
      */
     public function testValidate()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_value = $custom_table->getValueModel(1);
 
@@ -188,6 +208,7 @@ class PluginTest extends FeatureTestBase
      */
     public function testImport()
     {
+        // @phpstan-ignore-next-line
         $pre_cnt = getModelName('parent_table')::where('value->init_text', 'plugin_unit_test')->count();
 
         $import_path = storage_path(path_join_os('app', 'import', 'unittest'));
@@ -207,11 +228,13 @@ class PluginTest extends FeatureTestBase
 
         $this->assertTrue(array_get($res, 'result'));
 
+        // @phpstan-ignore-next-line
         $parent = getModelName('parent_table')::where('value->init_text', 'plugin_unit_test')->get();
         $this->assertEquals($pre_cnt+1, count($parent));
 
         $parent = $parent->last();
 
+        // @phpstan-ignore-next-line
         $child_cnt = getModelName('child_table')::where('parent_type', 'parent_table')
             ->where('parent_id', $parent->id)->count();
         $this->assertEquals(2, $child_cnt);
@@ -224,6 +247,7 @@ class PluginTest extends FeatureTestBase
      */
     public function testExportCsv()
     {
+        /** @var Plugin $plugin */
         $plugin = Plugin::where('plugin_name', 'TestPluginExportCsv')->first();
         $pluginClass = $plugin->getClass(PluginType::EXPORT);
 
@@ -305,8 +329,10 @@ class PluginTest extends FeatureTestBase
      */
     public function testDocument()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(SystemTableName::USER);
         /** @var mixed $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()->latest()->first();
 
         list($plugin, $pluginClass) = $this->getPluginInfo('TestPluginDocument', PluginType::DOCUMENT, [

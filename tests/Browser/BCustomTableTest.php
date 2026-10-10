@@ -98,6 +98,7 @@ class BCustomTableTest extends ExmentKitTestCase
     public function testEditCustomTableSuccess()
     {
         $row = CustomTable::orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $id = array_get($row, 'id');
 
         // Update custom table

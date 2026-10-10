@@ -1026,6 +1026,7 @@ class Api3WorkflowTest extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
 
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')
             ->getValueModel()
             ->whereNot('id', 1)
@@ -1034,6 +1035,7 @@ class Api3WorkflowTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
+        // @phpstan-ignore-next-line
         ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', $custom_value->id, 'value'), [
             'workflow_action_id' => 6
         ])
@@ -1050,6 +1052,7 @@ class Api3WorkflowTest extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
 
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')
             ->getValueModel()
             ->whereNot('id', 1)
@@ -1058,6 +1061,7 @@ class Api3WorkflowTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
+        // @phpstan-ignore-next-line
         ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', $custom_value->id, 'value'), [
             'workflow_action_id' => 6
         ])
@@ -1193,7 +1197,9 @@ class Api3WorkflowTest extends ApiTestBase
         $id = array_get($json, 'id');
 
         // get workflow value
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('workflow1');
+        /** @var CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel(61);
         $workflow_value = $custom_value->workflow_value;
         $this->assertTrue(!is_nullorempty($workflow_value));

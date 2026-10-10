@@ -55,6 +55,7 @@ class DCustomDataTest extends ExmentKitTestCase
     public function testPrepareUser()
     {
         $row = CustomTable::where('table_name', 'user')->first();
+        // @phpstan-ignore-next-line
         $table_name = 'exm__' . array_get($row, 'suuid');
 
         $cnt = \DB::table($table_name)->whereNull('deleted_at')->count();
@@ -82,6 +83,7 @@ class DCustomDataTest extends ExmentKitTestCase
     public function testPrepareOrganization()
     {
         $row = CustomTable::where('table_name', 'organization')->first();
+        // @phpstan-ignore-next-line
         $table_name = 'exm__' . array_get($row, 'suuid');
 
         $cnt = \DB::table($table_name)->whereNull('deleted_at')->count();
@@ -116,6 +118,7 @@ class DCustomDataTest extends ExmentKitTestCase
     public function testAddRecordSuccess()
     {
         $row = CustomTable::getEloquent('exmenttest_data');
+        // @phpstan-ignore-next-line
         $table_name = \getDBTableName($row);
 
         $pre_cnt = \DB::table($table_name)->whereNull('deleted_at')->count();
@@ -185,6 +188,7 @@ class DCustomDataTest extends ExmentKitTestCase
     public function testEditRecord1()
     {
         $row = CustomTable::getEloquent('exmenttest_data');
+        // @phpstan-ignore-next-line
         $table_name = \getDBTableName($row);
 
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
@@ -216,6 +220,7 @@ class DCustomDataTest extends ExmentKitTestCase
     public function testEditRecord2()
     {
         $row = CustomTable::getEloquent('exmenttest_data');
+        // @phpstan-ignore-next-line
         $table_name = \getDBTableName($row);
 
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
@@ -367,10 +372,14 @@ class DCustomDataTest extends ExmentKitTestCase
     public function testDisplaySummaryGridDetail1()
     {
         $group_key = \Carbon\Carbon::today()->format('Y-m');
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('all_columns_table_fortest');
         $all_view = CustomView::getAllData($custom_table);
+        /** @var CustomView $group_view */
         $group_view = CustomView::where('custom_table_id', $custom_table->id)->where('view_kind_type', ViewKindType::AGGREGATE)->first();
+        /** @var CustomViewColumn $group_column */
         $group_column = CustomViewColumn::where('custom_view_id', $group_view->id)->where('options->view_group_condition', GroupCondition::YM)->first();
+        // @phpstan-ignore-next-line
         $count = $custom_table->getValueModel()
             ->whereIn('value->select', ['bar', 'baz'])
             ->where('value->date', '>=', \Carbon\Carbon::now()->startOfMonth()->toDateString())
@@ -398,10 +407,14 @@ class DCustomDataTest extends ExmentKitTestCase
      */
     public function testDisplaySummaryGridDetail2()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('all_columns_table_fortest');
         $all_view = CustomView::getAllData($custom_table);
+        /** @var CustomView $group_view */
         $group_view = CustomView::where('custom_table_id', $custom_table->id)->where('view_kind_type', ViewKindType::AGGREGATE)->first();
+        /** @var CustomViewColumn $group_column */
         $group_column = CustomViewColumn::where('custom_view_id', $group_view->id)->where('options->view_group_condition', GroupCondition::YM)->first();
+        // @phpstan-ignore-next-line
         $count = $custom_table->getValueModel()
             ->whereIn('value->select', ['bar', 'baz'])
             ->whereNull('value->date')

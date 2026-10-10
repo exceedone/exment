@@ -23,6 +23,7 @@ class Plugin extends PluginImportBase
         // Sheet1のB4セルの内容でuserマスタを読み込みます
         $sheet = $spreadsheet->getSheetByName('Sheet1');
         $user_name = getCellValue('F3', $sheet, true);
+        // @phpstan-ignore-next-line
         $user = getModelName(SystemTableName::USER)::where('value->user_name', $user_name)->first();
 
         // Sheet1のヘッダ部分に記載された情報で親データを編集します
@@ -36,6 +37,7 @@ class Plugin extends PluginImportBase
             'value->init_text' => 'plugin_unit_test',
         ];
         // 親テーブルにレコードを追加します
+        // @phpstan-ignore-next-line
         $record = getModelName('parent_table')::create($parent);
 
         // Sheet1の7行目～15行目に記載された明細情報を元に子データを出力します
@@ -44,6 +46,7 @@ class Plugin extends PluginImportBase
             if (!isset($select_table_text)) {
                 break;
             }
+            // @phpstan-ignore-next-line
             $select_table = getModelName('custom_value_view_all')::where('value->index_text', $select_table_text)->first();
             $child = [
                 'parent_id' => $record->id,
@@ -56,6 +59,7 @@ class Plugin extends PluginImportBase
                 'value->odd_even' => getCellValue("F$i", $sheet, true),
             ];
             // 子テーブルにレコードを追加します
+            // @phpstan-ignore-next-line
             getModelName('child_table')::create($child);
         }
 

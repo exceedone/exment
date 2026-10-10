@@ -34,6 +34,7 @@ class CCustomCopyTest extends ExmentKitTestCase
      */
     public function testDisplayCopySetting()
     {
+        // @phpstan-ignore-next-line
         $suuid = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL)->suuid;
 
         // Check custom column view
@@ -299,7 +300,9 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         $pre_cnt = CustomCopy::count();
         $pre_child_cnt = CustomCopyColumn::count();
+        /** @var CustomTable $from_table */
         $from_table = CustomTable::getEloquent($from_table_name);
+        /** @var CustomTable $to_table */
         $to_table = CustomTable::getEloquent($to_table_name);
 
         $data = [

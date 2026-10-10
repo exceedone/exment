@@ -27,7 +27,9 @@ class Plugin extends PluginViewBase
     {
         $value = request()->get('value');
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(request()->get('table_name'));
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel(request()->get('id'));
 
         $custom_value->setValue($value)

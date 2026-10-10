@@ -1388,6 +1388,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
      */
     protected function _testConditionValueColumnUser(int $filterOption, bool $hasHtml, bool $multiple = false)
     {
+        // @phpstan-ignore-next-line
         $options = CustomTable::getEloquent('user')->getValueQuery()->get()->pluck('label', 'id')->toArray();
         $this->__testConditionValueApiColumn(ColumnType::USER, $filterOption, $hasHtml, new ExactSelectOption('select', $options), $multiple);
     }
@@ -1434,6 +1435,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
      */
     protected function _testConditionValueColumnOrganization(int $filterOption, bool $hasHtml, bool $multiple = false)
     {
+        // @phpstan-ignore-next-line
         $options = CustomTable::getEloquent('organization')->getValueQuery()->get()->pluck('label', 'id')->toArray();
         $this->__testConditionValueApiColumn(ColumnType::ORGANIZATION, $filterOption, $hasHtml, new ExactSelectOption('select', $options), $multiple);
     }
@@ -2165,7 +2167,10 @@ class ApiFilterValueTest extends ExmentKitTestCase
      */
     protected function _testConditionValueApiWorkflowStatus(int $filterOption, bool $hasHtml)
     {
+        /** @var \Exceedone\Exment\Model\Workflow $workflow */
+        // @phpstan-ignore-next-line
         $workflow = Model\Workflow::getWorkflowByTable(Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT));
+        // @phpstan-ignore-next-line
         $options = $workflow->getStatusOptions()->toArray();
         $this->__testConditionApiWorkflow('workflow_status', $filterOption, $hasHtml, new ExactSelectOption('select', $options), true);
     }
@@ -2192,6 +2197,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     protected function __testConditionValueApiColumn(string $column_name, int $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
         $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
 
@@ -2225,6 +2231,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     protected function __testConditionValueApiSystem(string $system_column_name, int $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
         $syetem_column = SystemColumn::getOption(['name' => $system_column_name]);
 
@@ -2257,6 +2264,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     protected function __testConditionApiConditionDetail(string $condition_type_detail, int $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
 
         $url = admin_urls_query('webapi', $custom_table->table_name, 'filter-value', [
@@ -2289,6 +2297,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         // workflow table
         $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
 
         $url = admin_urls_query('webapi', $custom_table->table_name, 'filter-value', [

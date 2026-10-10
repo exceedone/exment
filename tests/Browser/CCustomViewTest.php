@@ -92,6 +92,7 @@ class CCustomViewTest extends ExmentKitTestCase
         ;
 
         $raw = CustomView::orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $id = array_get($raw, 'id');
 
         Model\System::clearRequestSession();
@@ -114,6 +115,7 @@ class CCustomViewTest extends ExmentKitTestCase
     public function testAddSummaryViewSuccess()
     {
         $pre_cnt = CustomView::count();
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('custom_value_edit_all');
 
         $data = [
@@ -150,6 +152,7 @@ class CCustomViewTest extends ExmentKitTestCase
             ->assertEquals($pre_cnt + 1, CustomView::count())
         ;
 
+        /** @var CustomView $raw */
         $raw = CustomView::orderBy('id', 'desc')->first();
         $custom_view_column = $raw->custom_view_columns->first();
         $uniqueName = $custom_view_column->column_item->uniqueName();
@@ -176,6 +179,7 @@ class CCustomViewTest extends ExmentKitTestCase
     public function testAddViewSuccessContainsField()
     {
         $pre_cnt = CustomView::count();
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('exmenttest_view');
         $custom_column_text = CustomColumn::getEloquent('onelinetext', $custom_table);
         $custom_column_user = CustomColumn::getEloquent('user_single', $custom_table);
@@ -248,6 +252,7 @@ class CCustomViewTest extends ExmentKitTestCase
         ;
 
         $raw = CustomView::orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $id = array_get($raw, 'id');
 
 
@@ -300,8 +305,10 @@ class CCustomViewTest extends ExmentKitTestCase
     // @phpstan-ignore-next-line
     public function testCheckDefaultGridFilter()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('exmenttest_view');
         $raw = CustomView::where('custom_table_id', $custom_table->id)->where('view_view_name', 'TestView2')->first();
+        // @phpstan-ignore-next-line
         $suuid = array_get($raw, 'suuid');
 
         $this->visit(admin_url("data/exmenttest_view?view={$suuid}"));
@@ -352,6 +359,7 @@ class CCustomViewTest extends ExmentKitTestCase
     // @phpstan-ignore-next-line
     public function testAddViewSuccessGridFilter()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('exmenttest_view');
         $custom_column_text = CustomColumn::getEloquent('onelinetext', $custom_table);
         $custom_column_user = CustomColumn::getEloquent('user_single', $custom_table);
@@ -360,7 +368,9 @@ class CCustomViewTest extends ExmentKitTestCase
         $custom_column_username = CustomColumn::getEloquent('user_name', $user_table);
 
         $raw = CustomView::where('custom_table_id', $custom_table->id)->where('view_view_name', 'TestView2')->first();
+        // @phpstan-ignore-next-line
         $id = array_get($raw, 'id');
+        // @phpstan-ignore-next-line
         $suuid = array_get($raw, 'suuid');
 
         $data = [
@@ -405,6 +415,7 @@ class CCustomViewTest extends ExmentKitTestCase
     // @phpstan-ignore-next-line
     public function testUpdateViewSuccessGridFilter()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('exmenttest_view');
         $custom_column_user = CustomColumn::getEloquent('user_single', $custom_table);
 
@@ -412,7 +423,9 @@ class CCustomViewTest extends ExmentKitTestCase
         $custom_column_username = CustomColumn::getEloquent('user_name', $user_table);
 
         $raw = CustomView::where('custom_table_id', $custom_table->id)->where('view_view_name', 'TestView2')->first();
+        // @phpstan-ignore-next-line
         $id = array_get($raw, 'id');
+        // @phpstan-ignore-next-line
         $suuid = array_get($raw, 'suuid');
 
         $grid_filters = CustomViewGridFilter::where('custom_view_id', $id)->pluck('id');
@@ -425,6 +438,7 @@ class CCustomViewTest extends ExmentKitTestCase
                     '_remove_' => 0,
                 ],
                 $grid_filters[1] => [
+                    // @phpstan-ignore-next-line
                     'view_column_target' => "{$custom_column_username->id}?table_id={$user_table->id}&view_pivot_column_id={$custom_column_user->id}&view_pivot_table_id={$custom_table->id}",
                     'id' => $grid_filters[1],
                     '_remove_' => 0,

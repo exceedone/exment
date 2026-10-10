@@ -44,6 +44,7 @@ class CCustomOperationTest extends ExmentKitTestCase
      */
     public function testDisplayOperationSetting()
     {
+        // @phpstan-ignore-next-line
         $suuid = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL)->suuid;
 
         // Check custom column view
@@ -86,6 +87,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     public function testOperationOneNoFilter()
     {
         $target_table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL;
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($target_table_name);
 
         $column_user = CustomColumn::getEloquent('user', $target_table_name);
@@ -131,6 +133,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         ]));
 
         /** @var Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->where('value->user', '<>', \Exment::user()->base_user->id)->first();
         $target_id = $custom_value->id;
         $this->post(admin_url("data/$target_table_name/$target_id/operationClick"), [
@@ -139,6 +142,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->assertPostResponse($this->response, admin_url("data/$target_table_name/$target_id/operationClick"));
 
         /** @var Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->find($target_id);
         $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);
         $this->assertEquals($custom_value->getValue('date'), '2021-01-01');
@@ -154,6 +158,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     public function testOperationMultiWithFilter()
     {
         $target_table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($target_table_name);
 
         $column_1 = CustomColumn::getEloquent('yesno', $target_table_name);
@@ -252,6 +257,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         Model\System::clearCache();
 
+        // @phpstan-ignore-next-line
         $ids = $target_table->getValueModel()->where('value->currency', '>', 30000)
             ->where('value->user', TestDefine::TESTDATA_USER_LOGINID_DEV_USERB)
             ->where('value->yesno', '<>', 1)
@@ -264,6 +270,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         ]);
         $this->assertPostResponse($this->response, admin_url("data/$target_table_name/operationClick"));
 
+        // @phpstan-ignore-next-line
         $custom_values = $target_table->getValueModel()->find($ids);
 
         foreach ($custom_values as $custom_value) {
@@ -272,6 +279,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             $this->assertEquals($custom_value->getValue('yesno'), '1');
         }
 
+        // @phpstan-ignore-next-line
         $err_ids = $target_table->getValueModel()->where('value->currency', '<', 30000)
             ->where('value->user', TestDefine::TESTDATA_USER_LOGINID_DEV_USERB)
             ->take(2)->pluck('id')->toArray();
@@ -303,6 +311,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     public function testOperationCreate()
     {
         $target_table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL;
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($target_table_name);
 
         $column_1 = CustomColumn::getEloquent('odd_even', $target_table_name);
@@ -366,6 +375,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation create test');
         $this->assertEquals($custom_value->getValue('odd_even'), 'odd');
@@ -380,6 +391,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get updated data row
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation create test update');
         $this->assertEquals($custom_value->getValue('odd_even'), 'even');
@@ -395,6 +408,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation create test by admin');
         $this->assertNull($custom_value->getValue('odd_even'));
@@ -410,6 +425,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     public function testOperationUpdate()
     {
         $target_table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL;
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($target_table_name);
 
         $column_1 = CustomColumn::getEloquent('date', $target_table_name);
@@ -475,6 +491,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation update test');
         $this->assertEquals($custom_value->getValue('multiples_of_3'), '1');
@@ -487,6 +505,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get updated data row
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation update test update');
         $this->assertNull($custom_value->getValue('date'));
@@ -499,6 +519,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation update multiples_of_3 turn off');
         $this->assertEquals($custom_value->getValue('multiples_of_3'), '0');
@@ -515,6 +537,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     public function testOperationMultiType()
     {
         $target_table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL;
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($target_table_name);
 
         $column_1 = CustomColumn::getEloquent('user', $target_table_name);
@@ -570,6 +593,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type');
         $this->assertEquals($custom_value->getValue('date'), $lastYearDate);
@@ -583,6 +608,8 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         // Get updated data row
         $thisYearDate = Carbon::createFromDate($today->year, 1, 31)->addDays(-1)->format('Y-m-d');
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type update');
         $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);
@@ -595,6 +622,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type change date');
         $this->assertEquals($custom_value->getValue('date'), $thisYearDate);
@@ -611,6 +640,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     public function testOperationUpdateBlank()
     {
         $target_table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        /** @var CustomTable $target_table */
         $target_table = CustomTable::getEloquent($target_table_name);
 
         $column_user = CustomColumn::getEloquent('user', $target_table_name);
@@ -681,6 +711,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 $custom_operation_column->getOption('operation_update_type')
             );
             if ($index == 0) {
+                // @phpstan-ignore-next-line
                 $user_ids = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->pluck('id');
                 foreach($user_ids as $user_id) {
                     $this->dontSeeIsSelected("custom_operation_columns[$row_id][update_value_text]", $user_id);
@@ -704,6 +735,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             }
         }
 
+        // @phpstan-ignore-next-line
         $this->exactSelectOptions('select.view_column_target', $target_table->getColumnsSelectOptions([
             'append_table' => true,
             'include_system' => false,
@@ -712,6 +744,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         ]));
 
         /** @var Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->where('value->user', '<>', \Exment::user()->base_user->id)->first();
         $target_id = $custom_value->id;
         $this->post(admin_url("data/$target_table_name/$target_id/operationClick"), [
@@ -720,6 +753,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->assertPostResponse($this->response, admin_url("data/$target_table_name/$target_id/operationClick"));
 
         /** @var Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $target_table->getValueModel()->find($target_id);
         $this->assertNull($custom_value->getValue('user'));
         $this->assertNull($custom_value->getValue('date'));
@@ -773,6 +807,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         ;
 
         $raw = CustomOperation::orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $id = array_get($raw, 'id');
 
         $this->visit(admin_url("operation/$target_table_name/$id/edit"))
@@ -806,6 +841,7 @@ class CCustomOperationTest extends ExmentKitTestCase
      */
     protected function getUserSelectOptions(): array
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(SystemTableName::USER);
         return $custom_table->getSelectOptions([
             'display_table' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
