@@ -198,6 +198,7 @@ class SomeTest extends UnitTestBase
      */
     public function __testSearchQueryIndexed(string $column_name, bool $index_enabled, string $search_value)
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
 

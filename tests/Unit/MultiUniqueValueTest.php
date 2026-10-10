@@ -28,6 +28,8 @@ class MultiUniqueValueTest extends UnitTestBase
     {
         $custom_table = $this->initUniqueValueTest(['text', 'decimal']);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $duplicate */
+        // @phpstan-ignore-next-line
         $duplicate = CustomTable::getEloquent('child_table')->getValueModel(1);
 
         $result = $custom_table->validatorUniques(['value' => [
@@ -53,6 +55,8 @@ class MultiUniqueValueTest extends UnitTestBase
     {
         $custom_table = $this->initUniqueValueTest(['user', 'date', 'integer']);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $duplicate */
+        // @phpstan-ignore-next-line
         $duplicate = CustomTable::getEloquent('child_table')->getValueModel(1);
 
         $result = $custom_table->validatorUniques(['value' => [
@@ -79,6 +83,8 @@ class MultiUniqueValueTest extends UnitTestBase
     {
         $custom_table = $this->initUniqueValueTest(['odd_even', 'currency', 'parent_id']);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $duplicate */
+        // @phpstan-ignore-next-line
         $duplicate = CustomTable::getEloquent('child_table')->getValueModel(1);
 
         $result = $custom_table->validatorUniques([
@@ -96,6 +102,8 @@ class MultiUniqueValueTest extends UnitTestBase
     {
         $custom_table = $this->initUniqueValueTest(['odd_even', 'currency', 'parent_id']);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $original */
+        // @phpstan-ignore-next-line
         $original = CustomTable::getEloquent('child_table')->getValueModel(1);
 
         $result = $custom_table->validatorUniques([
@@ -113,7 +121,10 @@ class MultiUniqueValueTest extends UnitTestBase
     {
         $custom_table = $this->initUniqueValueTest(['odd_even', 'currency', 'parent_id']);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $original */
+        // @phpstan-ignore-next-line
         $original = CustomTable::getEloquent('child_table')->getValueModel(1);
+        // @phpstan-ignore-next-line
         $duplicate = CustomTable::getEloquent('child_table')->getValueModel()
             ->whereNot('id', $original->id)
             ->where('parent_id', $original->parent_id)
@@ -121,7 +132,9 @@ class MultiUniqueValueTest extends UnitTestBase
 
         $result = $custom_table->validatorUniques([
             'value' => [
+                // @phpstan-ignore-next-line
                 'odd_even' => $duplicate->getValue('odd_even'), 
+                // @phpstan-ignore-next-line
                 'currency' => $duplicate->getValue('currency'),
                 'integer' => 1212 
             ]], $original);
@@ -132,6 +145,7 @@ class MultiUniqueValueTest extends UnitTestBase
     // @phpstan-ignore-next-line
     protected function initUniqueValueTest(array $column_names): CustomTable
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('child_table');
 
         $column_ids = [];

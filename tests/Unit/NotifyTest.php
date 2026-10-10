@@ -29,6 +29,7 @@ class NotifyTest extends UnitTestBase
     protected function init(bool $fake)
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
         if ($fake) {
@@ -64,6 +65,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyMailTemplate()
     {
         /** @var mixed $mail_template */
+        // @phpstan-ignore-next-line
         $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'test_template_1')->first();
 
         $subject = $mail_template->getValue('mail_subject');
@@ -85,6 +87,7 @@ class NotifyTest extends UnitTestBase
      */
     public function testNotifyMailTemplateParams()
     {
+        // @phpstan-ignore-next-line
         $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'test_template_2')->first();
 
         $subject = 'test_mail_2 AAA BBB';
@@ -132,6 +135,7 @@ class NotifyTest extends UnitTestBase
     {
         $subject = 'テスト';
         $body = '本文です';
+        // @phpstan-ignore-next-line
         $to = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         $this->_testNotifyMail([
@@ -139,6 +143,7 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
             'to' => $to,
         ], function ($notifiable) use ($to, $subject, $body) {
+            // @phpstan-ignore-next-line
             return ($notifiable->getTo() == arrayToString(NotifyService::getAddresses($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -152,6 +157,7 @@ class NotifyTest extends UnitTestBase
     {
         $subject = 'テスト';
         $body = '本文です';
+        // @phpstan-ignore-next-line
         $to = [CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2), CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC)];
 
         $this->_testNotifyMail([
@@ -172,6 +178,7 @@ class NotifyTest extends UnitTestBase
     {
         $subject = 'テスト';
         $body = '本文です';
+        // @phpstan-ignore-next-line
         $to = NotifyTarget::getModelAsUser(CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2));
 
         $this->_testNotifyMail([
@@ -179,6 +186,7 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
             'to' => $to,
         ], function ($notifiable) use ($to, $subject, $body) {
+            // @phpstan-ignore-next-line
             return ($notifiable->getTo() == arrayToString(NotifyService::getAddresses($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -192,6 +200,7 @@ class NotifyTest extends UnitTestBase
     {
         $subject = 'テスト';
         $body = '本文です';
+        // @phpstan-ignore-next-line
         $to = [NotifyTarget::getModelAsUser(CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2)), NotifyTarget::getModelAsUser(CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC))];
 
         $this->_testNotifyMail([
@@ -211,6 +220,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyMailDisdableHistory()
     {
         /** @var mixed $mail_template */
+        // @phpstan-ignore-next-line
         $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'test_template_1')->first();
 
         $subject = $mail_template->getValue('mail_subject');
@@ -331,6 +341,7 @@ class NotifyTest extends UnitTestBase
         $this->init(false);
 
         /** @var User $user */
+        // @phpstan-ignore-next-line
         $user = CustomTable::getEloquent('user')->getValueModel()->first();
         $subject = 'テスト';
         $body = '本文です';
@@ -342,8 +353,11 @@ class NotifyTest extends UnitTestBase
         ]);
 
         $data = NotifyNavbar::withoutGlobalScopes()->orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'notify_subject'), $subject);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'notify_body'), $body);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'target_user_id'), $user->id);
     }
 
@@ -355,11 +369,13 @@ class NotifyTest extends UnitTestBase
         sleep(1);
 
         // Login user.
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         $table_name = 'custom_value_edit_all';
         $user_id = \Exment::user()->base_user_id;
         /** @var mixed $model */
+        // @phpstan-ignore-next-line
         $model = CustomTable::getEloquent($table_name)->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
         $model->update([
@@ -371,9 +387,13 @@ class NotifyTest extends UnitTestBase
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc')
             ->first();
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'parent_type'), $table_name);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'parent_id'), $model->id);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'target_user_id'), $model->created_user_id);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'trigger_user_id'), $user_id);
     }
 
@@ -394,8 +414,11 @@ class NotifyTest extends UnitTestBase
         /** @var CustomTable $custom_table */
         $custom_table = CustomTable::find($notify->target_id);
         /** @var Model\CustomValue $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user->id)->first();
+        /** @var \Exceedone\Exment\Model\CustomValue $target_user */
+        // @phpstan-ignore-next-line
         $target_user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         $subject = 'テスト';
@@ -409,11 +432,17 @@ class NotifyTest extends UnitTestBase
 
         $data = NotifyNavbar::withoutGlobalScopes()
             ->where('notify_id', $notify->id)->orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'parent_id'), $custom_value->id);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'target_user_id'), $target_user->id);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'trigger_user_id'), $user->id);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'notify_subject'), $subject);
+        // @phpstan-ignore-next-line
         $this->assertEquals(array_get($data, 'notify_body'), $body);
     }
 
@@ -471,7 +500,10 @@ class NotifyTest extends UnitTestBase
      */
     public function testNotifyTargetAdministrator()
     {
+        // @phpstan-ignore-next-line
         $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::ADMINISTRATOR, function ($targets, $custom_value) {
+            /** @var \Exceedone\Exment\Model\CustomValue $user */
+            // @phpstan-ignore-next-line
             $user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
             $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
             $this->assertTrue(isMatchString($user->getValue('email'), $targets[0]->email()), 'Expects  email is ' . $user->getValue('email') . ' , but result is ' . $targets[0]->email());
@@ -483,7 +515,10 @@ class NotifyTest extends UnitTestBase
      */
     public function testNotifyTargetCreatedUser()
     {
+        // @phpstan-ignore-next-line
         $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::CREATED_USER, function ($targets, $custom_value) {
+            /** @var \Exceedone\Exment\Model\CustomValue $user */
+            // @phpstan-ignore-next-line
             $user = CustomTable::getEloquent('user')->getValueModel($custom_value->created_user_id);
             $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
             $this->assertTrue(isMatchString($user->getValue('email'), $targets[0]->email()), 'Expects  email is ' . $user->getValue('email') . ' , but result is ' . $targets[0]->email());
@@ -496,6 +531,7 @@ class NotifyTest extends UnitTestBase
      */
     public function testNotifyTargetHasRoles()
     {
+        // @phpstan-ignore-next-line
         $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::HAS_ROLES, function ($targets, $custom_value) {
             $users = NotifyTarget::getModelsAsRole($custom_value);
             $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
@@ -520,6 +556,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyTargetEmailColumn()
     {
         // get email column
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $email_column = $custom_table->custom_columns_cache->first(function ($custom_column) {
             return $custom_column->column_type == 'email';
@@ -539,6 +576,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyTargetUser()
     {
         // get email column
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $user_column = $custom_table->custom_columns_cache->first(function ($custom_column) {
             return $custom_column->column_type == ColumnType::USER && !($custom_column->getOption('multiple_enabled') ?? false);
@@ -563,6 +601,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyTargetOrganization()
     {
         // get email column
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $org_column = $custom_table->custom_columns_cache->first(function ($custom_column) {
             return $custom_column->column_type == ColumnType::ORGANIZATION && !($custom_column->getOption('multiple_enabled') ?? false);
@@ -593,6 +632,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyTargetSelectTable()
     {
         // get email column
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $select_table_column = $custom_table->custom_columns_cache->first(function ($custom_column) {
             return $custom_column->column_name == 'select_table_2';
@@ -643,6 +683,7 @@ class NotifyTest extends UnitTestBase
     protected function _testNotifyTargetFixedEmail($target_emails, array $exceptUsers)
     {
         $users = $exceptUsers;
+        // @phpstan-ignore-next-line
         $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::FIXED_EMAIL, function ($targets, $custom_value) use ($users) {
             $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
 

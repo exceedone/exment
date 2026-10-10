@@ -13,12 +13,14 @@ class AccessibleUserTest extends UnitTestBase
      */
     public function testFuncCustomValueEdit()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
 
         $users = $custom_table->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
+        // @phpstan-ignore-next-line
         $target_users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()
             ->where('value->user_code', '<>', 'company2-userF')->pluck('id')->toArray();
 
@@ -30,12 +32,14 @@ class AccessibleUserTest extends UnitTestBase
      */
     public function testFuncInformationTable()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('information');
 
         $users = $custom_table->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
+        // @phpstan-ignore-next-line
         $target_users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->all()->pluck('id')->toArray();
 
         $this->_compareArray($users, $target_users);
@@ -46,12 +50,14 @@ class AccessibleUserTest extends UnitTestBase
      */
     public function testFuncNoPermission()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NO_PERMISSION);
 
         $users = $custom_table->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
+        // @phpstan-ignore-next-line
         $target_users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()
             ->where(function ($query) {
                 $query->orWhere('value->user_code', 'admin')
@@ -68,15 +74,19 @@ class AccessibleUserTest extends UnitTestBase
     {
         $this->initAllTest();
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
 
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()->where('created_user_id', TestDefine::TESTDATA_USER_LOGINID_DEV1_USERD)
             ->first();
 
+        // @phpstan-ignore-next-line
         $users = $custom_value->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
+        // @phpstan-ignore-next-line
         $target_users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()
             ->where(function ($query) {
                 $query->orWhere('value->user_code', 'admin')
@@ -94,15 +104,19 @@ class AccessibleUserTest extends UnitTestBase
     {
         $this->initAllTest();
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
 
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()->where('created_user_id', TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC)
             ->first();
 
+        // @phpstan-ignore-next-line
         $users = $custom_value->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
+        // @phpstan-ignore-next-line
         $target_users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()
             ->where(function ($query) {
                 $query->orWhere('value->user_code', 'admin')

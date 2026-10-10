@@ -1647,6 +1647,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testColumnUserEqUserTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
         $this->_testColumnUser(TestDefine::TESTDATA_USER_LOGINID_USER2, [null], FilterOption::USER_EQ_USER, true);
     }
@@ -1655,6 +1656,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testColumnUserEqUserFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
         $this->_testColumnUser(TestDefine::TESTDATA_USER_LOGINID_USER1, [null], FilterOption::USER_EQ_USER, false);
     }
@@ -1753,6 +1755,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testColumnUserMultiEqUserTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
         $this->_testColumnUser(
             [TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2],
@@ -1767,6 +1770,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testColumnUserMultiEqUserFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $this->_testColumnUser(
             [TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2],
@@ -1781,6 +1785,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testColumnUserMultiNeUserTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
         $this->_testColumnUser(
             [TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN],
@@ -1795,6 +1800,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testColumnUserMultiNeUserFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $this->_testColumnUser(
             [TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN],
@@ -2079,6 +2085,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserEqTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
         $this->__testConditionColumn(ConditionTypeDetail::USER, null, [TestDefine::TESTDATA_USER_LOGINID_USER1], FilterOption::EQ, true);
     }
@@ -2087,6 +2094,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserEqFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
         $this->__testConditionColumn(ConditionTypeDetail::USER, null, [TestDefine::TESTDATA_USER_LOGINID_USER2], FilterOption::EQ, false);
     }
@@ -2095,6 +2103,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserNeTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
         $this->__testConditionColumn(ConditionTypeDetail::USER, null, [TestDefine::TESTDATA_USER_LOGINID_USER2], FilterOption::NE, true);
     }
@@ -2103,6 +2112,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserNeFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
         $this->__testConditionColumn(ConditionTypeDetail::USER, null, [TestDefine::TESTDATA_USER_LOGINID_USER1], FilterOption::NE, false);
     }
@@ -2115,6 +2125,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserOrganizationEqTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
         $this->__testConditionColumn(ConditionTypeDetail::ORGANIZATION, null, [TestDefine::TESTDATA_ORGANIZATION_DEV], FilterOption::EQ, true);
     }
@@ -2123,6 +2134,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserOrganizationEqFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
         $this->__testConditionColumn(ConditionTypeDetail::ORGANIZATION, null, [TestDefine::TESTDATA_ORGANIZATION_COMPANY1], FilterOption::EQ, false);
     }
@@ -2131,6 +2143,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserOrganizationNeTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
         $this->__testConditionColumn(ConditionTypeDetail::ORGANIZATION, null, [TestDefine::TESTDATA_ORGANIZATION_COMPANY1], FilterOption::NE, true);
     }
@@ -2139,6 +2152,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserOrganizationNeFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
         $this->__testConditionColumn(ConditionTypeDetail::ORGANIZATION, null, [TestDefine::TESTDATA_ORGANIZATION_DEV], FilterOption::NE, false);
     }
@@ -2151,8 +2165,10 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserRoleEqTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
         $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::EQ, true);
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
         $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::EQ, true);
     }
@@ -2161,6 +2177,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserRoleEqFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
         $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::EQ, false);
     }
@@ -2169,8 +2186,10 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserRoleNeTrue()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
         $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::SELECT_NOT_EXISTS, true);
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::SELECT_NOT_EXISTS, true);
     }
@@ -2179,6 +2198,7 @@ class ConditionTest extends UnitTestBase
      */
     public function testLoginUserRoleNeFalse()
     {
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
         $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::NE, false);
     }
@@ -2347,10 +2367,12 @@ class ConditionTest extends UnitTestBase
         $this->initAllTest();
 
         $table_name = $tableName ?? TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
         $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
 
         foreach ($values as $value) {
+            /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
             $custom_value = $custom_table->getValueModel();
             $custom_value->setValue($column_name, $target_value);
 
@@ -2393,6 +2415,7 @@ class ConditionTest extends UnitTestBase
         }
 
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
 
         foreach ($values as $value) {
@@ -2423,9 +2446,11 @@ class ConditionTest extends UnitTestBase
         $this->initAllTest();
 
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
         $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel();
         $custom_value->setValue($column_name, $target_value);
 
@@ -2452,9 +2477,11 @@ class ConditionTest extends UnitTestBase
         $this->initAllTest();
 
         $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
 
         // get value all
+        // @phpstan-ignore-next-line
         $custom_values = $custom_table->getValueModel()->get();
         foreach ($custom_values as $custom_value) {
             $workflow_status_name = $custom_value->workflow_status_name;
@@ -2488,12 +2515,15 @@ class ConditionTest extends UnitTestBase
     protected function __testWorkflowWorkUser(bool $hasAuth, int $filterOption, bool $result)
     {
         $this->initAllTest();
+        // @phpstan-ignore-next-line
         $this->be(Model\LoginUser::find(1));
 
         $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($table_name);
 
         // get value all
+        // @phpstan-ignore-next-line
         $custom_values = $custom_table->getValueModel()->get();
         foreach ($custom_values as $custom_value) {
             $actions = $custom_value->getWorkflowActions(true, true);

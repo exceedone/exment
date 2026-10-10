@@ -19,6 +19,7 @@ class CustomTableTest extends UnitTestBase
      */
     public function testFuncGetMatchedCustomValues1()
     {
+        /** @var CustomTable $info */
         $info = CustomTable::getEloquent('information');
 
         $keys = ["1","3","5"];
@@ -41,6 +42,7 @@ class CustomTableTest extends UnitTestBase
      */
     public function testFuncGetMatchedCustomValues2()
     {
+        /** @var CustomTable $info */
         $info = CustomTable::getEloquent('information');
 
         $keys = ['3'];
@@ -63,6 +65,7 @@ class CustomTableTest extends UnitTestBase
      */
     public function testFuncCopyCustomTable()
     {
+        /** @var CustomTable $from_table */
         $from_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $response = $from_table->copyTable([
             'table_name' => 'copy_table',
@@ -96,6 +99,7 @@ class CustomTableTest extends UnitTestBase
             $from_column = $from_table->custom_columns_cache->filter(function($column) use($to_column){
                 return $column->column_name == $to_column->column_name;
             })->first();
+            // @phpstan-ignore-next-line
             $diff = collect($to_column->getAttributes())->diffAssoc(collect($from_column->getAttributes()));
             foreach ($diff as $key => $value) {
                 switch ($key) {
@@ -135,6 +139,7 @@ class CustomTableTest extends UnitTestBase
                             return $column->id == $to_value;
                         })->first();
 
+                        // @phpstan-ignore-next-line
                         $this->assertEquals($from->column_name, $to->column_name);
                         break;
                     default:
@@ -153,6 +158,7 @@ class CustomTableTest extends UnitTestBase
      */
     public function testCopyTableExcludesBarcodeSettings()
     {
+        /** @var CustomTable $from_table */
         $from_table = CustomTable::getEloquent('information');
 
         // Set barcode-related options on the source table
@@ -187,6 +193,7 @@ class CustomTableTest extends UnitTestBase
         $from_table->save();
 
         // Verify source table has barcode options
+        /** @var CustomTable $from_table */
         $from_table = CustomTable::getEloquent($from_table->id);
         $this->assertEquals(true, $from_table->getOption('active_qr_flg'));
         $this->assertEquals('TEST-QR', $from_table->getOption('text_qr'));
@@ -234,6 +241,7 @@ class CustomTableTest extends UnitTestBase
      */
     public function testCopyTableBarcodeFormIdsNotCarriedOver()
     {
+        /** @var CustomTable $from_table */
         $from_table = CustomTable::getEloquent('information');
 
         // Get a real form ID from the source table
@@ -536,11 +544,13 @@ class CustomTableTest extends UnitTestBase
             ->with(['custom_columns', 'custom_column_multisettings'])
             ->first();
 
+        // @phpstan-ignore-next-line
         $forms = CustomForm::where('custom_table_id', $table->id)
             ->with('custom_form_blocks.custom_form_columns.custom_column')
             ->get();
 
         return [
+            // @phpstan-ignore-next-line
             'custom_tables' => [$table->getTemplateExportItems()],
             'custom_relations' => [],
             'custom_forms' => $forms->map(function ($form) {

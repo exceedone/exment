@@ -900,6 +900,8 @@ class CustomViewSummaryTest extends UnitTestBase
             ]],
         ];
 
+        /** @var CustomValue $target */
+        // @phpstan-ignore-next-line
         $target = CustomTable::getEloquent('child_table')->getValueModel()->offset(10)->first();
         $target->delete();
 
@@ -1028,6 +1030,7 @@ class CustomViewSummaryTest extends UnitTestBase
 
         $summaries = $this->getCustomViewSummary($options);
 
+        // @phpstan-ignore-next-line
         $defaults = CustomTable::getEloquent('child_table_select')->getValueModel()->all();
 
         foreach ($summaries as $summary) {
@@ -1042,6 +1045,7 @@ class CustomViewSummaryTest extends UnitTestBase
                 return $data->getValue('parent_select_table', ValueType::PURE_VALUE);
             })->filter();
 
+            // @phpstan-ignore-next-line
             $result = CustomTable::getEloquent('parent_table_select')->getValueModel()->find($ids)->sum(function($val) {
                 return $val->getValue('integer');
             });
@@ -1075,11 +1079,14 @@ class CustomViewSummaryTest extends UnitTestBase
             ]],
         ];
 
+        /** @var CustomValue $target */
+        // @phpstan-ignore-next-line
         $target = CustomTable::getEloquent('parent_table_select')->getValueModel()->offset(5)->first();
         $target->delete();
 
         $summaries = $this->getCustomViewSummary($options);
 
+        // @phpstan-ignore-next-line
         $defaults = CustomTable::getEloquent('child_table_select')->getValueModel()->all();
 
         foreach ($summaries as $summary) {
@@ -1095,6 +1102,7 @@ class CustomViewSummaryTest extends UnitTestBase
                 return $data->getValue('parent_select_table', ValueType::PURE_VALUE);
             })->filter();
 
+            // @phpstan-ignore-next-line
             $result = CustomTable::getEloquent('parent_table_select')->getValueModel()->find($ids)->sum(function($val) {
                 return $val->getValue('integer');
             });
@@ -1236,6 +1244,8 @@ class CustomViewSummaryTest extends UnitTestBase
             ]],
         ];
 
+        /** @var CustomValue $target */
+        // @phpstan-ignore-next-line
         $target = CustomTable::getEloquent('child_table_n_n')->getValueModel()->offset(10)->first();
         $target->delete();
 
@@ -1276,11 +1286,14 @@ class CustomViewSummaryTest extends UnitTestBase
             ]],
         ];
 
+        /** @var CustomValue $target */
+        // @phpstan-ignore-next-line
         $target = CustomTable::getEloquent('parent_table_n_n')->getValueModel()->offset(10)->first();
         $target->delete();
 
         $summaries = $this->getCustomViewSummary($options);
 
+        // @phpstan-ignore-next-line
         $defaults = CustomTable::getEloquent('child_table_n_n')->getValueModel()->get();
 
         $relation = CustomRelation::getRelationByParentChild('parent_table_n_n', 'child_table_n_n', RelationType::MANY_TO_MANY);

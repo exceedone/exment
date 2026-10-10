@@ -65,6 +65,7 @@ trait CustomViewTrait
         // @phpstan-ignore-next-line
         $this->be(LoginUser::find($login_user_id));
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($target_table_name);
 
         $custom_view = CustomView::create([
@@ -239,6 +240,7 @@ trait CustomViewTrait
     protected function getViewColumnBase($custom_table, $custom_view, $column_setting)
     {
         if (isset($column_setting['reference_table'])) {
+            /** @var CustomTable $refer_table */
             $refer_table = CustomTable::getEloquent($column_setting['reference_table']);
             $view_column_table_id = $refer_table->id;
             $view_column_target_id = $this->getTargetColumnId($column_setting, $refer_table);

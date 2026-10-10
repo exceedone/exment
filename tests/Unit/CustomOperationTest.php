@@ -45,6 +45,7 @@ class CustomOperationTest extends UnitTestBase
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $ids = '5';
+        // @phpstan-ignore-next-line
         $result = $operation->execute($custom_table, $ids);
 
         $this->assertTrue($result);
@@ -79,6 +80,7 @@ class CustomOperationTest extends UnitTestBase
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $ids = '3,9,15';
+        // @phpstan-ignore-next-line
         $result = $operation->execute($custom_table, $ids);
 
         $this->assertTrue($result);
@@ -111,9 +113,11 @@ class CustomOperationTest extends UnitTestBase
         ];
         $operation = $this->_prepareCustomOperation($settings);
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_column = CustomColumn::getEloquent('integer', $custom_table);
         /** @var mixed $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()
             ->where($custom_column->getQueryKey(), '>', 500)->first();
 
@@ -149,9 +153,11 @@ class CustomOperationTest extends UnitTestBase
         ];
         $operation = $this->_prepareCustomOperation($settings);
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_column = CustomColumn::getEloquent('integer', $custom_table);
         /** @var mixed $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()
             ->where($custom_column->getQueryKey(), '<=', 500)->first();
 
@@ -191,9 +197,11 @@ class CustomOperationTest extends UnitTestBase
         ];
         $operation = $this->_prepareCustomOperation($settings);
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_column = CustomColumn::getEloquent('odd_even', $custom_table);
         /** @var mixed $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()
             ->where($custom_column->getQueryKey(), 'odd')->first();
 
@@ -239,10 +247,12 @@ class CustomOperationTest extends UnitTestBase
         ];
         $operation = $this->_prepareCustomOperation($settings);
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_column1 = CustomColumn::getEloquent('odd_even', $custom_table);
         $custom_column2 = CustomColumn::getEloquent('integer', $custom_table);
         /** @var mixed $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()
             ->whereNot($custom_column1->getQueryKey(), 'odd')
             ->whereNot($custom_column2->getQueryKey(), '<=', 1000)->first();
@@ -274,7 +284,9 @@ class CustomOperationTest extends UnitTestBase
         ];
         $operation = $this->_prepareCustomOperation($settings);
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        /** @var CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel();
         $custom_value->setValue("text", 'test operation data create');
         $custom_value->save();
@@ -304,8 +316,10 @@ class CustomOperationTest extends UnitTestBase
         ];
         $operation = $this->_prepareCustomOperation($settings);
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         /** @var mixed $custom_value */
+        // @phpstan-ignore-next-line
         $custom_value = $custom_table->getValueModel()
             ->where('value->organization', '<>', TestDefine::TESTDATA_ORGANIZATION_DEV)->first();
         $custom_value->setValue("text", 'test operation data update');
@@ -335,6 +349,7 @@ class CustomOperationTest extends UnitTestBase
         $id = array_get($operation, 'id');
 
         // test delete custom table with copy setting
+        // @phpstan-ignore-next-line
         $res = CustomTable::getEloquent($settings['custom_table_name'])->delete();
         $this->assertTrue($res);
 
@@ -420,6 +435,7 @@ class CustomOperationTest extends UnitTestBase
         // @phpstan-ignore-next-line
         $this->be(LoginUser::find($login_user_id));
 
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent($custom_table_name);
 
         /** @var CustomOperation $custom_operation */
@@ -437,6 +453,7 @@ class CustomOperationTest extends UnitTestBase
             $custom_operation_column = CustomOperationColumn::create([
                 'custom_operation_id' => $custom_operation->id,
                 'view_column_type' => ConditionType::COLUMN,
+                // @phpstan-ignore-next-line
                 'view_column_target_id' => $target_column->id,
                 'update_value_text' => $update_column['update_value_text'],
                 'options' => [
@@ -454,6 +471,7 @@ class CustomOperationTest extends UnitTestBase
                 'morph_id' => $custom_operation->id,
                 'condition_type' => $condition['condition_type'],
                 'condition_key' => $condition['condition_key'],
+                // @phpstan-ignore-next-line
                 'target_column_id' => $target_column->id,
                 'condition_value' => $condition['condition_value'],
             ]);

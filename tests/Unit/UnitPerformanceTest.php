@@ -65,6 +65,7 @@ class UnitPerformanceTest extends TestCase
      */
     public function testEloquentPermissionPerformance()
     {
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find(2)); // user1
 
         // for($i = 0; $i < 50; $i++){

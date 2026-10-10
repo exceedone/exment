@@ -967,6 +967,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function _testSelectTable($value_type, $matchedValue, $options = [])
     {
+        // @phpstan-ignore-next-line
         $options['select_target_table'] = CustomTable::getEloquent('information')->id;
 
         $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_TABLE, $options);
@@ -981,6 +982,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testSelectTableValue()
     {
+        // @phpstan-ignore-next-line
         $this->_testSelectTable(ValueType::VALUE, CustomTable::getEloquent('information')->getValueModel(1));
     }
 
@@ -989,6 +991,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testSelectTableText()
     {
+        // @phpstan-ignore-next-line
         $this->_testSelectTable(ValueType::TEXT, CustomTable::getEloquent('information')->getValueModel(1)->getLabel());
     }
 
@@ -997,6 +1000,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testSelectTableHtml()
     {
+        // @phpstan-ignore-next-line
         $this->_testSelectTable(ValueType::HTML, CustomTable::getEloquent('information')->getValueModel(1)->getUrl(true));
     }
 
@@ -1010,6 +1014,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function _testSelectTableMultiple($value_type, $matchedValue, $options = [])
     {
+        // @phpstan-ignore-next-line
         $options['select_target_table'] = CustomTable::getEloquent('information')->id;
 
         $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_TABLE, $options);
@@ -1024,6 +1029,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testSelectTableMultipleValue()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('information');
         $this->_testSelectTableMultiple(ValueType::VALUE, [$custom_table->getValueModel(1), $custom_table->getValueModel(2)]);
     }
@@ -1033,7 +1039,9 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testSelectTableMultipleText()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('information');
+        // @phpstan-ignore-next-line
         $this->_testSelectTableMultiple(ValueType::TEXT, collect([$custom_table->getValueModel(1)->getLabel(), $custom_table->getValueModel(2)->getLabel()])->implode(exmtrans('common.separate_word')));
     }
 
@@ -1042,7 +1050,9 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testSelectTableMultipleHtml()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('information');
+        // @phpstan-ignore-next-line
         $this->_testSelectTableMultiple(ValueType::HTML, collect([$custom_table->getValueModel(1)->getUrl(true), $custom_table->getValueModel(2)->getUrl(true)])->implode(exmtrans('common.separate_word')));
     }
 
@@ -1072,6 +1082,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testUserValue()
     {
+        // @phpstan-ignore-next-line
         $this->_testUser(ValueType::VALUE, CustomTable::getEloquent(SystemTableName::USER)->getValueModel(1));
     }
 
@@ -1080,6 +1091,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testUserText()
     {
+        // @phpstan-ignore-next-line
         $this->_testUser(ValueType::TEXT, CustomTable::getEloquent(SystemTableName::USER)->getValueModel(1)->getLabel());
     }
 
@@ -1088,6 +1100,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testUserHtml()
     {
+        // @phpstan-ignore-next-line
         $this->_testUser(ValueType::HTML, CustomTable::getEloquent(SystemTableName::USER)->getValueModel(1)->getUrl(true));
     }
 
@@ -1117,6 +1130,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testOrganizationValue()
     {
+        // @phpstan-ignore-next-line
         $this->_testOrganization(ValueType::VALUE, CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel(1));
     }
     /**
@@ -1124,6 +1138,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testOrganizationText()
     {
+        // @phpstan-ignore-next-line
         $this->_testOrganization(ValueType::TEXT, CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel(1)->getLabel());
     }
     /**
@@ -1131,6 +1146,7 @@ class CustomColumnTest extends UnitTestBase
      */
     public function testOrganizationHtml()
     {
+        // @phpstan-ignore-next-line
         $this->_testOrganization(ValueType::HTML, CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel(1)->getUrl(true));
     }
 

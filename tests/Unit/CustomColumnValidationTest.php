@@ -1011,6 +1011,7 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::SELECT_TABLE => [
                 $this->getErrorMessage('numeric', ColumnType::SELECT_TABLE),
                 exmtrans('validation.not_has_custom_value', [
+                    // @phpstan-ignore-next-line
                     'table_view_name' => CustomTable::getEloquent('custom_value_view_all')->table_view_name,
                     'attribute' => ColumnType::SELECT_TABLE,
                     'value' => null,
@@ -1028,6 +1029,7 @@ class CustomColumnValidationTest extends UnitTestBase
         ], [
             ColumnType::SELECT_TABLE => [
                 exmtrans('validation.not_has_custom_value', [
+                    // @phpstan-ignore-next-line
                     'table_view_name' => CustomTable::getEloquent('custom_value_view_all')->table_view_name,
                     'attribute' => ColumnType::SELECT_TABLE,
                     'value' => null,
@@ -1046,6 +1048,7 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::SELECT_TABLE => [
                 $this->getErrorMessage('numeric', ColumnType::SELECT_TABLE),
                 exmtrans('validation.not_has_custom_value', [
+                    // @phpstan-ignore-next-line
                     'table_view_name' => CustomTable::getEloquent('custom_value_view_all')->table_view_name,
                     'attribute' => ColumnType::SELECT_TABLE,
                     'value' => null,
@@ -1063,6 +1066,7 @@ class CustomColumnValidationTest extends UnitTestBase
         ], [
             ColumnType::SELECT_TABLE => [
                 exmtrans('validation.not_has_custom_value', [
+                    // @phpstan-ignore-next-line
                     'table_view_name' => CustomTable::getEloquent('custom_value_view_all')->table_view_name,
                     'attribute' => ColumnType::SELECT_TABLE,
                     'value' => null,
@@ -1084,6 +1088,7 @@ class CustomColumnValidationTest extends UnitTestBase
         ], [
             'select_table_2' => [
                 exmtrans('validation.not_has_custom_value', [
+                    // @phpstan-ignore-next-line
                     'table_view_name' => CustomTable::getEloquent('custom_value_edit')->table_view_name,
                     'attribute' => 'select_table_2',
                     'value' => null,
@@ -1306,6 +1311,7 @@ class CustomColumnValidationTest extends UnitTestBase
      */
     protected function executeTestEdit(array $values, array $errors = [], array $matches = [], $id = null)
     {
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel($id);
 
         $this->executeTest($custom_value, $values, $errors, $matches);
@@ -1321,6 +1327,7 @@ class CustomColumnValidationTest extends UnitTestBase
     protected function executeTestAllColumns($column_type, array $values, array $errors = [], array $matches = [])
     {
         $custom_column = $this->getCustomColumnModel($column_type);
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)->getValueModel();
 
         $this->executeTest($custom_value, $values, $errors, $matches);
@@ -1383,6 +1390,7 @@ class CustomColumnValidationTest extends UnitTestBase
      */
     protected function login($id = null)
     {
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find($id ?? 1));
     }
 }

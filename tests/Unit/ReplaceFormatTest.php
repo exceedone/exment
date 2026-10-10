@@ -101,6 +101,8 @@ class ReplaceFormatTest extends UnitTestBase
             'Y/m/d'
         ];
 
+        /** @var \Exceedone\Exment\Model\CustomValue $custom_value_edit */
+        // @phpstan-ignore-next-line
         $custom_value_edit = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $date = \Carbon\Carbon::parse($custom_value_edit->getValue('date'));
 
@@ -115,6 +117,8 @@ class ReplaceFormatTest extends UnitTestBase
      */
     public function testReplaceValueUrl()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $info */
+        // @phpstan-ignore-next-line
         $info = CustomTable::getEloquent('information')->getValueModel(1);
         $text = ReplaceFormatService::replaceTextFromFormat('${value_url}', $info);
         $this->assertMatch($info->getUrl(), $text);
@@ -125,6 +129,7 @@ class ReplaceFormatTest extends UnitTestBase
      */
     public function testReplaceSystemValue()
     {
+        // @phpstan-ignore-next-line
         $info = CustomTable::getEloquent('information')->getValueModel(1);
 
         $systemValues = collect(SystemColumn::getOptions())->pluck('name')->toArray();
@@ -140,8 +145,11 @@ class ReplaceFormatTest extends UnitTestBase
      */
     public function testReplaceValue()
     {
+        /** @var \Exceedone\Exment\Model\CustomValue $info */
+        // @phpstan-ignore-next-line
         $info = CustomTable::getEloquent('information')->getValueModel(1);
 
+        // @phpstan-ignore-next-line
         $custom_columns = CustomTable::getEloquent('information')->custom_columns;
 
         foreach ($custom_columns as $custom_column) {
@@ -155,6 +163,7 @@ class ReplaceFormatTest extends UnitTestBase
      */
     public function testReplaceCustomTableName()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('information');
         $info = $custom_table->getValueModel(1);
         $text = ReplaceFormatService::replaceTextFromFormat('${table_name}', $info);
@@ -166,6 +175,7 @@ class ReplaceFormatTest extends UnitTestBase
      */
     public function testReplaceCustomTableViewName()
     {
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::getEloquent('information');
         $info = $custom_table->getValueModel(1);
         $text = ReplaceFormatService::replaceTextFromFormat('${table_view_name}', $info);
@@ -216,6 +226,7 @@ class ReplaceFormatTest extends UnitTestBase
         $workflow_action = $workflow_value->workflow_action;
         $workflow = Workflow::getEloquent($workflow_value->workflow_id);
 
+        // @phpstan-ignore-next-line
         $custom_value = CustomTable::getEloquent($workflow_value->morph_type)->getValueModel($workflow_value->morph_id);
         $statusTo = $workflow_action->getStatusToId($custom_value);
 

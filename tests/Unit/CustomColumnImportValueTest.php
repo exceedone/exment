@@ -163,6 +163,7 @@ class CustomColumnImportValueTest extends UnitTestBase
      */
     public function _testSelectTablImportValue($checkValue, $matchedValue, bool $result, $options = [], $setting = [])
     {
+        // @phpstan-ignore-next-line
         $options['select_target_table'] = CustomTable::getEloquent('information')->id;
 
         $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_TABLE, $options);
@@ -177,6 +178,7 @@ class CustomColumnImportValueTest extends UnitTestBase
      */
     public function testSelectTableTargetColumn()
     {
+        // @phpstan-ignore-next-line
         $title = CustomTable::getEloquent('information')->getValueModel(1)->getValue('title');
         $this->_testSelectTablImportValue($title, 1, true, [], [
             'target_column_name' => 'title',
@@ -197,9 +199,11 @@ class CustomColumnImportValueTest extends UnitTestBase
      */
     public function testSelectTableDatalist()
     {
+        // @phpstan-ignore-next-line
         $title = CustomTable::getEloquent('information')->getValueModel(1)->getValue('title');
 
         // datalist is key, id list
+        // @phpstan-ignore-next-line
         $datalist = CustomTable::getEloquent('information')->getValueModel()->all()->mapWithKeys(function ($v) {
             return [array_get($v, "value.title") => $v->id];
         });
@@ -215,6 +219,7 @@ class CustomColumnImportValueTest extends UnitTestBase
     public function testSelectTableDatalistError()
     {
         // datalist is key, id list
+        // @phpstan-ignore-next-line
         $datalist = CustomTable::getEloquent('information')->getValueModel()->all()->mapWithKeys(function ($v) {
             return [array_get($v, "value.title") => $v->id];
         });
