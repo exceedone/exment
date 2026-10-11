@@ -92,6 +92,38 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $this->assertStringContainsString('version="7.', $js);
     }
 
+    /**
+     * The system-admin gate of every action (index/send/resend/close).
+     *
+     * Tested on the method, not through a request: a non-system user is already
+     * stopped by the admin.permission middleware of exment-admin-core, which renders
+     * 権限がありません and sends it through Pjax::respond() — that calls exit and would
+     * kill the PHPUnit process. The controller gate is the defense in depth behind it,
+     * and it must not be constructor middleware (see ControllerInstanceMiddlewareGuardTest).
+     */
+    public function testAuthorizeSystemAdminAllowsAdminAndRejectsNonSystemUser(): void
+    {
+        $controller = new SafetyCheckController();
+        $gate = new \ReflectionMethod($controller, 'authorizeSystemAdmin');
+        $gate->setAccessible(true);
+
+        // setUp() logged the system admin in: the gate must stay silent.
+        $gate->invoke($controller);
+
+        $loginUser = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->assertNotNull($loginUser, 'Fixture: a non-system login user is required.');
+        $this->be($loginUser, 'admin');
+        System::clearRequestSession();
+
+        try {
+            $gate->invoke($controller);
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            $this->assertSame(403, $e->getStatusCode());
+            return;
+        }
+        $this->fail('a non-system user must be refused with 403');
+    }
+
     public function testSendCreatesManualEventAndDispatchesJobs(): void
     {
         LineAccountLink::forUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1)->markLinked('U_admin_page_test_1');
