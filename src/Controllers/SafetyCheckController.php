@@ -24,17 +24,27 @@ class SafetyCheckController extends AdminControllerBase
     public function __construct()
     {
         $this->setPageInfo(exmtrans('safety.menu_title'), exmtrans('safety.menu_title'), exmtrans('safety.description'), 'fa-heartbeat');
+    }
 
-        $this->middleware(function ($request, $next) {
-            if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
-                abort(403);
-            }
-            return $next($request);
-        });
+    /**
+     * System-admin gate, called first in every action.
+     *
+     * Deliberately NOT constructor middleware: Exment controllers extend the host
+     * app's App\Http\Controllers\Controller, which on the Laravel 11/12 skeleton is
+     * an empty class without middleware(), so $this->middleware() there is a fatal
+     * "Call to undefined method" on every request of this controller.
+     */
+    protected function authorizeSystemAdmin(): void
+    {
+        $user = \Exment::user();
+        if (!$user || !$user->hasPermission(Permission::SYSTEM)) {
+            abort(403);
+        }
     }
 
     public function index(Request $request, Content $content)
     {
+        $this->authorizeSystemAdmin();
         $content = $this->AdminContent($content);
         if (!$this->isInstalled()) {
             return $content->withError(exmtrans('safety.menu_title'), exmtrans('safety.message_not_installed'));
@@ -218,6 +228,7 @@ EOT;
      */
     public function send(Request $request)
     {
+        $this->authorizeSystemAdmin();
         if (!$this->isInstalled()) {
             return $this->notInstalledResponse();
         }
@@ -276,6 +287,7 @@ EOT;
      */
     public function resend(Request $request, $id)
     {
+        $this->authorizeSystemAdmin();
         if (!$this->isInstalled()) {
             return $this->notInstalledResponse();
         }
@@ -316,6 +328,7 @@ EOT;
      */
     public function close(Request $request, $id)
     {
+        $this->authorizeSystemAdmin();
         if (!$this->isInstalled()) {
             return $this->notInstalledResponse();
         }
