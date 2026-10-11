@@ -1324,6 +1324,9 @@ return [
             // System config secrets (admin/system): reCAPTCHA secret, SMTP password
             'recaptcha_secret_key',
             'system_mail_password',
+            // LINE Messaging API channel credentials (admin/system?advanced=1)
+            'system_line_channel_token',
+            'system_line_channel_secret',
             // Plugin DB connection password
             'custom_password',
             // Plugin CRUD page auth (key / id+password)
