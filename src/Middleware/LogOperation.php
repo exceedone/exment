@@ -162,6 +162,11 @@ class LogOperation extends BaseLogOperation
             'verify_code',
             'access_token',
             'refresh_token',
+            // LINE Messaging API channel credentials: re-posted (decrypted) by the
+            // admin/system?advanced=1 form on every save; the token can push to every
+            // follower, the secret authenticates the webhook.
+            'system_line_channel_token',
+            'system_line_channel_secret',
         ];
     }
 
