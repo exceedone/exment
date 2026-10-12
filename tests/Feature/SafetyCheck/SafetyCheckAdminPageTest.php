@@ -93,16 +93,23 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $response->assertSee('&lt;b&gt;tt-raw&lt;/b&gt;', false);
     }
 
-    public function testAdminCoreBundlesLegacySwalAliasUsedByRowActionScript(): void
+    public function testIndexPageLoadsSweetalertBuildWithLegacySwalAlias(): void
     {
         // rowActionScript() gọi swal({type:'warning'}) — API của sweetalert2 7.x.
-        // Nếu admin-core nâng sweetalert2 (bỏ alias window.swal ở v11), test này đỏ trước khi user thấy nút 再送/締切 chết.
-        $asset = base_path('vendor/exceedone/exment-admin-core/resources/assets/sweetalert2/dist/sweetalert2.min.js');
+        // admin-core có cả bản 7.x (dist/, có alias window.swal) lẫn 10.x (không có alias).
+        // Nếu baseJs đổi sang bản không có alias, test này đỏ trước khi user thấy nút 再送/締切 chết.
+        $html = (string) $this->get('admin/safety_check')->getContent();
 
-        $this->assertFileExists($asset);
-        $js = (string) file_get_contents($asset);
-        $this->assertStringContainsString('window.swal=', $js);
-        $this->assertStringContainsString('version="7.', $js);
+        preg_match_all('#<script[^>]*\ssrc="[^"]*/vendor/open-admin/([^"?]*sweetalert2[^"?]*)#', $html, $m);
+        $this->assertNotEmpty($m[1], 'admin/safety_check must load a sweetalert2 script');
+
+        // public/vendor/open-admin is published from exment-admin-core resources/assets (tag open-admin-assets).
+        $withAlias = array_filter($m[1], function ($path) {
+            $file = base_path('vendor/exceedone/exment-admin-core/resources/assets/' . $path);
+            $js = is_file($file) ? (string) file_get_contents($file) : '';
+            return str_contains($js, 'window.swal=') && str_contains($js, 'version="7.');
+        });
+        $this->assertNotEmpty($withAlias, 'no loaded sweetalert2 build defines window.swal (7.x): ' . implode(', ', $m[1]));
     }
 
     /**
