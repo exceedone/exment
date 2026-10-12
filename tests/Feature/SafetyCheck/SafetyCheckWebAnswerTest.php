@@ -65,6 +65,22 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $response->assertDontSee('class="radio"', false);
     }
 
+    public function testAnswerRadiosAreRequiredSoEmptySubmitStaysOnForm(): void
+    {
+        // Without `required` the browser submits an empty answer and the user lands on a bare 422 page.
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $event = $this->createEvent();
+        $this->createAnswerRow($event->id, $userId);
+
+        $html = (string) $this->get($this->signedAnswerUrl($event->id, $userId))->getContent();
+
+        preg_match_all('/<input[^>]*type="radio"[^>]*name="st"[^>]*>/', $html, $radios);
+        $this->assertCount(3, $radios[0], 'one radio per answer status (safe / minor_injury / need_help)');
+        foreach ($radios[0] as $radio) {
+            $this->assertMatchesRegularExpression('/\srequired[\s>]/', $radio);
+        }
+    }
+
     public function testInvalidSignatureRejected(): void
     {
         $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;

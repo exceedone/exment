@@ -32,7 +32,10 @@ class LineAccountLink extends Model
 
     public function generateCode(int $length = 6): string
     {
-        $code = strtoupper(substr(bin2hex(random_bytes(max(1, (int) ceil($length / 2)))), 0, $length));
+        if ($length < 1) {
+            throw new \InvalidArgumentException('LINE link code length must be at least 1, got ' . $length);
+        }
+        $code = strtoupper(substr(bin2hex(random_bytes($length)), 0, $length));
         $this->line_link_code            = $code;
         $this->line_link_code_expires_at = Carbon::now()->addMinutes((int) config('exment.line.link_code_ttl_minutes', 10));
         $this->line_user_id              = null;

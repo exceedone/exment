@@ -22,7 +22,7 @@
         {{ csrf_field() }}
         @foreach(\Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine::ANSWER_STATUSES as $st)
         <div class="form-check justify-content-start mb-2">
-            <input class="form-check-input" type="radio" name="st" id="st-{{ $st }}" value="{{ $st }}" {{ $current === $st ? 'checked' : '' }}>
+            <input class="form-check-input" type="radio" name="st" id="st-{{ $st }}" value="{{ $st }}" required {{ $current === $st ? 'checked' : '' }}>
             <label class="form-check-label" for="st-{{ $st }}">{{ exmtrans('safety.status_' . $st) }}</label>
         </div>
         @endforeach

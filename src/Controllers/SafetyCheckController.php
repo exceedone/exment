@@ -108,7 +108,7 @@ class SafetyCheckController extends AdminControllerBase
         $grid->column($columnKey('title'), exmtrans('safety.col_title'))->sortable();
         /** @phpstan-ignore-next-line sortable() is typed Column|string in exment-admin-core */
         $grid->column($columnKey('trigger_type'), exmtrans('safety.col_trigger_type'))->sortable()->display(function ($value) {
-            return exmtrans('safety.trigger_type_' . $value);
+            return esc_html(exmtrans('safety.trigger_type_' . $value));
         });
         /** @phpstan-ignore-next-line sortable() is typed Column|string in exment-admin-core */
         $grid->column($columnKey('event_status'), exmtrans('safety.col_event_status'))->sortable()->display(function ($value) {

@@ -43,6 +43,18 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertFalse($link->isLinked());
     }
 
+    public function testGenerateCodeRejectsNonPositiveLengthWithoutSaving(): void
+    {
+        foreach ([0, -1] as $length) {
+            try {
+                LineAccountLink::forUser($this->user1())->generateCode($length);
+                $this->fail("generateCode({$length}) must throw instead of saving an empty or truncated code");
+            } catch (\InvalidArgumentException $e) {
+                $this->assertSame(0, LineAccountLink::where('user_id', $this->user1())->count());
+            }
+        }
+    }
+
     public function testGenerateCodeIsIdempotentPerUser(): void
     {
         $first  = $this->linker->generateCodeForUser($this->user1());
