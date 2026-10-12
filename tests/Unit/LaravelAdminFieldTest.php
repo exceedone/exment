@@ -7,14 +7,30 @@ use Exceedone\Exment\Middleware\Initialize;
 use Encore\Admin\Widgets\Form;
 use Tests\TestCase;
 
+/**
+ * Validation tests for laravel-admin form fields as Exment registers them.
+ *
+ * Each test builds a widget form with a single field named "foo", validates one value
+ * against it, and checks whether the value passes or which error message is returned.
+ * Field types added by Exment (switchbool, checkboxone) are registered through
+ * Initialize::registeredLaravelAdmin(), so they are covered here too.
+ *
+ * Option-based fields (select, multipleSelect, checkbox, checkboxone, radio, switch,
+ * switchbool) are validated by HasOptionRule: null and empty values always pass, and
+ * every given value must be one of the option keys.
+ */
 class LaravelAdminFieldTest extends TestCase
 {
     use TestTrait;
 
 
     // number ----------------------------------------------------
+    // number() has the "nullable|numeric" rules. min(), max() and between() add range rules
+    // whose boundary values are inclusive.
 
     /**
+     * number: an integer passes.
+     *
      * @return void
      */
     public function testNumberSuccess1()
@@ -25,6 +41,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number: a numeric string ("1") passes.
+     *
      * @return void
      */
     public function testNumberSuccess2()
@@ -35,6 +53,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number: null passes because the field is nullable.
+     *
      * @return void
      */
     public function testNumberSuccess3()
@@ -45,6 +65,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number: a non-numeric string fails with the "numeric" error.
+     *
      * @return void
      */
     public function testNumberError1()
@@ -57,6 +79,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number: an array fails with the "numeric" error, even if every element is a number.
+     *
      * @return void
      */
     public function testNumberError2()
@@ -70,6 +94,8 @@ class LaravelAdminFieldTest extends TestCase
 
 
     /**
+     * number min(0): the boundary value 0 passes.
+     *
      * @return void
      */
     public function testNumberMinSuccess1()
@@ -81,6 +107,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number min(0): a value above the minimum passes.
+     *
      * @return void
      */
     public function testNumberMinSuccess2()
@@ -92,6 +120,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number min(0): a value below the minimum fails with the "min.numeric" error.
+     *
      * @return void
      */
     public function testNumberMinError()
@@ -106,6 +136,8 @@ class LaravelAdminFieldTest extends TestCase
 
 
     /**
+     * number max(100): the boundary value 100 passes.
+     *
      * @return void
      */
     public function testNumberMaxSuccess1()
@@ -117,6 +149,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number max(100): a value below the maximum passes.
+     *
      * @return void
      */
     public function testNumberMaxSuccess2()
@@ -128,6 +162,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number max(100): a value above the maximum fails with the "max.numeric" error.
+     *
      * @return void
      */
     public function testNumberMaxError()
@@ -142,6 +178,8 @@ class LaravelAdminFieldTest extends TestCase
 
 
     /**
+     * number between(0, 100): the lower boundary 0 passes.
+     *
      * @return void
      */
     public function testNumberBetweenSuccess1()
@@ -153,6 +191,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number between(0, 100): a value just above the lower boundary passes.
+     *
      * @return void
      */
     public function testNumberBetweenSuccess2()
@@ -164,6 +204,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number between(0, 100): a value just below the upper boundary passes.
+     *
      * @return void
      */
     public function testNumberBetweenSuccess3()
@@ -175,6 +217,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number between(0, 100): the upper boundary 100 passes.
+     *
      * @return void
      */
     public function testNumberBetweenSuccess4()
@@ -186,6 +230,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number between(0, 100): a value below the range fails with the "between.numeric" error.
+     *
      * @return void
      */
     public function testNumberBetweenError1()
@@ -199,6 +245,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * number between(0, 100): a value above the range fails with the "between.numeric" error.
+     *
      * @return void
      */
     public function testNumberBetweenError2()
@@ -215,8 +263,12 @@ class LaravelAdminFieldTest extends TestCase
 
 
     // select ----------------------------------------------------
+    // The value must be one of the option keys of getSelectOption() ("x", "y", "z").
+    // Option labels ("valueX" etc.) are not accepted.
 
     /**
+     * select: an option key ("x") passes.
+     *
      * @return void
      */
     public function testSelectSuccess1()
@@ -228,6 +280,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * select: another option key ("y") passes.
+     *
      * @return void
      */
     public function testSelectSuccess2()
@@ -239,6 +293,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * select: null (nothing selected) passes.
+     *
      * @return void
      */
     public function testSelectSuccess3()
@@ -250,6 +306,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * select: a value that is not an option key fails with the "not_in_option" error.
+     *
      * @return void
      */
     public function testSelectError1()
@@ -264,6 +322,9 @@ class LaravelAdminFieldTest extends TestCase
 
 
     /**
+     * select: a string made of option keys ("xyz") is not split and fails with the
+     * "not_in_option" error.
+     *
      * @return void
      */
     public function testSelectError2()
@@ -280,8 +341,11 @@ class LaravelAdminFieldTest extends TestCase
 
 
     // multipleSelect ----------------------------------------------------
+    // Accepts a single key or an array of keys. Every element must be an option key.
 
     /**
+     * multipleSelect: a single key given as a string passes.
+     *
      * @return void
      */
     public function testMultipleSelectSuccess1()
@@ -293,6 +357,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * multipleSelect: an array with one key passes.
+     *
      * @return void
      */
     public function testMultipleSelectSuccess2()
@@ -304,6 +370,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * multipleSelect: an array with several keys passes.
+     *
      * @return void
      */
     public function testMultipleSelectSuccess3()
@@ -315,6 +383,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * multipleSelect: null (nothing selected) passes.
+     *
      * @return void
      */
     public function testMultipleSelectSuccess4()
@@ -326,6 +396,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * multipleSelect: an empty array (nothing selected) passes.
+     *
      * @return void
      */
     public function testMultipleSelectSuccess5()
@@ -337,6 +409,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * multipleSelect: a string that is not an option key fails with the "not_in_option" error.
+     *
      * @return void
      */
     public function testMultipleSelectError1()
@@ -350,6 +424,9 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * multipleSelect: an array containing a value that is not an option key fails with the
+     * "not_in_option" error.
+     *
      * @return void
      */
     public function testMultipleSelectError2()
@@ -364,8 +441,11 @@ class LaravelAdminFieldTest extends TestCase
 
 
     // switch ----------------------------------------------------
+    // The options are the on/off state values: 1 (ON) and 0 (OFF).
 
     /**
+     * switch: the OFF value 0 passes.
+     *
      * @return void
      */
     public function testSwitchSuccess1()
@@ -376,6 +456,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switch: the ON value given as a string ("1") passes.
+     *
      * @return void
      */
     public function testSwitchSuccess2()
@@ -386,6 +468,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switch: null passes.
+     *
      * @return void
      */
     public function testSwitchSuccess4()
@@ -396,6 +480,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switch: a value other than the state values fails with the "not_in_option" error.
+     *
      * @return void
      */
     public function testSwitchError1()
@@ -408,6 +494,9 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switch: an array containing a value other than the state values fails with the
+     * "not_in_option" error.
+     *
      * @return void
      */
     public function testSwitchError2()
@@ -421,8 +510,12 @@ class LaravelAdminFieldTest extends TestCase
 
 
     // switchbool ----------------------------------------------------
+    // Exment's switch field with "1" (YES) and "0" (NO) as its state values.
+    // Boolean values are also accepted.
 
     /**
+     * switchbool: the NO value given as an integer (0) passes.
+     *
      * @return void
      */
     public function testSwitchBoolSuccess1()
@@ -433,6 +526,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switchbool: the YES value "1" passes.
+     *
      * @return void
      */
     public function testSwitchBoolSuccess2()
@@ -443,6 +538,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switchbool: false passes (treated as an empty value).
+     *
      * @return void
      */
     public function testSwitchBoolSuccess3()
@@ -453,6 +550,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switchbool: true passes (matches the YES value "1").
+     *
      * @return void
      */
     public function testSwitchBoolSuccess4()
@@ -463,6 +562,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switchbool: null passes.
+     *
      * @return void
      */
     public function testSwitchBoolSuccess5()
@@ -473,6 +574,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switchbool: a value other than the state values fails with the "not_in_option" error.
+     *
      * @return void
      */
     public function testSwitchBoolError1()
@@ -485,6 +588,9 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * switchbool: an array containing a value other than the state values fails with the
+     * "not_in_option" error.
+     *
      * @return void
      */
     public function testSwitchBoolError2()
@@ -498,8 +604,11 @@ class LaravelAdminFieldTest extends TestCase
 
 
     // checkbox ----------------------------------------------------
+    // Validated the same way as multipleSelect: a single key or an array of keys.
 
     /**
+     * checkbox: a single key given as a string passes.
+     *
      * @return void
      */
     public function testCheckboxSuccess1()
@@ -511,6 +620,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * checkbox: an array with one key passes.
+     *
      * @return void
      */
     public function testCheckboxSuccess2()
@@ -522,6 +633,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * checkbox: an array with several keys passes.
+     *
      * @return void
      */
     public function testCheckboxSuccess3()
@@ -533,6 +646,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * checkbox: null (nothing checked) passes.
+     *
      * @return void
      */
     public function testCheckboxSuccess4()
@@ -544,6 +659,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * checkbox: an empty array (nothing checked) passes.
+     *
      * @return void
      */
     public function testCheckboxSuccess5()
@@ -555,6 +672,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * checkbox: a string that is not an option key fails with the "not_in_option" error.
+     *
      * @return void
      */
     public function testCheckboxError1()
@@ -568,6 +687,9 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * checkbox: an array containing a value that is not an option key fails with the
+     * "not_in_option" error.
+     *
      * @return void
      */
     public function testCheckboxError2()
@@ -583,8 +705,11 @@ class LaravelAdminFieldTest extends TestCase
 
 
     // checkboxone ----------------------------------------------------
+    // Exment's single checkbox field. The value must be one of the option keys.
 
     /**
+     * checkboxone: an option key passes.
+     *
      * @return void
      */
     public function testCheckboxOneSuccess1()
@@ -596,6 +721,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * checkboxone: null (unchecked) passes.
+     *
      * @return void
      */
     public function testCheckboxOneSuccess2()
@@ -607,6 +734,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * checkboxone: a value that is not an option key fails with the "not_in_option" error.
+     *
      * @return void
      */
     public function testCheckboxOneError1()
@@ -620,6 +749,9 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * checkboxone: an array containing a value that is not an option key fails with the
+     * "not_in_option" error.
+     *
      * @return void
      */
     public function testCheckboxOneError2()
@@ -636,8 +768,11 @@ class LaravelAdminFieldTest extends TestCase
 
 
     // radio ----------------------------------------------------
+    // The value must be one of the option keys.
 
     /**
+     * radio: an option key passes.
+     *
      * @return void
      */
     public function testRadioSuccess1()
@@ -649,6 +784,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * radio: null (nothing selected) passes.
+     *
      * @return void
      */
     public function testRadioSuccess2()
@@ -660,6 +797,8 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * radio: a value that is not an option key fails with the "not_in_option" error.
+     *
      * @return void
      */
     public function testRadioError1()
@@ -673,6 +812,9 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
+     * radio: an array containing a value that is not an option key fails with the
+     * "not_in_option" error.
+     *
      * @return void
      */
     public function testRadioError2()
@@ -688,10 +830,15 @@ class LaravelAdminFieldTest extends TestCase
     /**
      * Execute laravel admin's test.
      *
-     * @param \Closure $fieldOptionCallback
+     * Boots laravel-admin with Exment's custom fields, adds the field defined in the callback
+     * to a new widget form, and validates ['foo' => $value].
+     * When $testResult is true, validation must pass. When it is false, validation must fail
+     * and the error messages must match $errors.
+     *
+     * @param \Closure $fieldOptionCallback adds the "foo" field to the form. Receives the form.
      * @param mixed $value validation value.
      * @param bool $testResult expects test result.
-     * @param array<mixed> $errors setting field to form.
+     * @param array<mixed> $errors expected error messages, keyed by field name. Only checked when $testResult is false.
      * @return void
      */
     protected function _testLaravelField(\Closure $fieldOptionCallback, $value, bool $testResult, array $errors = [])
@@ -719,9 +866,11 @@ class LaravelAdminFieldTest extends TestCase
     }
 
     /**
-     * @param string $validatekey
-     * @param string $column
-     * @param array<string, int> $messages
+     * Get the Laravel validation message for the given rule, with ":attribute" replaced by $column.
+     *
+     * @param string $validatekey rule key in the validation language file (e.g. "numeric", "min.numeric")
+     * @param string $column attribute name shown in the message
+     * @param array<string, int> $messages other placeholder values (e.g. ['min' => 0])
      * @return mixed
      */
     protected function getErrorMessage($validatekey, $column, array $messages = [])
@@ -732,6 +881,8 @@ class LaravelAdminFieldTest extends TestCase
 
     /**
      * Get select option
+     *
+     * Option keys are "x", "y" and "z". Validation checks the keys, not the labels.
      *
      * @return array<string, string>
      */
