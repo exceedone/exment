@@ -64,7 +64,7 @@ class WorkflowTaskController extends AdminControllerBase
         // normalizeFilter() is what stands between the query string and the query builder.
         $filter = WorkflowTaskService::normalizeFilter($request->all());
 
-        // getPage() reads id + updated_at of the candidates and builds a model only for the rows
+        // getPage() reads id + 更新日時 of the candidates and builds a model only for the rows
         // of this page; both totals are COUNTs. A user with thousands of pending tasks now costs
         // the same as one with twenty.
         $service = new WorkflowTaskService($filter);

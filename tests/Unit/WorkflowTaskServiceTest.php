@@ -813,16 +813,19 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
-     * Who may open the table is asked the way the permission scope lets people in: on a child
-     * table that inherits the permission of its parent, whoever may open every record of the
-     * parent may open the child's (CustomValueModelScope). Found in review: core's helper reads the
-     * roles of the child table only, so those colleagues heard nothing once the notice went to the
-     * members who may open the table. And the members are never bound as SQL parameters: thousands
-     * of them on top of core's own ids passed the 2,100 SQL Server takes, and nobody was told.
+     * Who may open a record of a child table that inherits the permission of its parent is asked
+     * the way the page of the record asks it: the child table itself first
+     * (CustomValue::enableAccess()), then the record - where a role with every record of the parent
+     * opens every record of the child (CustomValueModelScope). Found in review, both ways: core's
+     * helper reads the roles of the child table only, so a colleague with every record of the parent
+     * heard nothing; and then one with every record of the parent but no role at all on the child
+     * table was told the label and the status of a record whose page refuses them. And the members
+     * are never bound as SQL parameters: thousands of them on top of core's own ids passed the 2,100
+     * SQL Server takes, and nobody was told.
      *
      * @return void
      */
-    public function testSameOrgNotifyAsksWhoMayOpenTheTableLikeTheScope()
+    public function testSameOrgNotifyAsksWhoMayOpenTheRecordOfAnInheritingChild()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
 
@@ -831,59 +834,96 @@ class WorkflowTaskServiceTest extends UnitTestBase
         if (!isset($parent) || !isset($child) || $parent->allUserAccessable() || $child->allUserAccessable()) {
             $this->markTestSkipped('needs the parent and the child table of the test dataset, opened by role');
         }
+        /** @var \Exceedone\Exment\Model\CustomValue|null $childRecord */
+        $childRecord = $child->getValueQuery()->whereNotNull('parent_id')->first();
+        if (!isset($childRecord)) {
+            $this->markTestSkipped('needs a record of the child table');
+        }
 
         // a colleague who may open neither table - by the permissions they really have
-        $userId = null;
-        foreach (LoginUser::where('id', '<>', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->orderBy('id')->get() as $login) {
-            $this->be($login);
+        $login = null;
+        foreach (LoginUser::where('id', '<>', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->orderBy('id')->get() as $candidate) {
+            $this->be($candidate);
             System::clearCache();
             if (!$parent->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)
                 && !$child->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-                $userId = (int)$login->base_user_id;
+                $login = $candidate;
                 break;
             }
         }
-        if (!isset($userId)) {
+        if (!isset($login)) {
             $this->markTestSkipped('the test dataset has no user without any role');
         }
+        $userId = (int)$login->base_user_id;
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
-        // ... given every record of the parent table
+        // a role of their own on a table
         $now = \Carbon\Carbon::now();
-        $roleGroupId = \DB::table('role_groups')->insertGetId([
-            'role_group_name' => 'workflow_task_test_parent_all',
-            'role_group_view_name' => 'workflow task test',
-            'role_group_order' => 0,
-            'description' => 'workflow task test',
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        \DB::table('role_group_permissions')->insert([
-            'role_group_id' => $roleGroupId,
-            'role_group_permission_type' => \Exceedone\Exment\Enums\RoleType::TABLE,
-            'role_group_target_id' => $parent->id,
-            'permissions' => json_encode([\Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_EDIT_ALL]),
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        \DB::table('role_group_user_organizations')->insert([
-            'role_group_id' => $roleGroupId,
-            'role_group_user_org_type' => SystemTableName::USER,
-            'role_group_target_id' => $userId,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        System::clearCache();
+        $grant = function (CustomTable $table, string $permission) use ($userId, $now): void {
+            $roleGroupId = \DB::table('role_groups')->insertGetId([
+                'role_group_name' => 'workflow_task_test_' . $table->table_name,
+                'role_group_view_name' => 'workflow task test',
+                'role_group_order' => 0,
+                'description' => 'workflow task test',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            \DB::table('role_group_permissions')->insert([
+                'role_group_id' => $roleGroupId,
+                'role_group_permission_type' => \Exceedone\Exment\Enums\RoleType::TABLE,
+                'role_group_target_id' => $table->id,
+                'permissions' => json_encode([$permission]),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            \DB::table('role_group_user_organizations')->insert([
+                'role_group_id' => $roleGroupId,
+                'role_group_user_org_type' => SystemTableName::USER,
+                'role_group_target_id' => $userId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            System::clearCache();
+        };
 
         $method = new \ReflectionMethod(\Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::class, 'membersWhoMayOpen');
         $method->setAccessible(true);
-        $mayOpen = function (array $ids) use ($method, $child): array {
-            return array_map('intval', $method->invoke(null, $child, collect($ids))->all());
+        $mayOpen = function (array $ids) use ($method, $childRecord): array {
+            return array_map('intval', $method->invoke(null, $childRecord, new \Illuminate\Support\Collection($ids))->all());
+        };
+        // what the page of the record answers them - the reference for who may be told
+        $pageOpens = function () use ($login, $child, $childRecord): bool {
+            $this->be($login);
+            System::clearCache();
+            $record = CustomTable::getEloquent($child->id)->getValueModel($childRecord->id);
+            $open = isset($record) && $record->enableAccess() === true;
+            $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+            System::clearCache();
+
+            return $open;
         };
 
+        // every record of the parent table; the record is shared with nobody, so only that opens it
+        $grant($parent, \Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_EDIT_ALL);
+        \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
+            ->where('parent_type', $child->table_name)
+            ->where('parent_id', $childRecord->id)
+            ->delete();
         $this->assertSame([], $mayOpen([$userId]), 'precondition: the child table itself is closed to them');
-        $child->setOption('inherit_parent_permission', true);
-        $this->assertSame([$userId], $mayOpen([$userId]), 'inheriting the permission of the parent, it is open to them');
+
+        // stored, not set on $child: the record reads its table through the cache
+        // (CustomValue::getCustomTableAttribute()), and System::clearCache() hands out a new instance
+        \DB::table(SystemTableName::CUSTOM_TABLE)->where('id', $child->id)->update([
+            'options' => json_encode(array_merge((array)$child->options, ['inherit_parent_permission' => '1'])),
+        ]);
+        System::clearCache();
+        $this->assertFalse($pageOpens(), 'precondition: without a role on the child table its page refuses them, whatever the parent allows');
+        $this->assertSame([], $mayOpen([$userId]), 'every record of the parent must not tell them about a record whose page refuses them');
+
+        // the shared records of the child table: the table is open to them, and the parent opens the record
+        $grant($child, \Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_VIEW);
+        $this->assertTrue($pageOpens(), 'precondition: with a role on the child table, every record of the parent opens it');
+        $this->assertSame([$userId], $mayOpen([$userId]), 'inheriting the permission of the parent, the record is open to them');
 
         // thousands of members: not one statement carries more values than SQL Server takes
         $connection = \DB::connection();
@@ -898,6 +938,138 @@ class WorkflowTaskServiceTest extends UnitTestBase
         foreach ($queries as $query) {
             $this->assertLessThanOrEqual(2100, count($query['bindings']), 'a statement carries more values than SQL Server takes');
         }
+    }
+
+    /**
+     * A member whose role covers the shared records of the table only (custom_value_edit /
+     * custom_value_view) opens a record shared with them or one of their organizations, nothing
+     * else (CustomValueModelScope). The workflow shares a record with the organizations of the next
+     * NORMAL actions only, so the organization of a special action (特殊なアクション) has members who
+     * may open the table but not the record. Found in review: they were told its label and its
+     * status. Who is told is pinned here to what the scope really lets them open.
+     *
+     * @return void
+     */
+    public function testSameOrgNotifySkipsMembersWhoCannotOpenTheRecord()
+    {
+        $this->init(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        $workflow = isset($custom_table) ? Workflow::getWorkflowByTable($custom_table) : null;
+        if (!isset($custom_table) || !isset($workflow) || $custom_table->allUserAccessable()) {
+            $this->markTestSkipped('needs a workflow table whose access goes by role');
+        }
+        /** @var WorkflowAction|null $start */
+        $start = WorkflowAction::where('workflow_id', $workflow->id)->where('status_from', Define::WORKFLOW_START_KEYNAME)->first();
+        /** @var \Exceedone\Exment\Model\CustomValue|null $custom_value */
+        $custom_value = $custom_table->getValueQuery()->first();
+        if (!isset($start) || !isset($custom_value)) {
+            $this->markTestSkipped('needs a record and a start action of the test workflow');
+        }
+
+        // a colleague who may not open every record of the table, and one who may - by the
+        // permissions they really have
+        /** @var array<int, LoginUser> $logins user id => login */
+        $logins = [];
+        $sharedOnly = null;
+        $everyRecord = null;
+        foreach (LoginUser::where('id', '<>', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->orderBy('id')->get() as $login) {
+            $this->be($login);
+            System::clearCache();
+            $userId = (int)$login->base_user_id;
+            if ($custom_table->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+                $everyRecord = $everyRecord ?? $userId;
+            } else {
+                $sharedOnly = $sharedOnly ?? $userId;
+            }
+            $logins[$userId] = $login;
+        }
+        if (!isset($sharedOnly) || !isset($everyRecord)) {
+            $this->markTestSkipped('the test dataset has no colleague who may open every record and one who may not');
+        }
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+
+        // the first may open the shared records of the table
+        $now = \Carbon\Carbon::now();
+        $roleGroupId = \DB::table('role_groups')->insertGetId([
+            'role_group_name' => 'workflow_task_test_shared_records',
+            'role_group_view_name' => 'workflow task test',
+            'role_group_order' => 0,
+            'description' => 'workflow task test',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        \DB::table('role_group_permissions')->insert([
+            'role_group_id' => $roleGroupId,
+            'role_group_permission_type' => \Exceedone\Exment\Enums\RoleType::TABLE,
+            'role_group_target_id' => $custom_table->id,
+            'permissions' => json_encode([\Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_VIEW]),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        \DB::table('role_group_user_organizations')->insert([
+            'role_group_id' => $roleGroupId,
+            'role_group_user_org_type' => SystemTableName::USER,
+            'role_group_target_id' => $sharedOnly,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        // an organization of the two, as the work target of the start action
+        $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel();
+        $org->setValue('organization_code', 'workflow_task_test_org');
+        $org->setValue('organization_name', 'workflow task test');
+        $org->save();
+        \DB::table(\Exceedone\Exment\Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER))->insert([
+            ['parent_id' => $org->id, 'child_id' => $sharedOnly],
+            ['parent_id' => $org->id, 'child_id' => $everyRecord],
+        ]);
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+            'related_id' => $org->id,
+            'related_type' => 'organization',
+            'workflow_action_id' => $start->id,
+        ]);
+        // the record is shared with nobody: only the roles with every record open it
+        \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
+            ->where('parent_type', $custom_table->table_name)
+            ->where('parent_id', $custom_value->id)
+            ->delete();
+
+        // whether the scope lets the user open the record - the reference for who may be told
+        $mayOpen = function (int $userId) use ($logins, $custom_table, $custom_value): bool {
+            $this->be($logins[$userId]);
+            System::clearCache();
+            $open = !is_null($custom_table->getValueModel($custom_value->id));
+            $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+            System::clearCache();
+
+            return $open;
+        };
+        // the administrator presses the button: neither colleague is the one who acted
+        $told = function () use ($start, $custom_value): array {
+            System::clearCache();
+
+            return array_map('intval', \Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::getOtherOrgMemberIds($start, $custom_value));
+        };
+
+        $this->assertFalse($mayOpen($sharedOnly), 'precondition: shared records only, and the record is not shared with them');
+        $this->assertTrue($mayOpen($everyRecord), 'precondition: every record is open to the other');
+        $told1 = $told();
+        $this->assertContains($everyRecord, $told1, 'the colleague who may open the record is told');
+        $this->assertNotContains($sharedOnly, $told1, 'the colleague who may not open the record must not be told about it');
+
+        // shared with their organization, the record is open to them - and they are told
+        \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)->insert([
+            'parent_id' => $custom_value->id,
+            'parent_type' => $custom_table->table_name,
+            'authoritable_type' => \Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_VIEW,
+            'authoritable_user_org_type' => SystemTableName::ORGANIZATION,
+            'authoritable_target_id' => $org->id,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $this->assertTrue($mayOpen($sharedOnly), 'precondition: shared with their organization, the record is open to them');
+        $this->assertContains($sharedOnly, $told(), 'shared with their organization, they are told');
     }
 
     /**
@@ -1534,6 +1706,237 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
+     * The 更新日時 of a task is when the previous action ran on its record, not when the record was
+     * last edited: the list sorts the oldest first to bring up what has been held up longest, and
+     * an edit of the record says nothing about that (pointed out by the customer on v6.2.14). A
+     * record no action has run on yet - it waits at the start - keeps its own updated_at. One
+     * approval of a step that waits for several is not the previous action: the status stays, and
+     * the approver still to act has had the task since the record came to it.
+     *
+     * Built like testApproverWhoAlreadyActedIsNotAskedAgain(): user1 starts the flow on one of their
+     * records, and the second step waits for two approvers, user1 and user2.
+     *
+     * @return void
+     */
+    public function testUpdatedAtIsWhenThePreviousActionRan()
+    {
+        $this->init();
+
+        $custom_table = CustomTable::getEloquent('custom_value_edit_all');
+        $workflow = isset($custom_table) ? Workflow::getWorkflowByTable($custom_table) : null;
+        if (!isset($workflow)) {
+            $this->markTestSkipped('the test dataset has no workflow on custom_value_edit_all');
+        }
+
+        $actions = collect($workflow->workflow_actions_cache);
+        $first = $actions->first(function ($action) {
+            return $action->status_from == Define::WORKFLOW_START_KEYNAME;
+        });
+        $firstHeader = isset($first) ? collect($first->workflow_condition_headers_cache)->first() : null;
+        $firstStatusTo = isset($firstHeader) ? $firstHeader->status_to : null;
+        $second = isset($firstStatusTo) ? $actions->first(function ($action) use ($firstStatusTo) {
+            return (string)$action->status_from === (string)$firstStatusTo;
+        }) : null;
+        if (!isset($second)) {
+            $this->markTestSkipped('the common test workflow no longer has two consecutive steps');
+        }
+
+        $user1 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $user2 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        if (!isset($user2)) {
+            $this->markTestSkipped('needs user2 in the test dataset');
+        }
+
+        // second step: two approvers out of user1 and user2 (rolled back after the test)
+        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
+            'options' => json_encode(array_merge((array)$second->options, [
+                'work_target_type' => 'fix',
+                'flow_next_type' => 'some',
+                'flow_next_count' => '2',
+            ])),
+        ]);
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+            ['related_id' => $user1->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
+            ['related_id' => $user2->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
+        ]);
+        System::clearCache();
+
+        $dbTable = getDBTableName($custom_table);
+        $latest = function ($morphId) use ($custom_table) {
+            return \DB::table(SystemTableName::WORKFLOW_VALUE)
+                ->where('morph_type', $custom_table->table_name)
+                ->where('morph_id', $morphId)
+                ->where('latest_flg', 1);
+        };
+
+        // two of user1's own records no action has run on yet
+        $filter = ['custom_table_id' => $custom_table->id];
+        $notStarted = (new WorkflowTaskService($filter))->getTasks()->filter(function ($task) use ($latest) {
+            return !$latest($task['morph_id'])->exists();
+        })->values();
+        if ($notStarted->count() < 2) {
+            $this->markTestSkipped('user1 has fewer than two tasks at the start in custom_value_edit_all');
+        }
+        [$acted, $waiting] = $notStarted->take(2)->all();
+
+        // user1 starts the flow on one of them: it comes to the two-approver step
+        WorkflowAction::getEloquent($first->id)->executeAction($custom_table->getValueModel($acted['morph_id']), ['comment' => 'workflow task test']);
+        System::clearCache();
+
+        // the action ran on the 10th and somebody edited the record on the 20th; the other record
+        // was last edited on the 15th
+        $latest($acted['morph_id'])->update(['created_at' => '2001-01-10 10:00:00']);
+        \DB::table($dbTable)->where('id', $acted['morph_id'])->update(['updated_at' => '2001-01-20 10:00:00']);
+        \DB::table($dbTable)->where('id', $waiting['morph_id'])->update(['updated_at' => '2001-01-15 10:00:00']);
+
+        $updatedAt = function () use ($filter) {
+            return (new WorkflowTaskService($filter))->getTasks()->mapWithKeys(function ($row) {
+                return [$row['task_key'] => (string)$row['updated_at']];
+            });
+        };
+        $times = $updatedAt();
+        $this->assertSame('2001-01-10 10:00:00', $times->get($acted['task_key']), 'the 更新日時 must be the previous action, not the edit of the record after it');
+        $this->assertSame('2001-01-15 10:00:00', $times->get($waiting['task_key']), 'a record no action has run on yet keeps its own updated_at');
+
+        // oldest first: the task held up since the 10th comes before the record edited on the
+        // 15th, although its own record was edited after that
+        $pair = [$acted['task_key'], $waiting['task_key']];
+        $this->assertSame(
+            $pair,
+            array_values(array_intersect(array_column($this->walk($filter), 'task_key'), $pair)),
+            'the list must sort by the previous action'
+        );
+
+        // the date filter looks at the time the column prints
+        $onDay = function (string $day) use ($filter) {
+            return array_column($this->walk($filter + ['from' => $day, 'to' => $day]), 'task_key');
+        };
+        $this->assertSame([$acted['task_key']], $onDay('2001-01-10'), 'the day of the action must find the task');
+        $this->assertSame([], $onDay('2001-01-20'), 'the day of the edit must not find it');
+        $this->assertSame([$waiting['task_key']], $onDay('2001-01-15'), 'the record without an action is found on the day it was updated');
+
+        // user2 approves on the 1st of February: one of two, so the step stays where it is
+        $this->be($user2);
+        System::clearCache();
+        WorkflowAction::getEloquent($second->id)->executeAction($custom_table->getValueModel($acted['morph_id']), ['comment' => 'workflow task test']);
+        $this->assertSame(
+            1,
+            (int)$latest($acted['morph_id'])->value('action_executed_flg'),
+            'precondition: one approval out of two leaves the step waiting for the other'
+        );
+        $latest($acted['morph_id'])->update(['created_at' => '2001-02-01 10:00:00']);
+        $this->be($user1);
+        System::clearCache();
+
+        // user1 has not approved yet, and has had the task since the 10th
+        $this->assertSame(
+            '2001-01-10 10:00:00',
+            $updatedAt()->get($acted['task_key']),
+            'an approval of a step that waits for several must not restart how long the others have had it'
+        );
+    }
+
+    /**
+     * A record an action took back to the start waits there like one no action has run on yet:
+     * its 更新日時 is the record's own updated_at, not the time it was taken back. The customer asked
+     * for the start to go by the record, whichever way it came to be there, so an edit there moves
+     * it, as it does on a record never sent on.
+     *
+     * The common test workflow has no action back to the start: its second step is made one for
+     * the test, pressed by user1 (rolled back after the test).
+     *
+     * @return void
+     */
+    public function testUpdatedAtOfARecordTakenBackToTheStartIsItsOwn()
+    {
+        $this->init();
+
+        $custom_table = CustomTable::getEloquent('custom_value_edit_all');
+        $workflow = isset($custom_table) ? Workflow::getWorkflowByTable($custom_table) : null;
+        if (!isset($workflow)) {
+            $this->markTestSkipped('the test dataset has no workflow on custom_value_edit_all');
+        }
+
+        $actions = collect($workflow->workflow_actions_cache);
+        $first = $actions->first(function ($action) {
+            return $action->status_from == Define::WORKFLOW_START_KEYNAME;
+        });
+        $firstHeader = isset($first) ? collect($first->workflow_condition_headers_cache)->first() : null;
+        $firstStatusTo = isset($firstHeader) ? $firstHeader->status_to : null;
+        $second = isset($firstStatusTo) ? $actions->first(function ($action) use ($firstStatusTo) {
+            return (string)$action->status_from === (string)$firstStatusTo;
+        }) : null;
+        if (!isset($second)) {
+            $this->markTestSkipped('the common test workflow no longer has two consecutive steps');
+        }
+        $user1 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1);
+
+        // the second step takes the record back to the start, pressed by user1 alone
+        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
+            'options' => json_encode(array_merge((array)$second->options, [
+                'work_target_type' => 'fix',
+                'flow_next_type' => 'some',
+                'flow_next_count' => '1',
+            ])),
+        ]);
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+            'related_id' => $user1->base_user_id,
+            'related_type' => 'user',
+            'workflow_action_id' => $second->id,
+        ]);
+        WorkflowConditionHeader::where('workflow_action_id', $second->id)->update(['status_to' => Define::WORKFLOW_START_KEYNAME]);
+        System::clearCache();
+
+        $dbTable = getDBTableName($custom_table);
+        $latest = function ($morphId) use ($custom_table) {
+            return \DB::table(SystemTableName::WORKFLOW_VALUE)
+                ->where('morph_type', $custom_table->table_name)
+                ->where('morph_id', $morphId)
+                ->where('latest_flg', 1);
+        };
+
+        // one of user1's own records no action has run on yet
+        $filter = ['custom_table_id' => $custom_table->id];
+        $task = (new WorkflowTaskService($filter))->getTasks()->first(function ($task) use ($latest) {
+            return !$latest($task['morph_id'])->exists();
+        });
+        if (!isset($task)) {
+            $this->markTestSkipped('user1 has no task at the start in custom_value_edit_all');
+        }
+
+        // sent on on the 5th and taken back on the 6th; the record itself was last edited on the 3rd
+        WorkflowAction::getEloquent($first->id)->executeAction($custom_table->getValueModel($task['morph_id']), ['comment' => 'workflow task test']);
+        $latest($task['morph_id'])->update(['created_at' => '2001-01-05 10:00:00']);
+        System::clearCache();
+        WorkflowAction::getEloquent($second->id)->executeAction($custom_table->getValueModel($task['morph_id']), ['comment' => 'workflow task test']);
+        $this->assertNull(
+            $latest($task['morph_id'])->value('workflow_status_to_id'),
+            'precondition: the second step took the record back to the start'
+        );
+        $latest($task['morph_id'])->update(['created_at' => '2001-01-06 10:00:00']);
+        \DB::table($dbTable)->where('id', $task['morph_id'])->update(['updated_at' => '2001-01-03 10:00:00']);
+        System::clearCache();
+
+        $updatedAt = function () use ($filter, $task) {
+            return (new WorkflowTaskService($filter))->getTasks()->mapWithKeys(function ($row) {
+                return [$row['task_key'] => (string)$row['updated_at']];
+            })->get($task['task_key']);
+        };
+        $this->assertSame('2001-01-03 10:00:00', $updatedAt(), 'back at the start, the 更新日時 must be the record\'s own, not the time it was taken back');
+
+        // an edit there moves it, as on a record never sent on - and the date filter follows
+        \DB::table($dbTable)->where('id', $task['morph_id'])->update(['updated_at' => '2001-01-25 10:00:00']);
+        $this->assertSame('2001-01-25 10:00:00', $updatedAt(), 'an edit of a record back at the start must move its 更新日時');
+        $onDay = function (string $day) use ($filter) {
+            return array_column($this->walk($filter + ['from' => $day, 'to' => $day]), 'task_key');
+        };
+        $this->assertSame([$task['task_key']], $onDay('2001-01-25'), 'the day of the edit must find the task');
+        $this->assertSame([], $onDay('2001-01-06'), 'the day it was taken back must not find it');
+    }
+
+    /**
      * The keyword matches the label the "data" column prints, and the LIKE wildcards a user
      * types are literal characters - "%" must not return the whole list.
      *
@@ -2016,12 +2419,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
         (new WorkflowTaskService())->markSeen([$seen['task_key']]);
 
         // 更新日時: one task a year before the day, one a year after it
-        $dbTable = getDBTableName(CustomTable::getEloquent($customTableId));
         [$before, $after] = $moved->all();
-        \DB::table($dbTable)->where('id', $before['morph_id'])
-            ->update(['updated_at' => \Carbon\Carbon::parse($day)->subYear()->format('Y-m-d') . ' 12:00:00']);
-        \DB::table($dbTable)->where('id', $after['morph_id'])
-            ->update(['updated_at' => \Carbon\Carbon::parse($day)->addYear()->format('Y-m-d') . ' 12:00:00']);
+        $this->setTaskUpdatedAt($before, \Carbon\Carbon::parse($day)->subYear()->format('Y-m-d') . ' 12:00:00');
+        $this->setTaskUpdatedAt($after, \Carbon\Carbon::parse($day)->addYear()->format('Y-m-d') . ' 12:00:00');
 
         return [
             'filter' => [
@@ -2042,6 +2442,35 @@ class WorkflowTaskServiceTest extends UnitTestBase
                 'q' => $missing['task_key'],
             ],
         ];
+    }
+
+    /**
+     * Give a task the 更新日時 $at: on a record that has left the start, the time of the previous
+     * action on it; on a record at the start - no action run on it yet, or taken back there - the
+     * time the record was updated (WorkflowTaskService::taskUpdatedAt()).
+     * DatabaseTransactions rolls it back.
+     *
+     * @param array<string, mixed> $task a row of the task list
+     * @param string $at "Y-m-d H:i:s"
+     * @return void
+     */
+    private function setTaskUpdatedAt(array $task, string $at): void
+    {
+        $custom_table = CustomTable::getEloquent($task['custom_table_id']);
+        $values = function () use ($custom_table, $task) {
+            return \DB::table(SystemTableName::WORKFLOW_VALUE)
+                ->where('morph_type', $custom_table->table_name)
+                ->where('morph_id', $task['morph_id']);
+        };
+
+        if ($values()->where('latest_flg', 1)->whereNotNull('workflow_status_to_id')->exists()) {
+            // every action carried out on the record, not only the last: the 更新日時 is the latest of
+            // them, and an earlier one left as it was would win over an $at moved into the past
+            $values()->where('action_executed_flg', 0)->update(['created_at' => $at]);
+            return;
+        }
+
+        \DB::table(getDBTableName($custom_table))->where('id', $task['morph_id'])->update(['updated_at' => $at]);
     }
 
     /**
