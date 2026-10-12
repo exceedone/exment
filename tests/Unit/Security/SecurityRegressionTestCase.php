@@ -6,20 +6,26 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
- * Base class for security regression tests (proving the commit b26a6dd fixes work at runtime).
+ * Base class for security regression tests (proving the commit b26a6dd fixes and the
+ * JVN security fixes work at runtime).
  *
  * DATA SAFETY:
  *  - Uses DatabaseTransactions => every INSERT/UPDATE is ROLLED BACK in tearDown.
  *  - Does NOT use DatabaseMigrations / migrate:fresh (that would WIPE the dev DB).
  *  - DDL needs use CREATE TEMPORARY TABLE (no implicit commit, session-scoped).
  *
- * Run each file INDIVIDUALLY (do NOT run the whole Unit suite: it pulls in the
- * ExmentTestCase tests -> DatabaseMigrations -> migrate:fresh -> data loss):
- *
+ * Running: the whole Security folder is safe (these tests never migrate:fresh):
+ *   vendor/bin/phpunit exment/tests/Unit/Security/
+ * or a single file, e.g.:
  *   vendor/bin/phpunit exment/tests/Unit/Security/Bug1GroupKeySqlInjectionFixedTest.php
- *   vendor/bin/phpunit exment/tests/Unit/Security/Bug2TemplateDeleteAuthFixedTest.php
- *   vendor/bin/phpunit exment/tests/Unit/Security/Bug3FileAuthzConstraintTest.php
- *   vendor/bin/phpunit exment/tests/Unit/Security/Bug5FileDeleteArraySpliceFixedTest.php
+ * Do NOT run the entire Unit suite, which pulls in ExmentTestCase -> DatabaseMigrations
+ * -> migrate:fresh -> dev data loss.
+ *
+ * Covered: Bug1GroupKeySqlInjectionFixedTest, Bug2TemplateDeleteAuthFixedTest,
+ * Bug3FileAuthzConstraintTest, Bug5FileDeleteArraySpliceFixedTest,
+ * JvnPluginPublicFileTraversalFixedTest, JvnFieldTypeFlashMessageXssFixedTest,
+ * JvnColumnItemXssFixedTest, JvnNotifyNavbarLabelXssFixedTest,
+ * JvnPublicFormCustomCssInjectionFixedTest, JvnUrlLinkXssHardeningTest.
  */
 abstract class SecurityRegressionTestCase extends TestCase
 {

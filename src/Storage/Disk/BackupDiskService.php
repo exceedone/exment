@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Storage\Disk;
 
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\ZipService;
 use Illuminate\Support\Facades\Storage;
 
 class BackupDiskService extends DiskServiceBase
@@ -72,10 +74,21 @@ class BackupDiskService extends DiskServiceBase
 
         // open new zip file
         $zip = new \ZipArchive();
-        if ($zip->open($localSyncDiskItem->fileFullPath()) === true) {
-            $zip->extractTo($localSyncDiskItem->dirFullPath());
-            $zip->close();
+        if ($zip->open($localSyncDiskItem->fileFullPath()) !== true) {
+            // an unreadable stored backup must not look like a successful restore:
+            // the caller would keep going over an empty folder, restore nothing,
+            // and still answer "restore succeeded". same rule as Restore::unzipFile().
+            throw new InvalidZipEntryException(strval(exmtrans('backup.message.restore_file_error')));
         }
+
+        $zipEntryError = ZipService::validateZipEntries($zip);
+        if ($zipEntryError !== null) {
+            $zip->close();
+            throw new InvalidZipEntryException($zipEntryError);
+        }
+
+        $zip->extractTo($localSyncDiskItem->dirFullPath());
+        $zip->close();
 
         $localSyncDisk->delete($localSyncDiskItem->filePath());
 

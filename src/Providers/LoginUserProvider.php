@@ -130,7 +130,7 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
     /**
      * @param Authenticatable $login_user
      * @param array<string, mixed> $credentials
-     * @return false
+     * @return bool
      */
     public static function ValidateCredential(Authenticatable $login_user, array $credentials)
     {
