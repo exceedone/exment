@@ -83,8 +83,12 @@ class HasMany extends AdminHasMany
         $count = $this->getHasManyCount();
         $indexName = "index_{$this->column}";
 
-        $errortitle = exmtrans("common.error");
-        $requiremessage = sprintf(exmtrans("common.message.exists_row"), $this->label);
+        // Both values are written into the page script as js string literals, and the alert renders
+        // its message as html. The label is set by table administrators, so escape it for html and
+        // let json_encode build the literal (quotes and "</script>" can then not leave the string).
+        $jsonFlags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
+        $errortitle = json_encode(exmtrans("common.error"), $jsonFlags);
+        $requiremessage = json_encode(sprintf(exmtrans("common.message.exists_row"), esc_html($this->label)), $jsonFlags);
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -121,7 +125,7 @@ $("button[type='submit']").click(function(){
     }
     var cnt = $('#has-many-{$this->column} .has-many-{$this->column}-forms > .fields-group').filter(':visible').length;
     if (cnt == 0) {
-        swal("$errortitle", "$requiremessage", "error");
+        swal($errortitle, $requiremessage, "error");
         return false;
     };
     return true;
