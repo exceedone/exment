@@ -304,6 +304,47 @@ var Exment;
         return null;
     }
 
+    /**
+     * Key of the action step 2 shows on its first row: the first action out
+     * of the start status.
+     *
+     * Step 2 has no "ignore_work" box on that row and saves it as 0, so the
+     * workflow always keeps a start action whose users are work users
+     * (Options::isFirstStartAction()). Every other action has the box, a
+     * second start action included. Step 2 lists the start actions first in
+     * id order, and the save numbers new start actions after the saved ones
+     * in the order they are sent (saveDesignActions()). So a saved action
+     * comes before a new one, a lower id before a higher one, and new ones
+     * keep their order.
+     *
+     * @param {Object} [draft] the dialog's copy, read in place of its action
+     * @return {string|null}
+     */
+    function firstStartKey(draft) {
+        var first = null;
+        S.actions.forEach(function (live) {
+            var a = (draft && draft.key === live.key) ? draft : live;
+            if (a.from !== START) {
+                return;
+            }
+            if (!first || (a.id && (!first.id || Number(a.id) < Number(first.id)))) {
+                first = a;
+            }
+        });
+        return first ? first.key : null;
+    }
+
+    /**
+     * Whether the action is saved with "ignore_work". The first start action
+     * never is, whatever it holds, the same as on step 2.
+     *
+     * @param {Object} a
+     * @param {Object} [draft] see firstStartKey()
+     */
+    function ignoresWork(a, draft) {
+        return !!a.ignore && a.key !== firstStartKey(draft);
+    }
+
     function geom(key) {
         if (key === START) {
             return { x: S.start.x, y: S.start.y, w: START_W, h: START_H, name: S.startName, isStart: true };
@@ -477,7 +518,7 @@ var Exment;
         } else {
             lines.push(t('tip_flow_all'));
         }
-        if (e.action.ignore) {
+        if (ignoresWork(e.action)) {
             lines.push(t('tip_ignore'));
         }
         if (e.dest.conditionCount > 0) {
@@ -505,7 +546,7 @@ var Exment;
                 return;
             }
             var isSel = sel && sel.type === 'edge' && sel.key === e.akey;
-            paths += '<path class="wfd-edge' + (e.action.ignore ? ' dash' : '') + (isSel ? ' sel' : '') +
+            paths += '<path class="wfd-edge' + (ignoresWork(e.action) ? ' dash' : '') + (isSel ? ' sel' : '') +
                 '" data-akey="' + esc(e.akey) + '" d="' + g.d +
                 '" marker-end="url(#' + (isSel ? 'wfd-arr-sel' : 'wfd-arr') + ')"></path>';
 
@@ -548,6 +589,34 @@ var Exment;
         return map;
     }
 
+    /**
+     * Whether the statuses differ from the stored ones in a way a completed
+     * setting does not allow: a status added or removed, or a completed flag
+     * changed. Step 1 refuses the same once the setting is completed, and
+     * the server refuses the save.
+     */
+    function lockedStatusChange() {
+        var stored = {};
+        (D.statuses || []).forEach(function (x) {
+            stored['s' + x.id] = !!x.completed;
+        });
+        if (S.statuses.length !== (D.statuses || []).length) {
+            return true;
+        }
+        return S.statuses.some(function (s) {
+            return !Object.prototype.hasOwnProperty.call(stored, s.key) || stored[s.key] !== !!s.completed;
+        });
+    }
+
+    /** Leaves `keep` as the only completed status, the way step 1 has one. */
+    function onlyCompleted(keep) {
+        S.statuses.forEach(function (s) {
+            if (s !== keep) {
+                s.completed = false;
+            }
+        });
+    }
+
     function computeIssues() {
         var list = [];
         var i;
@@ -582,7 +651,10 @@ var Exment;
             }
 
             dests.forEach(function (d) {
-                if (!statusOf(d.to)) {
+                // The start status is a valid destination: an action that
+                // sends the record back to the applicant ends there. Step 2
+                // offers it and the server stores it as 'start'.
+                if (d.to !== START && !statusOf(d.to)) {
                     list.push({ level: 'err', akey: a.key, text: t('issue_unknown_status', { action: label }) });
                     return;
                 }
@@ -605,7 +677,7 @@ var Exment;
                 if (!has) {
                     list.push({ level: 'err', akey: a.key, text: t('issue_no_target', { action: label }) });
                 }
-            } else if (a.ignore) {
+            } else if (ignoresWork(a)) {
                 list.push({ level: 'err', akey: a.key, text: t('issue_ignore_action_select', { action: label }) });
             }
 
@@ -631,7 +703,7 @@ var Exment;
             }
             for (var j = 0; j < S.actions.length; j++) {
                 var b = S.actions[j];
-                if (b === a || b.from !== a.from || b.ignore) {
+                if (b === a || b.from !== a.from || ignoresWork(b)) {
                     continue;
                 }
                 if (b.targetType === a.targetType) {
@@ -655,6 +727,8 @@ var Exment;
         }
         if (!String(S.name || '').trim()) {
             list.push({ level: 'err', text: t('issue_no_view_name') });
+        } else if (clen(String(S.name).trim()) > 30) {
+            list.push({ level: 'err', text: t('issue_long_view_name') });
         }
         if (!String(S.startName || '').trim()) {
             list.push({ level: 'err', text: t('issue_no_start_name') });
@@ -668,10 +742,22 @@ var Exment;
         // action outright. Without these three the panel can show nothing
         // blocking while Save still comes back 422, leaving the reader with a
         // refusal and no word on screen about what is missing.
+        var completedCount = S.statuses.filter(function (s) { return !!s.completed; }).length;
         if (!S.statuses.length) {
             list.push({ level: 'err', text: t('issue_no_status') });
-        } else if (!S.statuses.some(function (s) { return !!s.completed; })) {
+        } else if (D.activated) {
+            // A completed setting keeps its statuses exactly as stored (see
+            // lockedStatusChange). The menus do not offer these changes, so
+            // this only fires if the state was changed some other way.
+            if (lockedStatusChange()) {
+                list.push({ level: 'err', text: t('message.activated_locked') });
+            }
+        } else if (!completedCount) {
             list.push({ level: 'err', text: t('issue_no_completed') });
+        } else if (completedCount > 1) {
+            // Step 1 keeps one completed status and rewrites the rest on its
+            // next save, so the server refuses more than one.
+            list.push({ level: 'err', text: t('message.completed_only_one') });
         }
         if (!S.actions.length) {
             list.push({ level: 'err', text: t('issue_no_action') });
@@ -1103,9 +1189,11 @@ var Exment;
             (s.datalock ? ' checked' : '') + '>' +
             '<span><b>' + esc(t('label_datalock_flg')) + '</b>' +
             '<div class="help">' + esc(t('label_help_datalock')) + '</div></span></div>' +
-            '<div class="opt"><input type="checkbox" id="wfd-sdone"' + (s.completed ? ' checked' : '') + '>' +
+            '<div class="opt"><input type="checkbox" id="wfd-sdone"' + (s.completed ? ' checked' : '') +
+            (D.activated ? ' disabled' : '') + '>' +
             '<span><b>' + esc(t('completed_flg')) + '</b>' +
-            '<div class="help">' + esc(t('help_completed_flg')) + '</div></span></div>';
+            '<div class="help">' + esc(t('help_completed_flg')) +
+            (D.activated ? ' ' + esc(t('status_locked')) : '') + '</div></span></div>';
     }
 
     function readStatusForm(m, target) {
@@ -1117,13 +1205,24 @@ var Exment;
         target.name = name;
         target.datalock = m.querySelector('#wfd-slock').checked;
 
-        // 完了ステータスは複数あってよい（承認済み／却下 など）
-        var doneEl = m.querySelector('#wfd-sdone');
-        target.completed = !!(doneEl && doneEl.checked);
+        // A completed setting keeps its completed flags; the box is disabled
+        // and its state is not read back. Before that, the caller makes this
+        // the only completed status once the dialog is accepted - see
+        // onlyCompleted().
+        if (!D.activated) {
+            var doneEl = m.querySelector('#wfd-sdone');
+            target.completed = !!(doneEl && doneEl.checked);
+        }
         return target;
     }
 
     function addStatusModal(wx, wy, connectFrom) {
+        // Step 1 cannot add a status once the setting is completed, and
+        // neither can this screen.
+        if (D.activated) {
+            toast(t('message.activated_locked'));
+            return;
+        }
         var title = connectFrom ? t('connect_new') : t('status_add');
         var extra = '';
         if (connectFrom) {
@@ -1156,6 +1255,9 @@ var Exment;
                         }
                     }
 
+                    if (s.completed) {
+                        onlyCompleted(s);
+                    }
                     S.statuses.push(s);
                     if (connectFrom) {
                         S.actions.push(newAction(aname, connectFrom, s.key));
@@ -1180,6 +1282,9 @@ var Exment;
                 run: function (m) {
                     if (!readStatusForm(m, s)) {
                         return false;
+                    }
+                    if (s.completed && !D.activated) {
+                        onlyCompleted(s);
                     }
                     render();
                 }
@@ -1229,7 +1334,7 @@ var Exment;
 
         openModal(t('basic_info'),
             '<label class="fl">' + esc(t('label_workflow_view_name')) + '<span class="req">*</span></label>' +
-            '<input type="text" id="wfd-wname" maxlength="40" value="' + esc(S.name) + '">' +
+            '<input type="text" id="wfd-wname" maxlength="30" value="' + esc(S.name) + '">' +
             '<label class="fl">' + esc(t('label_workflow_type')) + '<span class="req">*</span></label>' +
             '<select id="wfd-wtype"><option value="">' + esc(t('none')) + '</option>' +
             createOptionHtml(co.workflow_type, S.type) + '</select>' +
@@ -1248,7 +1353,8 @@ var Exment;
                     var table = m.querySelector('#wfd-wtable').value;
                     var start = readText(m, 'wfd-stname2');
 
-                    if (!name || clen(name) > 40) {
+                    // 30: the length of workflows.workflow_view_name
+                    if (!name || clen(name) > 30) {
                         markErr(m, 'wfd-wname');
                         return false;
                     }
@@ -1287,13 +1393,13 @@ var Exment;
     function editWorkflowNameModal() {
         openModal(t('label_workflow_view_name'),
             '<label class="fl">' + esc(t('label_workflow_view_name')) + '<span class="req">*</span></label>' +
-            '<input type="text" id="wfd-wname" maxlength="40" value="' + esc(S.name) + '">', [
+            '<input type="text" id="wfd-wname" maxlength="30" value="' + esc(S.name) + '">', [
             { label: t('label_cancel') },
             {
                 label: t('label_save'), cls: 'btn-primary',
                 run: function (m) {
                     var v = readText(m, 'wfd-wname');
-                    if (!v || clen(v) > 40) {
+                    if (!v || clen(v) > 30) {
                         markErr(m, 'wfd-wname');
                         return false;
                     }
@@ -1363,13 +1469,19 @@ var Exment;
         };
     }
 
-    function statusSelectHtml(id, current, withStart, cls) {
+    /**
+     * @param {boolean} withStart offer the start status
+     * @param {boolean} withEmpty offer "not set" first. The destination select
+     *        needs both: an action may send the record back to the start.
+     */
+    function statusSelectHtml(id, current, withStart, cls, withEmpty) {
         var html = '<select id="' + id + '" class="' + (cls || '') + '">';
+        if (withEmpty) {
+            html += '<option value=""' + (current ? '' : ' selected') + '>' + esc(t('none')) + '</option>';
+        }
         if (withStart) {
             html += '<option value="' + START + '"' + (current === START ? ' selected' : '') + '>' +
                 esc(S.startName) + '</option>';
-        } else {
-            html += '<option value=""' + (current ? '' : ' selected') + '>' + esc(t('none')) + '</option>';
         }
         S.statuses.forEach(function (s) {
             html += '<option value="' + esc(s.key) + '"' + (current === s.key ? ' selected' : '') + '>' +
@@ -1435,7 +1547,7 @@ var Exment;
             : '';
 
         return '<div class="wfd-branch" data-destrow="' + esc(d.key) + '">' + head + enabled +
-            statusSelectHtml('wfd-to-' + d.key, d.to, false, 'wfd-dto') + cond + '</div>';
+            statusSelectHtml('wfd-to-' + d.key, d.to, true, 'wfd-dto', true) + cond + '</div>';
     }
 
     function actionFormHtml(a) {
@@ -1471,8 +1583,11 @@ var Exment;
                 (a.commentType === o.id ? ' selected' : '') + '>' + esc(o.text) + '</option>';
         });
 
-        var ignoreBlock = (a.from === START) ? '' :
-            '<div class="opt" style="margin-top:12px"><input type="checkbox" id="wfd-ig"' +
+        // Hidden rather than left out, so that changing the status before can
+        // bring it back (bindActionForm()).
+        var ignoreBlock =
+            '<div class="opt" id="wfd-igopt" style="margin-top:12px' +
+            (firstStartKey(a) === a.key ? ';display:none' : '') + '"><input type="checkbox" id="wfd-ig"' +
             (a.ignore ? ' checked' : '') + '><span><b>' + esc(t('label_ignore_work')) + '</b>' +
             '<div class="help">' + esc(t('label_help_ignore_work')) + '</div></span></div>';
 
@@ -1555,9 +1670,24 @@ var Exment;
             });
         }
 
+        // Which action is the first one out of the start status depends on
+        // the status before, so the box follows that select.
+        function syncIgnore() {
+            var row = m.querySelector('#wfd-igopt');
+            var from = m.querySelector('#wfd-from');
+            if (!row || !from) {
+                return;
+            }
+            var probe = { key: a.key, id: a.id, from: from.value };
+            row.style.display = (firstStartKey(probe) === a.key) ? 'none' : '';
+        }
+
         m.addEventListener('change', function (ev) {
             if (ev.target.name === 'wfd-tt') {
                 syncVisible();
+            }
+            if (ev.target.id === 'wfd-from') {
+                syncIgnore();
             }
         });
 
@@ -1632,8 +1762,12 @@ var Exment;
         a.flowCount = Math.max(0, Math.min(10, Number(m.querySelector('#wfd-fc').value) || 0));
         a.commentType = m.querySelector('#wfd-ct').value;
 
+        // Read only while the box is offered. The first start action keeps
+        // what it holds, and ignoresWork() saves it as 0 anyway.
         var ig = m.querySelector('#wfd-ig');
-        a.ignore = ig ? ig.checked : false;
+        if (ig && firstStartKey(a) !== a.key) {
+            a.ignore = ig.checked;
+        }
 
         if (draft) {
             return true;
@@ -1653,7 +1787,7 @@ var Exment;
             toast(t('issue_no_status_to', { action: actionLabel(a) }));
             return false;
         }
-        if (a.targetType === TYPE_ACTION_SELECT && a.ignore) {
+        if (a.targetType === TYPE_ACTION_SELECT && ignoresWork(a, a)) {
             toast(t('label_msg_ignore_action_select'));
             return false;
         }
@@ -1787,7 +1921,7 @@ var Exment;
                 return {
                     id: a.id, key: a.key, name: a.name,
                     status_from: a.from,
-                    ignore_work: a.ignore ? 1 : 0,
+                    ignore_work: ignoresWork(a) ? 1 : 0,
                     work_target_type: a.targetType,
                     targets: a.targets,
                     flow_next_type: a.flowType,
@@ -1913,17 +2047,29 @@ var Exment;
             return;
         }
 
+        var submitted = signature();
+        var app = els.app;
+        var creating = D.is_new;
+        var redirecting = false;
         saving = true;
         var html = els.save.innerHTML;
         els.save.disabled = true;
         els.save.textContent = t('saving');
+        if (creating) {
+            els.app.inert = true;
+            els.modal.inert = true;
+            els.menu.inert = true;
+        }
 
         jQuery.ajax({
             url: D.urls.save,
             type: 'POST',
             dataType: 'json',
-            data: { _token: token(), design: JSON.stringify(payload()) }
+            data: { _token: token(), design: submitted }
         }).done(function (res) {
+            if (!alive() || els.app !== app) {
+                return;
+            }
             if (!res || !res.result) {
                 showErrors((res && res.errors) || [t('message.validation_error')]);
                 return;
@@ -1932,35 +2078,54 @@ var Exment;
 
             // 新規作成。ここで初めてワークフローができるので、その画面へ移る。
             if (map.redirect) {
-                baseSig = signature();
+                redirecting = true;
+                baseSig = submitted;
                 syncDirty();
                 window.onbeforeunload = null;
-                location.href = map.redirect;
+                location.replace(map.redirect);
                 return;
             }
 
             D.updated_at = map.updated_at || D.updated_at;
+            // Rebase only the submitted snapshot, including server-assigned IDs.
+            var saved = JSON.parse(submitted);
+            saved.updated_at = D.updated_at;
 
-            S.statuses.forEach(function (s) {
-                if (map.status_map && map.status_map[s.key]) {
-                    s.id = String(map.status_map[s.key]);
-                }
+            [S.statuses, saved.statuses].forEach(function (statuses) {
+                statuses.forEach(function (s) {
+                    if (map.status_map && map.status_map[s.key]) {
+                        s.id = String(map.status_map[s.key]);
+                    }
+                });
             });
-            S.actions.forEach(function (a) {
-                if (map.action_map && map.action_map[a.key]) {
-                    a.id = String(map.action_map[a.key]);
-                }
+            [S.actions, saved.actions].forEach(function (actions) {
+                actions.forEach(function (a) {
+                    if (map.action_map && map.action_map[a.key]) {
+                        a.id = String(map.action_map[a.key]);
+                    }
+                });
             });
 
-            baseSig = signature();
+            baseSig = JSON.stringify(saved);
             syncDirty();
             syncStepButtons(map);
             toast(res.toastr || 'OK');
         }).fail(function (xhr) {
+            if (!alive() || els.app !== app) {
+                return;
+            }
             var res = xhr.responseJSON || {};
             showErrors(res.errors || [res.toastr || ('HTTP ' + xhr.status)]);
         }).always(function () {
+            if (!alive() || els.app !== app || redirecting) {
+                return;
+            }
             saving = false;
+            if (creating) {
+                els.app.inert = false;
+                els.modal.inert = false;
+                els.menu.inert = false;
+            }
             els.save.disabled = false;
             els.save.innerHTML = html;
         });
@@ -2016,7 +2181,13 @@ var Exment;
                     { icon: '⚙', label: t('status_edit'), run: function () { editStatusModal(key); } },
                     '-'
                 ];
-                if (st && st.in_use) {
+                if (D.activated) {
+                    // Step 1 cannot delete a status of a completed setting either.
+                    statusItems.push({
+                        icon: '✖', label: t('status_delete'),
+                        disabled: true, note: t('status_locked')
+                    });
+                } else if (st && st.in_use) {
                     // 使用中のステータスを消すと、そのデータの状態と履歴まで消えるので出さない
                     statusItems.push({
                         icon: '✖', label: t('status_delete'),
@@ -2032,7 +2203,10 @@ var Exment;
                 return;
             }
 
-            var items = [{
+            var items = [D.activated ? {
+                icon: '＋', label: t('status_add'),
+                disabled: true, note: t('status_locked')
+            } : {
                 icon: '＋', label: t('status_add'),
                 run: function () { addStatusModal(w.x - NODE_W / 2, w.y - NODE_H / 2, null); }
             }, '-'];
@@ -2213,7 +2387,8 @@ var Exment;
                     if (old) {
                         old.classList.remove('droptarget');
                     }
-                    if (nd && hoverKey !== drag.from && hoverKey !== START) {
+                    // START is a valid target too: a "send back" action.
+                    if (nd && hoverKey !== drag.from) {
                         nd.classList.add('droptarget');
                     }
                     drag.hover = hoverKey;
@@ -2260,13 +2435,14 @@ var Exment;
 
                 if (nd) {
                     var to = nd.getAttribute('data-key');
-                    if (to === START || to === d.from) {
+                    if (to === d.from) {
                         toast(t('label_msg_same_action'));
                         return;
                     }
                     quickActionModal(d.from, to);
                 } else if (inCanvas) {
                     // 何もない所へ落としたら、ステータスを作ってそのままつなぐ
+                    // (addStatusModal says why not when statuses are locked)
                     var w = worldPoint(e.clientX, e.clientY);
                     addStatusModal(w.x - NODE_W / 2, w.y - NODE_H / 2, d.from);
                 }
@@ -2351,6 +2527,12 @@ var Exment;
         sel = null;
         drag = null;
         saving = false;
+        // PJAX can restore markup captured while a previous save was pending.
+        els.app.inert = false;
+        els.modal.inert = false;
+        els.menu.inert = false;
+        els.save.disabled = false;
+        els.save.innerHTML = '<i class="fa fa-save"></i>&nbsp;' + esc(t('label_save'));
 
         S = buildState(data);
 
@@ -2369,8 +2551,9 @@ var Exment;
         if (data.activated) {
             notices.push(t('activated_note'));
         }
-        if (data.multi_completed) {
-            // この画面では保つが、ステップ1で保存すると 1 件に絞られる
+        if (data.multi_completed && !data.activated) {
+            // Has to come down to one before it can be saved. A completed
+            // setting keeps its flags as they are, so there is nothing to ask.
             notices.push(t('multi_completed_note'));
         }
         if (notices.length > 0) {

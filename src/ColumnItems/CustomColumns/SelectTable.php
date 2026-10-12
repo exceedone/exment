@@ -94,6 +94,28 @@ class SelectTable extends CustomItem
         return $this->getValue($v, true, true);
     }
 
+    /**
+     * A reference the viewer may not open is printed as "no permission"
+     * (see getValue()), and its per-value color is keyed on the id of the
+     * record it points at. Painting it would tell, color by color, which
+     * record that is - so only a reference the viewer can open is painted.
+     *
+     * The lookup is the one getValue() just made for the label, answered
+     * from the request cache. Anything but an id is not a reference the
+     * viewer could open, so it is left plain without asking.
+     *
+     * @param mixed $v
+     * @return bool
+     */
+    protected function isStyledValue($v): bool
+    {
+        if (!isset($this->target_table) || !is_numeric($v)) {
+            return false;
+        }
+
+        return !is_null($this->target_table->getValueModel($v));
+    }
+
     // @phpstan-ignore-next-line
     protected function getValue($v, $text, $html)
     {

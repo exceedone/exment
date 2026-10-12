@@ -546,11 +546,8 @@ class FileController extends AdminControllerBase
 
         // if has parent_id, check permission
         $parent_custom_table = CustomTable::getEloquent($data->parent_type);
-        if (!$parent_custom_table) {
-            return true;
-        }
-        $custom_value = $parent_custom_table->getValueModel($data->parent_id);
-        if ($custom_value && $custom_value->enableDelete() !== true) {
+        $custom_value = $parent_custom_table ? $parent_custom_table->getValueModel($data->parent_id) : null;
+        if (!$custom_value || $custom_value->enableDelete() !== true) {
             if ($options['asApi']) {
                 return abortJson(403, ErrorCode::PERMISSION_DENY());
             }

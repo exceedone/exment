@@ -111,6 +111,14 @@ class CustomViewController extends AdminControllerTableBase
             return;
         }
 
+        // A preview only draws. Its grid is still a real grid, and a grid
+        // writes a file whenever the request asks for one - which here
+        // would export settings that were never saved, past the export
+        // permission the data screen checks.
+        if ($request->has(Grid\Exporter::$queryName)) {
+            return $this->previewError($request);
+        }
+
         $custom_view = $this->getViewFromRequest($request, $id);
         if (!isset($custom_view)) {
             return $this->previewError($request);
@@ -182,6 +190,11 @@ class CustomViewController extends AdminControllerTableBase
     protected function getViewFromRequest(Request $request, $id = null)
     {
         $base = isset($id) ? CustomView::getEloquent($id) : null;
+        // The id comes from the url, so it can name a view of any table. Only
+        // a view of the table in the url is one this screen edits.
+        if (isset($base) && $base->custom_table_id != $this->custom_table->id) {
+            return null;
+        }
         if (isset($base) && !$base->hasEditPermission()) {
             Checker::error();
             return null;
@@ -203,6 +216,15 @@ class CustomViewController extends AdminControllerTableBase
         if (!($model instanceof CustomView)) {
             return null;
         }
+
+        // ...except the table. The form carries custom_table_id as a hidden
+        // field, and getModelByInputs() writes back every posted key that
+        // has a field, so the request would otherwise decide which table the
+        // grid reads - while every permission above was checked on the table
+        // in the url. The row scope does not filter the user, organization
+        // and document tables, so naming one of those here listed all of
+        // its records.
+        $model->custom_table_id = $this->custom_table->id;
 
         $this->setViewRelationsFromRequest($request, $model);
 
@@ -286,7 +308,15 @@ class CustomViewController extends AdminControllerTableBase
         // the column, or the table it belongs to, may have been deleted
         // while this screen was open
         if ($item->view_column_type == Enums\ConditionType::COLUMN) {
-            if (!isset($item->custom_column)) {
+            $custom_column = $item->custom_column;
+            if (!($custom_column instanceof \Exceedone\Exment\Model\CustomColumn)) {
+                return false;
+            }
+            // A column row names its table and its column separately, and
+            // the form only ever offers pairs that agree. A pair that does
+            // not was made up, and would draw the column through a table it
+            // is not part of.
+            if ($custom_column->custom_table_id != $item->view_column_table_id) {
                 return false;
             }
         } elseif (!isset($item->custom_table_cache)) {

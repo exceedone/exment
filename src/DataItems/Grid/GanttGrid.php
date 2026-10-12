@@ -336,7 +336,9 @@ class GanttGrid extends GridBase
         $legend = [];
         $index = 0;
         foreach ($this->listedOptions($color_column) as $key => $label) {
-            $color = array_get($picked, strval($key) . '.color');
+            // read by key, not by dotted path: a value may hold a dot itself,
+            // and array_get() would take it for a step into a nested array
+            $color = $picked[strval($key)]['color'] ?? null;
             $color = $color ?: static::PALETTE[$index % count(static::PALETTE)];
             $colors[strval($key)] = $color;
             $legend[] = ['key' => strval($key), 'label' => strval($label), 'color' => $color];

@@ -131,6 +131,8 @@
         if (typeof Exment === 'undefined' || !Exment.WorkflowDesignEdit) {
             return;     // workflow_design_edit.js が未配置（vendor:publish 忘れ）でも画面は落とさない
         }
-        Exment.WorkflowDesignEdit.boot({!! json_encode($design_data, JSON_UNESCAPED_UNICODE) !!});
+        {{-- The HEX flags keep user-entered names (users, organizations, statuses)
+             from closing or comment-escaping this script block. --}}
+        Exment.WorkflowDesignEdit.boot({!! json_encode($design_data, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!});
     });
 </script>

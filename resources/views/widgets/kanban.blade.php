@@ -71,6 +71,8 @@
         'view_open' => exmtrans('custom_view.kanban_view_open'),
         'blank_filtered' => exmtrans('custom_view.message.kanban_blank_filtered'),
         'wip_blocked' => exmtrans('custom_view.message.kanban_wip_blocked'),
+        'column_locked' => exmtrans('custom_view.message.kanban_column_locked'),
+        'locked_skipped' => exmtrans('custom_view.message.kanban_locked_skipped'),
     ];
 @endphp
 <div class="box card p-2 exment-kanban" id="{{ $boardId }}">

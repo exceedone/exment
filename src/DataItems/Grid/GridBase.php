@@ -661,6 +661,49 @@ SCRIPT);
     }
 
     /**
+     * Whether an export request asks for the import template: the heading row
+     * of the import file and no records at all.
+     *
+     * The import dialog hands it out with the template flag and no action,
+     * which is what tells it apart from an export that merely carries the same
+     * flag - a plugin export, for one, writes whatever the plugin likes. It is
+     * judged by the right to import, the one the dialog was offered for.
+     *
+     * @param \Illuminate\Http\Request|null $request
+     * @return bool
+     */
+    public static function isImportTemplateRequest($request = null): bool
+    {
+        $request = $request ?? request();
+
+        return boolval($request->query('temp')) && is_nullorempty($request->get('action'));
+    }
+
+    /**
+     * Whether this view may answer an export request with a file.
+     *
+     * The data screen has already checked the right before the view is built;
+     * a view that sends the file itself asks again, because the preview of the
+     * view settings draws it too. A preview has no export of its own, and a
+     * request that names one there must not be answered with the records of
+     * settings that were never saved.
+     *
+     * @return bool
+     */
+    protected function canAnswerExport(): bool
+    {
+        if ($this->preview) {
+            return false;
+        }
+
+        if ($this->custom_table->enableExport() === true) {
+            return true;
+        }
+
+        return static::isImportTemplateRequest() && $this->custom_table->enableImport() === true;
+    }
+
+    /**
      * Grid used by the export flow of a view that draws its own page instead of
      * a table (board, calendar). The export urls and the exporter both need a
      * grid, but this one never renders a table: on an export request it only
@@ -796,8 +839,12 @@ SCRIPT);
     protected function applyEmbedFilter($query)
     {
         if ($this->isEmbed()) {
-            $query->where('parent_type', $this->embed_parent_type)
-                ->where('parent_id', $this->embed_parent_id);
+            // Spelled with the table in front: a view filter on a column of the
+            // parent, or of a table a column refers to, joins that table into
+            // the same query, and it has a parent_type and parent_id of its own.
+            $db_table = getDBTableName($this->custom_table);
+            $query->where($db_table . '.parent_type', $this->embed_parent_type)
+                ->where($db_table . '.parent_id', $this->embed_parent_id);
         }
 
         return $query;

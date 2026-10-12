@@ -12,9 +12,12 @@
     var ROW_H = 34;
     var DAY = 86400000;
 
+    // The apostrophe is a hex reference on purpose: the admin's Pjax middleware
+    // turns every decimal reference in a pjax response back into its character,
+    // scripts included, and a decimal one would end this string early.
     function esc(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' }[c];
         });
     }
     // parse "Y-m-d" in local time; new Date("Y-m-d") would be UTC and shift a day

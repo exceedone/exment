@@ -17,9 +17,11 @@ use Exceedone\Exment\Enums\ColumnType;
  * declared in BUILTINS below and seeded into the table by a migration, one
  * row per entry keyed "sys.<name>" - a fresh installation has a full library
  * from day one, and an administrator curates the shipped presets on the same
- * screen as the home-made ones. BUILTINS stays in the code as the seed source
- * and as a reading fallback for the short window between a code update and
- * `exment:update`, when the seeded rows do not exist yet.
+ * screen as the home-made ones, deleting included. BUILTINS stays in the code
+ * as the seed source and as a reading fallback for the short window between
+ * a code update and `exment:update`, when the table does not exist yet. Once
+ * it does, the rows are the catalog: a shipped preset that is not among them
+ * was deleted and stays deleted.
  *
  * Storing the key and not the values is what makes "update this preset" mean
  * something: editing one row repaints every column pointing at it. The cost
@@ -233,14 +235,15 @@ class CellStylePreset extends ModelBase
                 return $record->suuid == $key;
             }, false)->first();
 
-            if (isset($preset)) {
-                return $preset->definition();
-            }
+            // Once the table exists its rows are the whole catalog. A "sys."
+            // key missing from it is a preset an administrator deleted, and
+            // the code's copy must not paint it back in.
+            return isset($preset) ? $preset->definition() : null;
         }
 
-        // Reading fallback for an installation whose seeding migration has
-        // not run yet: the grid keeps rendering instead of dropping every
-        // styled column at once.
+        // Reading fallback for an installation whose migrations have not run
+        // yet: the grid keeps rendering instead of dropping every styled
+        // column at once.
         if (strpos($key, static::BUILTIN_PREFIX) === 0) {
             $name = substr($key, strlen(static::BUILTIN_PREFIX));
             if (array_key_exists($name, static::BUILTINS)) {
@@ -258,9 +261,6 @@ class CellStylePreset extends ModelBase
      */
     public static function getDefinitions(): array
     {
-        $definitions = [];
-        $stored = [];
-
         if (static::available()) {
             // `false` matters: with `true` an installation that has no rows
             // yet re-queries the table on every call instead of trusting the
@@ -270,19 +270,20 @@ class CellStylePreset extends ModelBase
                     return sprintf('%010d%s', intval($preset->order), strval($preset->preset_name));
                 });
 
+            // The rows and nothing else, same rule as findDefinition(): a
+            // shipped preset that is not among them was deleted on purpose.
+            $definitions = [];
             foreach ($presets as $preset) {
                 $definitions[] = $preset->definition();
-                $stored[strval($preset->suuid)] = true;
             }
+
+            return $definitions;
         }
 
-        // Only before the seeding migration has run does this add anything:
-        // afterwards every BUILTINS entry already sits in the list above as
-        // its own row.
+        // No table yet, so nothing was seeded: the code's catalog stands in.
+        $definitions = [];
         foreach (array_keys(static::BUILTINS) as $name) {
-            if (!array_key_exists(static::BUILTIN_PREFIX . $name, $stored)) {
-                $definitions[] = static::builtinDefinition($name);
-            }
+            $definitions[] = static::builtinDefinition(strval($name));
         }
 
         return $definitions;
@@ -352,8 +353,15 @@ class CellStylePreset extends ModelBase
      * `exment:update` (or a fresh install) finishes. Insert-if-missing on
      * the fixed "sys." keys: re-running never touches a name or a color an
      * administrator has changed since, and never duplicates a row.
+     *
+     * Only the first seeding takes the whole catalog. A migration shipping
+     * a preset added later names just that one: called with no names, it
+     * would also put back every shipped preset an administrator deleted
+     * since - "missing" cannot tell "deleted" from "never seeded".
+     *
+     * @param array<int, string>|null $names BUILTINS keys to seed, null for all
      */
-    public static function seedDefaults(): void
+    public static function seedDefaults(?array $names = null): void
     {
         // Schema is asked directly rather than through available() or the
         // hasTable() helper: both answer from a per process cache that was
@@ -366,7 +374,13 @@ class CellStylePreset extends ModelBase
 
         $order = 0;
         foreach (static::BUILTINS as $name => $builtin) {
+            // Counted for every entry, seeded or not, so a preset keeps the
+            // position it has in BUILTINS whichever migration inserts it.
             $order += 10;
+
+            if (isset($names) && !in_array($name, $names, true)) {
+                continue;
+            }
 
             $key = static::BUILTIN_PREFIX . $name;
             if (static::where('suuid', $key)->exists()) {
@@ -479,8 +493,11 @@ class CellStylePreset extends ModelBase
 
         $filtered = [];
 
-        $style = strval(array_get($options, 'grid_style'));
-        if (array_key_exists($style, GridCellStyle::getStyleOptions())) {
+        // The same normalizers the renderer runs, so a value is kept here
+        // exactly when the grid would use it. A field posted as an array
+        // gets dropped like any other value they refuse.
+        $style = GridCellStyle::normalizeStyle(array_get($options, 'grid_style'));
+        if (isset($style)) {
             $filtered['grid_style'] = $style;
         }
 
@@ -491,8 +508,8 @@ class CellStylePreset extends ModelBase
             }
         }
 
-        $weight = strval(array_get($options, 'grid_font_weight'));
-        if (array_key_exists($weight, GridCellStyle::getFontWeightOptions())) {
+        $weight = GridCellStyle::normalizeWeight(array_get($options, 'grid_font_weight'));
+        if (isset($weight)) {
             $filtered['grid_font_weight'] = $weight;
         }
 
@@ -505,17 +522,12 @@ class CellStylePreset extends ModelBase
             $filtered['grid_nowrap'] = '1';
         }
 
-        $value_colors = array_get($options, 'grid_value_colors');
-        if (is_string($value_colors) && !is_nullorempty($value_colors)) {
-            // Re-serialized from what the parser accepted, so a line the
-            // renderer would drop never reaches the database at all.
-            $lines = [];
-            foreach (GridCellStyle::parseValueColors(mb_substr($value_colors, 0, static::VALUE_COLORS_MAX)) as $key => $row) {
-                $lines[] = implode(',', array_merge([$key], array_values($row)));
-            }
-            if (!empty($lines)) {
-                $filtered['grid_value_colors'] = implode("\n", $lines);
-            }
+        // Re-serialized from what the parser accepted, by position, so a
+        // line the renderer would drop never reaches the database and a
+        // background-only line stays a background.
+        $value_colors = GridCellStyle::filterValueColors(array_get($options, 'grid_value_colors'), static::VALUE_COLORS_MAX);
+        if (isset($value_colors)) {
+            $filtered['grid_value_colors'] = $value_colors;
         }
 
         return $filtered;

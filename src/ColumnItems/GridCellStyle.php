@@ -40,6 +40,19 @@ class GridCellStyle
     public const STYLE_CELL = 'cell';
 
     /**
+     * Every style this class can draw, in the order the setting screens
+     * offer them.
+     *
+     * The style ends up in the class attribute of every cell, so it is only
+     * ever taken from this list - see normalizeStyle().
+     */
+    public const STYLES = [
+        self::STYLE_PLAIN, self::STYLE_TEXT, self::STYLE_TAG, self::STYLE_PILL,
+        self::STYLE_BADGE, self::STYLE_DOT, self::STYLE_LVL, self::STYLE_MONO,
+        self::STYLE_AVATAR, self::STYLE_BAR, self::STYLE_CELL,
+    ];
+
+    /**
      * Every setting key that describes how a cell looks.
      *
      * One list shared by the column setting screen, the preset editor and
@@ -122,23 +135,19 @@ class GridCellStyle
     protected $auto_colors = null;
 
     /**
-     * The settings exactly as resolveSource() handed them over.
+     * Every setting goes through its normalizer here, and nothing else of
+     * $source is kept. The settings come from a column, a preset or a
+     * template, all of them typed by somebody other than the person looking
+     * at the list - a value the renderer does not recognise is read as "not
+     * set", never printed.
      *
-     * Kept because toOptions() has to give them back unchanged: the browser
-     * renderer reads the same raw `grid_*` keys this class was built from.
-     *
-     * @var array<string, mixed>
-     */
-    protected $source = [];
-
-    /**
      * @param \Exceedone\Exment\Model\CustomColumn $custom_column
      * @param array<string, mixed> $source already resolved `grid_*` settings
      */
     protected function __construct($custom_column, array $source)
     {
         $this->custom_column = $custom_column;
-        $this->style = strval(array_get($source, 'grid_style')) ?: static::STYLE_PLAIN;
+        $this->style = static::normalizeStyle(array_get($source, 'grid_style')) ?? static::STYLE_PLAIN;
         $this->color = static::normalizeColor(array_get($source, 'grid_color'));
         $this->bg_color = static::normalizeColor(array_get($source, 'grid_bg_color'));
         $this->border_color = static::normalizeColor(array_get($source, 'grid_border_color'));
@@ -146,7 +155,6 @@ class GridCellStyle
         $this->icon = static::normalizeIcon(array_get($source, 'grid_icon'));
         $this->nowrap = boolval(array_get($source, 'grid_nowrap', false));
         $this->value_colors = static::parseValueColors(array_get($source, 'grid_value_colors'));
-        $this->source = $source;
     }
 
     /**
@@ -260,22 +268,32 @@ class GridCellStyle
      * browser would otherwise need each value's position in the option list
      * to reproduce them, which means shipping the option list twice.
      *
+     * Every value is the one this object settled on, not the stored one: a
+     * style or color the renderer refused here must not reach the browser's
+     * renderer either. The keys and their format are the ones the setting
+     * screens write.
+     *
      * @return array<string, mixed>
      */
     public function toOptions(): array
     {
-        $options = [];
-        foreach (static::STYLE_KEYS as $key) {
-            $value = array_get($this->source, $key);
-            if (!is_nullorempty($value)) {
+        // Named even when resolveSource() handed over none - a column that
+        // only set a color. The renderer needs the answer, not the blank.
+        $options = ['grid_style' => $this->style];
+
+        $settings = [
+            'grid_color' => $this->color,
+            'grid_bg_color' => $this->bg_color,
+            'grid_border_color' => $this->border_color,
+            'grid_font_weight' => $this->font_weight,
+            'grid_icon' => $this->icon,
+            'grid_nowrap' => $this->nowrap ? '1' : null,
+        ];
+        foreach ($settings as $key => $value) {
+            if (isset($value)) {
                 $options[$key] = $value;
             }
         }
-
-        // resolveSource() may hand over a source with no style named at all -
-        // a column that only set a color. The renderer needs the answer this
-        // object settled on, not the blank.
-        $options['grid_style'] = $this->style;
 
         $rows = $this->value_colors;
         foreach ($this->autoColors() as $key => $color) {
@@ -284,16 +302,9 @@ class GridCellStyle
             }
         }
 
-        unset($options['grid_value_colors']);
         $lines = [];
         foreach ($rows as $key => $row) {
-            // Written back by position, empty slots included: a line that only
-            // names a background would otherwise come back as a text color.
-            $parts = [$key];
-            foreach (['color', 'background', 'border'] as $name) {
-                $parts[] = array_get($row, $name, '');
-            }
-            $lines[] = rtrim(implode(',', $parts), ',');
+            $lines[] = static::valueColorLine(strval($key), $row);
         }
         if (!empty($lines)) {
             $options['grid_value_colors'] = implode("\n", $lines);
@@ -324,14 +335,8 @@ class GridCellStyle
      */
     public static function getStyleOptions(): array
     {
-        $keys = [
-            static::STYLE_PLAIN, static::STYLE_TEXT, static::STYLE_TAG, static::STYLE_PILL,
-            static::STYLE_BADGE, static::STYLE_DOT, static::STYLE_LVL, static::STYLE_MONO,
-            static::STYLE_AVATAR, static::STYLE_BAR, static::STYLE_CELL,
-        ];
-
         $options = [];
-        foreach ($keys as $key) {
+        foreach (static::STYLES as $key) {
             $options[$key] = exmtrans('custom_column.grid_style_options.' . $key);
         }
 
@@ -463,7 +468,9 @@ class GridCellStyle
         $color = $this->colorFor($value);
         $css = $this->spanCss($color, $value);
         $attr = empty($css) ? '' : ' style="' . e(implode('; ', $css)) . '"';
-        $class = 'exm-cell-' . $this->style;
+        // The style is one of STYLES by construction; escaped all the same,
+        // because this is the one setting printed into markup by name.
+        $class = e('exm-cell-' . $this->style);
 
         if (in_array($this->style, static::MARKED_STYLES, true)) {
             $mark = ' style="background-color:' . e($color ?? '#95a5a6') . '"';
@@ -750,6 +757,73 @@ class GridCellStyle
     }
 
     /**
+     * One per-value line in the stored format.
+     *
+     * The slots are read by position, so an empty one in the middle stays
+     * empty instead of closing up: `v,,#bg` names a background, and written
+     * back as `v,#bg` it would come back as a text color. Empty slots at the
+     * end say nothing and are dropped.
+     *
+     * @param string $key
+     * @param array<string, string> $row as parseValueColors() returns it
+     */
+    public static function valueColorLine(string $key, array $row): string
+    {
+        $parts = [$key];
+        foreach (['color', 'background', 'border'] as $name) {
+            $parts[] = array_get($row, $name, '');
+        }
+
+        return rtrim(implode(',', $parts), ',');
+    }
+
+    /**
+     * The per-value setting rewritten from what parseValueColors() accepted,
+     * or null when no usable line is left.
+     *
+     * A line the renderer would drop is dropped here too, so what is stored
+     * is exactly what gets painted.
+     *
+     * @param mixed $text
+     * @param int|null $max_length characters read at most, null for all
+     */
+    public static function filterValueColors($text, ?int $max_length = null): ?string
+    {
+        if (!is_string($text) || is_nullorempty($text)) {
+            return null;
+        }
+
+        if (isset($max_length)) {
+            $text = mb_substr($text, 0, $max_length);
+        }
+
+        $lines = [];
+        foreach (static::parseValueColors($text) as $key => $row) {
+            $lines[] = static::valueColorLine(strval($key), $row);
+        }
+
+        return empty($lines) ? null : implode("\n", $lines);
+    }
+
+    /**
+     * Accept one of STYLES and nothing else.
+     *
+     * The style is printed into the class attribute of every cell of the
+     * column, for everyone who opens the list. Whatever else arrives - a
+     * typo, an array posted in its place, markup - is read as no style.
+     *
+     * @param mixed $value
+     */
+    public static function normalizeStyle($value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        return in_array($value, static::STYLES, true) ? $value : null;
+    }
+
+    /**
      * Accept `#abc`, `#aabbcc` and the same without the hash; refuse anything
      * else so a typo can never inject css into the page.
      *
@@ -790,10 +864,18 @@ class GridCellStyle
     }
 
     /**
+     * Accept one of the weights getFontWeightOptions() offers.
+     *
      * @param mixed $value
      */
-    protected static function normalizeWeight($value): ?string
+    public static function normalizeWeight($value): ?string
     {
+        // strval() of an array is a warning, which the framework turns into
+        // an error page for every list using the column.
+        if (!is_scalar($value)) {
+            return null;
+        }
+
         $value = strval($value);
 
         return in_array($value, ['400', '600', '700'], true) ? $value : null;
