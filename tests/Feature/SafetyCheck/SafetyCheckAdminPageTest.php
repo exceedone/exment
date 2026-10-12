@@ -80,6 +80,19 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         $response->assertDontSee('form-inline', false);
     }
 
+    public function testIndexEscapesTriggerTypeCell(): void
+    {
+        // trigger_type is normally manual/drill/jma_auto, but the column is stored as-is
+        // and the admin-core grid outputs display() results raw.
+        $this->createEvent(['title' => 'Escape event', 'trigger_type' => '<b>tt-raw</b>']);
+
+        $response = $this->get('admin/safety_check');
+
+        $response->assertStatus(200);
+        $response->assertDontSee('<b>tt-raw</b>', false);
+        $response->assertSee('&lt;b&gt;tt-raw&lt;/b&gt;', false);
+    }
+
     public function testAdminCoreBundlesLegacySwalAliasUsedByRowActionScript(): void
     {
         // rowActionScript() gọi swal({type:'warning'}) — API của sweetalert2 7.x.
