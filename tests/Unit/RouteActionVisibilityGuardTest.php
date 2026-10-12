@@ -43,7 +43,8 @@ use ReflectionMethod;
  * WHAT IT CHECKS
  * --------------
  * Registers the real Exment WEB route groups (mapExmentWebRotes +
- * mapExmentAnonymousWebRotes + mapExmentInstallWebRotes) onto a fresh, isolated Router
+ * mapExmentAnonymousWebRotes + mapExmentInstallWebRotes + the four LINE / 安否確認
+ * groups, see WEB_MAP_METHODS) onto a fresh, isolated Router
  * via reflection (so the app's real routes are untouched), then for every route whose
  * action is `Class@method` with Class under Exceedone\Exment\Controllers asserts:
  *   - testEveryRoutedExmentActionExists  : method_exists(Class, method)  (no BadMethodCall)
@@ -73,6 +74,11 @@ class RouteActionVisibilityGuardTest extends UnitTestBase
         'mapExmentWebRotes',
         'mapExmentAnonymousWebRotes',
         'mapExmentInstallWebRotes',
+        // LINE integration / 安否確認 route groups
+        'mapExmentLineWebhookRoute',
+        'mapExmentLineLinkRoute',
+        'mapExmentSafetyCheckRoute',
+        'mapExmentSafetyAnswerRoute',
     ];
 
     /** @var array<string, array{uri: string, class: string, method: string}>|null cache: "Class@method" => info */

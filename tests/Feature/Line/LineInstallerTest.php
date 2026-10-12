@@ -95,10 +95,19 @@ class LineInstallerTest extends FeatureTestBase
      * CustomTable::deletingChildren() clears workflow_task_reads for the deleted table.
      * Pin: deleting a custom table must not require workflow_task_reads to exist.
      * RENAME TABLE is DDL and commits the test transaction: everything is restored in finally.
+     * A run killed before finally leaves the backup table behind (exment:inittest recreates
+     * workflow_task_reads but not this backup), so the leftover is cleaned up first.
      */
     public function testCustomTableCanBeDeletedWhenWorkflowTaskReadsTableIsAbsent(): void
     {
         $reads = (new \Exceedone\Exment\Model\WorkflowTaskRead())->getTable();
+        if (\Schema::hasTable("{$reads}_zz_bak")) {
+            if (\Schema::hasTable($reads)) {
+                \Schema::drop("{$reads}_zz_bak");
+            } else {
+                \DB::statement("RENAME TABLE `{$reads}_zz_bak` TO `{$reads}`");
+            }
+        }
         $probeName = 'zz_line_rollback_probe';
         CustomTable::where('table_name', $probeName)->delete();
         $probe = CustomTable::create([
