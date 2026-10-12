@@ -802,12 +802,20 @@ class WorkflowAction extends ModelBase
         }
 
         // get already execution action user's count
+        //
+        // People, not rows. A record can pass the same action more than once -
+        // sent back and submitted again, or a step revisited - and each pass
+        // leaves another workflow_value behind, all of them with the same
+        // created_user_id. Counting rows let one person satisfy a step that
+        // asks for several: act on it as many times as the step needs people
+        // and it moved on alone. created_user_id is the right column because
+        // it is the one isAlreadyExecuted() identifies an actor by.
         $action_executed_count = WorkflowValue::where([
             'morph_type' => $custom_value->custom_table->table_name,
             'morph_id' => $custom_value->id,
             'workflow_action_id' => $this->id,
             'action_executed_flg' => true,
-        ])->count();
+        ])->distinct()->count('created_user_id');
 
         $need_next_count = $flow_next_count;
 

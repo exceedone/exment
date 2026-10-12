@@ -67,9 +67,16 @@ class CustomValueModelScope implements Scope
             AuthUserOrgHelper::filterOrganizationOnlyJoin($builder, $user, $db_table_name);
         }
 
-        // Add document skip logic
+        // Documents are left unfiltered on purpose, and the filter below is
+        // not the one to reach for: a document never gets a row of its own in
+        // custom_value_authoritables (SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY
+        // lists it), so asking for a share here would hide every document from
+        // everybody. What gates a document is the record it hangs off, and
+        // every reader goes through that record first - CustomValue::
+        // getDocuments() and the document API both filter on parent_id and
+        // parent_type after checking the record itself. Anything new that
+        // queries this model has to do the same: there is no protection here.
         elseif ($table_name == SystemTableName::DOCUMENT) {
-            //TODO
             return;
         } elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;

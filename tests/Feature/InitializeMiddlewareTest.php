@@ -66,7 +66,12 @@ class InitializeMiddlewareTest extends FeatureTestBase
         System::setRequestSession(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, []);
 
         // --- Act ---
-        $response = $this->get('/admin/dashboard');
+        // The prefix comes from admin.route.prefix and is not always "admin",
+        // so the path has to be built the same way the middleware builds the
+        // one it compares against. A literal /admin/dashboard is simply not a
+        // route on an install that sets ADMIN_ROUTE_PREFIX to anything else,
+        // and the 404 then arrives before the middleware ever runs.
+        $response = $this->get(admin_base_path('dashboard'));
 
         // --- Assert ---
         // Expected AFTER fix: 503 Service Unavailable
@@ -90,10 +95,10 @@ class InitializeMiddlewareTest extends FeatureTestBase
         System::setRequestSession(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, []);
 
         // --- Act ---
-        $response = $this->get('/admin/dashboard');
+        $response = $this->get(admin_base_path('dashboard'));
 
         // --- Assert ---
         // Should redirect to install (correct behavior when not yet initialized)
-        $response->assertRedirect('/admin/install');
+        $response->assertRedirect(admin_base_path('install'));
     }
 }
