@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Controllers\CustomValueController;
 use Exceedone\Exment\ColumnItems\GridCellStyle;
+use Exceedone\Exment\Grid\Tools\GridInlineEditor;
 use ExmentAdminCore\Admin\Grid\Exporter;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
@@ -129,10 +130,13 @@ class KanbanGrid extends GridBase
         // An export request lands on the board url. The grid it is handed
         // renders no table: render() runs the exporter, which sends the file
         // and exits - so the board below is never built for those requests.
-        $export_grid = $embed ? null : $this->getExportGrid();
         if (!$embed && !is_nullorempty(request(Exporter::$queryName))) {
-            return $export_grid;
+            if (!$this->canAnswerExport()) {
+                abort(403);
+            }
+            return $this->getExportGrid();
         }
+        $export_grid = $embed ? null : $this->getExportGrid();
 
         // same buttons in the same order as the data grid toolbar
         $tools = [];
@@ -240,12 +244,15 @@ class KanbanGrid extends GridBase
             ? $this->buildColumnStats($group_column, $workflow, $hide_keys, $context, $swimlane_column)
             : ['flat' => [], 'lanes' => []];
 
-        $cards = $this->buildCards($records, $value_columns, $card_fields, $title_column, $workflow, $statuses, $cover_column, $labels_column);
+        $cards = $this->buildCards($records, $value_columns, $card_fields, $title_column, $workflow, $statuses, $cover_column, $labels_column, $context['writable_columns']);
 
         // the workflow status behaves like one more groupable/filterable column
-        $groupable_meta = $this->buildColumnMeta($groupables);
-        $filter_meta = $this->buildColumnMeta($context['filter_columns']);
-        $colors = $this->buildColors($value_columns);
+        $groupable_meta = $this->buildColumnMeta($groupables, $cards);
+        $filter_meta = $this->buildColumnMeta($context['filter_columns'], $cards);
+        // The label strip is the one thing on the board drawn in these colours;
+        // every other column was given a map nobody read, each one as long as
+        // the column's list.
+        $colors = $this->buildColors(isset($labels_column) ? [$labels_column->column_name => $labels_column] : [], $cards);
         if ($is_workflow) {
             $status_meta = [
                 'name' => static::WORKFLOW_KEY,
@@ -268,6 +275,12 @@ class KanbanGrid extends GridBase
 
         return [
             'editable' => $this->isEditable(),
+            // Columns no card of this board may be written through, because
+            // the form every record opens with keeps them out of reach. A table
+            // whose form differs from record to record answers per card
+            // instead, in the card's own `locked`.
+            'locked_columns' => $this->isEditable() && !$this->hasFormPriorities()
+                ? $this->getLockedColumns($context['writable_columns']) : [],
             'creatable' => $this->isCreatable(),
             'update_url' => admin_url('webapi/data', [$this->custom_table->table_name]),
             'create_url' => admin_url('webapi/data', [$this->custom_table->table_name]),
@@ -375,10 +388,9 @@ class KanbanGrid extends GridBase
             'preset' => $this->buildPreset($filter_meta, $groupable_meta),
             // An embedded board belongs to whatever it is embedded in, which
             // picks the view itself - a new one there would never be opened.
-            // A view is part of the table's settings, so whoever may only read
-            // the records is not offered the button either.
-            'save_view_url' => $this->preview || $this->isEmbed()
-                || !$this->custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
+            // Otherwise the button follows the same rule as every other way of
+            // making a view, see canSaveAsView().
+            'save_view_url' => $this->preview || $this->isEmbed() || !static::canSaveAsView($this->custom_table)
                 ? '' : admin_url('data', [$this->custom_table->table_name, 'kanbanSaveView']),
             'assignees' => isset($assignee_column) ? $this->buildOptions($assignee_column) : [],
             // values of the "mine" column that stand for whoever is looking
@@ -524,18 +536,26 @@ class KanbanGrid extends GridBase
      * @param array<int, array<string, mixed>> $statuses
      * @param CustomColumn|null $cover_column image shown as the card cover
      * @param CustomColumn|null $labels_column values shown as the label strip
+     * @param array<string, CustomColumn> $writable_columns columns the board
+     *        may write, see getWritableColumns()
      * @return array<int, array<string, mixed>>
      */
-    protected function buildCards($records, array $value_columns, array $card_fields, $title_column, $workflow = null, array $statuses = [], $cover_column = null, $labels_column = null)
+    protected function buildCards($records, array $value_columns, array $card_fields, $title_column, $workflow = null, array $statuses = [], $cover_column = null, $labels_column = null, array $writable_columns = [])
     {
         // the moves are only ever used by drag and drop and by the drawer
         $with_actions = !$this->preview && isset($workflow)
             && ($this->isEditable() || boolval($this->custom_view->kanban_drawer ?? true));
 
+        // Which of those columns each card's own form keeps out of the user's
+        // hands. Only asked card by card when the form can differ from record
+        // to record; otherwise the board carries one answer for every card,
+        // see buildBoard().
+        $locks_per_card = !empty($writable_columns) && $this->isEditable() && $this->hasFormPriorities();
+
         // one option list shared by every card, not one lookup per card
         $labels_options = [];
         if (isset($labels_column)) {
-            foreach ($this->boardValueOptions($labels_column) as $key => $label) {
+            foreach ($this->recordValueOptions($labels_column, $records) as $key => $label) {
                 $labels_options[strval($key)] = strval($label);
             }
         }
@@ -600,7 +620,11 @@ class KanbanGrid extends GridBase
             foreach ($card_fields as $card_field) {
                 $item = $card_field['column_item'];
                 $html = $item->setCustomValue($record)->html();
-                $text = trim(strip_tags(strval($html)));
+                // Plain text, the way the reader sees it. html() is escaped
+                // markup and strip_tags() leaves its entities alone, so without
+                // the decode "R&D" reached the card as "R&amp;D" - the card
+                // puts this in as text, never as markup.
+                $text = trim(html_entity_decode(strip_tags(strval($html)), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
                 if (is_nullorempty($html) && is_nullorempty($text)) {
                     continue;
                 }
@@ -642,7 +666,7 @@ class KanbanGrid extends GridBase
                 $entered = $record->updated_at ?: $record->created_at;
             }
 
-            $cards[] = [
+            $card = [
                 'id' => $record->id,
                 'label' => strval($record->getLabel()),
                 'entered' => isset($entered) ? \Carbon\Carbon::parse($entered)->format('Y-m-d H:i:s') : '',
@@ -664,6 +688,15 @@ class KanbanGrid extends GridBase
                     : [],
                 'wf' => $wf,
             ];
+            if ($locks_per_card) {
+                $locked = $this->getLockedColumns($writable_columns, $record);
+                // most cards have none, and an empty list on each of them
+                // would be weight for nothing
+                if (!empty($locked)) {
+                    $card['locked'] = $locked;
+                }
+            }
+            $cards[] = $card;
         }
 
         return $cards;
@@ -916,16 +949,18 @@ class KanbanGrid extends GridBase
      * Name / label / options of the given columns, for the browser.
      *
      * @param array<int, CustomColumn> $custom_columns
+     * @param array<int, array<string, mixed>> $cards the cards the lists are for,
+     *        see cardValueOptions()
      * @return array<int, array<string, mixed>>
      */
-    protected function buildColumnMeta(array $custom_columns)
+    protected function buildColumnMeta(array $custom_columns, array $cards = [])
     {
         $meta = [];
         foreach ($custom_columns as $custom_column) {
             $meta[] = [
                 'name' => $custom_column->column_name,
                 'label' => strval($custom_column->column_view_name),
-                'options' => $this->buildOptions($custom_column),
+                'options' => $this->buildOptions($custom_column, $cards),
             ];
         }
 
@@ -937,16 +972,19 @@ class KanbanGrid extends GridBase
      * Selectable values of one column.
      *
      * @param CustomColumn $custom_column
+     * @param array<int, array<string, mixed>>|null $cards the cards the list is
+     *        for, see cardValueOptions(); null for the whole list
      * @return array<int, array<string, string>>
      */
-    protected function buildOptions($custom_column)
+    protected function buildOptions($custom_column, ?array $cards = null)
     {
         $options = [];
         if (!static::isValueListedColumn($custom_column)) {
             return $options;
         }
 
-        foreach ($this->boardValueOptions($custom_column) as $key => $label) {
+        $list = is_null($cards) ? $this->boardValueOptions($custom_column) : $this->cardValueOptions($custom_column, $cards);
+        foreach ($list as $key => $label) {
             $options[] = ['key' => strval($key), 'label' => strval($label)];
         }
 
@@ -958,9 +996,11 @@ class KanbanGrid extends GridBase
      * Fixed color per value, so the same value always looks the same.
      *
      * @param array<string, CustomColumn> $value_columns
+     * @param array<int, array<string, mixed>> $cards the cards the colours are
+     *        for, see cardValueOptions()
      * @return array<string, array<string, string>>
      */
-    protected function buildColors(array $value_columns)
+    protected function buildColors(array $value_columns, array $cards = [])
     {
         $colors = [];
         foreach ($value_columns as $column_name => $custom_column) {
@@ -974,8 +1014,11 @@ class KanbanGrid extends GridBase
 
             $map = [];
             $index = 0;
-            foreach ($this->boardValueOptions($custom_column) as $key => $label) {
-                $color = array_get($picked, strval($key) . '.color');
+            foreach ($this->cardValueOptions($custom_column, $cards) as $key => $label) {
+                // read by key, not by dotted path: a value may hold a dot
+                // itself ("1.5", "v2.0"), and array_get() would take it for a
+                // step into a nested array and never find the color
+                $color = $picked[strval($key)]['color'] ?? null;
                 $map[strval($key)] = $color ?: static::PALETTE[$index % count(static::PALETTE)];
                 $index++;
             }
@@ -1080,8 +1123,78 @@ class KanbanGrid extends GridBase
             $value_columns[$custom_column->column_name] = $custom_column;
         }
         $context['value_columns'] = $value_columns;
+        $context['writable_columns'] = $this->getWritableColumns($context);
 
         return $context;
+    }
+
+
+    /**
+     * Every column of this table the board can write: the board column - any
+     * groupable one, since the reader may re-group the board and drag along
+     * another - the swimlane, which is one of those, the assignee and the due
+     * date.
+     *
+     * @param array<string, mixed> $context columns resolved by buildCardContext
+     * @return array<string, CustomColumn>
+     */
+    protected function getWritableColumns(array $context)
+    {
+        $columns = [];
+        foreach ($context['groupables'] as $custom_column) {
+            $columns[$custom_column->column_name] = $custom_column;
+        }
+        foreach (['assignee_column', 'limit_column'] as $name) {
+            $custom_column = $context[$name];
+            if (isset($custom_column)) {
+                $columns[$custom_column->column_name] = $custom_column;
+            }
+        }
+
+        return $columns;
+    }
+
+
+    /**
+     * The columns the board may not write on a record.
+     *
+     * A move, an assignment or a due date set on the board stands in for the
+     * record's edit page, and the server holds it to that page's rules (see
+     * GridInlineEditor::SCREEN_WRITE_KEY): a column the form does not offer,
+     * or offers view only, read only, hidden or internal, and one a calc
+     * formula reads - the board cannot recalculate the result. The board asks
+     * the same question first, so a card does not move and spring back.
+     *
+     * @param array<string, CustomColumn> $columns
+     * @param CustomValue|null $record null asks for every record alike, which
+     *        is the answer when the table has no form priorities
+     * @return array<int, string> column names
+     */
+    protected function getLockedColumns(array $columns, $record = null)
+    {
+        $locked = [];
+        foreach ($columns as $name => $custom_column) {
+            if (!GridInlineEditor::isFormEditableColumn($this->custom_table, $record, $custom_column)
+                || GridInlineEditor::isCalcInput($custom_column)
+                // every card is a record that already exists, and such a
+                // column is only ever set when one is created
+                || (!isset($record) && boolval($custom_column->getOption('init_only')))) {
+                $locked[] = strval($name);
+            }
+        }
+
+        return $locked;
+    }
+
+
+    /**
+     * Whether the form a record opens with can differ from record to record.
+     *
+     * @return bool
+     */
+    protected function hasFormPriorities(): bool
+    {
+        return $this->custom_table->custom_form_priorities->count() > 0;
     }
 
 
@@ -1102,6 +1215,12 @@ class KanbanGrid extends GridBase
         // it already made
         $this->custom_view->resetSearchService();
         $this->custom_view->filterSortModel($query);
+        // A column is read a slice at a time, and the view's own sort rarely
+        // tells every record apart - a priority, a due date, or no sort at all.
+        // The database may then hand tied rows back in a different order for
+        // each slice, and "load more" would skip some and repeat others. The
+        // id settles every tie the same way each time.
+        $query->orderBy(getDBTableName($this->custom_table) . '.id');
         $this->applyEmbedFilter($query);
         if (isset($workflow)) {
             // without this every card would run its own query for the status
@@ -1148,7 +1267,7 @@ class KanbanGrid extends GridBase
     protected function applyLaneKey($query, $lane_column, string $lane)
     {
         $grammar = \DB::connection()->getQueryGrammar();
-        $expr = $grammar->wrap($lane_column->getQueryKey());
+        $expr = $grammar->wrap($this->columnKey($lane_column));
 
         if ($lane === static::EMPTY_KEY) {
             $query->whereRaw('(' . $expr . ' is null or ' . $expr . " = '')");
@@ -1163,9 +1282,9 @@ class KanbanGrid extends GridBase
      * Narrow a query to - or away from - a set of board columns.
      *
      * A board column is not always a stored value: the workflow start status
-     * is "no workflow row yet", and the empty column is "anything that is not
-     * one of the choices". Both have to be said in sql here, because this is
-     * what decides which records are read at all.
+     * is "no latest step that names a status", and the empty column is
+     * "anything that is not one of the choices". Both have to be said in sql
+     * here, because this is what decides which records are read at all.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param CustomColumn|null $group_column
@@ -1187,9 +1306,16 @@ class KanbanGrid extends GridBase
             $has_start = in_array(Define::WORKFLOW_START_KEYNAME, $keys, true);
             $status_keys = array_values(array_diff($keys, [Define::WORKFLOW_START_KEYNAME]));
 
-            $latest = function ($q) use ($table_name) {
+            // A record stands at the start status when its latest step names
+            // no status: it has never run an action, or the last one it ran
+            // sent it back - the core writes that step with an empty status,
+            // and an approval from the start that still waits for others does
+            // the same. Reading "no step at all" instead lost every record that
+            // was sent back: counted in the column head, never drawn in it.
+            $inAnyStatus = function ($q) use ($table_name) {
                 $q->select('morph_id')->from('workflow_values')
-                    ->where('morph_type', $table_name)->where('latest_flg', 1);
+                    ->where('morph_type', $table_name)->where('latest_flg', 1)
+                    ->whereNotNull('workflow_status_to_id');
             };
             $inStatus = function ($q) use ($table_name, $status_keys) {
                 $q->select('morph_id')->from('workflow_values')
@@ -1199,7 +1325,7 @@ class KanbanGrid extends GridBase
 
             if ($exclude) {
                 if ($has_start) {
-                    $query->whereIn($db_table . '.id', $latest);
+                    $query->whereIn($db_table . '.id', $inAnyStatus);
                 }
                 if (!empty($status_keys)) {
                     $query->whereNotIn($db_table . '.id', $inStatus);
@@ -1208,9 +1334,9 @@ class KanbanGrid extends GridBase
                 return;
             }
 
-            $query->where(function ($q) use ($has_start, $status_keys, $db_table, $latest, $inStatus) {
+            $query->where(function ($q) use ($has_start, $status_keys, $db_table, $inAnyStatus, $inStatus) {
                 if ($has_start) {
-                    $q->whereNotIn($db_table . '.id', $latest);
+                    $q->whereNotIn($db_table . '.id', $inAnyStatus);
                 }
                 if (!empty($status_keys)) {
                     $q->orWhereIn($db_table . '.id', $inStatus);
@@ -1220,7 +1346,7 @@ class KanbanGrid extends GridBase
             return;
         }
 
-        $query_key = $group_column->getQueryKey();
+        $query_key = $this->columnKey($group_column);
         $real_keys = $this->getRealBoardKeys($group_column);
         $has_empty = in_array(static::EMPTY_KEY, $keys, true);
         $value_keys = array_values(array_diff($keys, [static::EMPTY_KEY]));
@@ -1294,6 +1420,24 @@ class KanbanGrid extends GridBase
         return $keys;
     }
 
+
+    /**
+     * Where a column of this table is read in the board's own sql, with the
+     * table written in front.
+     *
+     * The view's filters may join other tables into the same query - the
+     * parent, a table one of its columns refers to, this very table again for
+     * a column that refers to its own table - and every value table has a
+     * `value` column, a parent_type and a parent_id of its own. Left bare, the
+     * name is ambiguous and the board fails as a whole.
+     *
+     * @param CustomColumn $custom_column
+     * @return string
+     */
+    protected function columnKey($custom_column): string
+    {
+        return getDBTableName($this->custom_table) . '.' . $custom_column->getQueryKey();
+    }
 
     /**
      * The current timestamp, spelled the way the connected engine spells it.
@@ -1399,15 +1543,28 @@ class KanbanGrid extends GridBase
 
         if (isset($workflow)) {
             $table_name = $this->custom_table->table_name;
-            $base->leftJoin('workflow_values as kb_wf', function ($join) use ($db_table, $table_name) {
-                $join->on('kb_wf.morph_id', '=', $db_table . '.id')
-                    ->where('kb_wf.morph_type', $table_name)
-                    ->where('kb_wf.latest_flg', 1);
+            // Joined as a derived table whose columns carry names of their own.
+            // A view filter on the workflow status joins workflow_values into
+            // this same query and reads workflow_status_to_id without a table
+            // in front; a second table holding that column made the name
+            // ambiguous and the whole board failed.
+            $latest = \DB::table('workflow_values')
+                ->select([
+                    'morph_id as kb_mid',
+                    'workflow_status_to_id as kb_status',
+                    'updated_at as kb_updated',
+                ])
+                ->where('morph_type', $table_name)
+                ->where('latest_flg', 1);
+            $base->leftJoinSub($latest, 'kb_wf', function ($join) use ($db_table) {
+                $join->on('kb_wf.kb_mid', '=', $db_table . '.id');
             });
-            $group_expr = 'kb_wf.workflow_status_to_id';
-            $entered_expr = 'coalesce(kb_wf.updated_at, ' . $table_expr . '.created_at)';
+            // An empty status is the start status, whether the record has no
+            // step yet or was sent back to the start - see applyBoardKeys().
+            $group_expr = 'kb_wf.kb_status';
+            $entered_expr = 'coalesce(kb_wf.kb_updated, ' . $table_expr . '.created_at)';
         } else {
-            $group_expr = $grammar->wrap($group_column->getQueryKey());
+            $group_expr = $grammar->wrap($this->columnKey($group_column));
             $entered_expr = 'coalesce(' . $table_expr . '.updated_at, ' . $table_expr . '.created_at)';
         }
 
@@ -1417,31 +1574,31 @@ class KanbanGrid extends GridBase
             \DB::raw('sum(' . $this->sqlSecondsSince($entered_expr) . ') as kb_seconds'),
         ];
         if (isset($sum_column)) {
-            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($sum_column->getQueryKey())) . ') as kb_sum');
+            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($sum_column))) . ') as kb_sum');
         }
         if (isset($wip_column)) {
-            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($wip_column->getQueryKey())) . ') as kb_load');
+            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($wip_column))) . ') as kb_load');
         }
         // the KPI row is counted here as well: it sits right above these column
         // heads, so it has to be reading the same table, not the page
         if (isset($assignee_column)) {
-            $who = $grammar->wrap($assignee_column->getQueryKey());
+            $who = $grammar->wrap($this->columnKey($assignee_column));
             $selects[] = \DB::raw("sum(case when $who is null or $who = '' then 1 else 0 end) as kb_unassigned");
         }
         if (isset($limit_column)) {
-            $due = $grammar->wrap($limit_column->getQueryKey());
+            $due = $grammar->wrap($this->columnKey($limit_column));
             $now = $this->sqlNow();
             $selects[] = \DB::raw("sum(case when $due is not null and $due <> '' and $due < $now then 1 else 0 end) as kb_breach");
         }
         if (isset($age_column)) {
-            $since = $grammar->wrap($age_column->getQueryKey());
+            $since = $grammar->wrap($this->columnKey($age_column));
             $elapsed = $this->sqlSecondsSince($since);
             $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 else $elapsed end) as kb_agesum");
             $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 else 1 end) as kb_agen");
         }
 
         // one more grouping level: the swimlane the view was set up with
-        $lane_expr = isset($lane_column) ? $grammar->wrap($lane_column->getQueryKey()) : null;
+        $lane_expr = isset($lane_column) ? $grammar->wrap($this->columnKey($lane_column)) : null;
         if (isset($lane_expr)) {
             $selects[] = \DB::raw($lane_expr . ' as kb_lane');
         }
@@ -1620,7 +1777,8 @@ class KanbanGrid extends GridBase
                 $workflow,
                 $context['statuses'],
                 $context['cover_column'],
-                $context['labels_column']
+                $context['labels_column'],
+                $context['writable_columns']
             ),
             'has_more' => $has_more,
         ];
@@ -1654,15 +1812,10 @@ class KanbanGrid extends GridBase
         $applied = 0;
         $query->where(function ($q) use ($value_columns, $keyword, $like, $grammar, &$applied) {
             foreach ($value_columns as $custom_column) {
-                $expr = \DB::raw($grammar->wrap($custom_column->getQueryKey()));
+                $expr = \DB::raw($grammar->wrap($this->columnKey($custom_column)));
 
                 if (static::isSelectableColumn($custom_column)) {
-                    $keys = [];
-                    foreach ($this->boardValueOptions($custom_column) as $option_key => $label) {
-                        if (mb_stripos(strval($label), $keyword) !== false) {
-                            $keys[] = strval($option_key);
-                        }
-                    }
+                    $keys = $this->keywordKeys($custom_column, $keyword);
                     if (!empty($keys)) {
                         $q->orWhereIn($expr, $keys);
                         $applied++;
@@ -1680,6 +1833,73 @@ class KanbanGrid extends GridBase
             $query->whereRaw('1 = 0');
         }
     }
+
+
+    /**
+     * The values of a choice column whose label holds the keyword.
+     *
+     * A short list is read whole and matched here. A list that is the data
+     * itself (isLongList()) is not read for a keyword either: it is searched
+     * the way the column's own select box searches it, and only the first
+     * matches are taken - enough to find a card, bounded however large the
+     * table behind it is.
+     *
+     * @param CustomColumn $custom_column
+     * @param string $keyword
+     * @return array<int, string>
+     */
+    protected function keywordKeys($custom_column, string $keyword): array
+    {
+        if ($this->isWholeListColumn($custom_column) || !static::isLongList($custom_column)) {
+            $keys = [];
+            foreach ($this->boardValueOptions($custom_column) as $option_key => $label) {
+                if (mb_stripos(strval($label), $keyword) !== false) {
+                    $keys[] = strval($option_key);
+                }
+            }
+
+            return $keys;
+        }
+
+        $target = static::valueTargetTable($custom_column);
+        if (!isset($target)) {
+            return [];
+        }
+
+        // every board column asks the same question for the same keyword
+        $memo = strval($custom_column->id) . "\n" . $keyword;
+        if (array_key_exists($memo, $this->keyword_keys)) {
+            return $this->keyword_keys[$memo];
+        }
+
+        // The view is cached for the whole request and its search service
+        // remembers the joins it made. A second search on it would skip the
+        // join yet still sort by the joined table, and the query would fail.
+        $target_view = CustomView::getEloquent($custom_column->getOption('select_target_view'));
+        if (isset($target_view)) {
+            $target_view->resetSearchService();
+        }
+
+        $found = $target->searchValue($keyword, [
+            'maxCount' => intval(config('exment.select_table_limit_count', 100)),
+            'target_view' => $target_view,
+        ]);
+
+        $keys = [];
+        foreach ($found ?? [] as $custom_value) {
+            $keys[] = strval($custom_value->id);
+        }
+
+        return $this->keyword_keys[$memo] = $keys;
+    }
+
+
+    /**
+     * Keys keywordKeys() already looked up, by column id and keyword.
+     *
+     * @var array<string, array<int, string>>
+     */
+    protected $keyword_keys = [];
 
 
     /**
@@ -1787,7 +2007,8 @@ class KanbanGrid extends GridBase
                 $workflow,
                 $context['statuses'],
                 $context['cover_column'],
-                $context['labels_column']
+                $context['labels_column'],
+                $context['writable_columns']
             ),
             'has_more' => $has_more,
         ];
@@ -1850,6 +2071,26 @@ class KanbanGrid extends GridBase
 
 
     /**
+     * Whether the logged in user may save a board as a view of their own.
+     *
+     * The same rule as every other way of making a view: reading the records,
+     * and on top of that the view right the view settings screen asks for -
+     * the system switch that lets users keep views of their own, or the table
+     * or view settings right. A reader without the second could fill their
+     * view menu with boards whose settings they can never open, rename or
+     * delete.
+     *
+     * @param CustomTable $custom_table
+     * @return bool
+     */
+    public static function canSaveAsView($custom_table): bool
+    {
+        return $custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
+            && $custom_table->hasViewPermission() === true;
+    }
+
+
+    /**
      * Save what is on screen as a new kanban view of this table.
      *
      * The board filters in the browser, so these conditions are not view
@@ -1886,13 +2127,16 @@ class KanbanGrid extends GridBase
         CustomView::withoutGlobalScopes()->where('id', $view->id)->update(['default_flg' => false]);
         $view->default_flg = false;
 
-        $view->copyFromDefaultViewColumns($source);
-
         // replicated rather than field by field: a condition carries more than
         // the three columns it is written with - the related table, the value
         // id, its own options - and a copy missing one of them filters
         // differently from the board it was saved off. The suuid is left out
         // so the copy gets its own; it is the key a template matches on.
+        //
+        // The card columns go the same way. Copied field by field they lost
+        // the name each one was given on the card, so the saved board read
+        // differently from the one it was saved off.
+        $this->copyViewChildren($view->custom_view_columns(), $source->custom_view_columns_cache, $view->id);
         $this->copyViewChildren($view->custom_view_filters(), $source->custom_view_filters_cache, $view->id);
         $this->copyViewChildren($view->custom_view_sorts(), $source->custom_view_sorts_cache, $view->id);
 
@@ -2020,7 +2264,8 @@ class KanbanGrid extends GridBase
                 $workflow,
                 $context['statuses'],
                 $context['cover_column'],
-                $context['labels_column']
+                $context['labels_column'],
+                $context['writable_columns']
             ),
         ];
     }
@@ -2167,8 +2412,9 @@ class KanbanGrid extends GridBase
         $query = $target->getValueModel()->query();
         $scope = $this->embedScope($group_column);
         if (isset($scope)) {
-            $query->where('parent_type', $scope['parent_type'])
-                ->where('parent_id', $scope['parent_id']);
+            $db_table = getDBTableName($target);
+            $query->where($db_table . '.parent_type', $scope['parent_type'])
+                ->where($db_table . '.parent_id', $scope['parent_id']);
         }
 
         $keys = [];
@@ -2387,9 +2633,17 @@ class KanbanGrid extends GridBase
     {
         $columns = [];
         foreach ($this->custom_table->custom_columns_cache as $custom_column) {
-            if (static::isGroupableColumn($custom_column)) {
-                $columns[] = $custom_column;
+            if (!static::isGroupableColumn($custom_column)) {
+                continue;
             }
+            // A column that points at the data itself - thirty thousand
+            // customers, a record's own parent - is no way to split a board,
+            // and offering it meant sending its whole table with every board.
+            // The two this view is set up with stay, whatever their size.
+            if (static::isLongList($custom_column) && !$this->isWholeListColumn($custom_column)) {
+                continue;
+            }
+            $columns[] = $custom_column;
         }
 
         return $columns;
@@ -2805,20 +3059,21 @@ class KanbanGrid extends GridBase
         if ($user_columns->count() !== 1) {
             return [];
         }
-        $column_name = $user_columns->first()->column_name;
+        $user_column = $user_columns->first();
 
+        // Asked of the database rather than read row by row: the table can be
+        // the whole staff list, and only the rows naming this user are wanted.
+        // The same match the "login user" view filter uses, which reads a
+        // column of one person and a column of several alike.
+        $db_table = getDBTableName($target);
+        $query = $target->getValueModel()->query();
+        $query->whereInArrayString($db_table . '.' . $user_column->getQueryKey(), strval($user_id));
+
+        // the ids alone, read as plain rows: the scopes still apply, but no
+        // model is built for a value nobody looks at
         $keys = [];
-        foreach ($target->getValueModel()->query()->get() as $value) {
-            $raw = array_get($value->value, $column_name);
-            if (is_nullorempty($raw)) {
-                continue;
-            }
-            foreach ((array)$raw as $one) {
-                if (strval($one) === strval($user_id)) {
-                    $keys[] = strval($value->id);
-                    break;
-                }
-            }
+        foreach ($query->toBase()->pluck($db_table . '.id') as $id) {
+            $keys[] = strval($id);
         }
 
         return $keys;
@@ -3105,11 +3360,22 @@ class KanbanGrid extends GridBase
     /**
      * key => label of everything a column can hold.
      *
+     * Narrowed the way the column's own select box narrows it on the edit
+     * form: people to those who may use the table the column sits on, unless
+     * the column is set to offer everybody, and a lookup table to the view the
+     * column picks its choices from. A board offering more than the form
+     * offered choices the server then refused - a card dropped into such a
+     * lane came back with a validation error.
+     *
      * @param CustomColumn|null $custom_column
      * @param array<string, mixed>|null $scope the parent record the list belongs to, see embedScope()
+     * @param array<int, string>|null $keys values the list has to cover. Null
+     *        reads the whole list; a list too long to send whole (isLongList())
+     *        is then read for these values only, the way a select box past its
+     *        limit loads only what is selected in it.
      * @return array<int|string, string>
      */
-    protected static function columnValueOptions($custom_column, array $scope = null)
+    protected static function columnValueOptions($custom_column, array $scope = null, ?array $keys = null)
     {
         if (!isset($custom_column)) {
             return [];
@@ -3122,31 +3388,120 @@ class KanbanGrid extends GridBase
             return $custom_column->createSelectOptions();
         }
 
-        if ($column_type == ColumnType::USER) {
-            $target = CustomTable::getEloquent(SystemTableName::USER);
-        } elseif ($column_type == ColumnType::ORGANIZATION) {
-            $target = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
-        } elseif ($column_type == ColumnType::SELECT_TABLE) {
-            $target = $custom_column->select_target_table;
-        } else {
-            return [];
-        }
+        $target = static::valueTargetTable($custom_column);
         if (!isset($target)) {
             return [];
         }
 
-        // notAjax: the board keeps the whole list in its payload, so it has to
-        // be the whole list even past the point an ordinary select box would
-        // switch to searching
-        $options = ['notAjax' => true, 'custom_column' => $custom_column];
+        $options = [
+            'custom_column' => $custom_column,
+            'display_table' => $custom_column->custom_table_cache,
+            'target_view' => CustomView::getEloquent($custom_column->getOption('select_target_view')),
+            'all' => $custom_column->isGetAllUserOrganization(),
+        ];
+        if (is_null($keys)) {
+            // notAjax: the board keeps the whole list in its payload, so it has
+            // to be the whole list even past the point an ordinary select box
+            // would switch to searching
+            $options['notAjax'] = true;
+        } else {
+            if (empty($keys)) {
+                return [];
+            }
+            $options['selected_value'] = array_values(array_unique($keys));
+        }
         if (isset($scope)) {
-            $options['filterCallback'] = function ($query) use ($scope) {
-                $query->where('parent_type', $scope['parent_type'])
-                    ->where('parent_id', $scope['parent_id']);
+            // with the table in front: the choice view may join other tables
+            // into this query, and every value table has these two columns
+            $db_table = getDBTableName($target);
+            $options['filterCallback'] = function ($query) use ($scope, $db_table) {
+                $query->where($db_table . '.parent_type', $scope['parent_type'])
+                    ->where($db_table . '.parent_id', $scope['parent_id']);
             };
         }
 
         return $target->getSelectOptions($options)->toArray();
+    }
+
+
+    /**
+     * The table whose rows a column's values are, or null for a column that
+     * holds its own values.
+     *
+     * @param CustomColumn|null $custom_column
+     * @return CustomTable|null
+     */
+    protected static function valueTargetTable($custom_column)
+    {
+        $column_type = static::normalizedColumnType($custom_column);
+        if ($column_type == ColumnType::USER) {
+            return CustomTable::getEloquent(SystemTableName::USER);
+        }
+        if ($column_type == ColumnType::ORGANIZATION) {
+            return CustomTable::getEloquent(SystemTableName::ORGANIZATION);
+        }
+        if ($column_type == ColumnType::SELECT_TABLE) {
+            return $custom_column->select_target_table;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Whether a column's list of values is too long to send whole.
+     *
+     * A select column carries its own short list. A column that points at a
+     * table lists that table, and past the size where the column's own select
+     * box stops listing and starts searching - select_table_limit_count, or
+     * the column set to load by search - the list is the data itself rather
+     * than a set of choices: thirty thousand customers, every user of a large
+     * company. Read whole, it cost every board load seconds and megabytes.
+     *
+     * Only the columns the board cannot be drawn without get the whole list
+     * regardless - see isWholeListColumn(). Everywhere else such a list is
+     * cut down to the values the cards on the page hold.
+     *
+     * @param CustomColumn|null $custom_column
+     * @return bool
+     */
+    protected static function isLongList($custom_column): bool
+    {
+        if (!isset($custom_column)) {
+            return false;
+        }
+
+        $target = static::valueTargetTable($custom_column);
+        if (!isset($target)) {
+            return false;
+        }
+
+        return !$target->isGetOptions(['custom_column' => $custom_column]);
+    }
+
+
+    /**
+     * Whether the board needs the whole list of this column, however long.
+     *
+     * The board columns and the swimlanes are drawn from their lists, and a
+     * card whose value is missing from the list would be drawn under "not
+     * set". The people a card can be given to have to be offered whether or
+     * not anyone already has a card.
+     *
+     * @param CustomColumn|null $custom_column
+     * @return bool
+     */
+    protected function isWholeListColumn($custom_column): bool
+    {
+        if (!isset($custom_column)) {
+            return false;
+        }
+
+        return in_array(strval($custom_column->id), [
+            strval($this->custom_view->kanban_group_column_id),
+            strval($this->custom_view->kanban_swimlane_column_id),
+            strval($this->custom_view->kanban_assignee_column_id),
+        ], true);
     }
 
 
@@ -3193,6 +3548,77 @@ class KanbanGrid extends GridBase
         }
 
         return $this->board_value_options[$key];
+    }
+
+
+    /**
+     * key => label of the values a column holds on the given records, or of
+     * everything it can hold when that list is short - cardValueOptions() for
+     * the records a card is still being built from.
+     *
+     * @param CustomColumn $custom_column
+     * @param iterable<CustomValue> $records
+     * @return array<int|string, string>
+     */
+    protected function recordValueOptions($custom_column, $records)
+    {
+        if ($this->isWholeListColumn($custom_column) || !static::isLongList($custom_column)) {
+            return $this->boardValueOptions($custom_column);
+        }
+
+        $keys = [];
+        foreach ($records as $record) {
+            // the stored ids, not the records they name: getValue() would
+            // read each of those one query at a time
+            foreach (static::normalizeKeys(array_get($record->value, $custom_column->column_name)) as $key) {
+                $keys[$key] = true;
+            }
+        }
+
+        return static::columnValueOptions($custom_column, $this->embedScope($custom_column), array_keys($keys));
+    }
+
+
+    /**
+     * key => label of the values a column holds on the given cards, or of
+     * everything it can hold when that list is short.
+     *
+     * For every list the board shows without needing it whole: the filter
+     * panel and the colours of the label strip. The panel filters the cards
+     * already on the page, so a value no card holds would filter down to
+     * nothing anyway, and a list that is the data itself (isLongList()) is not
+     * read for it.
+     *
+     * @param CustomColumn|null $custom_column
+     * @param array<int, array<string, mixed>> $cards as built by buildCards()
+     * @return array<int|string, string>
+     */
+    protected function cardValueOptions($custom_column, array $cards)
+    {
+        if (!isset($custom_column)) {
+            return [];
+        }
+        if ($this->isWholeListColumn($custom_column) || !static::isLongList($custom_column)) {
+            return $this->boardValueOptions($custom_column);
+        }
+
+        $name = $custom_column->column_name;
+        $keys = [];
+        foreach ($cards as $card) {
+            // every value a multi-value column holds, not only the first one
+            // the card keeps as its board key
+            $multi = (array)($card['multi'] ?? []);
+            $many = $multi[$name] ?? null;
+            $values = is_array($many) && !empty($many) ? $many : [$card['values'][$name] ?? ''];
+            foreach ($values as $key) {
+                $key = strval($key);
+                if ($key !== '') {
+                    $keys[$key] = true;
+                }
+            }
+        }
+
+        return static::columnValueOptions($custom_column, $this->embedScope($custom_column), array_keys($keys));
     }
 
 
@@ -3309,6 +3735,49 @@ class KanbanGrid extends GridBase
 
 
     /**
+     * A column list for one of the board's column settings, with the column
+     * the view already names added back where the list left it out.
+     *
+     * The list only offers a lookup table short enough to make a board (see
+     * isListableTarget()), but the board keeps using a column it was set up
+     * with when its table outgrows that later - a per project status list does
+     * exactly that. A select whose stored value is missing from its options
+     * draws empty: the required group column could no longer be saved without
+     * picking another, and the swimlane and AI columns were saved empty by
+     * whoever saved the screen for any other reason.
+     *
+     * @param array<int|string, string> $options
+     * @param CustomTable $custom_table
+     * @param CustomView|null $custom_view view being edited, null when new
+     * @param string $option_name
+     * @return array<int|string, string>
+     */
+    protected static function appendStoredColumnOption(array $options, $custom_table, $custom_view, string $option_name): array
+    {
+        if (!isset($custom_view)) {
+            return $options;
+        }
+
+        $column_id = $custom_view->{$option_name};
+        if (is_nullorempty($column_id) || array_key_exists(strval($column_id), $options)) {
+            return $options;
+        }
+
+        // only what the board would still accept: a column of this table that
+        // can drive board columns at all
+        $custom_column = CustomColumn::getEloquent($column_id);
+        if (!isset($custom_column) || $custom_column->custom_table_id != $custom_table->id
+            || !static::isGroupableColumn($custom_column)) {
+            return $options;
+        }
+
+        $options[$custom_column->id] = $custom_column->column_view_name;
+
+        return $options;
+    }
+
+
+    /**
      * Whether a board can be made for this table at all: either a single-value
      * select column to group by, or a workflow whose statuses become the lanes.
      *
@@ -3383,6 +3852,10 @@ class KanbanGrid extends GridBase
         $custom_view = array_get($options, 'custom_view');
 
         $group_options = static::getKanbanGroupColumnOptions($custom_table);
+        // the same list per field, plus the column the view already names there
+        $group_column_options = static::appendStoredColumnOption($group_options, $custom_table, $custom_view, 'kanban_group_column_id');
+        $swimlane_column_options = static::appendStoredColumnOption($group_options, $custom_table, $custom_view, 'kanban_swimlane_column_id');
+        $ai_column_options = static::appendStoredColumnOption($group_options, $custom_table, $custom_view, 'kanban_ai_column_id');
         $value_options = static::appendStoredValueOptions(
             static::getBoardValueOptions($custom_table),
             $custom_view,
@@ -3422,13 +3895,13 @@ class KanbanGrid extends GridBase
 
         $has_workflow = !is_null(Workflow::getWorkflowByTable($custom_table));
         // with no column to group by, the workflow is the only board there can be
-        $default_source = is_nullorempty($group_options) && $has_workflow
+        $default_source = is_nullorempty($group_column_options) && $has_workflow
             ? static::SOURCE_WORKFLOW : static::SOURCE_COLUMN;
 
         // The view menu only offers a kanban where one can be drawn, so this is
         // the screen reached some other way. Say what is missing: a required
         // list with nothing in it is a form the user cannot get out of.
-        if (is_nullorempty($group_options) && !$has_workflow) {
+        if (is_nullorempty($group_column_options) && !$has_workflow) {
             $form->html('<div class="alert alert-warning" style="margin:0 70px;">'
                 . esc_html(exmtrans('custom_view.message.kanban_no_group_column'))
                 . '</div>')->plain();
@@ -3447,7 +3920,7 @@ class KanbanGrid extends GridBase
 
         // Only worth asking when both ways are open. With no column to group
         // by there is nothing to choose, and the answer is already known.
-        if ($has_workflow && !is_nullorempty($group_options)) {
+        if ($has_workflow && !is_nullorempty($group_column_options)) {
             $form->select('kanban_source', exmtrans("custom_view.kanban_source"))
                 ->required()
                 ->default($default_source)
@@ -3470,10 +3943,10 @@ class KanbanGrid extends GridBase
         // there is nothing to put in it. Kept, empty, when there is no workflow
         // either, so the form cannot be saved into a board that can never be
         // drawn - the warning above says what to do about that.
-        if (!is_nullorempty($group_options) || !$has_workflow) {
+        if (!is_nullorempty($group_column_options) || !$has_workflow) {
             $form->select('kanban_group_column_id', exmtrans("custom_view.kanban_group_column"))
                 ->required()
-                ->options($group_options)
+                ->options($group_column_options)
                 ->rules('required_if:kanban_source,' . static::SOURCE_COLUMN, [
                     'required_if' => exmtrans('custom_view.message.kanban_group_column_required'),
                 ])
@@ -3644,9 +4117,9 @@ class KanbanGrid extends GridBase
         // -------------------------------------------- columns of the board --
         $form->exmheader(exmtrans('custom_view.kanban_column_setting'))->no(5);
 
-        if (!is_nullorempty($group_options)) {
+        if (!is_nullorempty($swimlane_column_options)) {
             $form->select('kanban_swimlane_column_id', exmtrans("custom_view.kanban_swimlane_column"))
-                ->options($group_options)
+                ->options($swimlane_column_options)
                 ->help(exmtrans("custom_view.help.kanban_swimlane_column"));
         }
 
@@ -3743,9 +4216,9 @@ class KanbanGrid extends GridBase
                 ->help(exmtrans("custom_view.help.kanban_mine_column"));
         }
 
-        if (!is_nullorempty($group_options)) {
+        if (!is_nullorempty($ai_column_options)) {
             $form->select('kanban_ai_column_id', exmtrans("custom_view.kanban_ai_column"))
-                ->options($group_options)
+                ->options($ai_column_options)
                 ->help(exmtrans("custom_view.help.kanban_ai_column"));
         }
 

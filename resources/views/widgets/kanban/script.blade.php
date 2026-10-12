@@ -182,10 +182,14 @@ $(function () {
     // The apostrophe is escaped too. Every attribute written below happens to
     // be double quoted today, but a single quoted one added later would other-
     // wise turn a stored column value into markup.
+    // It is written as a hex reference on purpose: the admin's Pjax middleware
+    // turns every decimal reference in a pjax response back into its character,
+    // scripts included, so a decimal one would arrive here as a bare quote that
+    // ends the string and stops the whole board from loading.
     function esc(s) {
         return String(s == null ? '' : s)
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            .replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
     }
     function fmt(text) {
         var args = Array.prototype.slice.call(arguments, 1);
@@ -369,6 +373,9 @@ $(function () {
         });
         $.each(D.cards, function (i, c) {
             if (c.values[D.assignee_column]) { return; }
+            // nobody can be given a card whose form keeps the assignee out of
+            // reach, so there is nobody to recommend either
+            if (isLocked(c, D.assignee_column)) { return; }
             var s = stat[c.values[D.ai_column] || ''];
             if (!s) { return; }
             var best = null, bestN = 0;
@@ -428,7 +435,7 @@ $(function () {
             if (f.pos !== pos) { return; }
             // a column shown as a card field is edited where it is shown,
             // instead of being repeated somewhere else on the card
-            if (canEditAssignee() && f.name === D.assignee_column) {
+            if (canEditAssignee(c) && f.name === D.assignee_column) {
                 html += editable(chipHTML(f), 'assignee', D.inline.assignee.label);
             } else {
                 html += chipHTML(f);
@@ -562,7 +569,7 @@ $(function () {
         }
         // every card gets a way in, including the ones with no date yet -
         // giving them one is the whole point
-        if (canEditLimit()) {
+        if (canEditLimit(c)) {
             due = editable(due || '<span class="kb-due-add"><i class="fa fa-calendar-o"></i></span>',
                 'due', D.inline.limit.label);
         }
@@ -586,10 +593,10 @@ $(function () {
         }
         // the column is shown as a card field, but not on this card: with no
         // value there is no chip, and so nowhere to assign anybody from
-        if (!who && canEditAssignee() && !hasField(c, D.assignee_column)) {
+        if (!who && canEditAssignee(c) && !hasField(c, D.assignee_column)) {
             who = '<span class="kb-unassigned"><i class="fa fa-user-plus"></i>' + esc(L.unassigned) + '</span>';
         }
-        if (who && canEditAssignee()) { who = editable(who, 'assignee', D.inline.assignee.label); }
+        if (who && canEditAssignee(c)) { who = editable(who, 'assignee', D.inline.assignee.label); }
         // the date joins the assignee on the bottom row instead of taking a row
         // of its own - the two answer "whose, and by when" together
         if (foot || who || due) { h += '<div class="kb-card-foot">' + foot + who + due + '</div>'; }
@@ -1105,6 +1112,8 @@ $(function () {
                         renderPartial();
                     }
                 })
+                // let the same keyword ask again; otherwise it stays half found
+                .fail(function () { delete searched[q]; })
                 .always(function () { $box.removeClass('kb-searching'); });
         }, 400);
     }
@@ -1188,7 +1197,12 @@ $(function () {
 
     function saveValues(id, values) {
         var stamp = stampWrite(id);
+        // The key tells the server this write stands in for the record's edit
+        // page, so it is held to that page's rules - the form's locked columns
+        // and the "cannot change from display" setting - the same as every
+        // other list screen. See GridInlineEditor::SCREEN_WRITE_KEY.
         var payload = { _method: 'PUT', value: values };
+        payload[@json(\Exceedone\Exment\Grid\Tools\GridInlineEditor::SCREEN_WRITE_KEY)] = 1;
         var req = $.ajax({
             url: D.update_url + '/' + id,
             type: 'POST',
@@ -1320,8 +1334,23 @@ $(function () {
     }
 
     /* --------------------------------------------------- inline edit ----- */
-    function canEditAssignee() { return !!(D.editable && D.assignee_column && D.inline.assignee); }
-    function canEditLimit() { return !!(D.editable && D.limit_column && D.inline.limit); }
+    // Whether the card's own form keeps a column out of the reader's hands -
+    // not offered, view only, read only, hidden or internal, or read by a calc
+    // formula the board cannot recalculate. The server refuses such a write
+    // anyway; asking first keeps a card from moving and springing back. One
+    // answer for every card, or the card's own when the form can differ from
+    // record to record.
+    function isLocked(c, name) {
+        if (!name) { return false; }
+        if ((D.locked_columns || []).indexOf(name) >= 0) { return true; }
+        return !!(c && c.locked && c.locked.indexOf(name) >= 0);
+    }
+    function canEditAssignee(c) {
+        return !!(D.editable && D.assignee_column && D.inline.assignee) && !isLocked(c, D.assignee_column);
+    }
+    function canEditLimit(c) {
+        return !!(D.editable && D.limit_column && D.inline.limit) && !isLocked(c, D.limit_column);
+    }
 
     // A card is read back from the server after it has been edited. The chip,
     // the colour, the label strip and the text all come from there, and an
@@ -1510,7 +1539,7 @@ $(function () {
     // what is on screen as the state the new view opens with.
     function openSaveViewPop($anchor) {
         var html = '<div class="kb-pop-head">' + esc(L.save_view) + '</div>' +
-            '<div class="kb-pop-body"><input type="text" maxlength="255" class="form-control input-sm kb-pop-name" placeholder="' +
+            '<div class="kb-pop-body"><input type="text" maxlength="40" class="form-control input-sm kb-pop-name" placeholder="' +
             esc(L.save_view_name) + '"></div>' +
             '<div class="kb-pop-foot"><button type="button" class="btn btn-sm btn-primary kb-pop-ok">' +
             esc(L.save) + '</button></div>';
@@ -1523,7 +1552,11 @@ $(function () {
             $.ajax({
                 url: D.save_view_url,
                 type: 'POST',
-                data: { name: name, state: currentState() },
+                // The view to copy is the one this board was drawn from. Left
+                // out, the server would take whichever view this user opened
+                // last - in another tab, it may be a different board, or not a
+                // board at all.
+                data: { view: D.view_suuid, name: name, state: currentState() },
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
             }).done(function (res) {
                 closePop();
@@ -2147,22 +2180,47 @@ $(function () {
         var card = cardById(id);
         var wfMode = onWorkflow();
         var wipMode = D.wip_enforce === 'block';
-        if (!wfMode && !wipMode) { return; }
+        // a card whose form keeps the board column out of reach stays in the
+        // column it is in, see lockedMove()
+        var colLocked = !!card && !wfMode && isLocked(card, groupBy);
+        if (!wfMode && !wipMode && !colLocked) { return; }
         $(root).find('.kb-col').each(function () {
             var key = this.dataset.col;
             var ok = true;
             if (wfMode) {
                 ok = !card || !card.wf || key === card.wf.status || !!card.wf.moves[key];
             }
+            if (ok && colLocked && key !== cardColKey(card)) { ok = false; }
             if (ok && wipMode && card && wipStop(card, key)) { ok = false; }
             $(this).toggleClass('kb-nodrop', !ok);
         });
     }
     function clearDropTargets() { $(root).find('.kb-col').removeClass('kb-nodrop'); }
 
+    // The column a move would write that the card's own form keeps out of
+    // reach, or '' when the move may go ahead. A move writes the board column,
+    // and a drop into another lane the lane column as well; a workflow status
+    // is never written by a move, only by an action.
+    function lockedMove(card, toKey, toLane) {
+        if (!onWorkflow() && cardColKey(card) !== toKey && isLocked(card, groupBy)) { return groupBy; }
+        if (swimBy && toLane && String(toLane) !== laneKeyOf(card) && isLocked(card, swimBy)) { return swimBy; }
+        return '';
+    }
+
     function moveCard(id, toKey, index, toLane) {
         var card = cardById(id);
         if (!card) { return; }
+
+        // Refused before the WIP question below: asking whether to overfill a
+        // column the card cannot be moved into at all would be asking for
+        // nothing. The server refuses the same write; saying so here keeps
+        // the card from moving and springing back.
+        var locked = lockedMove(card, toKey, toLane);
+        if (locked) {
+            toast(fmt(L.column_locked, labelOfColumn(locked)), 'fa-lock', 'danger');
+            render();
+            return;
+        }
 
         // The drop is the last moment a WIP limit can still mean anything, and
         // it has to mean the same on both kinds of board - so this sits above
@@ -2546,7 +2604,7 @@ $(function () {
         // A column board has no action buttons, and a touch screen fires no
         // drag events at all - without this the card could not be moved from a
         // phone, a tablet or the keyboard.
-        if (!card.wf && D.editable) {
+        if (!card.wf && D.editable && !isLocked(card, groupBy)) {
             var moveMeta = metaOf(groupBy);
             if (moveMeta && moveMeta.options.length) {
                 var current = card.values[groupBy] || '';
@@ -2640,7 +2698,9 @@ $(function () {
         var targets = [];
         $.each(ids, function (i, id) {
             var ai = aiMap[id];
-            if (ai) { targets.push({ id: id, ai: ai }); }
+            // a card whose form keeps the assignee out of reach is not given
+            // one here either - the server would refuse it
+            if (ai && !isLocked(cardById(id), D.assignee_column)) { targets.push({ id: id, ai: ai }); }
         });
         if (!targets.length) { return; }
 
@@ -2659,9 +2719,15 @@ $(function () {
     }
     function autoAssign() {
         // only act on the confident ones; the rest stay as a visible suggestion
+        //
+        // And only on what the reader is looking at: a card the filter or the
+        // keyword hides is not one they asked to staff, and neither is one
+        // that already sits in a finished column.
         var auto = [], suggest = 0;
-        $.each(aiMap, function (id, ai) {
-            if (ai.conf >= 0.85) { auto.push(id); } else { suggest++; }
+        $.each(D.cards, function (i, c) {
+            var ai = aiMap[c.id];
+            if (!ai || !visible(c) || isDone(c)) { return; }
+            if (ai.conf >= 0.85) { auto.push(c.id); } else { suggest++; }
         });
         if (!auto.length) {
             toast(fmt(L.ai_result, 0, suggest), 'fa-magic', '');
@@ -2703,10 +2769,17 @@ $(function () {
             }
         }
 
+        // The key says this record is being typed in from a screen, so the
+        // server holds it to the create page's rules - the "cannot create
+        // from display" setting and the form's locked and required columns -
+        // the same as saveValues() does for a change. See
+        // GridInlineEditor::SCREEN_WRITE_KEY.
+        var payload = $.extend({ value: values }, D.embed ? { parent_type: D.embed.type, parent_id: D.embed.id } : {});
+        payload[@json(\Exceedone\Exment\Grid\Tools\GridInlineEditor::SCREEN_WRITE_KEY)] = 1;
         $.ajax({
             url: D.create_url,
             type: 'POST',
-            data: $.extend({ value: values }, D.embed ? { parent_type: D.embed.type, parent_id: D.embed.id } : {}),
+            data: payload,
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         }).done(function () {
             toast(fmt(L.created, text), 'fa-plus-circle', 'success');
@@ -2906,13 +2979,13 @@ $(function () {
             e.preventDefault();
             e.stopPropagation();
             var card = cardById($(this).closest('.kb-card').attr('data-id'));
-            if (card && canEditAssignee()) { openAssignPop($(this), card); }
+            if (card && canEditAssignee(card)) { openAssignPop($(this), card); }
         });
         $root.on('click', '.kb-inline-due', function (e) {
             e.preventDefault();
             e.stopPropagation();
             var card = cardById($(this).closest('.kb-card').attr('data-id'));
-            if (card && canEditLimit()) { openDuePop($(this), card); }
+            if (card && canEditLimit(card)) { openDuePop($(this), card); }
         });
         $root.on('click', '.kb-saveview-btn', function () { openSaveViewPop($(this)); });
         // The board scrolls under a popover placed against the page. Caught on
@@ -2951,14 +3024,15 @@ $(function () {
             var value = $(this).val();
             if (value === '') { return; }
             $(this).val('');
-            bulkSave(groupBy, value === EMPTY ? '' : value,
-                fmt(L.bulk_moved, selCount(), labelOfValue(groupBy, value) || D.empty_label));
+            bulkSave(groupBy, value === EMPTY ? '' : value, function (n) {
+                return fmt(L.bulk_moved, n, labelOfValue(groupBy, value) || D.empty_label);
+            });
         });
         $root.on('change', '.kb-bulk-assign', function () {
             var value = $(this).val();
             if (value === '') { return; }
             $(this).val('');
-            bulkSave(D.assignee_column, value, fmt(L.assigned, selCount()));
+            bulkSave(D.assignee_column, value, function (n) { return fmt(L.assigned, n); });
         });
         $root.on('click', '.kb-sel-clear', function () { sel = {}; render(); });
 
@@ -3041,9 +3115,21 @@ $(function () {
         return cards.length;
     }
 
-    function bulkSave(column, value, message) {
-        var ids = Object.keys(sel);
-        if (!ids.length || !column) { return; }
+    // messageOf(n) words the result for the n records actually written
+    function bulkSave(column, value, messageOf) {
+        var picked = Object.keys(sel);
+        if (!picked.length || !column) { return; }
+
+        // A card whose own form keeps the column out of reach is left out:
+        // the server would refuse it, and one refusal in the batch would read
+        // as though the whole change had failed.
+        var ids = $.grep(picked, function (id) { return !isLocked(cardById(id), column); });
+        var skipped = picked.length - ids.length;
+        if (!ids.length) {
+            toast(fmt(L.locked_skipped, skipped), 'fa-lock', 'danger');
+            return;
+        }
+        var message = messageOf(ids.length) + (skipped ? ' ' + fmt(L.locked_skipped, skipped) : '');
 
         // twenty cards through a select box is still twenty cards arriving
         if (column === groupBy) {
@@ -3062,15 +3148,32 @@ $(function () {
             }
         }
 
+        // A column that holds several people gains the one picked. Writing the
+        // picked one alone would take everybody else off every selected card.
+        var adds = (column === D.assignee_column && D.inline.assignee && D.inline.assignee.multiple);
+
         var calls = [];
         $.each(ids, function (i, id) {
             var card = cardById(id);
             if (!card) { return; }
+            var values = {};
+            if (adds) {
+                var keys = $.map(keysOf(card, column), String);
+                if ($.inArray(String(value), keys) < 0) { keys.push(String(value)); }
+                values[column] = keys;
+                // the card shows its first person; the read-back after the
+                // save brings the rest
+                if (!card.values[column]) {
+                    card.values[column] = value;
+                    card.texts[column] = labelOfValue(column, value);
+                }
+                calls.push(saveValues(id, values));
+                return;
+            }
             // a bulk change of the board column moves cards the same way a drag does
             if (column === groupBy) { shiftColSeq(card.values[column], value, card); }
             card.values[column] = value;
             card.texts[column] = labelOfValue(column, value);
-            var values = {};
             values[column] = value;
             calls.push(saveValues(id, values));
         });

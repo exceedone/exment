@@ -352,6 +352,7 @@ trait WorkflowDesignTrait
 
         \ExmentDB::transaction(function () use ($workflow, $payload, $custom_table_id, &$status_map, &$action_map) {
             $isNew = !$workflow->exists;
+            $activated = false;
 
             // Checked again here, with the row held, because the check the
             // request made before opening this transaction can go stale: two
@@ -385,6 +386,11 @@ trait WorkflowDesignTrait
                 // carrying no token - which skips the check above - from
                 // landing on a value the row has already used.
                 $workflow->setOption('design_version', static::newDesignStamp());
+
+                // Read from the locked row, not from the model the request
+                // loaded: completing the setting in between must lock the
+                // statuses for this save too.
+                $activated = boolval($locked->setting_completed_flg);
             }
 
             $workflow->workflow_view_name = trim(strval(array_get($payload, 'workflow_view_name')));
@@ -399,7 +405,7 @@ trait WorkflowDesignTrait
                 ]);
             }
 
-            $status_map = $this->saveDesignStatuses($workflow, array_get($payload, 'statuses', []));
+            $status_map = $this->saveDesignStatuses($workflow, array_get($payload, 'statuses', []), $activated);
             $action_map = $this->saveDesignActions($workflow, array_get($payload, 'actions', []), $status_map);
 
             $this->saveDesignLayout($workflow, array_get($payload, 'layout', []), $status_map);
@@ -443,18 +449,21 @@ trait WorkflowDesignTrait
         $isNew = !$workflow->exists;
         $isTable = $workflow->workflow_type == WorkflowType::TABLE;
         $custom_table = $isNew ? null : $workflow->getDesignatedTable();
-        // 設定完了済みでも、追加・並べ替え・改名は既存データを壊さないので許す。
-        // 壊れるのは「使用中ステータスの削除」だけ（workflow_values ごと消える）なので、
-        // ステップ1 のような一律ロックはせず、そのステータスだけ削除できないようにする。
+        // Once the setting is completed, the statuses are locked the way step 1
+        // locks them: none can be added, deleted or moved, and the completed
+        // flags stay as they are. Names, the data lock and every action remain
+        // editable, as they do on steps 1 and 2. validateWorkflowDesign() and
+        // saveDesignStatuses() enforce the same rule on the server.
         $activated = boolval($workflow->setting_completed_flg);
 
         $statuses = $isNew ? collect() : $workflow->workflow_statuses()->get();
         $in_use_ids = $this->getUsedStatusIds($statuses->pluck('id')->all());
         $actions = $isNew ? collect() : $workflow->workflow_actions()->orderBy('id')->get();
 
-        // 完了ステータスは 1 件に限らない。「承認済み」と「却下」のように終わりが
-        // 複数あるフローは普通にあり、実行時も status ごとの completed_flg を見ている。
-        // ステップ1 だけが「表の最終行＝完了」という作りなので、そこは注意書きで補う。
+        // Step 1 marks exactly one status as completed: the last one. Before the
+        // setting is completed the designer keeps to that rule, because the next
+        // save on step 1 would rewrite anything else. A completed workflow can
+        // still hold several (a template may ship them), and those are kept.
         $completed_count = $statuses->filter(function ($status) {
             return boolval($status->completed_flg);
         })->count();
@@ -523,7 +532,8 @@ trait WorkflowDesignTrait
             'activated' => $activated,
             // ステップ3（設定完了）を実行できるか。ステップ1・2 のツールバーと同じ判定。
             'can_activate' => $isNew ? false : boolval($workflow->canActivate()),
-            // 完了が複数。この画面では保てるが、ステップ1で保存すると1件に絞られる
+            // More than one completed status. Only a workflow whose setting is
+            // not completed yet has to be brought back to one before saving.
             'multi_completed' => $completed_count > 1,
             'updated_at' => static::designToken($workflow),
             // 分岐の最大本数。ステップ2の条件モーダルと同じ（テーブル専用=3 / 汎用=1）
@@ -561,30 +571,46 @@ trait WorkflowDesignTrait
      */
     protected function getWorkflowCreateOptions(): array
     {
-        $tables = CustomTable::allRecords(function ($custom_table) {
-            return !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())
-                && !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY());
-        })->pluck('table_view_name', 'id')->toArray();
-
         return [
             'workflow_type' => $this->toDesignOptionList(
                 WorkflowType::transKeyArray('workflow.workflow_type_options')
             ),
-            'custom_table' => $this->toDesignOptionList($tables),
+            'custom_table' => $this->toDesignOptionList($this->getWorkflowCreateTables()),
             'table_value' => strval(WorkflowType::TABLE),
         ];
     }
 
     /**
-     * データが入っているステータスの ID を返す。
+     * The tables a new table workflow may be bound to, as id => name.
      *
-     * WorkflowStatus::deletingChildren() は、そのステータスを参照する workflow_values
-     * （申請中の状態や承認履歴）も一緒に消す。ここに出てくるステータスは削除させない。
+     * The same filter as the table select of step 1's create form. The
+     * designer offers this list and designCreatePost() checks the posted id
+     * against it, so a hand-made request cannot bind a workflow to a system
+     * table that step 1 never offers.
+     *
+     * @return array<int|string, string>
+     */
+    protected function getWorkflowCreateTables(): array
+    {
+        return CustomTable::allRecords(function ($custom_table) {
+            return !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())
+                && !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY());
+        })->pluck('table_view_name', 'id')->toArray();
+    }
+
+    /**
+     * The ids of the statuses that records use, now or in their history.
+     *
+     * Deleting such a status would take the current state and the approval
+     * trail of those records with it, so the designer never deletes one.
      *
      * @param array $status_ids
+     * @param bool $lock read with a shared lock, inside a transaction: the
+     *        rows other transactions committed are seen, and new rows
+     *        pointing at these statuses wait until this transaction ends
      * @return array<string> 使用中ステータスの ID（文字列）
      */
-    protected function getUsedStatusIds(array $status_ids): array
+    protected function getUsedStatusIds(array $status_ids, bool $lock = false): array
     {
         $status_ids = array_values(array_filter($status_ids, function ($id) {
             return !is_nullorempty($id);
@@ -593,12 +619,16 @@ trait WorkflowDesignTrait
             return [];
         }
 
-        $to = WorkflowValue::whereIn('workflow_status_to_id', $status_ids)
-            ->distinct()->pluck('workflow_status_to_id')->all();
-        $from = WorkflowValue::whereIn('workflow_status_from_id', $status_ids)
-            ->distinct()->pluck('workflow_status_from_id')->all();
+        $used = [];
+        foreach (['workflow_status_to_id', 'workflow_status_from_id'] as $column) {
+            $query = WorkflowValue::whereIn($column, $status_ids)->distinct();
+            if ($lock) {
+                $query->sharedLock();
+            }
+            $used = array_merge($used, $query->pluck($column)->all());
+        }
 
-        return array_values(array_unique(array_map('strval', array_merge($to, $from))));
+        return array_values(array_unique(array_map('strval', $used)));
     }
 
     /**
@@ -860,19 +890,31 @@ trait WorkflowDesignTrait
         // ---- 新規作成のときだけ要る項目 ----
         if ($isNew) {
             $type = strval(array_get($payload, 'workflow_type', ''));
+            $custom_table_id = array_get($payload, 'custom_table_id');
             if (!in_array($type, [WorkflowType::COMMON, WorkflowType::TABLE], true)) {
                 $errors[] = $required(exmtrans('workflow.workflow_type'));
-            } elseif ($type == WorkflowType::TABLE && is_nullorempty(array_get($payload, 'custom_table_id'))) {
+            } elseif ($type == WorkflowType::TABLE && is_nullorempty($custom_table_id)) {
                 $errors[] = $required(exmtrans('custom_table.table'));
+            } elseif ($type == WorkflowType::TABLE
+                && (!is_scalar($custom_table_id)
+                    || !array_key_exists(strval($custom_table_id), $this->getWorkflowCreateTables()))) {
+                // Only a table step 1 would offer. Anything else - a system
+                // table, an id that does not exist - is refused here rather
+                // than left to fail on the foreign key or to succeed silently.
+                // Same message as step 1's select gives for a value it does
+                // not list.
+                $errors[] = trans('admin.validation.not_in_option') . ' (' . exmtrans('custom_table.table') . ')';
             }
         }
 
         // ---- ワークフロー本体 ----
+        // 30, not the 40 the old step 1 form allowed: workflows.workflow_view_name
+        // is a 30 character column, and a longer name fails the insert.
         $view_name = trim(strval(array_get($payload, 'workflow_view_name')));
         if ($view_name === '') {
             $errors[] = $required(exmtrans('workflow.workflow_view_name'));
-        } elseif (mb_strlen($view_name) > 40) {
-            $errors[] = $maxlen(exmtrans('workflow.workflow_view_name'), 40);
+        } elseif (mb_strlen($view_name) > 30) {
+            $errors[] = $maxlen(exmtrans('workflow.workflow_view_name'), 30);
         }
 
         $start_name = trim(strval(array_get($payload, 'start_status_name')));
@@ -908,8 +950,30 @@ trait WorkflowDesignTrait
             }
         }
 
-        if (count($statuses) > 0 && $completed_count < 1) {
+        $activated = !$isNew && boolval($workflow->setting_completed_flg);
+        $stored_statuses = $isNew ? collect() : $workflow->workflow_statuses()->get();
+
+        if ($activated) {
+            // Locked the way step 1 locks a completed setting (see
+            // getWorkflowDesignData()): every posted status must be one that
+            // is stored, with the completed flag it has now.
+            $stored_by_id = $stored_statuses->keyBy(function ($status) {
+                return strval($status->id);
+            });
+            foreach ($statuses as $status) {
+                $stored = $stored_by_id->get(strval(array_get($status, 'id')));
+                if (!isset($stored) || array_boolval($status, 'completed') !== boolval($stored->completed_flg)) {
+                    $errors[] = exmtrans('workflow.design.message.activated_locked');
+                    break;
+                }
+            }
+        } elseif (count($statuses) > 0 && $completed_count < 1) {
             $errors[] = exmtrans('workflow.design.message.completed_least');
+        } elseif ($completed_count > 1) {
+            // Step 1 keeps exactly one completed status, the last one, and
+            // rewrites the flags on its next save. Storing more here would be
+            // undone silently the next time anyone saves that screen.
+            $errors[] = exmtrans('workflow.design.message.completed_only_one');
         }
 
         // データが入っているステータスを消すと、そのデータの状態と履歴まで消える。
@@ -918,10 +982,14 @@ trait WorkflowDesignTrait
             return strval($v);
         })->values()->all();
 
-        $removing = ($isNew ? collect() : $workflow->workflow_statuses()->get())
+        $removing = $stored_statuses
             ->filter(function ($status) use ($posted_ids) {
                 return !in_array(strval($status->id), $posted_ids, true);
             });
+
+        if ($activated && $removing->count() > 0) {
+            $errors[] = exmtrans('workflow.design.message.activated_locked');
+        }
 
         if ($removing->count() > 0) {
             $in_use_ids = $this->getUsedStatusIds($removing->pluck('id')->all());
@@ -1090,17 +1158,24 @@ trait WorkflowDesignTrait
      * ================================================================== */
 
     /**
-     * ステータスを保存する。
+     * Save the statuses.
      *
-     * Exment はステップ1で「order が最後の行＝完了ステータス」として completed_flg を
-     * 付け直す。デザイナーもその並びに合わせて order を振り直すので、後からステップ1で
-     * 保存し直しても完了ステータスがずれない。
+     * Before the setting is completed, step 1 marks the last status by
+     * `order` as the completed one, so the completed status is moved to the
+     * end here and `order` is numbered from the screen's list. A later save
+     * on step 1 then finds the same completed status.
+     *
+     * Once the setting is completed nothing about the list may change - see
+     * getWorkflowDesignData(). Each status keeps its `order` and its
+     * completed flag, only the name and the data lock are written, and a
+     * status added or removed in the payload refuses the whole save.
      *
      * @param Workflow $workflow
      * @param array $posted
+     * @param bool $activated whether the setting of the workflow is completed
      * @return array<string,string> 仮キー（new:xxx）→ 実 ID
      */
-    protected function saveDesignStatuses(Workflow $workflow, array $posted): array
+    protected function saveDesignStatuses(Workflow $workflow, array $posted, bool $activated = false): array
     {
         $map = [];
 
@@ -1120,6 +1195,9 @@ trait WorkflowDesignTrait
                 $status = WorkflowStatus::where('workflow_id', $workflow->id)->where('id', $id)->first();
             }
             if (!isset($status)) {
+                if ($activated) {
+                    static::throwDesignLocked();
+                }
                 $status = new WorkflowStatus();
                 $status->workflow_id = $workflow->id;
                 $status->status_type = 0;
@@ -1127,8 +1205,10 @@ trait WorkflowDesignTrait
 
             $status->status_name = trim(strval(array_get($item, 'name')));
             $status->datalock_flg = array_boolval($item, 'datalock') ? 1 : 0;
-            $status->completed_flg = array_boolval($item, 'completed') ? 1 : 0;
-            $status->order = $order++;
+            if (!$activated) {
+                $status->completed_flg = array_boolval($item, 'completed') ? 1 : 0;
+                $status->order = $order++;
+            }
             $status->save();
 
             $keep_ids[] = $status->id;
@@ -1140,42 +1220,90 @@ trait WorkflowDesignTrait
         }
 
         // 画面から消えたステータスを削除する。
-        // deletingChildren() が、そのステータスを参照する workflow_values も片付ける。
+        // The rows are locked first. A workflow action that is about to move a
+        // record into one of them checks the status row through the foreign
+        // key of workflow_values, so it has to wait for this transaction and
+        // then fails on the deleted parent instead of writing a value that
+        // points at nothing.
         $removed = WorkflowStatus::where('workflow_id', $workflow->id)
             ->whereNotIn('id', count($keep_ids) > 0 ? $keep_ids : [0])
+            ->lockForUpdate()
             ->get();
+
+        if ($removed->count() > 0 && $activated) {
+            static::throwDesignLocked();
+        }
 
         // Asked again here, with the transaction already open. The same
         // question was answered in validateWorkflowDesign(), but a record can
         // reach one of these statuses in between: the overwrite guard only
         // watches the workflows row, and a workflow action run elsewhere does
-        // not touch it. deletingChildren() below hard-deletes the
-        // workflow_values of whatever it finds, so being a moment out of date
-        // here costs that record its whole approval trail.
+        // not touch it. A locking read, so that it sees what other
+        // transactions committed after this one started rather than the
+        // snapshot an ordinary read would return.
         if ($removed->count() > 0) {
-            $in_use_ids = $this->getUsedStatusIds($removed->pluck('id')->all());
+            $in_use_ids = $this->getUsedStatusIds($removed->pluck('id')->all(), true);
             $conflicts = $removed->filter(function ($status) use ($in_use_ids) {
                 return in_array(strval($status->id), $in_use_ids, true);
             });
             if ($conflicts->count() > 0) {
-                $errors = $conflicts->map(function ($status) {
-                    return exmtrans('workflow.design.message.status_in_use', ['name' => $status->status_name]);
-                })->values()->all();
-
-                throw new HttpResponseException(response()->json([
-                    'result' => false,
-                    'toastr' => exmtrans('workflow.design.message.conflict'),
-                    'errors' => $errors,
-                ], 409));
+                static::throwStatusInUse($conflicts);
             }
         }
 
+        // No deletingChildren() here. It hard-deletes the workflow_values that
+        // point at the status, and the check above has just found none - so
+        // the only rows it could ever remove are ones written after that
+        // check, which are exactly the records this guard exists to protect.
+        // Without it such a row makes the foreign key refuse the delete, and
+        // the save is answered as a conflict with nothing lost.
         foreach ($removed as $status) {
-            $status->deletingChildren();
-            $status->delete();
+            try {
+                $status->delete();
+            } catch (\Illuminate\Database\QueryException $ex) {
+                // SQLSTATE class 23 is an integrity constraint violation.
+                if (strpos(strval($ex->getCode()), '23') !== 0) {
+                    throw $ex;
+                }
+                static::throwStatusInUse(collect([$status]));
+            }
         }
 
         return $map;
+    }
+
+    /**
+     * Refuse a design save that changes the statuses of a completed setting.
+     *
+     * @return never
+     */
+    protected static function throwDesignLocked()
+    {
+        $message = exmtrans('workflow.design.message.activated_locked');
+        throw new HttpResponseException(response()->json([
+            'result' => false,
+            'toastr' => $message,
+            'errors' => [$message],
+        ], 422));
+    }
+
+    /**
+     * Refuse a design save that would delete statuses records are using.
+     *
+     * @param \Illuminate\Support\Collection<int, WorkflowStatus> $statuses
+     * @return never
+     */
+    protected static function throwStatusInUse($statuses)
+    {
+        $errors = $statuses->map(function ($status) {
+            return exmtrans('workflow.design.message.status_in_use', ['name' => $status->status_name]);
+        })->values()->all();
+
+        throw new HttpResponseException(response()->json([
+            'result' => false,
+            'toastr' => exmtrans('workflow.design.message.conflict'),
+            'errors' => $errors,
+        ], 409));
     }
 
     /**
@@ -1198,8 +1326,10 @@ trait WorkflowDesignTrait
             return array_get($status_map, $key, $key);
         };
 
-        // ステップ2は「1行目＝開始からのアクション」を前提に画面を組み立てる。
-        // 行の並びは id 順なので、新規作成するときは開始アクションを先に採番する。
+        // New actions leaving the start status are numbered first. Step 2
+        // lists the actions from the start status first on its own (see
+        // WorkflowController::actionForm()), so this only keeps the ids in the
+        // order the rows are shown.
         $ordered = collect($posted)->sortBy(function ($action) {
             $is_new = is_nullorempty(array_get($action, 'id'));
             $is_start = strval(array_get($action, 'status_from')) === Define::WORKFLOW_START_KEYNAME;

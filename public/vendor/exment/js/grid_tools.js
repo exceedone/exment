@@ -138,6 +138,27 @@
   }
 
   /**
+   * The column a cell belongs to, as a key no other column of the view
+   * shares - unlike columnNameOf(), which on a <td> reads the custom
+   * column's name. A view can show two columns of the same name (a parent
+   * table's `status` next to this table's own), and the name then finds
+   * the first of them wherever the user clicked.
+   *
+   * The table blade writes the grid column's own name as the LAST
+   * `column-*` class of a cell (and as the only one of a header), and a
+   * view column's grid name is unique within the view.
+   */
+  function uniqueColumnOf(cell) {
+    var classes = cell.classList;
+    for (var i = classes.length - 1; i >= 0; i--) {
+      if (classes[i].indexOf('column-') === 0) {
+        return classes[i].substring(7);
+      }
+    }
+    return '';
+  }
+
+  /**
    * The text a cell shows, whitespace collapsed.
    *
    * This is the only value the browser has for a cell - the stored value
@@ -296,6 +317,14 @@
       // through it - the selection being edited would untick under the
       // user mid-modal.
       if (document.querySelector('.modal.show, .modal.d-block, .exm-bulk-modal-overlay')) return;
+      // The stock batch-delete confirmation is a SweetAlert dialog, not a
+      // `.modal`, and an open dropdown is a menu the user is aiming at.
+      if (document.querySelector('.swal2-container, .dropdown-menu.show')) return;
+      // Ticked rows are a selection the user is building for a batch
+      // action. The reload re-renders every checkbox unticked (and the
+      // admin script clears its selection on pjax:complete), so it waits
+      // until the selection is used or dropped.
+      if (document.querySelector('.grid-row-checkbox:checked')) return;
       // Same for an open right-click menu: swapping the grid under it
       // tears the menu away just as the user is aiming at an entry.
       if (activeCtx) return;
@@ -1646,9 +1675,18 @@
     });
 
     var releaseTrap = null;
+    // Set once a run has written something: the grid behind the dialog is
+    // out of date from then on, however the dialog is closed.
+    var reloadOnClose = false;
+    var updating = false;
     function close() {
+      if (updating) return;
       if (releaseTrap) { releaseTrap(); releaseTrap = null; }
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      if (reloadOnClose) {
+        reloadOnClose = false;
+        reloadGridSoft();
+      }
     }
 
     cancelBtn.addEventListener('click', close);
@@ -1657,6 +1695,7 @@
     });
 
     applyBtn.addEventListener('click', function () {
+      if (updating) return;
       // Collect only the columns the user moved away from the sentinel.
       // Everything else stays out of the PUT body, so the server keeps
       // the current value untouched.
@@ -1691,6 +1730,7 @@
       var confirmTpl = bulkLabel(bar, 'bulk_edit_confirm') || 'Update {n} records?';
       if (!window.confirm(confirmTpl.replace('{n}', ids.length))) return;
 
+      updating = true;
       applyBtn.disabled = true;
       cancelBtn.disabled = true;
       Object.keys(editors).forEach(function (n) { editors[n].editor.disabled = true; });
@@ -1699,8 +1739,11 @@
       var csrf = cfg.csrf;
       var okCount = 0;
       var failCount = 0;
+      // Which rows were refused, and the reason the server gave for each.
+      var failures = [];
       var i = 0;
       var progressTpl = bulkLabel(bar, 'bulk_edit_progress') || '{done}/{total}';
+      var errorLbl = (cfg.labels && cfg.labels.error) || '';
 
       function step() {
         if (i >= ids.length) return finish();
@@ -1715,15 +1758,27 @@
             'X-CSRF-TOKEN': csrf,
             'X-Requested-With': 'XMLHttpRequest'
           },
-          body: JSON.stringify({ value: payload })
+          // Each row with its own edit lock, and as a write from this
+          // screen - the form of each record decides on its own.
+          body: JSON.stringify(screenWriteBody(findRowById(id), payload))
         }).then(function (r) {
-          if (r.ok) okCount++; else failCount++;
+          if (r.ok) {
+            okCount++;
+            reloadOnClose = true;
+            return null;
+          }
+          failCount++;
+          return errorMessageOf(r).then(function (message) {
+            failures.push({ id: id, message: message });
+          });
         }).catch(function () {
           failCount++;
+          failures.push({ id: id, message: '' });
         }).then(step);
       }
 
       function finish() {
+        updating = false;
         var summaryTpl = failCount === 0
           ? (bulkLabel(bar, 'bulk_edit_summary_ok') || '{n} updated')
           : (bulkLabel(bar, 'bulk_edit_summary_partial') || '{ok} succeeded, {fail} failed');
@@ -1731,10 +1786,27 @@
           .replace('{n}', okCount)
           .replace('{ok}', okCount)
           .replace('{fail}', failCount);
-        setTimeout(function () {
-          close();
-          reloadGridSoft();
-        }, failCount === 0 ? 700 : 1600);
+        if (!failures.length) {
+          setTimeout(close, 700);
+          return;
+        }
+        // A count alone gives the user nothing to act on, and the reload
+        // that follows would take the refused rows off the screen. So the
+        // dialog stays, naming each row and the server's reason, until the
+        // user closes it.
+        progress.classList.add('is-error');
+        var list = document.createElement('ul');
+        list.className = 'exm-bulk-failures';
+        failures.forEach(function (f) {
+          var li = document.createElement('li');
+          li.textContent = rowLabelOf(f.id) + ': ' + (f.message || errorLbl);
+          list.appendChild(li);
+        });
+        progress.appendChild(list);
+        applyBtn.style.display = 'none';
+        cancelBtn.disabled = false;
+        cancelBtn.textContent = bulkLabel(bar, 'bulk_edit_close') || cancelBtn.textContent;
+        cancelBtn.focus();
       }
 
       step();
@@ -1856,6 +1928,7 @@
     // easy to miss. Only added once per cell; a pjax reload rebuilds
     // the DOM anyway so nothing survives.
     each(document.querySelectorAll('.table.exm-grid td.exm-editable'), function (td) {
+      if (applyCellLock(td)) return;
       if (td.querySelector(':scope > .exm-edit-pen')) return;
       var pen = document.createElement('span');
       pen.className = 'exm-edit-pen';
@@ -1921,6 +1994,26 @@
       if (tr) return tr;
     }
     return null;
+  }
+
+  /**
+   * How a row is named to the user: its first two data cells, the same
+   * reminder the row menu's head gives. '#<id>' when the row is not on the
+   * page.
+   */
+  function rowLabelOf(id) {
+    var tr = findRowById(id);
+    var parts = [];
+    if (tr) {
+      var cells = tr.children;
+      for (var i = 0; i < cells.length && parts.length < 2; i++) {
+        var name = columnNameOf(cells[i]);
+        if (!name || name.indexOf('__') === 0) continue;
+        var txt = cellText(cells[i]);
+        if (txt) parts.push(txt.length > 30 ? txt.slice(0, 30) + '…' : txt);
+      }
+    }
+    return parts.length ? parts.join(' - ') : '#' + id;
   }
 
   /**
@@ -2056,14 +2149,25 @@
     td.appendChild(ghost);
     td.appendChild(editor);
     sizeInlineEditor(td, editor, meta);
+    var hasCalendar = (meta.type === 'date' || meta.type === 'datetime')
+      && attachDatePicker(td, editor, meta, cfg);
 
     // Focus & open picker as soon as the browser lets us - the second
     // click of a dblclick would otherwise land on the fresh element
     // and mark it selected without opening the dropdown.
     setTimeout(function () {
       editor.focus();
-      var wantsPicker = editor.tagName === 'SELECT'
-        || editor.type === 'date' || editor.type === 'datetime-local';
+      if (hasCalendar) {
+        // Selected, so typing a date replaces the old one; the calendar
+        // open next to it for picking instead.
+        editor.select();
+        try {
+          var picker = window.jQuery(editor).data('DateTimePicker');
+          if (picker) picker.show();
+        } catch (e) { /* the editor still takes typed text */ }
+        return;
+      }
+      var wantsPicker = editor.tagName === 'SELECT';
       if (wantsPicker && typeof editor.showPicker === 'function') {
         try { editor.showPicker(); } catch (e) { /* not supported everywhere */ }
       } else if (editor.tagName === 'INPUT') {
@@ -2087,7 +2191,14 @@
       // A tiny delay so a click on the dropdown's own option is not
       // read as a blur before the change fires.
       setTimeout(function () {
-        if (td.classList.contains('exm-editing')) finishInlineEditor(td, true);
+        if (!td.classList.contains('exm-editing')) return;
+        // A click on the date editor's calendar is still the editor in
+        // use - the focus goes back so a later click elsewhere is a blur.
+        if (isDatePickerClick(editor)) {
+          editor.focus();
+          return;
+        }
+        finishInlineEditor(td, true);
       }, 80);
     });
     editor.addEventListener('keydown', function (ev) {
@@ -2099,9 +2210,8 @@
   /**
    * Width floors per editor type, in px. Not guesses at a pretty size -
    * each one is what the widget needs before its own content starts being
-   * cut: a date input renders 10 digits plus a picker button, a
-   * datetime-local those plus a time down to seconds, a number the value
-   * plus its spinner.
+   * cut: a date editor holds 10 digits, a datetime one those plus a time
+   * down to seconds, a number the value plus its spinner.
    */
   var EDITOR_MIN_WIDTH = {
     text: 200,
@@ -2224,11 +2334,10 @@
       var day = parseDateText(text);
       if (!day) return '';
       var hm = text.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
-      if (!hm) return day + 'T00:00';
-      // <input type="datetime-local"> wants the ISO 'T' form. Seconds
-      // ride along when the cell shows them, so they survive an edit
-      // that only touches the date.
-      return day + 'T' + pad2(hm[1]) + ':' + hm[2] + (hm[3] ? ':' + hm[3] : '');
+      // The date editor's format, 'YYYY-MM-DD HH:mm:ss'. Seconds ride
+      // along when the value has them, so they survive an edit that only
+      // touches the date.
+      return day + ' ' + (hm ? pad2(hm[1]) + ':' + hm[2] + ':' + (hm[3] || '00') : '00:00:00');
     }
     // The text-ish types (text, email, url) show the stored value as is.
     return text;
@@ -2247,6 +2356,151 @@
   function pad2(v) {
     v = String(v);
     return v.length === 1 ? '0' + v : v;
+  }
+
+  /* ----------------------------------------------- date editor calendar --- */
+
+  // Exment's own date fields (ExmentAdminCore Form/Field/Date, Datetime) use
+  // eonasdan's bootstrap-datetimepicker with moment, and the admin layout
+  // already loads both. The formats are those fields' formats: the text is
+  // posted as is.
+  var DATE_FORMATS = { date: 'YYYY-MM-DD', datetime: 'YYYY-MM-DD HH:mm:ss' };
+  var DATE_ICONS = {
+    time: 'fa fa-clock-o',
+    date: 'fa fa-calendar',
+    up: 'fa fa-chevron-up',
+    down: 'fa fa-chevron-down',
+    previous: 'fa fa-chevron-left',
+    next: 'fa fa-chevron-right',
+    today: 'fa fa-calendar-check-o',
+    clear: 'fa fa-trash',
+    close: 'fa fa-times'
+  };
+  // A mousedown on the calendar moves the focus off the editor, and the
+  // editor reads a blur as "done". A blur this soon after such a mousedown
+  // is that click, not the user leaving.
+  var DATE_CLICK_GRACE = 300;
+  var datePickerHost = null;
+
+  function datePickerAvailable() {
+    return !!(window.jQuery && window.jQuery.fn && window.jQuery.fn.datetimepicker && window.moment);
+  }
+
+  /**
+   * The box every calendar opens in, off <body>. Left where the library puts
+   * it - next to the input, inside the grid's scrolling box - the calendar
+   * is clipped by the box and offset by however far it is scrolled. The
+   * library also refuses a parent that is not positioned.
+   */
+  function datePickerHostEl() {
+    if (datePickerHost && datePickerHost.parentNode) return datePickerHost;
+    datePickerHost = document.createElement('div');
+    datePickerHost.className = 'exm-edit-date-host';
+    document.body.appendChild(datePickerHost);
+    return datePickerHost;
+  }
+
+  /**
+   * Put the open calendar under its editor in viewport coordinates, or
+   * above it when there is no room below.
+   */
+  function placeDateWidget(input, widget) {
+    if (!widget || !widget.offsetHeight) return;
+    var box = input.getBoundingClientRect();
+    if (box.width === 0 && box.height === 0) return;
+    var vw = document.documentElement.clientWidth;
+    var vh = document.documentElement.clientHeight;
+    var h = widget.offsetHeight;
+    var below = box.bottom + 2;
+    var above = box.top - 2 - h;
+    var up = below + h > vh && above >= 0;
+    widget.classList.toggle('top', up);
+    widget.classList.toggle('bottom', !up);
+    widget.classList.remove('pull-right');
+    widget.style.position = 'fixed';
+    widget.style.top = Math.round(up ? above : below) + 'px';
+    widget.style.left = Math.round(Math.max(4, Math.min(box.left, vw - widget.offsetWidth - 4))) + 'px';
+    widget.style.bottom = 'auto';
+    widget.style.right = 'auto';
+  }
+
+  /**
+   * Give a date editor Exment's calendar. Without the picker on the page the
+   * editor stays a text input taking the same format, and the server checks
+   * what is typed. Returns whether a calendar was attached.
+   */
+  function attachDatePicker(td, editor, meta, cfg) {
+    if (!datePickerAvailable()) return false;
+    var $input = window.jQuery(editor);
+    $input.datetimepicker({
+      format: DATE_FORMATS[meta.type],
+      // moment's global locale on this layout is not the app's, so the
+      // calendar would come out in English if it were not said here.
+      locale: (cfg && cfg.locale) || 'ja',
+      icons: DATE_ICONS,
+      widgetParent: window.jQuery(datePickerHostEl()),
+      // An empty value must stay empty when the calendar opens; without
+      // this it fills itself with today.
+      useCurrent: false,
+      showClear: !meta.required,
+      showTodayButton: true,
+      showClose: true
+    });
+
+    var host = datePickerHostEl();
+    var follow = null;
+    var unfollow = function () {
+      if (!follow) return;
+      window.removeEventListener('scroll', follow, true);
+      window.removeEventListener('resize', follow);
+      follow = null;
+    };
+    // dp.show is the library's last step, after it placed the calendar
+    // itself, so its placement is replaced here rather than raced.
+    $input.on('dp.show', function () {
+      var widget = host.querySelector('.bootstrap-datetimepicker-widget');
+      if (!widget) return;
+      placeDateWidget(editor, widget);
+      unfollow();
+      follow = function () { placeDateWidget(editor, widget); };
+      window.addEventListener('scroll', follow, true);
+      window.addEventListener('resize', follow);
+    });
+    $input.on('dp.hide', unfollow);
+
+    var onDown = function (ev) {
+      if (host.contains(ev.target)) editor._exmPickerDown = Date.now();
+    };
+    document.addEventListener('mousedown', onDown, true);
+
+    // Picking a day IS the decision for a date, as picking an option is for
+    // a select. A datetime still has its time to set, so it closes the way a
+    // typed input does: Enter, or a click elsewhere.
+    $input.on('dp.change', function () {
+      if (meta.type !== 'date') return;
+      if (!editor._exmPickerDown || Date.now() - editor._exmPickerDown > 1000) return;
+      setTimeout(function () {
+        if (td.classList.contains('exm-editing')) finishInlineEditor(td, true);
+      }, 0);
+    });
+
+    editor._exmDetachPicker = function () {
+      editor._exmDetachPicker = null;
+      document.removeEventListener('mousedown', onDown, true);
+      unfollow();
+      try {
+        var picker = $input.data('DateTimePicker');
+        if (picker) picker.destroy();
+      } catch (e) {
+        /* already gone with its input */
+      }
+    };
+    return true;
+  }
+
+  /** True while a blur is only the click on the editor's own calendar. */
+  function isDatePickerClick(editor) {
+    return !!editor._exmPickerDown && Date.now() - editor._exmPickerDown < DATE_CLICK_GRACE;
   }
 
   function buildEditor(meta, current) {
@@ -2293,7 +2547,8 @@
     // so the input type here only drives the widget: the spinner, the
     // calendar, the mobile keyboard. A value the server refuses comes
     // back as a failed save and the cell flashes red with the old
-    // markup restored - never a silent wrong write.
+    // markup restored and the server's reason shown - never a silent
+    // wrong write.
     var input = document.createElement('input');
     input.className = 'exm-edit-input';
     if (meta.type === 'number') {
@@ -2301,15 +2556,17 @@
       input.step = meta.decimal ? 'any' : '1';
       if (meta.min != null) input.min = meta.min;
       if (meta.max != null) input.max = meta.max;
-    } else if (meta.type === 'date') {
-      input.type = 'date';
-    } else if (meta.type === 'datetime') {
-      input.type = 'datetime-local';
-      // Seconds included: the grid displays them ('09:15:30'), so the
-      // editor must carry them - at step 60 the widget holds minutes
-      // only, and editing just the date would silently write the
-      // seconds back as :00.
-      input.step = '1';
+    } else if (meta.type === 'date' || meta.type === 'datetime') {
+      // Not type="date" / "datetime-local": that widget belongs to the
+      // browser, and so does its language - calendar, month names and the
+      // "mm/dd/yyyy" hint follow the browser's locale, not Exment's, with
+      // no way to change them. The calendar comes from attachDatePicker()
+      // instead, the one Exment's own forms use. The text is in that
+      // calendar's format, seconds included, which is also the format the
+      // server stores - so editing just the date keeps the time as it was.
+      input.type = 'text';
+      input.autocomplete = 'off';
+      input.placeholder = DATE_FORMATS[meta.type];
     } else {
       input.type = 'text';
       if (meta.maxLength) input.maxLength = meta.maxLength;
@@ -2324,6 +2581,11 @@
   function finishInlineEditor(td, commit) {
     if (!td || !td.classList.contains('exm-editing')) return;
     if (activeInlineTd === td) activeInlineTd = null;
+
+    // A date editor's calendar lives off <body>, so it does not go away with
+    // the cell. It is let go of here, whatever becomes of the edit.
+    var openEditor = td.querySelector('.exm-edit-input');
+    if (openEditor && openEditor._exmDetachPicker) openEditor._exmDetachPicker();
 
     // The cell is no longer in the page: an auto-refresh or a pjax
     // navigation replaced the grid while the editor was open, and the
@@ -2387,11 +2649,12 @@
   }
 
   /**
-   * What the PUT body carries for a picked value. Only datetime needs a
-   * translation: <input type="datetime-local"> speaks ISO's 'T' and
-   * drops the seconds, while the server-side date validator reads
-   * 'Y-m-d H:i:s'. The compare in finishInlineEditor stays in the
-   * input's own format - both sides of it came from there.
+   * What the PUT body carries for a picked value. Only datetime may need
+   * a touch: the calendar writes 'YYYY-MM-DD HH:mm:ss', but a value typed
+   * by hand can stop at the minutes, or use ISO's 'T', while the
+   * server-side date validator reads 'Y-m-d H:i:s'. The compare in
+   * finishInlineEditor stays in the input's own format - both sides of it
+   * came from there.
    */
   function serializeEditorValue(value, meta) {
     if (meta && meta.type === 'datetime' && value) {
@@ -2402,12 +2665,16 @@
   }
 
   function saveInlineCell(cfg, id, column, value, td, snapshot) {
-    var body = { value: {} };
-    body.value[column] = value;
+    var values = {};
+    values[column] = value;
     // True once the server has accepted the write. After that point a
     // failure belongs to the repaint, not to the data, and the two must
     // not be reported the same way.
     var written = false;
+    // What the server said when it refused the write - a form rule, a
+    // validation message, a newer save by someone else. Shown to the user:
+    // a red flash alone does not say what to do next.
+    var refusal = '';
 
     var updateUrl = cfg.updateUrl + '/' + encodeURIComponent(id);
     var cellUrl = cfg.cellUrl + '/' + encodeURIComponent(id) + '/' + encodeURIComponent(column);
@@ -2431,22 +2698,33 @@
     var gridKey = storeKeyOf(closest(td, 'table.exm-grid'));
     var previous = inlineSaveChains[chainKey] || Promise.resolve();
     var run = previous.then(function () {
+      // The body is built now, not when the editor closed: a save that
+      // waited behind another one of the same record has to send the
+      // updated_at that save left on the row, not the one from before it.
+      var row = findRowById(id) || closest(td, 'tr');
       return fetch(updateUrl, {
         method: 'PUT',
         credentials: 'same-origin',
         headers: headers,
-        body: JSON.stringify(body)
+        body: JSON.stringify(screenWriteBody(row, values))
       });
     }).then(function (r) {
-      if (!r.ok) throw new Error('put:' + r.status);
+      if (!r.ok) {
+        return errorMessageOf(r).then(function (message) {
+          refusal = message;
+          throw new Error('put:' + r.status);
+        });
+      }
       written = true;
-      // Skip parsing the JSON body - we do not use it, and dataUpdate
-      // may return an object OR an array of objects depending on the
-      // call shape.
-      return fetch(cellUrl, {
-        method: 'GET',
-        credentials: 'same-origin',
-        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+      // The body is the saved record. Only its new updated_at is read -
+      // the row's edit lock has to move on with the save.
+      return r.json().catch(function () { return null; }).then(function (payload) {
+        rememberUpdatedAt(id, payload);
+        return fetch(cellUrl, {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        });
       });
     }).then(function (r) {
       if (!r.ok) throw new Error('cell:' + r.status);
@@ -2471,6 +2749,9 @@
         td.classList.remove('exm-stale');
         td.removeAttribute('title');
       }
+      // The save can move the record onto a form that does not let the user
+      // change this column any more; the server says so in the markup.
+      applyCellLock(td);
       addPenIcon(td);
       td.classList.add('exm-saved');
       setTimeout(function () { td.classList.remove('exm-saved'); }, 1200);
@@ -2494,6 +2775,10 @@
         td.innerHTML = snapshot;
         td.classList.add('exm-error');
         setTimeout(function () { td.classList.remove('exm-error'); }, 2500);
+        // ...and the reason goes with the flash: a refused value, a column
+        // this record's form keeps view only, a newer save by someone else
+        // each need something different from the user.
+        notify('error', refusal || getInlineLabel(td, 'error'));
         return;
       }
       // The value is stored and only the repaint failed. Restoring the
@@ -2562,6 +2847,89 @@
     td.appendChild(pen);
   }
 
+  /**
+   * A cell of an editable column whose record's form does not let the user
+   * change it carries `.exm-cell-locked` (GridInlineEditor::LOCKED_MARKER).
+   * The column-wide `.exm-editable` class cannot say that - form priorities
+   * pick the form per record - so the cell drops the class here, and with it
+   * the pen and the double-click editor. The server refuses such a write
+   * anyway; this keeps the screen from offering it. Returns true when the
+   * cell is locked.
+   */
+  function applyCellLock(td) {
+    if (!td || !td.querySelector('.exm-cell-locked')) return false;
+    td.classList.remove('exm-editable');
+    var pen = td.querySelector(':scope > .exm-edit-pen');
+    if (pen && pen.parentNode) pen.parentNode.removeChild(pen);
+    return true;
+  }
+
+  /* ------------------------------------------------- screen writes --- */
+
+  // Body key that marks a write as made from this screen - inline edit,
+  // bulk edit, "Set me as", the row menu's Delete (GridInlineEditor::
+  // SCREEN_WRITE_KEY). The server then applies what the record's edit page
+  // applies: the form's view only / read only / hidden / internal columns,
+  // its required columns, and the "cannot change from display" switch.
+  var SCREEN_WRITE_KEY = '_grid_edit';
+  // The row's updated_at as the page was drawn (DefaultGrid puts it on the
+  // <tr>): the edit lock the edit form also sends.
+  var UPDATED_AT_ATTR = 'data-exm-updated-at';
+
+  /**
+   * PUT body for a write from the list. With the row's edit lock in it, a
+   * record someone else saved after this page was drawn is refused with the
+   * edit form's own message instead of being overwritten without a word.
+   */
+  function screenWriteBody(tr, values) {
+    var body = { value: values };
+    body[SCREEN_WRITE_KEY] = 1;
+    var lock = tr ? tr.getAttribute(UPDATED_AT_ATTR) : null;
+    if (lock) body.updated_at = lock;
+    return body;
+  }
+
+  /**
+   * A write that went through gave the record a new updated_at, and the row
+   * has to carry it - the next edit of the same row would otherwise be
+   * refused as stale. Takes the parsed PUT response: one record, or a list
+   * of one.
+   */
+  function rememberUpdatedAt(id, payload) {
+    var rec = Array.isArray(payload) ? payload[0] : payload;
+    var stamp = rec && rec.updated_at;
+    if (!stamp) return;
+    var tr = findRowById(id);
+    if (tr && tr.hasAttribute(UPDATED_AT_ATTR)) tr.setAttribute(UPDATED_AT_ATTR, String(stamp));
+  }
+
+  /**
+   * The reason a refused write gives, as one line: every message of a 400
+   * validation error (`errors` is a list of `{column: message}` objects),
+   * else the `message` of a 403 or 404. '' when the body says nothing
+   * usable - the caller falls back to its own label then.
+   */
+  function errorMessageOf(response) {
+    return response.json().then(function (body) {
+      var lines = [];
+      var collect = function (v) {
+        if (v == null) return;
+        if (typeof v === 'string') {
+          if (v && lines.indexOf(v) < 0) lines.push(v);
+        } else if (Array.isArray(v)) {
+          v.forEach(collect);
+        } else if (typeof v === 'object') {
+          Object.keys(v).forEach(function (k) { collect(v[k]); });
+        }
+      };
+      if (body && body.errors) collect(body.errors);
+      if (!lines.length && body && typeof body.message === 'string') collect(body.message);
+      return lines.join(' / ');
+    }).catch(function () {
+      return '';
+    });
+  }
+
   /* ------------------------------------------------------ context menu --- */
   /**
    * Right-click menu. There is one `<div class="exm-ctxmenu">` per
@@ -2620,7 +2988,9 @@
     if (!id) return;
 
     menu.setAttribute('data-row-id', id);
-    menu.setAttribute('data-row-col', columnNameOf(td) || '');
+    // The right-clicked column itself, not the first column of that name:
+    // "filter by this" and "copy this cell" act on what was clicked.
+    menu.setAttribute('data-row-col', uniqueColumnOf(td) || '');
 
     // Head: first two visible data columns (id + main label) as a
     // reminder of which row was right-clicked. `textContent` reads
@@ -2692,7 +3062,11 @@
   function notify(kind, message) {
     if (!message) return;
     if (window.toastr && typeof toastr[kind] === 'function') {
-      toastr[kind](message);
+      // toastr puts the message in as HTML (its escapeHtml option is off
+      // by default and the admin layout does not turn it on), and these
+      // messages carry names a table administrator chose - a column label,
+      // a server error naming one. Text, always.
+      toastr[kind](escHtml(message));
     }
   }
 
@@ -2827,8 +3201,11 @@
     };
     if (csrf) headers['X-CSRF-TOKEN'] = csrf;
 
-    var body = { value: {} };
-    body.value[col] = user;
+    var values = {};
+    values[col] = user;
+    // The server's reason when it refuses - this record's form keeps the
+    // column view only, someone else saved the record meanwhile, ...
+    var refusal = '';
 
     var tr = findRowById(id);
     var td = tr ? tr.querySelector('td.column-' + cssEscape(col)) : null;
@@ -2838,19 +3215,28 @@
       method: 'PUT',
       credentials: 'same-origin',
       headers: headers,
-      body: JSON.stringify(body)
+      body: JSON.stringify(screenWriteBody(tr, values))
     }).then(function (r) {
-      if (!r.ok) throw new Error('assign:' + r.status);
-      if (!td || !cellBase) return null;
-      // Same view the inline editor sends, so a cell repainted from here
-      // keeps the style the rest of the column is wearing.
-      var cellUrl = cellBase + '/' + encodeURIComponent(id) + '/' + encodeURIComponent(col);
-      if (cellView) cellUrl += '?view=' + encodeURIComponent(cellView);
-      return fetch(cellUrl, {
-        credentials: 'same-origin',
-        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-      }).then(function (r2) {
-        return r2.ok ? r2.json() : null;
+      if (!r.ok) {
+        return errorMessageOf(r).then(function (message) {
+          refusal = message;
+          throw new Error('assign:' + r.status);
+        });
+      }
+      return r.json().catch(function () { return null; }).then(function (saved) {
+        // The row's edit lock moves on with the save - see saveInlineCell.
+        rememberUpdatedAt(id, saved);
+        if (!td || !cellBase) return null;
+        // Same view the inline editor sends, so a cell repainted from here
+        // keeps the style the rest of the column is wearing.
+        var cellUrl = cellBase + '/' + encodeURIComponent(id) + '/' + encodeURIComponent(col);
+        if (cellView) cellUrl += '?view=' + encodeURIComponent(cellView);
+        return fetch(cellUrl, {
+          credentials: 'same-origin',
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(function (r2) {
+          return r2.ok ? r2.json() : null;
+        });
       });
     }).then(function (payload) {
       if (td) td.classList.remove('exm-saving');
@@ -2861,6 +3247,7 @@
         return;
       }
       td.innerHTML = String(payload.html);
+      applyCellLock(td);
       addPenIcon(td);
       td.classList.add('exm-saved');
       setTimeout(function () { td.classList.remove('exm-saved'); }, 1200);
@@ -2874,7 +3261,7 @@
         td.classList.add('exm-error');
         setTimeout(function () { td.classList.remove('exm-error'); }, 1600);
       }
-      notify('error', menu.getAttribute('data-assign-error') || '');
+      notify('error', refusal || menu.getAttribute('data-assign-error') || '');
     });
   }
 
@@ -2944,7 +3331,10 @@
     if (act === 'delete') {
       var msg = menu.getAttribute('data-confirm') || 'Delete this record?';
       if (!window.confirm(msg)) return;
-      var deleteUrl = webapi + '/' + encodeURIComponent(id);
+      // As a write from this screen, so the "cannot delete from display"
+      // switch applies to it on the server, not only to this menu.
+      var deleteUrl = webapi + '/' + encodeURIComponent(id) + '?' + SCREEN_WRITE_KEY + '=1';
+      var deleteRefusal = '';
       fetch(deleteUrl, {
         method: 'DELETE',
         credentials: 'same-origin',
@@ -2954,7 +3344,12 @@
           'X-Requested-With': 'XMLHttpRequest'
         }
       }).then(function (r) {
-        if (!r.ok && r.status !== 204) throw new Error('delete:' + r.status);
+        if (!r.ok && r.status !== 204) {
+          return errorMessageOf(r).then(function (message) {
+            deleteRefusal = message;
+            throw new Error('delete:' + r.status);
+          });
+        }
         var tr3 = findRowById(id);
         var gtable3 = tr3 ? closest(tr3, 'table.exm-grid') : null;
         if (tr3 && tr3.parentNode) tr3.parentNode.removeChild(tr3);
@@ -2972,7 +3367,7 @@
         // confirmation, and the list is unchanged. Most refusals here are
         // per-record - a workflow lock, or a row this reader may read but
         // not remove - so the menu carries a line to show for them.
-        notify('error', menu.getAttribute('data-delete-error') || '');
+        notify('error', deleteRefusal || menu.getAttribute('data-delete-error') || '');
         console.warn('exment: inline delete failed');
       });
       return;

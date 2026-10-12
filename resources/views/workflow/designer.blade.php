@@ -77,10 +77,12 @@
         if (typeof Exment === 'undefined' || !Exment.WorkflowDesigner) {
             return;     // workflow_designer.js が未配置（vendor:publish 忘れ）でも画面は動かす
         }
+        {{-- The HEX flags keep user-entered names from closing or
+             comment-escaping this script block. --}}
         Exment.WorkflowDesigner.boot({
-            statuses: {!! json_encode($wd_statuses, JSON_UNESCAPED_UNICODE) !!},
-            start_name: {!! json_encode($wd_start_name, JSON_UNESCAPED_UNICODE) !!},
-            texts: {!! json_encode($wd_texts, JSON_UNESCAPED_UNICODE) !!}
+            statuses: {!! json_encode($wd_statuses, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!},
+            start_name: {!! json_encode($wd_start_name, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!},
+            texts: {!! json_encode($wd_texts, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}
         });
     });
 </script>

@@ -32,6 +32,12 @@ var Exment;
     var FILLED_STYLES = ['tag', 'pill'];
     var MARKED_STYLES = ['dot', 'lvl'];
 
+    // GridCellStyle::STYLES - every style the grid can draw.
+    var STYLES = [
+        'plain', 'text', 'tag', 'pill', 'badge', 'dot', 'lvl', 'mono',
+        'avatar', 'bar', 'cell'
+    ];
+
     var STYLE_KEYS = [
         'grid_style', 'grid_color', 'grid_bg_color', 'grid_border_color',
         'grid_font_weight', 'grid_icon', 'grid_nowrap', 'grid_value_colors'
@@ -1158,7 +1164,11 @@ var Exment;
          *
          * The tail keeps whatever followed the first color - the background
          * and border entries the old screen accepted - so a rewrite by this
-         * table never drops a part it does not edit.
+         * table never drops a part it does not edit. The slots are read by
+         * position, so an empty one in the middle stays in the tail: in
+         * `v,#c,,#border` the last entry is a border, and closing the gap
+         * would write it back as a background. Only empty slots at the end
+         * are dropped, as GridCellStyle::valueColorLine() does.
          */
         static valueLines(text) {
             var rows = {};
@@ -1175,10 +1185,10 @@ var Exment;
                 }
                 var tail = [];
                 for (var t = 1; t < parts.length; t++) {
-                    var part = $.trim(parts[t]);
-                    if (part.length) {
-                        tail.push(part);
-                    }
+                    tail.push($.trim(parts[t]));
+                }
+                while (tail.length && !tail[tail.length - 1].length) {
+                    tail.pop();
                 }
                 rows[key] = { color: CellStylePresetEvent.color(parts[0]) || '', tail: tail };
             }
@@ -1586,6 +1596,11 @@ var Exment;
          */
         static sample(options, value, text, index) {
             var style = String(options.grid_style || 'plain');
+            // Same rule as GridCellStyle::normalizeStyle(): the style becomes
+            // a class name, so one the grid would not draw is drawn plain.
+            if (STYLES.indexOf(style) < 0) {
+                style = 'plain';
+            }
             var label = String(hasValue(text) ? text : '');
 
             if (style === 'avatar') {

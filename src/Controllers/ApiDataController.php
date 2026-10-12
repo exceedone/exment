@@ -334,7 +334,10 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         $custom_column = CustomColumn::getEloquent($columnName, $this->custom_table);
-        if (!isset($custom_column)) {
+        // getEloquent() reads a numeric name as a column id of ANY table, and
+        // the record of this table would then be drawn through a column
+        // definition of another one - its option labels included.
+        if (!isset($custom_column) || $custom_column->custom_table_id != $this->custom_table->id) {
             return abortJson(404, ErrorCode::DATA_NOT_FOUND());
         }
 
@@ -363,9 +366,14 @@ class ApiDataController extends AdminControllerTableBase
         // whenever the display is lossy (shortened text, rounded number);
         // the cell rendered here replaces that markup after a save, so it
         // has to carry it too. Without this, editing such a value a second
-        // time would start from the display again.
+        // time would start from the display again. A record whose form does
+        // not let the user change the column gets the lock marker instead,
+        // the same as DefaultGrid writes - the save may have moved the
+        // record onto another form.
         if (GridInlineEditor::isEditable($custom_column)) {
-            $html .= GridInlineEditor::rawValueTag($item, $html);
+            $html .= GridInlineEditor::isFormEditableColumn($this->custom_table, $custom_value, $custom_column)
+                ? GridInlineEditor::rawValueTag($item, $html)
+                : GridInlineEditor::LOCKED_MARKER;
         }
 
         return [
@@ -379,12 +387,22 @@ class ApiDataController extends AdminControllerTableBase
      */
     public function dataCreate(Request $request)
     {
-        if (($code = $this->custom_table->enableCreate()) !== true) {
+        // A record typed into a kanban column (quick add) stands in for the
+        // create page, so it obeys the "cannot create from display" form
+        // action and the form's own columns - see dataUpdate. A plain API
+        // call does not send the key and is unchanged.
+        $screenWrite = boolval($request->get(GridInlineEditor::SCREEN_WRITE_KEY));
+
+        if (($code = $this->custom_table->enableCreate($screenWrite)) !== true) {
             // use the ErrorCode's own message so a one-record table that already
             // holds a record reports "このテーブルは1レコードのみ登録可能です。"
             // (code 402) instead of the misleading generic "Permission denied".
             // A real permission failure still yields admin.deny via getMessage().
             return abortJson(403, $code);
+        }
+
+        if ($screenWrite && ($response = $this->validateScreenWrite($request, null)) instanceof Response) {
+            return $response;
         }
 
         return $this->saveData($request);
@@ -405,12 +423,58 @@ class ApiDataController extends AdminControllerTableBase
             return $custom_value;
         }
 
-        if (($code = $custom_value->enableEdit()) !== true) {
+        // A write from a list screen - inline edit, bulk edit, "Set me as",
+        // a kanban move - stands in for the record's edit page, so it obeys
+        // what that page obeys: the "cannot change from display" form action
+        // and the form's own column settings. A plain API call does not send
+        // the key and keeps writing columns as documented.
+        $screenWrite = boolval($request->get(GridInlineEditor::SCREEN_WRITE_KEY));
+
+        if (($code = $custom_value->enableEdit($screenWrite)) !== true) {
             // @phpstan-ignore-next-line
             return abortJson(403, $code);
         }
 
+        if ($screenWrite && ($response = $this->validateScreenWrite($request, $custom_value)) instanceof Response) {
+            return $response;
+        }
+
         return $this->saveData($request, $custom_value);
+    }
+
+    /**
+     * The form rules for a write sent by a list screen (see dataUpdate).
+     *
+     * Such a write is always one record and a few of its own columns, so
+     * anything else in the body - several records, `data`, a new parent -
+     * did not come from a screen and is refused rather than checked. The
+     * one exception is a record being created (null): a board embedded in
+     * a parent's page names that parent for the new record, at the top
+     * level of the body only.
+     *
+     * @param Request $request
+     * @param \Exceedone\Exment\Model\CustomValue|null $custom_value null for a record about to be created
+     * @return Response|null
+     */
+    protected function validateScreenWrite(Request $request, $custom_value)
+    {
+        $values = $request->get('value');
+        if (!is_array($values) || empty($values) || is_vector($values) || $request->has('data')
+            || (isset($custom_value) && ($request->has('parent_id') || $request->has('parent_type')))
+            || array_key_exists('parent_id', $values) || array_key_exists('parent_type', $values)) {
+            return abortJson(400, ErrorCode::VALIDATION_ERROR());
+        }
+
+        // updated_at is the edit lock, not a column - saveData checks it.
+        $errors = GridInlineEditor::validateScreenWrite($this->custom_table, $custom_value, array_except($values, ['updated_at']));
+        if (!empty($errors)) {
+            // Same shape as a failed validation of a single record.
+            return abortJson(400, [
+                'errors' => [$errors],
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        return null;
     }
 
 
@@ -432,6 +496,9 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         $forceDelete = boolval($request->get('force'));
+        // The row menu's Delete is a screen, so the "cannot delete from
+        // display" form action applies to it - see dataUpdate.
+        $screenWrite = boolval($request->get(GridInlineEditor::SCREEN_WRITE_KEY));
 
         $custom_values = [];
         $validates = [];
@@ -439,7 +506,7 @@ class ApiDataController extends AdminControllerTableBase
             if (($custom_value = $this->getCustomValue($this->custom_table, $i, $forceDelete)) instanceof Response) {
                 return $custom_value;
             }
-            if (($code = $custom_value->enableDelete()) !== true) {
+            if (($code = $custom_value->enableDelete($screenWrite)) !== true) {
                 return abortJson(403, $code);
             }
             if ($res = $this->custom_table->validateValueDestroy($i)) {

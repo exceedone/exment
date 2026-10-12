@@ -983,6 +983,15 @@ body.exm-bulkbar-open .content-wrapper {
   color: #b91c1c;
 }
 
+/* The rows a bulk edit could not change, each with the server's reason. A
+   long run can refuse many, so the list scrolls inside the dialog. */
+.exm-bulk-modal-progress .exm-bulk-failures {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
 .exm-bulk-modal-footer {
   padding: 10px 16px 14px;
   border-top: 1px solid #eceff4;
@@ -1117,6 +1126,22 @@ body.exm-bulkbar-open .content-wrapper {
      marks the edge where it covers the neighbouring column. */
   box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
   outline: none;
+}
+
+/* Where the date editor's calendar opens: an empty box off <body>, so the
+   grid's scrolling box neither offsets nor clips it. It needs a position of
+   its own - the picker library refuses a static parent - and paints
+   nothing; the calendar itself is placed against the viewport by
+   grid_tools.js. Above the bulk bar and the pinned columns. */
+.exm-edit-date-host {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+}
+.exm-edit-date-host .bootstrap-datetimepicker-widget {
+  z-index: 1085;
 }
 
 /* Optimistic UI feedback. `-saving` dims the cell so the user knows the

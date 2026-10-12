@@ -187,7 +187,7 @@ class DefaultGrid extends GridBase
                 ->style($item->gridStyle())
                 ->setClasses($classes)
                 ->setHeaderStyle($item->gridHeaderStyle())
-                ->display(function ($v) use ($item, $inlineEditable) {
+                ->display(function ($v) use ($item, $inlineEditable, $custom_table) {
                     // @phpstan-ignore-next-line
                     if (is_null($this)) {
                         return '';
@@ -195,6 +195,16 @@ class DefaultGrid extends GridBase
                     $html = $item->setCustomValue($this)->html();
                     if (!$inlineEditable) {
                         return $html;
+                    }
+                    // The column is editable on some form of this table, but
+                    // the form of THIS record may show it view only, or not
+                    // at all - form priorities pick the form per record. The
+                    // marker drops the cell's editor on the client; the
+                    // server refuses the write either way. ($this is the
+                    // row's model here: the grid binds it to this closure.)
+                    // @phpstan-ignore-next-line
+                    if (!GridTools\GridInlineEditor::isFormEditableColumn($custom_table, $this, $item->getCustomColumn())) {
+                        return (string)$html . GridTools\GridInlineEditor::LOCKED_MARKER;
                     }
                     // A long value is shown shortened ('...'), a formatted
                     // number rounded - either way the cell no longer says the
@@ -204,6 +214,20 @@ class DefaultGrid extends GridBase
                     // not of the display.
                     return (string)$html . GridTools\GridInlineEditor::rawValueTag($item, (string)$html);
                 })->escape(false);
+        }
+
+        // The edit lock of each row, for the writes the list tools make
+        // (inline edit, bulk edit, "Set me as"). They send it back, so a
+        // record someone else saved after this page was drawn is refused
+        // with the message the edit form gives, instead of being overwritten
+        // without a word.
+        if ($inlineEditAllowed) {
+            $grid->rows(function ($row) {
+                $updated_at = $row->updated_at;
+                if (is_string($updated_at) && !is_nullorempty($updated_at)) {
+                    $row->setAttributes(['data-exm-updated-at' => $updated_at]);
+                }
+            });
         }
 
         // set parpage
@@ -222,6 +246,26 @@ class DefaultGrid extends GridBase
         $custom_table->setQueryWith($grid->model(), $this->custom_view);
     }
 
+
+    /**
+     * The key the grid tools keep their browser-side state under: pinned
+     * columns and density (localStorage), the grouping, folded groups, the
+     * page filter and the refresh interval (sessionStorage).
+     *
+     * The user is part of it. Some of that state is data - the page filter
+     * holds a cell value, the folded groups hold group labels - and the
+     * browser keeps it across a logout. Keyed by table alone, the next person
+     * to sign in on the same tab had the previous one's filter applied, value
+     * shown in the chip.
+     *
+     * @param CustomTable $custom_table
+     * @return string
+     */
+    public static function gridStorageKey(CustomTable $custom_table): string
+    {
+        $user_id = \Exment::getUserId();
+        return $custom_table->table_name . (isset($user_id) ? '.u' . $user_id : '');
+    }
 
     /**
      * execute filter for modal
@@ -566,10 +610,11 @@ class DefaultGrid extends GridBase
             // grid. Appended first so it renders above the button row.
             $tools->append(new GridTools\GridFilterChips($this->custom_table, $this->filterChipPairs));
             $tools->append(new GridTools\GridColumnVisibility($grid));
-            $tools->append(new GridTools\GridColumnPin($grid, $this->custom_table->table_name));
-            $tools->append(new GridTools\GridGroupBy($grid, $this->custom_table->table_name));
+            $storageKey = static::gridStorageKey($this->custom_table);
+            $tools->append(new GridTools\GridColumnPin($grid, $storageKey));
+            $tools->append(new GridTools\GridGroupBy($grid, $storageKey));
             $tools->append(new GridTools\GridDensity());
-            $tools->append(new GridTools\GridAutoRefresh($this->custom_table->table_name));
+            $tools->append(new GridTools\GridAutoRefresh($storageKey));
 
             // Second entrance to the batch actions rendered further left.
             // It is fixed to the bottom of the viewport, so it is appended

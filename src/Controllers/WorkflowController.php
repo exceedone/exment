@@ -293,9 +293,11 @@ class WorkflowController extends AdminControllerBase
             $form->display('id', 'ID');
         }
 
+        // max:30 - workflows.workflow_view_name is a 30 character column, so a
+        // longer name passed validation and then failed the insert.
         $form->text('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->required()
-            ->rules("max:40");
+            ->rules("max:30");
 
         // is create
         if (!isset($workflow)) {
@@ -367,11 +369,19 @@ class WorkflowController extends AdminControllerBase
             $model = $form->model();
 
             // get workflow_statuses and set completed fig
-            $statuses = $model->workflow_statuses()->get()->sortByDesc('order')->values();
+            // Only while the setting is not completed. After that the statuses
+            // cannot be added, removed or moved, so the last one is already
+            // the completed one - unless the workflow came with several
+            // completed statuses, which a template can ship. Recomputing then
+            // would quietly turn records sitting in those statuses back into
+            // unfinished ones, just because a name was edited here.
+            if (!boolval($model->setting_completed_flg)) {
+                $statuses = $model->workflow_statuses()->get()->sortByDesc('order')->values();
 
-            foreach ($statuses as $index => $status) {
-                $status->completed_flg = ($index === 0);
-                $status->save();
+                foreach ($statuses as $index => $status) {
+                    $status->completed_flg = ($index === 0);
+                    $status->save();
+                }
             }
 
             // save table info
@@ -631,7 +641,20 @@ class WorkflowController extends AdminControllerBase
         });
 
         $form->editing(function ($form, $arr) use ($workflow) {
-            foreach ($form->model()->workflow_actions as $workflow_action) {
+            // This screen treats its first row as the action that leaves the
+            // start status: that row's work target is fixed to "preconfigured"
+            // and it has no delete button. The relation comes back in id
+            // order, and the designer can leave an action from another status
+            // with the lowest id, so the rows are put start-first here instead
+            // of trusting the ids.
+            $workflow_actions = $form->model()->workflow_actions->sort(function ($a, $b) {
+                $a_start = $a->status_from == Define::WORKFLOW_START_KEYNAME ? 0 : 1;
+                $b_start = $b->status_from == Define::WORKFLOW_START_KEYNAME ? 0 : 1;
+                return [$a_start, $a->id] <=> [$b_start, $b->id];
+            })->values();
+            $form->model()->setRelation('workflow_actions', $workflow_actions);
+
+            foreach ($workflow_actions as $workflow_action) {
                 $workflow_action->append([$workflow->workflow_type == WorkflowType::TABLE ? 'work_conditions' : 'work_condition_select']);
             }
         });

@@ -9,6 +9,7 @@ use ExmentAdminCore\Admin\Layout\Content;
 use ExmentAdminCore\Admin\Layout\Row;
 use ExmentAdminCore\Admin\Widgets\Box;
 use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid\Exporter;
 use Exceedone\Exment\Enums\ColumnType;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
@@ -23,6 +24,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\DataItems\Grid\GridBase;
 use Exceedone\Exment\DataItems\Grid\KanbanGrid;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
@@ -68,6 +70,18 @@ class CustomValueController extends AdminControllerTableBase
      * shows it in a frame of its own.
      */
     public const FORM_FRAME_KEY = 'formframe';
+
+    /**
+     * Whether the view named by the request becomes the one this table opens
+     * with for the user next time. True for the screens the user navigates to.
+     * The calls a kanban board makes in the background set it to false: they
+     * name the board's view only to say which board is asking, and a board
+     * embedded in another screen would otherwise become the default view of
+     * the table's own list.
+     *
+     * @var bool
+     */
+    protected $remember_view = true;
 
     /**
      * CustomValueController constructor.
@@ -179,9 +193,18 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
-        // checking export
-        if ($request->get('action') == 'export') {
-            if (($response = $this->firstFlow($request, CustomValuePageType::EXPORT)) instanceof Response) {
+        // Checking export. Any request that carries the exporter's key is
+        // answered with a file - `action` only picks which one: the plain list
+        // (export, or no action at all), the view's own layout (view_export) or
+        // a plugin's (plugin_export). So the right is checked whenever a file is
+        // asked for, not only for action=export.
+        if (!is_nullorempty($request->get(Exporter::$queryName))) {
+            // The import template is the heading row and nothing else, and the
+            // import dialog offers it to whoever may import.
+            $page_type = GridBase::isImportTemplateRequest($request) && $this->custom_table->enableExport() !== true
+                ? CustomValuePageType::IMPORT
+                : CustomValuePageType::EXPORT;
+            if (($response = $this->firstFlow($request, $page_type)) instanceof Response) {
                 return $response;
             }
         }
@@ -1025,6 +1048,39 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * The board a background call of a kanban board belongs to.
+     *
+     * The call names the board's view, and that view is the one answered for -
+     * not the one the user opened last, which can be another board in another
+     * tab. Naming it does not make it the table's default view for the user
+     * either, see $remember_view.
+     *
+     * @param Request $request
+     * @return KanbanGrid|Response
+     */
+    protected function kanbanGridOf(Request $request)
+    {
+        $this->remember_view = false;
+        if (($response = $this->firstFlow($request, CustomValuePageType::GRID)) instanceof Response) {
+            return $response;
+        }
+
+        // A view that no longer exists, or one of another table, leaves the
+        // user's default view of this table in its place - an answer for a
+        // board nobody asked about.
+        if (!isMatchString($this->custom_view->suuid, $request->get('view'))) {
+            abort(404);
+        }
+
+        $grid_item = $this->custom_view->grid_item;
+        if (!($grid_item instanceof KanbanGrid)) {
+            abort(404);
+        }
+
+        return $grid_item;
+    }
+
+    /**
      * Next slice of one kanban column, for the "load more" button.
      *
      * The board asks for one column at a time, so a lane with thousands of
@@ -1035,13 +1091,9 @@ class CustomValueController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function kanbanCards(Request $request, $tableKey)
     {
-        if (($response = $this->firstFlow($request, CustomValuePageType::GRID)) instanceof Response) {
-            return $response;
-        }
-
-        $grid_item = $this->custom_view->grid_item;
-        if (!($grid_item instanceof KanbanGrid)) {
-            abort(404);
+        $grid_item = $this->kanbanGridOf($request);
+        if ($grid_item instanceof Response) {
+            return $grid_item;
         }
 
         // an embedded board (project portal) shows one parent's records only,
@@ -1087,23 +1139,24 @@ class CustomValueController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function kanbanSaveView(Request $request, $tableKey)
     {
-        if (($response = $this->firstFlow($request, CustomValuePageType::GRID)) instanceof Response) {
-            return $response;
+        $grid_item = $this->kanbanGridOf($request);
+        if ($grid_item instanceof Response) {
+            return $grid_item;
         }
 
-        $grid_item = $this->custom_view->grid_item;
-        if (!($grid_item instanceof KanbanGrid)) {
-            abort(404);
-        }
-
-        // a view belongs to the table's settings, not to its data: whoever may
-        // only read the records may not add one
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+        // A view belongs to the table's settings, not to its data, so the
+        // board asks the same as the view settings screen does - see
+        // KanbanGrid::canSaveAsView().
+        if (!KanbanGrid::canSaveAsView($this->custom_table)) {
             abort(403);
         }
 
+        // the length of the column the name is stored in, as on the view
+        // settings screen
         $validator = \Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:40',
+        ], [], [
+            'name' => exmtrans('custom_view.kanban_save_view_name'),
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -1646,8 +1699,9 @@ class CustomValueController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function setFormViewInfo(Request $request, $formActionType, $id = null)
     {
-        // set view
-        $this->custom_view = CustomView::getDefault($this->custom_table);
+        // set view. The third argument only decides whether the view is kept
+        // as the user's choice, see $remember_view.
+        $this->custom_view = CustomView::getDefault($this->custom_table, true, !$this->remember_view);
 
         // set form data type for form priority
         $form_data_type = CustomValuePageType::getFormDataType($formActionType);

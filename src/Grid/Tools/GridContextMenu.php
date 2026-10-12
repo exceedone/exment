@@ -60,6 +60,12 @@ class GridContextMenu extends AbstractTool
      * the list or to join it, and guessing wrong silently drops the
      * people already on it.
      *
+     * A column no form of the table offers an input for is skipped too -
+     * "Set me as" is a write from a screen, and the edit page would not let
+     * the user change that column either (see GridInlineEditor). The same
+     * goes for a column a calc formula reads. Whether the form of a given
+     * record allows it is decided by the server when the entry is used.
+     *
      * Returns null when the table has no such column, and the menu entry
      * is then not rendered at all rather than shown and failing.
      */
@@ -70,6 +76,10 @@ class GridContextMenu extends AbstractTool
                 continue;
             }
             if (boolval(array_get($custom_column, 'options.multiple_enabled'))) {
+                continue;
+            }
+            if (!GridInlineEditor::isEditableOnSomeForm($this->custom_table, $custom_column)
+                || GridInlineEditor::isCalcInput($custom_column)) {
                 continue;
             }
             return $custom_column;

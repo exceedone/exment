@@ -200,10 +200,32 @@ abstract class CustomItem implements ItemInterface
                 return $inner;
             }
 
+            // A stand-in for something the viewer may not see is printed
+            // as it is - see isStyledValue().
+            if (!$this->isStyledValue($v)) {
+                return $inner;
+            }
+
             return $cell_style->wrap($inner, $v, $this->_text($v));
         });
 
         return is_list($html) ? collect($html)->implode($this->getSeparateWord()) : $html;
+    }
+
+    /**
+     * Whether the cell style may paint this value.
+     *
+     * A value is painted by what it is: its per-value color is looked up
+     * by the stored value. A column that prints a stand-in instead of the
+     * value - because the viewer may not see what it points at - must not
+     * have the stand-in painted, or the color would give the value away.
+     *
+     * @param mixed $v
+     * @return bool
+     */
+    protected function isStyledValue($v): bool
+    {
+        return true;
     }
 
     /**
