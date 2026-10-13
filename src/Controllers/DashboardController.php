@@ -147,22 +147,12 @@ class DashboardController extends AdminControllerBase
         }
 
         // dashboard runtime (public/vendor/exment/js/dashboard.js): box loading, filter bar,
-        // chart toolbar and AI summary strip — only the texts are passed from here
+        // chart toolbar — only the texts are passed from here
         $lang = [
             'delete_confirm' => trans('admin.delete_confirm'),
             'confirm' => trans('admin.confirm'),
             'cancel' => trans('admin.cancel'),
             'error' => exmtrans('error.header'),
-            'ai_generating' => exmtrans('dashboard.ai.generating'),
-            'ai_regenerate' => exmtrans('dashboard.ai.regenerate'),
-            'ai_error' => exmtrans('dashboard.ai.error_generic'),
-            'ai_highest' => exmtrans('dashboard.ai.stat_highest'),
-            'ai_lowest' => exmtrans('dashboard.ai.stat_lowest'),
-            'ai_average' => exmtrans('dashboard.ai.stat_average'),
-            'ai_range' => exmtrans('dashboard.ai.stat_range'),
-            'ai_anomalies' => exmtrans('dashboard.ai.anomaly_title'),
-            'ai_expected_range' => exmtrans('dashboard.ai.expected_range'),
-            'ai_stable' => exmtrans('dashboard.ai.stable'),
             'filter_not_affected' => exmtrans('dashboard.filter_bar.not_affected'),
             'filter_partially_affected' => exmtrans('dashboard.filter_bar.partially_affected'),
             'color_theme' => exmtrans('dashboard.chart_color.theme'),
@@ -228,12 +218,6 @@ class DashboardController extends AdminControllerBase
 
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
 
-        // AI summary strip under the charts: opt-in per dashboard (default OFF), enforced
-        // server-side too (AiSummaryService::enabledForBox)
-        $form->switchbool('ai_summary', exmtrans('dashboard.ai.switch'))
-            ->help(exmtrans('dashboard.ai.switch_help'))
-            ->default(false);
-
         // create row select options
         $form->embeds('row_setting', exmtrans("dashboard.row"), function ($form) {
             for ($row_count = 1; $row_count <= intval(config('exment.dashboard_rows', 4)); $row_count++) {
@@ -271,7 +255,7 @@ class DashboardController extends AdminControllerBase
         // the form binds virtual attributes (each merges into options on save, so keys no
         // field manages survive); expose them on the model the form reads from
         $form->editing(function ($form) {
-            $form->model()->append(['row_setting', 'ai_summary', 'filter_bar_table', 'filter_bar_dims']);
+            $form->model()->append(['row_setting', 'filter_bar_table', 'filter_bar_dims']);
         });
 
         $form->tools(function (Form\Tools $tools) use ($id, $dashboard_type) {

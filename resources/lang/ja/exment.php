@@ -657,32 +657,6 @@ return [
             'max' => '最大値',
         ],
 
-        // AI summary strip under a chart
-        'ai' => [
-            'switch' => 'AI要約',
-            'switch_help' => '有効にすると、グラフデータをAIサービスへ送信し、AIによる要約を生成します。機密性の高いデータを扱うダッシュボードでは無効にしてください。',
-            'toggle' => 'AI要約',
-            'generating' => '要約を生成中...',
-            'regenerate' => '再生成',
-            'disabled' => 'AI要約は無効です。',
-            'withheld' => '機微なデータが含まれているため、このデータはAIに送信されませんでした。',
-            'stat_highest' => '最大',
-            'stat_lowest' => '最小',
-            'stat_average' => '平均',
-            'stat_range' => '幅',
-            'anomaly_title' => '異常値',
-            'expected_range' => '想定範囲',
-            'stable' => '異常値なし — すべて想定範囲内',
-            'error_generic' => 'AIへの接続でエラーが発生しました。もう一度お試しください。',
-            'no_valid_answer' => 'AIから有効な回答を取得できませんでした。もう一度お試しください。',
-            'api_error_timeout' => 'AIサービスへの接続が中断またはタイムアウトしました。もう一度お試しください。',
-            'api_error_rate' => 'AIの呼び出し回数の上限に達しました。数分後にもう一度お試しください。',
-            'api_error_auth' => 'AIサービスのAPIキーが無効か、権限がありません。設定をご確認ください。',
-            'api_error_bad_request' => 'AIサービスへのリクエストが不正です（モデルがこの機能に対応していない可能性があります）。',
-            'api_error_unknown' => 'AIサービスに接続できません。しばらくしてからお試しください。',
-            'error_rate_limit' => '1時間あたりのAIリクエスト上限（:limit回）を超えました。しばらくしてからお試しください。',
-        ],
-
         'dashboard_box_system_pages' => [
             'guideline' => 'ガイドライン',
             'news' => 'Exment新着情報一覧',

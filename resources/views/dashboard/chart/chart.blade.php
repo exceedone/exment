@@ -48,17 +48,16 @@
             return color;
         }
 
-        // The point colors, composed from one state: the AI summary's anomalies (amber) and
-        // the highlight (faded when not picked). base is one color for line, a per-point
-        // palette array for the other types.
-        var base = {!! $chart_color !!}, AMBER = '#e0a020', anomaly = null, flagged = {};
+        // The point colors from the highlight state (faded when not picked). base is one
+        // color for line, a per-point palette array for the other types.
+        var base = {!! $chart_color !!};
         var baseOf = function (i) { return $.isArray(base) ? base[i % base.length] : base; };
         var paint = function (i) {
-            var color = flagged[i] ? AMBER : baseOf(i);
+            var color = baseOf(i);
             return faded(i) ? fade(color, 0.18) : color;
         };
         var pointColors = function () { return values.map(function (v, i) { return paint(i); }); };
-        var pointRadii = function () { return values.map(function (v, i) { return flagged[i] ? 6 : ((pickedN > 0 && !faded(i)) ? 5 : 3); }); };
+        var pointRadii = function () { return values.map(function (v, i) { return (pickedN > 0 && !faded(i)) ? 5 : 3; }); };
 
         // px: gap between the point and its label, the label's line height, and the room the
         // layout keeps above the plot so a label on a full-height bar still fits in the canvas
@@ -196,7 +195,7 @@
         });
         @endif
 
-        // the points repainted from the current state (anomalies + highlight)
+        // the points repainted from the current highlight state
         function repaint() {
             var ds = myChart.data.datasets[0];
             @if($chart_type == 'line')
@@ -209,9 +208,8 @@
         }
 
         // Per-box hooks for dashboard.js: `highlight` repaints the bar's pick on the chart's own
-        // X item (`self`), `mark` paints the AI summary's anomalies (amber bars / points, expected
-        // range in the tooltip; value-axis types only), `display` toggles the box menu's 値ラベル
-        // live, `data` hands the plotted points to the CSV export.
+        // X item (`self`), `display` toggles the box menu's 値ラベル live, `data` hands the
+        // plotted points to the CSV export.
         window.ExmentCharts = window.ExmentCharts || {};
         window.ExmentCharts['{{ $suuid }}'] = {
             self: (click && click.highlight) ? click.column : null,
@@ -223,23 +221,7 @@
                 @endif
                 myChart.update();
             },
-            data: function () { return { axisx: @json($chart_axisx), axisy: @json($chart_axisy), labels: labels, values: values }; },
-            mark: function (a) {
-            @if($chart_type == 'pie')
-            return;
-            @else
-            anomaly = a || null;
-            flagged = {};
-            ((anomaly && anomaly.points) || []).forEach(function (p) { flagged[p.index] = true; });
-            var rng = function (n) { return Math.round(n * 10) / 10; };
-            myChart.options.tooltips = myChart.options.tooltips || {};
-            myChart.options.tooltips.callbacks = myChart.options.tooltips.callbacks || {};
-            myChart.options.tooltips.callbacks.afterLabel = function (item) {
-                return (anomaly && flagged[item.index]) ? @json(exmtrans('dashboard.ai.expected_range')) + ': ' + rng(anomaly.lower) + ' – ' + rng(anomaly.upper) : '';
-            };
-            repaint();
-            @endif
-            }
+            data: function () { return { axisx: @json($chart_axisx), axisy: @json($chart_axisy), labels: labels, values: values }; }
         };
     });
 </script>

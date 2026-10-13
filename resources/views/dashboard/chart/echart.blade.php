@@ -179,12 +179,10 @@
         $(window).off('resize.echart_{{ $suuid }}').on('resize.echart_{{ $suuid }}', resize);
         $('[data-suuid="{{ $suuid }}"]').off('exment:dashboard_loaded.echart').on('exment:dashboard_loaded.echart', function () { setTimeout(resize, 50); });
 
-        // Overlays composed from one state, since they all live on the series' data / label /
-        // mark options: the highlight, the box menu's 値ラベル and the AI summary's anomaly
-        // markers (amber pins + shaded expected range). Labels and markers: value-axis types only.
-        var AMBER = '#e0a020';
+        // Overlays composed from one state, since they both live on the series' data / label
+        // options: the highlight and the box menu's 値ラベル (labels: value-axis types only).
         var horizontal = { hbar: true, area: false, scatter: false }[type];
-        var state = { anomaly: null, labels: {{ $chart_labels_on ? 'true' : 'false' }} };
+        var state = { labels: {{ $chart_labels_on ? 'true' : 'false' }} };
         function render() {
             if (chart.isDisposed && chart.isDisposed()) { return; }
             var s = {};
@@ -192,32 +190,18 @@
             if (horizontal !== undefined) {
                 s.label = { show: state.labels, position: horizontal ? 'right' : 'top', fontSize: 11, color: '#2b2b3a', formatter: function (p) { return fmt(Array.isArray(p.value) ? p.value[1] : p.value); } };
                 s.labelLayout = { hideOverlap: true };
-                var lines = [], band = [], pins = [];
-                var a = state.anomaly;
-                if (a && a.points && a.points.length) {
-                    var from = horizontal ? { xAxis: a.lower } : { yAxis: a.lower }, to = horizontal ? { xAxis: a.upper } : { yAxis: a.upper };
-                    var edge = { lineStyle: { type: 'dashed', color: AMBER, width: 1 }, label: { show: false } };
-                    band = [[from, to]];
-                    lines.push($.extend({}, edge, from));
-                    lines.push($.extend({}, edge, to));
-                    pins = a.points.map(function (p) { return { coord: horizontal ? [p.value, p.index] : [p.index, p.value], value: p.direction === 'high' ? '▲' : '▼' }; });
-                }
-                s.markLine = { silent: true, symbol: 'none', data: lines };
-                s.markArea = { silent: true, itemStyle: { color: 'rgba(224,160,32,0.08)' }, data: band };
-                s.markPoint = { symbol: 'pin', symbolSize: 42, itemStyle: { color: AMBER }, label: { color: '#fff', fontSize: 11, fontWeight: 'bold' }, data: pins };
             }
             chart.setOption({ series: [s] });
         }
         if (state.labels || pickedN > 0) { render(); }
 
         // Per-box hooks for dashboard.js: `highlight` repaints the bar's pick on the chart's own
-        // X item (`self`), `mark` (AI anomalies), `display` (menu toggles, live), `data` (the
+        // X item (`self`), `display` (menu toggles, live), `data` (the
         // plotted points for the CSV export)
         window.ExmentCharts = window.ExmentCharts || {};
         window.ExmentCharts['{{ $suuid }}'] = {
             self: (pickable && click.highlight) ? click.column : null,
             highlight: function (list) { setPicked(list); render(); },
-            mark: function (anomaly) { state.anomaly = anomaly || null; render(); },
             display: function (opts) { $.extend(state, opts || {}); render(); },
             data: function () { return { axisx: axisXName, axisy: axisYName, labels: labels, values: values }; }
         };

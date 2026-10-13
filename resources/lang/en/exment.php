@@ -657,32 +657,6 @@ return [
             'max' => 'Maximum',
         ],
 
-        // AI summary strip under a chart
-        'ai' => [
-            'switch' => 'AI summary',
-            'switch_help' => 'When enabled, chart data is sent to the AI service to generate summaries. Disable this on dashboards handling confidential data.',
-            'toggle' => 'AI summary',
-            'generating' => 'Generating summary...',
-            'regenerate' => 'Regenerate',
-            'disabled' => 'AI summary is disabled.',
-            'withheld' => 'This data was withheld from AI because it contains sensitive values.',
-            'stat_highest' => 'Highest',
-            'stat_lowest' => 'Lowest',
-            'stat_average' => 'Average',
-            'stat_range' => 'Spread',
-            'anomaly_title' => 'Anomalies',
-            'expected_range' => 'Expected range',
-            'stable' => 'No outliers — all points within the expected range',
-            'error_generic' => 'An error occurred connecting to AI. Please try again.',
-            'no_valid_answer' => 'Could not get a valid answer from AI. Please try again.',
-            'api_error_timeout' => 'The connection to the AI service was interrupted or timed out. Please try again.',
-            'api_error_rate' => 'AI call limit reached. Please try again in a few minutes.',
-            'api_error_auth' => 'The AI service API key is invalid or unauthorized. Please check the settings.',
-            'api_error_bad_request' => 'The request to the AI service is invalid (the model may not support this feature).',
-            'api_error_unknown' => 'Cannot connect to the AI service. Please try again later.',
-            'error_rate_limit' => 'You exceeded the AI request limit (:limit per hour). Please try again later.',
-        ],
-
         'dashboard_box_system_pages' => [
             'guideline' => 'Guideline',
             'news' => 'Exment new arrival information list',

@@ -105,25 +105,6 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     }
 
     /**
-     * AI summary strip opt-in (options.ai_summary, default OFF).
-     */
-    public function getAiSummaryAttribute(): bool
-    {
-        return boolval($this->getOption('ai_summary'));
-    }
-
-    // @phpstan-ignore-next-line
-    public function setAiSummaryAttribute($value)
-    {
-        if (boolval($value)) {
-            $this->setOption('ai_summary', true);
-        } else {
-            $this->forgetOption('ai_summary');
-        }
-        return $this;
-    }
-
-    /**
      * Filter bar source table (options.filter_bar.source_table).
      */
     // @phpstan-ignore-next-line

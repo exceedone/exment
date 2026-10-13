@@ -284,9 +284,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
             $router->get("webapi/{tableKey}/operation-update-type", 'ApiTableController@getOperationUpdateType');
             $router->get("webapi/{tableKey}/operation-filter-value", 'ApiTableController@getOperationFilterValue');
-
-            // AI summary strip of a chart box
-            $router->post('webapi/ai-summary', 'AiSummaryController@summary');
         });
     }
 

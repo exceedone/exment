@@ -8,24 +8,12 @@ class DashboardModelTest extends DashboardUnitTestCase
 {
     public function testRowSettingMergesIntoOptions()
     {
-        $dashboard = $this->makeDashboard($this->bar(['grade']), ['row1' => 1, 'row2' => 2, 'ai_summary' => true]);
+        $dashboard = $this->makeDashboard($this->bar(['grade']), ['row1' => 1, 'row2' => 2, 'keep_me' => true]);
         $dashboard->row_setting = ['row1' => 3, 'row2' => 0];
         $this->assertSame(3, $dashboard->getOption('row1'));
         $this->assertSame(0, $dashboard->getOption('row2'));
-        $this->assertTrue($dashboard->ai_summary, 'keys the form does not manage survive');
+        $this->assertTrue($dashboard->getOption('keep_me'), 'keys the form does not manage survive');
         $this->assertSame('fake_table', $dashboard->getOption('filter_bar.source_table'));
-    }
-
-    public function testAiSummarySwitch()
-    {
-        $dashboard = $this->makeDashboard(null);
-        $this->assertFalse($dashboard->ai_summary, 'default OFF');
-        $dashboard->ai_summary = '1';
-        $this->assertTrue($dashboard->ai_summary);
-        $this->assertTrue($dashboard->getOption('ai_summary'));
-        $dashboard->ai_summary = 0;
-        $this->assertFalse($dashboard->ai_summary);
-        $this->assertArrayNotHasKey('ai_summary', $dashboard->options, 'OFF = key absent');
     }
 
     public function testFilterBarTableAndDims()

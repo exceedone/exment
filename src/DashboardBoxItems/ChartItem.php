@@ -15,7 +15,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Services\AiSummaryService;
 use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\ChartFilter;
 use Exceedone\Exment\Services\Dashboard\ChartSort;
@@ -26,9 +25,9 @@ use Exceedone\Exment\Services\Dashboard\SummaryAverage;
 
 /**
  * Chart box. On top of the configured chart, the box renders a toolbar (runtime chart-type
- * switcher + the box's own chart filter) and, when the dashboard opted in, the AI summary
- * strip. Every data path applies the dashboard filter bar (df_*) and the chart filter
- * (bf_*) of the request, so chart, popover options and AI summary see the same rows.
+ * switcher + the box's own chart filter). Every data path applies the dashboard filter bar
+ * (df_*) and the chart filter (bf_*) of the request, so chart and popover options see the
+ * same rows.
  *
  * Cross-highlight: the bar item that is this chart's own X column never filters the chart
  * (highlightColumn) — every category stays on screen and the picked values are drawn solid,
@@ -236,46 +235,7 @@ class ChartItem implements ItemInterface
             }
         }
 
-        return $this->toolbarHtml($fields) . $chart->render() . $this->aiSummaryHtml();
-    }
-
-    /**
-     * The chart's data for the AI summary (same rows the chart shows), or null.
-     *
-     * @return array|null {title, chart_type, axis_x_label, axis_y_label, labels, values, is_aggregate}
-     */
-    // @phpstan-ignore-next-line
-    public function getInsightData()
-    {
-        if ($this->hasPermission() !== true || is_null($this->custom_view)) {
-            return null;
-        }
-        $result = $this->isAggregateView() ? $this->getAggregateData() : $this->getListData();
-        if ($result === false) {
-            return null;
-        }
-        $result = $this->sorted($result, false);
-        return [
-            'title' => array_get($this->dashboard_box, 'dashboard_box_view_name'),
-            'chart_type' => $this->chart_type,
-            'axis_x_label' => $result['axisx_label'],
-            'axis_y_label' => $result['axisy_label'],
-            'labels' => collect($result['chart_label'])->values()->map(function ($v) {
-                return is_scalar($v) ? (string) $v : $v;
-            })->all(),
-            'values' => collect($result['chart_data'])->values()->map(function ($v) {
-                return is_numeric($v) ? floatval($v) : $v;
-            })->all(),
-            'is_aggregate' => $this->isAggregateView(),
-        ];
-    }
-
-    /**
-     * Stable string of this box's current filter state (dashboard filter + chart filter).
-     */
-    public function filterFingerprint(): string
-    {
-        return md5($this->dashboard_filter->fingerprint($this->dashboardExcept()) . '|' . $this->chart_filter->fingerprint());
+        return $this->toolbarHtml($fields) . $chart->render();
     }
 
     protected function isAggregateView(): bool
@@ -519,16 +479,6 @@ class ChartItem implements ItemInterface
             'filter_count' => count($this->chart_filter->values()),
             'captions' => $this->chart_filter->captions(),
         ])->render();
-    }
-
-    /**
-     * The collapsed AI summary strip under the chart (only where the dashboard opted in).
-     */
-    protected function aiSummaryHtml(): string
-    {
-        return AiSummaryService::enabledForBox($this->dashboard_box)
-            ? view('exment::dashboard.chart.ai_summary')->render()
-            : '';
     }
 
     /**

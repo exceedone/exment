@@ -1,6 +1,6 @@
 /**
  * Exment dashboard runtime: box loading, the dashboard filter bar, the chart toolbar
- * (chart-type switcher + chart filter) and the AI summary strip.
+ * (chart-type switcher + chart filter).
  *
  * Entry point: ExmentDashboard.init({lang: {...}}) from DashboardController::home.
  * Re-run on every pjax render, so every binding is namespaced and re-bound idempotently.
@@ -709,97 +709,6 @@
         refreshFilterBar(url);
     }
 
-    // ---- AI summary -------------------------------------------------------------------
-    // The chart renderers register a per-box marker hook (window.ExmentCharts[suuid].mark);
-    // the anomalies of the summary are painted on the chart while the strip is open.
-    function markChart($wrap, anomalies) {
-        var suuid = $wrap.closest('[data-suuid]').data('suuid'), hook = (window.ExmentCharts || {})[suuid];
-        if (hook && typeof hook.mark === 'function') {
-            try { hook.mark(anomalies || null); } catch (e) {}
-        }
-    }
-
-    function fetchAi($wrap) {
-        var $box = $wrap.closest('[data-suuid]'), suuid = $box.data('suuid'), $panel = $wrap.find('[data-ai-panel]');
-        if (!suuid || $wrap.data('loading')) { return; }
-        $wrap.data('loading', true);
-        $panel.html('<div class="ai-loading"><i class="fa fa-circle-o-notch fa-spin"></i> ' + esc(L.ai_generating) + '</div>');
-        $.ajax({
-            url: admin_url('webapi/ai-summary') + boxQuery(suuid),
-            type: 'POST',
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || '' },
-            contentType: 'application/json',
-            data: JSON.stringify({ suuid: suuid }),
-            success: function (res) {
-                $wrap.data('loading', false).data('loaded', true).data('anomalies', (res && res.anomalies) || null);
-                $panel.html(res && res.success ? renderAi(res) : aiError(res && res.message));
-                markChart($wrap, $wrap.data('anomalies'));
-            },
-            error: function (xhr) {
-                $wrap.data('loading', false);
-                $panel.html(aiError(xhr.responseJSON && xhr.responseJSON.message));
-            }
-        });
-    }
-
-    function fmtNum(v) {
-        if (v === null || v === undefined || v === '' || isNaN(v)) { return '–'; }
-        var n = Number(v), abs = Math.abs(n);
-        var trim = function (x) { return String(Math.round(x * 10) / 10); };
-        if (abs >= 1e9) { return trim(n / 1e9) + 'B'; }
-        if (abs >= 1e6) { return trim(n / 1e6) + 'M'; }
-        if (abs >= 1e5) { return trim(n / 1e3) + 'K'; }
-        var rounded = Math.round(n * 10) / 10;
-        try { return rounded.toLocaleString(undefined, { maximumFractionDigits: 1 }); } catch (e) { return String(rounded); }
-    }
-
-    function renderAi(res) {
-        var html = '';
-        if (res.stats) {
-            var tile = function (icon, label, value, sub) {
-                return '<div class="ai-stat"><div class="ai-stat-label">' + icon + esc(label) + '</div>'
-                    + '<div class="ai-stat-value">' + esc(value) + '</div>'
-                    + '<div class="ai-stat-sub" title="' + esc(sub || '') + '">' + (sub ? esc(sub) : '&nbsp;') + '</div></div>';
-            };
-            html += '<div class="ai-stats">'
-                + tile('<i class="fa fa-arrow-up"></i>', L.ai_highest, fmtNum(res.stats.highest.value), res.stats.highest.label)
-                + tile('<i class="fa fa-arrow-down"></i>', L.ai_lowest, fmtNum(res.stats.lowest.value), res.stats.lowest.label)
-                + tile('', L.ai_average, fmtNum(res.stats.average))
-                + tile('', L.ai_range, fmtNum(res.stats.range))
-                + '</div>';
-        }
-        if (res.anomalies) {
-            var a = res.anomalies;
-            var range = esc(L.ai_expected_range) + ': ' + esc(fmtNum(a.lower)) + ' – ' + esc(fmtNum(a.upper));
-            if (!a.points || !a.points.length) {
-                html += '<div class="ai-stable"><i class="fa fa-check-circle"></i>' + esc(L.ai_stable) + ' <span class="ai-anomaly-range">(' + range + ')</span></div>';
-            } else {
-                html += '<div class="ai-anomalies"><div class="ai-anomaly-head"><i class="fa fa-exclamation-triangle"></i>' + esc(L.ai_anomalies)
-                    + ' <span class="ct-cnt">' + a.points.length + '</span><span class="ai-anomaly-range">' + range + '</span></div><ul class="ai-anomaly-list">';
-                $.each(a.points, function (i, p) {
-                    html += '<li class="ai-anomaly"><i class="fa fa-arrow-' + (p.direction === 'high' ? 'up' : 'down') + '"></i>'
-                        + '<span class="ai-anomaly-label" title="' + esc(p.label) + '">' + esc(p.label) + '</span>'
-                        + '<span class="ai-anomaly-value">' + esc(fmtNum(p.value)) + '</span></li>';
-                });
-                html += '</ul></div>';
-            }
-        }
-        // the model answers in prose; emphasise the figures, strip any stray markdown
-        var text = String(res.text || '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/^#{1,6}\s*/gm, '').trim();
-        $.each(text.split(/\n\s*\n/), function (i, para) {
-            para = para.replace(/\s+/g, ' ').trim();
-            if (para) { html += '<p class="ai-text">' + esc(para).replace(/\d[\d,]*(?:\.\d+)?%?/g, '<strong>$&</strong>') + '</p>'; }
-        });
-        html += '<div class="ai-meta"><span><i class="fa fa-magic"></i> AI' + (res.generated_at ? ' · ' + esc(res.generated_at) : '') + '</span>'
-            + '<a href="javascript:void(0)" data-ai-regen>' + esc(L.ai_regenerate) + '</a></div>';
-        return html;
-    }
-
-    function aiError(message) {
-        return '<div class="ai-error"><i class="fa fa-info-circle"></i>' + esc(message || L.ai_error)
-            + '<a href="javascript:void(0)" data-ai-regen>' + esc(L.ai_regenerate) + '</a></div>';
-    }
-
     // ---- bindings ---------------------------------------------------------------------
     function bind() {
         $(document).off(NS);
@@ -901,21 +810,6 @@
                 var hit = q === '' || $(this).text().toLowerCase().indexOf(q) >= 0 || $(this).find('input').prop('checked');
                 $(this).toggleClass('miss', !hit);
             });
-        });
-
-        // AI summary strip: fetched on first expand only
-        $(document).on('click' + NS, '[data-ai-toggle]', function () {
-            var $wrap = $(this).closest('[data-ai-summary]'), $panel = $wrap.find('[data-ai-panel]');
-            var open = $(this).attr('aria-expanded') === 'true';
-            $(this).attr('aria-expanded', open ? 'false' : 'true');
-            $wrap.toggleClass('open', !open);
-            if (open) { $panel.attr('hidden', true); markChart($wrap, null); return; }
-            $panel.removeAttr('hidden');
-            if ($wrap.data('loaded')) { markChart($wrap, $wrap.data('anomalies')); } else { fetchAi($wrap); }
-        });
-        $(document).on('click' + NS, '[data-ai-regen]', function (ev) {
-            ev.preventDefault();
-            fetchAi($(this).closest('[data-ai-summary]'));
         });
     }
 
