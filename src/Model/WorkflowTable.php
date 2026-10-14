@@ -17,6 +17,34 @@ class WorkflowTable extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
+    use Traits\TemplateTrait;
+
+
+    // @phpstan-ignore-next-line
+    public static $templateItems = [
+        // The exporter eager loads custom_table to resolve the unique key, and
+        // toArray() then carries the whole relation into the template. It is
+        // not a column here, so writing it back on import fails.
+        'excepts' => ['id', 'custom_table'],
+        'uniqueKeys' => [
+            'export' => ['custom_table.table_name'],
+            'import' => ['custom_table_id'],
+        ],
+        'parent' => 'workflow_id',
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'custom_table_id',
+                        'replacedName' => [
+                            'table_name' => 'table_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomTable::class,
+            ],
+        ],
+    ];
 
 
     // @phpstan-ignore-next-line

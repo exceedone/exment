@@ -299,6 +299,7 @@ class CustomTableController extends AdminControllerBase
             $form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))
                 ->help(exmtrans("custom_table.help.comment_flg"))
                 ->default("1")
+                ->attribute(['data-filtertrigger' =>true])
             ;
             $form->switchbool('revision_flg', exmtrans("custom_table.revision_flg"))->help(exmtrans("custom_table.help.revision_flg"))
                 ->default("1")

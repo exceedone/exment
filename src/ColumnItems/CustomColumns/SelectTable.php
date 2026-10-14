@@ -94,6 +94,28 @@ class SelectTable extends CustomItem
         return $this->getValue($v, true, true);
     }
 
+    /**
+     * A reference the viewer may not open is printed as "no permission"
+     * (see getValue()), and its per-value color is keyed on the id of the
+     * record it points at. Painting it would tell, color by color, which
+     * record that is - so only a reference the viewer can open is painted.
+     *
+     * The lookup is the one getValue() just made for the label, answered
+     * from the request cache. Anything but an id is not a reference the
+     * viewer could open, so it is left plain without asking.
+     *
+     * @param mixed $v
+     * @return bool
+     */
+    protected function isStyledValue($v): bool
+    {
+        if (!isset($this->target_table) || !is_numeric($v)) {
+            return false;
+        }
+
+        return !is_null($this->target_table->getValueModel($v));
+    }
+
     // @phpstan-ignore-next-line
     protected function getValue($v, $text, $html)
     {
@@ -232,6 +254,46 @@ class SelectTable extends CustomItem
                         'target_column_multiple' => $field instanceof \ExmentAdminCore\Admin\Form\Field\MultipleSelect ? 1 : 0,
                     ]),
                     'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'class_' . $this->uniqueName()]),
+                ],
+            ];
+        }
+
+        // "assign to me", Backlog's 私が担当. Rides the same button strip the search
+        // button uses, so it lands next to the field with no new markup. The user
+        // id travels in the attribute rather than a JS global, because nothing
+        // exposes the logged-in user to scripts today.
+        if (isMatchString($this->custom_column->column_type, ColumnType::USER)
+            && boolval($this->custom_column->getOption('assign_me_enabled'))
+        ) {
+            $assign_me_id = \Exment::getUserId();
+            if (!is_nullorempty($assign_me_id)) {
+                $login_user = \Exment::user();
+                $buttons[] = [
+                    'label' => exmtrans('custom_column.assign_me'),
+                    'btn_class' => 'btn-default',
+                    'icon' => 'fa-user',
+                    'attributes' => [
+                        'data-assign-me' => $assign_me_id,
+                        'data-assign-me-label' => $login_user ? $login_user->user_name : $assign_me_id,
+                    ],
+                ];
+            }
+        }
+
+        // Quick add, Backlog's + beside カテゴリー. Hidden unless this user could
+        // create the record anyway, so the button never offers something the save
+        // would then refuse.
+        if (boolval($this->custom_column->getOption('quickadd_enabled'))
+            && isMatchString($this->custom_column->column_type, ColumnType::SELECT_TABLE)
+            && $this->target_table->enableCreate(true) === true
+        ) {
+            $buttons[] = [
+                'label' => exmtrans('custom_column.quickadd'),
+                'btn_class' => 'btn-default',
+                'icon' => 'fa-plus',
+                'attributes' => [
+                    'data-quickadd-url' => admin_urls('webapi', $this->target_table->table_name, 'quickadd'),
+                    'data-quickadd-title' => $this->label(),
                 ],
             ];
         }

@@ -95,6 +95,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
+        \Exceedone\Exment\Console\SlaCommand::class,
+        \Exceedone\Exment\Console\MigrateInCommand::class,
     ];
 
 
@@ -393,6 +395,9 @@ class ExmentServiceProvider extends ServiceProvider
         foreach ($pluginPages as $pluginPage) {
             if (!is_null($items = $pluginPage->_getLoadView())) {
                 $this->loadViewsFrom($items[0], $items[1]);
+            }
+            if (method_exists($pluginPage, '_getLoadTranslation') && !is_null($items = $pluginPage->_getLoadTranslation())) {
+                $this->loadTranslationsFrom($items[0], $items[1]);
             }
         }
     }
