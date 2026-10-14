@@ -642,6 +642,7 @@ return [
             'standard' => 'Standard colors',
             'auto' => 'Automatic',
             'more' => 'More colors...',
+            'ok' => 'OK',
             'reset' => 'Reset colors',
         ],
 

@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Services\Dashboard;
 
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 /**
  * Option lists for a filter control.
@@ -76,9 +78,19 @@ final class ColumnOptions
      */
     public static function bounds(CustomTable $table, $column, ?callable $scope = null): array
     {
+        $kind = FilterValue::kind($column);
+        // the whole table of an indexed column: the ends of its DISTINCT values, read off the
+        // index (values()), while they fit the option cap — 1 ms against a MIN / MAX of a CAST
+        // over every row (1.3 s on 384k rows); past the cap the rows are scanned as below
+        if ($scope === null && self::indexScannable($column)) {
+            $rows = self::indexValues($table, $column, FilterBarConfig::DEFAULT_MAX_OPTIONS);
+            if ($rows !== null && !$rows['capped']) {
+                [$lo, $hi] = self::ends($rows['values'], $kind);
+                return ['min' => FilterValue::formatBound($lo, $kind), 'max' => FilterValue::formatBound($hi, $kind)];
+            }
+        }
         $expr = FilterValue::columnExpr($column);
         $compare = FilterValue::compareExpr($column);
-        $kind = FilterValue::kind($column);
         $query = $table->getValueQuery();
         if ($scope !== null) {
             $scope($query);
@@ -138,15 +150,61 @@ final class ColumnOptions
      * The DISTINCT non-empty values of $column over $table's rows within $scope, as strings,
      * unordered; capped when more than $limit.
      *
+     * @param mixed $column  CustomColumn
      * @return array{values: string[], capped: bool}
      */
     private static function values(CustomTable $table, $column, ?callable $scope, int $limit): array
     {
-        $expr = FilterValue::columnExpr($column);
+        if ($scope === null && self::indexScannable($column)) {
+            $rows = self::indexValues($table, $column, $limit);
+            // past the cap, values only soft-deleted rows hold may be what tips it: then the
+            // live rows are counted the plain way below
+            if ($rows !== null && (!$rows['capped'] || !self::hasTrashed($table))) {
+                return $rows;
+            }
+        }
         $query = $table->getValueQuery(); // the value model's query: soft-deleted rows excluded
         if ($scope !== null) {
             $scope($query);
         }
+        return self::distinctValues($query, $column, $limit);
+    }
+
+    /**
+     * values() over the whole table of an indexed column, read straight off the column's
+     * index (MySQL / MariaDB loose index scan: 1 ms on 384k rows). The value model's
+     * soft-delete predicate would make the optimizer walk the deleted_at index over half the
+     * table instead (1.2 s), so the rows are read with it off and the values only
+     * soft-deleted rows hold are dropped afterwards (liveValues). A capped result may count
+     * such values too. Null when the value model has no soft deletes to turn off.
+     *
+     * @param mixed $column  CustomColumn
+     * @return array{values: string[], capped: bool}|null
+     */
+    private static function indexValues(CustomTable $table, $column, int $limit): ?array
+    {
+        $query = $table->getValueQuery();
+        if (!$query->hasMacro('withTrashed')) {
+            return null;
+        }
+        $rows = self::distinctValues($query->withoutGlobalScope(SoftDeletingScope::class), $column, $limit);
+        if (!$rows['capped']) {
+            $rows['values'] = self::liveValues($table, $column, $rows['values']);
+        }
+        return $rows;
+    }
+
+    /**
+     * The DISTINCT non-empty values of $column the rows of $query hold, as strings; capped
+     * when more than $limit.
+     *
+     * @param mixed $query  query on the table's rows
+     * @param mixed $column  CustomColumn
+     * @return array{values: string[], capped: bool}
+     */
+    private static function distinctValues($query, $column, int $limit): array
+    {
+        $expr = FilterValue::columnExpr($column);
         $values = $query
             ->whereRaw("{$expr} IS NOT NULL AND {$expr} <> ''")
             ->selectRaw("{$expr} as v")
@@ -163,6 +221,77 @@ final class ColumnOptions
             return ['values' => [], 'capped' => true];
         }
         return ['values' => $values, 'capped' => false];
+    }
+
+    /**
+     * Whether the whole-table DISTINCT of $column can be read off its index: the column keeps
+     * an indexed generated column, on MySQL / MariaDB (loose index scan; SQL Server, the other
+     * database Exment runs on, has neither it nor the USE INDEX syntax of liveValues).
+     *
+     * @param mixed $column  CustomColumn
+     */
+    private static function indexScannable($column): bool
+    {
+        return (bool) $column->index_enabled && !\Exment::isSqlServer();
+    }
+
+    /**
+     * Whether $table holds a soft-deleted row (one indexed lookup).
+     */
+    private static function hasTrashed(CustomTable $table): bool
+    {
+        return \DB::table(getDBTableName($table))->whereNotNull('deleted_at')->exists();
+    }
+
+    /**
+     * The values among $values that at least one live row holds. Nothing to check while the
+     * table has no soft-deleted row (hasTrashed); otherwise one index-hinted existence
+     * probe per value (0.2 ms each — without the hint the optimizer prefers the deleted_at
+     * index again), the plain probe when the hint is refused (index renamed or gone).
+     *
+     * @param mixed $column  CustomColumn
+     * @param string[] $values
+     * @return string[]
+     */
+    private static function liveValues(CustomTable $table, $column, array $values): array
+    {
+        if (empty($values) || !self::hasTrashed($table)) {
+            return $values;
+        }
+        $name = $column->getIndexColumnName(false);
+        $grammar = \DB::getQueryGrammar();
+        $hinted = \DB::raw($grammar->wrap(getDBTableName($table)) . ' USE INDEX (' . $grammar->wrap('index_' . $name) . ')');
+        $live = function ($from) use ($name, $values) {
+            return array_values(array_filter($values, function ($v) use ($from, $name) {
+                return \DB::table($from)->where($name, $v)->whereNull('deleted_at')->exists();
+            }));
+        };
+        try {
+            return $live($hinted);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return $live(getDBTableName($table));
+        }
+    }
+
+    /**
+     * The lowest and highest of $values the way a range compares them (FilterValue::compareExpr):
+     * numbers as numbers (text that is no number is skipped), anything else as text.
+     *
+     * @param string[] $values
+     * @return array{0: ?string, 1: ?string}  [min, max], [null, null] when nothing compares
+     */
+    public static function ends(array $values, string $kind): array
+    {
+        $values = array_values(array_filter($values, function ($v) use ($kind) {
+            return ($kind !== 'number' || is_numeric($v)) && $v !== '';
+        }));
+        if (empty($values)) {
+            return [null, null];
+        }
+        usort($values, function ($a, $b) use ($kind) {
+            return $kind === 'number' ? ((float) $a <=> (float) $b) : strcmp((string) $a, (string) $b);
+        });
+        return [(string) $values[0], (string) $values[count($values) - 1]];
     }
 
     /**
@@ -188,6 +317,9 @@ final class ColumnOptions
         }
         $options = [];
         foreach ($records as $record) {
+            if (!$record instanceof CustomValue) {
+                continue; // the value query yields CustomValue rows alone
+            }
             $options[] = ['id' => (string) $record->id, 'name' => (string) $record->getLabel()];
         }
         return $options;
@@ -200,7 +332,7 @@ final class ColumnOptions
      * key alone being its own label. null for any other column, or when nothing is defined.
      *
      * @param mixed $column  CustomColumn
-     * @return array<string, string>|null
+     * @return array<array-key, string>|null
      */
     public static function definedChoices($column): ?array
     {
@@ -210,7 +342,7 @@ final class ColumnOptions
         }
         $valtext = $type === ColumnType::SELECT_VALTEXT;
         $raw = $column->getOption($valtext ? 'select_item_valtext' : 'select_item');
-        $lines = is_array($raw) ? $raw : (is_string($raw) ? preg_split('/\r\n|\r|\n/', $raw) : []);
+        $lines = is_array($raw) ? $raw : (is_string($raw) ? (preg_split('/\r\n|\r|\n/', $raw) ?: []) : []);
         $defined = [];
         foreach ($lines as $line) {
             if (!is_string($line)) {
@@ -230,7 +362,7 @@ final class ColumnOptions
      * The defined items as options, in the defined order; with $present (the values the rows
      * within a scope hold) only those — a value no longer defined is no choice.
      *
-     * @param array<string, string> $defined  definedChoices()
+     * @param array<array-key, string> $defined  definedChoices()
      * @param string[]|null $present
      * @return array<int, array{id:string,name:string}>
      */
@@ -279,6 +411,9 @@ final class ColumnOptions
     /**
      * Two options with the same label (two same-name students) get the raw value appended,
      * so every option stays tellable apart.
+     *
+     * @param array<int, array{id:string,name:string}> $options
+     * @return array<int, array{id:string,name:string}>
      */
     private static function uniqueNames(array $options): array
     {

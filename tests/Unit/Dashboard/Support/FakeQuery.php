@@ -8,28 +8,32 @@ namespace Exceedone\Exment\Tests\Unit\Dashboard\Support;
  */
 class FakeQuery
 {
-    /** @var array<int, array{0:string,1:array}> */
+    /** @var array<int, array{0: string, 1: array<int|string, mixed>}> */
     public $calls = [];
 
-    public function where(...$args)
+    public function where(mixed ...$args): static
     {
         $this->calls[] = ['where', $args];
         return $this;
     }
 
-    public function whereIn(...$args)
+    public function whereIn(mixed ...$args): static
     {
         $this->calls[] = ['whereIn', $args];
         return $this;
     }
 
-    public function whereRaw(...$args)
+    public function whereRaw(mixed ...$args): static
     {
         $this->calls[] = ['whereRaw', $args];
         return $this;
     }
 
-    /** Every call rendered as one readable line, in order. */
+    /**
+     * Every call rendered as one readable line, in order.
+     *
+     * @return string[]
+     */
     public function sql(): array
     {
         return array_map(function ($call) {

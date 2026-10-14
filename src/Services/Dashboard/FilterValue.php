@@ -14,11 +14,22 @@ use Exceedone\Exment\Enums\ColumnType;
  *
  * Number / date columns compare their range bounds as numbers / ISO dates; a range never
  * matches an empty value.
+ *
+ * @phpstan-type FilterSpec array{in: list<string>}|array{from: string|null, to: string|null}
  */
 final class FilterValue
 {
     /**
+     * The SQL type a number column compares as. Wide enough for every number Exment stores
+     * (Define::MAX_FLOAT_PRECISION = 14 digits in all, at most 8 of them decimals), so a
+     * bound is never compared against a rounded value.
+     */
+    private const NUMBER_CAST = 'DECIMAL(22,8)';
+
+    /**
      * Only plain identifiers are ever interpolated into SQL or a JSON path.
+     *
+     * @param mixed $name
      */
     public static function isIdentifier($name): bool
     {
@@ -27,6 +38,9 @@ final class FilterValue
 
     /**
      * Normalize a raw request value into a spec, or null when it carries no filter.
+     *
+     * @param mixed $raw
+     * @return FilterSpec|null
      */
     public static function parse($raw): ?array
     {
@@ -57,6 +71,9 @@ final class FilterValue
 
     /**
      * Display strings of a spec: the values, or the range as "from – to".
+     *
+     * @param FilterSpec $spec
+     * @return list<string>
      */
     public static function values(array $spec): array
     {
@@ -69,6 +86,8 @@ final class FilterValue
     /**
      * Canonical string of a spec (order-independent): two selections compare by it
      * (DashboardFilter::sameAs).
+     *
+     * @param FilterSpec $spec
      */
     public static function token(array $spec): string
     {
@@ -83,6 +102,8 @@ final class FilterValue
     /**
      * How a column compares inside a range and which input a range renders:
      * 'number' | 'date' | 'datetime' | 'text'.
+     *
+     * @param mixed $column  CustomColumn|null
      */
     public static function kind($column): string
     {
@@ -110,6 +131,8 @@ final class FilterValue
      * $configured (a dim's "style" in the filter bar config) overrides the default, for a
      * continuous column — money, a measurement — where picking one exact value is never
      * the question being asked.
+     *
+     * @param mixed $column  CustomColumn|null
      */
     public static function style($column, ?string $configured = null): string
     {
@@ -128,7 +151,8 @@ final class FilterValue
      * empty select that narrows every chart in silence. A text column never compares, so a
      * from / to on it is no control at all (and no filter).
      *
-     * @param array|null $spec  parse() of the item's value; null when nothing is selected
+     * @param mixed $column  CustomColumn|null
+     * @param FilterSpec|null $spec  parse() of the item's value; null when nothing is selected
      */
     public static function styleFor($column, ?string $configured, ?array $spec): string
     {
@@ -146,6 +170,8 @@ final class FilterValue
      * and wrapped by the connection's grammar, which turns `->` into the JSON access each
      * database has (json_unquote(json_extract()) on MySQL / MariaDB, json_value() on SQL
      * Server).
+     *
+     * @param mixed $column  CustomColumn
      */
     public static function columnExpr($column): string
     {
@@ -167,18 +193,30 @@ final class FilterValue
     /**
      * SQL a range compares on: a number column as DECIMAL (so "72" sorts before "1001"),
      * every other column its stored text (ISO dates order as text).
+     *
+     * @param mixed $column  CustomColumn
      */
     public static function compareExpr($column): string
     {
         $expr = self::columnExpr($column);
-        return self::kind($column) === 'number' ? "CAST({$expr} AS DECIMAL(20,4))" : $expr;
+        return self::kind($column) === 'number' ? self::castNumber($expr) : $expr;
+    }
+
+    /**
+     * $expr as a number. SQL Server fails the whole query on a single text that is no
+     * number, so there such a text reads as NULL (TRY_CAST): left out of MIN / MAX and of a
+     * range instead. MySQL / MariaDB never fail on one (CAST reads it as 0).
+     */
+    private static function castNumber(string $expr): string
+    {
+        return (\Exment::isSqlServer() ? 'TRY_CAST' : 'CAST') . "({$expr} AS " . self::NUMBER_CAST . ')';
     }
 
     /**
      * An end of the data (MIN / MAX of a column, ColumnOptions::bounds) as a range input
-     * shows it: a number without the DECIMAL's trailing zeros ("72.0000" → "72", "1.5000"
-     * → "1.5"), a date or datetime as its ISO day, anything else as is; '' when there is
-     * none (no rows) or it cannot be shown.
+     * shows it: a number without the DECIMAL's trailing zeros ("72.00000000" → "72",
+     * "1.50000000" → "1.5"), a date or datetime as its ISO day, anything else as is; ''
+     * when there is none (no rows) or it cannot be shown.
      *
      * @param mixed $value
      */
@@ -205,6 +243,10 @@ final class FilterValue
 
     /**
      * AND one spec for one custom column onto a query.
+     *
+     * @param mixed $query  query on the column's table rows
+     * @param mixed $column  CustomColumn
+     * @param FilterSpec $spec
      */
     public static function apply($query, $column, array $spec): void
     {
@@ -222,6 +264,9 @@ final class FilterValue
 
     /**
      * AND one spec onto a query against a ready SQL expression.
+     *
+     * @param mixed $query  query builder
+     * @param FilterSpec $spec
      */
     public static function applyExpr($query, string $expr, array $spec, string $kind = 'text'): void
     {
@@ -240,7 +285,7 @@ final class FilterValue
         if ($kind === 'number') {
             $from = is_numeric($from) ? $from : null;
             $to = is_numeric($to) ? $to : null;
-            $compare = "CAST({$expr} AS DECIMAL(20,4))";
+            $compare = self::castNumber($expr);
         } elseif ($kind === 'date' || $kind === 'datetime') {
             $from = self::isoDate($from);
             $to = self::isoDate($to);
@@ -260,6 +305,9 @@ final class FilterValue
         }
     }
 
+    /**
+     * @param mixed $v
+     */
     private static function bound($v): ?string
     {
         if (!is_scalar($v)) {
@@ -269,6 +317,9 @@ final class FilterValue
         return $v === '' ? null : $v;
     }
 
+    /**
+     * @param string|null $v
+     */
     private static function isoDate($v): ?string
     {
         return ($v !== null && preg_match('/^\d{4}-\d{2}-\d{2}/', $v)) ? substr($v, 0, 10) : null;

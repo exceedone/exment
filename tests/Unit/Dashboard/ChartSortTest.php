@@ -8,7 +8,7 @@ use Exceedone\Exment\Tests\Unit\Dashboard\Support\DashboardUnitTestCase;
 
 class ChartSortTest extends DashboardUnitTestCase
 {
-    public function testParse()
+    public function testParse(): void
     {
         $sort = ChartSort::parse('x1:desc');
         $this->assertSame('x1', $sort->field);
@@ -26,20 +26,20 @@ class ChartSortTest extends DashboardUnitTestCase
         }
     }
 
-    public function testValueOrderKeepsNonNumericLastAndTiesStable()
+    public function testValueOrderKeepsNonNumericLastAndTiesStable(): void
     {
         $this->assertSame([2, 0, 3, 1, 4], ChartSorter::order([5, null, 9, 5, 'x'], true, true), 'ties keep their order; null and text last');
         $this->assertSame([0, 3, 2, 1, 4], ChartSorter::order([5, null, 9, 5, 'x'], false, true));
     }
 
-    public function testTextOrderIsNaturalAndCaseInsensitive()
+    public function testTextOrderIsNaturalAndCaseInsensitive(): void
     {
         $labels = ['10年', '2年', 'b', 'A', '1年'];
         $this->assertSame([4, 1, 0, 3, 2], ChartSorter::order($labels, false, false), '"2年" before "10年"; A before b');
         $this->assertSame([2, 3, 0, 1, 4], ChartSorter::order($labels, true, false));
     }
 
-    public function testSingleSeriesByMeasureMovesEverythingTogether()
+    public function testSingleSeriesByMeasureMovesEverythingTogether(): void
     {
         $result = [
             'chart_label' => collect(['東北', '関東', '北海道']),
@@ -56,7 +56,7 @@ class ChartSortTest extends DashboardUnitTestCase
         $this->assertSame('地方', $sorted['axisx_label'], 'other keys untouched');
     }
 
-    public function testSingleSeriesByOneOfSeveralXColumns()
+    public function testSingleSeriesByOneOfSeveralXColumns(): void
     {
         // a view grouped by 都道府県 then 学年: the label is "pref grade", the fields are the columns
         $result = [
@@ -74,7 +74,7 @@ class ChartSortTest extends DashboardUnitTestCase
         $this->assertSame($result, ChartSorter::applySingle($result, ChartSort::parse('x2:asc')), 'a column the chart lacks changes nothing');
     }
 
-    public function testSingleSeriesFallsBackToTheLabelWithoutFields()
+    public function testSingleSeriesFallsBackToTheLabelWithoutFields(): void
     {
         $sorted = ChartSorter::applySingle(['chart_label' => ['b', 'a'], 'chart_data' => [1, 2], 'chart_click' => null], ChartSort::parse('x0:asc'));
         $this->assertSame(['a', 'b'], $sorted['chart_label']);
@@ -82,7 +82,7 @@ class ChartSortTest extends DashboardUnitTestCase
         $this->assertNull($sorted['chart_click']);
     }
 
-    public function testMultiSeriesRanksCategoriesByTotalOrByText()
+    public function testMultiSeriesRanksCategoriesByTotalOrByText(): void
     {
         $result = [
             'x_categories' => ['1学期', '2学期', '3学期'],

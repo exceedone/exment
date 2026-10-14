@@ -159,6 +159,7 @@ class DashboardController extends AdminControllerBase
             'color_standard' => exmtrans('dashboard.chart_color.standard'),
             'color_auto' => exmtrans('dashboard.chart_color.auto'),
             'color_more' => exmtrans('dashboard.chart_color.more'),
+            'color_ok' => exmtrans('dashboard.chart_color.ok'),
             'chart_load_error' => exmtrans('dashboard.message.chart_load_error'),
         ];
         // each chart box starts with the toolbar choices this user left on it
@@ -357,7 +358,7 @@ class DashboardController extends AdminControllerBase
     /**
      * The df_ params of the filter bar's configured defaults ([] when none).
      *
-     * @return array<string, string|array>
+     * @return array<string, string|array<string|int, string>>
      */
     protected function filterDefaults(FilterBarConfig $config)
     {

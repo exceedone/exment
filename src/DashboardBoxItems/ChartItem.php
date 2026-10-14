@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\ChartFilter;
+use Exceedone\Exment\Services\Dashboard\ChartPivot;
 use Exceedone\Exment\Services\Dashboard\ChartSort;
 use Exceedone\Exment\Services\Dashboard\ChartSorter;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
@@ -44,7 +45,7 @@ class ChartItem implements ItemInterface
     // @phpstan-ignore-next-line
     protected $custom_table;
 
-    // @phpstan-ignore-next-line
+    /** @var CustomView|null */
     protected $custom_view;
 
     // @phpstan-ignore-next-line
@@ -241,6 +242,8 @@ class ChartItem implements ItemInterface
     /**
      * AND the dashboard filter (targeting-aware, minus the highlighted X item) and this
      * box's chart filter onto a query.
+     *
+     * @param mixed $query  query on the table's rows
      */
     protected function applyFilters($query): void
     {
@@ -312,11 +315,14 @@ class ChartItem implements ItemInterface
         if (!is_string($cd) || $cd === '') {
             return [];
         }
-        $known = ['labels'];
         $wanted = array_map('trim', explode(',', $cd));
-        return array_values(array_filter($known, function ($option) use ($wanted) {
-            return in_array($option, $wanted, true);
-        }));
+        $options = [];
+        foreach (['labels'] as $option) { // the known ones, in their order
+            if (in_array($option, $wanted, true)) {
+                $options[] = $option;
+            }
+        }
+        return $options;
     }
 
     /**
@@ -399,7 +405,7 @@ class ChartItem implements ItemInterface
      * Position of the X column of a multi-series chart among the view's group columns: the
      * first column that is not the series column (chart_series, default = the 2nd column).
      *
-     * @param \Illuminate\Support\Collection $view_columns  the group columns, re-indexed
+     * @param \Illuminate\Support\Collection<int, \Illuminate\Database\Eloquent\Model> $view_columns  the group CustomViewColumns, re-indexed
      */
     protected function multiSeriesXPos($view_columns): int
     {
@@ -478,8 +484,9 @@ class ChartItem implements ItemInterface
 
     /**
      * get chart data from list-view
+     *
+     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: mixed}|false
      */
-    // @phpstan-ignore-next-line
     protected function getListData()
     {
         $view_column_x = CustomViewSummary::getSummaryViewColumn($this->axis_x);
@@ -525,8 +532,9 @@ class ChartItem implements ItemInterface
 
     /**
      * get chart data from aggregate-view
+     *
+     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: string|null, chart_click: array{column: string, values: array<int, string>, selected: string[], highlight: bool}|null}|false
      */
-    // @phpstan-ignore-next-line
     protected function getAggregateData()
     {
         $view_column_x_list = $this->custom_view->custom_view_columns;
@@ -584,7 +592,7 @@ class ChartItem implements ItemInterface
     /**
      * Rows of the aggregate view for this box, filters applied.
      *
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection<array-key, mixed>
      */
     protected function summaryRows()
     {
@@ -617,8 +625,8 @@ class ChartItem implements ItemInterface
      * pick on it, drawn solid on the chart. null when no click applies.
      *
      * @param mixed $view_column  the view's group CustomViewColumn
-     * @param iterable $raw_values  raw group values, index-aligned with the chart's points
-     * @return array|null
+     * @param iterable<mixed> $raw_values  raw group values, index-aligned with the chart's points
+     * @return array{column: string, values: array<int, string>, selected: string[], highlight: bool}|null
      */
     protected function clickFilter($view_column, $raw_values)
     {
@@ -668,9 +676,11 @@ class ChartItem implements ItemInterface
     /**
      * Pivoted data of a multi-series chart from an aggregate view grouped by 2+ columns:
      * the series column (chart_series, default = 2nd column) splits the legend, the first
-     * other group column is the X axis, the measure (chart_axisy) fills each cell.
+     * other group column is the X axis, the measure (chart_axisy) fills each cell —
+     * ChartPivot: a category per stored X value, the rows of a cell folded as the
+     * measure's summary condition folds rows.
      *
-     * @return array|false {x_categories[], series_names[], matrix[seriesIdx][xIdx], axisx_label, axisy_label}
+     * @return array|false {x_categories[], series_names[], matrix[seriesIdx][xIdx], axisx_label, axisy_label, chart_click}
      */
     // @phpstan-ignore-next-line
     protected function getMultiSeriesData()
@@ -697,42 +707,27 @@ class ChartItem implements ItemInterface
         $item_series = $items[$series_pos];
         $item_y = $view_column_y->column_item;
 
-        $datalist = $this->summaryRows();
-
-        $x_texts = $datalist->map(function ($val) use ($item_x) {
-            return $item_x->setCustomValue($val)->text();
-        })->all();
-        $series_texts = $datalist->map(function ($val) use ($item_series) {
-            return $item_series->setCustomValue($val)->text();
-        })->all();
-        $y_values = $datalist->pluck($item_y->uniqueName())->all();
-
-        // strict unique so "7" and "007" stay distinct categories
-        $x_categories = collect($x_texts)->unique(null, true)->values();
-        $series_names = collect($series_texts)->unique(null, true)->values();
-
-        $x_raws = $datalist->pluck($item_x->uniqueName())->all();
-        $x_raw_by_category = [];
-        $matrix = array_fill(0, $series_names->count(), array_fill(0, $x_categories->count(), 0));
-        foreach ($y_values as $i => $value) {
-            $x_idx = $x_categories->search($x_texts[$i], true);
-            $s_idx = $series_names->search($series_texts[$i], true);
-            if ($x_idx !== false && $s_idx !== false) {
-                // accumulate: a view grouped by 3+ columns yields several rows per cell
-                $matrix[$s_idx][$x_idx] += is_numeric($value) ? floatval($value) : 0;
-                $x_raw_by_category[$x_idx] = $x_raw_by_category[$x_idx] ?? ($x_raws[$i] ?? null);
-            }
+        $x_key = $item_x->uniqueName();
+        $y_key = $item_y->uniqueName();
+        $rows = [];
+        foreach ($this->summaryRows() as $val) {
+            $rows[] = [
+                'x' => data_get($val, $x_key),
+                'x_text' => $item_x->setCustomValue($val)->text(),
+                'series' => $item_series->setCustomValue($val)->text(),
+                'y' => data_get($val, $y_key),
+            ];
         }
+        $pivot = ChartPivot::build($rows, array_get($view_column_y, 'view_summary_condition'));
 
         return [
-            'x_categories' => $x_categories->all(),
-            'series_names' => $series_names->all(),
-            'matrix'       => $matrix,
+            'x_categories' => $pivot['x_categories'],
+            'series_names' => $pivot['series_names'],
+            'matrix'       => $pivot['matrix'],
             'axisx_label'  => array_get($view_columns[$x_pos], 'view_column_name') ?? $item_x->label(),
             'axisy_label'  => $this->axisYLabel($view_column_y),
-            'chart_click'  => $this->clickFilter($view_columns[$x_pos], $x_categories->keys()->map(function ($idx) use ($x_raw_by_category) {
-                return $x_raw_by_category[$idx] ?? null;
-            })),
+            // a click on a category picks the stored value its rows hold
+            'chart_click'  => $this->clickFilter($view_columns[$x_pos], $pivot['x_values']),
         ];
     }
 

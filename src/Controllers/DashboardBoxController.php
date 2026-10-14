@@ -60,7 +60,16 @@ class DashboardBoxController extends AdminControllerBase
     {
         // get suuid
         $box = DashBoardBox::findBySuuid($suuid);
-        if (isset($box)) {
+        // whoever may edit the dashboard removes its boxes: the icon is shown to them alone,
+        // the request is open to anyone who knows the suuid. A dashboard this user cannot
+        // view resolves to null (Dashboard's showable scope).
+        if ($box instanceof DashboardBox && (!isset($box->dashboard) || !$box->dashboard->hasEditPermission())) {
+            return response()->json([
+                'status'  => false,
+                'message' => trans('admin.deny'),
+            ], 403);
+        }
+        if ($box instanceof DashboardBox) {
             $box->delete();
             return response()->json([
                 'status'  => true,
@@ -80,11 +89,15 @@ class DashboardBoxController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function getHtml($suuid)
     {
-        // get dashboardbox object
+        // get dashboardbox object; a box of a dashboard this user cannot view (null:
+        // Dashboard's showable scope) renders as a missing one
         $box = DashBoardBox::findBySuuid($suuid);
+        if ($box instanceof DashboardBox && !isset($box->dashboard)) {
+            $box = null;
+        }
 
         // get box html --------------------------------------------------
-        if (isset($box)) {
+        if ($box instanceof DashboardBox) {
             $dashboard_box_item = $box->dashboard_box_item;
             // null for an unknown box type (a removed plugin): render an empty box instead of erroring
             if (isset($dashboard_box_item)) {
@@ -120,7 +133,7 @@ class DashboardBoxController extends AdminControllerBase
     {
         $box = DashboardBox::findBySuuid($suuid);
         $user = Admin::user();
-        if (!isset($box) || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard) || $user === null) {
+        if (!$box instanceof DashboardBox || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard) || $user === null) {
             return response()->json(['status' => false], 404);
         }
         $state = ChartItem::toolbarState($request->only(['ct', 'cs', 'cd']), array_get($box, 'options.chart_type'));
@@ -146,7 +159,7 @@ class DashboardBoxController extends AdminControllerBase
     public function chartColor(Request $request, $suuid)
     {
         $box = DashboardBox::findBySuuid($suuid);
-        if (!isset($box) || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard)) {
+        if (!$box instanceof DashboardBox || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard)) {
             return response()->json(['status' => false], 404);
         }
         if (!$box->dashboard->hasEditPermission()) {
@@ -396,7 +409,6 @@ class DashboardBoxController extends AdminControllerBase
      * @param Request $request
      * @return array<int, array{id:string, text:string}>
      */
-    // @phpstan-ignore-next-line
     public function chartFilterColumns(Request $request)
     {
         $custom_table = CustomTable::getEloquent($request->get('q'));

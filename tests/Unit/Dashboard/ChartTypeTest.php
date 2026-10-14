@@ -8,7 +8,7 @@ use Exceedone\Exment\Tests\Unit\Dashboard\Support\DashboardUnitTestCase;
 
 class ChartTypeTest extends DashboardUnitTestCase
 {
-    public function testRendererOfType()
+    public function testRendererOfType(): void
     {
         $this->assertFalse(ChartType::isEcharts('bar'));
         $this->assertFalse(ChartType::isEcharts('pie'));
@@ -19,7 +19,7 @@ class ChartTypeTest extends DashboardUnitTestCase
         $this->assertTrue(ChartType::isMulti('heatmap'));
     }
 
-    public function testPointPickOnlyWherePointsMapToValues()
+    public function testPointPickOnlyWherePointsMapToValues(): void
     {
         foreach (['bar', 'line', 'pie', 'hbar', 'area', 'doughnut', 'funnel', 'scatter', 'mbar', 'sbar', 'mline', 'sarea', 'heatmap'] as $type) {
             $this->assertTrue(ChartType::supportsPointPick($type), $type);
@@ -29,12 +29,12 @@ class ChartTypeTest extends DashboardUnitTestCase
         }
     }
 
-    public function testOnlyChartTypesAreEnumValues()
+    public function testOnlyChartTypesAreEnumValues(): void
     {
         $this->assertCount(18, ChartType::arrays(), 'every constant becomes a form option — no helper constants allowed');
     }
 
-    public function testSwitchPoolStaysWithinDatasetShape()
+    public function testSwitchPoolStaysWithinDatasetShape(): void
     {
         $single = ChartType::switchPool('bar');
         $this->assertCount(10, $single);
@@ -48,7 +48,7 @@ class ChartTypeTest extends DashboardUnitTestCase
         $this->assertNotContains('bar', $multi);
     }
 
-    public function testResolve()
+    public function testResolve(): void
     {
         $this->assertSame('pie', ChartType::resolve('bar', 'pie'));
         $this->assertSame('bar', ChartType::resolve('bar', 'heatmap'), 'cross-shape switch is refused');
@@ -59,7 +59,7 @@ class ChartTypeTest extends DashboardUnitTestCase
         $this->assertSame('mline', ChartType::resolve('mline', 'bar'));
     }
 
-    public function testAxisOptionsBelongToTheChartJsAxisTypes()
+    public function testAxisOptionsBelongToTheChartJsAxisTypes(): void
     {
         $this->assertSame(['bar', 'line'], ChartType::axisOptionTypes());
 
@@ -88,7 +88,7 @@ class ChartTypeTest extends DashboardUnitTestCase
         $this->assertSame(['1'], $saved('mbar')['chart_options'], 'a multi-series type keeps its legend');
     }
 
-    public function testSwitchedTypeRendersWithItsOwnAxisDefaults()
+    public function testSwitchedTypeRendersWithItsOwnAxisDefaults(): void
     {
         // ChartItem's constructor: a runtime switch (`ct`) keeps the data and gives the switched
         // type its own flags. A box configured as a type that stores no axis options (every type
@@ -117,7 +117,7 @@ class ChartTypeTest extends DashboardUnitTestCase
         $this->assertSame(['label' => ['1', '2'], 'name' => ['1', '2'], 'options' => ['2']], $flags($pie, ['ct' => 'bar'])->flags(), 'a pie switched to bar draws its axes too');
     }
 
-    public function testLegendAndCircular()
+    public function testLegendAndCircular(): void
     {
         $this->assertTrue(ChartType::isCircular('pie'));
         $this->assertTrue(ChartType::isCircular('radar'));

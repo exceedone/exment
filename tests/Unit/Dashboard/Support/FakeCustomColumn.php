@@ -9,10 +9,15 @@ use Exceedone\Exment\Model\CustomTable;
  */
 class FakeCustomColumn
 {
+    /** @var string */
     public $column_name;
+    /** @var string */
     public $column_view_name;
+    /** @var string */
     public $column_type;
+    /** @var bool */
     public $index_enabled;
+    /** @var CustomTable|null */
     public $select_target_table = null;
     /** @var array<string, mixed> */
     public $options = [];
@@ -29,12 +34,12 @@ class FakeCustomColumn
         $this->custom_table_cache->suuid = 'fake';
     }
 
-    public function getIndexColumnName($alterColumn = true)
+    public function getIndexColumnName(bool $alterColumn = true): string
     {
         return 'column_' . $this->column_name;
     }
 
-    public function getOption($key, $default = null)
+    public function getOption(string $key, mixed $default = null): mixed
     {
         return $this->options[$key] ?? $default;
     }

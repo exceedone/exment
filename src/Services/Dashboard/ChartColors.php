@@ -24,6 +24,9 @@ final class ChartColors
     /** @var array<string, array<string, string>> */
     private $colors;
 
+    /**
+     * @param array<string, array<string, string>> $colors
+     */
     private function __construct(array $colors)
     {
         $this->colors = $colors;
@@ -63,6 +66,9 @@ final class ChartColors
         return empty($this->colors);
     }
 
+    /**
+     * @param mixed $key  category text / series name
+     */
     public function get(string $kind, $key): ?string
     {
         return $this->colors[$kind][(string) $key] ?? null;
@@ -72,7 +78,7 @@ final class ChartColors
      * One color per name, index-aligned: the painted one, else the palette's, cycled by
      * position — what the chart shows today for anything not painted.
      *
-     * @param iterable $names  category texts (POINT) or series names (SERIES), in drawing order
+     * @param iterable<mixed> $names  category texts (POINT) or series names (SERIES), in drawing order
      * @param string[] $palette
      * @return string[]
      */
@@ -90,6 +96,7 @@ final class ChartColors
     /**
      * The stored option with one color set (null / invalid color = back to the palette).
      *
+     * @param mixed $color
      * @return array<string, array<string, string>>
      */
     public function with(string $kind, string $key, $color): array

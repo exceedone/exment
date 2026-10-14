@@ -12,7 +12,7 @@ use Exceedone\Exment\Tests\Unit\Dashboard\Support\FakeCustomColumn;
  */
 class ColumnOptionsTest extends DashboardUnitTestCase
 {
-    public function testDefinedChoicesReadTheColumnDefinitionLikeTheEngine()
+    public function testDefinedChoicesReadTheColumnDefinitionLikeTheEngine(): void
     {
         $valtext = new FakeCustomColumn('semester', 'select_valtext');
         $valtext->options = ['select_item_valtext' => "1,1学期\r\n 2 , 2学期 \n\n3\n,no key\n4,a,b"];
@@ -31,7 +31,7 @@ class ColumnOptionsTest extends DashboardUnitTestCase
         $this->assertNull(ColumnOptions::definedChoices(null));
     }
 
-    public function testDefinedOptionsKeepTheDefinedOrderAndHonourTheScope()
+    public function testDefinedOptionsKeepTheDefinedOrderAndHonourTheScope(): void
     {
         $defined = ['3' => '3学期', '1' => '1学期', '2' => '2学期'];
         $this->assertSame([
@@ -46,12 +46,24 @@ class ColumnOptionsTest extends DashboardUnitTestCase
         $this->assertSame([], ColumnOptions::definedOptions($defined, []));
     }
 
-    public function testLabelsComeFromTheDefinition()
+    public function testLabelsComeFromTheDefinition(): void
     {
         $valtext = new FakeCustomColumn('semester', 'select_valtext');
         $valtext->options = ['select_item_valtext' => "1,1学期\n2,2学期"];
         $this->assertSame(['1' => '1学期'], ColumnOptions::labels($valtext, ['1', '9']), 'a value without a definition has no label');
         $this->assertSame([], ColumnOptions::labels($valtext, []));
         $this->assertSame([], ColumnOptions::labels(new FakeCustomColumn('score', 'integer'), ['5']));
+    }
+
+    public function testEndsCompareLikeTheRange(): void
+    {
+        // the ends of a range item come from the column's distinct values (ColumnOptions::bounds
+        // on an indexed column) instead of a MIN / MAX of CAST over every row
+        $this->assertSame(['9', '100'], ColumnOptions::ends(['100', '72', '9'], 'number'), 'numbers as numbers: "9" before "100"');
+        $this->assertSame(['1.5', '20'], ColumnOptions::ends(['20', 'abc', '1.5', ''], 'number'), 'text that is no number is skipped');
+        $this->assertSame(['2025-12-31', '2026-01-31'], ColumnOptions::ends(['2026-01-31', '2025-12-31', '2026-01-05'], 'date'), 'ISO dates order as text');
+        $this->assertSame(['100', '9'], ColumnOptions::ends(['9', '100'], 'text'), 'text compares as text');
+        $this->assertSame([null, null], ColumnOptions::ends(['', 'x'], 'number'), 'nothing that compares');
+        $this->assertSame([null, null], ColumnOptions::ends([], 'text'));
     }
 }
