@@ -1593,8 +1593,12 @@ class KanbanGrid extends GridBase
         if (isset($age_column)) {
             $since = $grammar->wrap($this->columnKey($age_column));
             $elapsed = $this->sqlSecondsSince($since);
-            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 else $elapsed end) as kb_agesum");
-            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 else 1 end) as kb_agen");
+            // A date still ahead - work planned to start next month - has not
+            // begun to age. Averaged in, it counted as negative days and could
+            // drag the figure below zero. The blank check stays first so the
+            // date arithmetic only ever sees a date.
+            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 when $elapsed < 0 then 0 else $elapsed end) as kb_agesum");
+            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 when $elapsed < 0 then 0 else 1 end) as kb_agen");
         }
 
         // one more grouping level: the swimlane the view was set up with
