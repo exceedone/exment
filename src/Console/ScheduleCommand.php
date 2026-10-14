@@ -49,8 +49,27 @@ class ScheduleCommand extends Command
         $this->notify();
         $this->backup();
         $this->clearOperationLog();
+        $this->sla();
         $this->pluginBatch();
         return 0;
+    }
+
+    /**
+     * Move the SLA clock on and escalate whatever has run out of time.
+     *
+     * Tables without an sla setting cost one query and are skipped, so this is
+     * free for an installation that does not use SLAs.
+     *
+     * @return void
+     */
+    protected function sla()
+    {
+        try {
+            (new \Exceedone\Exment\Services\SlaService())->run();
+        } catch (\Throwable $e) {
+            // one broken SLA setting must not stop the backup or the plugin batch
+            $this->debugLog('Exment sla failed: ' . $e->getMessage());
+        }
     }
 
     // @phpstan-ignore-next-line

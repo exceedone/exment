@@ -606,8 +606,10 @@ trait ItemTrait
     // @phpstan-ignore-next-line
     public function getStyleString(array $array = [])
     {
-        $array['word-wrap'] = 'break-word';
-        $array['white-space'] = 'normal';
+        // Defaults, not overrides: a caller that already decided how the cell
+        // wraps (the "do not break lines" column setting) must keep its value.
+        $array['word-wrap'] = $array['word-wrap'] ?? 'break-word';
+        $array['white-space'] = $array['white-space'] ?? 'normal';
         return implode('; ', collect($array)->map(function ($value, $key) {
             return "$key:$value";
         })->toArray());

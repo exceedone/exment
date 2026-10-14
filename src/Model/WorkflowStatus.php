@@ -20,11 +20,26 @@ class WorkflowStatus extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
+    use Traits\TemplateTrait;
+
+
+    // @phpstan-ignore-next-line
+    public static $templateItems = [
+        'excepts' => ['id'],
+        'uniqueKeys' => [
+            'export' => ['workflow.workflow_view_name', 'status_name'],
+            'import' => ['workflow_id', 'status_name'],
+        ],
+        'parent' => 'workflow_id',
+    ];
 
 
     // @phpstan-ignore-next-line
     public function deletingChildren()
     {
+        // Delete workflow_values that reference this status
+        WorkflowValue::where('workflow_status_from_id', $this->id)->delete();
+        WorkflowValue::where('workflow_status_to_id', $this->id)->delete();
     }
 
     protected static function boot()

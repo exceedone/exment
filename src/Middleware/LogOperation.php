@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use ExmentAdminCore\Admin\Middleware\LogOperation as BaseLogOperation;
-use ExmentAdminCore\Admin\Auth\Database\OperationLog as OperationLogModel;
+use Exceedone\Exment\Model\OperationLog as OperationLogModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -20,26 +20,241 @@ class LogOperation extends BaseLogOperation
      */
     public function handle(Request $request, \Closure $next)
     {
-        if ($this->shouldLogOperation($request)) {
-            $login_user = \Exment::user();
+        if (!$this->shouldLogOperation($request)) {
+            return $next($request);
+        }
 
-            // this "user_id" is login_user_id OK. because OperationLogModel relations to LoginUser modal.
-            $log = [
-                'user_id' => ($login_user ? $login_user->id : 0),
-                'path'    => substr(static::hidePathParams($request->path()), 0, 255),
-                'method'  => $request->method(),
-                'ip'      => $request->getClientIp(),
-                'input'   => json_encode(static::maskInputArray((array)$request->input(), $request->path())),
+        $login_user = \Exment::user();
+
+        $requestId = Str::uuid()->toString();
+        $request->attributes->set('operation_log_request_id', $requestId);
+        $maskedInput = static::maskInputArray((array)$request->input(), $request->path());
+        $auditContext = static::buildAuditContext($request, $maskedInput);
+
+        // this "user_id" is login_user_id OK. because OperationLogModel relations to LoginUser modal.
+        $log = array_merge([
+            'user_id' => ($login_user ? $login_user->id : 0),
+            'path'    => substr(static::hidePathParams($request->path()), 0, 255),
+            'method'  => $request->method(),
+            'ip'      => $request->getClientIp(),
+            'input'   => json_encode($maskedInput),
+            'request_id' => $requestId,
+        ], $auditContext);
+
+        $model = null;
+        try {
+            $model = OperationLogModel::create($log);
+        } catch (\Exception $exception) {
+            \Log::warning('Failed to write operation audit log.', [
+                'request_id' => $requestId,
+                'path' => $request->path(),
+                'exception' => $exception->getMessage(),
+            ]);
+        }
+
+        $response = $next($request);
+
+        // The "after" state only exists once the controller has run, so the row is
+        // written before $next (so a fatal error still leaves a trace) and the
+        // before/after/diff columns are filled in afterwards.
+        static::fillAuditResult($request, $model, $auditContext);
+
+        return $response;
+    }
+
+    /**
+     * Read the record back after the controller ran and store after_json/diff_json.
+     * Never throws: an audit failure must not break the request it is auditing.
+     *
+     * @param Request $request
+     * @param OperationLogModel|null $model
+     * @param array<string, mixed> $auditContext
+     * @return void
+     */
+    protected static function fillAuditResult(Request $request, $model, array $auditContext)
+    {
+        if (!isset($model)) {
+            return;
+        }
+        if (!in_array(strtoupper($request->method()), ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            return;
+        }
+
+        try {
+            $resource = static::resolveAuditResource($request->path());
+            if (!$resource) {
+                return;
+            }
+
+            $after = static::readAuditSnapshot($resource['table'], $resource['id']);
+            $before = array_get($auditContext, 'before_json');
+
+            $diff = static::buildAuditDiff($before, $after);
+
+            $model->after_json = $after;
+            $model->diff_json = $diff;
+            $model->save();
+        } catch (\Exception $exception) {
+            \Log::warning('Failed to store operation audit result.', [
+                'path' => $request->path(),
+                'exception' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Read a custom value straight from the database (no Eloquent cache, so the
+     * value read after the controller is the value that was really saved).
+     *
+     * @param string $tableName
+     * @param int $id
+     * @return array<mixed>|null null when the row is gone or soft deleted
+     */
+    protected static function readAuditSnapshot(string $tableName, int $id)
+    {
+        $custom_table = \Exceedone\Exment\Model\CustomTable::getEloquent($tableName);
+        if (!isset($custom_table)) {
+            return null;
+        }
+
+        $dbTableName = getDBTableName($custom_table);
+        if (!hasTable($dbTableName)) {
+            return null;
+        }
+
+        $row = \DB::table($dbTableName)->where('id', $id)->first();
+        if (!isset($row) || !is_nullorempty($row->deleted_at ?? null)) {
+            return null;
+        }
+
+        $value = json_decode($row->value ?? 'null', true);
+        if (!is_array($value)) {
+            return null;
+        }
+
+        return static::maskArrayRecursive($value, static::getHideColumns());
+    }
+
+    /**
+     * Column-by-column difference between two snapshots.
+     *
+     * @param array<mixed>|null $before
+     * @param array<mixed>|null $after
+     * @return array<string, array{before: mixed, after: mixed}>
+     */
+    protected static function buildAuditDiff($before, $after): array
+    {
+        $before = is_array($before) ? $before : [];
+        $after = is_array($after) ? $after : [];
+
+        $diff = [];
+        foreach (array_keys($before + $after) as $key) {
+            $b = array_key_exists($key, $before) ? $before[$key] : null;
+            $a = array_key_exists($key, $after) ? $after[$key] : null;
+            // A form posts everything as a string, so the same value read back
+            // from the database can differ only in type (9 vs "9"). Compare
+            // scalars as strings so those do not show up as a change.
+            if ($b === $a || (is_scalar($b) && is_scalar($a) && (string)$b === (string)$a)) {
+                continue;
+            }
+            $diff[$key] = ['before' => $b, 'after' => $a];
+        }
+
+        return $diff;
+    }
+
+
+    /**
+     * Build non-blocking audit metadata for the operation log.
+     *
+     * @param array<mixed> $maskedInput
+     * @return array<string, mixed>
+     */
+    protected static function buildAuditContext(Request $request, array $maskedInput): array
+    {
+        try {
+            $context = [
+                'event_type' => static::resolveEventType($request->method()),
+                'resource_type' => null,
+                'resource_id' => null,
+                'before_json' => null,
+                'after_json' => null,
+                'diff_json' => null,
             ];
 
-            try {
-                OperationLogModel::create($log);
-            } catch (\Exception $exception) {
-                // pass
+            $resource = static::resolveAuditResource($request->path());
+            if (!$resource) {
+                return $context;
+            }
+
+            $context['resource_type'] = substr('custom_value_' . $resource['table'], 0, 100);
+            $context['resource_id'] = $resource['id'];
+
+            if (in_array(strtoupper($request->method()), ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+                // Runs before the controller, so this is the state the record had
+                // when the request arrived.
+                $context['before_json'] = static::readAuditSnapshot($resource['table'], $resource['id']);
+            }
+
+            return $context;
+        } catch (\Exception $exception) {
+            \Log::warning('Failed to build operation audit context.', [
+                'path' => $request->path(),
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return [
+                'event_type' => static::resolveEventType($request->method()),
+                'resource_type' => null,
+                'resource_id' => null,
+                'before_json' => null,
+                'after_json' => null,
+                'diff_json' => null,
+            ];
+        }
+    }
+
+    /**
+     * @return string|null
+     */
+    protected static function resolveEventType(string $method)
+    {
+        switch (strtoupper($method)) {
+            case 'POST':
+                return 'create';
+            case 'PUT':
+            case 'PATCH':
+                return 'update';
+            case 'DELETE':
+                return 'delete';
+            case 'GET':
+                return 'view';
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * @return array{table: string, id: int}|null
+     */
+    protected static function resolveAuditResource(string $path)
+    {
+        $path = trim($path, '/');
+        $patterns = [
+            '#(?:^|/)webapi/data/([^/]+)/([0-9]+)(?:/|$)#',
+            '#(?:^|/)data/([^/]+)/([0-9]+)(?:/|$)#',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $path, $matches)) {
+                return [
+                    'table' => rawurldecode($matches[1]),
+                    'id' => (int)$matches[2],
+                ];
             }
         }
 
-        return $next($request);
+        return null;
     }
 
     /**
