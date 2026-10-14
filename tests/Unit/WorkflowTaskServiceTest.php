@@ -3695,11 +3695,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('the test dataset has no workflow on custom_value_edit_all');
         }
 
-        $actions = collect($workflow->workflow_actions_cache);
+        // the accessor is untyped (mixed), which collect() cannot resolve: name the type instead
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
         $first = $actions->first(function ($action) {
             return $action->status_from == Define::WORKFLOW_START_KEYNAME;
         });
-        $firstHeader = isset($first) ? collect($first->workflow_condition_headers_cache)->first() : null;
+        /** @var WorkflowConditionHeader|null $firstHeader */
+        $firstHeader = isset($first) ? $first->workflow_condition_headers_cache->first() : null;
         $firstStatusTo = isset($firstHeader) ? $firstHeader->status_to : null;
         $second = isset($firstStatusTo) ? $actions->first(function ($action) use ($firstStatusTo) {
             return (string)$action->status_from === (string)$firstStatusTo;
@@ -3961,14 +3964,17 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         // the three consecutive steps of the workflow
-        $actions = collect($workflow->workflow_actions_cache);
+        // the accessor is untyped (mixed), which collect() cannot resolve: name the type instead
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
         $after = function ($statusFrom) use ($actions) {
             return is_null($statusFrom) ? null : $actions->first(function ($action) use ($statusFrom) {
                 return (string)$action->status_from === (string)$statusFrom;
             });
         };
         $statusTo = function ($action) {
-            $header = isset($action) ? collect($action->workflow_condition_headers_cache)->first() : null;
+            /** @var WorkflowConditionHeader|null $header */
+            $header = isset($action) ? $action->workflow_condition_headers_cache->first() : null;
             return isset($header) ? $header->status_to : null;
         };
         $first = $after(Define::WORKFLOW_START_KEYNAME);
