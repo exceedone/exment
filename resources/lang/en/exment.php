@@ -583,9 +583,66 @@ return [
             'chart_begin_zero' => 'Start at zero',
             'chart_legend' => 'Show legend',
             'chart_options' => 'Option settings',
+            'chart_series' => 'Series column (multi-series)',
+            'chart_filters' => 'Chart filter fields',
+            'chart_filters_help' => 'Adds filter fields to the toolbar of this chart (a checklist where several values can be picked; date columns get a from / to range). They narrow ONLY this chart — other boxes are unaffected. When the dashboard filter bar is set too, both conditions apply.',
             'calendar_type' => 'Calendar Type',
             'content' => 'Content',
             'html' => 'HTML',
+        ],
+
+        // dashboard filter bar (setting section + runtime)
+        'filter_bar' => [
+            'header' => 'Dashboard Filter Bar',
+            'title' => 'Filters',
+            'description' => 'Shows a filter bar at the top of this dashboard that narrows all boxes at once. Filter items are columns of the source table; only charts using a table that has a column with the same name are filtered.',
+            'source_table' => 'Filter source table',
+            'dims' => 'Filter items',
+            'dim_column' => 'Column',
+            'dim_label' => 'Display name',
+            'dim_default' => 'Default value',
+            'dim_targets' => 'Target boxes',
+            'range_from' => 'from',
+            'range_to' => 'to',
+            'all_values' => '(All)',
+            'narrow_first' => 'Too many values — narrow another filter first',
+            'not_affected' => 'Not affected by filters',
+            'partially_affected' => 'Filters not applied here',
+            'help' => [
+                'source_table' => 'Table the filter choices are read from. Leave empty to hide the filter bar.',
+                'dims' => 'Items shown on the filter bar. The choices of each item are narrowed by the selection of the other items.',
+                'dim_default' => 'Values preselected when the dashboard opens. A list item takes picks from its list (stored values, comma-separated); a from / to item takes "min~max", either side may be left empty. Empty = no initial selection.',
+                'dim_targets' => 'Chart boxes this filter applies to. Only the selected boxes are narrowed; every other box is unaffected even when its table has the same column. Empty = every chart whose table has a column with the same name.',
+            ],
+        ],
+
+        // chart filter (box option chart_filters): toolbar button
+        'chart_filter' => [
+            'label' => 'Filter',
+        ],
+
+        // chart sort (toolbar, runtime): the plotted points re-ordered per box
+        'chart_sort' => [
+            'by' => 'Sort by',
+            'asc' => 'Sort ascending',
+            'desc' => 'Sort descending',
+        ],
+
+        // box menu (⋯): display options and export
+        'chart_menu' => [
+            'label' => 'Options',
+            'display' => 'Display',
+            'labels' => 'Data labels',
+            'export' => 'Export data',
+        ],
+
+        // colors painted on a chart by right-clicking it (box option chart_colors)
+        'chart_color' => [
+            'theme' => 'Theme colors',
+            'standard' => 'Standard colors',
+            'auto' => 'Automatic',
+            'more' => 'More colors...',
+            'reset' => 'Reset colors',
         ],
 
         'dashboard_box_system_pages' => [
@@ -604,6 +661,9 @@ return [
 
         'message' => [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
+            'need_multiseries' => 'This chart type needs an aggregate view grouped by 2 columns (1st = X axis, 2nd = series) and a summary value.',
+            'chart_render_error' => 'Could not render this chart (the data may be unsuitable for this type).',
+            'chart_load_error' => 'Could not load the chart library. Please reload the page.',
             'not_exists_table' => 'The table or view has been deleted.',
             'not_exists_plugin' => 'The plugin has been deleted.',
         ],
@@ -2624,6 +2684,21 @@ return [
             'bar' => 'Bar chart',
             'line' => 'Line chart',
             'pie' => 'Pie chart',
+            'hbar' => 'Horizontal bar',
+            'area' => 'Area chart',
+            'doughnut' => 'Doughnut chart',
+            'radar' => 'Radar chart',
+            'funnel' => 'Funnel chart',
+            'gauge' => 'Gauge',
+            'scatter' => 'Scatter',
+            'mbar' => 'Grouped bar (multi-series)',
+            'sbar' => 'Stacked bar (multi-series)',
+            'mline' => 'Multi-line (multi-series)',
+            'heatmap' => 'Heatmap (multi-series)',
+            'sarea' => 'Stacked area (multi-series)',
+            'treemap' => 'Treemap (multi-series)',
+            'sunburst' => 'Sunburst (multi-series)',
+            'boxplot' => 'Boxplot (multi-series)',
         ],
         
         'help' => [

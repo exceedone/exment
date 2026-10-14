@@ -583,9 +583,66 @@ return [
             'chart_begin_zero' => '０を起点にする',
             'chart_legend' => '凡例を表示する',
             'chart_options' => 'オプション設定',
+            'chart_series' => '系列の項目（複数系列）',
+            'chart_filters' => 'チャートフィルター項目',
+            'chart_filters_help' => 'チャートのツールバーに絞り込み用の項目を表示します（複数選択のチェックリスト。日付の列は「から／まで」の範囲）。「このチャートのみ」を絞り込み、他のボックスには影響しません。ダッシュボードフィルターと両方指定した場合は両方の条件で絞り込まれます。',
             'calendar_type' => 'カレンダーの種類',
             'content' => '本文',
             'html' => 'HTML',
+        ],
+
+        // dashboard filter bar (setting section + runtime)
+        'filter_bar' => [
+            'header' => 'ダッシュボードフィルター',
+            'title' => 'フィルター',
+            'description' => 'ダッシュボード上部に、全ボックス共通の絞り込みフィルターバーを表示します。フィルター元テーブルの列をフィルター項目として設定します。同じ列名を持つテーブルを使用するチャートのみ絞り込まれます。',
+            'source_table' => 'フィルター元テーブル',
+            'dims' => 'フィルター項目',
+            'dim_column' => '列',
+            'dim_label' => '表示名',
+            'dim_default' => 'デフォルト値',
+            'dim_targets' => '対象ボックス',
+            'range_from' => 'から',
+            'range_to' => 'まで',
+            'all_values' => '（すべて）',
+            'narrow_first' => '候補が多すぎます。他のフィルターで絞り込むと選択できます',
+            'not_affected' => 'フィルター対象外',
+            'partially_affected' => '適用外のフィルター',
+            'help' => [
+                'source_table' => 'フィルターの選択肢を取得するテーブルです。空欄にするとフィルターバーを表示しません。',
+                'dims' => 'フィルターバーに表示する項目です。各項目の選択肢は、他の項目の選択内容に応じて絞り込まれます。',
+                'dim_default' => 'ダッシュボードを開いたとき最初から選択される値です。リストの項目は選択肢から選びます（保存値のカンマ区切り）。「から／まで」の項目は「最小~最大」形式で、片側だけでも指定できます。空欄の場合は未選択で表示します。',
+                'dim_targets' => 'このフィルターを適用するチャートボックスを選択します。選択したボックスのみが絞り込まれ、それ以外のボックスは（同じ列を持っていても）影響を受けません。空欄の場合は、同じ列名を持つすべてのチャートに適用されます。',
+            ],
+        ],
+
+        // chart filter (box option chart_filters): toolbar button
+        'chart_filter' => [
+            'label' => 'フィルター',
+        ],
+
+        // chart sort (toolbar, runtime): the plotted points re-ordered per box
+        'chart_sort' => [
+            'by' => '並び替え',
+            'asc' => '昇順',
+            'desc' => '降順',
+        ],
+
+        // box menu (⋯): display options and export
+        'chart_menu' => [
+            'label' => 'オプション',
+            'display' => '表示',
+            'labels' => '値ラベル',
+            'export' => 'データをエクスポート',
+        ],
+
+        // colors painted on a chart by right-clicking it (box option chart_colors)
+        'chart_color' => [
+            'theme' => 'テーマの色',
+            'standard' => '標準の色',
+            'auto' => '自動',
+            'more' => 'その他の色...',
+            'reset' => '色をリセット',
         ],
 
         'dashboard_box_system_pages' => [
@@ -604,6 +661,9 @@ return [
 
         'message' => [
             'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
+            'need_multiseries' => 'このグラフ種別は、2列でグループ化した集計ビュー（1列目＝横軸、2列目＝系列）と集計値が必要です。',
+            'chart_render_error' => 'このグラフを表示できませんでした（データが適していない可能性があります）。',
+            'chart_load_error' => 'グラフの描画ライブラリを読み込めませんでした。ページを再読み込みしてください。',
             'not_exists_table' => 'テーブルまたはビューが削除されました。',
             'not_exists_plugin' => 'プラグインが削除されました。',
         ],
@@ -2624,6 +2684,21 @@ return [
             'bar' => '棒グラフ',
             'line' => '折れ線グラフ',
             'pie' => '円グラフ',
+            'hbar' => '横棒グラフ',
+            'area' => 'エリアグラフ',
+            'doughnut' => 'ドーナツグラフ',
+            'radar' => 'レーダーチャート',
+            'funnel' => 'ファネルグラフ',
+            'gauge' => 'ゲージ',
+            'scatter' => '散布図',
+            'mbar' => 'グループ棒グラフ（複数系列）',
+            'sbar' => '積み上げ棒グラフ（複数系列）',
+            'mline' => '複数折れ線グラフ（複数系列）',
+            'heatmap' => 'ヒートマップ（複数系列）',
+            'sarea' => '積み上げエリアグラフ（複数系列）',
+            'treemap' => 'ツリーマップ（複数系列）',
+            'sunburst' => 'サンバースト（複数系列）',
+            'boxplot' => '箱ひげ図（複数系列）',
         ],
 
         'help' => [
