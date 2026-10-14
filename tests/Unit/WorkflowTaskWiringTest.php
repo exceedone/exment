@@ -434,9 +434,10 @@ class WorkflowTaskWiringTest extends TestCase
         $pageEnd = strpos($content, "\n    }", $page);
         $pageMethod = substr($content, $page, $pageEnd === false ? null : $pageEnd - $page);
         $this->assertStringContainsString('$direction = $this->filter[\'sort\']', $pageMethod);
-        $this->assertStringContainsString("orderBy(\$tableName . '.updated_at', \$direction)", $pageMethod);
+        // the 更新日時 of the task (taskUpdatedAt()), not the record's own updated_at
+        $this->assertStringContainsString('orderBy(self::UPDATED_AT, $direction)', $pageMethod);
         $this->assertStringNotContainsString(
-            "orderBy(\$tableName . '.updated_at', 'desc')",
+            "orderBy(self::UPDATED_AT, 'desc')",
             $pageMethod,
             'a hard coded direction ignores what the user picked'
         );
