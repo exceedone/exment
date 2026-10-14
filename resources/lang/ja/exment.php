@@ -174,6 +174,7 @@ return [
             'success_execute' => '実行完了しました！',
             'copy_execute' => 'コピーしました！',
             'error_execute' => '実行失敗しました。',
+            'editor_image_expired' => '貼り付けた画像の一時ファイルを確認できません。画像を貼り付け直してください。',
             'execution_takes_time' => '実行には時間がかかります。',
             'import_success' => 'インポート完了しました！',
             'import_error' => 'インポートに失敗しました。',
