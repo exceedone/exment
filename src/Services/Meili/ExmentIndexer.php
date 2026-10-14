@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Meili;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueModelScope;
+use Exceedone\Exment\Model\System;
 use Illuminate\Support\Collection;
 use Meilisearch\Client;
 
@@ -33,6 +34,39 @@ class ExmentIndexer
         int $batchSize
     ) {
         $this->batchSize = max(1, $batchSize);
+    }
+
+    /**
+     * Record that $indexName holds a complete build.
+     *
+     * Without this, an index that was never built is indistinguishable from one
+     * where nothing matched: Meilisearch answers "no results" either way, which
+     * is a valid answer, so nothing falls back to MySQL and records simply go
+     * missing from the search. The index name is stored with it, so pointing
+     * MEILISEARCH_INDEX at a different index does not inherit the mark.
+     */
+    public static function markIndexBuilt(string $indexName): void
+    {
+        try {
+            System::meili_indexed_at(['index' => $indexName, 'at' => now()->getTimestamp()]);
+            System::clearCache();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[Meili] could not record the index build: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Whether the index in use has been built at least once.
+     */
+    public static function indexIsBuilt(): bool
+    {
+        try {
+            $mark = (array) System::meili_indexed_at();
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return ($mark['index'] ?? null) === config('meilisearch.index');
     }
 
     /**
@@ -131,6 +165,9 @@ class ExmentIndexer
         if ($fresh) {
             $this->swapIn($target);
         }
+
+        // Every searchable table has now been walked, so the index is complete.
+        self::markIndexBuilt($this->indexName);
 
         return ['total' => $total, 'perTable' => $perTable];
     }

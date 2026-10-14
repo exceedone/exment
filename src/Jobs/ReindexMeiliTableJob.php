@@ -72,19 +72,61 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
         $this->afterCommit();
 
-        // Own queue so a long reindex never blocks the per-record sync jobs:
-        //   php artisan queue:work --queue=default,<reindex_queue>
+        // Same queue as the sync jobs unless reindex_queue says otherwise - a
+        // queue of its own only works while a worker listens to it.
         // try/catch: a bare unit test constructs this with no app/config.
         try {
-            $this->onQueue(config('meilisearch.reindex_queue', 'meili-reindex'));
+            $this->onQueue(config('meilisearch.reindex_queue', 'default'));
         } catch (\Throwable $e) {
-            $this->onQueue('meili-reindex');
+            $this->onQueue('default');
         }
     }
 
     public function uniqueId(): string
     {
         return $this->tableName;
+    }
+
+    /**
+     * How long one slice waits for Meilisearch to process its write.
+     *
+     * Well under $timeout, and deliberately not equal to it: the SDK counts only
+     * the sleep between polls, not the requests themselves, and the slice has
+     * already spent part of its budget reading and mapping records. Waiting the
+     * whole 60s gets the job killed mid-wait, and the killed job is the one that
+     * would have queued the next slice - the chain stops at the first slice.
+     */
+    public const TASK_WAIT_MS = 20000;
+
+    /**
+     * Wait for a Meilisearch task, but never fail the job over it.
+     *
+     * A timeout here only means Meilisearch is still busy; it keeps the task and
+     * applies writes in order, so the next slice may be queued regardless.
+     *
+     * @param \Meilisearch\Client $client
+     * @param array<string,mixed> $task
+     */
+    private function awaitTask($client, array $task, string $what): void
+    {
+        try {
+            $result = $client->waitForTask($task['taskUid'], static::TASK_WAIT_MS);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::info(
+                "[Meili] {$what} of '{$this->tableName}' still processing after "
+                . (static::TASK_WAIT_MS / 1000) . 's; continuing.'
+            );
+            return;
+        }
+
+        if (($result['status'] ?? null) === 'failed') {
+            \Illuminate\Support\Facades\Log::warning(sprintf(
+                "[Meili] %s of '%s' failed: %s",
+                $what,
+                $this->tableName,
+                (string) ($result['error']['message'] ?? 'unknown error')
+            ));
+        }
     }
 
     /**
@@ -251,7 +293,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         $table = CustomTable::getEloquent($this->tableName);
         if (!$this->shouldIndex($table)) {
             $task = $index->deleteDocuments(['filter' => self::tableFilter($this->tableName)]);
-            $client->waitForTask($task['taskUid'], 60000);
+            $this->awaitTask($client, $task, 'de-index');
             return;
         }
 
@@ -306,7 +348,7 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         if (!empty($docs)) {
             \Exceedone\Exment\Services\Meili\ExmentIndexer::ensureIndexExists($client, $indexName);
             $task = $index->addDocuments($docs, 'id');
-            $client->waitForTask($task['taskUid'], 60000);
+            $this->awaitTask($client, $task, 'slice index');
         }
 
         $next = self::nextAfterId($ids, $chunkSize);
@@ -350,7 +392,15 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
         // Re-check just before deleting: a record restored during the scan exists again.
         $orphans = self::deletableOrphans($orphans, self::existingIds($table, $orphans));
-        $service->deleteByValueIds($this->tableName, $orphans, $mapper);
+        try {
+            // Only the reserve is left of this job's timeout, and a slow delete
+            // must not take the continuation below down with it.
+            $service->deleteByValueIds($this->tableName, $orphans, $mapper, static::ORPHAN_DELETE_RESERVE * 1000);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning(
+                "[Meili] orphan delete on '{$this->tableName}' did not confirm: " . $e->getMessage()
+            );
+        }
 
         if ($more) {
             // The deleted documents shift the rest of the table forward by as many positions.

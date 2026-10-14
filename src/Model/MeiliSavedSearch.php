@@ -95,6 +95,7 @@ class MeiliSavedSearch extends ModelBase
             $query->where('owner_user_id', $userId)
                     ->orWhere('share_type', '!=', self::SHARE_PERSONAL);
         })
+            ->select(['id', 'name', 'owner_user_id', 'query', 'share_type', 'share_targets', 'order'])
             ->orderBy('order')->orderBy('id')->get();
 
         // A deleted owner's shares stop showing (kept stored: a soft delete can be restored).

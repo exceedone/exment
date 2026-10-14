@@ -493,10 +493,17 @@ class ExmentServiceProvider extends ServiceProvider
             // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
             // orphans) instead of a full exment:meili-index reindex, so it is cheap.
             if (boolval(config('meilisearch.repair_enabled'))) {
-                $schedule->command('exment:meili-reconcile')
-                    ->dailyAt(config('meilisearch.repair_at', '03:00'))
-                    ->withoutOverlapping()
-                    ->runInBackground();
+                $repairAt = (string) config('meilisearch.repair_at', '03:00');
+                if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/D', $repairAt)) {
+                    \Illuminate\Support\Facades\Log::warning(
+                        "[Meili] ignoring index repair schedule: '{$repairAt}' is not a HH:MM time."
+                    );
+                } else {
+                    $schedule->command('exment:meili-reconcile')
+                        ->dailyAt($repairAt)
+                        ->withoutOverlapping()
+                        ->runInBackground();
+                }
             }
 
             // set cron event

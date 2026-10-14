@@ -2,8 +2,10 @@
 
 namespace Exceedone\Exment\Services\Meili;
 
+use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Jobs\ReindexMeiliTableJob;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomTable;
 
 /**
@@ -40,6 +42,41 @@ class MeiliDefinitionSync
         // Delayed + unique, so a screen saving many columns at once collapses to
         // one job that reads the committed state instead of racing it.
         ReindexMeiliTableJob::dispatchUnlessBlocking($tableName);
+
+        // Which columns make up a table's label is a CustomColumnMulti, so the
+        // change lands here rather than on a column. Documents of OTHER tables
+        // store this table's label for their linked records, so they go stale too.
+        if ($model instanceof CustomColumnMulti) {
+            self::reindexReferencing($model->custom_table);
+
+            // Moved to another table: the table it left keeps the old label.
+            // getOriginal still holds the pre-save value here, as Eloquent fires
+            // "saved" before syncOriginal() (same as MeiliFilterSetting).
+            $former = $model->getOriginal('custom_table_id');
+            if ($former !== null && (int) $former !== (int) $model->custom_table_id) {
+                $formerTable = CustomTable::getEloquent($former);
+                if ($formerTable) {
+                    ReindexMeiliTableJob::dispatchUnlessBlocking($formerTable->table_name);
+                    self::reindexReferencing($formerTable);
+                }
+            }
+        }
+    }
+
+    /**
+     * Reindex the indexable tables holding a linked label of $refTable.
+     *
+     * @param  mixed  $refTable
+     */
+    protected static function reindexReferencing($refTable): void
+    {
+        if (!$refTable) {
+            return;
+        }
+
+        foreach (MeiliSync::referencingColumns($refTable) as [$table]) {
+            ReindexMeiliTableJob::dispatchUnlessBlocking($table->table_name);
+        }
     }
 
     /**
@@ -54,6 +91,13 @@ class MeiliDefinitionSync
      */
     public static function isRelevantChange($model): bool
     {
+        // Of the multisettings only the label definition reaches the documents;
+        // uniques, compare and share never do. Checked before the blanket rules
+        // below so creating one of those does not reindex a table for nothing.
+        if ($model instanceof CustomColumnMulti && !self::isTableLabelSetting($model)) {
+            return false;
+        }
+
         if ($model->wasRecentlyCreated || !$model->exists) {
             return true;
         }
@@ -61,13 +105,36 @@ class MeiliDefinitionSync
             return true;
         }
 
-        $attrs = $model instanceof CustomTable
-            ? ['table_name', 'table_view_name', 'options']
-            : ['column_name', 'column_type', 'options'];
+        if ($model instanceof CustomColumnMulti) {
+            $attrs = ['custom_table_id', 'multisetting_type', 'options'];
+        } else {
+            $attrs = $model instanceof CustomTable
+                ? ['table_name', 'table_view_name', 'options']
+                : ['column_name', 'column_type', 'options'];
+        }
 
         // isDirty covers listeners firing before syncOriginal(); wasChanged
         // covers the normal post-save state.
         return $model->isDirty($attrs) || $model->wasChanged($attrs);
+    }
+
+    /**
+     * Whether this multisetting is (or was) the table's label definition.
+     *
+     * The original value counts too: switching a row away from TABLE_LABELS, or
+     * moving it to another table, leaves the old table's documents stale.
+     */
+    protected static function isTableLabelSetting(CustomColumnMulti $model): bool
+    {
+        $values = [$model->multisetting_type, $model->getOriginal('multisetting_type')];
+
+        foreach ($values as $value) {
+            if ($value !== null && (string) $value === MultisettingType::TABLE_LABELS) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -81,7 +148,7 @@ class MeiliDefinitionSync
             return $model->table_name;
         }
 
-        if ($model instanceof CustomColumn) {
+        if ($model instanceof CustomColumn || $model instanceof CustomColumnMulti) {
             return $model->custom_table->table_name ?? null;
         }
 

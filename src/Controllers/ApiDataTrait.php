@@ -394,6 +394,9 @@ trait ApiDataTrait
         if (boolval(config('meilisearch.select_table'))
             && boolval(config('meilisearch.global_search'))
             && class_exists(\Meilisearch\Client::class)
+            // An unbuilt index answers "no results" instead of failing, so the
+            // select box would silently offer nothing (see ExmentIndexer).
+            && \Exceedone\Exment\Services\Meili\ExmentIndexer::indexIsBuilt()
             && empty($relationColumn)
             && empty(array_get($expand, 'target_view_id'))
             && !in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION], true)) {

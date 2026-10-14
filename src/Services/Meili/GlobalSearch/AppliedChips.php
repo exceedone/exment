@@ -30,10 +30,42 @@ class AppliedChips
             return [];
         }
 
-        return array_values(array_filter(
+        return array_slice(array_values(array_filter(
             array_map('strval', array_filter($value, 'is_scalar')),
             fn ($v) => $v !== ''
-        ));
+        )), 0, RequestFilters::MAX_VALUES);
+    }
+
+    /**
+     * The search screen's own parameters, with every repeatable list capped.
+     *
+     * Each chip's remove-url repeats whatever is left of this array, so it must
+     * not carry the raw query string: an unknown param (or an uncapped list)
+     * would be echoed back once per chip and decide the size of the response.
+     *
+     * @return array<string,mixed>
+     */
+    private static function searchParams(Request $request): array
+    {
+        $qs = [];
+        foreach (['query', 'date_from', 'date_to', 'sort'] as $k) {
+            $v = $request->query($k);
+            if (is_scalar($v) && (string) $v !== '') {
+                $qs[$k] = (string) $v;
+            }
+        }
+        foreach (['tables', 'users', 'facets'] as $k) {
+            $v = self::stringList($request->query($k));
+            if (!empty($v)) {
+                $qs[$k] = $v;
+            }
+        }
+        $ranges = array_slice((array) $request->query('range', []), 0, RequestFilters::MAX_VALUES, true);
+        if (!empty($ranges)) {
+            $qs['range'] = $ranges;
+        }
+
+        return $qs;
     }
 
     /**
@@ -41,8 +73,7 @@ class AppliedChips
      */
     public static function build(Request $request): array
     {
-        $qs = $request->query();
-        unset($qs['ss'], $qs['back'], $qs['page']);
+        $qs = self::searchParams($request);
         $base = admin_url('search');
         $url = fn (array $params) => $base . '?' . http_build_query($params);
 
@@ -124,7 +155,7 @@ class AppliedChips
         }
 
         // Number/date range (range[n_col][from|to])
-        $ranges = (array) ($qs['range'] ?? []);
+        $ranges = array_slice((array) ($qs['range'] ?? []), 0, RequestFilters::MAX_VALUES, true);
         if (!empty($ranges)) {
             $cols = array_map(fn ($f) => preg_replace('/^n_/', '', (string) $f), array_keys($ranges));
             $safeCols = LabelResolver::permittedPrefixes($cols, $permitted);

@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Services\Meili;
 use Exceedone\Exment\Enums\JoinedMultiUserFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Services\Meili\GlobalSearch\RequestFilters;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 
@@ -20,6 +19,20 @@ use Exceedone\Exment\Model\System;
  */
 class SavedSearchService
 {
+    /**
+     * Caps for what one save may store. A shared row is read back for every user
+     * who opens the search screen, so the request must not decide how big it is:
+     * the parameters below are all repeatable, and none of them has a natural
+     * limit in the posted query string.
+     */
+    public const MAX_LIST_ITEMS = 100;
+
+    /** Longest single stored value (a facet token carries a column + its value). */
+    public const MAX_VALUE_LENGTH = 255;
+
+    /** Last resort on the whole encoded filter set, once the caps above applied. */
+    public const MAX_FILTERS_BYTES = 32768;
+
     /**
      * A request value as a clean list of non-empty strings, dropping anything
      * that is not scalar.
@@ -68,36 +81,81 @@ class SavedSearchService
     {
         $out = [];
         foreach (['tables', 'users', 'facets'] as $k) {
-            $v = self::scalarList($input[$k] ?? []);
-            if ($k === 'facets') {
-                $v = array_slice($v, 0, RequestFilters::MAX_FACETS);
-            }
+            $v = self::boundedList($input[$k] ?? []);
             if (!empty($v)) {
                 $out[$k] = $v;
             }
         }
         foreach (['date_from', 'date_to'] as $k) {
-            $v = self::scalarString($input[$k] ?? '');
+            $v = self::boundedString($input[$k] ?? '');
             if ($v !== '') {
                 $out[$k] = $v;
             }
         }
         $ranges = (array) ($input['range'] ?? []);
+        $fields = 0;
         foreach ($ranges as $field => $r) {
-            // A range field is always "n_<table>::<column>"; a numeric key means
-            // the param was posted as a plain list and can never match a field.
-            if (!is_string($field) || !is_array($r)) {
+            // A range field is always "n_<table>::<column>" - the same shape the
+            // search screen accepts. Anything else (including a numeric key from
+            // a param posted as a plain list) can never match a field.
+            if (!is_string($field) || !is_array($r) || !preg_match(DocumentMapper::RANGE_FIELD_PATTERN, $field)) {
                 continue;
             }
+            if ($fields >= self::MAX_LIST_ITEMS) {
+                break;
+            }
+            $bounds = [];
             foreach (['from', 'to'] as $side) {
-                $v = self::scalarString($r[$side] ?? '');
+                $v = self::boundedString($r[$side] ?? '');
                 if ($v !== '') {
-                    $out['range'][$field][$side] = $v;
+                    $bounds[$side] = $v;
                 }
+            }
+            if (!empty($bounds)) {
+                $out['range'][$field] = $bounds;
+                $fields++;
             }
         }
 
         return $out;
+    }
+
+    /**
+     * scalarList() plus the stored-size caps: at most MAX_LIST_ITEMS entries, and
+     * an over-long entry is dropped rather than truncated (a cut-off table name
+     * or facet token matches nothing anyway).
+     *
+     * @param mixed $value
+     * @return array<int,string>
+     */
+    private static function boundedList($value): array
+    {
+        $list = array_filter(
+            self::scalarList($value),
+            fn ($s) => mb_strlen($s) <= self::MAX_VALUE_LENGTH
+        );
+
+        return array_slice(array_values($list), 0, self::MAX_LIST_ITEMS);
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private static function boundedString($value): string
+    {
+        $v = self::scalarString($value);
+
+        return mb_strlen($v) <= self::MAX_VALUE_LENGTH ? $v : '';
+    }
+
+    /**
+     * Whether a filter set is small enough to store, after filtersFromInput().
+     *
+     * @param array<string,mixed> $filters
+     */
+    public static function withinSizeLimit(array $filters): bool
+    {
+        return strlen((string) json_encode($filters)) <= self::MAX_FILTERS_BYTES;
     }
 
     /**

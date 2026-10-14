@@ -58,6 +58,14 @@ class DocumentMapper
         // unified filter fields: creation time + creator.
         $extra = self::filterFieldsV1($record->created_at ?? null, $record->created_user_id ?? null);
 
+        // When the record was last written, so exment:meili-reconcile can tell a
+        // stale document from an up-to-date one. Comparing ids alone only finds
+        // documents that are missing or orphaned, never ones holding old content.
+        $updatedTs = self::toTimestamp($record->updated_at ?? null);
+        if ($updatedTs !== null) {
+            $extra[self::UPDATED_FIELD] = $updatedTs;
+        }
+
         // facets["<prefix>=value"] from status/classification columns.
         $facets = [];
         foreach ($facetColumns as $column) {
@@ -265,6 +273,13 @@ class DocumentMapper
     }
 
     /**
+     * Document field holding the record's updated_at as a unix timestamp.
+     * Read back by exment:meili-reconcile to spot stale content; not filterable,
+     * so it needs no index setting.
+     */
+    public const UPDATED_FIELD = 'updated_ts';
+
+    /**
      * Separator between table_name and column_name in an unaliased facet prefix.
      * Neither name can contain it (both are [A-Za-z0-9_]), so the prefix stays
      * unambiguous and splittable.
@@ -374,6 +389,19 @@ class DocumentMapper
         $out['f_user'] = $users;
 
         return $out;
+    }
+
+    /**
+     * The value stored in UPDATED_FIELD for a record's updated_at.
+     *
+     * Public so exment:meili-reconcile compares a document against the database
+     * through the very same conversion that wrote it.
+     *
+     * @param  mixed  $updatedAt
+     */
+    public static function recordStamp($updatedAt): ?int
+    {
+        return self::toTimestamp($updatedAt);
     }
 
     /**

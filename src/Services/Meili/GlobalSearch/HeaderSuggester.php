@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\Meili\GlobalSearch;
 
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
@@ -31,16 +32,28 @@ class HeaderSuggester
 
         // Record permission filter: queries automatically apply the
         // CustomValueModelScope global scope.
-        $accessible = $this->accessibleIdSets($hits);
+        $accessible = $this->accessibleModels($hits);
 
         $results = [];
         foreach (MeiliSearchService::filterAccessibleHits($hits, $accessible, $limit) as $hit) {
-            $table = CustomTable::getEloquent(array_get($hit, 'table_name'));
-            $label = array_get($hit, 'label');
+            $tableName = array_get($hit, 'table_name');
+            $table = CustomTable::getEloquent($tableName);
+            $model = $accessible[$tableName][array_get($hit, 'value_id')] ?? null;
+
+            // Label from the scoped model, not from the document: a document keeps
+            // the labels of linked records as resolved when it was indexed, which
+            // may name a record this viewer cannot open.
+            $label = $model ? (string) $model->label : (string) array_get($hit, 'label');
+
             // [Highlight] displayed text contains <mark>; the value filled into
             // the input box is the plain label.
-            $snippet = array_get($hit, 'snippet') ?: $label;
-            $text = self::toHighlightedHtml((string) $snippet);
+            $snippet = $this->permittedSnippet($hit, $table, $model, $label);
+            // Matched nothing but content this viewer may not read: showing the
+            // record would still confirm that content exists.
+            if ($snippet === null) {
+                continue;
+            }
+            $text = self::toHighlightedHtml($snippet !== '' ? $snippet : $label);
             $results[] = [
                 'value' => $label
                 , 'text_html' => $text
@@ -53,6 +66,84 @@ class HeaderSuggester
         }
 
         return $results;
+    }
+
+    /**
+     * The highlighted excerpt, limited to what this viewer is allowed to read.
+     * Null when the keyword matched only content the viewer may not read.
+     *
+     * @param  array<string,mixed>  $hit
+     * @param  mixed  $table
+     * @param  mixed  $model  the permission-scoped record, null when unavailable
+     */
+    private function permittedSnippet(array $hit, $table, $model, string $label): ?string
+    {
+        $pre = MeiliSearchService::HIGHLIGHT_PRE;
+        $formatted = (array) (array_get($hit, 'formatted') ?: []);
+
+        // The indexed label only stands if it still matches the label the viewer
+        // may see; built from a hidden linked record, the two differ.
+        $indexedLabel = (string) ($formatted['label'] ?? '');
+        if (self::stripHighlight($indexedLabel) !== $label) {
+            if (strpos($indexedLabel, $pre) !== false) {
+                return null;    // the keyword matched a label the viewer may not read
+            }
+            unset($formatted['label']);
+        } elseif (strpos($indexedLabel, $pre) !== false) {
+            return $indexedLabel;
+        }
+
+        // Only the fields that actually carry the keyword are worth a permission
+        // check - resolving a linked value costs a lookup per column.
+        $hiddenHit = false;
+        foreach (($formatted['fields'] ?? []) as $name => $value) {
+            if (!is_string($value) || strpos($value, $pre) === false) {
+                continue;
+            }
+            if (self::isReadableField($table, $model, (string) $name)) {
+                return $value;
+            }
+            $hiddenHit = true;
+        }
+
+        // Nothing readable matched: keep the hit only if nothing hidden matched
+        // either - then it came from the table name, which is not record data.
+        return $hiddenHit ? null : (string) ($formatted['label'] ?? '');
+    }
+
+    /**
+     * Whether this viewer may be shown a freeword field's indexed content.
+     *
+     * Only select_table columns can hide content: Exment replaces a linked record
+     * the viewer cannot open with the "no permission" text while the document
+     * keeps its real label, so such a field is withheld. user/organization
+     * columns are not permission-gated on the record screen, so they stay.
+     *
+     * @param  mixed  $table
+     * @param  mixed  $model
+     */
+    private static function isReadableField($table, $model, string $name): bool
+    {
+        if (!$table) {
+            return false;
+        }
+
+        $column = $table->getFreewordSearchColumns()->first(fn ($c) => $c->column_name === $name);
+        if (!$column) {
+            return false;
+        }
+        if ($column->column_type !== ColumnType::SELECT_TABLE) {
+            return true;
+        }
+
+        $shown = $model ? (string) $model->getValue($column, true) : '';
+
+        return $shown !== '' && strpos($shown, exmtrans('common.message.no_permission')) === false;
+    }
+
+    private static function stripHighlight(string $value): string
+    {
+        return str_replace([MeiliSearchService::HIGHLIGHT_PRE, MeiliSearchService::HIGHLIGHT_POST], '', $value);
     }
 
     /**
@@ -71,13 +162,15 @@ class HeaderSuggester
     }
 
     /**
-     * For each table appearing in the hits, return the set of record ids the
-     * current user can actually view (scoped query).
+     * For each table appearing in the hits, return the records the current user
+     * can actually view (scoped query), keyed by id. The models themselves, not
+     * just their ids: the label and the linked values are re-read from them so
+     * what is rendered follows this viewer's permissions.
      *
      * @param array<int,array<string,mixed>> $hits
-     * @return array<string,array<int|string,bool>>
+     * @return array<string,array<int|string,mixed>>
      */
-    private function accessibleIdSets(array $hits): array
+    private function accessibleModels(array $hits): array
     {
         $idsByTable = [];
         foreach ($hits as $hit) {
@@ -95,10 +188,10 @@ class HeaderSuggester
                 $accessible[$tableName] = [];
                 continue;
             }
-            $allowed = getModelName($table)::whereIn('id', array_values(array_unique($ids)))
-                ->pluck('id')
+            $accessible[$tableName] = getModelName($table)::whereIn('id', array_values(array_unique($ids)))
+                ->get()
+                ->keyBy('id')
                 ->all();
-            $accessible[$tableName] = array_fill_keys($allowed, true);
         }
 
         return $accessible;

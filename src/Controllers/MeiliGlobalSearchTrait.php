@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Services\Meili\ExmentIndexer;
 use Exceedone\Exment\Services\Meili\GlobalSearch\AppliedChips;
 use Exceedone\Exment\Services\Meili\GlobalSearch\FilterSidebar;
 use Exceedone\Exment\Services\Meili\GlobalSearch\HeaderSuggester;
@@ -45,7 +46,9 @@ trait MeiliGlobalSearchTrait
      */
     protected function meiliActive(): bool
     {
-        return $this->meiliEnabled() && !boolval(config('exment.search_document', false));
+        return $this->meiliEnabled()
+            && !boolval(config('exment.search_document', false))
+            && ExmentIndexer::indexIsBuilt();
     }
 
     protected function makeService(): MeiliSearchService
