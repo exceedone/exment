@@ -11,7 +11,7 @@ use Exceedone\Exment\Tests\Unit\Dashboard\Support\DashboardUnitTestCase;
  */
 class ChartMenuTest extends DashboardUnitTestCase
 {
-    public function testDisplayOptionsParse()
+    public function testDisplayOptionsParse(): void
     {
         $this->assertSame([], ChartItem::displayOptions(null), 'unset = nothing on');
         $this->assertSame([], ChartItem::displayOptions(''));
@@ -22,7 +22,7 @@ class ChartMenuTest extends DashboardUnitTestCase
         $this->assertSame([], ChartItem::displayOptions(['labels']), 'not a string = nothing');
     }
 
-    public function testToolbarStateKeepsOnlyChoicesThatDifferFromTheBox()
+    public function testToolbarStateKeepsOnlyChoicesThatDifferFromTheBox(): void
     {
         $this->assertSame(
             ['ct' => 'line', 'cs' => 'y:desc', 'cd' => 'labels'],
@@ -36,7 +36,7 @@ class ChartMenuTest extends DashboardUnitTestCase
         $this->assertNull(ChartItem::toolbarState(['ct' => ['line'], 'cs' => ['y:desc'], 'cd' => ['labels']], 'bar'), 'non-strings dropped');
     }
 
-    public function testWhichTypesOfferDataLabels()
+    public function testWhichTypesOfferDataLabels(): void
     {
         foreach (['bar', 'line', 'pie', 'hbar', 'area', 'scatter', 'mbar', 'sbar', 'mline', 'sarea'] as $type) {
             $this->assertTrue(ChartType::supportsDataLabels($type), $type);

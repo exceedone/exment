@@ -61,7 +61,9 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<DashboardBox, $this>
+     */
     public function dashboard_boxes(): HasMany
     {
         return $this->hasMany(DashboardBox::class, 'dashboard_id')
@@ -119,7 +121,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     // @phpstan-ignore-next-line
     public function setFilterBarTableAttribute($value)
     {
-        return $this->setFilterBarOption('source_table', is_nullorempty($value) ? null : strval($value));
+        return $this->setFilterBarOption('source_table', is_scalar($value) && !is_nullorempty($value) ? strval($value) : null);
     }
 
     /**
@@ -127,7 +129,6 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      *
      * @return array<int, array{column:?string, label:?string, targets:string[], default:string}>
      */
-    // @phpstan-ignore-next-line
     public function getFilterBarDimsAttribute()
     {
         $dims = $this->getOption('filter_bar.dims');
@@ -136,7 +137,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
                 'column' => array_get($dim, 'column'),
                 'label' => array_get($dim, 'label'),
                 'targets' => array_values(array_filter((array) array_get($dim, 'targets', []), 'is_string')),
-                'default' => strval(array_get($dim, 'default', '')),
+                'default' => static::textOf(array_get($dim, 'default')),
             ];
         })->values()->toArray();
     }
@@ -155,11 +156,11 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         }
         $dims = [];
         foreach (is_array($value) ? $value : [] as $row) {
-            $column = trim(strval(array_get($row, 'column', '')));
+            $column = trim(static::textOf(array_get($row, 'column')));
             if ($column === '') {
                 continue; // a row left blank is not a filter item
             }
-            $label = trim(strval(array_get($row, 'label', '')));
+            $label = trim(static::textOf(array_get($row, 'label')));
             $dim = ['column' => $column, 'label' => $label !== '' ? $label : $column];
             // target boxes: an empty multi-select posts nothing = every box
             $targets = array_values(array_filter((array) array_get($row, 'targets', []), function ($v) {
@@ -169,7 +170,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
                 $dim['targets'] = $targets;
             }
             // initial selection (stored values; "min~max" for range items) — empty = none
-            $default = trim(strval(array_get($row, 'default', '')));
+            $default = trim(static::textOf(array_get($row, 'default')));
             if ($default !== '') {
                 $dim['default'] = $default;
             }
@@ -180,6 +181,17 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             $dims[] = $dim;
         }
         return $this->setFilterBarOption('dims', count($dims) ? $dims : null);
+    }
+
+    /**
+     * A posted or imported value as text: '' for one that is no scalar (an array where a
+     * text is expected), which strval() would fail on.
+     *
+     * @param mixed $value
+     */
+    protected static function textOf($value): string
+    {
+        return is_scalar($value) ? strval($value) : '';
     }
 
     /**
@@ -214,7 +226,6 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      * @param bool $is_lang
      * @return array<string, mixed>
      */
-    // @phpstan-ignore-next-line
     public function getTemplateExportItems($is_lang = false)
     {
         $array = $this->templateExportItems($is_lang);
@@ -236,9 +247,8 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      * @param array<string, mixed> $array
      * @param bool $is_update
      * @param array<string, mixed> $options
-     * @return static|null
+     * @return \Illuminate\Database\Eloquent\Model|null  the trait's result (TemplateTrait::importTemplate)
      */
-    // @phpstan-ignore-next-line
     public static function importTemplate($array, $is_update, $options = [])
     {
         $dashboard = static::templateImport($array, $is_update, $options);
@@ -312,11 +322,13 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         $dims = [];
         foreach ((array) array_get($bar, 'dims', []) as $dim) {
             $column = array_get($dim, 'column');
-            if (!is_nullorempty($column) && !isset($dims[$column])) {
-                $dims[$column] = $dim;
+            $key = is_scalar($column) ? strval($column) : '';
+            if ($key !== '' && !isset($dims[$key])) {
+                $dims[$key] = $dim;
             }
         }
-        if (is_nullorempty(array_get($bar, 'source_table')) || empty($dims)) {
+        $source = array_get($bar, 'source_table');
+        if (!is_scalar($source) || is_nullorempty($source) || empty($dims)) {
             $this->forgetOption('filter_bar');
             return;
         }

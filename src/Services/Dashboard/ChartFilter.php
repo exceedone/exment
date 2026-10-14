@@ -9,6 +9,8 @@ namespace Exceedone\Exment\Services\Dashboard;
  * Page-lifetime by design: the selection lives in the dashboard JS per box and is sent
  * with THIS box's request only — the page URL, the filter bar and every other box stay
  * untouched. A bf_ param counts only for a column the box declares AND its table has.
+ *
+ * @phpstan-import-type FilterSpec from FilterValue
  */
 final class ChartFilter
 {
@@ -18,9 +20,14 @@ final class ChartFilter
     private $table;
     /** @var array<string, mixed> column => CustomColumn (declared + existing) */
     private $columns = [];
-    /** @var array<string, array> column => spec (active only) */
+    /** @var array<string, FilterSpec> column => spec (active only) */
     private $values = [];
 
+    /**
+     * @param mixed $box  DashboardBox|null
+     * @param mixed $table  CustomTable|null
+     * @param array<string, mixed> $params  request params
+     */
     private function __construct($box, $table, array $params)
     {
         $this->box = $box;
@@ -45,11 +52,20 @@ final class ChartFilter
         }
     }
 
+    /**
+     * @param mixed $box  DashboardBox|null
+     * @param mixed $table  CustomTable|null
+     */
     public static function fromRequest($box, $table): self
     {
         return new self($box, $table, request()->all());
     }
 
+    /**
+     * @param mixed $box  DashboardBox|null
+     * @param mixed $table  CustomTable|null
+     * @param array<string, mixed> $params  request params
+     */
     public static function of($box, $table, array $params): self
     {
         return new self($box, $table, $params);
@@ -69,7 +85,7 @@ final class ChartFilter
     }
 
     /**
-     * @return array<string, array> column => spec
+     * @return array<string, FilterSpec> column => spec
      */
     public function values(): array
     {
@@ -79,6 +95,7 @@ final class ChartFilter
     /**
      * AND every active filter onto $query.
      *
+     * @param mixed $query  query on the table's rows
      * @param string[] $except columns to skip (when listing a column's own options)
      */
     public function applyTo($query, array $except = []): void
@@ -127,7 +144,7 @@ final class ChartFilter
      *
      * @param callable|null $viewScope  narrows a query to the box's view (its static filters)
      * @param string[] $dashboardExcept  bar items the box does not filter by (its highlighted X item)
-     * @return array<int, array>
+     * @return array<int, array{column: string, label: string, style: string, kind: string, active: bool, range?: array{from: string, to: string, min: string, max: string}, options?: array<int, array{id: string, name: string}>, selected?: array<int, string>, capped?: bool}>
      */
     public function fields(DashboardFilter $dashboardFilter, ?callable $viewScope = null, array $dashboardExcept = []): array
     {

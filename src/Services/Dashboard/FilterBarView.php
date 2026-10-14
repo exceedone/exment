@@ -18,7 +18,8 @@ final class FilterBarView
     /**
      * null when the dashboard has no filter bar (or its source table is gone).
      *
-     * @return array{dims: array, can_reset: bool, reset_query: string, dashboard_suuid: string}|null
+     * @param mixed $dashboard  Dashboard
+     * @return array{dims: array<int, array{column: string, label: string, style: string, kind: string, active: bool, range?: array{from: string, to: string, min: string, max: string}, options?: array<int, array{id: string, name: string}>, selected?: array<int, string>, capped?: bool}>, can_reset: bool, reset_query: string, dashboard_suuid: string}|null
      */
     public static function build($dashboard, DashboardFilter $filter): ?array
     {

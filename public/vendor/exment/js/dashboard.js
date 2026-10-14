@@ -12,9 +12,11 @@
  *   cd                    display option 値ラベル ("labels"; per box; remembered per user)
  *   bf_{column}           chart filter selection (page-lifetime, per box)
  *
- * A filter bar change is applied selectively (see `navigate`): pushState the new URL,
- * reload only the boxes the changed items narrow (their data-df-dims attribute), refresh
- * the bar from a partial request (?_df_bar=1) — untouched boxes keep their content.
+ * A filter bar change is applied selectively (see `navigate`): push a history entry for
+ * the new URL, reload only the boxes the changed items narrow (their data-df-dims
+ * attribute), refresh the bar from a partial request (?_df_bar=1) — untouched boxes keep
+ * their content. The entry is one of pjax's own (see `pushEntry`), so back / forward
+ * re-render the page for the entry's URL the way pjax restores any page.
  *
  * Cross-highlight: a chart never filters by its own X item (ChartItem::highlightColumn), it
  * draws the picked values solid and fades the rest. A change on that item alone — a click on
@@ -235,7 +237,13 @@
         var hook = (window.ExmentCharts || {})[suuid], $box = boxOf(suuid);
         if (!hook || typeof hook.data !== 'function') { return; }
         var d = hook.data(), rows = [];
-        var cell = function (v) { var s = String(v == null ? '' : v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+        // a text that a spreadsheet would read as a formula (= + - @, a tab or a CR first) is
+        // kept as text by a quote in front (CSV injection); a number stays a number
+        var cell = function (v) {
+            var s = String(v == null ? '' : v);
+            if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(s) && !/^[+-]?\d+(\.\d+)?$/.test(s)) { s = "'" + s; }
+            return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+        };
         if (d.matrix) {
             rows.push([d.axisx || ''].concat(d.series));
             $.each(d.categories, function (i, c) { rows.push([c].concat($.map(d.series, function (s, si) { return (d.matrix[si] || [])[i]; }))); });
@@ -340,7 +348,7 @@
                     }).join('') + '</div>'
                     + '<div class="cc-f-hex"><label><input type="text" class="cc-hexin" maxlength="7" spellcheck="false" autocomplete="off"><span>HEX</span></label></div>'
                     + '<button type="button" class="cc-mode" title="RGB / HEX"><i class="fa fa-sort"></i></button></div>'
-                    + '<div class="cc-pick-foot"><button type="button" class="cc-ok">OK</button></div>'
+                    + '<div class="cc-pick-foot"><button type="button" class="cc-ok">' + esc(L.color_ok || 'OK') + '</button></div>'
                 );
                 render();
             }
@@ -558,7 +566,10 @@
     function pick(column, value, toggle) {
         var $s = $('.exment-df-bar .df-select[data-column="' + column + '"]');
         value = String(value == null ? '' : value);
-        if (!$s.length || value === '' || !$s.find('option[value="' + value.replace(/"/g, '\\"') + '"]').length) { return; }
+        // the option is found by comparing values: a value is free text, and a backslash or
+        // a quote in it would break a selector
+        var known = $s.find('option').filter(function () { return this.value === value; }).length > 0;
+        if (!$s.length || value === '' || !known) { return; }
         var current = ($s.val() || []).slice(), values;
         if (toggle) {
             values = current.indexOf(value) >= 0 ? current.filter(function (v) { return v !== value; }) : current.concat([value]);
@@ -572,10 +583,10 @@
     // ---- selective apply --------------------------------------------------------------
     // A bar change reloads ONLY the boxes the changed items narrow (data-df-dims, written
     // per box by DashboardController): the others keep their rendered content — no spinner
-    // that could read as "this chart was filtered too". The URL still updates (pushState,
-    // so F5 / back keep working) and the bar re-renders its option lists from a partial
-    // request. Anything unexpected falls back to a full pjax render.
-    var barReq = 0, pushedState = false;
+    // that could read as "this chart was filtered too". The URL still updates (a history
+    // entry, so F5 / back keep working) and the bar re-renders its option lists from a
+    // partial request. Anything unexpected falls back to a full pjax render.
+    var barReq = 0;
 
     function dfColumnOf(key) {
         if (key.indexOf('df_') !== 0) { return null; }
@@ -702,6 +713,43 @@
         if ($.pjax) { $.pjax({ url: url, container: '#pjax-container' }); } else { window.location.href = url; }
     }
 
+    // ---- history ----------------------------------------------------------------------
+    // A filter change gets a history entry of its own, written as one of pjax's: an entry
+    // whose state has pjax's shape (id, url, container) is restored by pjax on back /
+    // forward through a full render of its URL — fetched afresh each time, open-admin keeps
+    // no pjax cache (maxCacheLength 0) — and pjax's notion of the current entry
+    // ($.pjax.state) follows ours, or it would skip the entry it still believes current.
+    // The entry the dashboard was rendered in becomes such an entry too when it is not one
+    // yet (a full page load), and its URL says explicitly that the bar is empty (dfr) when
+    // it carries no filter state: fetched again on the way back, a URL without one is
+    // redirected to this user's remembered selection (DashboardController::
+    // filterDefaultRedirect), and the entry would show another state than its URL.
+    var lastId = 0;
+
+    // pjax reads the navigation direction off its ids (timestamps): strictly increasing
+    function entryState(url) {
+        lastId = Math.max(Date.now(), lastId + 1);
+        return { id: lastId, url: url, title: document.title, container: '#pjax-container' };
+    }
+
+    // `href` with its filter state made explicit: dfr=1 when no df_ value and no dfr is on it
+    function explicitUrl(href) {
+        var u = new URL(href), explicit = false;
+        u.searchParams.forEach(function (v, k) { if (k === 'dfr' || (k.indexOf('df_') === 0 && v !== '')) { explicit = true; } });
+        if (!explicit) { u.searchParams.set('dfr', '1'); }
+        return u.href;
+    }
+
+    function pushEntry(url) {
+        var current = explicitUrl(window.location.href), st = window.history.state;
+        st = (st && st.container) ? $.extend({}, st, { url: current }) : entryState(current);
+        window.history.replaceState(st, '', current);
+        $.pjax.state = st;
+        st = entryState(new URL(url, window.location.href).href);
+        window.history.pushState(st, '', st.url);
+        $.pjax.state = st;
+    }
+
     function navigate(url) {
         $('.exment-df-bar .df-select').each(function () {
             $(this).data('applied', ($(this).val() || []).slice());
@@ -709,12 +757,11 @@
         });
         if (url === window.location.pathname + window.location.search) { return; }
         var $boxes = $('[data-suuid]').filter(function () { return $(this).data('suuid'); });
-        var canPartial = window.history && window.history.pushState && $boxes.length
+        var canPartial = $.pjax && window.history && window.history.pushState && $boxes.length
             && $boxes.filter('[data-df-dims]').length === $boxes.length;
         if (!canPartial) { fullNavigate(url); return; }
         var changed = changedColumns(window.location.search, url.indexOf('?') >= 0 ? url.slice(url.indexOf('?')) : '');
-        window.history.pushState({ exdf: true }, '', url);
-        pushedState = true;
+        pushEntry(url);
         $boxes.each(function () {
             var $box = $(this), suuid = $box.data('suuid'), dims = boxDims($box), hit = [];
             $.each(changed, function (i, column) { if (dims.indexOf(column) >= 0) { hit.push(column); } });
@@ -765,13 +812,6 @@
         // リセット: back to the configured defaults (the bar renders their URL query)
         $(document).on('click' + NS, '.exment-df-bar .df-reset', function () {
             navigate(window.location.pathname + '?' + String($(this).closest('.exment-df-bar').attr('data-reset-query') || ''));
-        });
-        // back/forward across pushState'd filter states: pjax restores its own entries
-        // (state.container), everything else re-renders in full
-        $(window).on('popstate' + NS, function (ev) {
-            var st = ev.originalEvent.state;
-            if (!pushedState || (st && st.container)) { return; }
-            fullNavigate(window.location.href);
         });
 
         // chart toolbar

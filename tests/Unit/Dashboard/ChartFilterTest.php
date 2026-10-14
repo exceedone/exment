@@ -21,7 +21,7 @@ class ChartFilterTest extends DashboardUnitTestCase
         ]);
     }
 
-    public function testDeclaredColumnsIntersectedWithTable()
+    public function testDeclaredColumnsIntersectedWithTable(): void
     {
         $box = $this->makeBox('b1', ['chart_filters' => ['class', 'missing', 'bad-name', 'class', 'score']]);
         $filter = ChartFilter::of($box, $this->table(), []);
@@ -30,21 +30,21 @@ class ChartFilterTest extends DashboardUnitTestCase
         $this->assertSame([], $filter->values(), 'nothing selected');
     }
 
-    public function testNothingWithoutDeclarationOrTable()
+    public function testNothingWithoutDeclarationOrTable(): void
     {
         $this->assertFalse(ChartFilter::of($this->makeBox('b1', []), $this->table(), ['bf_class' => '1'])->isConfigured());
         $this->assertFalse(ChartFilter::of($this->makeBox('b1', ['chart_filters' => ['class']]), null, ['bf_class' => '1'])->isConfigured());
         $this->assertFalse(ChartFilter::of(null, $this->table(), [])->isConfigured());
     }
 
-    public function testOnlyDeclaredParamsCount()
+    public function testOnlyDeclaredParamsCount(): void
     {
         $box = $this->makeBox('b1', ['chart_filters' => ['class']]);
         $filter = ChartFilter::of($box, $this->table(), ['bf_class' => ['2', '3'], 'bf_semester' => '1', 'df_class' => '9']);
         $this->assertSame(['class' => ['in' => ['2', '3']]], $filter->values());
     }
 
-    public function testApplyToWithExcept()
+    public function testApplyToWithExcept(): void
     {
         $box = $this->makeBox('b1', ['chart_filters' => ['class', 'semester', 'score']]);
         $filter = ChartFilter::of($box, $this->table(), ['bf_class' => '2', 'bf_semester' => ['1', '2'], 'bf_score' => ['from' => '80', 'to' => '100']]);
@@ -56,8 +56,8 @@ class ChartFilterTest extends DashboardUnitTestCase
             'exm__fake.column_class = "2"',
             'exm__fake.column_semester IN ["1","2"]',
             "{$score} IS NOT NULL AND {$score} <> ''",
-            "CAST({$score} AS DECIMAL(20,4)) >= ? [\"80\"]",
-            "CAST({$score} AS DECIMAL(20,4)) <= ? [\"100\"]",
+            "CAST({$score} AS DECIMAL(22,8)) >= ? [\"80\"]",
+            "CAST({$score} AS DECIMAL(22,8)) <= ? [\"100\"]",
         ], $q->sql());
 
         $q = new FakeQuery();
@@ -65,7 +65,7 @@ class ChartFilterTest extends DashboardUnitTestCase
         $this->assertCount(4, $q->sql(), 'the excluded column is skipped (its own option list)');
     }
 
-    public function testCaptionsResolveValtextLabels()
+    public function testCaptionsResolveValtextLabels(): void
     {
         $box = $this->makeBox('b1', ['chart_filters' => ['semester', 'score']]);
         $filter = ChartFilter::of($box, $this->table(), ['bf_semester' => ['2', '9'], 'bf_score' => ['from' => '80']]);

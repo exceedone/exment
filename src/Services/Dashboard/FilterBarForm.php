@@ -91,6 +91,7 @@ final class FilterBarForm
     /**
      * Targeting choices: this dashboard's chart boxes (the only boxes that apply filters).
      *
+     * @param \Exceedone\Exment\Model\Dashboard|null $model  null on a new dashboard
      * @return array<string, string> suuid => "name (row-column)"
      */
     private static function boxOptions($model): array
