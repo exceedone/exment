@@ -115,6 +115,7 @@ class Define
         'meili_repair_enabled' => ['type' => 'boolean', 'config' => 'meilisearch.repair_enabled', 'group' => 'advanced'],
         'meili_repair_at' => ['config' => 'meilisearch.repair_at', 'group' => 'advanced'],
         'meili_filter_mode' => ['config' => 'meilisearch.filter.mode', 'group' => 'advanced'],
+        'meili_indexed_at' => ['type' => 'json', 'group' => 'meili_state'],
 
 
         // notify

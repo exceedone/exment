@@ -265,33 +265,48 @@ class MeiliSearchService
     }
 
     /**
-     * All value_ids currently in the index for one table (paginated via
-     * getDocuments with a filter, so it is NOT capped by maxTotalHits like
-     * search()).
+     * value_id => the document's updated_ts, for every document of a table.
      *
-     * @return array<int,mixed>
+     * null means the document predates DocumentMapper::UPDATED_FIELD, so its
+     * content cannot be compared - only a reindex fills it in.
+     *
+     * @return array<string,int|null>
      */
-    public function indexedValueIds(string $tableName, int $pageSize = 1000): array
+    public function indexedUpdatedStamps(string $tableName, int $pageSize = 1000): array
     {
-        $ids = [];
+        $stamps = [];
         $offset = 0;
-        // Guard against a non-positive page size: it would make the loop
-        // request 0 documents forever.
         $pageSize = max(1, $pageSize);
 
         while (true) {
-            $page = $this->indexedValueIdsPage($tableName, $offset, $pageSize);
-            if ($page['count'] === 0) {
+            $query = (new \Meilisearch\Contracts\DocumentsQuery())
+                ->setFilter(['table_name = ' . self::quoteFilterValue($tableName)])
+                ->setFields(['value_id', DocumentMapper::UPDATED_FIELD])
+                ->setLimit($pageSize)
+                ->setOffset($offset);
+
+            $results = $this->client->index($this->indexName)->getDocuments($query);
+            $rows = $results->getResults();
+            if (empty($rows)) {
                 break;
             }
-            array_push($ids, ...$page['ids']);
+
+            foreach ($rows as $row) {
+                $id = $row['value_id'] ?? null;
+                if ($id === null) {
+                    continue;
+                }
+                $ts = $row[DocumentMapper::UPDATED_FIELD] ?? null;
+                $stamps[(string) $id] = $ts === null ? null : (int) $ts;
+            }
+
             $offset += $pageSize;
-            if ($offset >= $page['total']) {
+            if ($offset >= $results->getTotal()) {
                 break;
             }
         }
 
-        return $ids;
+        return $stamps;
     }
 
     /**
@@ -322,14 +337,14 @@ class MeiliSearchService
      *
      * @param array<int,mixed> $valueIds
      */
-    public function deleteByValueIds(string $tableName, array $valueIds, DocumentMapper $mapper): void
+    public function deleteByValueIds(string $tableName, array $valueIds, DocumentMapper $mapper, ?int $waitMs = null): void
     {
         if (empty($valueIds)) {
             return;
         }
         $docIds = array_map(fn ($id) => $mapper->makeDocumentId($tableName, $id), $valueIds);
         $task = $this->client->index($this->indexName)->deleteDocuments($docIds);
-        $this->client->waitForTask($task['taskUid'], 60000);
+        $this->client->waitForTask($task['taskUid'], $waitMs ?? 60000);
     }
 
     /**
@@ -569,7 +584,7 @@ class MeiliSearchService
      * Search with highlighting: also returns 'snippet' (the excerpt containing the highlighted keyword).
      *
      * @param MeiliFilters $filters
-     * @return array<int,array{table_name:?string,value_id:mixed,label:?string,snippet:string}>
+     * @return array<int,array{table_name:?string,value_id:mixed,label:?string,snippet:string,formatted:array<string,mixed>}>
      */
     public function searchHighlighted(string $q, int $limit = 10, array $filters = []): array
     {
@@ -594,6 +609,7 @@ class MeiliSearchService
                 'value_id' => $hit['value_id'] ?? null,
                 'label' => $hit['label'] ?? null,
                 'snippet' => self::pickHighlightedSnippet($hit['_formatted'] ?? []),
+                'formatted' => (array) ($hit['_formatted'] ?? []),
             ];
         }, $result->getHits());
     }

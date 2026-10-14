@@ -2279,6 +2279,7 @@ return [
         'share_targets_invalid' => '共有先を選択してください（所属しているロールグループ・組織のみ選べます）。',
         'share_all_denied' => '全員への共有はシステム管理者のみ行えます。',
         'saved_limit_reached' => '保存できる検索条件は %d 件までです。不要なものを削除してから保存してください。',
+        'saved_filters_too_large' => '検索条件が大きすぎるため保存できません。条件を絞ってから保存してください。',
         'range_min' => '下限',
         'range_max' => '上限',
         'result_unit' => '件',

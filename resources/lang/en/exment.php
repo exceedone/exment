@@ -2278,6 +2278,7 @@ return [
         'share_targets_invalid' => 'Choose who to share with (only role groups and organizations you belong to).',
         'share_all_denied' => 'Only system administrators can share with everyone.',
         'saved_limit_reached' => 'You can keep up to %d saved searches. Delete one you no longer need, then save again.',
+        'saved_filters_too_large' => 'These search conditions are too large to save. Narrow them down, then save again.',
         'range_min' => 'min',
         'range_max' => 'max',
         'result_unit' => 'results',

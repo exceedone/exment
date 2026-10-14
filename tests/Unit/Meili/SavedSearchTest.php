@@ -22,7 +22,13 @@ class SavedSearchTest extends TestCase
             'facets' => ['status=open'],
             'date_from' => '2026-01-01',
             'date_to' => '',
-            'range' => ['n_price' => ['from' => '10', 'to' => ''], 'bad' => 'x'],
+            // A range key must be "n_<table>::<column>" - the shape the search
+            // screen accepts; the other two can never match a field.
+            'range' => [
+                'n_sales::price' => ['from' => '10', 'to' => ''],
+                'n_price' => ['from' => '1', 'to' => '2'],
+                'bad' => 'x',
+            ],
             'query' => 'keyword',      // not part of filters
             'page' => 3,               // dropped
             '_token' => 'abc',         // dropped
@@ -33,11 +39,56 @@ class SavedSearchTest extends TestCase
         $this->assertSame(['status=open'], $out['facets']);
         $this->assertSame('2026-01-01', $out['date_from']);
         $this->assertArrayNotHasKey('date_to', $out);
-        $this->assertSame(['from' => '10'], $out['range']['n_price']);
+        $this->assertSame(['from' => '10'], $out['range']['n_sales::price']);
+        $this->assertArrayNotHasKey('n_price', $out['range']);
         $this->assertArrayNotHasKey('bad', $out['range']);
         $this->assertArrayNotHasKey('query', $out);
         $this->assertArrayNotHasKey('page', $out);
         $this->assertArrayNotHasKey('_token', $out);
+    }
+
+    /**
+     * One request must not decide how big a stored row is: a shared row is read
+     * back on every search screen, so each repeatable list is capped.
+     */
+    public function testFiltersFromInputCapsWhatOneRequestCanStore(): void
+    {
+        $many = 5 * SavedSearchService::MAX_LIST_ITEMS;
+        $out = SavedSearchService::filtersFromInput([
+            'tables' => array_map(fn ($i) => "t$i", range(1, $many)),
+            'users' => array_map(fn ($i) => (string) $i, range(1, $many)),
+            'facets' => array_map(fn ($i) => "c=v$i", range(1, $many)),
+            'range' => array_combine(
+                array_map(fn ($i) => "n_t$i::c", range(1, $many)),
+                array_fill(0, $many, ['from' => '1', 'to' => '2'])
+            ),
+        ]);
+
+        $this->assertCount(SavedSearchService::MAX_LIST_ITEMS, $out['tables']);
+        $this->assertCount(SavedSearchService::MAX_LIST_ITEMS, $out['users']);
+        $this->assertCount(SavedSearchService::MAX_LIST_ITEMS, $out['facets']);
+        $this->assertCount(SavedSearchService::MAX_LIST_ITEMS, $out['range']);
+        $this->assertTrue(SavedSearchService::withinSizeLimit($out));
+    }
+
+    /** An over-long value is dropped: truncated, it would match nothing anyway. */
+    public function testFiltersFromInputDropsOverlongValues(): void
+    {
+        $long = str_repeat('x', SavedSearchService::MAX_VALUE_LENGTH + 1);
+        $out = SavedSearchService::filtersFromInput([
+            'tables' => ['keiyaku', $long],
+            'date_from' => $long,
+        ]);
+
+        $this->assertSame(['keiyaku'], $out['tables']);
+        $this->assertArrayNotHasKey('date_from', $out);
+    }
+
+    public function testWithinSizeLimitRejectsAnOversizedFilterSet(): void
+    {
+        $this->assertFalse(SavedSearchService::withinSizeLimit([
+            'date_from' => str_repeat('x', SavedSearchService::MAX_FILTERS_BYTES + 1),
+        ]));
     }
 
     // ---- sanitizeWith (re-apply against current metadata) ----

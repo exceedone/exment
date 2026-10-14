@@ -19,6 +19,14 @@ class RequestFilters
     public const MAX_FACETS = 100;
 
     /**
+     * Same reasoning as MAX_FACETS for the other repeatable value filters
+     * (tables, users, range fields). Every one of them also becomes a chip whose
+     * remove-url repeats the rest of the list, so an uncapped list costs the
+     * square of its length to render.
+     */
+    public const MAX_VALUES = 100;
+
+    /**
      * Read filters from the request:
      * ['date_from'=>unix, 'date_to'=>unix, 'users'=>int[], 'facets'=>string[], 'ranges'=>...].
      *
@@ -45,7 +53,7 @@ class RequestFilters
             $users = array_filter(explode(',', $users), fn ($v) => $v !== '');
         }
         if (!empty($users) && is_array($users)) {
-            $users = array_filter($users, 'is_scalar');
+            $users = array_slice(array_values(array_filter($users, 'is_scalar')), 0, self::MAX_VALUES);
             if (!empty($users)) {
                 $filters['users'] = array_map('intval', $users);
             }
@@ -68,6 +76,9 @@ class RequestFilters
         foreach ($ranges as $field => $r) {
             if (!is_string($field) || !preg_match(DocumentMapper::RANGE_FIELD_PATTERN, $field) || !is_array($r)) {
                 continue;
+            }
+            if (count($out) >= self::MAX_VALUES) {
+                break;
             }
             foreach (['from', 'to'] as $k) {
                 $v = $r[$k] ?? null;
@@ -126,10 +137,10 @@ class RequestFilters
             return [];
         }
 
-        return array_values(array_filter(
+        return array_slice(array_values(array_filter(
             array_map('strval', array_filter($values, 'is_scalar')),
             fn ($v) => $v !== ''
-        ));
+        )), 0, self::MAX_VALUES);
     }
 
     /**

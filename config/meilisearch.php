@@ -35,7 +35,7 @@ return [
 
     'sync_queue' => env('MEILISEARCH_SYNC_QUEUE', 'default'),
 
-    'reindex_queue' => env('MEILISEARCH_REINDEX_QUEUE', 'meili-reindex'),
+    'reindex_queue' => env('MEILISEARCH_REINDEX_QUEUE', env('MEILISEARCH_SYNC_QUEUE', 'default')),
 
     'repair_enabled' => filter_var(env('MEILISEARCH_REPAIR_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
 

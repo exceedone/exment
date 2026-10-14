@@ -67,4 +67,33 @@ class RequestStringInputTest extends TestCase
     {
         $this->assertSame([], RequestFilters::strList($this->req([]), 'tables'));
     }
+
+    /**
+     * Each value also renders a chip whose remove-url repeats the rest of the
+     * list, so an uncapped list costs the square of its length to render.
+     */
+    public function testStrListIsCapped(): void
+    {
+        $many = range(1, RequestFilters::MAX_VALUES * 5);
+
+        $this->assertCount(
+            RequestFilters::MAX_VALUES,
+            RequestFilters::strList($this->req(['tables' => $many]), 'tables')
+        );
+    }
+
+    public function testParsedUsersAndRangesAreCapped(): void
+    {
+        $many = RequestFilters::MAX_VALUES * 5;
+        $filters = RequestFilters::parse($this->req([
+            'users' => range(1, $many),
+            'range' => array_combine(
+                array_map(fn ($i) => "n_t$i::c", range(1, $many)),
+                array_fill(0, $many, ['from' => '1', 'to' => '2'])
+            ),
+        ]));
+
+        $this->assertCount(RequestFilters::MAX_VALUES, $filters['users']);
+        $this->assertCount(RequestFilters::MAX_VALUES, $filters['ranges']);
+    }
 }

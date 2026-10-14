@@ -33,11 +33,12 @@ class SyncMeiliReferencesJob implements ShouldQueue
         $this->timeout = 60;
         $this->afterCommit();
 
-        // Scans the linking tables, so it stays off the per-record sync queue.
+        // Scans the linking tables, so it follows reindex_queue - which defaults
+        // to the sync queue, since a separate one needs its own worker.
         try {
-            $this->onQueue(config('meilisearch.reindex_queue', 'meili-reindex'));
+            $this->onQueue(config('meilisearch.reindex_queue', 'default'));
         } catch (\Throwable $e) {
-            $this->onQueue('meili-reindex');
+            $this->onQueue('default');
         }
     }
 
@@ -98,7 +99,16 @@ class SyncMeiliReferencesJob implements ShouldQueue
             $client = MeiliClientFactory::make();
             \Exceedone\Exment\Services\Meili\ExmentIndexer::ensureIndexExists($client, config('meilisearch.index'));
             $task = $client->index(config('meilisearch.index'))->addDocuments($docs, 'id');
-            $client->waitForTask($task['taskUid'], 60000);
+            try {
+                // Bounded, and never fatal: waiting out this job's whole timeout
+                // would get it killed before it queues the continuation below,
+                // leaving the remaining linking records with stale labels.
+                $client->waitForTask($task['taskUid'], ReindexMeiliTableJob::TASK_WAIT_MS);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::info(
+                    "[Meili] reference sync of '{$this->tableName}' still processing; continuing."
+                );
+            }
         }
 
         $next = ReindexMeiliTableJob::nextAfterId($records->pluck('id')->all(), $chunkSize);

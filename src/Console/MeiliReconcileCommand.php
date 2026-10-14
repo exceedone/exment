@@ -69,7 +69,10 @@ class MeiliReconcileCommand extends Command
         }
 
         $totalMissing = 0;
+        $totalOutdated = 0;
+        $totalUnverified = 0;
         $totalOrphan = 0;
+        $skipped = 0;
 
         foreach ($tables as $table) {
             $tableName = $table->table_name;
@@ -78,21 +81,29 @@ class MeiliReconcileCommand extends Command
                 $result = $this->reconcileTable($table, $service, $indexer, $mapper, $dryRun);
             } catch (\Throwable $e) {
                 $this->warn(sprintf('  %-30s skipped (%s)', $tableName, $e->getMessage()));
-                continue;
-            }
-
-            if ($result['missing'] === 0 && $result['orphan'] === 0) {
-                $this->line(sprintf('  %-30s OK', $tableName));
+                $skipped++;
                 continue;
             }
 
             $totalMissing += $result['missing'];
+            $totalOutdated += $result['outdated'];
+            $totalUnverified += $result['unverified'];
             $totalOrphan += $result['orphan'];
 
+            if ($result['missing'] === 0 && $result['outdated'] === 0 && $result['orphan'] === 0) {
+                $this->line(sprintf(
+                    '  %-30s OK%s',
+                    $tableName,
+                    $result['unverified'] > 0 ? sprintf(' (%d not comparable)', $result['unverified']) : ''
+                ));
+                continue;
+            }
+
             $this->line(sprintf(
-                '  %-30s missing=%d orphan=%d %s',
+                '  %-30s missing=%d outdated=%d orphan=%d %s',
                 $tableName,
                 $result['missing'],
+                $result['outdated'],
                 $result['orphan'],
                 $dryRun ? '(dry-run)' : ''
             ));
@@ -103,14 +114,32 @@ class MeiliReconcileCommand extends Command
         // still qualify, so nothing would ever come back for them.
         $totalStale = $only ? 0 : $this->purgeStaleTables($client, $indexName, $indexer, $dryRun);
 
+        // A clean full pass means every searchable table has been walked and its
+        // missing documents filled in, so the index is complete even if it was
+        // never built by exment:meili-index (an upgrade, or a lost mark).
+        if (!$dryRun && !$only && $skipped === 0) {
+            ExmentIndexer::markIndexBuilt($indexName);
+        }
+
         $verb = $dryRun ? 'found' : 'repaired';
         $this->info(sprintf(
-            'Reconcile done. %s: %d missing, %d orphan, %d document(s) of de-indexed tables.',
+            'Reconcile done. %s: %d missing, %d outdated, %d orphan, %d document(s) of de-indexed tables.',
             $verb,
             $totalMissing,
+            $totalOutdated,
             $totalOrphan,
             $totalStale
         ));
+
+        // Documents written before the updated_ts field existed cannot be
+        // compared, so drift in them stays invisible until a full reindex.
+        if ($totalUnverified > 0) {
+            $this->warn(sprintf(
+                '  %d document(s) carry no %s and were not compared. Run `php artisan exment:meili-index` once to enable drift detection for them.',
+                $totalUnverified,
+                DocumentMapper::UPDATED_FIELD
+            ));
+        }
 
         return self::SUCCESS;
     }
@@ -124,29 +153,47 @@ class MeiliReconcileCommand extends Command
      *
      * @param \Exceedone\Exment\Model\CustomTable $table
      * @param \Exceedone\Exment\Services\Meili\ExmentIndexer $indexer
-     * @return array{missing:int, orphan:int}
+     * @return array{missing:int, outdated:int, unverified:int, orphan:int}
      */
     protected function reconcileTable($table, MeiliSearchService $service, $indexer, DocumentMapper $mapper, bool $dryRun): array
     {
         $tableName = $table->table_name;
         $chunkSize = max(1, (int) config('meilisearch.batch_size', 1000));
 
-        $indexed = array_fill_keys(array_map('strval', $service->indexedValueIds($tableName)), true);
+        // value_id => updated_ts, so a document holding old content is caught
+        // too: comparing ids alone only ever finds missing/orphan documents.
+        $indexed = $service->indexedUpdatedStamps($tableName, $chunkSize);
 
         $missing = 0;
+        $outdated = 0;
+        $unverified = 0;
         $buffer = [];
 
         getModelName($table)::query()
             ->withoutGlobalScope(CustomValueModelScope::class)
-            ->select('id')
-            ->chunkById($chunkSize, function ($records) use (&$indexed, &$missing, &$buffer, $table, $indexer, $dryRun, $chunkSize) {
+            ->select('id', 'updated_at')
+            ->chunkById($chunkSize, function ($records) use (&$indexed, &$missing, &$outdated, &$unverified, &$buffer, $table, $indexer, $dryRun, $chunkSize) {
                 foreach ($records as $record) {
                     $key = (string) $record->id;
-                    if (isset($indexed[$key])) {
+                    if (array_key_exists($key, $indexed)) {
+                        $stamp = $indexed[$key];
                         unset($indexed[$key]);
-                        continue;
+
+                        if ($stamp === null) {
+                            // Indexed before the field existed: nothing to compare
+                            // against, and reindexing every such document would
+                            // mean a full rebuild on the first run after upgrade.
+                            $unverified++;
+                            continue;
+                        }
+                        if ($stamp === DocumentMapper::recordStamp($record->updated_at)) {
+                            continue;
+                        }
+                        $outdated++;
+                    } else {
+                        $missing++;
                     }
-                    $missing++;
+
                     // Dry-run only counts: keeping every id would hold the whole
                     // table in memory on an index that was never built.
                     if (!$dryRun) {
@@ -181,7 +228,7 @@ class MeiliReconcileCommand extends Command
             }
         }
 
-        return ['missing' => $missing, 'orphan' => $orphan];
+        return ['missing' => $missing, 'outdated' => $outdated, 'unverified' => $unverified, 'orphan' => $orphan];
     }
 
     /**

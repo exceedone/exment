@@ -52,11 +52,16 @@ class MeiliSavedSearchController extends AdminControllerBase
         // with_query=0 -> save only the conditions (quick filter); applying keeps the current keyword.
         $withQuery = RequestFilters::str($request, 'with_query', '1') !== '0';
 
+        $filters = SavedSearchService::filtersFromInput($request->all());
+        if (!SavedSearchService::withinSizeLimit($filters)) {
+            return response()->json(['message' => exmtrans('search.saved_filters_too_large')], 422);
+        }
+
         $saved = MeiliSavedSearch::create([
             'name' => $name,
             'owner_user_id' => (int) $user->getUserId(),
             'query' => $withQuery ? RequestFilters::str($request, 'query') : '',
-            'filters' => SavedSearchService::filtersFromInput($request->all()),
+            'filters' => $filters,
             'share_type' => $shareType,
             'share_targets' => $targets,
         ]);
