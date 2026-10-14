@@ -1031,7 +1031,9 @@ $(function () {
             if (s && s.breach) { breach++; }
             if (!isDone(c)) {
                 var a = ageDays(c);
-                if (a !== null) { ageSum += a; ageCnt++; }
+                // same rule as the server's figure: a date still ahead has not
+                // started to age, so it is left out rather than averaged in
+                if (a !== null && a >= 0) { ageSum += a; ageCnt++; }
             }
         });
         }
@@ -1948,12 +1950,16 @@ $(function () {
     }
 
     // Escape closes the form - unless the admin's own window is open over it,
-    // which is then the one being closed.
+    // which is then the one being closed. With no form open it takes down the
+    // card drawer, the same as its × and the backdrop.
     $(document).off('keydown' + NS).on('keydown' + NS, function (e) {
-        if (!formOpen) { return; }
         if (e.key !== 'Escape' && e.keyCode !== 27) { return; }
-        if ($('#modal-showmodal').hasClass('show')) { return; }
-        closeForm();
+        if (formOpen) {
+            if ($('#modal-showmodal').hasClass('show')) { return; }
+            closeForm();
+            return;
+        }
+        if ($('#kb-drawer').hasClass('show')) { closeDrawer(); }
     });
 
     function openEditForm(card) {

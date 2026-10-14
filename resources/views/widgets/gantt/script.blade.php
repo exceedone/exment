@@ -27,6 +27,15 @@
         return new Date(+p[0], +p[1] - 1, +p[2]);
     }
     function fmtMD(d) { return (d.getMonth() + 1) + '/' + d.getDate(); }
+    // Rough width of a 10px header label: wide (CJK) glyphs take about a full
+    // em, digits and latin letters a little over half of one. Estimated rather
+    // than measured, because the chart may be drawn while its tab is hidden.
+    function labelW(s) {
+        var w = 0;
+        s = String(s || '');
+        for (var i = 0; i < s.length; i++) { w += s.charCodeAt(i) > 0xff ? 10 : 6; }
+        return w;
+    }
     function fmtShort(s) { var d = parse(s); return d ? fmtMD(d) : ''; }
 
     var today = parse(D.today);
@@ -101,6 +110,11 @@
         if (withLabels) {
             var everyOther = (dw * 7) < 44;
             var wk = 0;
+            // The today label shares the week row. A week label it would land
+            // on is left out, rather than the two printed over each other.
+            var todayAt = x(D.today);
+            var todayX = todayAt === null ? null : todayAt + 4;
+            var todayEnd = todayX === null ? null : todayX + labelW(L.today);
             for (var t2 = min.getTime(); t2 <= max.getTime(); t2 += DAY) {
                 var d2 = new Date(t2);
                 var px2 = Math.round((t2 - min.getTime()) / DAY) * dw;
@@ -109,7 +123,11 @@
                 }
                 if (d2.getDay() === 1) {
                     if (!everyOther || (wk % 2 === 0)) {
-                        h += '<div class="gt-wk" style="left:' + (px2 + 3) + 'px">' + fmtMD(d2) + '</div>';
+                        var wkX = px2 + 3;
+                        var wkText = fmtMD(d2);
+                        if (todayX === null || wkX >= todayEnd + 2 || wkX + labelW(wkText) + 2 <= todayX) {
+                            h += '<div class="gt-wk" style="left:' + wkX + 'px">' + wkText + '</div>';
+                        }
                     }
                     wk++;
                 }
