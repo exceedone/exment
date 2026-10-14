@@ -174,6 +174,7 @@ return [
             'success_execute' => 'Execute Success!',
             'copy_execute' => 'Copy Success!',
             'error_execute' => 'Execute Error',
+            'editor_image_expired' => 'The pasted image is no longer available. Paste the image again.',
             'execution_takes_time' => 'Execution takes time.',
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check Error Message.',
