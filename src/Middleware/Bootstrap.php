@@ -60,6 +60,7 @@ class Bootstrap
             'vendor/exment/css/workflow.css',
             'vendor/exment/css/workflow_task_navbar.css',
             'vendor/exment/css/customform.css',
+            'vendor/exment/css/dashboard.css',
             'vendor/exment/codemirror/codemirror.css',
             'vendor/exment/jstree/themes/default/style.min.css',
         ], true);
@@ -83,6 +84,7 @@ class Bootstrap
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',
+            'vendor/exment/js/dashboard.js',
             'vendor/exment/js/file-required.js',
             'vendor/exment/js/scroll-restore.js',
             'vendor/exment/js/file-required.js',

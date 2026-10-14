@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use ExmentAdminCore\Admin\Facades\Admin;
 use ExmentAdminCore\Admin\Form;
 use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
@@ -12,8 +13,12 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\DashboardBoxItems\ChartItem;
+use Exceedone\Exment\Services\Dashboard\ChartColors;
+use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Illuminate\Support\Collection;
 
 class DashboardBoxController extends AdminControllerBase
@@ -81,9 +86,15 @@ class DashboardBoxController extends AdminControllerBase
         // get box html --------------------------------------------------
         if (isset($box)) {
             $dashboard_box_item = $box->dashboard_box_item;
-            $header = $this->rednerHtml($dashboard_box_item->header());
-            $body = $this->rednerHtml($dashboard_box_item->body());
-            $footer = $this->rednerHtml($dashboard_box_item->footer());
+            // null for an unknown box type (a removed plugin): render an empty box instead of erroring
+            if (isset($dashboard_box_item)) {
+                $header = $this->rednerHtml($dashboard_box_item->header());
+                $body = $this->rednerHtml($dashboard_box_item->body());
+                $footer = $this->rednerHtml($dashboard_box_item->footer());
+                if (isset($body)) {
+                    $body = $this->filterBadge($box) . $body;
+                }
+            }
         }
 
         // get dashboard box
@@ -93,6 +104,70 @@ class DashboardBoxController extends AdminControllerBase
             'footer' => $footer ?? null,
             'suuid' => $suuid,
         ];
+    }
+
+    /**
+     * Remembers the toolbar choices of a chart box for the current user — chart type, sort,
+     * display options — as user setting `dashboard_chart.{dashboard suuid}.{box suuid}`;
+     * the next dashboard entry starts the box with them (DashboardController::home). A
+     * choice equal to the box setting is not kept, so the box follows its setting again.
+     *
+     * @param Request $request
+     * @param string $suuid
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function chartState(Request $request, $suuid)
+    {
+        $box = DashboardBox::findBySuuid($suuid);
+        $user = Admin::user();
+        if (!isset($box) || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard) || $user === null) {
+            return response()->json(['status' => false], 404);
+        }
+        $state = ChartItem::toolbarState($request->only(['ct', 'cs', 'cd']), array_get($box, 'options.chart_type'));
+        $key = 'dashboard_chart.' . $box->dashboard->suuid . '.' . $box->suuid;
+        if ($user->getSettingValue($key) !== $state) {
+            $user->setSettingValue($key, $state);
+        }
+        return response()->json(['status' => true]);
+    }
+
+    /**
+     * Paints one color on a chart box (right-click a point / series on the chart, like
+     * Excel's Fill) or takes every painted color back (`reset`), for everyone who views the
+     * box: box option `chart_colors` (ChartColors). Dashboard editors only.
+     *
+     * Posted: kind (points | series), key (the category text / series name; '' = the one
+     * series of a one-color chart), color (#rrggbb; empty = back to the palette), or reset=1.
+     *
+     * @param Request $request
+     * @param string $suuid
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function chartColor(Request $request, $suuid)
+    {
+        $box = DashboardBox::findBySuuid($suuid);
+        if (!isset($box) || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard)) {
+            return response()->json(['status' => false], 404);
+        }
+        if (!$box->dashboard->hasEditPermission()) {
+            return response()->json(['status' => false], 403);
+        }
+        $kind = $request->input('kind');
+        $key = (string) $request->input('key', '');
+        if (!$request->boolean('reset') && (!in_array($kind, [ChartColors::POINT, ChartColors::SERIES], true) || mb_strlen($key) > 255)) {
+            return response()->json(['status' => false], 422);
+        }
+        $options = $box->options ?? [];
+        $colors = $request->boolean('reset') ? []
+            : ChartColors::fromOption(array_get($options, 'chart_colors'))->with($kind, $key, $request->input('color'));
+        if (empty($colors)) {
+            unset($options['chart_colors']);
+        } else {
+            $options['chart_colors'] = $colors;
+        }
+        $box->options = $options;
+        $box->save();
+        return response()->json(['status' => true]);
     }
 
     /**
@@ -148,14 +223,26 @@ class DashboardBoxController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected function manageFormSaving($form)
     {
+        // colors painted on the chart itself (chartColor) are no field of this form, whose
+        // embedded options keep only the fields it declares: carry them over the save
+        $painted = null;
+
         // before saving
-        $form->saving(function ($form) {
+        $form->saving(function ($form) use (&$painted) {
+            $painted = array_get($form->model()->options ?? [], 'chart_colors');
             $classname = DashboardBoxType::getEnum($form->dashboard_box_type)->getDashboardBoxItemClass();
             $classname::saving($form);
         });
 
         // saved. redirect to top
-        $form->saved(function ($form) {
+        $form->saved(function ($form) use (&$painted) {
+            $model = $form->model();
+            if (!empty($painted) && isset($model) && !array_has($model->options ?? [], 'chart_colors')) {
+                $options = $model->options ?? [];
+                $options['chart_colors'] = $painted;
+                $model->options = $options;
+                $model->save();
+            }
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url());
@@ -290,8 +377,67 @@ class DashboardBoxController extends AdminControllerBase
         }
         // get custom views
         $custom_view = CustomView::getEloquent($id);
+        if (!isset($custom_view)) {
+            return [];
+        }
+        // series column of a multi-series chart = the view's group columns
+        if ($axis_type == 'series') {
+            return ChartItem::seriesSelectOptions($custom_view);
+        }
 
         return $custom_view->getViewColumnsSelectOptions($axis_type == 'y');
+    }
+
+    /**
+     * Linkage endpoint of the chart box form: columns of the table picked in
+     * target_table_id (sent as `q`), offered as chart filter fields. A table this user may
+     * not read answers with an empty list.
+     *
+     * @param Request $request
+     * @return array<int, array{id:string, text:string}>
+     */
+    // @phpstan-ignore-next-line
+    public function chartFilterColumns(Request $request)
+    {
+        $custom_table = CustomTable::getEloquent($request->get('q'));
+        if ($custom_table !== null && !$custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            $custom_table = null;
+        }
+        $results = [];
+        foreach ($custom_table ? $custom_table->custom_columns : [] as $custom_column) {
+            $results[] = [
+                'id' => $custom_column->column_name,
+                'text' => $custom_column->column_view_name . ' (' . $custom_column->column_name . ')',
+            ];
+        }
+        return $results;
+    }
+
+    /**
+     * A muted "not affected by filters" tag prepended to a box body when the dashboard
+     * filter bar has a selection that this box does not (fully) honour — so unfiltered
+     * numbers are never read as filtered ones. Only chart boxes apply the filter bar.
+     *
+     * @param DashboardBox $box
+     * @return string '' when nothing to disclose
+     */
+    protected function filterBadge($box)
+    {
+        $filter = DashboardFilter::fromRequest($box->dashboard);
+        $custom_table = CustomTable::getEloquent(array_get($box->options ?? [], 'target_table_id'));
+        if ($filter->isEmpty() || !isset($custom_table)) {
+            return '';
+        }
+        $ignored = $box->dashboard_box_type == DashboardBoxType::CHART
+            ? $filter->ignoredFor($custom_table, $box)
+            : array_keys($filter->values());
+        if (empty($ignored)) {
+            return '';
+        }
+        $text = count($ignored) === count($filter->values())
+            ? exmtrans('dashboard.filter_bar.not_affected')
+            : exmtrans('dashboard.filter_bar.partially_affected') . ': ' . implode(', ', $filter->labels($ignored));
+        return '<div class="exment-filter-badge"><span>' . esc_html($text) . '</span></div>';
     }
 
     // @phpstan-ignore-next-line
