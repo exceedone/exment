@@ -320,6 +320,10 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             return preg_match('/.+\.tsv$/i', $file);
         });
 
+        // the tsv is written from the utf8mb4 connection: load it with the same charset.
+        // 'UTF8' means utf8mb3, which turns every 4-byte character (emoji, rare kanji) into "?"
+        $charset = config('database.connections.mysql.charset', 'utf8mb4');
+
         try {
             \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
@@ -335,7 +339,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 $cmd = <<<__EOT__
                 LOAD DATA local INFILE '%s'
                 INTO TABLE %s
-                CHARACTER SET 'UTF8'
+                CHARACTER SET '%s'
                 FIELDS TERMINATED BY '\t'
                 OPTIONALLY ENCLOSED BY '\"'
                 ESCAPED BY '\"'
@@ -349,7 +353,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                     deleted_user_id = nullif(deleted_user_id, 0),
                     parent_id = nullif(parent_id, 0)
 __EOT__;
-                $query = sprintf($cmd, addslashes($file->getPathName()), $table);
+                $query = sprintf($cmd, addslashes($file->getPathName()), $table, $charset);
                 $cnt = \DB::connection()->getpdo()->exec($query);
 
                 //return $cnt;
