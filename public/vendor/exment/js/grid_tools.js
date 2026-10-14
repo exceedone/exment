@@ -159,6 +159,25 @@
   }
 
   /**
+   * A cell's textContent without the avatar initial.
+   *
+   * The avatar style paints the first letter of a name in a coloured
+   * circle (`.exm-cell-av`) right in front of the name, so the bare
+   * textContent of "Alice Smith" is "AAlice Smith". The circle is
+   * decoration, not part of the value, and anything that reads a cell
+   * for its value has to leave it out.
+   */
+  function cellValueText(cell) {
+    if (!cell) return '';
+    if (!cell.querySelector('.exm-cell-av')) return cell.textContent || '';
+    var copy = cell.cloneNode(true);
+    each(copy.querySelectorAll('.exm-cell-av'), function (av) {
+      av.parentNode.removeChild(av);
+    });
+    return copy.textContent || '';
+  }
+
+  /**
    * The text a cell shows, whitespace collapsed.
    *
    * This is the only value the browser has for a cell - the stored value
@@ -167,7 +186,7 @@
    * they look alike.
    */
   function cellText(cell) {
-    return cell ? (cell.textContent || '').replace(/\s+/g, ' ').trim() : '';
+    return cellValueText(cell).replace(/\s+/g, ' ').trim();
   }
 
   /**
@@ -2211,14 +2230,17 @@
    * Width floors per editor type, in px. Not guesses at a pretty size -
    * each one is what the widget needs before its own content starts being
    * cut: a date editor holds 10 digits, a datetime one those plus a time
-   * down to seconds, a number the value plus its spinner.
+   * down to seconds, a number the value plus its spinner. A select needs
+   * none: sizeInlineEditor measures its widest option, the only thing a
+   * select can cut, so a narrow status cell keeps its own width instead
+   * of covering the column beside it.
    */
   var EDITOR_MIN_WIDTH = {
     text: 200,
     number: 110,
     date: 140,
     datetime: 230,
-    select: 140
+    select: 0
   };
 
   /**
@@ -2247,7 +2269,10 @@
    */
   function sizeInlineEditor(td, editor, meta) {
     var rect = td.getBoundingClientRect();
-    var want = Math.max(rect.width, EDITOR_MIN_WIDTH[meta.type] || 120);
+    // 0 is a real floor (the select), so the fallback is for unknown types only.
+    var floor = EDITOR_MIN_WIDTH[meta.type];
+    if (floor === undefined) floor = 120;
+    var want = Math.max(rect.width, floor);
 
     // An <input> whose value overruns its box reports the value's full
     // length as scrollWidth - the cheapest true measurement of "how wide
@@ -2993,8 +3018,9 @@
     menu.setAttribute('data-row-col', uniqueColumnOf(td) || '');
 
     // Head: first two visible data columns (id + main label) as a
-    // reminder of which row was right-clicked. `textContent` reads
-    // through any badge span, so the label stays legible.
+    // reminder of which row was right-clicked. cellText reads through any
+    // badge span, so the label stays legible, and leaves out an avatar's
+    // initial, so a name does not read "AAlice Smith".
     var head = menu.querySelector('.exm-ctx-head');
     if (head) {
       var summary = [];
@@ -3002,7 +3028,7 @@
       for (var i = 0; i < siblings.length && summary.length < 2; i++) {
         var name = columnNameOf(siblings[i]);
         if (!name || name.indexOf('__') === 0) continue;
-        var txt = (siblings[i].textContent || '').replace(/\s+/g, ' ').trim();
+        var txt = cellText(siblings[i]);
         if (txt) summary.push(txt.length > 30 ? txt.slice(0, 30) + '…' : txt);
       }
       head.textContent = summary.join(' - ');
@@ -3311,7 +3337,7 @@
       var tr2 = findRowById(id);
       var target = null;
       if (tr2 && col) target = tr2.querySelector('td.column-' + col);
-      var text = target ? (target.textContent || '').trim() : '';
+      var text = target ? cellValueText(target).trim() : '';
       if (!text) return;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).catch(function () { /* silent */ });
