@@ -1,8 +1,9 @@
 {{-- Single-series chart types rendered by Apache ECharts (same labels[] + values[] as Chart.js). --}}
 <div data-echart-id="{{ $suuid }}" style="width:100%;height:{{ $chart_height }}px;"></div>
 <script type="text/javascript">
-    (function () {
-        if (typeof echarts === 'undefined') { return; }
+    // ECharts is fetched on first use (dashboard.js withECharts), not loaded with every admin
+    // page; when the fetch fails, dashboard.js says so in this box
+    ExmentDashboard.withECharts('{{ $suuid }}').done(function () {
         var el = document.querySelector('[data-echart-id="{{ $suuid }}"]');
         if (!el) { return; }
 
@@ -149,7 +150,7 @@
             window.ExmentECharts['{{ $suuid }}'] = chart;
             chart.setOption(option);
         } catch (e) {
-            el.innerHTML = '<div class="exment-chart-error">' + escHtml(@json(exmtrans('dashboard.message.chart_render_error'))) + '</div>';
+            ExmentDashboard.chartError('{{ $suuid }}', @json(exmtrans('dashboard.message.chart_render_error')));
             return;
         }
 
@@ -205,5 +206,5 @@
             display: function (opts) { $.extend(state, opts || {}); render(); },
             data: function () { return { axisx: axisXName, axisy: axisYName, labels: labels, values: values }; }
         };
-    })();
+    });
 </script>

@@ -27,8 +27,7 @@ class ChartFilterTest extends DashboardUnitTestCase
         $filter = ChartFilter::of($box, $this->table(), []);
         $this->assertTrue($filter->isConfigured());
         $this->assertSame(['class', 'score'], array_keys($filter->columns()));
-        $this->assertTrue($filter->isEmpty());
-        $this->assertSame('', $filter->fingerprint());
+        $this->assertSame([], $filter->values(), 'nothing selected');
     }
 
     public function testNothingWithoutDeclarationOrTable()
@@ -52,12 +51,13 @@ class ChartFilterTest extends DashboardUnitTestCase
 
         $q = new FakeQuery();
         $filter->applyTo($q);
+        $score = $this->wrap('exm__fake.column_score');
         $this->assertSame([
-            'column_class = "2"',
-            'column_semester IN ["1","2"]',
-            '`column_score` IS NOT NULL AND `column_score` <> \'\'',
-            'CAST(`column_score` AS DECIMAL(20,4)) >= ? ["80"]',
-            'CAST(`column_score` AS DECIMAL(20,4)) <= ? ["100"]',
+            'exm__fake.column_class = "2"',
+            'exm__fake.column_semester IN ["1","2"]',
+            "{$score} IS NOT NULL AND {$score} <> ''",
+            "CAST({$score} AS DECIMAL(20,4)) >= ? [\"80\"]",
+            "CAST({$score} AS DECIMAL(20,4)) <= ? [\"100\"]",
         ], $q->sql());
 
         $q = new FakeQuery();
@@ -73,13 +73,5 @@ class ChartFilterTest extends DashboardUnitTestCase
             ['label' => '学期', 'value' => '2学期, 9'],
             ['label' => '点数', 'value' => '80 –'],
         ], $filter->captions());
-    }
-
-    public function testFingerprintIndependentOfOrder()
-    {
-        $box = $this->makeBox('b1', ['chart_filters' => ['class', 'semester']]);
-        $a = ChartFilter::of($box, $this->table(), ['bf_class' => ['1', '2'], 'bf_semester' => '1']);
-        $b = ChartFilter::of($box, $this->table(), ['bf_semester' => '1', 'bf_class' => ['2', '1']]);
-        $this->assertSame($a->fingerprint(), $b->fingerprint());
     }
 }

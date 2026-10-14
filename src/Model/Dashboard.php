@@ -28,7 +28,10 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonOptionTrait;
     use Traits\DefaultFlgTrait;
-    use Traits\TemplateTrait;
+    use Traits\TemplateTrait {
+        getTemplateExportItems as protected templateExportItems;
+        importTemplate as protected templateImport;
+    }
     use Traits\UseRequestSessionTrait;
 
     protected $guarded = ['id'];
@@ -196,6 +199,102 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             $bar[$key] = $value;
         }
         return $this->setOption('filter_bar', $bar);
+    }
+
+    // Template export / import -----------------------------------------------------------
+    // A box does not keep its suuid through a template import (DashboardBox excepts it), so
+    // the filter bar's target boxes (filter_bar.dims[].targets) are exported by POSITION,
+    // "{row}-{column}" (DashboardBox::positionKey), and once the boxes are imported under the
+    // dashboard each position is replaced by the suuid of the box now standing there
+    // (resolveFilterBarTargets — a box created on a fresh system, or the existing box of that
+    // position when the import overwrites an existing dashboard; an update import skips an
+    // existing dashboard altogether, boxes included, so the pass then finds nothing to rename).
+
+    /**
+     * @param bool $is_lang
+     * @return array<string, mixed>
+     */
+    // @phpstan-ignore-next-line
+    public function getTemplateExportItems($is_lang = false)
+    {
+        $array = $this->templateExportItems($is_lang);
+        $dims = array_get($array, 'options.filter_bar.dims');
+        if (is_array($dims)) {
+            $positions = [];
+            foreach ($this->dashboard_boxes as $box) {
+                $positions[(string) $box->suuid] = $box->positionKey();
+            }
+            array_set($array, 'options.filter_bar.dims', static::renameFilterBarTargets($dims, $positions));
+        }
+        return $array;
+    }
+
+    /**
+     * The trait's import (the dashboard, then its boxes), followed by one pass over the
+     * filter bar's position targets.
+     *
+     * @param array<string, mixed> $array
+     * @param bool $is_update
+     * @param array<string, mixed> $options
+     * @return static|null
+     */
+    // @phpstan-ignore-next-line
+    public static function importTemplate($array, $is_update, $options = [])
+    {
+        $dashboard = static::templateImport($array, $is_update, $options);
+        if ($dashboard instanceof self) {
+            $dashboard->resolveFilterBarTargets();
+        }
+        return $dashboard;
+    }
+
+    /**
+     * Put each box's suuid where its position "{row}-{column}" stands in
+     * filter_bar.dims[].targets; saves only when something was replaced.
+     *
+     * @return void
+     */
+    public function resolveFilterBarTargets()
+    {
+        $bar = $this->getOption('filter_bar');
+        $dims = is_array($bar) ? array_get($bar, 'dims') : null;
+        if (!is_array($dims)) {
+            return;
+        }
+        $suuids = [];
+        foreach ($this->dashboard_boxes as $box) {
+            $suuids[$box->positionKey()] = (string) $box->suuid;
+        }
+        $renamed = static::renameFilterBarTargets($dims, $suuids);
+        if ($renamed !== $dims) {
+            // the whole bar is written back: setOption takes a plain key, not a dot path
+            $bar['dims'] = $renamed;
+            $this->setOption('filter_bar', $bar);
+            $this->save();
+        }
+    }
+
+    /**
+     * The filter bar items with every target found in $map renamed to its value; a target
+     * $map does not know is kept as it is.
+     *
+     * @param array<int, mixed> $dims  filter_bar.dims
+     * @param array<string, string> $map  target => replacement
+     * @return array<int, mixed>
+     */
+    public static function renameFilterBarTargets(array $dims, array $map): array
+    {
+        foreach ($dims as $i => $dim) {
+            if (!is_array($dim) || !is_array(array_get($dim, 'targets'))) {
+                continue;
+            }
+            foreach ($dim['targets'] as $j => $target) {
+                if (is_string($target) && isset($map[$target])) {
+                    $dims[$i]['targets'][$j] = $map[$target];
+                }
+            }
+        }
+        return $dims;
     }
 
     /**

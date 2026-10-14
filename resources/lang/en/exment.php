@@ -675,6 +675,7 @@ return [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
             'need_multiseries' => 'This chart type needs an aggregate view grouped by 2 columns (1st = X axis, 2nd = series) and a summary value.',
             'chart_render_error' => 'Could not render this chart (the data may be unsuitable for this type).',
+            'chart_load_error' => 'Could not load the chart library. Please reload the page.',
             'not_exists_table' => 'The table or view has been deleted.',
             'not_exists_plugin' => 'The plugin has been deleted.',
         ],

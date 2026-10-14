@@ -57,7 +57,6 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertTrue($filter->isEmpty());
         $this->assertNull($filter->config());
         $this->assertSame([], $filter->columnsFor($this->table(), null));
-        $this->assertSame('', $filter->fingerprint());
     }
 
     public function testColumnsForRespectsTableMembershipAndTargeting()
@@ -88,10 +87,11 @@ class DashboardFilterTest extends DashboardUnitTestCase
 
         $q = new FakeQuery();
         $this->assertSame(['score'], $filter->applyTo($q, $this->table(), $box));
+        $score = $this->wrap('exm__fake.value->score');
         $this->assertSame([
-            'JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."score"\')) IS NOT NULL AND JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."score"\')) <> \'\'',
-            'CAST(JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."score"\')) AS DECIMAL(20,4)) >= ? ["45"]',
-            'CAST(JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."score"\')) AS DECIMAL(20,4)) <= ? ["59"]',
+            "{$score} IS NOT NULL AND {$score} <> ''",
+            "CAST({$score} AS DECIMAL(20,4)) >= ? [\"45\"]",
+            "CAST({$score} AS DECIMAL(20,4)) <= ? [\"59\"]",
         ], $q->sql(), 'the stale range on the text item emits no WHERE; the number range does');
         $this->assertSame(['grade'], $filter->ignoredFor($this->table(), $box));
 
@@ -139,10 +139,11 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $q = new FakeQuery();
         $applied = $filter->applyTo($q, $this->table(), $box2);
         $this->assertSame(['grade', 'score'], $applied);
+        $score = $this->wrap('exm__fake.value->score');
         $this->assertSame([
-            'column_grade IN ["1","2"]',
-            'JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."score"\')) IS NOT NULL AND JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."score"\')) <> \'\'',
-            'CAST(JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."score"\')) AS DECIMAL(20,4)) <= ? ["60"]',
+            'exm__fake.column_grade IN ["1","2"]',
+            "{$score} IS NOT NULL AND {$score} <> ''",
+            "CAST({$score} AS DECIMAL(20,4)) <= ? [\"60\"]",
         ], $q->sql());
     }
 
@@ -156,43 +157,34 @@ class DashboardFilterTest extends DashboardUnitTestCase
 
         $q = new FakeQuery();
         $filter->applyFixedScope($q, $this->table());
-        $this->assertSame(['column_subject = "3"'], $q->sql(), 'only scope columns the table carries');
+        $this->assertSame(['exm__fake.column_subject = "3"'], $q->sql(), 'only scope columns the table carries');
 
         $q = new FakeQuery();
         $filter->applyTo($q, $this->table(), null);
-        $this->assertSame(['column_grade = "1"'], $q->sql(), 'box data is never narrowed by the fixed scope');
+        $this->assertSame(['exm__fake.column_grade = "1"'], $q->sql(), 'box data is never narrowed by the fixed scope');
 
         $this->assertSame(500, DashboardFilter::of($this->makeDashboard(null), [])->maxOptions());
     }
 
-    public function testExceptedItemNarrowsNothingAndLeavesTheFingerprint()
+    public function testExceptedItemNarrowsNothing()
     {
         $dashboard = $this->makeDashboard($this->bar(['grade', 'subject', 'score']));
         $filter = DashboardFilter::of($dashboard, ['df_grade' => '1', 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50']]);
 
         $q = new FakeQuery();
         $this->assertSame(['grade'], $filter->applyTo($q, $this->table(), null, ['subject', 'score']));
-        $this->assertSame(['column_grade = "1"'], $q->sql(), 'a chart highlights its own X item instead of filtering by it');
+        $this->assertSame(['exm__fake.column_grade = "1"'], $q->sql(), 'a chart highlights its own X item instead of filtering by it');
         $this->assertSame(['2', '3'], $filter->selected('subject'));
         $this->assertSame([], $filter->selected('score'), 'a range item has no picked values');
         $this->assertSame([], $filter->selected('other'));
-
-        $same = DashboardFilter::of($dashboard, ['df_grade' => '1', 'df_score' => ['from' => '50']]);
-        $this->assertSame($same->fingerprint(), $filter->fingerprint(['subject']), 'a pick on the highlighted item changes no data, so no cache key');
-        $this->assertNotSame($same->fingerprint(), $filter->fingerprint());
-        $this->assertSame('', $filter->fingerprint(['grade', 'subject', 'score']));
     }
 
-    public function testLabelsAndFingerprint()
+    public function testLabels()
     {
         $dashboard = $this->makeDashboard($this->bar(['grade' => ['label' => '学年'], 'subject']));
-        $a = DashboardFilter::of($dashboard, ['df_grade' => ['1', '2'], 'df_subject' => '5']);
-        $b = DashboardFilter::of($dashboard, ['df_subject' => '5', 'df_grade' => ['2', '1']]);
-        $c = DashboardFilter::of($dashboard, ['df_grade' => '1']);
+        $filter = DashboardFilter::of($dashboard, ['df_grade' => ['1', '2'], 'df_subject' => '5']);
 
-        $this->assertSame(['学年', 'subject'], $a->labels(['grade', 'subject']));
-        $this->assertSame($a->fingerprint(), $b->fingerprint(), 'param order and value order do not matter');
-        $this->assertNotSame($a->fingerprint(), $c->fingerprint());
-        $this->assertSame(32, strlen($a->fingerprint()));
+        $this->assertSame(['学年', 'subject'], $filter->labels(['grade', 'subject']));
+        $this->assertSame(['other'], $filter->labels(['other']), 'an item the bar does not have is named by its column');
     }
 }

@@ -213,24 +213,4 @@ final class DashboardFilter
         };
         return $tokens($this->values) === $tokens($other->values);
     }
-
-    /**
-     * Stable string of the selection ('' when empty), for cache keys.
-     *
-     * @param string[] $except items left out (a pick on a highlighted item changes no data)
-     */
-    public function fingerprint(array $except = []): string
-    {
-        $parts = [];
-        foreach ($this->values as $column => $spec) {
-            if (!in_array($column, $except, true)) {
-                $parts[] = $column . '=' . FilterValue::token($spec);
-            }
-        }
-        if (empty($parts)) {
-            return '';
-        }
-        sort($parts);
-        return md5(implode('&', $parts));
-    }
 }

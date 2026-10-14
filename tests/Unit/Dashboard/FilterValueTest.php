@@ -102,8 +102,16 @@ class FilterValueTest extends DashboardUnitTestCase
 
     public function testCompareExprCastsNumbersOnly()
     {
-        $this->assertSame('CAST(JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."score"\')) AS DECIMAL(20,4))', FilterValue::compareExpr(new FakeCustomColumn('score', 'integer')), 'so MIN / MAX and a range compare "72" before "1001"');
-        $this->assertSame('JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."d"\'))', FilterValue::compareExpr(new FakeCustomColumn('d', 'date')), 'ISO dates order as text');
+        $this->assertSame('CAST(' . $this->wrap('exm__fake.value->score') . ' AS DECIMAL(20,4))', FilterValue::compareExpr(new FakeCustomColumn('score', 'integer')), 'so MIN / MAX and a range compare "72" before "1001"');
+        $this->assertSame($this->wrap('exm__fake.value->d'), FilterValue::compareExpr(new FakeCustomColumn('d', 'date')), 'ISO dates order as text');
+    }
+
+    public function testColumnExprIsQualifiedWithTheColumnsTableInTheConnectionsGrammar()
+    {
+        // the box query may JOIN other value tables (a select_table's master), which carry a
+        // `value` column too: an unqualified `value` is ambiguous there
+        $this->assertSame($this->wrap('exm__fake.column_score'), FilterValue::columnExpr(new FakeCustomColumn('score', 'integer', true)), 'an index column');
+        $this->assertSame($this->wrap('exm__fake.value->score'), FilterValue::columnExpr(new FakeCustomColumn('score', 'integer')), "a JSON value, in the database's own JSON syntax");
     }
 
     public function testApplyOnIndexedColumn()
@@ -112,7 +120,7 @@ class FilterValueTest extends DashboardUnitTestCase
         $q = new FakeQuery();
         FilterValue::apply($q, $column, ['in' => ['1']]);
         FilterValue::apply($q, $column, ['in' => ['1', '2']]);
-        $this->assertSame(['column_grade = "1"', 'column_grade IN ["1","2"]'], $q->sql());
+        $this->assertSame(['exm__fake.column_grade = "1"', 'exm__fake.column_grade IN ["1","2"]'], $q->sql());
     }
 
     public function testApplyOnJsonColumn()
@@ -121,7 +129,7 @@ class FilterValueTest extends DashboardUnitTestCase
         $q = new FakeQuery();
         FilterValue::apply($q, $column, ['in' => ['1']]);
         FilterValue::apply($q, $column, ['in' => ['1', '2']]);
-        $expr = 'JSON_UNQUOTE(JSON_EXTRACT(`value`, \'$."grade"\'))';
+        $expr = $this->wrap('exm__fake.value->grade');
         $this->assertSame([
             $expr . ' = ? ["1"]',
             $expr . ' IN (?,?) ["1","2"]',
@@ -133,9 +141,10 @@ class FilterValueTest extends DashboardUnitTestCase
         $column = new FakeCustomColumn('score', 'integer', true);
         $q = new FakeQuery();
         FilterValue::apply($q, $column, ['from' => '80', 'to' => 'abc']);
+        $score = $this->wrap('exm__fake.column_score');
         $this->assertSame([
-            '`column_score` IS NOT NULL AND `column_score` <> \'\'',
-            'CAST(`column_score` AS DECIMAL(20,4)) >= ? ["80"]',
+            "{$score} IS NOT NULL AND {$score} <> ''",
+            "CAST({$score} AS DECIMAL(20,4)) >= ? [\"80\"]",
         ], $q->sql());
 
         $q = new FakeQuery();
@@ -147,17 +156,18 @@ class FilterValueTest extends DashboardUnitTestCase
     {
         $q = new FakeQuery();
         FilterValue::apply($q, new FakeCustomColumn('d', 'datetime', true), ['from' => '2026-01-01', 'to' => '2026-01-31T10:00']);
+        $d = $this->wrap('exm__fake.column_d');
         $this->assertSame([
-            '`column_d` IS NOT NULL AND `column_d` <> \'\'',
-            '`column_d` >= ? ["2026-01-01"]',
-            '`column_d` <= ? ["2026-01-31 23:59:59"]',
+            "{$d} IS NOT NULL AND {$d} <> ''",
+            "{$d} >= ? [\"2026-01-01\"]",
+            "{$d} <= ? [\"2026-01-31 23:59:59\"]",
         ], $q->sql());
 
         $q = new FakeQuery();
         FilterValue::apply($q, new FakeCustomColumn('d', 'date', true), ['from' => null, 'to' => '2026-01-31']);
         $this->assertSame([
-            '`column_d` IS NOT NULL AND `column_d` <> \'\'',
-            '`column_d` <= ? ["2026-01-31"]',
+            "{$d} IS NOT NULL AND {$d} <> ''",
+            "{$d} <= ? [\"2026-01-31\"]",
         ], $q->sql());
     }
 
@@ -172,13 +182,5 @@ class FilterValueTest extends DashboardUnitTestCase
         $this->assertSame(['a', 'b'], FilterValue::values(['in' => ['a', 'b']]));
         $this->assertSame(['1 – 9'], FilterValue::values(['from' => '1', 'to' => '9']));
         $this->assertSame(['– 9'], FilterValue::values(['from' => null, 'to' => '9']));
-    }
-
-    public function testFromRequest()
-    {
-        $this->swapRequest(['df_grade' => ['1', '2'], 'df_score' => ['from' => '10']]);
-        $this->assertSame(['in' => ['1', '2']], FilterValue::fromRequest('df_grade'));
-        $this->assertSame(['from' => '10', 'to' => null], FilterValue::fromRequest('df_score'));
-        $this->assertNull(FilterValue::fromRequest('df_none'));
     }
 }

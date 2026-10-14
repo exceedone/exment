@@ -56,14 +56,6 @@ final class FilterValue
     }
 
     /**
-     * The spec carried by one request param (e.g. 'df_grade').
-     */
-    public static function fromRequest(string $key): ?array
-    {
-        return self::parse(request()->input($key));
-    }
-
-    /**
      * Display strings of a spec: the values, or the range as "from – to".
      */
     public static function values(array $spec): array
@@ -75,7 +67,8 @@ final class FilterValue
     }
 
     /**
-     * Canonical string of a spec (order-independent) for cache keys.
+     * Canonical string of a spec (order-independent): two selections compare by it
+     * (DashboardFilter::sameAs).
      */
     public static function token(array $spec): string
     {
@@ -148,14 +141,27 @@ final class FilterValue
 
     /**
      * SQL reading a custom column's stored value: its generated index column when it has
-     * one, JSON extraction otherwise.
+     * one, `value->column` otherwise. Qualified with the column's table — the box query may
+     * JOIN other value tables (a select_table's master), which carry a `value` column too —
+     * and wrapped by the connection's grammar, which turns `->` into the JSON access each
+     * database has (json_unquote(json_extract()) on MySQL / MariaDB, json_value() on SQL
+     * Server).
      */
     public static function columnExpr($column): string
     {
-        if ($column->index_enabled) {
-            return '`' . $column->getIndexColumnName(false) . '`';
-        }
-        return "JSON_UNQUOTE(JSON_EXTRACT(`value`, '$.\"{$column->column_name}\"'))";
+        $name = $column->index_enabled ? $column->getIndexColumnName(false) : 'value->' . $column->column_name;
+        return \DB::getQueryGrammar()->wrap(self::qualified($column, $name));
+    }
+
+    /**
+     * "<db table>.<name>": $name on the column's own table, the way the engine addresses a
+     * column of the queried table (ItemTrait::getTableColumn).
+     *
+     * @param mixed $column  CustomColumn
+     */
+    private static function qualified($column, string $name): string
+    {
+        return getDBTableName($column->custom_table_cache) . '.' . $name;
     }
 
     /**
@@ -203,7 +209,7 @@ final class FilterValue
     public static function apply($query, $column, array $spec): void
     {
         if ($column->index_enabled && isset($spec['in'])) {
-            $name = $column->getIndexColumnName(false);
+            $name = self::qualified($column, $column->getIndexColumnName(false));
             if (count($spec['in']) === 1) {
                 $query->where($name, $spec['in'][0]);
             } else {

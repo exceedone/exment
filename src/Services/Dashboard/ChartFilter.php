@@ -76,11 +76,6 @@ final class ChartFilter
         return $this->values;
     }
 
-    public function isEmpty(): bool
-    {
-        return empty($this->values);
-    }
-
     /**
      * AND every active filter onto $query.
      *
@@ -93,19 +88,6 @@ final class ChartFilter
                 FilterValue::apply($query, $this->columns[$column], $spec);
             }
         }
-    }
-
-    public function fingerprint(): string
-    {
-        if (empty($this->values)) {
-            return '';
-        }
-        $parts = [];
-        foreach ($this->values as $column => $spec) {
-            $parts[] = $column . '=' . FilterValue::token($spec);
-        }
-        sort($parts);
-        return md5(implode('&', $parts));
     }
 
     /**

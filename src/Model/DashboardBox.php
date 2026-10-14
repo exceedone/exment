@@ -105,6 +105,21 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
                 'uniqueKeyFunctionArgs' => ['options.chart_axisy'],
             ],
+            // series column of a multi-series chart: a view column reference like the axes
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.chart_series_table_name',
+                            'column_name' => 'options.chart_series_column_name',
+                            'view_column_type' => 'options.chart_series_view_column_type',
+                            'view_kind_type' => 'options.chart_series_type',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.chart_series'],
+            ],
         ],
     ];
 
@@ -113,6 +128,16 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     public function dashboard()
     {
         return $this->belongsTo(Dashboard::class, 'dashboard_id');
+    }
+
+    /**
+     * The box's place on its dashboard, "{row}-{column}": what a template names it by
+     * (Dashboard::getTemplateExportItems / resolveFilterBarTargets), since the suuid is not
+     * carried over, and how the filter bar setting form labels it.
+     */
+    public function positionKey(): string
+    {
+        return $this->row_no . '-' . $this->column_no;
     }
 
 
@@ -169,6 +194,11 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     {
         if (is_array($key) && count($key) > 0) {
             $key = $key[0];
+        }
+
+        // an option the box does not carry (chart_series on a single-series chart) is not exported
+        if (is_nullorempty(array_get($this, $key))) {
+            return null;
         }
 
         // get dashboard value
@@ -230,6 +260,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         // replace chartx and y
         static::importReplaceJsonCustomColumn('chart_axisx', $json);
         static::importReplaceJsonCustomColumn('chart_axisy', $json);
+        static::importReplaceJsonCustomColumn('chart_series', $json);
     }
 
 

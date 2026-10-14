@@ -80,4 +80,13 @@ abstract class DashboardUnitTestCase extends TestCase
         }
         return ['source_table' => 'fake_table', 'dims' => $rows] + $extra;
     }
+
+    /**
+     * A column reference wrapped by the connection's grammar, as FilterValue emits it —
+     * "exm__fake.column_score" (an index column), "exm__fake.value->score" (a JSON value).
+     */
+    protected function wrap(string $qualified): string
+    {
+        return \DB::getQueryGrammar()->wrap($qualified);
+    }
 }

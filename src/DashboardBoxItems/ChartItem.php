@@ -125,9 +125,16 @@ class ChartItem implements ItemInterface
         $this->chart_sort = ChartSort::parse(request()->input('cs'));
         $this->chart_display = static::displayOptions(request()->input('cd'));
         if ($this->chart_type !== $this->configured_type) {
-            // the saved option flag belongs to the configured family — give the switched type its own default
-            $this->chart_options = in_array($this->chart_type, ChartType::legendTypes(), true)
-                ? [ChartOptionType::LEGEND] : [ChartOptionType::BEGIN_ZERO];
+            // the saved flags belong to the configured type — give the switched type its own
+            // defaults: its option flag, and, on a switch to a Chart.js axis type from a type
+            // that stores no axis options (saving keeps them on bar / line only), both axes'
+            // labels and names, the way the ECharts types always draw them
+            $this->chart_options = static::defaultChartOptions($this->chart_type);
+            $axisTypes = ChartType::axisOptionTypes();
+            if (in_array($this->chart_type, $axisTypes, true) && !in_array($this->configured_type, $axisTypes, true)) {
+                $this->chart_axis_label = [ChartAxisType::X, ChartAxisType::Y];
+                $this->chart_axis_name = [ChartAxisType::X, ChartAxisType::Y];
+            }
         }
 
         $this->dashboard_filter = DashboardFilter::fromRequest($this->dashboard_box->dashboard ?? null);
@@ -552,19 +559,17 @@ class ChartItem implements ItemInterface
 
         // get data (a box aggregate, when set, stands in for the view's summary condition)
         $datalist = $this->summaryRows($view_column_y);
-        $chart_label = $datalist->map(function ($val) use ($item_x_list) {
-            $labels = $item_x_list->map(function ($item_x) use ($val) {
-                $item = $item_x->setCustomValue($val);
-                return $item->text();
-            });
-            return $labels->implode(' ');
-        });
-        // the same texts per group column: what a sort by one X column (ChartSort x{i}) orders on
+        // the texts per group column, read once per row and column — a select_table column
+        // resolves its label with a query per row, so a second pass would double them — are what
+        // a sort by one X column (ChartSort x{i}) orders on, and joined they label the point
         $chart_fields = $item_x_list->map(function ($item_x) use ($datalist) {
             return $datalist->map(function ($val) use ($item_x) {
                 return $item_x->setCustomValue($val)->text();
             })->values()->all();
         })->values()->all();
+        $chart_label = $datalist->values()->keys()->map(function ($i) use ($chart_fields) {
+            return implode(' ', array_column($chart_fields, $i));
+        });
         $chart_data = $datalist->pluck($item_y->uniqueName());
 
         // click-to-filter: a single group column only (a compound label has no one value)
@@ -920,14 +925,21 @@ class ChartItem implements ItemInterface
         ;
 
         $legendTypes = json_encode(ChartType::legendTypes());
+        $axisTypes = json_encode(ChartType::axisOptionTypes());
         $multiTypes = json_encode(ChartType::multiTypes());
         $script = <<<EOT
         var exmentLegendCharts = $legendTypes;
+        var exmentAxisCharts = $axisTypes;
         var exmentMultiCharts = $multiTypes;
         function setChartOptions(val) {
             var legend = exmentLegendCharts.indexOf(val) >= 0;
+            var axis = exmentAxisCharts.indexOf(val) >= 0;
             $('#chart_options > .icheck:nth-child(1)').toggle(legend);
-            $('#chart_options > .icheck:nth-child(2)').toggle(!legend);
+            $('#chart_options > .icheck:nth-child(2)').toggle(axis);
+            // hbar / area / scatter / gauge carry neither flag: no empty オプション row
+            $('#chart_options').closest('.form-group').toggle(legend || axis);
+            // the axis options are read by the Chart.js axis types only (ChartType::axisOptionTypes)
+            $('#chart_axis_label, #chart_axis_name').closest('.form-group').toggle(axis);
             $('.options_chart_series').closest('.form-group').toggle(exmentMultiCharts.indexOf(val) >= 0);
         }
         setChartOptions($('.options_chart_type').val());
@@ -950,13 +962,15 @@ EOT;
         $options = $form->options;
         $chart_type = array_get($options, 'chart_type');
         $chart_options = array_get($options, 'chart_options')?? [];
-        $keep = in_array($chart_type, ChartType::legendTypes(), true) ? ChartOptionType::LEGEND : ChartOptionType::BEGIN_ZERO;
-        if (ChartType::isCircular($chart_type)) {
+        // the axis options are read by the Chart.js axis types only: elsewhere the form hides
+        // them (setChartOptions above) and nothing of them is stored
+        if (!in_array($chart_type, ChartType::axisOptionTypes(), true)) {
             $options['chart_axis_label'] = [];
             $options['chart_axis_name'] = [];
         }
+        $keep = static::defaultChartOptions($chart_type);
         $options['chart_options'] = array_values(array_filter($chart_options, function ($option) use ($keep) {
-            return $option == $keep;
+            return in_array($option, $keep);
         }));
 
         // series column only matters to a multi-series type
@@ -981,6 +995,20 @@ EOT;
         }
 
         $form->options = $options;
+    }
+
+    /**
+     * The option flag a type can carry (ChartOptionType): the legend on the types that draw
+     * one, "begin at zero" on the Chart.js axis types, nothing on the other ECharts types.
+     *
+     * @return string[]
+     */
+    protected static function defaultChartOptions(?string $type): array
+    {
+        if (in_array($type, ChartType::legendTypes(), true)) {
+            return [ChartOptionType::LEGEND];
+        }
+        return in_array($type, ChartType::axisOptionTypes(), true) ? [ChartOptionType::BEGIN_ZERO] : [];
     }
 
     /**

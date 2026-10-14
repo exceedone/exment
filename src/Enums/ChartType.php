@@ -95,6 +95,21 @@ class ChartType extends EnumBase
     }
 
     /**
+     * Types that read the box's axis options — 軸ラベル / 軸名 (chart_axis_label /
+     * chart_axis_name) and ０を起点にする (ChartOptionType::BEGIN_ZERO): the Chart.js types
+     * with axes. The ECharts renderers lay their axes out their own way and the circular
+     * types have none, so the box form hides those options there and stores nothing.
+     *
+     * @return string[]
+     */
+    public static function axisOptionTypes(): array
+    {
+        return array_values(array_filter(self::chartjsTypes(), function ($type) {
+            return !self::isCircular($type);
+        }));
+    }
+
+    /**
      * Types a box configured as $configured may be switched to at runtime.
      *
      * @return string[]

@@ -444,6 +444,32 @@
         initSliders();
     }
 
+    // ---- ECharts (lazy) ---------------------------------------------------------------
+    // The ECharts bundle (1 MB) is not loaded with every admin page: the first ECharts box of a
+    // dashboard fetches it from the URL init passes (options.assets.echarts) and the box blades
+    // render inside withECharts(suuid).done(...). Resolved at once when it is already there;
+    // when the fetch fails, the box of `suuid` says so instead of staying blank.
+    var echartsLoading = null;
+    function withECharts(suuid) {
+        var loading;
+        if (window.echarts) {
+            loading = $.Deferred().resolve().promise();
+        } else if (echartsLoading) {
+            loading = echartsLoading;
+        } else if (!A.echarts) {
+            loading = $.Deferred().reject().promise();
+        } else {
+            echartsLoading = loading = $.ajax({ url: A.echarts, dataType: 'script', cache: true })
+                .fail(function () { echartsLoading = null; }); // a failed fetch is retried by the next box
+        }
+        if (suuid) { loading.fail(function () { chartError(suuid, L.chart_load_error); }); }
+        return loading;
+    }
+    // Why a chart box is empty, in its chart area (the echart blades use it for a render failure too)
+    function chartError(suuid, message) {
+        $('[data-echart-id="' + suuid + '"]').html($('<div class="exment-chart-error">').text(String(message == null ? '' : message)));
+    }
+
     // ---- range slider -----------------------------------------------------------------
     // A number range item carries a two-handle slider under its inputs (filter_bar.blade
     // data-slider), like a Power BI numeric range slicer. The slider is laravel-admin's own
@@ -837,7 +863,9 @@
         },
         load: loadBox,
         pick: pick,
-        colorMenu: colorMenu
+        colorMenu: colorMenu,
+        withECharts: withECharts,
+        chartError: chartError
     };
 })(jQuery);
 

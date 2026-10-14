@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Tests\Unit\Dashboard;
 
+use Exceedone\Exment\Model\Dashboard;
+use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Tests\Unit\Dashboard\Support\DashboardUnitTestCase;
 
 class DashboardModelTest extends DashboardUnitTestCase
@@ -50,6 +52,129 @@ class DashboardModelTest extends DashboardUnitTestCase
         $this->assertArrayNotHasKey('dims', $dashboard->getOption('filter_bar'));
         $dashboard->filter_bar_table = '';
         $this->assertSame([], $dashboard->getOption('filter_bar'));
+    }
+
+    /** Unsaved chart box at {row}-{column}, no dashboard relation (what a template export walks). */
+    private function boxAt(string $suuid, int $row, int $column): DashboardBox
+    {
+        $box = $this->makeBox($suuid, []);
+        $box->row_no = $row;
+        $box->column_no = $column;
+        $box->unsetRelation('dashboard');
+        return $box;
+    }
+
+    /** Unsaved Dashboard whose save() is counted instead of reaching the database. */
+    private function countingDashboard(?array $filterBar): Dashboard
+    {
+        $dashboard = new class () extends Dashboard {
+            /** @var int */
+            public $saves = 0;
+
+            public function save(array $options = [])
+            {
+                $this->saves++;
+                return true;
+            }
+        };
+        $dashboard->dashboard_name = 'unit_dashboard';
+        $dashboard->options = $filterBar === null ? [] : ['filter_bar' => $filterBar];
+        return $dashboard;
+    }
+
+    public function testRenameFilterBarTargets()
+    {
+        $dims = [
+            ['column' => 'grade', 'targets' => ['old-a', 'old-b']],
+            ['column' => 'subject', 'targets' => ['old-b', 7, null]],
+            ['column' => 'class'],
+            'junk',
+        ];
+        $this->assertSame([
+            ['column' => 'grade', 'targets' => ['1-1', '2-1']],
+            ['column' => 'subject', 'targets' => ['2-1', 7, null]],
+            ['column' => 'class'],
+            'junk',
+        ], Dashboard::renameFilterBarTargets($dims, ['old-a' => '1-1', 'old-b' => '2-1']), 'known targets renamed; anything else untouched');
+        $this->assertSame($dims, Dashboard::renameFilterBarTargets($dims, ['9-9' => 'x']), 'no match = the identical array');
+        $this->assertSame([], Dashboard::renameFilterBarTargets([], ['1-1' => 'x']));
+    }
+
+    public function testTemplateExportNamesFilterBarTargetsByPosition()
+    {
+        // a box does not keep its suuid through an import: the export names a target by "{row}-{column}"
+        $dashboard = $this->makeDashboard(['source_table' => 'fake_table', 'dims' => [
+            ['column' => 'grade', 'label' => '学年', 'targets' => ['box-a', 'box-b']],
+            ['column' => 'subject', 'targets' => ['box-b', 'gone']],
+            ['column' => 'class'],
+        ]]);
+        $dashboard->setRelation('dashboard_boxes', collect([$this->boxAt('box-a', 1, 1), $this->boxAt('box-b', 2, 1)]));
+        $this->assertSame('2-1', $dashboard->dashboard_boxes[1]->positionKey());
+
+        $dims = array_get($dashboard->getTemplateExportItems(), 'options.filter_bar.dims');
+        $this->assertSame(['1-1', '2-1'], $dims[0]['targets']);
+        $this->assertSame('学年', $dims[0]['label'], 'the rest of the item travels as it is');
+        $this->assertSame(['2-1', 'gone'], $dims[1]['targets'], 'a target no box of the dashboard carries is kept');
+        $this->assertArrayNotHasKey('targets', $dims[2]);
+        $this->assertSame(['box-a', 'box-b'], $dashboard->getOption('filter_bar.dims.0.targets'), 'the stored option is untouched');
+        $this->assertArrayNotHasKey('options', $dashboard->getTemplateExportItems(true), 'the language export has no options to rename');
+    }
+
+    public function testImportedBoxesTakeTheirPositionsPlaceInTheFilterBar()
+    {
+        $bar = ['source_table' => 'fake_table', 'dims' => [
+            ['column' => 'grade', 'label' => '学年', 'targets' => ['1-1', '2-1', '3-3'], 'default' => '1'],
+            ['column' => 'subject', 'targets' => ['2-1']],
+        ]];
+        $dashboard = $this->countingDashboard($bar);
+        $dashboard->setRelation('dashboard_boxes', collect([$this->boxAt('box-a', 1, 1), $this->boxAt('box-b', 2, 1), $this->boxAt('box-x', 4, 4)]));
+
+        // every position takes the suuid of the box standing there, in one save; a position no
+        // box fills is kept, and the rest of the bar survives the write in place
+        $dashboard->resolveFilterBarTargets();
+        $this->assertSame(['source_table' => 'fake_table', 'dims' => [
+            ['column' => 'grade', 'label' => '学年', 'targets' => ['box-a', 'box-b', '3-3'], 'default' => '1'],
+            ['column' => 'subject', 'targets' => ['box-b']],
+        ]], $dashboard->getOption('filter_bar'));
+        $this->assertSame(['filter_bar'], array_keys($dashboard->options), 'no stray "filter_bar.dims" key beside the bar');
+        $this->assertSame(1, $dashboard->saves);
+
+        // a later pass (an import landing on an existing dashboard) finds nothing to rename: no write
+        $dashboard->resolveFilterBarTargets();
+        $this->assertSame(1, $dashboard->saves);
+
+        // no bar, or a bar without items: nothing to do
+        foreach ([null, ['source_table' => 'fake_table'], ['source_table' => 'fake_table', 'dims' => 'junk']] as $noItems) {
+            $dashboard = $this->countingDashboard($noItems);
+            $dashboard->setRelation('dashboard_boxes', collect([$this->boxAt('box-a', 1, 1)]));
+            $dashboard->resolveFilterBarTargets();
+            $this->assertSame(0, $dashboard->saves);
+            $this->assertSame($noItems, $dashboard->getOption('filter_bar'));
+        }
+    }
+
+    public function testImportTemplateEndsWithThePositionPass()
+    {
+        // Dashboard::importTemplate: the trait's import (the dashboard, then its boxes), then
+        // the pass over the bar's position targets on what it returned
+        $dashboard = $this->countingDashboard(['source_table' => 'fake_table', 'dims' => [['column' => 'grade', 'targets' => ['2-1']]]]);
+        $dashboard->setRelation('dashboard_boxes', collect([$this->boxAt('box-b', 2, 1)]));
+        $importing = new class () extends Dashboard {
+            /** @var Dashboard|null what the trait's import returns */
+            public static $imported;
+
+            protected static function templateImport($array, $is_update, $options = [])
+            {
+                return static::$imported;
+            }
+        };
+        $importing::$imported = $dashboard;
+        $this->assertSame($dashboard, $importing::importTemplate(['dashboard_name' => 'unit_dashboard'], false));
+        $this->assertSame(['box-b'], $dashboard->getOption('filter_bar.dims.0.targets'));
+        $this->assertSame(1, $dashboard->saves);
+
+        $importing::$imported = null;
+        $this->assertNull($importing::importTemplate([], false), 'an import the trait refused: nothing to resolve');
     }
 
     public function testNormalizeDropsHalfConfiguredBarAndDuplicateColumns()

@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\DashboardBoxItems\ChartItem;
@@ -389,7 +390,8 @@ class DashboardBoxController extends AdminControllerBase
 
     /**
      * Linkage endpoint of the chart box form: columns of the table picked in
-     * target_table_id (sent as `q`), offered as chart filter fields.
+     * target_table_id (sent as `q`), offered as chart filter fields. A table this user may
+     * not read answers with an empty list.
      *
      * @param Request $request
      * @return array<int, array{id:string, text:string}>
@@ -398,6 +400,9 @@ class DashboardBoxController extends AdminControllerBase
     public function chartFilterColumns(Request $request)
     {
         $custom_table = CustomTable::getEloquent($request->get('q'));
+        if ($custom_table !== null && !$custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            $custom_table = null;
+        }
         $results = [];
         foreach ($custom_table ? $custom_table->custom_columns : [] as $custom_column) {
             $results[] = [

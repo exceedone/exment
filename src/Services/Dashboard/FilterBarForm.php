@@ -72,6 +72,7 @@ final class FilterBarForm
     /**
      * Filter column choices of a table, as column_name => "label (column_name)".
      *
+     * @param CustomTable|string|int|null $tableName  the table, or its name / id
      * @return array<string, string>
      */
     public static function columnOptions($tableName): array
@@ -98,7 +99,7 @@ final class FilterBarForm
         if ($model) {
             foreach ($model->dashboard_boxes as $box) {
                 if ($box->dashboard_box_type == DashboardBoxType::CHART) {
-                    $options[$box->suuid] = $box->dashboard_box_view_name . ' (' . $box->row_no . '-' . $box->column_no . ')';
+                    $options[$box->suuid] = $box->dashboard_box_view_name . ' (' . $box->positionKey() . ')';
                 }
             }
         }

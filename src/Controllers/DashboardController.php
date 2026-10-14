@@ -159,16 +159,24 @@ class DashboardController extends AdminControllerBase
             'color_standard' => exmtrans('dashboard.chart_color.standard'),
             'color_auto' => exmtrans('dashboard.chart_color.auto'),
             'color_more' => exmtrans('dashboard.chart_color.more'),
+            'chart_load_error' => exmtrans('dashboard.message.chart_load_error'),
         ];
         // each chart box starts with the toolbar choices this user left on it
         // (DashboardBoxController::chartState): box suuid => {ct, cs, cd}
         $charts = Admin::user() ? Admin::user()->getSettingValue('dashboard_chart.' . $this->dashboard->suuid) : null;
+        // the bundle is cached by the browser (dashboard.js fetches it with cache: true), so its
+        // URL carries the version the way Bootstrap's script list does, and an upgrade is fetched
+        $ver = \Exment::getExmentCurrentVersion() ?? date('YmdHis');
         $init = [
             'lang' => $lang,
             'charts' => is_array($charts) ? $charts : new \stdClass(),
-            // the two-handle slider under a number range item is laravel-admin's own Ion.RangeSlider
-            // (its Slider form field), loaded by dashboard.js only when such an item is on the bar
-            'assets' => ['ionslider' => asset('vendor/laravel-admin/AdminLTE/plugins/ionslider')],
+            // fetched by dashboard.js on first use, so no other admin page carries them: the ECharts
+            // bundle (the ECharts chart types) and laravel-admin's own Ion.RangeSlider (its Slider
+            // form field), the two-handle slider under a number range item of the bar
+            'assets' => [
+                'echarts' => asset('vendor/exment/echarts/echarts.min.js?ver=' . $ver),
+                'ionslider' => asset('vendor/laravel-admin/AdminLTE/plugins/ionslider'),
+            ],
         ];
         Admin::script('ExmentDashboard.init(' . json_encode($init, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) . ');');
         return $content;
@@ -358,15 +366,20 @@ class DashboardController extends AdminControllerBase
 
     /**
      * Linkage endpoint of the filter bar setting section: filter columns of the table
-     * picked in `filter_bar_table` (sent as `q`).
+     * picked in `filter_bar_table` (sent as `q`). A table this user may not read answers
+     * with an empty list.
      *
      * @param Request $request
      * @return array<int, array{id:string, text:string}>
      */
     public function filterBarColumns(Request $request)
     {
+        $table = CustomTable::getEloquent($request->get('q'));
+        if ($table === null || !$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            return [];
+        }
         $results = [];
-        foreach (FilterBarForm::columnOptions($request->get('q')) as $id => $text) {
+        foreach (FilterBarForm::columnOptions($table) as $id => $text) {
             $results[] = ['id' => $id, 'text' => $text];
         }
         return $results;
