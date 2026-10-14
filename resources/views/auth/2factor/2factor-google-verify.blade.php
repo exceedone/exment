@@ -25,6 +25,9 @@
 
         <div style="margin:10px 0; text-align:center;">
             <p><a href="{{admin_url('auth-2factor/google/sendmail')}}">{{ exmtrans('2factor.message.google.resend') }}</a></p>
+            @if(!empty($show_recovery_login))
+            <p><a href="{{admin_url('auth-2factor/recovery')}}">{{ exmtrans('2factor.recovery_login') }}</a></p>
+            @endif
             <p><a href="{{admin_url('auth-2factor/logout')}}">{{ trans('admin.back') }}</a></p>
         </div>
         

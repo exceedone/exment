@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorRecoveryCodeService;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -20,6 +21,8 @@ use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Validator as ExmentValidator;
 use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
 use Carbon\Carbon;
@@ -231,12 +234,58 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
     // @phpstan-ignore-next-line
     protected function postVerifyEmail2factor()
     {
-        if (!boolval(config('exment.login_use_2factor', false)) || !boolval(System::login_use_2factor())) {
+        // not use 2factor, or the login user is not required 2factor (specified by role group)
+        if (!Auth2factorService::isRequiredFor(\Exment::user())) {
             return;
         }
 
         $auth2factor = Auth2factorService::getProvider();
         $auth2factor->insertVerify();
+    }
+
+    /**
+     * Recovery codes of 2factor: show the remaining count, and confirm issuing new codes.
+     *
+     * @param Content $content
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function getRecoveryCodesSetting(Content $content)
+    {
+        $login_user = \Exment::user();
+        if (!Auth2factorService::canUseRecoveryCodes($login_user)) {
+            return redirect(admin_url('auth/setting'));
+        }
+
+        $box = new Box(exmtrans('2factor.recovery_codes'), view('exment::auth.2factor.2factor-recovery-codes-setting', [
+            'has_codes' => Auth2factorRecoveryCodeService::hasCodes($login_user),
+            'remaining' => Auth2factorRecoveryCodeService::getRemainingCount($login_user),
+            'total' => Auth2factorRecoveryCodeService::CODE_COUNT,
+            'action' => admin_urls('auth', 'setting', 'recovery-codes'),
+            'back_url' => admin_url('auth/setting'),
+        ])->render());
+
+        return $content
+            ->title(trans('admin.user_setting'))
+            ->body($box);
+    }
+
+    /**
+     * Issue new recovery codes of 2factor. The old codes are invalidated, and the new codes are shown once.
+     *
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function postRecoveryCodesSetting()
+    {
+        $login_user = \Exment::user();
+        // a user who has not set up 2factor must not get recovery codes (they would replace the setup)
+        if (!Auth2factorService::canUseRecoveryCodes($login_user)) {
+            return redirect(admin_url('auth/setting'));
+        }
+
+        $codes = Auth2factorRecoveryCodeService::generate($login_user);
+        session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR_RECOVERY_CODES => $codes]);
+
+        return redirect(admin_urls('auth-2factor', 'recovery-codes'));
     }
 
     /**
@@ -330,7 +379,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
             });
 
             // show 2factor setting if use
-            if (boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor())) {
+            if (Auth2factorService::isUse2factor()) {
                 $login_2factor_provider = \Exment::user()->getSettingValue(
                     implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
                     System::login_2factor_provider() ?? Login2FactorProviderType::EMAIL
@@ -341,6 +390,17 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                     ->disableClear()
                     ->default($login_2factor_provider)
                     ->help(exmtrans("2factor.help.login_2factor_provider_user"));
+
+                // recovery codes: remaining count and the link to issue new codes (confirmed on its own page).
+                // only for a user who has set up 2factor: codes must never replace the setup.
+                if (Auth2factorService::canUseRecoveryCodes(\Exment::user())) {
+                    $remaining = Auth2factorRecoveryCodeService::getRemainingCount(\Exment::user());
+                    $html = '<span>' . esc_html(exmtrans('2factor.message.recovery_codes_remaining', $remaining, Auth2factorRecoveryCodeService::CODE_COUNT)) . '</span>'
+                        . ' <a href="' . esc_html(admin_urls('auth', 'setting', 'recovery-codes')) . '" class="btn btn-sm btn-default" style="margin-left:1em;">'
+                        . '<i class="fa fa-refresh"></i> ' . esc_html(exmtrans('2factor.regenerate_recovery_codes')) . '</a>';
+                    $form->html($html, exmtrans('2factor.recovery_codes'))
+                        ->help(exmtrans('2factor.help.recovery_codes_user'));
+                }
             }
 
             $form->setAction(admin_url('auth/setting'));

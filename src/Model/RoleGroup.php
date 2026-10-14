@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property mixed $role_group_order
  * @property mixed $role_group_name
  * @property mixed $description
+ * @property mixed $require_2factor
  * @phpstan-consistent-constructor
  */
 class RoleGroup extends ModelBase
@@ -19,10 +20,14 @@ class RoleGroup extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
 
+    protected $casts = ['require_2factor' => 'boolean'];
+
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => [],
+        // "require_2factor" is a security policy of each system, not a part of the role group template.
+        // (And a template that has the key cannot be imported before the migration that adds the column.)
+        'excepts' => ['require_2factor'],
         'uniqueKeys' => ['role_group_name'],
         'langs' => [
             'keys' => ['role_group_name'],

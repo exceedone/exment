@@ -751,9 +751,10 @@ class LoginHistoryTest extends FeatureTestBase
         $this->assertFalse($history->fresh()->auth_2factor_verified);
 
         // 3. correct one-time password: verified, the admin page opens, and the IP is a used IP from now on
+        //    (the first 2factor login of the user issues the recovery codes and shows them once, before the admin page)
         $this->withoutMiddleware(VerifyCsrfToken::class)
             ->post(admin_url('auth-2factor/verify'), ['verify_code' => $code])
-            ->assertRedirect(admin_url(''));
+            ->assertRedirect(admin_url('auth-2factor/recovery-codes'));
         $this->assertTrue($history->fresh()->auth_2factor_verified);
         $this->get(admin_url('auth/setting'))->assertStatus(200);
         $this->assertFalse(LoginHistoryService::isNewIp($login_user->base_user_id, self::IP_JP));

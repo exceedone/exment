@@ -153,6 +153,10 @@ class Define
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
         'login_2factor_provider' => ['default' => 'email', 'group' => '2factor'],
+        // whether the users required 2factor are specified by role group. off (default): all users. on: users of the role groups whose "require_2factor" is on.
+        'login_2factor_target_role_group' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
+        // minutes a required user can use Exment without setting up 2factor, counted from the first login. 0: must set up at once.
+        'login_2factor_setup_grace_minutes' => ['type' => 'int', 'default' => '30', 'group' => '2factor'],
     ];
 
     public const SYSTEM_SKIN = [
@@ -207,6 +211,7 @@ class Define
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
+    public const SYSTEM_KEY_SESSION_AUTH_2FACTOR_RECOVERY_CODES = "auth_2factor_recovery_codes";
     public const SYSTEM_KEY_SESSION_LOGIN_HISTORY_ID = "login_history_id";
     public const SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER = "custom_login_user";
     public const SYSTEM_KEY_SESSION_PROVIDER_TOKEN = "provider_token";

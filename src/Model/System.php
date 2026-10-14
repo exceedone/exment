@@ -81,6 +81,8 @@ use Cache;
  * @method static boolean|void login_history_notify_new_ip($arg = null)
  * @method static boolean|void login_use_2factor($arg = null)
  * @method static string|void login_2factor_provider($arg = null)
+ * @method static boolean|void login_2factor_target_role_group($arg = null)
+ * @method static int|void login_2factor_setup_grace_minutes($arg = null)
  * @method static array|void system_admin_users($arg = null)
  * @method static boolean|void show_default_login_provider($arg = null)
  * @method static boolean|void sso_redirect_force($arg = null)

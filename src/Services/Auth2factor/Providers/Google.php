@@ -3,10 +3,9 @@
 namespace Exceedone\Exment\Services\Auth2factor\Providers;
 
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
-use Exceedone\Exment\Services\Login\LoginHistoryService;
-use Exceedone\Exment\Auth\ThrottlesLogins;
-use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorRecoveryCodeService;
 use Exceedone\Exment\Controllers\AuthTrait;
 use PragmaRX\Google2FA\Google2FA;
 use Carbon\Carbon;
@@ -33,6 +32,7 @@ class Google
      */
     public function index()
     {
+        /** @var LoginUser $loginUser */
         $loginUser = \Admin::user();
 
         // if not available, send email
@@ -42,7 +42,20 @@ class Google
             ]));
         }
 
-        return view('exment::auth.2factor.2factor-google-verify', $this->getLoginPageData());
+        return view('exment::auth.2factor.2factor-google-verify', $this->getLoginPageData([
+            'show_recovery_login' => Auth2factorRecoveryCodeService::getRemainingCount($loginUser) > 0,
+        ]));
+    }
+
+    /**
+     * Whether the login user has set up this 2factor: the authenticator app is registered.
+     *
+     * @param LoginUser $login_user
+     * @return bool
+     */
+    public function isSetUp(LoginUser $login_user): bool
+    {
+        return boolval($login_user->auth2fa_available);
     }
 
     /**
@@ -159,6 +172,7 @@ class Google
 
         $verify_code = $request->get('verify_code');
         $g2fa = $this->getG2fa();
+        /** @var LoginUser $loginuser */
         $loginuser = \Admin::user();
         $key = decrypt($loginuser->auth2fa_key);
 
@@ -174,6 +188,8 @@ class Google
         if (!boolval($loginuser->auth2fa_available)) {
             $loginuser->auth2fa_available = true;
             $loginuser->save();
+            // set up is completed: the grace period for setting up is over
+            Auth2factorService::clearRequiredAt($loginuser);
         }
 
         // get from database
@@ -181,12 +197,7 @@ class Google
             Auth2factorService::verifyCode('google', $request->get('code'), true);
         }
 
-        // set session for 2factor
-        session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
-        LoginHistoryService::verified2factor();
-        admin_toastr(trans('admin.login_successful'));
-
-        return redirect(admin_url(''));
+        return Auth2factorService::sendVerifiedResponse($loginuser);
     }
 
     // @phpstan-ignore-next-line

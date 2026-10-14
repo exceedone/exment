@@ -26,6 +26,7 @@ use ExmentAdminCore\Admin\Widgets\Box;
 use ExmentAdminCore\Admin\Auth\Permission as Checker;
 use ExmentAdminCore\Admin\Form as AdminForm;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 
 class RoleGroupController extends AdminControllerBase
 {
@@ -63,6 +64,11 @@ class RoleGroupController extends AdminControllerBase
         $grid->column('role_group_name', exmtrans('role_group.role_group_name'));
         $grid->column('role_group_view_name', exmtrans('role_group.role_group_view_name'));
         $grid->column('role_group_order', exmtrans('role_group.role_group_order'))->sortable()->editable();
+        if (Auth2factorService::isUse2factor()) {
+            $grid->column('require_2factor', exmtrans('role_group.require_2factor'))->display(function ($value) {
+                return exmtrans('common.' . (boolval($value) ? 'yes' : 'no'));
+            });
+        }
         $grid->column('role_group_users_count', exmtrans('role_group.users_count'));
 
         if (System::organization_available()) {
@@ -216,6 +222,13 @@ class RoleGroupController extends AdminControllerBase
             ->rows(3);
 
         $form->number('role_group_order', exmtrans("role_group.role_group_order"))->rules("integer");
+
+        // shown only when 2factor is enabled. Works when "login_2factor_target_role_group" of the login setting is on.
+        if (Auth2factorService::isUse2factor()) {
+            $form->switchbool('require_2factor', exmtrans('role_group.require_2factor'))
+                ->disable(!$enable)
+                ->help(exmtrans('role_group.help.require_2factor'));
+        }
 
         $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::SYSTEM()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
 
@@ -526,6 +539,11 @@ class RoleGroupController extends AdminControllerBase
             $role_group->description = $request->get('description');
             // @phpstan-ignore-next-line
             $role_group->role_group_order = $request->get('role_group_order');
+            // the field is on the form only when 2factor is enabled
+            if (Auth2factorService::isUse2factor()) {
+                // @phpstan-ignore-next-line
+                $role_group->require_2factor = boolval($request->get('require_2factor', false));
+            }
             // @phpstan-ignore-next-line
             $role_group->save();
 

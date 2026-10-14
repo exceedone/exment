@@ -1015,6 +1015,13 @@ return [
         'login_2factor_provider' => 'Default Authentication',
         'login_2factor_provider_user' => 'Two-Step Authentication Type',
         'login_2factor_verify_code' => 'Authentication Code',
+        'login_2factor_target_role_group' => 'Specify Required Users by Role Group',
+        'login_2factor_setup_grace_minutes' => 'Grace Period for Setup (minutes)',
+        'recovery_codes' => 'Recovery Codes',
+        'recovery_login' => 'Log in with a recovery code',
+        'regenerate_recovery_codes' => 'Generate new recovery codes',
+        'copy_recovery_codes' => 'Copy',
+        'recovery_codes_saved' => 'I have saved the codes. Continue',
 
         'google' => [
             'register_download' => 'Google verification system installation',
@@ -1028,6 +1035,20 @@ return [
             'google_email_sended' => 'I sent an e-mail. Close this page and set up Google 2-step verification from the link of the received email.',
             'input_number' => 'Enter 6 digit authentication code',
             'verify_failed' => 'Certification failed. The authentication code is incorrect or has expired.',
+            'setup_required_title' => 'Two-step authentication must be set up',
+            'setup_required_grace' => 'Two-step authentication is required for your account. Please complete the setup within about %s minutes. After that, no other page can be used until the setup is completed. <a href="%s" class="alert-link">Set up now</a>',
+            'recovery_login_description' => 'If you cannot see the authentication code, enter one of the recovery codes issued when you set up two-step authentication. Each code can be used only once.',
+            'input_recovery_code' => 'Enter a recovery code',
+            'recovery_verify_failed' => 'Certification failed. The recovery code is incorrect or has already been used.',
+            'recovery_no_codes' => 'You have no usable recovery code. Please contact the administrator.',
+            'recovery_login_succeeded' => 'Logged in with a recovery code. %s recovery codes remain.',
+            'back_to_verify' => 'Back to the authentication code',
+            'recovery_codes_issued' => 'Two-step authentication has been set up. Save the following recovery codes in a safe place. If you cannot see the authentication code, you can log in with a recovery code. Each code can be used only once.',
+            'recovery_codes_show_once' => 'The recovery codes are shown only on this page. They cannot be shown again after you leave this page.',
+            'recovery_codes_remaining' => '%s of %s codes remain',
+            'recovery_codes_description' => 'Recovery codes are entered instead of the authentication code to log in when you cannot see the authentication code (ex. the smartphone is lost).',
+            'recovery_codes_regenerate_warning' => 'Generating new codes invalidates all of the current recovery codes.',
+            'recovery_codes_not_issued' => 'Recovery codes have not been issued yet. They are issued automatically at the first login with two-step authentication.',
 
             'google' => [
                 'resend' => 'Resend Google 2-Step Verification System Registration Email.',
@@ -1046,6 +1067,9 @@ return [
             'login_2factor_provider' => 'Select the 2-step authentication method to use by default. This setting can be changed individually by the user.',
             'login_2factor_provider_user' => 'Please select a 2-step authentication method.',
             'login_2factor_verify_code' => 'Please enter the received authorization code in this form.',
+            'login_2factor_target_role_group' => 'Set this to YES to require two-step authentication only for the users of the role groups whose "Require two-step authentication" is YES (as a user or through the organization), and the users who belong to no role group. NO: every user is required, as before.',
+            'login_2factor_setup_grace_minutes' => 'With "Specify Required Users by Role Group" set to YES, the minutes a required user can use Exment without setting up two-step authentication (registering the Google authenticator). Counted from the first login after the user is required. After that, no page other than the two-step authentication setup can be used until the setup is completed. 0 to %s minutes. 0: the setup is required right after login. * E-mail authentication needs no setup, so the authentication code is asked right after login.',
+            'recovery_codes_user' => 'Recovery codes are used when you cannot see the authentication code. Generating new codes invalidates all of the current codes.',
         ],
 
         '2factor_provider_options' => [
@@ -2062,7 +2086,11 @@ return [
         'user_organization_setting' => 'User/organization setting',
         'users_count' => 'User count',
         'role_group_order' => 'Order',
+        'require_2factor' => 'Require two-step authentication',
         'organizations_count' => 'Organization count',
+        'help' => [
+            'require_2factor' => 'If YES, the users of this role group (as a user or through the organization) are required two-step authentication at login. Works when "Specify Required Users by Role Group" of the login setting is YES. * The users who belong to no role group are also required.',
+        ],
         'share_description' => 'Share this data with other users and organizations. Sharing enables other users and organizations to access this data.',
         'data_share_description' => 'Share this %1$s with other users and organizations. Sharing enables other users and organizations to access this data.',
 

@@ -157,6 +157,7 @@ class LogOperation extends BaseLogOperation
             'current_password',
             '_token',
             'verify_code',
+            'recovery_code',
             'access_token',
             'refresh_token',
         ];

@@ -31,6 +31,7 @@ class SystemTableName extends EnumBase
     public const VALUE_AUTHORITABLE = 'value_authoritable';
     public const CUSTOM_VALUE_AUTHORITABLE = 'custom_value_authoritables';
     public const EMAIL_CODE_VERIFY = 'email_code_verifies';
+    public const AUTH2FACTOR_RECOVERY_CODE = 'auth2factor_recovery_codes';
     public const NOTIFY_NAVBAR = 'notify_navbars';
     public const PASSWORD_RESET = 'password_reset_tokens';
     public const REVISION = 'revisions';

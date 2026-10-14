@@ -75,6 +75,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
+            $router->get('auth/setting/recovery-codes', 'AuthController@getRecoveryCodesSetting');
+            $router->post('auth/setting/recovery-codes', 'AuthController@postRecoveryCodesSetting');
 
             $router->get('system', 'SystemController@index');
             $router->post('system', 'SystemController@post');

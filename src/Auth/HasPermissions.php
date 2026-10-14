@@ -511,6 +511,17 @@ trait HasPermissions
     // @phpstan-ignore-next-line
     protected function getPermissionItems()
     {
+        return $this->getJoinedRoleGroups();
+    }
+
+    /**
+     * Get the role groups the user belongs to, as a user or through the organizations the user joined.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    // @phpstan-ignore-next-line
+    public function getJoinedRoleGroups()
+    {
         $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
         $organization_ids = $this->getOrganizationIdsForQuery($enum);
 

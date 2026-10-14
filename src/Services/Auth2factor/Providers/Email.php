@@ -3,9 +3,8 @@
 namespace Exceedone\Exment\Services\Auth2factor\Providers;
 
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
-use Exceedone\Exment\Services\Login\LoginHistoryService;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Auth\ThrottlesLogins;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorRecoveryCodeService;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Controllers\AuthTrait;
 use Carbon\Carbon;
@@ -32,9 +31,24 @@ class Email
      */
     public function index()
     {
+        /** @var LoginUser $loginuser */
+        $loginuser = \Admin::user();
+
         return view('exment::auth.2factor.2factor-email', $this->getLoginPageData([
-            'email_send_verify' => exmtrans('2factor.message.email_send_verify', config('exment.login_2factor_valid_period', 10))
+            'email_send_verify' => exmtrans('2factor.message.email_send_verify', config('exment.login_2factor_valid_period', 10)),
+            'show_recovery_login' => Auth2factorRecoveryCodeService::getRemainingCount($loginuser) > 0,
         ]));
+    }
+
+    /**
+     * Whether the login user has set up this 2factor. Email: nothing to set up.
+     *
+     * @param LoginUser $login_user
+     * @return bool
+     */
+    public function isSetUp(LoginUser $login_user): bool
+    {
+        return true;
     }
 
     /**
@@ -57,6 +71,7 @@ class Email
         }
 
         $verify_code = $request->get('verify_code');
+        /** @var LoginUser $loginuser */
         $loginuser = \Admin::user();
 
         if (!Auth2factorService::verifyCode('email', $verify_code, true)) {
@@ -68,12 +83,7 @@ class Email
             ]);
         }
 
-        // set session for 2factor
-        session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
-        LoginHistoryService::verified2factor();
-        admin_toastr(trans('admin.login_successful'));
-
-        return redirect(admin_url(''));
+        return Auth2factorService::sendVerifiedResponse($loginuser);
     }
 
     // @phpstan-ignore-next-line

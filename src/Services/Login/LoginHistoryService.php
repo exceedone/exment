@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Notifications\MailSender;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\GeoIp\GeoIpService;
 
 /**
@@ -107,7 +108,7 @@ class LoginHistoryService
         $history->is_new_ip = static::isNewIp($login_user->base_user_id, $ip);
         $history->via_remember = $viaRemember;
         // null: not subject to 2factor. false: 2factor is required, and marked true by verified2factor() after passing it.
-        $history->auth_2factor_verified = static::requires2factor($login_type) ? false : null;
+        $history->auth_2factor_verified = static::requires2factor($login_type, $login_user) ? false : null;
         $history->created_user_id = $login_user->base_user_id;
         $history->updated_user_id = $login_user->base_user_id;
         $history->save();
@@ -380,23 +381,19 @@ class LoginHistoryService
     /**
      * Whether 2factor authentication (OTP) is required after a login of the login type.
      * 2factor is used only for the default login and LDAP. OAuth / SAML logins are not subject to it.
+     * When 2factor is required only for some role groups, the login user decides. (see Auth2factorService::isRequiredFor)
      *
      * @param string $login_type
+     * @param LoginUser|null $login_user null: not judged by the user. (2factor is enabled or not)
      * @return bool
      */
-    public static function requires2factor(string $login_type): bool
+    public static function requires2factor(string $login_type, ?LoginUser $login_user = null): bool
     {
-        return static::isUse2factor() && !in_array($login_type, static::LOGIN_TYPES_WITHOUT_2FACTOR);
-    }
+        if (in_array($login_type, static::LOGIN_TYPES_WITHOUT_2FACTOR)) {
+            return false;
+        }
 
-    /**
-     * Whether 2factor authentication is enabled in the system.
-     *
-     * @return bool
-     */
-    protected static function isUse2factor(): bool
-    {
-        return boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor());
+        return is_null($login_user) ? Auth2factorService::isUse2factor() : Auth2factorService::isRequiredFor($login_user);
     }
 
     /**

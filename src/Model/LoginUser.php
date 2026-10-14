@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Hash;
  * @property mixed $password_reset_flg
  * @property mixed $base_user_id
  * @property mixed $avatar
+ * @property mixed $auth2fa_key
+ * @property mixed $auth2fa_available
+ * @property mixed $auth2fa_required_at
  * @property mixed $base_user
  * @property mixed $created_at
  * @property mixed $updated_at

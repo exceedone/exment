@@ -654,6 +654,23 @@ class LoginSettingController extends AdminControllerBase
             ->help(exmtrans("2factor.help.login_2factor_provider"))
             ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);
 
+        // who is required 2factor. NO (default): all users, as before. YES: the users of the role groups whose "require_2factor" is on
+        $form->switchbool('login_2factor_target_role_group', exmtrans("2factor.login_2factor_target_role_group"))
+            ->rules('boolean')
+            ->help(exmtrans("2factor.help.login_2factor_target_role_group"))
+            ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1']), 'data-filtertrigger' => true]);
+
+        $form->number('login_2factor_setup_grace_minutes', exmtrans("2factor.login_2factor_setup_grace_minutes"))
+            ->min(0)
+            ->max(Auth2factorService::SETUP_GRACE_MINUTES_MAX)
+            ->default(Auth2factorService::DEFAULT_SETUP_GRACE_MINUTES)
+            ->rules('nullable|integer|min:0|max:' . Auth2factorService::SETUP_GRACE_MINUTES_MAX)
+            ->help(exmtrans("2factor.help.login_2factor_setup_grace_minutes", Auth2factorService::SETUP_GRACE_MINUTES_MAX))
+            ->attribute(['data-filter' => json_encode([
+                ['key' => 'login_use_2factor', 'value' => '1'],
+                ['key' => 'login_2factor_target_role_group', 'value' => '1'],
+            ])]);
+
         $form->ajaxButton('login_2factor_verify_button', exmtrans("2factor.submit_verify_code"))
             ->help(exmtrans("2factor.help.submit_verify_code"))
             ->url(route('exment.2factor_verify'))
@@ -698,6 +715,11 @@ class LoginSettingController extends AdminControllerBase
         DB::beginTransaction();
         try {
             $inputs = $request->all(System::get_system_keys(['2factor']));
+
+            // an empty grace minutes keeps the saved value. (empty must not become 0 = "set up at once")
+            if (is_nullorempty(array_get($inputs, 'login_2factor_setup_grace_minutes'))) {
+                unset($inputs['login_2factor_setup_grace_minutes']);
+            }
 
             // set system_key and value
             foreach ($inputs as $k => $input) {

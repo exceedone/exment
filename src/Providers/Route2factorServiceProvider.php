@@ -36,6 +36,11 @@ class Route2factorServiceProvider extends ServiceProvider
 
             $router->get('auth-2factor/google/sendmail', 'Auth2factorController@sendmail');
             $router->get('auth-2factor/google/register', 'Auth2factorController@register');
+
+            // login by a recovery code, and the page showing the issued recovery codes
+            $router->get('auth-2factor/recovery', 'Auth2factorController@recovery');
+            $router->post('auth-2factor/recovery/verify', 'Auth2factorController@recoveryVerify');
+            $router->get('auth-2factor/recovery-codes', 'Auth2factorController@recoveryCodes');
         });
     }
 }

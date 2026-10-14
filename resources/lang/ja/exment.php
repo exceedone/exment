@@ -1015,6 +1015,13 @@ return [
         'login_2factor_provider' => '既定の認証方式',
         'login_2factor_provider_user' => '2段階認証の認証方式',
         'login_2factor_verify_code' => '認証コード',
+        'login_2factor_target_role_group' => '役割グループごとに対象を指定する',
+        'login_2factor_setup_grace_minutes' => '設定猶予時間(分)',
+        'recovery_codes' => 'バックアップコード',
+        'recovery_login' => 'バックアップコードでログイン',
+        'regenerate_recovery_codes' => 'バックアップコードを再発行',
+        'copy_recovery_codes' => 'コピー',
+        'recovery_codes_saved' => '保存しました。続ける',
 
         'google' => [
             'register_download' => 'Google認証システムインストール',
@@ -1028,6 +1035,20 @@ return [
             'google_email_sended' => 'メールを送信しました。この画面を閉じ、受信したメールのリンクより、Google2段階認証の設定を行ってください。',
             'input_number' => '6桁の認証コードを入力',
             'verify_failed' => '認証に失敗しました。認証コードが間違っているか、有効期限が終了しています。',
+            'setup_required_title' => '2段階認証の設定が必要です',
+            'setup_required_grace' => 'あなたは2段階認証が必須のユーザーです。残り約%s分以内に設定を完了してください。期限を過ぎると、設定が完了するまで他の画面は利用できなくなります。<a href="%s" class="alert-link">今すぐ設定する</a>',
+            'recovery_login_description' => '認証コードを確認できない場合、2段階認証の設定時に発行されたバックアップコードを入力してください。各コードは1回のみ使用できます。',
+            'input_recovery_code' => 'バックアップコードを入力',
+            'recovery_verify_failed' => '認証に失敗しました。バックアップコードが間違っているか、すでに使用されています。',
+            'recovery_no_codes' => '使用できるバックアップコードがありません。管理者にお問い合わせください。',
+            'recovery_login_succeeded' => 'バックアップコードでログインしました。残りのバックアップコードは%s個です。',
+            'back_to_verify' => '認証コードの入力に戻る',
+            'recovery_codes_issued' => '2段階認証の設定が完了しました。以下のバックアップコードを安全な場所に保存してください。認証コードを確認できない場合、バックアップコードでログインできます。各コードは1回のみ使用できます。',
+            'recovery_codes_show_once' => 'バックアップコードはこの画面でのみ表示されます。この画面を閉じると再表示できません。',
+            'recovery_codes_remaining' => '残り%s個（全%s個）',
+            'recovery_codes_description' => 'バックアップコードは、認証コードを確認できない場合（スマートフォンの紛失など）に、認証コードの代わりに入力してログインするためのコードです。',
+            'recovery_codes_regenerate_warning' => '再発行すると、現在のバックアップコードはすべて無効になります。',
+            'recovery_codes_not_issued' => 'バックアップコードはまだ発行されていません。2段階認証の初回ログイン時に自動で発行されます。',
 
             'google' => [
                 'resend' => 'Google2段階認証システム登録メールを再送する',
@@ -1046,6 +1067,9 @@ return [
             'login_2factor_provider' => '既定で使用する、2段階認証の方式を選択してください。この設定は、ユーザーが個別に変更できます。',
             'login_2factor_provider_user' => '2段階認証の方式を選択してください。',
             'login_2factor_verify_code' => '受信した認証コードを、このフォームに入力してください。',
+            'login_2factor_target_role_group' => 'YESにすると、役割グループ設定で「2段階認証を必須にする」をYESにした役割グループに所属するユーザー（ユーザー・組織どちらの所属でも対象）、およびどの役割グループにも所属していないユーザーのみ、2段階認証が必須になります。NOの場合は、これまでどおりすべてのユーザーが対象です。',
+            'login_2factor_setup_grace_minutes' => '「役割グループごとに対象を指定する」がYESの場合に、対象ユーザーが2段階認証（Google認証システムの登録）を設定しないまま利用できる時間です。対象になってから最初のログイン時点から数え、経過すると設定が完了するまで2段階認証の設定画面以外は利用できなくなります。0～%s分。0の場合はログイン直後に設定が必要です。※Eメール認証は設定が不要のため、ログイン直後に認証コードの入力が必要です。',
+            'recovery_codes_user' => '認証コードを確認できない場合に使用するバックアップコードです。再発行すると、現在のバックアップコードはすべて無効になります。',
         ],
 
         '2factor_provider_options' => [
@@ -2063,7 +2087,11 @@ return [
         'user_organization_setting' => 'ユーザー・組織設定',
         'users_count' => 'ユーザー数',
         'role_group_order' => '表示順',
+        'require_2factor' => '2段階認証を必須にする',
         'organizations_count' => '組織数',
+        'help' => [
+            'require_2factor' => 'YESにすると、この役割グループに所属するユーザー（ユーザー・組織どちらの所属でも対象）は、ログイン時に2段階認証が必須になります。ログイン設定の「役割グループごとに対象を指定する」が「YES」の場合に有効です。※どの役割グループにも所属していないユーザーも必須になります。',
+        ],
         'share_description' => 'このデータを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このデータにアクセスすることができるようになります。',
         'data_share_description' => 'この%1$sを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、この%1$sにアクセスすることができるようになります。',
 

@@ -126,6 +126,11 @@ class Initialize
             ]);
         }
 
+        // 2factor providers. Registered here (not when the admin page is bootstrapped), because the authentication
+        // middleware "admin.auth-2factor" asks the provider of the login user before the admin page is bootstrapped.
+        Auth2factorService::providers('email', \Exceedone\Exment\Services\Auth2factor\Providers\Email::class);
+        Auth2factorService::providers('google', \Exceedone\Exment\Services\Auth2factor\Providers\Google::class);
+
         // for api auth
         Config::set('auth.defaults.guard', 'admin');
         Config::set('auth.guards.adminapi', [
@@ -492,9 +497,6 @@ class Initialize
         Grid\Tools\BatchActions::$deleteBatchClassName = \Exceedone\Exment\Grid\Tools\BatchDelete::class;
         //Grid\Concerns\HasQuickSearch::setSearchKey('query');
         Grid::setSearchKey('query');
-
-        Auth2factorService::providers('email', \Exceedone\Exment\Services\Auth2factor\Providers\Email::class);
-        Auth2factorService::providers('google', \Exceedone\Exment\Services\Auth2factor\Providers\Google::class);
 
         PartialCrudService::providers('user_belong_organization', [
             'target_tables' => [SystemTableName::USER],
