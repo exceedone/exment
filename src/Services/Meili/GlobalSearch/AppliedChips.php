@@ -84,6 +84,13 @@ class AppliedChips
         // instead of leaking a hidden table's/column's display name.
         $permitted = SavedSearchService::searchableTableNames();
 
+        // A facet on a column this viewer may not read is dropped from the
+        // search itself (ReadableAttributes). Dropped here as well, and from
+        // $qs rather than from the chip loop, so the other chips' remove-urls
+        // stop carrying it too - no chip may claim a condition that is not
+        // applied.
+        $qs = ReadableAttributes::stripFacetPrefixes($qs, ReadableAttributes::hiddenFacetPrefixes($permitted));
+
         // Tables
         $tables = self::stringList($qs['tables'] ?? null);
         foreach ($tables as $tn) {

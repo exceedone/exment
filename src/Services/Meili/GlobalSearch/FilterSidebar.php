@@ -36,13 +36,17 @@ class FilterSidebar
         }
 
         $filters['permitted_tables'] = SavedSearchService::facetableTableNames();
+        // A facet value of a linked column is the hidden label itself, so the
+        // group is dropped and a crafted facets[] on it is ignored.
+        $hiddenPrefixes = ReadableAttributes::hiddenFacetPrefixes($filters['permitted_tables']);
+        $filters = ReadableAttributes::stripFacetPrefixes($filters, $hiddenPrefixes);
 
         // Disjunctive faceting: each group's counts reflect ALL current filters
         // except that group's own selection (so options in a ticked group do not
         // disappear). One merged query for groups with no selection; groups with
         // a selection are re-queried separately (usually <=2 extra queries).
         try {
-            $dist = $this->service->searchDistributions($q, $filters, ['table_name', 'facets', 'f_user']);
+            $dist = $this->distributions($q, $filters, ['table_name', 'facets', 'f_user']);
         } catch (\Throwable $e) {
             // An empty sidebar is the visible symptom; log so the cause is findable.
             \Illuminate\Support\Facades\Log::warning('[Meili] facet distribution unavailable: ' . $e->getMessage());
@@ -52,7 +56,7 @@ class FilterSidebar
         // One box per filter group: tables -> equality facets -> creator.
         $checkboxGroups = array_values(array_filter(array_merge(
             [$this->tableFacetGroup($q, $filters, $dist['table_name'] ?? [], $selectedTables)],
-            $this->facetValueGroups($q, $filters, $dist['facets'] ?? []),
+            $this->facetValueGroups($q, $filters, $dist['facets'] ?? [], $hiddenPrefixes),
             [$this->creatorFacetGroup($q, $filters, $dist['f_user'] ?? [], $selectedUsers)]
         )));
 
@@ -72,6 +76,89 @@ class FilterSidebar
             // Submitting the sidebar must not silently reset the chosen sort.
             'sort' => RequestFilters::sort($request),
         ])->render();
+    }
+
+    /**
+     * Facet distributions, counted the way this viewer is allowed to see them.
+     *
+     * attributesToSearchOn names bare paths (fields.user), and the index shares
+     * them across tables, so it cannot be varied inside one query spanning
+     * several tables. Tables with hidden content are therefore counted one by
+     * one with their own readable paths, and the rest stay in a single merged
+     * query. Cost is 1 + (number of restricted tables) queries; with nothing
+     * hidden - any administrator, most users - it stays at the single query.
+     *
+     * Counting them in the merged query instead would report more hits than the
+     * result boxes show, and the difference is exactly what the restriction
+     * hides.
+     *
+     * @param array<string,mixed> $filters
+     * @param array<int,string> $attributes
+     * @return array<string,array<string,int>>
+     */
+    private function distributions(string $q, array $filters, array $attributes): array
+    {
+        $permitted = (array) ($filters['permitted_tables'] ?? []);
+        $restricted = ReadableAttributes::restrictedTables($permitted);
+
+        if (empty($restricted)) {
+            return $this->service->searchDistributions($q, $filters, $attributes);
+        }
+
+        $safe = array_values(array_diff($permitted, $restricted));
+        $dist = empty($safe)
+            ? []
+            : $this->service->searchDistributions(
+                $q,
+                array_merge($filters, ['permitted_tables' => $safe]),
+                $attributes
+            );
+
+        $selectedTables = (array) ($filters['tables'] ?? []);
+        foreach ($restricted as $tableName) {
+            // Filtered out by the user: it contributes nothing either way.
+            if (!empty($selectedTables) && !in_array($tableName, $selectedTables, true)) {
+                continue;
+            }
+
+            try {
+                $own = $this->service->searchDistributions(
+                    $q,
+                    array_merge($filters, ['permitted_tables' => [$tableName], 'tables' => [$tableName]]),
+                    $attributes,
+                    ReadableAttributes::forTable($tableName)
+                );
+            } catch (\Throwable $e) {
+                // Fail closed: a count that cannot be recomputed is left out
+                // rather than taken from the unrestricted query.
+                \Illuminate\Support\Facades\Log::warning(
+                    "[Meili] restricted facet count of '{$tableName}' unavailable: " . $e->getMessage()
+                );
+                continue;
+            }
+
+            $dist = self::sumDistributions($dist, $own);
+        }
+
+        return $dist;
+    }
+
+    /**
+     * Merge two facet distributions, adding the counts of shared tokens.
+     *
+     * @param array<string,array<string,int>> $a
+     * @param array<string,array<string,int>> $b
+     * @return array<string,array<string,int>>
+     */
+    private static function sumDistributions(array $a, array $b): array
+    {
+        foreach ($b as $attribute => $counts) {
+            foreach ((array) $counts as $token => $count) {
+                $a[$attribute][$token] = (int) ($a[$attribute][$token] ?? 0) + (int) $count;
+            }
+        }
+
+        return $a;
     }
 
     /**
@@ -95,7 +182,7 @@ class FilterSidebar
         $dist = $baseDist;
         if (!empty($selected)) {
             try {
-                $dist = $this->service->searchDistributions(
+                $dist = $this->distributions(
                     $q,
                     MeiliSearchService::filtersWithoutKey($filters, $key),
                     [$attribute]
@@ -199,9 +286,10 @@ class FilterSidebar
     /**
      * @param array<string,mixed> $filters
      * @param array<string,int> $baseDist  facets distribution under the full filters
+     * @param array<int,string> $hiddenPrefixes  columns this viewer may not read
      * @return array<int,FacetGroup>
      */
-    private function facetValueGroups(string $q, array $filters, array $baseDist): array
+    private function facetValueGroups(string $q, array $filters, array $baseDist, array $hiddenPrefixes = []): array
     {
         $selected = array_map('strval', $filters['facets'] ?? []);
 
@@ -215,6 +303,9 @@ class FilterSidebar
         $groups = [];
         foreach ($baseDist as $token => $count) {
             $p = MeiliSearchService::parseFacetToken((string) $token);
+            if (in_array($p['col'], $hiddenPrefixes, true)) {
+                continue;
+            }
             $groups[$p['col']][(string) $token] = (int) $count;
         }
         // Groups with more results come first (groups with 1-2 stray values go last).
@@ -231,7 +322,7 @@ class FilterSidebar
         usort($selectedCols, fn ($a, $b) => ($position[$a] ?? PHP_INT_MAX) <=> ($position[$b] ?? PHP_INT_MAX));
         foreach (array_slice($selectedCols, 0, $maxGroups) as $col) {
             try {
-                $dist = $this->service->searchDistributions(
+                $dist = $this->distributions(
                     $q,
                     MeiliSearchService::filtersWithoutFacetColumn($filters, $col),
                     ['facets']

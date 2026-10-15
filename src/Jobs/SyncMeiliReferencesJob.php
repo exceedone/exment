@@ -11,6 +11,7 @@ use Exceedone\Exment\Services\Meili\FilterConfig;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
 use Exceedone\Exment\Services\Meili\MeiliSync;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Exceedone\Exment\Jobs\Middleware\LogFailureOnSyncDriver;
 
 /**
  * Rebuild the documents of records that link to a record whose label changed
@@ -63,6 +64,17 @@ class SyncMeiliReferencesJob implements ShouldQueue
             }
         }
         return false;
+    }
+
+    /**
+     * A Meilisearch outage must never break the caller's save: on the 'sync'
+     * driver the failure is logged instead of thrown (see the middleware).
+     *
+     * @return array<int,object>
+     */
+    public function middleware(): array
+    {
+        return [new LogFailureOnSyncDriver()];
     }
 
     public function handle(): void

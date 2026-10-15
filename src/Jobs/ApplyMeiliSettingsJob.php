@@ -6,6 +6,7 @@ use Exceedone\Exment\Services\Meili\IndexSettings;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Exceedone\Exment\Jobs\Middleware\LogFailureOnSyncDriver;
 
 /**
  * Apply the Meilisearch index SETTINGS (synonyms, stop words, ...) WITHOUT
@@ -42,6 +43,17 @@ class ApplyMeiliSettingsJob implements ShouldQueue, ShouldBeUniqueUntilProcessin
     public function uniqueId(): string
     {
         return 'meili-apply-settings';
+    }
+
+    /**
+     * A Meilisearch outage must never break the caller's save: on the 'sync'
+     * driver the failure is logged instead of thrown (see the middleware).
+     *
+     * @return array<int,object>
+     */
+    public function middleware(): array
+    {
+        return [new LogFailureOnSyncDriver()];
     }
 
     public function handle(): void

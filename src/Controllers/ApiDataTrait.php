@@ -470,7 +470,17 @@ trait ApiDataTrait
                 (int) config('meilisearch.permission_scan_cap', 1000),
                 $perPage * 20
             ));
-            $result = $service->searchTablePaginated($q, $custom_table->table_name, $cap, 1);
+            // Autocomplete must not match on a linked label this user cannot
+            // read: the suggestions alone would confirm it exists.
+            $result = $service->searchTablePaginated(
+                $q,
+                $custom_table->table_name,
+                $cap,
+                1,
+                [],
+                null,
+                \Exceedone\Exment\Services\Meili\GlobalSearch\ReadableAttributes::forTable($custom_table)
+            );
             $candidateIds = $result['ids'];
             if (empty($candidateIds)) {
                 return null;
@@ -500,7 +510,12 @@ trait ApiDataTrait
             // Must be an Eloquent Collection (has makeHidden) because modifyAfterGetValue calls makeHidden().
             $models = new Collection();
             if (!empty($paged['pageIds'])) {
-                $loaded = getModelName($custom_table)::whereIn('id', $paged['pageIds'])->get()->keyBy('id');
+                $query = getModelName($custom_table)::whereIn('id', $paged['pageIds']);
+                // Same eager loads the MySQL path gets through searchValue(): without
+                // them the response silently drops workflow_value, which only appears
+                // in the JSON when the relation is loaded.
+                $custom_table->setQueryWith($query);
+                $loaded = $query->get()->keyBy('id');
                 foreach ($paged['pageIds'] as $id) {
                     $m = $loaded->get($id);
                     if ($m) {
