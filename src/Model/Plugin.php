@@ -442,6 +442,23 @@ class Plugin extends ModelBase
     }
 
     /**
+     * Local filesystem path of this plugin.
+     *
+     * Plugins may live on a remote disk, so the synced local copy is the only
+     * place their files can be read directly - the same copy requirePlugin()
+     * hands to the class loader.
+     *
+     * @param PluginDiskService|null $diskService
+     * @return string
+     */
+    public function getLocalFullPath(?PluginDiskService $diskService = null): string
+    {
+        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk(null, $diskService, ['sync' => true]);
+
+        return \Exment::replaceBackToSlash($diskService->localSyncDiskItem()->dirFullPath());
+    }
+
+    /**
      * Initialize plugin disk.
      *
      * @param string $path

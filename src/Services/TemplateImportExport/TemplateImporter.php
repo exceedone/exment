@@ -11,11 +11,13 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Model\CellStylePreset;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\DataImportExport;
@@ -409,9 +411,15 @@ class TemplateImporter
 
     /**
      * Upload Template with plugin
+     *
+     * @param mixed $tmpDiskItem
+     * @param string $directory
+     * @param bool $keepExisting true leaves records that already exist alone,
+     *                           so a plugin update does not reset them
+     * @return bool|void
      */
     // @phpstan-ignore-next-line
-    public function uploadTemplateWithPlugin($tmpDiskItem, $directory)
+    public function uploadTemplateWithPlugin($tmpDiskItem, $directory, bool $keepExisting = false)
     {
         $tmpDisk = $tmpDiskItem->disk();
         $tmpfolderpath = $tmpDiskItem->dirFullPath();
@@ -455,6 +463,7 @@ class TemplateImporter
 
         $this->importFromFile($tmpDisk->get($config_path), [
             'basePath' => $tmpfolderpath,
+            'is_update' => $keepExisting,
         ]);
     }
 
@@ -699,6 +708,13 @@ class TemplateImporter
             // tables for default form and views
             $createDefaultTables = [];
 
+            // Create cell style presets. -------------------------------------
+            // Before anything else: a column imported below may point at one,
+            // and a preset depends on nothing itself.
+            foreach (array_get($json, "cell_style_presets", []) as $preset) {
+                CellStylePreset::importTemplate($preset, $is_update);
+            }
+
             // Loop by tables
             foreach (array_get($json, "custom_tables", []) as $table) {
                 // Create tables. --------------------------------------------------
@@ -760,8 +776,16 @@ class TemplateImporter
                 CustomRelation::importTemplate($relation, $is_update);
             }
 
-            // loop for form
+            // loop for form. Display priorities travel in a top-level list keyed
+            // by the form suuid (see TemplateExporter::setTemplateTable); a
+            // template written before that carries them inside the form.
+            $formPriorities = collect((array)array_get($json, "custom_form_priorities", []))->keyBy('suuid');
             foreach (array_get($json, "custom_forms", []) as $form) {
+                $suuid = array_get($form, 'suuid');
+                $priorities = is_nullorempty($suuid) ? null : array_get($formPriorities->get($suuid), 'custom_form_priorities');
+                if (!is_null($priorities) && !array_key_exists('custom_form_priorities', $form)) {
+                    $form['custom_form_priorities'] = $priorities;
+                }
                 CustomForm::importTemplate($form, $is_update);
             }
 
@@ -818,6 +842,14 @@ class TemplateImporter
                             'hasname' => $hasname,
                         ]);
                     }
+                }
+            }
+
+            // loop for workflows (must be after custom_tables so workflow_tables can resolve custom_table_id)
+            foreach (array_get($json, "workflows", []) as $workflow) {
+                $imported = Workflow::importTemplate($workflow, $is_update);
+                if ($imported instanceof Workflow) {
+                    $imported->importTemplateDesignerLayout();
                 }
             }
 

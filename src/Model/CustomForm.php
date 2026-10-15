@@ -59,7 +59,8 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
             ],
         ],
         'children' =>[
-            'custom_form_blocks' => CustomFormBlock::class
+            'custom_form_blocks' => CustomFormBlock::class,
+            'custom_form_priorities' => CustomFormPriority::class
         ],
     ];
 

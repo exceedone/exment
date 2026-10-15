@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Services\Calc\CalcService;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Exceedone\Exment\ColumnItems\GridCellStyle;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -17,6 +18,7 @@ use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CellStylePreset;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\MultisettingType;
@@ -289,7 +291,7 @@ class CustomColumnController extends AdminControllerTableBase
             $form->hidden('column_type')->default($column_type);
         }
 
-        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item, $id) {
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item, $id, $custom_column) {
             $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
                 ->rules([
@@ -326,6 +328,56 @@ class CustomColumnController extends AdminControllerTableBase
             $form->select('text_align', exmtrans("custom_column.options.text_align"))
                 ->help(exmtrans("custom_column.help.text_align"))
                 ->options(TextAlignType::transArray('custom_column.align_type_options'));
+
+            // ----------------------------------------- cell appearance ----
+            // Only the data list is affected. A badge compares one record
+            // against the others, which the detail screen and the form -
+            // showing a single record - have nothing to compare against.
+            $form->html('<hr /><h5>' . esc_html(exmtrans('custom_column.options.grid_style_header')) . '</h5>')->plain();
+
+            // The preset is the whole look. There is no per-column tweaking
+            // under it: a tweak becomes a preset of its own (the pencil in
+            // the picker starts one), so every other column can pick it up
+            // instead of the adjustment staying private to this column.
+            // A column styled before presets existed carries its settings
+            // raw, and showed an empty picker beside a preview full of
+            // colored tags - the screen saying nothing while the column
+            // plainly had a look. Naming the preset that means the same
+            // thing puts the two back in agreement; saving only moves where
+            // the answer is kept.
+            $form->select('grid_preset', exmtrans("custom_column.options.grid_preset"))
+                ->default(isset($custom_column) && is_nullorempty($custom_column->getOption('grid_preset'))
+                    ? CellStylePreset::findMatchingKey($custom_column->options) : null)
+                ->help(exmtrans("custom_column.help.grid_preset"))
+                ->options(CellStylePreset::getPickerOptions())
+                ->attribute([
+                    'data-cellstyle-preset' => $this->custom_table->table_name,
+                    'data-cellstyle-preset-label' => exmtrans('cell_style_preset.edit_preset'),
+                    'data-cellstyle-preset-placeholder' => exmtrans('cell_style_preset.select_placeholder'),
+                ]);
+
+            // The raw fields of columns styled before presets existed pass
+            // through unseen. They keep such a column painted until a preset
+            // is picked, and they are what the pencil promotes into a new
+            // preset - but the screen no longer edits them one by one.
+            foreach (['grid_style', 'grid_color', 'grid_bg_color', 'grid_border_color', 'grid_font_weight', 'grid_icon', 'grid_nowrap'] as $legacy_grid_key) {
+                $form->hidden($legacy_grid_key);
+            }
+
+            // Per-value colors stay on the column: the values they color are
+            // this column's own choices, which no shared preset can know.
+            // The script turns the textarea into a small table built from
+            // those choices; the textarea itself stays the stored value, so
+            // without the script the setting is still editable by hand.
+            $form->textarea('grid_value_colors', exmtrans("custom_column.options.grid_value_colors"))
+                ->rows(4)
+                ->attribute([
+                    'data-cellstyle-valuecolors' => '1',
+                    'data-cellstyle-labels' => json_encode(GridCellStyle::valueColorLabels()),
+                ])
+                ->help(exmtrans("custom_column.help.grid_value_colors"));
+
+            $form->html(view('exment::custom-column.cellstyle-preview')->render())->plain();
 
             if ($this->custom_table->table_name == SystemTableName::USER) {
                 $form->select('editable_userinfo', exmtrans("custom_column.editable_userinfo"))

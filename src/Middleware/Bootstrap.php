@@ -39,6 +39,12 @@ class Bootstrap
             return;
         }
 
+        // A JSON response never renders a layout, so building the admin
+        // CSS/JS buckets for it is pure overhead.
+        if ($request->expectsJson()) {
+            return;
+        }
+
         if ($this->isStaticRequest($request)) {
             return;
         }
@@ -56,15 +62,35 @@ class Bootstrap
         Ad::js(asset('lib/js/bignumber.min.js'));
 
         static::setCssJsList([
+            // iCheck is not decoration here. Grid\Displayers\RowSelector
+            // emits `$('.grid-row-checkbox').iCheck(...).on('ifChanged',
+            // ...)`, so without the plugin that call throws and the whole
+            // handler chain behind it - `$.admin.grid.select()`, the batch
+            // action button, the "N selected" counter - is never bound.
+            // The skin has to come with it: iCheck hides the real input
+            // and draws its own box, so the JS alone would leave every
+            // checkbox invisible.
+            'vendor/open-admin/AdminLTE/plugins/iCheck/minimal/blue.css',
             'vendor/exment/css/common.css',
             'vendor/exment/css/workflow.css',
             'vendor/exment/css/workflow_task_navbar.css',
+            'vendor/exment/css/workflow_designer.css',
+            'vendor/exment/css/workflow_design_edit.css',
             'vendor/exment/css/customform.css',
             'vendor/exment/codemirror/codemirror.css',
             'vendor/exment/jstree/themes/default/style.min.css',
         ], true);
 
+        // The AdminLTE bundles are appended after everything above, so a
+        // stylesheet meant to override the theme's table rules has to go
+        // through csslast or it silently loses every specificity tie.
         static::setCssJsList([
+            'vendor/exment/css/grid_tools.css',
+        ], true, true);
+
+        static::setCssJsList([
+            // see the note on the stylesheet above
+            'vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js',
             'vendor/exment/validation/jquery.validate.js',
             'vendor/exment/chartjs/chart.min.js',
             'vendor/exment/codemirror/codemirror.js',
@@ -83,6 +109,8 @@ class Bootstrap
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',
+            'vendor/exment/js/grid_tools.js',
+            'vendor/exment/js/cellstyle_preset.js',
             'vendor/exment/js/file-required.js',
             'vendor/exment/js/scroll-restore.js',
             'vendor/exment/js/file-required.js',
@@ -92,12 +120,18 @@ class Bootstrap
             'vendor/exment/js/workflow_task_navbar.js',
             'vendor/exment/js/modal.js',
             'vendor/exment/js/workflow.js',
+            'vendor/exment/js/workflow_designer.js',
+            'vendor/exment/js/workflow_design_edit.js',
             'vendor/exment/js/changefield.js',
             'vendor/exment/js/customcolumn.js',
             'vendor/exment/js/customformitem.js',
             'vendor/exment/js/customform.js',
             'vendor/exment/js/hasmanytable-validation.js',
             'vendor/exment/js/preview.js',
+            'vendor/exment/js/assign_me.js',
+            'vendor/exment/js/paste_attach.js',
+            'vendor/exment/js/quickadd.js',
+            'vendor/exment/js/mention.js',
             'vendor/exment/js/webapi.js',
             'vendor/exment/js/admin.webapi.js',
             'vendor/exment/js/getbox.js',

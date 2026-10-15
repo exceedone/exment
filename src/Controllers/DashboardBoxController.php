@@ -250,7 +250,7 @@ class DashboardBoxController extends AdminControllerBase
                 if ($dashboard_type == DashboardBoxType::CALENDAR) {
                     return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
                 } else {
-                    return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
+                    return ViewKindType::isListable(array_get($value, 'view_kind_type'));
                 }
             })
             ->filter(function ($value) use ($dashboard) {
