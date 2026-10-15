@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\CustomValueModelScope;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
+use Exceedone\Exment\Jobs\Middleware\LogFailureOnSyncDriver;
 
 /**
  * Reindex Meilisearch for ONE custom table when the table/column config changes.
@@ -278,6 +279,17 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public static function tableFilter(string $tableName): string
     {
         return 'table_name = ' . MeiliSearchService::quoteFilterValue($tableName);
+    }
+
+    /**
+     * A Meilisearch outage must never break the caller's save: on the 'sync'
+     * driver the failure is logged instead of thrown (see the middleware).
+     *
+     * @return array<int,object>
+     */
+    public function middleware(): array
+    {
+        return [new LogFailureOnSyncDriver()];
     }
 
     public function handle(): void

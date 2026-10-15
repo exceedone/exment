@@ -114,10 +114,12 @@ class HeaderSuggester
     /**
      * Whether this viewer may be shown a freeword field's indexed content.
      *
-     * Only select_table columns can hide content: Exment replaces a linked record
-     * the viewer cannot open with the "no permission" text while the document
-     * keeps its real label, so such a field is withheld. user/organization
-     * columns are not permission-gated on the record screen, so they stay.
+     * Only linked columns can hide content: Exment replaces a linked record the
+     * viewer cannot open with the "no permission" text while the document keeps
+     * its real label, so such a field is withheld. user/organization columns
+     * count too - they look ungated only because filter_multi_user is off by
+     * default; once it is on, the user table is narrowed to the viewer's own
+     * organizations exactly like any other linked table.
      *
      * @param  mixed  $table
      * @param  mixed  $model
@@ -132,7 +134,12 @@ class HeaderSuggester
         if (!$column) {
             return false;
         }
-        if ($column->column_type !== ColumnType::SELECT_TABLE) {
+        if (!ColumnType::isSelectTable($column->column_type)) {
+            return true;
+        }
+        // Target fully visible -> its labels are never replaced, so no check needed.
+        $target = $column->select_target_table;
+        if ($target && SavedSearchService::canViewAllRows($target)) {
             return true;
         }
 

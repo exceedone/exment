@@ -97,10 +97,10 @@ class MeiliSearchService
      * @param MeiliFilters $filters
      * @return array{ids:array<int,mixed>, total:int}
      */
-    public function searchTablePaginated(string $q, string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null): array
+    public function searchTablePaginated(string $q, string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null, ?array $searchOn = null): array
     {
         $result = $this->client->index($this->indexName)
-            ->search(self::normalizeQuery($q), $this->applyMatchingStrategy(self::buildTableSearchOptions($tableName, $perPage, $page, $filters, $sort)));
+            ->search(self::normalizeQuery($q), $this->applyMatchingStrategy(self::buildTableSearchOptions($tableName, $perPage, $page, $filters, $sort, $searchOn)));
 
         $ids = array_map(fn ($hit) => $hit['value_id'] ?? null, $result->getHits());
 
@@ -113,7 +113,7 @@ class MeiliSearchService
      * @param MeiliFilters $filters
      * @return array<string,mixed>
      */
-    public static function buildTableSearchOptions(string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null): array
+    public static function buildTableSearchOptions(string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null, ?array $searchOn = null): array
     {
         $options = [
             'filter' => self::buildFilterExpression($tableName, $filters),
@@ -130,6 +130,13 @@ class MeiliSearchService
         $sortExpr = self::buildSortExpression($sort);
         if (!empty($sortExpr)) {
             $options['sort'] = $sortExpr;
+        }
+
+        // Null = search every attribute, as before. An empty list is a real
+        // answer (nothing readable in this table) and must reach Meilisearch,
+        // which then matches nothing - never silently fall back to everything.
+        if ($searchOn !== null) {
+            $options['attributesToSearchOn'] = array_values($searchOn);
         }
 
         return $options;
@@ -485,9 +492,12 @@ class MeiliSearchService
      * @param array<int,string> $attributes
      * @return array<string,array<string,int>>
      */
-    public function searchDistributions(string $q, array $filters, array $attributes): array
+    public function searchDistributions(string $q, array $filters, array $attributes, ?array $searchOn = null): array
     {
         $opts = ['limit' => 0, 'facets' => $attributes];
+        if ($searchOn !== null) {
+            $opts['attributesToSearchOn'] = array_values($searchOn);
+        }
         $expr = self::buildFilterExpression(null, $filters);
         if ($expr !== '') {
             $opts['filter'] = $expr;

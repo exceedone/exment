@@ -7,6 +7,7 @@ use Exceedone\Exment\Services\Meili\MeiliClientFactory;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueModelScope;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Exceedone\Exment\Jobs\Middleware\LogFailureOnSyncDriver;
 
 /**
  * Sync one Exment document to Meilisearch (runs in background via queue).
@@ -42,6 +43,17 @@ class SyncMeiliDocumentJob implements ShouldQueue
         } catch (\Throwable $e) {
             $this->onQueue('default');
         }
+    }
+
+    /**
+     * A Meilisearch outage must never break the caller's save: on the 'sync'
+     * driver the failure is logged instead of thrown (see the middleware).
+     *
+     * @return array<int,object>
+     */
+    public function middleware(): array
+    {
+        return [new LogFailureOnSyncDriver()];
     }
 
     /**

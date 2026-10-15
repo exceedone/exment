@@ -37,13 +37,21 @@ class ResultPaginator
         // max(1): a cap of 0 would ask Meilisearch for zero hits AND make the
         // "capped" test below always true, so the page would report "0+".
         $cap = max(1, (int) config('meilisearch.permission_scan_cap', 1000));
+        // Keyword and filters are both limited to what this viewer may read:
+        // a document keeps the real label of a linked record they cannot open.
+        $searchOn = ReadableAttributes::forTable($custom_table);
+        $filters = ReadableAttributes::stripHiddenFacets(
+            RequestFilters::parse($request),
+            [$custom_table->table_name]
+        );
         $result = $this->service->searchTablePaginated(
             $q,
             $custom_table->table_name,
             $cap,
             1,
-            RequestFilters::parse($request),
-            RequestFilters::sort($request)
+            $filters,
+            RequestFilters::sort($request),
+            $searchOn
         );
         $candidateIds = $result['ids'];
         // Reached the cap (or the index's maxTotalHits, if lower) -> the total is a floor.
