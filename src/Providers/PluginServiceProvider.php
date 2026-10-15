@@ -76,15 +76,17 @@ class PluginServiceProvider extends ServiceProvider
      * is allowed in. Even a malicious config.json cannot open an
      * unauthenticated hole, because nothing touching authentication,
      * permission or IP filtering appears here.
+     *
+     * The logging middlewares (admin.log, check.logging.enabled and
+     * log.exec.time) are deliberately absent as well: every plugin request
+     * is logged exactly as on the core routes, so a config.json cannot hide
+     * its own calls from the operation log or the SQL log.
      */
     protected const OPTIONAL_MIDDLEWARE = [
         'admin.morph',
-        'admin.log',
         'admin.bootstrap',
         'admin.bootstrap2',
         'admin.pjax',
-        'log.exec.time',
-        'check.logging.enabled',
     ];
 
     /**

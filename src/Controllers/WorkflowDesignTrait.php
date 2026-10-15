@@ -937,7 +937,8 @@ trait WorkflowDesignTrait
             if ($name === '') {
                 $errors[] = $required(exmtrans('workflow.status_name'));
             } elseif (mb_strlen($name) > 30) {
-                $errors[] = $maxlen(exmtrans('workflow.status_name') . '「' . $name . '」', 30);
+                $errors[] = $maxlen(exmtrans('workflow.status_name'), 30)
+                    . ' (' . exmtrans('workflow.design.fmt_quote', ['name' => $name]) . ')';
             }
 
             if (array_boolval($status, 'completed')) {
@@ -1023,12 +1024,14 @@ trait WorkflowDesignTrait
 
         foreach ($actions as $index => $action) {
             $action_name = trim(strval(array_get($action, 'name')));
-            $label = $action_name !== '' ? '「' . $action_name . '」' : '#' . ($index + 1);
+            $label = $action_name !== ''
+                ? exmtrans('workflow.design.fmt_quote', ['name' => $action_name])
+                : '#' . ($index + 1);
 
             if ($action_name === '') {
                 $errors[] = $required(exmtrans('workflow.action_name')) . ' (' . $label . ')';
             } elseif (mb_strlen($action_name) > 30) {
-                $errors[] = $maxlen(exmtrans('workflow.action_name') . $label, 30);
+                $errors[] = $maxlen(exmtrans('workflow.action_name'), 30) . ' (' . $label . ')';
             }
 
             $status_from = strval(array_get($action, 'status_from'));
@@ -1144,6 +1147,31 @@ trait WorkflowDesignTrait
             ], true)) {
                 $errors[] = $required(exmtrans('common.comment')) . ' (' . $label . ')';
             }
+        }
+
+        // Step 2 offers only "set in advance" on the first action out of the
+        // start status (WorkflowController::targetModal(), index 0). That is
+        // the saved start action with the lowest id, or else the first new
+        // one as sent - the order saveDesignActions() numbers them in.
+        // ACTION_SELECT is already reported above for every start action.
+        $first_start = null;
+        foreach ($actions as $index => $action) {
+            if (strval(array_get($action, 'status_from')) !== Define::WORKFLOW_START_KEYNAME) {
+                continue;
+            }
+            $id = array_get($action, 'id');
+            $first_id = isset($first_start) ? array_get($actions[$first_start], 'id') : null;
+            if (!isset($first_start)
+                || (!is_nullorempty($id) && (is_nullorempty($first_id) || intval($id) < intval($first_id)))) {
+                $first_start = $index;
+            }
+        }
+        if (isset($first_start)
+            && strval(array_get($actions[$first_start], 'work_target_type')) === WorkflowWorkTargetType::GET_BY_USERINFO) {
+            $first_name = trim(strval(array_get($actions[$first_start], 'name')));
+            $errors[] = exmtrans('workflow.design.message.first_start_fix_only') . ' ('
+                . ($first_name !== '' ? exmtrans('workflow.design.fmt_quote', ['name' => $first_name]) : '#' . ($first_start + 1))
+                . ')';
         }
 
         if (count($actions) > 0 && !$has_start_action) {

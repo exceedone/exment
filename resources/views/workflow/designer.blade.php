@@ -59,7 +59,7 @@
             <span class="wd-sw" style="background:#00a65a"></span>{{ $wd_texts['legend_completed'] }}<br>
             <span class="wd-ln"></span>{{ $wd_texts['legend_action'] }}&nbsp;&nbsp;
             <span class="wd-ln wd-dash"></span>{{ $wd_texts['legend_ignore'] }}<br>
-            <span class="wd-br">◆n</span>{{ $wd_texts['legend_branch'] }}&nbsp;／
+            <span class="wd-br">◆n</span>{{ $wd_texts['legend_branch'] }}&nbsp;&nbsp;
             <span class="wd-cn">※</span>{{ $wd_texts['legend_cond'] }}
         </div>
 

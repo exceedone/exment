@@ -149,14 +149,13 @@ HTML;
      */
     protected function valueText($item, $value): string
     {
-        // Between filters (date / number ranges) arrive as start + end.
+        // Between filters (date / number ranges) arrive as start + end. One
+        // side may be open; the trim drops the space left beside it.
         if (is_array($value) && (array_key_exists('start', $value) || array_key_exists('end', $value))) {
-            $start = strval(array_get($value, 'start'));
-            $end = strval(array_get($value, 'end'));
-            if ($start !== '' && $end !== '') {
-                return "{$start} 〜 {$end}";
-            }
-            return $start !== '' ? "{$start} 〜" : "〜 {$end}";
+            return trim(exmtrans('common.grid_filter_chip_range', [
+                'start' => strval(array_get($value, 'start')),
+                'end' => strval(array_get($value, 'end')),
+            ]));
         }
 
         $raw = is_array($value)

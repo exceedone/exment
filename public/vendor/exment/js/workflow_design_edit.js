@@ -512,7 +512,7 @@ var Exment;
 
     function edgeTitle(e) {
         var lines = [nameOf(e.action.from) + ' → ' + nameOf(e.dest.to)];
-        lines.push(t('label_work_targets') + '：' + targetTypeText(e.action.targetType));
+        lines.push(t('fmt_label', { label: t('label_work_targets'), value: targetTypeText(e.action.targetType) }));
         if (e.action.flowType === 'some') {
             lines.push(t('tip_flow_some', { count: e.action.flowCount }));
         } else {
@@ -687,6 +687,13 @@ var Exment;
             // means the diagram says so before the save is attempted.
             if (a.targetType === TYPE_ACTION_SELECT && a.from === START) {
                 list.push({ level: 'err', akey: a.key, text: t('issue_action_select_on_start', { action: label }) });
+            }
+
+            // The dialog offers only "set in advance" on the first start
+            // action, but which action is first changes when another one is
+            // removed or moved off the start status, so it is checked here too.
+            if (a.targetType === TYPE_GET_BY_USERINFO && a.key === firstStartKey()) {
+                list.push({ level: 'err', akey: a.key, text: t('issue_first_start_fix_only', { action: label }) });
             }
 
             // 人数
@@ -1275,7 +1282,7 @@ var Exment;
         if (!s) {
             return;
         }
-        openModal(t('status_edit') + '：' + s.name, statusFormHtml(s), [
+        openModal(t('fmt_label', { label: t('status_edit'), value: s.name }), statusFormHtml(s), [
             { label: t('label_cancel') },
             {
                 label: t('label_save'), cls: 'btn-primary',
@@ -1671,23 +1678,34 @@ var Exment;
         }
 
         // Which action is the first one out of the start status depends on
-        // the status before, so the box follows that select.
-        function syncIgnore() {
-            var row = m.querySelector('#wfd-igopt');
+        // the status before, so what step 2 leaves out of that row follows
+        // that select: the "ignore_work" box, and every user type but "set in
+        // advance".
+        function syncFirst() {
             var from = m.querySelector('#wfd-from');
-            if (!row || !from) {
+            if (!from) {
                 return;
             }
-            var probe = { key: a.key, id: a.id, from: from.value };
-            row.style.display = (firstStartKey(probe) === a.key) ? 'none' : '';
+            var first = firstStartKey({ key: a.key, id: a.id, from: from.value }) === a.key;
+            var row = m.querySelector('#wfd-igopt');
+            if (row) {
+                row.style.display = first ? 'none' : '';
+            }
+            Array.prototype.forEach.call(m.querySelectorAll('input[name=wfd-tt]'), function (el) {
+                var fix = el.value === TYPE_FIX;
+                el.closest('.opt').style.display = (first && !fix) ? 'none' : '';
+                if (first && fix) {
+                    el.checked = true;
+                }
+            });
         }
 
         m.addEventListener('change', function (ev) {
-            if (ev.target.name === 'wfd-tt') {
-                syncVisible();
-            }
             if (ev.target.id === 'wfd-from') {
-                syncIgnore();
+                syncFirst();
+            }
+            if (ev.target.name === 'wfd-tt' || ev.target.id === 'wfd-from') {
+                syncVisible();
             }
         });
 
@@ -1711,6 +1729,7 @@ var Exment;
         });
 
         initSelects();
+        syncFirst();
         syncVisible();
     }
 
@@ -2109,13 +2128,17 @@ var Exment;
             baseSig = JSON.stringify(saved);
             syncDirty();
             syncStepButtons(map);
-            toast(res.toastr || 'OK');
+            if (res.toastr) {
+                toast(res.toastr);
+            }
         }).fail(function (xhr) {
             if (!alive() || els.app !== app) {
                 return;
             }
+            // A failure without "errors" or "toastr" comes from the framework
+            // (an expired session, a server error), whose text is not translated.
             var res = xhr.responseJSON || {};
-            showErrors(res.errors || [res.toastr || ('HTTP ' + xhr.status)]);
+            showErrors(res.errors || [res.toastr || t('save_failed')]);
         }).always(function () {
             if (!alive() || els.app !== app || redirecting) {
                 return;

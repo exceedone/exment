@@ -26,7 +26,19 @@
         var p = s.split('-');
         return new Date(+p[0], +p[1] - 1, +p[2]);
     }
+    // Steps by calendar day: adding 24h would land on 23:00 of the day before
+    // after a daylight saving change, and getDay() would name the wrong day.
+    function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
     function fmtMD(d) { return (d.getMonth() + 1) + '/' + d.getDate(); }
+    // Rough width of a 10px header label: wide (CJK) glyphs take about a full
+    // em, digits and latin letters a little over half of one. Estimated rather
+    // than measured, because the chart may be drawn while its tab is hidden.
+    function labelW(s) {
+        var w = 0;
+        s = String(s || '');
+        for (var i = 0; i < s.length; i++) { w += s.charCodeAt(i) > 0xff ? 10 : 6; }
+        return w;
+    }
     function fmtShort(s) { var d = parse(s); return d ? fmtMD(d) : ''; }
 
     var today = parse(D.today);
@@ -47,23 +59,27 @@
     whenVisible(function () {
 
     /* ------------------------------------------------ range ------------- */
+    // A date typed with the wrong year would stretch the chart over decades,
+    // every day of them drawn on every row. Dates more than about three years
+    // from today do not widen it; their bars are cut off at its edge.
+    var lo = addDays(today, -3 * 366), hi = addDays(today, 3 * 366);
     var min = null, max = null;
     function widen(s) {
         var d = parse(s);
-        if (!d) { return; }
+        if (!d || !(d >= lo && d <= hi)) { return; }
         if (min === null || d < min) { min = d; }
         if (max === null || d > max) { max = d; }
     }
     (D.rows || []).forEach(function (r) { widen(r.start); widen(r.end); });
     (D.groups || []).forEach(function (g) { widen(g.due); });
     widen(D.today);
-    if (min === null) { min = new Date(today.getTime() - 14 * DAY); }
-    if (max === null) { max = new Date(today.getTime() + 14 * DAY); }
-    min = new Date(min.getTime() - 4 * DAY);
-    max = new Date(max.getTime() + 4 * DAY);
+    if (min === null) { min = addDays(today, -14); }
+    if (max === null) { max = addDays(today, 14); }
+    min = addDays(min, -4);
+    max = addDays(max, 4);
     // snap to Monday so the week ticks line up
-    while (min.getDay() !== 1) { min = new Date(min.getTime() - DAY); }
-    while (max.getDay() !== 0) { max = new Date(max.getTime() + DAY); }
+    while (min.getDay() !== 1) { min = addDays(min, -1); }
+    while (max.getDay() !== 0) { max = addDays(max, 1); }
 
     var days = Math.round((max - min) / DAY) + 1;
     var avail = Math.max(400, (root.querySelector('.gt-scroll').clientWidth || 1000) - LEFT_W - 20);
@@ -91,9 +107,9 @@
     /* ------------------------------------------------ grid lines -------- */
     function gridHtml(withLabels) {
         var h = '';
-        for (var t = min.getTime(); t <= max.getTime(); t += DAY) {
-            var d = new Date(t);
-            var px = Math.round((t - min.getTime()) / DAY) * dw;
+        for (var i = 0; i < days; i++) {
+            var d = addDays(min, i);
+            var px = i * dw;
             if (d.getDay() === 1) { h += '<div class="gt-line" style="left:' + px + 'px"></div>'; }
             if (d.getDay() === 6) { h += '<div class="gt-we" style="left:' + px + 'px;width:' + (dw * 2) + 'px"></div>'; }
         }
@@ -101,15 +117,24 @@
         if (withLabels) {
             var everyOther = (dw * 7) < 44;
             var wk = 0;
-            for (var t2 = min.getTime(); t2 <= max.getTime(); t2 += DAY) {
-                var d2 = new Date(t2);
-                var px2 = Math.round((t2 - min.getTime()) / DAY) * dw;
-                if (d2.getDate() === 1 || t2 === min.getTime()) {
+            // The today label shares the week row. A week label it would land
+            // on is left out, rather than the two printed over each other.
+            var todayAt = x(D.today);
+            var todayX = todayAt === null ? null : todayAt + 4;
+            var todayEnd = todayX === null ? null : todayX + labelW(L.today);
+            for (var i2 = 0; i2 < days; i2++) {
+                var d2 = addDays(min, i2);
+                var px2 = i2 * dw;
+                if (d2.getDate() === 1 || i2 === 0) {
                     h += '<div class="gt-mon" style="left:' + (px2 + 3) + 'px">' + d2.getFullYear() + '/' + (d2.getMonth() + 1) + '</div>';
                 }
                 if (d2.getDay() === 1) {
                     if (!everyOther || (wk % 2 === 0)) {
-                        h += '<div class="gt-wk" style="left:' + (px2 + 3) + 'px">' + fmtMD(d2) + '</div>';
+                        var wkX = px2 + 3;
+                        var wkText = fmtMD(d2);
+                        if (todayX === null || wkX >= todayEnd + 2 || wkX + labelW(wkText) + 2 <= todayX) {
+                            h += '<div class="gt-wk" style="left:' + wkX + 'px">' + wkText + '</div>';
+                        }
                     }
                     wk++;
                 }
@@ -160,7 +185,8 @@
 
         var canvas = '<div class="gt-canvas" style="width:' + CANVAS_W + 'px">' + gridHtml(false);
         if (r.start && r.end) {
-            var sx = x(r.start), ex = x(r.end) + dw;
+            // cut at the chart's edges: a date outside its range does not widen it
+            var sx = Math.max(0, x(r.start)), ex = Math.min(CANVAS_W, x(r.end) + dw);
             if (ex > sx) {
                 var tip = r.label + '\n' + r.start + ' ~ ' + r.end;
                 if (r.progress !== null && r.progress !== undefined) { tip += '\n' + L.progress + ' ' + r.progress + '%'; }
@@ -194,7 +220,7 @@
                 '<span class="gt-cnt">' + rows.length + '</span>' +
                 (g.due ? '<span class="gt-due">' + fmtShort(g.due) + '</span>' : '') + '</div>' +
                 '<div class="gt-canvas" style="width:' + CANVAS_W + 'px">' + gridHtml(false) +
-                (g.due && x(g.due) !== null ? '<div class="gt-dia" style="left:' + (x(g.due) + Math.round(dw / 2) - 5) + 'px" title="' + esc((g.label || '') + ' ' + L.due + ': ' + g.due) + '"></div>' : '') +
+                (g.due && x(g.due) >= 0 && x(g.due) < CANVAS_W ? '<div class="gt-dia" style="left:' + (x(g.due) + Math.round(dw / 2) - 5) + 'px" title="' + esc((g.label || '') + ' ' + L.due + ': ' + g.due) + '"></div>' : '') +
                 '</div></div>';
         }
         orderRows(rows).forEach(function (r) {

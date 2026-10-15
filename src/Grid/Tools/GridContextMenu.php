@@ -170,6 +170,7 @@ class GridContextMenu extends AbstractTool
             'edit' => e(exmtrans('common.grid_ctx_edit')),
             'copy' => e(exmtrans('common.grid_ctx_copy')),
             'filter' => e(exmtrans('common.grid_ctx_filter')),
+            'filter_value' => e(exmtrans('common.grid_ctx_filter_value')),
             'copy_cell' => e(exmtrans('common.grid_ctx_copy_cell')),
             'delete' => e(exmtrans('common.grid_ctx_delete')),
             'confirm' => e(exmtrans('common.grid_ctx_delete_confirm')),
@@ -258,6 +259,7 @@ HTML;
     data-confirm="{$labels['confirm']}"
     data-delete-error="{$labels['delete_error']}"
     data-filter-label="{$labels['filter']}"
+    data-filter-value="{$labels['filter_value']}"
     data-filter-active="{$labels['filter_active']}"
     data-filter-hidden="{$labels['filter_hidden']}"
     data-filter-clear="{$labels['filter_clear']}">

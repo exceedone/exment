@@ -37,9 +37,6 @@ class WorkflowStatus extends ModelBase
     // @phpstan-ignore-next-line
     public function deletingChildren()
     {
-        // Delete workflow_values that reference this status
-        WorkflowValue::where('workflow_status_from_id', $this->id)->delete();
-        WorkflowValue::where('workflow_status_to_id', $this->id)->delete();
     }
 
     protected static function boot()

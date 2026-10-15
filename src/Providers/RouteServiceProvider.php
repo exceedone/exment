@@ -46,27 +46,6 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
-        $this->mapExmentWebhookRotes();
-    }
-
-    /**
-     * Inbound webhooks: events posted by monitoring, CI or a git host.
-     *
-     * No admin auth here on purpose - the caller is a machine with a shared
-     * secret, not a browser with a session. The secret is checked per table in
-     * the controller, and a table that has not opted in returns 404.
-     *
-     * @return void
-     */
-    protected function mapExmentWebhookRotes()
-    {
-        Route::group([
-            'prefix'        => url_join(config('admin.route.prefix'), 'webhook'),
-            'namespace'     => $this->namespace,
-            'middleware'    => ['api'],
-        ], function (Router $router) {
-            $router->post('{tableKey}', 'WebhookController@receive')->name('exment.webhook');
-        });
     }
 
     /**

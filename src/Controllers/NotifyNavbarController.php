@@ -308,15 +308,23 @@ class NotifyNavbarController extends AdminControllerBase
      */
     protected function pluginRecordUrl($custom_value): ?string
     {
-        foreach (Plugin::getByPluginTypes(PluginType::PAGE, true) as $plugin) {
-            $plugin->requirePlugin();
+        // The plugin records, not their page classes: requirePlugin() and
+        // getNameSpace() exist only on the record.
+        foreach (Plugin::getByPluginTypes(PluginType::PAGE) as $plugin) {
+            try {
+                $plugin->requirePlugin();
 
-            $class = $plugin->getNameSpace() . '\\PortalDefinition';
-            if (!method_exists($class, 'portalRecordUrl')) {
+                $class = $plugin->getNameSpace() . '\\PortalDefinition';
+                if (!method_exists($class, 'portalRecordUrl')) {
+                    continue;
+                }
+
+                $url = $class::portalRecordUrl($custom_value);
+            } catch (\Throwable $ex) {
+                // A broken plugin must not stop the bell from opening the record.
+                \Log::error($ex);
                 continue;
             }
-
-            $url = $class::portalRecordUrl($custom_value);
             if (isset($url)) {
                 return $url;
             }
