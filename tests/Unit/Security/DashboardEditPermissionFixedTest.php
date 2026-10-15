@@ -29,6 +29,8 @@ use Illuminate\Support\Facades\DB;
  * form's ajax lists (admin/dashboardbox/table_views, chart_axis) answered the views and
  * columns of any table, now only of one this user may view (as the form's table list); so do
  * the filter bar's column choices, also shown for a table posted back on a validation error.
+ * The chart box form itself (create with a table or view posted back, edit of a chart box of
+ * the table) listed the views and columns of any table as well; now of one this user may view.
  *
  * The data (a system dashboard with one box) is rolled back; the requests use LoginUser 1
  * (system admin) and the first login user without the system permission.
@@ -125,6 +127,7 @@ class DashboardEditPermissionFixedTest extends SecurityRegressionTestCase
         ]);
 
         [$dashboard] = $this->systemDashboard();
+        $chartBox = $this->chartBox($dashboard, $tableId, $viewId);
         $this->asViewer();
         $this->assertFalse(CustomTable::getEloquent($tableId)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE));
         $tableViews = $this->url('dashboardbox/table_views/' . DashboardBoxType::CHART . '?dashboard_suuid=' . $dashboard->suuid . '&q');
@@ -134,11 +137,25 @@ class DashboardEditPermissionFixedTest extends SecurityRegressionTestCase
         $this->get($tableViews . '[]=' . $tableId)->assertExactJson([]);
         $this->assertSame([], FilterBarForm::columnOptions((string) $tableId));
 
+        // nor does the box form itself: create with the table or the view posted back, edit
+        // of a chart box of the table (its stored table and view)
+        foreach ($this->chartForms($dashboard, $chartBox, $tableId, $viewId) as $form) {
+            $this->assertSame(200, $form->getStatusCode());
+            $this->assertStringNotContainsString('secret_column', (string) $form->getContent());
+            $this->assertStringNotContainsString('secret column', (string) $form->getContent());
+            $this->assertStringNotContainsString('hidden view', (string) $form->getContent());
+        }
+
         // the system administrator, who may view the table, still gets the lists
         $this->asUser(LoginUser::find(1));
         $this->assertSame('hidden view', $this->get($tableViews . '=' . $tableId)->json('0.text'));
         $this->assertNotEmpty($this->get($this->url('dashboardbox/chart_axis/x?q=' . $viewId))->json());
         $this->assertArrayHasKey('secret_column', FilterBarForm::columnOptions((string) $tableId));
+        [$byTable, $byView, $edit] = $this->chartForms($dashboard, $chartBox, $tableId, $viewId);
+        $this->assertStringContainsString('secret_column', (string) $byTable->getContent());
+        $this->assertStringContainsString('secret column', (string) $byView->getContent());
+        $this->assertStringContainsString('secret_column', (string) $edit->getContent());
+        $this->assertStringContainsString('hidden view', (string) $edit->getContent());
     }
 
     public function test_the_system_administrator_still_saves(): void
@@ -204,6 +221,38 @@ class DashboardEditPermissionFixedTest extends SecurityRegressionTestCase
         $box->options = ['target_system_id' => 1];
         $box->save();
         return [$dashboard, $box];
+    }
+
+    /**
+     * A chart box of the table's view on the dashboard's free column, created by the current user.
+     */
+    private function chartBox(Dashboard $dashboard, int $tableId, int $viewId): DashboardBox
+    {
+        $box = new DashboardBox();
+        $box->dashboard_id = $dashboard->id;
+        $box->dashboard_box_type = DashboardBoxType::CHART;
+        $box->dashboard_box_view_name = 'chart of the hidden table';
+        $box->row_no = 1;
+        $box->column_no = 2;
+        $box->options = ['target_table_id' => $tableId, 'target_view_id' => $viewId, 'chart_type' => 'bar'];
+        $box->save();
+        return $box;
+    }
+
+    /**
+     * The chart box form as the current user: create with the table posted back, create with
+     * the view posted back, edit of the box.
+     *
+     * @return array<int, \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>>
+     */
+    private function chartForms(Dashboard $dashboard, DashboardBox $box, int $tableId, int $viewId): array
+    {
+        $create = $this->url('dashboardbox/create?dashboard_suuid=' . $dashboard->suuid . '&dashboard_box_type=' . DashboardBoxType::CHART . '&row_no=1&column_no=2');
+        return [
+            $this->get($create . '&options[target_table_id]=' . $tableId),
+            $this->get($create . '&options[target_view_id]=' . $viewId),
+            $this->get($this->url('dashboardbox/' . $box->id . '/edit')),
+        ];
     }
 
     private function asViewer(): void

@@ -281,8 +281,11 @@ class DashboardBoxController extends AdminControllerBase
             return response()->json(['status' => false], 422);
         }
         $options = $box->options ?? [];
-        $colors = $request->boolean('reset') ? []
-            : ChartColors::fromOption(array_get($options, 'chart_colors'))->with($kind, (string) $key, $request->input('color'));
+        $painted = ChartColors::fromOption(array_get($options, 'chart_colors'));
+        if (!$request->boolean('reset') && !$painted->accepts($kind, (string) $key, $request->input('color'))) {
+            return response()->json(['status' => false], 422);
+        }
+        $colors = $request->boolean('reset') ? [] : $painted->with($kind, (string) $key, $request->input('color'));
         if (empty($colors)) {
             unset($options['chart_colors']);
         } else {
@@ -357,8 +360,8 @@ class DashboardBoxController extends AdminControllerBase
             $classname::saving($form);
         });
 
-        // saved. redirect to top
-        $form->saved(function ($form) use (&$painted) {
+        // in the save's transaction, so the box never stays saved without its colors
+        $form->savedInTransaction(function ($form) use (&$painted) {
             $model = $form->model();
             if (!empty($painted) && isset($model) && !array_has($model->options ?? [], 'chart_colors')) {
                 $options = $model->options ?? [];
@@ -366,6 +369,10 @@ class DashboardBoxController extends AdminControllerBase
                 $model->options = $options;
                 $model->save();
             }
+        });
+
+        // saved. redirect to top
+        $form->saved(function ($form) {
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url());

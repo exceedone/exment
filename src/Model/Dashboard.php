@@ -480,7 +480,9 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
 
         if ($this->dashboard_type == DashboardType::USER) {
             // the dashboard owner's, not the saving user's: a user it is shared with for
-            // editing saves it too (setting form, a box deleted)
+            // editing saves it too (setting form, a box deleted), and must reach the owner's
+            // dashboards not shared with them as well
+            $query->withoutGlobalScope('showableDashboards');
             $owner = $this->created_user_id;
             if (!isset($owner)) {
                 $login_user = \Exment::user();

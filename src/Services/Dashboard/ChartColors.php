@@ -20,6 +20,8 @@ final class ChartColors
     public const SERIES = 'series';
     /** series key of the one series of a single-series chart */
     public const SINGLE = '';
+    /** colors painted per kind at most */
+    public const MAX_PER_KIND = 1000;
 
     /** @var array<string, array<string, string>> */
     private $colors;
@@ -91,6 +93,19 @@ final class ChartColors
             $i++;
         }
         return $out;
+    }
+
+    /**
+     * Whether with() may set this color: a color taken back or repainted always, a new one
+     * while the kind holds fewer than MAX_PER_KIND.
+     *
+     * @param mixed $color
+     */
+    public function accepts(string $kind, string $key, $color): bool
+    {
+        return self::normalize($color) === null
+            || isset($this->colors[$kind][$key])
+            || count($this->colors[$kind] ?? []) < self::MAX_PER_KIND;
     }
 
     /**

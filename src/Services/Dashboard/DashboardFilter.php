@@ -42,7 +42,7 @@ final class DashboardFilter
      */
     public static function fromRequest($dashboard): self
     {
-        return new self(FilterBarConfig::fromDashboard($dashboard), request()->all());
+        return new self(FilterBarConfig::forViewer($dashboard), request()->all());
     }
 
     /**

@@ -361,7 +361,7 @@ class DashboardController extends AdminControllerBase
     protected function rememberFilterSelection(Request $request)
     {
         $user = Admin::user();
-        $config = FilterBarConfig::fromDashboard($this->dashboard);
+        $config = FilterBarConfig::forViewer($this->dashboard);
         if ($user === null || $config === null) {
             return;
         }
@@ -389,7 +389,7 @@ class DashboardController extends AdminControllerBase
      */
     protected function filterDefaultRedirect(Request $request)
     {
-        $config = FilterBarConfig::fromDashboard($this->dashboard);
+        $config = FilterBarConfig::forViewer($this->dashboard);
         if ($config === null || $request->boolean('_df_bar') || $request->has('dfr') || !empty($config->selection($request->query()))) {
             return null;
         }
@@ -511,7 +511,7 @@ class DashboardController extends AdminControllerBase
         $content->row(function ($row) use ($row_column_count, $row_no) {
             // check role.
             $has_role = $this->dashboard->hasEditPermission();
-            $filter_bar = FilterBarConfig::fromDashboard($this->dashboard);
+            $filter_bar = FilterBarConfig::forViewer($this->dashboard);
             for ($i = 1; $i <= $row_column_count; $i++) {
                 // get $boxes as $row_no
                 $boxes = $this->dashboard->dashboard_row_boxes($row_no);
