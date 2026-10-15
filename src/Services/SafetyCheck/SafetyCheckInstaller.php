@@ -51,8 +51,8 @@ class SafetyCheckInstaller
     }
 
     public const OWNED_MARKERS = [
-        SafetyCheckDefine::TABLE_EVENT  => ['trigger_type', 'event_status', 'jma_event_id'],
-        SafetyCheckDefine::TABLE_ANSWER => ['answer_status', 'unlinked_flg'],
+        SafetyCheckDefine::TABLE_EVENT  => ['title', 'trigger_type', 'event_status', 'triggered_at', 'jma_event_id', 'quake_time', 'quake_info', 'target_count', 'sent_count', 'resent_at'],
+        SafetyCheckDefine::TABLE_ANSWER => ['event', 'user', 'answer_status', 'comment', 'answered_at', 'channel', 'unlinked_flg'],
     ];
 
     public static function ensureEventTable(): void
