@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Services\Dashboard;
 
+use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Model\CustomTable;
+
 /**
  * The dashboard filter bar configuration, read from options.filter_bar:
  *
@@ -40,6 +43,8 @@ namespace Exceedone\Exment\Services\Dashboard;
 final class FilterBarConfig
 {
     public const DEFAULT_MAX_OPTIONS = 500;
+    /** ceiling of a configured max_options (every option is a row read and an <option> drawn) */
+    public const MAX_OPTIONS_LIMIT = 5000;
 
     /** @var string */
     private $sourceTable;
@@ -70,6 +75,23 @@ final class FilterBarConfig
     public static function fromDashboard($dashboard): ?self
     {
         return self::fromArray($dashboard ? $dashboard->getOption('filter_bar') : null);
+    }
+
+    /**
+     * The filter bar as the signed-in user sees the dashboard: null as well when the user may
+     * not read its source table — such a bar does not exist for them (no items, no defaults,
+     * no remembered selection, no box narrowed), as its items and lists come from that table.
+     *
+     * @param mixed $dashboard  Dashboard|null
+     */
+    public static function forViewer($dashboard): ?self
+    {
+        $config = self::fromDashboard($dashboard);
+        if ($config === null) {
+            return null;
+        }
+        $table = CustomTable::getEloquent($config->sourceTable());
+        return $table !== null && $table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE) ? $config : null;
     }
 
     /**
@@ -109,7 +131,7 @@ final class FilterBarConfig
                 $scope[$column] = $spec;
             }
         }
-        return new self(self::text($raw['source_table']), $dims, $max > 0 ? $max : self::DEFAULT_MAX_OPTIONS, $scope);
+        return new self(self::text($raw['source_table']), $dims, $max > 0 ? min($max, self::MAX_OPTIONS_LIMIT) : self::DEFAULT_MAX_OPTIONS, $scope);
     }
 
     /**

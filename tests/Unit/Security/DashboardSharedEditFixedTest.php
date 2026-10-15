@@ -82,8 +82,10 @@ class DashboardSharedEditFixedTest extends SecurityRegressionTestCase
 
         $this->assertSame(1, (int) DB::table('dashboards')->where('id', $own->id)->value('default_flg'), "the editor's own default is untouched");
         $this->assertSame(1, (int) DB::table('dashboards')->where('id', $shared->id)->value('default_flg'));
+        $this->assertSame(0, (int) DB::table('dashboards')->where('id', $ownerOther->id)->value('default_flg'), "the owner's other default, not shared with the editor, gives way");
 
         // the owner's save: their other default gives way, as before
+        DB::table('dashboards')->where('id', $ownerOther->id)->update(['default_flg' => 1]);
         $this->asUser(LoginUser::find(1));
         $shared = $this->stored($shared->id);
         $shared->dashboard_view_name = 'saved by the owner';
@@ -118,6 +120,36 @@ class DashboardSharedEditFixedTest extends SecurityRegressionTestCase
         $this->delete($this->url('dashboardbox/delete/' . $boxes[0]->suuid))->assertJson(['status' => false]);
 
         $this->assertSame(1, DashboardBox::where('id', $boxes[0]->id)->count());
+    }
+
+    public function test_a_box_saves_its_painted_colors_in_the_forms_transaction(): void
+    {
+        $this->asUser(LoginUser::find(1));
+        [$dashboard, $boxes] = $this->dashboardWithBoxes(DashboardType::SYSTEM, 1);
+        $box = $boxes[0];
+        $box->dashboard_box_type = DashboardBoxType::SYSTEM;
+        $box->options = ['target_system_id' => 1, 'chart_colors' => ['points' => ['A' => '#00ff00']]];
+        $box->save();
+        // the save carrying the painted colors over the form's (a failure of it, rolling the
+        // form's save back, would also unwind the test's own transaction)
+        $outer = DB::transactionLevel();
+        $levels = [];
+        Event::listen('eloquent.saving: ' . DashboardBox::class, function ($saving) use (&$levels) {
+            if (array_has($saving->options ?? [], 'chart_colors')) {
+                $levels[] = DB::transactionLevel();
+            }
+        });
+
+        $this->put($this->url('dashboardbox/' . $box->id), [
+            'dashboard_id' => $dashboard->id, 'dashboard_box_type' => DashboardBoxType::SYSTEM, 'row_no' => 1, 'column_no' => 1,
+            'dashboard_box_view_name' => 'renamed', 'options' => ['target_system_id' => 1],
+        ]);
+
+        $stored = DashboardBox::where('id', $box->id)->first();
+        $this->assertSame('renamed', $stored->dashboard_box_view_name);
+        $this->assertSame(['points' => ['A' => '#00ff00']], array_get($stored->options, 'chart_colors'));
+        $this->assertCount(1, $levels);
+        $this->assertGreaterThan($outer, $levels[0], 'inside the transaction of the form');
     }
 
     public function test_a_list_is_read_off_the_index_only_for_a_user_who_sees_every_row(): void

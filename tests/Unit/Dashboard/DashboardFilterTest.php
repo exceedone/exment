@@ -22,8 +22,7 @@ class DashboardFilterTest extends DashboardUnitTestCase
     public function testReadsOnlyConfiguredItems(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade', 'subject', 'score']));
-        $this->swapRequest(['df_grade' => '1', 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50'], 'df_other' => 'x', 'df_' => 'y', 'grade' => 'z']);
-        $filter = DashboardFilter::fromRequest($dashboard);
+        $filter = DashboardFilter::of($dashboard, ['df_grade' => '1', 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50'], 'df_other' => 'x', 'df_' => 'y', 'grade' => 'z']);
 
         $this->assertFalse($filter->isEmpty());
         $this->assertSame(['grade', 'subject', 'score'], array_keys($filter->values()));

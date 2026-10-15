@@ -55,6 +55,7 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame(['box1', 'box2'], $config->dim('grade')['targets']);
         $this->assertSame(20, $config->maxOptions());
         $this->assertSame(FilterBarConfig::DEFAULT_MAX_OPTIONS, FilterBarConfig::fromArray(['source_table' => 't', 'max_options' => -1, 'dims' => [['column' => 'a']]])->maxOptions());
+        $this->assertSame(FilterBarConfig::MAX_OPTIONS_LIMIT, FilterBarConfig::fromArray(['source_table' => 't', 'max_options' => 10000000, 'dims' => [['column' => 'a']]])->maxOptions());
     }
 
     public function testFixedScope(): void

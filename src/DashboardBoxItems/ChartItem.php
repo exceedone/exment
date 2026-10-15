@@ -816,7 +816,12 @@ class ChartItem implements ItemInterface
         $form->multipleSelect('chart_filters', exmtrans("dashboard.dashboard_box_options.chart_filters"))
             ->options(function ($value, $model) {
                 $table_id = array_get(request()->all(), 'options.target_table_id') ?? array_get($model->data(), 'target_table_id');
-                $custom_table = isset($table_id) ? CustomTable::getEloquent($table_id) : null;
+                // of a table this user may view only, as its ajax list (chart_filter_columns): the
+                // form is open to anyone who may view the dashboard, with any table id posted back
+                $custom_table = is_scalar($table_id) ? CustomTable::getEloquent($table_id) : null;
+                if ($custom_table !== null && !$custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+                    $custom_table = null;
+                }
                 $options = [];
                 foreach ($custom_table ? $custom_table->custom_columns : [] as $column) {
                     $options[$column->column_name] = $column->column_view_name . ' (' . $column->column_name . ')';
@@ -923,13 +928,19 @@ EOT;
     }
 
     /**
-     * The view chosen on the box form (the posted one while editing, else the stored one).
+     * The view chosen on the box form (the posted one while editing, else the stored one):
+     * of a table this user may view only, as its ajax list (chart_axis): the form is open to
+     * anyone who may view the dashboard, with any view id posted back.
      */
     // @phpstan-ignore-next-line
     public static function formCustomView($model)
     {
         $view_id = array_get(request()->all(), 'options.target_view_id') ?? array_get($model->data(), 'target_view_id');
-        return isset($view_id) ? CustomView::getEloquent($view_id) : null;
+        $custom_view = is_scalar($view_id) ? CustomView::getEloquent($view_id) : null;
+        if ($custom_view === null || !$custom_view->custom_table?->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            return null;
+        }
+        return $custom_view;
     }
 
     /**
