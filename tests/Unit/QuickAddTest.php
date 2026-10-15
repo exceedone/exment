@@ -43,10 +43,10 @@ class QuickAddTest extends UnitTestBase
 
         [$status, $body] = $this->quickAdd('quick add label');
 
-        $this->assertSame(200, $status, json_encode($body));
+        $this->assertSame(200, $status, (string)json_encode($body));
         $this->assertTrue($body['created']);
         $this->assertSame('quick add label', $body['label']);
-        $record = $this->table()->getValueModel()->query()->withoutGlobalScopes()->find($body['id']);
+        $record = $this->table()->getValueModel()->query()->withoutGlobalScopes()->findOrFail((int)$body['id']);
         $this->assertSame('quick add label', $record->getValue('index_text'));
     }
 
@@ -62,7 +62,7 @@ class QuickAddTest extends UnitTestBase
 
         [$status, $body] = $this->quickAdd('missing a required value');
 
-        $this->assertSame(400, $status, json_encode($body));
+        $this->assertSame(400, $status, (string)json_encode($body));
         $this->assertSame(ErrorCode::VALIDATION_ERROR()->getValue(), $body['code'] ?? null);
         $this->assertArrayHasKey('text', $body['errors'] ?? [], 'The missing required column must be named.');
         $this->assertSame(

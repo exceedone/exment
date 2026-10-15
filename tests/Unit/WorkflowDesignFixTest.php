@@ -465,7 +465,7 @@ class WorkflowDesignFixTest extends UnitTestBase
         $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
         $source = $this->workflow('designer create test');
 
-        $item = $source->exportTemplateDesignerLayout(Workflow::findOrFail($source->id)->getTemplateExportItems());
+        $item = $source->exportTemplateDesignerLayout(Workflow::findOrFail((int)$source->id)->getTemplateExportItems());
         $this->assertSame($source->suuid, array_get($item, 'suuid'), 'The export must carry the suuid.');
         foreach ($item['workflow_actions'] as &$action) {
             $action['action_name'] = 'Approve';
