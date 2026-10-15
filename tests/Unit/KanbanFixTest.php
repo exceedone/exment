@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
+use Exceedone\Exment\Controllers\ApiDataController;
 use Exceedone\Exment\DataItems\Grid\GanttGrid;
 use Exceedone\Exment\DataItems\Grid\KanbanGrid;
 use Exceedone\Exment\Enums\ConditionType;
@@ -11,6 +12,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Grid\Tools\GridInlineEditor;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomForm;
@@ -30,6 +32,7 @@ use ExmentAdminCore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ViewErrorBag;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
@@ -691,6 +694,56 @@ class KanbanFixTest extends UnitTestBase
         }
     }
 
+    // ------------------------------------------------- edit lock (2026-10-12)
+
+    /**
+     * A write from the board carries the record's edit lock, the way the edit
+     * form and the list editor do. The card brings the lock; a move sent with
+     * a lock that somebody else's save has moved past is refused and leaves
+     * the record alone; the answer of a move that went through is the lock
+     * the next write sends. Before the fix the card had no lock to send, so a
+     * board read before another user's save overwrote it without a word.
+     */
+    public function testBoardWritesCarryTheEditLock(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $select = CustomColumn::getEloquent('select', $table);
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, [
+            'kanban_group_column_id' => $select->id,
+            'kanban_max_count' => 5,
+        ]);
+
+        $board = $this->boardOf($view);
+        $this->assertNotEmpty($board['cards']);
+        $card = $board['cards'][0];
+        $record = $table->getValueModel()->query()->withoutGlobalScopes()->find($card['id']);
+        $this->assertNotNull($record);
+        $this->assertSame($record->updated_at->format('Y-m-d H:i:s'), $card['updated_at'] ?? null, 'The card carries the edit lock of its record.');
+
+        $current = $record->getValue('select');
+        $target = $current === 'foo' ? 'bar' : 'foo';
+
+        // somebody else saves the record after the board was read
+        $other_save = \Carbon\Carbon::parse($card['updated_at'])->subMinutes(5)->format('Y-m-d H:i:s');
+        \DB::table(getDBTableName($table))->where('id', $card['id'])->update(['updated_at' => $other_save]);
+
+        [$status, $body] = $this->callBoardWrite($table, intval($card['id']), ['select' => $target], $card['updated_at']);
+        $this->assertSame(400, $status, 'A move sent with a stale lock is refused.');
+        $this->assertSame(exmtrans('custom_value.help.lock_error_api'), $body['errors'][0]['updated_at'] ?? null, 'The refusal names the lock, so the board reads the card again.');
+        $this->assertSame($current, $this->storedValue($table, intval($card['id']), 'select'), 'A refused move leaves the record alone.');
+
+        // the card read again carries the lock the record has now
+        [$status, $saved] = $this->callBoardWrite($table, intval($card['id']), ['select' => $target], $other_save);
+        $this->assertSame(200, $status, 'A move sent with the current lock goes through.');
+        $this->assertSame($target, $this->storedValue($table, intval($card['id']), 'select'));
+        $stored_lock = \DB::table(getDBTableName($table))->where('id', $card['id'])->value('updated_at');
+        $this->assertSame(\Carbon\Carbon::parse($stored_lock)->format('Y-m-d H:i:s'), $saved['updated_at'] ?? null, 'The answer is the lock the next write sends.');
+
+        // and that lock is accepted by the next write of the same card
+        [$status] = $this->callBoardWrite($table, intval($card['id']), ['select' => $current], $saved['updated_at']);
+        $this->assertSame(200, $status, 'The lock from the answer passes the next write.');
+    }
+
     // ---------------------------------------------------------------- helpers
 
     /**
@@ -857,6 +910,49 @@ class KanbanFixTest extends UnitTestBase
         $board = $this->invoke($grid, 'buildBoard', [$group_column, $workflow, $records, $hide_keys]);
         // the board is sent as json: objects and lists as the browser sees them
         return $this->plain($board);
+    }
+
+    /**
+     * Write a record through the webapi the way the board does: a screen
+     * write of a few columns, with the edit lock at the top of the body.
+     *
+     * @param CustomTable $table
+     * @param int $id
+     * @param array<string, mixed> $values
+     * @param string|null $lock
+     * @return array{0: int, 1: array<mixed>}
+     */
+    protected function callBoardWrite(CustomTable $table, int $id, array $values, ?string $lock): array
+    {
+        $params = ['value' => $values, GridInlineEditor::SCREEN_WRITE_KEY => 1];
+        if (isset($lock)) {
+            $params['updated_at'] = $lock;
+        }
+        $request = Request::create('/admin/webapi/data/' . $table->table_name . '/' . $id, 'PUT', $params);
+        $this->app->instance('request', $request);
+        Facade::clearResolvedInstance('request');
+        System::clearRequestSession();
+        System::clearCache();
+
+        $controller = new ApiDataController($table, $request);
+        $result = $controller->dataUpdate($request, $table->table_name, $id);
+        if ($result instanceof SymfonyResponse) {
+            return [$result->getStatusCode(), json_decode((string)$result->getContent(), true) ?? []];
+        }
+        // the saved record, as the browser receives it
+        return [200, $this->plain($result)];
+    }
+
+    /**
+     * @param CustomTable $table
+     * @param int $id
+     * @param string $column_name
+     * @return mixed
+     */
+    protected function storedValue(CustomTable $table, int $id, string $column_name)
+    {
+        $value = \DB::table(getDBTableName($table))->where('id', $id)->value('value');
+        return array_get(json_decode(strval($value), true) ?? [], $column_name);
     }
 
     /**

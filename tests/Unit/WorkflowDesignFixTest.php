@@ -3,9 +3,12 @@
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Controllers\WorkflowController;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowType;
+use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Middleware\Initialize;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
@@ -13,6 +16,7 @@ use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowValue;
+use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use ExmentAdminCore\Admin\Admin;
@@ -258,6 +262,65 @@ class WorkflowDesignFixTest extends UnitTestBase
     }
 
     /**
+     * Step 2 offers only "set in advance" on the first action out of the
+     * start status. The designer must refuse "get from the user's info"
+     * there, name the action in the message, and still accept it on any
+     * other action - including a start action added after the saved one,
+     * wherever it sits in the payload.
+     *
+     * @return void
+     */
+    public function testDesignerAcceptsOnlySetInAdvanceOnTheFirstAction()
+    {
+        $boss = CustomColumn::getEloquent('boss', SystemTableName::USER);
+        $this->assertNotNull($boss, 'The fixture user table must have the boss column.');
+        $by_userinfo = function (array $action) use ($boss) {
+            $action['work_target_type'] = WorkflowWorkTargetType::GET_BY_USERINFO;
+            $action['targets'] = ['login_user_column' => [strval($boss->id)]];
+            return $action;
+        };
+        $table_id = CustomTable::getEloquent('custom_value_edit')->id;
+
+        $payload = $this->newTablePayload($table_id);
+        $payload['actions'][0] = $by_userinfo($payload['actions'][0]);
+        $response = $this->createDesign($payload);
+        $this->assertSame(422, $response->getStatusCode(), 'The first action must not take its users from the user info.');
+        $this->assertContains(
+            exmtrans('workflow.design.message.first_start_fix_only')
+                . ' (' . exmtrans('workflow.design.fmt_quote', ['name' => 'go']) . ')',
+            json_decode((string)$response->getContent(), true)['errors'],
+            'The message must name the first action.'
+        );
+
+        $payload = $this->newTablePayload($table_id);
+        $payload['actions'][1] = $by_userinfo($payload['actions'][1]);
+        $response = $this->createDesign($payload);
+        $this->assertSame(200, $response->getStatusCode(), 'A later action may take its users from the user info: ' . $response->getContent());
+
+        $workflow = $this->workflow('workflow_for_individual_table');
+        $payload = $this->payloadOf($this->designData($workflow));
+        $later = null;
+        foreach ($payload['actions'] as $action) {
+            if ($action['status_from'] === 'start') {
+                $later = $action;
+                break;
+            }
+        }
+        $this->assertNotNull($later, 'The fixture must have a start action.');
+        $later = $by_userinfo($later);
+        $later['id'] = null;
+        $later['key'] = 'later';
+        $later['name'] = 'later way in';
+        foreach ($later['destinations'] as &$destination) {
+            $destination['id'] = null;
+        }
+        unset($destination);
+        array_unshift($payload['actions'], $later);
+        $response = $this->postDesign($workflow, $payload);
+        $this->assertSame(200, $response->getStatusCode(), 'A start action added after the saved one is not the first: ' . $response->getContent());
+    }
+
+    /**
      * Creating a workflow from the designer must accept only a table step 1
      * offers - not a system table such as the user table.
      *
@@ -386,6 +449,116 @@ class WorkflowDesignFixTest extends UnitTestBase
     public function testDesignMockIsNotShipped()
     {
         $this->assertFileDoesNotExist(exment_package_path('public/vendor/exment/designs/workflow_designer.html'));
+    }
+
+    /**
+     * Actions and workflows are found again by name on template import. One
+     * action label used on two approval steps, and one workflow name used
+     * twice, must still come in as separate records - each action with its own
+     * authorities and branches.
+     *
+     * @return void
+     */
+    public function testTemplateImportKeepsSameNamedActionsAndWorkflowsApart()
+    {
+        $response = $this->createDesign($this->newTablePayload(CustomTable::getEloquent('custom_value_edit')->id));
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+        $source = $this->workflow('designer create test');
+
+        $item = $source->exportTemplateDesignerLayout(Workflow::findOrFail($source->id)->getTemplateExportItems());
+        $this->assertSame($source->suuid, array_get($item, 'suuid'), 'The export must carry the suuid.');
+        foreach ($item['workflow_actions'] as &$action) {
+            $action['action_name'] = 'Approve';
+        }
+        unset($action);
+        $item['workflow_view_name'] = 'template copy';
+
+        foreach ([short_uuid(), short_uuid()] as $suuid) {
+            $item['suuid'] = $suuid;
+            (new TemplateImporter())->import(['workflows' => [$item]]);
+
+            $copy = Workflow::where('suuid', $suuid)->firstOrFail();
+            $s1 = WorkflowStatus::where('workflow_id', $copy->id)->where('status_name', 's1')->firstOrFail();
+            $actions = WorkflowAction::where('workflow_id', $copy->id)->get();
+            $this->assertSame(2, $actions->count(), 'Both actions labelled "Approve" must be imported.');
+            $this->assertEqualsCanonicalizing(
+                ['start', strval($s1->id)],
+                $actions->pluck('status_from')->map(fn ($from) => strval($from))->all(),
+                'Each action must keep the status it leaves.'
+            );
+            foreach ($actions as $action) {
+                $this->assertSame(1, $action->workflow_authorities()->count(), 'An action must keep its own authority.');
+                $this->assertSame(1, $action->workflow_condition_headers()->count(), 'An action must keep its own branch.');
+            }
+        }
+        $this->assertSame(2, Workflow::where('workflow_view_name', 'template copy')->count(), 'Two workflows sharing a name must not be merged.');
+
+        // A template written before the suuid was exported still updates the
+        // workflow of the same name instead of adding another one.
+        unset($item['suuid']);
+        $item['workflow_view_name'] = 'designer create test';
+        (new TemplateImporter())->import(['workflows' => [$item]]);
+        $this->assertSame(1, Workflow::where('workflow_view_name', 'designer create test')->count());
+    }
+
+    /**
+     * A workflow the import cannot reproduce exactly comes in with every table
+     * assignment inactive: a branch condition on a column missing here (an AND
+     * branch left without conditions matches every record and can skip an
+     * approval step), or names the import would merge.
+     *
+     * @return void
+     */
+    public function testTemplateImportSwitchesOffAWorkflowItCannotReproduce()
+    {
+        $table = CustomTable::getEloquent('custom_value_edit');
+        $column = CustomColumn::where('custom_table_id', $table->id)->firstOrFail();
+        $base = [
+            'workflow_view_name' => 'no workflow has this name',
+            'workflow_tables' => [['table_name' => $table->table_name, 'active_flg' => 1]],
+            'workflow_statuses' => [['status_name' => 's1'], ['status_name' => 's2']],
+            'workflow_actions' => [
+                ['action_name' => 'Approve', 'status_from_name' => 'start', 'workflow_condition_headers' => [
+                    ['status_to' => 's1', 'workflow_conditions' => [
+                        ['condition_type' => ConditionType::COLUMN, 'target_column_ref' => $table->table_name . '.' . $column->column_name],
+                    ]],
+                    ['status_to' => 's2'],
+                ]],
+                ['action_name' => 'Approve', 'status_from_name' => 's1', 'workflow_condition_headers' => [['status_to' => 's2']]],
+            ],
+        ];
+        $active = function (array $json) {
+            Workflow::importReplaceJson($json);
+            return array_get($json, 'workflow_tables.0.active_flg');
+        };
+
+        $this->assertSame(1, $active($base), 'A template reproduced exactly keeps its assignment active.');
+
+        $json = $base;
+        $json['workflow_actions'][0]['workflow_condition_headers'][0]['workflow_conditions'][0]['target_column_ref'] = $table->table_name . '.no_such_column';
+        $this->assertSame(0, $active($json), 'A dropped branch condition must switch the workflow off.');
+
+        $json = $base;
+        $json['workflow_statuses'][1]['status_name'] = 's1';
+        $this->assertSame(0, $active($json), 'Two statuses sharing a name must switch the workflow off.');
+
+        $json = $base;
+        $json['workflow_actions'][1]['status_from_name'] = 'start';
+        $this->assertSame(0, $active($json), 'Two actions with one name leaving one status must switch the workflow off.');
+
+        $json = $base;
+        $json['workflow_actions'][0]['workflow_condition_headers'][1]['status_to'] = 's1';
+        $this->assertSame(0, $active($json), 'Two branches of one action leading to one status must switch the workflow off.');
+
+        // Without a suuid the workflow of the same name is matched, as before.
+        $json = $base;
+        Workflow::importReplaceJson($json);
+        $this->assertNull($json['suuid']);
+        $existing = $this->workflow('workflow_for_individual_table');
+        $json = $base;
+        $json['workflow_view_name'] = $existing->workflow_view_name;
+        Workflow::importReplaceJson($json);
+        $this->assertSame($existing->suuid, $json['suuid']);
     }
 
     // ------------------------------------------------------------------

@@ -15,7 +15,6 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\Workflow;
-use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Enums\TemplateExportTarget;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\ViewType;
@@ -130,9 +129,6 @@ class TemplateExporter
         if (in_array(TemplateExportTarget::WORKFLOW, $options['export_target'])) {
             static::setTemplateWorkflow($config, $options['target_tables'] ?? [], $is_lang);
         }
-        if (in_array(TemplateExportTarget::NOTIFY, $options['export_target'])) {
-            static::setTemplateNotify($config, $options['target_tables'] ?? [], $is_lang);
-        }
 
         return $config;
     }
@@ -175,14 +171,30 @@ class TemplateExporter
             ->with('custom_form_blocks.custom_form_columns.custom_column')
             ->get();
         $configForms = [];
+        $configFormPriorities = [];
         foreach ($custom_forms as $custom_form) {
             if (count($target_tables) > 0 && !in_array(array_get($custom_form, 'custom_table.table_name'), $target_tables)) {
                 continue;
             }
             $form = $custom_form->getTemplateExportItems($is_lang);
+
+            // An older Exment writes every form key it does not know into the
+            // form row and the whole import fails, so the display priorities
+            // travel in a top-level list it skips. The importer puts them back.
+            $priorities = array_get($form, 'custom_form_priorities');
+            array_forget($form, 'custom_form_priorities');
+            if (!empty($priorities)) {
+                $configFormPriorities[] = [
+                    'suuid' => array_get($form, 'suuid'),
+                    'custom_form_priorities' => $priorities,
+                ];
+            }
             $configForms[] = $form;
         }
         $config['custom_forms'] = $configForms;
+        if (count($configFormPriorities) > 0) {
+            $config['custom_form_priorities'] = $configFormPriorities;
+        }
 
         // get views --------------------------------------------------
         $custom_views = CustomView::with('custom_view_columns')
@@ -390,6 +402,8 @@ class TemplateExporter
     // @phpstan-ignore-next-line
     protected static function setTemplateWorkflow(&$config, $target_tables = [], $is_lang = false)
     {
+        // Workflow relations are declared without return types, so larastan cannot see them.
+        // @phpstan-ignore-next-line
         $workflows = Workflow::with([
             'workflow_tables',
             'workflow_tables.custom_table',
@@ -400,7 +414,7 @@ class TemplateExporter
         $configWorkflows = [];
         foreach ($workflows as $workflow) {
             if (count($target_tables) > 0) {
-                $attached = collect($workflow->workflow_tables)
+                $attached = $workflow->workflow_tables
                     ->pluck('custom_table.table_name')
                     ->filter()
                     ->intersect($target_tables);
@@ -408,55 +422,9 @@ class TemplateExporter
                     continue;
                 }
             }
-            $configWorkflows[] = $workflow->getTemplateExportItems($is_lang);
+            $configWorkflows[] = $workflow->exportTemplateDesignerLayout($workflow->getTemplateExportItems($is_lang));
         }
         $config['workflows'] = $configWorkflows;
-    }
-
-
-    /**
-     * Export notifies. If target_tables is not empty, only export notifies whose
-     * target references those tables (custom_table target or workflow attached to those tables).
-     */
-    // @phpstan-ignore-next-line
-    protected static function setTemplateNotify(&$config, $target_tables = [], $is_lang = false)
-    {
-        $notifies = Notify::all();
-        $configNotifies = [];
-        foreach ($notifies as $notify) {
-            if (count($target_tables) > 0) {
-                if (!static::notifyMatchesTargetTables($notify, $target_tables)) {
-                    continue;
-                }
-            }
-            $configNotifies[] = $notify->getTemplateExportItems($is_lang);
-        }
-        $config['notifies'] = $configNotifies;
-    }
-
-
-    /**
-     * Whether a Notify record ultimately references any of the target_tables (by table_name).
-     */
-    // @phpstan-ignore-next-line
-    protected static function notifyMatchesTargetTables($notify, array $target_tables): bool
-    {
-        $trigger = $notify->notify_trigger;
-        $customTableTriggers = \Exceedone\Exment\Enums\NotifyTrigger::CUSTOM_TABLES();
-        if (is_array($customTableTriggers) && in_array($trigger, $customTableTriggers)) {
-            $table = \Exceedone\Exment\Model\CustomTable::getEloquent($notify->target_id);
-            return $table && in_array($table->table_name, $target_tables);
-        }
-        if ($trigger == \Exceedone\Exment\Enums\NotifyTrigger::WORKFLOW) {
-            $workflow = Workflow::find($notify->target_id);
-            if (!$workflow) {
-                return false;
-            }
-            $tables = collect($workflow->workflow_tables)->pluck('custom_table.table_name')->filter();
-            return $tables->intersect($target_tables)->isNotEmpty();
-        }
-        // Fallback: include when we can't determine
-        return true;
     }
 
 

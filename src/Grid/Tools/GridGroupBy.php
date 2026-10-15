@@ -62,6 +62,7 @@ class GridGroupBy extends ColumnSelector
         $key = e($this->storageKey);
         $title = e(exmtrans('common.grid_group'));
         $page = e(exmtrans('common.grid_group_page'));
+        $scope = e(exmtrans('common.grid_group_scope', ['page' => exmtrans('common.grid_group_page')]));
         $none = e(exmtrans('common.grid_group_none'));
 
         $items = <<<HTML
@@ -89,7 +90,7 @@ HTML;
         <i class="fa fa-layer-group"></i>
     </button>
     <ul class="dropdown-menu dropdown-menu-end shadow exm-group-menu">
-        <li><h6 class="dropdown-header">{$title}<small>（{$page}）</small></h6></li>
+        <li><h6 class="dropdown-header">{$title}<small>{$scope}</small></h6></li>
         {$items}
     </ul>
 </div>
