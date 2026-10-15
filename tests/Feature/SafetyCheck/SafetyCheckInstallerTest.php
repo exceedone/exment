@@ -200,6 +200,51 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertFalse(boolval(CustomTable::where('id', $foreign->id)->firstOrFail()->system_flg));
     }
 
+    public function testRemoveAllRefusesWhileAnotherTableSelectsEventTableAndRemovesNothing(): void
+    {
+        SafetyCheckInstaller::ensureAll();
+        $event = CustomTable::getEloquent('safety_check_event');
+        $this->createTableSelecting($event);
+
+        $thrown = null;
+        try {
+            SafetyCheckInstaller::removeAll();
+        } catch (\RuntimeException $e) {
+            $thrown = $e;
+        }
+
+        $this->assertNotNull($thrown, 'removeAll() must refuse to drop a table another table selects.');
+        $this->assertNotNull(CustomTable::find($event->id));
+        $this->assertNotNull(CustomTable::getEloquent('safety_check_answer'));
+        $this->assertTrue(Menu::where('menu_name', 'safety_check')->exists(), 'The menu must not be removed by a refused rollback.');
+        $this->assertTrue(
+            getModelName(\Exceedone\Exment\Enums\SystemTableName::MAIL_TEMPLATE)::withoutGlobalScopes()
+                ->where('value->mail_key_name', \Exceedone\Exment\Enums\MailKeyName::SAFETY_CHECK_MAIL)->exists(),
+            'The mail template must not be removed by a refused rollback.'
+        );
+        $this->assertTrue(
+            getModelName('line_flex_template')::withoutGlobalScopes()
+                ->where('value->flex_key', SafetyCheckInstaller::FLEX_KEY)->exists(),
+            'The flex template must not be removed by a refused rollback.'
+        );
+    }
+
+    /**
+     * safety_check_answer.event selects safety_check_event, which must not block removeAll(),
+     * since both tables are dropped together.
+     */
+    public function testAnswerTableDoesNotBlockDroppingEventTableWithIt(): void
+    {
+        SafetyCheckInstaller::ensureAll();
+        $event = CustomTable::getEloquent('safety_check_event');
+        $answer = CustomTable::getEloquent('safety_check_answer');
+
+        \Exceedone\Exment\Services\Line\LineInstaller::assertDroppable([$answer, $event]);
+
+        $this->expectException(\RuntimeException::class);
+        \Exceedone\Exment\Services\Line\LineInstaller::assertDroppable([$event]);
+    }
+
     public function testOwnedMarkersListEveryColumnTheInstallerCreates(): void
     {
         SafetyCheckInstaller::ensureAll();

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System as SystemModel;
 
 /**
@@ -21,6 +22,10 @@ class System extends ItemBase
 
         $key_system = $this->length_array[1];
         if (SystemModel::hasFunction($key_system)) {
+            // never expose secrets (LINE channel secret/token, mail password ...) in a template
+            if (array_get(Define::SYSTEM_SETTING_NAME_VALUE[$key_system], 'type') == 'password') {
+                return '';
+            }
             return SystemModel::{$key_system}();
         }
 

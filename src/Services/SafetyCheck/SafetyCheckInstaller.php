@@ -147,6 +147,16 @@ class SafetyCheckInstaller
 
     public static function removeAll(): void
     {
+        $tables = [];
+        foreach ([SafetyCheckDefine::TABLE_ANSWER, SafetyCheckDefine::TABLE_EVENT] as $tableName) {
+            $table = CustomTable::getEloquent($tableName);
+            if ($table && LineInstaller::isOwnedTable($table, static::OWNED_MARKERS[$tableName])) {
+                $tables[] = $table;
+            }
+        }
+        // before removing anything, so a refused rollback leaves the feature whole
+        LineInstaller::assertDroppable($tables);
+
         static::removeMenu();
 
         if (CustomTable::getEloquent('line_flex_template')) {
@@ -161,14 +171,7 @@ class SafetyCheckInstaller
                 ->forceDelete();
         }
 
-        foreach ([SafetyCheckDefine::TABLE_ANSWER, SafetyCheckDefine::TABLE_EVENT] as $tableName) {
-            $table = CustomTable::getEloquent($tableName);
-            if (!$table) {
-                continue;
-            }
-            if (!LineInstaller::isOwnedTable($table, static::OWNED_MARKERS[$tableName])) {
-                continue;
-            }
+        foreach ($tables as $table) {
             $table->system_flg = false;
             $table->save();
             $table->dropTable();

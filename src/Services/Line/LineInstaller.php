@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
@@ -62,6 +63,30 @@ class LineInstaller
                 $table->table_name,
                 implode(', ', $featureColumns)
             ));
+        }
+    }
+
+    /**
+     * @param array<int, CustomTable> $tables
+     * @throws \RuntimeException
+     */
+    public static function assertDroppable(array $tables): void
+    {
+        $ids = collect($tables)->pluck('id')->all();
+        foreach ($tables as $table) {
+            $hasChild = CustomRelation::where('parent_custom_table_id', $table->id)
+                ->whereNotIn('child_custom_table_id', $ids)
+                ->exists();
+            $isSelected = CustomColumn::whereIn('options->select_target_table', [strval($table->id), intval($table->id)])
+                ->whereNotIn('custom_table_id', $ids)
+                ->exists();
+            if ($hasChild || $isSelected) {
+                throw new \RuntimeException(sprintf(
+                    'Custom table "%s" is not dropped: %s',
+                    $table->table_name,
+                    exmtrans($hasChild ? 'custom_value.help.relation_error' : 'custom_value.help.reference_error')
+                ));
+            }
         }
     }
 
