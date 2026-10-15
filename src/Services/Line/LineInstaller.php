@@ -30,37 +30,37 @@ class LineInstaller
     }
 
     public const OWNED_MARKERS = [
-        'line_flex_template' => ['flex_key', 'template_name'],
-        'line_send_log'      => ['line_user_id', 'send_datetime'],
+        'line_flex_template' => ['flex_key', 'template_name', 'title', 'body_items', 'description'],
+        'line_send_log'      => ['line_user_id', 'message_type', 'flex_template', 'subject', 'body', 'user', 'send_datetime', 'status', 'error_message'],
     ];
 
     /**
-     * @param array<int, string> $markerColumns column names that only the feature's table has
+     * @param array<int, string> $featureColumns every column the feature's table has
      */
-    public static function isOwnedTable(CustomTable $table, array $markerColumns): bool
+    public static function isOwnedTable(CustomTable $table, array $featureColumns): bool
     {
         if (boolval($table->system_flg)) {
             return true;
         }
-        foreach ($markerColumns as $name) {
-            if (CustomColumn::getEloquent($name, $table)) {
-                return true;
+        foreach ($featureColumns as $name) {
+            if (!CustomColumn::getEloquent($name, $table)) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     /**
-     * @param array<int, string> $markerColumns column names that only the feature's table has
+     * @param array<int, string> $featureColumns every column the feature's table has
      * @throws \RuntimeException
      */
-    public static function assertOwnedTable(CustomTable $table, array $markerColumns): void
+    public static function assertOwnedTable(CustomTable $table, array $featureColumns): void
     {
-        if (!static::isOwnedTable($table, $markerColumns)) {
+        if (!static::isOwnedTable($table, $featureColumns)) {
             throw new \RuntimeException(sprintf(
-                'Custom table "%s" already exists but is not the LINE/safety-check feature table (none of: %s). Rename the existing table before installing.',
+                'Custom table "%s" already exists but is not the LINE/safety-check feature table (not a system table and not all of: %s). Rename the existing table before installing.',
                 $table->table_name,
-                implode(', ', $markerColumns)
+                implode(', ', $featureColumns)
             ));
         }
     }

@@ -14,6 +14,7 @@ class LineInstallerTest extends FeatureTestBase
 {
     use TestTrait;
     use DatabaseTransactions;
+    use ForeignTableTestHelpers;
 
     protected function setUp(): void
     {
@@ -86,6 +87,44 @@ class LineInstallerTest extends FeatureTestBase
         $this->assertNotNull($thrown, 'ensureAll() must refuse a same-name table that is not the feature\'s.');
         $this->assertFalse(boolval(CustomTable::where('id', $foreign->id)->firstOrFail()->system_flg));
         $this->assertEquals(0, CustomColumn::where('custom_table_id', $foreign->id)->count());
+    }
+
+    public function testOwnedMarkersListEveryColumnTheInstallerCreates(): void
+    {
+        LineInstaller::ensureAll();
+
+        foreach (LineInstaller::OWNED_MARKERS as $tableName => $columns) {
+            $created = CustomColumn::where('custom_table_id', CustomTable::getEloquent($tableName)->id)
+                ->pluck('column_name')->sort()->values()->all();
+            $this->assertEquals($created, collect($columns)->sort()->values()->all(), "OWNED_MARKERS[{$tableName}] must list every installer column.");
+        }
+    }
+
+    public function testEnsureAllRefusesForeignTableWithOneFeatureColumn(): void
+    {
+        LineInstaller::ensureAll();
+        $foreign = $this->replaceWithForeignTable('line_send_log', ['send_datetime']);
+
+        $thrown = null;
+        try {
+            LineInstaller::ensureAll();
+        } catch (\RuntimeException $e) {
+            $thrown = $e;
+        }
+        $this->assertNotNull($thrown, 'ensureAll() must refuse a same-name table that only shares one column.');
+        $this->assertFalse(boolval(CustomTable::where('id', $foreign->id)->firstOrFail()->system_flg));
+        $this->assertFalse(LineInstaller::isOwnedTable(CustomTable::getEloquent('line_send_log'), LineInstaller::OWNED_MARKERS['line_send_log']));
+    }
+
+    public function testNonSystemTableIsOwnedOnlyWithEveryFeatureColumn(): void
+    {
+        LineInstaller::ensureAll();
+        $columns = LineInstaller::OWNED_MARKERS['line_flex_template'];
+        $foreign = $this->replaceWithForeignTable('line_flex_template', array_slice($columns, 0, -1));
+        $this->assertFalse(LineInstaller::isOwnedTable($foreign, $columns), 'Missing one feature column: not the feature table.');
+
+        $this->addColumnWithoutDdl($foreign, (string) end($columns));
+        $this->assertTrue(LineInstaller::isOwnedTable(CustomTable::getEloquent('line_flex_template'), $columns), 'Every feature column: the feature table.');
     }
 
     /**

@@ -8,12 +8,14 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
+use Exceedone\Exment\Tests\Feature\Line\ForeignTableTestHelpers;
 use Exceedone\Exment\Tests\TestTrait;
 
 class SafetyCheckInstallerTest extends FeatureTestBase
 {
     use TestTrait;
     use DatabaseTransactions;
+    use ForeignTableTestHelpers;
 
     protected function setUp(): void
     {
@@ -155,5 +157,77 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertNotNull($thrown, 'ensureAll() must refuse a same-name table that is not the feature\'s.');
         $this->assertFalse(boolval(CustomTable::where('id', $foreign->id)->firstOrFail()->system_flg), 'The foreign table must not be marked as a system table.');
         $this->assertEquals(0, CustomColumn::where('custom_table_id', $foreign->id)->count(), 'No feature column may be added to the foreign table.');
+    }
+
+    public function testNotInstalledMessageNamesPatchCommandNotInstallSeeder(): void
+    {
+        $locale = app()->getLocale();
+        try {
+            foreach (['ja', 'en'] as $lang) {
+                app()->setLocale($lang);
+                $message = exmtrans('safety.message_not_installed');
+                $this->assertStringContainsString('php artisan exment:patchdata line_safety_check', $message, $lang);
+                $this->assertStringNotContainsString('InstallSeeder', $message, $lang);
+                $this->assertStringNotContainsString('db:seed', $message, $lang);
+            }
+        } finally {
+            app()->setLocale($locale);
+        }
+    }
+
+    public function testPatchLineSafetyCheckRecreatesMissingColumnWithoutTouchingMenus(): void
+    {
+        SafetyCheckInstaller::ensureAll();
+        CustomColumn::getEloquent('unlinked_flg', CustomTable::getEloquent('safety_check_answer'))->delete();
+        $menuIds = Menu::orderBy('id')->pluck('id')->all();
+
+        $this->assertEquals(0, \Artisan::call('exment:patchdata', ['action' => 'line_safety_check']));
+
+        $this->assertNotNull(CustomColumn::getEloquent('unlinked_flg', CustomTable::getEloquent('safety_check_answer')), 'The patch must recreate the missing column.');
+        $this->assertEquals($menuIds, Menu::orderBy('id')->pluck('id')->all(), 'The patch must not delete or recreate menus.');
+    }
+
+    public function testPatchLineSafetyCheckFailsOnForeignTable(): void
+    {
+        SafetyCheckInstaller::ensureAll();
+        // Exment command constructors call getModelName() on every custom table, which runs CREATE TABLE
+        // for the foreign table below and commits the test transaction. Build the commands first.
+        $this->app[\Illuminate\Contracts\Console\Kernel::class]->all();
+        $foreign = $this->replaceWithForeignTable('safety_check_event', ['event_status']);
+
+        $this->assertEquals(1, \Artisan::call('exment:patchdata', ['action' => 'line_safety_check']));
+
+        $this->assertFalse(boolval(CustomTable::where('id', $foreign->id)->firstOrFail()->system_flg));
+    }
+
+    public function testOwnedMarkersListEveryColumnTheInstallerCreates(): void
+    {
+        SafetyCheckInstaller::ensureAll();
+
+        foreach (SafetyCheckInstaller::OWNED_MARKERS as $tableName => $columns) {
+            $created = CustomColumn::where('custom_table_id', CustomTable::getEloquent($tableName)->id)
+                ->pluck('column_name')->sort()->values()->all();
+            $this->assertEquals($created, collect($columns)->sort()->values()->all(), "OWNED_MARKERS[{$tableName}] must list every installer column.");
+        }
+    }
+
+    /**
+     * A customer's own safety_check_answer that merely shares answer_status must be refused before
+     * ensureColumns() alters it and markSystem() lets removeAll() drop it.
+     */
+    public function testEnsureAllRefusesForeignTableWithOneFeatureColumn(): void
+    {
+        SafetyCheckInstaller::ensureAll();
+        $foreign = $this->replaceWithForeignTable('safety_check_answer', ['answer_status']);
+
+        $thrown = null;
+        try {
+            SafetyCheckInstaller::ensureAll();
+        } catch (\RuntimeException $e) {
+            $thrown = $e;
+        }
+        $this->assertNotNull($thrown, 'ensureAll() must refuse a same-name table that only shares one column.');
+        $this->assertFalse(boolval(CustomTable::where('id', $foreign->id)->firstOrFail()->system_flg), 'The foreign table must not be marked as a system table.');
+        $this->assertEquals(1, CustomColumn::where('custom_table_id', $foreign->id)->count(), 'No feature column may be added to the foreign table.');
     }
 }

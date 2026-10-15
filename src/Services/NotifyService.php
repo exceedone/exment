@@ -554,6 +554,11 @@ class NotifyService
                     if ($wfAction->comment_type === \Exceedone\Exment\Enums\WorkflowCommentType::REQUIRED) {
                         continue;
                     }
+                    // LINE refuses these taps (LineWorkflowAction::rejectReason), so do not offer them
+                    if (\Exceedone\Exment\Model\WorkflowValue::isAlreadyExecuted($wfAction->id, $custom_value, $recipientUser)
+                        || \Exceedone\Exment\Services\Line\LineWorkflowAction::nextStepNeedsSelection($wfAction, $custom_value)) {
+                        continue;
+                    }
                     $buttons[] = [
                         'label' => $wfAction->action_name,
                         'data'  => \Exceedone\Exment\Services\Line\LineFlexBuilder::postbackData($tableKey, $custom_value->id, $wfAction->id),
