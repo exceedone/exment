@@ -3,7 +3,10 @@
 </div>
 <script type="text/javascript">
     $(function () {
-        var ctx = $('[data-canvas-id="{{$suuid}}"]')[0].getContext('2d');
+        // jQuery 3 runs this a tick later: the box may have been emptied for its next load meanwhile
+        var canvas = $('[data-canvas-id="{{$suuid}}"]')[0];
+        if (!canvas) { return; }
+        var ctx = canvas.getContext('2d');
         ctx.canvas.height = {!! $chart_height !!};
         // click-to-filter: {column, values[], selected[], highlight} when the group column is a
         // filter-bar item (else null) — ChartItem::clickFilter

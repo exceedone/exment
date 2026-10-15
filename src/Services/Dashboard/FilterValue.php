@@ -164,6 +164,41 @@ final class FilterValue
     }
 
     /**
+     * Whether the column holds a list of values — a select / select_table / user /
+     * organization column with multiple_enabled (CustomColumn::isMultipleEnabled). It stores
+     * a JSON array (["1", "2"], ["1"] for a single pick): a value is found IN it, never equal
+     * to it.
+     *
+     * @param mixed $column  CustomColumn|null
+     */
+    public static function isMultiple($column): bool
+    {
+        return $column !== null && ColumnType::isMultipleEnabled($column->column_type) && boolval($column->getOption('multiple_enabled'));
+    }
+
+    /**
+     * The values one stored value of a list column (isMultiple) holds: the items of its JSON
+     * array, or the value itself when it is no array (stored before the column turned
+     * multiple). Empty items are dropped.
+     *
+     * @param mixed $stored
+     * @return list<string>
+     */
+    public static function listItems($stored): array
+    {
+        $decoded = is_string($stored) ? json_decode($stored, true) : null;
+        $items = is_array($decoded) ? $decoded : [$stored];
+        $out = [];
+        foreach ($items as $item) {
+            $v = is_scalar($item) ? trim((string) $item) : '';
+            if ($v !== '' && !in_array($v, $out, true)) {
+                $out[] = $v;
+            }
+        }
+        return $out;
+    }
+
+    /**
      * SQL reading a custom column's stored value: its generated index column when it has
      * one, `value->column` otherwise. Qualified with the column's table — the box query may
      * JOIN other value tables (a select_table's master), which carry a `value` column too —
@@ -176,7 +211,13 @@ final class FilterValue
     public static function columnExpr($column): string
     {
         $name = $column->index_enabled ? $column->getIndexColumnName(false) : 'value->' . $column->column_name;
-        return \DB::getQueryGrammar()->wrap(self::qualified($column, $name));
+        $expr = \DB::getQueryGrammar()->wrap(self::qualified($column, $name));
+        if (!$column->index_enabled && self::isMultiple($column) && \Exment::isSqlServer()) {
+            // json_value() reads an array as NULL: the array itself is json_query(), as the
+            // generated index column of such a column reads it
+            $expr = (string) preg_replace('/^json_value\(/i', 'JSON_QUERY(', $expr);
+        }
+        return $expr;
     }
 
     /**
@@ -250,6 +291,10 @@ final class FilterValue
      */
     public static function apply($query, $column, array $spec): void
     {
+        if (isset($spec['in']) && self::isMultiple($column)) {
+            self::applyInList($query, self::columnExpr($column), $spec['in']);
+            return;
+        }
         if ($column->index_enabled && isset($spec['in'])) {
             $name = self::qualified($column, $column->getIndexColumnName(false));
             if (count($spec['in']) === 1) {
@@ -303,6 +348,35 @@ final class FilterValue
         if ($to !== null) {
             $query->whereRaw("{$compare} <= ?", [$to]);
         }
+    }
+
+    /**
+     * AND "the list $expr holds (isMultiple) contains one of $values" onto a query, the way
+     * the engine filters such a column (Grammar::whereInArrayString): the JSON array read as
+     * "1,2" — brackets, quotes and spaces removed — and searched with FIND_IN_SET (MySQL /
+     * MariaDB) or split with STRING_SPLIT (SQL Server).
+     *
+     * @param mixed $query  query builder
+     * @param list<string> $values
+     */
+    private static function applyInList($query, string $expr, array $values): void
+    {
+        $list = "REPLACE(REPLACE(REPLACE(REPLACE({$expr}, '[', ''), ' ', ''), ']', ''), '\"', '')";
+        // spaces are removed from the stored list, so from the value it is searched for too;
+        // where the list is stored with its non-ASCII text escaped ("東京" — MariaDB,
+        // SQL Server), the value is searched for escaped the same way, as the engine does
+        // (ExistsBase::_setFilter)
+        $escaped = \ExmentDB::isUseUnicodeMultipleColumn();
+        $values = array_values(array_unique(array_map(function ($v) use ($escaped) {
+            $v = str_replace(' ', '', $v);
+            return $escaped ? unicode_encode($v) : $v;
+        }, $values)));
+        if (\Exment::isSqlServer()) {
+            $marks = implode(',', array_fill(0, count($values), '?'));
+            $query->whereRaw("EXISTS (SELECT 1 FROM STRING_SPLIT({$list}, ',') AS list_items WHERE list_items.value IN ({$marks}))", $values);
+            return;
+        }
+        $query->whereRaw('(' . implode(' OR ', array_fill(0, count($values), "FIND_IN_SET(?, {$list}) > 0")) . ')', $values);
     }
 
     /**

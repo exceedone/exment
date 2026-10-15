@@ -136,6 +136,18 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame(['df_memo' => 'a~b'], FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'memo', 'default' => 'a~b']]])->defaultQuery($text));
     }
 
+    public function testListDefaultKeepsAnEscapedCommaInItsValue(): void
+    {
+        $this->assertSame(['a', 'b'], FilterBarConfig::listDefault(' a , ,b '));
+        $this->assertSame(['Tokyo, Japan', 'Osaka'], FilterBarConfig::listDefault('Tokyo\, Japan,Osaka'), 'the picker writes a comma inside a value as "\,"');
+        $this->assertSame(['x\\', 'y'], FilterBarConfig::listDefault('x\\\\,y'), 'and a backslash as "\\\\"');
+        $this->assertSame(['a\\b'], FilterBarConfig::listDefault('a\\b'), 'any other backslash is a character, as before');
+        $this->assertSame([], FilterBarConfig::listDefault(''));
+
+        $table = new FakeCustomTable([new FakeCustomColumn('city', 'text')]);
+        $this->assertSame(['df_city' => 'Tokyo, Japan'], FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'city', 'default' => 'Tokyo\, Japan']]])->defaultQuery($table));
+    }
+
     public function testSelectionKeepsOnlyTheBarsItems(): void
     {
         $config = FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'grade'], ['column' => 'subject'], ['column' => 'score'], ['column' => 'class']]]);

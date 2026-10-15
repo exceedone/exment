@@ -153,6 +153,60 @@ class FilterValueTest extends DashboardUnitTestCase
         ], $q->sql());
     }
 
+    public function testMultipleNeedsTheTypeAndTheOption(): void
+    {
+        $this->assertTrue(FilterValue::isMultiple($this->multiple('select')));
+        $this->assertTrue(FilterValue::isMultiple($this->multiple('select_table')));
+        $this->assertTrue(FilterValue::isMultiple($this->multiple('user')));
+        $this->assertFalse(FilterValue::isMultiple(new FakeCustomColumn('grade', 'select')), 'multiple_enabled off');
+        $this->assertFalse(FilterValue::isMultiple($this->multiple('text')), 'a type that is never multiple');
+        $this->assertFalse(FilterValue::isMultiple(null));
+    }
+
+    public function testListItemsReadTheStoredArray(): void
+    {
+        $this->assertSame(['1', '2'], FilterValue::listItems('["1", "2"]'));
+        $this->assertSame(['1', '2'], FilterValue::listItems('[1,2,1]'), 'numbers, once each');
+        $this->assertSame(['1'], FilterValue::listItems('["1"]'));
+        $this->assertSame(['5'], FilterValue::listItems('5'), 'a value stored before the column turned multiple');
+        $this->assertSame(['a b'], FilterValue::listItems('["a b", "", null]'), 'empty items dropped');
+        $this->assertSame([], FilterValue::listItems('[]'));
+    }
+
+    public function testApplyOnMultipleColumnSearchesTheList(): void
+    {
+        foreach ([true, false] as $indexed) {
+            $column = $this->multiple('select_table', $indexed);
+            $q = new FakeQuery();
+            FilterValue::apply($q, $column, ['in' => ['1']]);
+            FilterValue::apply($q, $column, ['in' => ['1', 'a b']]);
+            $list = "REPLACE(REPLACE(REPLACE(REPLACE(" . FilterValue::columnExpr($column) . ", '[', ''), ' ', ''), ']', ''), '\"', '')";
+            $this->assertSame([
+                "(FIND_IN_SET(?, {$list}) > 0) [\"1\"]",
+                "(FIND_IN_SET(?, {$list}) > 0 OR FIND_IN_SET(?, {$list}) > 0) [\"1\",\"ab\"]",
+            ], $q->sql(), $indexed ? 'an index column holds the list too' : 'the JSON value');
+        }
+    }
+
+    public function testApplyOnMultipleColumnOnSqlServerSplitsTheList(): void
+    {
+        /** @var \Mockery\Expectation $sqlServer */
+        $sqlServer = \Exment::partialMock()->shouldReceive('isSqlServer');
+        $sqlServer->andReturn(true);
+        $q = new FakeQuery();
+        FilterValue::apply($q, $this->multiple('select_table', true), ['in' => ['1', '2']]);
+        $list = "REPLACE(REPLACE(REPLACE(REPLACE(" . $this->wrap('exm__fake.column_grade') . ", '[', ''), ' ', ''), ']', ''), '\"', '')";
+        $this->assertSame(["EXISTS (SELECT 1 FROM STRING_SPLIT({$list}, ',') AS list_items WHERE list_items.value IN (?,?)) [\"1\",\"2\"]"], $q->sql());
+    }
+
+    public function testRangeOnMultipleColumnIsUnchanged(): void
+    {
+        $q = new FakeQuery();
+        FilterValue::apply($q, $this->multiple('select'), ['from' => 'a', 'to' => 'b']);
+        $expr = $this->wrap('exm__fake.value->grade');
+        $this->assertSame(["{$expr} IS NOT NULL AND {$expr} <> ''", "{$expr} >= ? [\"a\"]", "{$expr} <= ? [\"b\"]"], $q->sql());
+    }
+
     public function testNumberRangeCastsAndIgnoresInvalidBounds(): void
     {
         $column = new FakeCustomColumn('score', 'integer', true);
@@ -199,5 +253,12 @@ class FilterValueTest extends DashboardUnitTestCase
         $this->assertSame(['a', 'b'], FilterValue::values(['in' => ['a', 'b']]));
         $this->assertSame(['1 – 9'], FilterValue::values(['from' => '1', 'to' => '9']));
         $this->assertSame(['– 9'], FilterValue::values(['from' => null, 'to' => '9']));
+    }
+
+    private function multiple(string $type, bool $indexed = false): FakeCustomColumn
+    {
+        $column = new FakeCustomColumn('grade', $type, $indexed);
+        $column->options = ['multiple_enabled' => '1'];
+        return $column;
     }
 }
