@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Feature\Line;
 
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Services\Line\LineInstaller;
@@ -125,6 +126,63 @@ class LineInstallerTest extends FeatureTestBase
 
         $this->addColumnWithoutDdl($foreign, (string) end($columns));
         $this->assertTrue(LineInstaller::isOwnedTable(CustomTable::getEloquent('line_flex_template'), $columns), 'Every feature column: the feature table.');
+    }
+
+    public function testAssertDroppableAcceptsUnreferencedTable(): void
+    {
+        LineInstaller::ensureAll();
+
+        LineInstaller::assertDroppable([CustomTable::getEloquent('line_send_log')]);
+        $this->addToAssertionCount(1);
+    }
+
+    public function testAssertDroppableIgnoresReferencesFromTablesDroppedTogether(): void
+    {
+        LineInstaller::ensureAll();
+        $flex = CustomTable::getEloquent('line_flex_template');
+
+        LineInstaller::assertDroppable([CustomTable::getEloquent('line_send_log'), $flex]);
+
+        $this->expectException(\RuntimeException::class);
+        LineInstaller::assertDroppable([$flex]);
+    }
+
+    public function testRollbackKeepsTableThatAnotherTableSelects(): void
+    {
+        LineInstaller::ensureAll();
+        $log = CustomTable::getEloquent('line_send_log');
+        $admin = $this->createTableSelecting($log);
+
+        $migration = require exment_package_path('database/migrations/2026_07_14_000001_create_line_send_log_table.php');
+        $thrown = null;
+        try {
+            $migration->down();
+        } catch (\RuntimeException $e) {
+            $thrown = $e;
+        }
+
+        $this->assertNotNull($thrown, 'down() must refuse to drop a table another table selects.');
+        $this->assertTrue(boolval(CustomTable::where('id', $log->id)->firstOrFail()->system_flg), 'The refused table must stay a system table.');
+        $this->assertEquals(1, CustomColumn::where('custom_table_id', $admin->id)->count());
+    }
+
+    public function testRollbackKeepsTableWithAdminChildRelation(): void
+    {
+        LineInstaller::ensureAll();
+        $log = CustomTable::getEloquent('line_send_log');
+        $child = $this->createChildTableOf($log);
+
+        $migration = require exment_package_path('database/migrations/2026_07_14_000001_create_line_send_log_table.php');
+        $thrown = null;
+        try {
+            $migration->down();
+        } catch (\RuntimeException $e) {
+            $thrown = $e;
+        }
+
+        $this->assertNotNull($thrown, 'down() must refuse to drop a table that is a relation parent.');
+        $this->assertNotNull(CustomTable::find($log->id));
+        $this->assertTrue(CustomRelation::where('parent_custom_table_id', $log->id)->where('child_custom_table_id', $child->id)->exists(), 'The admin relation must survive.');
     }
 
     /**
