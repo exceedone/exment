@@ -183,7 +183,9 @@ final class ColumnOptions
      * soft-delete predicate would make the optimizer walk the deleted_at index over half the
      * table instead (1.2 s), so the rows are read with it off and the values only
      * soft-deleted rows hold are dropped afterwards (liveValues). A capped result may count
-     * such values too. Null when the value model has no soft deletes to turn off.
+     * such values too. Null when the value model has no soft deletes to turn off, or when its
+     * query narrows the rows further for this user (CustomValueModelScope): liveValues
+     * probes the table itself, which answers for rows such a user may not see.
      *
      * @param mixed $column  CustomColumn
      * @return array{values: string[], capped: bool}|null
@@ -194,7 +196,12 @@ final class ColumnOptions
         if (!$query->hasMacro('withTrashed')) {
             return null;
         }
-        $rows = self::distinctValues($query->withoutGlobalScope(SoftDeletingScope::class), $column, $limit);
+        $query->withoutGlobalScope(SoftDeletingScope::class);
+        $base = $query->toBase();
+        if (!empty($base->wheres) || !empty($base->joins)) {
+            return null;
+        }
+        $rows = self::distinctValues($query, $column, $limit);
         if (!$rows['capped']) {
             $rows['values'] = self::liveValues($table, $column, $rows['values']);
         }

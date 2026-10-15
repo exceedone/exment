@@ -214,23 +214,27 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     }
 
     /**
-     * Forgets a deleted box among the filter items' target boxes (filter_bar.dims[].targets).
+     * Forgets deleted boxes among the filter items' target boxes (filter_bar.dims[].targets),
+     * in one save: boxes deleted together each hold their own copy of the dashboard, a save
+     * per box would write back the targets the one before removed.
      * An item left without a target narrows every box again — what its setting form shows for
      * it, and what the form's next save would make of a target it cannot list anyway.
+     *
+     * @param string[] $suuids
      */
-    public function forgetFilterBarTarget(string $suuid): void
+    public function forgetFilterBarTargets(array $suuids): void
     {
         $dims = $this->getOption('filter_bar.dims');
-        if (!is_array($dims)) {
+        if (!is_array($dims) || empty($suuids)) {
             return;
         }
         $changed = false;
         foreach ($dims as $i => $dim) {
             $targets = is_array($dim) ? array_get($dim, 'targets') : null;
-            if (!is_array($targets) || !in_array($suuid, $targets, true)) {
+            if (!is_array($targets) || empty(array_intersect($targets, $suuids))) {
                 continue;
             }
-            $targets = array_values(array_diff($targets, [$suuid]));
+            $targets = array_values(array_diff($targets, $suuids));
             if (empty($targets)) {
                 unset($dims[$i]['targets']);
             } else {
@@ -475,8 +479,14 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         $query->where('dashboard_type', $this->dashboard_type);
 
         if ($this->dashboard_type == DashboardType::USER) {
-            $login_user = \Exment::user();
-            $query->where('created_user_id', isset($login_user) ? $login_user->getUserId() : null);
+            // the dashboard owner's, not the saving user's: a user it is shared with for
+            // editing saves it too (setting form, a box deleted)
+            $owner = $this->created_user_id;
+            if (!isset($owner)) {
+                $login_user = \Exment::user();
+                $owner = isset($login_user) ? $login_user->getUserId() : null;
+            }
+            $query->where('created_user_id', $owner);
         }
     }
 

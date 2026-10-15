@@ -795,6 +795,22 @@
         $.pjax.state = st;
     }
 
+    // The entry's URL with the selection the page was rendered with (the bar's data-query),
+    // when they differ: fetched for back / forward, a URL without filter state is redirected
+    // to the remembered selection, and pjax keeps the entry's own URL — the boxes, which take
+    // the selection off the URL (dfParams), would show unfiltered data under that bar.
+    function alignEntry() {
+        var query = $('.exment-df-bar').attr('data-query');
+        if (query == null || !window.history.replaceState) { return; }
+        if (!changedColumns(window.location.search, '?' + query).length) { return; }
+        var href = new URL(pagePath + '?' + query, window.location.href).href, st = window.history.state;
+        if (st && st.container) {
+            st = $.extend({}, st, { url: href });
+            if ($.pjax && $.pjax.state && $.pjax.state.id === st.id) { $.pjax.state = st; }
+        }
+        window.history.replaceState(st, '', href);
+    }
+
     function navigate(url) {
         $('.exment-df-bar .df-select').each(function () {
             $(this).data('applied', ($(this).val() || []).slice());
@@ -957,6 +973,7 @@
             L = (options && options.lang) || {};
             A = (options && options.assets) || {};
             pagePath = window.location.pathname;
+            alignEntry();     // before any box reads the selection off the URL
             closeColorMenu(); // a menu left open on <body> across a pjax render
             barReq++;         // a bar refresh still in flight is the page before's: never swapped in here
             removeSliders();  // the page before's

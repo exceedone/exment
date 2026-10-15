@@ -328,8 +328,8 @@ final class FilterValue
         $to = $spec['to'] ?? null;
         $compare = $expr;
         if ($kind === 'number') {
-            $from = is_numeric($from) ? $from : null;
-            $to = is_numeric($to) ? $to : null;
+            $from = self::numberBound($from);
+            $to = self::numberBound($to);
             $compare = self::castNumber($expr);
         } elseif ($kind === 'date' || $kind === 'datetime') {
             $from = self::isoDate($from);
@@ -389,6 +389,29 @@ final class FilterValue
         }
         $v = trim((string) $v);
         return $v === '' ? null : $v;
+    }
+
+    /**
+     * A number bound as NUMBER_CAST takes it: SQL Server fails the query converting a bound
+     * it cannot hold ("1e5", more integer digits than it has) to compare with. A plain
+     * number it holds stays as typed; any other is rewritten as a plain number, past its
+     * largest value as that value. Null for text that is no number.
+     *
+     * @param string|null $v
+     */
+    private static function numberBound($v): ?string
+    {
+        if (!is_numeric($v)) {
+            return null;
+        }
+        if (preg_match('/^[+-]?0*(\d{0,14})(\.\d{0,8})?$/', $v)) {
+            return $v;
+        }
+        $n = (float) $v;
+        if (abs($n) >= 1e14) {
+            return ($n < 0 ? '-' : '') . '99999999999999.99999999';
+        }
+        return rtrim(rtrim(sprintf('%.8F', $n), '0'), '.');
     }
 
     /**

@@ -223,6 +223,23 @@ class FilterValueTest extends DashboardUnitTestCase
         $this->assertSame([], $q->sql(), 'both bounds invalid = no filter rather than a wrong one');
     }
 
+    public function testNumberBoundIsOneTheNumberCastHolds(): void
+    {
+        // SQL Server fails the query converting a bound DECIMAL(22,8) cannot hold
+        $column = new FakeCustomColumn('score', 'integer', true);
+        $score = $this->wrap('exm__fake.column_score');
+        $bounds = [
+            '80' => '80', '-0.5' => '-0.5', '.5' => '.5', '00012' => '00012', '12345678901234.12345678' => '12345678901234.12345678',
+            '1e5' => '100000', '1.5E-3' => '0.0015', '1.123456789' => '1.12345679',
+            '123456789012345' => '99999999999999.99999999', '-1e20' => '-99999999999999.99999999',
+        ];
+        foreach ($bounds as $typed => $bound) {
+            $q = new FakeQuery();
+            FilterValue::apply($q, $column, ['from' => (string) $typed, 'to' => null]);
+            $this->assertSame("CAST({$score} AS DECIMAL(22,8)) >= ? [\"{$bound}\"]", $q->sql()[1], "typed {$typed}");
+        }
+    }
+
     public function testDateRangeIncludesWholeLastDayOnDatetime(): void
     {
         $q = new FakeQuery();
