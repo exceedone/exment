@@ -213,6 +213,37 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         return $this->setOption('filter_bar', $bar);
     }
 
+    /**
+     * Forgets a deleted box among the filter items' target boxes (filter_bar.dims[].targets).
+     * An item left without a target narrows every box again — what its setting form shows for
+     * it, and what the form's next save would make of a target it cannot list anyway.
+     */
+    public function forgetFilterBarTarget(string $suuid): void
+    {
+        $dims = $this->getOption('filter_bar.dims');
+        if (!is_array($dims)) {
+            return;
+        }
+        $changed = false;
+        foreach ($dims as $i => $dim) {
+            $targets = is_array($dim) ? array_get($dim, 'targets') : null;
+            if (!is_array($targets) || !in_array($suuid, $targets, true)) {
+                continue;
+            }
+            $targets = array_values(array_diff($targets, [$suuid]));
+            if (empty($targets)) {
+                unset($dims[$i]['targets']);
+            } else {
+                $dims[$i]['targets'] = $targets;
+            }
+            $changed = true;
+        }
+        if ($changed) {
+            $this->setFilterBarOption('dims', $dims);
+            $this->save();
+        }
+    }
+
     // Template export / import -----------------------------------------------------------
     // A box does not keep its suuid through a template import (DashboardBox excepts it), so
     // the filter bar's target boxes (filter_bar.dims[].targets) are exported by POSITION,

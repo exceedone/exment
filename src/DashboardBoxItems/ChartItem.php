@@ -431,7 +431,7 @@ class ChartItem implements ItemInterface
         }
         // option lists are scoped like the chart itself: the view's own filters first
         $viewScope = function ($query) {
-            $this->custom_view->filterModel($query);
+            $this->viewForQuery()->filterModel($query);
         };
         return $this->chart_filter->fields($this->dashboard_filter, $viewScope, $this->dashboardExcept());
     }
@@ -497,9 +497,11 @@ class ChartItem implements ItemInterface
         }
 
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueQuery();
+        // the rows' own columns only: a view filter on a related table joins it, and its `value`
+        // would otherwise stand in for the row's
+        $model = $this->custom_table->getValueQuery()->select(getDBTableName($this->custom_table) . '.*');
         $this->applyFilters($model);
-        $this->custom_view->filterModel($model);
+        $this->viewForQuery()->filterModel($model);
 
         // get data
         $items = $model->get();
@@ -598,7 +600,22 @@ class ChartItem implements ItemInterface
     {
         $query = $this->custom_table->getValueQuery();
         $this->applyFilters($query);
-        return $this->custom_view->getQuery($query)->get();
+        return $this->viewForQuery()->getQuery($query)->get();
+    }
+
+    /**
+     * The box's view, ready for one more query. The view keeps the joins its filters added
+     * (a filter on a parent / select_table / workflow column) in the search service it caches,
+     * and adds them to the first query only: the next one would get the WHERE without its
+     * JOIN ("Unknown column"). A box runs several — the chart filter's option lists, then the
+     * data — so each starts afresh, as CustomTable does when it reuses a view.
+     *
+     * @return \Exceedone\Exment\Model\CustomView
+     */
+    protected function viewForQuery()
+    {
+        $this->custom_view->resetSearchService();
+        return $this->custom_view;
     }
 
     /**
@@ -652,7 +669,8 @@ class ChartItem implements ItemInterface
      * must show a list for its current value (DashboardFilter::styleOf — a from / to has no
      * one value to pick, and a chart then filters by it like every other box instead of
      * highlighting it), the column must belong to this box's table and not be a derived
-     * bucket (date format) whose displayed value never equals the stored one.
+     * bucket (date format) whose displayed value never equals the stored one, nor a list
+     * column (FilterValue::isMultiple), whose point is a combination of values, not one.
      *
      * @param mixed $view_column  a group CustomViewColumn of the view
      * @return mixed CustomColumn|null
@@ -666,6 +684,7 @@ class ChartItem implements ItemInterface
         }
         if (array_get($view_column, 'view_column_table_id') != $this->custom_table->id
             || !is_nullorempty(array_get($view_column, 'view_group_condition'))
+            || FilterValue::isMultiple($custom_column)
             || $config->dim($custom_column->column_name) === null
             || $this->dashboard_filter->styleOf($custom_column) !== 'select') {
             return null;

@@ -31,7 +31,9 @@ use Exceedone\Exment\Enums\ShareTargetType;
 
 class DashboardController extends AdminControllerBase
 {
-    use HasResourceActions;
+    use HasResourceActions {
+        destroy as resourceDestroy;
+    }
     // @phpstan-ignore-next-line
     protected $dashboard;
 
@@ -94,6 +96,56 @@ class DashboardController extends AdminControllerBase
             return false;
         }
         return parent::create($request, $content);
+    }
+
+    /**
+     * Saves an edited dashboard: only one this user may edit (edit() checks the screen, the
+     * request itself was open to anyone who may view the dashboard).
+     *
+     * @param int $id
+     * @return mixed
+     */
+    public function update($id)
+    {
+        $dashboard = Dashboard::find($id);
+        if (!$dashboard || !$dashboard->hasEditPermission()) {
+            abort(403, exmtrans('common.message.notfound_or_deny'));
+        }
+        return $this->form($id)->update($id);
+    }
+
+    /**
+     * Saves a new dashboard: only for a user create() lets in.
+     *
+     * @return mixed
+     */
+    public function store()
+    {
+        if (!Dashboard::hasPermission()) {
+            abort(403, trans('admin.deny'));
+        }
+        return $this->form()->store();
+    }
+
+    /**
+     * Deletes dashboards (DELETE admin/dashboard/{id}, ids comma separated): only ones this
+     * user may edit, the request was open to anyone who may view them.
+     *
+     * @param mixed $id
+     * @return mixed
+     */
+    public function destroy($id)
+    {
+        foreach (collect(explode(',', (string) $id))->filter() as $key) {
+            $dashboard = Dashboard::find($key);
+            if (!$dashboard || !$dashboard->hasEditPermission()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => trans('admin.deny'),
+                ], 403);
+            }
+        }
+        return $this->resourceDestroy($id);
     }
 
     // @phpstan-ignore-next-line
@@ -366,6 +418,17 @@ class DashboardController extends AdminControllerBase
     }
 
     /**
+     * The table a request parameter names (id or table name), or null: getEloquent() would
+     * answer an array (?q[id][]=1) with that array.
+     *
+     * @param mixed $value
+     */
+    private static function requestedTable($value): ?CustomTable
+    {
+        return is_scalar($value) ? CustomTable::getEloquent($value) : null;
+    }
+
+    /**
      * Linkage endpoint of the filter bar setting section: filter columns of the table
      * picked in `filter_bar_table` (sent as `q`). A table this user may not read answers
      * with an empty list.
@@ -375,12 +438,8 @@ class DashboardController extends AdminControllerBase
      */
     public function filterBarColumns(Request $request)
     {
-        $table = CustomTable::getEloquent($request->get('q'));
-        if ($table === null || !$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-            return [];
-        }
         $results = [];
-        foreach (FilterBarForm::columnOptions($table) as $id => $text) {
+        foreach (FilterBarForm::columnOptions(self::requestedTable($request->get('q'))) as $id => $text) {
             $results[] = ['id' => $id, 'text' => $text];
         }
         return $results;
@@ -402,7 +461,7 @@ class DashboardController extends AdminControllerBase
      */
     public function filterBarValues(Request $request)
     {
-        $table = CustomTable::getEloquent($request->get('table'));
+        $table = self::requestedTable($request->get('table'));
         if ($table !== null && !$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $table = null;
         }
@@ -410,7 +469,9 @@ class DashboardController extends AdminControllerBase
         if ($column === null) {
             return ['kind' => 'select', 'options' => [], 'capped' => false];
         }
-        $dashboard = Dashboard::find($request->get('dashboard'));
+        // an id: find() would answer a list to an array
+        $dashboard_id = $request->get('dashboard');
+        $dashboard = is_numeric($dashboard_id) ? Dashboard::find($dashboard_id) : null;
         $config = FilterBarConfig::fromDashboard($dashboard);
         $dim = $config ? $config->dim($column->column_name) : null;
         $kind = FilterValue::kind($column);

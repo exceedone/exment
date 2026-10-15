@@ -28,12 +28,17 @@
         var click = {!! $chart_click !!};
         var type = '{{ $chart_type }}';
         var pickable = !!click && ['hbar', 'area', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
+        // types colored point by point (byPoint) — the others draw one shape in one color
+        var perPoint = ['hbar', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
         var showLegend = {{ $chart_legend ? 'true' : 'false' }};
         var axisXName = @json($chart_axisx);
         var axisYName = @json($chart_axisy);
         var fmt = function (n) { return (Math.round(n * 10) / 10).toLocaleString(); };
         var pairs = labels.map(function (l, i) { return { name: String(l), value: values[i] }; });
-        var grid = { left: '3%', right: '5%', bottom: '3%', top: '8%', containLabel: true };
+        // axis names kept inside the box: X's centred under its tick labels, Y's above the plot
+        // running right from the axis line (centred on the line, a long one is cut by the box's
+        // left edge); px, not %, so a short box still has room for them
+        var grid = { left: '3%', right: '5%', bottom: 30, top: 36, containLabel: true };
         var option;
 
         switch (type) {
@@ -41,9 +46,11 @@
                 option = {
                     color: byPoint,
                     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (ps) { var p = ps[0] || ps; return escHtml(p.name) + ': ' + fmt(p.value); } },
-                    grid: { left: '3%', right: '6%', bottom: '3%', top: '8%', containLabel: true },
-                    xAxis: { type: 'value', name: axisYName },
-                    yAxis: { type: 'category', data: labels, name: axisXName, inverse: true },
+                    // the value axis's name under its ticks, the category axis's above the first bar
+                    // (inverse: 'start' is the top)
+                    grid: { left: '3%', right: '6%', bottom: 30, top: 34, containLabel: true },
+                    xAxis: { type: 'value', name: axisYName, nameLocation: 'middle', nameGap: 26 },
+                    yAxis: { type: 'category', data: labels, name: axisXName, inverse: true, nameLocation: 'start', nameTextStyle: { align: 'left' } },
                     series: [{ type: 'bar', data: values, colorBy: 'data', barMaxWidth: 28, itemStyle: { borderRadius: [0, 4, 4, 0] } }]
                 };
                 break;
@@ -52,8 +59,8 @@
                     color: colors,
                     tooltip: { trigger: 'axis', formatter: function (ps) { var p = ps[0] || ps; return escHtml(p.name) + ': ' + fmt(p.value); } },
                     grid: grid,
-                    xAxis: { type: 'category', boundaryGap: false, data: labels, name: axisXName },
-                    yAxis: { type: 'value', name: axisYName },
+                    xAxis: { type: 'category', boundaryGap: false, data: labels, name: axisXName, nameLocation: 'middle', nameGap: 26 },
+                    yAxis: { type: 'value', name: axisYName, nameTextStyle: { align: 'left' } },
                     series: [{ type: 'line', data: values, smooth: true, areaStyle: { opacity: 0.25 }, lineStyle: { width: 2 } }]
                 };
                 break;
@@ -104,13 +111,22 @@
                     color: byPoint,
                     tooltip: { trigger: 'item', formatter: function (p) { return escHtml(labels[p.dataIndex]) + ': ' + fmt(p.value[1]); } },
                     grid: grid,
-                    xAxis: { type: 'category', data: labels, name: axisXName },
-                    yAxis: { type: 'value', name: axisYName },
+                    xAxis: { type: 'category', data: labels, name: axisXName, nameLocation: 'middle', nameGap: 26 },
+                    yAxis: { type: 'value', name: axisYName, nameTextStyle: { align: 'left' } },
                     series: [{ type: 'scatter', symbolSize: 14, colorBy: 'data', data: values.map(function (v, i) { return [i, v]; }) }]
                 };
                 break;
             default:
                 return;
+        }
+        // point i drawn in byPoint[i]: ECharts' own coloring by data hands its palette out per
+        // distinct NAME, so a repeated label (two rows of a list view) shifts every later color
+        if (perPoint) {
+            option.series[0].data = option.series[0].data.map(function (d, i) {
+                var item = (d !== null && typeof d === 'object' && !Array.isArray(d)) ? $.extend({}, d) : { value: d };
+                item.itemStyle = { color: byPoint[i % byPoint.length] };
+                return item;
+            });
         }
 
         // Cross-highlight: the bar's pick on this chart's own X item (the server leaves that
@@ -129,7 +145,7 @@
         function pointData() {
             return baseData.map(function (d, i) {
                 var item = (d !== null && typeof d === 'object' && !Array.isArray(d)) ? $.extend({}, d) : { value: d };
-                item.itemStyle = { opacity: faded(i) ? 0.18 : 1 };
+                item.itemStyle = $.extend({}, item.itemStyle, { opacity: faded(i) ? 0.18 : 1 });
                 if (type === 'area' && pickedN > 0 && !faded(i)) { item.symbol = 'circle'; item.symbolSize = 10; }
                 return item;
             });
@@ -162,7 +178,6 @@
         // paint a color (dashboard editors): right-click a category; the one-color types
         // (area / radar / gauge) paint their one series
         chart.on('contextmenu', function (p) {
-            var perPoint = ['hbar', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
             if (perPoint && (typeof p.dataIndex !== 'number' || p.dataIndex >= labels.length)) { return; }
             var ne = p.event && p.event.event;
             if (ne && ne.preventDefault) { ne.preventDefault(); }

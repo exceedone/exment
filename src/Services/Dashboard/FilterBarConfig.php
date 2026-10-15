@@ -165,6 +165,36 @@ final class FilterBarConfig
     }
 
     /**
+     * The values of a list item's default ("a,b"), trimmed, empty ones dropped. The setting
+     * form writes a comma inside a value as "\," and a backslash as "\\" (dashboard.js
+     * joinList), so a stored value holding a comma stays one value; a default saved without
+     * either reads as it did.
+     *
+     * @return list<string>
+     */
+    public static function listDefault(string $raw): array
+    {
+        $values = [];
+        $current = '';
+        $length = strlen($raw);
+        for ($i = 0; $i < $length; $i++) {
+            $char = $raw[$i];
+            if ($char === '\\' && $i + 1 < $length && ($raw[$i + 1] === ',' || $raw[$i + 1] === '\\')) {
+                $current .= $raw[++$i];
+            } elseif ($char === ',') {
+                $values[] = $current;
+                $current = '';
+            } else {
+                $current .= $char;
+            }
+        }
+        $values[] = $current;
+        return array_values(array_filter(array_map('trim', $values), function ($v) {
+            return $v !== '';
+        }));
+    }
+
+    /**
      * The df_ request params of the configured item defaults ([] when none): the query the
      * entry redirect adds when the dashboard is opened with no filter state. $table resolves
      * each item's column — "min~max" is a range on a range item and on any number / date
@@ -199,9 +229,7 @@ final class FilterBarConfig
                     $params['df_' . $column] = $spec;
                 }
             } else {
-                $values = array_values(array_filter(array_map('trim', explode(',', $raw)), function ($v) {
-                    return $v !== '';
-                }));
+                $values = self::listDefault($raw);
                 if (count($values) === 1) {
                     $params['df_' . $column] = $values[0];
                 } elseif (!empty($values)) {

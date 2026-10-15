@@ -28,6 +28,13 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 final class ColumnOptions
 {
     /**
+     * A list column (FilterValue::isMultiple) holds combinations of values — ["1", "2"],
+     * ["2", "3"] — more of them than values: up to this many per option are read to list
+     * the values they hold.
+     */
+    private const LISTS_PER_OPTION = 10;
+
+    /**
      * @param CustomTable $table    the table whose rows are filtered
      * @param mixed $column         CustomColumn of $table
      * @param callable|null $scope  receives a query on $table's rows: what the rows in view are
@@ -205,14 +212,21 @@ final class ColumnOptions
     private static function distinctValues($query, $column, int $limit): array
     {
         $expr = FilterValue::columnExpr($column);
-        $values = $query
+        $multiple = FilterValue::isMultiple($column);
+        $read = $multiple ? $limit * self::LISTS_PER_OPTION : $limit;
+        $stored = $query
             ->whereRaw("{$expr} IS NOT NULL AND {$expr} <> ''")
             ->selectRaw("{$expr} as v")
             ->distinct()
-            ->limit($limit + 1)
-            ->pluck('v')
-            ->map(function ($v) {
-                return (string) $v;
+            ->limit($read + 1)
+            ->pluck('v');
+        if ($stored->count() > $read) {
+            return ['values' => [], 'capped' => true];
+        }
+        // a list column's values are the items of the lists it holds
+        $values = $stored
+            ->flatMap(function ($v) use ($multiple) {
+                return $multiple ? FilterValue::listItems($v) : [(string) $v];
             })
             ->unique()
             ->values()
@@ -232,7 +246,8 @@ final class ColumnOptions
      */
     private static function indexScannable($column): bool
     {
-        return (bool) $column->index_enabled && !\Exment::isSqlServer();
+        // a list column's index holds whole lists, no single value to probe (liveValues)
+        return (bool) $column->index_enabled && !\Exment::isSqlServer() && !FilterValue::isMultiple($column);
     }
 
     /**
@@ -304,8 +319,11 @@ final class ColumnOptions
      */
     private static function masterOptions(CustomTable $master, ?array $present, int $limit): ?array
     {
-        if ($present !== null && empty($present)) {
-            return [];
+        if ($present !== null) {
+            $present = self::ids($present);
+            if (empty($present)) {
+                return [];
+            }
         }
         $query = $master->getValueQuery()->orderBy('id');
         if ($present !== null) {
@@ -381,7 +399,8 @@ final class ColumnOptions
     /**
      * Display labels of stored values: a select_table column stores target ids → the
      * target record's label; a select / select_valtext column stores keys → the defined
-     * label.
+     * label; a yes / no or boolean column its stored value → the label the engine shows
+     * for it (Yesno / Boolean column items).
      *
      * @param mixed $column  CustomColumn
      * @param string[] $values
@@ -395,17 +414,62 @@ final class ColumnOptions
         $labels = [];
         $target = $column->select_target_table;
         if ($target) {
-            foreach ($target->getValueQuery()->whereIn('id', $values)->get() as $record) {
-                $labels[(string) $record->id] = (string) $record->getLabel();
+            $ids = self::ids($values);
+            if (!empty($ids)) {
+                foreach ($target->getValueQuery()->whereIn('id', $ids)->get() as $record) {
+                    $labels[(string) $record->id] = (string) $record->getLabel();
+                }
             }
             return $labels;
         }
-        foreach (self::definedChoices($column) ?? [] as $key => $label) {
+        foreach (self::definedChoices($column) ?? self::switchLabels($column) as $key => $label) {
             if (in_array((string) $key, $values, true)) {
                 $labels[(string) $key] = (string) $label;
             }
         }
         return $labels;
+    }
+
+    /**
+     * The stored values of a yes / no or boolean column with their labels: 1 / 0 as YES / NO
+     * (getYesNo), a boolean's true / false value as its true / false label; empty for any
+     * other column.
+     *
+     * @param mixed $column  CustomColumn
+     * @return array<array-key, string>
+     */
+    private static function switchLabels($column): array
+    {
+        $type = $column ? $column->column_type : null;
+        if ($type === ColumnType::YESNO) {
+            return ['1' => getYesNo(1), '0' => getYesNo(0)];
+        }
+        if ($type !== ColumnType::BOOLEAN) {
+            return [];
+        }
+        $labels = [];
+        foreach (['true', 'false'] as $side) {
+            $value = $column->getOption("{$side}_value");
+            if (is_scalar($value) && (string) $value !== '') {
+                $labels[(string) $value] = (string) $column->getOption("{$side}_label");
+            }
+        }
+        return $labels;
+    }
+
+    /**
+     * The values among $values that can be a record id. A master is read by id, and SQL
+     * Server fails the whole query on a text it cannot compare with the integer id — an id
+     * typed into the URL, a label typed as an item's default.
+     *
+     * @param string[] $values
+     * @return string[]
+     */
+    private static function ids(array $values): array
+    {
+        return array_values(array_filter($values, function ($v) {
+            return preg_match('/\A[0-9]+\z/', (string) $v) === 1;
+        }));
     }
 
     /**

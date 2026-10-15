@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit\Dashboard;
 
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Dashboard\ColumnOptions;
 use Exceedone\Exment\Tests\Unit\Dashboard\Support\DashboardUnitTestCase;
 use Exceedone\Exment\Tests\Unit\Dashboard\Support\FakeCustomColumn;
@@ -53,6 +54,24 @@ class ColumnOptionsTest extends DashboardUnitTestCase
         $this->assertSame(['1' => '1学期'], ColumnOptions::labels($valtext, ['1', '9']), 'a value without a definition has no label');
         $this->assertSame([], ColumnOptions::labels($valtext, []));
         $this->assertSame([], ColumnOptions::labels(new FakeCustomColumn('score', 'integer'), ['5']));
+    }
+
+    public function testLabelsOfAMasterNeverQueryATextThatIsNoId(): void
+    {
+        // SQL Server fails the query on a text compared with the integer id (?df_school=abc):
+        // no id, no query — the base test case fails on any SQL
+        $column = new FakeCustomColumn('school', 'select_table');
+        $column->select_target_table = new CustomTable();
+        $this->assertSame([], ColumnOptions::labels($column, ['abc', '1.5', '-1']));
+    }
+
+    public function testLabelsOfSwitchColumnsAreTheirDisplayText(): void
+    {
+        $this->assertSame(['1' => 'YES', '0' => 'NO'], ColumnOptions::labels(new FakeCustomColumn('done', 'yesno'), ['0', '1']));
+
+        $boolean = new FakeCustomColumn('gender', 'boolean');
+        $boolean->options = ['true_value' => 'm', 'true_label' => '男', 'false_value' => 'f', 'false_label' => '女'];
+        $this->assertSame(['m' => '男', 'f' => '女'], ColumnOptions::labels($boolean, ['m', 'f', 'x']), 'a value that is neither keeps no label');
     }
 
     public function testEndsCompareLikeTheRange(): void

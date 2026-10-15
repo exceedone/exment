@@ -48,8 +48,8 @@
                 }
                 option = {
                     tooltip: { position: 'top' },
-                    grid: { left: '3%', right: '7%', bottom: '10%', top: '6%', containLabel: true },
-                    xAxis: { type: 'category', data: xCategories, name: axisXName, splitArea: { show: true } },
+                    grid: { left: '3%', right: '7%', bottom: 30, top: '6%', containLabel: true },
+                    xAxis: { type: 'category', data: xCategories, name: axisXName, nameLocation: 'middle', nameGap: 26, splitArea: { show: true } },
                     yAxis: { type: 'category', data: seriesNames, splitArea: { show: true } },
                     visualMap: { min: 0, max: maxVal || 1, calculable: true, orient: 'vertical', right: 0, top: 'center', inRange: { color: ['#e0ffff', '#5b8ff9', '#1d39c4'] } },
                     series: [{ name: axisYName, type: 'heatmap', data: heatData, label: { show: true }, emphasis: { itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' } } }]
@@ -81,9 +81,9 @@
                 option = {
                     color: colors,
                     tooltip: { trigger: 'item' },
-                    grid: { left: '3%', right: '5%', bottom: '3%', top: '8%', containLabel: true },
-                    xAxis: { type: 'category', data: xCategories, name: axisXName, boundaryGap: true },
-                    yAxis: { type: 'value', name: axisYName },
+                    grid: { left: '3%', right: '5%', bottom: 30, top: 36, containLabel: true },
+                    xAxis: { type: 'category', data: xCategories, name: axisXName, nameLocation: 'middle', nameGap: 26, boundaryGap: true },
+                    yAxis: { type: 'value', name: axisYName, nameTextStyle: { align: 'left' } },
                     series: [{ type: 'boxplot', data: boxData }]
                 };
                 break;
@@ -103,9 +103,11 @@
                     color: colors,
                     tooltip: { trigger: 'axis', axisPointer: { type: seriesType === 'bar' ? 'shadow' : 'line' } },
                     legend: legend,
-                    grid: { left: '3%', right: '5%', bottom: '3%', top: showLegend ? '14%' : '8%', containLabel: true },
-                    xAxis: { type: 'category', data: xCategories, name: axisXName, boundaryGap: seriesType === 'bar' },
-                    yAxis: { type: 'value', name: axisYName },
+                    // px, not %: the legend row and the Y-axis name above the plot need fixed room, or they overlap on a short box;
+                    // the Y name runs right from the axis line (centred on it, a long one is cut by the box's left edge)
+                    grid: { left: '3%', right: '5%', bottom: 30, top: showLegend ? 64 : 36, containLabel: true },
+                    xAxis: { type: 'category', data: xCategories, name: axisXName, nameLocation: 'middle', nameGap: 26, boundaryGap: seriesType === 'bar' },
+                    yAxis: { type: 'value', name: axisYName, nameTextStyle: { align: 'left' } },
                     series: series
                 };
             }
