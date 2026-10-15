@@ -38,10 +38,20 @@ class WorkflowAction extends ModelBase
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => ['id', 'deleted_at'],
+        // work_targets is an appended accessor repeating the authorities with
+        // raw user / organization / column ids. If it travelled, the saved event
+        // (setActionAuthority) would recreate the authorities from those ids and
+        // bypass the portable workflow_authorities children. work_target_type
+        // itself is kept in options.
+        'excepts' => ['id', 'deleted_at', 'work_targets'],
+        // status_from is part of the import key because one label (for example
+        // "Approve") is commonly used once per approval step. Without it the
+        // second action overwrote the first one and wiped its authorities and
+        // branches. importReplaceJson() has already turned status_from_name into
+        // this system's id when the key is read.
         'uniqueKeys' => [
             'export' => ['workflow.workflow_view_name', 'action_name'],
-            'import' => ['workflow_id', 'action_name'],
+            'import' => ['workflow_id', 'status_from', 'action_name'],
         ],
         'parent' => 'workflow_id',
         'children' => [

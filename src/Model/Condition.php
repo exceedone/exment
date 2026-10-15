@@ -121,6 +121,20 @@ class Condition extends ModelBase
     }
 
 
+    /**
+     * Whether importReplaceJson() drops this condition because the column it
+     * refers to does not exist on this system.
+     *
+     * @param array<mixed> $json
+     * @return bool
+     */
+    public static function isDroppedOnTemplateImport(array $json): bool
+    {
+        return array_key_exists('target_column_ref', $json)
+            && is_null(static::templateColumnRefToId($json['target_column_ref']));
+    }
+
+
     // @phpstan-ignore-next-line
     protected $condition_type_key = 'condition_type';
 

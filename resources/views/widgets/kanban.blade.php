@@ -29,6 +29,7 @@
         'close' => trans('admin.close'),
         'undo' => exmtrans('custom_view.kanban_undo'),
         'day' => exmtrans('custom_view.kanban_day'),
+        'hour' => exmtrans('custom_view.kanban_hour'),
         'sla_done' => exmtrans('custom_view.kanban_sla_done'),
         'sla_over' => exmtrans('custom_view.kanban_sla_over'),
         'sla_soon' => exmtrans('custom_view.kanban_sla_soon'),

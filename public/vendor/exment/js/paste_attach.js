@@ -77,14 +77,31 @@
         return $target.closest('.tox, .mce-content-body, [contenteditable="true"]').length > 0;
     }
 
+    // Cells copied from Excel, or a passage from Word, reach the clipboard
+    // with a picture of themselves next to the text. Pasted into a text box
+    // that is text the user meant to paste; taking it as a screenshot would
+    // attach a picture nobody asked for and drop the text.
+    function isTextPaste(event) {
+        if (!$(event.target).is('textarea, input:not([type="file"])')) {
+            return false;
+        }
+        var clipboard = event.originalEvent ? event.originalEvent.clipboardData : event.clipboardData;
+        var types = clipboard && clipboard.types ? Array.prototype.slice.call(clipboard.types) : [];
+        return types.indexOf('text/plain') >= 0;
+    }
+
     function onPaste(event) {
-        if (inEditor(event.target)) {
+        if (inEditor(event.target) || isTextPaste(event)) {
             return;
         }
 
         var $form = $(event.target).closest('form');
         if (!$form.length) {
-            $form = $('form').first();
+            // Nothing on the form has focus - the usual case right after taking a
+            // screenshot - so the paste lands on <body>. The first form on the page
+            // is the header search box, so take the form that has an attachment
+            // column instead.
+            $form = $('input[type="file"][data-paste-attach]').first().closest('form');
         }
 
         var $input = targetInput($form);
@@ -104,12 +121,18 @@
         var input = $input.get(0);
         var transfer = new DataTransfer();
 
-        // keep whatever was already chosen, otherwise pasting a second screenshot
-        // would silently drop the first
-        if (input.files) {
-            for (var i = 0; i < input.files.length; i++) {
-                transfer.items.add(input.files[i]);
+        // A column taking several files keeps whatever was already chosen,
+        // otherwise pasting a second screenshot would silently drop the first.
+        // A single-file column holds one file, so the paste replaces it:
+        // fileinput refuses a second file there with a "too many files" error.
+        if (input.multiple) {
+            if (input.files) {
+                for (var i = 0; i < input.files.length; i++) {
+                    transfer.items.add(input.files[i]);
+                }
             }
+        } else {
+            images = images.slice(0, 1);
         }
         for (var j = 0; j < images.length; j++) {
             transfer.items.add(named(images[j]));

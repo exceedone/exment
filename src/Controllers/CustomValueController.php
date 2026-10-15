@@ -30,6 +30,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\PluginEventType;
@@ -436,6 +437,11 @@ class CustomValueController extends AdminControllerTableBase
             if (!boolval($custom_form_block->available)) {
                 continue;
             }
+            // A child block holds another table's columns. The detail page lists
+            // those rows on their own and never reads them off this record.
+            if (array_get($custom_form_block, 'form_block_type') != FormBlockType::DEFAULT) {
+                continue;
+            }
 
             $rows = [];
             foreach ($custom_form_block->custom_form_columns as $form_column) {
@@ -445,6 +451,13 @@ class CustomValueController extends AdminControllerTableBase
 
                 $column_item = $form_column->column_item;
                 if (is_null($column_item)) {
+                    continue;
+                }
+
+                // the same options and the same hiding as the detail page
+                $column_item->setFormColumnOptions($form_column->options);
+                $column_item->setCustomForm($this->custom_form);
+                if ($column_item->disableDisplayWhenShow()) {
                     continue;
                 }
 

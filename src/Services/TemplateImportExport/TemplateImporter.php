@@ -18,8 +18,6 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Workflow;
-use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
@@ -769,8 +767,16 @@ class TemplateImporter
                 CustomRelation::importTemplate($relation, $is_update);
             }
 
-            // loop for form
+            // loop for form. Display priorities travel in a top-level list keyed
+            // by the form suuid (see TemplateExporter::setTemplateTable); a
+            // template written before that carries them inside the form.
+            $formPriorities = collect((array)array_get($json, "custom_form_priorities", []))->keyBy('suuid');
             foreach (array_get($json, "custom_forms", []) as $form) {
+                $suuid = array_get($form, 'suuid');
+                $priorities = is_nullorempty($suuid) ? null : array_get($formPriorities->get($suuid), 'custom_form_priorities');
+                if (!is_null($priorities) && !array_key_exists('custom_form_priorities', $form)) {
+                    $form['custom_form_priorities'] = $priorities;
+                }
                 CustomForm::importTemplate($form, $is_update);
             }
 
@@ -832,17 +838,10 @@ class TemplateImporter
 
             // loop for workflows (must be after custom_tables so workflow_tables can resolve custom_table_id)
             foreach (array_get($json, "workflows", []) as $workflow) {
-                Workflow::importTemplate($workflow, $is_update);
-            }
-
-            // loop for notifies (must be after workflows so target_id can resolve to workflow_id)
-            foreach (array_get($json, "notifies", []) as $notify) {
-                Notify::importTemplate($notify, $is_update);
-            }
-
-            // public_form (single object, not array). Exporter writes it under 'public_form' key.
-            if (array_has($json, 'public_form') && is_array($json['public_form']) && !empty($json['public_form'])) {
-                PublicForm::importTemplate($json['public_form'], $is_update);
+                $imported = Workflow::importTemplate($workflow, $is_update);
+                if ($imported instanceof Workflow) {
+                    $imported->importTemplateDesignerLayout();
+                }
             }
 
             // create default form and view

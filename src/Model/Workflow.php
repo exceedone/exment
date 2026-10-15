@@ -38,8 +38,11 @@ class Workflow extends ModelBase
     public static $templateItems = [
         // workflow_edit_flg is an appended accessor, not a stored column. Without
         // excepting it the importer writes it into the options json as null.
-        'excepts' => ['id', 'suuid', 'workflow_edit_flg'],
-        'uniqueKeys' => ['workflow_view_name'],
+        'excepts' => ['id', 'workflow_edit_flg'],
+        // Workflow names are not unique, so keying the import by name merged two
+        // workflows sharing one. importReplaceJson() falls back to the name for
+        // a template written before the suuid was exported.
+        'uniqueKeys' => ['suuid'],
         'langs' => [
             'keys' => ['workflow_view_name'],
             'values' => ['workflow_view_name'],
@@ -381,5 +384,193 @@ class Workflow extends ModelBase
         $this->workflow_statuses->prepend(WorkflowStatus::getWorkflowStartStatus($this));
 
         return $this;
+    }
+
+    /**
+     * Template import.
+     *
+     * - A template written before workflows carried their suuid still matches
+     *   an existing workflow by name, as it always did.
+     * - When the template cannot be reproduced exactly (see
+     *   templateImportProblem), every table assignment is brought in inactive,
+     *   so the workflow does not route records until an administrator has
+     *   checked it and activated it through the beginning settings screen.
+     * - A template written before the layout was re-keyed by status name (see
+     *   exportTemplateDesignerLayout) still keys the positions by the source
+     *   system's status ids. Those ids mean nothing here and may even match
+     *   unrelated statuses, so only the start node position is kept; the
+     *   designer lays out the rest itself.
+     *
+     * @param array<mixed> $json
+     * @param array<string, mixed> $options
+     * @return void
+     */
+    public static function importReplaceJson(&$json, $options = [])
+    {
+        if (is_nullorempty(array_get($json, 'suuid'))) {
+            $json['suuid'] = static::where('workflow_view_name', array_get($json, 'workflow_view_name'))->value('suuid');
+        }
+
+        $problem = static::templateImportProblem($json);
+        if (isset($problem)) {
+            \Log::warning('Exment template import: workflow "' . strval(array_get($json, 'workflow_view_name')) . '" imported inactive, ' . $problem . '.');
+            foreach (array_keys((array)array_get($json, 'workflow_tables', [])) as $index) {
+                $json['workflow_tables'][$index]['active_flg'] = 0;
+            }
+        }
+
+        $layout = static::decodeDesignerLayout(array_get($json, 'options.designer_layout'));
+        if (is_null($layout) || array_key_exists('pos_by_status_name', $layout)) {
+            return;
+        }
+
+        $start = static::designerPoint(array_get((array)array_get($layout, 'pos', []), Define::WORKFLOW_START_KEYNAME));
+        $layout['pos'] = (object)(isset($start) ? [Define::WORKFLOW_START_KEYNAME => $start] : []);
+        array_set($json, 'options.designer_layout', json_encode($layout, JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * Why the template cannot be reproduced exactly, or null when it can.
+     *
+     * - Statuses, actions and branches are found again by name on import, so
+     *   two statuses with one name, two actions with one name leaving the same
+     *   status, or two branches of one action leading to the same status are
+     *   merged into one record.
+     * - A branch condition whose column is missing here is dropped (see
+     *   Condition::importReplaceJson). An AND branch left without conditions
+     *   matches every record, which can skip an approval step.
+     *
+     * @param array<mixed> $json
+     * @return string|null
+     */
+    protected static function templateImportProblem(array $json): ?string
+    {
+        $statusNames = collect((array)array_get($json, 'workflow_statuses', []))->pluck('status_name')->map(fn ($name) => strval($name));
+        if ($statusNames->count() !== $statusNames->unique()->count()) {
+            return 'two statuses share a name';
+        }
+
+        $actionKeys = [];
+        foreach ((array)array_get($json, 'workflow_actions', []) as $action) {
+            $from = array_get($action, 'status_from_name', array_get($action, 'status_from'));
+            $actionKeys[] = json_encode([strval($from), strval(array_get($action, 'action_name'))]);
+
+            $headers = collect((array)array_get($action, 'workflow_condition_headers', []));
+            $statusTo = $headers->pluck('status_to')->map(fn ($to) => strval($to));
+            if ($statusTo->count() !== $statusTo->unique()->count()) {
+                return 'two branches of one action lead to the same status';
+            }
+
+            foreach ($headers as $header) {
+                foreach ((array)array_get($header, 'workflow_conditions', []) as $condition) {
+                    if (Condition::isDroppedOnTemplateImport((array)$condition)) {
+                        return 'a branch condition refers to a column that does not exist on this system';
+                    }
+                }
+            }
+        }
+        if (count($actionKeys) !== count(array_unique($actionKeys))) {
+            return 'two actions with one name leave the same status';
+        }
+
+        return null;
+    }
+
+    /**
+     * Template export: options.designer_layout keys node positions by
+     * workflow_status id, which is assigned per install. Re-key the positions
+     * by status_name (the unique key the statuses are imported with) so the
+     * layout drawn in the designer survives the import.
+     *
+     * @param array<string, mixed> $item result of getTemplateExportItems()
+     * @return array<string, mixed>
+     */
+    public function exportTemplateDesignerLayout(array $item): array
+    {
+        $layout = static::decodeDesignerLayout(array_get($item, 'options.designer_layout'));
+        if (is_null($layout)) {
+            return $item;
+        }
+
+        $names = $this->workflow_statuses->pluck('status_name', 'id')->all();
+        $pos = [];
+        $byName = [];
+        foreach ((array)array_get($layout, 'pos', []) as $key => $value) {
+            $point = static::designerPoint($value);
+            if (is_null($point)) {
+                continue;
+            }
+            $key = strval($key);
+            if ($key === Define::WORKFLOW_START_KEYNAME) {
+                $pos[$key] = $point;
+            } elseif (array_key_exists($key, $names)) {
+                $byName[strval($names[$key])] = $point;
+            }
+        }
+
+        $layout['pos'] = (object)$pos;
+        $layout['pos_by_status_name'] = (object)$byName;
+        array_set($item, 'options.designer_layout', json_encode($layout, JSON_UNESCAPED_UNICODE));
+
+        return $item;
+    }
+
+    /**
+     * Reverse of exportTemplateDesignerLayout(). Call it after the statuses
+     * have been imported, so their new ids exist.
+     *
+     * @return void
+     */
+    public function importTemplateDesignerLayout(): void
+    {
+        $layout = static::decodeDesignerLayout($this->getOption('designer_layout'));
+        if (is_null($layout) || !array_key_exists('pos_by_status_name', $layout)) {
+            return;
+        }
+
+        $ids = WorkflowStatus::where('workflow_id', $this->id)->pluck('id', 'status_name')->all();
+        $pos = [];
+        $start = static::designerPoint(array_get((array)array_get($layout, 'pos', []), Define::WORKFLOW_START_KEYNAME));
+        if (isset($start)) {
+            $pos[Define::WORKFLOW_START_KEYNAME] = $start;
+        }
+        foreach ((array)$layout['pos_by_status_name'] as $name => $value) {
+            $point = static::designerPoint($value);
+            $name = strval($name);
+            if (isset($point) && array_key_exists($name, $ids)) {
+                $pos[strval($ids[$name])] = $point;
+            }
+        }
+
+        unset($layout['pos_by_status_name']);
+        $layout['pos'] = (object)$pos;
+        $this->setOption('designer_layout', json_encode($layout, JSON_UNESCAPED_UNICODE));
+        $this->save();
+    }
+
+    /**
+     * @param mixed $raw stored designer_layout (json string or array)
+     * @return array<mixed>|null
+     */
+    protected static function decodeDesignerLayout($raw): ?array
+    {
+        if (is_string($raw)) {
+            $raw = json_decode($raw, true);
+        }
+        return is_array($raw) ? $raw : null;
+    }
+
+    /**
+     * @param mixed $value
+     * @return array{x: int|float, y: int|float}|null
+     */
+    protected static function designerPoint($value): ?array
+    {
+        $x = array_get((array)$value, 'x');
+        $y = array_get((array)$value, 'y');
+        if (!is_numeric($x) || !is_numeric($y)) {
+            return null;
+        }
+        return ['x' => $x + 0, 'y' => $y + 0];
     }
 }
