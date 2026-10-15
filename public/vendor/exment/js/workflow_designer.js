@@ -628,7 +628,9 @@ var Exment;
         if (n.status.datalock) {
             chips.push(t('chip_datalock'));
         }
-        return n.status.name + (chips.length ? '（' + chips.join('・') + '）' : '');
+        return chips.length
+            ? t('fmt_paren', { note: chips.join(t('fmt_sep')), text: n.status.name })
+            : n.status.name;
     }
 
     function P(key) {
@@ -665,15 +667,17 @@ var Exment;
 
     function edgeTitle(e) {
         var h = e.a.to[e.hi] || {};
-        var s = e.a.name + '： ' + nodeLabel(e.from) + ' → ' + nodeLabel(e.to);
+        var s = t('fmt_label', { value: nodeLabel(e.from) + ' → ' + nodeLabel(e.to), label: e.a.name });
         var multi = e.a.to.filter(function (x) { return x.enabled && x.status_to; }).length > 1;
         if (multi) {
-            s += '　［' + t('branch', { no: e.hi + 1 }) + '］';
+            s = t('fmt_branch', { branch: t('branch', { no: e.hi + 1 }), text: s });
         }
         if (h.conds) {
-            s += '\n' + t('cond_count', { count: h.conds }) +
-                '（' + (h.join === 'or' ? t('cond_or') : t('cond_and')) +
-                (h.reverse ? '・' + t('cond_reverse') : '') + '）';
+            var notes = [h.join === 'or' ? t('cond_or') : t('cond_and')];
+            if (h.reverse) {
+                notes.push(t('cond_reverse'));
+            }
+            s += '\n' + t('fmt_paren', { note: notes.join(t('fmt_sep')), text: t('cond_count', { count: h.conds }) });
         }
         // 「次のステータスへ進む条件」は図に出ていないのでここで補う
         if (e.a.flow_next_type === 'all') {
@@ -748,7 +752,7 @@ var Exment;
         var iss = issues(g), warnNodes = {};
         iss.forEach(function (i) {
             if (i.node) {
-                warnNodes[i.node] = (warnNodes[i.node] || '') + '・' + i.text;
+                (warnNodes[i.node] = warnNodes[i.node] || []).push(i.text);
             }
         });
 
@@ -823,7 +827,7 @@ var Exment;
             }
             if (warnNodes[n.key]) {
                 s += '<g class="wd-warn" data-node="' + esc(n.key) +
-                    '" transform="translate(' + (w - 3) + ' 3)"><title>' + esc(warnNodes[n.key].slice(1)) +
+                    '" transform="translate(' + (w - 3) + ' 3)"><title>' + esc(warnNodes[n.key].join('\n')) +
                     '</title><circle r="8"></circle><text y="4" text-anchor="middle">!</text></g>';
             }
             s += '</g>';

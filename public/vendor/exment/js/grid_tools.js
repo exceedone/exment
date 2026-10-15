@@ -159,6 +159,25 @@
   }
 
   /**
+   * A cell's textContent without the avatar initial.
+   *
+   * The avatar style paints the first letter of a name in a coloured
+   * circle (`.exm-cell-av`) right in front of the name, so the bare
+   * textContent of "Alice Smith" is "AAlice Smith". The circle is
+   * decoration, not part of the value, and anything that reads a cell
+   * for its value has to leave it out.
+   */
+  function cellValueText(cell) {
+    if (!cell) return '';
+    if (!cell.querySelector('.exm-cell-av')) return cell.textContent || '';
+    var copy = cell.cloneNode(true);
+    each(copy.querySelectorAll('.exm-cell-av'), function (av) {
+      av.parentNode.removeChild(av);
+    });
+    return copy.textContent || '';
+  }
+
+  /**
    * The text a cell shows, whitespace collapsed.
    *
    * This is the only value the browser has for a cell - the stored value
@@ -167,7 +186,7 @@
    * they look alike.
    */
   function cellText(cell) {
-    return cell ? (cell.textContent || '').replace(/\s+/g, ' ').trim() : '';
+    return cellValueText(cell).replace(/\s+/g, ' ').trim();
   }
 
   /**
@@ -1258,7 +1277,10 @@
     // typed into the table.
     var text = document.createElement('span');
     text.className = 'exm-gridfilter-text';
-    text.textContent = activeTpl.replace('{v}', value === '' ? '-' : value);
+    // A function, not a string: the value is cell data, and a string
+    // replacement would read any "$&" or "$'" in it as a pattern.
+    var shown = value === '' ? '-' : value;
+    text.textContent = activeTpl.replace('{v}', function () { return shown; });
     chip.appendChild(text);
 
     if (hiddenTpl) {
@@ -1582,14 +1604,15 @@
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
 
-    var title = bulkLabel(bar, 'bulk_edit_title') || 'Bulk edit';
+    // Every string comes translated from the server (GridInlineEditor);
+    // there is deliberately no literal fallback in any language.
+    var title = bulkLabel(bar, 'bulk_edit_title');
     var pickFields = bulkLabel(bar, 'bulk_edit_pick_fields')
-      || bulkLabel(bar, 'bulk_edit_pick_column')
-      || 'Fill only fields to change';
-    var noChangeLbl = bulkLabel(bar, 'bulk_edit_no_change') || '(no change)';
-    var nothingLbl = bulkLabel(bar, 'bulk_edit_nothing') || 'No field selected';
-    var applyTpl = bulkLabel(bar, 'bulk_edit_apply') || 'Apply';
-    var cancelLbl = bulkLabel(bar, 'bulk_edit_cancel') || 'Cancel';
+      || bulkLabel(bar, 'bulk_edit_pick_column');
+    var noChangeLbl = bulkLabel(bar, 'bulk_edit_no_change');
+    var nothingLbl = bulkLabel(bar, 'bulk_edit_nothing');
+    var applyTpl = bulkLabel(bar, 'bulk_edit_apply');
+    var cancelLbl = bulkLabel(bar, 'bulk_edit_cancel');
     var applyLabel = applyTpl.replace('{n}', ids.length);
 
     // Build the field grid: one row per editable column. Each editor
@@ -1716,7 +1739,7 @@
 
       if (missingRequired) {
         progress.classList.add('is-error');
-        progress.textContent = (missingRequired.meta.label || '') + ': ' + (bulkLabel(bar, 'bulk_edit_value') || 'value');
+        progress.textContent = (missingRequired.meta.label || '') + ': ' + bulkLabel(bar, 'bulk_edit_value');
         missingRequired.editor.focus();
         return;
       }
@@ -1727,7 +1750,7 @@
       }
       progress.classList.remove('is-error');
 
-      var confirmTpl = bulkLabel(bar, 'bulk_edit_confirm') || 'Update {n} records?';
+      var confirmTpl = bulkLabel(bar, 'bulk_edit_confirm');
       if (!window.confirm(confirmTpl.replace('{n}', ids.length))) return;
 
       updating = true;
@@ -1780,8 +1803,8 @@
       function finish() {
         updating = false;
         var summaryTpl = failCount === 0
-          ? (bulkLabel(bar, 'bulk_edit_summary_ok') || '{n} updated')
-          : (bulkLabel(bar, 'bulk_edit_summary_partial') || '{ok} succeeded, {fail} failed');
+          ? bulkLabel(bar, 'bulk_edit_summary_ok')
+          : bulkLabel(bar, 'bulk_edit_summary_partial');
         progress.textContent = summaryTpl
           .replace('{n}', okCount)
           .replace('{ok}', okCount)
@@ -2211,14 +2234,17 @@
    * Width floors per editor type, in px. Not guesses at a pretty size -
    * each one is what the widget needs before its own content starts being
    * cut: a date editor holds 10 digits, a datetime one those plus a time
-   * down to seconds, a number the value plus its spinner.
+   * down to seconds, a number the value plus its spinner. A select needs
+   * none: sizeInlineEditor measures its widest option, the only thing a
+   * select can cut, so a narrow status cell keeps its own width instead
+   * of covering the column beside it.
    */
   var EDITOR_MIN_WIDTH = {
     text: 200,
     number: 110,
     date: 140,
     datetime: 230,
-    select: 140
+    select: 0
   };
 
   /**
@@ -2247,7 +2273,10 @@
    */
   function sizeInlineEditor(td, editor, meta) {
     var rect = td.getBoundingClientRect();
-    var want = Math.max(rect.width, EDITOR_MIN_WIDTH[meta.type] || 120);
+    // 0 is a real floor (the select), so the fallback is for unknown types only.
+    var floor = EDITOR_MIN_WIDTH[meta.type];
+    if (floor === undefined) floor = 120;
+    var want = Math.max(rect.width, floor);
 
     // An <input> whose value overruns its box reports the value's full
     // length as scrollWidth - the cheapest true measurement of "how wide
@@ -2436,7 +2465,8 @@
       format: DATE_FORMATS[meta.type],
       // moment's global locale on this layout is not the app's, so the
       // calendar would come out in English if it were not said here.
-      locale: (cfg && cfg.locale) || 'ja',
+      // <html lang> carries the same app locale if the config lacks it.
+      locale: (cfg && cfg.locale) || document.documentElement.lang || undefined,
       icons: DATE_ICONS,
       widgetParent: window.jQuery(datePickerHostEl()),
       // An empty value must stay empty when the calendar opens; without
@@ -2906,8 +2936,12 @@
   /**
    * The reason a refused write gives, as one line: every message of a 400
    * validation error (`errors` is a list of `{column: message}` objects),
-   * else the `message` of a 403 or 404. '' when the body says nothing
-   * usable - the caller falls back to its own label then.
+   * else the `message` of an Exment refusal (403, 404...). '' when the body
+   * says nothing usable - the caller falls back to its own label then.
+   *
+   * A `message` is only taken when the body also has Exment's error `code`:
+   * those are translated. The framework's own answers (CSRF expiry, server
+   * error, throttling) carry a fixed English `message` and no code.
    */
   function errorMessageOf(response) {
     return response.json().then(function (body) {
@@ -2923,7 +2957,7 @@
         }
       };
       if (body && body.errors) collect(body.errors);
-      if (!lines.length && body && typeof body.message === 'string') collect(body.message);
+      if (!lines.length && body && body.code != null && typeof body.message === 'string') collect(body.message);
       return lines.join(' / ');
     }).catch(function () {
       return '';
@@ -2993,8 +3027,9 @@
     menu.setAttribute('data-row-col', uniqueColumnOf(td) || '');
 
     // Head: first two visible data columns (id + main label) as a
-    // reminder of which row was right-clicked. `textContent` reads
-    // through any badge span, so the label stays legible.
+    // reminder of which row was right-clicked. cellText reads through any
+    // badge span, so the label stays legible, and leaves out an avatar's
+    // initial, so a name does not read "AAlice Smith".
     var head = menu.querySelector('.exm-ctx-head');
     if (head) {
       var summary = [];
@@ -3002,7 +3037,7 @@
       for (var i = 0; i < siblings.length && summary.length < 2; i++) {
         var name = columnNameOf(siblings[i]);
         if (!name || name.indexOf('__') === 0) continue;
-        var txt = (siblings[i].textContent || '').replace(/\s+/g, ' ').trim();
+        var txt = cellText(siblings[i]);
         if (txt) summary.push(txt.length > 30 ? txt.slice(0, 30) + '…' : txt);
       }
       head.textContent = summary.join(' - ');
@@ -3019,9 +3054,14 @@
     var flabel = menu.querySelector('.exm-ctx-filter-label');
     if (flabel) {
       var baseLabel = menu.getAttribute('data-filter-label') || '';
+      // The punctuation around the value differs per language, so the
+      // shape comes translated from the server.
+      var valueTpl = menu.getAttribute('data-filter-value') || '';
       var raw = cellText(td);
-      flabel.textContent = (filterable && raw && raw.length <= 24)
-        ? baseLabel + '：「' + raw + '」'
+      flabel.textContent = (filterable && raw && raw.length <= 24 && valueTpl)
+        ? valueTpl
+          .replace('{label}', function () { return baseLabel; })
+          .replace('{v}', function () { return raw; })
         : baseLabel;
     }
 
@@ -3311,7 +3351,7 @@
       var tr2 = findRowById(id);
       var target = null;
       if (tr2 && col) target = tr2.querySelector('td.column-' + col);
-      var text = target ? (target.textContent || '').trim() : '';
+      var text = target ? cellValueText(target).trim() : '';
       if (!text) return;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).catch(function () { /* silent */ });
@@ -3329,7 +3369,7 @@
       return;
     }
     if (act === 'delete') {
-      var msg = menu.getAttribute('data-confirm') || 'Delete this record?';
+      var msg = menu.getAttribute('data-confirm') || '';
       if (!window.confirm(msg)) return;
       // As a write from this screen, so the "cannot delete from display"
       // switch applies to it on the server, not only to this menu.

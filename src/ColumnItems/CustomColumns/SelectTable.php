@@ -294,6 +294,9 @@ class SelectTable extends CustomItem
                 'attributes' => [
                     'data-quickadd-url' => admin_urls('webapi', $this->target_table->table_name, 'quickadd'),
                     'data-quickadd-title' => $this->label(),
+                    'data-quickadd-ok' => trans('admin.submit'),
+                    'data-quickadd-cancel' => trans('admin.cancel'),
+                    'data-quickadd-error' => exmtrans('common.message.error_execute'),
                 ],
             ];
         }

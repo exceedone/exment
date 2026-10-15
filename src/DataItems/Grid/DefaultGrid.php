@@ -66,7 +66,12 @@ class DefaultGrid extends GridBase
             $grid->model()->select("$db_table_name.*");
         } else {
             // filter
-            $this->custom_view->resetSearchService();
+            // A drill-down from a summary view shares this search service with
+            // the summary view on purpose (GridBase::getCallbackFilter()), so
+            // the joins its filter makes are not made a second time.
+            if (!isset($this->callback)) {
+                $this->custom_view->resetSearchService();
+            }
             $this->custom_view->filterSortModel($grid->model(), ['callback' => $this->callback]);
         }
 
