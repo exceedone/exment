@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\TemplateImportResult;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
@@ -18,6 +20,13 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
 {
     use Traits\UseRequestSessionTrait;
     use Traits\TemplateTrait;
+    use Traits\TemplateColumnRefTrait;
+
+    // workflow_authorities has neither timestamps nor created/updated user
+    // columns. Exment itself writes it with a query builder insert; the template
+    // importer saves through Eloquent, which would otherwise add them.
+    public $timestamps = false;
+    public $saving_users = false;
 
 
     // @phpstan-ignore-next-line
@@ -144,61 +153,128 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
     }
 
     /**
-     * Export replace json - convert related_id to name-based reference for COLUMN type
+     * Make the authority portable.
      *
-     * @param array $json
+     * user, organization, column and login_user_column store an id that is
+     * assigned per install. They travel as a code (user_code /
+     * organization_code) or as "table_name.column_name" instead; the raw id is
+     * never carried, because on another system it names a different person or
+     * column. system stores a fixed WorkflowTargetSystem value and travels as is.
+     *
+     * @param array<string, mixed> $json
      * @return void
      */
     public static function exportReplaceJson(&$json)
     {
-        // For COLUMN type, convert ID to table.column_name format
-        if (array_key_exists('related_type', $json) && array_key_exists('related_id', $json)) {
-            $relatedType = $json['related_type'];
-            $relatedId = $json['related_id'];
-            
-            if ($relatedType === 'column' && is_numeric($relatedId)) {
-                $column = CustomColumn::getEloquent($relatedId);
-                if ($column) {
-                    $table = $column->custom_table;
-                    if ($table) {
-                        $json['related_ref'] = $table->table_name . '.' . $column->column_name;
-                        unset($json['related_id']);
-                    }
-                }
-            }
-            // For other types (user, organization, system), keep as-is (ID-based, only portable within same install)
+        $type = strval(array_get($json, 'related_type'));
+        if (!static::isTemplateRefType($type)) {
+            return;
+        }
+
+        $id = array_get($json, 'related_id');
+        unset($json['related_id']);
+
+        $ref = static::isTemplateColumnType($type)
+            ? static::templateColumnIdToRef($id)
+            : static::templateUserOrgIdToCode($type, $id);
+        if (isset($ref)) {
+            $json['related_ref'] = $ref;
         }
     }
 
     /**
-     * Import replace json - convert name-based reference back to related_id for COLUMN type
+     * Resolve the portable reference back to an id on this installation.
      *
-     * @param array $json
-     * @param array $options
-     * @return void
+     * An authority whose user, organization or column is missing here is
+     * skipped: keeping a raw id from the source system could grant the action
+     * to an unrelated person.
+     *
+     * @param array<string, mixed> $json
+     * @param array<string, mixed> $options
+     * @return string|void
      */
     public static function importReplaceJson(&$json, $options = [])
     {
-        // For COLUMN type with related_ref, convert back to ID
-        if (array_key_exists('related_type', $json) && array_key_exists('related_ref', $json)) {
-            $relatedType = $json['related_type'];
-            $relatedRef = $json['related_ref'];
-            
-            if ($relatedType === 'column' && strpos($relatedRef, '.') !== false) {
-                list($tableName, $columnName) = explode('.', $relatedRef, 2);
-                
-                $table = CustomTable::getEloquent($tableName);
-                if ($table) {
-                    $column = $table->custom_columns_cache->first(function ($col) use ($columnName) {
-                        return $col->column_name === $columnName;
-                    });
-                    
-                    if ($column) {
-                        $json['related_id'] = $column->id;
-                        unset($json['related_ref']);
-                    }
-                }
-            }
+        $type = strval(array_get($json, 'related_type'));
+        if (!static::isTemplateRefType($type)) {
+            unset($json['related_ref']);
+            return;
         }
+
+        $ref = array_get($json, 'related_ref');
+        unset($json['related_ref'], $json['related_id']);
+
+        $id = static::isTemplateColumnType($type)
+            ? static::templateColumnRefToId($ref)
+            : static::templateUserOrgCodeToId($type, $ref);
+        if (is_null($id)) {
+            \Log::warning('Exment template import: workflow authority skipped, ' . $type . ' "' . strval($ref) . '" does not exist on this system.');
+            return TemplateImportResult::CONITNUE;
+        }
+
+        $json['related_id'] = strval($id);
+    }
+
+    /**
+     * Whether the related_id of this type is an id assigned per install.
+     */
+    protected static function isTemplateRefType(string $type): bool
+    {
+        return static::isTemplateColumnType($type) || !is_null(static::templateCodeColumn($type));
+    }
+
+    protected static function isTemplateColumnType(string $type): bool
+    {
+        return in_array($type, [
+            ConditionTypeDetail::COLUMN()->lowerKey(),
+            ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerKey(),
+        ], true);
+    }
+
+    /**
+     * System table and code column identifying a user or an organization.
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    protected static function templateCodeColumn(string $type): ?array
+    {
+        if ($type === ConditionTypeDetail::USER()->lowerKey()) {
+            return [SystemTableName::USER, 'user_code'];
+        }
+        if ($type === ConditionTypeDetail::ORGANIZATION()->lowerKey()) {
+            return [SystemTableName::ORGANIZATION, 'organization_code'];
+        }
+        return null;
+    }
+
+    /**
+     * @param mixed $id related_id as stored (numeric string or int)
+     */
+    protected static function templateUserOrgIdToCode(string $type, $id): ?string
+    {
+        $target = static::templateCodeColumn($type);
+        if (is_null($target) || !is_numeric($id)) {
+            return null;
+        }
+
+        $value = getModelName($target[0])::find($id);
+        $code = isset($value) ? $value->getValue($target[1]) : null;
+
+        return is_nullorempty($code) ? null : strval($code);
+    }
+
+    /**
+     * @param mixed $code related_ref read from the template
+     */
+    protected static function templateUserOrgCodeToId(string $type, $code): ?int
+    {
+        $target = static::templateCodeColumn($type);
+        if (is_null($target) || !is_scalar($code) || strval($code) === '') {
+            return null;
+        }
+
+        $value = getModelName($target[0])::where('value->' . $target[1], strval($code))->first();
+
+        return isset($value) ? intval($value->id) : null;
     }
 }

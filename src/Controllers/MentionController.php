@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class MentionController extends AdminControllerBase
         $custom_table = CustomTable::getEloquent(SystemTableName::USER);
 
         if (!isset($custom_table) || ($code = $custom_table->enableAccess()) !== true) {
-            return abortJson(403, ['errors' => [exmtrans('error.permission_deny')]]);
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         $q = trim(strval($request->get('q')));

@@ -29,6 +29,23 @@
         $select.trigger('change');
     }
 
+    // The server's own words when it sent some: "errors" holds validation
+    // messages - {column: message} or lists of them - and an Exment error
+    // carries {code, message}; both are translated. Anything else (an expired
+    // session, a server error) only has the framework's English status text,
+    // so the button's own message is shown instead.
+    function errorText(xhr, fallback) {
+        var json = xhr.responseJSON || {};
+        var messages = [];
+        (function collect(v) {
+            if (typeof v === 'string') { messages.push(v); return; }
+            if (v && typeof v === 'object') { $.each(v, function (k, x) { collect(x); }); }
+        })(json.errors);
+        if (messages.length) { return messages.join('\n'); }
+        if (json.code != null && json.message) { return json.message; }
+        return fallback;
+    }
+
     function post($button, $select, label) {
         $.ajax({
             url: $button.data('quickadd-url'),
@@ -44,13 +61,11 @@
             }
             appendAndSelect($select, data.id, data.label || label);
         }).fail(function (xhr) {
-            var message = (xhr.responseJSON && xhr.responseJSON.errors)
-                ? [].concat(xhr.responseJSON.errors).join('\n')
-                : xhr.statusText;
             Exment.CommonEvent.ShowSwal(null, {
                 type: 'error',
-                title: $button.data('quickadd-title'),
-                text: message,
+                title: $button.attr('data-quickadd-title'),
+                text: errorText(xhr, $button.attr('data-quickadd-error')),
+                confirm: $button.attr('data-quickadd-ok'),
                 showCancelButton: false,
             });
         });
@@ -63,11 +78,14 @@
             return;
         }
 
+        // titleText, not title: sweetalert2 renders a title as html, and this
+        // one is a column name somebody typed
         swal({
-            title: $button.data('quickadd-title'),
+            titleText: $button.attr('data-quickadd-title'),
             input: 'text',
             showCancelButton: true,
-            confirmButtonText: LA.trans ? LA.trans('admin.submit') : 'OK',
+            confirmButtonText: $button.attr('data-quickadd-ok'),
+            cancelButtonText: $button.attr('data-quickadd-cancel'),
             inputValidator: function (value) {
                 return (value && value.trim() !== '') ? null : ' ';
             },

@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\SystemRoleType;
 
 /**
  * @phpstan-consistent-constructor
@@ -66,12 +65,8 @@ class RoleGroupPermission extends ModelBase
     {
         switch ($this->role_group_permission_type) {
             case RoleType::SYSTEM:
-                // Convert stored SystemRoleType value ('0'/'1') back to a readable key
-                // ('system' / 'role_group') for portable templates.
-                $enum = SystemRoleType::getEnum($this->role_group_target_id);
-                $targetName = $enum ? $enum->lowerKey() : ($this->role_group_target_id ?? null);
                 return [
-                    'table_name' => $targetName,
+                    'table_name' => $this->role_group_target_id ?? null,
                 ];
             case RoleType::TABLE:
                 return [
@@ -88,24 +83,12 @@ class RoleGroupPermission extends ModelBase
         $role_group_target_name = array_get($json, 'role_group_target_name');
         $role_group_target_id = null;
 
-        // Normalize permission_type so both raw values ('0','1') and enum keys ('system','table')
-        // resolve to the same case. Templates typically ship the human-readable keys.
-        $type = array_get($json, 'role_group_permission_type');
-        $normalizedType = RoleType::getEnumValue($type, $type);
-
-        switch ($normalizedType) {
+        switch (array_get($json, 'role_group_permission_type')) {
             case RoleType::SYSTEM:
-                // For SYSTEM permissions the target column stores a SystemRoleType value
-                // ('0' for SYSTEM, '1' for ROLE_GROUP). Accept both the raw values and the
-                // enum keys (e.g. "system", "role_group") in the template JSON.
-                $role_group_target_id = SystemRoleType::getEnumValue(
-                    $role_group_target_name,
-                    $role_group_target_name
-                );
+                $role_group_target_id = $role_group_target_name;
                 break;
             case RoleType::TABLE:
-                $customTable = CustomTable::getEloquent($role_group_target_name);
-                $role_group_target_id = $customTable ? $customTable->id : null;
+                $role_group_target_id = CustomTable::getEloquent($role_group_target_name)->id ?? null;
                 break;
         }
         array_set($json, 'role_group_target_id', $role_group_target_id);
