@@ -46,7 +46,6 @@ abstract class CustomItem implements ItemInterface
      *
      * @var GridCellStyle|null|false
      */
-    // @phpstan-ignore-next-line
     protected $grid_cell_style = false;
 
     /**
@@ -237,7 +236,6 @@ abstract class CustomItem implements ItemInterface
      *
      * @return GridCellStyle|null
      */
-    // @phpstan-ignore-next-line
     protected function getGridCellStyle()
     {
         if (!boolval(array_get($this->options, 'grid_column'))) {

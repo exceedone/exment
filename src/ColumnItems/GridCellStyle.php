@@ -24,6 +24,8 @@ use Exceedone\Exment\Model\CellStylePreset;
  * make() returns null when the column has no styling at all. That keeps the
  * default grid byte-for-byte what it was before this feature existed - the
  * overwhelming majority of columns never open this section.
+ *
+ * @phpstan-consistent-constructor
  */
 class GridCellStyle
 {
@@ -378,7 +380,7 @@ class GridCellStyle
     }
 
     /**
-     * @return array<string, string>
+     * @return array<int, string> weight (PHP keeps these numeric keys as int) => label
      */
     public static function getFontWeightOptions(): array
     {
@@ -733,7 +735,7 @@ class GridCellStyle
         }
 
         $colors = [];
-        foreach (preg_split('/\r\n|\r|\n/', $text) as $line) {
+        foreach (preg_split('/\r\n|\r|\n/', $text) ?: [] as $line) {
             $parts = explode(',', $line);
             if (count($parts) < 2) {
                 continue;

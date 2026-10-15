@@ -355,7 +355,13 @@ SCRIPT);
             return $targetOptions;
         }
 
-        foreach ($custom_view->{$relation_name} as $row) {
+        // Through the relation query rather than the relation property. The
+        // property loads the rows onto this instance, and this instance is the
+        // one the request cache (CustomView::getEloquent) hands out, so the
+        // rows read here, before the form saves, would be served as the view's
+        // rows to every later reader in the same process - the data screen's
+        // filter form, when the browser tests update a view and then open it.
+        foreach ($custom_view->{$relation_name}()->get() as $row) {
             $target = strval($row->view_column_target);
             if ($target === '' || array_key_exists($target, $targetOptions)) {
                 continue;

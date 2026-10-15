@@ -357,6 +357,7 @@ namespace Exceedone\Exment\Tests\Unit {
 
         public function test_failed_image_storage_rolls_back_without_discarding_the_temporary_image(): void
         {
+            $this->requireLightApiController();
             ClipboardImageFixture::$failUpload = true;
             try {
                 $this->persist('![clipboard]('.ClipboardImageFixture::tempUrl().')');
@@ -372,6 +373,7 @@ namespace Exceedone\Exment\Tests\Unit {
 
         public function test_a_throwing_partial_image_write_is_cleaned_up_during_rollback(): void
         {
+            $this->requireLightApiController();
             ClipboardImageFixture::$throwUpload = true;
             try {
                 $this->persist('![clipboard]('.ClipboardImageFixture::tempUrl().')');
@@ -455,6 +457,7 @@ namespace Exceedone\Exment\Tests\Unit {
 
         public function test_failed_image_save_restores_temporary_bytes_and_removes_only_its_new_file(): void
         {
+            $this->requireLightApiController();
             $bytes = ClipboardImageFixture::$temp[ClipboardImageFixture::TEMP_UUID];
             ClipboardImageFixture::$uploads['existing/attachment'] = 'Existing attachment bytes';
             $this->row->failAfterSave = true;
@@ -476,7 +479,16 @@ namespace Exceedone\Exment\Tests\Unit {
             $this->assertSame(0, ClipboardImageFixture::$puts);
         }
 
-        private function persist(string $value): array
+        /**
+         * Load the controller the native API tests go through, or skip the
+         * test when the PMPortal plugin is not installed.
+         *
+         * Call it at the top of a test, before any try/catch: markTestSkipped()
+         * throws a PHPUnit exception that extends RuntimeException, so raised
+         * inside catch (RuntimeException $error) the skip is caught there and
+         * reported as a failed assertion on its message.
+         */
+        private function requireLightApiController(): void
         {
             $source = dirname(__DIR__, 3).DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'app'
                 .DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'PmPortal'.DIRECTORY_SEPARATOR.'LightApiController.php';
@@ -484,6 +496,11 @@ namespace Exceedone\Exment\Tests\Unit {
                 $this->markTestSkipped('PMPortal is required for native API image persistence tests.');
             }
             require_once $source;
+        }
+
+        private function persist(string $value): array
+        {
+            $this->requireLightApiController();
 
             return (new ReflectionMethod(LightApiController::class, 'persistRow'))
                 ->invoke(new LightApiController, $this->table, $this->row, ['description' => $value]);

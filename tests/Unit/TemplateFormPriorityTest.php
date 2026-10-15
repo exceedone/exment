@@ -46,6 +46,7 @@ class TemplateFormPriorityTest extends UnitTestBase
         $priority->save();
         System::clearCache();
 
+        /** @var array<string, mixed> $config filled by reference below */
         $config = [];
         $export = new \ReflectionMethod(TemplateExporter::class, 'setTemplateTable');
         $export->setAccessible(true);
