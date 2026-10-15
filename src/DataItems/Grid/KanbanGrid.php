@@ -670,6 +670,10 @@ class KanbanGrid extends GridBase
                 'id' => $record->id,
                 'label' => strval($record->getLabel()),
                 'entered' => isset($entered) ? \Carbon\Carbon::parse($entered)->format('Y-m-d H:i:s') : '',
+                // the edit lock: a write from the board sends it back, so a
+                // record somebody else saved since this card was read is
+                // refused instead of overwritten (CustomTable::validatorLock)
+                'updated_at' => isset($record->updated_at) ? \Carbon\Carbon::parse($record->updated_at)->format('Y-m-d H:i:s') : '',
                 // the title column is one of the value columns, so its text
                 // has already been read once for this record
                 'title' => isset($title_column)
@@ -1440,14 +1444,25 @@ class KanbanGrid extends GridBase
     }
 
     /**
-     * The current timestamp, spelled the way the connected engine spells it.
-     * SQL Server has no now().
+     * The current time as a literal, spelled the way the connected engine
+     * spells it.
+     *
+     * Read off the application's clock rather than the database's now():
+     * every date it is compared with - created_at, updated_at, a deadline
+     * entered on a form - was written in the application's time zone, and so
+     * is the "now" the browser measures the cards against. A database server
+     * kept in UTC, as managed ones usually are, put the column figures hours
+     * apart from the cards under them. Built from a fixed format, so it is
+     * safe to inline.
      *
      * @return string
      */
     protected function sqlNow(): string
     {
-        return \Exment::isSqlServer() ? 'getdate()' : 'now()';
+        $now = \Carbon\Carbon::now();
+        return \Exment::isSqlServer()
+            ? "convert(datetime2, '" . $now->format('Y-m-d\TH:i:s') . "', 126)"
+            : "cast('" . $now->format('Y-m-d H:i:s') . "' as datetime)";
     }
 
     /**
@@ -1593,8 +1608,12 @@ class KanbanGrid extends GridBase
         if (isset($age_column)) {
             $since = $grammar->wrap($this->columnKey($age_column));
             $elapsed = $this->sqlSecondsSince($since);
-            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 else $elapsed end) as kb_agesum");
-            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 else 1 end) as kb_agen");
+            // A date still ahead - work planned to start next month - has not
+            // begun to age. Averaged in, it counted as negative days and could
+            // drag the figure below zero. The blank check stays first so the
+            // date arithmetic only ever sees a date.
+            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 when $elapsed < 0 then 0 else $elapsed end) as kb_agesum");
+            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 when $elapsed < 0 then 0 else 1 end) as kb_agen");
         }
 
         // one more grouping level: the swimlane the view was set up with

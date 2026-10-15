@@ -196,7 +196,13 @@ $(function () {
         var i = 0;
         return String(text).replace(/%s/g, function () { return args[i++]; });
     }
-    function parseDt(s) { return new Date(String(s).replace(' ', 'T')); }
+    // A bare date is a local day, the same as the "Y-m-d H:i:s" the server
+    // sends. new Date('Y-m-d') would read it as midnight UTC instead.
+    function parseDt(s) {
+        var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s));
+        if (m) { return new Date(+m[1], m[2] - 1, +m[3]); }
+        return new Date(String(s).replace(' ', 'T'));
+    }
     function metaOf(name) {
         var found = null;
         $.each(D.groupables, function (i, m) { if (m.name === name) { found = m; } });
@@ -227,9 +233,9 @@ $(function () {
         h = Math.round(h);
         if (h >= 24) {
             var d = Math.floor(h / 24), r = h % 24;
-            return d + L.day + (r ? r + 'h' : '');
+            return d + L.day + (r ? r + L.hour : '');
         }
-        return h + 'h';
+        return h + L.hour;
     }
     // one number printed the way its own column is printed on the data list:
     // same currency mark, same digits, same thousand separators
@@ -1031,7 +1037,9 @@ $(function () {
             if (s && s.breach) { breach++; }
             if (!isDone(c)) {
                 var a = ageDays(c);
-                if (a !== null) { ageSum += a; ageCnt++; }
+                // same rule as the server's figure: a date still ahead has not
+                // started to age, so it is left out rather than averaged in
+                if (a !== null && a >= 0) { ageSum += a; ageCnt++; }
             }
         });
         }
@@ -1195,27 +1203,88 @@ $(function () {
         return (writeSeq[String(id)] || 0) === stamp;
     }
 
+    // The edit lock. A write from the board carries the record's updated_at
+    // as the board last saw it, the same as the edit form and the list editor
+    // do, so a record somebody else saved in the meantime is refused instead
+    // of overwritten without a word. The card brings it from the server, and
+    // a write that went through moves it on to the updated_at it answered
+    // with. It only ever moves forward: a read of the card asked for before a
+    // write can land after it.
+    var writeLock = {};
+    function noteLock(id, value) {
+        if (!value) { return; }
+        var k = String(id), v = String(value);
+        // 'Y-m-d H:i:s' sorts the same way as the times it stands for
+        if (!writeLock[k] || writeLock[k] < v) { writeLock[k] = v; }
+    }
+    function lockOf(id) {
+        var card = cardById(id);
+        noteLock(id, card && card.updated_at);
+        return writeLock[String(id)] || '';
+    }
+    // Refused because of the lock: the record holds something this board has
+    // not seen. Every later write of the card would be refused the same way
+    // until it is read again.
+    function lockRefused(xhr) {
+        var json = xhr && xhr.responseJSON, found = false;
+        (function look(v) {
+            if (found || !v || typeof v !== 'object') { return; }
+            if (!$.isArray(v) && Object.prototype.hasOwnProperty.call(v, 'updated_at')) { found = true; return; }
+            $.each(v, function (k, x) { look(x); });
+        })(json && json.errors);
+        return found;
+    }
+
+    // Writes of one record go out one after the other. Sent side by side, the
+    // second would carry the lock from before the first and be refused as
+    // stale - a card dragged twice in a row, a move and its undo. A refused
+    // write does not hold up the ones behind it.
+    var writeChain = {};
     function saveValues(id, values) {
         var stamp = stampWrite(id);
-        // The key tells the server this write stands in for the record's edit
-        // page, so it is held to that page's rules - the form's locked columns
-        // and the "cannot change from display" setting - the same as every
-        // other list screen. See GridInlineEditor::SCREEN_WRITE_KEY.
-        var payload = { _method: 'PUT', value: values };
-        payload[@json(\Exceedone\Exment\Grid\Tools\GridInlineEditor::SCREEN_WRITE_KEY)] = 1;
-        var req = $.ajax({
-            url: D.update_url + '/' + id,
-            type: 'POST',
-            data: payload,
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-        }).done(function () {
-            // The kept form is a picture of the record as it was fetched. This
-            // write moved on from it, so opening the card again would paint
-            // the old value into the field - and saving that form would post
-            // it back over what was just saved here.
-            forgetForm(id);
-            refreshStats();
+        var k = String(id);
+        var result = $.Deferred();
+        function send() {
+            // The key tells the server this write stands in for the record's edit
+            // page, so it is held to that page's rules - the form's locked columns
+            // and the "cannot change from display" setting - the same as every
+            // other list screen. See GridInlineEditor::SCREEN_WRITE_KEY.
+            var payload = { _method: 'PUT', value: values };
+            payload[@json(\Exceedone\Exment\Grid\Tools\GridInlineEditor::SCREEN_WRITE_KEY)] = 1;
+            // read when the write leaves, not when it was asked for: one that
+            // waited behind another write has to send the lock that one left
+            var lock = lockOf(id);
+            if (lock) { payload.updated_at = lock; }
+            $.ajax({
+                url: D.update_url + '/' + id,
+                type: 'POST',
+                data: payload,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+            }).done(function (res) {
+                // the answer is the saved record: one, or a list of one
+                var saved = $.isArray(res) ? res[0] : res;
+                noteLock(id, saved && saved.updated_at);
+                // The kept form is a picture of the record as it was fetched. This
+                // write moved on from it, so opening the card again would paint
+                // the old value into the field - and saving that form would post
+                // it back over what was just saved here.
+                forgetForm(id);
+                refreshStats();
+            }).fail(function (xhr) {
+                if (lockRefused(xhr)) { refreshCards([id]); }
+            }).done(function () {
+                result.resolveWith(this, arguments);
+            }).fail(function () {
+                result.rejectWith(this, arguments);
+            });
+        }
+        var previous = writeChain[k];
+        var req = result.promise();
+        writeChain[k] = req;
+        req.always(function () {
+            if (writeChain[k] === req) { delete writeChain[k]; }
         });
+        if (previous) { previous.always(send); } else { send(); }
         // carried on the request so a caller can recognise its own write
         // without having to stamp separately and risk counting twice
         req.writeStamp = stamp;
@@ -1253,17 +1322,21 @@ $(function () {
                 });
         }, 400);
     }
-    // the webapi answers a rejected save with {errors:[{column: "message"}]},
-    // so show that instead of a generic failure whenever it is there
+    // A rejected save answers with "errors" - rows of {column: "message"} or
+    // plain strings - and an Exment error with {code, message}; both are
+    // translated. Anything else (an expired session, a server error) carries
+    // the framework's untranslated text, so the board's own message is shown.
     function errorMessage(xhr) {
         var json = xhr.responseJSON;
         if (!json) { return L.save_error; }
-        if (json.message) { return json.message; }
         var messages = [];
-        $.each(json.errors || [], function (i, row) {
-            $.each(row, function (column, text) { messages.push(text); });
-        });
-        return messages.length ? messages.join(' ') : L.save_error;
+        (function collect(v) {
+            if (typeof v === 'string') { messages.push(v); return; }
+            if (v && typeof v === 'object') { $.each(v, function (k, x) { collect(x); }); }
+        })(json.errors);
+        if (messages.length) { return messages.join(' '); }
+        if (json.code != null && json.message) { return json.message; }
+        return L.save_error;
     }
     function cardById(id) {
         var found = null;
@@ -1948,12 +2021,16 @@ $(function () {
     }
 
     // Escape closes the form - unless the admin's own window is open over it,
-    // which is then the one being closed.
+    // which is then the one being closed. With no form open it takes down the
+    // card drawer, the same as its × and the backdrop.
     $(document).off('keydown' + NS).on('keydown' + NS, function (e) {
-        if (!formOpen) { return; }
         if (e.key !== 'Escape' && e.keyCode !== 27) { return; }
-        if ($('#modal-showmodal').hasClass('show')) { return; }
-        closeForm();
+        if (formOpen) {
+            if ($('#modal-showmodal').hasClass('show')) { return; }
+            closeForm();
+            return;
+        }
+        if ($('#kb-drawer').hasClass('show')) { closeDrawer(); }
     });
 
     function openEditForm(card) {
@@ -2200,10 +2277,12 @@ $(function () {
     // The column a move would write that the card's own form keeps out of
     // reach, or '' when the move may go ahead. A move writes the board column,
     // and a drop into another lane the lane column as well; a workflow status
-    // is never written by a move, only by an action.
+    // is never written by a move, only by an action, so a lane of workflow
+    // statuses is never left by a drop.
     function lockedMove(card, toKey, toLane) {
         if (!onWorkflow() && cardColKey(card) !== toKey && isLocked(card, groupBy)) { return groupBy; }
-        if (swimBy && toLane && String(toLane) !== laneKeyOf(card) && isLocked(card, swimBy)) { return swimBy; }
+        if (swimBy && toLane && String(toLane) !== laneKeyOf(card) &&
+            (swimBy === D.workflow_key || isLocked(card, swimBy))) { return swimBy; }
         return '';
     }
 
@@ -2216,6 +2295,11 @@ $(function () {
         // nothing. The server refuses the same write; saying so here keeps
         // the card from moving and springing back.
         var locked = lockedMove(card, toKey, toLane);
+        if (locked === D.workflow_key) {
+            toast(fmt(L.wf_no_action, card.label, laneLabelOf(String(toLane))), 'fa-ban', 'danger');
+            render();
+            return;
+        }
         if (locked) {
             toast(fmt(L.column_locked, labelOfColumn(locked)), 'fa-lock', 'danger');
             render();

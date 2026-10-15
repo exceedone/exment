@@ -444,11 +444,42 @@ class GridScreenEditTest extends UnitTestBase
         $this->assertStringStartsWith(self::TABLE, $user1);
     }
 
+    // I-1: the group-by menu takes its brackets from the translation ---------
+
+    public function testGroupByHeaderTakesItsBracketsFromTheTranslation(): void
+    {
+        $this->bootAdmin();
+        $locale = app()->getLocale();
+        try {
+            foreach (['en', 'ja'] as $lang) {
+                app()->setLocale($lang);
+                $html = $this->gridGroupByTool()->render();
+                $scope = e(exmtrans('common.grid_group_scope', ['page' => exmtrans('common.grid_group_page')]));
+
+                $this->assertStringContainsString("<small>{$scope}</small>", $html, "$lang: the header note comes from the translation");
+                if ($lang === 'en') {
+                    $this->assertStringNotContainsString("\u{FF08}", $html, 'no full-width bracket in the English menu');
+                }
+            }
+        } finally {
+            app()->setLocale($locale);
+        }
+    }
+
     /**
      * The key the list's group-by tool keeps its browser state under, read
      * off the tool the data grid really builds.
      */
     private function gridToolStorageKey(): string
+    {
+        $tool = $this->gridGroupByTool();
+        return strval((new \ReflectionProperty($tool, 'storageKey'))->getValue($tool));
+    }
+
+    /**
+     * The group-by tool the data grid really builds.
+     */
+    private function gridGroupByTool(): \Exceedone\Exment\Grid\Tools\GridGroupBy
     {
         $request = Request::create('/admin/data/' . self::TABLE, 'GET');
         $this->app->instance('request', $request);
@@ -464,7 +495,7 @@ class GridScreenEditTest extends UnitTestBase
         foreach ($positions as $list) {
             foreach ($list as $tool) {
                 if ($tool instanceof \Exceedone\Exment\Grid\Tools\GridGroupBy) {
-                    return strval((new \ReflectionProperty($tool, 'storageKey'))->getValue($tool));
+                    return $tool;
                 }
             }
         }

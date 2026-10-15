@@ -2,8 +2,19 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
+use Exceedone\Exment\Model\CustomValueModelScope;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 trait HasCommentMentionTrait
 {
@@ -142,6 +153,10 @@ trait HasCommentMentionTrait
             ->whereIn($codeColumn->getQueryKey(), $codes)
             ->get();
 
+        // The notice carries the record's label and the comment text, so only
+        // somebody who may open the record is told about it.
+        $readers = static::mentionReaderIds($parent, $users);
+
         $writer = \Exment::getUserId();
         $subject = exmtrans('custom_value.message.mention_notify', ['label' => $parent->label]);
         $body = mb_strimwidth(trim(preg_replace('/\s+/u', ' ', $text)), 0, 400, '…');
@@ -150,6 +165,9 @@ trait HasCommentMentionTrait
         foreach ($users as $user) {
             // telling somebody they mentioned themselves is noise
             if (!is_nullorempty($writer) && intval($user->id) === intval($writer)) {
+                continue;
+            }
+            if (!in_array(intval($user->id), $readers, true)) {
                 continue;
             }
 
@@ -180,7 +198,120 @@ trait HasCommentMentionTrait
         // full-width ＠ too: a Japanese keyboard produces it without warning
         preg_match_all('/[@＠]([A-Za-z0-9_.\-]{1,64})/u', $text, $matches);
 
-        return array_values(array_unique(array_filter((array)array_get($matches, 1))));
+        $codes = [];
+        foreach ((array)array_get($matches, 1) as $code) {
+            $codes[] = $code;
+            // A sentence often ends right after the name ("@tanaka."), and the
+            // full stop is no part of it. Both readings are looked up, so a code
+            // that really ends in "." or "-" still matches.
+            $trimmed = rtrim($code, '.-');
+            if ($trimmed !== '' && $trimmed !== $code) {
+                $codes[] = $trimmed;
+            }
+        }
+
+        return array_values(array_unique(array_filter($codes)));
+    }
+
+    /**
+     * Which of the given users may open a record.
+     *
+     * CustomValueModelScope decides this for the logged-in user only, so its
+     * rules are repeated here for somebody else. A user may open the record
+     * when they may see every record of its table (through a role, a system
+     * role, the table's own "every user" switches, or as a system
+     * administrator), or when they may see some records of the table and this
+     * one was shared with them - by name, or with an organization they belong
+     * to. A table that inherits its parent's permissions lets in the same
+     * people for the parent record as well.
+     *
+     * @param CustomValue $record
+     * @param Collection $users user records to check
+     * @return array<int, int> ids of those who may open it
+     */
+    protected static function mentionReaderIds(CustomValue $record, Collection $users): array
+    {
+        $userIds = $users->map(fn ($user) => intval($user->id))->all();
+        if (empty($userIds)) {
+            return [];
+        }
+
+        $custom_table = $record->custom_table;
+
+        // CustomValueModelScope does not guard these tables by table roles:
+        // users and organizations are filtered by filter_multi_user instead,
+        // and documents not at all. Table roles must not decide here either.
+        if (in_array($custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION, SystemTableName::DOCUMENT], true)) {
+            return $userIds;
+        }
+
+        // ids, out of $userIds, of those holding one of $permissions on a table
+        $holding = function ($table, array $permissions) use ($userIds): array {
+            $query = AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($table, $permissions);
+            if (!($query instanceof Builder)) {
+                return [];
+            }
+
+            return $query->withoutGlobalScope(CustomValueModelScope::class)
+                ->whereIn('id', $userIds)
+                ->pluck('id')
+                ->map(fn ($id) => intval($id))
+                ->all();
+        };
+
+        // the shares of one record, as [type, target id] pairs
+        $sharesOf = function ($parent_id, $parent_type): Collection {
+            return CustomValueAuthoritable::where('parent_id', $parent_id)
+                ->where('parent_type', $parent_type)
+                ->get(['authoritable_user_org_type', 'authoritable_target_id'])
+                ->map(fn ($share) => [strval($share->authoritable_user_org_type), intval($share->authoritable_target_id)]);
+        };
+
+        $parent_table = null;
+        if (boolval($custom_table->getOption('inherit_parent_permission'))) {
+            $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
+            $parent_table = isset($relation) ? $relation->parent_custom_table : null;
+        }
+
+        $readers = $holding($custom_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE);
+        if (isset($parent_table)) {
+            $readers = array_merge($readers, $holding($parent_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE));
+        }
+
+        // Everybody else needs a share, and a share only counts for somebody
+        // who may see some records of the table at all.
+        $candidates = array_diff($holding($custom_table, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE), $readers);
+        if (empty($candidates)) {
+            return array_values(array_unique($readers));
+        }
+
+        $shares = $sharesOf($record->id, $custom_table->table_name);
+        $parentSharers = [];
+        $parentShares = collect();
+        if (isset($parent_table) && !is_nullorempty($record->parent_id)) {
+            $parentSharers = $holding($parent_table, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+            $parentShares = $sharesOf($record->parent_id, $record->parent_type);
+        }
+
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+        foreach ($users as $user) {
+            $id = intval($user->id);
+            if (!in_array($id, $candidates, true)) {
+                continue;
+            }
+
+            $holders = [[SystemTableName::USER, $id]];
+            foreach ($user->getOrganizationIdsForQuery($enum) as $organization_id) {
+                $holders[] = [SystemTableName::ORGANIZATION, intval($organization_id)];
+            }
+            $isShared = fn (Collection $list) => $list->contains(fn ($share) => in_array($share, $holders, true));
+
+            if ($isShared($shares) || (in_array($id, $parentSharers, true) && $isShared($parentShares))) {
+                $readers[] = $id;
+            }
+        }
+
+        return array_values(array_unique($readers));
     }
 
     /**
