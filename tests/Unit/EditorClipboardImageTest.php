@@ -1,7 +1,6 @@
 <?php
 
 namespace Exceedone\Exment\Tests\Unit {
-    use App\Plugins\PmPortal\LightApiController;
     use Exceedone\Exment\ColumnItems\CustomColumns\Editor;
     use Exceedone\Exment\Model\CustomTable;
     use Exceedone\Exment\Model\Define;
@@ -32,16 +31,22 @@ namespace Exceedone\Exment\Tests\Unit {
 
         public const FILE_UUID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
+        /** @var mixed session stub, set up by EditorClipboardImageTest::setUp() */
         public static $session;
 
+        /** @var array<string, string> temporary upload disk, path => bytes */
         public static array $temp = [];
 
+        /** @var array<string, string> upload disk, path => bytes */
         public static array $uploads = [];
 
+        /** @var array<int, array<int, mixed>> */
         public static array $documents = [];
 
+        /** @var array<mixed> */
         public static array $queued = [];
 
+        /** @var array<int, array<int, mixed>> */
         public static array $warnings = [];
 
         public static int $puts = 0;
@@ -75,12 +80,16 @@ namespace Exceedone\Exment\Tests\Unit {
 
     final class ClipboardImageRow
     {
+        /** @var int|null */
         public $id = null;
 
+        /** @var \Mockery\MockInterface|null */
         public $custom_table;
 
+        /** @var array<string, mixed> */
         public array $value = [];
 
+        /** @var array<int, array<mixed>> */
         public array $files = [];
 
         public Editor $editor;
@@ -91,17 +100,23 @@ namespace Exceedone\Exment\Tests\Unit {
 
         public bool $rolledBack = false;
 
+        /**
+         * @param array<mixed> $file
+         */
         public function file_uuids(array $file): void
         {
             $this->files[] = $file;
         }
 
+        /**
+         * @param array<string, mixed> $value
+         */
         public function setValueStrictly(array $value): void
         {
             $this->value = $value;
         }
 
-        public function getConnection()
+        public function getConnection(): object
         {
             return new class($this)
             {
@@ -138,12 +153,14 @@ namespace Exceedone\Exment\Tests\Unit {
     {
         private Container $previousContainer;
 
+        /** @var \Illuminate\Contracts\Foundation\Application|null */
         private $previousFacade;
 
         private Editor $editor;
 
         private ClipboardImageRow $row;
 
+        /** @var \Mockery\MockInterface */
         private $table;
 
         protected function setUp(): void
@@ -189,7 +206,7 @@ namespace Exceedone\Exment\Tests\Unit {
                     return $this->owned && $key === ClipboardImageFixture::TEMP_UUID;
                 }
 
-                public function get(string $key)
+                public function get(string $key): ?string
                 {
                     return $this->has($key) ? 'clipboard.png' : null;
                 }
@@ -487,8 +504,11 @@ namespace Exceedone\Exment\Tests\Unit {
          * throws a PHPUnit exception that extends RuntimeException, so raised
          * inside catch (RuntimeException $error) the skip is caught there and
          * reported as a failed assertion on its message.
+         *
+         * @return string class name of the controller; it lives in the plugin,
+         *                not in this package, so it is not referenced statically
          */
-        private function requireLightApiController(): void
+        private function requireLightApiController(): string
         {
             $source = dirname(__DIR__, 3).DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'app'
                 .DIRECTORY_SEPARATOR.'plugins'.DIRECTORY_SEPARATOR.'PmPortal'.DIRECTORY_SEPARATOR.'LightApiController.php';
@@ -496,14 +516,19 @@ namespace Exceedone\Exment\Tests\Unit {
                 $this->markTestSkipped('PMPortal is required for native API image persistence tests.');
             }
             require_once $source;
+
+            return 'App\\Plugins\\PmPortal\\LightApiController';
         }
 
+        /**
+         * @return array<string, mixed>
+         */
         private function persist(string $value): array
         {
-            $this->requireLightApiController();
+            $controller = $this->requireLightApiController();
 
-            return (new ReflectionMethod(LightApiController::class, 'persistRow'))
-                ->invoke(new LightApiController, $this->table, $this->row, ['description' => $value]);
+            return (new ReflectionMethod($controller, 'persistRow'))
+                ->invoke(new $controller, $this->table, $this->row, ['description' => $value]);
         }
     }
 }

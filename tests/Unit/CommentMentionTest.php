@@ -177,6 +177,9 @@ class CommentMentionTest extends UnitTestBase
         return $actual;
     }
 
+    /**
+     * @return Collection<int, CustomValue>
+     */
     private function allUsers(): Collection
     {
         return CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->newQuery()

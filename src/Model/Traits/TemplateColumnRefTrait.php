@@ -70,7 +70,7 @@ trait TemplateColumnRefTrait
         }
 
         $column = CustomColumn::getEloquent($id);
-        if (!isset($column) || !isset($column->custom_table)) {
+        if (!$column instanceof CustomColumn || !isset($column->custom_table)) {
             return null;
         }
 
@@ -107,8 +107,8 @@ trait TemplateColumnRefTrait
      * old template carrying raw ids and a new one carrying references never
      * occupy the same key and cannot be confused on import.
      *
-     * @param array<string, mixed> $settings
-     * @return array<string, mixed>
+     * @param array<int|string, mixed> $settings
+     * @return array<int|string, mixed>
      */
     protected static function templateExportColumnRefs(array $settings): array
     {
@@ -128,7 +128,7 @@ trait TemplateColumnRefTrait
                 }
             }
 
-            $result[$key] = static::templateReplaceEmbedded($value, true);
+            $result[$key] = self::templateReplaceEmbedded($value, true);
         }
 
         return $result;
@@ -140,8 +140,8 @@ trait TemplateColumnRefTrait
      * A reference that no longer resolves is dropped rather than kept, because
      * a stale numeric id would point at an unrelated column on this system.
      *
-     * @param array<string, mixed> $settings
-     * @return array<string, mixed>
+     * @param array<int|string, mixed> $settings
+     * @return array<int|string, mixed>
      */
     protected static function templateImportColumnRefs(array $settings): array
     {
@@ -167,7 +167,7 @@ trait TemplateColumnRefTrait
                 }
             }
 
-            $result[$key] = static::templateReplaceEmbedded($value, false);
+            $result[$key] = self::templateReplaceEmbedded($value, false);
         }
 
         return $result;
@@ -227,7 +227,7 @@ trait TemplateColumnRefTrait
         if (is_array($value)) {
             $replaced = [];
             foreach ($value as $k => $v) {
-                $replaced[$k] = static::templateReplaceEmbedded($v, $toRef);
+                $replaced[$k] = self::templateReplaceEmbedded($v, $toRef);
             }
             return $replaced;
         }

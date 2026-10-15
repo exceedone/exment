@@ -260,7 +260,6 @@ class FilterOption extends EnumBase
      * @param mixed $filter_option
      * @return string|null null when this is not a filter option at all
      */
-    // @phpstan-ignore-next-line
     public static function getFilterOptionText($filter_option)
     {
         $transName = static::getTransName($filter_option);

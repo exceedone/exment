@@ -288,7 +288,7 @@ trait WorkflowDesignTrait
      * 画面から送られてきた design（JSON 文字列）を配列にする。
      *
      * @param Request $request
-     * @return array
+     * @return array<mixed>
      */
     protected function readDesignPayload(Request $request): array
     {
@@ -341,9 +341,9 @@ trait WorkflowDesignTrait
      * 図の内容をまとめて保存する。新規（$workflow->exists が false）でも同じ流れ。
      *
      * @param Workflow $workflow
-     * @param array $payload
+     * @param array<mixed> $payload
      * @param mixed $custom_table_id 新規かつテーブル専用のときに使う対象テーブル
-     * @return array 画面へ返す内容
+     * @return array<string, mixed> 画面へ返す内容
      */
     protected function saveWorkflowDesign(Workflow $workflow, array $payload, $custom_table_id = null): array
     {
@@ -441,7 +441,7 @@ trait WorkflowDesignTrait
      * デザイナーが必要とするデータを1つの配列にまとめる。
      *
      * @param Workflow $workflow
-     * @return array
+     * @return array<string, mixed>
      */
     protected function getWorkflowDesignData(Workflow $workflow): array
     {
@@ -567,7 +567,7 @@ trait WorkflowDesignTrait
      *
      * 中身はステップ1 の新規作成フォームとまったく同じものを使う。
      *
-     * @return array
+     * @return array<string, mixed>
      */
     protected function getWorkflowCreateOptions(): array
     {
@@ -604,7 +604,7 @@ trait WorkflowDesignTrait
      * Deleting such a status would take the current state and the approval
      * trail of those records with it, so the designer never deletes one.
      *
-     * @param array $status_ids
+     * @param array<mixed> $status_ids
      * @param bool $lock read with a shared lock, inside a transaction: the
      *        rows other transactions committed are seen, and new rows
      *        pointing at these statuses wait until this transaction ends
@@ -635,7 +635,7 @@ trait WorkflowDesignTrait
      * ノードの座標。ステップ2のプレビューと同じ options.designer_layout を読む。
      *
      * @param Workflow $workflow
-     * @return array
+     * @return array<string, mixed>
      */
     protected function getWorkflowDesignLayout(Workflow $workflow): array
     {
@@ -662,8 +662,8 @@ trait WorkflowDesignTrait
      *
      * @param Workflow $workflow
      * @param CustomTable|null $custom_table
-     * @param array $selected 既に選ばれている ID（大量データの場合に名前を引くため）
-     * @return array
+     * @param array<mixed> $selected 既に選ばれている ID（大量データの場合に名前を引くため）
+     * @return array<string, mixed>
      */
     protected function getWorkflowDesignOptions(Workflow $workflow, $custom_table, array $selected): array
     {
@@ -741,7 +741,7 @@ trait WorkflowDesignTrait
      * 絞り込み条件はここでは表示しないが、保存時にそのまま書き戻すために持ち回す。
      *
      * @param mixed $work_conditions
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     protected function toDesignDestinations($work_conditions): array
     {
@@ -769,7 +769,7 @@ trait WorkflowDesignTrait
      * ['id' => 'text'] を [['id' => .., 'text' => ..]] に変換する。
      *
      * @param mixed $options
-     * @return array
+     * @return array<int, array{id: string, text: string}>
      */
     protected function toDesignOptionList($options): array
     {
@@ -785,7 +785,7 @@ trait WorkflowDesignTrait
      * JavaScript へ渡す文言。
      * ロケールにキーが無くても画面が落ちないよう、英語を土台にして上書きする。
      *
-     * @return array
+     * @return array<mixed>
      */
     protected function getWorkflowDesignTexts(): array
     {
@@ -871,7 +871,7 @@ trait WorkflowDesignTrait
      * 保存前の検査。ステップ1・2の検査と同じ条件を、図の形のデータに対して行う。
      *
      * @param Workflow $workflow
-     * @param array $payload
+     * @param array<mixed> $payload
      * @return array<string> エラーメッセージの一覧
      */
     protected function validateWorkflowDesign(Workflow $workflow, array $payload): array
@@ -1199,7 +1199,7 @@ trait WorkflowDesignTrait
      * status added or removed in the payload refuses the whole save.
      *
      * @param Workflow $workflow
-     * @param array $posted
+     * @param array<mixed> $posted
      * @param bool $activated whether the setting of the workflow is completed
      * @return array<string,string> 仮キー（new:xxx）→ 実 ID
      */
@@ -1338,7 +1338,7 @@ trait WorkflowDesignTrait
      * アクションを保存する。
      *
      * @param Workflow $workflow
-     * @param array $posted
+     * @param array<mixed> $posted
      * @param array<string,string> $status_map
      * @return array<string,string> 仮キー（new:xxx）→ 実 ID
      */
@@ -1433,9 +1433,9 @@ trait WorkflowDesignTrait
     /**
      * 1つのアクションの実行後ステータス（条件ヘッダ）を組み立てる。
      *
-     * @param array $item
+     * @param array<mixed> $item
      * @param callable $resolve 仮キー→実 ID
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     protected function buildDesignConditions(array $item, callable $resolve): array
     {
@@ -1489,7 +1489,7 @@ trait WorkflowDesignTrait
      * ステップ2のプレビューが読むキーと同じなので、両方の画面で並びが一致する。
      *
      * @param Workflow $workflow
-     * @param array $layout
+     * @param array<mixed> $layout
      * @param array<string,string> $status_map
      * @return void
      */

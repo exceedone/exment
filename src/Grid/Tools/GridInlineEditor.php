@@ -394,7 +394,7 @@ HTML;
         // tool. `getCustomColumn()` is the public accessor exposed on
         // CustomItem; falling through when absent keeps the view free of a
         // fatal on those column types.
-        if (!isset($item) || !method_exists($item, 'getCustomColumn')) {
+        if (!is_object($item) || !method_exists($item, 'getCustomColumn')) {
             return false;
         }
 
@@ -826,7 +826,7 @@ HTML;
             $needed = true;
         }
 
-        $custom_column = (!$needed && method_exists($item, 'getCustomColumn'))
+        $custom_column = (!$needed && is_object($item) && method_exists($item, 'getCustomColumn'))
             ? $item->getCustomColumn()
             : null;
 

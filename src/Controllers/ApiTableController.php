@@ -190,11 +190,9 @@ class ApiTableController extends AdminControllerTableBase
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\Response
      */
-    // @phpstan-ignore-next-line
     public function quickAdd(Request $request)
     {
         if (($code = $this->custom_table->enableCreate(true)) !== true) {
-            // @phpstan-ignore-next-line
             return abortJson(403, $code);
         }
 
@@ -258,7 +256,6 @@ class ApiTableController extends AdminControllerTableBase
      *
      * @return \Exceedone\Exment\Model\CustomColumn|null
      */
-    // @phpstan-ignore-next-line
     protected function getQuickAddColumn()
     {
         $labels = $this->custom_table->getLabelColumns();

@@ -599,10 +599,10 @@ class CustomValueController extends AdminControllerTableBase
                 // the order the layout itself uses: what the fields look
                 // like, the fields, what they need beside them, what starts
                 // them up
-                'body' => Admin::style()->render()
+                'body' => static::renderAssetView(Admin::style())
                     . $body
-                    . Admin::html()->render()
-                    . Admin::script()->render(),
+                    . static::renderAssetView(Admin::html())
+                    . static::renderAssetView(Admin::script()),
                 'assets' => static::frameAssets(),
                 'title' => $custom_value->getLabel(),
             ]);
@@ -666,9 +666,24 @@ class CustomValueController extends AdminControllerTableBase
         };
 
         return [
-            'js' => $srcs(Admin::js()->render(), '/<script[^>]+src=["\']([^"\']+)/'),
-            'css' => $srcs(Admin::css()->render(), '/<link[^>]+href=["\']([^"\']+)/'),
+            'js' => $srcs(static::renderAssetView(Admin::js()), '/<script[^>]+src=["\']([^"\']+)/'),
+            'css' => $srcs(static::renderAssetView(Admin::css()), '/<link[^>]+href=["\']([^"\']+)/'),
         ];
+    }
+
+    /**
+     * Html of one of the layout's asset buckets.
+     *
+     * Called without an argument, Admin::style(), html(), script(), js() and
+     * css() return the view that draws their bucket; the array in their
+     * declared return type belongs to the call that adds to it.
+     *
+     * @param mixed $view
+     * @return string
+     */
+    protected static function renderAssetView($view): string
+    {
+        return $view instanceof \Illuminate\Contracts\Support\Renderable ? $view->render() : '';
     }
 
     /**

@@ -97,7 +97,7 @@ class GanttGrid extends GridBase
     /**
      * The chart query: the view's filters, then the embed filter.
      *
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>
      */
     protected function newChartQuery()
     {
@@ -112,7 +112,7 @@ class GanttGrid extends GridBase
     /**
      * Build the whole payload the browser draws the chart from.
      *
-     * @param \Illuminate\Support\Collection $records
+     * @param \Illuminate\Support\Collection<int, mixed> $records
      * @param CustomColumn $start_column
      * @param CustomColumn $end_column
      * @return array<string, mixed>

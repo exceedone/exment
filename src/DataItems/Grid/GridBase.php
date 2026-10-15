@@ -40,7 +40,6 @@ abstract class GridBase
      *
      * @var bool
      */
-    // @phpstan-ignore-next-line
     protected $preview = false;
     // @phpstan-ignore-next-line
     protected $callback;
@@ -69,7 +68,6 @@ abstract class GridBase
      * @param bool $preview
      * @return $this
      */
-    // @phpstan-ignore-next-line
     public function preview(bool $preview)
     {
         $this->preview = $preview;
@@ -446,7 +444,6 @@ SCRIPT);
      * @param CustomView|null $custom_view
      * @return void
      */
-    // @phpstan-ignore-next-line
     public static function setColumnFields(&$form, $custom_table, array $column_options = [], $custom_view = null)
     {
         // columns setting
@@ -717,7 +714,6 @@ SCRIPT);
      *
      * @return Grid
      */
-    // @phpstan-ignore-next-line
     protected function getExportGrid()
     {
         $classname = getModelName($this->custom_table);
@@ -781,13 +777,17 @@ SCRIPT);
     }
 
 
-    // @phpstan-ignore-next-line
     /**
      * When set, this grid is embedded inside another screen (the project
      * portal) and must show only the records of one parent record. The
      * host screen also brings its own toolbar, so the grid drops its own.
+     *
+     * @var string|null parent table name
      */
     protected $embed_parent_type = null;
+    /**
+     * @var int|string|null parent record id
+     */
     protected $embed_parent_id = null;
 
     // @phpstan-ignore-next-line
@@ -839,7 +839,7 @@ SCRIPT);
      * parent_type / parent_id are the 1:N relation columns every child
      * value table has, so this works for any related table.
      *
-     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>|\Illuminate\Database\Query\Builder $query
      * @return mixed
      */
     protected function applyEmbedFilter($query)
@@ -856,5 +856,6 @@ SCRIPT);
         return $query;
     }
 
+    // @phpstan-ignore-next-line
     abstract public function grid();
 }

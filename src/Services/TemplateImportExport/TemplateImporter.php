@@ -418,7 +418,6 @@ class TemplateImporter
      *                           so a plugin update does not reset them
      * @return bool|void
      */
-    // @phpstan-ignore-next-line
     public function uploadTemplateWithPlugin($tmpDiskItem, $directory, bool $keepExisting = false)
     {
         $tmpDisk = $tmpDiskItem->disk();

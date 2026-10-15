@@ -28,7 +28,6 @@ class CellStylePresetController extends AdminControllerTableBase
      * @param  array<string, mixed>   $parameters
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    // @phpstan-ignore-next-line
     public function callAction($method, $parameters)
     {
         if (!isset($this->custom_table)) {
@@ -47,6 +46,8 @@ class CellStylePresetController extends AdminControllerTableBase
     /**
      * All presets, for the picker and its previews.
      *
+     * @param Request $request
+     * @param mixed $tableKey route parameter; the table is resolved by the constructor
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request, $tableKey)
@@ -59,6 +60,8 @@ class CellStylePresetController extends AdminControllerTableBase
     /**
      * The preset editor, as modal body html.
      *
+     * @param Request $request
+     * @param string $tableKey
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function modal(Request $request, $tableKey)
@@ -91,6 +94,8 @@ class CellStylePresetController extends AdminControllerTableBase
     /**
      * Save a new preset.
      *
+     * @param Request $request
+     * @param string $tableKey
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function store(Request $request, $tableKey)
@@ -120,6 +125,9 @@ class CellStylePresetController extends AdminControllerTableBase
      * Every column and view pointing at it repaints, which is the whole point
      * of the button - and the reason only its owner may press it.
      *
+     * @param Request $request
+     * @param string $tableKey
+     * @param string $suuid
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function update(Request $request, $tableKey, $suuid)
@@ -154,6 +162,9 @@ class CellStylePresetController extends AdminControllerTableBase
      * every column to rewrite would be a long write in a request that the
      * user thinks of as deleting one row.
      *
+     * @param Request $request
+     * @param string $tableKey
+     * @param string $suuid
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function destroy(Request $request, $tableKey, $suuid)

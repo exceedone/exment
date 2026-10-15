@@ -226,7 +226,7 @@ trait HasCommentMentionTrait
      * people for the parent record as well.
      *
      * @param CustomValue $record
-     * @param Collection $users user records to check
+     * @param Collection<int, mixed> $users user records to check
      * @return array<int, int> ids of those who may open it
      */
     protected static function mentionReaderIds(CustomValue $record, Collection $users): array
