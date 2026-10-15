@@ -73,6 +73,20 @@ final class DashboardFilter
     }
 
     /**
+     * The selection as df_ params, in the shape FilterBarConfig::selection produces.
+     *
+     * @return array<string, string|array<string|int, string>> param name (df_{column}) => value
+     */
+    public function query(): array
+    {
+        $out = [];
+        foreach ($this->values as $column => $spec) {
+            $out['df_' . $column] = FilterBarConfig::paramOf($spec);
+        }
+        return $out;
+    }
+
+    /**
      * @return FilterSpec|null
      */
     public function spec(string $column): ?array

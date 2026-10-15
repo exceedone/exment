@@ -33,6 +33,16 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertNull($filter->spec('other'));
     }
 
+    public function testQueryIsTheSelectionAsTheBarWritesIt(): void
+    {
+        // rendered as the bar's data-query: dashboard.js aligns the entry's URL with it
+        $dashboard = $this->makeDashboard($this->bar(['grade', 'subject', 'score']));
+        $filter = DashboardFilter::of($dashboard, ['df_grade' => ['1'], 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50', 'to' => ''], 'df_other' => 'x']);
+
+        $this->assertSame(['df_grade' => '1', 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50']], $filter->query());
+        $this->assertSame([], DashboardFilter::of($dashboard, [])->query());
+    }
+
     public function testSameAsComparesTheSelectionNotTheParams(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade', 'subject', 'score']));

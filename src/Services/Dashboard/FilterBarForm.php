@@ -25,6 +25,14 @@ final class FilterBarForm
         $form->exmheader(exmtrans('dashboard.filter_bar.header'))->hr();
         $form->descriptionHtml(exmtrans('dashboard.filter_bar.description'));
 
+        // a bar on a table this user may not view (a user dashboard shared for editing, an
+        // owner who lost the right) cannot be listed by the fields: the table select would
+        // post blank and the save drop the whole bar. Without the fields, the save keeps it.
+        if (self::sourceHidden($model)) {
+            $form->descriptionHtml('<span class="help-block"><i class="fa fa-info-circle"></i>&nbsp;' . esc_html(exmtrans('dashboard.filter_bar.locked')) . '</span>');
+            return;
+        }
+
         $columnsUrl = admin_urls('dashboard', 'filter_bar_columns');
         $form->select('filter_bar_table', exmtrans('dashboard.filter_bar.source_table'))
             // the tables whose rows this user may read, as the chart box and the item endpoints
@@ -81,6 +89,21 @@ final class FilterBarForm
                 'range_to' => exmtrans('dashboard.filter_bar.range_to'),
             ],
         ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) . ');');
+    }
+
+    /**
+     * Whether the dashboard's stored filter bar is on a table this user may not view.
+     *
+     * @param \Exceedone\Exment\Model\Dashboard|null $model  null on a new dashboard
+     */
+    private static function sourceHidden($model): bool
+    {
+        $source = $model ? $model->getOption('filter_bar.source_table') : null;
+        if (!is_scalar($source) || is_nullorempty($source)) {
+            return false;
+        }
+        $table = CustomTable::getEloquent($source);
+        return $table !== null && !$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE);
     }
 
     /**

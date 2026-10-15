@@ -114,13 +114,45 @@ class DashboardBoxController extends AdminControllerBase
             }
             $boxes[] = $box;
         }
-        $response = $this->resourceDestroy($id);
-        foreach ($boxes as $box) {
-            if (!DashboardBox::where('id', $box->id)->exists()) {
-                $box->dashboard->forgetFilterBarTarget((string) $box->suuid);
-            }
+        return $this->deleteBoxes(function () use ($id) {
+            return $this->resourceDestroy($id);
+        }, $boxes);
+    }
+
+    /**
+     * Runs $delete, then forgets the boxes of $boxes it deleted among their dashboards'
+     * filter targets (Dashboard::forgetFilterBarTargets) — one save per dashboard — in one
+     * transaction: a box never goes while a filter item still targets it.
+     *
+     * @param callable $delete  answers the response
+     * @param DashboardBox[] $boxes
+     * @return mixed
+     */
+    private function deleteBoxes(callable $delete, array $boxes)
+    {
+        try {
+            return \ExmentDB::transaction(function () use ($delete, $boxes) {
+                $response = $delete();
+                $dashboards = [];
+                $deleted = [];
+                foreach ($boxes as $box) {
+                    if (!DashboardBox::where('id', $box->id)->exists()) {
+                        $dashboards[$box->dashboard_id] = $dashboards[$box->dashboard_id] ?? $box->dashboard;
+                        $deleted[$box->dashboard_id][] = (string) $box->suuid;
+                    }
+                }
+                foreach ($deleted as $dashboardId => $suuids) {
+                    $dashboards[$dashboardId]->forgetFilterBarTargets($suuids);
+                }
+                return $response;
+            });
+        } catch (\Exception $ex) {
+            \Log::error($ex);
+            return response()->json([
+                'status'  => false,
+                'message' => trans('admin.delete_failed'),
+            ]);
         }
-        return $response;
     }
 
     /**
@@ -145,13 +177,14 @@ class DashboardBoxController extends AdminControllerBase
             ], 403);
         }
         if ($box instanceof DashboardBox) {
-            $box->delete();
             // a filter item targeting this box would otherwise narrow no box at all
-            $box->dashboard->forgetFilterBarTarget((string) $box->suuid);
-            return response()->json([
-                'status'  => true,
-                'message' => trans('admin.delete_succeeded'),
-            ]);
+            return $this->deleteBoxes(function () use ($box) {
+                $box->delete();
+                return response()->json([
+                    'status'  => true,
+                    'message' => trans('admin.delete_succeeded'),
+                ]);
+            }, [$box]);
         } else {
             return response()->json([
                 'status'  => false,

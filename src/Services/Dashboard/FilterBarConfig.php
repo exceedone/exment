@@ -253,18 +253,27 @@ final class FilterBarConfig
         $out = [];
         foreach (array_keys($this->dims) as $column) {
             $spec = FilterValue::parse($params['df_' . $column] ?? null);
-            if ($spec === null) {
-                continue;
-            }
-            if (isset($spec['in'])) {
-                $out['df_' . $column] = count($spec['in']) === 1 ? $spec['in'][0] : $spec['in'];
-            } else {
-                $out['df_' . $column] = array_filter(['from' => $spec['from'], 'to' => $spec['to']], function ($v) {
-                    return $v !== null;
-                });
+            if ($spec !== null) {
+                $out['df_' . $column] = static::paramOf($spec);
             }
         }
         return $out;
+    }
+
+    /**
+     * The df_ param value of one item's spec (FilterValue::parse): v, [v, ...] or [from, to].
+     *
+     * @param FilterSpec $spec
+     * @return string|array<string|int, string>
+     */
+    public static function paramOf(array $spec)
+    {
+        if (isset($spec['in'])) {
+            return count($spec['in']) === 1 ? $spec['in'][0] : $spec['in'];
+        }
+        return array_filter(['from' => $spec['from'], 'to' => $spec['to']], function ($v) {
+            return $v !== null;
+        });
     }
 
     /**

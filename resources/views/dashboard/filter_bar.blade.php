@@ -8,9 +8,10 @@
     $dims            FilterBarView::build(): [{column, label, style, kind, active, options, selected, capped | range}]
     $can_reset       the selection differs from the configured defaults (shows the reset button)
     $reset_query     URL query リセット navigates to: the configured defaults (none: dfr=1)
+    $query           URL query of the selection rendered (none: dfr=1)
     $dashboard_suuid kept on the URL across navigations
 --}}
-<div class="exment-df-bar" data-dashboard-suuid="{{ $dashboard_suuid }}" data-reset-query="{{ $reset_query }}">
+<div class="exment-df-bar" data-dashboard-suuid="{{ $dashboard_suuid }}" data-reset-query="{{ $reset_query }}" data-query="{{ $query }}">
     <div class="df-head">
         <span class="df-title"><i class="fa fa-filter"></i>{{ exmtrans('dashboard.filter_bar.title') }}</span>
     </div>
