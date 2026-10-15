@@ -39,7 +39,6 @@ class CellStylePresetSettingController extends AdminControllerBase
      * @param  array<string, mixed>   $parameters
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    // @phpstan-ignore-next-line
     public function callAction($method, $parameters)
     {
         $user = \Exment::user();
@@ -78,7 +77,9 @@ class CellStylePresetSettingController extends AdminControllerBase
             })->implode(', ');
         });
 
-        $grid->column('order', exmtrans('custom_view.order'))->sortable()->editable();
+        $order_column = $grid->column('order', exmtrans('custom_view.order'));
+        $order_column->sortable();
+        $order_column->editable();
         $grid->column('updated_at', trans('admin.updated_at'))->sortable();
 
         // The pickers list presets in this same order, so the screen that

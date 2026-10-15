@@ -62,13 +62,6 @@ class PluginServiceProvider extends ServiceProvider
     }
 
     /**
-     * routing plugin
-     *
-     * @param string $plugin_type
-     * @param PluginPageBase $pluginPage
-     * @return void
-     */
-    /**
      * Middlewares a plugin is allowed to opt out of.
      *
      * This is an allowlist rather than a denylist on purpose: a plugin can
@@ -99,7 +92,7 @@ class PluginServiceProvider extends ServiceProvider
      * bootstrapper or the pjax handler, and paying for them shows up as
      * latency on every call.
      *
-     * @param array<mixed> $json decoded config.json
+     * @param mixed $json decoded config.json
      * @param bool $isApi
      * @return array<mixed>
      */
@@ -177,6 +170,13 @@ class PluginServiceProvider extends ServiceProvider
         })->values()->all();
     }
 
+    /**
+     * routing plugin
+     *
+     * @param string $plugin_type
+     * @param PluginPageBase $pluginPage
+     * @return void
+     */
     protected function pluginRoute($plugin_type, $pluginPage)
     {
         $plugin = $pluginPage->_plugin();

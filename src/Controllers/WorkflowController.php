@@ -238,7 +238,7 @@ class WorkflowController extends AdminControllerBase
     {
         $form->savedInTransaction(function ($form) use ($id) {
             $saved = Workflow::find($id);
-            if (!isset($saved)) {
+            if (!$saved instanceof Workflow) {
                 return;
             }
             $saved->setOption('design_version', static::newDesignStamp());

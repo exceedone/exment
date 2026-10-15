@@ -36,6 +36,9 @@ class WorkflowConditionHeader extends ModelBase
 
     /**
      * Convert status_to id -> status_name so the header is portable across installs.
+     *
+     * @param array<string, mixed> $json
+     * @return void
      */
     public static function exportReplaceJson(&$json)
     {
@@ -59,6 +62,10 @@ class WorkflowConditionHeader extends ModelBase
      * Convert status_to status_name back to id.
      * The importer passes 'parent' = WorkflowAction instance in $options,
      * which is why we resolve via WorkflowAction -> workflow_id.
+     *
+     * @param array<string, mixed> $json
+     * @param array<string, mixed> $options
+     * @return void
      */
     public static function importReplaceJson(&$json, $options = [])
     {

@@ -282,7 +282,6 @@ class TemplateExporter
      * @param mixed $value
      * @return array<int, string>
      */
-    // @phpstan-ignore-next-line
     protected static function collectCellStylePresetKeys($value): array
     {
         if (!is_array($value)) {

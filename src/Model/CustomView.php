@@ -107,7 +107,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * @param array<string, mixed> $array
      * @return void
      */
-    // @phpstan-ignore-next-line
     protected static function exportReplaceJson(&$array)
     {
         $options = array_get($array, 'options');
@@ -122,7 +121,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * @param array<string, mixed> $options
      * @return string
      */
-    // @phpstan-ignore-next-line
     protected static function importReplaceJson(&$json, $options = [])
     {
         $viewOptions = array_get($json, 'options');
@@ -195,7 +193,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * Whatever was put on the relation is what this view is made of.
      *
      * @param string $relation
-     * @return \Illuminate\Support\Collection|null
+     * @return \Illuminate\Support\Collection<int, mixed>|null
      */
     protected function getSetRelationCache(string $relation)
     {

@@ -1040,7 +1040,7 @@ class WorkflowAction extends ModelBase
     /**
      * Export replace json - convert status_from id to status_name
      *
-     * @param array $json
+     * @param array<string, mixed> $json
      * @return void
      */
     public static function exportReplaceJson(&$json)
@@ -1069,8 +1069,8 @@ class WorkflowAction extends ModelBase
     /**
      * Import replace json - convert status_from_name back to status_from id
      *
-     * @param array $json
-     * @param array $options
+     * @param array<string, mixed> $json
+     * @param array<string, mixed> $options
      * @return void
      */
     public static function importReplaceJson(&$json, $options = [])

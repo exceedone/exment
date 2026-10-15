@@ -212,7 +212,8 @@ class KanbanGrid extends GridBase
      *
      * @param CustomColumn|null $group_column board columns come from this column
      * @param Workflow|null $workflow ... or from this workflow's statuses
-     * @param \Illuminate\Support\Collection $records
+     * @param \Illuminate\Support\Collection<int, mixed> $records
+     * @param array<int, string> $hide_keys
      * @return array<string, mixed>
      */
     protected function buildBoard($group_column, $workflow, $records, array $hide_keys = [])
@@ -528,7 +529,7 @@ class KanbanGrid extends GridBase
     /**
      * Build every card shown on the board.
      *
-     * @param \Illuminate\Support\Collection $records
+     * @param \Illuminate\Support\Collection<int, mixed> $records
      * @param array<string, CustomColumn> $value_columns
      * @param array<int, array<string, mixed>> $card_fields
      * @param CustomColumn|null $title_column
@@ -578,7 +579,7 @@ class KanbanGrid extends GridBase
             if (isset($item)) {
                 $items[$column_name] = $item->options(['format' => null, 'disable_currency_symbol' => false]);
             }
-            if (method_exists($custom_column, 'isMultipleEnabled') && $custom_column->isMultipleEnabled()) {
+            if ($custom_column->isMultipleEnabled()) {
                 $multiple_columns[$column_name] = true;
             }
         }
@@ -737,6 +738,7 @@ class KanbanGrid extends GridBase
      * @param CustomValue $record
      * @param CustomColumn $labels_column
      * @param array<string, string> $labels_options
+     * @param mixed $raw stored value of the labels column, read from the record when null
      * @return array<int, array<string, string>>
      */
     protected function buildCardLabels($record, $labels_column, array $labels_options, $raw = null)
@@ -1209,7 +1211,7 @@ class KanbanGrid extends GridBase
      * @param CustomColumn|null $group_column
      * @param Workflow|null $workflow
      * @param array<int, string> $hide_keys
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>
      */
     protected function newBoardQuery($group_column, $workflow, array $hide_keys)
     {
@@ -1245,7 +1247,7 @@ class KanbanGrid extends GridBase
      * @param Workflow|null $workflow
      * @param array<int, string> $hide_keys
      * @param string $key
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>
      */
     protected function buildColumnQuery($group_column, $workflow, array $hide_keys, $key)
     {
@@ -1263,7 +1265,7 @@ class KanbanGrid extends GridBase
      * the aggregate that counted it, so null and "" have to answer to the same
      * key here as well.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $query
      * @param CustomColumn $lane_column
      * @param string $lane
      * @return void
@@ -1290,7 +1292,7 @@ class KanbanGrid extends GridBase
      * "anything that is not one of the choices". Both have to be said in sql
      * here, because this is what decides which records are read at all.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>|\ExmentAdminCore\Admin\Grid\Model $query
      * @param CustomColumn|null $group_column
      * @param Workflow|null $workflow
      * @param array<int, string> $keys
@@ -1817,7 +1819,7 @@ class KanbanGrid extends GridBase
      * label lives elsewhere; the browser still finds those among the cards it
      * holds, but this cannot go looking for them.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $query
      * @param string $keyword
      * @param array<string, CustomColumn> $value_columns
      * @return void
@@ -2166,8 +2168,8 @@ class KanbanGrid extends GridBase
     /**
      * Copy the rows of one view relation onto another view.
      *
-     * @param \Illuminate\Database\Eloquent\Relations\HasMany $relation
-     * @param \Illuminate\Support\Collection $rows
+     * @param \Illuminate\Database\Eloquent\Relations\HasMany<\Illuminate\Database\Eloquent\Model, \Illuminate\Database\Eloquent\Model> $relation
+     * @param \Illuminate\Support\Collection<int, mixed> $rows
      * @param mixed $custom_view_id
      * @return void
      */
@@ -3528,7 +3530,7 @@ class KanbanGrid extends GridBase
      * Lists already read for this board, keyed by column and by the record the
      * board is embedded in.
      *
-     * @var array<string, array<string, mixed>>
+     * @var array<string, array<int|string, string>>
      */
     protected $board_value_options = [];
 

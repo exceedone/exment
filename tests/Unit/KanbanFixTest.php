@@ -385,6 +385,7 @@ class KanbanFixTest extends UnitTestBase
         $target = CustomTable::getEloquent('child_table');
         $cases = [];
         foreach ($table->getValueModel()->query()->orderBy('id')->take(20)->get() as $row) {
+            /** @var \Exceedone\Exment\Model\CustomValue|null $record */
             $record = $target->getValueModel()->find(array_get($row->value, 'child_ajax'));
             $keyword = isset($record) ? strval(array_get($record->value, 'index_text')) : '';
             if ($keyword !== '' && !array_key_exists($keyword, $cases)) {
@@ -716,6 +717,7 @@ class KanbanFixTest extends UnitTestBase
         $board = $this->boardOf($view);
         $this->assertNotEmpty($board['cards']);
         $card = $board['cards'][0];
+        /** @var \Exceedone\Exment\Model\CustomValue|null $record */
         $record = $table->getValueModel()->query()->withoutGlobalScopes()->find($card['id']);
         $this->assertNotNull($record);
         $this->assertSame($record->updated_at->format('Y-m-d H:i:s'), $card['updated_at'] ?? null, 'The card carries the edit lock of its record.');

@@ -989,7 +989,6 @@ class DefaultGrid extends GridBase
      * @param CustomView|null $custom_view
      * @return void
      */
-    // @phpstan-ignore-next-line
     public static function setGridFilterFields(&$form, $custom_table, array $column_options = [], $custom_view = null)
     {
         // columns setting

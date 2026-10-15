@@ -61,7 +61,7 @@ class Condition extends ModelBase
      * stores a name (a system column, a ConditionTypeDetail key) that means
      * the same thing on any installation.
      *
-     * @param array $json
+     * @param array<string, mixed> $json
      * @return void
      */
     public static function exportReplaceJson(&$json)
@@ -94,9 +94,9 @@ class Condition extends ModelBase
      * with an empty target: a branch that silently matches nothing changes
      * what the workflow or the form does without saying so.
      *
-     * @param array $json
-     * @param array $options
-     * @return int|void
+     * @param array<string, mixed> $json
+     * @param array<string, mixed> $options
+     * @return string|void
      */
     public static function importReplaceJson(&$json, $options = [])
     {

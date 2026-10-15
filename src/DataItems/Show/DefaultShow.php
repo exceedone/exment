@@ -613,6 +613,7 @@ EOT;
         return $this->custom_value->getDocuments();
     }
 
+    // @phpstan-ignore-next-line
     protected function setDocumentBox($row)
     {
         $documents = $this->getDocuments();

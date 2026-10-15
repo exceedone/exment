@@ -96,7 +96,7 @@ class PluginInstaller
                 $config_path = path_join($tmpfolderfullpath, $statname);
 
                 // get dirname
-                $dirname = pathinfo($statname)['dirname'];
+                $dirname = pathinfo($statname, PATHINFO_DIRNAME);
 
                 // if dirname is '.', $pluginFileBasePath is $tmpfolderpath
                 if ($dirname == '.') {
