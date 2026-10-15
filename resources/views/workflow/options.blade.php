@@ -42,7 +42,7 @@
         </div>
 
 
-        @if($index !== 0)
+        @if(!$isFirstStartAction)
         <div class="workflow_table_item">
             <label for="{{$id['ignore_work']}}" class="control-label small">
                 {{exmtrans('workflow.ignore_work')}}

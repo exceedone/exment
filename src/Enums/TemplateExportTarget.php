@@ -9,6 +9,7 @@ class TemplateExportTarget extends EnumBase
     public const DASHBOARD = 'dashboard';
     public const ROLE_GROUP = 'role_group';
     public const PUBLIC_FORM = 'public_form';
+    public const WORKFLOW = 'workflow';
 
     // @phpstan-ignore-next-line
     public static function TEMPLATE_EXPORT_OPTIONS()
@@ -18,6 +19,7 @@ class TemplateExportTarget extends EnumBase
             static::MENU,
             static::DASHBOARD,
             static::ROLE_GROUP,
+            static::WORKFLOW,
         ];
     }
 }

@@ -20,6 +20,18 @@ class WorkflowStatus extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
+    use Traits\TemplateTrait;
+
+
+    // @phpstan-ignore-next-line
+    public static $templateItems = [
+        'excepts' => ['id'],
+        'uniqueKeys' => [
+            'export' => ['workflow.workflow_view_name', 'status_name'],
+            'import' => ['workflow_id', 'status_name'],
+        ],
+        'parent' => 'workflow_id',
+    ];
 
 
     // @phpstan-ignore-next-line

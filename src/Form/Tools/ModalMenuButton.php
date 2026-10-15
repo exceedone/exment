@@ -36,6 +36,22 @@ class ModalMenuButton implements Renderable
     // @phpstan-ignore-next-line
     protected $menulist = [];
 
+    /**
+     * Render as a grid-toolbar tool instead of a floated button.
+     *
+     * The default `float-end` markup is what every non-grid caller (form
+     * headers, box tools) relies on for right alignment, but floats lay
+     * the buttons out in reverse DOM order. Inside the data-grid toolbar
+     * that made the phone layout (flex, DOM order) the mirror image of
+     * the PC one, and left no gap between the last unfloated tool and
+     * the first floated one. Grid callers set this so the button joins
+     * the normal flow as `.exm-grid-tool` and the DOM can simply be
+     * written in display order.
+     *
+     * @var bool
+     */
+    protected $grid_tool = false;
+
     // @phpstan-ignore-next-line
     public function __construct($url, $options = [])
     {
@@ -47,6 +63,18 @@ class ModalMenuButton implements Renderable
         $this->expand = array_get($options, 'expand', []);
 
         $this->uuid = make_uuid();
+    }
+
+    /**
+     * Join the grid toolbar flow instead of floating right.
+     *
+     * @return $this
+     */
+    public function gridTool()
+    {
+        $this->grid_tool = true;
+
+        return $this;
     }
 
     /**
@@ -64,6 +92,7 @@ class ModalMenuButton implements Renderable
             'uuid' => $this->uuid,
             'ajax' => $this->url,
             'expand' => collect($this->expand)->toJson(),
+            'grid_tool' => $this->grid_tool,
             'button_class' => $this->button_class,
             'label' => $this->label ?? null,
             'icon' => $this->icon,

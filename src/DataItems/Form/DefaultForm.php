@@ -557,6 +557,28 @@ EOT;
                 }
             }
 
+            // Preview before saving. [data-preview] is handled by preview.js, which
+            // already runs on every admin page: it retargets this form at the url
+            // below in a second window, so what is shown is the form as it stands.
+            //
+            // New-record screen only. An edit screen already carries the record's
+            // own View button, and a second eye icon beside it reads as the same
+            // thing twice - the preview endpoint itself is left in place.
+            if (!$disableToolsButton && !isset($id)) {
+                $tools->append(view('exment::tools.button', [
+                    'href' => 'javascript:void(0);',
+                    'label' => exmtrans('common.preview'),
+                    'icon' => 'fa-eye',
+                    'btn_class' => 'btn-warning',
+                    'attributes' => [
+                        'data-preview' => true,
+                        'data-preview-url' => admin_urls('data', $custom_table->table_name, 'preview'),
+                        'data-preview-error-title' => '',
+                        'data-preview-error-text' => '',
+                    ],
+                ]));
+            }
+
             if (!$disableToolsButton) {
                 PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             }

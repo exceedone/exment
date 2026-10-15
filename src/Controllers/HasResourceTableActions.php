@@ -17,7 +17,10 @@ trait HasResourceTableActions
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * A save answers with a redirect, an inline edit with json, and a plugin
+     * may answer with anything at all - the same union Form::update() returns.
+     *
+     * @return bool|\Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|mixed|null
      */
     // @phpstan-ignore-next-line
     public function update($tableKey, $id)
