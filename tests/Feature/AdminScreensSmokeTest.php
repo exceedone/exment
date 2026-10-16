@@ -40,7 +40,11 @@ class AdminScreensSmokeTest extends FeatureTestBase
     {
         $response = $this->get(admin_url($path), ['X-Requested-With' => 'XMLHttpRequest']);
         $status = $response->getStatusCode();
-        $this->assertTrue($status < 500, "GET admin/$path -> $status");
+        $e = $response->exceptions?->first();
+        $reason = $status >= 500 && $e
+            ? ' ' . get_class($e) . ': ' . $e->getMessage() . ' (' . basename($e->getFile()) . ':' . $e->getLine() . ')'
+            : '';
+        $this->assertTrue($status < 500, "GET admin/$path -> $status$reason");
     }
 
     /**
