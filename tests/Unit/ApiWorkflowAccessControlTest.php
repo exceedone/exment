@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Controllers\ApiWorkflowController;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Workflow;
 use ReflectionClass;
 use ReflectionMethod;
@@ -25,18 +26,26 @@ use Tests\TestCase;
 class ApiWorkflowAccessControlTest extends TestCase
 {
     /**
-     * @param mixed $enableAccessReturn
-     * @return object stub exposing enableAccess()
+     * @param bool|ErrorCode $enableAccessReturn
+     * @return CustomTable stub whose enableAccess() returns the given value
      */
-    private function fakeTable($enableAccessReturn)
+    private function fakeTable($enableAccessReturn): CustomTable
     {
-        return new class($enableAccessReturn) {
-            /** @var mixed */
+        return new class($enableAccessReturn) extends CustomTable {
+            /** @var bool|ErrorCode */
             private $ret;
-            public function __construct($ret)
+
+            /**
+             * @param bool|ErrorCode $ret optional, like the argument of Model::__construct()
+             */
+            public function __construct($ret = true)
             {
                 $this->ret = $ret;
             }
+
+            /**
+             * @return bool|ErrorCode
+             */
             public function enableAccess()
             {
                 return $this->ret;
@@ -45,19 +54,26 @@ class ApiWorkflowAccessControlTest extends TestCase
     }
 
     /**
-     * @param object|null $designatedTable
+     * @param CustomTable|null $designatedTable
      * @return Workflow
      */
-    private function fakeWorkflow($designatedTable): Workflow
+    private function fakeWorkflow(?CustomTable $designatedTable): Workflow
     {
         return new class($designatedTable) extends Workflow {
-            /** @var object|null */
+            /** @var CustomTable|null */
             public $designated;
-            // @phpstan-ignore-next-line
-            public function __construct($designated)
+
+            /**
+             * @param CustomTable|null $designated optional, like the argument of Model::__construct()
+             */
+            public function __construct($designated = null)
             {
                 $this->designated = $designated;
             }
+
+            /**
+             * @return CustomTable|null
+             */
             public function getDesignatedTable()
             {
                 return $this->designated;

@@ -20,6 +20,14 @@ class PluginMenuButton
     // @phpstan-ignore-next-line
     protected $plugin_type;
 
+    /**
+     * Render as a grid-toolbar tool (normal flow, .exm-grid-tool spacing)
+     * instead of the default right float - see ModalMenuButton::$grid_tool.
+     *
+     * @var bool
+     */
+    protected $grid_tool = false;
+
     // @phpstan-ignore-next-line
     public function __construct($listButton, $custom_table, $id = null)
     {
@@ -32,6 +40,18 @@ class PluginMenuButton
         }
         $this->custom_table = $custom_table;
         $this->id = $id;
+    }
+
+    /**
+     * Join the grid toolbar flow instead of floating right.
+     *
+     * @return $this
+     */
+    public function gridTool()
+    {
+        $this->grid_tool = true;
+
+        return $this;
     }
 
     // @phpstan-ignore-next-line
@@ -111,6 +131,7 @@ EOT;
             'uuid' => $uuid,
             'label' => $label ?? null,
             'button_class' => $button_class,
+            'grid_tool' => $this->grid_tool,
             'icon' => array_get($this->plugin, 'options.icon') ?? '',
         ]);
     }

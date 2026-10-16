@@ -105,6 +105,18 @@ class Define
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
         'filter_multi_user' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
 
+        // Meilisearch (full-text search) — 'config' maps let get_system_value fall back to .env.
+        'meili_host' => ['config' => 'meilisearch.host', 'group' => 'advanced'],
+        'meili_key' => ['type' => 'password', 'config' => 'meilisearch.key', 'group' => 'advanced'],
+        'meili_index' => ['config' => 'meilisearch.index', 'group' => 'advanced'],
+        'meili_global_search' => ['type' => 'boolean', 'config' => 'meilisearch.global_search', 'group' => 'advanced'],
+        'meili_realtime_sync' => ['type' => 'boolean', 'config' => 'meilisearch.realtime_sync', 'group' => 'advanced'],
+        'meili_batch_size' => ['type' => 'int', 'config' => 'meilisearch.batch_size', 'group' => 'advanced'],
+        'meili_repair_enabled' => ['type' => 'boolean', 'config' => 'meilisearch.repair_enabled', 'group' => 'advanced'],
+        'meili_repair_at' => ['config' => 'meilisearch.repair_at', 'group' => 'advanced'],
+        'meili_filter_mode' => ['config' => 'meilisearch.filter.mode', 'group' => 'advanced'],
+        'meili_indexed_at' => ['type' => 'json', 'group' => 'meili_state'],
+
 
         // notify
         'system_mail_host' => ['config' => 'mail.host', 'group' => 'notify'],
@@ -117,6 +129,18 @@ class Define
         'system_mail_body_type' => ['default' => 'html', 'group' => 'notify'],
 
         'system_slack_user_column' => ['group' => 'notify'],
+
+        'system_line_channel_token' => ['type' => 'password', 'config' => 'exment.line.channel_access_token', 'group' => 'notify'],
+        'system_line_channel_secret' => ['type' => 'password', 'config' => 'exment.line.channel_secret', 'group' => 'notify'],
+        'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
+
+        'safety_check_auto_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'notify'],
+        'safety_check_min_scale' => ['type' => 'int', 'default' => '45', 'group' => 'notify'],
+        'safety_check_cooldown_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'notify'],
+        'safety_check_comment_window_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'notify'],
+        'safety_check_max_bulletin_age_minutes' => ['type' => 'int', 'default' => '10', 'group' => 'notify'],
+        'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'notify'],
+        'safety_check_last_feed_time' => ['type' => 'datetime'],
 
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
@@ -244,6 +268,14 @@ class Define
             'uri' => 'system',
             'icon' => 'fa-cogs',
         ],
+        'meili_filter' => [
+            'uri' => 'meili-filter',
+            'icon' => 'fa-filter',
+        ],
+        'meili_dictionary' => [
+            'uri' => 'meili-dictionary',
+            'icon' => 'fa-language',
+        ],
         'custom_table' => [
             'uri' => 'table',
             'icon' => 'fa-table',
@@ -259,6 +291,10 @@ class Define
         'template' => [
             'uri' => 'template',
             'icon' => 'fa-clone',
+        ],
+        'cell_style_preset' => [
+            'uri' => 'cell_style_preset',
+            'icon' => 'fa-paint-brush',
         ],
         'workflow' => [
             'uri' => 'workflow',

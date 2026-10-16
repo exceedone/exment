@@ -230,6 +230,7 @@ class Api2Test extends ApiTestBase
         $data = array_get($json, 'data');
 
         $this->assertTrue(!\is_nullorempty($data));
+        $this->assertIsArray($data);
         $this->assertTrue(
             collect($data)->contains(function ($d) {
                 return array_get($d, 'table_name') == 'custom_value_edit';
@@ -1013,6 +1014,7 @@ class Api2Test extends ApiTestBase
         $data = array_get($json, 'data');
         // @phpstan-ignore-next-line
         $column_definitions = array_get($json, 'column_definitions');
+        $this->assertIsArray($column_definitions);
         $user_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'user';
         })->keys()->first();
@@ -1071,6 +1073,7 @@ class Api2Test extends ApiTestBase
         $data = array_get($json, 'data');
         // @phpstan-ignore-next-line
         $column_definitions = array_get($json, 'column_definitions');
+        $this->assertIsArray($column_definitions);
         $user_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'user';
         })->keys()->first();
@@ -1101,6 +1104,7 @@ class Api2Test extends ApiTestBase
         $data = array_get($json, 'data');
         // @phpstan-ignore-next-line
         $column_definitions = array_get($json, 'column_definitions');
+        $this->assertIsArray($column_definitions);
         $id_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'id';
         })->keys()->first();
@@ -1129,6 +1133,7 @@ class Api2Test extends ApiTestBase
         $data = array_get($json, 'value');
         // @phpstan-ignore-next-line
         $column_definitions = array_get($json, 'column_definitions');
+        $this->assertIsArray($column_definitions);
         $id_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'id';
         })->keys()->first();
@@ -3049,6 +3054,7 @@ class Api2Test extends ApiTestBase
 
         // @phpstan-ignore-next-line
         $results = json_decode_ex($response->baseResponse->getContent(), true)['data'];
+        $this->assertIsArray($results);
         foreach ($results as $result) {
             foreach ($filters as $key => $value) {
                 if ($key == 'count') {
@@ -3210,6 +3216,7 @@ class Api2Test extends ApiTestBase
             $children = array_get($data, 'children.' . $relation->child_custom_table_cache->table_name);
 
             // get children id
+            $this->assertIsArray($children);
             $children_ids = collect($children)->map(function ($child) {
                 return array_get($child, 'id');
             })->toArray();
@@ -3270,6 +3277,7 @@ class Api2Test extends ApiTestBase
             ////// Check as n:n
             else {
                 // get parents id
+                $this->assertIsArray($parents);
                 $parents_ids = collect($parents)->map(function ($parent) {
                     return array_get($parent, 'id');
                 })->toArray();

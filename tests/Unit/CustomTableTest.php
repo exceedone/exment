@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Enums\MultisettingType;
@@ -93,9 +94,11 @@ class CustomTableTest extends UnitTestBase
         // compare custom column
         $this->assertEquals($to_table->custom_columns_cache->count(), $from_table->custom_columns_cache->count());
         foreach ($to_table->custom_columns_cache as $to_column) {
+            $this->assertInstanceOf(CustomColumn::class, $to_column);
             $from_column = $from_table->custom_columns_cache->filter(function($column) use($to_column){
                 return $column->column_name == $to_column->column_name;
             })->first();
+            $this->assertInstanceOf(CustomColumn::class, $from_column, "the source table has no column {$to_column->column_name}");
             $diff = collect($to_column->getAttributes())->diffAssoc(collect($from_column->getAttributes()));
             foreach ($diff as $key => $value) {
                 switch ($key) {
@@ -212,9 +215,10 @@ class CustomTableTest extends UnitTestBase
             );
         }
 
-        // Assert non-barcode options are still copied
-        $this->assertNotNull($to_table->getOption('search_enabled') ?? $to_table->getOption('table_label_format') ?? true,
-            "Non-barcode options should still be present");
+        // Assert non-barcode options are still copied: copyTable() clears only the barcode ones
+        foreach (array_diff_key($from_table->options ?? [], $barcodeOptions) as $key => $value) {
+            $this->assertEquals($value, $to_table->getOption($key), "Option '{$key}' should be copied as it is");
+        }
 
         // Clean up
         $to_table->delete();
@@ -332,7 +336,7 @@ class CustomTableTest extends UnitTestBase
                 return $item->multisetting_type == MultisettingType::MULTI_UNIQUES
                     && $item->priority == 999;
             });
-        $this->assertNotNull($importedSetting);
+        $this->assertInstanceOf(CustomColumnMulti::class, $importedSetting);
 
         $importedColumnId = $importedSetting->getOption('unique1_id');
         $this->assertNotNull($importedColumnId);

@@ -373,6 +373,23 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $items->each(function ($item) {
             $item->delete();
         });
+
+        // Meilisearch filter settings name the column by column_name, with no
+        // foreign key to it. Left behind, the column stays declared filterable,
+        // is listed on the settings screen as if it existed, and a bookmarked
+        // search using it returns nothing without a word. One by one, so each
+        // delete reindexes the table and re-applies the index settings.
+        // \Schema::hasTable, not the hasTable() helper: that one builds a DBAL
+        // connection hardcoded to pdo_mysql, so on SQL Server it fails, caches an
+        // empty table list and this cleanup would never run.
+        if (\Schema::hasTable((new MeiliFilterSetting())->getTable())) {
+            $items = MeiliFilterSetting::where('custom_table_id', $this->custom_table_id)
+                ->where('column_name', $this->column_name)
+                ->get();
+            $items->each(function ($item) {
+                $item->delete();
+            });
+        }
     }
 
     protected static function boot()
@@ -388,6 +405,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             if (ColumnType::isAttachment($model->column_type)) {
                 $model->setOption('unique', null);
             }
+            $model->filterGridStyleOptions();
             $model->prepareJson('options');
         });
 
@@ -410,6 +428,54 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             $model->custom_table_cache->getValueQuery()->
                 updateRemovingJsonKey("value->{$model->column_name}");
         });
+    }
+
+    /**
+     * Keep the cell appearance settings of this column in the shape the
+     * renderer accepts.
+     *
+     * The column setting screen still posts the raw `grid_*` fields of
+     * columns styled before presets existed, and a template brings whatever
+     * the installation it came from stored. Either way the values end up in
+     * every list of the table, in front of people other than the one who
+     * typed them, so a value the renderer would refuse is not stored at all.
+     * The rules are a preset's, except that the per-value lines are not cut
+     * short: they list this column's own choices, however many it has.
+     *
+     * A refused value is set to null rather than forgotten, so prepareJson()
+     * drops the key instead of restoring the stored one. A key this save
+     * does not carry is read from the stored options for the same reason:
+     * prepareJson() would put it back exactly as it was stored.
+     */
+    protected function filterGridStyleOptions(): void
+    {
+        $options = $this->options;
+        if ($options instanceof Collection) {
+            $options = $options->toArray();
+        }
+        if (!is_array($options)) {
+            return;
+        }
+
+        $original = json_decode_ex($this->getRawOriginal('options'), true);
+        if (is_array($original)) {
+            $options += $original;
+        }
+
+        $present = array_intersect_key($options, array_flip(ColumnItems\GridCellStyle::STYLE_KEYS));
+        if (empty($present)) {
+            return;
+        }
+
+        $filtered = CellStylePreset::filterOptions(array_except($present, ['grid_value_colors']));
+        $filtered['grid_value_colors'] = ColumnItems\GridCellStyle::filterValueColors(array_get($present, 'grid_value_colors'));
+
+        foreach ($present as $key => $value) {
+            $accepted = array_get($filtered, $key);
+            if ($value !== $accepted) {
+                $this->setOption($key, $accepted);
+            }
+        }
     }
 
     /**

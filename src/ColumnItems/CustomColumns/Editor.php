@@ -11,11 +11,16 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Enums\FileType;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class Editor extends CustomItem
 {
     // @phpstan-ignore-next-line
     protected $tmpfiles;
+
+    /** @var array<string, array{file: ExmentFile, target: mixed, temp_name: string}> */
+    protected array $pastedImages = [];
 
     // @phpstan-ignore-next-line
     public function saving()
@@ -36,9 +41,69 @@ class Editor extends CustomItem
             return;
         }
 
-        foreach ($this->tmpfiles as $tmpfile) {
-            $tmpfile['file']->saveDocumentModel($this->custom_value, $tmpfile['filename']);
+        $pending = $this->tmpfiles;
+        $this->tmpfiles = [];
+        foreach ($pending as $tmpfile) {
+            $target = $tmpfile['target'] ?? $this->custom_value;
+            if (! $this->sameImageTarget($target, $this->custom_value)) {
+                $this->tmpfiles[] = $tmpfile;
+                continue;
+            }
+            $tmpfile['file']->saveDocumentModel($target, $tmpfile['filename']);
+            if (isset($tmpfile['temp_name'])) {
+                if (!Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->delete($tmpfile['temp_name'])) {
+                    Log::warning('Could not remove a saved temporary editor image.', ['file' => $tmpfile['temp_name']]);
+                }
+            }
         }
+    }
+
+    /**
+     * Rows are told apart by identity, or by id and table name - all that a
+     * row has to offer here, which is what lets the unit tests pass a
+     * stand-in row instead of a model.
+     *
+     * @param \Exceedone\Exment\Model\CustomValue|null $target
+     * @param \Exceedone\Exment\Model\CustomValue|object{id: mixed, custom_table: mixed}|null $row
+     */
+    private function sameImageTarget($target, $row): bool
+    {
+        return $target === $row || (isset($target->id, $row->id)
+            && strval($target->id) === strval($row->id)
+            && $target->custom_table->table_name === $row->custom_table->table_name);
+    }
+
+    /**
+     * @param \Exceedone\Exment\Model\CustomValue|object{id: mixed, custom_table: mixed}|null $row see sameImageTarget()
+     * @return array<string, array{url: string, uuid: string}>
+     */
+    public function getPastedImageUrls($row): array
+    {
+        $urls = [];
+        foreach ($this->pastedImages as $source => $image) {
+            if ($this->sameImageTarget($image['target'], $row)) {
+                $urls[$source] = [
+                    'url' => admin_url('files', [$image['file']->uuid]),
+                    'uuid' => strval($image['file']->uuid),
+                ];
+            }
+        }
+        return $urls;
+    }
+
+    /**
+     * @param \Exceedone\Exment\Model\CustomValue|object{id: mixed, custom_table: mixed}|null $row see sameImageTarget()
+     * @return array<string, array{file: ExmentFile, target: mixed, temp_name: string}>
+     */
+    public function getPastedImageFiles($row): array
+    {
+        $files = [];
+        foreach ($this->pastedImages as $image) {
+            if ($this->sameImageTarget($image['target'], $row)) {
+                $files[$image['file']->uuid] = $image;
+            }
+        }
+        return $files;
     }
 
     // @phpstan-ignore-next-line
@@ -141,22 +206,28 @@ class Editor extends CustomItem
         }
         // find <img alt="" src=""> tag
         preg_match_all('/\<img([^\>]*?)src="(?<src>.*?)"(.*?)\>/u', $value, $matches);
-        if (is_nullorempty($matches)) {
+        preg_match_all('/!\[[^\]\r\n]*\]\((?<src>[^\s)]+)\)/u', $value, $markdown);
+        $htmlCount = count($matches[0]);
+        $matches[0] = array_merge($matches[0], $markdown[0]);
+        $matches['src'] = array_merge($matches['src'], $markdown['src']);
+        if (empty($matches[0])) {
             return $value;
         }
 
-        $this->tmpfiles = [];
+        if (!is_array($this->tmpfiles)) { $this->tmpfiles = []; }
 
         // replace src="" and save file
         for ($index = 0; $index < count($matches[0]); $index++) {
             $match = $matches[0][$index];
             // group
             $src = array_get($matches, 'src')[$index];
+            $isMarkdown = $index >= $htmlCount;
             $filename = pathinfo($src, PATHINFO_FILENAME);
 
             $exists = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->exists($filename);
             // check url
             $tmpUrl = strpos($src, admin_urls('tmpfiles')); // check url
+            $publicTemp = false;
             // consider public form
             if ($tmpUrl === false) {
                 $patturn_uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
@@ -164,10 +235,36 @@ class Editor extends CustomItem
                 preg_match("/" . str_replace("/", "\/", $patturn) . "/", $src, $preg_match);
                 if ($preg_match) {
                     $tmpUrl = true;
+                    $publicTemp = true;
                 }
             }
 
             $fileUrl = strpos($src, admin_urls('files')); // check url
+            if ($isMarkdown && $tmpUrl === false) {
+                continue;
+            }
+            if (isset($this->pastedImages[$src])
+                && $this->sameImageTarget($this->pastedImages[$src]['target'], $this->custom_value)) {
+                $uuid = $this->pastedImages[$src]['file']->uuid;
+                if ($isMarkdown) {
+                    $value = str_replace($match, str_replace($src, admin_url('files', [$uuid]), $match), $value);
+                    continue;
+                }
+            } else {
+                $uuid = null;
+            }
+
+            if ($tmpUrl !== false && $uuid === null) {
+                $base = rtrim(admin_urls('tmpfiles'), '/') . '/';
+                $owned = preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/i', $filename)
+                    && ($src === $base . $filename || (!$isMarkdown && $publicTemp))
+                    && session()->has($filename);
+                if (!$exists || !$owned) {
+                    throw ValidationException::withMessages([
+                        $this->custom_column->column_name => exmtrans('common.message.editor_image_expired'),
+                    ]);
+                }
+            }
 
             // if not exment path url, continue
             if ($tmpUrl === false && $fileUrl === false) {
@@ -175,23 +272,36 @@ class Editor extends CustomItem
             }
 
             // save tmp files
-            $uuid = null;
-            if ($exists && $tmpUrl !== false) {
+            if ($uuid === null && $exists && $tmpUrl !== false) {
                 // get temporary file data
                 $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($filename);
+                if (@getimagesizefromstring($file) === false) {
+                    throw ValidationException::withMessages([
+                        $this->custom_column->column_name => trans('validation.image'),
+                    ]);
+                }
                 // get original filename from session
                 $original_name = session()->get($filename);
                 // save file info
-                $exmentfile = ExmentFile::put(FileType::CUSTOM_VALUE_DOCUMENT, path_join($this->custom_table->table_name, make_uuid()), $file);
+                $exmentfile = ExmentFile::saveFileInfo(FileType::CUSTOM_VALUE_DOCUMENT, path_join($this->custom_table->table_name, make_uuid()));
 
                 // save document model
                 $this->tmpfiles[] = [
                     'file' => $exmentfile,
                     'filename' => $original_name??$filename,
+                    'target' => $this->custom_value,
+                    'temp_name' => $filename,
                 ];
-
-                // delete temporary file
-                Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->delete($filename);
+                $this->pastedImages[$src] = [
+                    'file' => $exmentfile,
+                    'target' => $this->custom_value,
+                    'temp_name' => $filename,
+                ];
+                $disk = Storage::disk(config('admin.upload.disk'));
+                if (!$disk->put($exmentfile->path, $file) || !$disk->exists($exmentfile->path)
+                    || $disk->size($exmentfile->path) !== strlen($file)) {
+                    throw new \RuntimeException('Failed to store an editor image.');
+                }
 
                 // set request session to save this custom_value's id and type into files table.
                 $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
@@ -207,6 +317,10 @@ class Editor extends CustomItem
 
                 $uuid = $exmentfile->uuid;
                 $this->custom_value->file_uuids($file_uuid);
+            }
+            if ($isMarkdown) {
+                $value = str_replace($match, str_replace($src, admin_url('files', [$uuid]), $match), $value);
+                continue;
             }
 
             // replace src to uuid

@@ -391,12 +391,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Controllers/AuthController.php
 
 		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/AuthController.php
-
-		-
 			message: '#^Variable \$form_password in isset\(\) always exists and is not nullable\.$#'
 			identifier: isset.variable
 			count: 1
@@ -917,18 +911,6 @@ parameters:
 			identifier: argument.templateType
 			count: 3
 			path: vendor/exceedone/exment/src/Controllers/WorkflowNotifyController.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/src/DashboardBoxItems/ChartItem.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/src/DashboardBoxItems/ChartItem.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -1843,6 +1825,18 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/ApiKey.php
 
 		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/CellStylePreset.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/CellStylePreset.php
+
+		-
 			message: '#^Class Exceedone\\Exment\\Model\\Condition has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1855,14 +1849,20 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/Condition.php
 
 		-
-			message: '#^Class Exceedone\\Exment\\Model\\CustomColumn has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomColumn.php
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/Condition.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/Condition.php
+
+		-
+			message: '#^Class Exceedone\\Exment\\Model\\CustomColumn has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomColumn.php
 
@@ -1915,12 +1915,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomColumn.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomColumnMulti\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomColumnMulti\)\>\|static\(Exceedone\\Exment\\Model\\CustomColumnMulti\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomColumnMulti.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -1935,12 +1929,6 @@ parameters:
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\CustomCopy has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomCopy.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomCopy\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomCopy\)\>\|static\(Exceedone\\Exment\\Model\\CustomCopy\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomCopy.php
 
@@ -1987,12 +1975,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomCopyColumn.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomCopyColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomCopyColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomCopyColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomCopyColumn.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomCopyColumn\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2023,12 +2005,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomForm.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomForm\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomForm\)\>\|static\(Exceedone\\Exment\\Model\\CustomForm\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomForm.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -2041,12 +2017,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomForm.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomFormBlock\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomFormBlock\)\>\|static\(Exceedone\\Exment\\Model\\CustomFormBlock\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomFormBlock.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -2057,12 +2027,6 @@ parameters:
 			identifier: argument.templateType
 			count: 3
 			path: vendor/exceedone/exment/src/Model/CustomFormBlock.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomFormColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomFormColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomFormColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomFormColumn.php
 
 		-
 			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Model\\CustomFormColumn\:\:orderBy\(\) return type contains generic class Exceedone\\Exment\\Database\\Query\\ExtendedBuilder but does not specify its types\: TModelClass$#'
@@ -2089,6 +2053,18 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomFormColumn.php
 
 		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/CustomFormPriority.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/CustomFormPriority.php
+
+		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isMatchCondition\(\)\.$#'
 			identifier: method.notFound
 			count: 2
@@ -2097,12 +2073,6 @@ parameters:
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\CustomOperation has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomOperation.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomOperation\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomOperation\)\>\|static\(Exceedone\\Exment\\Model\\CustomOperation\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomOperation.php
 
@@ -2149,12 +2119,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomOperationColumn.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomOperationColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomOperationColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomOperationColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomOperationColumn.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomOperationColumn\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2171,12 +2135,6 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomOperationColumn.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomRelation\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomRelation\)\>\|static\(Exceedone\\Exment\\Model\\CustomRelation\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomRelation.php
 
 		-
 			message: '#^Parameter \#1 \$related of method Illuminate\\Database\\Eloquent\\Model\:\:belongsTo\(\) expects class\-string\<Illuminate\\Database\\Eloquent\\Model\>, string\|null given\.$#'
@@ -2271,12 +2229,6 @@ parameters:
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\CustomTable has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomTable.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomTable\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomTable\)\>\|static\(Exceedone\\Exment\\Model\\CustomTable\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomTable.php
 
@@ -2425,12 +2377,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomView.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomView\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomView\)\>\|static\(Exceedone\\Exment\\Model\\CustomView\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomView.php
-
-		-
 			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Model\\CustomView\:\:orderBy\(\) return type contains generic class Exceedone\\Exment\\Database\\Eloquent\\ExtendedBuilder but does not specify its types\: TModelClass$#'
 			identifier: missingType.generics
 			count: 1
@@ -2451,13 +2397,13 @@ parameters:
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 4
 			path: vendor/exceedone/exment/src/Model/CustomView.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 4
 			path: vendor/exceedone/exment/src/Model/CustomView.php
 
 		-
@@ -2469,12 +2415,6 @@ parameters:
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\CustomViewColumn has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewColumn.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomViewColumn.php
 
@@ -2515,12 +2455,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomViewFilter.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewFilter\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewFilter\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewFilter\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewFilter.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomViewFilter\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2551,12 +2485,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomViewGridFilter.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewGridFilter\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewGridFilter\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewGridFilter\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewGridFilter.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomViewGridFilter\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2583,12 +2511,6 @@ parameters:
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\CustomViewSort has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewSort.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewSort\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewSort\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewSort\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomViewSort.php
 
@@ -2629,12 +2551,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomViewSummary.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewSummary\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewSummary\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewSummary\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewSummary.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomViewSummary\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2659,12 +2575,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomViewSummary.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\Dashboard\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Dashboard\)\>\|static\(Exceedone\\Exment\\Model\\Dashboard\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/Dashboard.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -2675,12 +2585,6 @@ parameters:
 			identifier: argument.templateType
 			count: 3
 			path: vendor/exceedone/exment/src/Model/Dashboard.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\DashboardBox\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\DashboardBox\)\>\|static\(Exceedone\\Exment\\Model\\DashboardBox\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/DashboardBox.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -2767,12 +2671,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/LoginSetting.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\LoginSetting\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\LoginSetting\)\>\|static\(Exceedone\\Exment\\Model\\LoginSetting\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/LoginSetting.php
-
-		-
 			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Model\\LoginSetting\:\:create\(\) return type contains generic class Exceedone\\Exment\\Database\\Eloquent\\ExtendedBuilder but does not specify its types\: TModelClass$#'
 			identifier: missingType.generics
 			count: 1
@@ -2803,12 +2701,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/LoginUser.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\Menu\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Menu\)\>\|static\(Exceedone\\Exment\\Model\\Menu\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/Menu.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -2829,12 +2721,6 @@ parameters:
 		-
 			message: '#^Iterating over an object of an unknown class Tightenco\\Collect\\Support\\Collection\.$#'
 			identifier: class.notFound
-			count: 1
-			path: vendor/exceedone/exment/src/Model/Notify.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\Notify\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Notify\)\>\|static\(Exceedone\\Exment\\Model\\Notify\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/Notify.php
 
@@ -2881,12 +2767,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/NotifyTarget.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\Plugin\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Plugin\)\>\|static\(Exceedone\\Exment\\Model\\Plugin\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/Plugin.php
-
-		-
 			message: '#^Strict comparison using \!\=\= between string and null will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
@@ -2903,12 +2783,6 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Model/Plugin.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\PublicForm\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\PublicForm\)\>\|static\(Exceedone\\Exment\\Model\\PublicForm\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/PublicForm.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -2933,12 +2807,6 @@ parameters:
 			identifier: method.notFound
 			count: 2
 			path: vendor/exceedone/exment/src/Model/RelationTable.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\RoleGroup\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\RoleGroup\)\>\|static\(Exceedone\\Exment\\Model\\RoleGroup\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/RoleGroup.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -2995,12 +2863,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/System.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\System\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\System\)\>\|static\(Exceedone\\Exment\\Model\\System\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/System.php
-
-		-
 			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Model\\Traits\\AutoSUuidTrait\:\:allRecords\(\) return type contains generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
 			identifier: missingType.generics
 			count: 1
@@ -3049,27 +2911,27 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/Traits/UserTrait.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\Workflow\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Workflow\)\>\|static\(Exceedone\\Exment\\Model\\Workflow\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
 			path: vendor/exceedone/exment/src/Model/Workflow.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowAction\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowAction\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowAction\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/WorkflowAction.php
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/Workflow.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
-			count: 4
+			count: 7
 			path: vendor/exceedone/exment/src/Model/WorkflowAction.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 4
+			count: 7
 			path: vendor/exceedone/exment/src/Model/WorkflowAction.php
 
 		-
@@ -3079,27 +2941,51 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/WorkflowAuthority.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowAuthority\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowAuthority\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowAuthority\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
 			path: vendor/exceedone/exment/src/Model/WorkflowAuthority.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowConditionHeader\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowConditionHeader\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowConditionHeader\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/WorkflowAuthority.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
 			path: vendor/exceedone/exment/src/Model/WorkflowConditionHeader.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowStatus\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowStatus\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowStatus\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/WorkflowConditionHeader.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
 			path: vendor/exceedone/exment/src/Model/WorkflowStatus.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowTable\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowTable\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowTable\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/WorkflowStatus.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: vendor/exceedone/exment/src/Model/WorkflowTable.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
 			path: vendor/exceedone/exment/src/Model/WorkflowTable.php
 
 		-
@@ -3295,15 +3181,15 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/DataImportExport/DataImportExportService.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:indexEnabled\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: vendor/exceedone/exment/src/Services/DataImportExport/DataImportExportWidgetService.php
-
-		-
 			message: '#^Instanceof between Illuminate\\Http\\Request and Illuminate\\Http\\Request will always evaluate to true\.$#'
 			identifier: instanceof.alwaysTrue
 			count: 2
+			path: vendor/exceedone/exment/src/Services/DataImportExport/DataImportExportServiceTrait.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:indexEnabled\(\)\.$#'
+			identifier: method.notFound
+			count: 1
 			path: vendor/exceedone/exment/src/Services/DataImportExport/DataImportExportWidgetService.php
 
 		-
@@ -3685,12 +3571,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/Plugin/PluginInstaller.php
 
 		-
-			message: '#^Call to function is_null\(\) with null will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 2
-			path: vendor/exceedone/exment/src/Services/Plugin/PluginInstaller.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
@@ -3858,872 +3738,3 @@ parameters:
 			count: 2
 			path: vendor/exceedone/exment/src/Validator/FileRule.php
 
-		-
-			message: '#^Call to an undefined method Exceedone\\Exment\\Model\\CustomColumn\|Illuminate\\Database\\Eloquent\\Collection\<int, Exceedone\\Exment\\Model\\CustomColumn\>\:\:getOption\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: vendor/exceedone/exment/tests/Browser/CCustomColumnTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Browser/CCustomFormTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/tests/Browser/CCustomOperationTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/tests/Browser/CCustomOperationTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 2
-			path: vendor/exceedone/exment/tests/Browser/DCustomDataTest.php
-
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: vendor/exceedone/exment/tests/Browser/ExmentKitTestCase.php
-
-		-
-			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Tests\\Browser\\ExmentKitTestCase\:\:beginDatabaseTransaction\(\) return type contains invalid type Exceedone\\Exment\\Tests\\DatabaseTransactions\.$#'
-			identifier: methodTag.trait
-			count: 1
-			path: vendor/exceedone/exment/tests/Browser/ExmentKitTestCase.php
-
-		-
-			message: '#^Property Exceedone\\Exment\\Tests\\Browser\\ExmentKitTestCase\:\:\$baseUrl \(string\) does not accept bool\|string\|null\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: vendor/exceedone/exment/tests/Browser/ExmentKitTestCase.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 9
-			path: vendor/exceedone/exment/tests/Feature/Api2Test.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 9
-			path: vendor/exceedone/exment/tests/Feature/Api2Test.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/ApiFilterConditionTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/ApiFilterConditionTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\ApiTestBase\:\:getApiKey\(\) return type with generic class Illuminate\\Testing\\TestResponse does not specify its types\: TResponse$#'
-			identifier: missingType.generics
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/ApiTestBase.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\ApiTestBase\:\:getPasswordToken\(\) return type with generic class Illuminate\\Testing\\TestResponse does not specify its types\: TResponse$#'
-			identifier: missingType.generics
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/ApiTestBase.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with false and ''Not matched file…'' will always evaluate to false\.$#'
-			identifier: method.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/DocumentImportTest.php
-
-		-
-			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Tests\\Feature\\FeatureTestBase\:\:beginDatabaseTransaction\(\) return type contains invalid type Exceedone\\Exment\\Tests\\DatabaseTransactions\.$#'
-			identifier: methodTag.trait
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/FeatureTestBase.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with false and ''Not matched file…'' will always evaluate to false\.$#'
-			identifier: method.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/FileImportTestBase.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/ImportExportTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/ImportExportTest.php
-
-		-
-			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/InstallFlowRegressionTest.php
-
-		-
-			message: '#^Call to function is_null\(\) with ''system_require'' will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/InstallFlowRegressionTest.php
-
-		-
-			message: '#^Call to function is_null\(\) with null will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/InstallFlowRegressionTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertFalse\(\) with false and ''AFTER FIX\: shortcut…'' will always evaluate to false\.$#'
-			identifier: method.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/InstallFlowRegressionTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''AFTER FIX\: when no…'' will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/InstallFlowRegressionTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\InstallFlowRegressionTest\:\:callSetEnv\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/InstallFlowRegressionTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\InstallFlowRegressionTest\:\:readEnvLines\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/InstallFlowRegressionTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Feature\\InstallFlowRegressionTest\:\:readEnvLines\(\) should return array but returns list\<string\>\|false\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/InstallFlowRegressionTest.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between ''system_require'' and ''system_require'' will always evaluate to true\.$#'
-			identifier: identical.alwaysTrue
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/InstallFlowRegressionTest.php
-
-		-
-			message: '#^Argument of an invalid type array\|Illuminate\\Support\\Collection\|Tightenco\\Collect\\Support\\Collection supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/NotifyTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with false and ''This batch excepts…'' will always evaluate to false\.$#'
-			identifier: method.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/PluginTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 2
-			path: vendor/exceedone/exment/tests/Feature/PluginTest.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between string and false will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/TemplateImportThumbnailTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/TemplateImportThumbnailTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Feature/TemplateImportThumbnailTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\Workflow@anonymous/vendor/exceedone/exment/tests/Unit/ApiWorkflowAccessControlTest\.php\:53\:\:getDesignatedTable\(\) should return Exceedone\\Exment\\Model\\CustomTable\|null but returns object\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/ApiWorkflowAccessControlTest.php
-
-		-
-			message: '#^Method class@anonymous/vendor/exceedone/exment/tests/Unit/ApiWorkflowAccessControlTest\.php\:33\:\:__construct\(\) has parameter \$ret with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/ApiWorkflowAccessControlTest.php
-
-		-
-			message: '#^Method class@anonymous/vendor/exceedone/exment/tests/Unit/ApiWorkflowAccessControlTest\.php\:33\:\:enableAccess\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/ApiWorkflowAccessControlTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 4
-			path: vendor/exceedone/exment/tests/Unit/CustomColumnTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 4
-			path: vendor/exceedone/exment/tests/Unit/CustomColumnTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with false and ''This test excepts…'' will always evaluate to false\.$#'
-			identifier: method.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomColumnValidationTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomColumnValidationTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\CustomCopyTest\:\:_prepareCustomCopy\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomCopyTest.php
-
-		-
-			message: '#^PHPDoc tag @return has invalid value \(\\Exceedone\\Exment\\Model\\CustomCopy\.\)\: Unexpected token "\.", expected TOKEN_HORIZONTAL_WS at offset 97 on line 3$#'
-			identifier: phpDoc.parseError
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomCopyTest.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:getOption\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomTableTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with mixed and ''Non\-barcode options…'' will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomTableTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/tests/Unit/CustomTableTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/tests/Unit/CustomTableTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomViewGridFilterTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomViewGridFilterTest.php
-
-		-
-			message: '#^PHPDoc tag @var with type mixed is not subtype of native type Illuminate\\Database\\Eloquent\\Model\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomViewSummaryTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 29
-			path: vendor/exceedone/exment/tests/Unit/CustomViewSummaryTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 29
-			path: vendor/exceedone/exment/tests/Unit/CustomViewSummaryTest.php
-
-		-
-			message: '#^Call to an undefined method ExmentAdminCore\\Admin\\Grid\\Model\|Illuminate\\Database\\Eloquent\\Builder\:\:buildData\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomViewTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomViewTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/CustomViewTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:mask\(\) should return string but returns string\|false\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testApiKeyIsMaskedOnOauthTokenUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testBusinessClientIdColumnIsNotMasked\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testBusinessCredentialColumnsAreNotMaskedOnDataUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testClientApiKeyIsMaskedOnlyOnApiSettingUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testClientIdIsMaskedOnOauthTokenUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testClientSecretIsMaskedOnlyOnOauthUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testConfigAddsGlobalMaskColumn\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testConfigAddsNewPathPrefix\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testConfigCannotUnmaskSessionCredentials\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testConfigDefinesUriScopedColumns\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testDefaultConfigShipsTheBuiltInTargets\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testIdIsMaskedOnApiSettingUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testIdIsNotMaskedOnOtherUris\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testMalformedConfigIsIgnored\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testMissingConfigStillMasksSessionCredentials\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testNestedSecretsAreMasked\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPasswordIsMaskedOnEveryDataUriIncludingUserTable\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPasswordIsMaskedOnSystemUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPasswordStaysMaskedOnOauthTokenUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPathClientIdSegmentIsPartiallyMasked\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPathCreateSegmentIsNotMasked\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPathMaskingIsIdempotent\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPathResetTokenSegmentIsFullyMasked\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPathShortIdSegmentIsFullyMasked\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPreviousUrlIsMaskedWhenRelative\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testPreviousUrlPathSegmentIsMasked\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testResetTokenFieldIsMaskedOnlyOnResetForm\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testSecretIsMaskedOnApiSettingUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testUnrelatedPathIsUntouched\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testUnrelatedUrlIsUntouched\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:testUrlPathIsMaskedInQueryStringToo\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Parameter \#1 \$json of method Exceedone\\Exment\\Tests\\Unit\\LogOperationMaskTest\:\:mask\(\) expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LogOperationMaskTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsBool\(\) with bool will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/LoginUserHeaderInfoTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 4
-			path: vendor/exceedone/exment/tests/Unit/NotifyTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 4
-			path: vendor/exceedone/exment/tests/Unit/NotifyTest.php
-
-		-
-			message: '#^Cannot cast Illuminate\\Contracts\\View\\Factory\|Illuminate\\View\\View to string\.$#'
-			identifier: cast.string
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/NumberRenderTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\OneRecordBatchBypassTest\:\:testApiBulkCreateCannotExceedOneRecord\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/OneRecordBatchBypassTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\OneRecordBatchBypassTest\:\:testApiBulkCreateRejectionMessageIsSingleSentence\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/OneRecordBatchBypassTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\OneRecordBatchBypassTest\:\:testApiSingleCreateOnFullOneRecordTableReturnsOneRecordMessage\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/OneRecordBatchBypassTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\OneRecordBatchBypassTest\:\:testImportCannotCreateSecondRecordInOneRecordTable\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/OneRecordBatchBypassTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\OneRecordBatchBypassTest\:\:testImportSecondRowRejectedWithOneRecordError\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/OneRecordBatchBypassTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\OneRecordBatchBypassTest\:\:testImportSingleRowStillWorks\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/OneRecordBatchBypassTest.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 2
-			path: vendor/exceedone/exment/tests/Unit/OneRecordBatchBypassTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/ReplaceFormatTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/ReplaceFormatTest.php
-
-		-
-			message: '#^Argument of an invalid type Illuminate\\Routing\\RouteCollectionInterface supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/RouteActionVisibilityGuardTest.php
-
-		-
-			message: '#^Parameter \#2 \$container of class Illuminate\\Routing\\Router constructor expects Illuminate\\Container\\Container\|null, Illuminate\\Contracts\\Foundation\\Application given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/RouteActionVisibilityGuardTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with false and ''Not support order…'' will always evaluate to false\.$#'
-			identifier: method.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/SearchServiceTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/SearchServiceTest.php
-
-		-
-			message: '#^Call to function in_array\(\) with arguments non\-falsy\-string, array\{\} and true will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardArraySpliceInLoopTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogHandleAppliesMaskTest\:\:testHandleMasksGlobalCredentialsInTheStoredRow\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogHandleAppliesMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogHandleAppliesMaskTest\:\:testHandleMasksNestedCredentials\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogHandleAppliesMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogHandleAppliesMaskTest\:\:testHandleMasksSensitivePathSegment\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogHandleAppliesMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogHandleAppliesMaskTest\:\:testIdIsNotMaskedOnDataUris\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogHandleAppliesMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogHandleAppliesMaskTest\:\:testOauthClientIdPostedAsIdIsMaskedOnApiSettingUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogHandleAppliesMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogHandleAppliesMaskTest\:\:testSameNamesAreStillMaskedOnTheSystemScreensThatOwnThem\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogHandleAppliesMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogHandleAppliesMaskTest\:\:testUserDefinedBusinessColumnsAreNotMaskedOnDataUri\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogHandleAppliesMaskTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogMiddlewareAliasTest\:\:testAdminAuthAliasResolvesToExmentAuthenticate\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogMiddlewareAliasTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogMiddlewareAliasTest\:\:testAdminLogAliasResolvesToExmentLogOperation\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogMiddlewareAliasTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogMiddlewareAliasTest\:\:testEveryAliasDeclaredByExmentIsTheOneActuallyRegistered\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogMiddlewareAliasTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogMiddlewareAliasTest\:\:testLoggingMiddlewareStaysInEveryGroupThatNeedsIt\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogMiddlewareAliasTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\GuardOperationLogMiddlewareAliasTest\:\:testResolvedLogMiddlewareStillMasks\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardOperationLogMiddlewareAliasTest.php
-
-		-
-			message: '#^Call to function in_array\(\) with arguments non\-falsy\-string, array\{\} and true will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/GuardRawSqlValueInterpolationTest.php
-
-		-
-			message: '#^Call to an undefined method object\:\:setFormColumnOptions\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/JvnColumnItemXssFixedTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\JvnColumnItemXssFixedTest\:\:renderHtml\(\) has parameter \$options with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/JvnColumnItemXssFixedTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\Security\\JvnColumnItemXssFixedTest\:\:renderHtml\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/JvnColumnItemXssFixedTest.php
-
-		-
-			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/Security/JvnUrlLinkXssHardeningTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''Normal plugin ZIP…'' will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/SecurityPluginZipSlipTest.php
-
-		-
-			message: '#^Parameter \#1 \$entries of method Exceedone\\Exment\\Tests\\Unit\\SecurityPluginZipSlipTest\:\:makeZip\(\) expects array\<string, string\>, array\<string, string\|false\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/SecurityPluginZipSlipTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with false and ''target column is…'' will always evaluate to false\.$#'
-			identifier: method.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/SelectTableTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/SelectTableTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/SelectTableTest.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\SystemRequireTest\:\:init\(\) should return null but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/SystemRequireTest.php
-
-		-
-			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
-			identifier: method.alreadyNarrowedType
-			count: 2
-			path: vendor/exceedone/exment/tests/Unit/UnitPerformanceTest.php
-
-		-
-			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Tests\\Unit\\UnitTestBase\:\:beginDatabaseTransaction\(\) return type contains invalid type Exceedone\\Exment\\Tests\\DatabaseTransactions\.$#'
-			identifier: methodTag.trait
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/UnitTestBase.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/WorkflowTaskServiceTest.php
-
-		-
-			message: '#^Parameter \#1 \$taskKeys of method Exceedone\\Exment\\Services\\Workflow\\WorkflowTaskService\:\:markSeen\(\) expects array\<string\>, array\<int, string\|null\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/WorkflowTaskServiceTest.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 9
-			path: vendor/exceedone/exment/tests/Unit/WorkflowTaskServiceTest.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 9
-			path: vendor/exceedone/exment/tests/Unit/WorkflowTaskServiceTest.php
-
-		-
-			message: '#^Call to function method_exists\(\) with ''Exceedone\\\\Exment\\\\Controllers\\\\ApiController'' and ''workflowTaskPage'' will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: vendor/exceedone/exment/tests/Unit/WorkflowTaskWiringTest.php
-
-		-
-			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginDashboard/Plugin.php
-
-		-
-			message: '#^Call to function App\\Plugins\\TestPluginGlobalFunction\\Dir1\\testPluginGlobalFunctionDir1\(\) on a separate line has no effect\.$#'
-			identifier: function.resultUnused
-			count: 1
-			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginGlobalFunction/Plugin.php
-
-		-
-			message: '#^Call to function App\\Plugins\\TestPluginGlobalFunction\\testPluginGlobalFunction\(\) on a separate line has no effect\.$#'
-			identifier: function.resultUnused
-			count: 1
-			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginGlobalFunction/Plugin.php
-
-		-
-			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginPage/Plugin.php
-
-		-
-			message: '#^Call to App\\Plugins\\TestPluginStaticFunction\\Dir1\\StaticFunction\:\:testPluginStaticFunctionDir1\(\) on a separate line has no effect\.$#'
-			identifier: staticMethod.resultUnused
-			count: 1
-			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginStaticFunction/Plugin.php
-
-		-
-			message: '#^Call to App\\Plugins\\TestPluginStaticFunction\\StaticFunction\:\:testPluginStaticFunction\(\) on a separate line has no effect\.$#'
-			identifier: staticMethod.resultUnused
-			count: 1
-			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginStaticFunction/Plugin.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginView/Plugin.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginView/Plugin.php

@@ -59,6 +59,7 @@ abstract class CustomValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
+    use Traits\HasCommentMentionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use \Exceedone\Exment\Revisionable\RevisionableTrait;
 
@@ -545,6 +546,12 @@ abstract class CustomValue extends ModelBase
         parent::boot();
 
         static::saving(function ($model) {
+            // Before anything else, and before any early return: the comment
+            // body still in the database is about to be overwritten, and the
+            // mention notifier needs it to tell a newly written name from one
+            // the reader has already been told about.
+            $model->rememberPreviousCommentText();
+
             if ($model->disable_saving_event) {
                 return;
             }
@@ -572,6 +579,16 @@ abstract class CustomValue extends ModelBase
         });
         static::updated(function ($model) {
             $model->savedEvent(false);
+        });
+        static::saved(function ($model) {
+            // The mention notifier is not always reached: savedEvent() bails out
+            // when disable_saved_event is set, and a save with nothing dirty
+            // never fires updated at all. A snapshot left behind would become
+            // the answer for the next save of the same instance, which is a
+            // different save entirely. This event does run in all of those
+            // cases, and by the time it runs the notifier has already had its
+            // turn.
+            $model->forgetPreviousCommentText();
         });
 
         static::deleting(function ($model) {
@@ -665,6 +682,9 @@ abstract class CustomValue extends ModelBase
         ]);
 
         $this->savedValue();
+
+        // a comment naming a person tells that person
+        $this->notifyMentionedUsersInComment($isCreate);
 
         if ($isCreate) {
             // save Authoritable

@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Exment;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomTable;
@@ -304,6 +305,27 @@ class SystemController extends AdminControllerBase
         // use mail setting
         $this->setNotifyForm($form);
 
+        // full-text search setting
+        $form->exmheader(exmtrans('system.meili'))->hr();
+        $form->text('meili_host', exmtrans('system.meili_host'))->help(exmtrans('system.help.meili_host'));
+        $form->password('meili_key', exmtrans('system.meili_key'))->help(exmtrans('system.help.meili_key'));
+        $form->text('meili_index', exmtrans('system.meili_index'))->help(exmtrans('system.help.meili_index'));
+        $form->switchbool('meili_global_search', exmtrans('system.meili_global_search'))->help(exmtrans('system.help.meili_global_search'));
+        $form->switchbool('meili_realtime_sync', exmtrans('system.meili_realtime_sync'))->help(exmtrans('system.help.meili_realtime_sync'));
+        $form->number('meili_batch_size', exmtrans('system.meili_batch_size'))
+            ->min(1)
+            ->rules(['nullable', 'integer', 'min:1'])
+            ->help(exmtrans('system.help.meili_batch_size'));
+        $form->switchbool('meili_repair_enabled', exmtrans('system.meili_repair_enabled'))->help(exmtrans('system.help.meili_repair_enabled'));
+        $form->text('meili_repair_at', exmtrans('system.meili_repair_at'))
+            ->rules(['nullable', 'regex:/^([01][0-9]|2[0-3]):[0-5][0-9]$/'])
+            ->help(exmtrans('system.help.meili_repair_at'));
+        $form->select('meili_filter_mode', exmtrans('system.meili_filter_mode'))
+            ->options(['override' => exmtrans('system.meili_filter_mode_options.override'), 'manual' => exmtrans('system.meili_filter_mode_options.manual')])
+            ->default('override')
+            ->disableClear()
+            ->help(exmtrans('system.help.meili_filter_mode'));
+
         $form->exmheader(exmtrans('system.ip_filter'))->hr();
         $form->descriptionHtml(exmtrans("system.help.ip_filter"));
 
@@ -460,6 +482,9 @@ class SystemController extends AdminControllerBase
         try {
             $result = $this->postInitializeForm($request, ($advanced ? ['advanced', 'notify'] : ['initialize', 'system']), false, !$advanced);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
+                // close the transaction before leaving, so nothing else in this request
+                // (a database session write, for one) runs inside an open transaction
+                DB::rollback();
                 return $result;
             }
 
@@ -473,6 +498,11 @@ class SystemController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('system') . ($advanced ? '?advanced=1' : ''));
+        } catch (InvalidZipEntryException $exception) {
+            // a refused template zip is a bad upload, not a crash. roll back here, where
+            // the transaction was opened, then show the reason under the file field.
+            DB::rollback();
+            return back()->withInput()->withErrors(['upload_template' => $exception->getMessage()]);
         } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();

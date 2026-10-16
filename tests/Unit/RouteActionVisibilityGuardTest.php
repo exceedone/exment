@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Providers\RouteServiceProvider;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Routing\Route as IlluminateRoute;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use ReflectionMethod;
@@ -43,7 +42,8 @@ use ReflectionMethod;
  * WHAT IT CHECKS
  * --------------
  * Registers the real Exment WEB route groups (mapExmentWebRotes +
- * mapExmentAnonymousWebRotes + mapExmentInstallWebRotes) onto a fresh, isolated Router
+ * mapExmentAnonymousWebRotes + mapExmentInstallWebRotes + the four LINE / 安否確認
+ * groups, see WEB_MAP_METHODS) onto a fresh, isolated Router
  * via reflection (so the app's real routes are untouched), then for every route whose
  * action is `Class@method` with Class under Exceedone\Exment\Controllers asserts:
  *   - testEveryRoutedExmentActionExists  : method_exists(Class, method)  (no BadMethodCall)
@@ -73,6 +73,11 @@ class RouteActionVisibilityGuardTest extends UnitTestBase
         'mapExmentWebRotes',
         'mapExmentAnonymousWebRotes',
         'mapExmentInstallWebRotes',
+        // LINE integration / 安否確認 route groups
+        'mapExmentLineWebhookRoute',
+        'mapExmentLineLinkRoute',
+        'mapExmentSafetyCheckRoute',
+        'mapExmentSafetyAnswerRoute',
     ];
 
     /** @var array<string, array{uri: string, class: string, method: string}>|null cache: "Class@method" => info */
@@ -97,7 +102,6 @@ class RouteActionVisibilityGuardTest extends UnitTestBase
             return $this->actionsCache;
         }
 
-        /** @var \Illuminate\Contracts\Foundation\Application $app */
         $app = $this->app;
         /** @var Dispatcher $events */
         $events = $app->make('events');
@@ -122,8 +126,7 @@ class RouteActionVisibilityGuardTest extends UnitTestBase
                     $rm->setAccessible(true);
                     $rm->invoke($provider);
 
-                    foreach ($freshRouter->getRoutes() as $route) {
-                        /** @var IlluminateRoute $route */
+                    foreach ($freshRouter->getRoutes()->getRoutes() as $route) {
                         $action = $route->getActionName(); // "FQCN@method" | "Closure" | "FQCN"
                         if (!str_contains($action, '@')) {
                             continue; // closures / invokable handled elsewhere; not the bug class

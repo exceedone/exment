@@ -63,7 +63,7 @@ class OneRecordBatchBypassTest extends TestCase
      * Mirrors CustomTableAction::import for a single table: validate the whole
      * sheet, and only save when validation produced no errors.
      */
-    public function testImportCannotCreateSecondRecordInOneRecordTable()
+    public function testImportCannotCreateSecondRecordInOneRecordTable(): void
     {
         $table = $this->oneRecordTable();
 
@@ -114,7 +114,7 @@ class OneRecordBatchBypassTest extends TestCase
      * import is aborted (CustomTableAction::import returns on a non-empty error
      * list) rather than silently dropping the extra row.
      */
-    public function testImportSecondRowRejectedWithOneRecordError()
+    public function testImportSecondRowRejectedWithOneRecordError(): void
     {
         $table = $this->oneRecordTable();
         $provider = new DefaultTableProvider(['custom_table' => $table, 'primary_key' => 'id']);
@@ -138,7 +138,7 @@ class OneRecordBatchBypassTest extends TestCase
      * Regression guard: importing a SINGLE new row into an empty one-record table
      * must still succeed and create exactly one record.
      */
-    public function testImportSingleRowStillWorks()
+    public function testImportSingleRowStillWorks(): void
     {
         $table = $this->oneRecordTable();
         $provider = new DefaultTableProvider(['custom_table' => $table, 'primary_key' => 'id']);
@@ -163,7 +163,7 @@ class OneRecordBatchBypassTest extends TestCase
      * one-record table must not create more than one record. Drives the real
      * ApiDataController::saveData() the way dataCreate() does.
      */
-    public function testApiBulkCreateCannotExceedOneRecord()
+    public function testApiBulkCreateCannotExceedOneRecord(): void
     {
         $table = $this->oneRecordTable();
 
@@ -188,9 +188,9 @@ class OneRecordBatchBypassTest extends TestCase
         );
 
         // The request must be rejected (not a successful create response).
-        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\JsonResponse::class, $result, 'Bulk create on a one-record table must be rejected.');
+        $this->assertInstanceOf(\Illuminate\Http\JsonResponse::class, $result, 'Bulk create on a one-record table must be rejected.');
         $this->assertSame(403, $result->getStatusCode());
-        $payload = json_decode($result->getContent(), true);
+        $payload = $result->getData(true);
         $this->assertEquals(\Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY, $payload['code'] ?? null, 'Rejection must carry error code 402.');
     }
 
@@ -201,7 +201,7 @@ class OneRecordBatchBypassTest extends TestCase
      * め、新規作成できません。", which implies the first row is kept - but the
      * reject-all path creates nothing, so that second sentence must be gone.
      */
-    public function testApiBulkCreateRejectionMessageIsSingleSentence()
+    public function testApiBulkCreateRejectionMessageIsSingleSentence(): void
     {
         $table = $this->oneRecordTable();
 
@@ -260,7 +260,7 @@ class OneRecordBatchBypassTest extends TestCase
      * before (it hard-coded admin.deny for every enableCreate() failure).
      * Drives the real public dataCreate().
      */
-    public function testApiSingleCreateOnFullOneRecordTableReturnsOneRecordMessage()
+    public function testApiSingleCreateOnFullOneRecordTableReturnsOneRecordMessage(): void
     {
         $table = $this->oneRecordTable();
 
@@ -282,9 +282,9 @@ class OneRecordBatchBypassTest extends TestCase
         $controller = new ApiDataController($table, $request);
         $result = $controller->dataCreate($request);
 
-        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\JsonResponse::class, $result);
+        $this->assertInstanceOf(\Illuminate\Http\JsonResponse::class, $result);
         $this->assertSame(403, $result->getStatusCode());
-        $payload = json_decode($result->getContent(), true);
+        $payload = $result->getData(true);
         $this->assertEquals(\Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY, $payload['code'] ?? null, 'Full one-record create must carry error code 402, not 101.');
         $this->assertSame(
             \Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY()->getMessage(),

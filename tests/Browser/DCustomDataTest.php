@@ -70,7 +70,8 @@ class DCustomDataTest extends ExmentKitTestCase
                     ->seePageIs('/admin/data/user')
             ;
         } else {
-            $this->assertTrue(true);
+            // the data is already there: nothing to do
+            $this->expectNotToPerformAssertions();
         }
     }
 
@@ -104,7 +105,8 @@ class DCustomDataTest extends ExmentKitTestCase
                     ->seePageIs('/admin/data/organization')
             ;
         } else {
-            $this->assertTrue(true);
+            // the data is already there: nothing to do
+            $this->expectNotToPerformAssertions();
         }
     }
 

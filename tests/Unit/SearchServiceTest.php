@@ -255,19 +255,17 @@ class SearchServiceTest extends UnitTestBase
      */
     public function testOrderManyMany()
     {
-        // Not support order by many-to-many relation
-        try {
-            $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY);
-            $column = CustomColumn::getEloquent('index_text', $custom_table);
-            $direction = 'desc';
+        // Not support order by many-to-many relation: sort the child table by a column
+        // of its n:n parent (a column of the table itself is a plain order by).
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY);
+        $parent_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY);
+        $column = CustomColumn::getEloquent('index_text', $parent_table);
 
-            $service = new SearchService($custom_table);
-            $service->orderBy($column, $direction);
+        $service = new SearchService($custom_table);
 
-            $this->assertTrue(false, 'Not support order by many-to-many relation');
-        } catch (\Exception $ex) {
-            $this->assertTrue(true);
-        }
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Many to many relation not support order by.');
+        $service->orderBy($column, 'desc');
     }
 
     /**

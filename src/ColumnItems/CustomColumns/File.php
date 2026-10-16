@@ -154,6 +154,13 @@ class File extends CustomItem
         $field->options($fileOption)->removable();
         $field->help(array_get($fileOption, 'maxFileSizeHelp'));
 
+        // Paste a screenshot into this column instead of saving it to disk first.
+        // Marked per column rather than switched on everywhere, so a paste on a
+        // form with several file columns has one obvious destination.
+        if (boolval($this->custom_column->getOption('paste_attach_enabled'))) {
+            $field->attribute(['data-paste-attach' => '1']);
+        }
+
         // set filename rule
         $custom_table = $this->getCustomTable();
         $multiple = $this->isMultipleEnabled();
@@ -165,7 +172,8 @@ class File extends CustomItem
             return $file->uuid ?? 0;
         })->caption(function ($caption, $key) {
             $file = ExmentFile::getData($key);
-            return $file->filename ?? basename($caption);
+            // the upload widget inserts the caption into the page as html, so escape the file name
+            return esc_html($file->filename ?? basename($caption));
         })
         // get tmp file from request
         ->getTmp(function ($files) {
@@ -508,6 +516,10 @@ class File extends CustomItem
             $form->text('accept_extensions', exmtrans("custom_column.options.accept_extensions"))
                 ->help(exmtrans("custom_column.help.accept_extensions"));
         }
+
+        $form->switchbool('paste_attach_enabled', exmtrans("custom_column.options.paste_attach_enabled"))
+            ->help(exmtrans("custom_column.help.paste_attach_enabled"))
+            ->default('0');
     }
 
     /**

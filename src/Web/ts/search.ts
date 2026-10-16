@@ -1,6 +1,13 @@
 
 namespace Exment {
     export class SearchEvent {
+        // Result count (permission-filtered) + load time, aggregated from the table boxes.
+        private static meiliStart: number = 0;
+        private static meiliTotal: number = 0;
+        private static meiliPending: number = 0;
+        private static meiliHasTotal: boolean = false;
+        private static meiliCapped: boolean = false;
+
         /**
          * Call only once. It's $(document).on event.
          */
@@ -66,7 +73,8 @@ namespace Exment {
                 let div = $('<div/>', {
                     'tabindex' : -1,
                     'class' : 'ui-menu-item-wrapper',
-                    'html' : [p, $('<span/>', {'text':item.text})]
+                    // text_html: html the server already escaped (<mark> highlights).
+                    'html' : [p, $('<span/>', {'html':item.text_html})]
                 });
                 return $('<li class="ui-menu-item-with-icon"></li>')
                     .data("item.autocomplete", item)
@@ -97,10 +105,51 @@ namespace Exment {
         /**
          * Get Search Navi data for List
          */
+        /**
+         * Read a repeated query param in any shape: the sidebar form emits
+         * facets[]=a, PHP http_build_query (chip remove / saved search) emits
+         * facets[0]=a. Reading only 'facets[]' silently dropped the filter.
+         */
+        private static getArrayParam(cur: URLSearchParams, name: string): string[] {
+            const bracket = cur.getAll(name + '[]');
+            if (bracket.length) { return bracket; }
+
+            // name[0], name[1], ... - entries() preserves the URL order.
+            const indexed: string[] = [];
+            const prefix = name + '[';
+            for (const pair of (cur as any).entries()) {
+                if (pair[0].indexOf(prefix) === 0 && pair[1] !== '') { indexed.push(pair[1]); }
+            }
+            if (indexed.length) { return indexed; }
+
+            // Single comma-separated value.
+            const single = cur.get(name);
+            return single ? single.split(',').filter(function(v: string){ return v !== ''; }) : [];
+        }
+
         private static getListNaviData() {
             const tables = JSON.parse($('.tables').val() as string);
             const search_execute_count = $('#search_execute_count');
-            const url = admin_url('search/lists&' + $.param({query : $('.base_query').val()}));
+
+            // forward the filter (date + creator + status + range) from the current URL into the AJAX request.
+            const params: any = {query : $('.base_query').val()};
+            const cur = new URLSearchParams(window.location.search);
+            ['date_from', 'date_to', 'sort'].forEach(function(k){ if(cur.get(k)){ params[k] = cur.get(k); } });
+            const users = SearchEvent.getArrayParam(cur, 'users');
+            if(users.length){ params.users = users.join(','); }
+            // forward facets (status/classification) — keep the facets[] array form.
+            const facets = SearchEvent.getArrayParam(cur, 'facets');
+            if(facets.length){ params['facets'] = facets; }
+            // forward range[n_col][from|to] (range filter).
+            for(const pair of (cur as any).entries()){ if(pair[0].indexOf('range[') === 0 && pair[1]){ params[pair[0]] = pair[1]; } }
+            const url = admin_url('search/lists&' + $.param(params));
+
+            // measure the total result count (permission-filtered) + load time, shown on the header.
+            SearchEvent.meiliStart = new Date().getTime();
+            SearchEvent.meiliTotal = 0;
+            SearchEvent.meiliPending = 0;
+            SearchEvent.meiliHasTotal = false;
+            SearchEvent.meiliCapped = false;
 
             // search target table names
             let searchTables = [];
@@ -184,6 +233,7 @@ namespace Exment {
                 tableNames.push(searchTables[i].table_name);
             }
 
+            SearchEvent.meiliPending++;
             // Get Data
             $.ajax({
                 url: url,
@@ -209,12 +259,47 @@ namespace Exment {
                     box.find('.box-body .box-body-inner-body').html(data.body);
                     box.find('.box-body .box-body-inner-footer').html(data.footer);
                     box.find('.overlay').hide();
+
+                    // total is only present when running through Meili; the MySQL fallback keeps the old behavior.
+                    if(typeof data.total !== 'undefined'){
+                        SearchEvent.meiliHasTotal = true;
+                        SearchEvent.meiliTotal += data.total;
+                        // capped = the over-fetch cap was reached -> the count is a
+                        // floor, show "N+" so it never reads as an exact number.
+                        if(data.total_capped){
+                            SearchEvent.meiliCapped = true;
+                        }
+                        if(data.total === 0){
+                            box.hide();
+                        }
+                        else{
+                            box.find('.box-header .meili-box-count').text('(' + data.total.toLocaleString() + (data.total_capped ? '+' : '') + ')');
+                        }
+                    }
                 }
                 
                 Exment.CommonEvent.tableHoverLink();
             })
             .always(function(data){
+                SearchEvent.meiliPending--;
+                SearchEvent.updateResultMeta();
             });
+        }
+
+        /**
+         * Result header: "— N result(s) (X ms)". Only rendered when every box has finished loading.
+         */
+        private static updateResultMeta(){
+            const meta = $('.meili-result-meta');
+            if(!meta.length || !SearchEvent.meiliHasTotal || SearchEvent.meiliPending > 0){
+                return;
+            }
+            const ms = new Date().getTime() - SearchEvent.meiliStart;
+            const suffix = SearchEvent.meiliCapped ? '+' : '';
+            meta.text('— ' + SearchEvent.meiliTotal.toLocaleString() + suffix + ' ' + meta.data('unit') + ' (' + ms + ' ms)');
+            if(SearchEvent.meiliTotal === 0){
+                $('.meili-empty').show();
+            }
         }
     }
 }

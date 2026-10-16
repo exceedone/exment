@@ -43,9 +43,85 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->mapExmentWebRotes();
         $this->mapExmentAnonymousWebRotes();
+        $this->mapExmentLineWebhookRoute();
+        $this->mapExmentLineLinkRoute();
+        $this->mapExmentSafetyCheckRoute();
+        $this->mapExmentSafetyAnswerRoute();
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
+    }
+
+    /**
+     * @return void
+     */
+    protected function mapExmentLineWebhookRoute()
+    {
+        Route::group([
+            'prefix'    => config('admin.route.prefix'),
+            'namespace' => $this->namespace,
+        ], function (Router $router) {
+            $router->post('line/webhook', 'LineWebhookController@handle')->name('exment.line_webhook');
+        });
+    }
+
+    /**
+     * @return void
+     */
+    protected function mapExmentLineLinkRoute()
+    {
+        Route::group([
+            'prefix'     => config('admin.route.prefix'),
+            'namespace'  => $this->namespace,
+            'middleware' => ['adminweb', 'admin'],
+        ], function (Router $router) {
+            $router->get('line/link', 'LineLinkController@index')->name('exment.line_link');
+            $router->post('line/link/generate', 'LineLinkController@generate')->name('exment.line_link_generate');
+            $router->post('line/link/unlink', 'LineLinkController@unlink')->name('exment.line_link_unlink');
+        });
+    }
+
+    /**
+     * @return void
+     */
+    protected function mapExmentSafetyCheckRoute()
+    {
+        Route::group([
+            'prefix'     => config('admin.route.prefix'),
+            'namespace'  => $this->namespace,
+            'middleware' => ['adminweb', 'admin'],
+        ], function (Router $router) {
+            $router->get('safety_check', 'SafetyCheckController@index')->name('exment.safety_check');
+            $router->post('safety_check/send', 'SafetyCheckController@send')->name('exment.safety_check_send');
+            $router->post('safety_check/{id}/resend', 'SafetyCheckController@resend')->name('exment.safety_check_resend');
+            $router->post('safety_check/{id}/close', 'SafetyCheckController@close')->name('exment.safety_check_close');
+        });
+    }
+
+    /**
+     * @return void
+     */
+    protected function mapExmentSafetyAnswerRoute()
+    {
+        Route::group([
+            'prefix'     => config('admin.route.prefix'),
+            'namespace'  => $this->namespace,
+            'middleware' => [
+                'adminweb',
+                'admin.browser',
+                'admin.initialize',
+                'admin.login',
+                'admin.morph',
+                'admin.bootstrap2',
+                'admin.pjax',
+                'admin.log',
+                'admin.bootstrap',
+                'admin.session',
+            ],
+        ], function (Router $router) {
+            $router->get('safety/answer', 'SafetyCheckAnswerController@form')->name('exment.safety_answer');
+            $router->post('safety/answer', 'SafetyCheckAnswerController@submit')->name('exment.safety_answer_submit');
+        });
     }
 
     /**
@@ -61,10 +137,16 @@ class RouteServiceProvider extends ServiceProvider
         ], function (Router $router) {
             $router->get('/', 'DashboardController@home');
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
+            $router->post('dashboardbox/chart_state/{suuid}', 'DashboardBoxController@chartState');
+            $router->post('dashboardbox/chart_color/{suuid}', 'DashboardBoxController@chartColor');
             $router->delete('dashboardbox/delete/{suuid}', 'DashboardBoxController@delete');
+            // linkage endpoints sit above the resource routes so `{id}` (show) cannot swallow them
+            $router->get('dashboard/filter_bar_columns', 'DashboardController@filterBarColumns');
+            $router->get('dashboard/filter_bar_values', 'DashboardController@filterBarValues');
             $router->resource('dashboard', 'DashboardController');
             $router->get("dashboardbox/table_views/{dashboard_type}", 'DashboardBoxController@tableViews');
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
+            $router->get("dashboardbox/chart_filter_columns", 'DashboardBoxController@chartFilterColumns');
             $router->get("dashboard/{id}/shareClick", 'DashboardController@shareClick');
             $router->post("dashboard/{id}/sendShares", 'DashboardController@sendShares');
             $router->resource('dashboardbox', 'DashboardBoxController');
@@ -82,6 +164,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('system/send_testmail', 'SystemController@sendTestMail');
 
             $router->post('system/call_update', 'SystemController@callUpdate');
+
+            // The preset library: what the pickers on the column and view
+            // screens offer, managed as one list.
+            $this->setResouce($router, 'cell_style_preset', 'CellStylePresetSettingController');
 
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
@@ -153,6 +239,13 @@ class RouteServiceProvider extends ServiceProvider
             $this->setResouce($router, 'workflow', 'WorkflowController');
 
 
+            // フロー図で直接編集する画面（ステップ1・2と同じテーブルを更新する）
+            // 新規作成は id が無いので、先に固定パスの方を登録する
+            $router->get('workflow/design/create', 'WorkflowController@designCreate');
+            $router->post('workflow/design/create', 'WorkflowController@designCreatePost');
+            $router->get('workflow/{id}/design', 'WorkflowController@design');
+            $router->post('workflow/{id}/design', 'WorkflowController@designPost');
+
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
             $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
             $router->post('workflow/{id}/activate', 'WorkflowController@activate');
@@ -182,6 +275,20 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('search/list', 'SearchController@getList');
             $router->get('search/header', 'SearchController@header');
             $router->get('search/relation', 'SearchController@getRelationList');
+            // Export search results per table (CSV/XLSX).
+            $router->get('search/export', 'SearchController@export');
+
+            // Saved Search for global search.
+            $router->post('search/saved', 'MeiliSavedSearchController@store');
+            $router->get('search/saved/{id}/apply', 'MeiliSavedSearchController@apply');
+            $router->delete('search/saved/{id}', 'MeiliSavedSearchController@destroy');
+
+            // filter column config screen (facets).
+            $router->get('meili-filter/columns', 'MeiliFilterController@columnOptions');
+            $this->setResouce($router, 'meili-filter', 'MeiliFilterController');
+
+            // Relevance dictionary (synonyms / stop words).
+            $this->setResouce($router, 'meili-dictionary', 'MeiliDictionaryController');
 
             $router->get('backup', 'BackupController@index');
             $router->delete('backup/delete', 'BackupController@delete');
@@ -208,6 +315,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("data/{tableKey}/{id}/notifyClick", 'CustomValueController@notifyClick');
             $router->get("data/{tableKey}/{id}/shareClick", 'CustomValueController@shareClick');
             $router->get("data/{tableKey}/{id}/workflowHistoryModal", 'CustomValueController@workflowHistoryModal');
+            $router->get("data/{tableKey}/kanbanCards", 'CustomValueController@kanbanCards');
+            $router->post("data/{tableKey}/kanbanSaveView", 'CustomValueController@kanbanSaveView');
+            $router->get("data/{tableKey}/{id}/kanbanHistory", 'CustomValueController@kanbanHistory');
             $router->post("data/{tableKey}/{id}/sendMail", 'CustomValueController@sendMail');
             $router->post("data/{tableKey}/{id}/sendTargetUsers", 'CustomValueController@sendTargetUsers');
             $router->post("data/{tableKey}/{id}/sendShares", 'CustomValueController@sendShares');
@@ -226,6 +336,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/create_qrcode", 'CustomValueController@createQrcode')->name('exment.create_qrcode');
 
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
+            $router->post('view/{tableKey}/preview', 'CustomViewController@preview');
+            $router->put('view/{tableKey}/preview', 'CustomViewController@preview');
+            $router->post('view/{tableKey}/{id}/preview', 'CustomViewController@preview');
+            $router->put('view/{tableKey}/{id}/preview', 'CustomViewController@preview');
+            $router->get('view/{tableKey}/preview', 'CustomViewController@previewError');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/{id}/shareClick", 'CustomViewController@shareClick');
@@ -265,6 +380,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('tmpimages', 'FileController@uploadTempImage');
             $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFile');
 
+            // Preview of an unsaved record. Registered before the resource because
+            // "preview" would otherwise be read as a record id by data/{tableKey}/{id}.
+            $router->post('data/{tableKey}/preview', 'CustomValueController@preview')->name('exment.data.preview');
+            $router->post('data/{tableKey}/{id}/preview', 'CustomValueController@preview');
+
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
             $this->setTableResouce($router, 'form', 'CustomFormController');
@@ -281,6 +401,15 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');
             $router->get('webapi/menu/menutargetview', 'MenuController@menutargetview');
 
+            $router->get('webapi/mention/users', 'MentionController@users');
+
+            $router->get("webapi/{tableKey}/cellstylepreset", 'CellStylePresetController@presets');
+            $router->get("webapi/{tableKey}/cellstylepreset/modal", 'CellStylePresetController@modal');
+            $router->post("webapi/{tableKey}/cellstylepreset", 'CellStylePresetController@store');
+            $router->put("webapi/{tableKey}/cellstylepreset/{suuid}", 'CellStylePresetController@update');
+            $router->delete("webapi/{tableKey}/cellstylepreset/{suuid}", 'CellStylePresetController@destroy');
+
+            $router->post("webapi/{tableKey}/quickadd", 'ApiTableController@quickAdd');
             $router->get("webapi/{tableKey}/filter-condition", 'ApiTableController@getFilterCondition');
             $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
             $router->get("webapi/{tableKey}/operation-update-type", 'ApiTableController@getOperationUpdateType');
@@ -410,6 +539,15 @@ class RouteServiceProvider extends ServiceProvider
                     $router->get("data/{tableKey}/query-column", "ApiDataController@dataQueryColumn")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     $router->get("data/{tableKey}/query", "ApiDataController@dataQuery")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     $router->get("data/{tableKey}/calendar", "ApiDataController@calendarList")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                    // Grid inline editor uses this to fetch back the exact HTML the grid
+                    // would render for one cell after a PUT succeeds - the badge, bar
+                    // and colour choices live in the column setting, so re-rendering on
+                    // the server is the only way to keep the cell honest. Registered
+                    // before the shorter data/{tableKey}/{id} entry below because Laravel
+                    // matches the first route that fits, and kept out of the shared block
+                    // because a public form has no grid and its controller has no such
+                    // method - the route would only exist to answer with a 500.
+                    $router->get("data/{tableKey}/cell/{id}/{column_name}", "ApiDataController@dataCellHtml")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 }
 
                 // Change class name if public form api for segment

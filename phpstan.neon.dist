@@ -4,9 +4,15 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment
+    excludePaths:
+        # Defines look-alike helper functions (exmtrans, session, admin_urls...) in the
+        # Exceedone\Exment\ColumnItems\CustomColumns namespace so one unit test can run
+        # without the application. PHPStan must not read them as the real helpers.
+        - vendor/exceedone/exment/tests/fixtures/EditorClipboardImageEnvironment.php
     level: 7
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
+        - exment/stubs/mockery/LegacyMockInterface.stub
     universalObjectCratesClasses:
         - Exceedone\Exment\Model\WorkflowAuthority
         - Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface

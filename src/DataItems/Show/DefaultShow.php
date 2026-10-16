@@ -735,6 +735,13 @@ EOT;
             ->rows(3)
             ->required()
             ->setLabelClass(['d-none'])
+            // "@" opens the member picker; mention.js reads both attributes off
+            // the field, so no page-level script tag is needed
+            ->attribute([
+                'data-mention' => '1',
+                'data-mention-url' => admin_url('webapi/mention/users'),
+                'placeholder' => exmtrans('common.message.comment_mention'),
+            ])
             ->setWidth(12, 0);
         }
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));

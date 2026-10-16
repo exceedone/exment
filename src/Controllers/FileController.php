@@ -207,8 +207,11 @@ class FileController extends AdminControllerBase
 
         // if has parent_id, check permission
         if (isset($data->parent_id) && isset($data->parent_type)) {
+            // The table named here can be gone while its files are not, and
+            // then getEloquent() answers null: asking it for a permission was
+            // a fatal error, so the download answered 500 instead of anything.
             $custom_table = CustomTable::getEloquent($data->parent_type);
-            if (!$custom_table->hasPermissionData($data->parent_id)) {
+            if (isset($custom_table) && !$custom_table->hasPermissionData($data->parent_id)) {
                 if ($options['asApi']) {
                     return abortJson(403, ErrorCode::PERMISSION_DENY());
                 }
@@ -598,11 +601,24 @@ class FileController extends AdminControllerBase
 
         // if has parent_id, check permission
         $parent_custom_table = CustomTable::getEloquent($data->parent_type);
-        if (!$parent_custom_table) {
-            return true;
-        }
-        $custom_value = $parent_custom_table->getValueModel($data->parent_id);
-        if ($custom_value && $custom_value->enableDelete() !== true) {
+        // A row that cannot be read is a refusal, not a pass. getValueModel()
+        // reads through CustomValueModelScope, so it answers null both for a
+        // row that is not there and for one this user may not see, and letting
+        // null through meant anyone holding a file's uuid could delete the
+        // attachments of a record they cannot even open - the file off disk,
+        // its document row and its file row. A file still being uploaded
+        // carries no parent_id at all and has already left above, so nothing
+        // legitimate arrives here with an unreadable parent. A parent_type
+        // naming a table that no longer exists resolves to nothing either and
+        // is refused the same way.
+        //
+        // Asking for the trashed one too keeps a record that is merely in the
+        // bin in scope: withTrashed() drops the soft-delete scope and not the
+        // permission one, so an unreadable record still answers null, while a
+        // deleted record's attachments stay exactly as deletable as they were
+        // before any of this.
+        $custom_value = $parent_custom_table ? $parent_custom_table->getValueModel($data->parent_id, true) : null;
+        if (!isset($custom_value) || $custom_value->enableDelete() !== true) {
             if ($options['asApi']) {
                 return abortJson(403, ErrorCode::PERMISSION_DENY());
             }

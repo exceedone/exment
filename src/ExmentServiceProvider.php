@@ -23,6 +23,8 @@ use Exceedone\Exment\Auth\PublicFormGuard;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
+use Exceedone\Exment\Services\SafetyCheck\EarthquakeFeedInterface;
+use Exceedone\Exment\Services\SafetyCheck\P2pQuakeFeed;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
@@ -65,6 +67,11 @@ class ExmentServiceProvider extends ServiceProvider
      */
     // @phpstan-ignore-next-line
     protected $commands = [
+        \Exceedone\Exment\Console\MeiliIndexCommand::class,
+        \Exceedone\Exment\Console\MeiliSearchCommand::class,
+        \Exceedone\Exment\Console\MeiliSettingsCommand::class,
+        \Exceedone\Exment\Console\MeiliHealthCommand::class,
+        \Exceedone\Exment\Console\MeiliReconcileCommand::class,
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
         \Exceedone\Exment\Console\UpdateCommand::class,
@@ -95,6 +102,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
+        \Exceedone\Exment\Console\LineLinkCodeCommand::class,
+        \Exceedone\Exment\Console\SafetyWatchCommand::class,
     ];
 
 
@@ -291,6 +300,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootSetting();
         $this->bootDatabase();
         $this->bootSchedule();
+        $this->bootMeilisearch();
 
         $this->publish();
         $this->load();
@@ -298,6 +308,51 @@ class ExmentServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         $this->bootPassport();
+    }
+
+    /**
+     * Apply the System-screen settings to config + set up realtime index sync.
+     *
+     * @return void
+     */
+    protected function bootMeilisearch()
+    {
+        // Push the saved values (systems table) into config('meilisearch.*').
+        \Exceedone\Exment\Services\Meili\MeiliConfig::apply();
+
+        // Saved searches do not depend on realtime sync or the SDK. 'deleted', not 'forceDeleted':
+        // CustomValue::delete() returns nothing, so Laravel never fires forceDeleted for it.
+        \Illuminate\Support\Facades\Event::listen('eloquent.deleted: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Model\MeiliSavedSearch::deleteOwnedBy($payload[0] ?? null);
+        });
+
+        if (!boolval(config('meilisearch.realtime_sync'))) {
+            return;
+        }
+        if (!class_exists(\Meilisearch\Client::class)) {
+            return;
+        }
+
+        // Record changed -> dispatch a sync job; table/column config changed -> reindex the table.
+        \Illuminate\Support\Facades\Event::listen('eloquent.updating: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\MeiliSync::rememberLabel($payload[0] ?? null);
+        });
+        \Illuminate\Support\Facades\Event::listen('eloquent.saved: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'upsert');
+            \Exceedone\Exment\Services\Meili\MeiliSync::handleLabelChange($payload[0] ?? null);
+            \Exceedone\Exment\Services\Meili\MeiliDefinitionSync::handle($payload[0] ?? null);
+        });
+        \Illuminate\Support\Facades\Event::listen('eloquent.deleted: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'delete');
+            \Exceedone\Exment\Services\Meili\MeiliDefinitionSync::handle($payload[0] ?? null);
+        });
+        // Restore also fires 'saved' (restore() calls save()), but listen to
+        // 'restored' explicitly so the intent is covered even if that
+        // implementation detail changes; a duplicate upsert job is harmless.
+        \Illuminate\Support\Facades\Event::listen('eloquent.restored: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'upsert');
+            \Exceedone\Exment\Services\Meili\MeiliSync::handleRestoredChildren($payload[0] ?? null);
+        });
     }
 
     /**
@@ -313,6 +368,12 @@ class ExmentServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__ . '/../config/exment.php',
             'exment'
+        );
+
+        // global search config.
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/meilisearch.php',
+            'meilisearch'
         );
 
         // register global middleware.
@@ -348,6 +409,12 @@ class ExmentServiceProvider extends ServiceProvider
         });
         $this->app->bind(CustomTable::class, function ($app) {
             return CustomTable::findByEndpoint();
+        });
+
+        $this->app->bind(EarthquakeFeedInterface::class, P2pQuakeFeed::class);
+
+        $this->app->bind(\Exceedone\Exment\Services\Line\LineMessagingClient::class, function () {
+            return new \Exceedone\Exment\Services\Line\LineMessagingClient();
         });
 
         // guard provider
@@ -394,6 +461,9 @@ class ExmentServiceProvider extends ServiceProvider
             if (!is_null($items = $pluginPage->_getLoadView())) {
                 $this->loadViewsFrom($items[0], $items[1]);
             }
+            if (is_object($pluginPage) && method_exists($pluginPage, '_getLoadTranslation') && !is_null($items = $pluginPage->_getLoadTranslation())) {
+                $this->loadTranslationsFrom($items[0], $items[1]);
+            }
         }
     }
 
@@ -431,6 +501,24 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
+            $schedule->command('exment:safetywatch')->everyMinute()->withoutOverlapping(10);
+
+            // Daily index repair (fix drift accumulated from missed/failed sync
+            // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
+            // orphans) instead of a full exment:meili-index reindex, so it is cheap.
+            if (boolval(config('meilisearch.repair_enabled'))) {
+                $repairAt = (string) config('meilisearch.repair_at', '03:00');
+                if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/D', $repairAt)) {
+                    \Illuminate\Support\Facades\Log::warning(
+                        "[Meili] ignoring index repair schedule: '{$repairAt}' is not a HH:MM time."
+                    );
+                } else {
+                    $schedule->command('exment:meili-reconcile')
+                        ->dailyAt($repairAt)
+                        ->withoutOverlapping()
+                        ->runInBackground();
+                }
+            }
 
             // set cron event
             try {

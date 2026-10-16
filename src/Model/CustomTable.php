@@ -626,10 +626,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // the task list marks of this table's records, of every user: nothing reads them once the
-        // table is gone, and a later table given the same id would inherit them
-        WorkflowTaskRead::withoutGlobalScopes()
-            ->where('custom_table_id', $this->id)
-            ->delete();
+        // table is gone, and a later table given the same id would inherit them.
+        // Guarded by hasTable(): migrate:reset rolls migrations back newest-first, so the
+        // 2026_07_01 workflow_task_reads table is already dropped when an older migration
+        // (e.g. 2026_06_29 line_flex_template) deletes its custom table through this hook.
+        $readsTable = (new WorkflowTaskRead())->getTable();
+        if (\Illuminate\Support\Facades\Schema::hasTable($readsTable)) {
+            WorkflowTaskRead::withoutGlobalScopes()
+                ->where('custom_table_id', $this->id)
+                ->delete();
+        }
     }
 
     protected static function boot()

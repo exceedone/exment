@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\ValidateCalledType;
+use Exceedone\Exment\Grid\Tools\GridInlineEditor;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Carbon\Carbon;
 use Validator;
@@ -266,17 +267,142 @@ class ApiDataController extends AdminControllerTableBase
     }
 
     /**
+     * The cell style preset a view picked for one column, if any.
+     *
+     * @param mixed $view_suuid
+     * @param CustomColumn $custom_column
+     * @return mixed
+     */
+    protected static function findViewPreset($view_suuid, $custom_column)
+    {
+        if (!is_string($view_suuid) || is_nullorempty($view_suuid)) {
+            return null;
+        }
+
+        $custom_view = CustomView::findBySuuid($view_suuid);
+        if (!isset($custom_view)) {
+            return null;
+        }
+
+        // The suuid arrives in the url, so it can name any view in the system.
+        // Only a view of the table being drawn has anything to say about this
+        // column: a name that belongs elsewhere is read as no view at all,
+        // rather than as an invitation to go and look at one.
+        if ($custom_view->custom_table_id != $custom_column->custom_table_id) {
+            return null;
+        }
+
+        foreach ($custom_view->custom_view_columns_cache as $custom_view_column) {
+            if ($custom_view_column->view_column_target_id == $custom_column->id
+                && $custom_view_column->view_column_type == ConditionType::COLUMN) {
+                return $custom_view_column->getOption('grid_preset');
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Render one cell of one record the way the data grid would render it.
+     *
+     * Used by the inline editor: after PUT succeeds the client does not
+     * know how a Select column paints its badge or how a Yesno column
+     * spells its two values, and it must not - the styling is a table
+     * owner setting. The rendered HTML is therefore delegated to the same
+     * ColumnItems pipeline the grid runs, so the returned markup is byte
+     * for byte what the grid would have produced on a full reload,
+     * including whatever badge or bar GridCellStyle::wrap adds.
+     *
+     * Permissions match the row-level access the grid already enforces.
+     *
+     * @return mixed
+     */
+    // @phpstan-ignore-next-line
+    public function dataCellHtml(Request $request, $tableKey, $id, $columnName)
+    {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
+        if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        if (($code = $custom_value->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
+            return abortJson(403, $code);
+        }
+
+        $custom_column = CustomColumn::getEloquent($columnName, $this->custom_table);
+        // getEloquent() reads a numeric name as a column id of ANY table, and
+        // the record of this table would then be drawn through a column
+        // definition of another one - its option labels included.
+        if (!isset($custom_column) || $custom_column->custom_table_id != $this->custom_table->id) {
+            return abortJson(404, ErrorCode::DATA_NOT_FOUND());
+        }
+
+        $item = $custom_column->column_item;
+        if (!isset($item)) {
+            return abortJson(404, ErrorCode::DATA_NOT_FOUND());
+        }
+
+        // Same options the grid loop passes so the wrap / min-width / align
+        // decisions read the same setting the grid did. Without this the
+        // badge would silently drop off for any column with grid_column set
+        // to false.
+        //
+        // The view travels with the request because a preset chosen on the
+        // view beats the column's own appearance: without it an edited cell
+        // would come back wearing the column style while every other row
+        // kept the view style, until the next reload.
+        $item->options([
+            'grid_column' => true,
+            'grid_preset' => static::findViewPreset($request->get('view'), $custom_column),
+        ]);
+
+        $html = (string)$item->setCustomValue($custom_value)->html();
+
+        // The grid hands an editable cell its true value in a hidden marker
+        // whenever the display is lossy (shortened text, rounded number);
+        // the cell rendered here replaces that markup after a save, so it
+        // has to carry it too. Without this, editing such a value a second
+        // time would start from the display again. A record whose form does
+        // not let the user change the column gets the lock marker instead,
+        // the same as DefaultGrid writes - the save may have moved the
+        // record onto another form.
+        if (GridInlineEditor::isEditable($custom_column)) {
+            $html .= GridInlineEditor::isFormEditableColumn($this->custom_table, $custom_value, $custom_column)
+                ? GridInlineEditor::rawValueTag($item, $html)
+                : GridInlineEditor::LOCKED_MARKER;
+        }
+
+        return [
+            'html' => $html,
+        ];
+    }
+
+    /**
      * create data
      * @return mixed
      */
     public function dataCreate(Request $request)
     {
-        if (($code = $this->custom_table->enableCreate()) !== true) {
+        // A record typed into a kanban column (quick add) stands in for the
+        // create page, so it obeys the "cannot create from display" form
+        // action and the form's own columns - see dataUpdate. A plain API
+        // call does not send the key and is unchanged.
+        $screenWrite = boolval($request->get(GridInlineEditor::SCREEN_WRITE_KEY));
+
+        if (($code = $this->custom_table->enableCreate($screenWrite)) !== true) {
             // use the ErrorCode's own message so a one-record table that already
             // holds a record reports "このテーブルは1レコードのみ登録可能です。"
             // (code 402) instead of the misleading generic "Permission denied".
             // A real permission failure still yields admin.deny via getMessage().
             return abortJson(403, $code);
+        }
+
+        if ($screenWrite && ($response = $this->validateScreenWrite($request, null)) instanceof Response) {
+            return $response;
         }
 
         return $this->saveData($request);
@@ -297,12 +423,58 @@ class ApiDataController extends AdminControllerTableBase
             return $custom_value;
         }
 
-        if (($code = $custom_value->enableEdit()) !== true) {
+        // A write from a list screen - inline edit, bulk edit, "Set me as",
+        // a kanban move - stands in for the record's edit page, so it obeys
+        // what that page obeys: the "cannot change from display" form action
+        // and the form's own column settings. A plain API call does not send
+        // the key and keeps writing columns as documented.
+        $screenWrite = boolval($request->get(GridInlineEditor::SCREEN_WRITE_KEY));
+
+        if (($code = $custom_value->enableEdit($screenWrite)) !== true) {
             // @phpstan-ignore-next-line
             return abortJson(403, $code);
         }
 
+        if ($screenWrite && ($response = $this->validateScreenWrite($request, $custom_value)) instanceof Response) {
+            return $response;
+        }
+
         return $this->saveData($request, $custom_value);
+    }
+
+    /**
+     * The form rules for a write sent by a list screen (see dataUpdate).
+     *
+     * Such a write is always one record and a few of its own columns, so
+     * anything else in the body - several records, `data`, a new parent -
+     * did not come from a screen and is refused rather than checked. The
+     * one exception is a record being created (null): a board embedded in
+     * a parent's page names that parent for the new record, at the top
+     * level of the body only.
+     *
+     * @param Request $request
+     * @param \Exceedone\Exment\Model\CustomValue|null $custom_value null for a record about to be created
+     * @return Response|null
+     */
+    protected function validateScreenWrite(Request $request, $custom_value)
+    {
+        $values = $request->get('value');
+        if (!is_array($values) || empty($values) || is_vector($values) || $request->has('data')
+            || (isset($custom_value) && ($request->has('parent_id') || $request->has('parent_type')))
+            || array_key_exists('parent_id', $values) || array_key_exists('parent_type', $values)) {
+            return abortJson(400, ErrorCode::VALIDATION_ERROR());
+        }
+
+        // updated_at is the edit lock, not a column - saveData checks it.
+        $errors = GridInlineEditor::validateScreenWrite($this->custom_table, $custom_value, array_except($values, ['updated_at']));
+        if (!empty($errors)) {
+            // Same shape as a failed validation of a single record.
+            return abortJson(400, [
+                'errors' => [$errors],
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        return null;
     }
 
 
@@ -324,6 +496,9 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         $forceDelete = boolval($request->get('force'));
+        // The row menu's Delete is a screen, so the "cannot delete from
+        // display" form action applies to it - see dataUpdate.
+        $screenWrite = boolval($request->get(GridInlineEditor::SCREEN_WRITE_KEY));
 
         $custom_values = [];
         $validates = [];
@@ -331,7 +506,7 @@ class ApiDataController extends AdminControllerTableBase
             if (($custom_value = $this->getCustomValue($this->custom_table, $i, $forceDelete)) instanceof Response) {
                 return $custom_value;
             }
-            if (($code = $custom_value->enableDelete()) !== true) {
+            if (($code = $custom_value->enableDelete($screenWrite)) !== true) {
                 return abortJson(403, $code);
             }
             if ($res = $this->custom_table->validateValueDestroy($i)) {

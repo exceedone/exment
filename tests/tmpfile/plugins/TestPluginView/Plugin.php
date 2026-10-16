@@ -93,6 +93,7 @@ class Plugin extends PluginViewBase
     protected function getBoardItems($items)
     {
         $category = CustomColumn::getEloquent($this->custom_view->getCustomOption('category'));
+        /** @var array<int|string, string> $options value => label */
         $options = $category->createSelectOptions();
 
         $update_url = $this->plugin->getFullUrl('update');

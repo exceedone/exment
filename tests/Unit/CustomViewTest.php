@@ -215,7 +215,7 @@ class CustomViewTest extends UnitTestBase
                 }
                 if (!isset($compare_value)) {
                     $compare = null;
-                } elseif (is_list($compare_value)) {
+                } elseif (is_array($compare_value) || $compare_value instanceof \Illuminate\Support\Collection) {
                     $compare = collect($compare_value)->map(function ($v) use ($custom_view_column) {
                         return $this->getCompareValue($custom_view_column, $v);
                     })->filter()->implode('、');
@@ -461,7 +461,9 @@ class CustomViewTest extends UnitTestBase
             $custom_view->setGrid($grid);
         }
 
-        $result = $grid->model()->buildData(false);
+        $model = $grid->model();
+        $this->assertInstanceOf(\ExmentAdminCore\Admin\Grid\Model::class, $model);
+        $result = $model->buildData(false);
         $this->assertTrue(count($result) > 0, "custom view $view_name count expects over 0, but this count is 0.");
 
         return $result;

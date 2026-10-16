@@ -40,7 +40,8 @@ class OrgazanizationTreeItem extends ProviderBase
             });
 
             $tree->branch(function ($branch) {
-                return array_get($branch, 'label');
+                // the tree view prints the branch callback result as raw html, so escape the label here
+                return esc_html(array_get($branch, 'label'));
             });
         });
 

@@ -2,9 +2,173 @@
 
 namespace Exceedone\Exment\Enums;
 
+/**
+ * Chart types of a dashboard chart box, grouped by the dataset shape they render and the
+ * library that draws them. The runtime chart-type switcher may move a box to any other
+ * type of the SAME shape (single-series ↔ single-series, multi ↔ multi).
+ */
 class ChartType extends EnumBase
 {
+    // single series (labels[] + values[]) — Chart.js
     public const BAR = 'bar';
     public const LINE = 'line';
     public const PIE = 'pie';
+
+    // single series — ECharts
+    public const HBAR = 'hbar';
+    public const AREA = 'area';
+    public const DOUGHNUT = 'doughnut';
+    public const RADAR = 'radar';
+    public const FUNNEL = 'funnel';
+    public const GAUGE = 'gauge';
+    public const SCATTER = 'scatter';
+
+    // multi series (X × series matrix from a 2-column aggregate view) — ECharts
+    public const MBAR = 'mbar';
+    public const SBAR = 'sbar';
+    public const MLINE = 'mline';
+    public const HEATMAP = 'heatmap';
+    public const SAREA = 'sarea';
+    public const TREEMAP = 'treemap';
+    public const SUNBURST = 'sunburst';
+    public const BOXPLOT = 'boxplot';
+
+    // (only chart types may be constants here: EnumBase lists every constant as an option)
+
+    /**
+     * @return string[]
+     */
+    public static function chartjsTypes(): array
+    {
+        return [self::BAR, self::LINE, self::PIE];
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function echartsSingleTypes(): array
+    {
+        return [self::HBAR, self::AREA, self::DOUGHNUT, self::RADAR, self::FUNNEL, self::GAUGE, self::SCATTER];
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function multiTypes(): array
+    {
+        return [self::MBAR, self::SBAR, self::MLINE, self::HEATMAP, self::SAREA, self::TREEMAP, self::SUNBURST, self::BOXPLOT];
+    }
+
+    /**
+     * Multi-series type (ECharts, pivoted matrix).
+     *
+     * @param string|null $type
+     */
+    public static function isMulti($type): bool
+    {
+        return in_array($type, self::multiTypes(), true);
+    }
+
+    /**
+     * Single-series type drawn by ECharts; anything else (bar / line / pie, or an unknown
+     * legacy value) is drawn by Chart.js.
+     *
+     * @param string|null $type
+     */
+    public static function isEcharts($type): bool
+    {
+        return in_array($type, self::echartsSingleTypes(), true);
+    }
+
+    /**
+     * Types without X/Y axes (slices / petals) — the ones where a legend is meaningful.
+     *
+     * @param string|null $type
+     */
+    public static function isCircular($type): bool
+    {
+        return in_array($type, [self::PIE, self::DOUGHNUT, self::FUNNEL, self::RADAR], true);
+    }
+
+    /**
+     * Types whose option checkbox is "legend" rather than "begin at zero".
+     *
+     * @return string[]
+     */
+    public static function legendTypes(): array
+    {
+        return array_merge([self::PIE, self::DOUGHNUT, self::FUNNEL, self::RADAR], self::multiTypes());
+    }
+
+    /**
+     * Types that read the box's axis options — 軸ラベル / 軸名 (chart_axis_label /
+     * chart_axis_name) and ０を起点にする (ChartOptionType::BEGIN_ZERO): the Chart.js types
+     * with axes. The ECharts renderers lay their axes out their own way and the circular
+     * types have none, so the box form hides those options there and stores nothing.
+     *
+     * @return string[]
+     */
+    public static function axisOptionTypes(): array
+    {
+        return array_values(array_filter(self::chartjsTypes(), function ($type) {
+            return !self::isCircular($type);
+        }));
+    }
+
+    /**
+     * Types a box configured as $configured may be switched to at runtime.
+     *
+     * @param string|null $configured
+     * @return string[]
+     */
+    public static function switchPool($configured): array
+    {
+        if (self::isMulti($configured)) {
+            return self::multiTypes();
+        }
+        return array_merge(self::chartjsTypes(), self::echartsSingleTypes());
+    }
+
+    /**
+     * The type to render: the requested one when it is a legal switch, else the configured one.
+     *
+     * @param string|null $configured
+     * @param mixed $requested  the `ct` request value
+     */
+    public static function resolve($configured, $requested): ?string
+    {
+        if (is_string($requested) && in_array($requested, self::switchPool($configured), true)) {
+            return $requested;
+        }
+        return $configured;
+    }
+
+    /**
+     * Types whose points map 1:1 to the X values, so a click on a point picks its value on
+     * the filter bar and the pick shows on the points (the picked ones solid, the rest
+     * faded). The shape types — radar, gauge, treemap, sunburst, boxplot — draw no such point.
+     */
+    public static function supportsPointPick(?string $type): bool
+    {
+        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::DOUGHNUT, self::FUNNEL, self::SCATTER, self::MBAR, self::SBAR, self::MLINE, self::SAREA, self::HEATMAP], true);
+    }
+
+    /**
+     * Types whose points can carry their value as a label (the box menu's 値ラベル): the
+     * cartesian ones and pie; doughnut / funnel always label, the shape types cannot.
+     */
+    public static function supportsDataLabels(?string $type): bool
+    {
+        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::SCATTER, self::MBAR, self::SBAR, self::MLINE, self::SAREA], true);
+    }
+
+    /**
+     * Types whose colors an editor can paint by right-clicking the chart (ChartColors): every
+     * category of a per-point type, every series of a multi-series type, the one series of a
+     * one-color type. The heatmap is colored by value and the boxplot by nothing to pick.
+     */
+    public static function supportsColorEdit(?string $type): bool
+    {
+        return $type !== null && $type !== self::HEATMAP && $type !== self::BOXPLOT;
+    }
 }

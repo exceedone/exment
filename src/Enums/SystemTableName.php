@@ -21,6 +21,8 @@ class SystemTableName extends EnumBase
     public const COMMENT = 'comment';
     public const MAIL_TEMPLATE = 'mail_template';
     public const MAIL_SEND_LOG = 'mail_send_log';
+    public const LINE_FLEX_TEMPLATE = 'line_flex_template';
+    public const LINE_SEND_LOG = 'line_send_log';
     public const BASEINFO = 'base_info';
     public const DOCUMENT = 'document';
     public const FILE= 'files';
@@ -64,6 +66,8 @@ class SystemTableName extends EnumBase
             SystemTableName::ORGANIZATION,
             SystemTableName::MAIL_TEMPLATE,
             SystemTableName::MAIL_SEND_LOG,
+            SystemTableName::LINE_FLEX_TEMPLATE,
+            SystemTableName::LINE_SEND_LOG,
             SystemTableName::BASEINFO,
         ];
     }
