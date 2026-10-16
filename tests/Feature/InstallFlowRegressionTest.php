@@ -37,19 +37,27 @@ class InstallFlowRegressionTest extends FeatureTestBase
     // Helpers
     // -------------------------------------------------------------------------
 
-    /** Temporary .env path used by EnvService tests. */
+    /** Temporary folder standing in for the base path in EnvService tests. */
+    private string $tmpDir;
+
+    /** The .env file inside $tmpDir. */
     private string $tmpEnv;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->tmpEnv = tempnam(sys_get_temp_dir(), 'env_test_');
+        $this->tmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('env_test_', true);
+        mkdir($this->tmpDir);
+        $this->tmpEnv = $this->tmpDir . DIRECTORY_SEPARATOR . '.env';
     }
 
     protected function tearDown(): void
     {
         if (file_exists($this->tmpEnv)) {
             unlink($this->tmpEnv);
+        }
+        if (is_dir($this->tmpDir)) {
+            rmdir($this->tmpDir);
         }
         // Clear any session keys touched during tests
         session()->forget(Define::SYSTEM_KEY_SESSION_INITIALIZE);
@@ -58,7 +66,7 @@ class InstallFlowRegressionTest extends FeatureTestBase
     }
 
     /**
-     * Write content to a temp file and redirect EnvService to use it.
+     * Write content to the temporary .env file.
      */
     private function useEnvFile(string $content): void
     {
@@ -66,64 +74,35 @@ class InstallFlowRegressionTest extends FeatureTestBase
     }
 
     /**
-     * Invoke EnvService::setEnv() pointing at the temp file instead of the
-     * real base_path()/.env.
+     * Run the real EnvService::setEnv() on the temporary .env file.
+     *
+     * setEnv() always edits the .env file in base_path(), so the base path
+     * points at the temporary folder for the duration of the call.
+     *
+     * @param array<string, string> $data
      */
     private function callSetEnv(array $data, bool $matchRemove = false): void
     {
-        // We monkeypatch by writing to the tmpEnv path and reflecting back.
-        // Because EnvService uses base_path().'/.env' internally we swap it
-        // temporarily via a closure bound to the class (PHP 7+ closure trick).
-        $fn = \Closure::bind(
-            static function (array $data, bool $matchRemove, string $path): void {
-                if (empty($data)) {
-                    return;
-                }
-                $env = file($path, FILE_IGNORE_NEW_LINES);
-                $newEnvs = [];
-                $writtenKeys = [];
-                foreach ($env as $line) {
-                    $parts   = explode('=', $line, 2);
-                    $lineKey = $parts[0];
-                    if (!array_key_exists($lineKey, $data)) {
-                        $newEnvs[] = $line;
-                        continue;
-                    }
-                    if ($matchRemove || isset($writtenKeys[$lineKey])) {
-                        continue;
-                    }
-                    $value = $data[$lineKey];
-                    if (strpos($value, '#') !== false || strpos($value, ' ') !== false) {
-                        if (!preg_match('/".+"/', $value)) {
-                            $value = '"' . $value . '"';
-                        }
-                    }
-                    $newEnvs[] = $lineKey . '=' . $value;
-                    $writtenKeys[$lineKey] = true;
-                }
-                if (!$matchRemove) {
-                    foreach ($data as $key => $value) {
-                        if (!isset($writtenKeys[$key])) {
-                            if (strpos($value, '#') !== false || strpos($value, ' ') !== false) {
-                                if (!preg_match('/".+"/', $value)) {
-                                    $value = '"' . $value . '"';
-                                }
-                            }
-                            $newEnvs[] = $key . '=' . $value;
-                        }
-                    }
-                }
-                file_put_contents($path, implode("\n", $newEnvs));
-            },
-            null,
-            EnvService::class
-        );
-        $fn($data, $matchRemove, $this->tmpEnv);
+        $basePath = $this->app->basePath();
+        $this->app->setBasePath($this->tmpDir);
+        try {
+            EnvService::setEnv($data, $matchRemove);
+        } finally {
+            $this->app->setBasePath($basePath);
+        }
     }
 
+    /**
+     * @return list<string>
+     */
     private function readEnvLines(): array
     {
-        return file($this->tmpEnv, FILE_IGNORE_NEW_LINES);
+        $lines = file($this->tmpEnv, FILE_IGNORE_NEW_LINES);
+        if ($lines === false) {
+            $this->fail('Cannot read ' . $this->tmpEnv);
+        }
+
+        return $lines;
     }
 
     // =========================================================================
@@ -220,36 +199,25 @@ class InstallFlowRegressionTest extends FeatureTestBase
      */
     public function testGetStatusDoesNotShortcutToInitializeWhenWizardSessionActive(): void
     {
-        // Simulate mid-install: user completed DatabaseForm and SystemRequireForm.
+        // Simulate mid-install: the user is past the SystemRequireForm step.
+        // No database inputs go in the session on purpose: getStatus() applies
+        // them first (setSettingTmp), and without any it keeps the connection
+        // the tests run on - reachable and installed, which is exactly when the
+        // old shortcut sent the wizard to /initialize.
         InstallService::setInitializeStatus(InitializeStatus::SYSTEM_REQUIRE);
-        InstallService::setInputParams(['DB_PASSWORD' => 'password', 'DB_CONNECTION' => 'mariadb']);
-
-        $sessionStatus = InstallService::getInitializeStatus();
 
         // The session must report SYSTEM_REQUIRE (not null).
         $this->assertSame(
             InitializeStatus::SYSTEM_REQUIRE,
-            $sessionStatus,
+            InstallService::getInitializeStatus(),
             'Session status must remain SYSTEM_REQUIRE while the wizard is in progress'
         );
 
-        // AFTER FIX: the INITIALIZE shortcut in getStatus() is guarded by is_null($status).
-        // Because $sessionStatus != null, the shortcut is NOT taken → wizard continues.
-        $shortcutWouldBeTaken = is_null($sessionStatus);
-        $this->assertFalse(
-            $shortcutWouldBeTaken,
-            'AFTER FIX: shortcut to INITIALIZE must be skipped when wizard session is active'
-        );
-
-        // And the correct next status to show is INSTALLING (session SYSTEM_REQUIRE → INSTALLING).
-        // Reproduce the exact branch logic from the fixed getStatus():
-        $expectedNext = ($sessionStatus === InitializeStatus::SYSTEM_REQUIRE)
-            ? InitializeStatus::INSTALLING
-            : null;
-
+        // AFTER FIX: the INITIALIZE shortcut is skipped while the wizard session
+        // is active, and SYSTEM_REQUIRE advances to INSTALLING.
         $this->assertSame(
             InitializeStatus::INSTALLING,
-            $expectedNext,
+            InstallService::getStatus(),
             'When session = SYSTEM_REQUIRE the wizard must advance to the INSTALLING step, not INITIALIZE'
         );
     }
@@ -262,13 +230,12 @@ class InstallFlowRegressionTest extends FeatureTestBase
     {
         InstallService::forgetInitializeStatus();
 
-        $sessionStatus = InstallService::getInitializeStatus();
+        $this->assertNull(InstallService::getInitializeStatus(), 'No session: getInitializeStatus() returns null');
 
-        $this->assertNull($sessionStatus, 'No session → getInitializeStatus() returns null');
-
-        // The INITIALIZE shortcut condition: is_null($status) → true → shortcut ALLOWED
-        $this->assertTrue(
-            is_null($sessionStatus),
+        // No session and an installed database: the shortcut still applies.
+        $this->assertSame(
+            InitializeStatus::INITIALIZE,
+            InstallService::getStatus(),
             'AFTER FIX: when no session exists, the INITIALIZE shortcut must still be allowed'
         );
     }
