@@ -95,6 +95,7 @@ class MeiliSearchService
      * Search within ONE table, with pagination (for the full results page).
      *
      * @param MeiliFilters $filters
+     * @param array<int,string>|null $searchOn
      * @return array{ids:array<int,mixed>, total:int}
      */
     public function searchTablePaginated(string $q, string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null, ?array $searchOn = null): array
@@ -111,6 +112,7 @@ class MeiliSearchService
      * Build the paginated per-table search parameters (pure logic).
      *
      * @param MeiliFilters $filters
+     * @param array<int,string>|null $searchOn
      * @return array<string,mixed>
      */
     public static function buildTableSearchOptions(string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null, ?array $searchOn = null): array
@@ -447,8 +449,7 @@ class MeiliSearchService
 
         try {
             $pagination = $this->client->index($this->indexName)->getPagination();
-            $value = (int) ($pagination['maxTotalHits'] ?? 0);
-            $this->maxTotalHits = $value > 0 ? $value : null;
+            $this->maxTotalHits = $pagination['maxTotalHits'];
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[Meili] pagination setting unavailable: ' . $e->getMessage());
             $this->maxTotalHits = null;
@@ -474,7 +475,7 @@ class MeiliSearchService
 
         try {
             $attributes = $this->client->index($this->indexName)->getFilterableAttributes();
-            $this->filterableAttributes = array_values(array_map('strval', (array) $attributes));
+            $this->filterableAttributes = array_map('strval', (array) $attributes);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[Meili] filterable attributes unavailable: ' . $e->getMessage());
             $this->filterableAttributes = null;
@@ -490,6 +491,7 @@ class MeiliSearchService
      *
      * @param MeiliFilters $filters
      * @param array<int,string> $attributes
+     * @param array<int,string>|null $searchOn
      * @return array<string,array<string,int>>
      */
     public function searchDistributions(string $q, array $filters, array $attributes, ?array $searchOn = null): array

@@ -112,6 +112,11 @@ class MeiliExportTest extends FeatureTestBase
             /** @var array<string,mixed> */
             public $captured = ['called' => false];
 
+            /**
+             * @param \Illuminate\Http\Request $request
+             * @param mixed $q untyped on purpose: the test reports the type that arrives
+             * @param \Exceedone\Exment\Model\CustomTable $custom_table
+             */
             protected function exportByMeili($request, $q, $custom_table)
             {
                 $this->captured = [

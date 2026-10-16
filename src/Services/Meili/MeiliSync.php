@@ -135,7 +135,9 @@ class MeiliSync
                 if (!ExmentIndexer::isIndexable($table)) {
                     continue;
                 }
-                $columns = collect($table->getFreewordSearchColumns())
+                /** @var \Illuminate\Support\Collection<int, \Exceedone\Exment\Model\CustomColumn> $freewordColumns */
+                $freewordColumns = $table->getFreewordSearchColumns();
+                $columns = $freewordColumns
                     ->concat(FilterConfig::equalityColumns($table))
                     ->unique('id')
                     ->filter(fn ($c) => ColumnType::isSelectTable($c->column_type)
@@ -149,7 +151,7 @@ class MeiliSync
         });
     }
 
-    /** @var \WeakMap<CustomValue, array<string,mixed>|null>|null label source values before the update */
+    /** @var \WeakMap<CustomValue, array<string,mixed>>|null label source values before the update */
     protected static ?\WeakMap $labelBefore = null;
 
     /**
@@ -193,12 +195,12 @@ class MeiliSync
 
     /**
      * Values of the columns the label is built from (as CustomValue::getBasicLabel);
-     * null for a custom label format, which may use any column.
+     * for a custom label format, which may use any column, every value under "*".
      *
      * @param  array<string,mixed>  $value
-     * @return array<string,mixed>|null
+     * @return array<string,mixed>
      */
-    protected static function labelSource(CustomValue $model, array $value): ?array
+    protected static function labelSource(CustomValue $model, array $value): array
     {
         $table = $model->custom_table;
         $labelColumns = $table->getLabelColumns();

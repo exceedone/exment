@@ -70,6 +70,8 @@ class RangeSideGuardTest extends TestCase
     public function testTheOldExpressionReallyDidWarnOnTheSameInput(): void
     {
         // Pins WHY the guard exists: without it the very same value warns.
+        // Typed as the request input it stands for, which can hold anything.
+        /** @var array<string, mixed> $range */
         $range = ['from' => ['1']];
 
         $raised = [];

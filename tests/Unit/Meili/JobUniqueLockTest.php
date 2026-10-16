@@ -32,7 +32,7 @@ use PHPUnit\Framework\TestCase;
 class JobUniqueLockTest extends TestCase
 {
     /**
-     * @return array<int,object>
+     * @return array<int, ApplyMeiliSettingsJob|ReindexMeiliTableJob>
      */
     private function uniqueJobs(): array
     {

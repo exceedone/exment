@@ -10,11 +10,18 @@ use PHPUnit\Framework\TestCase;
  */
 class ReindexConfigChangeTest extends TestCase
 {
+    /**
+     * @param array<string, mixed> $options
+     */
     private static function col(string $name, string $type = 'text', array $options = []): object
     {
         return (object) ['column_name' => $name, 'column_type' => $type, 'options' => $options];
     }
 
+    /**
+     * @param array<int, object> $facets
+     * @param array<int, object> $ranges
+     */
     private static function hash(array $facets = [], array $ranges = []): string
     {
         return ReindexMeiliTableJob::configHash('Orders', [self::col('title')], $facets, $ranges, []);

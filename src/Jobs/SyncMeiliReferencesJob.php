@@ -58,7 +58,11 @@ class SyncMeiliReferencesJob implements ShouldQueue
         $limit = max(1, (int) config('meilisearch.batch_size', 1000));
         $found = 0;
         foreach (MeiliSync::referencingColumns($refTable) as [$table, $linkColumns]) {
-            $found += self::referencingQuery($table, $linkColumns, $valueId)->limit($limit + 1 - $found)->pluck('id')->count();
+            // Fetch at most the ids still needed, then count them. count() on the query
+            // would not stop at the limit: the limit applies to the one row the
+            // aggregate returns, so every referencing record would be counted.
+            $ids = self::referencingQuery($table, $linkColumns, $valueId)->limit($limit + 1 - $found)->pluck('id');
+            $found += $ids->count();
             if ($found > $limit) {
                 return true;
             }

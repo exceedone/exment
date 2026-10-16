@@ -106,28 +106,31 @@ class SafetyCheckController extends AdminControllerBase
         };
 
         $grid->column($columnKey('title'), exmtrans('safety.col_title'))->sortable();
-        /** @phpstan-ignore-next-line sortable() is typed Column|string in exment-admin-core */
-        $grid->column($columnKey('trigger_type'), exmtrans('safety.col_trigger_type'))->sortable()->display(function ($value) {
+        // sortable() is typed Column|string in exment-admin-core, so a column
+        // that also gets a display callback is kept in a variable.
+        $triggerType = $grid->column($columnKey('trigger_type'), exmtrans('safety.col_trigger_type'));
+        $triggerType->sortable();
+        $triggerType->display(function ($value) {
             return esc_html(exmtrans('safety.trigger_type_' . $value));
         });
-        /** @phpstan-ignore-next-line sortable() is typed Column|string in exment-admin-core */
-        $grid->column($columnKey('event_status'), exmtrans('safety.col_event_status'))->sortable()->display(function ($value) {
+        $eventStatus = $grid->column($columnKey('event_status'), exmtrans('safety.col_event_status'));
+        $eventStatus->sortable();
+        $eventStatus->display(function ($value) {
             $class = $value === SafetyCheckDefine::EVENT_CLOSED ? 'bg-secondary' : 'bg-success';
             return '<span class="badge ' . $class . '">' . esc_html(exmtrans('safety.event_status_' . $value)) . '</span>';
         })->escape(false);
         $grid->column($columnKey('triggered_at'), exmtrans('safety.col_triggered_at'))->sortable();
-        $grid->column('sent_count', exmtrans('safety.col_sent_count'))->display(function () {
-            /** @phpstan-ignore-next-line $this is the row CustomValue inside a Grid display closure */
-            return (int) $this->getValue('sent_count');
+        // The grid passes the row as the third argument; $this is bound to the
+        // row as well, but would read as this controller.
+        $grid->column('sent_count', exmtrans('safety.col_sent_count'))->display(function ($value, $column, CustomValue $row) {
+            return (int) $row->getValue('sent_count');
         });
-        $grid->column('target_count', exmtrans('safety.col_target_count'))->display(function () {
-            /** @phpstan-ignore-next-line $this is the row CustomValue inside a Grid display closure */
-            return (int) $this->getValue('target_count');
+        $grid->column('target_count', exmtrans('safety.col_target_count'))->display(function ($value, $column, CustomValue $row) {
+            return (int) $row->getValue('target_count');
         });
         $controller = $this;
-        $grid->column('answered_count', exmtrans('safety.col_answered_count'))->display(function () use ($controller) {
-            /** @phpstan-ignore-next-line $this is the row CustomValue inside a Grid display closure */
-            return $controller->getAnsweredCount($this->id);
+        $grid->column('answered_count', exmtrans('safety.col_answered_count'))->display(function ($value, $column, CustomValue $row) use ($controller) {
+            return $controller->getAnsweredCount($row->id);
         });
 
         $grid->disableCreateButton();

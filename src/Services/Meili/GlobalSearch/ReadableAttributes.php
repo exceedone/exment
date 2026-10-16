@@ -61,7 +61,8 @@ class ReadableAttributes
                     return null;
                 }
 
-                $columns = collect($table->getFreewordSearchColumns());
+                /** @var \Illuminate\Support\Collection<int, CustomColumn> $columns */
+                $columns = $table->getFreewordSearchColumns();
                 $hidden = $columns->filter(fn ($c) => self::isHiddenColumn($c))->pluck('column_name')->all();
                 $labelHidden = self::labelMayExposeHidden($table);
 
@@ -226,7 +227,7 @@ class ReadableAttributes
         // (CustomValue::getBasicLabel).
         $columns = empty($labelColumns) || count($labelColumns) === 0
             ? [$table->custom_columns_cache->first()]
-            : collect($labelColumns)->map(fn ($c) => CustomColumn::getEloquent($c->table_label_id))->all();
+            : $labelColumns->map(fn ($c) => CustomColumn::getEloquent($c->table_label_id))->all();
 
         foreach ($columns as $column) {
             if (self::isHiddenColumn($column)) {

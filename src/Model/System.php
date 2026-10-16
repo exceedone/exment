@@ -103,7 +103,7 @@ use Cache;
  * @method static boolean|void meili_repair_enabled($arg = null)
  * @method static string|void meili_repair_at($arg = null)
  * @method static string|void meili_filter_mode($arg = null)
- * @method static array|void meili_indexed_at($arg = null)
+ * @method static array<string, mixed>|void meili_indexed_at($arg = null)
  * @phpstan-consistent-constructor
  */
 class System extends ModelBase

@@ -172,12 +172,15 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
      */
     public static function configHash(string $tableLabel, iterable $columns, iterable $facetColumns, iterable $rangeColumns, array $aliases): string
     {
-        // array_map, not ->map(): IndexPipelineTest reads every "->map(" in this
+        // A loop, not ->map(): IndexPipelineTest reads every "->map(" in this
         // file as a DocumentMapper::map() call site and checks its arguments.
-        $describe = fn ($list) => array_map(
-            fn ($c) => [(string) $c->column_name, (string) $c->column_type, $c->options ?? null],
-            collect($list)->values()->all()
-        );
+        $describe = function (iterable $list): array {
+            $described = [];
+            foreach ($list as $c) {
+                $described[] = [(string) $c->column_name, (string) $c->column_type, $c->options ?? null];
+            }
+            return $described;
+        };
 
         ksort($aliases);
 

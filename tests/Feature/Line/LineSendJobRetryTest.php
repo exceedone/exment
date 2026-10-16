@@ -53,12 +53,14 @@ class LineSendJobRetryTest extends FeatureTestBase
     {
         /** @var Job&\Mockery\MockInterface $mock */
         $mock = Mockery::mock(Job::class);
-        $mock->shouldReceive('getConnectionName')->andReturn($connection);
-        $mock->shouldReceive('attempts')->andReturn($attempts);
-        $mock->shouldReceive('isReleased')->andReturn(false);
-        $mock->shouldReceive('isDeleted')->andReturn(false);
-        $mock->shouldReceive('isDeletedOrReleased')->andReturn(false);
-        $mock->shouldReceive('uuid')->andReturn('test-uuid');
+        $mock->allows([
+            'getConnectionName' => $connection,
+            'attempts' => $attempts,
+            'isReleased' => false,
+            'isDeleted' => false,
+            'isDeletedOrReleased' => false,
+            'uuid' => 'test-uuid',
+        ]);
         return $mock;
     }
 
@@ -78,7 +80,7 @@ class LineSendJobRetryTest extends FeatureTestBase
 
         $job = new LineSendJob('Uretry1', [LineMessagingClient::text('hello')]);
         $queueJob = $this->queueJobMock('database', 1);
-        $queueJob->shouldReceive('release')->once();
+        $queueJob->expects('release');
         $job->setJob($queueJob);
 
         $job->handle();
@@ -94,7 +96,7 @@ class LineSendJobRetryTest extends FeatureTestBase
 
         $job = new LineSendJob('Uretry2', [LineMessagingClient::text('hello')]);
         $queueJob = $this->queueJobMock('database', $job->tries);
-        $queueJob->shouldReceive('release')->never();
+        $queueJob->shouldNotReceive('release');
         $job->setJob($queueJob);
 
         $job->handle();
@@ -112,7 +114,7 @@ class LineSendJobRetryTest extends FeatureTestBase
 
         $job = new LineSendJob('Uretry3', [LineMessagingClient::text('hello')], [], true);
         $queueJob = $this->queueJobMock('sync', 1);
-        $queueJob->shouldReceive('release')->never();
+        $queueJob->shouldNotReceive('release');
         $job->setJob($queueJob);
 
         $thrown = null;
@@ -140,7 +142,7 @@ class LineSendJobRetryTest extends FeatureTestBase
 
         $job = new LineSendJob('Uretry4', [LineMessagingClient::text('hello')]);
         $queueJob = $this->queueJobMock('database', 1);
-        $queueJob->shouldReceive('release')->never();
+        $queueJob->shouldNotReceive('release');
         $job->setJob($queueJob);
 
         $job->handle();
@@ -173,7 +175,7 @@ class LineSendJobRetryTest extends FeatureTestBase
 
         $job = new LineSendJob('Uretry5', [LineMessagingClient::text('hello')]);
         $queueJob = $this->queueJobMock('database', 1);
-        $queueJob->shouldReceive('release')->never();
+        $queueJob->shouldNotReceive('release');
         $job->setJob($queueJob);
 
         $job->handle();
