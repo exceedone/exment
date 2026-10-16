@@ -457,18 +457,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Controllers/BackupController.php
 
 		-
-			message: '#^Return type \(Illuminate\\Http\\JsonResponse\) of method Exceedone\\Exment\\Controllers\\CellStylePresetController\:\:index\(\) should be compatible with return type \(ExmentAdminCore\\Admin\\Layout\\Content\) of method Exceedone\\Exment\\Controllers\\AdminControllerTableBase\:\:index\(\)$#'
-			identifier: method.childReturnType
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CellStylePresetController.php
-
-		-
-			message: '#^PHPDoc tag @var with type Exceedone\\Exment\\Model\\CellStylePreset is not subtype of native type \$this\(Exceedone\\Exment\\Controllers\\CellStylePresetSettingController\)\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CellStylePresetSettingController.php
-
-		-
 			message: '#^Call to function method_exists\(\) with \$this\(Exceedone\\Exment\\Controllers\\ChangePasswordController\) and ''clearLoginAttempts'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -721,18 +709,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Controllers/ForgetPasswordController.php
 
 		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/MentionController.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/MentionController.php
-
-		-
 			message: '#^Access to an undefined property object\:\:\$id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -903,31 +879,19 @@ parameters:
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:indexEnabled\(\)\.$#'
 			identifier: method.notFound
-			count: 3
-			path: vendor/exceedone/exment/src/Controllers/WorkflowController.php
-
-		-
-			message: '#^Dead catch \- Illuminate\\Database\\QueryException is never thrown in the try block\.$#'
-			identifier: catch.neverThrown
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/WorkflowController.php
-
-		-
-			message: '#^Property Exceedone\\Exment\\Model\\WorkflowAction\:\:\$work_conditions \(Illuminate\\Support\\Collection\|Tightenco\\Collect\\Support\\Collection\) does not accept array\<int, array\<string, mixed\>\>\.$#'
-			identifier: assign.propertyType
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/WorkflowController.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
-			count: 8
+			count: 2
 			path: vendor/exceedone/exment/src/Controllers/WorkflowController.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 8
+			count: 2
 			path: vendor/exceedone/exment/src/Controllers/WorkflowController.php
 
 		-
@@ -1019,18 +983,6 @@ parameters:
 			identifier: argument.templateType
 			count: 1
 			path: vendor/exceedone/exment/src/DataItems/Grid/GridBase.php
-
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/src/DataItems/Grid/KanbanGrid.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 2
-			path: vendor/exceedone/exment/src/DataItems/Grid/KanbanGrid.php
 
 		-
 			message: '#^PHPDoc tag @var with type int is not subtype of native type float\.$#'

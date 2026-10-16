@@ -61,9 +61,10 @@ class CellStylePresetSettingController extends AdminControllerBase
 
         $grid->column('preset_name', exmtrans('cell_style_preset.preset_name'))->sortable();
 
-        $grid->column('suuid', exmtrans('cell_style_preset.preview'))->display(function () {
-            /** @var CellStylePreset $this */
-            return CellStylePresetSettingController::sampleHtml($this->definition());
+        // The grid passes the row as the third argument, so the closure does
+        // not have to read $this as the row.
+        $grid->column('suuid', exmtrans('cell_style_preset.preview'))->display(function ($suuid, $column, CellStylePreset $preset) {
+            return CellStylePresetSettingController::sampleHtml($preset->definition());
         })->escape(false);
 
         $grid->column('column_types', exmtrans('cell_style_preset.column_types'))->display(function ($column_types) {

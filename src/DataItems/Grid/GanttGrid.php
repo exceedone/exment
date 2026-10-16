@@ -46,14 +46,20 @@ class GanttGrid extends GridBase
      */
     protected const DEFAULT_BAR_COLOR = '#3c8dbc';
 
-    // @phpstan-ignore-next-line
+    /**
+     * @param CustomTable $custom_table
+     * @param \Exceedone\Exment\Model\CustomView $custom_view
+     */
     public function __construct($custom_table, $custom_view)
     {
         $this->custom_table = $custom_table;
         $this->custom_view = $custom_view;
     }
 
-    // @phpstan-ignore-next-line
+    /**
+     * @param mixed $callback not used by this view
+     * @return \Illuminate\Contracts\View\View
+     */
     public function grid($callback = null)
     {
         // same buttons in the same order as the data grid toolbar

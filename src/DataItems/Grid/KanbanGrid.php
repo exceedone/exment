@@ -109,14 +109,20 @@ class KanbanGrid extends GridBase
         '#c0392b', '#27ae60', '#d35400', '#7f8c8d', '#1abc9c',
     ];
 
-    // @phpstan-ignore-next-line
+    /**
+     * @param CustomTable $custom_table
+     * @param CustomView $custom_view
+     */
     public function __construct($custom_table, $custom_view)
     {
         $this->custom_table = $custom_table;
         $this->custom_view = $custom_view;
     }
 
-    // @phpstan-ignore-next-line
+    /**
+     * @param mixed $callback not used by this view
+     * @return \Illuminate\Contracts\View\View|\ExmentAdminCore\Admin\Grid the board, or the grid an export reads
+     */
     public function grid($callback = null)
     {
         // An embedded board draws no toolbar - whatever it is embedded in
@@ -258,9 +264,9 @@ class KanbanGrid extends GridBase
             $status_meta = [
                 'name' => static::WORKFLOW_KEY,
                 'label' => exmtrans('workflow.status'),
-                'options' => collect($statuses)->map(function ($status) {
+                'options' => array_map(function ($status) {
                     return ['key' => $status['key'], 'label' => $status['label']];
-                })->toArray(),
+                }, $statuses),
             ];
             array_unshift($groupable_meta, $status_meta);
             array_unshift($filter_meta, $status_meta);
@@ -3038,10 +3044,7 @@ class KanbanGrid extends GridBase
             // on an organisation column "mine" is every organisation the user
             // counts as belonging to, the ones above and below included - the
             // same reach the ordinary grid filter uses
-            return collect($user->getOrganizationIdsForQuery())
-                ->map(function ($id) {
-                    return strval($id);
-                })->values()->toArray();
+            return array_map('strval', array_values($user->getOrganizationIdsForQuery()));
         }
 
         if ($column_type == ColumnType::SELECT_TABLE) {
@@ -3858,10 +3861,9 @@ class KanbanGrid extends GridBase
      * @param string $view_kind_type
      * @param Form $form
      * @param CustomTable $custom_table
-     * @param array $options
+     * @param array<string, mixed> $options
      * @return void
      */
-    // @phpstan-ignore-next-line
     public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         // Every list the form can offer. A select with nothing in it is not a
@@ -3935,8 +3937,7 @@ class KanbanGrid extends GridBase
         // looks or behaves, has a working default, and is folded away.
         // exmheader, switchbool and hasManyTable are registered on the form
         // at runtime by the Initialize middleware, so static analysis cannot
-        // see them here
-        // @phpstan-ignore-next-line
+        // see them here (phpstan.neon.dist ignores these calls package-wide)
         $form->exmheader(exmtrans('common.basic_setting'))->hr();
 
         // Only worth asking when both ways are open. With no column to group
@@ -3994,13 +3995,11 @@ class KanbanGrid extends GridBase
                 ->help(exmtrans("custom_view.help.kanban_limit_column"));
         }
 
-        // @phpstan-ignore-next-line
         $form->switchbool('kanban_editable', exmtrans("custom_view.kanban_editable"))
             ->default(true)
             ->help(exmtrans("custom_view.help.kanban_editable"));
 
         // card body columns. Not required: the record label alone is a valid card.
-        // @phpstan-ignore-next-line
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.kanban_card_columns"), function ($form) use ($custom_table) {
             $targetOptions = $custom_table->getColumnsSelectOptions([
                 'append_table' => true,

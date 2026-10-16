@@ -46,11 +46,14 @@ class CellStylePresetController extends AdminControllerTableBase
     /**
      * All presets, for the picker and its previews.
      *
+     * Not named index(): the parent's index() renders the admin page and is
+     * typed to return its Content, while this answers with json.
+     *
      * @param Request $request
      * @param mixed $tableKey route parameter; the table is resolved by the constructor
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request, $tableKey)
+    public function presets(Request $request, $tableKey)
     {
         return response()->json([
             'presets' => CellStylePreset::getDefinitions(),

@@ -43,8 +43,9 @@ class CellStylePreset extends ModelBase
      * A column stores the preset by its suuid, so the suuid is what has to
      * survive a template: it travels as it is rather than being regenerated,
      * and a preset already present under that key is left alone.
+     *
+     * @var array<string, mixed>
      */
-    // @phpstan-ignore-next-line
     public static $templateItems = [
         'excepts' => ['id'],
         'uniqueKeys' => ['suuid'],
