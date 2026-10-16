@@ -15,6 +15,8 @@ use Exceedone\Exment\Tests\TestTrait;
  *
  * Routes with an unresolved parameter other than {tableKey}/{id}, a dynamic expression in
  * the URI, or outside the "admin" prefix (OAuth, etc.) are skipped - see out/smoke_skipped.txt.
+ * Routes that end in $response->send() + exit (QR creation, the exports, the plugin batch) are left
+ * out as well: exit would end the PHPUnit process (the first CI run died after 7 tests).
  */
 class AdminScreensSmokeTest extends FeatureTestBase
 {
@@ -104,7 +106,6 @@ class AdminScreensSmokeTest extends FeatureTestBase
             'admin/dashboardbox/{id}/edit' => ['dashboardbox/1/edit'],
             'admin/data/{tableKey}' => ['data/custom_value_edit_all'],
             'admin/data/{tableKey}/create' => ['data/custom_value_edit_all/create'],
-            'admin/data/{tableKey}/form_create_qrcode' => ['data/custom_value_edit_all/form_create_qrcode'],
             'admin/data/{tableKey}/importModal' => ['data/custom_value_edit_all/importModal'],
             'admin/data/{tableKey}/kanbanCards' => ['data/custom_value_edit_all/kanbanCards'],
             'admin/data/{tableKey}/operationModal' => ['data/custom_value_edit_all/operationModal'],
@@ -136,7 +137,6 @@ class AdminScreensSmokeTest extends FeatureTestBase
             'admin/formpublic/{tableKey}/{id}' => ['formpublic/custom_value_edit_all/1'],
             'admin/formpublic/{tableKey}/{id}/activeModal' => ['formpublic/custom_value_edit_all/1/activeModal'],
             'admin/formpublic/{tableKey}/{id}/edit' => ['formpublic/custom_value_edit_all/1/edit'],
-            'admin/formpublic/{tableKey}/{id}/export' => ['formpublic/custom_value_edit_all/1/export'],
             'admin/initialize' => ['initialize'],
             'admin/install' => ['install'],
             'admin/install/reset' => ['install/reset'],
@@ -188,7 +188,6 @@ class AdminScreensSmokeTest extends FeatureTestBase
             'admin/plugin/edit_code/{id}/selectFile' => ['plugin/edit_code/1/selectFile'],
             'admin/plugin/{id}' => ['plugin/1'],
             'admin/plugin/{id}/edit' => ['plugin/1/edit'],
-            'admin/plugin/{id}/executeBatch' => ['plugin/1/executeBatch'],
             'admin/relation/{tableKey}' => ['relation/custom_value_edit_all'],
             'admin/relation/{tableKey}/create' => ['relation/custom_value_edit_all/create'],
             'admin/relation/{tableKey}/{id}' => ['relation/custom_value_edit_all/1'],
@@ -203,7 +202,6 @@ class AdminScreensSmokeTest extends FeatureTestBase
             'admin/safety_check' => ['safety_check'],
             'admin/saml/logout' => ['saml/logout'],
             'admin/search' => ['search'],
-            'admin/search/export' => ['search/export'],
             'admin/search/header' => ['search/header'],
             'admin/search/list' => ['search/list'],
             'admin/search/lists' => ['search/lists'],
@@ -217,7 +215,6 @@ class AdminScreensSmokeTest extends FeatureTestBase
             'admin/table/{id}/copyModal' => ['table/1/copyModal'],
             'admin/table/{id}/edit' => ['table/1/edit'],
             'admin/template' => ['template'],
-            'admin/template/export' => ['template/export'],
             'admin/template/import' => ['template/import'],
             'admin/view/{tableKey}' => ['view/custom_value_edit_all'],
             'admin/view/{tableKey}/create' => ['view/custom_value_edit_all/create'],
