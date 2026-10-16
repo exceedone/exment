@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SearchType;
@@ -443,6 +444,11 @@ class NotifyService
                     $params['webhook_url'] = array_get($action_setting, 'webhook_url');
                     static::notifyTeams($params);
                     break;
+
+                case NotifyAction::LINE:
+                    $params['flex_template_id'] = array_get($action_setting, 'flex_template_id');
+                    static::notifyLine($params);
+                    break;
             }
             // call notified trigger operations
             //CustomOperation::operationExecuteEvent(CustomOperationType::NOTIFIED, $custom_value, true);
@@ -453,6 +459,147 @@ class NotifyService
             'custom_value' => $custom_value,
             'notify' => $notify,
         ]);
+    }
+
+    /**
+     * @param array $params
+     * @return void
+     */
+    public static function notifyLine(array $params = [])
+    {
+        $user = array_get($params, 'user');
+        if (is_nullorempty($user)) {
+            return;
+        }
+
+        $userId = $user->getUserId();
+        if (is_nullorempty($userId)) {
+            return;
+        }
+        $lineUserId = \Exceedone\Exment\Model\LineAccountLink::where('user_id', $userId)->value('line_user_id');
+        if (is_nullorempty($lineUserId)) {
+            return;
+        }
+
+        $custom_value = array_get($params, 'custom_value');
+
+        $logContext = [
+            'user_id'     => $userId,
+            'line_user_id' => $lineUserId,
+            'parent_id'   => isset($custom_value) ? $custom_value->id : null,
+            'parent_type' => isset($custom_value) ? $custom_value->custom_table->table_name : null,
+            'save_body'   => !boolval(array_get($params, 'disableHistoryBody', false)),
+        ];
+
+        $dedupeMinutes = (int) config('exment.line.dedupe_minutes', 0);
+        $notify = array_get($params, 'notify');
+        if ($dedupeMinutes > 0
+            && isset($custom_value)
+            && !is_nullorempty($notify)
+            && $notify->notify_trigger == NotifyTrigger::TIME
+            && \Exceedone\Exment\Services\Line\LineSendLogger::recentlySent(
+                (int) $userId,
+                $custom_value->id,
+                $custom_value->custom_table->table_name,
+                $dedupeMinutes
+            )
+        ) {
+            \Log::info('LINE reminder skipped by dedupe', [
+                'user_id' => $userId,
+                'parent_id' => $custom_value->id,
+                'parent_type' => $custom_value->custom_table->table_name,
+            ]);
+            return;
+        }
+
+        $flexTemplateId = array_get($params, 'flex_template_id');
+        if (!is_nullorempty($flexTemplateId) && isset($custom_value)) {
+            $tmpl = getModelName('line_flex_template')::withoutGlobalScopes()->find($flexTemplateId);
+            if ($tmpl) {
+                $prms = array_get($params, 'prms', []);
+                $replaceOptions = array_get($params, 'replaceOptions', []);
+                $title = trim((string) static::replaceWord((string) $tmpl->getValue('title'), $custom_value, $prms, $replaceOptions));
+                if ($title === '') {
+                    $title = (string) $custom_value->getLabel();
+                }
+
+                $rows = [];
+
+                $manualItems = \Exceedone\Exment\Services\Line\LineFlexBuilder::parseBodyItems((string) $tmpl->getValue('body_items'));
+                if (!empty($manualItems)) {
+                    foreach ($manualItems as $item) {
+                        $value = trim((string) static::replaceWord($item['format'], $custom_value, $prms, $replaceOptions));
+                        if ($value === '') {
+                            continue;
+                        }
+                        $rows[] = ['label' => $item['label'], 'value' => $value];
+                    }
+                } elseif (!is_nullorempty(array_get($replaceOptions, 'workflow_action'))) {
+                    foreach (\Exceedone\Exment\Services\Line\LineFlexBuilder::workflowDetailFormats() as [$labelKey, $format]) {
+                        $value = trim((string) static::replaceWord($format, $custom_value, $prms, $replaceOptions));
+                        if ($value === '') {
+                            continue;
+                        }
+                        $rows[] = ['label' => exmtrans($labelKey), 'value' => $value];
+                    }
+                }
+
+                $tableKey = $custom_value->custom_table->table_name;
+                $recipientUser = getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($userId);
+                $buttons = [];
+                foreach ($custom_value->getWorkflowActions(false, false) as $wfAction) {
+                    if (!$recipientUser || !$wfAction->hasAuthority($custom_value, $recipientUser)) {
+                        continue;
+                    }
+                    if ($wfAction->comment_type === \Exceedone\Exment\Enums\WorkflowCommentType::REQUIRED) {
+                        continue;
+                    }
+                    // LINE refuses these taps (LineWorkflowAction::rejectReason), so do not offer them
+                    if (\Exceedone\Exment\Model\WorkflowValue::isAlreadyExecuted($wfAction->id, $custom_value, $recipientUser)
+                        || \Exceedone\Exment\Services\Line\LineWorkflowAction::nextStepNeedsSelection($wfAction, $custom_value)) {
+                        continue;
+                    }
+                    $buttons[] = [
+                        'label' => $wfAction->action_name,
+                        'data'  => \Exceedone\Exment\Services\Line\LineFlexBuilder::postbackData($tableKey, $custom_value->id, $wfAction->id),
+                    ];
+                }
+
+                $detailUrl = $custom_value->getUrl(['tag' => false, 'modal' => false]);
+                if (is_string($detailUrl) && preg_match('#^https://#i', $detailUrl)) {
+                    $buttons[] = [
+                        'label' => exmtrans('notify.line_show_detail'),
+                        'uri'   => $detailUrl,
+                    ];
+                }
+
+                $bubble = \Exceedone\Exment\Services\Line\LineFlexBuilder::buildBubble($title, $rows, $buttons);
+                $message = \Exceedone\Exment\Services\Line\LineMessagingClient::flex($title, $bubble);
+                \Exceedone\Exment\Jobs\LineSendJob::dispatchAfterResponse($lineUserId, [$message], array_merge($logContext, [
+                    'message_type'     => \Exceedone\Exment\Services\Line\LineSendLogger::TYPE_FLEX,
+                    'flex_template_id' => $flexTemplateId,
+                    'subject'          => $title,
+                ]));
+                return;
+            }
+        }
+
+        static::replaceSubjectBody($params);
+
+        $subject = static::replaceWord(
+            array_get($params, 'subject'),
+            array_get($params, 'custom_value'),
+            array_get($params, 'prms', []),
+            array_get($params, 'replaceOptions', [])
+        );
+        $body = static::replaceWord(
+            array_get($params, 'body'),
+            array_get($params, 'custom_value'),
+            array_get($params, 'prms', []),
+            array_get($params, 'replaceOptions', [])
+        );
+
+        Notifications\LineSender::make($lineUserId, $subject, $body, $logContext)->send();
     }
 
     /**
