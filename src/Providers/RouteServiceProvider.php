@@ -403,7 +403,7 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->get('webapi/mention/users', 'MentionController@users');
 
-            $router->get("webapi/{tableKey}/cellstylepreset", 'CellStylePresetController@index');
+            $router->get("webapi/{tableKey}/cellstylepreset", 'CellStylePresetController@presets');
             $router->get("webapi/{tableKey}/cellstylepreset/modal", 'CellStylePresetController@modal');
             $router->post("webapi/{tableKey}/cellstylepreset", 'CellStylePresetController@store');
             $router->put("webapi/{tableKey}/cellstylepreset/{suuid}", 'CellStylePresetController@update');

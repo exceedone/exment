@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -93,7 +94,6 @@ trait WorkflowDesignTrait
      * @param mixed $id
      * @return Content
      */
-    // @phpstan-ignore-next-line
     public function design(Request $request, Content $content, $id)
     {
         $workflow = Workflow::getEloquent($id);
@@ -127,7 +127,6 @@ trait WorkflowDesignTrait
      * @param Content $content
      * @return Content
      */
-    // @phpstan-ignore-next-line
     public function designCreate(Request $request, Content $content)
     {
         $workflow = new Workflow();
@@ -158,7 +157,6 @@ trait WorkflowDesignTrait
      * @param mixed $tools
      * @return void
      */
-    // @phpstan-ignore-next-line
     public function appendDesignButton($workflow, $tools)
     {
         if (!isset($workflow) || is_nullorempty($workflow->id)) {
@@ -180,7 +178,6 @@ trait WorkflowDesignTrait
      * @param mixed $id
      * @return \Illuminate\Http\JsonResponse
      */
-    // @phpstan-ignore-next-line
     public function designPost(Request $request, $id)
     {
         $workflow = Workflow::getEloquent($id);
@@ -234,7 +231,6 @@ trait WorkflowDesignTrait
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    // @phpstan-ignore-next-line
     public function designCreatePost(Request $request)
     {
         if (($deny = $this->denyWorkflowDesign()) !== null) {
@@ -685,9 +681,12 @@ trait WorkflowDesignTrait
         }
 
         // 対象テーブルのユーザー列・組織列（テーブル専用ワークフローのみ）
+        // Both column lists are queried through CustomColumn rather than the
+        // custom_columns() relation, which is typed without its model and so
+        // hides the indexEnabled() scope from static analysis.
         $column_options = [];
         if (isset($custom_table)) {
-            $column_options = $custom_table->custom_columns()
+            $column_options = CustomColumn::where('custom_table_id', $custom_table->id)
                 ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
                 ->indexEnabled()
                 ->pluck('column_view_name', 'id')
@@ -695,7 +694,7 @@ trait WorkflowDesignTrait
         }
 
         // ログインユーザー情報の列（実行ユーザー情報から取得）
-        $login_user_column_options = $user_table->custom_columns()
+        $login_user_column_options = CustomColumn::where('custom_table_id', $user_table->id)
             ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
             ->indexEnabled()
             ->pluck('column_view_name', 'id')
@@ -726,13 +725,12 @@ trait WorkflowDesignTrait
                     'text' => exmtrans('workflow.work_target_type_options.' . $type),
                 ];
             })->toArray(),
-            'comment_type' => collect(WorkflowCommentType::transArray('workflow.comment_options'))
-                ->filter(function ($text) {
+            'comment_type' => $this->toDesignOptionList(array_filter(
+                WorkflowCommentType::transArray('workflow.comment_options'),
+                function ($text) {
                     return !is_nullorempty($text);
-                })
-                ->map(function ($text, $key) {
-                    return ['id' => strval($key), 'text' => strval($text)];
-                })->values()->toArray(),
+                }
+            )),
         ];
     }
 
@@ -740,14 +738,14 @@ trait WorkflowDesignTrait
      * 条件ヘッダ（work_conditions）を画面用の「分岐」に変換する。
      * 絞り込み条件はここでは表示しないが、保存時にそのまま書き戻すために持ち回す。
      *
-     * @param mixed $work_conditions
+     * @param mixed $work_conditions WorkflowAction::$work_conditions: a Collection of header arrays
      * @return array<int, array<string, mixed>>
      */
     protected function toDesignDestinations($work_conditions): array
     {
         $result = [];
 
-        foreach (collect($work_conditions)->toArray() as $header) {
+        foreach ($work_conditions ?? [] as $header) {
             $header = (array)$header;
             $conditions = (array)array_get($header, 'workflow_conditions', []);
 
@@ -768,13 +766,13 @@ trait WorkflowDesignTrait
     /**
      * ['id' => 'text'] を [['id' => .., 'text' => ..]] に変換する。
      *
-     * @param mixed $options
+     * @param mixed $options id => text, as an array or a Collection
      * @return array<int, array{id: string, text: string}>
      */
     protected function toDesignOptionList($options): array
     {
         $result = [];
-        foreach (collect($options)->toArray() as $key => $text) {
+        foreach ($options ?? [] as $key => $text) {
             $result[] = ['id' => strval($key), 'text' => strval($text)];
         }
 
@@ -925,7 +923,7 @@ trait WorkflowDesignTrait
         }
 
         // ---- ステータス ----
-        $statuses = array_get($payload, 'statuses', []);
+        $statuses = (array)array_get($payload, 'statuses', []);
         if (count($statuses) === 0) {
             $errors[] = $required(exmtrans('workflow.workflow_statuses'));
         }
@@ -1046,7 +1044,7 @@ trait WorkflowDesignTrait
             }
 
             // 実行後ステータス（分岐）
-            $destinations = collect(array_get($action, 'destinations', []))
+            $destinations = collect((array)array_get($action, 'destinations', []))
                 ->filter(function ($destination) {
                     return array_boolval($destination, 'enabled')
                         && !is_nullorempty(array_get($destination, 'status_to'));
@@ -1288,9 +1286,12 @@ trait WorkflowDesignTrait
         foreach ($removed as $status) {
             try {
                 $status->delete();
-            } catch (\Illuminate\Database\QueryException $ex) {
+            } catch (\Exception $ex) {
+                // Caught as Exception and narrowed below: Model::delete() declares
+                // only LogicException, so a QueryException catch reads as dead
+                // code to static analysis.
                 // SQLSTATE class 23 is an integrity constraint violation.
-                if (strpos(strval($ex->getCode()), '23') !== 0) {
+                if (!($ex instanceof \Illuminate\Database\QueryException) || strpos(strval($ex->getCode()), '23') !== 0) {
                     throw $ex;
                 }
                 static::throwStatusInUse(collect([$status]));
@@ -1407,7 +1408,9 @@ trait WorkflowDesignTrait
 
             // 実行後ステータス。絞り込み条件（workflow_conditions）は画面では触らず、
             // 送られてきたものをそのまま書き戻すので消えない。
-            $action->work_conditions = $this->buildDesignConditions($item, $resolve);
+            // setAttribute(): the mutator takes these arrays, while the property
+            // is typed by its accessor, which returns a Collection.
+            $action->setAttribute('work_conditions', $this->buildDesignConditions($item, $resolve));
 
             $action->save();
 
@@ -1464,7 +1467,7 @@ trait WorkflowDesignTrait
             // 既存ヘッダなら絞り込み条件をそのまま引き継ぐ
             $conditions = array_get($destination, 'workflow_conditions');
             if (!is_nullorempty($conditions)) {
-                $header['workflow_conditions'] = collect($conditions)->map(function ($condition) {
+                $header['workflow_conditions'] = collect((array)$conditions)->map(function ($condition) {
                     return array_only((array)$condition, [
                         'id', 'condition_target', 'condition_type', 'condition_key', 'condition_value',
                     ]);

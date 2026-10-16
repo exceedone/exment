@@ -47,9 +47,13 @@ class MentionController extends AdminControllerBase
                 'maxCount' => $count,
                 'makeHidden' => true,
             ]);
+            // searchValue answers null when the table has nothing to search the term in
+            if (!($values instanceof \Illuminate\Support\Collection)) {
+                $values = collect();
+            }
         }
 
-        $results = collect($values)->map(function ($value) {
+        $results = $values->map(function ($value) {
             return [
                 'id' => $value->id,
                 'code' => array_get($value->value, 'user_code'),

@@ -91,7 +91,6 @@ trait HasCommentMentionTrait
      *                       already carry are news to anybody
      * @return int number of people notified
      */
-    // @phpstan-ignore-next-line
     public function notifyMentionedUsersInComment($isCreate = true)
     {
         $custom_table = $this->custom_table;
