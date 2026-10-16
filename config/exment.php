@@ -1337,6 +1337,9 @@ return [
             'system_mail_password',
             // Meilisearch API key (admin/system)
             'meili_key',
+            // LINE Messaging API channel credentials (admin/system?advanced=1)
+            'system_line_channel_token',
+            'system_line_channel_secret',
             // Plugin DB connection password
             'custom_password',
             // Plugin CRUD page auth (key / id+password)
@@ -1391,5 +1394,22 @@ return [
             // traceability prefix kept. DO NOT remove or set to true.
             'auth/reset' => false,
         ],
+    ],
+
+    'line' => [
+        'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
+        'channel_secret'       => env('LINE_CHANNEL_SECRET'),
+        'oa_basic_id'          => env('LINE_OA_BASIC_ID'),
+        'api_base'             => env('LINE_API_BASE', 'https://api.line.me'),
+        'timeout'              => env('LINE_HTTP_TIMEOUT', 10),
+        'dedupe_minutes'       => env('LINE_DEDUPE_MINUTES', 0),
+        'link_code_ttl_minutes'      => env('LINE_LINK_CODE_TTL_MINUTES', 10),
+        'link_max_attempts'          => env('LINE_LINK_MAX_ATTEMPTS', 5),
+        'link_attempt_decay_minutes' => env('LINE_LINK_ATTEMPT_DECAY_MINUTES', 10),
+    ],
+
+    'safety_check' => [
+        'feed_url'   => env('EXMENT_SAFETY_CHECK_FEED_URL', 'https://api.p2pquake.net/v2/history'),
+        'feed_limit' => env('EXMENT_SAFETY_CHECK_FEED_LIMIT', 10),
     ],
 ];

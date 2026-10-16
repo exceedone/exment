@@ -238,6 +238,7 @@ class Permission
             case "oauth":
             case "files":
             case "qr-code":
+            case "line":
                 return true;
             case "jan-code":
                 return true;

@@ -20,4 +20,5 @@ class MailKeyName extends EnumBase
     public const PUBLICFORM_COMPLETE_ADMIN = 'publicform_complete_admin';
     public const PUBLICFORM_ERROR = 'publicform_error';
     public const SENDMAIL_ERROR = 'sendmail_error';
+    public const SAFETY_CHECK_MAIL = 'safety_check_mail';
 }

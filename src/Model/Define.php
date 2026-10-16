@@ -130,6 +130,18 @@ class Define
 
         'system_slack_user_column' => ['group' => 'notify'],
 
+        'system_line_channel_token' => ['type' => 'password', 'config' => 'exment.line.channel_access_token', 'group' => 'notify'],
+        'system_line_channel_secret' => ['type' => 'password', 'config' => 'exment.line.channel_secret', 'group' => 'notify'],
+        'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
+
+        'safety_check_auto_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'notify'],
+        'safety_check_min_scale' => ['type' => 'int', 'default' => '45', 'group' => 'notify'],
+        'safety_check_cooldown_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'notify'],
+        'safety_check_comment_window_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'notify'],
+        'safety_check_max_bulletin_age_minutes' => ['type' => 'int', 'default' => '10', 'group' => 'notify'],
+        'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'notify'],
+        'safety_check_last_feed_time' => ['type' => 'datetime'],
+
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],

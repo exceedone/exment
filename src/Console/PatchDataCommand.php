@@ -37,6 +37,8 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\EnvService;
+use Exceedone\Exment\Services\Line\LineInstaller;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 use Exceedone\Exment\Middleware\Morph;
 use Carbon\Carbon;
@@ -243,6 +245,8 @@ class PatchDataCommand extends Command
             case 'workflow_value_authorities':
                 $this->carryWorkflowValueAuthorities();
                 return 0;
+            case 'line_safety_check':
+                return $this->installLineSafetyCheck();
         }
 
         $this->error('patch name not found.');
@@ -2236,5 +2240,28 @@ class PatchDataCommand extends Command
                     Model\WorkflowAction::carryWorkflowValueAuthorities($workflow_value);
                 }
             });
+    }
+
+    /**
+     * @return int
+     */
+    protected function installLineSafetyCheck()
+    {
+        if (!LineInstaller::systemTemplateImported()) {
+            $this->error('Exment is not installed. Run "php artisan exment:install" first.');
+            return 1;
+        }
+
+        try {
+            // LINE first: the safety check flex template is stored in line_flex_template
+            LineInstaller::ensureAll();
+            SafetyCheckInstaller::ensureAll();
+        } catch (\RuntimeException $ex) {
+            $this->error($ex->getMessage());
+            return 1;
+        }
+
+        System::clearCache();
+        return 0;
     }
 }

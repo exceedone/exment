@@ -23,6 +23,8 @@ use Exceedone\Exment\Auth\PublicFormGuard;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
+use Exceedone\Exment\Services\SafetyCheck\EarthquakeFeedInterface;
+use Exceedone\Exment\Services\SafetyCheck\P2pQuakeFeed;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
@@ -100,6 +102,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
+        \Exceedone\Exment\Console\LineLinkCodeCommand::class,
+        \Exceedone\Exment\Console\SafetyWatchCommand::class,
     ];
 
 
@@ -407,6 +411,12 @@ class ExmentServiceProvider extends ServiceProvider
             return CustomTable::findByEndpoint();
         });
 
+        $this->app->bind(EarthquakeFeedInterface::class, P2pQuakeFeed::class);
+
+        $this->app->bind(\Exceedone\Exment\Services\Line\LineMessagingClient::class, function () {
+            return new \Exceedone\Exment\Services\Line\LineMessagingClient();
+        });
+
         // guard provider
         Auth::extend('publicformtoken', function ($app, $name, array $config) {
             return tap($this->makeGuard($config), function ($guard) {
@@ -491,6 +501,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
+            $schedule->command('exment:safetywatch')->everyMinute()->withoutOverlapping(10);
 
             // Daily index repair (fix drift accumulated from missed/failed sync
             // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
