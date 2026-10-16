@@ -373,6 +373,23 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $items->each(function ($item) {
             $item->delete();
         });
+
+        // Meilisearch filter settings name the column by column_name, with no
+        // foreign key to it. Left behind, the column stays declared filterable,
+        // is listed on the settings screen as if it existed, and a bookmarked
+        // search using it returns nothing without a word. One by one, so each
+        // delete reindexes the table and re-applies the index settings.
+        // \Schema::hasTable, not the hasTable() helper: that one builds a DBAL
+        // connection hardcoded to pdo_mysql, so on SQL Server it fails, caches an
+        // empty table list and this cleanup would never run.
+        if (\Schema::hasTable((new MeiliFilterSetting())->getTable())) {
+            $items = MeiliFilterSetting::where('custom_table_id', $this->custom_table_id)
+                ->where('column_name', $this->column_name)
+                ->get();
+            $items->each(function ($item) {
+                $item->delete();
+            });
+        }
     }
 
     protected static function boot()

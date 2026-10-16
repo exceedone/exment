@@ -4877,3 +4877,19 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginView/Plugin.php
+
+		-
+			message: '#^Method Exceedone\\Exment\\Model\\MeiliDictionary\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\MeiliDictionary\)\>\|static\(Exceedone\\Exment\\Model\\MeiliDictionary\)\|null but returns array\{\}\|Countable\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: vendor/exceedone/exment/src/Model/MeiliDictionary.php
+		-
+			message: '#^Method Exceedone\\Exment\\Model\\MeiliFilterSetting\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\MeiliFilterSetting\)\>\|static\(Exceedone\\Exment\\Model\\MeiliFilterSetting\)\|null but returns array\{\}\|Countable\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: vendor/exceedone/exment/src/Model/MeiliFilterSetting.php
+		-
+			message: '#^Method Exceedone\\Exment\\Model\\MeiliSavedSearch\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\MeiliSavedSearch\)\>\|static\(Exceedone\\Exment\\Model\\MeiliSavedSearch\)\|null but returns array\{\}\|Countable\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: vendor/exceedone/exment/src/Model/MeiliSavedSearch.php
