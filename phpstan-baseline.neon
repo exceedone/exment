@@ -1873,12 +1873,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/ApiKey.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CellStylePreset\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CellStylePreset\)\>\|static\(Exceedone\\Exment\\Model\\CellStylePreset\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CellStylePreset.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -1917,12 +1911,6 @@ parameters:
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\CustomColumn has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomColumn.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomColumn.php
 
@@ -1975,12 +1963,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomColumn.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomColumnMulti\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomColumnMulti\)\>\|static\(Exceedone\\Exment\\Model\\CustomColumnMulti\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomColumnMulti.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -1995,12 +1977,6 @@ parameters:
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\CustomCopy has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomCopy.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomCopy\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomCopy\)\>\|static\(Exceedone\\Exment\\Model\\CustomCopy\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomCopy.php
 
@@ -2047,12 +2023,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomCopyColumn.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomCopyColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomCopyColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomCopyColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomCopyColumn.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomCopyColumn\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2083,12 +2053,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomForm.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomForm\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomForm\)\>\|static\(Exceedone\\Exment\\Model\\CustomForm\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomForm.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -2101,12 +2065,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomForm.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomFormBlock\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomFormBlock\)\>\|static\(Exceedone\\Exment\\Model\\CustomFormBlock\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomFormBlock.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -2117,12 +2075,6 @@ parameters:
 			identifier: argument.templateType
 			count: 3
 			path: vendor/exceedone/exment/src/Model/CustomFormBlock.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomFormColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomFormColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomFormColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomFormColumn.php
 
 		-
 			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Model\\CustomFormColumn\:\:orderBy\(\) return type contains generic class Exceedone\\Exment\\Database\\Query\\ExtendedBuilder but does not specify its types\: TModelClass$#'
@@ -2173,12 +2125,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomOperation.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomOperation\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomOperation\)\>\|static\(Exceedone\\Exment\\Model\\CustomOperation\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomOperation.php
-
-		-
 			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Model\\CustomOperation\:\:create\(\) return type contains generic class Exceedone\\Exment\\Database\\Eloquent\\ExtendedBuilder but does not specify its types\: TModelClass$#'
 			identifier: missingType.generics
 			count: 1
@@ -2221,12 +2167,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomOperationColumn.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomOperationColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomOperationColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomOperationColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomOperationColumn.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomOperationColumn\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2243,12 +2183,6 @@ parameters:
 			identifier: missingType.generics
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomOperationColumn.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomRelation\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomRelation\)\>\|static\(Exceedone\\Exment\\Model\\CustomRelation\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomRelation.php
 
 		-
 			message: '#^Parameter \#1 \$related of method Illuminate\\Database\\Eloquent\\Model\:\:belongsTo\(\) expects class\-string\<Illuminate\\Database\\Eloquent\\Model\>, string\|null given\.$#'
@@ -2343,12 +2277,6 @@ parameters:
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\CustomTable has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomTable.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomTable\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomTable\)\>\|static\(Exceedone\\Exment\\Model\\CustomTable\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomTable.php
 
@@ -2497,12 +2425,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomView.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomView\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomView\)\>\|static\(Exceedone\\Exment\\Model\\CustomView\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomView.php
-
-		-
 			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Model\\CustomView\:\:orderBy\(\) return type contains generic class Exceedone\\Exment\\Database\\Eloquent\\ExtendedBuilder but does not specify its types\: TModelClass$#'
 			identifier: missingType.generics
 			count: 1
@@ -2545,12 +2467,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomViewColumn.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewColumn\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewColumn\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewColumn\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewColumn.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomViewColumn\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2587,12 +2503,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomViewFilter.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewFilter\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewFilter\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewFilter\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewFilter.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomViewFilter\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2623,12 +2533,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomViewGridFilter.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewGridFilter\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewGridFilter\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewGridFilter\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewGridFilter.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomViewGridFilter\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2655,12 +2559,6 @@ parameters:
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\CustomViewSort has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewSort.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewSort\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewSort\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewSort\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomViewSort.php
 
@@ -2701,12 +2599,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomViewSummary.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\CustomViewSummary\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\CustomViewSummary\)\>\|static\(Exceedone\\Exment\\Model\\CustomViewSummary\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomViewSummary.php
-
-		-
 			message: '#^Method Exceedone\\Exment\\Model\\CustomViewSummary\:\:getPivotUniqueKeyValues\(\) should return array\<null\> but returns array\<string, mixed\>\.$#'
 			identifier: return.type
 			count: 1
@@ -2731,12 +2623,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomViewSummary.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\Dashboard\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Dashboard\)\>\|static\(Exceedone\\Exment\\Model\\Dashboard\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/Dashboard.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -2747,12 +2633,6 @@ parameters:
 			identifier: argument.templateType
 			count: 3
 			path: vendor/exceedone/exment/src/Model/Dashboard.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\DashboardBox\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\DashboardBox\)\>\|static\(Exceedone\\Exment\\Model\\DashboardBox\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/DashboardBox.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -2839,12 +2719,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/LoginSetting.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\LoginSetting\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\LoginSetting\)\>\|static\(Exceedone\\Exment\\Model\\LoginSetting\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/LoginSetting.php
-
-		-
 			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Model\\LoginSetting\:\:create\(\) return type contains generic class Exceedone\\Exment\\Database\\Eloquent\\ExtendedBuilder but does not specify its types\: TModelClass$#'
 			identifier: missingType.generics
 			count: 1
@@ -2875,12 +2749,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/LoginUser.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\Menu\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Menu\)\>\|static\(Exceedone\\Exment\\Model\\Menu\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/Menu.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -2901,12 +2769,6 @@ parameters:
 		-
 			message: '#^Iterating over an object of an unknown class Tightenco\\Collect\\Support\\Collection\.$#'
 			identifier: class.notFound
-			count: 1
-			path: vendor/exceedone/exment/src/Model/Notify.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\Notify\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Notify\)\>\|static\(Exceedone\\Exment\\Model\\Notify\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/Notify.php
 
@@ -2953,12 +2815,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/NotifyTarget.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\Plugin\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Plugin\)\>\|static\(Exceedone\\Exment\\Model\\Plugin\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/Plugin.php
-
-		-
 			message: '#^Strict comparison using \!\=\= between string and null will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
@@ -2975,12 +2831,6 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Model/Plugin.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\PublicForm\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\PublicForm\)\>\|static\(Exceedone\\Exment\\Model\\PublicForm\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/PublicForm.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -3005,12 +2855,6 @@ parameters:
 			identifier: method.notFound
 			count: 2
 			path: vendor/exceedone/exment/src/Model/RelationTable.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\RoleGroup\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\RoleGroup\)\>\|static\(Exceedone\\Exment\\Model\\RoleGroup\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/RoleGroup.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -3067,12 +2911,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/System.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\System\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\System\)\>\|static\(Exceedone\\Exment\\Model\\System\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/System.php
-
-		-
 			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Model\\Traits\\AutoSUuidTrait\:\:allRecords\(\) return type contains generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
 			identifier: missingType.generics
 			count: 1
@@ -3121,12 +2959,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/Traits/UserTrait.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\Workflow\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\Workflow\)\>\|static\(Exceedone\\Exment\\Model\\Workflow\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/Workflow.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -3137,12 +2969,6 @@ parameters:
 			identifier: argument.templateType
 			count: 3
 			path: vendor/exceedone/exment/src/Model/Workflow.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowAction\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowAction\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowAction\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/WorkflowAction.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -3163,12 +2989,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/WorkflowAuthority.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowAuthority\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowAuthority\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowAuthority\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/WorkflowAuthority.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -3179,12 +2999,6 @@ parameters:
 			identifier: argument.templateType
 			count: 3
 			path: vendor/exceedone/exment/src/Model/WorkflowAuthority.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowConditionHeader\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowConditionHeader\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowConditionHeader\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/WorkflowConditionHeader.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -3199,12 +3013,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/WorkflowConditionHeader.php
 
 		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowStatus\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowStatus\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowStatus\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/WorkflowStatus.php
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 3
@@ -3215,12 +3023,6 @@ parameters:
 			identifier: argument.templateType
 			count: 3
 			path: vendor/exceedone/exment/src/Model/WorkflowStatus.php
-
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\WorkflowTable\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\WorkflowTable\)\>\|static\(Exceedone\\Exment\\Model\\WorkflowTable\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/WorkflowTable.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -4878,18 +4680,3 @@ parameters:
 			count: 2
 			path: vendor/exceedone/exment/tests/tmpfile/plugins/TestPluginView/Plugin.php
 
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\MeiliDictionary\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\MeiliDictionary\)\>\|static\(Exceedone\\Exment\\Model\\MeiliDictionary\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/MeiliDictionary.php
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\MeiliFilterSetting\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\MeiliFilterSetting\)\>\|static\(Exceedone\\Exment\\Model\\MeiliFilterSetting\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/MeiliFilterSetting.php
-		-
-			message: '#^Method Exceedone\\Exment\\Model\\MeiliSavedSearch\:\:_allRecords\(\) should return Illuminate\\Support\\Collection\<int, static\(Exceedone\\Exment\\Model\\MeiliSavedSearch\)\>\|static\(Exceedone\\Exment\\Model\\MeiliSavedSearch\)\|null but returns array\{\}\|Countable\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/MeiliSavedSearch.php
