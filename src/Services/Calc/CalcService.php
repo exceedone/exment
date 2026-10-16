@@ -235,7 +235,7 @@ class CalcService
     /**
      * Get Symbols
      *
-     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
+     * @return \Illuminate\Support\Collection
      */
     // @phpstan-ignore-next-line
     public static function getSymbols()

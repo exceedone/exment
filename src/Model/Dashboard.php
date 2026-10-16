@@ -372,7 +372,9 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<DataShareAuthoritable, $this>
+     */
     public function data_share_authoritables(): HasMany
     {
         return $this->hasMany(DataShareAuthoritable::class, 'parent_id')

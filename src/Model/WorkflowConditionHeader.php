@@ -93,14 +93,18 @@ class WorkflowConditionHeader extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<WorkflowAction, $this>
+     */
     public function workflow_action()
     {
         return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Condition, $this>
+     */
     public function workflow_conditions()
     {
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');

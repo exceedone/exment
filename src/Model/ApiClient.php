@@ -37,7 +37,9 @@ class ApiClient extends Client
     protected $keyType = 'string';
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<ApiKey, $this>
+     */
     public function client_api_key()
     {
         return $this->hasOne(ApiKey::class, 'client_id');

@@ -189,7 +189,7 @@ trait BuilderTrait
      * @param string $tableName
      * @param string $columnName
      * @param bool $unique
-     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|array|null
+     * @return \Illuminate\Support\Collection|array|null
      */
     // @phpstan-ignore-next-line
     protected function getUniqueIndexDefinitions($tableName, $columnName, $unique)

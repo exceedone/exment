@@ -83,14 +83,18 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function parent_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'parent_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function child_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'child_custom_table_id');

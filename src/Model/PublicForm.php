@@ -53,14 +53,18 @@ class PublicForm extends ModelBase
 
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<CustomForm, $this>
+     */
     public function custom_form()
     {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Notify, $this>
+     */
     public function notify_complete_admin()
     {
         return $this->hasOne(Notify::class, 'target_id')
@@ -68,7 +72,9 @@ class PublicForm extends ModelBase
             ->where('active_flg', 1);
     }
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Notify, $this>
+     */
     public function notify_complete_user()
     {
         return $this->hasOne(Notify::class, 'target_id')
@@ -76,7 +82,9 @@ class PublicForm extends ModelBase
             ->where('active_flg', 1);
     }
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Notify, $this>
+     */
     public function notify_error()
     {
         return $this->hasOne(Notify::class, 'target_id')
@@ -85,7 +93,9 @@ class PublicForm extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Notify, $this>
+     */
     public function notify_all()
     {
         return $this->hasMany(Notify::class, 'target_id')

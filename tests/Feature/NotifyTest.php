@@ -252,7 +252,6 @@ class NotifyTest extends FeatureTestBase
         $target_user_keys = collect();
         foreach ($notify->action_settings as $action_setting) {
             $values = $notify->getNotifyTargetUsers($custom_value, $action_setting);
-            $this->assertIsIterable($values);
             foreach ($values as $value) {
                 $target_user_keys->push($value->notifyKey());
             }

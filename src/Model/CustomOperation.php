@@ -33,14 +33,18 @@ class CustomOperation extends ModelBase
 
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomOperationColumn, $this>
+     */
     public function custom_operation_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
@@ -48,7 +52,9 @@ class CustomOperation extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomOperationColumn, $this>
+     */
     public function custom_operation_input_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
@@ -56,7 +62,9 @@ class CustomOperation extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return MorphMany<Condition, $this>
+     */
     public function custom_operation_conditions(): MorphMany
     {
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');

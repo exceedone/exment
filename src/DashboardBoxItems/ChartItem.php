@@ -405,7 +405,7 @@ class ChartItem implements ItemInterface
      * Position of the X column of a multi-series chart among the view's group columns: the
      * first column that is not the series column (chart_series, default = the 2nd column).
      *
-     * @param \Illuminate\Support\Collection<int, \Illuminate\Database\Eloquent\Model> $view_columns  the group CustomViewColumns, re-indexed
+     * @param \Illuminate\Support\Collection<int, \Exceedone\Exment\Model\CustomViewColumn> $view_columns  the group CustomViewColumns, re-indexed
      */
     protected function multiSeriesXPos($view_columns): int
     {

@@ -24,6 +24,8 @@ trait OrganizationTrait
     /**
      * get parent organization.
      * (*)Only one deeply parent. not all deeply parents.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<static, $this>
      */
     public function parent_organization()
     {
@@ -33,6 +35,8 @@ trait OrganizationTrait
     /**
      * get children organizations.
      * (*)Only one deeply organizations. not all deeply organizations.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<static, $this>
      */
     public function children_organizations()
     {

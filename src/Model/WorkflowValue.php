@@ -24,7 +24,9 @@ class WorkflowValue extends ModelBase
     use Traits\AutoSUuidTrait;
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Workflow, $this>
+     */
     public function workflow()
     {
         return $this->belongsTo(Workflow::class, 'workflow_id');
@@ -33,17 +35,17 @@ class WorkflowValue extends ModelBase
     /**
      * Get "Executed" workflow action
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<WorkflowAction, $this>
      */
-
-    // @phpstan-ignore-next-line
     public function workflow_action()
     {
         return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<WorkflowStatus, $this>
+     */
     public function workflow_status()
     {
         return $this->belongsTo(WorkflowStatus::class, 'workflow_status_to_id');
@@ -57,14 +59,18 @@ class WorkflowValue extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<WorkflowStatus, $this>
+     */
     public function workflow_status_from()
     {
         return $this->belongsTo(WorkflowStatus::class, 'workflow_status_from_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<WorkflowValueAuthority, $this>
+     */
     public function workflow_value_authorities()
     {
         return $this->hasMany(WorkflowValueAuthority::class, 'workflow_value_id');

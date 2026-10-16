@@ -124,7 +124,9 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Dashboard, $this>
+     */
     public function dashboard()
     {
         return $this->belongsTo(Dashboard::class, 'dashboard_id');

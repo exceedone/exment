@@ -20,11 +20,10 @@ interface GrammarInterface
      * @param \Illuminate\Database\Query\Builder $builder
      * @param string $tableName database table name
      * @param string $column target table name
-     * @param array $values
+     * @param mixed $values one value, or a list of them (array or Collection)
      * @param bool $isOr
      * @return \Illuminate\Database\Query\Builder
      */
-    // @phpstan-ignore-next-line
     public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false);
 
     /**

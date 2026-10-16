@@ -49,14 +49,18 @@ class WorkflowTable extends ModelBase
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<Workflow, $this>
+     */
     public function workflow(): BelongsTo
     {
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');

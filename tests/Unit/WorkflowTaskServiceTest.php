@@ -22,6 +22,7 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * Behaviour tests for the "un-actioned workflow task" feature.
@@ -2925,8 +2926,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
             return $api->workflowTaskPage(Request::create('/webapi/workflowTaskPage', 'GET'));
         };
         $shows = function (array $answer, string $key) {
-            $this->assertIsArray($answer['items']);
-            return collect($answer['items'])->contains(function ($item) use ($key) {
+            // buildWorkflowTaskPage() answers the items as a Collection
+            $this->assertInstanceOf(Collection::class, $answer['items']);
+            return $answer['items']->contains(function ($item) use ($key) {
                 return str_contains($item['href'], '?key=' . rawurlencode($key));
             });
         };

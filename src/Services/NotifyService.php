@@ -1067,7 +1067,6 @@ class NotifyService
             $users = [$users];
         }
         $addresses = collect();
-        // @phpstan-ignore-next-line
         foreach ($users as $user) {
             if ($user instanceof CustomValue) {
                 $addresses->push($user->getValue('email'));

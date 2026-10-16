@@ -58,7 +58,9 @@ class Workflow extends ModelBase
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<WorkflowTable, $this>
+     */
     public function workflow_tables()
     {
         return $this->hasMany(WorkflowTable::class, 'workflow_id');
@@ -66,9 +68,9 @@ class Workflow extends ModelBase
 
     /**
      * get workflow statuses
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<WorkflowStatus, $this>
      */
-
-    // @phpstan-ignore-next-line
     public function workflow_statuses()
     {
         return $this->hasMany(WorkflowStatus::class, 'workflow_id');
@@ -76,16 +78,18 @@ class Workflow extends ModelBase
 
     /**
      * get workflow actions
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<WorkflowAction, $this>
      */
-
-    // @phpstan-ignore-next-line
     public function workflow_actions()
     {
         return $this->hasMany(WorkflowAction::class, 'workflow_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Notify, $this>
+     */
     public function notifies()
     {
         return $this->hasMany(Notify::class, 'target_id')
@@ -150,9 +154,9 @@ class Workflow extends ModelBase
 
     /**
      * get workflow statuses using cache
+     *
+     * @return \Illuminate\Support\Collection<int, WorkflowStatus>
      */
-
-    // @phpstan-ignore-next-line
     public function getWorkflowStatusesCacheAttribute()
     {
         return $this->hasManyCache(WorkflowStatus::class, 'workflow_id');
@@ -160,9 +164,9 @@ class Workflow extends ModelBase
 
     /**
      * get workflow actions
+     *
+     * @return \Illuminate\Support\Collection<int, WorkflowAction>
      */
-
-    // @phpstan-ignore-next-line
     public function getWorkflowActionsCacheAttribute()
     {
         return $this->hasManyCache(WorkflowAction::class, 'workflow_id');
