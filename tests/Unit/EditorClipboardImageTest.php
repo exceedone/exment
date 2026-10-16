@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit {
     use Exceedone\Exment\ColumnItems\CustomColumns\Editor;
+    use Exceedone\Exment\Model\CustomColumn;
     use Exceedone\Exment\Model\CustomTable;
     use Exceedone\Exment\Model\Define;
     use Exceedone\Exment\Model\File;
@@ -272,8 +273,11 @@ namespace Exceedone\Exment\Tests\Unit {
             $this->row->custom_table = $this->table;
             $this->editor = (new ReflectionClass(Editor::class))->newInstanceWithoutConstructor();
             $this->row->editor = $this->editor;
-            $column = (object) ['column_name' => 'description', 'column_type' => 'editor', 'column_item' => $this->editor];
-            $this->table->custom_columns_cache = [$column];
+            // the editor column of the table, built without the database; its column item is this editor
+            $column = (new ReflectionClass(CustomColumn::class))->newInstanceWithoutConstructor();
+            $column->setRawAttributes(['column_name' => 'description', 'column_type' => 'editor']);
+            (new ReflectionProperty(CustomColumn::class, '_column_item'))->setValue($column, $this->editor);
+            $this->table->custom_columns_cache = collect([$column]);
             foreach (['custom_table' => $this->table, 'custom_value' => $this->row, 'custom_column' => $column] as $name => $value) {
                 (new ReflectionProperty(Editor::class, $name))->setValue($this->editor, $value);
             }

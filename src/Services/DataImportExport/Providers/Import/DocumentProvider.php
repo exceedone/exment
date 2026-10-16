@@ -33,7 +33,7 @@ class DocumentProvider extends FileColumnProvider
      * validate data row
      * @param int $line_no
      * @param array $dataAndModel
-     * @param array|null $validate_columns(not use)
+     * @param \Illuminate\Support\Collection<int, \Exceedone\Exment\Model\CustomColumn>|null $validate_columns not used
      * @param array $dataObjects
      */
     // @phpstan-ignore-next-line

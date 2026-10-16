@@ -242,7 +242,6 @@ class Notify extends ModelBase
                 }
 
 
-                // @phpstan-ignore-next-line
                 $users = $this->uniqueUsers($users);
                 foreach ($users as $user) {
                     // send mail
@@ -456,7 +455,6 @@ class Notify extends ModelBase
             }
 
 
-            // @phpstan-ignore-next-line
             $users = $this->uniqueUsers($users);
             foreach ($users as $user) {
                 // send mail
@@ -669,7 +667,7 @@ class Notify extends ModelBase
      * @param CustomValue $custom_value target custom value
      * @param array $action_setting
      * @param CustomTable|null $custom_table
-     * @return array|Collection|\Tightenco\Collect\Support\Collection
+     * @return array|Collection
      */
 
     // @phpstan-ignore-next-line
@@ -700,7 +698,7 @@ class Notify extends ModelBase
      * @param WorkflowAction $workflow_action
      * @param WorkflowValue $workflow_value
      * @param $statusTo
-     * @return array|Collection|\Tightenco\Collect\Support\Collection
+     * @return array|Collection
      */
 
     // @phpstan-ignore-next-line

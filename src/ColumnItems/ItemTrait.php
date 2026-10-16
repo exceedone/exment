@@ -846,7 +846,7 @@ trait ItemTrait
      * Get pure value. If you want to change the search value, change it with this function.
      *
      * @param string $label
-     * @return ?string string:matched, null:not matched
+     * @return int|string|null string (or an int option key):matched, null:not matched
      */
     public function getPureValue($label)
     {

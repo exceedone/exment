@@ -167,7 +167,9 @@ abstract class CustomValue extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<WorkflowValue, $this>
+     */
     public function workflow_value()
     {
         return $this->hasOne(WorkflowValue::class, 'morph_id')
@@ -179,9 +181,9 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get all workflow values
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<WorkflowValue, $this>
      */
-
-    // @phpstan-ignore-next-line
     public function workflow_values()
     {
         return $this->hasMany(WorkflowValue::class, 'morph_id')
@@ -329,7 +331,9 @@ abstract class CustomValue extends ModelBase
 
     // value_authoritable. it's all role data.
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<CustomValueAuthoritable, $this>
+     */
     public function custom_value_authoritables()
     {
         return $this->hasMany(CustomValueAuthoritable::class, 'parent_id')

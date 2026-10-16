@@ -62,9 +62,8 @@ class Revision extends Eloquent
      * Revisionable.
      * Grab the revision history for the model that is calling
      *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo<\Illuminate\Database\Eloquent\Model, $this>
      */
-    // @phpstan-ignore-next-line
     public function revisionable()
     {
         return $this->morphTo();

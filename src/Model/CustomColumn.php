@@ -121,14 +121,18 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomFormColumn, $this>
+     */
     public function custom_form_columns(): HasMany
     {
         return $this->hasMany(CustomFormColumn::class, 'form_column_target_id')
@@ -136,7 +140,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewColumn, $this>
+     */
     public function custom_view_columns(): HasMany
     {
         return $this->hasMany(CustomViewColumn::class, 'view_column_target_id')
@@ -144,7 +150,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewSort, $this>
+     */
     public function custom_view_sorts(): HasMany
     {
         return $this->hasMany(CustomViewSort::class, 'view_column_target_id')
@@ -152,7 +160,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewFilter, $this>
+     */
     public function custom_view_filters(): HasMany
     {
         return $this->hasMany(CustomViewFilter::class, 'view_column_target_id')
@@ -160,7 +170,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewSummary, $this>
+     */
     public function custom_view_summaries(): HasMany
     {
         return $this->hasMany(CustomViewSummary::class, 'view_column_target_id')
@@ -168,7 +180,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewGridFilter, $this>
+     */
     public function custom_view_grid_filters(): HasMany
     {
         return $this->hasMany(CustomViewGridFilter::class, 'view_column_target_id')
@@ -176,7 +190,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomOperationColumn, $this>
+     */
     public function custom_operation_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'view_column_target_id')
@@ -184,7 +200,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<Condition, $this>
+     */
     public function conditions(): HasMany
     {
         return $this->hasMany(Condition::class, 'target_column_id')
@@ -683,9 +701,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     /**
      * Create laravel-admin select box options. for column_type "select", "select_valtext"
+     *
+     * @return array<int|string, string|null> value => label (null only when mbTrim() fails on an item that is not valid UTF-8)
      */
-
-    // @phpstan-ignore-next-line
     public function createSelectOptions()
     {
         // get value

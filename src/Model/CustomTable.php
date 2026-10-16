@@ -112,14 +112,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected $cached_custom_columns = [];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumn, $this>
+     */
     public function custom_columns(): HasMany
     {
         return $this->hasMany(CustomColumn::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomView, $this>
+     */
     public function custom_views(): HasMany
     {
         return $this->hasMany(CustomView::class, 'custom_table_id')
@@ -128,49 +132,63 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomForm, $this>
+     */
     public function custom_forms(): HasMany
     {
         return $this->hasMany(CustomForm::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomOperation, $this>
+     */
     public function custom_operations(): HasMany
     {
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomRelation, $this>
+     */
     public function custom_relations(): HasMany
     {
         return $this->hasMany(CustomRelation::class, 'parent_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomRelation, $this>
+     */
     public function child_custom_relations(): HasMany
     {
         return $this->hasMany(CustomRelation::class, 'child_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomCopy, $this>
+     */
     public function from_custom_copies(): HasMany
     {
         return $this->hasMany(CustomCopy::class, 'from_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomCopy, $this>
+     */
     public function to_custom_copies(): HasMany
     {
         return $this->hasMany(CustomCopy::class, 'to_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<Notify, $this>
+     */
     public function notifies(): HasMany
     {
         return $this->hasMany(Notify::class, 'target_id')
@@ -179,10 +197,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * @return HasMany
+     * @return HasMany<Notify, $this>
      */
-
-    // @phpstan-ignore-next-line
     public function notify_all()
     {
         return $this->hasMany(Notify::class, 'target_id')
@@ -190,42 +206,54 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomOperation, $this>
+     */
     public function operations(): HasMany
     {
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomFormBlock, $this>
+     */
     public function custom_form_block_target_tables(): HasMany
     {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function custom_column_multisettings(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasManyThrough<CustomFormPriority, CustomForm, $this>
+     */
     public function custom_form_priorities(): HasManyThrough
     {
         return $this->hasManyThrough(CustomFormPriority::class, CustomForm::class, 'custom_table_id', 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<WorkflowTable, $this>
+     */
     public function workflow_tables(): HasMany
     {
         return $this->hasMany(WorkflowTable::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function multi_uniques(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
@@ -233,7 +261,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function table_labels(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
@@ -241,7 +271,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function compare_columns(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
@@ -249,7 +281,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function share_settings(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
@@ -304,9 +338,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * get Custom columns using cache
+     *
+     * @return \Illuminate\Support\Collection<int, CustomColumn>
      */
-
-    // @phpstan-ignore-next-line
     public function getCustomColumnsCacheAttribute()
     {
         if (!empty($this->cached_custom_columns)) {
@@ -1900,7 +1934,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set selectTable value's. for after calling from select_table object
      *
-     * @param \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|null $customValueCollection
+     * @param \Illuminate\Support\Collection|null $customValueCollection
      * @return void
      */
 

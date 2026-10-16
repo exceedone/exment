@@ -62,10 +62,11 @@ trait UseRequestSessionTrait
 
     /**
      * get children like hasMany. use cache
-     * @param class-string $className
+     * @template TChild
+     * @param class-string<TChild> $className a model using this trait
      * @param string $keyName
      * @param string $idName
-     * @return \Illuminate\Support\Collection<int, static>|static|null
+     * @return \Illuminate\Support\Collection<int, TChild>
      */
     public function hasManyCache($className, $keyName, $idName = 'id')
     {

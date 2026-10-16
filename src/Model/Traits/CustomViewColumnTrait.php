@@ -32,10 +32,8 @@ trait CustomViewColumnTrait
     private $_custom_item;
 
     /**
-     * @return BelongsTo
+     * @return BelongsTo<CustomView, $this>
      */
-
-    // @phpstan-ignore-next-line
     public function custom_view(): BelongsTo
     {
         return $this->belongsTo(CustomView::class, 'custom_view_id');
@@ -52,10 +50,8 @@ trait CustomViewColumnTrait
     }
 
     /**
-     * @return BelongsTo
+     * @return BelongsTo<CustomTable, $this>
      */
-
-    // @phpstan-ignore-next-line
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'view_column_table_id');

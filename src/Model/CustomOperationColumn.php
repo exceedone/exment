@@ -26,7 +26,9 @@ class CustomOperationColumn extends ModelBase
     protected $casts = ['options' => 'json'];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<CustomOperation, $this>
+     */
     public function custom_operation()
     {
         return $this->belongsTo(CustomOperation::class, 'custom_operation_id');

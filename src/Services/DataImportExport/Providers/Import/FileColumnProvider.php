@@ -135,7 +135,7 @@ class FileColumnProvider extends ProviderBase
      * validate data row
      * @param int $line_no
      * @param array $dataAndModel
-     * @param array $validate_columns
+     * @param \Illuminate\Support\Collection<int, \Exceedone\Exment\Model\CustomColumn> $validate_columns the attachment columns of the table
      * @param array $dataObjects
      */
     // @phpstan-ignore-next-line

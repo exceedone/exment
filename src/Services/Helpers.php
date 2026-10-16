@@ -1078,6 +1078,7 @@ if (!function_exists('is_list')) {
      *
      * @param mixed $value
      * @return bool
+     * @phpstan-assert-if-true array<mixed>|Collection<array-key, mixed> $value
      */
     function is_list($value): bool
     {
