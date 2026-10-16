@@ -2174,8 +2174,9 @@ class KanbanGrid extends GridBase
     /**
      * Copy the rows of one view relation onto another view.
      *
-     * @param \Illuminate\Database\Eloquent\Relations\HasMany<\Illuminate\Database\Eloquent\Model, \Illuminate\Database\Eloquent\Model> $relation
-     * @param \Illuminate\Support\Collection<int, mixed> $rows
+     * @template TChild of \Illuminate\Database\Eloquent\Model
+     * @param \Illuminate\Database\Eloquent\Relations\HasMany<TChild, \Exceedone\Exment\Model\CustomView> $relation
+     * @param \Illuminate\Support\Collection<int, TChild> $rows
      * @param mixed $custom_view_id
      * @return void
      */

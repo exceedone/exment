@@ -39,14 +39,18 @@ class CustomFormPriority extends ModelBase
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<CustomForm, $this>
+     */
     public function custom_form()
     {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Condition, $this>
+     */
     public function custom_form_priority_conditions()
     {
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');

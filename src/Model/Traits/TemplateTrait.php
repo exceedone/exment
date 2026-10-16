@@ -56,6 +56,8 @@ trait TemplateTrait
 
     /**
      * search language data (by key matching).
+     *
+     * @param array<int|string, mixed>|null $lang the language items of this model (from lang.json)
      */
 
     // @phpstan-ignore-next-line
@@ -104,6 +106,7 @@ trait TemplateTrait
         if (array_key_exists('uniqueKeyReplaces', $templateItems)) {
             foreach (array_get($templateItems, 'uniqueKeyReplaces', []) as $uniqueKeyReplace) {
                 // get replaced value
+                /** @var array<int, array<string, mixed>> $replaceNames */
                 $replaceNames = $uniqueKeyReplace['replaceNames'];
                 $replacedValue = null;
 

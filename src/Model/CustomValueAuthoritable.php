@@ -533,7 +533,7 @@ class CustomValueAuthoritable extends ModelBase
      * Notify target user.
      *
      * @param CustomValue $custom_value shared target custom_value.
-     * @param Collection|\Tightenco\Collect\Support\Collection $shareTargets user and organization notify targets collection
+     * @param Collection $shareTargets user and organization notify targets collection
      * @return void
      */
 

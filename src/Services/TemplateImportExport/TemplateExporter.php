@@ -401,8 +401,6 @@ class TemplateExporter
     // @phpstan-ignore-next-line
     protected static function setTemplateWorkflow(&$config, $target_tables = [], $is_lang = false)
     {
-        // Workflow relations are declared without return types, so larastan cannot see them.
-        // @phpstan-ignore-next-line
         $workflows = Workflow::with([
             'workflow_tables',
             'workflow_tables.custom_table',

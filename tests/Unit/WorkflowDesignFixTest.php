@@ -148,7 +148,7 @@ class WorkflowDesignFixTest extends UnitTestBase
     public function testStepOneKeepsTheCompletedFlagsOfACompletedSetting()
     {
         $workflow = $this->workflow('workflow_common_company');
-        $first = $workflow->workflow_statuses()->get()->first();
+        $first = $workflow->workflow_statuses()->first();
         $first->completed_flg = 1;
         $first->save();
 
@@ -349,7 +349,7 @@ class WorkflowDesignFixTest extends UnitTestBase
     public function testDesignerPageEscapesNamesInsideItsScript()
     {
         $workflow = $this->workflow('workflow_common_company');
-        $status = $workflow->workflow_statuses()->get()->first();
+        $status = $workflow->workflow_statuses()->first();
         $status->status_name = '<!--<script>';
         $status->save();
 

@@ -19,6 +19,8 @@ trait UserTrait
     /**
      * get login users.
      * Why "hasMany" not "hasOne" is It can be logged in by multiple providers.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Model\LoginUser, $this>
      */
     public function login_users()
     {
@@ -28,12 +30,17 @@ trait UserTrait
     /**
      * get login user.
      * only support login provider is null (default)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Model\LoginUser, $this>
      */
     public function login_user()
     {
         return $this->hasOne(Model\LoginUser::class, "base_user_id")->whereNull('login_provider');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Model\UserSetting, $this>
+     */
     public function user_setting()
     {
         return $this->hasOne(Model\UserSetting::class, "user_id");

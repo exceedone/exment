@@ -67,14 +67,18 @@ class WorkflowAction extends ModelBase
     protected $work_condition_headers;
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Workflow, $this>
+     */
     public function workflow()
     {
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<WorkflowAuthority, $this>
+     */
     public function workflow_authorities()
     {
         return $this->hasMany(WorkflowAuthority::class, 'workflow_action_id');
@@ -82,7 +86,9 @@ class WorkflowAction extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<WorkflowConditionHeader, $this>
+     */
     public function workflow_condition_headers()
     {
         return $this->hasMany(WorkflowConditionHeader::class, 'workflow_action_id');
@@ -96,14 +102,18 @@ class WorkflowAction extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Support\Collection<int, WorkflowAuthority>
+     */
     public function getWorkflowAuthoritiesCacheAttribute()
     {
         return $this->hasManyCache(WorkflowAuthority::class, 'workflow_action_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Support\Collection<int, WorkflowConditionHeader>
+     */
     public function getWorkflowConditionHeadersCacheAttribute()
     {
         return $this->hasManyCache(WorkflowConditionHeader::class, 'workflow_action_id');
@@ -150,7 +160,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get work conditions. Contains status_to, enabled_flg, workflow_conditions, etc
      *
-     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
+     * @return \Illuminate\Support\Collection
      */
 
     // @phpstan-ignore-next-line

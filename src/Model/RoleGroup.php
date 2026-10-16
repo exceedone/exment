@@ -34,21 +34,27 @@ class RoleGroup extends ModelBase
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<RoleGroupPermission, $this>
+     */
     public function role_group_permissions(): HasMany
     {
         return $this->hasMany(RoleGroupPermission::class, 'role_group_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<RoleGroupUserOrganization, $this>
+     */
     public function role_group_user_organizations(): HasMany
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<RoleGroupUserOrganization, $this>
+     */
     public function role_group_users(): HasMany
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')
@@ -56,7 +62,9 @@ class RoleGroup extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<RoleGroupUserOrganization, $this>
+     */
     public function role_group_organizations(): HasMany
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')

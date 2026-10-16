@@ -142,42 +142,54 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewColumn, $this>
+     */
     public function custom_view_columns(): HasMany
     {
         return $this->hasMany(CustomViewColumn::class, 'custom_view_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewFilter, $this>
+     */
     public function custom_view_filters(): HasMany
     {
         return $this->hasMany(CustomViewFilter::class, 'custom_view_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewSort, $this>
+     */
     public function custom_view_sorts(): HasMany
     {
         return $this->hasMany(CustomViewSort::class, 'custom_view_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewSummary, $this>
+     */
     public function custom_view_summaries(): HasMany
     {
         return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomViewGridFilter, $this>
+     */
     public function custom_view_grid_filters(): HasMany
     {
         return $this->hasMany(CustomViewGridFilter::class, 'custom_view_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<DataShareAuthoritable, $this>
+     */
     public function data_share_authoritables(): HasMany
     {
         return $this->hasMany(DataShareAuthoritable::class, 'parent_id')
@@ -206,9 +218,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * get Custom columns using cache
+     *
+     * @return \Illuminate\Support\Collection<int, CustomViewColumn>
      */
-
-    // @phpstan-ignore-next-line
     public function getCustomViewColumnsCacheAttribute()
     {
         if (!is_null($set = $this->getSetRelationCache('custom_view_columns'))) {
@@ -220,9 +232,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * get Custom filters using cache
+     *
+     * @return \Illuminate\Support\Collection<int, CustomViewFilter>
      */
-
-    // @phpstan-ignore-next-line
     public function getCustomViewFiltersCacheAttribute()
     {
         if (!is_null($set = $this->getSetRelationCache('custom_view_filters'))) {
@@ -234,9 +246,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * get Custom Sorts using cache
+     *
+     * @return \Illuminate\Support\Collection<int, CustomViewSort>
      */
-
-    // @phpstan-ignore-next-line
     public function getCustomViewSortsCacheAttribute()
     {
         if (!is_null($set = $this->getSetRelationCache('custom_view_sorts'))) {
@@ -248,9 +260,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * get Custom summaries using cache
+     *
+     * @return \Illuminate\Support\Collection<int, CustomViewSummary>
      */
-
-    // @phpstan-ignore-next-line
     public function getCustomViewSummariesCacheAttribute()
     {
         return $this->hasManyCache(CustomViewSummary::class, 'custom_view_id');

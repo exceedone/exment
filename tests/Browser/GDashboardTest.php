@@ -417,7 +417,9 @@ class GDashboardTest extends ExmentKitTestCase
 
         // get select option item
         $custom_view_column = $custom_view->custom_view_columns->first(function ($custom_view_column) {
-            return $custom_view_column->view_column_type == Enums\ConditionType::COLUMN && $custom_view_column->custom_column->column_type == 'integer';
+            $custom_column = $custom_view_column->custom_column;
+            return $custom_view_column->view_column_type == Enums\ConditionType::COLUMN
+                && $custom_column instanceof Model\CustomColumn && $custom_column->column_type == 'integer';
         });
 
         $options = array_merge(

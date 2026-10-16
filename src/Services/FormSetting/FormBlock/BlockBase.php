@@ -236,14 +236,13 @@ abstract class BlockBase
     /**
      * Set formColumn list
      *
-     * @param  Collection|\Tightenco\Collect\Support\Collection  $custom_form_column_items    FormColumn list
+     * @param  Collection  $custom_form_column_items    FormColumn list
      *
      * @return  self
      */
     // @phpstan-ignore-next-line
     public function setCustomFormColumnItems(Collection|\Tightenco\Collect\Support\Collection $custom_form_column_items)
     {
-        // @phpstan-ignore-next-line
         $this->custom_form_column_items = $custom_form_column_items;
 
         return $this;
@@ -253,7 +252,7 @@ abstract class BlockBase
     /**
      * get Custom Form Boxes using custom_form_column_items. Contains row_no, column_no, width.
      *
-     * @return Collection|\Tightenco\Collect\Support\Collection
+     * @return Collection
      */
     // @phpstan-ignore-next-line
     public function getCustomFormRows()

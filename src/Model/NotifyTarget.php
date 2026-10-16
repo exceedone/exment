@@ -151,7 +151,7 @@ class NotifyTarget
      * @param string|CustomColumn $notify_action_target NotifyActionTarget or custom column id or CustomColumn.
      * @param array $action_setting
      * @param CustomTable|null $custom_table
-     * @return Collection|\Tightenco\Collect\Support\Collection
+     * @return Collection
      */
 
     // @phpstan-ignore-next-line
