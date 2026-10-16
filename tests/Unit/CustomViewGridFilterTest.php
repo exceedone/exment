@@ -526,7 +526,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     
         $this->__testGridFilter([$db_column_name => 'test1'], function ($data) {
             $actual = array_get($data, 'value.file_multiple');
-            return collect($actual)->contains(function($path) {
+            return is_array($actual) && collect($actual)->contains(function($path) {
                 $file = ExmentFile::getData($path);
                 return Str::startsWith($file->filename, 'test1');
             });

@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Providers\RouteServiceProvider;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Routing\Route as IlluminateRoute;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use ReflectionMethod;
@@ -103,7 +102,6 @@ class RouteActionVisibilityGuardTest extends UnitTestBase
             return $this->actionsCache;
         }
 
-        /** @var \Illuminate\Contracts\Foundation\Application $app */
         $app = $this->app;
         /** @var Dispatcher $events */
         $events = $app->make('events');
@@ -128,8 +126,7 @@ class RouteActionVisibilityGuardTest extends UnitTestBase
                     $rm->setAccessible(true);
                     $rm->invoke($provider);
 
-                    foreach ($freshRouter->getRoutes() as $route) {
-                        /** @var IlluminateRoute $route */
+                    foreach ($freshRouter->getRoutes()->getRoutes() as $route) {
                         $action = $route->getActionName(); // "FQCN@method" | "Closure" | "FQCN"
                         if (!str_contains($action, '@')) {
                             continue; // closures / invokable handled elsewhere; not the bug class

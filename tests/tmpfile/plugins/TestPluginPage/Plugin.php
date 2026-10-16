@@ -15,6 +15,6 @@ class Plugin extends PluginPageBase
 
     public function index()
     {
-        return view('exment_test_plugin_page::welcome');
+        return $this->pluginView('welcome');
     }
 }

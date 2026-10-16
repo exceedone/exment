@@ -758,6 +758,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->post(admin_url("operation/$target_table_name"), $data);
         $this->assertPostResponse($this->response, admin_url("operation/$target_table_name"));
 
+        $this->assertIsArray($data['operation_type']);
         $this->visit(admin_url("operation/$target_table_name"))
             ->seePageIs(admin_url("operation/$target_table_name"))
             ->seeInElement('td', $data['operation_name'])
@@ -794,6 +795,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     protected function getFilterSelectOptions($filter_type): array
     {
         $options = FilterOption::FILTER_OPTIONS()[$filter_type];
+        $this->assertIsArray($options);
         return collect($options)->mapWithKeys(function ($option) {
             return [$option['id'] => exmtrans("custom_view.filter_condition_options.{$option['name']}")];
         })->toArray();

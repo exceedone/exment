@@ -23,7 +23,7 @@ class LogOperationMaskTest extends TestCase
      */
     protected function mask(string $json, string $path): string
     {
-        return json_encode(LogOperation::maskInputArray(json_decode($json, true), $path));
+        return json_encode(LogOperation::maskInputArray(json_decode($json, true), $path), JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -36,7 +36,7 @@ class LogOperationMaskTest extends TestCase
 
     // ----- global (URI independent) masking -------------------------------
 
-    public function testPasswordIsMaskedOnSystemUri()
+    public function testPasswordIsMaskedOnSystemUri(): void
     {
         // "password" stays in the global list: it is posted on many system/auth
         // screens (login, profile, reset, token password grant, ...) and
@@ -51,7 +51,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('foo', $decoded['name']);
     }
 
-    public function testPasswordStaysMaskedOnOauthTokenUri()
+    public function testPasswordStaysMaskedOnOauthTokenUri(): void
     {
         // grant_type=password posts a real password to the token endpoint;
         // the oauth URI is NOT a data URI, so it must stay masked.
@@ -62,7 +62,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('***', json_decode($masked, true)['password']);
     }
 
-    public function testPasswordIsMaskedOnEveryDataUriIncludingUserTable()
+    public function testPasswordIsMaskedOnEveryDataUriIncludingUserTable(): void
     {
         // REGRESSION: Exment user management is a system table at "data/user" and
         // posts a REAL login password. "password" must stay masked on every data
@@ -85,7 +85,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('***', json_decode($bizSave, true)['value']['password']);
     }
 
-    public function testNestedSecretsAreMasked()
+    public function testNestedSecretsAreMasked(): void
     {
         $masked = $this->mask(
             '{"client_api_key":{"key":"key_abcdef"},"value":{"password":"p"}}',
@@ -98,7 +98,7 @@ class LogOperationMaskTest extends TestCase
 
     // ----- URI-scoped masking ---------------------------------------------
 
-    public function testIdIsMaskedOnApiSettingUri()
+    public function testIdIsMaskedOnApiSettingUri(): void
     {
         $masked = $this->mask(
             '{"id":"5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f","name":"client"}',
@@ -109,7 +109,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('client', $decoded['name']);
     }
 
-    public function testIdIsNotMaskedOnOtherUris()
+    public function testIdIsNotMaskedOnOtherUris(): void
     {
         $masked = $this->mask(
             '{"id":"12345"}',
@@ -118,7 +118,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('12345', json_decode($masked, true)['id']);
     }
 
-    public function testClientIdIsMaskedOnOauthTokenUri()
+    public function testClientIdIsMaskedOnOauthTokenUri(): void
     {
         $masked = $this->mask(
             '{"grant_type":"client_credentials","client_id":"5e02b3a0-xxxx","client_secret":"sec"}',
@@ -130,7 +130,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('client_credentials', $decoded['grant_type']);
     }
 
-    public function testBusinessClientIdColumnIsNotMasked()
+    public function testBusinessClientIdColumnIsNotMasked(): void
     {
         // a user-defined table can have a plain "client_id" business column;
         // it must stay readable in the operation log (TC feedback (1))
@@ -143,7 +143,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('Sample Trading Co.', $decoded['value']['client_name']);
     }
 
-    public function testSecretIsMaskedOnApiSettingUri()
+    public function testSecretIsMaskedOnApiSettingUri(): void
     {
         // the api_setting edit form posts the client secret as "secret"
         $masked = $this->mask(
@@ -153,7 +153,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('***', json_decode($masked, true)['secret']);
     }
 
-    public function testApiKeyIsMaskedOnOauthTokenUri()
+    public function testApiKeyIsMaskedOnOauthTokenUri(): void
     {
         // the token endpoint accepts grant_type=api_key with an "api_key" credential
         $masked = $this->mask(
@@ -163,7 +163,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('***', json_decode($masked, true)['api_key']);
     }
 
-    public function testBusinessCredentialColumnsAreNotMaskedOnDataUri()
+    public function testBusinessCredentialColumnsAreNotMaskedOnDataUri(): void
     {
         // "secret"/"api_key"/"client_secret"/"client_api_key" are credentials only
         // on specific system URIs; same-named user-defined business columns must
@@ -181,7 +181,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('***', $decoded['value']['password']);
     }
 
-    public function testClientSecretIsMaskedOnlyOnOauthUri()
+    public function testClientSecretIsMaskedOnlyOnOauthUri(): void
     {
         // client_secret is a credential on the oauth token endpoint...
         $onOauth = $this->mask('{"client_secret":"sec"}', $this->adminPath('oauth/token'));
@@ -192,7 +192,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('CS-9', json_decode($elsewhere, true)['value']['client_secret']);
     }
 
-    public function testClientApiKeyIsMaskedOnlyOnApiSettingUri()
+    public function testClientApiKeyIsMaskedOnlyOnApiSettingUri(): void
     {
         // client_api_key is posted nested by the api_setting form...
         $onApiSetting = $this->mask(
@@ -206,12 +206,12 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('CAK-9', json_decode($elsewhere, true)['value']['client_api_key']);
     }
 
-    public function testPreviousUrlPathSegmentIsMasked()
+    public function testPreviousUrlPathSegmentIsMasked(): void
     {
         // laravel-admin posts the previous page url as "_previous_"
         $prev = 'http://localhost/' . $this->adminPath('api_setting/5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f/edit');
         $masked = $this->mask(
-            json_encode(['name' => 'client', '_previous_' => $prev]),
+            json_encode(['name' => 'client', '_previous_' => $prev], JSON_THROW_ON_ERROR),
             $this->adminPath('api_setting/5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f')
         );
         $this->assertSame(
@@ -220,7 +220,7 @@ class LogOperationMaskTest extends TestCase
         );
     }
 
-    public function testPreviousUrlIsMaskedWhenRelative()
+    public function testPreviousUrlIsMaskedWhenRelative(): void
     {
         // REGRESSION: the url was matched with a leading slash prepended, so a
         // relative "_previous_" ("admin/api_setting/{id}/edit") matched nothing
@@ -232,7 +232,7 @@ class LogOperationMaskTest extends TestCase
         );
     }
 
-    public function testUrlPathIsMaskedInQueryStringToo()
+    public function testUrlPathIsMaskedInQueryStringToo(): void
     {
         // the same url is often carried again as a "back" parameter
         $rel = $this->adminPath('api_setting/5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f/edit');
@@ -245,7 +245,7 @@ class LogOperationMaskTest extends TestCase
         );
     }
 
-    public function testUnrelatedUrlIsUntouched()
+    public function testUnrelatedUrlIsUntouched(): void
     {
         $url = 'http://localhost/' . $this->adminPath('data/client/123') . '?x=1';
         $this->assertSame($url, LogOperation::hideUrlPathParams($url));
@@ -253,7 +253,7 @@ class LogOperationMaskTest extends TestCase
 
     // ----- path masking ------------------------------------------------------
 
-    public function testPathClientIdSegmentIsPartiallyMasked()
+    public function testPathClientIdSegmentIsPartiallyMasked(): void
     {
         $this->assertSame(
             $this->adminPath('api_setting/5e02b3a0***/edit'),
@@ -261,7 +261,7 @@ class LogOperationMaskTest extends TestCase
         );
     }
 
-    public function testPathShortIdSegmentIsFullyMasked()
+    public function testPathShortIdSegmentIsFullyMasked(): void
     {
         $this->assertSame(
             $this->adminPath('api_setting/***'),
@@ -269,13 +269,13 @@ class LogOperationMaskTest extends TestCase
         );
     }
 
-    public function testPathCreateSegmentIsNotMasked()
+    public function testPathCreateSegmentIsNotMasked(): void
     {
         $path = $this->adminPath('api_setting/create');
         $this->assertSame($path, LogOperation::hidePathParams($path));
     }
 
-    public function testPathResetTokenSegmentIsFullyMasked()
+    public function testPathResetTokenSegmentIsFullyMasked(): void
     {
         // auth/reset/{token} carries the raw password-reset token in the URL on
         // both GET (mail link) and POST (reset form action), and the route group
@@ -289,13 +289,13 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame($masked, LogOperation::hidePathParams($masked));
     }
 
-    public function testPathMaskingIsIdempotent()
+    public function testPathMaskingIsIdempotent(): void
     {
         $once = LogOperation::hidePathParams($this->adminPath('api_setting/5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f'));
         $this->assertSame($once, LogOperation::hidePathParams($once));
     }
 
-    public function testUnrelatedPathIsUntouched()
+    public function testUnrelatedPathIsUntouched(): void
     {
         $path = $this->adminPath('data/client/123');
         $this->assertSame($path, LogOperation::hidePathParams($path));
@@ -309,7 +309,7 @@ class LogOperationMaskTest extends TestCase
     // is published once per install and exment:update never refreshes it),
     // hand-edited or emptied.
 
-    public function testDefaultConfigShipsTheBuiltInTargets()
+    public function testDefaultConfigShipsTheBuiltInTargets(): void
     {
         // guards the package config block itself: everything below is owned by
         // config only, so a dropped or renamed block silently stops masking it
@@ -336,7 +336,7 @@ class LogOperationMaskTest extends TestCase
         );
     }
 
-    public function testResetTokenFieldIsMaskedOnlyOnResetForm()
+    public function testResetTokenFieldIsMaskedOnlyOnResetForm(): void
     {
         // auth/reset posts the raw reset token back as a hidden field "token"
         $onReset = $this->mask(
@@ -351,7 +351,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('T-1', json_decode($elsewhere, true)['value']['token']);
     }
 
-    public function testConfigAddsGlobalMaskColumn()
+    public function testConfigAddsGlobalMaskColumn(): void
     {
         config(['exment.operation_log.mask_columns' => ['my_secret_key']]);
         $masked = $this->mask(
@@ -363,7 +363,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('keep', $decoded['other']);
     }
 
-    public function testConfigDefinesUriScopedColumns()
+    public function testConfigDefinesUriScopedColumns(): void
     {
         config(['exment.operation_log.mask_columns_by_uri' => ['data/my_table*' => ['secret_column']]]);
         $masked = $this->mask(
@@ -378,7 +378,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame('v', $elsewhere['secret_column']);
     }
 
-    public function testConfigAddsNewPathPrefix()
+    public function testConfigAddsNewPathPrefix(): void
     {
         config(['exment.operation_log.mask_path_prefixes' => ['my_page' => false]]);
         $this->assertSame(
@@ -389,7 +389,7 @@ class LogOperationMaskTest extends TestCase
 
     // ----- safety net: config cannot switch these off ------------------------
 
-    public function testConfigCannotUnmaskSessionCredentials()
+    public function testConfigCannotUnmaskSessionCredentials(): void
     {
         // an install that empties or rewrites the config must keep these masked
         config(['exment.operation_log.mask_columns' => []]);
@@ -405,7 +405,7 @@ class LogOperationMaskTest extends TestCase
         }
     }
 
-    public function testMissingConfigStillMasksSessionCredentials()
+    public function testMissingConfigStillMasksSessionCredentials(): void
     {
         // simulates a published config/exment.php from a version without the block:
         // only requiredHideColumns() survives - the uri and path rules are config
@@ -416,7 +416,7 @@ class LogOperationMaskTest extends TestCase
         $this->assertSame([], LogOperation::getHideColumnsByUri());
     }
 
-    public function testMalformedConfigIsIgnored()
+    public function testMalformedConfigIsIgnored(): void
     {
         config([
             'exment.operation_log.mask_columns'        => 'not-an-array',
@@ -426,11 +426,11 @@ class LogOperationMaskTest extends TestCase
         $decoded = json_decode($this->mask('{"password":"real"}', $this->adminPath('data/foo')), true);
         $this->assertSame('***', $decoded['password']);
         $this->assertSame([], LogOperation::getHideColumnsByUri());
-        // non-string entries inside a valid array are dropped, not masked as keys
+        // non-string entries inside a valid array are dropped, not masked as
+        // keys: of the four, only "ok_col" joins the built-in columns
+        config(['exment.operation_log.mask_columns' => []]);
+        $builtIn = LogOperation::getHideColumns();
         config(['exment.operation_log.mask_columns' => ['ok_col', '', 123, ['nested']]]);
-        $this->assertContains('ok_col', LogOperation::getHideColumns());
-        foreach (LogOperation::getHideColumns() as $column) {
-            $this->assertIsString($column);
-        }
+        $this->assertSame(array_merge($builtIn, ['ok_col']), LogOperation::getHideColumns());
     }
 }

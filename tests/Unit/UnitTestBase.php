@@ -7,7 +7,7 @@ use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 
 /**
- * @method \Exceedone\Exment\Tests\DatabaseTransactions beginDatabaseTransaction()
+ * @method void beginDatabaseTransaction()
  */
 abstract class UnitTestBase extends TestCase
 {

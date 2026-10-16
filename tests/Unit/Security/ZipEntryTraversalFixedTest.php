@@ -319,7 +319,6 @@ class ZipEntryTraversalFixedTest extends SecurityRegressionTestCase
 
         $response = (new InvalidZipEntryException('refused'))->render($request);
 
-        $this->assertNotNull($response);
         // 400 is what getAjaxResponse() returns for every Exment error, so the front end
         // treats this exactly like the errors the controllers already return by hand.
         $this->assertSame(400, $response->getStatusCode());

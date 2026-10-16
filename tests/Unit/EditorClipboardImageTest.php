@@ -83,8 +83,7 @@ namespace Exceedone\Exment\Tests\Unit {
         /** @var int|null */
         public $id = null;
 
-        /** @var \Mockery\MockInterface|null */
-        public $custom_table;
+        public ?CustomTable $custom_table = null;
 
         /** @var array<string, mixed> */
         public array $value = [];
@@ -160,8 +159,7 @@ namespace Exceedone\Exment\Tests\Unit {
 
         private ClipboardImageRow $row;
 
-        /** @var \Mockery\MockInterface */
-        private $table;
+        private CustomTable $table;
 
         protected function setUp(): void
         {
@@ -265,7 +263,10 @@ namespace Exceedone\Exment\Tests\Unit {
 
                 return ClipboardImageFixture::$queued;
             });
-            $this->table = Mockery::mock('alias:'.CustomTable::class);
+            $table = Mockery::mock('alias:'.CustomTable::class);
+            // the alias mock is the class CustomTable for this process
+            $this->assertInstanceOf(CustomTable::class, $table);
+            $this->table = $table;
             $this->table->table_name = 'fixture_issues';
             $this->row = new ClipboardImageRow;
             $this->row->custom_table = $this->table;
