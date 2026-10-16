@@ -75,6 +75,8 @@ class MeiliHeaderArrayQueryTest extends FeatureTestBase
      * Assert the response is a JSON body, not a rendered HTML error page.
      * The Exment global error handler returns 200 + text/html, so only
      * checking the status code hides the bug.
+     *
+     * @param \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response> $response
      */
     private function assertIsJsonResponse(\Illuminate\Testing\TestResponse $response): void
     {

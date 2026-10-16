@@ -29,8 +29,8 @@ class JobSyncDriverGuardTest extends TestCase
 
         $warnings = &$this->warnings;
         Log::swap(new class ($warnings) {
-            /** @param array<int,string> $sink */
-            public function __construct(private array &$sink)
+            /** @param array<int,string> $sink public: the test reads it through the reference */
+            public function __construct(public array &$sink)
             {
             }
 
@@ -50,6 +50,7 @@ class JobSyncDriverGuardTest extends TestCase
 
     public function testEveryMeiliJobCarriesTheSyncDriverGuard(): void
     {
+        /** @var list<object> $jobs typed as any job: the guard must hold for Meili jobs added later too */
         $jobs = [
             new SyncMeiliDocumentJob('invoices', 1, 'upsert'),
             new SyncMeiliReferencesJob('invoices', 1),
@@ -60,10 +61,9 @@ class JobSyncDriverGuardTest extends TestCase
         foreach ($jobs as $job) {
             $class = \get_class($job);
 
-            $this->assertTrue(
-                method_exists($job, 'middleware'),
-                "{$class} declares no middleware(), so a Meili outage breaks the caller's save."
-            );
+            if (!method_exists($job, 'middleware')) {
+                $this->fail("{$class} declares no middleware(), so a Meili outage breaks the caller's save.");
+            }
 
             $guards = array_filter($job->middleware(), fn ($m) => $m instanceof LogFailureOnSyncDriver);
             $this->assertNotEmpty($guards, "{$class} is missing LogFailureOnSyncDriver.");
@@ -73,7 +73,7 @@ class JobSyncDriverGuardTest extends TestCase
     public function testFailureOnTheSyncDriverIsLoggedInsteadOfThrown(): void
     {
         $job = new class () {
-            public $job;
+            public ?SyncJob $job = null;
         };
         $job->job = $this->createMock(SyncJob::class);
 
@@ -89,7 +89,7 @@ class JobSyncDriverGuardTest extends TestCase
     {
         // $job stays null: not a SyncJob, i.e. a queue worker is running this.
         $job = new class () {
-            public $job;
+            public ?SyncJob $job = null;
         };
 
         $this->expectException(\RuntimeException::class);
@@ -102,7 +102,7 @@ class JobSyncDriverGuardTest extends TestCase
     public function testASuccessfulJobIsPassedThroughUntouched(): void
     {
         $job = new class () {
-            public $job;
+            public ?SyncJob $job = null;
         };
         $job->job = $this->createMock(SyncJob::class);
 

@@ -40,9 +40,11 @@ class MeiliSearchCommand extends Command
 
         $service = new MeiliSearchService($client, config('meilisearch.index'));
 
-        $q = (string) $this->argument('query');
+        $q = $this->argument('query');
+        $q = is_string($q) ? $q : '';
         $limit = (int) $this->option('limit');
-        $table = $this->option('table') ?: null;
+        $table = $this->option('table');
+        $table = is_string($table) && $table !== '' ? $table : null;
 
         $start = microtime(true);
         if ($this->option('highlight')) {

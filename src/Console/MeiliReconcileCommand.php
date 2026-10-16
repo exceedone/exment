@@ -57,6 +57,7 @@ class MeiliReconcileCommand extends Command
         $indexer = new ExmentIndexer($client, $mapper, $indexName, (int) config('meilisearch.batch_size', 1000));
 
         $only = $this->option('table');
+        $only = is_string($only) ? $only : null;
         $dryRun = (bool) $this->option('dry-run');
 
         $tables = $indexer->searchableTables();

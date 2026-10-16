@@ -18,7 +18,7 @@ trait SafetyCheckTestHelpers
     public const WEBHOOK_SECRET = 'safety-webhook-test-secret';
     public const WEBHOOK_URL = 'admin/line/webhook';
 
-    /** @var \ArrayObject */
+    /** @var \ArrayObject<int, array<string, mixed>> Guzzle history: request, response per LINE API call */
     protected $lineHistory;
 
     protected function setUpLineWebhookMock(): void
@@ -27,8 +27,9 @@ trait SafetyCheckTestHelpers
         config(['exment.line.channel_access_token' => 'safety-webhook-test-token']);
 
         $this->lineHistory = new \ArrayObject();
+        $history = $this->lineHistory; // same object; a local keeps the by-reference parameter off the typed property
         $stack = HandlerStack::create(new MockHandler(array_fill(0, 20, new GuzzleResponse(200, [], '{}'))));
-        $stack->push(Middleware::history($this->lineHistory));
+        $stack->push(Middleware::history($history));
         $guzzle = new Client(['handler' => $stack, 'base_uri' => 'https://api.line.me']);
         $this->app->bind(LineMessagingClient::class, function () use ($guzzle) {
             return new LineMessagingClient(null, static::WEBHOOK_SECRET, $guzzle);
@@ -37,9 +38,13 @@ trait SafetyCheckTestHelpers
         Http::fake(['api.line.me/*' => Http::response('{}', 200)]);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
     protected function postWebhook(array $payload)
     {
-        $body = json_encode($payload);
+        $body = (string) json_encode($payload);
         $signature = base64_encode(hash_hmac('sha256', $body, static::WEBHOOK_SECRET, true));
 
         return $this->call(
@@ -65,6 +70,10 @@ trait SafetyCheckTestHelpers
         return $text;
     }
 
+    /**
+     * @param array<string, mixed> $overrides
+     * @return \Exceedone\Exment\Model\CustomValue
+     */
     protected function createEvent(array $overrides = [])
     {
         $value = array_merge([
@@ -79,6 +88,11 @@ trait SafetyCheckTestHelpers
         return $event;
     }
 
+    /**
+     * @param int|string $eventId
+     * @param array<string, mixed> $overrides
+     * @return \Exceedone\Exment\Model\CustomValue
+     */
     protected function createAnswerRow($eventId, int $userId, array $overrides = [])
     {
         $value = array_merge([
@@ -93,9 +107,15 @@ trait SafetyCheckTestHelpers
         return $row;
     }
 
+    /**
+     * @param int|string $rowId
+     * @return \Exceedone\Exment\Model\CustomValue|null
+     */
     protected function freshAnswerRow($rowId)
     {
-        return CustomTable::getEloquent('safety_check_answer')->getValueQuery()->find($rowId);
+        /** @var \Exceedone\Exment\Model\CustomValue|null $row */
+        $row = CustomTable::getEloquent('safety_check_answer')->getValueQuery()->find($rowId);
+        return $row;
     }
 
     protected function linkUser(int $userId): string
@@ -105,10 +125,15 @@ trait SafetyCheckTestHelpers
         return $lineUserId;
     }
 
+    /**
+     * @param int|string $eventId
+     * @return \Illuminate\Database\Eloquent\Collection<int, \Exceedone\Exment\Model\CustomValue>
+     */
     protected function answerRows($eventId)
     {
-        $answerTable = CustomTable::getEloquent('safety_check_answer');
-        return $answerTable->getValueQuery()->get()->filter(function ($row) use ($eventId) {
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \Exceedone\Exment\Model\CustomValue> $rows */
+        $rows = CustomTable::getEloquent('safety_check_answer')->getValueQuery()->get();
+        return $rows->filter(function ($row) use ($eventId) {
             return (int) array_get($row->value, 'event') === (int) $eventId;
         })->values();
     }

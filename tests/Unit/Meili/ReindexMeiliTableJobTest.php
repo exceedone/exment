@@ -54,6 +54,7 @@ class ReindexMeiliTableJobTest extends TestCase
     {
         $logger = $this->captureLog();
         $client = new class () {
+            /** @return array<string, mixed> */
             public function waitForTask(int $uid, int $timeoutMs): array
             {
                 throw new \Meilisearch\Exceptions\TimeOutException();
@@ -70,6 +71,7 @@ class ReindexMeiliTableJobTest extends TestCase
     {
         $logger = $this->captureLog();
         $client = new class () {
+            /** @return array<string, mixed> */
             public function waitForTask(int $uid, int $timeoutMs): array
             {
                 return ['status' => 'failed', 'error' => ['message' => 'bad document']];
@@ -92,9 +94,11 @@ class ReindexMeiliTableJobTest extends TestCase
     }
 
     /**
-     * Minimal 'log' binding: these jobs log through the facade, which a bare
-     * unit test has no application for. The returned object collects every
-     * message logged through it.
+     * Stand-in for the 'log' facade: these jobs log through it, and a bare unit
+     * test has no application to resolve it from. The returned object collects
+     * every message logged through it.
+     *
+     * @return object{messages: array<int, string>}
      */
     private function captureLog(): object
     {
@@ -109,9 +113,8 @@ class ReindexMeiliTableJobTest extends TestCase
             }
         };
 
-        $container = new \Illuminate\Container\Container();
-        $container->instance('log', $logger);
-        \Illuminate\Support\Facades\Facade::setFacadeApplication($container);
+        // swap() serves the facade without an application, as JobSyncDriverGuardTest does.
+        \Illuminate\Support\Facades\Log::swap($logger);
 
         return $logger;
     }

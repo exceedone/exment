@@ -132,6 +132,8 @@ class DocumentMapper
      * Facet label(s) of a column. A multi-select gives one label per option:
      * getValue($column, true) would join them into a single string.
      *
+     * @param \Exceedone\Exment\Model\CustomValue $record
+     * @param \Exceedone\Exment\Model\CustomColumn $column
      * @return mixed
      */
     private static function facetValue($record, $column)

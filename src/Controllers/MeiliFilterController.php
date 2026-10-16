@@ -91,7 +91,7 @@ class MeiliFilterController extends AdminControllerBase
         // edit() and update() call form() without the id: take it from the {id} route parameter.
         $id = $id ?? request()->route('id');
         $tableId = request('custom_table_id')
-            ?? old('custom_table_id', $id ? MeiliFilterSetting::find($id)?->custom_table_id : null);
+            ?? old('custom_table_id', $id ? MeiliFilterSetting::whereKey($id)->value('custom_table_id') : null);
         $form->select('column_name', exmtrans('custom_column.column_name'))
             ->required()
             ->options($tableId ? self::columnsForTable($tableId) : []);

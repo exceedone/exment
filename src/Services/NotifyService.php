@@ -462,7 +462,7 @@ class NotifyService
     }
 
     /**
-     * @param array $params
+     * @param array<string, mixed> $params
      * @return void
      */
     public static function notifyLine(array $params = [])
