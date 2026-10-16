@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
  * no bar, no default redirect, nothing narrowed; a user who may view the table is unaffected.
  *
  * The data (a bare table no role grants, a system dashboard) is rolled back; the requests
- * use the first login user without the system permission.
+ * use the first login user who may not view that table.
  */
 class DashboardFilterBarViewerFixedTest extends SecurityRegressionTestCase
 {
@@ -31,8 +31,7 @@ class DashboardFilterBarViewerFixedTest extends SecurityRegressionTestCase
         $this->asUser(LoginUser::find(1));
         $table = $this->hiddenTable();
         $dashboard = $this->dashboardWithBar($table);
-        $this->asViewer();
-        $this->assertFalse(CustomTable::getEloquent($table)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE));
+        $this->asViewer($table);
 
         // no redirect to the configured default (df_secret_item=東京), no bar, no catalogue
         $response = $this->get($this->home('?dashboard=' . $dashboard->suuid));
@@ -96,18 +95,22 @@ class DashboardFilterBarViewerFixedTest extends SecurityRegressionTestCase
         return $dashboard;
     }
 
-    private function asViewer(): void
+    /**
+     * Logs in the first login user who may not view $table. Lacking the system permission is
+     * not enough: a role on all data (data_admin_group of the test data) views every table.
+     */
+    private function asViewer(CustomTable $table): void
     {
         foreach (LoginUser::all() as $login) {
             if ($login->base_user === null) {
                 continue;
             }
             $this->asUser($login);
-            if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+            if (!$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 return;
             }
         }
-        $this->markTestSkipped('needs a login user without the system permission');
+        $this->markTestSkipped('needs a login user who may not view the table');
     }
 
     private function asUser(?LoginUser $login): void

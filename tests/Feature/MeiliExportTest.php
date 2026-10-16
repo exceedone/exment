@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Meili\ExmentIndexer;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
@@ -30,7 +32,17 @@ class MeiliExportTest extends FeatureTestBase
     {
         parent::setUp();
         $this->initAllTest();
+        // The export only goes through Meilisearch once its index is built (meiliActive()):
+        // the mark is rolled back with the test's transaction, and tearDown() drops the copy
+        // System keeps in memory.
+        ExmentIndexer::markIndexBuilt((string) config('meilisearch.index'));
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+    }
+
+    protected function tearDown(): void
+    {
+        System::clearCache();
+        parent::tearDown();
     }
 
     public function testExportReturns404WhenMeiliDisabled(): void
