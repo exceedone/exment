@@ -32,7 +32,8 @@ use Illuminate\Support\Facades\Event;
  *    the table, also rows a user with restricted rows may not see.
  *
  * The data is rolled back; LoginUser 1 (system admin) owns, the first login user without
- * the system permission edits.
+ * the system permission edits (where a table no role grants is involved: the first who may
+ * not view it).
  */
 class DashboardSharedEditFixedTest extends SecurityRegressionTestCase
 {
@@ -43,8 +44,7 @@ class DashboardSharedEditFixedTest extends SecurityRegressionTestCase
         [$dashboard] = $this->dashboardWithBoxes(DashboardType::USER, 1);
         $bar = ['source_table' => $tableName, 'dims' => [['column' => 'secret_column', 'label' => 'secret']]];
         $dashboard->setOption('filter_bar', $bar)->save();
-        $editor = $this->asEditorOf($dashboard);
-        $this->assertFalse(CustomTable::getEloquent($tableName)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE));
+        $editor = $this->asEditorOf($dashboard, $tableName);
 
         // the edit screen shows the notice instead of the fields
         $html = (string) $this->get($this->url('dashboard/' . $dashboard->id . '/edit'))->getContent();
@@ -161,8 +161,9 @@ class DashboardSharedEditFixedTest extends SecurityRegressionTestCase
         $this->assertIsArray($indexValues->invoke(null, $user, $user->custom_columns->firstWhere('column_name', 'user_code'), 100));
 
         // a table no role grants this user: their rows query narrows the rows (to none)
-        $hidden = CustomTable::getEloquent($this->hiddenTable());
-        $this->asUser($this->editorLogin());
+        $hiddenTable = $this->hiddenTable();
+        $hidden = CustomTable::getEloquent($hiddenTable);
+        $this->asUser($this->editorLogin($hiddenTable));
         $this->assertNull($indexValues->invoke(null, $hidden, $hidden->custom_columns->first(), 100));
     }
 
@@ -215,9 +216,9 @@ class DashboardSharedEditFixedTest extends SecurityRegressionTestCase
     /**
      * Shares $dashboard for editing with the editor and logs them in.
      */
-    private function asEditorOf(Dashboard $dashboard): LoginUser
+    private function asEditorOf(Dashboard $dashboard, ?string $hiddenTable = null): LoginUser
     {
-        $editor = $this->editorLogin();
+        $editor = $this->editorLogin($hiddenTable);
         DB::table('data_share_authoritables')->insert([
             'parent_id' => $dashboard->id, 'parent_type' => ShareTargetType::DASHBOARD, 'authoritable_type' => Permission::DATA_SHARE_EDIT,
             'authoritable_user_org_type' => SystemTableName::USER, 'authoritable_target_id' => $editor->base_user_id,
@@ -228,20 +229,25 @@ class DashboardSharedEditFixedTest extends SecurityRegressionTestCase
     }
 
     /**
-     * The first login user without the system permission.
+     * The first login user without the system permission; with $hiddenTable, the first who may
+     * not view that table either: a role on all data (data_admin_group of the test data) views
+     * every table.
      */
-    private function editorLogin(): LoginUser
+    private function editorLogin(?string $hiddenTable = null): LoginUser
     {
         foreach (LoginUser::where('id', '<>', 1)->orderBy('id')->get() as $login) {
             if ($login->base_user === null) {
                 continue;
             }
             $this->asUser($login);
-            if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+            if (\Exment::user()->hasPermission(Permission::SYSTEM)) {
+                continue;
+            }
+            if ($hiddenTable === null || !CustomTable::getEloquent($hiddenTable)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 return $login;
             }
         }
-        $this->markTestSkipped('needs a login user without the system permission');
+        $this->markTestSkipped($hiddenTable === null ? 'needs a login user without the system permission' : 'needs a login user who may not view the table');
     }
 
     private function asUser(?LoginUser $login): void

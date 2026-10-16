@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Meili\ExmentIndexer;
 use Exceedone\Exment\Services\Meili\SavedSearchService;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
@@ -27,9 +29,18 @@ class MeiliSearchFilterTest extends FeatureTestBase
     {
         parent::setUp();
         $this->initAllTest();
-        // Force the Meili branch on so the filter sidebar + applied chips render.
+        // Force the Meili branch on so the filter sidebar + applied chips render. It also
+        // needs a built index (ExmentIndexer::indexIsBuilt()): the mark is rolled back with
+        // the test's transaction, and tearDown() drops the copy System keeps in memory.
         config(['meilisearch.global_search' => true]);
+        ExmentIndexer::markIndexBuilt((string) config('meilisearch.index'));
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+    }
+
+    protected function tearDown(): void
+    {
+        System::clearCache();
+        parent::tearDown();
     }
 
     public function testSearchWithoutQueryRedirects(): void

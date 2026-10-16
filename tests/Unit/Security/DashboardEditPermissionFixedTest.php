@@ -33,7 +33,8 @@ use Illuminate\Support\Facades\DB;
  * the table) listed the views and columns of any table as well; now of one this user may view.
  *
  * The data (a system dashboard with one box) is rolled back; the requests use LoginUser 1
- * (system admin) and the first login user without the system permission.
+ * (system admin) and the first login user without the system permission (for the table no
+ * role grants: the first who may not view it).
  */
 class DashboardEditPermissionFixedTest extends SecurityRegressionTestCase
 {
@@ -128,8 +129,7 @@ class DashboardEditPermissionFixedTest extends SecurityRegressionTestCase
 
         [$dashboard] = $this->systemDashboard();
         $chartBox = $this->chartBox($dashboard, $tableId, $viewId);
-        $this->asViewer();
-        $this->assertFalse(CustomTable::getEloquent($tableId)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE));
+        $this->asViewer($tableId);
         $tableViews = $this->url('dashboardbox/table_views/' . DashboardBoxType::CHART . '?dashboard_suuid=' . $dashboard->suuid . '&q');
 
         $this->get($tableViews . '=' . $tableId)->assertExactJson([]);
@@ -255,18 +255,26 @@ class DashboardEditPermissionFixedTest extends SecurityRegressionTestCase
         ];
     }
 
-    private function asViewer(): void
+    /**
+     * Logs in the first login user without the system permission; with $tableId, the first who
+     * may not view that table either: a role on all data (data_admin_group of the test data)
+     * views every table.
+     */
+    private function asViewer(?int $tableId = null): void
     {
         foreach (LoginUser::all() as $login) {
             if ($login->base_user === null) {
                 continue;
             }
             $this->asUser($login);
-            if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+            if (\Exment::user()->hasPermission(Permission::SYSTEM)) {
+                continue;
+            }
+            if ($tableId === null || !CustomTable::getEloquent($tableId)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 return;
             }
         }
-        $this->markTestSkipped('needs a login user without the system permission');
+        $this->markTestSkipped($tableId === null ? 'needs a login user without the system permission' : 'needs a login user who may not view the table');
     }
 
     private function asUser(?LoginUser $login): void
