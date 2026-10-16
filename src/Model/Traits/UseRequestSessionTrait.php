@@ -116,6 +116,7 @@ trait UseRequestSessionTrait
         }
 
         if ((!isset($records) || count($records) == 0) && !$isGetAll) {
+            /** @var \Illuminate\Support\Collection<int, static>|null $records */
             return $records;
         }
 
