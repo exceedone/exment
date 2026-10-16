@@ -17,6 +17,8 @@ use Exceedone\Exment\Tests\TestTrait;
  * the URI, or outside the "admin" prefix (OAuth, etc.) are skipped - see out/smoke_skipped.txt.
  * Routes that end in $response->send() + exit (QR creation, the exports, the plugin batch) are left
  * out as well: exit would end the PHPUnit process (the first CI run died after 7 tests).
+ * The requests are sent as XMLHttpRequest: for a missing record or a denied table,
+ * Permission::error() then answers 403 instead of printing the error page and calling exit.
  */
 class AdminScreensSmokeTest extends FeatureTestBase
 {
@@ -36,7 +38,7 @@ class AdminScreensSmokeTest extends FeatureTestBase
      */
     public function testAdminScreenDoesNotReturnServerError(string $path): void
     {
-        $response = $this->get(admin_url($path));
+        $response = $this->get(admin_url($path), ['X-Requested-With' => 'XMLHttpRequest']);
         $status = $response->getStatusCode();
         $this->assertTrue($status < 500, "GET admin/$path -> $status");
     }
