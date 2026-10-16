@@ -77,6 +77,7 @@ class Bootstrap
             'vendor/exment/css/workflow_designer.css',
             'vendor/exment/css/workflow_design_edit.css',
             'vendor/exment/css/customform.css',
+            'vendor/exment/css/dashboard.css',
             'vendor/exment/codemirror/codemirror.css',
             'vendor/exment/jstree/themes/default/style.min.css',
         ], true);
@@ -111,6 +112,7 @@ class Bootstrap
             'vendor/exment/js/common.js',
             'vendor/exment/js/grid_tools.js',
             'vendor/exment/js/cellstyle_preset.js',
+            'vendor/exment/js/dashboard.js',
             'vendor/exment/js/file-required.js',
             'vendor/exment/js/scroll-restore.js',
             'vendor/exment/js/file-required.js',

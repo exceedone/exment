@@ -28,7 +28,10 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonOptionTrait;
     use Traits\DefaultFlgTrait;
-    use Traits\TemplateTrait;
+    use Traits\TemplateTrait {
+        getTemplateExportItems as protected templateExportItems;
+        importTemplate as protected templateImport;
+    }
     use Traits\UseRequestSessionTrait;
 
     protected $guarded = ['id'];
@@ -58,7 +61,9 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<DashboardBox, $this>
+     */
     public function dashboard_boxes(): HasMany
     {
         return $this->hasMany(DashboardBox::class, 'dashboard_id')
@@ -85,6 +90,285 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             }
             return true;
         }, false)->sortBy('column_no');
+    }
+
+    // Form virtual attributes -------------------------------------------------------
+    // The setting form binds these instead of the raw `options` JSON: each mutator merges
+    // into options, so keys no form field manages survive a save.
+
+    // @phpstan-ignore-next-line
+    public function getRowSettingAttribute()
+    {
+        return $this->options;
+    }
+
+    // @phpstan-ignore-next-line
+    public function setRowSettingAttribute(?array $options)
+    {
+        $this->setOption($options);
+        return $this;
+    }
+
+    /**
+     * Filter bar source table (options.filter_bar.source_table).
+     */
+    // @phpstan-ignore-next-line
+    public function getFilterBarTableAttribute()
+    {
+        return $this->getOption('filter_bar.source_table');
+    }
+
+    // @phpstan-ignore-next-line
+    public function setFilterBarTableAttribute($value)
+    {
+        return $this->setFilterBarOption('source_table', is_scalar($value) && !is_nullorempty($value) ? strval($value) : null);
+    }
+
+    /**
+     * Filter bar items (options.filter_bar.dims) as form rows: column / label / targets / default.
+     *
+     * @return array<int, array{column:?string, label:?string, targets:string[], default:string}>
+     */
+    public function getFilterBarDimsAttribute()
+    {
+        $dims = $this->getOption('filter_bar.dims');
+        return collect(is_array($dims) ? $dims : [])->map(function ($dim) {
+            return [
+                'column' => array_get($dim, 'column'),
+                'label' => array_get($dim, 'label'),
+                'targets' => array_values(array_filter((array) array_get($dim, 'targets', []), 'is_string')),
+                'default' => static::textOf(array_get($dim, 'default')),
+            ];
+        })->values()->toArray();
+    }
+
+    // @phpstan-ignore-next-line
+    public function setFilterBarDimsAttribute($value)
+    {
+        // "style" (the item's control) is set in the option JSON, not on the form: an item
+        // keeps the one stored under its column, or the form's save would drop it
+        $stored = [];
+        $current = $this->getOption('filter_bar.dims');
+        foreach (is_array($current) ? $current : [] as $dim) {
+            if (is_array($dim) && is_string(array_get($dim, 'column'))) {
+                $stored[$dim['column']] = $dim;
+            }
+        }
+        $dims = [];
+        foreach (is_array($value) ? $value : [] as $row) {
+            $column = trim(static::textOf(array_get($row, 'column')));
+            if ($column === '') {
+                continue; // a row left blank is not a filter item
+            }
+            $label = trim(static::textOf(array_get($row, 'label')));
+            $dim = ['column' => $column, 'label' => $label !== '' ? $label : $column];
+            // target boxes: an empty multi-select posts nothing = every box
+            $targets = array_values(array_filter((array) array_get($row, 'targets', []), function ($v) {
+                return is_string($v) && $v !== '';
+            }));
+            if (count($targets)) {
+                $dim['targets'] = $targets;
+            }
+            // initial selection (stored values; "min~max" for range items) — empty = none
+            $default = trim(static::textOf(array_get($row, 'default')));
+            if ($default !== '') {
+                $dim['default'] = $default;
+            }
+            $style = $stored[$column]['style'] ?? null;
+            if (in_array($style, ['select', 'range'], true)) {
+                $dim['style'] = $style;
+            }
+            $dims[] = $dim;
+        }
+        return $this->setFilterBarOption('dims', count($dims) ? $dims : null);
+    }
+
+    /**
+     * A posted or imported value as text: '' for one that is no scalar (an array where a
+     * text is expected), which strval() would fail on.
+     *
+     * @param mixed $value
+     */
+    protected static function textOf($value): string
+    {
+        return is_scalar($value) ? strval($value) : '';
+    }
+
+    /**
+     * Write one key inside options.filter_bar (null = remove it).
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return $this
+     */
+    protected function setFilterBarOption($key, $value)
+    {
+        $bar = $this->getOption('filter_bar');
+        $bar = is_array($bar) ? $bar : [];
+        if (is_null($value)) {
+            unset($bar[$key]);
+        } else {
+            $bar[$key] = $value;
+        }
+        return $this->setOption('filter_bar', $bar);
+    }
+
+    /**
+     * Forgets deleted boxes among the filter items' target boxes (filter_bar.dims[].targets),
+     * in one save: boxes deleted together each hold their own copy of the dashboard, a save
+     * per box would write back the targets the one before removed.
+     * An item left without a target narrows every box again — what its setting form shows for
+     * it, and what the form's next save would make of a target it cannot list anyway.
+     *
+     * @param string[] $suuids
+     */
+    public function forgetFilterBarTargets(array $suuids): void
+    {
+        $dims = $this->getOption('filter_bar.dims');
+        if (!is_array($dims) || empty($suuids)) {
+            return;
+        }
+        $changed = false;
+        foreach ($dims as $i => $dim) {
+            $targets = is_array($dim) ? array_get($dim, 'targets') : null;
+            if (!is_array($targets) || empty(array_intersect($targets, $suuids))) {
+                continue;
+            }
+            $targets = array_values(array_diff($targets, $suuids));
+            if (empty($targets)) {
+                unset($dims[$i]['targets']);
+            } else {
+                $dims[$i]['targets'] = $targets;
+            }
+            $changed = true;
+        }
+        if ($changed) {
+            $this->setFilterBarOption('dims', $dims);
+            $this->save();
+        }
+    }
+
+    // Template export / import -----------------------------------------------------------
+    // A box does not keep its suuid through a template import (DashboardBox excepts it), so
+    // the filter bar's target boxes (filter_bar.dims[].targets) are exported by POSITION,
+    // "{row}-{column}" (DashboardBox::positionKey), and once the boxes are imported under the
+    // dashboard each position is replaced by the suuid of the box now standing there
+    // (resolveFilterBarTargets — a box created on a fresh system, or the existing box of that
+    // position when the import overwrites an existing dashboard; an update import skips an
+    // existing dashboard altogether, boxes included, so the pass then finds nothing to rename).
+
+    /**
+     * @param bool $is_lang
+     * @return array<string, mixed>
+     */
+    public function getTemplateExportItems($is_lang = false)
+    {
+        $array = $this->templateExportItems($is_lang);
+        $dims = array_get($array, 'options.filter_bar.dims');
+        if (is_array($dims)) {
+            $positions = [];
+            foreach ($this->dashboard_boxes as $box) {
+                $positions[(string) $box->suuid] = $box->positionKey();
+            }
+            array_set($array, 'options.filter_bar.dims', static::renameFilterBarTargets($dims, $positions));
+        }
+        return $array;
+    }
+
+    /**
+     * The trait's import (the dashboard, then its boxes), followed by one pass over the
+     * filter bar's position targets.
+     *
+     * @param array<string, mixed> $array
+     * @param bool $is_update
+     * @param array<string, mixed> $options
+     * @return \Illuminate\Database\Eloquent\Model|null  the trait's result (TemplateTrait::importTemplate)
+     */
+    public static function importTemplate($array, $is_update, $options = [])
+    {
+        $dashboard = static::templateImport($array, $is_update, $options);
+        if ($dashboard instanceof self) {
+            $dashboard->resolveFilterBarTargets();
+        }
+        return $dashboard;
+    }
+
+    /**
+     * Put each box's suuid where its position "{row}-{column}" stands in
+     * filter_bar.dims[].targets; saves only when something was replaced.
+     *
+     * @return void
+     */
+    public function resolveFilterBarTargets()
+    {
+        $bar = $this->getOption('filter_bar');
+        $dims = is_array($bar) ? array_get($bar, 'dims') : null;
+        if (!is_array($dims)) {
+            return;
+        }
+        $suuids = [];
+        foreach ($this->dashboard_boxes as $box) {
+            $suuids[$box->positionKey()] = (string) $box->suuid;
+        }
+        $renamed = static::renameFilterBarTargets($dims, $suuids);
+        if ($renamed !== $dims) {
+            // the whole bar is written back: setOption takes a plain key, not a dot path
+            $bar['dims'] = $renamed;
+            $this->setOption('filter_bar', $bar);
+            $this->save();
+        }
+    }
+
+    /**
+     * The filter bar items with every target found in $map renamed to its value; a target
+     * $map does not know is kept as it is.
+     *
+     * @param array<int, mixed> $dims  filter_bar.dims
+     * @param array<string, string> $map  target => replacement
+     * @return array<int, mixed>
+     */
+    public static function renameFilterBarTargets(array $dims, array $map): array
+    {
+        foreach ($dims as $i => $dim) {
+            if (!is_array($dim) || !is_array(array_get($dim, 'targets'))) {
+                continue;
+            }
+            foreach ($dim['targets'] as $j => $target) {
+                if (is_string($target) && isset($map[$target])) {
+                    $dims[$i]['targets'][$j] = $map[$target];
+                }
+            }
+        }
+        return $dims;
+    }
+
+    /**
+     * Keep options.filter_bar consistent whatever wrote it: drop a half-configured bar
+     * (no source table or no items) and duplicate columns (one item per column).
+     *
+     * @return void
+     */
+    protected function normalizeFilterBarOption()
+    {
+        $bar = $this->getOption('filter_bar');
+        if (!is_array($bar)) {
+            return;
+        }
+        $dims = [];
+        foreach ((array) array_get($bar, 'dims', []) as $dim) {
+            $column = array_get($dim, 'column');
+            $key = is_scalar($column) ? strval($column) : '';
+            if ($key !== '' && !isset($dims[$key])) {
+                $dims[$key] = $dim;
+            }
+        }
+        $source = array_get($bar, 'source_table');
+        if (!is_scalar($source) || is_nullorempty($source) || empty($dims)) {
+            $this->forgetOption('filter_bar');
+            return;
+        }
+        $bar['dims'] = array_values($dims);
+        $this->setOption('filter_bar', $bar);
     }
 
 
@@ -165,6 +449,10 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             $model->setDefaultFlg(null, 'setDefaultFlgFilter', 'setDefaultFlgSet');
         });
 
+        static::saving(function ($model) {
+            $model->normalizeFilterBarOption();
+        });
+
         static::created(function ($model) {
             if ($model->dashboard_type == DashboardType::USER) {
                 // save Authoritable
@@ -191,8 +479,16 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         $query->where('dashboard_type', $this->dashboard_type);
 
         if ($this->dashboard_type == DashboardType::USER) {
-            $login_user = \Exment::user();
-            $query->where('created_user_id', isset($login_user) ? $login_user->getUserId() : null);
+            // the dashboard owner's, not the saving user's: a user it is shared with for
+            // editing saves it too (setting form, a box deleted), and must reach the owner's
+            // dashboards not shared with them as well
+            $query->withoutGlobalScope('showableDashboards');
+            $owner = $this->created_user_id;
+            if (!isset($owner)) {
+                $login_user = \Exment::user();
+                $owner = isset($login_user) ? $login_user->getUserId() : null;
+            }
+            $query->where('created_user_id', $owner);
         }
     }
 
