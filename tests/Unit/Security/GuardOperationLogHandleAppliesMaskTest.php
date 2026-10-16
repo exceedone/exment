@@ -85,7 +85,7 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
 
     // ----- masking is actually wired into handle() ---------------------------
 
-    public function testHandleMasksGlobalCredentialsInTheStoredRow()
+    public function testHandleMasksGlobalCredentialsInTheStoredRow(): void
     {
         $log = $this->logged('auth/setting', [
             'current_password' => 'RealPass@123',
@@ -103,7 +103,7 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
         $this->assertStringNotContainsString('RealPass@123', $log->input);
     }
 
-    public function testHandleMasksNestedCredentials()
+    public function testHandleMasksNestedCredentials(): void
     {
         // the core middleware only filters top-level keys, so a nested secret is
         // the clearest signal that Exment's recursive masking is the one running
@@ -116,7 +116,7 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
         $this->assertSame('admin', $input['value']['user_code']);
     }
 
-    public function testHandleMasksSensitivePathSegment()
+    public function testHandleMasksSensitivePathSegment(): void
     {
         $clientId = '5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f';
         $log = $this->logged('api_setting/' . $clientId . '/edit', [], 'GET');
@@ -127,7 +127,7 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
 
     // ----- customer requirement (2): TC-SYS-07-09 / TC-SYS-07-10 -------------
 
-    public function testOauthClientIdPostedAsIdIsMaskedOnApiSettingUri()
+    public function testOauthClientIdPostedAsIdIsMaskedOnApiSettingUri(): void
     {
         $log = $this->logged('api_setting', ['id' => '5e02b3a0-7a7a-11f1-bd22-0f4e2735fd7f'], 'GET');
 
@@ -168,7 +168,7 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
         $this->assertSame('user@example.com', $input['email']);
     }
 
-    public function testIdIsNotMaskedOnDataUris()
+    public function testIdIsNotMaskedOnDataUris(): void
     {
         // the rule must never degrade into "mask every field named id"
         $this->assertSame('12345', $this->input($this->logged('data/client', ['id' => '12345'], 'GET'))['id']);
@@ -177,7 +177,7 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
 
     // ----- customer requirement (1): user-defined columns stay readable ------
 
-    public function testUserDefinedBusinessColumnsAreNotMaskedOnDataUri()
+    public function testUserDefinedBusinessColumnsAreNotMaskedOnDataUri(): void
     {
         // the "client" table the customer described: columns whose names look
         // sensitive but hold plain business data
@@ -206,7 +206,7 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
         }
     }
 
-    public function testSameNamesAreStillMaskedOnTheSystemScreensThatOwnThem()
+    public function testSameNamesAreStillMaskedOnTheSystemScreensThatOwnThem(): void
     {
         // the other half of the trade-off: uri-scoping must not have unmasked the
         // real credentials on the screens where those names ARE credentials

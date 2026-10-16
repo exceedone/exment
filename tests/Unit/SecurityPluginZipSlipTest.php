@@ -169,7 +169,7 @@ class SecurityPluginZipSlipTest extends UnitTestBase
     public function testAllowsNormalPluginZip(): void
     {
         $zipPath = $this->makeZip([
-            'config.json'       => json_encode(['plugin_name' => 'TestPlugin']),
+            'config.json'       => json_encode(['plugin_name' => 'TestPlugin'], JSON_THROW_ON_ERROR),
             'src/Plugin.php'    => '<?php // plugin code',
             'resources/en.php'  => '<?php return [];',
             'deep/sub/file.txt' => 'some content',
@@ -178,10 +178,9 @@ class SecurityPluginZipSlipTest extends UnitTestBase
         $zip = new ZipArchive();
         $zip->open($zipPath);
 
-        // Must not throw:
+        // Must not throw - getting through the call is the whole check.
+        $this->expectNotToPerformAssertions();
         $this->callValidateZipEntries($zip);
         $zip->close();
-
-        $this->assertTrue(true, 'Normal plugin ZIP must pass validateZipEntries() without throwing');
     }
 }

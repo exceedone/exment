@@ -36,9 +36,9 @@ class ApiWorkflowAccessControlTest extends TestCase
             private $ret;
 
             /**
-             * @param bool|ErrorCode $ret
+             * @param bool|ErrorCode $ret optional, like the argument of Model::__construct()
              */
-            public function __construct($ret)
+            public function __construct($ret = true)
             {
                 $this->ret = $ret;
             }
@@ -64,9 +64,9 @@ class ApiWorkflowAccessControlTest extends TestCase
             public $designated;
 
             /**
-             * @param CustomTable|null $designated
+             * @param CustomTable|null $designated optional, like the argument of Model::__construct()
              */
-            public function __construct($designated)
+            public function __construct($designated = null)
             {
                 $this->designated = $designated;
             }

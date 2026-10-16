@@ -12,6 +12,7 @@ parameters:
     level: 7
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
+        - exment/stubs/mockery/LegacyMockInterface.stub
     universalObjectCratesClasses:
         - Exceedone\Exment\Model\WorkflowAuthority
         - Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface

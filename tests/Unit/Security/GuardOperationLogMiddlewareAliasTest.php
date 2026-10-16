@@ -52,7 +52,7 @@ class GuardOperationLogMiddlewareAliasTest extends TestCase
         return app('router')->getMiddleware();
     }
 
-    public function testAdminLogAliasResolvesToExmentLogOperation()
+    public function testAdminLogAliasResolvesToExmentLogOperation(): void
     {
         $this->assertSame(
             LogOperation::class,
@@ -63,7 +63,7 @@ class GuardOperationLogMiddlewareAliasTest extends TestCase
         );
     }
 
-    public function testResolvedLogMiddlewareStillMasks()
+    public function testResolvedLogMiddlewareStillMasks(): void
     {
         // guards against the alias being pointed at some other class that merely
         // extends the core one: masking must be reachable from what is wired in
@@ -75,7 +75,7 @@ class GuardOperationLogMiddlewareAliasTest extends TestCase
         );
     }
 
-    public function testAdminAuthAliasResolvesToExmentAuthenticate()
+    public function testAdminAuthAliasResolvesToExmentAuthenticate(): void
     {
         // the same override also reverted "admin.auth" to the core class, which
         // skips Exment's guard setup and the not-initialized -> /initialize redirect
@@ -85,7 +85,7 @@ class GuardOperationLogMiddlewareAliasTest extends TestCase
         );
     }
 
-    public function testEveryAliasDeclaredByExmentIsTheOneActuallyRegistered()
+    public function testEveryAliasDeclaredByExmentIsTheOneActuallyRegistered(): void
     {
         /** @var array<string, string> $declared */
         $declared = (new \ReflectionClass(ExmentServiceProvider::class))
@@ -134,7 +134,7 @@ class GuardOperationLogMiddlewareAliasTest extends TestCase
         }
     }
 
-    public function testLoggingMiddlewareStaysInEveryGroupThatNeedsIt()
+    public function testLoggingMiddlewareStaysInEveryGroupThatNeedsIt(): void
     {
         // dropping "admin.log" from a group disables the log - and its masking -
         // for every route in that group, without any test on the rules noticing

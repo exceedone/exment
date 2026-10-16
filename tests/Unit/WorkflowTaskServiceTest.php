@@ -86,7 +86,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
-     * Empty / null keys must be ignored instead of inserting a junk row.
+     * Empty keys must be ignored instead of inserting a junk row. (markSeen() takes
+     * strings: the keys it is given are built by this service, never read raw from the
+     * browser - that goes through markSeenSelected().)
      *
      * @return void
      */
@@ -96,7 +98,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $before = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())->count();
 
-        (new WorkflowTaskService())->markSeen(['', null]);
+        (new WorkflowTaskService())->markSeen(['']);
 
         $after = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())->count();
 
@@ -1728,11 +1730,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('the test dataset has no workflow on custom_value_edit_all');
         }
 
-        $actions = collect($workflow->workflow_actions_cache);
+        // the accessor is untyped (mixed), which collect() cannot resolve: name the type instead
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
         $first = $actions->first(function ($action) {
             return $action->status_from == Define::WORKFLOW_START_KEYNAME;
         });
-        $firstHeader = isset($first) ? collect($first->workflow_condition_headers_cache)->first() : null;
+        /** @var WorkflowConditionHeader|null $firstHeader */
+        $firstHeader = isset($first) ? $first->workflow_condition_headers_cache->first() : null;
         $firstStatusTo = isset($firstHeader) ? $firstHeader->status_to : null;
         $second = isset($firstStatusTo) ? $actions->first(function ($action) use ($firstStatusTo) {
             return (string)$action->status_from === (string)$firstStatusTo;
@@ -1858,11 +1863,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('the test dataset has no workflow on custom_value_edit_all');
         }
 
-        $actions = collect($workflow->workflow_actions_cache);
+        // the accessor is untyped (mixed), which collect() cannot resolve: name the type instead
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
         $first = $actions->first(function ($action) {
             return $action->status_from == Define::WORKFLOW_START_KEYNAME;
         });
-        $firstHeader = isset($first) ? collect($first->workflow_condition_headers_cache)->first() : null;
+        /** @var WorkflowConditionHeader|null $firstHeader */
+        $firstHeader = isset($first) ? $first->workflow_condition_headers_cache->first() : null;
         $firstStatusTo = isset($firstHeader) ? $firstHeader->status_to : null;
         $second = isset($firstStatusTo) ? $actions->first(function ($action) use ($firstStatusTo) {
             return (string)$action->status_from === (string)$firstStatusTo;
@@ -2651,7 +2659,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
                 $request = Request::create('/workflow_task/' . $method, 'POST', $params);
                 $request->headers->set('X-Requested-With', 'XMLHttpRequest');
 
-                $answer = json_decode($controller->{$method}($request)->getContent(), true);
+                $content = $controller->{$method}($request)->getContent();
+                $this->assertIsString($content, "{$method} answered without a body");
+                $answer = json_decode($content, true);
                 $this->assertSame(exmtrans('workflow_task.message.' . $expected), array_get($answer, 'toastr'), "{$method} with " . json_encode($params));
             }
         }
@@ -2915,6 +2925,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             return $api->workflowTaskPage(Request::create('/webapi/workflowTaskPage', 'GET'));
         };
         $shows = function (array $answer, string $key) {
+            $this->assertIsArray($answer['items']);
             return collect($answer['items'])->contains(function ($item) use ($key) {
                 return str_contains($item['href'], '?key=' . rawurlencode($key));
             });
@@ -3108,7 +3119,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         (new WorkflowTaskService())->hideSelected([$key]);
 
         $list = $this->openList(['seen' => $removed]);
-        $this->assertSame([$key], collect($list['rows'])->pluck('task_key')->all(), 'the 削除済み list shows what was taken off');
+        $this->assertSame([$key], $list['rows']->pluck('task_key')->all(), 'the 削除済み list shows what was taken off');
         $this->assertFalse($list['isFiltered'], 'the 削除済み list alone filters nothing');
         $this->assertTrue($list['removedView']);
         $this->assertFalse($list['expandFilter'], 'the 削除済み list is no condition of the panel');
@@ -3353,7 +3364,8 @@ class WorkflowTaskServiceTest extends UnitTestBase
             if ($action->status_from != Define::WORKFLOW_START_KEYNAME) {
                 continue;
             }
-            $headers = collect($action->workflow_condition_headers_cache);
+            /** @var \Illuminate\Support\Collection<int, WorkflowConditionHeader> $headers */
+            $headers = $action->workflow_condition_headers_cache;
             $conditioned = $headers->filter(function ($header) {
                 return count($header->workflow_conditions) > 0;
             });
@@ -3421,10 +3433,13 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('the test dataset has no workflow on custom_value_edit');
         }
 
-        $start = collect($workflow->workflow_actions_cache)->first(function ($action) {
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
+        $start = $actions->first(function ($action) {
             return $action->status_from == Define::WORKFLOW_START_KEYNAME;
         });
-        $headers = isset($start) ? collect($start->workflow_condition_headers_cache) : collect();
+        /** @var \Illuminate\Support\Collection<int, WorkflowConditionHeader> $headers */
+        $headers = isset($start) ? $start->workflow_condition_headers_cache : collect();
         if ($headers->isEmpty()) {
             $this->markTestSkipped('the start action of the test workflow has no condition header');
         }

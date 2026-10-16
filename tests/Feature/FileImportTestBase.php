@@ -132,6 +132,6 @@ abstract class FileImportTestBase extends FeatureTestBase
             }
         }
 
-        $this->assertTrue(false, 'Not matched file path');
+        $this->fail('Not matched file path');
     }
 }

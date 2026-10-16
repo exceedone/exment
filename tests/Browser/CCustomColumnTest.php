@@ -1197,7 +1197,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // (file blobs cannot be equality-compared by the DB), so it must never
         // be persisted regardless of what was submitted.
         $this->assertEmpty(
-            CustomColumn::find($id)->getOption('unique'),
+            $row->fresh()->getOption('unique'),
             'unique must never be persisted on an attachment (image) column.'
         );
     }
@@ -1264,7 +1264,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // (file blobs cannot be equality-compared by the DB), so it must never
         // be persisted regardless of what was submitted.
         $this->assertEmpty(
-            CustomColumn::find($id)->getOption('unique'),
+            $row->fresh()->getOption('unique'),
             'unique must never be persisted on an attachment (file) column.'
         );
     }
@@ -1422,7 +1422,7 @@ class CCustomColumnTest extends ExmentKitTestCase
 
 
     /**
-     * @return mixed
+     * @return CustomColumn|null
      */
     protected function getNewestColumn()
     {

@@ -94,7 +94,9 @@ class ViewOnlyChildRowDisplayTest extends TestCase
      */
     private function displayText(string $html): string
     {
-        $this->assertSame(1, preg_match('#<span class="[^"]*"[^>]*>(.*?)</span>#s', $html, $m), $html);
+        if (preg_match('#<span class="[^"]*"[^>]*>(.*?)</span>#s', $html, $m) !== 1) {
+            $this->fail('no display span in: ' . $html);
+        }
 
         return trim(html_entity_decode(strip_tags($m[1]), ENT_QUOTES));
     }

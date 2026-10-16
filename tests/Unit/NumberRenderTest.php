@@ -55,7 +55,10 @@ class NumberRenderTest extends TestCase
             $configure($field);
         }
 
-        return (string) $field->render();
+        $view = $field->render();
+        $this->assertInstanceOf(\Illuminate\Contracts\View\View::class, $view);
+
+        return $view->render();
     }
 
     // -----------------------------------------------------------------------

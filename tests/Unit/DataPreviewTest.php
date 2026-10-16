@@ -57,7 +57,6 @@ class DataPreviewTest extends UnitTestBase
         $table = CustomTable::getEloquent(self::TABLE);
         $child = CustomTable::getEloquent(self::CHILD_TABLE);
         $form = $table->getPriorityForm();
-        $this->assertNotNull($form);
 
         $block = CustomFormBlock::where('custom_form_id', $form->id)
             ->where('form_block_type', FormBlockType::DEFAULT)

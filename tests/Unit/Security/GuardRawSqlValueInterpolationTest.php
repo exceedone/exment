@@ -17,8 +17,15 @@ namespace Exceedone\Exment\Tests\Unit\Security;
  */
 class GuardRawSqlValueInterpolationTest extends CodebaseGuardTestCase
 {
-    /** Occurrences reviewed as safe but still matching the detector (currently: none). */
-    private const ALLOWLIST = [
+    /**
+     * Occurrences reviewed as safe but still matching the detector (currently:
+     * none), as "path:line". Protected and typed: PHPStan reads a private
+     * constant as its value, and against the empty list it reports the
+     * in_array() check below as always false.
+     *
+     * @var list<string>
+     */
+    protected const ALLOWLIST = [
         // 'src/Path/To/File.php:123',
     ];
 
@@ -52,7 +59,7 @@ class GuardRawSqlValueInterpolationTest extends CodebaseGuardTestCase
             $code = (string) file_get_contents($file);
             foreach (self::detectViolations($code) as $v) {
                 $key = self::rel($file) . ':' . $v['line'];
-                if (in_array($key, self::ALLOWLIST, true)) {
+                if (in_array($key, static::ALLOWLIST, true)) {
                     continue;
                 }
                 $found[] = "$key\n      > {$v['code']}";

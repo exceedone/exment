@@ -45,7 +45,7 @@ abstract class ApiTestBase extends FeatureTestBase
      * @param string $user_code
      * @param string $password
      * @param array<mixed> $scope
-     * @return \Illuminate\Testing\TestResponse
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
      */
     protected function getPasswordToken($user_code, $password, $scope = [])
     {
@@ -69,7 +69,7 @@ abstract class ApiTestBase extends FeatureTestBase
     /**
      * Get API Key
      * @param array<mixed> $scope
-     * @return \Illuminate\Testing\TestResponse
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
      */
     protected function getApiKey($scope = [])
     {

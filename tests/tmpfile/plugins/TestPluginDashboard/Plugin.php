@@ -15,7 +15,7 @@ class Plugin extends PluginDashboardBase
     {
         $data = $this->getData();
 
-        return view('exment_test_plugin_dashboard::sample', [
+        return $this->pluginView('sample', [
             // @phpstan-ignore-next-line
             'id' => $data->id,
             'params' => $this->getParams($data),

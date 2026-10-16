@@ -59,8 +59,12 @@ class Editor extends CustomItem
     }
 
     /**
+     * Rows are told apart by identity, or by id and table name - all that a
+     * row has to offer here, which is what lets the unit tests pass a
+     * stand-in row instead of a model.
+     *
      * @param \Exceedone\Exment\Model\CustomValue|null $target
-     * @param \Exceedone\Exment\Model\CustomValue|null $row
+     * @param \Exceedone\Exment\Model\CustomValue|object{id: mixed, custom_table: mixed}|null $row
      */
     private function sameImageTarget($target, $row): bool
     {
@@ -70,7 +74,7 @@ class Editor extends CustomItem
     }
 
     /**
-     * @param \Exceedone\Exment\Model\CustomValue|null $row
+     * @param \Exceedone\Exment\Model\CustomValue|object{id: mixed, custom_table: mixed}|null $row see sameImageTarget()
      * @return array<string, array{url: string, uuid: string}>
      */
     public function getPastedImageUrls($row): array
@@ -88,7 +92,7 @@ class Editor extends CustomItem
     }
 
     /**
-     * @param \Exceedone\Exment\Model\CustomValue|null $row
+     * @param \Exceedone\Exment\Model\CustomValue|object{id: mixed, custom_table: mixed}|null $row see sameImageTarget()
      * @return array<string, array{file: ExmentFile, target: mixed, temp_name: string}>
      */
     public function getPastedImageFiles($row): array

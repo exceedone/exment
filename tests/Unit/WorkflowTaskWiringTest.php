@@ -124,17 +124,15 @@ class WorkflowTaskWiringTest extends TestCase
      */
     public function testControllerExposesRoutedActions()
     {
-        foreach (['index', 'read', 'readAll', 'unreadAll', 'rowCheck', 'rowDelete', 'rowRestore'] as $action) {
-            $this->assertTrue(
-                method_exists(\Exceedone\Exment\Controllers\WorkflowTaskController::class, $action),
-                "WorkflowTaskController::{$action}() is routed but missing"
-            );
+        $routed = [
+            \Exceedone\Exment\Controllers\WorkflowTaskController::class => ['index', 'read', 'readAll', 'unreadAll', 'rowCheck', 'rowDelete', 'rowRestore'],
+            \Exceedone\Exment\Controllers\ApiController::class => ['workflowTaskPage'],
+        ];
+        foreach ($routed as $controller => $actions) {
+            foreach ($actions as $action) {
+                $this->assertTrue(method_exists($controller, $action), class_basename($controller) . "::{$action}() is routed but missing");
+            }
         }
-
-        $this->assertTrue(
-            method_exists(\Exceedone\Exment\Controllers\ApiController::class, 'workflowTaskPage'),
-            'ApiController::workflowTaskPage() is routed but missing'
-        );
     }
 
     /**

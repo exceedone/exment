@@ -49,8 +49,8 @@ class JvnUrlLinkXssHardeningTest extends SecurityRegressionTestCase
     #[DataProvider('urlSchemeProvider')]
     public function test_scheme_filter_predicate(string $url, bool $shouldBlock): void
     {
-        // Mirror of the guard in Url::_html().
-        $blocked = is_string($url) && preg_match('/^\s*(javascript|data|vbscript):/i', $url) === 1;
+        // Mirror of the guard in Url::_html(); $url is a string here, so its is_string() check is left out.
+        $blocked = preg_match('/^\s*(javascript|data|vbscript):/i', $url) === 1;
 
         $this->assertSame($shouldBlock, $blocked, "Scheme decision for [$url] must match the fix.");
     }

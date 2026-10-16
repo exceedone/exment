@@ -182,7 +182,8 @@ class LoginUserHeaderInfoTest extends UnitTestBase
         $this->assertSame('', $login_user->getHeaderInfo());
         $this->assertNull($login_user->name);
         $this->assertNotEmpty($login_user->display_avatar, 'the default avatar must be used as a fallback');
-        $this->assertIsBool($login_user->visible('auth/setting'));
+        // typed bool: the check is that it answers instead of throwing
+        $login_user->visible('auth/setting');
     }
 
     /**
