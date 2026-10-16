@@ -78,18 +78,18 @@ class HeaderSuggester
      */
     private function permittedSnippet(array $hit, $table, $model, string $label): ?string
     {
-        $pre = MeiliSearchService::HIGHLIGHT_PRE;
         $formatted = (array) (array_get($hit, 'formatted') ?: []);
+        $matches = (array) (array_get($hit, 'matches') ?: []);
 
         // The indexed label only stands if it still matches the label the viewer
         // may see; built from a hidden linked record, the two differ.
         $indexedLabel = (string) ($formatted['label'] ?? '');
         if (self::stripHighlight($indexedLabel) !== $label) {
-            if (strpos($indexedLabel, $pre) !== false) {
+            if (self::attributeMatched($matches, 'label', $indexedLabel)) {
                 return null;    // the keyword matched a label the viewer may not read
             }
             unset($formatted['label']);
-        } elseif (strpos($indexedLabel, $pre) !== false) {
+        } elseif (self::attributeMatched($matches, 'label', $indexedLabel)) {
             return $indexedLabel;
         }
 
@@ -97,7 +97,7 @@ class HeaderSuggester
         // check - resolving a linked value costs a lookup per column.
         $hiddenHit = false;
         foreach (($formatted['fields'] ?? []) as $name => $value) {
-            if (!is_string($value) || strpos($value, $pre) === false) {
+            if (!is_string($value) || !self::attributeMatched($matches, 'fields.' . $name, $value)) {
                 continue;
             }
             if (self::isReadableField($table, $model, (string) $name)) {
@@ -109,6 +109,28 @@ class HeaderSuggester
         // Nothing readable matched: keep the hit only if nothing hidden matched
         // either - then it came from the table name, which is not record data.
         return $hiddenHit ? null : (string) ($formatted['label'] ?? '');
+    }
+
+    /**
+     * Whether the keyword really matched this attribute.
+     *
+     * Read from Meilisearch's _matchesPosition, not by looking for the
+     * highlight markers in the text: those are a fixed string, so anyone able
+     * to write into a field they CAN read could put the marker there and make
+     * a record whose only real match is in a hidden field pass as readable.
+     *
+     * The marker test stays as the fallback for a payload without
+     * _matchesPosition (an older cached response, or another caller).
+     *
+     * @param  array<string,mixed>  $matches  attribute path => match positions
+     */
+    private static function attributeMatched(array $matches, string $path, string $formattedValue): bool
+    {
+        if (!empty($matches)) {
+            return !empty($matches[$path]);
+        }
+
+        return strpos($formattedValue, MeiliSearchService::HIGHLIGHT_PRE) !== false;
     }
 
     /**
@@ -137,12 +159,11 @@ class HeaderSuggester
         if (!ColumnType::isSelectTable($column->column_type)) {
             return true;
         }
-        // Target fully visible -> its labels are never replaced, so no check needed.
-        $target = $column->select_target_table;
-        if ($target && SavedSearchService::canViewAllRows($target)) {
-            return true;
-        }
 
+        // No shortcut on "the target table is fully visible": the target's own
+        // label may again be built from a link the viewer cannot read, and the
+        // document carries that second-level label too. Rendering the value is
+        // the only check that covers every depth, so it always runs.
         $shown = $model ? (string) $model->getValue($column, true) : '';
 
         return $shown !== '' && strpos($shown, exmtrans('common.message.no_permission')) === false;

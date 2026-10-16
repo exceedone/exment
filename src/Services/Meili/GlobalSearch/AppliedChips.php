@@ -89,7 +89,7 @@ class AppliedChips
         // $qs rather than from the chip loop, so the other chips' remove-urls
         // stop carrying it too - no chip may claim a condition that is not
         // applied.
-        $qs = ReadableAttributes::stripFacetPrefixes($qs, ReadableAttributes::hiddenFacetPrefixes($permitted));
+        $qs = ReadableAttributes::stripFacetPrefixes($qs, ReadableAttributes::hiddenFacetPrefixesForViewer());
 
         // Tables
         $tables = self::stringList($qs['tables'] ?? null);

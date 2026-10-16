@@ -37,9 +37,9 @@ class SearchExporter
         $cap = max(1, (int) config('meilisearch.permission_scan_cap', 1000));
         $sort = RequestFilters::sort($request);
         // Same permission scope as the screen the export is started from.
-        $filters = ReadableAttributes::stripHiddenFacets(
+        $filters = ReadableAttributes::stripFacetPrefixes(
             RequestFilters::parse($request),
-            [$custom_table->table_name]
+            ReadableAttributes::hiddenFacetPrefixesForViewer()
         );
         $result = $this->service->searchTablePaginated(
             $q,

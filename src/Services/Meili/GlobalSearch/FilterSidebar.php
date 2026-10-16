@@ -38,7 +38,7 @@ class FilterSidebar
         $filters['permitted_tables'] = SavedSearchService::facetableTableNames();
         // A facet value of a linked column is the hidden label itself, so the
         // group is dropped and a crafted facets[] on it is ignored.
-        $hiddenPrefixes = ReadableAttributes::hiddenFacetPrefixes($filters['permitted_tables']);
+        $hiddenPrefixes = ReadableAttributes::hiddenFacetPrefixesForViewer();
         $filters = ReadableAttributes::stripFacetPrefixes($filters, $hiddenPrefixes);
 
         // Disjunctive faceting: each group's counts reflect ALL current filters

@@ -40,9 +40,9 @@ class ResultPaginator
         // Keyword and filters are both limited to what this viewer may read:
         // a document keeps the real label of a linked record they cannot open.
         $searchOn = ReadableAttributes::forTable($custom_table);
-        $filters = ReadableAttributes::stripHiddenFacets(
+        $filters = ReadableAttributes::stripFacetPrefixes(
             RequestFilters::parse($request),
-            [$custom_table->table_name]
+            ReadableAttributes::hiddenFacetPrefixesForViewer()
         );
         $result = $this->service->searchTablePaginated(
             $q,

@@ -2266,6 +2266,7 @@ return [
         'filter_clear_all' => 'Clear all filters',
         'export' => 'Export',
         'export_too_many' => 'Too many results to export (limit %d). Narrow the search with filters and try again.',
+        'export_failed' => 'The search could not be run, so there is nothing to export. Please try again.',
         'filter_unavailable' => 'The search engine could not apply the selected filters, so no results are shown. Clear the filters or try again later.',
         'sort_unavailable' => 'The search engine is unavailable, so the selected sort order is not applied.',
         'partial_results' => 'There are too many matches, so only part of the records you may view can be shown. Select yourself under "Created User" on the left, or add keywords or filters.',
