@@ -11,12 +11,15 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Meili\GlobalSearch\RequestFilters;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Auth\Permission as Checker;
 
 class SearchController extends AdminControllerBase
 {
+    use MeiliGlobalSearchTrait;
+
     // @phpstan-ignore-next-line
     protected $custom_table;
 
@@ -45,10 +48,23 @@ class SearchController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function header(Request $request)
     {
-        $q = $request->input('query');
-        if (!isset($q)) {
+        // `?query[]=x` would otherwise reach headerByMeilisearch/searchValue
+        // as an array and 500 the autocomplete (same crafted-URL class the
+        // search page was hardened against in 2764a781f).
+        $q = RequestFilters::str($request, 'query');
+        if ($q === '') {
             return [];
         }
+
+        // global search; on error -> fallback to MySQL below.
+        if ($this->meiliActive()) {
+            try {
+                return $this->headerByMeilisearch($q);
+            } catch (\Throwable $e) {
+                $this->logMeiliFallback('header', $e);
+            }
+        }
+
         $results = [];
         // Get table list
         $tables = $this->getSearchTargetTable();
@@ -62,7 +78,8 @@ class SearchController extends AdminControllerBase
                 $text = $d->label;
                 $results[] = [
                     'value' => $text
-                    , 'text' => $text
+                    // Rendered as html by the autocomplete: escape.
+                    , 'text_html' => e($text)
                     , 'icon' =>array_get($table, 'options.icon')
                     , 'table_view_name' => array_get($table, 'table_view_name')
                     , 'table_name' => array_get($table, 'table_name')
@@ -117,16 +134,87 @@ class SearchController extends AdminControllerBase
         $content->description(exmtrans('search.description_freeword'));
         $this->setCommonScript(true);
 
+        // `?query[]=x` would otherwise reach sprintf/blade as an array.
+        $q = RequestFilters::str($request, 'query');
+
         // add header and description
-        $title = sprintf(exmtrans("search.result_label"), $request->input('query'));
+        $title = sprintf(exmtrans("search.result_label"), $q);
         $this->setPageInfo($title, $title, exmtrans("plugin.description"));
 
         $tableArrays = $this->getSearchTargetTable()->map(function ($table) {
             return $this->getTableArray($table);
         });
-        $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $tableArrays]));
+
+        // Filter by table: keep only the ticked tables.
+        $selectedTables = RequestFilters::strList($request, 'tables');
+        if ($this->meiliActive() && !empty($selectedTables)) {
+            $tableArrays = $tableArrays->filter(function ($t) use ($selectedTables) {
+                return in_array((string) array_get($t, 'table_name'), $selectedTables, true);
+            })->values();
+        }
+
+        // add left column: unified filter (date + creator + status) + table facets.
+        // right column: saved search quickbar (mockup style) + results.
+        if ($this->meiliActive()) {
+            try {
+                $applied = $this->appliedChips($request);
+
+                // Export keeps the keyword + applied filter (drop UI state: ss/back/page/tables).
+                $exportQuery = $request->query();
+                unset($exportQuery['ss'], $exportQuery['back'], $exportQuery['page'], $exportQuery['tables']);
+                $exportBase = admin_url('search/export') . '?' . http_build_query($exportQuery);
+
+                $resultsHtml = view('exment::search.index', [
+                    'query' => $q,
+                    'tables' => $tableArrays,
+                    'appliedChips' => $applied['chips'],
+                    'clearUrl' => $applied['clearUrl'],
+                    'exportBase' => $exportBase,
+                    'sort' => $this->sortFromRequest($request) ?? 'relevance',
+                ])->render();
+                $sidebar = $this->renderFilterSidebarHtml($request, $q);
+                $quickbar = $this->renderSavedSearchBarHtml($request);
+                $content->body("<div class='row'><div class='col-md-3'>{$sidebar}</div><div class='col-md-9'>{$quickbar}{$resultsHtml}</div></div>");
+                return $content;
+            } catch (\Throwable $e) {
+                $this->logMeiliFallback('index', $e);
+            }
+        }
+
+        $content->body(view('exment::search.index', ['query' => $q, 'tables' => $tableArrays]));
         return $content;
     }
+    /**
+     * Export the search results of one table (CSV/XLSX), with the exact keyword + applied filter.
+     *
+     * @param Request $request
+     * @return mixed
+     */
+    public function export(Request $request)
+    {
+        if (!$this->meiliActive()) {
+            abort(404);
+        }
+
+        // Normalize `query` into the request source before touching the exporter.
+        // The exporter builds an admin Grid and Middleware\Initialize wires
+        // Grid::setSearchKey('query'), so HasQuickSearch would otherwise pull
+        // the raw array back out of the request via request()->get('query')
+        // and 500 on trim(array). Do this before permission checks so a bad
+        // input never leaks a TypeError trace through the error page.
+        $q = RequestFilters::str($request, 'query');
+        $request->merge(['query' => $q]);
+
+        $custom_table = CustomTable::getEloquent($request->input('table_name'));
+        // Same gate as the list export: permissions + the table's "export disabled" setting.
+        if (!$custom_table || $custom_table->enableExport() !== true) {
+            Checker::notFoundOrDeny();
+            return;
+        }
+
+        return $this->exportByMeili($request, $q, $custom_table);
+    }
+
     /**
      * Get Search enabled table list
      */
@@ -165,7 +253,7 @@ class SearchController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function getLists(Request $request)
     {
-        $q = $request->input('query');
+        $q = RequestFilters::str($request, 'query');
         //search each tables
         $table_names = stringToArray($request->input('table_names', []));
 
@@ -183,7 +271,7 @@ class SearchController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function getList(Request $request)
     {
-        $q = $request->input('query');
+        $q = RequestFilters::str($request, 'query');
         $table_name = $request->input('table_name', []);
 
         return $this->getListItem($request, $q, $table_name);
@@ -195,6 +283,24 @@ class SearchController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected function getListItem(Request $request, $q, $table_name)
     {
+        // pagination through Meili; on error -> fallback to MySQL below.
+        $sortNotApplied = false;
+        if ($this->meiliActive()) {
+            try {
+                return $this->getListItemByMeili($request, $q, $table_name);
+            } catch (\Throwable $e) {
+                $this->logMeiliFallback('getListItem', $e);
+                // The MySQL search below knows the keyword only. Under applied
+                // filters it would list unfiltered rows beneath chips saying
+                // otherwise, so report that the filtered search failed instead.
+                if (RequestFilters::hasFilters($request)) {
+                    return $this->meiliFilterUnavailableItem($q, $table_name);
+                }
+                // The MySQL search cannot sort by date: say so instead of ignoring it.
+                $sortNotApplied = RequestFilters::sort($request) !== null;
+            }
+        }
+
         $custom_table = CustomTable::getEloquent($table_name);
         if (empty($custom_table)) {
             return [];
@@ -222,25 +328,11 @@ class SearchController extends AdminControllerBase
         // get headers and bodies
         $view = CustomView::getAllData($custom_table);
 
-        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($datalist, [
-            'action_callback' => function (&$link, $custom_table, $data) {
-                if (count($custom_table->getRelationTables()) > 0) {
-                    $link .= (new Linker())
-                    ->url($data->getRelationSearchUrl(true))
-                    ->icon('fa-compress')
-                    ->tooltip(exmtrans('search.header_relation'));
-                }
-            }
-        ]);
-        $table = (new WidgetTable($headers, $bodies))->class('table table-hover')
-            ->setColumnStyle($columnStyles)
-            ->setColumnClasses($columnClasses);
-
-
         return [
             'table_name' => array_get($custom_table, 'table_name'),
             'header' => $boxHeader,
-            'body' => $table->render(),
+            'body' => ($sortNotApplied ? '<p class="text-warning">' . e(exmtrans('search.sort_unavailable')) . '</p>' : '')
+                . self::resultTableHtml($view, $datalist, self::relationLinkOption()),
             'footer' => $links
         ];
     }
@@ -341,31 +433,12 @@ class SearchController extends AdminControllerBase
         // get headers and bodies
         $view = CustomView::getAllData($search_table);
         // definition action_callback is not $search_type is SELF
-        if ($search_type != SearchType::SELF) {
-            $option = [
-                'action_callback' => function (&$link, $custom_table, $data) {
-                    if (count($custom_table->getRelationTables()) > 0) {
-                        $link .= (new Linker())
-                        ->url($data->getRelationSearchUrl(true))
-                        ->icon('fa-compress')
-                        ->tooltip(exmtrans('search.header_relation'));
-                    }
-                }
-            ];
-        } else {
-            $option = [];
-        }
-
-        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($data, $option);
-        $table = (new WidgetTable($headers, $bodies))
-            ->class('table table-hover')
-            ->setColumnStyle($columnStyles)
-            ->setColumnClasses($columnClasses);
+        $option = $search_type != SearchType::SELF ? self::relationLinkOption() : [];
 
         return [
             'table_name' => array_get($search_table, 'table_name'),
             'header' => $boxHeader,
-            'body' => $table->render(),
+            'body' => self::resultTableHtml($view, $data, $option),
             'footer' => $links
         ];
     }
@@ -412,11 +485,54 @@ class SearchController extends AdminControllerBase
         if (CustomTable::getEloquent($table)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $array['show_list'] = true;
         }
+        if (CustomTable::getEloquent($table)->enableExport() === true) {
+            $array['can_export'] = true;
+        }
 
         // add table box key
         $array['box_key'] = short_uuid();
         return $array;
     }
+
+    /**
+     * convertDataTable option that puts the relation-search icon in each row's
+     * action column. A table without relations has nothing to link to.
+     *
+     * @return array<string,\Closure>
+     */
+    protected static function relationLinkOption(): array
+    {
+        return [
+            'action_callback' => function (&$link, $custom_table, $data) {
+                if (count($custom_table->getRelationTables()) > 0) {
+                    $link .= (new Linker())
+                    ->url($data->getRelationSearchUrl(true))
+                    ->icon('fa-compress')
+                    ->tooltip(exmtrans('search.header_relation'));
+                }
+            }
+        ];
+    }
+
+    /**
+     * The table HTML of one result box. Shared by the MySQL and the Meilisearch
+     * path: only how the rows are found differs, not how they are rendered.
+     *
+     * @param \Exceedone\Exment\Model\CustomView $view
+     * @param mixed $datalist
+     * @param array<string,mixed> $option
+     */
+    protected static function resultTableHtml($view, $datalist, array $option): string
+    {
+        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($datalist, $option);
+        $table = (new WidgetTable($headers, $bodies))
+            ->class('table table-hover')
+            ->setColumnStyle($columnStyles)
+            ->setColumnClasses($columnClasses);
+
+        return $table->render();
+    }
+
     // @phpstan-ignore-next-line
     protected function getBoxHeaderHtml($custom_table, $query = [])
     {

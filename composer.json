@@ -42,13 +42,15 @@
         "elibyy/tcpdf-laravel": "^11.4"
     },
     "suggest": {
-        "google/recaptcha": "Required to use Google reCAPTCHA (v2 or v3) on public forms. Install with: composer require google/recaptcha"
+        "google/recaptcha": "Required to use Google reCAPTCHA (v2 or v3) on public forms. Install with: composer require google/recaptcha",
+        "meilisearch/meilisearch-php": "Enable Meilisearch-powered global search (config('meilisearch.global_search')). Requires a guzzlehttp/guzzle compatible HTTP client."
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
         "intervention/image": "~2.3",
         "laravel/browser-kit-testing": "^6.0",
-        "spatie/phpunit-watcher": "^1.22.0"
+        "spatie/phpunit-watcher": "^1.22.0",
+        "meilisearch/meilisearch-php": "^1.10"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
