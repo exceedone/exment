@@ -78,6 +78,94 @@ jobs:
             echo "added", PHP_EOL;
           '
 
+      # Chi de do cho checklist v7: ghi lai moi request va lenh artisan ma test THAT SU chay
+      # (method, route, action, status, ten test) vao storage/logs/route_coverage.tsv.
+      # Chi them 1 service provider vao app boilerplate cua CI, khong doi code exment.
+      - name: Add the route coverage recorder
+        working-directory: docker-exment/exment-boilerplate
+        run: |
+          cat > app/Providers/RouteCoverageServiceProvider.php <<'PHP'
+          <?php
+
+          namespace App\Providers;
+
+          use Illuminate\Console\Events\CommandFinished;
+          use Illuminate\Foundation\Http\Events\RequestHandled;
+          use Illuminate\Routing\Route;
+          use Illuminate\Support\ServiceProvider;
+          use PHPUnit\Framework\TestCase;
+
+          class RouteCoverageServiceProvider extends ServiceProvider
+          {
+              public function boot(): void
+              {
+                  $file = storage_path('logs/route_coverage.tsv');
+                  $events = $this->app['events'];
+
+                  // Laravel 12 turns the console command events on only outside unit tests
+                  // (console Kernel::__construct), and the artisan application takes the event
+                  // dispatcher when it is built: turn them on and let it be built again
+                  $kernel = $this->app->make(\Illuminate\Contracts\Console\Kernel::class);
+                  if (method_exists($kernel, 'rerouteSymfonyCommandEvents')) {
+                      $kernel->rerouteSymfonyCommandEvents();
+                      $kernel->setArtisan(null);
+                  }
+
+                  $events->listen(RequestHandled::class, function (RequestHandled $event) use ($file) {
+                      try {
+                          $route = $event->request->route();
+                          $isRoute = $route instanceof Route;
+                          $response = $event->response;
+                          $ex = $response->exception ?? null;
+                          $exception = $ex instanceof \Throwable ? get_class($ex) . ': ' . substr($ex->getMessage(), 0, 400) . ' @ ' . basename($ex->getFile()) . ':' . $ex->getLine() : "-";
+                          $errors = $event->request->hasSession() && $event->request->session()->has('errors') ? 1 : 0;
+                          self::write($file, [
+                              $event->request->method(),
+                              $isRoute ? implode('|', $route->methods()) : "-",
+                              $isRoute ? $route->uri() : "-",
+                              $isRoute ? $route->getActionName() : "-",
+                              $response->getStatusCode(),
+                              $errors,
+                              $exception,
+                              (string) parse_url((string) $response->headers->get('Location'), PHP_URL_PATH),
+                              $event->request->path(),
+                          ]);
+                      } catch (\Throwable $e) {
+                          // the recorder must never change a test result
+                      }
+                  });
+
+                  $events->listen(CommandFinished::class, function (CommandFinished $event) use ($file) {
+                      try {
+                          self::write($file, ['CLI', 'CLI', (string) $event->command, "-", $event->exitCode, 0, "-", "-", "-"]);
+                      } catch (\Throwable $e) {
+                          // the recorder must never change a test result
+                      }
+                  });
+              }
+
+              /**
+               * @param array<int, mixed> $fields
+               */
+              private static function write(string $file, array $fields): void
+              {
+                  // the outermost frame of a test class is the test method that sent the request
+                  $test = "-";
+                  foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
+                      if (isset($frame['class']) && is_subclass_of($frame['class'], TestCase::class)) {
+                          $test = $frame['class'] . '::' . $frame['function'];
+                      }
+                  }
+                  $fields[] = $test;
+                  $fields = str_replace(["\t", "\n", "\r"], ' ', array_map('strval', $fields));
+                  file_put_contents($file, implode("\t", $fields) . "\n", FILE_APPEND | LOCK_EX);
+              }
+          }
+          PHP
+          # the CI boilerplate lists its providers in config/app.php (no bootstrap/providers.php)
+          php -r '$f = "config/app.php"; $b = chr(92); $a = "App{$b}Providers{$b}AppServiceProvider::class,"; $s = str_replace($a, $a . PHP_EOL . "        App{$b}Providers{$b}RouteCoverageServiceProvider::class,", (string) file_get_contents($f), $n); if ($n !== 1) { echo "config/app.php not patched", PHP_EOL; exit(1); } file_put_contents($f, $s); echo "providers patched", PHP_EOL;'
+          grep -n "Providers.*ServiceProvider::class" config/app.php
+
       - name: Docker Compose Version
         run: docker compose --version
 
@@ -97,7 +185,47 @@ jobs:
         run: |
           make ${{ matrix.db }}-init
 
+      # Chi o test-ci, khong merge: test tam ghi lai noi dung that cua cac man hinh/ajax chi smoke
+      # test cham toi (dong PROBE trong route_coverage.tsv), de viet test noi dung chinh xac.
+      - name: Add the screen content probe
+        if: matrix.test == 'feature'
+        run: |
+          echo 'PD9waHAKCm5hbWVzcGFjZSBFeGNlZWRvbmVcRXhtZW50XFRlc3RzXEZlYXR1cmU7Cgp1c2UgRXhjZWVkb25lXEV4bWVudFxFbnVtc1xDb2x1bW5UeXBlOwp1c2UgRXhjZWVkb25lXEV4bWVudFxNb2RlbFxDZWxsU3R5bGVQcmVzZXQ7CnVzZSBFeGNlZWRvbmVcRXhtZW50XE1vZGVsXEN1c3RvbVRhYmxlOwp1c2UgRXhjZWVkb25lXEV4bWVudFxNb2RlbFxMb2dpblVzZXI7CnVzZSBFeGNlZWRvbmVcRXhtZW50XE1vZGVsXFN5c3RlbTsKdXNlIEV4Y2VlZG9uZVxFeG1lbnRcVGVzdHNcRGF0YWJhc2VUcmFuc2FjdGlvbnM7CnVzZSBFeGNlZWRvbmVcRXhtZW50XFRlc3RzXFRlc3REZWZpbmU7CnVzZSBFeGNlZWRvbmVcRXhtZW50XFRlc3RzXFRlc3RUcmFpdDsKCi8qKgogKiBDSS1vbmx5IHByb2JlICh0ZXN0LWNpIHdvcmtmbG93LCBuZXZlciBtZXJnZWQpOiByZWNvcmRzIHdoYXQgdGhlIHNjcmVlbnMgYW5kIGFqYXggZW5kcG9pbnRzCiAqIHRoYXQgb25seSB0aGUgc21va2UgdGVzdCByZWFjaGVzIHJlYWxseSBhbnN3ZXIsIHNvIHRoYXQgdGhlIGNvbnRlbnQgdGVzdCBjYW4gYXNzZXJ0IGl0LgogKiBFYWNoIHJlc3BvbnNlIGlzIHN1bW1hcmlzZWQgYXMgb25lICJQUk9CRSIgbGluZSBvZiBzdG9yYWdlL2xvZ3Mvcm91dGVfY292ZXJhZ2UudHN2LgogKi8KY2xhc3MgU2NyZWVuQ29udGVudFByb2JlVGVzdCBleHRlbmRzIEZlYXR1cmVUZXN0QmFzZQp7CiAgICB1c2UgVGVzdFRyYWl0OwogICAgdXNlIERhdGFiYXNlVHJhbnNhY3Rpb25zOwoKICAgIHByb3RlY3RlZCBmdW5jdGlvbiBzZXRVcCgpOiB2b2lkCiAgICB7CiAgICAgICAgcGFyZW50OjpzZXRVcCgpOwogICAgICAgICR0aGlzLT5pbml0QWxsVGVzdCgpOwogICAgfQoKICAgIHB1YmxpYyBmdW5jdGlvbiB0ZXN0UHJvYmVTY3JlZW5Db250ZW50KCk6IHZvaWQKICAgIHsKICAgICAgICAkYWRtaW4gPSBMb2dpblVzZXI6OmZpbmQoVGVzdERlZmluZTo6VEVTVERBVEFfVVNFUl9MT0dJTklEX0FETUlOKTsKICAgICAgICBmb3JlYWNoICgkdGhpcy0+cGF0aHMoKSBhcyAkcGF0aCkgewogICAgICAgICAgICAkdGhpcy0+YmUoJGFkbWluKTsKICAgICAgICAgICAgU3lzdGVtOjpjbGVhclJlcXVlc3RTZXNzaW9uKCk7CiAgICAgICAgICAgIHRyeSB7CiAgICAgICAgICAgICAgICAkcmVzcG9uc2UgPSAkdGhpcy0+Z2V0KGFkbWluX3VybCgkcGF0aCksIFsnWC1SZXF1ZXN0ZWQtV2l0aCcgPT4gJ1hNTEh0dHBSZXF1ZXN0J10pOwogICAgICAgICAgICAgICAgJHN1bW1hcnkgPSAkdGhpcy0+c3VtbWFyaXplKCRyZXNwb25zZS0+YmFzZVJlc3BvbnNlLCAkcmVzcG9uc2UtPmV4Y2VwdGlvbik7CiAgICAgICAgICAgIH0gY2F0Y2ggKFxUaHJvd2FibGUgJGUpIHsKICAgICAgICAgICAgICAgICRzdW1tYXJ5ID0gWyd0aHJvd24nID0+IGdldF9jbGFzcygkZSkgLiAnOiAnIC4gbWJfc3Vic3RyKCRlLT5nZXRNZXNzYWdlKCksIDAsIDMwMCldOwogICAgICAgICAgICB9CiAgICAgICAgICAgIGZpbGVfcHV0X2NvbnRlbnRzKAogICAgICAgICAgICAgICAgc3RvcmFnZV9wYXRoKCdsb2dzL3JvdXRlX2NvdmVyYWdlLnRzdicpLAogICAgICAgICAgICAgICAgIlBST0JFXHQkcGF0aFx0IiAuIGpzb25fZW5jb2RlKCRzdW1tYXJ5LCBKU09OX1VORVNDQVBFRF9VTklDT0RFIHwgSlNPTl9VTkVTQ0FQRURfU0xBU0hFUyB8IEpTT05fSU5WQUxJRF9VVEY4X1NVQlNUSVRVVEUpIC4gIlxuIiwKICAgICAgICAgICAgICAgIEZJTEVfQVBQRU5ECiAgICAgICAgICAgICk7CiAgICAgICAgfQogICAgICAgICR0aGlzLT5hZGRUb0Fzc2VydGlvbkNvdW50KDEpOwogICAgfQoKICAgIC8qKgogICAgICogQHJldHVybiBhcnJheTxpbnQsIHN0cmluZz4KICAgICAqLwogICAgcHJpdmF0ZSBmdW5jdGlvbiBwYXRocygpOiBhcnJheQogICAgewogICAgICAgICRwYXRocyA9IFsKICAgICAgICAgICAgJ2Rhc2hib2FyZC8xJywgJ2Rhc2hib2FyZC8xL3NoYXJlQ2xpY2snLCAnZGFzaGJvYXJkYm94JywgJ2Rhc2hib2FyZGJveC8xJywKICAgICAgICAgICAgJ2F1dGgvbG9ncycsICdhdXRoL3NldHRpbmcnLAogICAgICAgICAgICAnY2VsbF9zdHlsZV9wcmVzZXQnLCAnY2VsbF9zdHlsZV9wcmVzZXQvY3JlYXRlJywgJ2NlbGxfc3R5bGVfcHJlc2V0LzEvZWRpdCcsICdjZWxsX3N0eWxlX3ByZXNldC8xJywKICAgICAgICAgICAgJ3RlbXBsYXRlJywgJ3RlbXBsYXRlL2ltcG9ydCcsICd3b3JrZmxvdy9iZWdpbm5pbmcnLAogICAgICAgICAgICAnbm90aWZ5L2N1c3RvbV92YWx1ZV9lZGl0X2FsbC9ub3RpZnlfYWN0aW9uX3RhcmdldCcsICdub3RpZnknLAogICAgICAgICAgICAnbm90aWZ5X25hdmJhci9jcmVhdGUnLCAnbm90aWZ5X25hdmJhci8xJywgJ25vdGlmeV9uYXZiYXIvcm93ZGV0YWlsLzEnLAogICAgICAgICAgICAnd29ya2Zsb3dfdGFzaycsICd3b3JrZmxvd190YXNrL3JlYWQnLAogICAgICAgICAgICAnbG9naW5fc2V0dGluZy9sb2dpbk9wdGlvbkh0bWwnLCAncGx1Z2luL2VkaXRfY29kZS8xL3NlbGVjdEZpbGUnLCAncGx1Z2luL2VkaXRfY29kZS8xJywKICAgICAgICAgICAgJ3RhYmxlL21lbnVNb2RhbC8xJywgJ3RhYmxlLzEvY29weU1vZGFsJywKICAgICAgICAgICAgJ2xvZ2luX3NldHRpbmcnLCAnbG9naW5fc2V0dGluZy9jcmVhdGUnLCAnbG9naW5fc2V0dGluZy8xJywKICAgICAgICAgICAgJ2FwaV9zZXR0aW5nJywgJ2FwaV9zZXR0aW5nLzEnLAogICAgICAgICAgICAncGx1Z2luJywgJ3BsdWdpbi8xL2VkaXQnLCAncGx1Z2luLzEnLCAndGFibGUvMScsCiAgICAgICAgICAgICd3b3JrZmxvdycsICd3b3JrZmxvdy9jcmVhdGUnLCAnd29ya2Zsb3cvMS9lZGl0JywgJ3dvcmtmbG93LzEnLCAnd29ya2Zsb3cvZGVzaWduL2NyZWF0ZScsICd3b3JrZmxvdy8xL2Rlc2lnbicsCiAgICAgICAgICAgICd3b3JrZmxvdy8xL2FjdGl2YXRlTW9kYWwnLCAnd29ya2Zsb3cvMS9kZWFjdGl2YXRlTW9kYWwnLAogICAgICAgICAgICAnbG9naW51c2VyL2ltcG9ydE1vZGFsJywgJ2xvZ2ludXNlcicsICdsb2dpbnVzZXIvMScsICdsb2dpbnVzZXIvMS9lZGl0JywKICAgICAgICAgICAgJ3JvbGVfZ3JvdXAvaW1wb3J0TW9kYWwnLCAncm9sZV9ncm91cC9jcmVhdGUnLCAncm9sZV9ncm91cC8xL2VkaXQnLCAncm9sZV9ncm91cC8xJywgJ3JvbGUnLAogICAgICAgICAgICAnamFuLWNvZGUvMScsICdqYW4tY29kZS90YWJsZS8xJywgJ2Fzc2lnbi1qYW4tY29kZScsCiAgICAgICAgICAgICdtZWlsaS1maWx0ZXIvY29sdW1ucycsICdtZWlsaS1maWx0ZXInLCAnbWVpbGktZmlsdGVyL2NyZWF0ZScsICdtZWlsaS1maWx0ZXIvMScsCiAgICAgICAgICAgICdtZWlsaS1kaWN0aW9uYXJ5JywgJ21laWxpLWRpY3Rpb25hcnkvY3JlYXRlJywgJ21laWxpLWRpY3Rpb25hcnkvMScsCiAgICAgICAgICAgICdiYWNrdXAvaW1wb3J0TW9kYWwnLAogICAgICAgICAgICAnZGF0YS9jdXN0b21fdmFsdWVfZWRpdF9hbGwvaW1wb3J0TW9kYWwnLCAnZGF0YS9jdXN0b21fdmFsdWVfZWRpdF9hbGwvMS9jb21wYXJlJywgJ2RhdGEvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsLzEvY29tcGFyZWl0ZW0nLAogICAgICAgICAgICAnZGF0YS9jdXN0b21fdmFsdWVfZWRpdF9hbGwvMS9zaGFyZUNsaWNrJywgJ2RhdGEvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsLzEva2FuYmFuSGlzdG9yeScsICdkYXRhL2N1c3RvbV92YWx1ZV9lZGl0X2FsbC8xL3Jlc3RvcmVDbGljaycsCiAgICAgICAgICAgICd2aWV3L2N1c3RvbV92YWx1ZV9lZGl0X2FsbC9wcmV2aWV3JywgJ3ZpZXcvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsL3N1bW1hcnktY29uZGl0aW9uJywgJ3ZpZXcvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsL2dyb3VwLWNvbmRpdGlvbicsCiAgICAgICAgICAgICd2aWV3L2N1c3RvbV92YWx1ZV9lZGl0X2FsbC8xL3NoYXJlQ2xpY2snLCAnY29weS9jdXN0b21fdmFsdWVfZWRpdF9hbGwvbmV3TW9kYWwnLCAnb3BlcmF0aW9uL2N1c3RvbV92YWx1ZV9lZGl0X2FsbC9maWx0ZXItdmFsdWUnLAogICAgICAgICAgICAnZm9ybS9jdXN0b21fdmFsdWVfZWRpdF9hbGwvcHJldmlldycsICdmb3JtcHVibGljL2N1c3RvbV92YWx1ZV9lZGl0X2FsbC9ub3RpZnlfYWN0aW9uX3RhcmdldCcsICdmb3JtcHVibGljL2N1c3RvbV92YWx1ZV9lZGl0X2FsbC8xL2FjdGl2ZU1vZGFsJywKICAgICAgICAgICAgJ2NvbHVtbi9jdXN0b21fdmFsdWVfZWRpdF9hbGwvMScsICdmb3JtL2N1c3RvbV92YWx1ZV9lZGl0X2FsbC8xJywKICAgICAgICAgICAgJ2Zvcm1wcmlvcml0eS9jdXN0b21fdmFsdWVfZWRpdF9hbGwnLCAnZm9ybXByaW9yaXR5L2N1c3RvbV92YWx1ZV9lZGl0X2FsbC9jcmVhdGUnLCAnZm9ybXByaW9yaXR5L2N1c3RvbV92YWx1ZV9lZGl0X2FsbC8xL2VkaXQnLCAnZm9ybXByaW9yaXR5L2N1c3RvbV92YWx1ZV9lZGl0X2FsbC8xJywKICAgICAgICAgICAgJ2Zvcm1wdWJsaWMvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsJywgJ2Zvcm1wdWJsaWMvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsLzEnLAogICAgICAgICAgICAndmlldy9jdXN0b21fdmFsdWVfZWRpdF9hbGwvMScsICdyZWxhdGlvbi9jdXN0b21fdmFsdWVfZWRpdF9hbGwvMScsICdjb3B5L2N1c3RvbV92YWx1ZV9lZGl0X2FsbC8xJywgJ29wZXJhdGlvbi9jdXN0b21fdmFsdWVfZWRpdF9hbGwvMScsCiAgICAgICAgICAgICdub3RpZnkvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsJywgJ25vdGlmeS9jdXN0b21fdmFsdWVfZWRpdF9hbGwvY3JlYXRlJywgJ25vdGlmeS9jdXN0b21fdmFsdWVfZWRpdF9hbGwvMS9lZGl0JywgJ25vdGlmeS9jdXN0b21fdmFsdWVfZWRpdF9hbGwvMScsCiAgICAgICAgICAgICd3ZWJhcGkvbWVudS9tZW51dHlwZScsICd3ZWJhcGkvbWVudS9tZW51dGFyZ2V0dmlldycsICd3ZWJhcGkvbWVudGlvbi91c2VycycsCiAgICAgICAgICAgICd3ZWJhcGkvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsL2NlbGxzdHlsZXByZXNldCcsICd3ZWJhcGkvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsL2NlbGxzdHlsZXByZXNldC9tb2RhbCcsCiAgICAgICAgICAgICd3ZWJhcGkvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsL2ZpbHRlci1jb25kaXRpb24nLCAnd2ViYXBpL2N1c3RvbV92YWx1ZV9lZGl0X2FsbC9vcGVyYXRpb24tdXBkYXRlLXR5cGUnLCAnd2ViYXBpL2N1c3RvbV92YWx1ZV9lZGl0X2FsbC9vcGVyYXRpb24tZmlsdGVyLXZhbHVlJywKICAgICAgICAgICAgJ2F1dGgvZm9yZ2V0JywgJ2F1dGgvY2hhbmdlJywgJ2F1dGgtMmZhY3RvcicsCiAgICAgICAgXTsKCiAgICAgICAgLy8gdGhlIHBhcmFtZXRlcnMgdGhlIHNjcmVlbnMgc2VuZAogICAgICAgICR0YWJsZSA9IEN1c3RvbVRhYmxlOjpnZXRFbG9xdWVudCgnYWxsX2NvbHVtbnNfdGFibGVfZm9ydGVzdCcpOwogICAgICAgICRlZGl0ID0gQ3VzdG9tVGFibGU6OmdldEVsb3F1ZW50KCdjdXN0b21fdmFsdWVfZWRpdF9hbGwnKTsKICAgICAgICAkdGFyZ2V0ID0gZnVuY3Rpb24gKHN0cmluZyAkdHlwZSkgdXNlICgkdGFibGUpOiBzdHJpbmcgewogICAgICAgICAgICAkY29sdW1uID0gJHRhYmxlLT5jdXN0b21fY29sdW1uc19jYWNoZS0+Zmlyc3QoZm4gKCRjb2x1bW4pID0+ICRjb2x1bW4tPmNvbHVtbl90eXBlID09PSAkdHlwZSk7CiAgICAgICAgICAgIHJldHVybiAkY29sdW1uID8gJGNvbHVtbi0+aWQgLiAnP3RhYmxlX2lkPScgLiAkdGFibGUtPmlkIDogJ25vbmUnOwogICAgICAgIH07CiAgICAgICAgJHRleHQgPSAkdGFyZ2V0KENvbHVtblR5cGU6OlRFWFQpOwogICAgICAgICRpbnRlZ2VyID0gJHRhcmdldChDb2x1bW5UeXBlOjpJTlRFR0VSKTsKICAgICAgICAkZGF0ZSA9ICR0YXJnZXQoQ29sdW1uVHlwZTo6REFURSk7CiAgICAgICAgJGtleSA9IENlbGxTdHlsZVByZXNldDo6Z2V0RGVmaW5pdGlvbnMoKVswXVsna2V5J10gPz8gbnVsbDsKICAgICAgICAkcSA9IGZuIChhcnJheSAkcXVlcnkpID0+ICc/JyAuIGh0dHBfYnVpbGRfcXVlcnkoJHF1ZXJ5KTsKICAgICAgICAkcGF0aHNbXSA9ICdub3RpZnkvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsL25vdGlmeV9hY3Rpb25fdGFyZ2V0JyAuICRxKFsncScgPT4gJzEnXSk7CiAgICAgICAgJHBhdGhzW10gPSAnbm90aWZ5L2N1c3RvbV92YWx1ZV9lZGl0X2FsbC9ub3RpZnlfYWN0aW9uX3RhcmdldCcgLiAkcShbJ3EnID0+ICcyJ10pOwogICAgICAgICRwYXRoc1tdID0gJ2Zvcm1wdWJsaWMvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsL25vdGlmeV9hY3Rpb25fdGFyZ2V0JyAuICRxKFsncScgPT4gJzEnXSk7CiAgICAgICAgZm9yZWFjaCAoWydnaXRodWInLCAnZ3JhcGgnLCAnb3RoZXInXSBhcyAkcHJvdmlkZXIpIHsKICAgICAgICAgICAgJHBhdGhzW10gPSAnbG9naW5fc2V0dGluZy9sb2dpbk9wdGlvbkh0bWwnIC4gJHEoWyd2YWwnID0+ICRwcm92aWRlciwgJ2Zvcm1fdHlwZScgPT4gJzEnLCAnZm9ybV91bmlxdWVOYW1lJyA9PiAncHJvYmUnXSk7CiAgICAgICAgfQogICAgICAgICRwYXRoc1tdID0gJ21laWxpLWZpbHRlci9jb2x1bW5zJyAuICRxKFsncScgPT4gJGVkaXQtPmlkXSk7CiAgICAgICAgJHBhdGhzW10gPSAndmlldy9hbGxfY29sdW1uc190YWJsZV9mb3J0ZXN0L3N1bW1hcnktY29uZGl0aW9uJyAuICRxKFsncScgPT4gJGludGVnZXJdKTsKICAgICAgICAkcGF0aHNbXSA9ICd2aWV3L2FsbF9jb2x1bW5zX3RhYmxlX2ZvcnRlc3Qvc3VtbWFyeS1jb25kaXRpb24nIC4gJHEoWydxJyA9PiAkdGV4dF0pOwogICAgICAgICRwYXRoc1tdID0gJ3ZpZXcvYWxsX2NvbHVtbnNfdGFibGVfZm9ydGVzdC9ncm91cC1jb25kaXRpb24nIC4gJHEoWydxJyA9PiAkZGF0ZV0pOwogICAgICAgICRwYXRoc1tdID0gJ29wZXJhdGlvbi9hbGxfY29sdW1uc190YWJsZV9mb3J0ZXN0L2ZpbHRlci12YWx1ZScgLiAkcShbJ3RhcmdldF9uYW1lJyA9PiAnY3VzdG9tX29wZXJhdGlvbl9jb2x1bW5zWzBdW3ZpZXdfY29sdW1uX3RhcmdldF0nLCAndGFyZ2V0X3ZhbCcgPT4gJHRleHRdKTsKICAgICAgICAkcGF0aHNbXSA9ICd3ZWJhcGkvbWVudS9tZW51dHlwZScgLiAkcShbJ3EnID0+ICd0YWJsZSddKTsKICAgICAgICAkcGF0aHNbXSA9ICd3ZWJhcGkvbWVudS9tZW51dHlwZScgLiAkcShbJ3EnID0+ICdzeXN0ZW0nXSk7CiAgICAgICAgJHBhdGhzW10gPSAnd2ViYXBpL21lbnUvbWVudXRhcmdldHZpZXcnIC4gJHEoWydxJyA9PiAkZWRpdC0+aWRdKTsKICAgICAgICAkcGF0aHNbXSA9ICd3ZWJhcGkvbWVudGlvbi91c2VycycgLiAkcShbJ3EnID0+ICdhZG1pbiddKTsKICAgICAgICAkcGF0aHNbXSA9ICd3ZWJhcGkvY3VzdG9tX3ZhbHVlX2VkaXRfYWxsL2NlbGxzdHlsZXByZXNldC9tb2RhbCcgLiAkcShbJ2tleScgPT4gJGtleV0pOwogICAgICAgICRwYXRoc1tdID0gJ3dlYmFwaS9hbGxfY29sdW1uc190YWJsZV9mb3J0ZXN0L2ZpbHRlci1jb25kaXRpb24nIC4gJHEoWydxJyA9PiAkdGV4dF0pOwogICAgICAgICRwYXRoc1tdID0gJ3dlYmFwaS9hbGxfY29sdW1uc190YWJsZV9mb3J0ZXN0L2ZpbHRlci1jb25kaXRpb24nIC4gJHEoWydxJyA9PiAkZGF0ZV0pOwogICAgICAgICRwYXRoc1tdID0gJ3dlYmFwaS9hbGxfY29sdW1uc190YWJsZV9mb3J0ZXN0L29wZXJhdGlvbi11cGRhdGUtdHlwZScgLiAkcShbJ3EnID0+ICR0ZXh0XSk7CiAgICAgICAgJHBhdGhzW10gPSAnd2ViYXBpL2FsbF9jb2x1bW5zX3RhYmxlX2ZvcnRlc3Qvb3BlcmF0aW9uLXVwZGF0ZS10eXBlJyAuICRxKFsncScgPT4gJGRhdGVdKTsKICAgICAgICAkcGF0aHNbXSA9ICd3ZWJhcGkvYWxsX2NvbHVtbnNfdGFibGVfZm9ydGVzdC9vcGVyYXRpb24tZmlsdGVyLXZhbHVlJyAuICRxKFsndGFyZ2V0JyA9PiAkdGV4dCwgJ2NvbmRfa2V5JyA9PiAnMScsICdjb25kX25hbWUnID0+ICdjdXN0b21fdmlld19maWx0ZXJzWzBdW3ZpZXdfZmlsdGVyX2NvbmRpdGlvbl0nXSk7CiAgICAgICAgJHBhdGhzW10gPSAncGx1Z2luL2VkaXRfY29kZS8xL3NlbGVjdEZpbGUnIC4gJHEoWydub2RlaWQnID0+ICdub2RlXzAnXSk7CgogICAgICAgIC8vIGxhc3Q6IHRoZXNlIGxvZyBvdXQgb3IgbW92ZSB0aGUgaW5zdGFsbCBzdGF0ZQogICAgICAgICRwYXRoc1tdID0gJ2luc3RhbGwvcmVzZXQnOwogICAgICAgICRwYXRoc1tdID0gJ2F1dGgtMmZhY3Rvci9sb2dvdXQnOwogICAgICAgIHJldHVybiAkcGF0aHM7CiAgICB9CgogICAgLyoqCiAgICAgKiBAcmV0dXJuIGFycmF5PHN0cmluZywgbWl4ZWQ+CiAgICAgKi8KICAgIHByaXZhdGUgZnVuY3Rpb24gc3VtbWFyaXplKFxTeW1mb255XENvbXBvbmVudFxIdHRwRm91bmRhdGlvblxSZXNwb25zZSAkcmVzcG9uc2UsID9cVGhyb3dhYmxlICRleGNlcHRpb24pOiBhcnJheQogICAgewogICAgICAgICRvdXQgPSBbJ3N0YXR1cycgPT4gJHJlc3BvbnNlLT5nZXRTdGF0dXNDb2RlKCksICd0eXBlJyA9PiAoc3RyaW5nKSAkcmVzcG9uc2UtPmhlYWRlcnMtPmdldCgnQ29udGVudC1UeXBlJyldOwogICAgICAgIGlmICgkZXhjZXB0aW9uICE9PSBudWxsKSB7CiAgICAgICAgICAgICRvdXRbJ2V4Y2VwdGlvbiddID0gZ2V0X2NsYXNzKCRleGNlcHRpb24pIC4gJzogJyAuIG1iX3N1YnN0cigkZXhjZXB0aW9uLT5nZXRNZXNzYWdlKCksIDAsIDMwMCk7CiAgICAgICAgfQogICAgICAgIGlmICgkcmVzcG9uc2UtPmlzUmVkaXJlY3Rpb24oKSkgewogICAgICAgICAgICAkb3V0Wydsb2NhdGlvbiddID0gJHJlc3BvbnNlLT5oZWFkZXJzLT5nZXQoJ0xvY2F0aW9uJyk7CiAgICAgICAgICAgICRvdXRbJ3Nlc3Npb24nXSA9IGFycmF5X21hcChmbiAoJHYpID0+IGlzX3NjYWxhcigkdikgPyBtYl9zdWJzdHIoKHN0cmluZykgJHYsIDAsIDIwMCkgOiBnZXR0eXBlKCR2KSwgYXJyYXlfaW50ZXJzZWN0X2tleShzZXNzaW9uKCktPmFsbCgpLCBhcnJheV9mbGlwKFsndG9hc3RyJywgJ2Vycm9yJywgJ2Vycm9ycycsICdzdWNjZXNzJywgJ2luZm8nLCAnd2FybmluZyddKSkpOwogICAgICAgICAgICByZXR1cm4gJG91dDsKICAgICAgICB9CiAgICAgICAgJGNvbnRlbnQgPSAoc3RyaW5nKSAkcmVzcG9uc2UtPmdldENvbnRlbnQoKTsKICAgICAgICAkanNvbiA9IGpzb25fZGVjb2RlKCRjb250ZW50LCB0cnVlKTsKICAgICAgICBpZiAoaXNfYXJyYXkoJGpzb24pKSB7CiAgICAgICAgICAgICRvdXRbJ2pzb24nXSA9ICR0aGlzLT5zdW1tYXJpemVWYWx1ZSgkanNvbiwgMCk7CiAgICAgICAgICAgIHJldHVybiAkb3V0OwogICAgICAgIH0KICAgICAgICAkb3V0WydodG1sJ10gPSAkdGhpcy0+c3VtbWFyaXplSHRtbCgkY29udGVudCk7CiAgICAgICAgcmV0dXJuICRvdXQ7CiAgICB9CgogICAgcHJpdmF0ZSBmdW5jdGlvbiBzdW1tYXJpemVWYWx1ZShtaXhlZCAkdmFsdWUsIGludCAkZGVwdGgpOiBtaXhlZAogICAgewogICAgICAgIGlmIChpc19hcnJheSgkdmFsdWUpKSB7CiAgICAgICAgICAgIGlmICgkZGVwdGggPj0gMykgewogICAgICAgICAgICAgICAgcmV0dXJuICdhcnJheSgnIC4gY291bnQoJHZhbHVlKSAuICcpJzsKICAgICAgICAgICAgfQogICAgICAgICAgICAkcmVzdWx0ID0gW107CiAgICAgICAgICAgICRpID0gMDsKICAgICAgICAgICAgZm9yZWFjaCAoJHZhbHVlIGFzICRrID0+ICR2KSB7CiAgICAgICAgICAgICAgICBpZiAoJGkrKyA+PSAxNSkgewogICAgICAgICAgICAgICAgICAgICRyZXN1bHRbJy4uLiddID0gY291bnQoJHZhbHVlKSAuICcgaXRlbXMnOwogICAgICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgJHJlc3VsdFska10gPSAkdGhpcy0+c3VtbWFyaXplVmFsdWUoJHYsICRkZXB0aCArIDEpOwogICAgICAgICAgICB9CiAgICAgICAgICAgIHJldHVybiAkcmVzdWx0OwogICAgICAgIH0KICAgICAgICBpZiAoaXNfc3RyaW5nKCR2YWx1ZSkgJiYgc3RyX2NvbnRhaW5zKCR2YWx1ZSwgJzwnKSkgewogICAgICAgICAgICByZXR1cm4gJHRoaXMtPnN1bW1hcml6ZUh0bWwoJHZhbHVlKTsKICAgICAgICB9CiAgICAgICAgaWYgKGlzX3N0cmluZygkdmFsdWUpKSB7CiAgICAgICAgICAgIHJldHVybiBtYl9zdWJzdHIoJHZhbHVlLCAwLCAyMDApOwogICAgICAgIH0KICAgICAgICByZXR1cm4gJHZhbHVlOwogICAgfQoKICAgIC8qKgogICAgICogQHJldHVybiBhcnJheTxzdHJpbmcsIG1peGVkPgogICAgICovCiAgICBwcml2YXRlIGZ1bmN0aW9uIHN1bW1hcml6ZUh0bWwoc3RyaW5nICRodG1sKTogYXJyYXkKICAgIHsKICAgICAgICAkZG9tID0gbmV3IFxET01Eb2N1bWVudCgpOwogICAgICAgIEAkZG9tLT5sb2FkSFRNTCgnPD94bWwgZW5jb2Rpbmc9InV0Zi04IiA/PicgLiAkaHRtbCk7CiAgICAgICAgJHhwYXRoID0gbmV3IFxET01YUGF0aCgkZG9tKTsKICAgICAgICAkdGV4dHMgPSBmdW5jdGlvbiAoc3RyaW5nICRxdWVyeSwgaW50ICRsaW1pdCkgdXNlICgkeHBhdGgpOiBhcnJheSB7CiAgICAgICAgICAgICRmb3VuZCA9IFtdOwogICAgICAgICAgICBmb3JlYWNoICgkeHBhdGgtPnF1ZXJ5KCRxdWVyeSkgPzogW10gYXMgJG5vZGUpIHsKICAgICAgICAgICAgICAgICR0ZXh0ID0gdHJpbSgoc3RyaW5nKSBwcmVnX3JlcGxhY2UoJy9ccysvdScsICcgJywgJG5vZGUtPnRleHRDb250ZW50KSk7CiAgICAgICAgICAgICAgICBpZiAoJHRleHQgIT09ICcnKSB7CiAgICAgICAgICAgICAgICAgICAgJGZvdW5kW10gPSBtYl9zdWJzdHIoJHRleHQsIDAsIDEyMCk7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBpZiAoY291bnQoJGZvdW5kKSA+PSAkbGltaXQpIHsKICAgICAgICAgICAgICAgICAgICBicmVhazsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgICAgICByZXR1cm4gJGZvdW5kOwogICAgICAgIH07CiAgICAgICAgJGZvcm1zID0gW107CiAgICAgICAgZm9yZWFjaCAoJHhwYXRoLT5xdWVyeSgnLy9mb3JtJykgPzogW10gYXMgJGZvcm0pIHsKICAgICAgICAgICAgJGZpZWxkcyA9IFtdOwogICAgICAgICAgICBmb3JlYWNoICgkeHBhdGgtPnF1ZXJ5KCcuLy9pbnB1dFtAbmFtZV18Li8vc2VsZWN0W0BuYW1lXXwuLy90ZXh0YXJlYVtAbmFtZV0nLCAkZm9ybSkgPzogW10gYXMgJGZpZWxkKSB7CiAgICAgICAgICAgICAgICAkdmFsdWUgPSAkZmllbGQtPmdldEF0dHJpYnV0ZSgndmFsdWUnKTsKICAgICAgICAgICAgICAgICRmaWVsZHNbXSA9ICRmaWVsZC0+Z2V0QXR0cmlidXRlKCduYW1lJykKICAgICAgICAgICAgICAgICAgICAuICgkZmllbGQtPmdldEF0dHJpYnV0ZSgndHlwZScpID09PSAnaGlkZGVuJyA/ICcoaCknIDogJycpCiAgICAgICAgICAgICAgICAgICAgLiAoJHZhbHVlICE9PSAnJyAmJiAkZmllbGQtPmdldEF0dHJpYnV0ZSgndHlwZScpICE9PSAncGFzc3dvcmQnICYmICRmaWVsZC0+Z2V0QXR0cmlidXRlKCduYW1lJykgIT09ICdfdG9rZW4nID8gJz0nIC4gbWJfc3Vic3RyKCR2YWx1ZSwgMCwgNDApIDogJycpOwogICAgICAgICAgICB9CiAgICAgICAgICAgICRmb3Jtc1tdID0gWydhY3Rpb24nID0+ICRmb3JtLT5nZXRBdHRyaWJ1dGUoJ2FjdGlvbicpLCAnbWV0aG9kJyA9PiAkZm9ybS0+Z2V0QXR0cmlidXRlKCdtZXRob2QnKSwgJ2ZpZWxkcycgPT4gYXJyYXlfc2xpY2UoYXJyYXlfdmFsdWVzKGFycmF5X3VuaXF1ZSgkZmllbGRzKSksIDAsIDQwKV07CiAgICAgICAgICAgIGlmIChjb3VudCgkZm9ybXMpID49IDQpIHsKICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgICAgICRzZWxlY3RzID0gW107CiAgICAgICAgZm9yZWFjaCAoJHhwYXRoLT5xdWVyeSgnLy9zZWxlY3QnKSA/OiBbXSBhcyAkc2VsZWN0KSB7CiAgICAgICAgICAgICRvcHRpb25zID0gW107CiAgICAgICAgICAgIGZvcmVhY2ggKCR4cGF0aC0+cXVlcnkoJy4vL29wdGlvbicsICRzZWxlY3QpID86IFtdIGFzICRvcHRpb24pIHsKICAgICAgICAgICAgICAgICRvcHRpb25zW10gPSAkb3B0aW9uLT5nZXRBdHRyaWJ1dGUoJ3ZhbHVlJykgLiAnPScgLiBtYl9zdWJzdHIodHJpbSgkb3B0aW9uLT50ZXh0Q29udGVudCksIDAsIDMwKTsKICAgICAgICAgICAgICAgIGlmIChjb3VudCgkb3B0aW9ucykgPj0gOCkgewogICAgICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgICAgICRzZWxlY3RzWyRzZWxlY3QtPmdldEF0dHJpYnV0ZSgnbmFtZScpID86ICgnIycgLiBjb3VudCgkc2VsZWN0cykpXSA9ICRvcHRpb25zOwogICAgICAgICAgICBpZiAoY291bnQoJHNlbGVjdHMpID49IDQpIHsKICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgICAgIHJldHVybiBbCiAgICAgICAgICAgICdsZW4nID0+IHN0cmxlbigkaHRtbCksCiAgICAgICAgICAgICd0aXRsZScgPT4gJHRleHRzKCcvL3RpdGxlJywgMSksCiAgICAgICAgICAgICdoMScgPT4gJHRleHRzKCcvL2gxJywgMiksCiAgICAgICAgICAgICdib3hfdGl0bGVzJyA9PiAkdGV4dHMoJy8vKltjb250YWlucyhAY2xhc3MsImJveC10aXRsZSIpXScsIDgpLAogICAgICAgICAgICAndGgnID0+ICR0ZXh0cygnLy90YWJsZS8vdGgnLCAyNSksCiAgICAgICAgICAgICdmaXJzdF9yb3cnID0+ICR0ZXh0cygnLy90YWJsZS8vdGJvZHkvL3RyWzFdLy90ZCcsIDE1KSwKICAgICAgICAgICAgJ3Jvd3MnID0+ICgkeHBhdGgtPnF1ZXJ5KCcvL3RhYmxlLy90Ym9keS8vdHInKSA/OiBuZXcgXEFycmF5SXRlcmF0b3IoKSktPmNvdW50KCksCiAgICAgICAgICAgICdmb3JtcycgPT4gJGZvcm1zLAogICAgICAgICAgICAnc2VsZWN0cycgPT4gJHNlbGVjdHMsCiAgICAgICAgICAgICdhbGVydHMnID0+ICR0ZXh0cygnLy8qW2NvbnRhaW5zKEBjbGFzcywiYWxlcnQiKV0nLCA0KSwKICAgICAgICAgICAgJ2xhYmVscycgPT4gJHRleHRzKCcvL2xhYmVsJywgMzApLAogICAgICAgICAgICAndGV4dCcgPT4gbWJfc3Vic3RyKHRyaW0oKHN0cmluZykgcHJlZ19yZXBsYWNlKCcvXHMrL3UnLCAnICcsIChzdHJpbmcpICRkb20tPnRleHRDb250ZW50KSksIDAsIDQwMCksCiAgICAgICAgXTsKICAgIH0KfQo=' | base64 -d > docker-exment/exment-boilerplate/exment/tests/Feature/ScreenContentProbeTest.php
+          wc -l docker-exment/exment-boilerplate/exment/tests/Feature/ScreenContentProbeTest.php
       - name: PHPUnit Test
         working-directory: docker-exment
         run: |
           docker compose -f docker-compose.yml exec -T php composer run exment:test:${{ matrix.test }}
+
+      # token/refresh khong co test (moi request deu 500 tu v6, khong viet test khoa loi):
+      # goi that 1 lan sau khi test xong de checklist co ket qua chay that.
+      - name: Probe the route no test calls
+        if: always() && matrix.test == 'feature'
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php php <<'PHP'
+          <?php
+          require 'vendor/autoload.php';
+          $app = require 'bootstrap/app.php';
+          $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+          foreach (['/admin/oauth/token/refresh'] as $uri) {
+              $response = $kernel->handle(Illuminate\Http\Request::create($uri, 'GET'));
+              $e = $response->exception ?? null;
+              echo 'PROBE GET ', $uri, ' -> ', $response->getStatusCode(), $e ? ' ' . get_class($e) . ': ' . $e->getMessage() : "", PHP_EOL;
+          }
+          PHP
+
+      - name: Collect the route coverage log
+        if: always()
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php sh -c 'cat storage/logs/route_coverage.tsv' > route_coverage.tsv || true
+          wc -l route_coverage.tsv
+          cut -f1 route_coverage.tsv | sort | uniq -c
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: route-coverage-${{ matrix.db }}-${{ matrix.test }}-${{ github.run_attempt }}
+          path: docker-exment/route_coverage.tsv
+          retention-days: 30
