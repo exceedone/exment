@@ -952,6 +952,7 @@ return [
             'folder_notfound' => 'No folder is selected.',
             'plugin_notfound' => 'The plugin does not exist.',
             'file_notfound' => 'The plugin file may have been deleted. Please contact your system administrator.',
+            'node_notfound' => 'The selected file or folder was not found. Please reload the page.',
         ],
         'message' => [
             'file_edit' => 'To edit the file, click the file name in the tree on the right.',

@@ -48,10 +48,9 @@ class PluginCodeCoverageTest extends FeatureTestBase
     }
 
     /**
-     * @param string $path jstree node 'path' to find, e.g. "/" or "/claude_coverage_tmp.txt"
-     * @return string the node id
+     * @return array<int, array<string, mixed>> the jstree json, made again with new node ids as the editor page does
      */
-    protected function treeNodeId(string $path): string
+    protected function tree(): array
     {
         // getTreeData() caches the jstree json in the session: without clearing
         // it first, a second call after fileupload() would still return the
@@ -61,8 +60,18 @@ class PluginCodeCoverageTest extends FeatureTestBase
         $json = $this->get(admin_url("plugin/edit_code/{$this->plugin->id}/getTree"))
             ->assertStatus(200)
             ->json();
+        $this->assertIsArray($json);
 
-        foreach ($json as $node) {
+        return $json;
+    }
+
+    /**
+     * @param string $path jstree node 'path' to find, e.g. "/" or "/claude_coverage_tmp.txt"
+     * @return string the node id
+     */
+    protected function treeNodeId(string $path): string
+    {
+        foreach ($this->tree() as $node) {
             if ($node['path'] === $path) {
                 return $node['id'];
             }
@@ -97,5 +106,37 @@ class PluginCodeCoverageTest extends FeatureTestBase
 
         $this->expectException(\Exception::class);
         $this->plugin->getPluginFiledata(self::TEST_FILE_PATH);
+    }
+
+    /**
+     * Opening the editor again (for example in another tab) makes the tree again with new node ids,
+     * so a page opened before it sends a node id the session no longer knows. Each action asks for
+     * a reload instead of answering 500, and no file is written, uploaded or deleted.
+     */
+    public function testANodeIdOfAnOlderTreeIsRefusedWithAMessage(): void
+    {
+        $oldNodeId = $this->treeNodeId('/');
+        $paths = array_column($this->tree(), 'path');
+        $message = exmtrans('plugincode.error.node_notfound');
+        $url = admin_url("plugin/edit_code/{$this->plugin->id}");
+
+        $editor = $this->get("$url/selectFile?nodeid=$oldNodeId")->assertStatus(200)->json('editor');
+        $this->assertIsString($editor);
+        $this->assertStringContainsString($message, $editor);
+
+        $this->post($url, ['nodeid' => $oldNodeId, 'edit_file' => 'must not be written'])
+            ->assertStatus(400)
+            ->assertJson(['result' => false, 'toastr' => $message]);
+
+        $this->delete($url, ['nodeid' => $oldNodeId])
+            ->assertStatus(400)
+            ->assertJson(['result' => false, 'toastr' => $message]);
+
+        $this->post("$url/fileupload", [
+            'nodeid' => $oldNodeId,
+            'fileUpload' => [UploadedFile::fake()->createWithContent(self::TEST_FILE_NAME, 'must not be uploaded')],
+        ])->assertRedirect()->assertSessionHas('errorMess', $message);
+
+        $this->assertSame($paths, array_column($this->tree(), 'path'));
     }
 }

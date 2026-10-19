@@ -153,6 +153,9 @@ class PluginCodeController extends AdminControllerBase
         if ($request->hasfile('fileUpload')) {
             $nodeid = $request->get('nodeid');
             $folder_path = $this->getNodePath($nodeid);
+            if (is_null($folder_path)) {
+                return back()->with('errorMess', exmtrans("plugincode.error.node_notfound"));
+            }
 
             $upload_files = $request->file('fileUpload');
 
@@ -214,6 +217,11 @@ class PluginCodeController extends AdminControllerBase
 
         $nodeid = $request->get('nodeid');
         $nodepath = $this->getNodePath($nodeid);
+        if (is_null($nodepath)) {
+            return [view('exment::plugin.editor.info', [
+                'message' => exmtrans('plugincode.error.node_notfound'),
+            ]), false];
+        }
 
         try {
             if ($this->plugin->isPathDir($nodepath)) {
@@ -345,6 +353,13 @@ class PluginCodeController extends AdminControllerBase
 
         $nodeid = $request->get('nodeid');
         $nodepath = $this->getNodePath($nodeid);
+        if (is_null($nodepath)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => exmtrans('plugincode.error.node_notfound'),
+                'reload' => false,
+            ]);
+        }
 
         $this->plugin->deletePluginFile($nodepath);
 
@@ -389,6 +404,13 @@ class PluginCodeController extends AdminControllerBase
 
         $nodeid = $request->get('nodeid');
         $nodepath = $this->getNodePath($nodeid);
+        if (is_null($nodepath)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => exmtrans('plugincode.error.node_notfound'),
+                'reload' => false,
+            ]);
+        }
         $edit_file = $request->get('edit_file');
 
         $this->plugin->putPluginFile($nodepath, $edit_file);
