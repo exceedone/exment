@@ -250,14 +250,12 @@ class DataApiCoverageTest extends ApiTestBase
         $this->assertEqualsCanonicalizing($views->where('view_view_name', $name)->pluck('id')->all(), $ids(['view_view_name' => $name]));
     }
 
-    public function testTheQuickAddOfASelectBoxThroughItsRoute(): void
+    public function testTheQuickAddOfASelectBoxRefusesWhatTheTableWouldRefuse(): void
     {
         // custom_value_edit: index_text is the label column, and text is required too
-        $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
-        $this->assertNotNull($table);
+        $table = $this->quickAddTable();
         $url = admin_urls('webapi', $table->table_name, 'quickadd');
-        $count = fn () => $table->getValueModel()->query()->withoutGlobalScopes()->count();
-        $before = $count();
+        $before = $this->recordCount($table);
 
         // without a label there is nothing to add
         $empty = $this->quickAdd($url, '')->assertStatus(400);
@@ -265,18 +263,27 @@ class DataApiCoverageTest extends ApiTestBase
         // a label alone does not fill the required text column: refused and nothing stored
         $refused = $this->quickAdd($url, 'cov quick add')->assertStatus(400)->assertJsonPath('code', ErrorCode::VALIDATION_ERROR()->getValue());
         $this->assertArrayHasKey('text', (array) $refused->json('errors'));
-        $this->assertSame($before, $count());
+        $this->assertSame($before, $this->recordCount($table));
+    }
 
-        // once the label is all the table needs, the record is made; the same label again gives that record
+    public function testTheQuickAddOfASelectBoxMakesOneRecordForALabel(): void
+    {
+        // with text optional the label is all the table needs. Changed before the first request:
+        // the route keeps its controller, and the table that controller read, for the whole test
+        $table = $this->quickAddTable();
         $text = CustomColumn::getEloquent('text', $table);
         $this->assertNotNull($text);
         DB::table('custom_columns')->where('id', $text->id)->update(['options' => json_encode(array_merge($text->options ?? [], ['required' => '0']))]);
         System::clearCache();
+        $url = admin_urls('webapi', $table->table_name, 'quickadd');
+        $before = $this->recordCount($table);
+
         $created = $this->quickAdd($url, 'cov quick add')->assertOk()->assertJson(['created' => true, 'label' => 'cov quick add']);
         $record = $table->getValueModel()->query()->withoutGlobalScopes()->findOrFail(intval($created->json('id')));
         $this->assertSame('cov quick add', $record->getValue('index_text'));
+        // the same label again gives that record instead of a second one
         $this->quickAdd($url, 'cov quick add')->assertOk()->assertJson(['id' => $record->id, 'label' => 'cov quick add', 'created' => false]);
-        $this->assertSame($before + 1, $count());
+        $this->assertSame($before + 1, $this->recordCount($table));
     }
 
     public function testTheRelationSearchOfASearchResult(): void
@@ -313,6 +320,19 @@ class DataApiCoverageTest extends ApiTestBase
         $this->relationSearch($parent_table, $lonely->id, $child_table, SearchType::ONE_TO_MANY)
             ->assertOk()
             ->assertJsonPath('body', exmtrans('search.no_result'));
+    }
+
+    protected function quickAddTable(): CustomTable
+    {
+        $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $this->assertNotNull($table);
+
+        return $table;
+    }
+
+    protected function recordCount(CustomTable $table): int
+    {
+        return $table->getValueModel()->query()->withoutGlobalScopes()->count();
     }
 
     /**
