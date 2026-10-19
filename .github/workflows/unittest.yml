@@ -116,7 +116,8 @@ jobs:
                           $route = $event->request->route();
                           $isRoute = $route instanceof Route;
                           $response = $event->response;
-                          $exception = isset($response->exception) ? get_class($response->exception) : "-";
+                          $ex = $response->exception ?? null;
+                          $exception = $ex instanceof \Throwable ? get_class($ex) . ': ' . substr($ex->getMessage(), 0, 400) . ' @ ' . basename($ex->getFile()) . ':' . $ex->getLine() : "-";
                           $errors = $event->request->hasSession() && $event->request->session()->has('errors') ? 1 : 0;
                           self::write($file, [
                               $event->request->method(),
