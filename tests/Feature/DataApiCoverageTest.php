@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ViewKindType;
@@ -21,6 +22,7 @@ use Exceedone\Exment\Services\Workflow\WorkflowTaskService;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -226,6 +228,133 @@ class DataApiCoverageTest extends ApiTestBase
             'search_type' => SearchType::ONE_TO_MANY,
         ]))->assertOk();
         $this->assertEqualsCanonicalizing($children, collect($this->listOf($linked))->pluck('id')->all());
+    }
+
+    public function testTheViewsOfATableByTheTokenApi(): void
+    {
+        $table = $this->table();
+        $views = CustomView::where('custom_table_id', $table->id)->get();
+        $this->assertGreaterThan(1, $views->count());
+        $token = $this->getAdminAccessToken([ApiScope::VIEW_READ]);
+        $url = admin_urls('api', 'table', static::TABLE, 'views');
+        $ids = fn (array $query = []) => collect($this->listOf(
+            $this->withHeaders(['Authorization' => "Bearer {$token}"])->get($url . ($query === [] ? '' : '?' . http_build_query($query)))->assertOk()
+        ))->pluck('id')->all();
+
+        $this->assertEqualsCanonicalizing($views->pluck('id')->all(), $ids());
+        // the filters the api takes
+        $alldata = $views->where('view_kind_type', ViewKindType::ALLDATA)->pluck('id')->all();
+        $this->assertGreaterThan(0, count($alldata));
+        $this->assertEqualsCanonicalizing($alldata, $ids(['view_kind_type' => ViewKindType::ALLDATA]));
+        $name = strval($views->last()?->view_view_name);
+        $this->assertEqualsCanonicalizing($views->where('view_view_name', $name)->pluck('id')->all(), $ids(['view_view_name' => $name]));
+    }
+
+    public function testTheQuickAddOfASelectBoxThroughItsRoute(): void
+    {
+        // custom_value_edit: index_text is the label column, and text is required too
+        $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $this->assertNotNull($table);
+        $url = admin_urls('webapi', $table->table_name, 'quickadd');
+        $count = fn () => $table->getValueModel()->query()->withoutGlobalScopes()->count();
+        $before = $count();
+
+        // without a label there is nothing to add
+        $empty = $this->quickAdd($url, '')->assertStatus(400);
+        $this->assertArrayHasKey('label', (array) $empty->json('errors'));
+        // a label alone does not fill the required text column: refused and nothing stored
+        $refused = $this->quickAdd($url, 'cov quick add')->assertStatus(400)->assertJsonPath('code', ErrorCode::VALIDATION_ERROR()->getValue());
+        $this->assertArrayHasKey('text', (array) $refused->json('errors'));
+        $this->assertSame($before, $count());
+
+        // once the label is all the table needs, the record is made; the same label again gives that record
+        $text = CustomColumn::getEloquent('text', $table);
+        $this->assertNotNull($text);
+        DB::table('custom_columns')->where('id', $text->id)->update(['options' => json_encode(array_merge($text->options ?? [], ['required' => '0']))]);
+        System::clearCache();
+        $created = $this->quickAdd($url, 'cov quick add')->assertOk()->assertJson(['created' => true, 'label' => 'cov quick add']);
+        $record = $table->getValueModel()->query()->withoutGlobalScopes()->findOrFail(intval($created->json('id')));
+        $this->assertSame('cov quick add', $record->getValue('index_text'));
+        $this->quickAdd($url, 'cov quick add')->assertOk()->assertJson(['id' => $record->id, 'label' => 'cov quick add', 'created' => false]);
+        $this->assertSame($before + 1, $count());
+    }
+
+    public function testTheRelationSearchOfASearchResult(): void
+    {
+        $parent_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
+        $child_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
+        $this->assertNotNull($parent_table);
+        $this->assertNotNull($child_table);
+        $parent = $parent_table->getValueModel()->query()->orderBy('id')->first();
+        $this->assertNotNull($parent);
+        $children = $child_table->getValueModel()->query()
+            ->where('parent_id', $parent->id)
+            ->where('parent_type', $parent_table->table_name)
+            ->pluck('id')
+            ->all();
+        $this->assertGreaterThan(0, count($children));
+
+        // the children of the chosen record, a page of them, with the link to their list
+        $related = $this->relationSearch($parent_table, $parent->id, $child_table, SearchType::ONE_TO_MANY)
+            ->assertOk()
+            ->assertJsonPath('table_name', $child_table->table_name);
+        $listed = $this->listedIds($related);
+        $this->assertCount(min(count($children), intval(System::datalist_pager_count() ?? 5)), $listed);
+        $this->assertSame([], array_diff($listed, $children), 'only children of the chosen record are listed');
+        $this->assertStringContainsString(admin_url("data/{$child_table->table_name}"), strval($related->json('header')));
+
+        // the chosen record itself
+        $self = $this->relationSearch($parent_table, $parent->id, $parent_table, SearchType::SELF)->assertOk();
+        $this->assertSame([$parent->id], $this->listedIds($self));
+
+        // a record without children
+        $lonely = $parent_table->getValueModel();
+        $lonely->setValue(['text' => 'cov relation search lonely'])->save();
+        $this->relationSearch($parent_table, $lonely->id, $child_table, SearchType::ONE_TO_MANY)
+            ->assertOk()
+            ->assertJsonPath('body', exmtrans('search.no_result'));
+    }
+
+    /**
+     * Post a label the way quickadd.js does.
+     *
+     * @return TestResponse<Response>
+     */
+    protected function quickAdd(string $url, string $label): TestResponse
+    {
+        System::clearRequestSession();
+
+        return $this->post($url, ['label' => $label], ['X-Requested-With' => 'XMLHttpRequest']);
+    }
+
+    /**
+     * The related records the search result page loads for a record it found.
+     *
+     * @return TestResponse<Response>
+     */
+    protected function relationSearch(CustomTable $value_table, int $value_id, CustomTable $search_table, int $search_type): TestResponse
+    {
+        System::clearRequestSession();
+
+        return $this->get(admin_url('search/relation') . '?' . http_build_query([
+            'value_table_name' => $value_table->table_name,
+            'value_id' => $value_id,
+            'search_table_name' => $search_table->table_name,
+            'search_type' => $search_type,
+        ]), ['X-Requested-With' => 'XMLHttpRequest']);
+    }
+
+    /**
+     * The record ids of the result table of a relation search (each row carries a hidden data-id).
+     *
+     * @param TestResponse<Response> $response
+     * @return array<int, int>
+     */
+    protected function listedIds(TestResponse $response): array
+    {
+        preg_match_all('/data-id="(\d+)"/', strval($response->json('body')), $matches);
+
+        return array_map('intval', $matches[1]);
     }
 
     /**
