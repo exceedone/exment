@@ -219,6 +219,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: route-coverage-${{ matrix.db }}-${{ matrix.test }}
+          name: route-coverage-${{ matrix.db }}-${{ matrix.test }}-${{ github.run_attempt }}
           path: docker-exment/route_coverage.tsv
           retention-days: 30
