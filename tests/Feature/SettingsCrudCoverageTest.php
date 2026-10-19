@@ -117,9 +117,12 @@ class SettingsCrudCoverageTest extends FeatureTestBase
 
     public function testApiSettingStoreWithoutARedirectUrlIsRejected(): void
     {
+        // A browser sends the field even when it is empty. A field missing from the input is
+        // not validated at all (Field::getValidator()), so the request must carry it.
         $this->post(admin_url('api_setting'), [
             'client_type' => ApiClientType::CLIENT_CREDENTIALS,
             'name' => 'Claude coverage api client (no redirect)',
+            'redirect' => '',
         ])->assertRedirect()->assertSessionHasErrors('redirect');
 
         $this->assertNull(ApiClient::where('name', 'Claude coverage api client (no redirect)')->first());

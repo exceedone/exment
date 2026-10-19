@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\ViewErrorBag;
 use PragmaRX\Google2FA\Google2FA;
 
 /**
@@ -100,9 +101,13 @@ class Auth2factorGoogleRouteTest extends FeatureTestBase
         $before = $this->admin->fresh()->auth2fa_key;
 
         $this->get(admin_url('auth-2factor/google/register?code=not-a-stored-code'))
-            ->assertRedirect()
-            ->assertSessionHasErrors('code');
+            ->assertRedirect();
 
+        // register() flags "code" with an empty message, which MessageBag::has() and so
+        // assertSessionHasErrors() do not count; the key is in the error bag all the same.
+        $errors = session('errors');
+        $this->assertInstanceOf(ViewErrorBag::class, $errors);
+        $this->assertContains('code', $errors->getBag('default')->keys());
         $this->assertSame($before, $this->admin->fresh()->auth2fa_key);
     }
 
