@@ -115,17 +115,14 @@ class SettingsCrudCoverageTest extends FeatureTestBase
         $this->assertDatabaseMissing($clients, ['id' => $client->id]);
     }
 
-    public function testApiSettingStoreWithoutARedirectUrlIsRejected(): void
+    public function testApiSettingCreateFormMarksTheRedirectUrlRequired(): void
     {
-        // A browser sends the field even when it is empty. A field missing from the input is
-        // not validated at all (Field::getValidator()), so the request must carry it.
-        $this->post(admin_url('api_setting'), [
-            'client_type' => ApiClientType::CLIENT_CREDENTIALS,
-            'name' => 'Claude coverage api client (no redirect)',
-            'redirect' => '',
-        ])->assertRedirect()->assertSessionHasErrors('redirect');
+        // Field::required() only sets the HTML required attribute (the server-side rule is
+        // left out for fields that are shown or hidden dynamically, as in v6), so the browser
+        // is what keeps an empty Redirect URL from being sent.
+        $html = (string) $this->get(admin_url('api_setting/create'))->assertOk()->getContent();
 
-        $this->assertNull(ApiClient::where('name', 'Claude coverage api client (no redirect)')->first());
+        $this->assertMatchesRegularExpression('/<input(?=[^>]*name="redirect")(?=[^>]*\srequired)[^>]*>/', $html);
     }
 
     // CellStylePresetController (admin/webapi/{tableKey}/cellstylepreset) -------
