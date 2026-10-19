@@ -67,7 +67,7 @@ class MenuController extends AdminControllerBase
      */
     public function show(Request $request, Content $content, $id)
     {
-        return redirect()->route('menu.edit', ['id' => $id]);
+        return redirect()->route('menu.edit', ['menu' => $id]);
     }
 
     /**

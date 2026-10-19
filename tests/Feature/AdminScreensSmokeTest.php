@@ -22,8 +22,7 @@ use Exceedone\Exment\Tests\TestTrait;
  * Left out after the first full run: auth-2factor/google/register and sendmail (2FA is off in the
  * test data), column/.../columnTypeHtml and search/relation (need query parameters),
  * workflowHistoryModal (record without workflow), login_setting/{id}/test* (no login setting in
- * the test data), auth/menu/create (not a route: the resource excepts create) and auth/menu/{id},
- * whose show answers 500 (UrlGenerationException for menu.edit) and is reported separately.
+ * the test data) and auth/menu/create (not a route: the resource excepts create).
  */
 class AdminScreensSmokeTest extends FeatureTestBase
 {
@@ -80,6 +79,7 @@ class AdminScreensSmokeTest extends FeatureTestBase
             'admin/auth/logs/{id}' => ['auth/logs/1'],
             'admin/auth/logs/{id}/edit' => ['auth/logs/1/edit'],
             'admin/auth/menu' => ['auth/menu'],
+            'admin/auth/menu/{id}' => ['auth/menu/1'],
             'admin/auth/menu/{id}/edit' => ['auth/menu/1/edit'],
             'admin/auth/setting' => ['auth/setting'],
             'admin/backup' => ['backup'],
