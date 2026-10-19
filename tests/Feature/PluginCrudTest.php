@@ -166,7 +166,10 @@ class PluginCrudTest extends FeatureTestBase
 
         $this->get($this->url('oauthlogout'))->assertRedirect($this->url('noauth'));
         $this->assertNull($this->admin->getSettingValue("plugin_crud_oauth_access_token_{$setting->id}"));
-        $this->get($this->url())->assertRedirect($this->url('noauth'));
+        // Laravel keeps a route's controller between the requests of one test, and the list's controller
+        // still holds the token it read; a page not opened yet reads the stored token again, as
+        // every request does in production
+        $this->get($this->url(1))->assertRedirect($this->url('noauth'));
     }
 
     private function linkOAuthLogin(): LoginSetting
