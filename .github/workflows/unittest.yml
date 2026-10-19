@@ -43,7 +43,7 @@ jobs:
         with:
           repository: ${{ env.EXMENT_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate/exment
-          ref: feature/v7.0
+          ref: feature/v7.0-coverage
 
       # exment-boilerplate require ca exceedone/exment-admin-core (dev-master).
       # Bat buoc branch master: composer doan version cua path repository theo ten branch
@@ -101,6 +101,15 @@ jobs:
               {
                   $file = storage_path('logs/route_coverage.tsv');
                   $events = $this->app['events'];
+
+                  // Laravel 12 turns the console command events on only outside unit tests
+                  // (console Kernel::__construct), and the artisan application takes the event
+                  // dispatcher when it is built: turn them on and let it be built again
+                  $kernel = $this->app->make(\Illuminate\Contracts\Console\Kernel::class);
+                  if (method_exists($kernel, 'rerouteSymfonyCommandEvents')) {
+                      $kernel->rerouteSymfonyCommandEvents();
+                      $kernel->setArtisan(null);
+                  }
 
                   $events->listen(RequestHandled::class, function (RequestHandled $event) use ($file) {
                       try {
