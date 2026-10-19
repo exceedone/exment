@@ -152,8 +152,9 @@ jobs:
               }
           }
           PHP
-          php -r '$f = "bootstrap/providers.php"; $b = chr(92); $s = preg_replace("/^\];/m", "    App{$b}Providers{$b}RouteCoverageServiceProvider::class," . PHP_EOL . "];", (string) file_get_contents($f), 1, $n); if ($n !== 1) { echo "providers.php not patched", PHP_EOL; exit(1); } file_put_contents($f, $s); echo "providers patched", PHP_EOL;'
-          cat bootstrap/providers.php
+          # the CI boilerplate lists its providers in config/app.php (no bootstrap/providers.php)
+          php -r '$f = "config/app.php"; $b = chr(92); $a = "App{$b}Providers{$b}AppServiceProvider::class,"; $s = str_replace($a, $a . PHP_EOL . "        App{$b}Providers{$b}RouteCoverageServiceProvider::class,", (string) file_get_contents($f), $n); if ($n !== 1) { echo "config/app.php not patched", PHP_EOL; exit(1); } file_put_contents($f, $s); echo "providers patched", PHP_EOL;'
+          grep -n "Providers.*ServiceProvider::class" config/app.php
 
       - name: Docker Compose Version
         run: docker compose --version
