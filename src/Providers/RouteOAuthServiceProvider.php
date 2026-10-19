@@ -85,7 +85,9 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     protected function forTransientTokens()
     {
-        Route::group($this->getOauthAnonymousOptions(), function ($router) {
+        // refresh() reads the logged-in user and the session's CSRF token (Passport's own route
+        // uses the web and auth middleware), so it needs the session and login of the web options.
+        Route::group($this->getOauthWebOptions(), function ($router) {
             $router->get('/token/refresh', [
                 'uses' => 'TransientTokenController@refresh',
             ]);
