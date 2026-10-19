@@ -78,6 +78,83 @@ jobs:
             echo "added", PHP_EOL;
           '
 
+      # Chi de do cho checklist v7: ghi lai moi request va lenh artisan ma test THAT SU chay
+      # (method, route, action, status, ten test) vao storage/logs/route_coverage.tsv.
+      # Chi them 1 service provider vao app boilerplate cua CI, khong doi code exment.
+      - name: Add the route coverage recorder
+        working-directory: docker-exment/exment-boilerplate
+        run: |
+          cat > app/Providers/RouteCoverageServiceProvider.php <<'PHP'
+          <?php
+
+          namespace App\Providers;
+
+          use Illuminate\Console\Events\CommandFinished;
+          use Illuminate\Foundation\Http\Events\RequestHandled;
+          use Illuminate\Routing\Route;
+          use Illuminate\Support\ServiceProvider;
+          use PHPUnit\Framework\TestCase;
+
+          class RouteCoverageServiceProvider extends ServiceProvider
+          {
+              public function boot(): void
+              {
+                  $file = storage_path('logs/route_coverage.tsv');
+                  $events = $this->app['events'];
+
+                  $events->listen(RequestHandled::class, function (RequestHandled $event) use ($file) {
+                      try {
+                          $route = $event->request->route();
+                          $isRoute = $route instanceof Route;
+                          $response = $event->response;
+                          $exception = isset($response->exception) ? get_class($response->exception) : "-";
+                          $errors = $event->request->hasSession() && $event->request->session()->has('errors') ? 1 : 0;
+                          self::write($file, [
+                              $event->request->method(),
+                              $isRoute ? implode('|', $route->methods()) : "-",
+                              $isRoute ? $route->uri() : "-",
+                              $isRoute ? $route->getActionName() : "-",
+                              $response->getStatusCode(),
+                              $errors,
+                              $exception,
+                              (string) parse_url((string) $response->headers->get('Location'), PHP_URL_PATH),
+                              $event->request->path(),
+                          ]);
+                      } catch (\Throwable $e) {
+                          // the recorder must never change a test result
+                      }
+                  });
+
+                  $events->listen(CommandFinished::class, function (CommandFinished $event) use ($file) {
+                      try {
+                          self::write($file, ['CLI', 'CLI', (string) $event->command, "-", $event->exitCode, 0, "-", "-", "-"]);
+                      } catch (\Throwable $e) {
+                          // the recorder must never change a test result
+                      }
+                  });
+              }
+
+              /**
+               * @param array<int, mixed> $fields
+               */
+              private static function write(string $file, array $fields): void
+              {
+                  // the outermost frame of a test class is the test method that sent the request
+                  $test = "-";
+                  foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
+                      if (isset($frame['class']) && is_subclass_of($frame['class'], TestCase::class)) {
+                          $test = $frame['class'] . '::' . $frame['function'];
+                      }
+                  }
+                  $fields[] = $test;
+                  $fields = str_replace(["\t", "\n", "\r"], ' ', array_map('strval', $fields));
+                  file_put_contents($file, implode("\t", $fields) . "\n", FILE_APPEND | LOCK_EX);
+              }
+          }
+          PHP
+          php -r '$f = "bootstrap/providers.php"; $b = chr(92); $s = preg_replace("/^\];/m", "    App{$b}Providers{$b}RouteCoverageServiceProvider::class," . PHP_EOL . "];", (string) file_get_contents($f), 1, $n); if ($n !== 1) { echo "providers.php not patched", PHP_EOL; exit(1); } file_put_contents($f, $s); echo "providers patched", PHP_EOL;'
+          cat bootstrap/providers.php
+
       - name: Docker Compose Version
         run: docker compose --version
 
@@ -101,3 +178,36 @@ jobs:
         working-directory: docker-exment
         run: |
           docker compose -f docker-compose.yml exec -T php composer run exment:test:${{ matrix.test }}
+
+      # token/refresh khong co test (moi request deu 500 tu v6, khong viet test khoa loi):
+      # goi that 1 lan sau khi test xong de checklist co ket qua chay that.
+      - name: Probe the route no test calls
+        if: always() && matrix.test == 'feature'
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php php <<'PHP'
+          <?php
+          require 'vendor/autoload.php';
+          $app = require 'bootstrap/app.php';
+          $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+          foreach (['/admin/oauth/token/refresh'] as $uri) {
+              $response = $kernel->handle(Illuminate\Http\Request::create($uri, 'GET'));
+              $e = $response->exception ?? null;
+              echo 'PROBE GET ', $uri, ' -> ', $response->getStatusCode(), $e ? ' ' . get_class($e) . ': ' . $e->getMessage() : "", PHP_EOL;
+          }
+          PHP
+
+      - name: Collect the route coverage log
+        if: always()
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php sh -c 'cat storage/logs/route_coverage.tsv' > route_coverage.tsv || true
+          wc -l route_coverage.tsv
+          cut -f1 route_coverage.tsv | sort | uniq -c
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: route-coverage-${{ matrix.db }}-${{ matrix.test }}
+          path: docker-exment/route_coverage.tsv
+          retention-days: 30
