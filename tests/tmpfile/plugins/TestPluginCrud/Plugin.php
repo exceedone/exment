@@ -41,7 +41,7 @@ class Plugin extends PluginCrudBase
 
     /**
      * @param array<mixed> $options
-     * @return LengthAwarePaginator<int, array<string, string>>
+     * @return LengthAwarePaginator<int, \stdClass>
      */
     public function getPaginate(array $options = []): ?LengthAwarePaginator
     {
@@ -52,12 +52,15 @@ class Plugin extends PluginCrudBase
     }
 
     /**
+     * The rows as objects, as a query builder returns them: the grid binds its column callbacks
+     * to each row.
+     *
      * @param array<mixed> $options
-     * @return Collection<int, array<string, string>>
+     * @return Collection<int, \stdClass>
      */
     public function getList(array $options = []): Collection
     {
-        return collect($this->rows())->values();
+        return collect($this->rows())->map(fn (array $row) => (object) $row)->values();
     }
 
     /**
