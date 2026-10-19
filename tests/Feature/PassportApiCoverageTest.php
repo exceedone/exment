@@ -274,19 +274,23 @@ class PassportApiCoverageTest extends ApiTestBase
      * with whereIntegerInRaw, which casts each id with (int). An id whose first group reads as a
      * number with an exponent ("3e41a5b0-..." casts to PHP_INT_MAX, "1234567e-12ab-..." to 0) does
      * not compare equal to that integer in the database, so its client is not found and the lists
-     * answer 500. Client ids are random; the tests make clients until the id is not such a one.
+     * answer 500. The ids are time-based (uuid version 1, ExmentServiceProvider::bootPassport()):
+     * their first characters stay the same for up to about a second, so a client made right after
+     * a bad one is bad too. The tests make clients a tenth of a second apart until the id is a
+     * good one.
      *
      * @param callable(): Client $create
      */
     private function clientWithLoadableId(callable $create): Client
     {
-        for ($i = 0; $i < 20; $i++) {
+        for ($i = 0; $i < 40; $i++) {
             $client = $create();
             if (preg_match('/^\d+e[-+]?\d/i', (string) $client->getKey()) !== 1) {
                 return $client;
             }
+            usleep(100000);
         }
-        $this->fail('every client made had an id the token lists cannot load');
+        $this->fail('every client made in four seconds had an id the token lists cannot load');
     }
 
     /**
