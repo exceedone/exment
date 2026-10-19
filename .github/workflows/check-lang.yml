@@ -34,7 +34,7 @@ jobs:
         with:
           repository: ${{ env.EXMENT_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate/exment
-          ref: feature/v7.0
+          ref: feature/v7.0-coverage
 
       # exment-boilerplate require ca exceedone/exment-admin-core (dev-master).
       # Bat buoc branch master: composer doan version cua path repository theo ten branch
