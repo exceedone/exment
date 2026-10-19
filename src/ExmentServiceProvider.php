@@ -221,6 +221,7 @@ class ExmentServiceProvider extends ServiceProvider
             \Exceedone\Exment\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
+            \Exceedone\Exment\Middleware\KeepAdminMessageOnRedirect::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \Exceedone\Exment\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,

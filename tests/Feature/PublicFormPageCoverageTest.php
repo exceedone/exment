@@ -46,22 +46,34 @@ class PublicFormPageCoverageTest extends FeatureTestBase
 
     public function testConfirmUrlOpenedByGetGoesBackToTheForm(): void
     {
-        $publicForm = $this->publicForm();
-
-        // admin_error() puts its message only into the current request (session()->now()),
-        // so after this redirect only the way back to the form can be checked
-        $this->get($publicForm->getUrl('confirm'))
-            ->assertRedirect($publicForm->getUrl());
+        $this->assertGoesBackToTheFormThatSaysThePageExpired('confirm');
     }
 
     public function testCreateUrlOpenedByGetGoesBackToTheForm(): void
     {
+        $this->assertGoesBackToTheFormThatSaysThePageExpired('create');
+    }
+
+    /**
+     * The confirm or create URL opened by GET (an expired page, a bookmark) leads back to the form,
+     * and the form says why, once. admin_error() keeps its message for the current request only
+     * (session()->now()); KeepAdminMessageOnRedirect keeps it for the page the redirect leads to.
+     */
+    protected function assertGoesBackToTheFormThatSaysThePageExpired(string $action): void
+    {
         $publicForm = $this->publicForm();
 
-        // admin_error() puts its message only into the current request (session()->now()),
-        // so after this redirect only the way back to the form can be checked
-        $this->get($publicForm->getUrl('create'))
+        $this->get($publicForm->getUrl($action))
             ->assertRedirect($publicForm->getUrl());
+
+        $message = exmtrans('error.expired_error_reinput');
+        $this->get($publicForm->getUrl())
+            ->assertStatus(200)
+            ->assertSee($message, false);
+
+        $this->get($publicForm->getUrl())
+            ->assertStatus(200)
+            ->assertDontSee($message, false);
     }
 
     protected function publicForm(): PublicForm
