@@ -99,7 +99,9 @@ class FileRoutesCoverageTest extends FeatureTestBase
         $this->assertDatabaseMissing('files', ['uuid' => $file->uuid]);
         $this->assertFalse(Storage::disk(config('admin.upload.disk'))->exists($file->path));
 
-        // unlike the screen's delete, the api takes the file out of the record as well
+        // unlike the screen's delete, the api takes the file out of the record as well (read it
+        // again: exment keeps the records it read in a static request cache)
+        System::clearRequestSession();
         $saved = $custom_table->getValueModel($custom_value->id);
         if (!$saved instanceof CustomValue) {
             $this->fail('the record must stay');

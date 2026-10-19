@@ -10,6 +10,8 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Support\Str;
 use Laravel\Passport\ClientRepository;
+use Laravel\Passport\Exceptions\InvalidAuthTokenException;
+use League\OAuth2\Server\Exception\OAuthServerException as LeagueOAuthServerException;
 
 /**
  * The Passport routes exment mounts under admin/oauth (RouteOAuthServiceProvider). The json ones
@@ -164,12 +166,16 @@ class PassportApiCoverageTest extends ApiTestBase
     {
         $this->be($this->admin());
 
-        $this->get(admin_urls('oauth', 'authorize') . '?' . http_build_query([
+        // Passport refuses it with the OAuth error invalid_client; exment's exception handler shows
+        // the refusal on its error page (with status 200), so the refusal itself is checked
+        $response = $this->get(admin_urls('oauth', 'authorize') . '?' . http_build_query([
             'response_type' => 'code',
             'client_id' => (string) Str::uuid(),
             'redirect_uri' => 'http://localhost/claude-passport',
-        ]))->assertStatus(401)
-            ->assertJson(['error' => 'invalid_client']);
+        ]));
+
+        $this->assertSame('invalid_client', $this->oauthErrorType($response->exception));
+        $response->assertSessionMissing('authRequest');
     }
 
     public function testApprovingWithAnotherAuthTokenIsRefused(): void
@@ -177,20 +183,36 @@ class PassportApiCoverageTest extends ApiTestBase
         $this->be($this->admin());
 
         // the auth token guards the approval like a CSRF token: a different one drops the request
-        $this->withSession(['authToken' => 'claude-session-auth-token'])
-            ->post(admin_urls('oauth', 'authorize'), ['auth_token' => 'claude-other-auth-token'])
-            ->assertForbidden()
-            ->assertSessionMissing('authToken');
+        $response = $this->withSession(['authToken' => 'claude-session-auth-token'])
+            ->post(admin_urls('oauth', 'authorize'), ['auth_token' => 'claude-other-auth-token']);
+
+        $this->assertInstanceOf(InvalidAuthTokenException::class, $response->exception);
+        $response->assertSessionMissing('authToken');
     }
 
     public function testDenyingWithAnotherAuthTokenIsRefused(): void
     {
         $this->be($this->admin());
 
-        $this->withSession(['authToken' => 'claude-session-auth-token'])
-            ->delete(admin_urls('oauth', 'authorize'), ['auth_token' => 'claude-other-auth-token'])
-            ->assertForbidden()
-            ->assertSessionMissing('authToken');
+        $response = $this->withSession(['authToken' => 'claude-session-auth-token'])
+            ->delete(admin_urls('oauth', 'authorize'), ['auth_token' => 'claude-other-auth-token']);
+
+        $this->assertInstanceOf(InvalidAuthTokenException::class, $response->exception);
+        $response->assertSessionMissing('authToken');
+    }
+
+    /**
+     * The OAuth error type (invalid_client, ...) of the League exception in the chain.
+     */
+    private function oauthErrorType(?\Throwable $exception): ?string
+    {
+        for ($e = $exception; $e !== null; $e = $e->getPrevious()) {
+            if ($e instanceof LeagueOAuthServerException) {
+                return $e->getErrorType();
+            }
+        }
+
+        return null;
     }
 
     private function admin(): LoginUser

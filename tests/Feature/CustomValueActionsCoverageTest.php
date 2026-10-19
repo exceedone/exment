@@ -30,6 +30,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\RequiresFunction;
 
 /**
  * The record actions under admin/data/{tableKey} that no test had sent: PATCH and DELETE of a
@@ -149,7 +150,8 @@ class CustomValueActionsCoverageTest extends FeatureTestBase
 
         System::clearRequestSession();
         $this->post($this->url($custom_value->id, 'fileupload'), [
-            'file_data' => UploadedFile::fake()->createWithContent('cov-attachment.txt', 'cov attachment body'),
+            // the screen uploads through a multiple file input (file_data[])
+            'file_data' => [UploadedFile::fake()->createWithContent('cov-attachment.txt', 'cov attachment body')],
         ])->assertOk()->assertJson(['result' => true, 'message' => trans('admin.update_succeeded')]);
 
         $attachment = ExmentFile::where('parent_type', static::TABLE)
@@ -412,6 +414,10 @@ class CustomValueActionsCoverageTest extends FeatureTestBase
             ->assertJson(['result' => false, 'message' => exmtrans('custom_table.no_selected')]);
     }
 
+    /**
+     * The sticker of each code is drawn with imagettftext(): PHP needs GD built with FreeType.
+     */
+    #[RequiresFunction('imagettftext')]
     public function testTheQrCodeSheetsAreBuiltAsPdf(): void
     {
         // qrCreateOrDownloadResponse() sends its answer itself and then ends the process with exit,

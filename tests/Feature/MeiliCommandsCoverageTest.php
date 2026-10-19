@@ -121,7 +121,7 @@ class MeiliCommandsCoverageTest extends FeatureTestBase
     {
         $this->startFakeMeilisearch();
         $tables = $this->indexer()->searchableTables();
-        $this->assertNotEmpty($tables, 'the test data has search-enabled tables with freeword columns');
+        $this->assertGreaterThan(0, $tables->count(), 'the test data has search-enabled tables with freeword columns');
         $expected = $tables->sum(fn (CustomTable $table) => $this->recordCount($table));
         $startedAt = now()->getTimestamp();
 
