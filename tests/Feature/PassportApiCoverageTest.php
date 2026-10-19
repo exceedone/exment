@@ -4,11 +4,15 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Model\ApiClient;
+use Exceedone\Exment\Model\ApiClientRepository;
+use Exceedone\Exment\Model\ApiKey;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Laravel\Passport\Client;
 use Laravel\Passport\ClientRepository;
 use Laravel\Passport\Exceptions\InvalidAuthTokenException;
 use League\OAuth2\Server\Exception\OAuthServerException as LeagueOAuthServerException;
@@ -99,12 +103,13 @@ class PassportApiCoverageTest extends ApiTestBase
 
     public function testPersonalAccessTokensAreCreatedListedAndRevoked(): void
     {
-        $headers = ['Authorization' => 'Bearer ' . $this->getAdminAccessToken()];
         $adminId = $this->admin()->getAuthIdentifier();
+        $bearer = $this->adminTokenOfANewPasswordClient();
+        $headers = ['Authorization' => "Bearer {$bearer}"];
 
         // Passport issues personal access tokens through a personal access client, which the
         // operator creates once ("php artisan passport:client --personal"); the test data has none
-        app(ClientRepository::class)->createPersonalAccessClient($adminId, 'Claude coverage personal access client', 'http://localhost');
+        $this->clientWithLoadableId(fn () => app(ClientRepository::class)->createPersonalAccessClient($adminId, 'Claude coverage personal access client', 'http://localhost'));
 
         $created = $this->withHeaders($headers)->post(admin_urls('oauth', 'personal-access-tokens'), [
             'name' => 'Claude coverage token',
@@ -123,38 +128,50 @@ class PassportApiCoverageTest extends ApiTestBase
             'revoked' => 0,
         ]);
 
-        $listed = collect((array) $this->withHeaders($headers)->get(admin_urls('oauth', 'personal-access-tokens'))->assertOk()->json())->pluck('id')->all();
-        $this->assertContains($tokenId, $listed);
+        // the bearer's password-grant token is not a personal access token and is not listed
+        $this->forgetTheOtherTokensOf($adminId, [$this->tokenId($bearer), $tokenId]);
+        $this->withHeaders($headers)->get(admin_urls('oauth', 'personal-access-tokens'))
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.id', $tokenId);
 
         $this->withHeaders($headers)->delete(admin_urls('oauth', 'personal-access-tokens', $tokenId))->assertNoContent();
         $this->assertDatabaseHas('oauth_access_tokens', ['id' => $tokenId, 'revoked' => 1]);
 
-        $listed = collect((array) $this->withHeaders($headers)->get(admin_urls('oauth', 'personal-access-tokens'))->assertOk()->json())->pluck('id')->all();
-        $this->assertNotContains($tokenId, $listed);
+        $this->withHeaders($headers)->get(admin_urls('oauth', 'personal-access-tokens'))->assertOk()->assertExactJson([]);
     }
 
     public function testAuthorizedTokensListAndRevokeAThirdPartyClientsToken(): void
     {
-        $passwordToken = $this->getAdminAccessToken();
-        $headers = ['Authorization' => "Bearer {$passwordToken}"];
+        $adminId = $this->admin()->getAuthIdentifier();
+        $bearer = $this->adminTokenOfANewPasswordClient();
+        $headers = ['Authorization' => "Bearer {$bearer}"];
 
-        // the api-key client is neither a password nor a personal access client, so Passport counts
+        // an api-key client is neither a password nor a personal access client, so Passport counts
         // the tokens it issues as tokens the user authorized for a third party
-        $apiKeyTokenId = $this->tokenId($this->getAdminAccessTokenAsApiKey());
+        $client = $this->clientWithLoadableId(fn () => (new ApiClientRepository())->createApiKey($adminId, 'Claude coverage api key client', 'http://localhost'));
+        $apiKeyTokenId = $this->tokenId($this->issueToken([
+            'grant_type' => 'api_key',
+            'client_id' => $client->getKey(),
+            'client_secret' => $client->secret,
+            'api_key' => ApiKey::where('client_id', $client->getKey())->value('key'),
+            'scope' => implode(' ', ApiScope::arrays()),
+        ]));
         $this->assertDatabaseHas('oauth_refresh_tokens', ['access_token_id' => $apiKeyTokenId, 'revoked' => 0]);
 
-        $listed = collect((array) $this->withHeaders($headers)->get(admin_urls('oauth', 'tokens'))->assertOk()->json())->pluck('id')->all();
-        $this->assertContains($apiKeyTokenId, $listed);
-        // a password-grant token is first party and not listed
-        $this->assertNotContains($this->tokenId($passwordToken), $listed);
+        // the bearer's password-grant token is first party and is not listed
+        $this->forgetTheOtherTokensOf($adminId, [$this->tokenId($bearer), $apiKeyTokenId]);
+        $this->withHeaders($headers)->get(admin_urls('oauth', 'tokens'))
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.id', $apiKeyTokenId);
 
         $this->withHeaders($headers)->delete(admin_urls('oauth', 'tokens', $apiKeyTokenId))->assertNoContent();
         $this->assertDatabaseHas('oauth_access_tokens', ['id' => $apiKeyTokenId, 'revoked' => 1]);
         $this->assertDatabaseHas('oauth_refresh_tokens', ['access_token_id' => $apiKeyTokenId, 'revoked' => 1]);
         $this->assertDatabaseMissing('oauth_refresh_tokens', ['access_token_id' => $apiKeyTokenId, 'revoked' => 0]);
 
-        $listed = collect((array) $this->withHeaders($headers)->get(admin_urls('oauth', 'tokens'))->assertOk()->json())->pluck('id')->all();
-        $this->assertNotContains($apiKeyTokenId, $listed);
+        $this->withHeaders($headers)->get(admin_urls('oauth', 'tokens'))->assertOk()->assertExactJson([]);
     }
 
     // authorize is the consent screen of the authorization-code flow. Passport's
@@ -218,6 +235,71 @@ class PassportApiCoverageTest extends ApiTestBase
     private function admin(): LoginUser
     {
         return LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+    }
+
+    /**
+     * An access token of the admin from the password grant, through a new password client made as
+     * TestDataSeeder::createApiSetting() makes the seeded one.
+     */
+    private function adminTokenOfANewPasswordClient(): string
+    {
+        $client = $this->clientWithLoadableId(fn () => (new ApiClientRepository())->createPasswordGrantClient($this->admin()->getAuthIdentifier(), 'Claude coverage password client', 'http://localhost'));
+
+        return $this->issueToken([
+            'grant_type' => 'password',
+            'client_id' => $client->getKey(),
+            'client_secret' => $client->secret,
+            'username' => 'admin',
+            'password' => 'adminadmin',
+            'scope' => implode(' ', ApiScope::arrays()),
+        ]);
+    }
+
+    /**
+     * @param array<string, mixed> $parameters
+     */
+    private function issueToken(array $parameters): string
+    {
+        $token = $this->post(admin_urls('oauth', 'token'), $parameters)->assertOk()->json('access_token');
+        $this->assertIsString($token);
+
+        return $token;
+    }
+
+    /**
+     * A client made by $create whose id the token lists can load.
+     *
+     * Exment gives clients uuid ids but leaves Passport's "client_uuids" option off, so Passport
+     * takes the client key for an integer: the token lists load the clients of the user's tokens
+     * with whereIntegerInRaw, which casts each id with (int). An id whose first group reads as a
+     * number with an exponent ("3e41a5b0-..." casts to PHP_INT_MAX, "1234567e-12ab-..." to 0) does
+     * not compare equal to that integer in the database, so its client is not found and the lists
+     * answer 500. Client ids are random; the tests make clients until the id is not such a one.
+     *
+     * @param callable(): Client $create
+     */
+    private function clientWithLoadableId(callable $create): Client
+    {
+        for ($i = 0; $i < 20; $i++) {
+            $client = $create();
+            if (preg_match('/^\d+e[-+]?\d/i', (string) $client->getKey()) !== 1) {
+                return $client;
+            }
+        }
+        $this->fail('every client made had an id the token lists cannot load');
+    }
+
+    /**
+     * Drop the user's tokens other than $keep, inside this test's transaction. The token lists hold
+     * every token of the user, and the CI database already holds tokens of the admin from earlier
+     * tests, issued by the seeded clients, whose random ids may be ones the lists cannot load (see
+     * clientWithLoadableId()).
+     *
+     * @param array<int, string> $keep
+     */
+    private function forgetTheOtherTokensOf(int|string $userId, array $keep): void
+    {
+        DB::table('oauth_access_tokens')->where('user_id', $userId)->whereNotIn('id', $keep)->delete();
     }
 
     /**
