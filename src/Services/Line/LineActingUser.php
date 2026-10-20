@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Services\Line;
 
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
@@ -14,7 +16,21 @@ class LineActingUser
             return null;
         }
         $userId = LineAccountLink::where('line_user_id', $lineUserId)->value('user_id');
-        return is_nullorempty($userId) ? null : (int) $userId;
+        // a soft-deleted user keeps both its link and its login_users row, so it could still act from LINE
+        if (is_nullorempty($userId) || !static::userExists((int) $userId)) {
+            return null;
+        }
+        return (int) $userId;
+    }
+
+    /**
+     * Whether the user is still there, not deleted. Not filtered by the current viewer's permission.
+     */
+    public static function userExists(int $userId): bool
+    {
+        return getModelName(SystemTableName::USER)::withoutGlobalScope(CustomValueModelScope::class)
+            ->whereKey($userId)
+            ->exists();
     }
 
     public static function loginUser(int $userId): ?LoginUser

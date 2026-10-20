@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature\Line;
 
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Services\Line\LineAccountLinker;
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -41,6 +42,14 @@ class LineAccountLinkerTest extends FeatureTestBase
         $this->assertEquals($code, $link->line_link_code);
         $this->assertNull($link->line_user_id, 'A newly generated code is not yet bound to any LINE account.');
         $this->assertFalse($link->isLinked());
+    }
+
+    public function testGeneratedCodeIsTheLongestTheLinkCommandAccepts(): void
+    {
+        $code = $this->linker->generateCodeForUser($this->user1());
+
+        $this->assertSame(12, strlen($code), 'Guessing is throttled only per LINE account, so the code length is what keeps it out of reach.');
+        $this->assertNotNull($this->linker->handleMessage('LINK ' . $code, 'Ulongcode'));
     }
 
     public function testGenerateCodeRejectsNonPositiveLengthWithoutSaving(): void
@@ -163,6 +172,40 @@ class LineAccountLinkerTest extends FeatureTestBase
 
         $this->assertNull($result, 'A single LINE account cannot be bound to two users.');
         $this->assertNull(LineAccountLink::where('user_id', $user2)->first()->line_user_id);
+    }
+
+    public function testHandleMessageFreesLineAccountLeftLinkedToDeletedUser(): void
+    {
+        $user1 = $this->user1();
+        $user2 = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $lineUserId = 'Uleftondeleted';
+
+        LineAccountLink::forUser($user1)->markLinked($lineUserId);
+        getModelName(SystemTableName::USER)::find($user1)->delete();
+        $code2 = $this->linker->generateCodeForUser($user2);
+
+        $result = $this->linker->handleMessage('LINK ' . $code2, $lineUserId);
+
+        $this->assertNotNull($result, 'Nobody can unlink a deleted user on the web, so its LINE account must be free to link again.');
+        $this->assertEquals($lineUserId, LineAccountLink::where('user_id', $user2)->first()->line_user_id);
+        $this->assertNull(LineAccountLink::where('user_id', $user1)->first()->line_user_id);
+    }
+
+    public function testHandleMessageRejectsCodeOfDeletedUser(): void
+    {
+        $user = $this->user1();
+        $lineUserId = 'Ucodeofdeleted';
+        RateLimiter::clear(LineAccountLinker::attemptKey($lineUserId));
+        $code = $this->linker->generateCodeForUser($user);
+        getModelName(SystemTableName::USER)::find($user)->delete();
+
+        try {
+            $this->assertNull($this->linker->handleMessage('LINK ' . $code, $lineUserId), 'A link to a deleted user would be dead on arrival.');
+            $this->assertNull(LineAccountLink::where('user_id', $user)->first()->line_user_id);
+            $this->assertSame(1, RateLimiter::attempts(LineAccountLinker::attemptKey($lineUserId)), 'It counts as a wrong code.');
+        } finally {
+            RateLimiter::clear(LineAccountLinker::attemptKey($lineUserId));
+        }
     }
 
     public function testHandleMessageAllowsRelinkingSameUser(): void

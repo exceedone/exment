@@ -6,12 +6,12 @@ use ExmentAdminCore\Admin\Facades\Admin;
 use ExmentAdminCore\Admin\Grid;
 use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Jobs\SafetyCheckSendJob;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
-use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Illuminate\Http\Request;
 
 class SafetyCheckController extends AdminControllerBase
@@ -263,11 +263,13 @@ EOT;
                 'event_status' => SafetyCheckDefine::EVENT_OPEN,
                 'triggered_at' => now()->format('Y-m-d H:i:s'),
             ])->save();
-
-            $this->broadcast($event);
-        } finally {
+        } catch (\Throwable $e) {
             \Cache::forget($lockKey);
+            throw $e;
         }
+
+        // the lock stays until the send itself is done: SafetyCheckSendJob releases it
+        $this->broadcast($event, false, $lockKey);
 
         admin_toastr(exmtrans('safety.message_send_succeeded'));
         return redirect(admin_url('safety_check'));
@@ -278,10 +280,13 @@ EOT;
         return 'safety_check_send.' . \Exment::getUserId();
     }
 
-    protected function broadcast(CustomValue $event, bool $onlyUnanswered = false): void
+    /**
+     * Sending takes a while: a row, a mail and a LINE message for every user. It runs after the
+     * response, so a proxy timeout cannot make it look failed and invite a second send.
+     */
+    protected function broadcast(CustomValue $event, bool $onlyUnanswered = false, ?string $lockKey = null): void
     {
-        \Exment::setTimeLimitLong();
-        SafetyCheckSender::send($event, $onlyUnanswered);
+        SafetyCheckSendJob::dispatchAfterResponse($event, $onlyUnanswered, $lockKey);
     }
 
     /**

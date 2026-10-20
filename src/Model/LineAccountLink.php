@@ -30,7 +30,12 @@ class LineAccountLink extends Model
             && $this->line_link_code_expires_at->isFuture();
     }
 
-    public function generateCode(int $length = 6): string
+    /**
+     * Guessing is throttled only per LINE account (LineAccountLinker), so the length is what keeps
+     * it out of reach: 12 hex characters = 48 bits, the longest the LINK command accepts.
+     * The code reaches the user inside the QR deep link, so nobody has to type it.
+     */
+    public function generateCode(int $length = 12): string
     {
         if ($length < 1) {
             throw new \InvalidArgumentException('LINE link code length must be at least 1, got ' . $length);

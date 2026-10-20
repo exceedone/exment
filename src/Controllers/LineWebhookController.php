@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Services\Line\LineAccountLinker;
+use Exceedone\Exment\Services\Line\LineActingUser;
 use Exceedone\Exment\Services\Line\LineMessagingClient;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -78,7 +78,7 @@ class LineWebhookController extends Controller
             $linked = $linker->handleMessage($text, $userId);
             if ($replyToken) {
                 $isLinkCommand = (bool) preg_match('/^\s*LINK\s+/i', $text);
-                $alreadyLinked = $userId && LineAccountLink::where('line_user_id', $userId)->exists();
+                $alreadyLinked = LineActingUser::userId($userId) !== null;
                 if ($linked) {
                     $msg = exmtrans('line.link_success');
                 } elseif ($isLinkCommand && $alreadyLinked) {

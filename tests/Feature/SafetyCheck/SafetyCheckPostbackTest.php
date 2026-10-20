@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
@@ -100,6 +101,23 @@ class SafetyCheckPostbackTest extends FeatureTestBase
 
         $fresh = $this->freshAnswerRow($row->id);
         $this->assertEquals('not_answered', array_get($fresh->value, 'answer_status'), 'An unlinked LINE user must not change the row.');
+
+        $this->assertEquals(exmtrans('line.account_not_linked'), $this->lastReplyText());
+    }
+
+    public function testDeletedUserLeavesRowUnchangedAndRepliesNotLinked(): void
+    {
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
+        $lineUserId = $this->linkUser($userId);
+        $event = $this->createEvent();
+        $row = $this->createAnswerRow($event->id, $userId);
+        getModelName(SystemTableName::USER)::find($userId)->delete();
+
+        $data = 'act=safety&event=' . $event->id . '&st=safe';
+        $this->postWebhook(['events' => [$this->postbackEvent($data, $lineUserId)]])->assertStatus(200);
+
+        $fresh = $this->freshAnswerRow($row->id);
+        $this->assertEquals('not_answered', array_get($fresh->value, 'answer_status'), 'The LINE account of a deleted user must not answer for them.');
 
         $this->assertEquals(exmtrans('line.account_not_linked'), $this->lastReplyText());
     }

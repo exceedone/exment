@@ -6,11 +6,13 @@ use Carbon\Carbon;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Jobs\LineSendJob;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Services\Line\LineSendLogger;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
@@ -206,6 +208,25 @@ class NotifyScheduleLineTest extends FeatureTestBase
         $notify->notifySchedule();
 
         Bus::assertDispatchedAfterResponse(LineSendJob::class);
+    }
+
+    public function testDeletedUserGetsNoLineMessage(): void
+    {
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
+        LineAccountLink::forUser($userId)->markLinked('Unotifydeleted');
+        $userModel = getModelName(SystemTableName::USER);
+        $params = ['subject' => 'subject', 'body' => 'body'];
+
+        Bus::fake();
+        \Exceedone\Exment\Services\NotifyService::notifyLine(['user' => NotifyTarget::getModelAsUser($userModel::find($userId))] + $params);
+        Bus::assertDispatchedAfterResponse(LineSendJob::class);
+
+        $userModel::find($userId)->delete();
+
+        // a target such as "created user" reads the user withTrashed, so a deleted user still arrives here
+        Bus::fake();
+        \Exceedone\Exment\Services\NotifyService::notifyLine(['user' => NotifyTarget::getModelAsUser($userModel::withTrashed()->find($userId))] + $params);
+        Bus::assertNotDispatched(LineSendJob::class);
     }
 
     public function testDedupeDoesNotApplyToNonTimeTrigger(): void

@@ -41,20 +41,26 @@ class LineAccountLinker
         }
 
         $link = LineAccountLink::where('line_link_code', $code)->first();
-        if (!$link || !$link->hasActiveCode()) {
+        if (!$link || !$link->hasActiveCode() || !LineActingUser::userExists((int) $link->user_id)) {
             RateLimiter::hit($attemptKey, 60 * (int) config('exment.line.link_attempt_decay_minutes', 10));
             return null;
         }
 
-        $taken = LineAccountLink::where('line_user_id', $lineUserId)
+        $holder = LineAccountLink::where('line_user_id', $lineUserId)
             ->where('user_id', '!=', $link->user_id)
-            ->exists();
-        if ($taken) {
+            ->first();
+        if ($holder && LineActingUser::userExists((int) $holder->user_id)) {
             return null;
         }
 
         RateLimiter::clear($attemptKey);
-        $link->markLinked($lineUserId);
+        \DB::transaction(function () use ($holder, $link, $lineUserId) {
+            // linked to a deleted user, which nobody can unlink on the web any more
+            if ($holder) {
+                $holder->unlink();
+            }
+            $link->markLinked($lineUserId);
+        });
         return $link;
     }
 

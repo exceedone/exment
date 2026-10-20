@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -118,6 +119,23 @@ class SafetyCheckCommentTest extends FeatureTestBase
         $this->assertNull(array_get($fresh->value, 'comment'), 'No open event means the comment must not change.');
 
         $this->assertEquals(exmtrans('line.invalid_command'), $this->lastReplyText());
+    }
+
+    public function testTextFromLineAccountOfDeletedUserIsNotAttachedAndGetsLinkGuide(): void
+    {
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER1;
+        $lineUserId = $this->linkUser($userId);
+        $event = $this->createEvent();
+        $row = $this->createAnsweredRow($event->id, $userId);
+        getModelName(SystemTableName::USER)::find($userId)->delete();
+
+        $this->postWebhook(['events' => [
+            $this->messageEvent('退職後のメッセージ', $lineUserId),
+        ]])->assertStatus(200);
+
+        $fresh = $this->freshAnswerRow($row->id);
+        $this->assertNull(array_get($fresh->value, 'comment'), 'The LINE account of a deleted user must not comment for them.');
+        $this->assertEquals(exmtrans('line.link_syntax_guide'), $this->lastReplyText(), 'A link to a deleted user counts as no link.');
     }
 
     public function testTextBeforeAnsweringIsNotAttachedAsComment(): void
