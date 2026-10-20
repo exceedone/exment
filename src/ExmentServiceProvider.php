@@ -31,6 +31,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -381,6 +382,16 @@ class ExmentServiceProvider extends ServiceProvider
         $kernel = $this->app->make(Kernel::class);
         foreach ($this->middleware as $middleware) {
             $kernel->pushMiddleware($middleware);
+        }
+
+        // Exment's API routes use the "api" group and its "api" rate limiter (RouteServiceProvider).
+        // The Laravel 10 app Kernel had "throttle:api" in that group; Laravel 11+ adds it only when
+        // bootstrap/app.php calls throttleApi(), so add it here unless the app already throttles the group.
+        $apiGroup = $kernel->getMiddlewareGroups()['api'] ?? null;
+        if (is_array($apiGroup) && !collect($apiGroup)->contains(function ($m) {
+            return is_string($m) && (str_starts_with($m, 'throttle') || str_starts_with($m, ThrottleRequests::class));
+        })) {
+            $kernel->prependMiddlewareToGroup('api', 'throttle:api');
         }
 
         // register route middleware.

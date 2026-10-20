@@ -35,6 +35,11 @@ final class ColumnOptions
     private const LISTS_PER_OPTION = 10;
 
     /**
+     * liveValues asks this many existence probes in one query.
+     */
+    private const PROBES_PER_QUERY = 100;
+
+    /**
      * @param CustomTable $table    the table whose rows are filtered
      * @param mixed $column         CustomColumn of $table
      * @param callable|null $scope  receives a query on $table's rows: what the rows in view are
@@ -270,6 +275,8 @@ final class ColumnOptions
      * table has no soft-deleted row (hasTrashed); otherwise one index-hinted existence
      * probe per value (0.2 ms each — without the hint the optimizer prefers the deleted_at
      * index again), the plain probe when the hint is refused (index renamed or gone).
+     * The probes are asked PROBES_PER_QUERY at a time, as subqueries of one SELECT: each
+     * still compares the column with its value alone (collation, numbers), as one query would.
      *
      * @param mixed $column  CustomColumn
      * @param string[] $values
@@ -284,9 +291,26 @@ final class ColumnOptions
         $grammar = \DB::getQueryGrammar();
         $hinted = \DB::raw($grammar->wrap(getDBTableName($table)) . ' USE INDEX (' . $grammar->wrap('index_' . $name) . ')');
         $live = function ($from) use ($name, $values) {
-            return array_values(array_filter($values, function ($v) use ($from, $name) {
-                return \DB::table($from)->where($name, $v)->whereNull('deleted_at')->exists();
-            }));
+            $kept = [];
+            foreach (array_chunk($values, self::PROBES_PER_QUERY) as $chunk) {
+                $query = \DB::query();
+                foreach ($chunk as $i => $v) {
+                    $query->selectSub(function ($probe) use ($from, $name, $v) {
+                        $probe->from($from)
+                            ->selectRaw('1')
+                            ->where($name, $v)
+                            ->whereNull('deleted_at')
+                            ->limit(1);
+                    }, 'p' . $i);
+                }
+                $found = (array) $query->first();
+                foreach ($chunk as $i => $v) {
+                    if (isset($found['p' . $i])) {
+                        $kept[] = $v;
+                    }
+                }
+            }
+            return $kept;
         };
         try {
             return $live($hinted);

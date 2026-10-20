@@ -10,10 +10,20 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\TestDefine;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 
 abstract class ApiTestBase extends FeatureTestBase
 {
     use TestTrait;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The API tests call the API many times as the same user: the "api" rate limit (60 per minute)
+        // would refuse them with 429. ApiThrottleTest tests the rate limit.
+        $this->withoutMiddleware(ThrottleRequests::class);
+    }
 
     /**
      * Get Client Id and Secret
