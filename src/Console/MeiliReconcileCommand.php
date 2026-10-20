@@ -52,6 +52,11 @@ class MeiliReconcileCommand extends Command
         }
 
         $indexName = config('meilisearch.index');
+
+        if (!$this->assertIndexOwned($client, (string) $indexName)) {
+            return self::FAILURE;
+        }
+
         $mapper = new DocumentMapper();
         $service = new MeiliSearchService($client, $indexName);
         $indexer = new ExmentIndexer($client, $mapper, $indexName, (int) config('meilisearch.batch_size', 1000));

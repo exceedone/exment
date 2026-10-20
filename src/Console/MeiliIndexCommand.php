@@ -37,6 +37,11 @@ class MeiliIndexCommand extends Command
         }
 
         $indexName = config('meilisearch.index');
+
+        if (!$this->assertIndexOwned($client, (string) $indexName)) {
+            return self::FAILURE;
+        }
+
         $indexer = new ExmentIndexer(
             $client,
             new DocumentMapper(),

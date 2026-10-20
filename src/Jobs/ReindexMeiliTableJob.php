@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
+use Exceedone\Exment\Services\Meili\MeiliIndexOwnership;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueModelScope;
@@ -307,7 +308,15 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         // Table gone or no longer search-enabled: this is the ONLY case that wipes.
         $table = CustomTable::getEloquent($this->tableName);
         if (!$this->shouldIndex($table)) {
-            $task = $index->deleteDocuments(['filter' => self::tableFilter($this->tableName)]);
+            try {
+                $task = $index->deleteDocuments(['filter' => self::tableFilter($this->tableName)]);
+            } catch (\Throwable $e) {
+                // No index yet -> no documents to drop, which is the result asked for.
+                if (MeiliIndexOwnership::isNotFound($e)) {
+                    return;
+                }
+                throw $e;
+            }
             $this->awaitTask($client, $task, 'de-index');
             return;
         }
@@ -390,6 +399,12 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
      */
     private function removeOrphans($client, string $indexName, CustomTable $table, DocumentMapper $mapper, int $offset, string $hash): void
     {
+        // A search-enabled table with no rows reaches the scan with the index
+        // never created - the slice only builds it when it has documents to
+        // write - and reading a missing index throws out of handle(), which on
+        // a real worker means three tries and an entry in failed_jobs.
+        \Exceedone\Exment\Services\Meili\ExmentIndexer::ensureIndexExists($client, $indexName, 60);
+
         // The budget counts from here: this job does nothing but the scan.
         $deadline = microtime(true) + static::orphanScanSeconds($this->timeout);
 

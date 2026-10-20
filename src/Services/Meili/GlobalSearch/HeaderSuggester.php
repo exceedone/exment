@@ -18,18 +18,66 @@ class HeaderSuggester
     {
     }
 
+    /** Suggestions the header shows. */
+    public const LIMIT = 10;
+
+    /** How much wider than LIMIT the first read is, and how much each retry grows by. */
+    public const OVER_FETCH = 4;
+
+    /** Hits one keystroke may read at most, however many get dropped. */
+    public const MAX_FETCH = 400;
+
     /**
      * @return array<int,array<string,mixed>>
      */
     public function suggest(string $q): array
     {
-        $limit = 10;
         // Constrain to tables the user may view, then over-fetch: the row-level
-        // scope below can still drop hits, but never a whole table's worth.
-        $hits = $this->service->searchHighlighted($q, $limit * 4, [
-            'permitted_tables' => SavedSearchService::searchableTableNames(),
-        ]);
+        // scope and the readability checks below still drop hits.
+        $permitted = SavedSearchService::searchableTableNames();
+        $fetch = self::LIMIT * self::OVER_FETCH;
 
+        // Reading LIMIT * OVER_FETCH once and filtering afterwards returns fewer
+        // than LIMIT suggestions whenever most of the early hits are ones this
+        // viewer may not be shown - while further hits that would have passed sit
+        // just outside the window. So widen the read until LIMIT suggestions
+        // survive, the index runs out of hits, or MAX_FETCH is reached.
+        while (true) {
+            $hits = $this->service->searchHighlighted($q, $fetch, ['permitted_tables' => $permitted]);
+            $results = $this->renderHits($hits, self::LIMIT);
+
+            if (!self::needsWiderFetch(count($results), count($hits), $fetch)) {
+                return $results;
+            }
+
+            $fetch = self::nextFetch($fetch);
+        }
+    }
+
+    /**
+     * Whether reading further into the hits is worth another query: short of
+     * LIMIT suggestions, Meilisearch filled the window it was given (so there
+     * are more hits to read), and the ceiling is not reached yet.
+     */
+    public static function needsWiderFetch(int $found, int $hitsRead, int $fetch): bool
+    {
+        return $found < self::LIMIT && $hitsRead >= $fetch && $fetch < self::MAX_FETCH;
+    }
+
+    /** The next, wider read - never past MAX_FETCH. */
+    public static function nextFetch(int $fetch): int
+    {
+        return min(self::MAX_FETCH, max(1, $fetch) * self::OVER_FETCH);
+    }
+
+    /**
+     * Turn hits into suggestions, dropping the ones this viewer may not be shown.
+     *
+     * @param  array<int,array<string,mixed>>  $hits
+     * @return array<int,array<string,mixed>>
+     */
+    private function renderHits(array $hits, int $limit): array
+    {
         // Record permission filter: queries automatically apply the
         // CustomValueModelScope global scope.
         $accessible = $this->accessibleModels($hits);

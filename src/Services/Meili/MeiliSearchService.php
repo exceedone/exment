@@ -511,6 +511,63 @@ class MeiliSearchService
     }
 
     /**
+     * Several facet distributions in ONE request (Meilisearch multi-search).
+     *
+     * The filter sidebar needs a distribution per permission scope and per
+     * checkbox group. Those are independent queries, and asked one at a time
+     * they cost a network round trip each - which is what makes the sidebar slow
+     * against a Meilisearch that is not on localhost.
+     *
+     * Multi-search is all or nothing: one unusable query fails the request, so
+     * callers that must tolerate that keep a one-at-a-time path.
+     *
+     * @param array<int,array{filters:MeiliFilters,attributes:array<int,string>,searchOn?:array<int,string>|null}> $queries
+     * @return array<int,array<string,array<string,int>>> one distribution per query, in the same order
+     */
+    public function searchDistributionsBatch(string $q, array $queries): array
+    {
+        if (empty($queries)) {
+            return [];
+        }
+
+        $strategy = config('meilisearch.matching_strategy');
+        $built = [];
+
+        foreach ($queries as $spec) {
+            $search = (new \Meilisearch\Contracts\SearchQuery())
+                ->setIndexUid($this->indexName)
+                ->setQuery(self::normalizeQuery($q))
+                ->setLimit(0)
+                ->setFacets(array_values($spec['attributes']));
+
+            $expr = self::buildFilterExpression(null, $spec['filters']);
+            if ($expr !== '') {
+                $search->setFilter([$expr]);
+            }
+
+            $searchOn = $spec['searchOn'] ?? null;
+            if ($searchOn !== null) {
+                $search->setAttributesToSearchOn(array_values($searchOn));
+            }
+
+            if (!empty($strategy)) {
+                $search->setMatchingStrategy($strategy);
+            }
+
+            $built[] = $search;
+        }
+
+        $response = (array) $this->client->multiSearch($built);
+
+        $out = [];
+        foreach ((array) ($response['results'] ?? []) as $result) {
+            $out[] = (array) (((array) $result)['facetDistribution'] ?? []);
+        }
+
+        return $out;
+    }
+
+    /**
      * Split a "column=value" token at the first '='.
      *
      * @return array{col:string,value:string}

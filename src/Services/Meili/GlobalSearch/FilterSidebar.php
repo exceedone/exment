@@ -105,14 +105,57 @@ class FilterSidebar
             return $this->service->searchDistributions($q, $filters, $attributes);
         }
 
-        $safe = array_values(array_diff($permitted, $restricted));
-        $dist = empty($safe)
-            ? []
-            : $this->service->searchDistributions(
-                $q,
-                array_merge($filters, ['permitted_tables' => $safe]),
-                $attributes
+        $specs = $this->distributionSpecs($filters, $attributes, $permitted, $restricted);
+        if (empty($specs)) {
+            return [];
+        }
+
+        // One request for every scope at once. Asked one at a time these cost a
+        // round trip each, and this method is called once per checkbox group the
+        // viewer has ticked - so a sidebar used to cost (1 + groups) x (1 +
+        // restricted tables) trips to Meilisearch.
+        try {
+            $dist = [];
+            foreach ($this->service->searchDistributionsBatch($q, $specs) as $one) {
+                $dist = self::sumDistributions($dist, $one);
+            }
+
+            return $dist;
+        } catch (\Throwable $e) {
+            // Multi-search answers all or nothing, so one scope Meilisearch
+            // cannot count would empty the whole sidebar. Ask one at a time
+            // instead, which leaves out only that scope.
+            \Illuminate\Support\Facades\Log::warning(
+                '[Meili] batched facet counts unavailable, falling back to one query per scope: ' . $e->getMessage()
             );
+
+            return $this->distributionsOneByOne($q, $filters, $attributes, $permitted, $restricted);
+        }
+    }
+
+    /**
+     * One distribution query per permission scope: the tables whose indexed
+     * content this viewer may read in full counted together, then each
+     * restricted table on its own over only the attributes readable in it.
+     *
+     * @param array<string,mixed> $filters
+     * @param array<int,string> $attributes
+     * @param array<int,string> $permitted
+     * @param array<int,string> $restricted
+     * @return array<int,array{filters:array<string,mixed>,attributes:array<int,string>,searchOn:array<int,string>|null}>
+     */
+    private function distributionSpecs(array $filters, array $attributes, array $permitted, array $restricted): array
+    {
+        $specs = [];
+
+        $safe = array_values(array_diff($permitted, $restricted));
+        if (!empty($safe)) {
+            $specs[] = [
+                'filters' => array_merge($filters, ['permitted_tables' => $safe]),
+                'attributes' => $attributes,
+                'searchOn' => null,
+            ];
+        }
 
         $selectedTables = (array) ($filters['tables'] ?? []);
         foreach ($restricted as $tableName) {
@@ -121,23 +164,42 @@ class FilterSidebar
                 continue;
             }
 
+            $specs[] = [
+                'filters' => array_merge($filters, ['permitted_tables' => [$tableName], 'tables' => [$tableName]]),
+                'attributes' => $attributes,
+                'searchOn' => ReadableAttributes::forTable($tableName),
+            ];
+        }
+
+        return $specs;
+    }
+
+    /**
+     * The pre-multi-search path, kept for the case where one scope cannot be
+     * counted: a restricted table whose count fails is left out rather than
+     * taken from the unrestricted query (fail closed).
+     *
+     * @param array<string,mixed> $filters
+     * @param array<int,string> $attributes
+     * @param array<int,string> $permitted
+     * @param array<int,string> $restricted
+     * @return array<string,array<string,int>>
+     */
+    private function distributionsOneByOne(string $q, array $filters, array $attributes, array $permitted, array $restricted): array
+    {
+        $dist = [];
+
+        foreach ($this->distributionSpecs($filters, $attributes, $permitted, $restricted) as $spec) {
             try {
-                $own = $this->service->searchDistributions(
-                    $q,
-                    array_merge($filters, ['permitted_tables' => [$tableName], 'tables' => [$tableName]]),
-                    $attributes,
-                    ReadableAttributes::forTable($tableName)
-                );
+                $one = $this->service->searchDistributions($q, $spec['filters'], $spec['attributes'], $spec['searchOn']);
             } catch (\Throwable $e) {
-                // Fail closed: a count that cannot be recomputed is left out
-                // rather than taken from the unrestricted query.
                 \Illuminate\Support\Facades\Log::warning(
-                    "[Meili] restricted facet count of '{$tableName}' unavailable: " . $e->getMessage()
+                    '[Meili] a restricted facet count is unavailable: ' . $e->getMessage()
                 );
                 continue;
             }
 
-            $dist = self::sumDistributions($dist, $own);
+            $dist = self::sumDistributions($dist, $one);
         }
 
         return $dist;

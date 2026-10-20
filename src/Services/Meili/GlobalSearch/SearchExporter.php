@@ -58,6 +58,14 @@ class SearchExporter
         // there is no page 2 to fetch. Compare against the ceiling Meilisearch
         // can really reach - a permission_scan_cap raised above the index's
         // maxTotalHits is unreachable, and the guard would never fire.
+        //
+        // Counted BEFORE the permission scope below narrows $ids, and that is
+        // deliberate: the rows this viewer may see are spread through the whole
+        // match set, not just its first $cap entries. Counting the permitted
+        // rows instead would pass a set of 5 that is really the first 5 of many
+        // and write a file that is silently missing the rest. The number in the
+        // message is the cap, never the match count, so it tells the user
+        // nothing about records they cannot see.
         $limit = self::effectiveCap($cap, $this->service->maxTotalHits());
         if (count($ids) >= $limit) {
             admin_toastr(sprintf(exmtrans('search.export_too_many'), $limit), 'error');
