@@ -402,7 +402,7 @@ trait WorkflowDesignTrait
             }
 
             $status_map = $this->saveDesignStatuses($workflow, array_get($payload, 'statuses', []), $activated);
-            $action_map = $this->saveDesignActions($workflow, array_get($payload, 'actions', []), $status_map);
+            $action_map = $this->saveDesignActions($workflow, (array)array_get($payload, 'actions', []), $status_map);
 
             $this->saveDesignLayout($workflow, array_get($payload, 'layout', []), $status_map);
 
@@ -1000,8 +1000,14 @@ trait WorkflowDesignTrait
         }
 
         // ---- アクション ----
+        // A hand made request can send anything here, and count() on a string,
+        // number or null throws a TypeError (HTTP 500). Refused with its own
+        // message rather than read as a list of one bad action.
         $actions = array_get($payload, 'actions', []);
-        if (count($actions) === 0) {
+        if (!is_array($actions)) {
+            $errors[] = trans('validation.array', ['attribute' => exmtrans('workflow.workflow_actions')]);
+            $actions = [];
+        } elseif (count($actions) === 0) {
             $errors[] = $required(exmtrans('workflow.workflow_actions'));
         }
 
