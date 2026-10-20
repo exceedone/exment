@@ -3361,7 +3361,7 @@ return [
     
     'chart' => [
         'chartitem_label' => 'Chart Label',
-        'chartitem_manual' => 'Chart Setting',
+        'chartitem_manual' => 'chart-settings-details',
 
         'chart_type_options' => [
             'bar' => 'Bar chart',
