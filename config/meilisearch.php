@@ -13,6 +13,12 @@ return [
 
     'timeout' => (float) env('MEILISEARCH_TIMEOUT', 5.0),
 
+    // Seconds to treat a Meilisearch that could not be reached as still down.
+    // Enforced for every call, in MeiliClientFactory: without it each call made
+    // during an outage pays the connect timeout again - one per save, and
+    // several per search page. 0 disables.
+    'unreachable_backoff' => (int) env('MEILISEARCH_UNREACHABLE_BACKOFF', 10),
+
     'index' => env('MEILISEARCH_INDEX', 'exment_global'),
 
     'batch_size' => (int) env('MEILISEARCH_BATCH_SIZE', 1000),

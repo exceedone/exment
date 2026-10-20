@@ -66,7 +66,19 @@ class ExmentIndexer
             return false;
         }
 
-        return ($mark['index'] ?? null) === config('meilisearch.index');
+        $indexName = (string) config('meilisearch.index');
+        if (($mark['index'] ?? null) !== $indexName) {
+            return false;
+        }
+
+        // An index another installation owns holds that installation's records:
+        // searching it would answer this installation's users with content from
+        // a system they have no account on. MySQL is the honest answer instead.
+        try {
+            return MeiliIndexOwnership::isOwned(MeiliClientFactory::make(), $indexName);
+        } catch (\Throwable $e) {
+            return true;    // cannot tell (no SDK, no client) -> behave as before
+        }
     }
 
     /**
@@ -274,22 +286,64 @@ class ExmentIndexer
         if ($maxAge > 0 && time() - (self::$seenAt[$indexName] ?? 0) < $maxAge) {
             return;
         }
+
+        // $seenAt is written on success only, so it never shortens an outage.
+        // What keeps an outage from costing every single save a fresh connect
+        // timeout is the breaker in MeiliClientFactory, which covers the search
+        // path's calls too.
         try {
-            $configured = in_array('table_name', $client->index($indexName)->getFilterableAttributes(), true);
+            // An index another installation owns must not be touched at all: its
+            // documents would be overwritten here and deleted as orphans later.
+            MeiliIndexOwnership::claim($client, $indexName);
+
+            if (!self::indexIsConfigured($client, $indexName)) {
+                self::buildIndex($client, $indexName);
+            }
+        } catch (\Meilisearch\Exceptions\CommunicationException $e) {
+            // Never mark the index as seen on an outage: the next call has to
+            // check again once the breaker lets a call through.
+            throw $e;
+        }
+
+        self::$seenAt[$indexName] = time();
+    }
+
+    /**
+     * Whether the index is there AND configured; false when it does not exist
+     * at all, which is a thing to fix rather than an error to report.
+     */
+    private static function indexIsConfigured(Client $client, string $indexName): bool
+    {
+        try {
+            return in_array('table_name', $client->index($indexName)->getFilterableAttributes(), true);
         } catch (\Meilisearch\Exceptions\ApiException $e) {
             if ($e->httpStatus !== 404) {
                 throw $e;
             }
-            $configured = false;
+
+            return false;
         }
-        if (!$configured) {
-            (new self($client, new DocumentMapper(), $indexName, (int) config('meilisearch.batch_size')))->ensureIndex();
-        }
-        self::$seenAt[$indexName] = time();
+    }
+
+    private static function buildIndex(Client $client, string $indexName): void
+    {
+        (new self($client, new DocumentMapper(), $indexName, (int) config('meilisearch.batch_size')))->ensureIndex();
+    }
+
+    /** Forget this process's index probes (tests, and after the host changes). */
+    public static function forgetIndexProbes(): void
+    {
+        self::$seenAt = [];
+        MeiliClientFactory::forgetUnreachable();
+        MeiliIndexOwnership::forget();
     }
 
     public function ensureIndex(): void
     {
+        // Every path that writes documents arrives here first, so this is where
+        // an index belonging to another installation is refused.
+        MeiliIndexOwnership::claim($this->client, $this->indexName);
+
         try {
             $task = $this->client->createIndex($this->indexName, ['primaryKey' => 'id']);
             $this->client->waitForTask($task['taskUid'], 60000);

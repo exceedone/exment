@@ -44,4 +44,27 @@ trait MeiliCommandTrait
 
         return true;
     }
+
+    /**
+     * Refuse to touch an index that belongs to a different Exment installation.
+     *
+     * Without this, `exment:meili-reconcile` on one installation deletes the
+     * other's documents as orphans, and `exment:meili-index` overwrites them.
+     *
+     * @param \Meilisearch\Client $client
+     */
+    protected function assertIndexOwned($client, string $indexName): bool
+    {
+        try {
+            \Exceedone\Exment\Services\Meili\MeiliIndexOwnership::claim($client, $indexName);
+        } catch (\Exceedone\Exment\Exceptions\MeiliForeignIndexException $e) {
+            $this->error($e->getMessage());
+
+            return false;
+        } catch (\Throwable $e) {
+            $this->warn('Could not verify who owns the index: ' . $e->getMessage());
+        }
+
+        return true;
+    }
 }
