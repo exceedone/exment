@@ -183,6 +183,31 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $this->assertEquals('start', $this->reload($cv)->workflow_status_name, 'An unlinked user must not change the status.');
     }
 
+    public function testPostbackFromDeletedUserDoesNotChangeStatus(): void
+    {
+        Bus::fake();
+
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $cv = $this->createWorkflowValue('postback deleted user');
+        $action = $cv->getWorkflowActions(true, false)
+            ->first(function ($a) { return $a->action_name === 'middle_action'; });
+        $this->assertNotNull($action, 'Fixture: user1 must have middle_action at start.');
+
+        $lineUserId = 'Upostbackdeleted';
+        LineAccountLink::forUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1)->markLinked($lineUserId);
+
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        getModelName(SystemTableName::USER)::find(TestDefine::TESTDATA_USER_LOGINID_USER1)->delete();
+
+        $tableKey = $cv->custom_table->table_name;
+        $data = LineFlexBuilder::postbackData($tableKey, $cv->id, $action->id);
+
+        $this->postPostback($data, $lineUserId)->assertStatus(200);
+
+        $this->assertEquals('start', $this->reload($cv)->workflow_status_name, 'The LINE account of a deleted user must not act for them.');
+        $this->assertEquals(exmtrans('line.account_not_linked'), $this->lastReplyText());
+    }
+
     public function testPostbackForActionUserHasNoAuthorityDoesNotChangeStatus(): void
     {
         Bus::fake();

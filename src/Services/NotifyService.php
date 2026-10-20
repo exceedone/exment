@@ -473,7 +473,8 @@ class NotifyService
         }
 
         $userId = $user->getUserId();
-        if (is_nullorempty($userId)) {
+        // a target such as "created user" is read with trashed users, but a deleted user keeps its LINE link
+        if (is_nullorempty($userId) || !\Exceedone\Exment\Services\Line\LineActingUser::userExists((int) $userId)) {
             return;
         }
         $lineUserId = \Exceedone\Exment\Model\LineAccountLink::where('user_id', $userId)->value('line_user_id');

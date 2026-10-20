@@ -1026,6 +1026,10 @@ abstract class CustomValue extends ModelBase
             WorkflowTaskRead::withoutGlobalScopes()
                 ->where('target_user_id', $this->id)
                 ->delete();
+
+            // and its LINE link, so that LINE account can be linked to another user.
+            // A soft delete keeps it, so a restore keeps the link.
+            LineAccountLink::where('user_id', $this->id)->delete();
         }
 
         // the deleting user sees this record leave their own task list on their very next

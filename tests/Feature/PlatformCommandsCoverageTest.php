@@ -116,7 +116,7 @@ class PlatformCommandsCoverageTest extends FeatureTestBase
         $this->assertTrue($link->hasActiveCode(), 'the code is stored with an expiry in the future');
         $this->assertNull($link->line_user_id);
         $code = (string) $link->line_link_code;
-        $this->assertMatchesRegularExpression('/^[0-9A-F]{6}$/', $code);
+        $this->assertMatchesRegularExpression('/^[0-9A-F]{12}$/', $code);
         $this->assertStringContainsString(exmtrans('line.linkcode_code', $code), $output);
         $this->assertStringContainsString('Deep link: ' . (new LineAccountLinker())->deepLink($code), $output);
     }

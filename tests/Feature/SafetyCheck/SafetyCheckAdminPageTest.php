@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 
 use Exceedone\Exment\Controllers\SafetyCheckController;
 use Exceedone\Exment\Jobs\LineSendJob;
+use Exceedone\Exment\Jobs\SafetyCheckSendJob;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\LoginUser;
@@ -325,7 +326,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         Bus::assertNotDispatched(LineSendJob::class);
     }
 
-    public function testSendLockOutlivesALongSyncSend(): void
+    public function testSendLockOutlivesALongSend(): void
     {
         $this->assertGreaterThanOrEqual(600, SafetyCheckController::SEND_LOCK_SECONDS);
     }
@@ -340,6 +341,42 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
 
         $countAfter = CustomTable::getEloquent('safety_check_event')->getValueQuery()->count();
         $this->assertEquals($countBefore + 2, $countAfter);
+    }
+
+    public function testSendRunsAfterTheResponseAndKeepsTheLockUntilThen(): void
+    {
+        Bus::fake([LineSendJob::class, SafetyCheckSendJob::class]);
+
+        $this->post('admin/safety_check/send', ['title' => 'After response', 'trigger_type' => 'manual'])->assertStatus(302);
+
+        $event = $this->latestEvent();
+        $this->assertNotNull($event, 'The event itself is created before the response.');
+        Bus::assertDispatchedAfterResponse(SafetyCheckSendJob::class);
+        $this->assertCount(0, $this->answerRows($event->id), 'The admin must not wait for the rows, mails and LINE messages of every user.');
+        $this->assertTrue(\Cache::has(SafetyCheckController::sendLockKey()), 'A second click must stay refused until the send has run.');
+    }
+
+    public function testResendRunsAfterTheResponse(): void
+    {
+        Bus::fake([LineSendJob::class, SafetyCheckSendJob::class]);
+        $event = $this->createEvent();
+
+        $this->post("admin/safety_check/{$event->id}/resend")->assertStatus(302);
+
+        Bus::assertDispatchedAfterResponse(SafetyCheckSendJob::class);
+        $this->assertCount(0, $this->answerRows($event->id));
+    }
+
+    public function testSendJobSendsAndReleasesTheLock(): void
+    {
+        $event = $this->createEvent();
+        $lockKey = SafetyCheckController::sendLockKey();
+        \Cache::add($lockKey, 1, SafetyCheckController::SEND_LOCK_SECONDS);
+
+        (new SafetyCheckSendJob($event, false, $lockKey))->handle();
+
+        $this->assertEquals($this->totalUserCount(), $this->answerRows($event->id)->count());
+        $this->assertFalse(\Cache::has($lockKey), 'The lock must go once the send is done.');
     }
 
     public function testCloseSetsEventStatusClosed(): void
