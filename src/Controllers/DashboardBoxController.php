@@ -280,20 +280,28 @@ class DashboardBoxController extends AdminControllerBase
         if (!$request->boolean('reset') && (!in_array($kind, [ChartColors::POINT, ChartColors::SERIES], true) || !is_scalar($key) || mb_strlen((string) $key) > 255)) {
             return response()->json(['status' => false], 422);
         }
-        $options = $box->options ?? [];
-        $painted = ChartColors::fromOption(array_get($options, 'chart_colors'));
-        if (!$request->boolean('reset') && !$painted->accepts($kind, (string) $key, $request->input('color'))) {
-            return response()->json(['status' => false], 422);
-        }
-        $colors = $request->boolean('reset') ? [] : $painted->with($kind, (string) $key, $request->input('color'));
-        if (empty($colors)) {
-            unset($options['chart_colors']);
-        } else {
-            $options['chart_colors'] = $colors;
-        }
-        $box->options = $options;
-        $box->save();
-        return response()->json(['status' => true]);
+        // read the colors again under a row lock: a paint posted at the same time waits, then
+        // adds its color to these ones instead of writing back the colors it read before
+        return \ExmentDB::transaction(function () use ($request, $box, $kind, $key) {
+            $box = DashboardBox::query()->lockForUpdate()->find($box->id);
+            if (!$box instanceof DashboardBox) {
+                return response()->json(['status' => false], 404);
+            }
+            $options = $box->options ?? [];
+            $painted = ChartColors::fromOption(array_get($options, 'chart_colors'));
+            if (!$request->boolean('reset') && !$painted->accepts($kind, (string) $key, $request->input('color'))) {
+                return response()->json(['status' => false], 422);
+            }
+            $colors = $request->boolean('reset') ? [] : $painted->with($kind, (string) $key, $request->input('color'));
+            if (empty($colors)) {
+                unset($options['chart_colors']);
+            } else {
+                $options['chart_colors'] = $colors;
+            }
+            $box->options = $options;
+            $box->save();
+            return response()->json(['status' => true]);
+        });
     }
 
     /**
