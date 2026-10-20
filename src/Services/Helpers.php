@@ -1464,19 +1464,12 @@ if (!function_exists('hasTable')) {
         $tables = System::cache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
             // get all table names
             try {
-                $config = DB::getConfig();
-
-                $conn = \Doctrine\DBAL\DriverManager::getConnection([
-                    'dbname'   => $config['database'],
-                    'user'     => $config['username'],
-                    'password' => $config['password'],
-                    'host'     => $config['host'],
-                    'port'     => $config['port'],
-                    'driver'   => 'pdo_mysql',
-                    'charset'  => $config['charset'] ?? 'utf8mb4',
-                ]);
-
-                return $conn->createSchemaManager()->listTableNames();
+                // Through the connection's own schema builder, so it follows
+                // whichever driver is configured (MySQL, MariaDB, SQL Server)
+                // and its socket / SSL / read-write settings. A separate DBAL
+                // connection built from host and port only would fail on any of
+                // those, and the empty list below would then read as "no tables".
+                return \Schema::getTableListing();
             } catch (\Throwable $e) {
                 \Log::error('Error fetching table names: ' . $e->getMessage());
                 return [];

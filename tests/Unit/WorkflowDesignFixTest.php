@@ -341,6 +341,42 @@ class WorkflowDesignFixTest extends UnitTestBase
     }
 
     /**
+     * "actions" is posted by a script, so it can be anything. Counting it
+     * threw a TypeError for a string, a number or null - an HTTP 500 instead
+     * of the validation error the rest of the payload gets.
+     *
+     * @return void
+     */
+    public function testDesignerRefusesActionsThatAreNotAList()
+    {
+        $before = Workflow::count();
+        $table_id = CustomTable::getEloquent('custom_value_edit')->id;
+
+        foreach (['not a list', 5, true, null] as $actions) {
+            $payload = $this->newTablePayload($table_id);
+            $payload['actions'] = $actions;
+
+            $response = $this->createDesign($payload);
+            $this->assertSame(422, $response->getStatusCode(), 'actions = ' . var_export($actions, true) . ' must be refused: ' . $response->getContent());
+
+            // said as "must be an array", not read as one action with no name
+            $errors = (array)array_get(json_decode($response->getContent(), true), 'errors', []);
+            $this->assertSame(
+                [trans('validation.array', ['attribute' => exmtrans('workflow.workflow_actions')])],
+                array_values(array_filter($errors, function ($error) {
+                    return strpos($error, exmtrans('workflow.workflow_actions')) !== false;
+                })),
+                'actions = ' . var_export($actions, true)
+            );
+        }
+        $this->assertSame($before, Workflow::count(), 'No workflow may be created.');
+
+        // and the same payload with a real list still goes through
+        $response = $this->createDesign($this->newTablePayload($table_id));
+        $this->assertSame(200, $response->getStatusCode(), $response->getContent());
+    }
+
+    /**
      * The designer's boot data is printed into a script block. A name such as
      * "<!--<script>" must not be able to change how the browser reads it.
      *
