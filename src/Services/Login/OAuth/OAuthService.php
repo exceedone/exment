@@ -291,7 +291,9 @@ class OAuthService implements LoginServiceInterface
 
             // get Expired at
             $now = \Carbon\Carbon::now();
-            $expiresAt = $now->addSeconds($expiresIn);
+            // (int): some providers send "expires_in" as a string, which Carbon 3 refuses;
+            // a missing value stays 0 seconds, as before
+            $expiresAt = $now->addSeconds((int) $expiresIn);
 
             // get access token by user setting
             $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
