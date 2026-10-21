@@ -773,7 +773,8 @@ class Notify extends ModelBase
 
             foreach ($mail_send_histories as $mail_send_log) {
                 // If user were sending within 5 minutes, false
-                $skip_mitutes = config('exment.notify_saved_skip_minutes', 5);
+                // (int): read from .env as a string, which Carbon 3 refuses
+                $skip_mitutes = (int) config('exment.notify_saved_skip_minutes', 5);
                 $send_datetime = (new Carbon($mail_send_log->getValue('send_datetime')))
                     ->addMinutes($skip_mitutes);
                 $now = Carbon::now();

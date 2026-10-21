@@ -129,3 +129,11 @@
 .cc-pop .cc-hexin { font-family: monospace; text-transform: uppercase; }
 .cc-pop .cc-mode { margin-top: 1px; }
 .cc-pop .cc-pick-foot { display: flex; justify-content: flex-end; margin-top: 8px; }
+
+/* ---- box header ---------------------------------------------------------------------- */
+/* The AdminLTE 2 rule `.box-header > .box-tools { position: absolute; right: 10px }` laid the
+   buttons over the title of the box's flex header (AdminLTE 4 layout): the tools take their
+   place in the row, and a title too long for the rest is cut with "…" (full text on hover) */
+.box-dashboard > .box-header { align-items: center; gap: 6px; }
+.box-dashboard > .box-header > .box-title { flex: 1 1 auto; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.box-dashboard > .box-header > .box-tools { position: static; flex: 0 0 auto; white-space: nowrap; }

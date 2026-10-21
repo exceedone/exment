@@ -43,8 +43,10 @@ class ChartSorter
      * A single-series result {chart_label, chart_data, chart_fields?, chart_click?} with its
      * points re-ordered. `chart_fields[i]` = the texts of X column i, one per point; without
      * it the label stands in for `x0`. An X index the chart does not have leaves it as is.
+     * `sort_keys[i]` (a numeric X column only) = its stored numbers, one per point: such a
+     * column is ordered by number, not by its formatted text ("1,000", "-5", "1.25").
      *
-     * @param array{chart_label?: iterable<mixed>|null, chart_data?: iterable<mixed>|null, chart_fields?: array<int, iterable<mixed>>, ...<string, mixed>} $result
+     * @param array{chart_label?: iterable<mixed>|null, chart_data?: iterable<mixed>|null, chart_fields?: array<int, iterable<mixed>>, sort_keys?: array<int, iterable<mixed>>, ...<string, mixed>} $result
      * @return array<string, mixed>
      */
     public static function applySingle(array $result, ChartSort $sort): array
@@ -57,6 +59,8 @@ class ChartSorter
 
         if ($sort->byValue()) {
             $order = static::order($values, $sort->desc, true);
+        } elseif (($keys = static::numericKeys($result, $sort->xIndex())) !== null) {
+            $order = static::order($keys, $sort->desc, true);
         } elseif (isset($fields[$sort->xIndex()])) {
             $order = static::order($fields[$sort->xIndex()], $sort->desc, false);
         } else {
@@ -79,7 +83,8 @@ class ChartSorter
 
     /**
      * A multi-series result {x_categories, matrix[series][x], chart_click?} with its X
-     * categories re-ordered: by their text (`x0`) or by their total over the series (`y`).
+     * categories re-ordered: by their text (`x0`) — by their stored number for a numeric X
+     * column (`sort_keys[0]`) — or by their total over the series (`y`).
      *
      * @param array<string, mixed> $result
      * @return array<string, mixed>
@@ -98,7 +103,8 @@ class ChartSorter
             }
             $order = static::order($totals, $sort->desc, true);
         } elseif ($sort->xIndex() === 0) {
-            $order = static::order($categories, $sort->desc, false);
+            $keys = static::numericKeys($result, 0);
+            $order = $keys !== null ? static::order($keys, $sort->desc, true) : static::order($categories, $sort->desc, false);
         } else {
             return $result;
         }
@@ -116,6 +122,18 @@ class ChartSorter
     protected static function text($value): string
     {
         return is_scalar($value) ? (string) $value : '';
+    }
+
+    /**
+     * The stored numbers of X column $x when the result carries them (`sort_keys`), else null.
+     *
+     * @param array<string, mixed> $result
+     * @return mixed[]|null
+     */
+    protected static function numericKeys(array $result, int $x): ?array
+    {
+        $keys = $result['sort_keys'][$x] ?? null;
+        return is_iterable($keys) ? collect($keys)->values()->all() : null;
     }
 
     /**

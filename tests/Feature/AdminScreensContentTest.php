@@ -459,9 +459,14 @@ class AdminScreensContentTest extends FeatureTestBase
 
     public function testShareModals(): void
     {
+        // a view of the table in the URL: the share dialog of another table's view is denied
+        $table = CustomTable::getEloquent('custom_value_edit_all');
+        $view = CustomView::where('custom_table_id', $table->id)->orderBy('id')->first();
+        $this->assertNotNull($view, 'custom_value_edit_all has no view');
+        $view_id = $view->id;
         foreach ([
             'dashboard/1/shareClick' => ['dashboard/1/sendShares', 'data_share_edit[]', 'data_share_view[]'],
-            'view/custom_value_edit_all/1/shareClick' => ['view/custom_value_edit_all/1/sendShares', 'data_share_edit[]', 'data_share_view[]'],
+            "view/custom_value_edit_all/{$view_id}/shareClick" => ["view/custom_value_edit_all/{$view_id}/sendShares", 'data_share_edit[]', 'data_share_view[]'],
             'data/custom_value_edit_all/1/shareClick' => ['data/custom_value_edit_all/1/sendShares', 'custom_value_edit[]', 'custom_value_view[]'],
         ] as $path => [$action, $edit, $view]) {
             $share = $this->open($path);

@@ -112,20 +112,25 @@ trait ThrottlesLogins
     /**
      * Get the maximum number of attempts to allow.
      *
+     * Cast: the value comes from config, which reads .env as a string.
+     *
      * @return int
      */
     public function maxAttempts()
     {
-        return property_exists($this, 'maxAttempts') ? $this->maxAttempts : 5;
+        return (int) (property_exists($this, 'maxAttempts') ? $this->maxAttempts : 5);
     }
 
     /**
      * Get the number of minutes to throttle for.
      *
+     * Cast: the value comes from config, which reads .env as a string, and
+     * Carbon 3 (Laravel 12) refuses a numeric string in RateLimiter::hit().
+     *
      * @return int
      */
     public function decayMinutes()
     {
-        return property_exists($this, 'decayMinutes') ? $this->decayMinutes : 1;
+        return (int) (property_exists($this, 'decayMinutes') ? $this->decayMinutes : 1);
     }
 }

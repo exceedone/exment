@@ -760,7 +760,12 @@ class CustomViewController extends AdminControllerTableBase
     public function shareClick(Request $request, $tableKey, $id)
     {
         // get custom view
-        $custom_view = CustomView::getEloquent($id);
+        $custom_view = $this->viewOfTable($tableKey, $id);
+        // the dialog, like its save (sendShares), is for whoever may edit the view: the button
+        // is shown to them alone, the request itself is open to anyone who may view it
+        if (!isset($custom_view) || !$custom_view->hasEditPermission()) {
+            return getAjaxResponse(['result' => false, 'toastr' => trans('admin.deny')]);
+        }
 
         $form = DataShareAuthoritable::getShareDialogForm($custom_view, $tableKey);
 
@@ -778,13 +783,28 @@ class CustomViewController extends AdminControllerTableBase
     public function sendShares(Request $request, $tableKey, $id)
     {
         // get custom view
-        $custom_view = CustomView::getEloquent($id);
-        // ensure the view actually belongs to the table from the URL (prevents cross-table id usage)
-        if (!isset($custom_view) || !isset($custom_view->custom_table)
-            || (CustomTable::getEloquent($tableKey)?->id ?? null) != $custom_view->custom_table_id) {
+        $custom_view = $this->viewOfTable($tableKey, $id);
+        if (!isset($custom_view)) {
             return getAjaxResponse(['result' => false, 'toastr' => trans('admin.deny')]);
         }
         return DataShareAuthoritable::saveShareDialogForm($custom_view);
+    }
+
+    /**
+     * The view $id of the table $tableKey names in the URL, or null: a view of another table
+     * (a cross-table id) is not this table's to share.
+     *
+     * @param mixed $tableKey
+     * @param mixed $id
+     */
+    private function viewOfTable($tableKey, $id): ?CustomView
+    {
+        $custom_view = CustomView::getEloquent($id);
+        if (!$custom_view instanceof CustomView || !isset($custom_view->custom_table)
+            || (CustomTable::getEloquent($tableKey)?->id ?? null) != $custom_view->custom_table_id) {
+            return null;
+        }
+        return $custom_view;
     }
 
     /**

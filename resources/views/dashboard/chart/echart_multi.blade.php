@@ -14,6 +14,14 @@
         var type = '{{ $chart_type }}';
         var cartesian = ['mbar', 'sbar', 'mline', 'sarea'].indexOf(type) >= 0;
         var isLine = (type === 'mline' || type === 'sarea');
+        var stacked = (type === 'sbar' || type === 'sarea');
+        // a series' values as drawn: a stacked type piles the series up, and an empty cell
+        // (null: a MIN / MAX cell no row fell into) adds nothing to the pile — 0, not a gap
+        // that cuts every series above it; the other types keep the gap
+        function cellsOf(i) {
+            var row = matrix[i] || [];
+            return stacked ? row.map(function (v) { return v == null ? 0 : v; }) : row;
+        }
         // click-to-filter on the X category: {column, values[], selected[], highlight} when the X
         // column is a filter-bar item (else null) — ChartItem::clickFilter; cartesian series and
         // the heatmap only (treemap / sunburst / boxplot have no point per X value)
@@ -24,6 +32,9 @@
         var axisYName = @json($chart_axisy);
         var legend = { show: showLegend, type: 'scroll', top: 0, data: seriesNames };
         var heatData = null; // heatmap cells [x, s, value]
+        // a cell no row fell into is null for a MIN / MAX measure (ChartPivot::emptyCell): no
+        // value to show, place in a heatmap or count into a boxplot's spread
+        var fmt = function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 10 }); };
 
         function hierarchy() {
             return seriesNames.map(function (name, i) {
@@ -42,6 +53,7 @@
                 heatData = [];
                 for (var s = 0; s < matrix.length; s++) {
                     for (var x = 0; x < matrix[s].length; x++) {
+                        if (matrix[s][x] == null) { continue; }
                         heatData.push([x, s, matrix[s][x]]);
                         if (matrix[s][x] > maxVal) { maxVal = matrix[s][x]; }
                     }
@@ -74,7 +86,11 @@
                 var boxData = [];
                 for (var bx = 0; bx < xCategories.length; bx++) {
                     var col = [];
-                    for (var bs = 0; bs < matrix.length; bs++) { col.push((matrix[bs] && matrix[bs][bx]) || 0); }
+                    for (var bs = 0; bs < matrix.length; bs++) {
+                        var cell = matrix[bs] ? matrix[bs][bx] : null;
+                        if (cell != null) { col.push(cell); }
+                    }
+                    if (!col.length) { boxData.push([]); continue; }
                     col.sort(function (a, b) { return a - b; });
                     boxData.push([col[0], quantile(col, 0.25), quantile(col, 0.5), quantile(col, 0.75), col[col.length - 1]]);
                 }
@@ -90,10 +106,9 @@
             }
             default: { // mbar / sbar / mline / sarea
                 var seriesType = isLine ? 'line' : 'bar';
-                var stack = (type === 'sbar' || type === 'sarea') ? 'total' : undefined;
                 var series = seriesNames.map(function (name, i) {
-                    var s = { name: String(name), type: seriesType, data: matrix[i] || [] };
-                    if (stack) { s.stack = stack; }
+                    var s = { name: String(name), type: seriesType, data: cellsOf(i) };
+                    if (stacked) { s.stack = 'total'; }
                     if (isLine) { s.smooth = true; s.lineStyle = { width: 2 }; }
                     if (type === 'sarea') { s.areaStyle = { opacity: 0.3 }; }
                     if (seriesType === 'bar') { s.barMaxWidth = 36; }
@@ -126,7 +141,7 @@
         setPicked(pickable && click.highlight ? click.selected : null);
         var faded = function (xi) { return pickedN > 0 && !picked[String(click.values[xi])]; };
         function seriesData(i) {
-            return (matrix[i] || []).map(function (v, xi) {
+            return cellsOf(i).map(function (v, xi) {
                 var item = { value: v, itemStyle: { opacity: faded(xi) ? 0.18 : 1 } };
                 if (isLine && pickedN > 0 && !faded(xi)) { item.symbol = 'circle'; item.symbolSize = 9; }
                 return item;
@@ -187,7 +202,7 @@
             if (cartesian) {
                 var inside = (type === 'sbar' || type === 'sarea');
                 chart.setOption({ series: seriesNames.map(function (name, i) {
-                    var s = { label: { show: display.labels, position: inside ? 'inside' : 'top', fontSize: 10, color: '#2b2b3a', formatter: function (p) { return (Math.round(p.value * 10) / 10).toLocaleString(); } }, labelLayout: { hideOverlap: true } };
+                    var s = { label: { show: display.labels, position: inside ? 'inside' : 'top', fontSize: 10, color: '#2b2b3a', formatter: function (p) { return fmt(p.value); } }, labelLayout: { hideOverlap: true } };
                     if (pickable) { s.data = seriesData(i); }
                     return s;
                 }) });

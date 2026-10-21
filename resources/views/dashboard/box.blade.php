@@ -1,6 +1,7 @@
 <div class="box box-dashboard custom-border-success card p-2 {{isset($suuid) ? 'box-success' : ''}}" data-suuid="{{$suuid}}" {!! $attributes !!}>
     <div class="box-header with-border  d-flex justify-content-between  border-bottom pb-2">
-        <h3 class="box-title fs-4">
+        {{-- the full title on hover: a long one is cut with "…" (dashboard.css) --}}
+        <h3 class="box-title fs-4" title="{{ isset($title) ? $title : '(' . exmtrans('dashboard.not_registered') . ')' }}">
             @if(isset($title))
             {{ $title }}
             @else

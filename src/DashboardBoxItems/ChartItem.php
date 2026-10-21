@@ -6,6 +6,7 @@ use ExmentAdminCore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\ChartAxisType;
 use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
@@ -485,7 +486,7 @@ class ChartItem implements ItemInterface
     /**
      * get chart data from list-view
      *
-     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: mixed}|false
+     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, sort_keys: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: mixed}|false
      */
     protected function getListData()
     {
@@ -501,21 +502,25 @@ class ChartItem implements ItemInterface
         // would otherwise stand in for the row's
         $model = $this->custom_table->getValueQuery()->select(getDBTableName($this->custom_table) . '.*');
         $this->applyFilters($model);
-        $this->viewForQuery()->filterModel($model);
+        // in the order the view lists its rows (a view without a sort keeps the database's)
+        $this->viewForQuery()->filterModel($model, ['sort' => true]);
 
         // get data
         $items = $model->get();
 
-        $chart_label = $items->map(function ($val) use ($view_column_x) {
+        $item_x = $view_column_x == Define::CHARTITEM_LABEL ? null : $this->listColumnItem($view_column_x);
+        $chart_label = $items->map(function ($val) use ($item_x) {
             // if get as CHARTITEM_LABEL, return label.
-            if ($view_column_x == Define::CHARTITEM_LABEL) {
+            if ($item_x === null) {
                 return $val->getLabel();
             }
             // plain text: drawn on a canvas and hex-encoded before reaching the DOM
-            return $view_column_x->column_item->setCustomValue($val)->text();
+            return $item_x->setCustomValue($val)->text();
         });
-        $axis_y_name = $view_column_y->custom_column->column_name;
-        $chart_data = $items->pluck('value.'.$axis_y_name);
+        $item_y = $this->listColumnItem($view_column_y);
+        $chart_data = $items->map(function ($val) use ($item_y) {
+            return $item_y->setCustomValue($val)->pureValue();
+        });
 
         if ($view_column_x == Define::CHARTITEM_LABEL) {
             $axisx_label = $this->custom_table->table_view_name;
@@ -523,10 +528,23 @@ class ChartItem implements ItemInterface
             $axisx_label = array_get($view_column_x, 'view_column_name') ?? $view_column_x->column_item->label();
         }
 
+        $sort_keys = [];
+        if ($item_x !== null) {
+            $keys = $this->numericSortKeys($view_column_x, function () use ($items, $item_x) {
+                return $items->map(function ($val) use ($item_x) {
+                    return $item_x->setCustomValue($val)->pureValue();
+                });
+            });
+            if ($keys !== null) {
+                $sort_keys[0] = $keys;
+            }
+        }
+
         return [
             'chart_data'    => $chart_data,
             'chart_label'   => $chart_label,
             'chart_fields'  => [$chart_label->values()->all()],
+            'sort_keys'     => $sort_keys,
             'axisx_label'   => $axisx_label,
             'axisy_label'   => array_get($view_column_y, 'view_column_name') ?? $view_column_y->column_item->label(),
         ];
@@ -535,7 +553,7 @@ class ChartItem implements ItemInterface
     /**
      * get chart data from aggregate-view
      *
-     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: string|null, chart_click: array{column: string, values: array<int, string>, selected: string[], highlight: bool}|null}|false
+     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, sort_keys: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: string|null, chart_click: array{column: string, values: array<int, string>, selected: string[], highlight: bool}|null}|false
      */
     protected function getAggregateData()
     {
@@ -570,6 +588,18 @@ class ChartItem implements ItemInterface
         });
         $chart_data = $datalist->pluck($item_y->uniqueName());
 
+        // a numeric group column sorts (ChartSort x{i}) by its stored numbers, not its text
+        $sort_keys = [];
+        foreach (collect($view_column_x_list)->values() as $i => $view_column_x) {
+            $item_x = $item_x_list->values()[$i];
+            $keys = $this->numericSortKeys($view_column_x, function () use ($datalist, $item_x) {
+                return $datalist->pluck($item_x->uniqueName());
+            });
+            if ($keys !== null) {
+                $sort_keys[$i] = $keys;
+            }
+        }
+
         // click-to-filter: a single group column only (a compound label has no one value)
         $chart_click = null;
         if (count($view_column_x_list) === 1) {
@@ -585,10 +615,45 @@ class ChartItem implements ItemInterface
             'chart_data'    => $chart_data,
             'chart_label'   => $chart_label,
             'chart_fields'  => $chart_fields,
+            'sort_keys'     => $sort_keys,
             'axisx_label'   => $axisx_label,
             'axisy_label'   => $this->axisYLabel($view_column_y),
             'chart_click'   => $chart_click,
         ];
+    }
+
+    /**
+     * The item that reads a list view column off a row, as the view's list (DefaultGrid) reads
+     * it: a column of a related table — the parent, a select_table target — reads that record
+     * through the view column's pivot; without it, the row's own column of the same name.
+     *
+     * @param mixed $view_column  CustomViewColumn
+     * @return mixed  the column item
+     */
+    protected function listColumnItem($view_column)
+    {
+        return $view_column->column_item->options([
+            'view_pivot_column' => $view_column->view_pivot_column_id ?? null,
+            'view_pivot_table' => $view_column->view_pivot_table_id ?? null,
+        ]);
+    }
+
+    /**
+     * The stored numbers of a numeric X column (integer, decimal, currency), one per point,
+     * for ChartSorter's `sort_keys`: such a column is sorted by number, not by its formatted
+     * text ("1,000" before "200"). null for any other column, which keeps sorting by text.
+     *
+     * @param mixed $view_column  CustomViewColumn / CustomViewSummary of the X axis
+     * @param callable(): iterable<mixed> $values  the points' stored values, read on demand
+     * @return array<int, mixed>|null
+     */
+    protected function numericSortKeys($view_column, callable $values): ?array
+    {
+        $column = is_object($view_column) ? data_get($view_column, 'custom_column') : null;
+        if ($column === null || !ColumnType::isCalc(data_get($column, 'column_type'))) {
+            return null;
+        }
+        return collect($values())->values()->all();
     }
 
     /**
@@ -743,6 +808,10 @@ class ChartItem implements ItemInterface
             'x_categories' => $pivot['x_categories'],
             'series_names' => $pivot['series_names'],
             'matrix'       => $pivot['matrix'],
+            // a numeric X column sorts (ChartSort x0) by its stored numbers, not its text
+            'sort_keys'    => array_filter([0 => $this->numericSortKeys($view_columns[$x_pos], function () use ($pivot) {
+                return $pivot['x_values'];
+            })], 'is_array'),
             'axisx_label'  => array_get($view_columns[$x_pos], 'view_column_name') ?? $item_x->label(),
             'axisy_label'  => $this->axisYLabel($view_column_y),
             // a click on a category picks the stored value its rows hold

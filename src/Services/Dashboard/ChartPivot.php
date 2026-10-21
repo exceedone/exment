@@ -19,6 +19,10 @@ use Exceedone\Exment\Enums\SummaryCondition;
  * cell; they are folded the way the measure's own summary condition folds rows: the lowest
  * for MIN, the highest for MAX, the sum otherwise — SUM, COUNT (the count of a cell is the
  * sum of its rows' counts) and a plain group column as the measure, which has no condition.
+ *
+ * A cell no row falls into is 0 for an adding measure — the sum or count of no rows — but
+ * null for MIN / MAX, where 0 would be a value no row has: the boxplot would count it into
+ * the spread, the heatmap and the lines would show it as a measured 0.
  */
 final class ChartPivot
 {
@@ -27,9 +31,9 @@ final class ChartPivot
      *   one per view row, in the view's order: x = the stored value of the X column,
      *   x_text = its display text, series = the series column's text, y = the measure
      * @param string|int|null $condition  SummaryCondition of the measure; null = a group column
-     * @return array{x_categories: string[], x_values: string[], series_names: string[], matrix: array<int, array<int, float|int>>}
+     * @return array{x_categories: string[], x_values: string[], series_names: string[], matrix: array<int, array<int, float|int|null>>}
      *   x_categories[i] = the text of category i, x_values[i] = its stored value,
-     *   matrix[series][x] = the cell's value (0 when no row falls into it)
+     *   matrix[series][x] = the cell's value (no row falls into it: emptyCell())
      */
     public static function build(array $rows, $condition): array
     {
@@ -53,13 +57,13 @@ final class ChartPivot
             }
             $y = $row['y'] ?? null;
             if (!is_numeric($y)) {
-                continue; // no value: nothing to fold (a cell without one stays 0)
+                continue; // no value: nothing to fold (a cell without one stays empty)
             }
             $xi = $x_index[$x];
             $si = $s_index[$s];
             $cells[$si][$xi] = isset($cells[$si][$xi]) ? self::fold($cells[$si][$xi], (float) $y, $condition) : (float) $y;
         }
-        $matrix = array_fill(0, count($series_names), array_fill(0, count($x_values), 0));
+        $matrix = array_fill(0, count($series_names), array_fill(0, count($x_values), self::emptyCell($condition)));
         foreach ($cells as $si => $row) {
             foreach ($row as $xi => $value) {
                 $matrix[$si][$xi] = $value;
@@ -71,6 +75,17 @@ final class ChartPivot
             'series_names' => $series_names,
             'matrix' => $matrix,
         ];
+    }
+
+    /**
+     * The value of a cell no row falls into: 0 for an adding measure (SUM, COUNT, a group
+     * column), null for MIN / MAX — the lowest or highest of no rows is no number.
+     *
+     * @param string|int|null $condition
+     */
+    public static function emptyCell($condition): ?int
+    {
+        return in_array((string) $condition, [SummaryCondition::MIN, SummaryCondition::MAX], true) ? null : 0;
     }
 
     /**

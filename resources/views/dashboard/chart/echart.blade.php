@@ -15,7 +15,8 @@
         }
 
         var labels = {!! $chart_labels !!};
-        var values = ({!! $chart_data !!} || []).map(function (v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; });
+        // a point without a value stays null (no bar / a gap in the line), as Chart.js draws it — not a 0
+        var values = ({!! $chart_data !!} || []).map(function (v) { var n = parseFloat(v); return isNaN(n) ? null : n; });
         var colors = {!! $chart_colors !!};
         // colors of the points as the runtime sort left them (types that color BY DATA use
         // these, so a category keeps its color through a re-sort); the shape types — area,
@@ -33,8 +34,13 @@
         var showLegend = {{ $chart_legend ? 'true' : 'false' }};
         var axisXName = @json($chart_axisx);
         var axisYName = @json($chart_axisy);
-        var fmt = function (n) { return (Math.round(n * 10) / 10).toLocaleString(); };
+        // the value as it is (0.04 stays 0.04), grouped; up to 10 decimals cut off float noise
+        var fmt = function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 10 }); };
         var pairs = labels.map(function (l, i) { return { name: String(l), value: values[i] }; });
+        // the points a type draws, when it leaves some out: drawn[k] = the index (in labels /
+        // values / byPoint / click.values) of its k-th data item; null = every point, in order
+        var drawn = null;
+        var pointOf = function (k) { return drawn ? drawn[k] : k; };
         // axis names kept inside the box: X's centred under its tick labels, Y's above the plot
         // running right from the axis line (centred on the line, a long one is cut by the box's
         // left edge); px, not %, so a short box still has room for them
@@ -82,15 +88,23 @@
                 };
                 break;
             case 'funnel':
+                // a point without a value is left out: ECharts draws a null funnel item as the widest
+                drawn = [];
+                $.each(values, function (i, v) { if (v != null) { drawn.push(i); } });
                 option = {
                     color: byPoint,
                     tooltip: { trigger: 'item' },
                     legend: { show: showLegend, type: 'scroll', bottom: 0 },
-                    series: [{ type: 'funnel', left: '8%', right: '8%', top: '6%', bottom: '12%', sort: 'descending', gap: 2, data: pairs, label: { formatter: '{b}: {c}' } }]
+                    series: [{ type: 'funnel', left: '8%', right: '8%', top: '6%', bottom: '12%', sort: 'descending', gap: 2, data: drawn.map(function (i) { return pairs[i]; }), label: { formatter: '{b}: {c}' } }]
                 };
                 break;
             case 'gauge': // single KPI gauge: the first data point
                 var gmax = Math.max.apply(null, values.length ? values : [1]) || 1;
+                // tick values (max / 5) shown to 2 significant digits of the step: "2.5" stays
+                // 2.5 (rounding to whole showed "2" twice), "246.91356" reads 247
+                var gstep = Math.abs(gmax) / 5;
+                var gdigits = Math.min(10, Math.max(0, 1 - Math.floor(Math.log10(gstep))));
+                var gtick = function (v) { return Number(v).toLocaleString(undefined, { maximumFractionDigits: gdigits }); };
                 option = {
                     color: colors,
                     tooltip: { formatter: '{b}: {c}' },
@@ -100,8 +114,9 @@
                         axisLine: { lineStyle: { width: 14 } },
                         axisTick: { show: false },
                         splitLine: { length: 8 },
-                        axisLabel: { fontSize: 9, distance: 12, formatter: function (v) { return Math.round(v); } },
-                        detail: { valueAnimation: true, formatter: '{value}', fontSize: 22, offsetCenter: [0, '70%'] },
+                        axisLabel: { fontSize: 9, distance: 12, formatter: gtick },
+                        // a point without a value reads "-" (the template '{value}' printed "NaN")
+                        detail: { valueAnimation: true, formatter: function (v) { return (v == null || isNaN(v)) ? '-' : String(v); }, fontSize: 22, offsetCenter: [0, '70%'] },
                         data: [{ value: values.length ? values[0] : 0, name: String(labels.length ? labels[0] : (axisYName || '')) }]
                     }]
                 };
@@ -124,7 +139,7 @@
         if (perPoint) {
             option.series[0].data = option.series[0].data.map(function (d, i) {
                 var item = (d !== null && typeof d === 'object' && !Array.isArray(d)) ? $.extend({}, d) : { value: d };
-                item.itemStyle = { color: byPoint[i % byPoint.length] };
+                item.itemStyle = { color: byPoint[pointOf(i) % byPoint.length] };
                 return item;
             });
         }
@@ -145,7 +160,7 @@
         function pointData() {
             return baseData.map(function (d, i) {
                 var item = (d !== null && typeof d === 'object' && !Array.isArray(d)) ? $.extend({}, d) : { value: d };
-                item.itemStyle = $.extend({}, item.itemStyle, { opacity: faded(i) ? 0.18 : 1 });
+                item.itemStyle = $.extend({}, item.itemStyle, { opacity: faded(pointOf(i)) ? 0.18 : 1 });
                 if (type === 'area' && pickedN > 0 && !faded(i)) { item.symbol = 'circle'; item.symbolSize = 10; }
                 return item;
             });
@@ -168,9 +183,10 @@
 
         if (pickable) {
             chart.on('click', function (p) {
-                if (typeof p.dataIndex !== 'number' || p.dataIndex >= click.values.length) { return; }
+                var i = typeof p.dataIndex === 'number' ? pointOf(p.dataIndex) : undefined;
+                if (typeof i !== 'number' || i >= click.values.length) { return; }
                 var ne = p.event && p.event.event;
-                ExmentDashboard.pick(click.column, click.values[p.dataIndex], !!(ne && (ne.ctrlKey || ne.metaKey)));
+                ExmentDashboard.pick(click.column, click.values[i], !!(ne && (ne.ctrlKey || ne.metaKey)));
             });
         }
 
@@ -178,11 +194,12 @@
         // paint a color (dashboard editors): right-click a category; the one-color types
         // (area / radar / gauge) paint their one series
         chart.on('contextmenu', function (p) {
-            if (perPoint && (typeof p.dataIndex !== 'number' || p.dataIndex >= labels.length)) { return; }
+            var i = typeof p.dataIndex === 'number' ? pointOf(p.dataIndex) : undefined;
+            if (perPoint && (typeof i !== 'number' || i >= labels.length)) { return; }
             var ne = p.event && p.event.event;
             if (ne && ne.preventDefault) { ne.preventDefault(); }
             ExmentDashboard.colorMenu('{{ $suuid }}', perPoint
-                ? { kind: 'points', key: String(labels[p.dataIndex]), color: byPoint[p.dataIndex % byPoint.length] }
+                ? { kind: 'points', key: String(labels[i]), color: byPoint[i % byPoint.length] }
                 : { kind: 'series', key: '', color: colors[0] }, ne);
         });
         @endif

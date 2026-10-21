@@ -16,7 +16,8 @@
         // display option of the box menu (値ラベル), live-toggled through the hook below
         var display = { labels: {{ $chart_labels_on ? 'true' : 'false' }} };
         var num = function (v) { var n = parseFloat(v); return isNaN(n) ? null : n; };
-        var fmt = function (n) { return (Math.round(n * 10) / 10).toLocaleString(); };
+        // the value as it is (0.04 stays 0.04), grouped; up to 10 decimals cut off float noise
+        var fmt = function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 10 }); };
 
         // Cross-highlight: the bar's pick on this chart's own X item (the server leaves that
         // item out of the chart's filter, so every category is here) — the picked points
