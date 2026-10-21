@@ -1166,6 +1166,33 @@ class WorkflowController extends AdminControllerBase
             }
         }
 
+        // An action records are waiting on is not deleted, the same as in the
+        // designer - see getPendingActionIds(). The row is hidden once its
+        // delete button is pressed, so the message goes on top of the form.
+        $removing_ids = [];
+        foreach ($workflow_actions as $workflow_action) {
+            $id = array_get($workflow_action, 'id');
+            if (boolval(array_get($workflow_action, Form::REMOVE_FLAG_NAME)) && !is_nullorempty($id)) {
+                $removing_ids[] = $id;
+            }
+        }
+        if (count($removing_ids) > 0 && isset($model->id)) {
+            $removing = WorkflowAction::where('workflow_id', $model->id)->whereIn('id', $removing_ids)->get();
+            $pending_ids = $this->getPendingActionIds($removing->pluck('id')->all());
+            $messages = $removing->filter(function ($action) use ($pending_ids) {
+                return in_array(strval($action->id), $pending_ids, true);
+            })->map(function ($action) {
+                return exmtrans('workflow.design.message.action_in_use', ['name' => $action->action_name]);
+            })->values();
+            if ($messages->count() > 0) {
+                // the alert prints its message as html, and the names are the user's
+                admin_error(exmtrans('common.error'), $messages->map(function ($message) {
+                    return esc_html($message);
+                })->implode('<br />'));
+                $errors->add('workflow_actions', $messages->implode(' '));
+            }
+        }
+
         if (count($errors->getMessages()) > 0) {
             return back()->withErrors($errors)
                         ->withInput();

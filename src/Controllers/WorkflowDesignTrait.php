@@ -493,7 +493,9 @@ trait WorkflowDesignTrait
             }
         }
 
-        $action_data = $actions->map(function ($action) use ($targets_by_action) {
+        $pending_action_ids = $this->getPendingActionIds($actions->pluck('id')->all());
+
+        $action_data = $actions->map(function ($action) use ($targets_by_action, $pending_action_ids) {
             $target = $targets_by_action[$action->id];
 
             $targets = [];
@@ -514,6 +516,8 @@ trait WorkflowDesignTrait
                 // 分岐（実行後ステータス）。絞り込み条件はこの画面では編集しないが、
                 // そのまま送り返して保存するので消えない。
                 'destinations' => $this->toDesignDestinations($action->work_conditions),
+                // 承認の途中のデータがあるアクションは削除させない
+                'in_use' => in_array(strval($action->id), $pending_action_ids, true),
             ];
         })->values()->toArray();
 
@@ -625,6 +629,44 @@ trait WorkflowDesignTrait
         }
 
         return array_values(array_unique(array_map('strval', $used)));
+    }
+
+    /**
+     * The ids of the actions records are waiting on: a step that asks for
+     * several approvals has some of them, and the record has not moved yet.
+     *
+     * Those approvals are the workflow_values the action left with
+     * action_executed_flg set, and WorkflowAction::isActionNext() counts them
+     * by workflow_action_id. Moving the record clears the flag
+     * (forwardWorkflowValue()), so a set flag always means "still waiting".
+     * Deleting such an action - drawing it again gives it a new id - would
+     * drop the approvals already given and ask those approvers again.
+     *
+     * An action that only the history names is not in this list: it may be
+     * deleted, and the history still reads it (it is only soft deleted).
+     *
+     * @param array<mixed> $action_ids
+     * @param bool $lock read with a shared lock, inside a transaction - see
+     *        getUsedStatusIds()
+     * @return array<string> ids of the actions in use, as strings
+     */
+    protected function getPendingActionIds(array $action_ids, bool $lock = false): array
+    {
+        $action_ids = array_values(array_filter($action_ids, function ($id) {
+            return !is_nullorempty($id);
+        }));
+        if (count($action_ids) === 0) {
+            return [];
+        }
+
+        $query = WorkflowValue::whereIn('workflow_action_id', $action_ids)
+            ->where('action_executed_flg', true)
+            ->distinct();
+        if ($lock) {
+            $query->sharedLock();
+        }
+
+        return array_values(array_unique(array_map('strval', $query->pluck('workflow_action_id')->all())));
     }
 
     /**
@@ -1003,12 +1045,28 @@ trait WorkflowDesignTrait
         // A hand made request can send anything here, and count() on a string,
         // number or null throws a TypeError (HTTP 500). Refused with its own
         // message rather than read as a list of one bad action.
+        // A JSON object decodes to an array too, but with string keys, and the
+        // checks below number an action by its index ('#' . ($index + 1)), so
+        // only a list is taken. The designer always sends one.
         $actions = array_get($payload, 'actions', []);
-        if (!is_array($actions)) {
+        if (!is_array($actions) || !array_is_list($actions)) {
             $errors[] = trans('validation.array', ['attribute' => exmtrans('workflow.workflow_actions')]);
             $actions = [];
         } elseif (count($actions) === 0) {
             $errors[] = $required(exmtrans('workflow.workflow_actions'));
+        } else {
+            // Checked for every action before any is read: the checks below
+            // also read the fields of the other actions (the ACTION_SELECT
+            // loop, the first start action), so one malformed action stops
+            // them all.
+            foreach ($actions as $index => $action) {
+                if (!static::isDesignActionShape($action)) {
+                    $errors[] = trans('validation.array', ['attribute' => exmtrans('workflow.workflow_actions')])
+                        . ' (#' . ($index + 1) . ')';
+                    $actions = [];
+                    break;
+                }
+            }
         }
 
         $name_of = function ($status_key) use ($statuses, $start_name) {
@@ -1182,7 +1240,87 @@ trait WorkflowDesignTrait
             $errors[] = exmtrans('workflow.designer.issue_no_start', ['status' => $start_name]);
         }
 
+        // 承認の途中のデータがあるアクションを消すと、もらった承認が数えられなくなる。
+        // 画面側でも削除させないが、直接叩かれた場合に備えてここでも止める。
+        // See getPendingActionIds(). saveDesignActions() asks again inside its
+        // transaction.
+        if (!$isNew && count($actions) > 0) {
+            $posted_action_ids = collect($actions)->pluck('id')->filter(function ($v) {
+                return !is_nullorempty($v);
+            })->map(function ($v) {
+                return strval($v);
+            })->values()->all();
+
+            $removing_actions = $workflow->workflow_actions()->get()
+                ->filter(function ($action) use ($posted_action_ids) {
+                    return !in_array(strval($action->id), $posted_action_ids, true);
+                });
+
+            $pending_ids = $this->getPendingActionIds($removing_actions->pluck('id')->all());
+            foreach ($removing_actions as $action) {
+                if (in_array(strval($action->id), $pending_ids, true)) {
+                    $errors[] = exmtrans('workflow.design.message.action_in_use', ['name' => $action->action_name]);
+                }
+            }
+        }
+
         return array_values(array_unique($errors));
+    }
+
+    /**
+     * Whether one posted action has the shape the designer sends.
+     *
+     * validateWorkflowDesign() and saveDesignActions() read these fields with
+     * strval(), and a list in place of a value ends in "Array to string
+     * conversion" (HTTP 500) - or, for a target, in a related_id that cannot
+     * be stored. workflow_conditions are not looked at: they are written back
+     * as the designer received them.
+     *
+     * @param mixed $action
+     * @return bool
+     */
+    protected static function isDesignActionShape($action): bool
+    {
+        $isValue = function ($value) {
+            return is_null($value) || is_scalar($value);
+        };
+
+        if (!is_array($action)) {
+            return false;
+        }
+        foreach (['id', 'key', 'name', 'status_from', 'ignore_work', 'work_target_type',
+            'flow_next_type', 'flow_next_count', 'comment_type'] as $key) {
+            if (!$isValue(array_get($action, $key))) {
+                return false;
+            }
+        }
+
+        $targets = array_get($action, 'targets');
+        if (!is_null($targets) && !is_array($targets)) {
+            return false;
+        }
+        foreach ((array)$targets as $values) {
+            if (!$isValue($values) && !(is_array($values) && collect($values)->every($isValue))) {
+                return false;
+            }
+        }
+
+        $destinations = array_get($action, 'destinations');
+        if (!is_null($destinations) && !is_array($destinations)) {
+            return false;
+        }
+        foreach ((array)$destinations as $destination) {
+            if (!is_array($destination)) {
+                return false;
+            }
+            foreach (['id', 'status_to', 'enabled', 'condition_join', 'condition_reverse'] as $key) {
+                if (!$isValue(array_get($destination, $key))) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /* =====================================================================
@@ -1342,6 +1480,25 @@ trait WorkflowDesignTrait
     }
 
     /**
+     * Refuse a design save that would delete actions records are waiting on.
+     *
+     * @param \Illuminate\Support\Collection<int, WorkflowAction> $actions
+     * @return never
+     */
+    protected static function throwActionInUse($actions)
+    {
+        $errors = $actions->map(function ($action) {
+            return exmtrans('workflow.design.message.action_in_use', ['name' => $action->action_name]);
+        })->values()->all();
+
+        throw new HttpResponseException(response()->json([
+            'result' => false,
+            'toastr' => exmtrans('workflow.design.message.conflict'),
+            'errors' => $errors,
+        ], 409));
+    }
+
+    /**
      * アクションを保存する。
      *
      * @param Workflow $workflow
@@ -1432,6 +1589,22 @@ trait WorkflowDesignTrait
         $removed = WorkflowAction::where('workflow_id', $workflow->id)
             ->whereNotIn('id', count($keep_ids) > 0 ? $keep_ids : [0])
             ->get();
+
+        // Asked again here, as saveDesignStatuses() does for statuses: an
+        // approval can be given between the check in validateWorkflowDesign()
+        // and this transaction, and the overwrite guard only watches the
+        // workflows row. A locking read, so that approvals other transactions
+        // committed are seen and new ones for these actions wait for this one.
+        if ($removed->count() > 0) {
+            $pending_ids = $this->getPendingActionIds($removed->pluck('id')->all(), true);
+            $conflicts = $removed->filter(function ($action) use ($pending_ids) {
+                return in_array(strval($action->id), $pending_ids, true);
+            });
+            if ($conflicts->count() > 0) {
+                static::throwActionInUse($conflicts);
+            }
+        }
+
         foreach ($removed as $action) {
             $action->delete();
         }

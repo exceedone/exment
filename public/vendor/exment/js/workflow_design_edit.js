@@ -275,7 +275,9 @@ var Exment;
                 // would rewrite it the moment the designer is opened and saved
                 flowCount: numberOr(a.flow_next_count, 1),
                 commentType: a.comment_type || 'nullable',
-                destinations: dests
+                destinations: dests,
+                // records are partway through its approvals: it cannot be deleted
+                in_use: !!a.in_use
             });
         });
 
@@ -1431,6 +1433,25 @@ var Exment;
             });
         });
 
+        // Deleting the status also deletes the actions that leave it, and the
+        // ones left with no destination. One of them may be in use.
+        var blocked = used.filter(function (a) {
+            if (!a.in_use) {
+                return false;
+            }
+            return a.from === key || a.destinations.every(function (d) {
+                return d.to === key;
+            });
+        });
+        if (blocked.length) {
+            openModal(t('status_delete'), blocked.map(function (a) {
+                return '<p>' + esc(t('message.action_in_use', { name: actionLabel(a) })) + '</p>';
+            }).join(''), [
+                { label: t('label_cancel') }
+            ]);
+            return;
+        }
+
         openModal(t('status_delete'),
             '<p>' + esc(t('delete_status_confirm', { name: s.name, count: used.length })) + '</p>', [
             { label: t('label_cancel') },
@@ -1895,7 +1916,7 @@ var Exment;
 
     function deleteActionFlow(key) {
         var a = actionOf(key);
-        if (!a) {
+        if (!a || a.in_use) {
             return;
         }
         openModal(t('action_delete'),
@@ -2183,7 +2204,14 @@ var Exment;
                 openMenu(e, t('action_menu', { name: actionLabel(a) }), [
                     { icon: '⚙', label: t('action_edit'), run: function () { editActionModal(a.key); } },
                     '-',
-                    { icon: '✖', label: t('action_delete'), danger: true, run: function () { deleteActionFlow(a.key); } }
+                    // 承認の途中のデータがあるアクションは消すと承認が数えられなくなるので出さない
+                    a.in_use ? {
+                        icon: '✖', label: t('action_delete'),
+                        disabled: true, note: t('action_in_use')
+                    } : {
+                        icon: '✖', label: t('action_delete'), danger: true,
+                        run: function () { deleteActionFlow(a.key); }
+                    }
                 ]);
                 return;
             }
