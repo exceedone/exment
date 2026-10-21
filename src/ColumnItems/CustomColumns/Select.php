@@ -219,21 +219,18 @@ class Select extends CustomItem
      * Convert filter value.
      * Ex. If value is decimal and Column Type is decimal, return floatval.
      *
+     * The values are not escaped here for the stored list of a multiple column: the filter
+     * that searches that list (ExistsBase) escapes them once, as json_list_item() — escaping
+     * twice would escape the backslashes of the first time.
+     *
      * @param mixed $value
      * @return mixed
      */
     public function convertFilterValue($value)
     {
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
-
         if (is_json($value)) {
             $value = json_decode_ex($value, true);
         }
-        if (is_array($value)) {
-            return collect($value)->map(function ($val) use ($isUseUnicode) {
-                return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($val) : $val;
-            })->toArray();
-        }
-        return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($value) : $value;
+        return $value;
     }
 }

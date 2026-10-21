@@ -1912,6 +1912,27 @@ if (!function_exists('admin_exclusion_path')) {
         }
     }
 
+    if (!function_exists('json_list_item')) {
+        /**
+         * One value of a multiple-value column as it reads in the stored list on MariaDB /
+         * SQL Server (ExmentDB::isUseUnicodeMultipleColumn): as json_encode wrote it — every
+         * non-ASCII character as \uXXXX, "/" as "\/" — without the quotes the list search
+         * drops (whereInArrayString). unicode_encode() escapes 3-byte characters only, so
+         * "café" or "東京/大阪" would never match.
+         *
+         * @param mixed $value
+         * @return mixed  the escaped text; anything that is no scalar as given
+         */
+        function json_list_item($value)
+        {
+            if (!is_scalar($value)) {
+                return $value;
+            }
+            $json = json_encode((string) $value);
+            return $json === false ? $value : str_replace('"', '', substr($json, 1, -1));
+        }
+    }
+
     if (!function_exists('json_decode_ex')) {
         /**
          * Wrapper for json_decode that throws when an error occurs.

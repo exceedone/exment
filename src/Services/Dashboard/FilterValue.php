@@ -363,13 +363,12 @@ final class FilterValue
     {
         $list = "REPLACE(REPLACE(REPLACE(REPLACE({$expr}, '[', ''), ' ', ''), ']', ''), '\"', '')";
         // spaces are removed from the stored list, so from the value it is searched for too;
-        // where the list is stored with its non-ASCII text escaped ("東京" — MariaDB,
-        // SQL Server), the value is searched for escaped the same way, as the engine does
-        // (ExistsBase::_setFilter)
+        // where the list is stored as written by json_encode (MariaDB, SQL Server), the value
+        // is searched for the same way
         $escaped = \ExmentDB::isUseUnicodeMultipleColumn();
         $values = array_values(array_unique(array_map(function ($v) use ($escaped) {
             $v = str_replace(' ', '', $v);
-            return $escaped ? unicode_encode($v) : $v;
+            return $escaped ? json_list_item($v) : $v;
         }, $values)));
         if (\Exment::isSqlServer()) {
             $marks = implode(',', array_fill(0, count($values), '?'));
