@@ -92,6 +92,88 @@ class MeiliSearchService
     }
 
     /**
+     * Run a search, surviving an attributesToSearchOn the index does not know.
+     *
+     * A freeword column no document holds a value for is not a searchable
+     * attribute of the index - buildDocument() drops null and empty values on
+     * purpose - and Meilisearch answers 400 for it. Unguarded that turns a
+     * permission-narrowed search into a broken results page and a 500 on
+     * export, over a path that could never have matched anything anyway.
+     *
+     * The paths are a permission decision, so the retry never widens the
+     * search: only the paths the index accepts are kept. Nothing left is sent
+     * as an empty list, which Meilisearch answers with zero hits - the same
+     * fail-closed result as a table with nothing readable in it.
+     *
+     * @param array<string,mixed> $options
+     * @return \Meilisearch\Search\SearchResult
+     */
+    private function runSearch(string $q, array $options)
+    {
+        $index = $this->client->index($this->indexName);
+
+        try {
+            return $index->search($q, $options);
+        } catch (\Throwable $e) {
+            $narrowed = self::withoutUnknownSearchAttributes($options, $e);
+            if ($narrowed === null) {
+                throw $e;
+            }
+
+            \Illuminate\Support\Facades\Log::warning(
+                '[Meili] attributesToSearchOn narrowed to '
+                . json_encode($narrowed['attributesToSearchOn']) . ': ' . $e->getMessage()
+            );
+
+            return $index->search($q, $narrowed);
+        }
+    }
+
+    /**
+     * The same options with attributesToSearchOn reduced to what the index
+     * reports as searchable. Null when the error is about something else, so
+     * the caller rethrows it untouched.
+     *
+     * @param array<string,mixed> $options
+     * @return array<string,mixed>|null
+     */
+    public static function withoutUnknownSearchAttributes(array $options, \Throwable $e): ?array
+    {
+        if (!isset($options['attributesToSearchOn'])) {
+            return null;
+        }
+
+        $available = self::parseSearchableAttributes($e->getMessage());
+        if ($available === null) {
+            return null;
+        }
+
+        $options['attributesToSearchOn'] = array_values(
+            array_intersect((array) $options['attributesToSearchOn'], $available)
+        );
+
+        return $options;
+    }
+
+    /**
+     * The attribute list Meilisearch names in its "is not searchable" error.
+     * Null for any other error, or a message we do not recognise.
+     *
+     * @return array<int,string>|null
+     */
+    public static function parseSearchableAttributes(string $message): ?array
+    {
+        if (strpos($message, 'is not searchable') === false) {
+            return null;
+        }
+        if (!preg_match('/searchable attributes are: `([^`]*)`/', $message, $m)) {
+            return null;
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $m[1])), fn ($v) => $v !== ''));
+    }
+
+    /**
      * Search within ONE table, with pagination (for the full results page).
      *
      * @param MeiliFilters $filters
@@ -100,8 +182,10 @@ class MeiliSearchService
      */
     public function searchTablePaginated(string $q, string $tableName, int $perPage, int $page, array $filters = [], ?string $sort = null, ?array $searchOn = null): array
     {
-        $result = $this->client->index($this->indexName)
-            ->search(self::normalizeQuery($q), $this->applyMatchingStrategy(self::buildTableSearchOptions($tableName, $perPage, $page, $filters, $sort, $searchOn)));
+        $result = $this->runSearch(
+            self::normalizeQuery($q),
+            $this->applyMatchingStrategy(self::buildTableSearchOptions($tableName, $perPage, $page, $filters, $sort, $searchOn))
+        );
 
         $ids = array_map(fn ($hit) => $hit['value_id'] ?? null, $result->getHits());
 
@@ -505,7 +589,7 @@ class MeiliSearchService
             $opts['filter'] = $expr;
         }
 
-        $result = $this->client->index($this->indexName)->search(self::normalizeQuery($q), $this->applyMatchingStrategy($opts));
+        $result = $this->runSearch(self::normalizeQuery($q), $this->applyMatchingStrategy($opts));
 
         return $result->getFacetDistribution();
     }
@@ -530,6 +614,45 @@ class MeiliSearchService
             return [];
         }
 
+        // One unusable query fails the whole request, so a single unknown
+        // attribute path would cost the sidebar every count rather than that
+        // group's. Narrow the query Meilisearch names and send the batch
+        // again; each round fixes one query, so the rounds are bounded by how
+        // many there are.
+        $response = null;
+        for ($attempt = 0; $attempt <= count($queries); $attempt++) {
+            try {
+                $response = (array) $this->client->multiSearch($this->buildBatch($q, $queries));
+                break;
+            } catch (\Throwable $e) {
+                $narrowed = self::narrowBatchQuery($queries, $e);
+                if ($narrowed === null) {
+                    throw $e;
+                }
+
+                \Illuminate\Support\Facades\Log::warning(
+                    '[Meili] attributesToSearchOn of a sidebar query narrowed: ' . $e->getMessage()
+                );
+                $queries = $narrowed;
+            }
+        }
+
+        $out = [];
+        foreach ((array) (($response ?? [])['results'] ?? []) as $result) {
+            $out[] = (array) (((array) $result)['facetDistribution'] ?? []);
+        }
+
+        return $out;
+    }
+
+    /**
+     * The SearchQuery objects for one multi-search attempt.
+     *
+     * @param array<int,array{filters:MeiliFilters,attributes:array<int,string>,searchOn?:array<int,string>|null}> $queries
+     * @return array<int,\Meilisearch\Contracts\SearchQuery>
+     */
+    private function buildBatch(string $q, array $queries): array
+    {
         $strategy = config('meilisearch.matching_strategy');
         $built = [];
 
@@ -557,14 +680,50 @@ class MeiliSearchService
             $built[] = $search;
         }
 
-        $response = (array) $this->client->multiSearch($built);
+        return $built;
+    }
 
-        $out = [];
-        foreach ((array) ($response['results'] ?? []) as $result) {
-            $out[] = (array) (((array) $result)['facetDistribution'] ?? []);
+    /**
+     * The same batch with the one query Meilisearch complained about narrowed
+     * to the attributes the index accepts. Null when the error is about
+     * something else, so the caller rethrows it untouched.
+     *
+     * @param array<int,array{filters:MeiliFilters,attributes:array<int,string>,searchOn?:array<int,string>|null}> $queries
+     * @return array<int,array<string,mixed>>|null
+     */
+    public static function narrowBatchQuery(array $queries, \Throwable $e): ?array
+    {
+        $at = self::failedBatchQueryIndex($e->getMessage());
+        if ($at === null || !isset($queries[$at])) {
+            return null;
         }
 
-        return $out;
+        $searchOn = $queries[$at]['searchOn'] ?? null;
+        if ($searchOn === null) {
+            return null;
+        }
+
+        $narrowed = self::withoutUnknownSearchAttributes(['attributesToSearchOn' => $searchOn], $e);
+        if ($narrowed === null) {
+            return null;
+        }
+
+        $queries[$at]['searchOn'] = $narrowed['attributesToSearchOn'];
+
+        return $queries;
+    }
+
+    /**
+     * Which query of a multi-search the error is about: Meilisearch prefixes
+     * it with "Inside `.queries[N]`:". Null when it says nothing of the kind.
+     */
+    public static function failedBatchQueryIndex(string $message): ?int
+    {
+        if (!preg_match('/\.queries\[(\d+)\]/', $message, $m)) {
+            return null;
+        }
+
+        return (int) $m[1];
     }
 
     /**
@@ -652,8 +811,13 @@ class MeiliSearchService
     /**
      * Search with highlighting: also returns 'snippet' (the excerpt containing the highlighted keyword).
      *
+     * 'matches' carries Meilisearch's own _matchesPosition, keyed by attribute
+     * path ('label', 'fields.title'). A consumer deciding WHICH field matched
+     * must read that rather than look for the markers in the text: the markers
+     * are a fixed string, and record content may hold it already.
+     *
      * @param MeiliFilters $filters
-     * @return array<int,array{table_name:?string,value_id:mixed,label:?string,snippet:string,formatted:array<string,mixed>}>
+     * @return array<int,array{table_name:?string,value_id:mixed,label:?string,snippet:string,formatted:array<string,mixed>,matches:array<string,mixed>}>
      */
     public function searchHighlighted(string $q, int $limit = 10, array $filters = []): array
     {
@@ -662,6 +826,7 @@ class MeiliSearchService
             'attributesToHighlight' => ['*'],
             'highlightPreTag' => self::HIGHLIGHT_PRE,
             'highlightPostTag' => self::HIGHLIGHT_POST,
+            'showMatchesPosition' => true,
         ];
 
         // Filtering here rather than only after the fact.
@@ -679,6 +844,7 @@ class MeiliSearchService
                 'label' => $hit['label'] ?? null,
                 'snippet' => self::pickHighlightedSnippet($hit['_formatted'] ?? []),
                 'formatted' => (array) ($hit['_formatted'] ?? []),
+                'matches' => (array) ($hit['_matchesPosition'] ?? []),
             ];
         }, $result->getHits());
     }

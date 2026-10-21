@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Services\Meili\DocumentMapper;
+use Exceedone\Exment\Services\Meili\IndexingContext;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueModelScope;
@@ -92,7 +93,7 @@ class SyncMeiliDocumentJob implements ShouldQueue
             return;
         }
 
-        $doc = $mapper->map($record, $table->getFreewordSearchColumns(), $table->table_name, $table->table_view_name, \Exceedone\Exment\Services\Meili\FilterConfig::equalityColumns($table), \Exceedone\Exment\Services\Meili\FilterConfig::rangeColumns($table), \Exceedone\Exment\Services\Meili\FilterConfig::aliasMap($table));
+        $doc = IndexingContext::run(fn () => $mapper->map($record, $table->getFreewordSearchColumns(), $table->table_name, $table->table_view_name, \Exceedone\Exment\Services\Meili\FilterConfig::equalityColumns($table), \Exceedone\Exment\Services\Meili\FilterConfig::rangeColumns($table), \Exceedone\Exment\Services\Meili\FilterConfig::aliasMap($table)));
         $this->report($client, $index->addDocuments([$doc], 'id'), 'upsert');
     }
 

@@ -199,6 +199,25 @@ class System extends ModelBase
     }
 
     /**
+     * All request session entries, to put back after a block whose own cache
+     * entries must not outlive it.
+     *
+     * @return array<string,mixed>
+     */
+    public static function getRequestSessionAll(): array
+    {
+        return static::$requestSession;
+    }
+
+    /**
+     * @param array<string,mixed> $entries
+     */
+    public static function setRequestSessionAll(array $entries): void
+    {
+        static::$requestSession = $entries;
+    }
+
+    /**
      * Get Request Settion key already setted.
      *
      * @return \Illuminate\Support\Collection

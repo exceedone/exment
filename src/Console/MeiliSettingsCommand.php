@@ -54,6 +54,13 @@ class MeiliSettingsCommand extends Command
             return self::SUCCESS;
         }
 
+        // --show above reads only, so it stays usable for diagnosis; writing
+        // settings to another installation's index replaces its whole
+        // relevance configuration.
+        if (!$this->assertIndexOwned($client, (string) config('meilisearch.index'))) {
+            return self::FAILURE;
+        }
+
         $opts = IndexSettings::fromSystem();
         $settings = IndexSettings::build($opts);
 

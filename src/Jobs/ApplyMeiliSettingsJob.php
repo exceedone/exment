@@ -61,7 +61,12 @@ class ApplyMeiliSettingsJob implements ShouldQueue, ShouldBeUniqueUntilProcessin
         $this->resetRequestSessionOnWorker();
 
         $client = MeiliClientFactory::make();
-        $index = $client->index(config('meilisearch.index'));
+        $indexName = (string) config('meilisearch.index');
+
+        // Another installation's index keeps its own relevance configuration.
+        \Exceedone\Exment\Services\Meili\MeiliIndexOwnership::claim($client, $indexName);
+
+        $index = $client->index($indexName);
 
         $task = $index->updateSettings(IndexSettings::build(IndexSettings::fromSystem()));
 

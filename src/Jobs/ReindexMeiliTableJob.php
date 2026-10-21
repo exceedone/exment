@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Services\Meili\DocumentMapper;
+use Exceedone\Exment\Services\Meili\IndexingContext;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
 use Exceedone\Exment\Services\Meili\MeiliIndexOwnership;
 use Exceedone\Exment\Services\Meili\MeiliSearchService;
@@ -309,6 +310,9 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
         $table = CustomTable::getEloquent($this->tableName);
         if (!$this->shouldIndex($table)) {
             try {
+                // On an index another installation owns these are ITS documents:
+                // a document id carries only the table name and the record id.
+                MeiliIndexOwnership::claim($client, $indexName);
                 $task = $index->deleteDocuments(['filter' => self::tableFilter($this->tableName)]);
             } catch (\Throwable $e) {
                 // No index yet -> no documents to drop, which is the result asked for.
@@ -364,10 +368,12 @@ class ReindexMeiliTableJob implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
         $ids = [];
         $docs = [];
-        foreach ($records as $record) {
-            $ids[] = $record->id;
-            $docs[] = $mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
-        }
+        IndexingContext::run(function () use ($records, $mapper, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases, &$ids, &$docs) {
+            foreach ($records as $record) {
+                $ids[] = $record->id;
+                $docs[] = $mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
+            }
+        });
 
         if (!empty($docs)) {
             \Exceedone\Exment\Services\Meili\ExmentIndexer::ensureIndexExists($client, $indexName);

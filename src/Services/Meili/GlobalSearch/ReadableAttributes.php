@@ -191,13 +191,19 @@ class ReadableAttributes
     }
 
     /**
-     * A linked column (select_table / user / organization) whose target table
-     * holds rows this viewer cannot open: the document keeps the real label,
-     * the screen shows "no permission".
+     * A linked column (select_table / user / organization) whose value this
+     * viewer may not read in full: the document keeps the real label, the
+     * screen shows "no permission".
+     *
+     * Checked to any depth. A column pointing at a table whose every row is
+     * visible can still carry a hidden name, because that table's own label
+     * may be built from a link of its own - and the document stores the label
+     * as it was resolved at index time, with no user and so no filtering.
      *
      * @param  mixed  $column  CustomColumn
+     * @param  array<int,bool>  $seen  target table ids already on this path
      */
-    private static function isHiddenColumn($column): bool
+    private static function isHiddenColumn($column, array $seen = []): bool
     {
         if (!$column || !ColumnType::isSelectTable($column->column_type)) {
             return false;
@@ -206,15 +212,28 @@ class ReadableAttributes
         $target = $column->select_target_table;
 
         // No target left to check against -> assume the worst.
-        return !$target || !SavedSearchService::canViewAllRows($target);
+        if (!$target || !SavedSearchService::canViewAllRows($target)) {
+            return true;
+        }
+
+        // Tables can reference each other: a table already on this path has
+        // been checked, so stop rather than recurse forever.
+        $id = (int) $target->id;
+        if (isset($seen[$id])) {
+            return false;
+        }
+        $seen[$id] = true;
+
+        return self::labelMayExposeHidden($target, $seen);
     }
 
     /**
      * Whether the table's label is (or may be) built from a hidden column.
      *
      * @param  mixed  $table  CustomTable
+     * @param  array<int,bool>  $seen  target table ids already on this path
      */
-    private static function labelMayExposeHidden($table): bool
+    private static function labelMayExposeHidden($table, array $seen = []): bool
     {
         $labelColumns = $table->getLabelColumns();
 
@@ -230,7 +249,7 @@ class ReadableAttributes
             : $labelColumns->map(fn ($c) => CustomColumn::getEloquent($c->table_label_id))->all();
 
         foreach ($columns as $column) {
-            if (self::isHiddenColumn($column)) {
+            if (self::isHiddenColumn($column, $seen)) {
                 return true;
             }
         }

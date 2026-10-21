@@ -175,6 +175,15 @@ class Exment
     }
 
     /**
+     * The guard user() reads, for code that has to reach the same guard instance.
+     */
+    // @phpstan-ignore-next-line
+    public function getGuard()
+    {
+        return $this->guard;
+    }
+
+    /**
      * Get User Model's ID
      * This function name defines Custom value's user and login user. But this function always return Custom value's user
      * @return string|int|null
