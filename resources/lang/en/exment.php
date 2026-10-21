@@ -589,7 +589,7 @@ return [
             'meili_global_search' => 'Off: fall back to Exment default MySQL search.',
             'meili_realtime_sync' => 'On: record changes auto-sync to Meilisearch (via queue). Queue workers read settings at startup - restart workers after changing Meilisearch settings.',
             'meili_batch_size' => 'Number of documents sent per batch when indexing (e.g. 1000).',
-            'meili_repair_enabled' => 'On: rebuild the index daily to fix drift (requires scheduler).',
+            'meili_repair_enabled' => 'On: repair the difference between the database and the index daily (requires scheduler).',
             'meili_repair_at' => 'Time to run repair (24h HH:MM, e.g. 03:00).',
             'meili_filter_mode' => '"Auto + Custom" = auto by column type plus add/exclude in the setting screen. "Custom only" = only columns configured in the screen. Reindex required after change.',
             'meili_dictionary' => 'Tune search relevance with synonyms and stop words. Only index settings change, so no reindex is needed after saving (applies in seconds).',
