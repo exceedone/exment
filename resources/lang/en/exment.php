@@ -1478,6 +1478,7 @@ return [
                 'first_start_fix_only' => 'The executable users of the first action can only be "Set in advance".',
                 'status_in_use' => 'Status ":name" is used by existing data or history, so it cannot be deleted.',
                 'action_in_use' => 'Action ":name" cannot be deleted: some records have part of the approvals it asks for. Delete it once their approvals are complete.',
+                'action_strands_records' => 'Action ":name" cannot be deleted or moved off status ":status": records are at that status and no other action leaves it, so they could not move on. Add another action from that status first.',
                 'activated_locked' => 'The setting of this workflow is completed, so statuses cannot be added, deleted or reordered, and the completed status cannot be changed.',
                 'completed_only_one' => 'Only one status can be the completed status.',
             ],

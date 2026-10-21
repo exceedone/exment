@@ -670,6 +670,64 @@ trait WorkflowDesignTrait
     }
 
     /**
+     * The stored actions whose delete or move would strand records: records
+     * stand at the status the action leaves now, and after the save no action
+     * leaves that status any more.
+     *
+     * Records move on only through the actions out of their status, so once
+     * the last one is deleted - or set to leave another status - nothing can
+     * move them again. A status nobody is at, or one another action still
+     * leaves - an action redrawn between the same statuses, for one - does not
+     * stop the save. Neither does the start status: a design always keeps an
+     * action out of it. An action that keeps its status_from is never in the
+     * result, since that status is among $kept_from.
+     *
+     * A record is at the status its latest workflow_value moved it to.
+     *
+     * @param iterable<WorkflowAction> $stored the actions as stored before
+     *        this save, with the status_from they have now
+     * @param array<string> $kept_from status_from of every action after the save
+     * @param bool $lock read with a shared lock, inside a transaction - see
+     *        getUsedStatusIds()
+     * @return \Illuminate\Support\Collection<int, WorkflowAction>
+     */
+    protected function getStrandingActions($stored, array $kept_from, bool $lock = false)
+    {
+        $candidates = collect($stored)->filter(function ($action) use ($kept_from) {
+            $from = strval($action->status_from);
+            return $from !== ''
+                && $from !== Define::WORKFLOW_START_KEYNAME
+                && !in_array($from, $kept_from, true);
+        })->values();
+        if ($candidates->isEmpty()) {
+            return $candidates;
+        }
+
+        $query = WorkflowValue::whereIn('workflow_status_to_id', $candidates->pluck('status_from')->unique()->values()->all())
+            ->where('latest_flg', true)
+            ->distinct();
+        if ($lock) {
+            $query->sharedLock();
+        }
+        $occupied = array_map('strval', $query->pluck('workflow_status_to_id')->all());
+
+        return $candidates->filter(function ($action) use ($occupied) {
+            return in_array(strval($action->status_from), $occupied, true);
+        })->values();
+    }
+
+    /**
+     * Why the delete or move of $action is refused - see getStrandingActions().
+     */
+    protected static function strandsRecordsMessage(WorkflowAction $action): string
+    {
+        return exmtrans('workflow.design.message.action_strands_records', [
+            'name' => $action->action_name,
+            'status' => $action->status_from_name,
+        ]);
+    }
+
+    /**
      * ノードの座標。ステップ2のプレビューと同じ options.designer_layout を読む。
      *
      * @param Workflow $workflow
@@ -965,7 +1023,23 @@ trait WorkflowDesignTrait
         }
 
         // ---- ステータス ----
-        $statuses = (array)array_get($payload, 'statuses', []);
+        // Posted by a script as well, so checked the way "actions" is below:
+        // a list where a value belongs ends in "Array to string conversion"
+        // (HTTP 500) in the strval() calls that follow. Nothing after this can
+        // be judged on a malformed list - read as empty, every stored status
+        // would count as being removed - so it is the only error reported.
+        $statuses = array_get($payload, 'statuses') ?? [];
+        $not_array = trans('validation.array', ['attribute' => exmtrans('workflow.workflow_statuses')]);
+        if (!is_array($statuses) || !array_is_list($statuses)) {
+            $errors[] = $not_array;
+            return $errors;
+        }
+        foreach ($statuses as $index => $status) {
+            if (!static::isDesignStatusShape($status)) {
+                $errors[] = $not_array . ' (#' . ($index + 1) . ')';
+                return $errors;
+            }
+        }
         if (count($statuses) === 0) {
             $errors[] = $required(exmtrans('workflow.workflow_statuses'));
         }
@@ -1251,7 +1325,8 @@ trait WorkflowDesignTrait
                 return strval($v);
             })->values()->all();
 
-            $removing_actions = $workflow->workflow_actions()->get()
+            $stored_actions = $workflow->workflow_actions()->get();
+            $removing_actions = $stored_actions
                 ->filter(function ($action) use ($posted_action_ids) {
                     return !in_array(strval($action->id), $posted_action_ids, true);
                 });
@@ -1261,6 +1336,34 @@ trait WorkflowDesignTrait
                 if (in_array(strval($action->id), $pending_ids, true)) {
                     $errors[] = exmtrans('workflow.design.message.action_in_use', ['name' => $action->action_name]);
                 }
+            }
+
+            // そのステータスから進むアクションが1つも残らないと（削除・実行前ステータスの変更）、
+            // そこにあるデータが先へ進めなくなる。
+            // See getStrandingActions(). An action already refused above is not
+            // reported twice, and a status removed in this save is left to the
+            // status check. saveDesignActions() asks again inside its transaction.
+            $status_id_of = [];
+            foreach ($statuses as $status) {
+                $id = strval(array_get($status, 'id'));
+                if ($id !== '') {
+                    $status_id_of[strval(array_get($status, 'key') ?: $id)] = $id;
+                }
+            }
+            $kept_from = collect($actions)->map(function ($action) use ($status_id_of) {
+                $from = strval(array_get($action, 'status_from'));
+                return $status_id_of[$from] ?? $from;
+            })->unique()->values()->all();
+
+            $stranding = $this->getStrandingActions(
+                $stored_actions->filter(function ($action) use ($pending_ids, $posted_ids) {
+                    return !in_array(strval($action->id), $pending_ids, true)
+                        && in_array(strval($action->status_from), $posted_ids, true);
+                }),
+                $kept_from
+            );
+            foreach ($stranding as $action) {
+                $errors[] = static::strandsRecordsMessage($action);
             }
         }
 
@@ -1282,7 +1385,7 @@ trait WorkflowDesignTrait
     protected static function isDesignActionShape($action): bool
     {
         $isValue = function ($value) {
-            return is_null($value) || is_scalar($value);
+            return static::isDesignValue($value);
         };
 
         if (!is_array($action)) {
@@ -1321,6 +1424,38 @@ trait WorkflowDesignTrait
         }
 
         return true;
+    }
+
+    /**
+     * Whether one posted status has the shape the designer sends: the fields
+     * validateWorkflowDesign() and saveDesignStatuses() read are single values.
+     *
+     * @param mixed $status
+     * @return bool
+     */
+    protected static function isDesignStatusShape($status): bool
+    {
+        if (!is_array($status)) {
+            return false;
+        }
+        foreach (['id', 'key', 'name', 'datalock', 'completed'] as $key) {
+            if (!static::isDesignValue(array_get($status, $key))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * A single value of the designer's payload: null or a scalar, never a list.
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    protected static function isDesignValue($value): bool
+    {
+        return is_null($value) || is_scalar($value);
     }
 
     /* =====================================================================
@@ -1468,15 +1603,9 @@ trait WorkflowDesignTrait
      */
     protected static function throwStatusInUse($statuses)
     {
-        $errors = $statuses->map(function ($status) {
+        static::throwDesignConflict($statuses->map(function ($status) {
             return exmtrans('workflow.design.message.status_in_use', ['name' => $status->status_name]);
-        })->values()->all();
-
-        throw new HttpResponseException(response()->json([
-            'result' => false,
-            'toastr' => exmtrans('workflow.design.message.conflict'),
-            'errors' => $errors,
-        ], 409));
+        })->values()->all());
     }
 
     /**
@@ -1487,10 +1616,20 @@ trait WorkflowDesignTrait
      */
     protected static function throwActionInUse($actions)
     {
-        $errors = $actions->map(function ($action) {
+        static::throwDesignConflict($actions->map(function ($action) {
             return exmtrans('workflow.design.message.action_in_use', ['name' => $action->action_name]);
-        })->values()->all();
+        })->values()->all());
+    }
 
+    /**
+     * Refuse a design save that found, inside its transaction, something the
+     * check before it could not see yet.
+     *
+     * @param array<string> $errors
+     * @return never
+     */
+    protected static function throwDesignConflict(array $errors)
+    {
         throw new HttpResponseException(response()->json([
             'result' => false,
             'toastr' => exmtrans('workflow.design.message.conflict'),
@@ -1529,6 +1668,10 @@ trait WorkflowDesignTrait
         })->values();
 
         $keep_ids = [];
+
+        // The actions with the status_from they have before this save - read
+        // by getStrandingActions() below, after the loop has rewritten it.
+        $stored = WorkflowAction::where('workflow_id', $workflow->id)->get();
 
         foreach ($ordered as $item) {
             $id = array_get($item, 'id');
@@ -1603,6 +1746,22 @@ trait WorkflowDesignTrait
             if ($conflicts->count() > 0) {
                 static::throwActionInUse($conflicts);
             }
+        }
+
+        // The same for a record reaching the status an action is deleted or
+        // moved off. Thrown inside the transaction, so the actions saved above
+        // are rolled back with it.
+        $kept_from = WorkflowAction::where('workflow_id', $workflow->id)
+            ->whereIn('id', $keep_ids)
+            ->pluck('status_from')
+            ->map(function ($from) {
+                return strval($from);
+            })->unique()->values()->all();
+        $stranding = $this->getStrandingActions($stored, $kept_from, true);
+        if ($stranding->count() > 0) {
+            static::throwDesignConflict($stranding->map(function ($action) {
+                return static::strandsRecordsMessage($action);
+            })->all());
         }
 
         foreach ($removed as $action) {

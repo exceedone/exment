@@ -365,7 +365,7 @@ class WorkflowDesignFixTest extends UnitTestBase
             $this->assertSame(422, $response->getStatusCode(), 'actions = ' . var_export($actions, true) . ' must be refused: ' . $response->getContent());
 
             // said as "must be an array", not read as one action with no name
-            $errors = (array)array_get(json_decode($response->getContent(), true), 'errors', []);
+            $errors = (array)array_get(json_decode((string)$response->getContent(), true), 'errors', []);
             $this->assertSame(
                 [trans('validation.array', ['attribute' => exmtrans('workflow.workflow_actions')])],
                 array_values(array_filter($errors, function ($error) {
@@ -406,7 +406,7 @@ class WorkflowDesignFixTest extends UnitTestBase
 
         // and the same payload with a real list still goes through
         $response = $this->createDesign($this->newTablePayload($table_id));
-        $this->assertSame(200, $response->getStatusCode(), $response->getContent());
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
     }
 
     /**
@@ -761,9 +761,347 @@ class WorkflowDesignFixTest extends UnitTestBase
         $this->assertSame($existing->suuid, $json['suuid']);
     }
 
+    /**
+     * "statuses" is posted by a script too. A list where a value belongs
+     * (name, id, key...) ended in "Array to string conversion" - an HTTP 500 -
+     * and an object with string keys or a status that is not an object was
+     * read on as if it were the designer's list.
+     *
+     * @return void
+     */
+    public function testDesignerRefusesStatusesThatAreNotShapedAsTheDesignerSendsThem()
+    {
+        $before = Workflow::count();
+        $table_id = CustomTable::getEloquent('custom_value_edit')->id;
+        $not_array = trans('validation.array', ['attribute' => exmtrans('workflow.workflow_statuses')]);
+
+        $valid = $this->newTablePayload($table_id)['statuses'];
+        $cases = [
+            [['not a list'], $not_array . ' (#1)'],
+            ['not a list', $not_array],
+            [5, $not_array],
+            [['x' => $valid[0], 'y' => $valid[1]], $not_array],
+            [[$valid[0], array_merge($valid[1], ['name' => ['a']])], $not_array . ' (#2)'],
+            [[array_merge($valid[0], ['id' => ['x']]), $valid[1]], $not_array . ' (#1)'],
+            [[array_merge($valid[0], ['key' => ['k']]), $valid[1]], $not_array . ' (#1)'],
+            [[array_merge($valid[0], ['completed' => ['1']]), $valid[1]], $not_array . ' (#1)'],
+            [[array_merge($valid[0], ['datalock' => ['1']]), $valid[1]], $not_array . ' (#1)'],
+        ];
+        foreach ($cases as [$statuses, $error]) {
+            $payload = $this->newTablePayload($table_id);
+            $payload['statuses'] = $statuses;
+
+            $response = $this->createDesign($payload);
+            $this->assertSame(422, $response->getStatusCode(), 'statuses = ' . var_export($statuses, true) . ' must be refused: ' . $response->getContent());
+            $this->assertContains($error, (array)array_get(json_decode((string)$response->getContent(), true), 'errors', []), 'statuses = ' . var_export($statuses, true));
+        }
+        $this->assertSame($before, Workflow::count(), 'No workflow may be created.');
+
+        // no statuses at all is still the "required" error it was
+        $payload = $this->newTablePayload($table_id);
+        unset($payload['statuses']);
+        $response = $this->createDesign($payload);
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertContains(
+            trans('validation.required', ['attribute' => exmtrans('workflow.workflow_statuses')]),
+            (array)array_get(json_decode((string)$response->getContent(), true), 'errors', [])
+        );
+
+        // on a saved workflow the malformed list is the only thing reported: it
+        // is not read as "every stored status is being removed"
+        [$workflow, , $status] = $this->newCommonWorkflow();
+        $payload = $this->payloadOf($this->designData($workflow));
+        $payload['statuses'][0]['name'] = ['a'];
+        $response = $this->postDesign($workflow, $payload);
+        $this->assertSame(422, $response->getStatusCode(), (string)$response->getContent());
+        $this->assertSame([$not_array . ' (#1)'], array_get(json_decode((string)$response->getContent(), true), 'errors'));
+        $this->assertSame('s1', $this->findStatus($status['n1'])->status_name, 'Nothing may be saved.');
+    }
+
+    /**
+     * Deleting the only action out of a status leaves the records standing
+     * there with no way on. The designer refuses it while records are there,
+     * and still allows it when nobody is, or when another action leaves the
+     * status - redrawing the action between the same statuses among them.
+     *
+     * @return void
+     */
+    public function testDesignerKeepsTheOnlyActionOutOfAStatusRecordsAreAt()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+        $this->recordAt($actions['go'], $status['n1']);
+        $data = $this->designData($workflow);
+
+        $response = $this->postDesign($workflow, $this->withActionDeleted($this->payloadOf($data), $actions['done'], $status['n2']));
+
+        $this->assertSame(422, $response->getStatusCode(), 'Deleting the action must be refused: ' . $response->getContent());
+        $this->assertContains(
+            exmtrans('workflow.design.message.action_strands_records', ['name' => 'done', 'status' => 's1']),
+            (array)array_get(json_decode((string)$response->getContent(), true), 'errors', [])
+        );
+        $this->assertFalse(WorkflowAction::withTrashed()->where('id', $actions['done']->id)->firstOrFail()->trashed(), 'The action must not be deleted.');
+
+        // another action still leaves the status: the records can move on
+        $response = $this->postDesign($workflow, $this->withActionRedrawn($this->payloadOf($data), $actions['done']));
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+        $this->assertTrue(WorkflowAction::withTrashed()->where('id', $actions['done']->id)->firstOrFail()->trashed(), 'The redrawn action replaces it.');
+    }
+
+    /**
+     * Nobody at the status: the action is deleted as it always was.
+     *
+     * @return void
+     */
+    public function testDesignerDeletesTheOnlyActionOutOfAStatusNobodyIsAt()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+        $this->recordAt($actions['go'], $status['n2']);
+
+        $response = $this->postDesign($workflow, $this->withActionDeleted($this->payloadOf($this->designData($workflow)), $actions['done'], $status['n2']));
+
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+        $this->assertTrue(WorkflowAction::withTrashed()->where('id', $actions['done']->id)->firstOrFail()->trashed());
+    }
+
+    /**
+     * A record that reaches the status between the designer's check and its
+     * save keeps the action too: the save asks again inside its transaction.
+     *
+     * @return void
+     */
+    public function testDesignerAsksAgainForARecordReachingTheStatusDuringTheSave()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+        $payload = $this->withActionDeleted($this->payloadOf($this->designData($workflow)), $actions['done'], $status['n2']);
+
+        $written = null;
+        \DB::listen(function (QueryExecuted $query) use (&$written, $actions, $status) {
+            if (isset($written) || \DB::transactionLevel() < 2) {
+                return;
+            }
+            if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false) {
+                return;
+            }
+            $written = false;
+            $this->recordAt($actions['go'], $status['n1']);
+            $written = true;
+        });
+
+        $response = $this->postDesign($workflow, $payload);
+
+        $this->assertTrue($written === true, 'The record must have moved during the save.');
+        $this->assertSame(409, $response->getStatusCode(), 'The delete must be answered as a conflict: ' . $response->getContent());
+        $this->assertContains(
+            exmtrans('workflow.design.message.action_strands_records', ['name' => 'done', 'status' => 's1']),
+            (array)array_get(json_decode((string)$response->getContent(), true), 'errors', [])
+        );
+        $this->assertFalse(WorkflowAction::withTrashed()->where('id', $actions['done']->id)->firstOrFail()->trashed(), 'The action must not be deleted.');
+    }
+
+    /**
+     * Step 2 refuses the same delete as the designer.
+     *
+     * @return void
+     */
+    public function testStepTwoKeepsTheOnlyActionOutOfAStatusRecordsAreAt()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+        $deleteDone = function (array $row, string $name) {
+            $row[Form::REMOVE_FLAG_NAME] = $name === 'done' ? 1 : 0;
+            return $row;
+        };
+
+        $this->assertNull($this->validateStepTwo($workflow, $actions, $status, $deleteDone), 'With nobody at the status the action can be deleted.');
+
+        $this->recordAt($actions['go'], $status['n1']);
+        $result = $this->validateStepTwo($workflow, $actions, $status, $deleteDone);
+
+        $message = exmtrans('workflow.design.message.action_strands_records', ['name' => 'done', 'status' => 's1']);
+        $this->assertInstanceOf(RedirectResponse::class, $result, 'Deleting the action must be refused.');
+        $this->assertSame($message, session()->get('errors')->first('workflow_actions'));
+        $this->assertStringContainsString(esc_html($message), strval(array_get(session()->get('error')->get('message'), 0)));
+    }
+
+    /**
+     * Setting the only action out of a status to leave another status strands
+     * the records there just as deleting it does - in the designer, which edits
+     * an action's "from" in place, and on step 2. Without records there, or
+     * with the other actions unchanged, the save goes through as before.
+     *
+     * @return void
+     */
+    public function testTheOnlyActionOutOfAStatusRecordsAreAtCannotBeMovedOffIt()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+        $record = $this->recordAt($actions['go'], $status['n1']);
+        $message = exmtrans('workflow.design.message.action_strands_records', ['name' => 'done', 'status' => 's1']);
+
+        // the designer
+        $payload = $this->withActionMovedToStart($this->payloadOf($this->designData($workflow)), $actions['done']);
+        $response = $this->postDesign($workflow, $payload);
+        $this->assertSame(422, $response->getStatusCode(), 'Moving the action must be refused: ' . $response->getContent());
+        $this->assertContains($message, (array)array_get(json_decode((string)$response->getContent(), true), 'errors', []));
+        $this->assertSame(strval($status['n1']), strval(WorkflowAction::where('id', $actions['done']->id)->firstOrFail()->status_from), 'The action must keep its status.');
+
+        // step 2
+        $moveDone = function (array $row, string $name) {
+            if ($name === 'done') {
+                $row['status_from'] = 'start';
+            }
+            return $row;
+        };
+        $this->assertInstanceOf(RedirectResponse::class, $this->validateStepTwo($workflow, $actions, $status, $moveDone), 'Step 2 must refuse it too.');
+        $this->assertSame($message, session()->get('errors')->first('workflow_actions'));
+
+        // a save that moves nothing is not affected by the records at n1
+        $response = $this->postDesign($workflow, $this->payloadOf($this->designData($workflow)));
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+
+        // nobody at n1 any more: the move is saved as it always was
+        $record->delete();
+        $response = $this->postDesign($workflow, $this->withActionMovedToStart($this->payloadOf($this->designData($workflow)), $actions['done']));
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+        $this->assertSame('start', strval(WorkflowAction::where('id', $actions['done']->id)->firstOrFail()->status_from));
+    }
+
+    /**
+     * A record reaching the status while an action is being moved off it: the
+     * save asks again inside its transaction, against the status the action
+     * left, and rolls the move back.
+     *
+     * @return void
+     */
+    public function testDesignerAsksAgainForARecordReachingTheStatusAnActionIsMovedOff()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+        $payload = $this->withActionMovedToStart($this->payloadOf($this->designData($workflow)), $actions['done']);
+
+        $written = null;
+        \DB::listen(function (QueryExecuted $query) use (&$written, $actions, $status) {
+            if (isset($written) || \DB::transactionLevel() < 2) {
+                return;
+            }
+            if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false) {
+                return;
+            }
+            $written = false;
+            $this->recordAt($actions['go'], $status['n1']);
+            $written = true;
+        });
+
+        $response = $this->postDesign($workflow, $payload);
+
+        $this->assertTrue($written === true, 'The record must have moved during the save.');
+        $this->assertSame(409, $response->getStatusCode(), 'The move must be answered as a conflict: ' . $response->getContent());
+        $this->assertSame(strval($status['n1']), strval(WorkflowAction::where('id', $actions['done']->id)->firstOrFail()->status_from), 'The move must be rolled back.');
+    }
+
     // ------------------------------------------------------------------
     //  helpers
     // ------------------------------------------------------------------
+
+    /**
+     * A record moved to $status_to by $action and standing there: its latest
+     * workflow_value, as WorkflowAction::executeAction() leaves it. The record
+     * is the user row of the login user, so no custom table is needed.
+     *
+     * @param mixed $status_to
+     */
+    protected function recordAt(WorkflowAction $action, $status_to): WorkflowValue
+    {
+        $value = new WorkflowValue();
+        $value->workflow_id = $action->workflow_id;
+        $value->morph_type = SystemTableName::USER;
+        $value->morph_id = \Exment::getUserId();
+        $value->workflow_action_id = $action->id;
+        // the start status is not a row: an action from it leaves no "from"
+        $value->workflow_status_from_id = is_numeric($action->status_from) ? $action->status_from : null;
+        $value->workflow_status_to_id = $status_to;
+        $value->action_executed_flg = 0;
+        $value->latest_flg = 1;
+        $value->save();
+
+        return $value;
+    }
+
+    /**
+     * The payload with $action removed, and its place taken by a new action
+     * from the start status to $status_to - so the design stays valid while
+     * the status $action left has no action out of it any more.
+     *
+     * @param array<string, mixed> $payload
+     * @param mixed $status_to
+     * @return array<string, mixed>
+     */
+    protected function withActionDeleted(array $payload, WorkflowAction $action, $status_to): array
+    {
+        $payload['actions'] = array_values(array_filter($payload['actions'], function ($item) use ($action) {
+            return strval($item['id']) !== strval($action->id);
+        }));
+
+        $skip = $payload['actions'][0];
+        $skip['id'] = null;
+        $skip['key'] = 'skip';
+        $skip['name'] = 'skip';
+        $skip['status_from'] = 'start';
+        $skip['destinations'] = [['id' => null, 'status_to' => 's' . $status_to, 'enabled' => 1]];
+        $payload['actions'][] = $skip;
+
+        return $payload;
+    }
+
+    /**
+     * The payload with $action, same id, set to leave the start status - as
+     * the designer's action dialog changes an action's "from" in place.
+     *
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    protected function withActionMovedToStart(array $payload, WorkflowAction $action): array
+    {
+        foreach ($payload['actions'] as &$item) {
+            if (strval($item['id']) === strval($action->id)) {
+                $item['status_from'] = 'start';
+            }
+        }
+        unset($item);
+
+        return $payload;
+    }
+
+    /**
+     * Run step 2's validation on the rows of a workflow made by
+     * newCommonWorkflow(), each row first passed through $change.
+     *
+     * @param array<string, WorkflowAction> $actions
+     * @param array<mixed> $status
+     * @param callable(array<string, mixed>, string): array<string, mixed> $change row, action name => row
+     * @return mixed what validateData() returns: null when it passes
+     */
+    protected function validateStepTwo(Workflow $workflow, array $actions, array $status, callable $change)
+    {
+        $rows = [];
+        foreach ($actions as $name => $action) {
+            $rows[] = $change([
+                'id' => $action->id,
+                'action_name' => $action->action_name,
+                'status_from' => $action->status_from,
+                'work_condition_select' => $name === 'go' ? $status['n1'] : $status['n2'],
+                'work_targets' => json_encode(['work_target_type' => 'fix', 'system' => ['created_user']]),
+                'flow_next_type' => 'some',
+                'flow_next_count' => 1,
+                'comment_type' => 'nullable',
+                Form::REMOVE_FLAG_NAME => 0,
+            ], $name);
+        }
+        $request = Request::create(admin_urls('workflow', $workflow->id), 'PUT', ['workflow_actions' => $rows]);
+        $this->app->instance('request', $request);
+        Facade::clearResolvedInstance('request');
+
+        $form = new Form(new Workflow());
+        $form->setModel(Workflow::where('id', $workflow->id)->firstOrFail());
+        return $this->callProtectedMethod(new WorkflowController(), 'validateData', $form);
+    }
 
     protected function workflow(string $name): Workflow
     {

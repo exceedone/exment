@@ -1176,14 +1176,37 @@ class WorkflowController extends AdminControllerBase
                 $removing_ids[] = $id;
             }
         }
-        if (count($removing_ids) > 0 && isset($model->id)) {
-            $removing = WorkflowAction::where('workflow_id', $model->id)->whereIn('id', $removing_ids)->get();
-            $pending_ids = $this->getPendingActionIds($removing->pluck('id')->all());
-            $messages = $removing->filter(function ($action) use ($pending_ids) {
-                return in_array(strval($action->id), $pending_ids, true);
-            })->map(function ($action) {
-                return exmtrans('workflow.design.message.action_in_use', ['name' => $action->action_name]);
-            })->values();
+        // Only for a post carrying the action rows: without them nothing is
+        // deleted or moved, and an empty list would read as "all of them".
+        if (isset($model->id) && array_key_exists('workflow_actions', $data)) {
+            $messages = collect();
+            $pending_ids = [];
+            if (count($removing_ids) > 0) {
+                $removing = WorkflowAction::where('workflow_id', $model->id)->whereIn('id', $removing_ids)->get();
+                $pending_ids = $this->getPendingActionIds($removing->pluck('id')->all());
+                $messages = $removing->filter(function ($action) use ($pending_ids) {
+                    return in_array(strval($action->id), $pending_ids, true);
+                })->map(function ($action) {
+                    return exmtrans('workflow.design.message.action_in_use', ['name' => $action->action_name]);
+                })->values()->toBase();
+            }
+
+            // nor the last action out of a status records are at, deleted or
+            // moved to another status - see getStrandingActions()
+            $kept_from = [];
+            foreach ($workflow_actions as $workflow_action) {
+                if (!boolval(array_get($workflow_action, Form::REMOVE_FLAG_NAME))) {
+                    $kept_from[] = strval(array_get($workflow_action, 'status_from'));
+                }
+            }
+            $stored = WorkflowAction::where('workflow_id', $model->id)->get();
+            $stranding = $this->getStrandingActions($stored->filter(function ($action) use ($pending_ids) {
+                return !in_array(strval($action->id), $pending_ids, true);
+            }), $kept_from);
+            $messages = $messages->merge($stranding->map(function ($action) {
+                return static::strandsRecordsMessage($action);
+            }))->values();
+
             if ($messages->count() > 0) {
                 // the alert prints its message as html, and the names are the user's
                 admin_error(exmtrans('common.error'), $messages->map(function ($message) {
