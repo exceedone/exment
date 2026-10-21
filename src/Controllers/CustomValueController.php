@@ -1500,7 +1500,14 @@ class CustomValueController extends AdminControllerTableBase
     public function shareClick(Request $request, $tableKey, $id)
     {
         // get customvalue
-        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        $custom_table = CustomTable::getEloquent($tableKey);
+        $custom_value = $custom_table->getValueModel($id);
+        // the dialog, like its save (CustomValueAuthoritable::saveShareDialogForm), is for whoever
+        // may edit and share the record: the button is shown to them alone, the request itself is
+        // open to anyone who may view it
+        if (!isset($custom_value) || !$custom_table->hasPermissionEditData($id) || !$custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+            return getAjaxResponse(['result' => false, 'toastr' => trans('admin.deny')]);
+        }
         $form = CustomValueAuthoritable::getShareDialogForm($custom_value);
 
         return getAjaxResponse([

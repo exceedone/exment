@@ -611,6 +611,11 @@ class DashboardController extends AdminControllerBase
     public function shareClick(Request $request, $id)
     {
         $model = Dashboard::getEloquent($id);
+        // the dialog, like its save (sendShares), is for whoever may edit the dashboard: the
+        // button is shown to them alone, the request itself is open to anyone who may view it
+        if (!isset($model) || !$model->hasEditPermission()) {
+            return getAjaxResponse(['result' => false, 'toastr' => trans('admin.deny')]);
+        }
 
         $form = DataShareAuthoritable::getShareDialogForm($model);
 

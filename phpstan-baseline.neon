@@ -516,11 +516,6 @@ parameters:
 			count: 2
 			path: vendor/exceedone/exment/src/Controllers/CustomTableController.php
 
-		-
-			message: '#^Access to an undefined property object\:\:\$custom_table_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CustomViewController.php
 
 		-
 			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
