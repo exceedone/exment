@@ -259,7 +259,9 @@
         };
         if (d.matrix) {
             rows.push([d.axisx || ''].concat(d.series));
-            $.each(d.categories, function (i, c) { rows.push([c].concat($.map(d.series, function (s, si) { return (d.matrix[si] || [])[i]; }))); });
+            // an empty cell (null: a MIN / MAX cell no row fell into) is an empty field — $.map
+            // would drop a null and shift the columns after it
+            $.each(d.categories, function (i, c) { rows.push([c].concat($.map(d.series, function (s, si) { var v = (d.matrix[si] || [])[i]; return v == null ? '' : v; }))); });
         } else {
             rows.push([d.axisx || '', d.axisy || '']);
             $.each(d.labels, function (i, l) { rows.push([l, d.values[i]]); });
@@ -554,13 +556,24 @@
                 var show = function (n) { return String(Number(Number(n).toFixed(s.decimals))); };
                 var $input = $('<input type="hidden" class="df-slider">').appendTo($wrap.empty());
                 sliders.push($input);
+                // a typed bound outside today's data range sits clamped on the slider: only the
+                // input of the handle being dragged takes the slider's value, the other keeps
+                // what it holds (60 stays 60 while the data starts at 80)
+                var held = { from: clamp($from.val(), min), to: clamp($to.val(), max) };
                 $input.ionRangeSlider({
                     type: 'double', min: min, max: max, step: s.step,
-                    from: clamp($from.val(), min), to: clamp($to.val(), max),
+                    from: held.from, to: held.to,
                     hideMinMax: true, hideFromTo: true, hasGrid: false,
                     onChange: function (o) {
-                        $from.val(show(o.fromNumber)).toggleClass('active', !atDataEnd($from));
-                        $to.val(show(o.toNumber)).toggleClass('active', !atDataEnd($to));
+                        // moved = more than half a step away (the slider rounds to its step)
+                        var moved = function (a, b) { return Math.abs(Number(a) - Number(b)) > s.step / 2; };
+                        if (moved(o.fromNumber, held.from)) {
+                            $from.val(show(o.fromNumber)).toggleClass('active', !atDataEnd($from));
+                        }
+                        if (moved(o.toNumber, held.to)) {
+                            $to.val(show(o.toNumber)).toggleClass('active', !atDataEnd($to));
+                        }
+                        held = { from: o.fromNumber, to: o.toNumber };
                     },
                     onFinish: function () { navigate(filterBarUrl()); }
                 });

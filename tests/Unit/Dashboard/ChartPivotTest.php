@@ -37,8 +37,32 @@ class ChartPivotTest extends DashboardUnitTestCase
 
         $this->assertSame([[14.0, 0], [7.5, 2.0]], ChartPivot::build($this->rows(), SummaryCondition::COUNT)['matrix'], 'the count of a cell is the sum of its rows\' counts');
         $this->assertSame([[14.0, 0], [7.5, 2.0]], ChartPivot::build($this->rows(), null)['matrix'], 'a group column as the measure adds up');
-        $this->assertSame([[4.0, 0], [7.5, 2.0]], ChartPivot::build($this->rows(), SummaryCondition::MIN)['matrix'], 'MIN keeps the lowest row');
-        $this->assertSame([[10.0, 0], [7.5, 2.0]], ChartPivot::build($this->rows(), SummaryCondition::MAX)['matrix'], 'MAX keeps the highest row');
+        $this->assertSame([[4.0, null], [7.5, 2.0]], ChartPivot::build($this->rows(), SummaryCondition::MIN)['matrix'], 'MIN keeps the lowest row; a cell no row fell into has no minimum');
+        $this->assertSame([[10.0, null], [7.5, 2.0]], ChartPivot::build($this->rows(), SummaryCondition::MAX)['matrix'], 'MAX keeps the highest row; a cell no row fell into has no maximum');
+    }
+
+    /**
+     * A cell no row falls into: 0 is the sum or count of no rows, but no row's minimum or
+     * maximum — a 0 there was drawn as a measured 0 (heatmap, lines) and counted into the
+     * boxplot's spread (A = {S1: 10, S2: 20} with an empty S3 cell had the median 10, not 15).
+     */
+    public function testAnEmptyCellIsZeroForAnAddingMeasureAndNullForMinMax(): void
+    {
+        $this->assertSame(0, ChartPivot::emptyCell(SummaryCondition::SUM));
+        $this->assertSame(0, ChartPivot::emptyCell(SummaryCondition::COUNT));
+        $this->assertSame(0, ChartPivot::emptyCell(null), 'a group column as the measure adds up');
+        $this->assertNull(ChartPivot::emptyCell(SummaryCondition::MIN));
+        $this->assertNull(ChartPivot::emptyCell(SummaryCondition::MAX));
+        $this->assertNull(ChartPivot::emptyCell((int) SummaryCondition::MIN), 'the condition may come as an int');
+
+        $rows = [
+            ['x' => 'A', 'x_text' => 'A', 'series' => 'S1', 'y' => '10'],
+            ['x' => 'A', 'x_text' => 'A', 'series' => 'S2', 'y' => '20'],
+            ['x' => 'B', 'x_text' => 'B', 'series' => 'S3', 'y' => '30'],
+            ['x' => 'B', 'x_text' => 'B', 'series' => 'S1', 'y' => '5'],
+        ];
+        $this->assertSame([[10.0, 5.0], [20.0, null], [null, 30.0]], ChartPivot::build($rows, SummaryCondition::MIN)['matrix']);
+        $this->assertSame([[10.0, 5.0], [20.0, 0], [0, 30.0]], ChartPivot::build($rows, SummaryCondition::SUM)['matrix'], 'unchanged for SUM');
     }
 
     public function testAValueThatIsNoNumberFoldsNothing(): void
@@ -49,7 +73,7 @@ class ChartPivotTest extends DashboardUnitTestCase
             ['x' => 'a', 'x_text' => 'A', 'series' => 's', 'y' => 'abc'],
             ['x' => 'b', 'x_text' => 'B', 'series' => 's', 'y' => null],
         ];
-        $this->assertSame([[3.0, 0]], ChartPivot::build($rows, SummaryCondition::MIN)['matrix'], 'a null row is no 0 that MIN would keep');
+        $this->assertSame([[3.0, null]], ChartPivot::build($rows, SummaryCondition::MIN)['matrix'], 'a null row is no 0 that MIN would keep');
         $this->assertSame([[3.0, 0]], ChartPivot::build($rows, SummaryCondition::SUM)['matrix']);
         $this->assertSame(['A', 'B'], ChartPivot::build($rows, SummaryCondition::SUM)['x_categories'], 'the category is there without a value');
     }

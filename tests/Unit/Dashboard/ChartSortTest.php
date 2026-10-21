@@ -99,4 +99,54 @@ class ChartSortTest extends DashboardUnitTestCase
         $this->assertSame(['3学期', '2学期', '1学期'], ChartSorter::applyMulti($result, ChartSort::parse('x0:desc'))['x_categories']);
         $this->assertSame($result, ChartSorter::applyMulti($result, ChartSort::parse('x1:asc')), 'the series column is not an X field');
     }
+
+    /**
+     * A numeric X column (integer / decimal / currency) is labelled with its formatted text
+     * ("1,000", "-10") — ordered as text, "-5" came before "-10", "1,000" before "200" and
+     * "1.5" before "1.25". With its stored numbers (sort_keys) it is ordered by number.
+     */
+    public function testANumericXColumnSortsByItsStoredNumbers(): void
+    {
+        $texts = ['1,000', '200', '1.5', '1.25', '-10', '-5', '3'];
+        $numbers = ['1000', '200', '1.5', '1.25', '-10', '-5', '3'];
+        $result = [
+            'chart_label' => $texts,
+            'chart_data' => [1, 2, 3, 4, 5, 6, 7],
+            'chart_fields' => [$texts],
+            'sort_keys' => [0 => $numbers],
+            'chart_click' => ['column' => 'price', 'values' => $numbers],
+        ];
+
+        $asc = ChartSorter::applySingle($result, ChartSort::parse('x0:asc'));
+        $this->assertSame(['-10', '-5', '1.25', '1.5', '3', '200', '1,000'], $asc['chart_label']);
+        $this->assertSame([5, 6, 4, 3, 7, 2, 1], $asc['chart_data'], 'the values move with their labels');
+        $this->assertSame(['-10', '-5', '1.25', '1.5', '3', '200', '1000'], $asc['chart_click']['values']);
+        $this->assertSame(['1,000', '200', '3', '1.5', '1.25', '-5', '-10'], ChartSorter::applySingle($result, ChartSort::parse('x0:desc'))['chart_label']);
+
+        // a text column (no sort_keys) keeps its natural text order, as before
+        unset($result['sort_keys']);
+        $this->assertSame(['-5', '-10', '1,000', '1.5', '1.25', '3', '200'], ChartSorter::applySingle($result, ChartSort::parse('x0:asc'))['chart_label']);
+
+        // only the X column that carries numbers sorts by them
+        $two = ['chart_label' => ['a 10', 'b 9'], 'chart_data' => [1, 2], 'chart_fields' => [['a', 'b'], ['10', '9']], 'sort_keys' => [1 => ['10', '9']]];
+        $this->assertSame(['b 9', 'a 10'], ChartSorter::applySingle($two, ChartSort::parse('x1:asc'))['chart_label']);
+        $this->assertSame(['a 10', 'b 9'], ChartSorter::applySingle($two, ChartSort::parse('x0:asc'))['chart_label']);
+    }
+
+    public function testANumericXColumnOfAMultiSeriesChartSortsByItsStoredNumbers(): void
+    {
+        $result = [
+            'x_categories' => ['1,000', '200', '-5'],
+            'series_names' => ['s'],
+            'matrix' => [[1, 2, 3]],
+            'sort_keys' => [0 => ['1000', '200', '-5']],
+            'chart_click' => null,
+        ];
+        $asc = ChartSorter::applyMulti($result, ChartSort::parse('x0:asc'));
+        $this->assertSame(['-5', '200', '1,000'], $asc['x_categories']);
+        $this->assertSame([[3, 2, 1]], $asc['matrix']);
+
+        unset($result['sort_keys']);
+        $this->assertSame(['-5', '1,000', '200'], ChartSorter::applyMulti($result, ChartSort::parse('x0:asc'))['x_categories'], 'a text column: natural order, as before');
+    }
 }

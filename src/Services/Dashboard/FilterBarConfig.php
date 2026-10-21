@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Dashboard;
 
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 
 /**
@@ -82,6 +83,10 @@ final class FilterBarConfig
      * not read its source table — such a bar does not exist for them (no items, no defaults,
      * no remembered selection, no box narrowed), as its items and lists come from that table.
      *
+     * An item whose column was deleted from the source table after the bar was configured is
+     * left out the same way: the bar draws no control for it, so a selection of it (remembered,
+     * in the URL) must not narrow a box of another table that has a column of that name.
+     *
      * @param mixed $dashboard  Dashboard|null
      */
     public static function forViewer($dashboard): ?self
@@ -91,7 +96,29 @@ final class FilterBarConfig
             return null;
         }
         $table = CustomTable::getEloquent($config->sourceTable());
-        return $table !== null && $table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE) ? $config : null;
+        if ($table === null || !$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            return null;
+        }
+        return $config->onColumnsOf($table);
+    }
+
+    /**
+     * This configuration without the items and scope entries whose column $table does not
+     * have (any more); null when no item is left.
+     */
+    private function onColumnsOf(CustomTable $table): ?self
+    {
+        $exists = function ($column) use ($table): bool {
+            return CustomColumn::getEloquent($column, $table) !== null;
+        };
+        $dims = array_filter($this->dims, $exists, ARRAY_FILTER_USE_KEY);
+        if (empty($dims)) {
+            return null;
+        }
+        if (count($dims) === count($this->dims)) {
+            return $this;
+        }
+        return new self($this->sourceTable, $dims, $this->maxOptions, array_filter($this->scope, $exists, ARRAY_FILTER_USE_KEY));
     }
 
     /**
