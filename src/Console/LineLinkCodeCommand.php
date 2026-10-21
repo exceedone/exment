@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Console;
 
 use Exceedone\Exment\Services\Line\LineAccountLinker;
+use Exceedone\Exment\Services\Line\LineActingUser;
 use Illuminate\Console\Command;
 
 class LineLinkCodeCommand extends Command
@@ -13,6 +14,11 @@ class LineLinkCodeCommand extends Command
     public function handle(): int
     {
         $userId = (int) $this->argument('userId');
+        // the code of a missing or deleted user would always be refused, so issue none
+        if (!LineActingUser::userExists($userId)) {
+            $this->error(exmtrans('line.linkcode_user_not_found', $userId));
+            return 1;
+        }
 
         $linker = new LineAccountLinker();
         $code   = $linker->generateCodeForUser($userId);

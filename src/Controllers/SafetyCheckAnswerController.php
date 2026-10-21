@@ -3,10 +3,12 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\CustomValueModelScope;
+use Exceedone\Exment\Services\Line\LineActingUser;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\URL;
 
 class SafetyCheckAnswerController extends Controller
 {
@@ -59,8 +61,10 @@ class SafetyCheckAnswerController extends Controller
     protected function resolve(Request $request, \Closure $callback)
     {
         if (!$request->hasValidSignature()) {
+            // a correct signature past its expiry is an old link of this user, not a forged one
+            $expired = URL::hasCorrectSignature($request) && !URL::signatureHasNotExpired($request);
             return $this->withSafetyHeaders(response()->view('exment::safety.answer', [
-                'mode' => 'error', 'message' => exmtrans('safety.answer_invalid_link'),
+                'mode' => 'error', 'message' => exmtrans($expired ? 'safety.answer_link_expired' : 'safety.answer_invalid_link'),
             ], 403));
         }
 
@@ -80,7 +84,8 @@ class SafetyCheckAnswerController extends Controller
 
         $userId = (int) $request->get('user');
         $answerRow = SafetyCheckAction::currentAnswer($eventValue->id, $userId);
-        if (!$answerRow) {
+        // a user deleted since the mail went out no longer answers, as on LINE
+        if (!$answerRow || !LineActingUser::userExists($userId)) {
             return $this->withSafetyHeaders(response()->view('exment::safety.answer', [
                 'mode' => 'error', 'message' => exmtrans('safety.answer_invalid_link'),
             ], 404));

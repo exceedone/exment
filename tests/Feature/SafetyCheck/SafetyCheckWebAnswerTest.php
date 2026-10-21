@@ -2,11 +2,14 @@
 
 namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 
+use Carbon\Carbon;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestDefine;
@@ -90,8 +93,90 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $url = $this->signedAnswerUrl($event->id, $userId);
         $tampered = str_replace('user=' . $userId, 'user=' . ((int) TestDefine::TESTDATA_USER_LOGINID_USER1), $url);
 
-        $this->get($tampered)->assertStatus(403);
+        $this->get($tampered)->assertStatus(403)->assertSee(exmtrans('safety.answer_invalid_link'));
         $this->get('admin/safety/answer?event=' . $event->id . '&user=' . $userId)->assertStatus(403);
+    }
+
+    public function testMailLinkExpiresAfterTheSetDays(): void
+    {
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $event = $this->createEvent();
+        $row = $this->createAnswerRow($event->id, $userId);
+        $url = SafetyCheckSender::answerUrl($event->id, $userId);
+
+        $this->get($url)->assertStatus(200);
+
+        Carbon::setTestNow(now()->addDays(7)->addMinute());
+        try {
+            $this->get($url)->assertStatus(403)->assertSee(exmtrans('safety.answer_link_expired'));
+            $this->post($url, ['st' => 'safe'])->assertStatus(403);
+        } finally {
+            Carbon::setTestNow();
+        }
+        $this->assertEquals('not_answered', $this->freshAnswerRow($row->id)->getValue('answer_status'), 'An expired link must not answer.');
+    }
+
+    public function testMailLinkExpiryFollowsTheSetting(): void
+    {
+        System::safety_check_answer_url_expire_days(2);
+        System::clearCache();
+
+        parse_str((string) parse_url(SafetyCheckSender::answerUrl(1, 1), PHP_URL_QUERY), $query);
+
+        $this->assertEqualsWithDelta(now()->addDays(2)->getTimestamp(), (int) array_get($query, 'expires'), 5);
+    }
+
+    public function testEmptyExpirySettingFallsBackToTheDefaultNotToNoExpiry(): void
+    {
+        // a field left empty is saved as null
+        System::safety_check_answer_url_expire_days(null);
+        System::clearCache();
+
+        parse_str((string) parse_url(SafetyCheckSender::answerUrl(1, 1), PHP_URL_QUERY), $query);
+
+        $this->assertEqualsWithDelta(now()->addDays(7)->getTimestamp(), (int) array_get($query, 'expires'), 5);
+    }
+
+    public function testHugeExpirySettingIsCappedInsteadOfExpiringEveryLink(): void
+    {
+        System::safety_check_answer_url_expire_days(99999999);
+        System::clearCache();
+
+        parse_str((string) parse_url(SafetyCheckSender::answerUrl(1, 1), PHP_URL_QUERY), $query);
+
+        $this->assertEqualsWithDelta(now()->addDays(SafetyCheckSender::ANSWER_URL_MAX_EXPIRE_DAYS)->getTimestamp(), (int) array_get($query, 'expires'), 5);
+    }
+
+    public function testMailLinkOfDeletedUserNoLongerAnswers(): void
+    {
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $event = $this->createEvent();
+        $row = $this->createAnswerRow($event->id, $userId);
+        $url = $this->signedAnswerUrl($event->id, $userId);
+        getModelName(SystemTableName::USER)::find($userId)->delete();
+
+        $this->get($url)->assertStatus(404)->assertSee(exmtrans('safety.answer_invalid_link'));
+        $this->post($url, ['st' => 'safe'])->assertStatus(404);
+        $this->assertEquals('not_answered', $this->freshAnswerRow($row->id)->getValue('answer_status'), 'A deleted user must not answer, as on LINE.');
+    }
+
+    public function testMailLinkHasNoExpiryWhenSetToZero(): void
+    {
+        System::safety_check_answer_url_expire_days(0);
+        System::clearCache();
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $event = $this->createEvent();
+        $this->createAnswerRow($event->id, $userId);
+
+        $url = SafetyCheckSender::answerUrl($event->id, $userId);
+
+        $this->assertStringNotContainsString('expires=', $url);
+        Carbon::setTestNow(now()->addYear());
+        try {
+            $this->get($url)->assertStatus(200);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function testPostRecordsAnswerWithChannelMail(): void

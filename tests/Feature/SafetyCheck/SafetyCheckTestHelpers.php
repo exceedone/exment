@@ -6,11 +6,13 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Services\Line\LineMessagingClient;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSendLock;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 trait SafetyCheckTestHelpers
@@ -141,5 +143,37 @@ trait SafetyCheckTestHelpers
     protected function totalUserCount(): int
     {
         return getModelName(SystemTableName::USER)::all()->count();
+    }
+
+    /**
+     * @param int|string $id
+     * @return \Exceedone\Exment\Model\CustomValue|null
+     */
+    protected function freshEvent($id)
+    {
+        /** @var \Exceedone\Exment\Model\CustomValue|null $event */
+        $event = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($id);
+        return $event;
+    }
+
+    /**
+     * Whether a send of the event holds its lock. The lock sits in the cache's lock store,
+     * which Cache::has() does not see, so try to take it.
+     *
+     * @param int|string $eventId
+     */
+    protected function eventLocked($eventId): bool
+    {
+        return $this->lockHeld(SafetyCheckSendLock::key($eventId));
+    }
+
+    protected function lockHeld(string $key): bool
+    {
+        $probe = Cache::lock($key, 1);
+        if ($probe->get()) {
+            $probe->release();
+            return false;
+        }
+        return true;
     }
 }
