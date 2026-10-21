@@ -21,8 +21,6 @@ class SafetyCheckController extends AdminControllerBase
     /** @var array<int|string, int> */
     protected $answeredCounts = [];
 
-    public const SEND_LOCK_SECONDS = 600;
-
     public function __construct()
     {
         $this->setPageInfo(exmtrans('safety.menu_title'), exmtrans('safety.menu_title'), exmtrans('safety.description'), 'fa-heartbeat');
@@ -250,8 +248,9 @@ EOT;
         }
 
 
-        $lockKey = static::sendLockKey();
-        if (!\Cache::add($lockKey, 1, static::SEND_LOCK_SECONDS)) {
+        // one 送信 per admin at a time, so a double click does not start two events
+        $sendLock = SafetyCheckSendLock::acquireKey(static::sendLockKey());
+        if (!$sendLock) {
             admin_toastr(exmtrans('safety.message_send_in_progress'), 'error');
             return redirect(admin_url('safety_check'));
         }
@@ -266,15 +265,14 @@ EOT;
                 'triggered_at' => now()->format('Y-m-d H:i:s'),
             ])->save();
         } catch (\Throwable $e) {
-            \Cache::forget($lockKey);
+            $sendLock->release();
             throw $e;
         }
 
-        // a new event, so nobody else can hold its lock yet
+        // A new event, so nobody else can hold its lock yet. The admin's lock rides along with it:
+        // both are kept while sending and released by SafetyCheckSendJob once the send is done.
         $eventLock = SafetyCheckSendLock::acquire($event->id);
-
-        // the locks stay until the send itself is done: SafetyCheckSendJob releases them
-        $this->broadcast($event, false, $eventLock, $lockKey);
+        $this->broadcast($event, false, $eventLock ? $eventLock->with($sendLock) : $sendLock);
 
         admin_toastr(exmtrans('safety.message_send_succeeded'));
         return redirect(admin_url('safety_check'));
@@ -289,11 +287,11 @@ EOT;
      * Sending takes a while: a row, a mail and a LINE message for every user. It runs after the
      * response, so a proxy timeout cannot make it look failed and invite a second send.
      *
-     * @param string|null $sendLockKey the admin's 送信 lock, released once the send is done
+     * @param SafetyCheckSendLock|null $lock kept while sending, released once the send is done
      */
-    protected function broadcast(CustomValue $event, bool $onlyUnanswered, ?SafetyCheckSendLock $eventLock, ?string $sendLockKey = null): void
+    protected function broadcast(CustomValue $event, bool $onlyUnanswered, ?SafetyCheckSendLock $lock): void
     {
-        SafetyCheckSendJob::dispatchAfterResponse($event, $onlyUnanswered, $eventLock, $sendLockKey);
+        SafetyCheckSendJob::dispatchAfterResponse($event, $onlyUnanswered, $lock);
     }
 
     /**

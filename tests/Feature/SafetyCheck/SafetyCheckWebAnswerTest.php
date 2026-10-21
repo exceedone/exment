@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\OperationLog;
@@ -123,6 +124,40 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         parse_str((string) parse_url(SafetyCheckSender::answerUrl(1, 1), PHP_URL_QUERY), $query);
 
         $this->assertEqualsWithDelta(now()->addDays(2)->getTimestamp(), (int) array_get($query, 'expires'), 5);
+    }
+
+    public function testEmptyExpirySettingFallsBackToTheDefaultNotToNoExpiry(): void
+    {
+        // a field left empty is saved as null
+        System::safety_check_answer_url_expire_days(null);
+        System::clearCache();
+
+        parse_str((string) parse_url(SafetyCheckSender::answerUrl(1, 1), PHP_URL_QUERY), $query);
+
+        $this->assertEqualsWithDelta(now()->addDays(7)->getTimestamp(), (int) array_get($query, 'expires'), 5);
+    }
+
+    public function testHugeExpirySettingIsCappedInsteadOfExpiringEveryLink(): void
+    {
+        System::safety_check_answer_url_expire_days(99999999);
+        System::clearCache();
+
+        parse_str((string) parse_url(SafetyCheckSender::answerUrl(1, 1), PHP_URL_QUERY), $query);
+
+        $this->assertEqualsWithDelta(now()->addDays(SafetyCheckSender::ANSWER_URL_MAX_EXPIRE_DAYS)->getTimestamp(), (int) array_get($query, 'expires'), 5);
+    }
+
+    public function testMailLinkOfDeletedUserNoLongerAnswers(): void
+    {
+        $userId = (int) TestDefine::TESTDATA_USER_LOGINID_USER2;
+        $event = $this->createEvent();
+        $row = $this->createAnswerRow($event->id, $userId);
+        $url = $this->signedAnswerUrl($event->id, $userId);
+        getModelName(SystemTableName::USER)::find($userId)->delete();
+
+        $this->get($url)->assertStatus(404)->assertSee(exmtrans('safety.answer_invalid_link'));
+        $this->post($url, ['st' => 'safe'])->assertStatus(404);
+        $this->assertEquals('not_answered', $this->freshAnswerRow($row->id)->getValue('answer_status'), 'A deleted user must not answer, as on LINE.');
     }
 
     public function testMailLinkHasNoExpiryWhenSetToZero(): void

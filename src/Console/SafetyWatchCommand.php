@@ -101,7 +101,12 @@ class SafetyWatchCommand extends Command
             if ($recent) {
                 Log::info('safety check suppressed by cooldown', ['jma_event_id' => $item['id']]);
                 if ($hypocenterKnown && str_contains((string) $recent->getValue('quake_info'), exmtrans('safety.hypocenter_pending'))) {
-                    SafetyCheckSender::updateEvent($recent, ['title' => $title, 'quake_info' => $quakeInfo]);
+                    // only a nicer title: failing it must not stop the rest of the feed
+                    try {
+                        SafetyCheckSender::updateEvent($recent, ['title' => $title, 'quake_info' => $quakeInfo]);
+                    } catch (\Throwable $e) {
+                        Log::error('safety check title backfill failed', ['jma_event_id' => $item['id'], 'exception' => $e]);
+                    }
                 }
                 $newLast = $receivedAt;
                 continue;

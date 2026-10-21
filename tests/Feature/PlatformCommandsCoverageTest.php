@@ -102,6 +102,17 @@ class PlatformCommandsCoverageTest extends FeatureTestBase
         $this->assertEquals('Exment TestMail', $sender->getBody());
     }
 
+    public function testLineLinkcodeRefusesAUserThatDoesNotExist(): void
+    {
+        $missing = (int) getModelName(SystemTableName::USER)::withTrashed()->max('id') + 1000;
+
+        $this->runArtisan('exment:line-linkcode', ['userId' => $missing])
+            ->expectsOutput(exmtrans('line.linkcode_user_not_found', $missing))
+            ->assertExitCode(1);
+
+        $this->assertFalse(LineAccountLink::where('user_id', $missing)->exists(), 'No link row for a user that does not exist.');
+    }
+
     public function testLineLinkcodeIssuesALinkCodeForTheUser(): void
     {
         $userId = (int) LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1)->base_user_id;

@@ -29,21 +29,16 @@ class SafetyCheckSendJob
     protected $onlyUnanswered;
 
     /**
-     * @var SafetyCheckSendLock|null the event's send lock, kept while sending and released when done
+     * @var SafetyCheckSendLock|null the event's send lock (and the admin's 送信 lock riding along),
+     *      kept while sending and released when done
      */
-    protected $eventLock;
+    protected $lock;
 
-    /**
-     * @var string|null the admin's 送信 lock to release when done
-     */
-    protected $sendLockKey;
-
-    public function __construct(CustomValue $event, bool $onlyUnanswered = false, ?SafetyCheckSendLock $eventLock = null, ?string $sendLockKey = null)
+    public function __construct(CustomValue $event, bool $onlyUnanswered = false, ?SafetyCheckSendLock $lock = null)
     {
         $this->event = $event;
         $this->onlyUnanswered = $onlyUnanswered;
-        $this->eventLock = $eventLock;
-        $this->sendLockKey = $sendLockKey;
+        $this->lock = $lock;
     }
 
     public function handle(): void
@@ -53,7 +48,7 @@ class SafetyCheckSendJob
         \Exment::setTimeLimitLong();
 
         try {
-            SafetyCheckSender::send($this->event, $this->onlyUnanswered, $this->eventLock);
+            SafetyCheckSender::send($this->event, $this->onlyUnanswered, $this->lock);
         } catch (\Throwable $e) {
             // no error page reaches the admin any more
             Log::error('safety check send failed', [
@@ -61,11 +56,9 @@ class SafetyCheckSendJob
                 'exception' => $e,
             ]);
         } finally {
-            if ($this->eventLock) {
-                $this->eventLock->release();
-            }
-            if ($this->sendLockKey !== null) {
-                \Cache::forget($this->sendLockKey);
+            // never throws: an exception here would skip the after-response callbacks queued after this one
+            if ($this->lock) {
+                $this->lock->release();
             }
         }
     }

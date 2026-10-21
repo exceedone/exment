@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Jobs\LineSendJob;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Notifications\MailSender;
@@ -18,6 +19,17 @@ use Illuminate\Support\Facades\URL;
 
 class SafetyCheckSender
 {
+    /**
+     * While sending, look at the event this often: a 締切 stops the send, and a first send
+     * writes how far it got.
+     */
+    public const CHECK_EVERY_SECONDS = 30;
+
+    /**
+     * Upper bound of safety_check_answer_url_expire_days, also enforced by its form field.
+     */
+    public const ANSWER_URL_MAX_EXPIRE_DAYS = 3650;
+
     /**
      * @param CustomValue $eventValue
      * @param bool $onlyUnanswered
@@ -34,6 +46,14 @@ class SafetyCheckSender
             return ['target' => 0, 'line' => 0, 'mail' => 0];
         }
 
+        // e.g. a 再送 that was let through just before a 締切
+        if (static::isClosed($eventValue)) {
+            Log::info('safety check not sent: the event is closed', ['event_id' => $eventValue->id]);
+            return ['target' => 0, 'line' => 0, 'mail' => 0];
+        }
+        $checkedAt = now()->getTimestamp();
+        $closed = false;
+
         $existingByUser = [];
         foreach ($answerTable->getValueQuery()->where('value->event', $eventValue->id)->get() as $row) {
             $existingByUser[(int) array_get($row->value, 'user')] = $row;
@@ -48,6 +68,11 @@ class SafetyCheckSender
         foreach ($userIds as $userId) {
             if ($lock) {
                 $lock->keep();
+            }
+            // a 締切 meanwhile stops the send: nobody else is asked about a closed event
+            if (static::isDue($checkedAt) && static::isClosed($eventValue)) {
+                $closed = true;
+                break;
             }
             $userId = (int) $userId;
             if (isset($existingByUser[$userId])) {
@@ -125,9 +150,21 @@ class SafetyCheckSender
         $mailBody = implode("\n", $bodyLines);
 
         $notified = 0;
+        if (!$closed && !$onlyUnanswered) {
+            static::writeProgress($eventValue, ['sent_count' => 0, 'target_count' => $result['target']]);
+        }
         foreach ($targets as $userId => $answerRow) {
             if ($lock) {
                 $lock->keep();
+            }
+            if (!$closed && static::isDue($checkedAt)) {
+                $closed = static::isClosed($eventValue);
+                if (!$closed && !$onlyUnanswered) {
+                    static::writeProgress($eventValue, ['sent_count' => $notified]);
+                }
+            }
+            if ($closed) {
+                break;
             }
             $sentAny = false;
 
@@ -179,6 +216,14 @@ class SafetyCheckSender
             }
         }
 
+        if ($closed) {
+            Log::info('safety check send stopped: the event was closed meanwhile', [
+                'event_id' => $eventValue->id,
+                'notified' => $notified,
+                'target' => $result['target'],
+            ]);
+        }
+
         if ($onlyUnanswered) {
             $eventUpdate = [
                 'resent_at' => now()->format('Y-m-d H:i:s'),
@@ -202,6 +247,60 @@ class SafetyCheckSender
         }
 
         return $result;
+    }
+
+    /**
+     * Whether CHECK_EVERY_SECONDS have passed since $checkedAt; if so, restarts the wait.
+     *
+     * @phpstan-impure reads the clock
+     */
+    protected static function isDue(int &$checkedAt): bool
+    {
+        $now = now()->getTimestamp();
+        if ($now - $checkedAt < static::CHECK_EVERY_SECONDS) {
+            return false;
+        }
+        $checkedAt = $now;
+        return true;
+    }
+
+    /**
+     * Read from the database, as a 締切 may come after the caller read the event.
+     * When the read fails the send goes on: it matters more.
+     *
+     * @phpstan-impure the answer changes once somebody closes the event
+     * @param CustomValue $eventValue
+     */
+    protected static function isClosed($eventValue): bool
+    {
+        try {
+            $current = $eventValue->newQueryWithoutScopes()->whereKey($eventValue->getKey())->first();
+        } catch (\Throwable $e) {
+            Log::warning('safety check event status unreadable, sending on', ['event_id' => $eventValue->id, 'exception' => $e]);
+            return false;
+        }
+        return !$current || $current->trashed() || $current->getValue('event_status') === SafetyCheckDefine::EVENT_CLOSED;
+    }
+
+    /**
+     * How far a first send got, written while it runs: a count that stops moving tells a send that
+     * died from one still going. A plain JSON update, not a model save, so no revision or
+     * notification for every step; the final counts are saved properly by updateEvent().
+     *
+     * @param CustomValue $eventValue
+     * @param array<string, int> $values
+     */
+    protected static function writeProgress($eventValue, array $values): void
+    {
+        $update = [];
+        foreach ($values as $key => $value) {
+            $update['value->' . $key] = $value;
+        }
+        try {
+            \DB::table(getDBTableName($eventValue->custom_table))->where('id', $eventValue->id)->update($update);
+        } catch (\Throwable $e) {
+            Log::warning('safety check send progress not saved', ['event_id' => $eventValue->id, 'exception' => $e]);
+        }
     }
 
     /**
@@ -238,7 +337,11 @@ class SafetyCheckSender
     public static function answerUrl($eventId, $userId): string
     {
         $parameters = ['event' => $eventId, 'user' => $userId];
-        $expireDays = (int) System::safety_check_answer_url_expire_days();
+        $expireDays = System::safety_check_answer_url_expire_days();
+        // a field left empty is saved as null: that is not a choice of "no expiry"
+        $expireDays = is_null($expireDays) ? (int) array_get(Define::SYSTEM_SETTING_NAME_VALUE, 'safety_check_answer_url_expire_days.default') : (int) $expireDays;
+        // a huge value would overflow the timestamp and expire every link at once
+        $expireDays = min($expireDays, static::ANSWER_URL_MAX_EXPIRE_DAYS);
         if ($expireDays <= 0) {
             return URL::signedRoute('exment.safety_answer', $parameters);
         }

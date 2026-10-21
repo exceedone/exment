@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\SafetyCheck;
 
-use Illuminate\Cache\Lock as CacheLock;
+use Illuminate\Cache\Lock as BaseLock;
 use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Log;
  * last refresh: a running send refreshes it, a crashed one frees the event within that time.
  * The send matters more than the lock: when the cache fails, sending goes on without it.
  * It only works across processes when they share one cache store (and not with apc).
+ *
+ * acquireKey() takes any other key the same way, e.g. the admin's 送信 guard.
  */
 class SafetyCheckSendLock
 {
@@ -48,6 +50,11 @@ class SafetyCheckSendLock
      */
     protected $refreshable = true;
 
+    /**
+     * @var array<int, self> kept and released together with this lock
+     */
+    protected $companions = [];
+
     final protected function __construct(string $key, ?Lock $lock)
     {
         $this->key = $key;
@@ -69,7 +76,14 @@ class SafetyCheckSendLock
      */
     public static function acquire($eventId): ?self
     {
-        $key = static::key($eventId);
+        return static::acquireKey(static::key($eventId));
+    }
+
+    /**
+     * @return static|null null when someone else holds the lock
+     */
+    public static function acquireKey(string $key): ?self
+    {
         try {
             $lock = Cache::lock($key, static::SECONDS);
             if (!$lock->get()) {
@@ -86,10 +100,25 @@ class SafetyCheckSendLock
     }
 
     /**
+     * Have $other kept and released together with this lock.
+     *
+     * @return $this
+     */
+    public function with(self $other): self
+    {
+        $this->companions[] = $other;
+        return $this;
+    }
+
+    /**
      * Called for every user while sending; refreshes the lock now and then.
      */
     public function keep(): void
     {
+        foreach ($this->companions as $companion) {
+            $companion->keep();
+        }
+
         $now = now()->getTimestamp();
         if (!$this->lock || !$this->refreshable || $now - $this->keptAt < static::KEEP_EVERY_SECONDS) {
             return;
@@ -97,10 +126,12 @@ class SafetyCheckSendLock
         $this->keptAt = $now;
 
         try {
-            if (!$this->lock instanceof CacheLock) {
+            if (!$this->lock instanceof BaseLock) {
                 throw new \RuntimeException(get_class($this->lock) . ' cannot refresh locks.');
             }
-            if (!$this->lock->refresh()) {
+            // lost: lapsed, or wiped with the cache (System::clearCache() flushes it with exment.use_cache);
+            // take it back under the same owner unless another send got it meanwhile
+            if (!$this->lock->refresh() && !$this->lock->get()) {
                 Log::warning('safety check send lock lost while sending', ['key' => $this->key]);
             }
         } catch (\Throwable $e) {
@@ -115,6 +146,10 @@ class SafetyCheckSendLock
      */
     public function release(): void
     {
+        foreach ($this->companions as $companion) {
+            $companion->release();
+        }
+
         if (!$this->lock) {
             return;
         }

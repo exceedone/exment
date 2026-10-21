@@ -3561,6 +3561,7 @@ return [
         'action_error'        => '処理中にエラーが発生しました。Web上で再度お試しください。',
         'action_done'         => '処理しました: %s',
         'linkcode_code'       => '連携コード: %s',
+        'linkcode_user_not_found' => 'ユーザーID %s は存在しないか、削除されています。',
         'linkcode_hint'       => '連携用OAを追加済みのスマートフォンでディープリンクを開くか、「LINE連携」ページでQRコードを表示してください。',
     ],
 
@@ -3613,10 +3614,10 @@ return [
         'answer_comment_label' => '追加回答（任意）',
         'answer_submit' => '送信',
         'answer_done_title' => '回答を受け付けました',
-        'answer_done_body' => '「:status」を記録しました。状況が変わった場合は、メールの同じリンクから再度回答できます。',
+        'answer_done_body' => '「:status」を記録しました。状況が変わった場合は、有効期限内であればメールの同じリンクから再度回答できます。',
         'hypocenter_pending' => '震源調査中',
         'answer_invalid_link' => 'リンクが無効です。管理者にお問い合わせください。',
-        'answer_link_expired' => 'このリンクは有効期限が切れています。LINEで回答するか、管理者にお問い合わせください。',
+        'answer_link_expired' => 'このリンクは有効期限が切れています。管理者にお問い合わせください。',
         'answer_invalid_status' => '回答内容が正しくありません。もう一度お試しください。',
     ],
 ];

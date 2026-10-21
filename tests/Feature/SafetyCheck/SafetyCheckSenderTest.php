@@ -16,6 +16,7 @@ use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 
 class SafetyCheckSenderTest extends FeatureTestBase
@@ -120,13 +121,65 @@ class SafetyCheckSenderTest extends FeatureTestBase
     public function testFinishingSendDoesNotReopenEventClosedMeanwhile(): void
     {
         $event = $this->createEvent();
-        $readBeforeSending = $this->freshEvent($event->id);
+        // closed while the send runs, before its next look at the event
+        $this->onFirstAnswerRow(function () use ($event) {
+            $this->freshEvent($event->id)->setValue(['event_status' => 'closed'])->save();
+        });
 
-        $this->freshEvent($event->id)->setValue(['event_status' => 'closed'])->save();
-
-        SafetyCheckSender::send($readBeforeSending);
+        SafetyCheckSender::send($event);
 
         $this->assertEquals('closed', $this->freshEvent($event->id)->getValue('event_status'));
+    }
+
+    public function testClosedEventIsNotSent(): void
+    {
+        $event = $this->createEvent();
+        $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
+        // e.g. a 再送 let through just before a 締切
+        $this->freshEvent($event->id)->setValue(['event_status' => 'closed'])->save();
+
+        $result = SafetyCheckSender::send($event);
+
+        $this->assertEquals(0, $result['target']);
+        $this->assertCount(0, $this->answerRows($event->id));
+        Bus::assertNotDispatched(LineSendJob::class);
+    }
+
+    public function testSendStopsOnceTheEventIsClosed(): void
+    {
+        $event = $this->createEvent();
+        $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->onFirstAnswerRow(function () use ($event) {
+            $this->freshEvent($event->id)->setValue(['event_status' => 'closed'])->save();
+            Carbon::setTestNow(now()->addSeconds(SafetyCheckSender::CHECK_EVERY_SECONDS));
+        });
+
+        try {
+            SafetyCheckSender::send($event);
+        } finally {
+            Carbon::setTestNow();
+        }
+
+        $this->assertCount(1, $this->answerRows($event->id), 'No answer row after the 締切 was seen.');
+        Bus::assertNotDispatched(LineSendJob::class);
+        $fresh = $this->freshEvent($event->id);
+        $this->assertEquals('closed', $fresh->getValue('event_status'));
+        $this->assertEquals(0, (int) $fresh->getValue('sent_count'));
+    }
+
+    /**
+     * Runs $callback once, when the send creates its first answer row.
+     */
+    protected function onFirstAnswerRow(\Closure $callback): void
+    {
+        $done = false;
+        Event::listen('eloquent.created: ' . ltrim((string) getModelName('safety_check_answer'), '\\'), function () use ($callback, &$done) {
+            if (!$done) {
+                $done = true;
+                $callback();
+            }
+        });
     }
 
     public function testClosingKeepsCountsWrittenMeanwhile(): void

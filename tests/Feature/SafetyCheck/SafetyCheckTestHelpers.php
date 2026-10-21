@@ -164,7 +164,12 @@ trait SafetyCheckTestHelpers
      */
     protected function eventLocked($eventId): bool
     {
-        $probe = Cache::lock(SafetyCheckSendLock::key($eventId), 1);
+        return $this->lockHeld(SafetyCheckSendLock::key($eventId));
+    }
+
+    protected function lockHeld(string $key): bool
+    {
+        $probe = Cache::lock($key, 1);
         if ($probe->get()) {
             $probe->release();
             return false;

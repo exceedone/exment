@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 use Carbon\Carbon;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSendLock;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
-use Illuminate\Contracts\Cache\Lock;
+use Illuminate\Cache\Lock as BaseLock;
 use Illuminate\Support\Facades\Cache;
 
 class SafetyCheckSendLockTest extends FeatureTestBase
@@ -51,6 +51,8 @@ class SafetyCheckSendLockTest extends FeatureTestBase
 
     public function testKeepRefreshesOnlyNowAndThen(): void
     {
+        // frozen first: acquire() reads the clock in whole seconds
+        Carbon::setTestNow(now());
         $lock = SafetyCheckSendLock::acquire('lock-test-4');
         $this->assertNotNull($lock);
 
@@ -66,6 +68,58 @@ class SafetyCheckSendLockTest extends FeatureTestBase
         Carbon::setTestNow(now()->addSeconds(SafetyCheckSendLock::SECONDS - 1));
         $this->assertTrue($this->eventLocked('lock-test-4'), 'keep() refreshes the lock once KEEP_EVERY_SECONDS have passed.');
         $lock->release();
+    }
+
+    public function testALostLockIsTakenBackWhileStillFree(): void
+    {
+        Carbon::setTestNow(now());
+        $lock = SafetyCheckSendLock::acquire('lock-test-7');
+        $this->assertNotNull($lock);
+        // wiped, e.g. by Cache::flush()
+        Cache::lock(SafetyCheckSendLock::key('lock-test-7'))->forceRelease();
+
+        Carbon::setTestNow(now()->addSeconds(SafetyCheckSendLock::KEEP_EVERY_SECONDS));
+        $lock->keep();
+
+        $this->assertTrue($this->eventLocked('lock-test-7'), 'A 再送 must stay refused while this send goes on.');
+        $lock->release();
+        $this->assertFalse($this->eventLocked('lock-test-7'));
+    }
+
+    public function testALostLockTakenBySomeoneElseStaysTheirs(): void
+    {
+        Carbon::setTestNow(now());
+        $lock = SafetyCheckSendLock::acquire('lock-test-8');
+        $this->assertNotNull($lock);
+        Cache::lock(SafetyCheckSendLock::key('lock-test-8'))->forceRelease();
+        $other = SafetyCheckSendLock::acquire('lock-test-8');
+        $this->assertNotNull($other);
+
+        Carbon::setTestNow(now()->addSeconds(SafetyCheckSendLock::KEEP_EVERY_SECONDS));
+        $lock->keep();
+        $lock->release();
+
+        $this->assertTrue($this->eventLocked('lock-test-8'), 'Neither keep() nor release() may touch the other send\'s lock.');
+        $other->release();
+    }
+
+    public function testACompanionIsKeptAndReleasedWithTheLock(): void
+    {
+        Carbon::setTestNow(now());
+        $eventLock = SafetyCheckSendLock::acquire('lock-test-9');
+        $adminLock = SafetyCheckSendLock::acquireKey('lock-test-admin');
+        $this->assertNotNull($eventLock);
+        $this->assertNotNull($adminLock);
+        $eventLock->with($adminLock);
+
+        Carbon::setTestNow(now()->addSeconds(SafetyCheckSendLock::KEEP_EVERY_SECONDS));
+        $eventLock->keep();
+        Carbon::setTestNow(now()->addSeconds(SafetyCheckSendLock::SECONDS - 1));
+        $this->assertTrue($this->lockHeld('lock-test-admin'), 'The companion is refreshed along.');
+
+        $eventLock->release();
+        $this->assertFalse($this->eventLocked('lock-test-9'));
+        $this->assertFalse($this->lockHeld('lock-test-admin'), 'and released along.');
     }
 
     public function testFailingCacheDoesNotStopTheSend(): void
@@ -84,9 +138,10 @@ class SafetyCheckSendLockTest extends FeatureTestBase
 
     public function testLockThatCannotRefreshOrReleaseDoesNotStopTheSend(): void
     {
-        $broken = \Mockery::mock(Lock::class);
-        $broken->shouldReceive('get')->andReturn(true);
-        $broken->shouldReceive('release')->andThrow(new \RuntimeException('cache down'));
+        $broken = \Mockery::mock(BaseLock::class);
+        $broken->shouldReceive('get')->once()->andReturn(true);
+        $broken->shouldReceive('refresh')->once()->andThrow(new \RuntimeException('This lock driver does not support refreshing locks.'));
+        $broken->shouldReceive('release')->once()->andThrow(new \RuntimeException('cache down'));
 
         $original = Cache::getFacadeRoot();
         Cache::shouldReceive('lock')->once()->andReturn($broken);
@@ -99,7 +154,8 @@ class SafetyCheckSendLockTest extends FeatureTestBase
 
         Carbon::setTestNow(now()->addSeconds(SafetyCheckSendLock::KEEP_EVERY_SECONDS));
         $lock->keep();
+        Carbon::setTestNow(now()->addSeconds(SafetyCheckSendLock::KEEP_EVERY_SECONDS));
+        $lock->keep(); // refresh() is not tried again: once() above
         $lock->release();
-        $this->addToAssertionCount(1);
     }
 }

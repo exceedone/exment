@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -216,7 +217,9 @@ trait InitializeFormTrait
         $form->number('safety_check_answer_url_expire_days', exmtrans('system.safety_check_answer_url_expire_days'))
             ->help(exmtrans('system.help.safety_check_answer_url_expire_days'))
             ->default(7)
-            ->min(0);
+            ->required()
+            ->min(0)
+            ->max(SafetyCheckSender::ANSWER_URL_MAX_EXPIRE_DAYS);
     }
 
 
