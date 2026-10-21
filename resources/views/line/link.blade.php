@@ -1,23 +1,23 @@
 <div class="box card p-3">
     <div class="box-body">
         @if($link->isLinked())
-            <p style="font-size:16px;">LINE連携済み
+            <p style="font-size:16px;">{{ exmtrans('line.link_linked') }}
                 @if($link->linked_at) <small>({{ $link->linked_at }})</small> @endif
             </p>
             <form method="POST" action="{{ admin_url('line/link/unlink') }}">
                 {{ csrf_field() }}
-                <button type="submit" class="btn btn-danger">連携解除</button>
+                <button type="submit" class="btn btn-danger">{{ exmtrans('line.link_unlink') }}</button>
             </form>
         @else
             <form method="POST" action="{{ admin_url('line/link/generate') }}">
                 {{ csrf_field() }}
-                <button type="submit" class="btn btn-primary">QRコードを生成</button>
+                <button type="submit" class="btn btn-primary">{{ exmtrans('line.link_generate_qr') }}</button>
             </form>
             @if($qr)
                 <hr>
-                <p>LINEアプリを開き、以下のQRコードを読み取って連携してください:</p>
+                <p>{{ exmtrans('line.link_scan_qr') }}</p>
                 <img src="{{ $qr }}" alt="LINE QR" width="256" height="256">
-                <p><small>有効期限: {{ $link->line_link_code_expires_at }}（期限が切れた場合は再生成してください）</small></p>
+                <p><small>{{ exmtrans('line.link_code_expires', $link->line_link_code_expires_at) }}</small></p>
             @endif
         @endif
     </div>

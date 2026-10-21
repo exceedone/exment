@@ -1529,7 +1529,7 @@ return [
         'comment_options' => [
             'required' => 'Required',
             'nullable' => 'Nullable',
-            'not_use' => 'Not Yse',
+            'not_use' => 'Not Use',
         ],
 
         'workflow_type_options' => [
@@ -3260,7 +3260,7 @@ return [
         'notify_target_column' => 'Notify Target Date Column',
         'notify_day' => 'Notification date',
         'notify_beforeafter' => 'Before and After Notification',
-        'notify_hour' => 'Notification Date',
+        'notify_hour' => 'Notification Time',
         'notify_myself' => 'Notify the worker',
         'notify_action' => 'Notify Action',
         'action_settings' => 'Notify Action Setting',
@@ -3292,7 +3292,7 @@ return [
             'notify_myself' => 'By setting YES, even if the notification target is the logged-in user who performed the work, the notification will be executed to that logged-in user.',
             'notify_hour' => 'The time to execute the notification. Enter from 0 to 23. Ex: When entering "6", execute notification at 6:00',
             'notify_action' => 'Please select the notification action to be done when the conditions are met.',
-            'notify_action_target' => 'Select the target of notification destination.',
+            'notify_action_target' => 'Select the target of notification destination. *Required when the notification action is "Email", "In-system alert" or "LINE".',
             'notify_action_target_add_workflow' => '*When notifying the "worker", set "Notify the worker" in "Notification condition settings" to YES.',
             'mail_template_id' => 'Select the template of the mail to send. When creating a new one, please create a new template in the mail template page beforehand.',
             'flex_template_id' => 'Flex message template for LINE. If selected, sends a card (otherwise plain text). Approve/Reject buttons are added automatically only when the target table has a workflow and the recipient has authority on a pending action.',
@@ -3547,6 +3547,11 @@ return [
 
     'line' => [
         'link_menu_title'     => 'LINE Link',
+        'link_linked'         => 'LINE account linked',
+        'link_unlink'         => 'Unlink',
+        'link_generate_qr'    => 'Generate QR code',
+        'link_scan_qr'        => 'Open the LINE app and scan the QR code below to link your account:',
+        'link_code_expires'   => 'Expires at: %s (if it has expired, generate a new one)',
         'link_success'        => 'LINE account linked successfully!',
         'link_already_linked' => 'This LINE account is already linked to an account. To change it, please unlink it on the web first.',
         'link_oa_not_configured' => 'The LINE Official Account basic ID is not configured. Set it under Admin settings > System settings.',

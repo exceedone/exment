@@ -71,6 +71,18 @@ class LineLinkPageTest extends FeatureTestBase
         $response->assertSee('class="box card p-3"', false);
     }
 
+    public function testLinkPageLabelsFollowLocale(): void
+    {
+        $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        config(['exment.locale' => 'en']);
+
+        $response = $this->get('admin/line/link');
+
+        $response->assertStatus(200);
+        $response->assertSee(trans('exment::exment.line.link_generate_qr', [], 'en'));
+        $response->assertDontSee(trans('exment::exment.line.link_generate_qr', [], 'ja'));
+    }
+
     public function testGenerateRefusedWhenOaBasicIdNotConfigured(): void
     {
         $loginUser = $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
