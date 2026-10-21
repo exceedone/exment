@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Meili\DocumentMapper;
 use Exceedone\Exment\Services\Meili\FilterConfig;
+use Exceedone\Exment\Services\Meili\IndexingContext;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
 use Exceedone\Exment\Services\Meili\MeiliSync;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -109,9 +110,11 @@ class SyncMeiliReferencesJob implements ShouldQueue
             $aliases = FilterConfig::aliasMap($table);
 
             $docs = [];
-            foreach ($records as $record) {
-                $docs[] = $mapper->map($record, $columns, $table->table_name, $table->table_view_name, $facetColumns, $rangeColumns, $aliases);
-            }
+            IndexingContext::run(function () use ($records, $mapper, $columns, $table, $facetColumns, $rangeColumns, $aliases, &$docs) {
+                foreach ($records as $record) {
+                    $docs[] = $mapper->map($record, $columns, $table->table_name, $table->table_view_name, $facetColumns, $rangeColumns, $aliases);
+                }
+            });
             $client = MeiliClientFactory::make();
             \Exceedone\Exment\Services\Meili\ExmentIndexer::ensureIndexExists($client, config('meilisearch.index'));
             $task = $client->index(config('meilisearch.index'))->addDocuments($docs, 'id');

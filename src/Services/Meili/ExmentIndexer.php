@@ -158,9 +158,11 @@ class ExmentIndexer
                 ->withoutGlobalScope(CustomValueModelScope::class)
                 ->chunkById($this->batchSize, function ($records) use ($index, $columns, $facetColumns, $rangeColumns, $aliases, $tableName, $tableLabel, &$count) {
                     $docs = [];
-                    foreach ($records as $record) {
-                        $docs[] = $this->mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
-                    }
+                    IndexingContext::run(function () use ($records, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases, &$docs) {
+                        foreach ($records as $record) {
+                            $docs[] = $this->mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
+                        }
+                    });
 
                     if (!empty($docs)) {
                         $task = $index->addDocuments($docs, 'id');
@@ -254,9 +256,11 @@ class ExmentIndexer
                 ->withoutGlobalScope(CustomValueModelScope::class)
                 ->whereIn('id', $chunk)->get();
             $docs = [];
-            foreach ($records as $record) {
-                $docs[] = $this->mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
-            }
+            IndexingContext::run(function () use ($records, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases, &$docs) {
+                foreach ($records as $record) {
+                    $docs[] = $this->mapper->map($record, $columns, $tableName, $tableLabel, $facetColumns, $rangeColumns, $aliases);
+                }
+            });
             if (!empty($docs)) {
                 $task = $index->addDocuments($docs, 'id');
                 $this->client->waitForTask($task['taskUid'], 60000);

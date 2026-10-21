@@ -124,7 +124,18 @@ trait MeiliGlobalSearchTrait
      */
     protected function exportByMeili(Request $request, string $q, $custom_table)
     {
-        return (new SearchExporter($this->makeService()))->export($request, $q, $custom_table);
+        try {
+            return (new SearchExporter($this->makeService()))->export($request, $q, $custom_table);
+        } catch (\Throwable $e) {
+            // Unlike the results page there is no MySQL export to fall back to,
+            // and the exporter normally never returns at all (it sends the file
+            // and exits). Reaching here means the search itself failed, so say
+            // so on screen instead of answering the download with a 500.
+            $this->logMeiliFallback('export', $e);
+            admin_toastr(exmtrans('search.export_failed'), 'error');
+
+            return back();
+        }
     }
 
     /**
