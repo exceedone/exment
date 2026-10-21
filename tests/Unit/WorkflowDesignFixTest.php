@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Controllers\WorkflowController;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
@@ -816,6 +817,130 @@ class WorkflowDesignFixTest extends UnitTestBase
         $this->assertSame(422, $response->getStatusCode(), (string)$response->getContent());
         $this->assertSame([$not_array . ' (#1)'], array_get(json_decode((string)$response->getContent(), true), 'errors'));
         $this->assertSame('s1', $this->findStatus($status['n1'])->status_name, 'Nothing may be saved.');
+    }
+
+    /**
+     * The top-level fields are read with strval() - updated_at and
+     * workflow_type before the payload is validated - and a list in their
+     * place ended in "Array to string conversion", an HTTP 500.
+     *
+     * @return void
+     */
+    public function testDesignerRefusesTopLevelFieldsHoldingAList()
+    {
+        $before = Workflow::count();
+        $table_id = CustomTable::getEloquent('custom_value_edit')->id;
+        $labels = [
+            'workflow_type' => exmtrans('workflow.workflow_type'),
+            'workflow_view_name' => exmtrans('workflow.workflow_view_name'),
+            'start_status_name' => exmtrans('workflow.start_status_name'),
+            'updated_at' => exmtrans('common.updated_at'),
+        ];
+
+        foreach (['workflow_type', 'workflow_view_name', 'start_status_name'] as $field) {
+            $payload = $this->newTablePayload($table_id);
+            $payload[$field] = ['a'];
+            $response = $this->createDesign($payload);
+            $this->assertSame(422, $response->getStatusCode(), "create: $field = list must be refused: " . $response->getContent());
+            $this->assertSame(
+                [trans('validation.string', ['attribute' => $labels[$field]])],
+                array_get(json_decode((string)$response->getContent(), true), 'errors'),
+                "create: $field"
+            );
+        }
+        $this->assertSame($before, Workflow::count(), 'No workflow may be created.');
+
+        [$workflow, , $status] = $this->newCommonWorkflow();
+        foreach (['workflow_view_name', 'start_status_name', 'updated_at'] as $field) {
+            $payload = $this->payloadOf($this->designData($workflow));
+            $payload[$field] = ['a'];
+            $payload['statuses'][0]['name'] = 'renamed';
+            $response = $this->postDesign($workflow, $payload);
+            $this->assertSame(422, $response->getStatusCode(), "save: $field = list must be refused: " . $response->getContent());
+            $this->assertSame(
+                [trans('validation.string', ['attribute' => $labels[$field]])],
+                array_get(json_decode((string)$response->getContent(), true), 'errors'),
+                "save: $field"
+            );
+        }
+        $this->assertSame('s1', $this->findStatus($status['n1'])->status_name, 'Nothing may be saved.');
+    }
+
+    /**
+     * The designer sends back the workflow conditions it was given, and they
+     * were stored as they came: a list where a value belongs failed the
+     * insert (HTTP 500), and anything else - an unknown condition_type, no
+     * condition_key, a condition that is not an object - was saved as a
+     * condition that matches nothing. Conditions the designer was given still
+     * go back and forth unchanged.
+     *
+     * @return void
+     */
+    public function testDesignerRefusesWorkflowConditionsItDidNotHandOut()
+    {
+        // a table workflow with a column condition, as step 2 sets one
+        $table = CustomTable::getEloquent('custom_value_edit');
+        $column = CustomColumn::getEloquent('text', $table);
+        $response = $this->createDesign($this->newTablePayload($table->id));
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+        $data = json_decode((string)$response->getContent(), true)['data'];
+        $actions = ['go' => WorkflowAction::where('id', $data['action_map']['m1'])->firstOrFail()];
+        $workflow = Workflow::where('id', $actions['go']->workflow_id)->firstOrFail();
+
+        $valid = [
+            'condition_target' => strval($column->id),
+            'condition_type' => ConditionType::COLUMN,
+            'condition_key' => strval(FilterOption::EQ),
+            'condition_value' => 'abc',
+        ];
+        $conditionsOf = function (WorkflowAction $action) {
+            $header_ids = \DB::table('workflow_condition_headers')->where('workflow_action_id', $action->id)->pluck('id');
+            return \DB::table('conditions')->where('morph_type', 'workflow_condition_header')
+                ->whereIn('morph_id', $header_ids)->get(['condition_type', 'condition_key', 'target_column_id', 'condition_value'])
+                ->map(function ($row) {
+                    return (array)$row;
+                })->all();
+        };
+
+        $cases = [
+            'condition_type is not a ConditionType' => [array_merge($valid, ['condition_type' => 'abc'])],
+            'no condition_type nor condition_key' => [['condition_value' => 'x']],
+            'condition_key is not a FilterOption' => [array_merge($valid, ['condition_key' => '999999'])],
+            'condition_key is a list' => [array_merge($valid, ['condition_key' => ['x']])],
+            'condition_target is a list' => [array_merge($valid, ['condition_target' => ['x']])],
+            'condition_value nests a list' => [array_merge($valid, ['condition_value' => [['x']]])],
+            'a condition is a string' => ['oops'],
+            'workflow_conditions is a string' => 'oops',
+        ];
+        $go = function (array $payload) use ($actions) {
+            foreach ($payload['actions'] as $index => $action) {
+                if (strval($action['id']) === strval($actions['go']->id)) {
+                    return $index;
+                }
+            }
+            $this->fail('The action "go" is not in the payload.');
+        };
+        foreach ($cases as $label => $conditions) {
+            $payload = $this->payloadOf($this->designData($workflow));
+            $payload['actions'][$go($payload)]['destinations'][0]['workflow_conditions'] = $conditions;
+            $response = $this->postDesign($workflow, $payload);
+            $this->assertSame(422, $response->getStatusCode(), "$label must be refused: " . $response->getContent());
+            $this->assertSame([], $conditionsOf($actions['go']), "$label: nothing may be stored");
+        }
+
+        // what the designer is given goes back and forth, a list value included
+        foreach (['abc', ['a', 'b']] as $value) {
+            $payload = $this->payloadOf($this->designData($workflow));
+            $payload['actions'][$go($payload)]['destinations'][0]['workflow_conditions'] = [array_merge($valid, ['condition_value' => $value])];
+            $response = $this->postDesign($workflow, $payload);
+            $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+            $stored = $conditionsOf($actions['go']);
+            $this->assertCount(1, $stored);
+
+            $response = $this->postDesign($workflow, $this->payloadOf($this->designData($workflow)));
+            $this->assertSame(200, $response->getStatusCode(), 'Saving the conditions the designer was given: ' . $response->getContent());
+            $this->assertEquals($stored, $conditionsOf($actions['go']), 'The condition is kept as it was.');
+        }
     }
 
     /**

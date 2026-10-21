@@ -15,7 +15,9 @@ use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowCommentType;
@@ -191,6 +193,11 @@ trait WorkflowDesignTrait
 
         $payload = $this->readDesignPayload($request);
 
+        // updated_at is compared right below, before validateWorkflowDesign()
+        if (($invalid = $this->refuseMalformedDesignPayload($payload)) !== null) {
+            return $invalid;
+        }
+
         // 別のタブや他の利用者が先に保存していたら、上書きせずに知らせる
         // Answered early so that an out of date tab is told without the cost
         // of validating a payload that is going to be refused anyway. The
@@ -238,6 +245,11 @@ trait WorkflowDesignTrait
         }
 
         $payload = $this->readDesignPayload($request);
+
+        // workflow_type is read right below, before validateWorkflowDesign()
+        if (($invalid = $this->refuseMalformedDesignPayload($payload)) !== null) {
+            return $invalid;
+        }
 
         $workflow = new Workflow();
         $workflow->workflow_type = strval(array_get($payload, 'workflow_type', WorkflowType::COMMON));
@@ -294,6 +306,54 @@ trait WorkflowDesignTrait
         }
 
         return (array)$payload;
+    }
+
+    /**
+     * The 422 answer when a top-level field of the design holds a list where
+     * a single value belongs, else null.
+     *
+     * @param array<mixed> $payload
+     * @return \Illuminate\Http\JsonResponse|null
+     */
+    protected function refuseMalformedDesignPayload(array $payload)
+    {
+        $errors = static::designPayloadShapeErrors($payload);
+        if (count($errors) === 0) {
+            return null;
+        }
+
+        return response()->json([
+            'result' => false,
+            'toastr' => exmtrans('workflow.design.message.validation_error'),
+            'errors' => $errors,
+        ], 422);
+    }
+
+    /**
+     * Top-level fields of the design that are read with strval() - some before
+     * validateWorkflowDesign() runs - and a list in place of the value ends in
+     * "Array to string conversion" (HTTP 500).
+     *
+     * @param array<mixed> $payload
+     * @return array<string>
+     */
+    protected static function designPayloadShapeErrors(array $payload): array
+    {
+        $labels = [
+            'workflow_type' => exmtrans('workflow.workflow_type'),
+            'workflow_view_name' => exmtrans('workflow.workflow_view_name'),
+            'start_status_name' => exmtrans('workflow.start_status_name'),
+            'updated_at' => exmtrans('common.updated_at'),
+        ];
+
+        $errors = [];
+        foreach ($labels as $key => $label) {
+            if (!static::isDesignValue(array_get($payload, $key))) {
+                $errors[] = trans('validation.string', ['attribute' => $label]);
+            }
+        }
+
+        return $errors;
     }
 
     /**
@@ -1376,8 +1436,9 @@ trait WorkflowDesignTrait
      * validateWorkflowDesign() and saveDesignActions() read these fields with
      * strval(), and a list in place of a value ends in "Array to string
      * conversion" (HTTP 500) - or, for a target, in a related_id that cannot
-     * be stored. workflow_conditions are not looked at: they are written back
-     * as the designer received them.
+     * be stored. workflow_conditions are written back as the designer received
+     * them, so each one has to be what getWorkConditionsAttribute() hands out
+     * (see isDesignConditionShape()).
      *
      * @param mixed $action
      * @return bool
@@ -1421,9 +1482,58 @@ trait WorkflowDesignTrait
                     return false;
                 }
             }
+
+            $conditions = array_get($destination, 'workflow_conditions');
+            if (!is_null($conditions) && !is_array($conditions)) {
+                return false;
+            }
+            foreach ((array)$conditions as $condition) {
+                if (!static::isDesignConditionShape($condition)) {
+                    return false;
+                }
+            }
         }
 
         return true;
+    }
+
+    /**
+     * Whether one posted workflow condition is one the designer was given.
+     *
+     * The designer does not edit conditions, it only sends back the ones
+     * toDesignDestinations() handed it, and buildDesignConditions() stores
+     * them as they come. A list where a value belongs fails the insert
+     * (HTTP 500); a condition_type or condition_key that is not one of the
+     * enum values would be stored as a condition that matches nothing.
+     *
+     * @param mixed $condition
+     * @return bool
+     */
+    protected static function isDesignConditionShape($condition): bool
+    {
+        if (!is_array($condition)) {
+            return false;
+        }
+        foreach (['id', 'condition_target', 'condition_type', 'condition_key'] as $key) {
+            if (!static::isDesignValue(array_get($condition, $key))) {
+                return false;
+            }
+        }
+
+        // a single value, or the list a multiple select keeps
+        $value = array_get($condition, 'condition_value');
+        if (!static::isDesignValue($value)
+            && !(is_array($value) && collect($value)->every(function ($v) {
+                return static::isDesignValue($v);
+            }))) {
+            return false;
+        }
+
+        if (!in_array(strval(array_get($condition, 'condition_type')), array_map('strval', ConditionType::arrays()), true)) {
+            return false;
+        }
+
+        return in_array(strval(array_get($condition, 'condition_key')), array_map('strval', FilterOption::arrays()), true);
     }
 
     /**
