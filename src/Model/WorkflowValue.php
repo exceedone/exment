@@ -39,7 +39,9 @@ class WorkflowValue extends ModelBase
      */
     public function workflow_action()
     {
-        return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
+        // withTrashed(): an action deleted from the design is still the one
+        // this value was executed with, and the history shows its name.
+        return $this->belongsTo(WorkflowAction::class, 'workflow_action_id')->withTrashed();
     }
 
 
@@ -94,7 +96,13 @@ class WorkflowValue extends ModelBase
     // @phpstan-ignore-next-line
     public function getWorkflowActionCacheAttribute()
     {
-        return WorkflowAction::getEloquent($this->workflow_action_id);
+        // The cache holds the actions that are not deleted; the history also
+        // names the ones that are - see workflow_action().
+        $action = WorkflowAction::getEloquent($this->workflow_action_id);
+        if (!isset($action) && !is_nullorempty($this->workflow_action_id)) {
+            $action = WorkflowAction::withTrashed()->find($this->workflow_action_id);
+        }
+        return $action;
     }
 
 

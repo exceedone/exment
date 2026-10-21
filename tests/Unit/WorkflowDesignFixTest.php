@@ -20,8 +20,10 @@ use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use ExmentAdminCore\Admin\Admin;
+use ExmentAdminCore\Admin\Form;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ViewErrorBag;
@@ -343,7 +345,9 @@ class WorkflowDesignFixTest extends UnitTestBase
     /**
      * "actions" is posted by a script, so it can be anything. Counting it
      * threw a TypeError for a string, a number or null - an HTTP 500 instead
-     * of the validation error the rest of the payload gets.
+     * of the validation error the rest of the payload gets. So did an object
+     * with string keys (numbering an action as '#' . ($index + 1)) and an
+     * action holding a list where a value belongs (strval()).
      *
      * @return void
      */
@@ -352,7 +356,8 @@ class WorkflowDesignFixTest extends UnitTestBase
         $before = Workflow::count();
         $table_id = CustomTable::getEloquent('custom_value_edit')->id;
 
-        foreach (['not a list', 5, true, null] as $actions) {
+        $valid = $this->newTablePayload($table_id)['actions'];
+        foreach (['not a list', 5, true, null, ['x' => ['name' => '']], ['x' => $valid[0], 'y' => $valid[1]]] as $actions) {
             $payload = $this->newTablePayload($table_id);
             $payload['actions'] = $actions;
 
@@ -366,6 +371,34 @@ class WorkflowDesignFixTest extends UnitTestBase
                 array_values(array_filter($errors, function ($error) {
                     return strpos($error, exmtrans('workflow.workflow_actions')) !== false;
                 })),
+                'actions = ' . var_export($actions, true)
+            );
+        }
+
+        // a list holding an action that is not shaped as the designer sends it:
+        // a list where a value belongs ended in "Array to string conversion"
+        $one = $valid[0];
+        $malformed = [
+            1 => [['abc']],
+            2 => [[array_merge($one, ['name' => ['a']])]],
+            3 => [[array_merge($one, ['status_from' => ['start']])]],
+            4 => [[array_merge($one, ['work_target_type' => ['fix']])]],
+            5 => [[array_merge($one, ['flow_next_type' => ['some']])]],
+            6 => [[array_merge($one, ['destinations' => [['id' => null, 'status_to' => ['n1'], 'enabled' => 1]]])]],
+            7 => [[$valid[0], array_merge($valid[1], ['targets' => ['system' => [['created_user']]]])], 2],
+        ];
+        foreach ($malformed as $case) {
+            $actions = $case[0];
+            $payload = $this->newTablePayload($table_id);
+            $payload['actions'] = $actions;
+
+            $response = $this->createDesign($payload);
+            $this->assertSame(422, $response->getStatusCode(), 'actions = ' . var_export($actions, true) . ' must be refused: ' . $response->getContent());
+
+            $errors = (array)array_get(json_decode((string)$response->getContent(), true), 'errors', []);
+            $this->assertContains(
+                trans('validation.array', ['attribute' => exmtrans('workflow.workflow_actions')]) . ' (#' . ($case[1] ?? 1) . ')',
+                $errors,
                 'actions = ' . var_export($actions, true)
             );
         }
@@ -474,6 +507,137 @@ class WorkflowDesignFixTest extends UnitTestBase
         $this->assertTrue($written === true, 'The concurrent value must have been written during the save.');
         $this->assertSame(409, $response->getStatusCode(), 'The delete must be answered as a conflict.');
         $this->assertTrue(WorkflowStatus::where('id', $spare->id)->exists(), 'The status must not be deleted.');
+    }
+
+    /**
+     * An action records are waiting on - its step has some of the approvals
+     * it asks for - is not deleted. Those approvals are counted by
+     * workflow_action_id, so drawing the action again would start them from
+     * none and ask the people who approved again.
+     *
+     * @return void
+     */
+    public function testDesignerKeepsAnActionRecordsAreWaitingOn()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+        $this->approvalOf($actions['done'], true, $status['n1']);
+
+        $data = $this->designData($workflow);
+        $this->assertSame(
+            ['go' => false, 'done' => true],
+            array_column($data['actions'], 'in_use', 'name'),
+            'The designer must be told which action it cannot delete.'
+        );
+
+        $response = $this->postDesign($workflow, $this->withActionRedrawn($this->payloadOf($data), $actions['done']));
+
+        $this->assertSame(422, $response->getStatusCode(), 'Deleting the action must be refused: ' . $response->getContent());
+        $this->assertContains(
+            exmtrans('workflow.design.message.action_in_use', ['name' => 'done']),
+            (array)array_get(json_decode((string)$response->getContent(), true), 'errors', [])
+        );
+        $this->assertFalse(WorkflowAction::withTrashed()->where('id', $actions['done']->id)->firstOrFail()->trashed(), 'The action must not be deleted.');
+    }
+
+    /**
+     * An action only the history names can be deleted, and the history still
+     * shows its name.
+     *
+     * @return void
+     */
+    public function testDesignerDeletesAnActionOnlyTheHistoryNames()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+        $value = $this->approvalOf($actions['done'], false, $status['n2']);
+
+        $response = $this->postDesign($workflow, $this->withActionRedrawn($this->payloadOf($this->designData($workflow)), $actions['done']));
+
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+        $this->assertTrue(WorkflowAction::withTrashed()->where('id', $actions['done']->id)->firstOrFail()->trashed(), 'The action is deleted.');
+
+        System::clearRequestSession();
+        System::clearCache();
+        $value = WorkflowValue::where('id', $value->id)->firstOrFail();
+        $this->assertSame('done', strval(optional($value->workflow_action)->action_name), 'The history must still name the action.');
+        $this->assertSame('done', strval(optional($value->workflow_action_cache)->action_name), 'The board history must still name the action.');
+    }
+
+    /**
+     * An approval given between the designer's check and its save keeps the
+     * action too: the save asks again inside its transaction.
+     *
+     * The other transaction is simulated by writing the approval when the
+     * save locks the workflows row, after the check made before it.
+     *
+     * @return void
+     */
+    public function testDesignerAsksAgainForAnApprovalGivenDuringTheSave()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+        $payload = $this->withActionRedrawn($this->payloadOf($this->designData($workflow)), $actions['done']);
+
+        $written = null;
+        \DB::listen(function (QueryExecuted $query) use (&$written, $actions, $status) {
+            if (isset($written) || \DB::transactionLevel() < 2) {
+                return;
+            }
+            if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false) {
+                return;
+            }
+            $written = false;
+            $this->approvalOf($actions['done'], true, $status['n1']);
+            $written = true;
+        });
+
+        $response = $this->postDesign($workflow, $payload);
+
+        $this->assertTrue($written === true, 'The approval must have been written during the save.');
+        $this->assertSame(409, $response->getStatusCode(), 'The delete must be answered as a conflict: ' . $response->getContent());
+        $this->assertFalse(WorkflowAction::withTrashed()->where('id', $actions['done']->id)->firstOrFail()->trashed(), 'The action must not be deleted.');
+    }
+
+    /**
+     * Step 2 refuses the same delete as the designer.
+     *
+     * @return void
+     */
+    public function testStepTwoKeepsAnActionRecordsAreWaitingOn()
+    {
+        [$workflow, $actions, $status] = $this->newCommonWorkflow();
+
+        $validate = function () use ($workflow, $actions, $status) {
+            $rows = [];
+            foreach ($actions as $name => $action) {
+                $rows[] = [
+                    'id' => $action->id,
+                    'action_name' => $action->action_name,
+                    'status_from' => $action->status_from,
+                    'work_condition_select' => $name === 'go' ? $status['n1'] : $status['n2'],
+                    'work_targets' => json_encode(['work_target_type' => 'fix', 'system' => ['created_user']]),
+                    'flow_next_type' => 'some',
+                    'flow_next_count' => 1,
+                    'comment_type' => 'nullable',
+                    Form::REMOVE_FLAG_NAME => $name === 'done' ? 1 : 0,
+                ];
+            }
+            $request = Request::create(admin_urls('workflow', $workflow->id), 'PUT', ['workflow_actions' => $rows]);
+            $this->app->instance('request', $request);
+            Facade::clearResolvedInstance('request');
+
+            $form = new Form(new Workflow());
+            $form->setModel(Workflow::where('id', $workflow->id)->firstOrFail());
+            return $this->callProtectedMethod(new WorkflowController(), 'validateData', $form);
+        };
+
+        $this->assertNull($validate(), 'An action nobody is waiting on can be deleted.');
+
+        $this->approvalOf($actions['done'], true, $status['n1']);
+        $result = $validate();
+
+        $message = exmtrans('workflow.design.message.action_in_use', ['name' => 'done']);
+        $this->assertInstanceOf(RedirectResponse::class, $result, 'Deleting the action must be refused.');
+        $this->assertSame($message, session()->get('errors')->first('workflow_actions'));
+        $this->assertStringContainsString(esc_html($message), strval(array_get(session()->get('error')->get('message'), 0)));
     }
 
     /**
@@ -769,6 +933,80 @@ class WorkflowDesignFixTest extends UnitTestBase
             ],
             'layout' => ['enabled' => true, 'pos' => []],
         ];
+    }
+
+    /**
+     * A new common workflow made by the designer: start -(go)-> n1 -(done)->
+     * n2 (completed). Needs no custom table.
+     *
+     * @return array{0: Workflow, 1: array<string, WorkflowAction>, 2: array<mixed>}
+     */
+    protected function newCommonWorkflow(): array
+    {
+        $payload = $this->newTablePayload(null);
+        $payload['workflow_type'] = strval(WorkflowType::COMMON);
+        unset($payload['custom_table_id']);
+
+        $response = $this->createDesign($payload);
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+        $data = json_decode((string)$response->getContent(), true)['data'];
+
+        $actions = [
+            'go' => WorkflowAction::where('id', $data['action_map']['m1'])->firstOrFail(),
+            'done' => WorkflowAction::where('id', $data['action_map']['m2'])->firstOrFail(),
+        ];
+        $workflow = Workflow::where('id', $actions['go']->workflow_id)->firstOrFail();
+
+        return [$workflow, $actions, $data['status_map']];
+    }
+
+    /**
+     * An approval given with the action, as WorkflowAction::executeAction()
+     * leaves it. Pending: one of several the step asks for, so the record
+     * still waits at the status the action leaves. The record is the user row
+     * of the login user, so no custom table is needed.
+     *
+     * @param mixed $status_to
+     */
+    protected function approvalOf(WorkflowAction $action, bool $pending, $status_to): WorkflowValue
+    {
+        $value = new WorkflowValue();
+        $value->workflow_id = $action->workflow_id;
+        $value->morph_type = SystemTableName::USER;
+        $value->morph_id = \Exment::getUserId();
+        $value->workflow_action_id = $action->id;
+        $value->workflow_status_from_id = $action->status_from;
+        $value->workflow_status_to_id = $status_to;
+        $value->action_executed_flg = $pending ? 1 : 0;
+        $value->latest_flg = 1;
+        $value->save();
+
+        return $value;
+    }
+
+    /**
+     * The payload with $action removed and drawn again between the same
+     * statuses, as a new action - how an edge is changed in the designer.
+     *
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    protected function withActionRedrawn(array $payload, WorkflowAction $action): array
+    {
+        foreach ($payload['actions'] as &$item) {
+            if (strval($item['id']) !== strval($action->id)) {
+                continue;
+            }
+            $item['id'] = null;
+            $item['key'] = 'redrawn';
+            foreach ($item['destinations'] as &$destination) {
+                $destination['id'] = null;
+            }
+            unset($destination);
+        }
+        unset($item);
+
+        return $payload;
     }
 
     /**
