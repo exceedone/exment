@@ -213,6 +213,10 @@ trait InitializeFormTrait
             ->help(exmtrans('system.help.safety_check_resend_throttle_minutes'))
             ->default(5)
             ->min(0);
+        $form->number('safety_check_answer_url_expire_days', exmtrans('system.safety_check_answer_url_expire_days'))
+            ->help(exmtrans('system.help.safety_check_answer_url_expire_days'))
+            ->default(7)
+            ->min(0);
     }
 
 

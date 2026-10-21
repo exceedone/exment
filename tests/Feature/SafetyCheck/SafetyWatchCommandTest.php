@@ -14,6 +14,7 @@ use Exceedone\Exment\Tests\Feature\FeatureTestBase;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
 class SafetyWatchCommandTest extends FeatureTestBase
@@ -129,6 +130,24 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $lastFeedTime = System::safety_check_last_feed_time();
         $this->assertNotNull($lastFeedTime);
         $this->assertEquals($itemTime->format('Y-m-d H:i:s'), $lastFeedTime->format('Y-m-d H:i:s'));
+    }
+
+    public function testWatcherLocksTheEventWhileSendingAndReleasesIt(): void
+    {
+        $this->bindFeed([$this->feedItem(['id' => 'quake-locked'])]);
+        $lockedWhileSending = [];
+        // getModelName() starts with a backslash, the event name does not
+        Event::listen('eloquent.created: ' . ltrim((string) getModelName('safety_check_answer'), '\\'), function ($row) use (&$lockedWhileSending) {
+            $lockedWhileSending[] = $this->eventLocked(array_get($row->value, 'event'));
+        });
+
+        \Artisan::call('exment:safetywatch');
+
+        $event = $this->eventRows()->first();
+        $this->assertNotNull($event);
+        $this->assertNotEmpty($lockedWhileSending, 'Fixture: the send creates answer rows.');
+        $this->assertNotContains(false, $lockedWhileSending, 'A 再送 must be refused while the watcher is still sending.');
+        $this->assertFalse($this->eventLocked($event->id), 'The lock must go once the send is done.');
     }
 
     public function testScaleBelowThresholdCreatesNoEvent(): void

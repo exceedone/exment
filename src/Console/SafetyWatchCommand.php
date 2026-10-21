@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SafetyCheck\EarthquakeFeedInterface;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSendLock;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -100,7 +101,7 @@ class SafetyWatchCommand extends Command
             if ($recent) {
                 Log::info('safety check suppressed by cooldown', ['jma_event_id' => $item['id']]);
                 if ($hypocenterKnown && str_contains((string) $recent->getValue('quake_info'), exmtrans('safety.hypocenter_pending'))) {
-                    $recent->setValue(['title' => $title, 'quake_info' => $quakeInfo])->save();
+                    SafetyCheckSender::updateEvent($recent, ['title' => $title, 'quake_info' => $quakeInfo]);
                 }
                 $newLast = $receivedAt;
                 continue;
@@ -118,7 +119,17 @@ class SafetyWatchCommand extends Command
                     'quake_info' => $quakeInfo,
                 ]);
                 $event->save();
-                SafetyCheckSender::send($event);
+
+                // Sent right here, not queued: it must not wait for a queue worker that may be down.
+                // The lock keeps a 再送 of this event from running alongside while this sends.
+                $eventLock = SafetyCheckSendLock::acquire($event->id);
+                try {
+                    SafetyCheckSender::send($event, false, $eventLock);
+                } finally {
+                    if ($eventLock) {
+                        $eventLock->release();
+                    }
+                }
             } catch (\Throwable $e) {
                 Log::error('safety check auto trigger failed', ['jma_event_id' => $item['id'], 'exception' => $e]);
                 if (!$event || !$event->exists) {

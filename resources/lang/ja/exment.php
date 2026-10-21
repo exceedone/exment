@@ -427,6 +427,7 @@ return [
         'safety_check_comment_window_minutes' => '追加回答の受付時間（分）',
         'safety_check_max_bulletin_age_minutes' => '地震履歴取得範囲（分）',
         'safety_check_resend_throttle_minutes' => '手動再送間隔（分）',
+        'safety_check_answer_url_expire_days' => 'メール回答リンクの有効期限（日）',
         'grid_pager_count' => 'データ一覧の表示件数',
         'datalist_pager_count' => '検索・ダッシュボードの表示件数',
         'userdashboard_available' => 'ユーザーダッシュボードを使用する',
@@ -616,6 +617,7 @@ return [
             'safety_check_comment_window_minutes' => '安否回答ボタンを押した後、追加回答を受付ける時間（分）',
             'safety_check_max_bulletin_age_minutes' => '「設定値10のままにしてください。通常は設定の必要はありません」',
             'safety_check_resend_throttle_minutes' => '※通知後に再通知できるまでの間隔を設定します。ここで設定した時間内は再送できません。0にすると制限しません。',
+            'safety_check_answer_url_expire_days' => 'メールで送る回答リンクを、送信から何日間使えるようにするかを設定します。締め切った安否確認のリンクは期限内でも使えません。期限が切れた未回答者には、再送で新しいリンクが届きます。0にすると期限を設けません。',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
             'userdashboard_available' => 'YESにすることで、ログインユーザーが各自でダッシュボードを作成できる、ユーザーダッシュボード機能を使用します。',
@@ -3614,6 +3616,7 @@ return [
         'answer_done_body' => '「:status」を記録しました。状況が変わった場合は、メールの同じリンクから再度回答できます。',
         'hypocenter_pending' => '震源調査中',
         'answer_invalid_link' => 'リンクが無効です。管理者にお問い合わせください。',
+        'answer_link_expired' => 'このリンクは有効期限が切れています。LINEで回答するか、管理者にお問い合わせください。',
         'answer_invalid_status' => '回答内容が正しくありません。もう一度お試しください。',
     ],
 ];

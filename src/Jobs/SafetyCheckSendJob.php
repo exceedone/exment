@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSendLock;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
@@ -28,15 +29,21 @@ class SafetyCheckSendJob
     protected $onlyUnanswered;
 
     /**
-     * @var string|null the send lock to release when done
+     * @var SafetyCheckSendLock|null the event's send lock, kept while sending and released when done
      */
-    protected $lockKey;
+    protected $eventLock;
 
-    public function __construct(CustomValue $event, bool $onlyUnanswered = false, ?string $lockKey = null)
+    /**
+     * @var string|null the admin's 送信 lock to release when done
+     */
+    protected $sendLockKey;
+
+    public function __construct(CustomValue $event, bool $onlyUnanswered = false, ?SafetyCheckSendLock $eventLock = null, ?string $sendLockKey = null)
     {
         $this->event = $event;
         $this->onlyUnanswered = $onlyUnanswered;
-        $this->lockKey = $lockKey;
+        $this->eventLock = $eventLock;
+        $this->sendLockKey = $sendLockKey;
     }
 
     public function handle(): void
@@ -46,7 +53,7 @@ class SafetyCheckSendJob
         \Exment::setTimeLimitLong();
 
         try {
-            SafetyCheckSender::send($this->event, $this->onlyUnanswered);
+            SafetyCheckSender::send($this->event, $this->onlyUnanswered, $this->eventLock);
         } catch (\Throwable $e) {
             // no error page reaches the admin any more
             Log::error('safety check send failed', [
@@ -54,8 +61,11 @@ class SafetyCheckSendJob
                 'exception' => $e,
             ]);
         } finally {
-            if ($this->lockKey !== null) {
-                \Cache::forget($this->lockKey);
+            if ($this->eventLock) {
+                $this->eventLock->release();
+            }
+            if ($this->sendLockKey !== null) {
+                \Cache::forget($this->sendLockKey);
             }
         }
     }

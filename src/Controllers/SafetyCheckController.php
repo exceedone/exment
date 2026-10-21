@@ -12,6 +12,8 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSendLock;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Illuminate\Http\Request;
 
 class SafetyCheckController extends AdminControllerBase
@@ -268,8 +270,11 @@ EOT;
             throw $e;
         }
 
-        // the lock stays until the send itself is done: SafetyCheckSendJob releases it
-        $this->broadcast($event, false, $lockKey);
+        // a new event, so nobody else can hold its lock yet
+        $eventLock = SafetyCheckSendLock::acquire($event->id);
+
+        // the locks stay until the send itself is done: SafetyCheckSendJob releases them
+        $this->broadcast($event, false, $eventLock, $lockKey);
 
         admin_toastr(exmtrans('safety.message_send_succeeded'));
         return redirect(admin_url('safety_check'));
@@ -283,10 +288,12 @@ EOT;
     /**
      * Sending takes a while: a row, a mail and a LINE message for every user. It runs after the
      * response, so a proxy timeout cannot make it look failed and invite a second send.
+     *
+     * @param string|null $sendLockKey the admin's 送信 lock, released once the send is done
      */
-    protected function broadcast(CustomValue $event, bool $onlyUnanswered = false, ?string $lockKey = null): void
+    protected function broadcast(CustomValue $event, bool $onlyUnanswered, ?SafetyCheckSendLock $eventLock, ?string $sendLockKey = null): void
     {
-        SafetyCheckSendJob::dispatchAfterResponse($event, $onlyUnanswered, $lockKey);
+        SafetyCheckSendJob::dispatchAfterResponse($event, $onlyUnanswered, $eventLock, $sendLockKey);
     }
 
     /**
@@ -308,23 +315,36 @@ EOT;
             return redirect(admin_url('safety_check'));
         }
 
-        $throttle = (int) System::safety_check_resend_throttle_minutes();
-        if ($throttle > 0) {
-            $cutoff = now()->subMinutes($throttle)->format('Y-m-d H:i:s');
-            $reserved = \DB::table(getDBTableName($eventTable))
-                ->where('id', $event->id)
-                ->where(function ($query) use ($cutoff) {
-                    $query->whereNull('value->resent_at')
-                        ->orWhere('value->resent_at', '<=', $cutoff);
-                })
-                ->update(['value->resent_at' => now()->format('Y-m-d H:i:s')]);
-            if (!$reserved) {
-                admin_toastr(exmtrans('safety.message_resend_throttled', ['minutes' => $throttle]), 'error');
-                return redirect(admin_url('safety_check'));
-            }
+        // taken before the throttle: a 再送 refused here must not use the throttle up
+        $eventLock = SafetyCheckSendLock::acquire($event->id);
+        if (!$eventLock) {
+            admin_toastr(exmtrans('safety.message_send_in_progress'), 'error');
+            return redirect(admin_url('safety_check'));
         }
 
-        $this->broadcast($event, true);
+        try {
+            $throttle = (int) System::safety_check_resend_throttle_minutes();
+            if ($throttle > 0) {
+                $cutoff = now()->subMinutes($throttle)->format('Y-m-d H:i:s');
+                $reserved = \DB::table(getDBTableName($eventTable))
+                    ->where('id', $event->id)
+                    ->where(function ($query) use ($cutoff) {
+                        $query->whereNull('value->resent_at')
+                            ->orWhere('value->resent_at', '<=', $cutoff);
+                    })
+                    ->update(['value->resent_at' => now()->format('Y-m-d H:i:s')]);
+                if (!$reserved) {
+                    $eventLock->release();
+                    admin_toastr(exmtrans('safety.message_resend_throttled', ['minutes' => $throttle]), 'error');
+                    return redirect(admin_url('safety_check'));
+                }
+            }
+        } catch (\Throwable $e) {
+            $eventLock->release();
+            throw $e;
+        }
+
+        $this->broadcast($event, true, $eventLock);
 
         admin_toastr(exmtrans('safety.message_resend_succeeded'));
         return redirect(admin_url('safety_check'));
@@ -344,7 +364,8 @@ EOT;
         $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
         $event = $this->findEventOrFail($eventTable, $id);
 
-        $event->setValue(['event_status' => SafetyCheckDefine::EVENT_CLOSED])->save();
+        // a send finishing meanwhile writes its counts onto the event; saving the copy read above would wipe them
+        SafetyCheckSender::updateEvent($event, ['event_status' => SafetyCheckDefine::EVENT_CLOSED]);
 
         admin_toastr(exmtrans('safety.message_close_succeeded'));
         return redirect(admin_url('safety_check'));

@@ -140,6 +140,7 @@ class Define
         'safety_check_comment_window_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'notify'],
         'safety_check_max_bulletin_age_minutes' => ['type' => 'int', 'default' => '10', 'group' => 'notify'],
         'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'notify'],
+        'safety_check_answer_url_expire_days' => ['type' => 'int', 'default' => '7', 'group' => 'notify'],
         'safety_check_last_feed_time' => ['type' => 'datetime'],
 
         // Backup

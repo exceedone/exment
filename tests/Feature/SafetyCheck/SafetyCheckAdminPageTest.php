@@ -36,17 +36,6 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
     }
 
     /**
-     * @param int|string $id
-     * @return \Exceedone\Exment\Model\CustomValue|null
-     */
-    protected function freshEvent($id)
-    {
-        /** @var \Exceedone\Exment\Model\CustomValue|null $event */
-        $event = CustomTable::getEloquent('safety_check_event')->getValueQuery()->find($id);
-        return $event;
-    }
-
-    /**
      * @return \Exceedone\Exment\Model\CustomValue|null
      */
     protected function latestEvent()
@@ -200,6 +189,7 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
 
         $fresh = $this->freshEvent($event->id);
         $this->assertEquals($seededResentAt, $fresh->getValue('resent_at'), 'A throttled resend must not update resent_at.');
+        $this->assertFalse($this->eventLocked($event->id), 'A throttled resend must not leave the event locked.');
     }
 
     public function testResendThrottleSettingRespected(): void
@@ -354,30 +344,59 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
         Bus::assertDispatchedAfterResponse(SafetyCheckSendJob::class);
         $this->assertCount(0, $this->answerRows($event->id), 'The admin must not wait for the rows, mails and LINE messages of every user.');
         $this->assertTrue(\Cache::has(SafetyCheckController::sendLockKey()), 'A second click must stay refused until the send has run.');
+        $this->assertTrue($this->eventLocked($event->id), 'A 再送 of this event must stay refused until the send has run.');
     }
 
-    public function testResendRunsAfterTheResponse(): void
+    /**
+     * The faked job is run by hand: a real after-response job would also be run again by the
+     * next request of the same test, as Application::terminate() replays every callback so far.
+     */
+    public function testSendReleasesItsLocksOnceDoneAndThenAResendRuns(): void
+    {
+        Bus::fake([LineSendJob::class, SafetyCheckSendJob::class]);
+        $this->post('admin/safety_check/send', ['title' => 'Sent', 'trigger_type' => 'manual'])->assertStatus(302);
+        $event = $this->latestEvent();
+
+        Bus::dispatchedAfterResponse(SafetyCheckSendJob::class)->first()->handle();
+
+        $this->assertEquals($this->totalUserCount(), $this->answerRows($event->id)->count());
+        $this->assertFalse($this->eventLocked($event->id), 'The send releases the event once done.');
+        $this->assertFalse(\Cache::has(SafetyCheckController::sendLockKey()), 'and the admin\'s 送信 lock.');
+
+        $this->post("admin/safety_check/{$event->id}/resend")->assertStatus(302);
+
+        Bus::assertDispatchedAfterResponseTimes(SafetyCheckSendJob::class, 2);
+        $this->assertNotNull($this->freshEvent($event->id)->getValue('resent_at'));
+    }
+
+    public function testResendRunsAfterTheResponseAndReleasesTheLockOnceDone(): void
     {
         Bus::fake([LineSendJob::class, SafetyCheckSendJob::class]);
         $event = $this->createEvent();
 
         $this->post("admin/safety_check/{$event->id}/resend")->assertStatus(302);
 
-        Bus::assertDispatchedAfterResponse(SafetyCheckSendJob::class);
         $this->assertCount(0, $this->answerRows($event->id));
+        $this->assertTrue($this->eventLocked($event->id), 'Another 再送 must stay refused until this one has run.');
+
+        Bus::dispatchedAfterResponse(SafetyCheckSendJob::class)->first()->handle();
+
+        $this->assertEquals($this->totalUserCount(), $this->answerRows($event->id)->count(), 'A 再送 backfills missing answer rows.');
+        $this->assertFalse($this->eventLocked($event->id), 'A 再送 must not keep the event locked once done.');
     }
 
-    public function testSendJobSendsAndReleasesTheLock(): void
+    public function testResendRefusedWhileTheEventIsStillBeingSent(): void
     {
-        $event = $this->createEvent();
-        $lockKey = SafetyCheckController::sendLockKey();
-        \Cache::add($lockKey, 1, SafetyCheckController::SEND_LOCK_SECONDS);
+        Bus::fake([LineSendJob::class, SafetyCheckSendJob::class]);
+        $this->post('admin/safety_check/send', ['title' => 'Still sending', 'trigger_type' => 'manual'])->assertStatus(302);
+        $event = $this->latestEvent();
 
-        (new SafetyCheckSendJob($event, false, $lockKey))->handle();
+        $this->post("admin/safety_check/{$event->id}/resend")->assertStatus(302);
 
-        $this->assertEquals($this->totalUserCount(), $this->answerRows($event->id)->count());
-        $this->assertFalse(\Cache::has($lockKey), 'The lock must go once the send is done.');
+        Bus::assertDispatchedAfterResponseTimes(SafetyCheckSendJob::class, 1);
+        $this->assertNull($this->freshEvent($event->id)->getValue('resent_at'), 'A refused 再送 must not use up the throttle either.');
     }
+
 
     public function testCloseSetsEventStatusClosed(): void
     {

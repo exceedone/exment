@@ -2,12 +2,14 @@
 
 namespace Exceedone\Exment\Tests\Feature\SafetyCheck;
 
+use Carbon\Carbon;
 use Exceedone\Exment\Jobs\LineSendJob;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSendLock;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
@@ -95,6 +97,69 @@ class SafetyCheckSenderTest extends FeatureTestBase
             $subject = $job->getContext()['subject'] ?? '';
             return strpos($subject, $prefix) === 0;
         });
+    }
+
+    public function testFinishingSendKeepsResentAtReservedMeanwhile(): void
+    {
+        $event = $this->createEvent();
+        $readBeforeSending = $this->freshEvent($event->id);
+
+        // reserved by a 再送 meanwhile: the send lock rules that out unless the lock lapsed
+        $reservedAt = now()->format('Y-m-d H:i:s');
+        \DB::table(getDBTableName(CustomTable::getEloquent('safety_check_event')))
+            ->where('id', $event->id)
+            ->update(['value->resent_at' => $reservedAt]);
+
+        SafetyCheckSender::send($readBeforeSending);
+
+        $fresh = $this->freshEvent($event->id);
+        $this->assertEquals($reservedAt, $fresh->getValue('resent_at'), 'Wiping the reservation lets the next 再送 slip through the throttle.');
+        $this->assertEquals($this->totalUserCount(), (int) $fresh->getValue('target_count'));
+    }
+
+    public function testFinishingSendDoesNotReopenEventClosedMeanwhile(): void
+    {
+        $event = $this->createEvent();
+        $readBeforeSending = $this->freshEvent($event->id);
+
+        $this->freshEvent($event->id)->setValue(['event_status' => 'closed'])->save();
+
+        SafetyCheckSender::send($readBeforeSending);
+
+        $this->assertEquals('closed', $this->freshEvent($event->id)->getValue('event_status'));
+    }
+
+    public function testClosingKeepsCountsWrittenMeanwhile(): void
+    {
+        $event = $this->createEvent();
+        $readBeforeClosing = $this->freshEvent($event->id);
+        SafetyCheckSender::send($event);
+
+        SafetyCheckSender::updateEvent($readBeforeClosing, ['event_status' => 'closed']);
+
+        $fresh = $this->freshEvent($event->id);
+        $this->assertEquals('closed', $fresh->getValue('event_status'));
+        $this->assertEquals($this->totalUserCount(), (int) $fresh->getValue('target_count'), 'Closing must not wipe the counts of a send that just finished.');
+        $this->assertEquals('closed', $readBeforeClosing->getValue('event_status'), 'The caller\'s copy is refreshed.');
+    }
+
+    public function testSendKeepsItsLockAliveWhileSending(): void
+    {
+        $event = $this->createEvent();
+        $lock = SafetyCheckSendLock::acquire($event->id);
+        $this->assertNotNull($lock);
+        try {
+            // the send reaches its users late in the lock's lifetime
+            Carbon::setTestNow(now()->addSeconds(SafetyCheckSendLock::SECONDS - 10));
+            SafetyCheckSender::send($event, false, $lock);
+
+            Carbon::setTestNow(now()->addSeconds(60));
+            $this->assertTrue($this->eventLocked($event->id), 'A send outlasting the lock must keep it, or a 再送 could run alongside.');
+        } finally {
+            Carbon::setTestNow();
+            $lock->release();
+        }
+        $this->assertFalse($this->eventLocked($event->id));
     }
 
     public function testResendOnlyUnanswered(): void

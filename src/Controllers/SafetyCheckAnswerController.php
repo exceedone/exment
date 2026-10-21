@@ -7,6 +7,7 @@ use Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\URL;
 
 class SafetyCheckAnswerController extends Controller
 {
@@ -59,8 +60,10 @@ class SafetyCheckAnswerController extends Controller
     protected function resolve(Request $request, \Closure $callback)
     {
         if (!$request->hasValidSignature()) {
+            // a correct signature past its expiry is an old link of this user, not a forged one
+            $expired = URL::hasCorrectSignature($request) && !URL::signatureHasNotExpired($request);
             return $this->withSafetyHeaders(response()->view('exment::safety.answer', [
-                'mode' => 'error', 'message' => exmtrans('safety.answer_invalid_link'),
+                'mode' => 'error', 'message' => exmtrans($expired ? 'safety.answer_link_expired' : 'safety.answer_invalid_link'),
             ], 403));
         }
 

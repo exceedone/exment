@@ -427,6 +427,7 @@ return [
         'safety_check_comment_window_minutes' => 'Additional Response Window (minutes)',
         'safety_check_max_bulletin_age_minutes' => 'Earthquake History Range (minutes)',
         'safety_check_resend_throttle_minutes' => 'Manual Resend Interval (minutes)',
+        'safety_check_answer_url_expire_days' => 'Mail Answer Link Expiry (days)',
         'grid_pager_count' => 'Number of displayed data list',
         'datalist_pager_count' => 'Number of displayed search and dashboard',
         'userdashboard_available' => 'Use User Dashboard',
@@ -616,6 +617,7 @@ return [
             'safety_check_comment_window_minutes' => 'How long (in minutes) additional responses are accepted after the user presses a safety-check answer button.',
             'safety_check_max_bulletin_age_minutes' => 'Leave this at 10. Normally there is no need to change this setting.',
             'safety_check_resend_throttle_minutes' => 'Sets how long you must wait before sending a notification again. Resending is not possible within this period. 0 disables the limit.',
+            'safety_check_answer_url_expire_days' => 'How many days after sending the answer link in the mail can be used. A closed safety check stops its links even before that. Unanswered users whose link has expired get a new one with a resend. 0 means no expiry.',
             'template' => 'If select these templates, install tables, columns and forms.',
             'role_one_user_organization' => 'Please register one or more users or organizations for permission.',
             'userdashboard_available' => 'If set to YES, the user dashboard function will be used, which allows logged-in users to create their own dashboards.',
@@ -3615,6 +3617,7 @@ return [
         'answer_done_body' => '":status" has been recorded. If your situation changes, you can answer again from the same link in the mail.',
         'hypocenter_pending' => 'Hypocenter pending',
         'answer_invalid_link' => 'This link is invalid. Please contact your administrator.',
+        'answer_link_expired' => 'This link has expired. Please answer through LINE or contact your administrator.',
         'answer_invalid_status' => 'The submitted answer is invalid. Please go back and try again.',
     ],
 ];
