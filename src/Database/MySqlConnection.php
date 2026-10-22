@@ -6,6 +6,7 @@ use Exceedone\Exment\Database\Query\Grammars\MySqlGrammar as QueryGrammar;
 use Exceedone\Exment\Database\Schema\Grammars\MySqlGrammar as SchemaGrammar;
 use Exceedone\Exment\Database\Schema\MySqlBuilder;
 use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Illuminate\Database\Grammar;
 use Illuminate\Database\MySqlConnection as BaseConnection;
@@ -16,6 +17,24 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
     // @phpstan-ignore-next-line
     protected static $isContainsColumnStatistics = null;
+
+    /**
+     * Tables of the Laravel skeleton that Exment shares or may also create: never Exment's own,
+     * so a restore keeps them even when the backup does not have them.
+     */
+    protected const FRAMEWORK_TABLES = [
+        'migrations',
+        'users',
+        'password_reset_tokens',
+        'password_resets',
+        'sessions',
+        'cache',
+        'cache_locks',
+        'jobs',
+        'job_batches',
+        'failed_jobs',
+        'personal_access_tokens',
+    ];
 
     /**
      * Get a schema builder instance for the connection.
@@ -329,13 +348,17 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     }
 
     /**
-     * Drop the tables the backup does not have.
+     * Drop the Exment tables the backup does not have.
      *
-     * Restore replaces only the tables in the backup, so a table made after the backup
+     * Restore replaces only the tables in the backup, so an Exment table made after the backup
      * (a newer version's table, a custom table's exm__ table) would keep the data of the
      * database being replaced while the restored migrations table no longer records it:
      * line_account_links would link LINE accounts to user ids of other users, and
      * exment:update would fail to create the table again.
+     *
+     * Only tables Exment owns are dropped. A restore into a newer Laravel skeleton must not
+     * remove the framework tables the backup predates (sessions, cache, jobs, ...): dropping
+     * "sessions" takes the whole site down with HTTP 500, and exment:update cannot recover it.
      *
      * @param array<string> $backupTables
      * @return void
@@ -348,7 +371,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     }
 
     /**
-     * Get the tables of the database the backup does not have.
+     * Get the Exment-owned tables of the database the backup does not have.
      *
      * @param array<string> $backupTables tables the backup table definition creates
      * @param array<string> $tables tables the database has
@@ -363,9 +386,74 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             return [];
         }
 
-        return array_values(array_filter($tables, function ($table) use ($backupTables) {
-            return !in_array(strtolower($table), $backupTables, true);
+        $exmentTables = $this->getExmentTableNames();
+
+        return array_values(array_filter($tables, function ($table) use ($backupTables, $exmentTables) {
+            $table = strtolower($table);
+
+            // keep the tables the backup restored, and every table Exment does not own
+            // (framework tables the backup predates, and tables added outside Exment)
+            return !in_array($table, $backupTables, true)
+                && $this->isExmentOwnedTable($table, $exmentTables);
         }));
+    }
+
+    /**
+     * Whether Exment owns this table (so it is safe to drop on restore).
+     *
+     * @param string $table lower-cased table name
+     * @param array<string> $exmentTables lower-cased tables Exment's migrations create
+     * @return bool
+     */
+    protected function isExmentOwnedTable(string $table, array $exmentTables): bool
+    {
+        // custom table data (exm__<suuid>) and relation pivot tables (pivot__<suuid>_<suuid>)
+        if (strpos($table, 'exm__') === 0 || strpos($table, 'pivot__') === 0) {
+            return true;
+        }
+
+        return in_array($table, $exmentTables, true);
+    }
+
+    /**
+     * Get the lower-cased table names Exment's own migrations create.
+     *
+     * Read from the package migration files so the list follows the migrations instead of a
+     * hand-kept copy. The migrations name a table either as a string or as a SystemTableName
+     * constant, through Schema:: or a schema builder ($schema->create(...)): a table only one
+     * of them finds would keep the replaced data after a restore.
+     *
+     * The framework tables Exment shares are excluded ("migrations", always restored from the
+     * backup, and "password_reset_tokens", which Exment only creates when the host application
+     * did not): a backup predating them must not take them away.
+     *
+     * @return array<string>
+     */
+    protected function getExmentTableNames(): array
+    {
+        $tables = [];
+
+        foreach (\File::glob(path_join(exment_package_path(), 'database', 'migrations', '*.php')) as $file) {
+            if (!preg_match_all('/(?:Schema::|->)create\(\s*(?:[\'"]([A-Za-z0-9_]+)[\'"]|SystemTableName::([A-Za-z0-9_]+))/', \File::get($file), $matches, PREG_SET_ORDER)) {
+                continue;
+            }
+
+            foreach ($matches as $match) {
+                // the group that did not match is empty or missing
+                $name = $match[1] ?? '';
+                if ($name !== '') {
+                    $tables[] = strtolower($name);
+                    continue;
+                }
+
+                $constant = SystemTableName::class . '::' . ($match[2] ?? '');
+                if (defined($constant)) {
+                    $tables[] = strtolower(strval(constant($constant)));
+                }
+            }
+        }
+
+        return array_values(array_diff(array_unique($tables), static::FRAMEWORK_TABLES));
     }
 
 

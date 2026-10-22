@@ -64,6 +64,10 @@ class RestoreCommand extends Command
             $tmp = boolval($this->option("tmp"));
 
             $result = $this->restore->execute($file, $tmp);
+
+            if ($this->restore->isConfigSkipped()) {
+                $this->warn(exmtrans('backup.message.restore_config_skipped'));
+            }
         } catch (BackupRestoreCheckException $e) {
             $this->error($e->getMessage());
             return 1;
