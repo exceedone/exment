@@ -42,6 +42,7 @@
         "elibyy/tcpdf-laravel": "^11.4"
     },
     "suggest": {
+        "directorytree/ldaprecord": "Required to use the LDAP login. Install with: composer require directorytree/ldaprecord",
         "google/recaptcha": "Required to use Google reCAPTCHA (v2 or v3) on public forms. Install with: composer require google/recaptcha",
         "meilisearch/meilisearch-php": "Enable Meilisearch-powered global search (config('meilisearch.global_search')). Requires a guzzlehttp/guzzle compatible HTTP client."
     },
