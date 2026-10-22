@@ -331,7 +331,7 @@ class LoginSettingController extends AdminControllerBase
             $errors[] = LoginType::SAML();
         }
 
-        if (!class_exists('\\Adldap\\Adldap')) {
+        if (!LoginServiceBase\Ldap\LdapService::isLibraryInstalled()) {
             $errors[] = LoginType::LDAP();
         }
 

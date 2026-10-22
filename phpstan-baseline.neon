@@ -2864,49 +2864,85 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/Login/CustomLoginUserBase.php
 
 		-
-			message: '#^Call to method getDefaultProvider\(\) on an unknown class Adldap\\Adldap\.$#'
+			message: '#^Call to method auth\(\) on an unknown class LdapRecord\\Connection\.$#'
 			identifier: class.notFound
 			count: 1
 			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
 
 		-
-			message: '#^Call to method search\(\) on an unknown class Adldap\\Connections\\ProviderInterface\.$#'
-			identifier: class.notFound
-			count: 3
-			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
-
-		-
-			message: '#^Caught class Adldap\\Auth\\BindException not found\.$#'
+			message: '#^Call to method connect\(\) on an unknown class LdapRecord\\Connection\.$#'
 			identifier: class.notFound
 			count: 1
 			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
 
 		-
-			message: '#^Class Adldap\\Schemas\\ActiveDirectory not found\.$#'
+			message: '#^Call to method findBy\(\) on an unknown class LdapRecord\\Query\\Builder\.$#'
 			identifier: class.notFound
 			count: 1
 			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
 
 		-
-			message: '#^Instantiated class Adldap\\Adldap not found\.$#'
+			message: '#^Call to method query\(\) on an unknown class LdapRecord\\Connection\.$#'
+			identifier: class.notFound
+			count: 2
+			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
+
+		-
+			message: '#^Call to method rawFilter\(\) on an unknown class LdapRecord\\Query\\Builder\.$#'
 			identifier: class.notFound
 			count: 1
 			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
 
 		-
-			message: '#^Parameter \#1 \$message of static method Illuminate\\Log\\Logger\:\:error\(\) expects array\|Illuminate\\Contracts\\Support\\Arrayable\|Illuminate\\Contracts\\Support\\Jsonable\|Illuminate\\Support\\Stringable\|string, Adldap\\Auth\\BindException&Throwable given\.$#'
+			message: '#^Caught class LdapRecord\\Auth\\BindException not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
+
+		-
+			message: '#^Caught class LdapRecord\\ConnectionException not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
+
+		-
+			message: '#^Instantiated class LdapRecord\\Connection not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
+
+		-
+			message: '#^Method Exceedone\\Exment\\Services\\Login\\Ldap\\LdapService\:\:newConnection\(\) has invalid return type LdapRecord\\Connection\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
+
+		-
+			message: '#^Parameter \#1 \$message of static method Illuminate\\Log\\Logger\:\:error\(\) expects array\|Illuminate\\Contracts\\Support\\Arrayable\|Illuminate\\Contracts\\Support\\Jsonable\|Illuminate\\Support\\Stringable\|string, \(LdapRecord\\Auth\\BindException&Throwable\)\|\(LdapRecord\\ConnectionException&Throwable\) given\.$#'
 			identifier: argument.type
 			count: 1
 			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
 
 		-
-			message: '#^Parameter \$provider of method Exceedone\\Exment\\Services\\Login\\Ldap\\LdapService\:\:getLdapUserDN\(\) has invalid type Adldap\\Connections\\ProviderInterface\.$#'
+			message: '#^Parameter \$connection of method Exceedone\\Exment\\Services\\Login\\Ldap\\LdapService\:\:getLdapUserDN\(\) has invalid type LdapRecord\\Connection\.$#'
 			identifier: class.notFound
 			count: 1
 			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
 
 		-
-			message: '#^Parameter \$provider of method Exceedone\\Exment\\Services\\Login\\Ldap\\LdapService\:\:syncLdapUser\(\) has invalid type Adldap\\Connections\\ProviderInterface\.$#'
+			message: '#^Parameter \$connection of method Exceedone\\Exment\\Services\\Login\\Ldap\\LdapService\:\:syncLdapUser\(\) has invalid type LdapRecord\\Connection\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
+
+		-
+			message: '#^Parameter \$query of method Exceedone\\Exment\\Services\\Login\\Ldap\\LdapService\:\:applyRawFilter\(\) has invalid type LdapRecord\\Query\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
+
+		-
+			message: '#^Parameter \$query of method Exceedone\\Exment\\Services\\Login\\Ldap\\LdapService\:\:findEntry\(\) has invalid type LdapRecord\\Query\\Builder\.$#'
 			identifier: class.notFound
 			count: 1
 			path: vendor/exceedone/exment/src/Services/Login/Ldap/LdapService.php
@@ -3175,3 +3211,56 @@ parameters:
 			count: 2
 			path: vendor/exceedone/exment/src/Validator/FileRule.php
 
+		-
+			message: '#^Call to method expect\(\) on an unknown class LdapRecord\\Testing\\LdapFake\.$#'
+			identifier: class.notFound
+			count: 7
+			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php
+
+		-
+			message: '#^Call to method setLdapConnection\(\) on an unknown class LdapRecord\\Connection\.$#'
+			identifier: class.notFound
+			count: 2
+			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php
+
+		-
+			message: '#^Call to method shouldAllowAnyBind\(\) on an unknown class LdapRecord\\Testing\\LdapFake\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php
+
+		-
+			message: '#^Call to static method operation\(\) on an unknown class LdapRecord\\Testing\\LdapFake\.$#'
+			identifier: class.notFound
+			count: 16
+			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php
+
+		-
+			message: '#^Instantiated class LdapRecord\\Testing\\LdapFake not found\.$#'
+			identifier: class.notFound
+			count: 7
+			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php
+
+		-
+			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\FakeConnectionLdapService\:\:newConnection\(\) has invalid return type LdapRecord\\Connection\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php
+
+		-
+			message: '#^Method Exceedone\\Exment\\Tests\\Unit\\LdapServiceTest\:\:fakeConnection\(\) has invalid return type LdapRecord\\Connection\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php
+
+		-
+			message: '#^Parameter \$fake of method Exceedone\\Exment\\Tests\\Unit\\LdapServiceTest\:\:fakeConnection\(\) has invalid type LdapRecord\\Testing\\LdapFake\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php
+
+		-
+			message: '#^Property Exceedone\\Exment\\Tests\\Unit\\FakeConnectionLdapService\:\:\$fake has unknown class LdapRecord\\Testing\\LdapFake as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php

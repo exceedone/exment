@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Services\Login\Ldap;
 
-use Adldap\Connections\ProviderInterface;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\System;
@@ -19,9 +18,32 @@ use Illuminate\Http\Request;
 
 /**
  * LoginService
+ *
+ * LDAP is reached through directorytree/ldaprecord (composer require directorytree/ldaprecord).
+ * adldap2, used up to v6, is abandoned and cannot be installed with Laravel 12.
  */
 class LdapService implements LoginServiceInterface
 {
+    public const SCHEMA_ACTIVE_DIRECTORY = 'ActiveDirectory';
+    public const SCHEMA_OPEN_LDAP = 'OpenLDAP';
+
+    /**
+     * Whether the LDAP library is installed.
+     */
+    public static function isLibraryInstalled(): bool
+    {
+        return class_exists(\LdapRecord\Connection::class);
+    }
+
+    /**
+     * Get the schema of the setting: ActiveDirectory (default) or OpenLDAP.
+     */
+    public static function getSchema(LoginSetting $login_setting): string
+    {
+        $schema = $login_setting->getOption('ldap_schema');
+        return (empty($schema) || $schema == static::SCHEMA_ACTIVE_DIRECTORY) ? static::SCHEMA_ACTIVE_DIRECTORY : static::SCHEMA_OPEN_LDAP;
+    }
+
     /**
      * Checking retrieveByCredential.
      * (1) Login using LDAP
@@ -70,21 +92,38 @@ class LdapService implements LoginServiceInterface
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * Get the LdapRecord connection config of the setting.
+     *
+     * The screen keeps the adldap2 names: "use SSL" is ldaps:// (LdapRecord use_tls) and
+     * "use TLS" is STARTTLS (LdapRecord use_starttls).
+     *
+     * @return array<string, mixed>
+     */
     public static function getLdapConfig(LoginSetting $login_setting)
     {
         return [
-            'exment' => [
-                'schema' => $login_setting->getOption('ldap_schema') ? '\Adldap\Schemas\\' . ($login_setting->getOption('ldap_schema')) : \Adldap\Schemas\ActiveDirectory::class,
-                'hosts' => stringToArray($login_setting->getOption('ldap_hosts')),
-                'port' => $login_setting->getOption('ldap_port') ?? 389,
-                'timeout' => 10,
-                'base_dn' => $login_setting->getOption('ldap_base_dn'),
-                'follow_referrals' => false,
-                'use_ssl' => boolval($login_setting->getOption('ldap_use_ssl')),
-                'use_tls' => boolval($login_setting->getOption('ldap_use_tls')),
-            ]
+            'hosts' => stringToArray($login_setting->getOption('ldap_hosts')),
+            'port' => (int) ($login_setting->getOption('ldap_port') ?? 389),
+            'timeout' => 10,
+            'base_dn' => (string) $login_setting->getOption('ldap_base_dn'),
+            // anonymous bind until the user is bound, as before
+            'username' => null,
+            'password' => null,
+            'follow_referrals' => false,
+            'use_tls' => boolval($login_setting->getOption('ldap_use_ssl')),
+            'use_starttls' => boolval($login_setting->getOption('ldap_use_tls')),
         ];
+    }
+
+    /**
+     * Make the connection of the setting.
+     *
+     * @return \LdapRecord\Connection
+     */
+    public static function newConnection(LoginSetting $login_setting)
+    {
+        return new \LdapRecord\Connection(static::getLdapConfig($login_setting));
     }
 
     /**
@@ -107,33 +146,71 @@ class LdapService implements LoginServiceInterface
     /**
      * Get login user dn.
      *
-     * @param ProviderInterface $provider
+     * @param \LdapRecord\Connection $connection
      * @param string $username
      * @param LoginSetting $login_setting
-     * @return string
+     * @return string|null null: not found
      */
-    public static function getLdapUserDN($provider, $username, LoginSetting $login_setting): string
+    public static function getLdapUserDN($connection, $username, LoginSetting $login_setting): ?string
     {
-        $ldapUser = $provider->search()->rawFilter([$login_setting->getOption('ldap_filter')])->findBy($login_setting->getOption('ldap_search_key'), $username);
-        return (!empty($ldapUser["dn"])) ? $ldapUser["dn"][0] : false;
+        $query = $connection->query();
+        static::applyRawFilter($query, $login_setting->getOption('ldap_filter'));
+
+        $ldapUser = static::findEntry($query, $login_setting, $username);
+        return isset($ldapUser) && $ldapUser->getDn() !== '' ? $ldapUser->getDn() : null;
     }
 
     /**
-     * Sync user from ldap Provider
+     * Sync user from ldap
      *
-     * @param \Adldap\Connections\ProviderInterface $provider
+     * @param \LdapRecord\Connection $connection
      * @param LoginSetting $login_setting
      * @param string $username
-     * @return mixed
+     * @return LdapEntry|null
      */
-    public static function syncLdapUser($provider, LoginSetting $login_setting, $username)
+    public static function syncLdapUser($connection, LoginSetting $login_setting, $username)
     {
-        if ($login_setting->getOption('ldap_schema') != "ActiveDirectory" && !empty($login_setting->getOption('ldap_filter'))) {
-            $builder = $provider->search()->rawFilter([$login_setting->getOption('ldap_filter')]);
+        $query = $connection->query();
+        $schema = static::getSchema($login_setting);
+        if ($schema != static::SCHEMA_ACTIVE_DIRECTORY && !empty($login_setting->getOption('ldap_filter'))) {
+            static::applyRawFilter($query, $login_setting->getOption('ldap_filter'));
+        } elseif ($schema == static::SCHEMA_ACTIVE_DIRECTORY) {
+            // users of Active Directory (adldap2 search()->users())
+            $query->where('objectclass', '=', 'user')
+                ->where('objectcategory', '=', 'person')
+                ->where('objectclass', '!=', 'contact');
         } else {
-            $builder = $provider->search()->users();
+            // users of OpenLDAP (adldap2 search()->users() with the OpenLDAP schema)
+            $query->where('objectclass', '=', 'inetorgperson')
+                ->where('objectclass', '=', 'person');
         }
-        return $builder->findBy($login_setting->getOption('ldap_search_key'), $username);
+
+        return static::findEntry($query, $login_setting, $username);
+    }
+
+    /**
+     * Add the filter of the setting, if any.
+     *
+     * @param \LdapRecord\Query\Builder $query
+     * @param mixed $filter
+     */
+    protected static function applyRawFilter($query, $filter): void
+    {
+        if (is_string($filter) && $filter !== '') {
+            $query->rawFilter($filter);
+        }
+    }
+
+    /**
+     * Find the entry whose search key is the user name.
+     *
+     * @param \LdapRecord\Query\Builder $query
+     */
+    protected static function findEntry($query, LoginSetting $login_setting, string $username): ?LdapEntry
+    {
+        $entry = $query->findBy((string) $login_setting->getOption('ldap_search_key'), $username);
+
+        return empty($entry) ? null : new LdapEntry($entry, static::getSchema($login_setting));
     }
 
     /**
@@ -273,20 +350,19 @@ class LdapService implements LoginServiceInterface
         try {
 
             // attempt to ldap
-            $ad = new \Adldap\Adldap(static::getLdapConfig($login_setting));
-            $provider = $ad->getDefaultProvider();
+            $connection = static::newConnection($login_setting);
+            $connection->connect();
 
-            $provider->connect();
-            $bindDN = (empty($login_setting->getOption('ldap_schema')) || $login_setting->getOption('ldap_schema') == "ActiveDirectory") ?
+            $bindDN = static::getSchema($login_setting) == static::SCHEMA_ACTIVE_DIRECTORY ?
                 $username :
-                static::getLdapUserDN($provider, $credentials['username'], $login_setting);
-            if (!$bindDN || !$provider->auth()->attempt($bindDN, $credentials['password'], true)) {
+                static::getLdapUserDN($connection, $credentials['username'], $login_setting);
+            if (!$bindDN || !$connection->auth()->attempt($bindDN, (string) $credentials['password'], true)) {
                 // @phpstan-ignore-next-line
                 return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
             }
 
             // sync to exment
-            $ldapUser = static::syncLdapUser($provider, $login_setting, $username);
+            $ldapUser = static::syncLdapUser($connection, $login_setting, $username);
 
             if (!$ldapUser) {
                 // @phpstan-ignore-next-line
@@ -315,7 +391,8 @@ class LdapService implements LoginServiceInterface
             }
 
             return LoginService::getLoginResult(true, [], [], $custom_login_user);
-        } catch (\Adldap\Auth\BindException $ex) {
+        } catch (\LdapRecord\Auth\BindException|\LdapRecord\ConnectionException $ex) {
+            // cannot reach / bind to the server
             \Log::error($ex);
             // @phpstan-ignore-next-line
             return LoginService::getLoginResult(SsoLoginErrorType::PROVIDER_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
