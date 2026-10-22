@@ -1003,6 +1003,7 @@ return [
             'restore_error' => 'Restore failed.',
             'restore_file_success' => 'Restore success. Redirect to login page.',
             'restore_file_error' => 'Restore failed. Please check upload file.',
+            'restore_config_skipped' => 'The config files in the backup were not restored, because the backup was taken on another Laravel version (or before version information was recorded). If needed, take them from the backup zip and merge them by hand.',
             'edit_filename_confirm' => 'Edit File Name',
             'edit_filename_text' => 'Enter the file name of the backup file. Some of the characters cannot be used.',
             'same_filename' => 'A backup file with that file name has already been created.',

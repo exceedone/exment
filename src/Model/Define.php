@@ -31,6 +31,8 @@ class Define
 
     public const DELETE_CONFIRM_KEYWORD = 'delete me';
     public const RESTORE_CONFIRM_KEYWORD = 'restore me';
+    // file in a backup zip recording the Exment / Laravel versions it was taken on
+    public const BACKUP_VERSION_FILE = 'backup_version.json';
     public const YES_KEYWORD = 'yes';
 
     public const API_FEATURE_TEST = 'API_FEATURE_TEST';
