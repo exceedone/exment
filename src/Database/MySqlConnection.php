@@ -278,9 +278,16 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             // restore table definition
             $def = path_join($dirFullPath, config('exment.backup_info.def_file'));
             if (\File::exists($def)) {
+                $backupTables = $this->getDefinitionTables($def);
+
                 $command = sprintf('%s < %s', $mysqlcmd, escapeshellarg($def));
-                exec($command);
+                exec($command, $output, $return_var);
                 \File::delete($def);
+
+                // a definition that did not load leaves the database half replaced: keep the rest as it is
+                if ($return_var == 0) {
+                    $this->dropTablesNotInBackup($backupTables);
+                }
             }
 
             // get insert sql file for each tables
@@ -303,6 +310,62 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         } finally {
             \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
+    }
+
+
+    /**
+     * Get the table names a backup table definition file creates.
+     *
+     * @param string $def table definition file path
+     * @return array<string>
+     */
+    protected function getDefinitionTables($def): array
+    {
+        preg_match_all('/^CREATE TABLE (?:IF NOT EXISTS )?`((?:[^`]|``)+)`/m', \File::get($def), $matches);
+
+        return array_map(function ($table) {
+            return str_replace('``', '`', $table);
+        }, $matches[1]);
+    }
+
+    /**
+     * Drop the tables the backup does not have.
+     *
+     * Restore replaces only the tables in the backup, so a table made after the backup
+     * (a newer version's table, a custom table's exm__ table) would keep the data of the
+     * database being replaced while the restored migrations table no longer records it:
+     * line_account_links would link LINE accounts to user ids of other users, and
+     * exment:update would fail to create the table again.
+     *
+     * @param array<string> $backupTables
+     * @return void
+     */
+    protected function dropTablesNotInBackup(array $backupTables)
+    {
+        foreach ($this->getTablesNotInBackup($backupTables, \Schema::getTableListing()) as $table) {
+            \DB::statement('DROP TABLE IF EXISTS ' . $this->getQueryGrammar()->wrap($table));
+        }
+    }
+
+    /**
+     * Get the tables of the database the backup does not have.
+     *
+     * @param array<string> $backupTables tables the backup table definition creates
+     * @param array<string> $tables tables the database has
+     * @return array<string>
+     */
+    protected function getTablesNotInBackup(array $backupTables, array $tables): array
+    {
+        $backupTables = array_map('strtolower', $backupTables);
+
+        // not a dump of an Exment database (empty or cut short): it cannot tell what to keep
+        if (!in_array('custom_tables', $backupTables, true) || !in_array('migrations', $backupTables, true)) {
+            return [];
+        }
+
+        return array_values(array_filter($tables, function ($table) use ($backupTables) {
+            return !in_array(strtolower($table), $backupTables, true);
+        }));
     }
 
 
