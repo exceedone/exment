@@ -445,9 +445,13 @@ class Define
         'sqlsrv' => ['min' => '13.0.0.0'],
     ];
 
+    /**
+     * PHP version range checked on the install screen: [min (inclusive), max (exclusive)].
+     * min must match "php" in composer.json.
+     */
     public const PHP_VERSION = [
-        '8.1.0',
-        '8.4.0',
+        '8.2.0',
+        '8.5.0',
     ];
 
     public const CUSTOM_TABLE_ENDPOINTS = [
