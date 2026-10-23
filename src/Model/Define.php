@@ -29,6 +29,11 @@ class Define
     public const RULES_REGEX_LINK_FORMAT = "|<a href=[\"'](.*?)[\"'].*?>(.*?)</a>|mis";
     public const RULES_REGEX_BACKUP_FILENAME = '[ぁ-んァ-ヶ亜-熙a-zA-Z0-9]+';
 
+    /**
+     * Input keys not to flash to the session when redirecting with input
+     */
+    public const DONT_FLASH_INPUT_KEYS = ['password', 'password_confirmation', 'current_password'];
+
     public const DELETE_CONFIRM_KEYWORD = 'delete me';
     public const RESTORE_CONFIRM_KEYWORD = 'restore me';
     // file in a backup zip recording the Exment / Laravel versions it was taken on
