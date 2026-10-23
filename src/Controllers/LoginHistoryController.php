@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\DataItems\Show\UserLoginHistoryGrid;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\LoginHistory;
 use Exceedone\Exment\Model\System;
@@ -184,10 +185,7 @@ class LoginHistoryController extends AdminControllerBase
             return $model->login_type_text;
         })->escape(true);
         $grid->column('is_new_ip', exmtrans('login_history.is_new_ip'))->display(function ($value) {
-            if (!boolval($value)) {
-                return '';
-            }
-            return '<span class="label label-danger">' . esc_html(exmtrans('login_history.is_new_ip_options.1')) . '</span>';
+            return UserLoginHistoryGrid::getNewIpLabel($value);
         });
         $grid->column('auth_2factor_verified', exmtrans('login_history.auth_2factor_verified'))->display(function ($value) {
             if (is_null($value)) {

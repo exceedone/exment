@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Testing\TestResponse;
 use Exceedone\Exment\Console\ScheduleCommand;
 use Exceedone\Exment\Controllers\LoginHistoryController;
+use Exceedone\Exment\DataItems\Show\UserLoginHistoryGrid;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\MailBodyType;
@@ -17,6 +18,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Exceedone\Exment\Middleware\VerifyCsrfToken;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginHistory;
 use Exceedone\Exment\Model\LoginUser;
@@ -509,8 +511,13 @@ class LoginHistoryTest extends FeatureTestBase
         // A custom table with the same table_name as the system table. Only the definition row is created, not the data
         // table "exm__login_histories": looking for a custom value of the warning in it would be a database error.
         $table_view_name = 'lh_custom_' . short_uuid();
+        $suuid = short_uuid();
+        // Define the model class name first: otherwise every request (middleware Morph) creates the data table,
+        // and CREATE TABLE commits the test transaction (the test data is left in the database).
+        // The class is abstract, so reading a custom value of this table is still an error.
+        class_alias(CustomValue::class, "Exceedone\\Exment\\Model\\Class_{$suuid}");
         \DB::table('custom_tables')->insert([
-            'suuid' => short_uuid(),
+            'suuid' => $suuid,
             'table_name' => SystemTableName::LOGIN_HISTORY,
             'table_view_name' => $table_view_name,
             'options' => json_encode(['icon' => 'fa-table', 'color' => '#00ff00']),
@@ -545,6 +552,9 @@ class LoginHistoryTest extends FeatureTestBase
         // "show the linked data" goes to the login history
         $this->get(admin_url("notify_navbar/rowdetail/{$warning->id}"))
             ->assertRedirect(admin_urls('login_history', $history->id));
+
+        $this->assertFalse(hasTable("exm__{$suuid}"), 'the data table of the custom table must not be created');
+        $this->assertTrue(\DB::connection()->getPdo()->inTransaction(), 'the test transaction must not be committed');
     }
 
     /**
@@ -1016,6 +1026,187 @@ class LoginHistoryTest extends FeatureTestBase
         foreach (['login_history', 'login_history/1', 'login_history/setting', 'auth/logs'] as $endpoint) {
             $this->assertTrue($admin_by_role->visible($endpoint), "{$endpoint} must be allowed with the system permission");
         }
+    }
+
+    /**
+     * The detail page of a user shows the login histories of the user only: login date, user, IP address, country, location.
+     * Each row links to the login history.
+     */
+    public function testUserDetailShowsLoginHistories(): void
+    {
+        $login_user = $this->createLoginUser();
+        $old = $this->createHistory($login_user, ['ip_address' => self::IP_JP, 'country_code' => 'JP', 'country' => 'Japan'], Carbon::now()->subDay());
+        $new = $this->createHistory($login_user, [
+            'ip_address' => self::IP_US,
+            'user_name' => '<b>lh_xss_name</b>',
+            'country_code' => 'US',
+            'country' => 'United States',
+            'region' => 'California',
+            'city' => '<i>lh_xss_city</i>',
+            'is_new_ip' => true,
+        ]);
+        $other = $this->createLoginUser();
+        $this->createHistory($other, ['ip_address' => self::IP_PRIVATE]);
+
+        $this->loginAsAdmin();
+        $content = (string)$this->get(admin_urls('data', SystemTableName::USER, $login_user->base_user_id))->assertStatus(200)->getContent();
+
+        $this->assertStringContainsString(exmtrans('login_history.header'), $content);
+        foreach (['login_at', 'user_name', 'ip_address', 'country', 'location'] as $key) {
+            $this->assertStringContainsString(exmtrans("login_history.{$key}"), $content, "column {$key}");
+        }
+        $this->assertStringContainsString(self::IP_US, $content);
+        $this->assertStringContainsString('United States (US)', $content);
+        $this->assertStringContainsString('California', $content);
+        $this->assertStringContainsString(self::IP_JP, $content);
+        $this->assertStringContainsString(exmtrans('login_history.is_new_ip_options.1'), $content);
+        $this->assertStringNotContainsString(self::IP_PRIVATE, $content, 'the histories of the other users must not be shown');
+        $this->assertStringNotContainsString('<b>lh_xss_name</b>', $content, 'user name must be escaped');
+        $this->assertStringNotContainsString('<i>lh_xss_city</i>', $content, 'city must be escaped');
+
+        // newest first, and the show link goes to the login history (not to the user data)
+        $this->assertLessThan(strpos($content, self::IP_JP), strpos($content, self::IP_US), 'newest first');
+        $this->assertStringContainsString(admin_urls('login_history', $new->id) . '"', $content);
+        $this->assertStringContainsString(admin_urls('login_history', $old->id) . '"', $content);
+        $this->assertStringNotContainsString(admin_urls('login_history', $new->id, 'edit'), $content, 'no edit link');
+    }
+
+    /**
+     * 10 rows per page, with its own page parameter. (The detail page can have other grids: the child tables.)
+     */
+    public function testUserDetailLoginHistoriesArePaged(): void
+    {
+        $login_user = $this->createLoginUser();
+        $ips = [];
+        for ($i = 0; $i < UserLoginHistoryGrid::PER_PAGE + 2; $i++) {
+            $ips[] = $ip = '10.0.1.' . (100 + $i);
+            $this->createHistory($login_user, ['ip_address' => $ip]);
+        }
+        $this->loginAsAdmin();
+        $url = admin_urls('data', SystemTableName::USER, $login_user->base_user_id);
+
+        $content = (string)$this->get($url)->assertStatus(200)->getContent();
+        foreach ($ips as $index => $ip) {
+            if ($index >= 2) {
+                $this->assertStringContainsString($ip, $content, "page 1: {$ip}");
+            } else {
+                $this->assertStringNotContainsString($ip, $content, "page 1 must not have the oldest: {$ip}");
+            }
+        }
+        $this->assertStringContainsString('user_login_histories_page=2', $content, 'link to the page 2');
+
+        $content = (string)$this->get($url . '?user_login_histories_page=2')->assertStatus(200)->getContent();
+        foreach ($ips as $index => $ip) {
+            if ($index < 2) {
+                $this->assertStringContainsString($ip, $content, "page 2: {$ip}");
+            } else {
+                $this->assertStringNotContainsString($ip, $content, "page 2 must not have: {$ip}");
+            }
+        }
+    }
+
+    /**
+     * Same permission as the login history list (system administrator): the other users don't see the histories.
+     */
+    public function testUserDetailLoginHistoriesNeedPermission(): void
+    {
+        $login_user = $this->createLoginUser();
+        $this->createHistory($login_user, ['ip_address' => self::IP_US]);
+        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->find($login_user->base_user_id);
+        $this->assertInstanceOf(CustomValue::class, $user);
+
+        $this->loginAsAdmin();
+        $this->assertIsString(UserLoginHistoryGrid::render($user));
+
+        if (System::permission_available()) {
+            $viewer = $this->createLoginUser();
+            $this->grantSystemPermission($viewer, [Permission::LOGIN_USER]);
+            $this->loginAs($viewer);
+            $this->assertNull(UserLoginHistoryGrid::render($user), 'the login user permission is not enough');
+
+            $admin_by_role = $this->createLoginUser();
+            $this->grantSystemPermission($admin_by_role, [Permission::SYSTEM]);
+            $this->loginAs($admin_by_role);
+            $this->assertIsString(UserLoginHistoryGrid::render($user));
+        }
+    }
+
+    /**
+     * A user who can't log in (no login user) and has no history: the box is not shown.
+     * After the login user is deleted, the histories are still shown.
+     */
+    public function testUserDetailWithoutLoginHasNoLoginHistories(): void
+    {
+        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
+        $code = 'lhtest_' . short_uuid();
+        $user->setValue(['user_code' => $code, 'user_name' => $code . '_name', 'email' => $code . '@example.com']);
+        $user->saved_notify(false);
+        $user->save();
+
+        $this->loginAsAdmin();
+        $this->assertNull(UserLoginHistoryGrid::render($user));
+        $content = (string)$this->get(admin_urls('data', SystemTableName::USER, $user->id))->assertStatus(200)->getContent();
+        // (not the grid name or the column names: the scripts of the grids rendered by the other tests stay in the static Admin::$script)
+        $this->assertStringNotContainsString('href="' . admin_url('login_history') . '/', $content, 'no link to a login history');
+
+        $login_user = $this->createLoginUser();
+        $this->createHistory($login_user, ['ip_address' => self::IP_US]);
+        \DB::table('login_users')->where('id', $login_user->id)->delete();
+        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->find($login_user->base_user_id);
+        $this->assertInstanceOf(CustomValue::class, $user);
+        $html = UserLoginHistoryGrid::render($user);
+        $this->assertIsString($html);
+        $this->assertStringContainsString(self::IP_US, $html);
+    }
+
+    /**
+     * A deleted user (trash): the histories are still shown, to look into the user after the deletion.
+     */
+    public function testDeletedUserDetailShowsLoginHistories(): void
+    {
+        $login_user = $this->createLoginUser();
+        $this->createHistory($login_user, ['ip_address' => self::IP_US]);
+        \DB::table(getDBTableName(SystemTableName::USER))->where('id', $login_user->base_user_id)->update(['deleted_at' => Carbon::now()]);
+
+        $this->loginAsAdmin();
+        $content = (string)$this->get(admin_urls('data', SystemTableName::USER, $login_user->base_user_id) . '?trashed=1')->assertStatus(200)->getContent();
+        $this->assertStringContainsString(self::IP_US, $content);
+    }
+
+    /**
+     * Not in the modal of the user detail. (the link of the child table, the popup of the select)
+     */
+    public function testLoginHistoriesAreNotInUserModal(): void
+    {
+        $login_user = $this->createLoginUser();
+        $this->createHistory($login_user, ['ip_address' => self::IP_US]);
+        $this->loginAsAdmin();
+
+        $content = (string)$this->get(admin_urls('data', SystemTableName::USER, $login_user->base_user_id) . '?modal=1')->assertStatus(200)->getContent();
+        $this->assertStringContainsString($login_user->user_code, $content, 'precondition: the modal shows the user');
+        $this->assertStringNotContainsString('href="' . admin_url('login_history') . '/', $content, 'no link to a login history');
+    }
+
+    /**
+     * Not in the detail of the other tables. The mail template 1 has the same id as the user 1 (admin, who has a history).
+     * (Own test: in a test, a request to the other table after the user detail shows the user form again.)
+     */
+    public function testLoginHistoriesAreNotInOtherTableDetail(): void
+    {
+        $this->loginAsAdmin();
+        $admin = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->assertInstanceOf(LoginUser::class, $admin);
+        $this->createHistory($admin, ['ip_address' => self::IP_US]);
+
+        $table = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
+        $template = $table->getValueModel($admin->base_user_id);
+        $this->assertInstanceOf(CustomValue::class, $template, 'precondition: the mail template of the same id as the admin user');
+
+        $content = (string)$this->get(admin_urls('data', SystemTableName::MAIL_TEMPLATE, $template->id))->assertStatus(200)->getContent();
+        $column = $table->custom_columns->first();
+        $this->assertNotNull($column);
+        $this->assertStringContainsString(e($column->column_view_name), $content, 'precondition: the detail of the mail template');
+        $this->assertStringNotContainsString('href="' . admin_url('login_history') . '/', $content, 'no link to a login history');
     }
 
     /**

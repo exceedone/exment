@@ -71,6 +71,8 @@ class DefaultShow extends ShowBase
     {
         $this->setChildBlockBox($row);
 
+        $this->setLoginHistoryBox($row);
+
         $this->setDocumentBox($row);
 
         $this->setRevisionBox($row);
@@ -466,6 +468,26 @@ class DefaultShow extends ShowBase
                 $row->column(['xs' => 12, 'sm' => 12], $grid->render());
             }
         }
+    }
+
+    /**
+     * Login histories of the user. (Only the detail page of the table "user")
+     *
+     * @param Row $row
+     * @return void
+     */
+    protected function setLoginHistoryBox($row)
+    {
+        if ($this->modal || $this->isPublicForm() || $this->custom_table->table_name !== SystemTableName::USER) {
+            return;
+        }
+
+        $html = UserLoginHistoryGrid::render($this->custom_value);
+        if (is_null($html)) {
+            return;
+        }
+        // @phpstan-ignore-next-line same as the child tables: the width by the screen size
+        $row->column(['xs' => 12, 'sm' => 12], $html);
     }
 
     /**
