@@ -1286,6 +1286,19 @@ if (!function_exists('get_password_rule')) {
     }
 }
 
+if (!function_exists('get_flash_input')) {
+    /**
+     * Get request input to flash to the session when redirecting with input. Passwords are removed.
+     * Same input as withInput() flashes: input(), not all(), so that empty file inputs are not flashed as null.
+     *
+     * @return array<mixed>
+     */
+    function get_flash_input(): array
+    {
+        return \Illuminate\Support\Arr::except(request()->input(), Define::DONT_FLASH_INPUT_KEYS);
+    }
+}
+
 if (!function_exists('get_omitted_string')) {
     /**
      * if over string length. remove text, add "..."
