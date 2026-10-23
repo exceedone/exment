@@ -27,7 +27,6 @@
     <!-- Bootstrap 5 JS (No jQuery dependency) -->
     <script src="{{ admin_asset ("/vendor/open-admin/open-admin/js/bootstrap.bundle.min.js") }}" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="{{ admin_asset ("/vendor/open-admin/AdminLTE/plugins/slimScroll/jquery.slimscroll.min.js") }}"></script>
-    <script src="{{ admin_asset ("/vendor/open-admin/AdminLTE/dist/js/adminlte.min.js") }}"></script>
     <script src="{{ admin_asset ("/vendor/open-admin/jquery-pjax/jquery.pjax.js") }}"></script>
     <script src="{{ admin_asset ("/vendor/open-admin/nprogress/nprogress.js") }}"></script>
 </head>
@@ -57,7 +56,6 @@
 <!-- Additional JS Scripts -->
 <script src="{{ admin_asset ("/vendor/open-admin/nestable/jquery.nestable.js") }}"></script>
 <script src="{{ admin_asset ("/vendor/open-admin/toastr/build/toastr.min.js") }}"></script>
-<script src="{{ admin_asset ("/vendor/open-admin/bootstrap3-editable/js/bootstrap-editable.min.js") }}"></script>
 <script src="{{ admin_asset ("/vendor/open-admin/sweetalert2/dist/sweetalert2.min.js") }}"></script>
 {!! Admin::js() !!}
 <script src="{{ admin_asset ("/vendor/open-admin/open-admin/open-admin.js") }}"></script>
