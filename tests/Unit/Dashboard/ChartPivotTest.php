@@ -65,6 +65,31 @@ class ChartPivotTest extends DashboardUnitTestCase
         $this->assertSame([[10.0, 5.0], [20.0, 0], [0, 30.0]], ChartPivot::build($rows, SummaryCondition::SUM)['matrix'], 'unchanged for SUM');
     }
 
+    /**
+     * DATA-05: two records that share a name (山田商事, id 1 and 2) behind the series column are
+     * two series, as the single-series chart keeps them two points — they were one series
+     * holding both records' sums (872,900 + 815,500 = 1,688,400).
+     */
+    public function testSeriesAreToldApartByTheirStoredValue(): void
+    {
+        $rows = [
+            ['x' => 'A', 'x_text' => 'A', 'series_key' => '1', 'series' => '山田商事', 'y' => '872900'],
+            ['x' => 'A', 'x_text' => 'A', 'series_key' => '2', 'series' => '山田商事', 'y' => '815500'],
+            ['x' => 'B', 'x_text' => 'B', 'series_key' => '1', 'series' => '山田商事', 'y' => '798000'],
+            ['x' => 'B', 'x_text' => 'B', 'series_key' => '3', 'series' => '鈴木工業', 'y' => '858400'],
+        ];
+        $pivot = ChartPivot::build($rows, SummaryCondition::SUM);
+        $this->assertSame(['山田商事', '山田商事', '鈴木工業'], $pivot['series_names'], 'named by their text, one series per stored value');
+        $this->assertSame([[872900.0, 798000.0], [815500.0, 0], [0, 858400.0]], $pivot['matrix']);
+
+        // rows without a stored value: told apart by their text, as before
+        $rows = array_map(function ($row) {
+            unset($row['series_key']);
+            return $row;
+        }, $rows);
+        $this->assertSame(['山田商事', '鈴木工業'], ChartPivot::build($rows, SummaryCondition::SUM)['series_names']);
+    }
+
     public function testAValueThatIsNoNumberFoldsNothing(): void
     {
         $rows = [

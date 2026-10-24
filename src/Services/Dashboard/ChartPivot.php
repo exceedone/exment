@@ -13,7 +13,8 @@ use Exceedone\Exment\Enums\SummaryCondition;
  * A category is one STORED value of the X column, not one display text: two values that
  * share a text (two same-name records behind a select_table column) stay two categories,
  * as the single-series chart draws them, and a click on either picks exactly that value
- * (chart_click.values). The series are told apart by their text, as the legend is.
+ * (chart_click.values). So are the series: by the stored value of the series column when
+ * the row carries it (series_key), named by their text.
  *
  * A view grouped by more columns than the two the chart reads yields several rows per
  * cell; they are folded the way the measure's own summary condition folds rows: the lowest
@@ -27,9 +28,10 @@ use Exceedone\Exment\Enums\SummaryCondition;
 final class ChartPivot
 {
     /**
-     * @param array<int, array{x: mixed, x_text: mixed, series: mixed, y: mixed}> $rows
+     * @param array<int, array{x: mixed, x_text: mixed, series: mixed, series_key?: mixed, y: mixed}> $rows
      *   one per view row, in the view's order: x = the stored value of the X column,
-     *   x_text = its display text, series = the series column's text, y = the measure
+     *   x_text = its display text, series = the series column's text, series_key = its
+     *   stored value (none: the text tells the series apart), y = the measure
      * @param string|int|null $condition  SummaryCondition of the measure; null = a group column
      * @return array{x_categories: string[], x_values: string[], series_names: string[], matrix: array<int, array<int, float|int|null>>}
      *   x_categories[i] = the text of category i, x_values[i] = its stored value,
@@ -41,11 +43,11 @@ final class ChartPivot
         $x_categories = [];
         $series_names = [];
         $x_index = [];  // stored value => category index
-        $s_index = [];  // series text => series index
+        $s_index = [];  // series stored value (else text) => series index
         $cells = [];    // [series][x] => folded value, for the cells a row fell into
         foreach ($rows as $row) {
             $x = self::text($row['x'] ?? null);
-            $s = self::text($row['series'] ?? null);
+            $s = array_key_exists('series_key', $row) ? self::text($row['series_key']) : self::text($row['series'] ?? null);
             if (!isset($x_index[$x])) {
                 $x_index[$x] = count($x_values);
                 $x_values[] = $x;
@@ -53,7 +55,7 @@ final class ChartPivot
             }
             if (!isset($s_index[$s])) {
                 $s_index[$s] = count($series_names);
-                $series_names[] = $s;
+                $series_names[] = self::text($row['series'] ?? null);
             }
             $y = $row['y'] ?? null;
             if (!is_numeric($y)) {

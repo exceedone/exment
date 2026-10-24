@@ -52,10 +52,12 @@
 .exment-chart-toolbar .ct-fitem.dis { opacity: .55; }
 .exment-chart-toolbar .ct-fitem > span { font-size: 10.5px; font-weight: 600; color: #9a9ab0; }
 .exment-chart-toolbar .ct-fsel { display: inline-block; min-width: 15px; text-align: center; margin-left: 5px; padding: 0 4px; border-radius: 8px; background: #5b6ef5; color: #fff; font-size: 9.5px; font-style: normal; line-height: 14px; }
-.exment-chart-toolbar .ct-frange { display: flex; align-items: center; gap: 4px; }
+.exment-chart-toolbar .ct-frange { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .exment-chart-toolbar .ct-frange i { color: #b6b6c8; font-style: normal; font-size: 12px; }
 .exment-chart-toolbar .exment-bf-range { flex: 1 1 0; min-width: 0; height: 28px; border: 1px solid #d7d5e6; border-radius: 6px; background: #fbfaff; font-size: 12.5px; color: #2b2b3a; padding: 0 6px; }
 .exment-chart-toolbar .exment-bf-range.active { border-color: #5b6ef5; background: #eef1fd; }
+/* a date shows whole (with its calendar icon): in a narrow popover the "to" date wraps under the "from" one */
+.exment-chart-toolbar .exment-bf-range[type=date] { min-width: 118px; }
 .exment-chart-toolbar .exment-bf-list { border: 1px solid #d7d5e6; border-radius: 6px; background: #fbfaff; padding: 3px 4px; }
 .exment-chart-toolbar .exment-bf-list.active { border-color: #5b6ef5; background: #eef1fd; }
 .exment-chart-toolbar .exment-bf-list small { display: block; padding: 4px 3px; color: #9a9ab0; font-size: 11px; }

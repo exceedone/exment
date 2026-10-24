@@ -565,11 +565,16 @@ class DashboardController extends AdminControllerBase
                 // reloads the boxes whose items changed on a bar change (empty = never narrowed)
                 if (isset($dashboard_box) && $filter_bar !== null) {
                     $dims = [];
+                    $table = CustomTable::getEloquent(array_get($dashboard_box->options ?? [], 'target_table_id'));
                     if ($dashboard_box->dashboard_box_type == DashboardBoxType::CHART) {
-                        $table = CustomTable::getEloquent(array_get($dashboard_box->options ?? [], 'target_table_id'));
                         $dims = $filter_bar->dimsFor($table, $dashboard_box);
                     }
                     $attributes['data-df-dims'] = implode(',', $dims);
+                    // a box without a table (system, html) shows no data a filter could
+                    // narrow: no "not affected" badge, as DashboardBoxController::filterBadge
+                    if (!isset($table)) {
+                        $attributes['data-df-badge'] = 'none';
+                    }
                 }
 
                 $row->column($grids, view('exment::dashboard.box', [

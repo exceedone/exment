@@ -72,7 +72,8 @@
                 option = {
                     color: colors,
                     tooltip: { formatter: '{b}: {c}' },
-                    series: [{ type: 'treemap', roam: false, data: hierarchy(), label: { show: true }, levels: [{ itemStyle: { borderWidth: 3, gapWidth: 3 } }, { itemStyle: { gapWidth: 1 } }] }]
+                    // no zoom into a tile on click (nodeClick): a series' tiles are already all shown
+                    series: [{ type: 'treemap', roam: false, nodeClick: false, data: hierarchy(), label: { show: true }, levels: [{ itemStyle: { borderWidth: 3, gapWidth: 3 } }, { itemStyle: { gapWidth: 1 } }] }]
                 };
                 break;
             case 'sunburst':
@@ -162,6 +163,15 @@
         } catch (e) {
             ExmentDashboard.chartError('{{ $suuid }}', @json(exmtrans('dashboard.message.chart_render_error')));
             return;
+        }
+
+        // a point a click does nothing on shows no hand cursor (the series `cursor` option is
+        // not read by every type, the treemap and the boxplot among them); the sunburst keeps
+        // it, a click there zooms into the series
+        if (!pickable && type !== 'sunburst') {
+            chart.on('mousemove', function (p) {
+                if (p.componentType === 'series') { chart.getZr().setCursorStyle('default'); }
+            });
         }
 
         // click-to-filter on the X category (cartesian series: dataIndex; heatmap: value[0])
