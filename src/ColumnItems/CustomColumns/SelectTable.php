@@ -763,6 +763,10 @@ class SelectTable extends CustomItem
     public function setCustomColumnOptionForm(&$form)
     {
         $this->setCustomColumnOptionFormSelectTable($form);
+
+        $form->switchbool('quickadd_enabled', exmtrans("custom_column.options.quickadd_enabled"))
+            ->help(exmtrans("custom_column.help.quickadd_enabled"))
+            ->default('0');
     }
 
 

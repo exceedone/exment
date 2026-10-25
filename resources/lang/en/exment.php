@@ -253,7 +253,7 @@ return [
         'login_failed' => 'ID or password is wrong.',
         'mistake_keyword' => 'Please enter the keyword correctly.',
         'mailsend_failed' => 'E-mail transmission failed. Please check your email settings.',
-        'size_too_large' => 'File:{name} (<b>{size} KB</b>) exceeds uploadable size <b>{maxSize} KB</b>.',
+        'size_too_large' => 'File:{name} (<b>{size}</b>) exceeds uploadable size <b>{maxSize}</b>.',
         'disable_delete_row' => 'Contains lines that can not be deleted.',
         'no_mail_template' => 'There is no mail template. Please check your email template settings.',
         'memory_leak' => 'There was not enough memory to perform your operation. To increase the amount of memory, open the following URL and increase the amount of memory. :url',

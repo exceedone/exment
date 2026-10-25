@@ -515,7 +515,8 @@ class NotifyService
 
         $flexTemplateId = array_get($params, 'flex_template_id');
         if (!is_nullorempty($flexTemplateId) && isset($custom_value)) {
-            $tmpl = getModelName('line_flex_template')::withoutGlobalScopes()->find($flexTemplateId);
+            // skip only the permission scope: a deleted template stays in the trash and must fall back to text
+            $tmpl = getModelName('line_flex_template')::withoutGlobalScope(\Exceedone\Exment\Model\CustomValueModelScope::class)->find($flexTemplateId);
             if ($tmpl) {
                 $prms = array_get($params, 'prms', []);
                 $replaceOptions = array_get($params, 'replaceOptions', []);
