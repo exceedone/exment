@@ -143,4 +143,84 @@ class LineWorkflowNotifyTest extends FeatureTestBase
 
         Bus::assertNotDispatchedAfterResponse(LineSendJob::class);
     }
+
+    /**
+     * A Flex template deleted while a notify still points at it sits in the trash:
+     * the notify must fall back to text, not build the card from the trashed row.
+     *
+     * @return void
+     * @throws \ReflectionException
+     */
+    public function testDeletedFlexTemplateFallsBackToText(): void
+    {
+        $this->init();
+
+        /** @var Model\Workflow $workflow */
+        $workflow = Model\Workflow::where('workflow_view_name', 'workflow_common_company')->first();
+        $workflow_action = Model\WorkflowAction::where('action_name', 'middle_action')
+            ->where('workflow_id', $workflow->id)->first();
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+
+        /** @var mixed $custom_value */
+        $custom_value = $custom_table->getValueModel()->setValue(['text' => 'line deleted flex template']);
+        $custom_value->save();
+
+        $workflow_value = $this->callProtectedMethod($workflow_action, 'forwardWorkflowValue', $custom_value);
+        /** @var mixed $custom_value */
+        $custom_value = $custom_table->getValueModel()->find($custom_value->id);
+        $status_to = $workflow_action->getStatusToId($custom_value);
+
+        $lineUserIds = [];
+        Model\WorkflowStatus::getActionsByFrom($status_to, $workflow, true)
+            ->each(function ($action) use (&$lineUserIds, $custom_value) {
+                foreach ($action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NOTIFY) as $user) {
+                    $lineUserId = static::LINE_USER_ID_PREFIX . $user->getUserId();
+                    LineAccountLink::forUser($user->getUserId())->markLinked($lineUserId);
+                    $lineUserIds[] = $lineUserId;
+                }
+            });
+        $this->assertNotEmpty($lineUserIds, 'No users found at the next workflow step.');
+
+        /** @var mixed $template */
+        $template = CustomTable::getEloquent('line_flex_template')->getValueModel()->setValue([
+            'flex_key' => 'test_deleted_template',
+            'template_name' => 'Deleted template',
+            'title' => 'Deleted template title',
+            'body_items' => '',
+        ]);
+        $template->save();
+
+        /** @var Notify $notify */
+        $notify = Notify::where('notify_trigger', NotifyTrigger::WORKFLOW)
+            ->where('notify_view_name', 'workflow_common_company')->first();
+        $notify->action_settings = [[
+            'notify_action' => NotifyAction::LINE,
+            'notify_action_target' => ['created_user', 'work_user'],
+            'flex_template_id' => $template->id,
+        ]];
+
+        $messageTypes = function () use ($lineUserIds): array {
+            $types = [];
+            Bus::dispatchedAfterResponse(LineSendJob::class)->each(function ($job) use ($lineUserIds, &$types) {
+                if (!in_array($this->jobProperty($job, 'to'), $lineUserIds, true)) {
+                    return;
+                }
+                $messages = $this->jobProperty($job, 'messages');
+                $context = $this->jobProperty($job, 'context');
+                $types[] = [$messages[0]['type'], $context['message_type'], $context['flex_template_id']];
+            });
+            return array_values(array_unique($types, SORT_REGULAR));
+        };
+
+        // the template in use: a Flex card
+        Bus::fake();
+        $notify->notifyWorkflow($custom_value, $workflow_action, $workflow_value, $status_to);
+        $this->assertEquals([['flex', 'flex', $template->id]], $messageTypes());
+
+        // the same notify once the template is deleted: plain text, no template recorded
+        $template->delete();
+        Bus::fake();
+        $notify->notifyWorkflow($custom_value, $workflow_action, $workflow_value, $status_to);
+        $this->assertEquals([['text', 'text', null]], $messageTypes());
+    }
 }
