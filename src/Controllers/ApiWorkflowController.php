@@ -345,7 +345,8 @@ class ApiWorkflowController extends AdminControllerBase
 
         // get and filter workflow action
         $workflow_action_id = $request->get('workflow_action_id');
-        $workflow_action = $custom_value->getWorkflowActions(true, false)->filter(function ($value) use ($workflow_action_id) {
+        // an approval this user already gave is not given again
+        $workflow_action = $custom_value->getWorkflowActions(true, false, true)->filter(function ($value) use ($workflow_action_id) {
             return $value->id == $workflow_action_id;
         })->first();
 

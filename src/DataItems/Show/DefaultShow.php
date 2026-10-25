@@ -24,6 +24,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FileType;
@@ -230,7 +231,8 @@ class DefaultShow extends ShowBase
                             $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $this->custom_value->id));
                         }
 
-                        foreach ($this->custom_value->getWorkflowActions(true)->reverse() as $action) {
+                        // no button for an approval this user already gave (TC-WT-43)
+                        foreach ($this->custom_value->getWorkflowActions(true, false, true)->reverse() as $action) {
                             $tools->append(new Tools\ModalMenuButton(
                                 admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "actionModal"),
                                 [
@@ -757,7 +759,8 @@ EOT;
 
         $form = new ModalForm();
 
-        $workflow = $this->custom_value->workflow_value->workflow;
+        // the history of a deleted (deactivated) workflow still names it
+        $workflow = Workflow::getEloquentWithTrashed($this->custom_value->workflow_value->workflow_id);
 
         $form->display('workflow_view_name', exmtrans('workflow.execute_workflow'))
             ->default($workflow->workflow_view_name ?? null);

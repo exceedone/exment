@@ -240,7 +240,8 @@ class WorkflowAction extends ModelBase
         if (is_numeric($this->status_from)) {
             return WorkflowStatus::getEloquent($this->status_from)->status_name;
         } elseif ($this->status_from == Define::WORKFLOW_START_KEYNAME) {
-            return Workflow::getEloquent($this->workflow_id)->start_status_name;
+            // the history still names the start of a deleted (deactivated) workflow
+            return optional(Workflow::getEloquentWithTrashed($this->workflow_id))->start_status_name;
         }
 
         return null;

@@ -184,6 +184,25 @@ class Workflow extends ModelBase
     }
 
     /**
+     * get eloquent using Cache, or the deleted one.
+     * The cache holds the workflows that are not deleted. A deleted
+     * (deactivated) workflow keeps its statuses and actions, and the
+     * histories executed with it still name them - see
+     * WorkflowController::deactivate().
+     *
+     * @param mixed $id
+     * @return Workflow|null
+     */
+    public static function getEloquentWithTrashed($id)
+    {
+        $workflow = static::getEloquent($id);
+        if (!isset($workflow) && !is_nullorempty($id)) {
+            $workflow = static::withTrashed()->find($id);
+        }
+        return $workflow;
+    }
+
+    /**
      * Get status string
      *
      * @return string

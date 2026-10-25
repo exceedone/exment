@@ -22,6 +22,7 @@ use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\DataItems\Grid\GridBase;
@@ -1231,9 +1232,10 @@ class CustomValueController extends AdminControllerTableBase
             $rows[] = [
                 'at' => isset($workflow_value->created_at) ? $workflow_value->created_at->format('Y-m-d H:i') : '',
                 'action' => isset($workflow_action) ? strval($workflow_action->action_name) : '',
+                // a deleted (deactivated) workflow's start is still named
                 'from' => strval(WorkflowStatus::getWorkflowStatusName(
                     $workflow_value->workflow_status_from_id,
-                    $workflow_value->workflow_cache
+                    Workflow::getEloquentWithTrashed($workflow_value->workflow_id)
                 )),
                 'to' => strval($workflow_value->workflow_status_name),
                 'user' => $created_user,
@@ -1285,8 +1287,8 @@ class CustomValueController extends AdminControllerTableBase
 
         $custom_value = $this->custom_table->getValueModel($id);
 
-        //validation
-        $workflow_actions = $custom_value->getWorkflowActions(true);
+        //validation - an approval this user already gave is not given again
+        $workflow_actions = $custom_value->getWorkflowActions(true, false, true);
         if (!$workflow_actions->contains(function($workflow_action) use($action){
             // @phpstan-ignore-next-line
             return $workflow_action->id == $action->id;

@@ -398,9 +398,11 @@ abstract class CustomValue extends ModelBase
 
 
     // get workflow actions which has authority
+    // $ignoreExecuted: leave out the actions the login user already executed in a step that
+    // waits for several approvers (WorkflowValue::isAlreadyExecuted()).
 
     // @phpstan-ignore-next-line
-    public function getWorkflowActions($onlyHasAuthority = false, $ignoreNextWork = false)
+    public function getWorkflowActions($onlyHasAuthority = false, $ignoreNextWork = false, $ignoreExecuted = false)
     {
         $workflow_value = $this->workflow_value;
 
@@ -438,6 +440,16 @@ abstract class CustomValue extends ModelBase
         if ($ignoreNextWork) {
             $workflow_actions = $workflow_actions->filter(function ($workflow_action) {
                 return !boolval($workflow_action->ignore_work);
+            });
+        }
+
+        // A step that waits for several approvers keeps its status until the last of them acts.
+        // The ones who already did have nothing left to run: the task list leaves them out
+        // (WorkflowTaskService) and the action modal offers them no submit. Executing again
+        // only recorded the same approval twice.
+        if ($ignoreExecuted && !is_null($login_user = \Exment::user())) {
+            $workflow_actions = $workflow_actions->filter(function ($workflow_action) use ($login_user) {
+                return !WorkflowValue::isAlreadyExecuted($workflow_action->id, $this, $login_user->base_user);
             });
         }
 

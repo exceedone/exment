@@ -1327,6 +1327,8 @@ return [
         'work_condition_select' => '実行後ステータス',
         'condition' => '条件',
         'flow_next_type' => '次のステータスへ進む条件',
+        'flow_next_count' => '次のステータスへ進む条件の人数',
+        'comment_type' => 'コメント',
         'upper_user' => '人以上実行',
         'all_user' => '全員実行',
         'executed_at' => '実行日時',
