@@ -792,12 +792,16 @@ class ChartItem implements ItemInterface
         $item_y = $view_column_y->column_item;
 
         $x_key = $item_x->uniqueName();
+        $series_key = $item_series->uniqueName();
         $y_key = $item_y->uniqueName();
         $rows = [];
         foreach ($this->summaryRows() as $val) {
             $rows[] = [
                 'x' => data_get($val, $x_key),
                 'x_text' => $item_x->setCustomValue($val)->text(),
+                // a series per stored value: two same-name records stay two series, as the
+                // single-series chart keeps them two points
+                'series_key' => data_get($val, $series_key),
                 'series' => $item_series->setCustomValue($val)->text(),
                 'y' => data_get($val, $y_key),
             ];

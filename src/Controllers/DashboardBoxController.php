@@ -524,7 +524,14 @@ class DashboardBoxController extends AdminControllerBase
         }
         // series column of a multi-series chart = the view's group columns
         if ($axis_type == 'series') {
-            return ChartItem::seriesSelectOptions($custom_view);
+            // the 2nd group column comes pre-selected, the default the chart reads an empty
+            // value as (1st column = X axis, 2nd = series): the form's select would otherwise
+            // take the first entry, the X column
+            $options = ChartItem::seriesSelectOptions($custom_view);
+            if (isset($options[1])) {
+                $options[1]['selected'] = true;
+            }
+            return $options;
         }
 
         return $custom_view->getViewColumnsSelectOptions($axis_type == 'y');

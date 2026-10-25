@@ -249,12 +249,14 @@
         var hook = (window.ExmentCharts || {})[suuid], $box = boxOf(suuid);
         if (!hook || typeof hook.data !== 'function') { return; }
         var d = hook.data(), rows = [];
-        // a text that a spreadsheet would read as a formula (= + - @, a tab or a CR first) is
-        // kept as text by a quote in front (CSV injection); a number stays a number, written as
-        // a label shows one too ("-1,234", "-10.5%")
-        var cell = function (v) {
+        // a text that a spreadsheet would read as a formula or a number (= + - @, a tab or a CR
+        // first) is kept as text by a quote in front (CSV injection; a label "+1" stays "+1"),
+        // whatever it looks like; only a measured value is a number (`measure`: a number, or the
+        // plain number string a stored value comes as)
+        var cell = function (v, measure) {
             var s = String(v == null ? '' : v);
-            if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(s) && !/^[+-]?(\d{1,3}(,\d{3})+|\d+)(\.\d+)?%?$/.test(s)) { s = "'" + s; }
+            var number = typeof v === 'number' || (measure && /^-?\d+(\.\d+)?$/.test(s));
+            if (!number && /^[=+\-@\t\r]/.test(s)) { s = "'" + s; }
             return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
         };
         if (d.matrix) {
@@ -266,7 +268,11 @@
             rows.push([d.axisx || '', d.axisy || '']);
             $.each(d.labels, function (i, l) { rows.push([l, d.values[i]]); });
         }
-        var csv = '\ufeff' + $.map(rows, function (r) { return $.map(r, cell).join(','); }).join('\r\n');
+        // the first row names the columns, the first column labels the points: texts; the
+        // other cells are the measured values
+        var csv = '\ufeff' + $.map(rows, function (r, ri) {
+            return $.map(r, function (v, ci) { return cell(v, ri > 0 && ci > 0); }).join(',');
+        }).join('\r\n');
         var title = $.trim($box.find('.box-title').first().text()) || 'chart', now = new Date();
         var stamp = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2);
         var a = document.createElement('a');
@@ -673,9 +679,10 @@
 
     // client mirror of DashboardBoxController::filterBadge, for boxes that skip the reload:
     // the active items minus the ones this box honours — so unfiltered numbers stay disclosed
-    // without a re-fetch. No-op on boxes without data-df-dims (server badge is the truth).
+    // without a re-fetch. No-op on boxes without data-df-dims (server badge is the truth) and
+    // on boxes without a table (data-df-badge="none": the server never badges them).
     function syncBadge($box) {
-        if ($box.attr('data-df-dims') === undefined) { return; }
+        if ($box.attr('data-df-dims') === undefined || $box.attr('data-df-badge') === 'none') { return; }
         var active = Object.keys(dfSelection(window.location.search));
         var dims = boxDims($box);
         var ignored = active.filter(function (column) { return dims.indexOf(column) < 0; });
