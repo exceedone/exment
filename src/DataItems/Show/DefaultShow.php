@@ -24,6 +24,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FileType;
@@ -757,7 +758,8 @@ EOT;
 
         $form = new ModalForm();
 
-        $workflow = $this->custom_value->workflow_value->workflow;
+        // the history of a deleted (deactivated) workflow still names it
+        $workflow = Workflow::getEloquentWithTrashed($this->custom_value->workflow_value->workflow_id);
 
         $form->display('workflow_view_name', exmtrans('workflow.execute_workflow'))
             ->default($workflow->workflow_view_name ?? null);

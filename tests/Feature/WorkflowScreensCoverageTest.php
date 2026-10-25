@@ -4,13 +4,16 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Controllers\WorkflowController;
 use Exceedone\Exment\Enums\WorkflowType;
+use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 
@@ -187,9 +190,165 @@ class WorkflowScreensCoverageTest extends FeatureTestBase
         ]);
     }
 
+    /**
+     * WF-24: a deactivated workflow is deleted softly and its records keep their history, so the
+     * history still names its actions and statuses - the start status too, which only the
+     * workflow knows. It answered 500 ("start_status_name" on null) once the workflow was gone.
+     */
+    public function testTheHistoryOfADeactivatedWorkflowIsStillShown(): void
+    {
+        $workflow = $this->createByDesigner('claude deactivated flow');
+        $actions = WorkflowAction::where('workflow_id', $workflow->id)->get()->keyBy('action_name');
+        $statuses = WorkflowStatus::where('workflow_id', $workflow->id)->get()->keyBy('status_name');
+
+        // a record without any other history: go (start -> s1), then done (s1 -> s2)
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $custom_value = $custom_table->getValueModel()
+            ->whereNotIn('id', WorkflowValue::where('morph_type', $custom_table->table_name)->pluck('morph_id'))
+            ->firstOrFail();
+        $this->executed($custom_value, $actions['go'], null, $statuses['s1']->id, false);
+        $this->executed($custom_value, $actions['done'], $statuses['s1']->id, $statuses['s2']->id, true);
+
+        $modal = admin_urls('data', $custom_table->table_name, $custom_value->id, 'workflowHistoryModal');
+        $this->get($modal)->assertOk();
+
+        $this->post(admin_urls('workflow', $workflow->id, 'activate'), ['activate_keyword' => Define::YES_KEYWORD])->assertOk();
+        $this->post(admin_urls('workflow', $workflow->id, 'deactivate'), ['activate_keyword' => Define::YES_KEYWORD])->assertOk();
+        $this->assertSoftDeleted('workflows', ['id' => $workflow->id]);
+        // nothing cached from before the deactivation may stand in for the deleted workflow
+        System::clearRequestSession();
+        System::clearCache();
+
+        $response = $this->get($modal);
+        $response->assertOk();
+        $body = (string) $response->json('body');
+        $this->assertStringContainsString('claude deactivated flow', $body);
+        $this->assertStringContainsString(esc_html(exmtrans('workflow.status_from_to_format', 'start', 's1')), $body);
+        $this->assertStringContainsString(esc_html(exmtrans('workflow.status_from_to_format', 's1', 's2')), $body);
+
+        // the history in the drawer of a kanban card reads the same values
+        /** @var array<int, array<string, string>> $kanban_rows */
+        $kanban_rows = $this->get(admin_urls('data', $custom_table->table_name, $custom_value->id, 'kanbanHistory'))->assertOk()->json('rows');
+        $rows = collect($kanban_rows);
+        $this->assertTrue($rows->contains(function ($row) {
+            return $row['action'] === 'go' && $row['from'] === 'start' && $row['to'] === 's1';
+        }), $rows->toJson());
+
+        // a value led back to the start status names it as well
+        $back = new WorkflowValue();
+        $back->workflow_id = $workflow->id;
+        $back->workflow_status_to_id = null;
+        $this->assertSame('start', $back->workflow_status_name);
+    }
+
+    /**
+     * WF-14: step 2 refuses a number of people out of 0 - 10 in "Condition to advance to next
+     * status", and shows why in the options cell of the action. The refusal used to be silent:
+     * the options field looked its errors up under keys validateData() does not use.
+     */
+    public function testStepTwoShowsTheErrorOfTheNumberOfPeopleOfAnAction(): void
+    {
+        foreach (['11', '-1'] as $count) {
+            $workflow = $this->commonWorkflow("claude step two {$count}");
+            $url = admin_urls('workflow', $workflow->id, 'edit?action=2');
+
+            $response = $this->from($url)->put(admin_url("workflow/{$workflow->id}"), $this->stepTwoPayload($workflow, $count));
+            $response->assertRedirect($url)->assertSessionHasErrors('workflow_actions.new_0.flow_next_count');
+            $this->assertSame(0, WorkflowAction::where('workflow_id', $workflow->id)->count(), "count {$count} must not be saved");
+            $messages = session('errors')->get('workflow_actions.new_0.flow_next_count');
+            // the attribute is named, not shown as a translation key
+            $this->assertStringNotContainsString('exment::', $messages[0]);
+            $this->assertStringContainsString(exmtrans('workflow.flow_next_count'), $messages[0]);
+
+            $page = $this->get($url);
+            $page->assertOk();
+            foreach ($messages as $message) {
+                $page->assertSee($message);
+            }
+        }
+
+        // 0 and 10 are in range and saved
+        foreach (['0', '10'] as $count) {
+            $workflow = $this->commonWorkflow("claude step two {$count}");
+            $url = admin_urls('workflow', $workflow->id, 'edit?action=2');
+
+            $this->from($url)->put(admin_url("workflow/{$workflow->id}"), $this->stepTwoPayload($workflow, $count))
+                ->assertSessionHasNoErrors();
+            $action = WorkflowAction::where('workflow_id', $workflow->id)->firstOrFail();
+            $this->assertSame($count, strval($action->getOption('flow_next_count')));
+        }
+    }
+
     protected function workflow(string $name): Workflow
     {
         return Workflow::where('workflow_view_name', $name)->firstOrFail();
+    }
+
+    /**
+     * Create a common workflow on step 1: start -> end, no action yet.
+     */
+    protected function commonWorkflow(string $name): Workflow
+    {
+        $this->post(admin_url('workflow'), [
+            'workflow_view_name' => $name,
+            'workflow_type' => WorkflowType::COMMON,
+            'start_status_name' => 'start',
+            'workflow_statuses' => [
+                'new_1' => ['status_name' => 'end', 'datalock_flg' => 0, 'order' => 0, '_remove_' => 0],
+            ],
+        ]);
+
+        return $this->workflow($name);
+    }
+
+    /**
+     * What step 2 posts for its first row, an action from the start status to "end".
+     *
+     * @return array<string, mixed>
+     */
+    protected function stepTwoPayload(Workflow $workflow, string $flow_next_count): array
+    {
+        $end = WorkflowStatus::where('workflow_id', $workflow->id)->where('status_name', 'end')->firstOrFail();
+
+        return [
+            'action' => 2,
+            'options' => ['workflow_edit_flg' => 0, 'get_by_userinfo_base' => 'executed_user'],
+            'workflow_actions' => [
+                'new_0' => [
+                    'action_name' => 'claude go',
+                    'status_from' => Define::WORKFLOW_START_KEYNAME,
+                    'work_condition_select' => $end->id,
+                    'work_targets' => WorkflowWorkTargetType::getTargetTypeDefault(0),
+                    'flow_next_type' => 'some',
+                    'flow_next_count' => $flow_next_count,
+                    'comment_type' => 'nullable',
+                    'id' => '',
+                    '_remove_' => 0,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * A workflow value of $custom_value as WorkflowAction::executeAction() leaves it.
+     *
+     * @param mixed $status_from
+     * @param mixed $status_to
+     */
+    protected function executed(CustomValue $custom_value, WorkflowAction $action, $status_from, $status_to, bool $latest): WorkflowValue
+    {
+        $value = new WorkflowValue();
+        $value->workflow_id = $action->workflow_id;
+        $value->morph_type = $custom_value->custom_table->table_name;
+        $value->morph_id = $custom_value->id;
+        $value->workflow_action_id = $action->id;
+        $value->workflow_status_from_id = $status_from;
+        $value->workflow_status_to_id = $status_to;
+        $value->action_executed_flg = 0;
+        $value->latest_flg = $latest ? 1 : 0;
+        $value->save();
+
+        return $value;
     }
 
     /**

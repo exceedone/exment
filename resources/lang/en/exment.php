@@ -1327,6 +1327,8 @@ return [
         'work_condition_select' => 'After Status',
         'condition' => 'Condition',
         'flow_next_type' => 'Condition to advance to next status',
+        'flow_next_count' => 'Number of people in Condition to advance to next status',
+        'comment_type' => 'Comment',
         'upper_user' => 'more than people',
         'all_user' => 'All user execute',
         'executed_at' => 'Executed Datetime',

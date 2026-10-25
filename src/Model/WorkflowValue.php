@@ -109,7 +109,9 @@ class WorkflowValue extends ModelBase
     // @phpstan-ignore-next-line
     public function getWorkflowStatusNameAttribute()
     {
-        return WorkflowStatus::getWorkflowStatusName($this->workflow_status_to_id, $this->workflow);
+        // A value of a deleted (deactivated) workflow is history, and still
+        // names the status it moved to - the start status too.
+        return WorkflowStatus::getWorkflowStatusName($this->workflow_status_to_id, Workflow::getEloquentWithTrashed($this->workflow_id));
     }
 
 

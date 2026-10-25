@@ -1,10 +1,23 @@
-<div class="{{$viewClass['form-group']}} {!! ($errors->has($errorKey['comment_type'].'comment_type')) ? 'has-error' : ''  !!}">
+@php
+    // WorkflowController::validateData() reports these options by their input
+    // keys (workflow_actions.N.flow_next_count). admin::form.error looks for an
+    // array column's errors under "key + column", so it never shows them.
+    $optionErrorKeys = collect($errorKey)->filter(function ($key) use ($errors) {
+        return $errors->has($key);
+    });
+@endphp
+<div class="{{$viewClass['form-group']}} {!! ($optionErrorKeys->isNotEmpty() || $errors->has($errorKey['comment_type'].'comment_type')) ? 'has-error' : ''  !!}">
 
 <label for="{{$id['comment_type']}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
 
     <div class="{{$viewClass['field']}}">
 
         @include('admin::form.error')
+        @foreach($optionErrorKeys as $optionErrorKey)
+            @foreach($errors->get($optionErrorKey) as $message)
+                <label class="control-label text-lg-end pt-2" for="inputError"><i class="fa fa-times-circle-o"></i> {{$message}}</label><br/>
+            @endforeach
+        @endforeach
 
         <div class="workflow_table_item">
             <label for="{{$id['flow_next_type']}}" class="control-label small asterisk">
