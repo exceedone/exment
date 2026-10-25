@@ -66,6 +66,50 @@ class DashboardSettingFixedTest extends SecurityRegressionTestCase
         $this->assertSame(['user_name'], array_column($saved->getOption('filter_bar.dims'), 'column'));
     }
 
+    public function test_two_items_on_one_column_are_refused_on_edit(): void
+    {
+        // an existing dashboard has chart boxes: an item posting its targets (a multiple
+        // select) made the items table validate only the array cells, the column rules skipped
+        $this->asUser(LoginUser::find(1));
+        $dashboard = new Dashboard();
+        $dashboard->dashboard_type = DashboardType::SYSTEM;
+        $dashboard->dashboard_name = 'dup_edit_' . uniqid();
+        $dashboard->dashboard_view_name = 'dup edit';
+        $dashboard->options = ['row1' => 1, 'row2' => 0, 'row3' => 0, 'row4' => 0];
+        $dashboard->save();
+        $box = $this->chartBox($dashboard, 1);
+        $dashboard->setOption('filter_bar', ['source_table' => 'user', 'dims' => [
+            ['column' => 'user_name', 'label' => 'first'],
+        ]]);
+        $dashboard->save();
+
+        $form = $this->dashboardForm($dashboard->dashboard_name, [
+            ['column' => 'user_name', 'label' => 'first', 'targets' => [$box->suuid, '']],
+            ['column' => 'user_name', 'label' => 'second', 'targets' => ['']],
+        ]);
+        unset($form['dashboard_name'], $form['dashboard_type']);
+        $response = $this->put($this->url('dashboard/' . $dashboard->id), $form);
+
+        $response->assertSessionHasErrors('filter_bar_dims.new_2.column');
+        $dims = Dashboard::withoutGlobalScopes()->where('id', $dashboard->id)->firstOrFail()->getOption('filter_bar.dims');
+        $this->assertSame(['first'], array_column($dims, 'label'), 'nothing saved');
+
+        // a column the table does not have is refused too (the same rules were skipped)
+        $form['filter_bar_dims'] = ['new_1' => ['column' => 'no_such_column', 'label' => 'x', 'targets' => [$box->suuid, ''], 'default' => '', '_remove_' => 0]];
+        $this->put($this->url('dashboard/' . $dashboard->id), $form)->assertSessionHasErrors('filter_bar_dims.new_1.column');
+
+        // the targets cell is still checked against the dashboard's boxes
+        $form['filter_bar_dims'] = ['new_1' => ['column' => 'user_name', 'label' => 'x', 'targets' => ['not_a_box', ''], 'default' => '', '_remove_' => 0]];
+        $this->put($this->url('dashboard/' . $dashboard->id), $form)->assertSessionHasErrors();
+
+        // a valid edit still saves, its targets kept
+        $form['filter_bar_dims'] = ['new_1' => ['column' => 'user_name', 'label' => 'edited', 'targets' => [$box->suuid, ''], 'default' => '', '_remove_' => 0]];
+        $this->put($this->url('dashboard/' . $dashboard->id), $form)->assertSessionHasNoErrors();
+        $dims = Dashboard::withoutGlobalScopes()->where('id', $dashboard->id)->firstOrFail()->getOption('filter_bar.dims');
+        $this->assertSame('edited', $dims[0]['label']);
+        $this->assertSame([$box->suuid], $dims[0]['targets']);
+    }
+
     public function test_a_form_back_with_an_error_keeps_the_posted_columns(): void
     {
         $this->asUser(LoginUser::find(1));
