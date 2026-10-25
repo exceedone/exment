@@ -1,0 +1,149 @@
+<?php
+
+namespace Exceedone\Exment\Tests\Unit\Meili;
+
+use Exceedone\Exment\Services\Meili\GlobalSearch\HeaderSuggester;
+use Exceedone\Exment\Services\Meili\MeiliSearchService;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * A table label is a composite - "title + linked partner", say - so a viewer
+ * who may not read the linked half still may read the rest of it.
+ *
+ * Deciding on the label alone cost such a viewer every suggestion, including
+ * for records they can read completely, and comparing the label with its
+ * highlight markers stripped also lost records whose own content contains that
+ * marker literal. Both are decided in permittedSnippet().
+ */
+class SuggestPartlyHiddenLabelTest extends TestCase
+{
+    private const PRE = MeiliSearchService::HIGHLIGHT_PRE;
+    private const POST = MeiliSearchService::HIGHLIGHT_POST;
+
+    /** @param array<string,mixed> $hit */
+    private function snippet(array $hit, $table, $model, string $label): ?string
+    {
+        $suggester = (new \ReflectionClass(HeaderSuggester::class))->newInstanceWithoutConstructor();
+        $method = new \ReflectionMethod(HeaderSuggester::class, 'permittedSnippet');
+        $method->setAccessible(true);
+
+        return $method->invoke($suggester, $hit, $table, $model, $label);
+    }
+
+    /** A table exposing the given freeword columns as plain (non linked) text. */
+    private function tableWithReadableColumns(array $names)
+    {
+        $columns = array_map(fn ($n) => (object) ['column_name' => $n, 'column_type' => 'text'], $names);
+
+        return new class ($columns) {
+            public function __construct(private array $columns)
+            {
+            }
+
+            public function getFreewordSearchColumns()
+            {
+                return collect($this->columns);
+            }
+        };
+    }
+
+    /**
+     * The keyword matched the readable half of the label and the field that
+     * half comes from. The record is one the viewer may open, so it belongs in
+     * the suggestions even though the label also names a record they may not.
+     */
+    public function testAReadableFieldStillAnswersWhenTheLabelIsOnlyPartlyReadable(): void
+    {
+        $hit = [
+            // what the document stores: the real linked partner name
+            'label' => 'ミライ建設 本社ビル 設備保守契約 株式会社ミライ建設',
+            'formatted' => [
+                'label' => self::PRE . 'ミライ建設' . self::POST . ' 本社ビル 設備保守契約 株式会社ミライ建設',
+                'fields' => ['title' => self::PRE . 'ミライ建設' . self::POST . ' 本社ビル 設備保守契約'],
+            ],
+            'matches' => [
+                'label' => [['start' => 0, 'length' => 5]],
+                'fields.title' => [['start' => 0, 'length' => 5]],
+            ],
+        ];
+
+        $snippet = $this->snippet(
+            $hit,
+            $this->tableWithReadableColumns(['title']),
+            null,
+            // what this viewer sees instead: the linked half is withheld
+            'ミライ建設 本社ビル 設備保守契約 (権限がありません)'
+        );
+
+        $this->assertSame(
+            self::PRE . 'ミライ建設' . self::POST . ' 本社ビル 設備保守契約',
+            $snippet,
+            'the readable field carried the keyword, so the hit must be shown'
+        );
+    }
+
+    /**
+     * The other half of the same rule: nothing readable carried the keyword, so
+     * the match can only come from the part that is hidden and showing the
+     * record would confirm it exists.
+     */
+    public function testAHitIsStillDroppedWhenOnlyTheHiddenHalfMatched(): void
+    {
+        $hit = [
+            'label' => '基本取引覚書 2026年度 ZZTEST',
+            'formatted' => [
+                'label' => '基本取引覚書 2026年度 ' . self::PRE . 'ZZTEST' . self::POST,
+                'fields' => ['partner_id' => self::PRE . 'ZZTEST' . self::POST],
+            ],
+            'matches' => [
+                'label' => [['start' => 17, 'length' => 6]],
+                'fields.partner_id' => [['start' => 0, 'length' => 6]],
+            ],
+        ];
+
+        $snippet = $this->snippet(
+            $hit,
+            // partner_id is not offered as a readable freeword column here
+            $this->tableWithReadableColumns(['title']),
+            null,
+            '基本取引覚書 2026年度 (権限がありません)'
+        );
+
+        $this->assertNull($snippet, 'the keyword only matched content this viewer may not read');
+    }
+
+    /**
+     * The readability check compares the raw indexed label with the one the
+     * viewer may see. Comparing the highlighted label with its markers stripped
+     * also strips the same literal out of record content, so a record carrying
+     * it never looked readable and vanished from the suggestions.
+     */
+    public function testARecordContainingTheMarkerLiteralIsStillSuggested(): void
+    {
+        $name = 'PREFIX' . self::PRE . 'INJECT' . self::POST;
+        $hit = [
+            'label' => $name,
+            'formatted' => ['label' => self::PRE . 'PREFIX' . self::POST . self::PRE . 'INJECT' . self::POST],
+            'matches' => ['label' => [['start' => 0, 'length' => 6]]],
+        ];
+
+        $snippet = $this->snippet($hit, $this->tableWithReadableColumns([]), null, $name);
+
+        $this->assertNotNull($snippet, 'the viewer sees exactly this label, so the hit is readable');
+        $this->assertStringContainsString('PREFIX', (string) $snippet);
+    }
+
+    /** The ordinary case keeps working: label fully readable and matched. */
+    public function testAFullyReadableLabelAnswersAsBefore(): void
+    {
+        $hit = [
+            'label' => '日本電機サービス株式会社',
+            'formatted' => ['label' => self::PRE . '日本電機サービス' . self::POST . '株式会社'],
+            'matches' => ['label' => [['start' => 0, 'length' => 8]]],
+        ];
+
+        $snippet = $this->snippet($hit, $this->tableWithReadableColumns([]), null, '日本電機サービス株式会社');
+
+        $this->assertSame(self::PRE . '日本電機サービス' . self::POST . '株式会社', $snippet);
+    }
+}

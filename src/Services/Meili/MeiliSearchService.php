@@ -75,6 +75,10 @@ class MeiliSearchService
 
     public static function normalizeQuery(string $q): string
     {
+        if (function_exists('mb_convert_kana')) {
+            $q = mb_convert_kana($q, 'as', 'UTF-8');
+        }
+
         return preg_replace('/(^|\s)-+(?=\S)/u', '$1', $q) ?? $q;
     }
 

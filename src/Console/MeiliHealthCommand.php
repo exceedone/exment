@@ -45,6 +45,13 @@ class MeiliHealthCommand extends Command
         $this->info('[Meili] OK - ' . config('meilisearch.host'));
 
         // Stats on the number of documents in the merged index.
+        //
+        // Reaching /health proves nothing about the credentials - Meilisearch
+        // answers it without authentication, so a wrong API key still gets an
+        // "OK" above. Reading the stats is the first call that needs the key, so
+        // failing it means the index is unusable: report an error and exit
+        // non-zero, or a monitor watching the exit code calls it healthy.
+        $statsFailed = false;
         try {
             $client = MeiliClientFactory::make();
             $stats = $client->index(config('meilisearch.index'))->stats();
@@ -52,7 +59,8 @@ class MeiliHealthCommand extends Command
             $this->line('  Docs  : ' . ($stats['numberOfDocuments'] ?? '?'));
             $this->line('  Indexing: ' . (($stats['isIndexing'] ?? false) ? 'yes' : 'no'));
         } catch (\Throwable $e) {
-            $this->warn('  Could not read index stats: ' . $e->getMessage());
+            $this->error('  Could not read index stats: ' . $e->getMessage());
+            $statsFailed = true;
         }
 
         if ($this->option('failed')) {
@@ -70,6 +78,6 @@ class MeiliHealthCommand extends Command
             }
         }
 
-        return self::SUCCESS;
+        return $statsFailed ? self::FAILURE : self::SUCCESS;
     }
 }

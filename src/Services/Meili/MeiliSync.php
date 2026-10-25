@@ -139,6 +139,7 @@ class MeiliSync
                 $freewordColumns = $table->getFreewordSearchColumns();
                 $columns = $freewordColumns
                     ->concat(FilterConfig::equalityColumns($table))
+                    ->concat(self::labelLinkColumns($table))
                     ->unique('id')
                     ->filter(fn ($c) => ColumnType::isSelectTable($c->column_type)
                         && (int) ($c->select_target_table->id ?? 0) === (int) $refTable->id)
@@ -149,6 +150,34 @@ class MeiliSync
             }
             return $out;
         });
+    }
+
+    /**
+     * Columns the table's label is built from.
+     *
+     * A document stores the label of every record it links to, and the table's
+     * own label is one of those stored values. A link column used ONLY in the
+     * label definition - indexed through the label, not as a freeword or facet
+     * column - was missing here, so renaming a linked record left every record
+     * pointing at it holding the old name: the search answered the old name and
+     * not the new one until the table was reindexed by hand.
+     *
+     * @param  mixed  $table
+     * @return \Illuminate\Support\Collection<int,\Exceedone\Exment\Model\CustomColumn>
+     */
+    protected static function labelLinkColumns($table)
+    {
+        $labelColumns = $table->getLabelColumns();
+
+        // A custom label format is a free string that may name any column.
+        if (is_string($labelColumns)) {
+            return collect($table->custom_columns_cache);
+        }
+
+        return collect($labelColumns)
+            ->map(fn ($c) => \Exceedone\Exment\Model\CustomColumn::getEloquent($c->table_label_id))
+            ->filter()
+            ->values();
     }
 
     /** @var \WeakMap<CustomValue, array<string,mixed>>|null label source values before the update */
