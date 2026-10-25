@@ -231,7 +231,8 @@ class DefaultShow extends ShowBase
                             $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $this->custom_value->id));
                         }
 
-                        foreach ($this->custom_value->getWorkflowActions(true)->reverse() as $action) {
+                        // no button for an approval this user already gave (TC-WT-43)
+                        foreach ($this->custom_value->getWorkflowActions(true, false, true)->reverse() as $action) {
                             $tools->append(new Tools\ModalMenuButton(
                                 admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "actionModal"),
                                 [

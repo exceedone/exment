@@ -1287,8 +1287,8 @@ class CustomValueController extends AdminControllerTableBase
 
         $custom_value = $this->custom_table->getValueModel($id);
 
-        //validation
-        $workflow_actions = $custom_value->getWorkflowActions(true);
+        //validation - an approval this user already gave is not given again
+        $workflow_actions = $custom_value->getWorkflowActions(true, false, true);
         if (!$workflow_actions->contains(function($workflow_action) use($action){
             // @phpstan-ignore-next-line
             return $workflow_action->id == $action->id;

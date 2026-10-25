@@ -279,6 +279,62 @@ class WorkflowScreensCoverageTest extends FeatureTestBase
         }
     }
 
+    /**
+     * TC-WT-43: a step waiting for two approvers keeps its status after the first approval. The
+     * first approver has nothing left to run there - the task list leaves them out, and so do the
+     * buttons of the record page and the execution itself, which recorded the approval twice -
+     * while the second approver still has the action.
+     */
+    public function testAnApproverWhoAlreadyApprovedHasNothingLeftToRun(): void
+    {
+        $user1 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $user2 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $workflow = $this->createByDesigner('claude two approvers', [
+            'targets' => ['user' => [strval($user1->base_user_id), strval($user2->base_user_id)]],
+            'flow_next_type' => 'all',
+        ], TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        $done = WorkflowAction::where('workflow_id', $workflow->id)->where('action_name', 'done')->firstOrFail();
+        $statuses = WorkflowStatus::where('workflow_id', $workflow->id)->get()->keyBy('status_name');
+
+        // a record both users may open, at s1, where "done" waits for user1 and user2
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        $custom_value = $custom_table->getValueModel()
+            ->whereNotIn('id', WorkflowValue::where('morph_type', $custom_table->table_name)->pluck('morph_id'))
+            ->firstOrFail();
+        $this->executed($custom_value, WorkflowAction::where('workflow_id', $workflow->id)->where('action_name', 'go')->firstOrFail(), null, $statuses['s1']->id, true);
+
+        $page = admin_urls('data', $custom_table->table_name, $custom_value->id);
+        $click = admin_urls('data', $custom_table->table_name, $custom_value->id, 'actionClick');
+        $statusTo = function () use ($custom_table, $custom_value) {
+            return WorkflowValue::where('morph_type', $custom_table->table_name)->where('morph_id', $custom_value->id)
+                ->where('latest_flg', 1)->value('workflow_status_to_id');
+        };
+        $approvals = function (LoginUser $user) use ($custom_table, $custom_value, $done) {
+            return WorkflowValue::where('morph_type', $custom_table->table_name)->where('morph_id', $custom_value->id)
+                ->where('workflow_action_id', $done->id)->where('created_user_id', $user->base_user_id)->count();
+        };
+
+        // user1 approves: one of two, the status stays
+        $this->be($user1);
+        $this->get($page)->assertOk()->assertSee(admin_urls('data', $custom_table->table_name, $custom_value->id, 'actionModal'), false);
+        $this->post($click, ['action_id' => $done->id])->assertOk()->assertJson(['result' => true]);
+        $this->assertSame(strval($statuses['s1']->id), strval($statusTo()));
+
+        // user1: no button any more, and posting again is refused without a second approval
+        System::clearRequestSession();
+        $this->get($page)->assertOk()->assertDontSee(admin_urls('data', $custom_table->table_name, $custom_value->id, 'actionModal'), false);
+        $this->post($click, ['action_id' => $done->id])->assertOk()->assertJson(['result' => false]);
+        $this->assertSame(1, $approvals($user1));
+        $this->assertSame(strval($statuses['s1']->id), strval($statusTo()));
+
+        // user2 still has the action, and the second approval moves the record on
+        $this->be($user2);
+        System::clearRequestSession();
+        $this->get($page)->assertOk()->assertSee(admin_urls('data', $custom_table->table_name, $custom_value->id, 'actionModal'), false);
+        $this->post($click, ['action_id' => $done->id])->assertOk()->assertJson(['result' => true]);
+        $this->assertSame(strval($statuses['s2']->id), strval($statusTo()));
+    }
+
     protected function workflow(string $name): Workflow
     {
         return Workflow::where('workflow_view_name', $name)->firstOrFail();
@@ -352,11 +408,14 @@ class WorkflowScreensCoverageTest extends FeatureTestBase
     }
 
     /**
-     * Create a table workflow from the designer: start -> s1 -> s2 (completed) on custom_value_edit.
+     * Create a table workflow from the designer: start -> s1 -> s2 (completed), on custom_value_edit
+     * unless another table is named.
+     *
+     * @param array<string, mixed> $done what the action "done" (s1 -> s2) has instead
      */
-    protected function createByDesigner(string $name): Workflow
+    protected function createByDesigner(string $name, array $done = [], string $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT): Workflow
     {
-        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $custom_table = CustomTable::getEloquent($table_name);
         $action = function ($key, $action_name, $from, $to) {
             return [
                 'id' => null, 'key' => $key, 'name' => $action_name, 'status_from' => $from, 'ignore_work' => 0,
@@ -376,7 +435,7 @@ class WorkflowScreensCoverageTest extends FeatureTestBase
             ],
             'actions' => [
                 $action('m1', 'go', 'start', 'n1'),
-                $action('m2', 'done', 'n1', 'n2'),
+                array_merge($action('m2', 'done', 'n1', 'n2'), $done),
             ],
             'layout' => ['enabled' => true, 'pos' => []],
         ];
