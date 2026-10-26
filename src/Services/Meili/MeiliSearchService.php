@@ -75,6 +75,10 @@ class MeiliSearchService
 
     public static function normalizeQuery(string $q): string
     {
+        if (function_exists('mb_convert_kana')) {
+            $q = mb_convert_kana($q, 'as', 'UTF-8');
+        }
+
         return preg_replace('/(^|\s)-+(?=\S)/u', '$1', $q) ?? $q;
     }
 
@@ -799,14 +803,41 @@ class MeiliSearchService
 
     // ---- Highlight (keyword emphasis) ----
 
+    /** Random part of the highlight markers, drawn once per process. */
+    private static ?string $highlightNonce = null;
+
     /**
      * Highlight markers inserted by Meilisearch. Deliberately NOT html tags:
      * the snippet is record content (untrusted), so the consumer must
-     * html-escape the whole snippet first and only then convert these
-     * markers into real tags. See HeaderSuggester::toHighlightedHtml().
+     * html-escape the whole snippet first and only then convert these markers
+     * into real tags. See HeaderSuggester::toHighlightedHtml().
+     *
+     * The markers carry a random nonce because escaping first does NOT protect
+     * them: they are built from characters e() leaves alone, so a fixed string
+     * typed into a record would survive the escape and be converted into a real
+     * <mark> - the record would decide where the keyword looks highlighted.
+     * Only the search in the same process can know the nonce.
      */
-    public const HIGHLIGHT_PRE = '__EXM_HL__';
-    public const HIGHLIGHT_POST = '__/EXM_HL__';
+    private static function highlightNonce(): string
+    {
+        if (self::$highlightNonce === null) {
+            self::$highlightNonce = bin2hex(random_bytes(8));
+        }
+
+        return self::$highlightNonce;
+    }
+
+    /** Opening highlight marker for this process. */
+    public static function highlightPre(): string
+    {
+        return '__EXM_HL_' . self::highlightNonce() . '__';
+    }
+
+    /** Closing highlight marker for this process. */
+    public static function highlightPost(): string
+    {
+        return '__/EXM_HL_' . self::highlightNonce() . '__';
+    }
 
     /**
      * Search with highlighting: also returns 'snippet' (the excerpt containing the highlighted keyword).
@@ -824,8 +855,8 @@ class MeiliSearchService
         $options = [
             'limit' => $limit,
             'attributesToHighlight' => ['*'],
-            'highlightPreTag' => self::HIGHLIGHT_PRE,
-            'highlightPostTag' => self::HIGHLIGHT_POST,
+            'highlightPreTag' => self::highlightPre(),
+            'highlightPostTag' => self::highlightPost(),
             'showMatchesPosition' => true,
         ];
 
@@ -855,8 +886,9 @@ class MeiliSearchService
      *
      * @param  array<string,mixed>  $formatted  the hit's _formatted
      */
-    public static function pickHighlightedSnippet(array $formatted, string $preTag = self::HIGHLIGHT_PRE): string
+    public static function pickHighlightedSnippet(array $formatted, ?string $preTag = null): string
     {
+        $preTag = $preTag ?? self::highlightPre();
         $label = (string) ($formatted['label'] ?? '');
         if ($label !== '' && strpos($label, $preTag) !== false) {
             return $label;

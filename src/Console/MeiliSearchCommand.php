@@ -77,7 +77,7 @@ class MeiliSearchCommand extends Command
                 ['table_name', 'value_id', 'matching snippet (highlight)'],
                 array_map(function ($h) {
                     $snippet = str_replace(
-                        [MeiliSearchService::HIGHLIGHT_PRE, MeiliSearchService::HIGHLIGHT_POST],
+                        [MeiliSearchService::highlightPre(), MeiliSearchService::highlightPost()],
                         ['[', ']'],
                         // Always set on the --highlight path; defaulted so the
                         // shared $hits shape (search() has no snippet) stays safe.

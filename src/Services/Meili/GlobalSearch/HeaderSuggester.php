@@ -130,15 +130,20 @@ class HeaderSuggester
         $matches = (array) (array_get($hit, 'matches') ?: []);
 
         // The indexed label only stands if it still matches the label the viewer
-        // may see; built from a hidden linked record, the two differ.
+        // may see; built from a hidden linked record, the two differ. Compare the
+        // RAW indexed label, not the highlighted one with its markers stripped:
+        // the markers are a fixed literal, so a record that happens to contain
+        // that literal lost characters to stripHighlight() and never compared
+        // equal - the record then disappeared from the suggestions entirely.
         $indexedLabel = (string) ($formatted['label'] ?? '');
-        if (self::stripHighlight($indexedLabel) !== $label) {
-            if (self::attributeMatched($matches, 'label', $indexedLabel)) {
-                return null;    // the keyword matched a label the viewer may not read
-            }
-            unset($formatted['label']);
-        } elseif (self::attributeMatched($matches, 'label', $indexedLabel)) {
+        $labelReadable = (string) (array_get($hit, 'label') ?? '') === $label;
+        $labelMatched = self::attributeMatched($matches, 'label', $indexedLabel);
+
+        if ($labelReadable && $labelMatched) {
             return $indexedLabel;
+        }
+        if (!$labelReadable) {
+            unset($formatted['label']);
         }
 
         // Only the fields that actually carry the keyword are worth a permission
@@ -152,6 +157,13 @@ class HeaderSuggester
                 return $value;
             }
             $hiddenHit = true;
+        }
+
+        // The keyword matched the label, the viewer may not read all of it, and
+        // no readable field carried the keyword either: the match can only come
+        // from the part that is hidden, and showing the record would confirm it.
+        if (!$labelReadable && $labelMatched) {
+            return null;
         }
 
         // Nothing readable matched: keep the hit only if nothing hidden matched
@@ -178,7 +190,7 @@ class HeaderSuggester
             return !empty($matches[$path]);
         }
 
-        return strpos($formattedValue, MeiliSearchService::HIGHLIGHT_PRE) !== false;
+        return strpos($formattedValue, MeiliSearchService::highlightPre()) !== false;
     }
 
     /**
@@ -218,7 +230,7 @@ class HeaderSuggester
 
     private static function stripHighlight(string $value): string
     {
-        return str_replace([MeiliSearchService::HIGHLIGHT_PRE, MeiliSearchService::HIGHLIGHT_POST], '', $value);
+        return str_replace([MeiliSearchService::highlightPre(), MeiliSearchService::highlightPost()], '', $value);
     }
 
     /**
@@ -230,7 +242,7 @@ class HeaderSuggester
     public static function toHighlightedHtml(string $snippet): string
     {
         return str_replace(
-            [MeiliSearchService::HIGHLIGHT_PRE, MeiliSearchService::HIGHLIGHT_POST],
+            [MeiliSearchService::highlightPre(), MeiliSearchService::highlightPost()],
             ['<mark>', '</mark>'],
             e($snippet)
         );

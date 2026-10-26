@@ -11,7 +11,11 @@ class IndexSettings
 {
     public const DEFAULT_SEARCHABLE = ['label', 'fields', 'table_label'];
 
-    public const DEFAULT_RANKING = ['words', 'typo', 'proximity', 'attribute', 'sort', 'exactness'];
+    // 'sort' first, not fifth as in Meilisearch's own default: below 'attribute'
+    // it only breaks ties, so picking 新しい順 returned a list that was not in
+    // date order whenever the matches differed in relevance. A request that
+    // sends no sort is unaffected - the rule is inert then.
+    public const DEFAULT_RANKING = ['sort', 'words', 'typo', 'proximity', 'attribute', 'exactness'];
 
     /** Meilisearch's own default; never go below it. */
     public const DEFAULT_MAX_TOTAL_HITS = 1000;

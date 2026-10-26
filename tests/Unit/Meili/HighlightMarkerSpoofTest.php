@@ -12,20 +12,34 @@ use PHPUnit\Framework\TestCase;
  * viewer may not read is dropped, or the suggestions would answer "does a
  * record by this name exist?" about a table they cannot open.
  *
- * Reading that off the highlight markers makes the answer forgeable. The
- * markers are a fixed string, so anyone who can write into a field they CAN
- * read puts the string there and the hit passes as readable.
+ * Reading that off the highlight markers would make the answer forgeable if the
+ * markers were a fixed string: anyone who can write into a field they CAN read
+ * would put the string there and the hit would pass as readable. Two things stop
+ * that - _matchesPosition is the real source of truth, and the markers carry a
+ * per-process nonce the record cannot know.
  */
 class HighlightMarkerSpoofTest extends TestCase
 {
-    private const PRE = MeiliSearchService::HIGHLIGHT_PRE;
-    private const POST = MeiliSearchService::HIGHLIGHT_POST;
+    /** The marker as someone reading the source would write it into a record. */
+    private const GUESSED_PRE = '__EXM_HL__';
+    private const GUESSED_POST = '__/EXM_HL__';
+
+    /** The markers carry a per-process nonce, so they cannot be class constants. */
+    private function pre(): string
+    {
+        return MeiliSearchService::highlightPre();
+    }
+
+    private function post(): string
+    {
+        return MeiliSearchService::highlightPost();
+    }
 
     public function testTheMatchedAttributeComesFromMeilisearch(): void
     {
         $matches = ['fields.torihikisaki' => [['start' => 4, 'length' => 6]]];
 
-        $this->assertTrue(HeaderSuggester::attributeMatched($matches, 'fields.torihikisaki', self::PRE . 'x' . self::POST));
+        $this->assertTrue(HeaderSuggester::attributeMatched($matches, 'fields.torihikisaki', $this->pre() . 'x' . $this->post()));
         $this->assertFalse(HeaderSuggester::attributeMatched($matches, 'fields.note', 'nothing here'));
     }
 
@@ -36,7 +50,7 @@ class HighlightMarkerSpoofTest extends TestCase
         $matches = ['fields.torihikisaki' => [['start' => 4, 'length' => 6]]];
 
         $this->assertFalse(
-            HeaderSuggester::attributeMatched($matches, 'fields.note', 'harmless ' . self::PRE . ' text'),
+            HeaderSuggester::attributeMatched($matches, 'fields.note', 'harmless ' . self::GUESSED_PRE . ' text'),
             'a marker inside the record content must not count as a match'
         );
     }
@@ -48,8 +62,14 @@ class HighlightMarkerSpoofTest extends TestCase
      */
     public function testWithoutMatchPositionsTheMarkersStillAnswer(): void
     {
-        $this->assertTrue(HeaderSuggester::attributeMatched([], 'fields.note', self::PRE . 'hit' . self::POST));
+        $this->assertTrue(HeaderSuggester::attributeMatched([], 'fields.note', $this->pre() . 'hit' . $this->post()));
         $this->assertFalse(HeaderSuggester::attributeMatched([], 'fields.note', 'no marker'));
+        // Even on this fallback the record cannot forge a match: the real marker
+        // carries a nonce it cannot know.
+        $this->assertFalse(
+            HeaderSuggester::attributeMatched([], 'fields.note', self::GUESSED_PRE . 'hit' . self::GUESSED_POST),
+            'the marker a record can guess must not answer the fallback either'
+        );
     }
 
     public function testSearchHighlightedAsksForTheMatchPositions(): void

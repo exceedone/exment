@@ -103,8 +103,8 @@ class MeiliSearchServiceTest extends TestCase
 
     public function testPickHighlightPrefersLabelWhenLabelIsHighlighted(): void
     {
-        $pre = MeiliSearchService::HIGHLIGHT_PRE;
-        $post = MeiliSearchService::HIGHLIGHT_POST;
+        $pre = MeiliSearchService::highlightPre();
+        $post = MeiliSearchService::highlightPost();
         $formatted = [
             'label' => "invoice {$pre}budget{$post} release",
             'fields' => ['po' => 'PO-123'],
@@ -118,8 +118,8 @@ class MeiliSearchServiceTest extends TestCase
 
     public function testPickHighlightFallsBackToFieldWhenOnlyFieldMatches(): void
     {
-        $pre = MeiliSearchService::HIGHLIGHT_PRE;
-        $post = MeiliSearchService::HIGHLIGHT_POST;
+        $pre = MeiliSearchService::highlightPre();
+        $post = MeiliSearchService::highlightPost();
         $formatted = [
             'label' => 'iPhone 15',
             'fields' => ['code' => 'no-match', 'po' => "{$pre}PO{$post}-123"],
