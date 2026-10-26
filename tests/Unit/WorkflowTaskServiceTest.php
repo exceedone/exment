@@ -3177,6 +3177,167 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
+     * TC-WT-15: workflow data from before the task list existed. The list is read from the
+     * workflow itself - who has to act on which record now - and workflow_task_reads only holds
+     * the marks of what a user opened. With that table empty, as the migration creates it, every
+     * task already waiting is on the list and unread, and the badge counts them all. Drawing the
+     * list or the badge writes no notification, so nothing is sent afterwards for the actions
+     * taken before. Logged in as the test user who is in the organization the seeded records 1
+     * and 3 of custom_value_edit wait for.
+     *
+     * @return void
+     */
+    public function testTasksFromBeforeTheListExistedAreListedUnread()
+    {
+        $this->init(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+
+        // the table as the migration creates it (rolled back after the test)
+        WorkflowTaskRead::withoutGlobalScopes()->delete();
+        System::clearCache();
+        $notifies = NotifyNavbar::withoutGlobalScopes()->count();
+
+        $tasks = (new WorkflowTaskService())->getTasksWithSeen();
+        $this->assertGreaterThan(0, $tasks->count(), 'the test dataset must give this user tasks');
+        foreach ($tasks as $row) {
+            $this->assertFalse($row['seen'], $row['task_key'] . ': a task from before the list existed must be unread');
+        }
+
+        // waiting for the organization of the user, not for the user: the seeder put them at a
+        // status whose action is for the dev organization
+        $customTableId = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT)->id;
+        foreach ([1, 3] as $id) {
+            $this->assertTrue(
+                $tasks->contains('task_key', WorkflowTaskService::taskKey($customTableId, $id)),
+                "custom_value_edit $id waits for the organization of this user"
+            );
+        }
+
+        $this->assertSame($tasks->count(), (new WorkflowTaskService())->countUnseen(), 'the badge must count every task from before');
+        $this->assertSame($notifies, NotifyNavbar::withoutGlobalScopes()->count(), 'drawing the list or the badge wrote a notification');
+    }
+
+    /**
+     * TC-WT-34: the language of the screen (APP_LOCALE) switched from Japanese to English and
+     * back. The labels of the list, the answers of its batch menu and the navbar come from the
+     * language files, and the cached navbar answer is kept per language: the English screen does
+     * not get the Japanese answer polled a moment before. Nothing of the other language is left
+     * among the labels of the list (its rows hold data, its script holds comments).
+     *
+     * @return void
+     */
+    public function testTheListSpeaksTheLanguageOfTheScreen()
+    {
+        $this->init();
+
+        // every task unread, and no navbar answer cached from before (rolled back after the test)
+        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exment::getUserId())->delete();
+        WorkflowTaskService::navbarCacheForget();
+        $tasks = (new WorkflowTaskService())->getTasks();
+        $this->assertGreaterThan(1, $tasks->count(), 'the test dataset must give this user two tasks');
+
+        $shows = function (string $html, $label, string $what) {
+            $this->assertIsString($label, $what);
+            $this->assertStringContainsString(e($label), $html, $what);
+        };
+        foreach (['ja', 'en', 'ja'] as $locale) {
+            app()->setLocale($locale);
+            $html = $this->drawList($this->openList([]));
+            foreach (['header', 'seen_flg', 'table', 'data', 'status', 'updated_at'] as $key) {
+                $shows($html, exmtrans("workflow_task.$key"), "$locale screen: workflow_task.$key");
+            }
+            $shows($html, trans('admin.action'), "$locale screen: admin.action");
+            $shows($html, trans('admin.search'), "$locale screen: admin.search");
+
+            // the labels of the screen: not its rows, which hold data, nor its script, which holds comments
+            $text = (string)preg_replace(['#<script\b.*?</script>#s', '#<tbody\b.*?</tbody>#s'], '', $html);
+            if ($locale === 'en') {
+                $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]/u', $text, 'Japanese left on the English screen');
+                continue;
+            }
+            foreach (['Pending tasks', 'Target table', 'Current status', 'Updated at'] as $english) {
+                $this->assertStringNotContainsString($english, $text, 'English left on the Japanese screen');
+            }
+        }
+
+        // the answers of the batch menu on the English screen: one row first, then all of them
+        app()->setLocale('en');
+        $ajax = ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'];
+        $response = (new WorkflowTaskController())->rowCheck(Request::create('/workflow_task/rowCheck', 'POST', ['keys' => $tasks[0]['task_key']], [], [], $ajax));
+        $this->assertSame('The selected data has been marked as read.', array_get(json_decode((string)$response->getContent(), true), 'toastr'));
+        $response = (new WorkflowTaskController())->readAll(Request::create('/workflow_task/readAll', 'POST', [], [], [], $ajax));
+        $this->assertSame('All tasks have been marked as read.', array_get(json_decode((string)$response->getContent(), true), 'toastr'));
+
+        // a user with no task (every workflow switched off): the navbar polled on the Japanese
+        // screen, and at once on the English one
+        \DB::table(SystemTableName::WORKFLOW_TABLE)->update(['active_flg' => 0]);
+        System::clearCache();
+        WorkflowTaskService::navbarCacheForget();
+        $api = new \Exceedone\Exment\Controllers\ApiController();
+        app()->setLocale('ja');
+        $answer = $api->workflowTaskPage(Request::create('/webapi/workflowTaskPage', 'GET'));
+        $this->assertSame(0, $answer['count']);
+        $this->assertSame(trans('exment::exment.workflow_task.empty', [], 'ja'), $answer['noItemMessage']);
+        app()->setLocale('en');
+        $answer = $api->workflowTaskPage(Request::create('/webapi/workflowTaskPage', 'GET'));
+        $this->assertSame('You have no pending tasks.', $answer['noItemMessage'], 'the English screen got the Japanese answer of the cache');
+        $this->assertStringContainsString('You have no pending tasks.', $this->drawList($this->openList([])));
+    }
+
+    /**
+     * TC-WT-45, a known limit: a condition the settings screen cannot make - here one on a column
+     * of another table, which only an import or an old version brings - is not guessed at. The
+     * list leaves the action as the work-user query has it, so the task stays listed although the
+     * record does not meet the condition and the record page offers no button for it: rather a
+     * task too many than one hidden that the user has to act on. The same condition on the
+     * table's own column is read, and hides the task.
+     *
+     * @return void
+     */
+    public function testAConditionTheListCannotReadLeavesTheTaskListed()
+    {
+        $this->init(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+
+        // custom_value_edit 1 waits at a status whose action the dev organization runs on every record
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $key = WorkflowTaskService::taskKey($custom_table->id, 1);
+        $this->assertTrue((new WorkflowTaskService())->getTasks()->contains('task_key', $key), 'precondition: custom_value_edit 1 is a task of this user');
+        $this->assertTrue($this->recordPageOffers($custom_table->id, 1), 'precondition: the record page offers its action');
+
+        $record = $custom_table->getValueModel(1);
+        $this->assertNotNull($record);
+        $action = $record->getWorkflowActions()->first(function ($action) {
+            return !boolval($action->ignore_work);
+        });
+        $this->assertNotNull($action);
+        $header = $action->workflow_condition_headers()->first();
+        $this->assertNotNull($header);
+
+        // what an import can bring and the settings screen cannot make: a condition on a column of
+        // another table, with a value the record does not hold (rolled back after the test)
+        $condition = new \Exceedone\Exment\Model\Condition();
+        $condition->morph_type = 'workflow_condition_header';
+        $condition->morph_id = $header->id;
+        $condition->condition_type = \Exceedone\Exment\Enums\ConditionType::COLUMN;
+        $condition->condition_key = FilterOption::EQ;
+        $condition->target_column_id = \Exceedone\Exment\Model\CustomColumn::getEloquent('text', TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL)->id;
+        $condition->condition_value = 'a value no record holds';
+        $condition->save();
+        System::clearCache();
+
+        $this->assertFalse($this->recordPageOffers($custom_table->id, 1), 'the record does not meet the condition: the record page offers nothing');
+        // the list does not guess: the task stays, as it did before conditions were checked
+        $this->assertTrue((new WorkflowTaskService())->getTasks()->contains('task_key', $key), 'a condition the list cannot read hid the task');
+        $this->assertContains($key, $this->openList(['per_page' => '100'])['rows']->pluck('task_key')->all(), 'the list screen must show it too');
+
+        // the control: the same condition on the table's own column is read, and hides the task
+        $condition->target_column_id = \Exceedone\Exment\Model\CustomColumn::getEloquent('text', $custom_table)->id;
+        $condition->save();
+        System::clearCache();
+        $this->assertFalse($this->recordPageOffers($custom_table->id, 1));
+        $this->assertFalse((new WorkflowTaskService())->getTasks()->contains('task_key', $key), 'a condition on the table\'s own column must hide the task');
+    }
+
+    /**
      * A task taken off the list is found under 状態 = 削除済み, and put back from there as unread.
      *
      * Found in review: such a task came back only with the next action on its record. One that
