@@ -74,8 +74,9 @@ class SafetyCheckAdminPageTest extends FeatureTestBase
 
     public function testIndexEscapesTriggerTypeCell(): void
     {
-        // trigger_type is normally manual/drill/jma_auto, but the column is stored as-is
-        // and the admin-core grid outputs display() results raw.
+        // trigger_type is normally manual/drill/jma_auto, but the column is stored as-is.
+        // The display() callback escapes it and turns the grid's own escaping off, so it
+        // is escaped exactly once, whichever default the admin-core grid has.
         $this->createEvent(['title' => 'Escape event', 'trigger_type' => '<b>tt-raw</b>']);
 
         $response = $this->get('admin/safety_check');

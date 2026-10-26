@@ -110,9 +110,10 @@ class SafetyCheckController extends AdminControllerBase
         // that also gets a display callback is kept in a variable.
         $triggerType = $grid->column($columnKey('trigger_type'), exmtrans('safety.col_trigger_type'));
         $triggerType->sortable();
+        // the callback escapes the label itself, so the grid must not escape it again
         $triggerType->display(function ($value) {
             return esc_html(exmtrans('safety.trigger_type_' . $value));
-        });
+        })->escape(false);
         $eventStatus = $grid->column($columnKey('event_status'), exmtrans('safety.col_event_status'));
         $eventStatus->sortable();
         $eventStatus->display(function ($value) {
