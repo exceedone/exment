@@ -49,8 +49,9 @@ class WorkflowTaskController extends AdminControllerBase
         $listedAt = \Carbon\Carbon::now()->format('Y-m-d H:i:s');
 
         $perPageName = 'per_page';
-        // the page sizes a grid offers (Grid::$perPages)
-        $perPageOptions = [10, 20, 30, 50, 100];
+        // the page sizes of 表示件数: 10, 20, 50 and 100 (test case TC-WT-32 on v7.0). A data grid
+        // offers 30 too (Define::PAGER_GRID_COUNTS); this list does not
+        $perPageOptions = [10, 20, 50, 100];
         $perPage = (int)$request->get($perPageName, 20);
         // only the values the select box offers: "?per_page=1000000" comes straight from the
         // query string and decides how many rows the service is asked to read
@@ -106,12 +107,14 @@ class WorkflowTaskController extends AdminControllerBase
         // own, where the data grid keeps its deleted data: the 削除済データ scope of the filter
         // button (Grid\Tools\FilterButton), which no すべて (all) of a grid filter ever holds.
         // Every search, リセット included, stays in it; ▼ > キャンセル leaves it.
-        $removedView = $filter['seen'] === WorkflowTaskService::SEEN_REMOVED;
-        $scope = $removedView ? ['seen' => WorkflowTaskService::SEEN_REMOVED] : [];
+        // It has a key of its own, "removed": "seen" is the 状態 choice and takes no third value.
+        $removedView = $filter['removed'] === true;
+        $scope = $removedView ? ['removed' => 1] : [];
         $conditions = array_diff_key($panel, $scope);
-        // links, not forms: the conditions of the list come along, the page and _pjax do not
-        $removedUrl = $request->fullUrlWithQuery(['seen' => WorkflowTaskService::SEEN_REMOVED, 'page' => null, '_pjax' => null]);
-        $cancelUrl = $request->fullUrlWithQuery(['seen' => null, 'page' => null, '_pjax' => null]);
+        // links, not forms: the conditions of the list come along, the page and _pjax do not -
+        // nor 状態, which the 削除済み list does not offer
+        $removedUrl = $request->fullUrlWithQuery(['removed' => 1, 'seen' => null, 'page' => null, '_pjax' => null]);
+        $cancelUrl = $request->fullUrlWithQuery(['removed' => null, 'page' => null, '_pjax' => null]);
 
         return $this->AdminContent($content)->body(view('exment::workflow_task.index', [
             'rows' => $items,
@@ -132,7 +135,8 @@ class WorkflowTaskController extends AdminControllerBase
             // the panel opens on its own conditions, like a grid's; the free word and the
             // 削除済み list leave it alone
             'expandFilter' => !empty($conditions),
-            'quickSearchKeep' => $panel + $keep,
+            // the free word searches the list in use: the 削除済み list too
+            'quickSearchKeep' => $panel + $keep + $scope,
             // the 削除済み list draws no 状態 choice, so the panel form carries it itself
             'panelKeep' => array_filter(['q' => $filter['q']], $notNull) + $keep + $scope,
             // the reset button of a grid filter (Grid\Filter::urlWithoutFilters()): drops the

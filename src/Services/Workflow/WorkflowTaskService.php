@@ -50,7 +50,7 @@ use Illuminate\Support\Collection;
  * conditionHeaders()): a column condition carries its column item and both halves of its view
  * filter class, a condition on the login user none of them.
  *
- * @phpstan-type TaskFilter array{custom_table_id: int|null, seen: int|null, status: string|null, from: string|null, to: string|null, q: string|null, sort: string}
+ * @phpstan-type TaskFilter array{custom_table_id: int|null, seen: int|null, removed: true|null, status: string|null, from: string|null, to: string|null, q: string|null, sort: string}
  * @phpstan-type ConditionPlan array{condition: Condition, item: CustomItem|null, compare: ViewFilterBase|null, filter: ViewFilterBase|null}
  * @phpstan-type HeaderPlan array{or: bool, reverse: bool, conditions: array<int, ConditionPlan>}
  */
@@ -89,15 +89,16 @@ class WorkflowTaskService
 
     /**
      * The name the reads give the 更新日時 of a task in their select list (see taskUpdatedAt()).
-     * Not updated_at: that is the record's own column, a different time.
+     * A name of its own: the reads that load the whole record select its updated_at column too.
      */
     private const UPDATED_AT = 'task_updated_at';
 
     /**
-     * The "seen" value of the list of the tasks the user took off their list (削除済み), next to
-     * 0 (unread) and 1 (read). Those tasks are on no other list, so this is where they are found
-     * again and put back (restoreSelected()). The screen does not offer it as a 状態 choice but
-     * as a list of its own, like the deleted data of a grid (see WorkflowTaskController::index()).
+     * How pendingQuery() reads the list of the tasks the user took off their list (削除済み), next
+     * to 0 (unread) and 1 (read). Those tasks are on no other list, so this is where they are found
+     * again and put back (restoreSelected()). It is no 状態 but a list of its own, like the deleted
+     * data of a grid (see WorkflowTaskController::index()): the filter asks for it with "removed",
+     * never with "seen" (see normalizeFilter()).
      */
     const SEEN_REMOVED = 2;
 
@@ -136,8 +137,12 @@ class WorkflowTaskService
         return [
             // which workflow table, null = every table the user may see
             'custom_table_id' => self::normalizeId(array_get($input, 'custom_table_id')),
-            // 0 = unread only, 1 = read only, 2 = taken off the list (SEEN_REMOVED), null = on the list
-            'seen'            => in_array($seen, ['0', '1', '2', 0, 1, self::SEEN_REMOVED], true) ? (int)$seen : null,
+            // the 状態 choice: 0 = unread only, 1 = read only, null = both. Nothing else is one -
+            // "?seen=2" lists both like "?seen=abc" does (test case TC-WT-27 on v7.0)
+            'seen'            => in_array($seen, ['0', '1', 0, 1], true) ? (int)$seen : null,
+            // the 削除済み list instead of the task list (SEEN_REMOVED): a list of its own, not a
+            // 状態, so the URL asks for it with a key of its own
+            'removed'         => in_array(array_get($input, 'removed'), ['1', 1, true], true) ? true : null,
             // the NAME of the current workflow status, null = any (see statusTarget())
             'status'          => self::normalizeStatus(array_get($input, 'status')),
             'from'            => self::normalizeDate(array_get($input, 'from')),
@@ -668,7 +673,7 @@ class WorkflowTaskService
         // $onlyUnseen is what the caller needs (badge, navbar); the screen filter can ask for
         // any side. Asking for two at once is not a contradiction to guard against - it is how
         // "how many unread rows does this read-only filter have" correctly answers zero.
-        $seen = $removed ? self::SEEN_REMOVED : $this->filter['seen'];
+        $seen = ($removed || $this->filter['removed'] === true) ? self::SEEN_REMOVED : $this->filter['seen'];
         if ($onlyUnseen || $seen === 0) {
             // no mark at all: neither read nor taken off the list
             $query->whereNotExists($this->markSubQuery($custom_table, $tableName));
@@ -736,7 +741,7 @@ class WorkflowTaskService
         // instead of whereDate(): whereDate() wraps it in date(), which differs per database.
         // Dates before FIRST_YEAR bound nothing, and SQL Server failed the whole statement on
         // them - its datetime starts in 1753, and the list answered 500 (found in review).
-        [$updatedAt, $bindings] = self::taskUpdatedAt($custom_table, $tableName);
+        [$updatedAt, $bindings] = self::taskUpdatedAt($tableName);
         if (!is_null($this->filter['from']) && (int)substr($this->filter['from'], 0, 4) >= self::FIRST_YEAR) {
             $query->whereRaw($updatedAt . ' >= ?', array_merge($bindings, [$this->filter['from'] . ' 00:00:00']));
         }
@@ -839,81 +844,36 @@ class WorkflowTaskService
     }
 
     /**
-     * The 更新日時 of a task, as SQL: when the previous action ran on the record - the moment the
-     * task came to the step it waits at - or, while the record waits at the start, when the record
-     * itself was last updated.
+     * The 更新日時 of a task, as SQL: when its record was last updated - the record's own
+     * updated_at, the 更新日時 the record page and the CSV export print for it.
      *
-     * It was the record's own updated_at, which says nothing about how long a task has waited:
-     * any edit of the record moves it, by whoever, an import as much as the person who has to
-     * act. A request held up at its step for months read as yesterday's, and the list - oldest
-     * first, to bring up what has been held up longest - put it anywhere but at the top (pointed
-     * out by the customer on v6.2.14).
+     * For a while it was the time the previous action ran on the record, to tell how long a task
+     * had waited at its step (asked for by the customer on v6.2.14). The same label then showed two
+     * different times for one record - the list when the task came, the record page when the record
+     * was edited - and the list read as wrong (test case TC-WT-01 on v7.0). It goes by the record
+     * again, as it did up to v6.2.15.
      *
-     * "The previous action" is the last action carried out on the record: the one that brought it
-     * to the status it is at. One approval of a step that waits for several is not one yet: the
-     * status stays until the last of them acts, and the approvers still to act, the ones who have
-     * the task, have had it since the record came to that status. Such an approval is the workflow
-     * value with action_executed_flg set, until the step moves on and clears it
-     * (WorkflowAction::forwardWorkflowValue()) - the 実行ユーザー of the workflow settings skips it
-     * the same way (WorkflowValue::getLastExecutedWorkflowValue()). It still makes the task unread
-     * again: that says somebody acted, this says how long the task has waited.
+     * Every read selects, sorts and filters by this one expression, so the screen prints the time
+     * it sorted by.
      *
-     * At the start the record is its own, whichever way it came to be there: a record no action
-     * has run on yet, and one an action took back there alike - the customer asked for the start to
-     * go by the record, so an edit there moves it on both. The record is at the start while it has
-     * no workflow value, or its latest one leads to no status (workflow_status_to_id NULL): the row
-     * CustomValue::workflow_value reads for the 現在のステータス column. One approval of several
-     * leaves that row at the status the record is at (WorkflowAction::getStatusToId()).
-     *
-     * Correlated sub queries on (morph_type, morph_id), the index workflow_values already has.
-     * MAX() keeps it one value per record whatever the table holds. Every read selects, sorts and
-     * filters by this one expression, so the screen prints the time it sorted by.
-     *
-     * @param CustomTable $custom_table
      * @param string $tableName
      * @return array{0: string, 1: array<int, mixed>} the expression and its bindings
      */
-    private static function taskUpdatedAt(CustomTable $custom_table, string $tableName): array
+    private static function taskUpdatedAt(string $tableName): array
     {
-        $valueTable = SystemTableName::WORKFLOW_VALUE;
-        $grammar = \DB::getQueryGrammar();
-        $updatedAt = $grammar->wrap($tableName . '.updated_at');
-
-        // the record has left the start: its latest workflow value leads to a status
-        $underway = \DB::table($valueTable)
-            ->selectRaw('1')
-            ->whereColumn($valueTable . '.morph_id', $tableName . '.id')
-            ->where($valueTable . '.morph_type', $custom_table->table_name)
-            ->where($valueTable . '.latest_flg', 1)
-            ->whereNotNull($valueTable . '.workflow_status_to_id');
-
-        $executed = \DB::table($valueTable)
-            ->selectRaw('MAX(' . $grammar->wrap($valueTable . '.created_at') . ')')
-            ->whereColumn($valueTable . '.morph_id', $tableName . '.id')
-            ->where($valueTable . '.morph_type', $custom_table->table_name)
-            ->where($valueTable . '.action_executed_flg', 0);
-
-        // COALESCE() inside: a record that left the start had an action carried out on it, but the
-        // time must not turn NULL on workflow values written some other way (import, by hand)
-        return [
-            'CASE WHEN EXISTS (' . $underway->toSql() . ')'
-                . ' THEN COALESCE((' . $executed->toSql() . '), ' . $updatedAt . ')'
-                . ' ELSE ' . $updatedAt . ' END',
-            array_merge($underway->getBindings(), $executed->getBindings()),
-        ];
+        return [\DB::getQueryGrammar()->wrap($tableName . '.updated_at'), []];
     }
 
     /**
      * Add the 更新日時 of the task (taskUpdatedAt()) to the select list of $query, as UPDATED_AT.
      *
      * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $query
-     * @param CustomTable $custom_table
      * @param string $tableName
      * @return \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>
      */
-    private static function selectUpdatedAt($query, CustomTable $custom_table, string $tableName)
+    private static function selectUpdatedAt($query, string $tableName)
     {
-        [$updatedAt, $bindings] = self::taskUpdatedAt($custom_table, $tableName);
+        [$updatedAt, $bindings] = self::taskUpdatedAt($tableName);
 
         return $query->selectRaw($updatedAt . ' as ' . \DB::getQueryGrammar()->wrap(self::UPDATED_AT), $bindings);
     }
@@ -1405,7 +1365,7 @@ class WorkflowTaskService
             'url'               => $value->getUrl(),
             'status_name'       => $statusName,
             'status_tag'        => $statusTag,
-            // the 更新日時 of the task, not of the record (see taskUpdatedAt())
+            // the 更新日時 the list sorted by (see taskUpdatedAt())
             'updated_at'        => self::updatedAtOf($value),
             'task_key'          => static::taskKey($custom_table->id, $value->id),
         ];
@@ -1469,7 +1429,7 @@ class WorkflowTaskService
         // "read only" and "taken off the list": pendingQuery() would put whereExists AND
         // whereNotExists on the same rows, so every count is zero by construction. No table has
         // to be touched to say so.
-        if ($this->filter['seen'] === 1 || $this->filter['seen'] === self::SEEN_REMOVED) {
+        if ($this->filter['seen'] === 1 || $this->filter['removed'] === true) {
             return $this->unseenCounts = [];
         }
 
@@ -1564,7 +1524,7 @@ class WorkflowTaskService
     public function countRemoved(): int
     {
         // the 削除済み list itself: that is its total
-        if ($this->filter['seen'] === self::SEEN_REMOVED) {
+        if ($this->filter['removed'] === true) {
             return $this->countAll();
         }
 
@@ -1658,7 +1618,7 @@ class WorkflowTaskService
             $query = $this->pendingQuery($custom_table, $onlyUnseen)
                 ->distinct()
                 ->select([$tableName . '.id']);
-            $rows = self::selectUpdatedAt($query, $custom_table, $tableName)
+            $rows = self::selectUpdatedAt($query, $tableName)
                 ->orderBy(self::UPDATED_AT, 'desc')
                 ->orderBy($tableName . '.id', 'desc')
                 ->limit($limit)
@@ -1694,7 +1654,7 @@ class WorkflowTaskService
                 ->with(['workflow_value'])
                 ->select($tableName . '.*')
                 ->distinct();
-            $values = self::selectUpdatedAt($query, $custom_table, $tableName)->get();
+            $values = self::selectUpdatedAt($query, $tableName)->get();
 
             // the query is built from getModelName(), whose class is only known at runtime, so
             // the rows arrive typed as the base Model; every custom value table extends CustomValue
@@ -1760,7 +1720,7 @@ class WorkflowTaskService
             $query = $this->pendingQuery($custom_table, false)
                 ->distinct()
                 ->select([$tableName . '.id']);
-            $rows = self::selectUpdatedAt($query, $custom_table, $tableName)
+            $rows = self::selectUpdatedAt($query, $tableName)
                 ->orderBy(self::UPDATED_AT, $direction)
                 ->orderBy($tableName . '.id', $direction)
                 // min(): SELECT DISTINCT id, 更新日時 returns one row per distinct id (one
@@ -1880,7 +1840,7 @@ class WorkflowTaskService
                 ->with(['workflow_value'])
                 ->select($tableName . '.*')
                 ->whereIn($tableName . '.id', $ids);
-            $values = self::selectUpdatedAt($query, $custom_table, $tableName)->get();
+            $values = self::selectUpdatedAt($query, $tableName)->get();
 
             // as in getTasks(): every custom value table extends CustomValue
             /** @var \Exceedone\Exment\Model\CustomValue $value */
@@ -2432,7 +2392,7 @@ class WorkflowTaskService
         }
 
         // the 削除済み list, whatever filter this instance was built with
-        $removed = new self(['seen' => self::SEEN_REMOVED]);
+        $removed = new self(['removed' => true]);
         $tables = $removed->workflowCustomTables();
         $userId = \Exment::getUserId();
         $restored = 0;
