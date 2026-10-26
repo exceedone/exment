@@ -39,7 +39,8 @@
         "kylekatarnls/update-helper": "^1.2",
         "laravel/socialite": "^5.20",
         "simplesoftwareio/simple-qrcode": "2.0",
-        "elibyy/tcpdf-laravel": "^11.4"
+        "elibyy/tcpdf-laravel": "^11.4",
+        "exceedone/exment-admin-core": "^1.0.1"
     },
     "suggest": {
         "directorytree/ldaprecord": "Required to use the LDAP login. Install with: composer require directorytree/ldaprecord",
