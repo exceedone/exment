@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\ApiScope;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -130,6 +131,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/2factor-verify', 'LoginSettingController@auth_2factor_verify')->name('exment.2factor_verify');
             $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
             $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal')->name('exment.postglobal');
+            $router->post('login_setting/country', 'LoginSettingController@postCountryRestriction')->name('exment.post_login_country');
             $router->get("login_setting/loginOptionHtml", 'LoginSettingController@loginOptionHtml');
 
             $router->get('plugin/edit_code/{id}/getTree', 'PluginCodeController@getTreeData');
@@ -308,7 +310,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('initialize', 'InitializeController@post');
             $router->get('auth/login', 'AuthController@getLoginExment')->name('exment.login');
             $router->get('auth/logout', 'AuthController@getLogout')->name('exment.logout');
-            $router->post('auth/login', 'AuthController@postLogin');
+            $router->post('auth/login', 'AuthController@postLogin')->middleware('admin.login-country:' . LoginType::PURE);
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
             $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');
@@ -319,15 +321,15 @@ class RouteServiceProvider extends ServiceProvider
             // get config about login provider
             if (canConnection() && hasTable(SystemTableName::LOGIN_SETTINGS)) {
                 if (LoginSetting::getOAuthSettings()->count() > 0) {
-                    $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider');
-                    $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callback');
+                    $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider')->middleware('admin.login-country:' . LoginType::OAUTH);
+                    $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callback')->middleware('admin.login-country:' . LoginType::OAUTH);
                 }
                 // get config about login provider
                 if (LoginSetting::getSamlSettings()->count() > 0) {
                     $router->get('saml/logout', 'AuthSamlController@sls')->name('exment.saml_sls');
-                    $router->get('saml/login/{provider}', 'AuthSamlController@login')->name('exment.saml_login');
+                    $router->get('saml/login/{provider}', 'AuthSamlController@login')->name('exment.saml_login')->middleware('admin.login-country:' . LoginType::SAML);
                     $router->get('saml/login/{provider}/metadata', 'AuthSamlController@metadata');
-                    $router->post('saml/login/{provider}/acs', 'AuthSamlController@acs')->name('exment.saml_acs');
+                    $router->post('saml/login/{provider}/acs', 'AuthSamlController@acs')->name('exment.saml_acs')->middleware('admin.login-country:' . LoginType::SAML);
                 }
             }
         });

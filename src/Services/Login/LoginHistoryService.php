@@ -125,6 +125,59 @@ class LoginHistoryService
     }
 
     /**
+     * Record a login attempt blocked before login. (Ex. the login restriction by country)
+     * Not notified, and not used for the warning of a new IP address.
+     *
+     * @param string $reason LoginHistory::BLOCKED_REASON_*
+     * @param string $login_type
+     * @param array{country_code: string|null, country: string|null, region: string|null, city: string|null} $geo result of GeoIpService::lookup()
+     * @param LoginUser|null $login_user the user, if known. (logged in by the "remember me" cookie)
+     * @param string|null $username the ID entered on the login form, if the user is not known.
+     * @param string|null $login_provider provider name of OAuth / SAML / LDAP
+     * @param bool $viaRemember whether tried to log in by "remember me" cookie
+     * @return LoginHistory|null null if the table is not migrated yet.
+     */
+    public static function recordBlocked(
+        string $reason,
+        string $login_type,
+        array $geo,
+        ?LoginUser $login_user = null,
+        ?string $username = null,
+        ?string $login_provider = null,
+        bool $viaRemember = false
+    ): ?LoginHistory {
+        if (!hasTable(SystemTableName::LOGIN_HISTORY)) {
+            return null;
+        }
+
+        $request = request();
+
+        $history = new LoginHistory();
+        $history->saving_users = false;
+        $history->login_user_id = $login_user ? $login_user->id : null;
+        $history->base_user_id = $login_user ? $login_user->base_user_id : null;
+        $history->user_code = static::truncate($login_user ? $login_user->user_code : $username, 255);
+        $history->user_name = $login_user ? static::truncate($login_user->user_name, 255) : null;
+        $history->login_type = $login_type;
+        $history->login_provider = static::truncate($login_user ? $login_user->login_provider : $login_provider, 255);
+        $history->ip_address = $request->ip();
+        $history->country_code = $geo['country_code'];
+        $history->country = $geo['country'];
+        $history->region = $geo['region'];
+        $history->city = $geo['city'];
+        $history->user_agent = static::truncate($request->userAgent(), 1000);
+        $history->is_new_ip = false;
+        $history->via_remember = $viaRemember;
+        $history->auth_2factor_verified = null;
+        $history->blocked_reason = $reason;
+        $history->created_user_id = $history->base_user_id;
+        $history->updated_user_id = $history->base_user_id;
+        $history->save();
+
+        return $history;
+    }
+
+    /**
      * Notify system administrators that the user logged in from an IP address the user has not used.
      * Always notified on the page (bell icon of the header), and also by mail if the setting is on.
      * A failure of notification never blocks login.
@@ -305,7 +358,7 @@ class LoginHistoryService
      * Compared with the IP addresses of the user's last N successful logins
      * (N = setting "login_history_new_ip_count", default 10).
      * If the user has no history yet (first login), there is nothing to compare with, so returns false.
-     * Histories that did not pass 2factor authentication are not treated as "used".
+     * Histories that did not pass 2factor authentication, or were blocked, are not treated as "used".
      *
      * @param mixed $base_user_id
      * @param string|null $ip
@@ -323,6 +376,8 @@ class LoginHistoryService
         $used_ips = LoginHistory::query()
             ->where('base_user_id', $base_user_id)
             ->whereNotNull('ip_address')
+            // blocked attempts are not logins
+            ->whereNull('blocked_reason')
             ->where(function ($query) {
                 $query->whereNull('auth_2factor_verified')
                     ->orWhere('auth_2factor_verified', true);

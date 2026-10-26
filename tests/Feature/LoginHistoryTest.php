@@ -64,6 +64,8 @@ class LoginHistoryTest extends FeatureTestBase
         System::login_history_new_ip_count(LoginHistoryService::DEFAULT_NEW_IP_COUNT);
         System::login_history_notify_new_ip(true);
         System::login_history_notify_mail(false);
+        // logins from abroad must not be blocked by the login restriction by country saved in the database
+        System::login_country_restriction(false);
     }
 
     // ------------------------------------------------------------------ //

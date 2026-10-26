@@ -1,0 +1,311 @@
+<?php
+
+namespace Exceedone\Exment\Services\GeoIp;
+
+/**
+ * Countries and regions (ISO 3166-1 alpha-2, and "XK" Kosovo used by the GeoIP database), with names in English and Japanese.
+ * The names are the same as the GeoIP database (DB-IP), so that they match the country recorded in the login history.
+ */
+class CountryList
+{
+    /**
+     * @var array<string, array{en: string, ja: string}> key: country code
+     */
+    public const COUNTRIES = [
+        'AD' => ['en' => 'Andorra', 'ja' => 'アンドラ'],
+        'AE' => ['en' => 'United Arab Emirates', 'ja' => 'アラブ首長国連邦'],
+        'AF' => ['en' => 'Afghanistan', 'ja' => 'アフガニスタン'],
+        'AG' => ['en' => 'Antigua and Barbuda', 'ja' => 'アンティグア・バーブーダ'],
+        'AI' => ['en' => 'Anguilla', 'ja' => 'アンギラ'],
+        'AL' => ['en' => 'Albania', 'ja' => 'アルバニア'],
+        'AM' => ['en' => 'Armenia', 'ja' => 'アルメニア'],
+        'AO' => ['en' => 'Angola', 'ja' => 'アンゴラ'],
+        'AQ' => ['en' => 'Antarctica', 'ja' => '南極大陸'],
+        'AR' => ['en' => 'Argentina', 'ja' => 'アルゼンチン'],
+        'AS' => ['en' => 'American Samoa', 'ja' => '米領サモア'],
+        'AT' => ['en' => 'Austria', 'ja' => 'オーストリア'],
+        'AU' => ['en' => 'Australia', 'ja' => 'オーストラリア'],
+        'AW' => ['en' => 'Aruba', 'ja' => 'アルバ島'],
+        'AX' => ['en' => 'Aland Islands', 'ja' => 'オーランド諸島'],
+        'AZ' => ['en' => 'Azerbaijan', 'ja' => 'アゼルバイジャン'],
+        'BA' => ['en' => 'Bosnia and Herzegovina', 'ja' => 'ボスニア・ヘルツェゴビナ'],
+        'BB' => ['en' => 'Barbados', 'ja' => 'バルバドス'],
+        'BD' => ['en' => 'Bangladesh', 'ja' => 'バングラデシュ'],
+        'BE' => ['en' => 'Belgium', 'ja' => 'ベルギー'],
+        'BF' => ['en' => 'Burkina Faso', 'ja' => 'ブルキナファソ'],
+        'BG' => ['en' => 'Bulgaria', 'ja' => 'ブルガリア'],
+        'BH' => ['en' => 'Bahrain', 'ja' => 'バーレーン'],
+        'BI' => ['en' => 'Burundi', 'ja' => 'ブルンジ'],
+        'BJ' => ['en' => 'Benin', 'ja' => 'ベニン'],
+        'BL' => ['en' => 'Saint Barthelemy', 'ja' => 'サン・バルテルミー'],
+        'BM' => ['en' => 'Bermuda', 'ja' => 'バミューダ'],
+        'BN' => ['en' => 'Brunei', 'ja' => 'ブルネイ'],
+        'BO' => ['en' => 'Bolivia', 'ja' => 'ボリビア'],
+        'BQ' => ['en' => 'Bonaire, Saint Eustatius and Saba ', 'ja' => 'ボネール、シント・ユースタティウスおよびサバ'],
+        'BR' => ['en' => 'Brazil', 'ja' => 'ブラジル'],
+        'BS' => ['en' => 'Bahamas', 'ja' => 'バハマ'],
+        'BT' => ['en' => 'Bhutan', 'ja' => 'ブータン'],
+        'BV' => ['en' => 'Bouvet Island', 'ja' => 'ブーベ島'],
+        'BW' => ['en' => 'Botswana', 'ja' => 'ボツワナ'],
+        'BY' => ['en' => 'Belarus', 'ja' => 'ベラルーシ'],
+        'BZ' => ['en' => 'Belize', 'ja' => 'ベリーズ'],
+        'CA' => ['en' => 'Canada', 'ja' => 'カナダ'],
+        'CC' => ['en' => 'Cocos (Keeling) Islands', 'ja' => 'ココス諸島'],
+        'CD' => ['en' => 'Democratic Republic of the Congo', 'ja' => 'コンゴ民主共和国 (キンシャサ)'],
+        'CF' => ['en' => 'Central African Republic', 'ja' => '中央アフリカ共和国'],
+        'CG' => ['en' => 'Republic of the Congo', 'ja' => 'コンゴ共和国 (ブラザビル)'],
+        'CH' => ['en' => 'Switzerland', 'ja' => 'スイス'],
+        'CI' => ['en' => 'Ivory Coast', 'ja' => 'コートジボワール'],
+        'CK' => ['en' => 'Cook Islands', 'ja' => 'クック諸島'],
+        'CL' => ['en' => 'Chile', 'ja' => 'チリ'],
+        'CM' => ['en' => 'Cameroon', 'ja' => 'カメルーン'],
+        'CN' => ['en' => 'China', 'ja' => '中国'],
+        'CO' => ['en' => 'Colombia', 'ja' => 'コロンビア'],
+        'CR' => ['en' => 'Costa Rica', 'ja' => 'コスタリカ'],
+        'CU' => ['en' => 'Cuba', 'ja' => 'キューバ'],
+        'CV' => ['en' => 'Cabo Verde', 'ja' => 'カーボベルデ'],
+        'CW' => ['en' => 'Curacao', 'ja' => 'ケア'],
+        'CX' => ['en' => 'Christmas Island', 'ja' => 'クリスマス島'],
+        'CY' => ['en' => 'Cyprus', 'ja' => 'キプロス'],
+        'CZ' => ['en' => 'Czechia', 'ja' => 'チェコ共和国'],
+        'DE' => ['en' => 'Germany', 'ja' => 'ドイツ'],
+        'DJ' => ['en' => 'Djibouti', 'ja' => 'ジブチ'],
+        'DK' => ['en' => 'Denmark', 'ja' => 'デンマーク'],
+        'DM' => ['en' => 'Dominica', 'ja' => 'ドミニカ国'],
+        'DO' => ['en' => 'Dominican Republic', 'ja' => 'ドミニカ共和国'],
+        'DZ' => ['en' => 'Algeria', 'ja' => 'アルジェリア'],
+        'EC' => ['en' => 'Ecuador', 'ja' => 'エクアドル'],
+        'EE' => ['en' => 'Estonia', 'ja' => 'エストニア'],
+        'EG' => ['en' => 'Egypt', 'ja' => 'エジプト'],
+        'EH' => ['en' => 'Western Sahara', 'ja' => '西サハラ'],
+        'ER' => ['en' => 'Eritrea', 'ja' => 'エリトリア'],
+        'ES' => ['en' => 'Spain', 'ja' => 'スペイン'],
+        'ET' => ['en' => 'Ethiopia', 'ja' => 'エチオピア'],
+        'FI' => ['en' => 'Finland', 'ja' => 'フィンランド'],
+        'FJ' => ['en' => 'Fiji', 'ja' => 'フィジー'],
+        'FK' => ['en' => 'Falkland Islands', 'ja' => 'フォークランド諸島'],
+        'FM' => ['en' => 'Micronesia', 'ja' => 'ミクロネシア'],
+        'FO' => ['en' => 'Faroe Islands', 'ja' => 'フェロー諸島'],
+        'FR' => ['en' => 'France', 'ja' => 'フランス'],
+        'GA' => ['en' => 'Gabon', 'ja' => 'ガボン'],
+        'GB' => ['en' => 'United Kingdom', 'ja' => 'イギリス'],
+        'GD' => ['en' => 'Grenada', 'ja' => 'グレナダ'],
+        'GE' => ['en' => 'Georgia', 'ja' => 'グルジア'],
+        'GF' => ['en' => 'French Guiana', 'ja' => '仏領ギアナ'],
+        'GG' => ['en' => 'Guernsey', 'ja' => 'ガーンジー'],
+        'GH' => ['en' => 'Ghana', 'ja' => 'ガーナ'],
+        'GI' => ['en' => 'Gibraltar', 'ja' => 'ジブラルタル'],
+        'GL' => ['en' => 'Greenland', 'ja' => 'グリーンランド'],
+        'GM' => ['en' => 'Gambia', 'ja' => 'ガンビア'],
+        'GN' => ['en' => 'Guinea', 'ja' => 'ギニア'],
+        'GP' => ['en' => 'Guadeloupe', 'ja' => 'グアドループ'],
+        'GQ' => ['en' => 'Equatorial Guinea', 'ja' => '赤道ギニア'],
+        'GR' => ['en' => 'Greece', 'ja' => 'ギリシャ'],
+        'GS' => ['en' => 'South Georgia and the South Sandwich Islands', 'ja' => 'サウスジョージア・サウスサンドウィッチ諸島'],
+        'GT' => ['en' => 'Guatemala', 'ja' => 'グアテマラ'],
+        'GU' => ['en' => 'Guam', 'ja' => 'グアム'],
+        'GW' => ['en' => 'Guinea-Bissau', 'ja' => 'ギニアビサウ'],
+        'GY' => ['en' => 'Guyana', 'ja' => 'ガイアナ'],
+        'HK' => ['en' => 'Hong Kong', 'ja' => '中華人民共和国香港特別行政区'],
+        'HM' => ['en' => 'Heard Island and McDonald Islands', 'ja' => 'ハード島とマクドナルド諸島'],
+        'HN' => ['en' => 'Honduras', 'ja' => 'ホンジュラス'],
+        'HR' => ['en' => 'Croatia', 'ja' => 'クロアチア'],
+        'HT' => ['en' => 'Haiti', 'ja' => 'ハイチ'],
+        'HU' => ['en' => 'Hungary', 'ja' => 'ハンガリー'],
+        'ID' => ['en' => 'Indonesia', 'ja' => 'インドネシア'],
+        'IE' => ['en' => 'Ireland', 'ja' => 'アイルランド'],
+        'IL' => ['en' => 'Israel', 'ja' => 'イスラエル'],
+        'IM' => ['en' => 'Isle of Man', 'ja' => 'マン島'],
+        'IN' => ['en' => 'India', 'ja' => 'インド'],
+        'IO' => ['en' => 'British Indian Ocean Territory', 'ja' => '英領インド洋植民地'],
+        'IQ' => ['en' => 'Iraq', 'ja' => 'イラク'],
+        'IR' => ['en' => 'Iran', 'ja' => 'イラン'],
+        'IS' => ['en' => 'Iceland', 'ja' => 'アイスランド'],
+        'IT' => ['en' => 'Italy', 'ja' => 'イタリア'],
+        'JE' => ['en' => 'Jersey', 'ja' => 'ジャージー'],
+        'JM' => ['en' => 'Jamaica', 'ja' => 'ジャマイカ'],
+        'JO' => ['en' => 'Jordan', 'ja' => 'ヨルダン'],
+        'JP' => ['en' => 'Japan', 'ja' => '日本'],
+        'KE' => ['en' => 'Kenya', 'ja' => 'ケニア'],
+        'KG' => ['en' => 'Kyrgyzstan', 'ja' => 'キルギスタン'],
+        'KH' => ['en' => 'Cambodia', 'ja' => 'カンボジア'],
+        'KI' => ['en' => 'Kiribati', 'ja' => 'キリバス'],
+        'KM' => ['en' => 'Comoros', 'ja' => 'コモロ'],
+        'KN' => ['en' => 'Saint Kitts and Nevis', 'ja' => 'セントクリストファー・ネイビス'],
+        'KP' => ['en' => 'North Korea', 'ja' => '朝鮮民主主義人民共和国'],
+        'KR' => ['en' => 'South Korea', 'ja' => '大韓民国'],
+        'KW' => ['en' => 'Kuwait', 'ja' => 'クウェート'],
+        'KY' => ['en' => 'Cayman Islands', 'ja' => 'ケイマン諸島'],
+        'KZ' => ['en' => 'Kazakhstan', 'ja' => 'カザフスタン'],
+        'LA' => ['en' => 'Laos', 'ja' => 'ラオス'],
+        'LB' => ['en' => 'Lebanon', 'ja' => 'レバノン'],
+        'LC' => ['en' => 'Saint Lucia', 'ja' => 'セントルシア'],
+        'LI' => ['en' => 'Liechtenstein', 'ja' => 'リヒテンシュタイン'],
+        'LK' => ['en' => 'Sri Lanka', 'ja' => 'スリランカ'],
+        'LR' => ['en' => 'Liberia', 'ja' => 'リベリア'],
+        'LS' => ['en' => 'Lesotho', 'ja' => 'レソト'],
+        'LT' => ['en' => 'Lithuania', 'ja' => 'リトアニア'],
+        'LU' => ['en' => 'Luxembourg', 'ja' => 'ルクセンブルグ'],
+        'LV' => ['en' => 'Latvia', 'ja' => 'ラトビア'],
+        'LY' => ['en' => 'Libya', 'ja' => 'リビア'],
+        'MA' => ['en' => 'Morocco', 'ja' => 'モロッコ'],
+        'MC' => ['en' => 'Monaco', 'ja' => 'モナコ'],
+        'MD' => ['en' => 'Moldova', 'ja' => 'モルドバ'],
+        'ME' => ['en' => 'Montenegro', 'ja' => 'モンテネグロ'],
+        'MF' => ['en' => 'Saint Martin', 'ja' => 'セント・マーチン'],
+        'MG' => ['en' => 'Madagascar', 'ja' => 'マダガスカル'],
+        'MH' => ['en' => 'Marshall Islands', 'ja' => 'マーシャル諸島共和国'],
+        'MK' => ['en' => 'North Macedonia', 'ja' => 'マケドニア'],
+        'ML' => ['en' => 'Mali', 'ja' => 'マリ'],
+        'MM' => ['en' => 'Myanmar', 'ja' => 'ミャンマー'],
+        'MN' => ['en' => 'Mongolia', 'ja' => 'モンゴル'],
+        'MO' => ['en' => 'Macao', 'ja' => '中華人民共和国マカオ特別行政区'],
+        'MP' => ['en' => 'Northern Mariana Islands', 'ja' => '北マリアナ諸島'],
+        'MQ' => ['en' => 'Martinique', 'ja' => 'マルティニーク島'],
+        'MR' => ['en' => 'Mauritania', 'ja' => 'モーリタニア'],
+        'MS' => ['en' => 'Montserrat', 'ja' => 'モントセラト島'],
+        'MT' => ['en' => 'Malta', 'ja' => 'マルタ'],
+        'MU' => ['en' => 'Mauritius', 'ja' => 'モーリシャス'],
+        'MV' => ['en' => 'Maldives', 'ja' => 'モルジブ'],
+        'MW' => ['en' => 'Malawi', 'ja' => 'マラウィ'],
+        'MX' => ['en' => 'Mexico', 'ja' => 'メキシコ'],
+        'MY' => ['en' => 'Malaysia', 'ja' => 'マレーシア'],
+        'MZ' => ['en' => 'Mozambique', 'ja' => 'モザンビーク'],
+        'NA' => ['en' => 'Namibia', 'ja' => 'ナミビア'],
+        'NC' => ['en' => 'New Caledonia', 'ja' => 'ニューカレドニア'],
+        'NE' => ['en' => 'Niger', 'ja' => 'ニジェール'],
+        'NF' => ['en' => 'Norfolk Island', 'ja' => 'ノーフォーク島'],
+        'NG' => ['en' => 'Nigeria', 'ja' => 'ナイジェリア'],
+        'NI' => ['en' => 'Nicaragua', 'ja' => 'ニカラグア'],
+        'NL' => ['en' => 'The Netherlands', 'ja' => 'オランダ'],
+        'NO' => ['en' => 'Norway', 'ja' => 'ノルウェー'],
+        'NP' => ['en' => 'Nepal', 'ja' => 'ネパール'],
+        'NR' => ['en' => 'Nauru', 'ja' => 'ナウル'],
+        'NU' => ['en' => 'Niue', 'ja' => 'ニウエ島'],
+        'NZ' => ['en' => 'New Zealand', 'ja' => 'ニュージーランド'],
+        'OM' => ['en' => 'Oman', 'ja' => 'オマーン'],
+        'PA' => ['en' => 'Panama', 'ja' => 'パナマ'],
+        'PE' => ['en' => 'Peru', 'ja' => 'ペルー'],
+        'PF' => ['en' => 'French Polynesia', 'ja' => '仏領ポリネシア'],
+        'PG' => ['en' => 'Papua New Guinea', 'ja' => 'パプアニューギニア'],
+        'PH' => ['en' => 'Philippines', 'ja' => 'フィリピン'],
+        'PK' => ['en' => 'Pakistan', 'ja' => 'パキスタン'],
+        'PL' => ['en' => 'Poland', 'ja' => 'ポーランド'],
+        'PM' => ['en' => 'Saint Pierre and Miquelon', 'ja' => 'サンピエール島・ミクロン島'],
+        'PN' => ['en' => 'Pitcairn Islands', 'ja' => 'ピトケアン諸島'],
+        'PR' => ['en' => 'Puerto Rico', 'ja' => 'プエルトリコ'],
+        'PS' => ['en' => 'Palestinian Territory', 'ja' => 'パレスチナ領土'],
+        'PT' => ['en' => 'Portugal', 'ja' => 'ポルトガル'],
+        'PW' => ['en' => 'Palau', 'ja' => 'パラオ'],
+        'PY' => ['en' => 'Paraguay', 'ja' => 'パラグアイ'],
+        'QA' => ['en' => 'Qatar', 'ja' => 'カタール'],
+        'RE' => ['en' => 'Reunion', 'ja' => 'レユニオン島'],
+        'RO' => ['en' => 'Romania', 'ja' => 'ルーマニア'],
+        'RS' => ['en' => 'Serbia', 'ja' => 'セルビア'],
+        'RU' => ['en' => 'Russia', 'ja' => 'ロシア'],
+        'RW' => ['en' => 'Rwanda', 'ja' => 'ルワンダ'],
+        'SA' => ['en' => 'Saudi Arabia', 'ja' => 'サウジアラビア'],
+        'SB' => ['en' => 'Solomon Islands', 'ja' => 'ソロモン諸島'],
+        'SC' => ['en' => 'Seychelles', 'ja' => 'セーシェル'],
+        'SD' => ['en' => 'Sudan', 'ja' => 'スーダン'],
+        'SE' => ['en' => 'Sweden', 'ja' => 'スウェーデン'],
+        'SG' => ['en' => 'Singapore', 'ja' => 'シンガポール'],
+        'SH' => ['en' => 'Saint Helena', 'ja' => 'セントヘレナ'],
+        'SI' => ['en' => 'Slovenia', 'ja' => 'スロベニア'],
+        'SJ' => ['en' => 'Svalbard and Jan Mayen', 'ja' => 'スヴァールバル諸島およびヤンマイエン島'],
+        'SK' => ['en' => 'Slovakia', 'ja' => 'スロバキア'],
+        'SL' => ['en' => 'Sierra Leone', 'ja' => 'シエラレオネ'],
+        'SM' => ['en' => 'San Marino', 'ja' => 'サンマリノ'],
+        'SN' => ['en' => 'Senegal', 'ja' => 'セネガル'],
+        'SO' => ['en' => 'Somalia', 'ja' => 'ソマリア'],
+        'SR' => ['en' => 'Suriname', 'ja' => 'スリナム'],
+        'SS' => ['en' => 'South Sudan', 'ja' => '南スーダン'],
+        'ST' => ['en' => 'Sao Tome and Principe', 'ja' => 'サントメ・プリンシペ'],
+        'SV' => ['en' => 'El Salvador', 'ja' => 'エルサルバドル'],
+        'SX' => ['en' => 'Sint Maarten', 'ja' => 'シントマールテン島'],
+        'SY' => ['en' => 'Syria', 'ja' => 'シリア'],
+        'SZ' => ['en' => 'Eswatini', 'ja' => 'スワジランド'],
+        'TC' => ['en' => 'Turks and Caicos Islands', 'ja' => 'タークス諸島・カイコス諸島'],
+        'TD' => ['en' => 'Chad', 'ja' => 'チャド'],
+        'TF' => ['en' => 'French Southern Territories', 'ja' => 'フランス領南方・南極地域'],
+        'TG' => ['en' => 'Togo', 'ja' => 'トーゴ'],
+        'TH' => ['en' => 'Thailand', 'ja' => 'タイ'],
+        'TJ' => ['en' => 'Tajikistan', 'ja' => 'タジキスタン'],
+        'TK' => ['en' => 'Tokelau', 'ja' => 'トケラウ'],
+        'TL' => ['en' => 'Timor Leste', 'ja' => '東ティモール'],
+        'TM' => ['en' => 'Turkmenistan', 'ja' => 'トルクメニスタン'],
+        'TN' => ['en' => 'Tunisia', 'ja' => 'チュニジア'],
+        'TO' => ['en' => 'Tonga', 'ja' => 'トンガ'],
+        'TR' => ['en' => 'Turkey', 'ja' => 'トルコ'],
+        'TT' => ['en' => 'Trinidad and Tobago', 'ja' => 'トリニダード・トバゴ'],
+        'TV' => ['en' => 'Tuvalu', 'ja' => 'ツバル'],
+        'TW' => ['en' => 'Taiwan', 'ja' => '台湾'],
+        'TZ' => ['en' => 'Tanzania', 'ja' => 'タンザニア'],
+        'UA' => ['en' => 'Ukraine', 'ja' => 'ウクライナ'],
+        'UG' => ['en' => 'Uganda', 'ja' => 'ウガンダ'],
+        'UM' => ['en' => 'U.S. Minor Outlying Islands', 'ja' => '合衆国領有小離島'],
+        'US' => ['en' => 'United States', 'ja' => 'アメリカ合衆国'],
+        'UY' => ['en' => 'Uruguay', 'ja' => 'ウルグアイ'],
+        'UZ' => ['en' => 'Uzbekistan', 'ja' => 'ウズベキスタン'],
+        'VA' => ['en' => 'Vatican', 'ja' => 'バチカン市国'],
+        'VC' => ['en' => 'Saint Vincent and the Grenadines', 'ja' => 'セントビンセント・グレナディーン諸島'],
+        'VE' => ['en' => 'Venezuela', 'ja' => 'ベネズエラ'],
+        'VG' => ['en' => 'British Virgin Islands', 'ja' => 'イギリス領ヴァージン諸島'],
+        'VI' => ['en' => 'U.S. Virgin Islands', 'ja' => 'アメリカ領ヴァージン諸島'],
+        'VN' => ['en' => 'Vietnam', 'ja' => 'ベトナム'],
+        'VU' => ['en' => 'Vanuatu', 'ja' => 'バヌアツ'],
+        'WF' => ['en' => 'Wallis and Futuna', 'ja' => 'ウォリス・フツナ'],
+        'WS' => ['en' => 'Samoa', 'ja' => 'サモア'],
+        'XK' => ['en' => 'Kosovo', 'ja' => 'コソボ'],
+        'YE' => ['en' => 'Yemen', 'ja' => 'イエメン'],
+        'YT' => ['en' => 'Mayotte', 'ja' => 'マヨット島'],
+        'ZA' => ['en' => 'South Africa', 'ja' => '南アフリカ'],
+        'ZM' => ['en' => 'Zambia', 'ja' => 'ザンビア'],
+        'ZW' => ['en' => 'Zimbabwe', 'ja' => 'ジンバブエ'],
+    ];
+
+    /**
+     * Whether the country code is in the list.
+     *
+     * @param mixed $code
+     * @return bool
+     */
+    public static function exists($code): bool
+    {
+        return is_string($code) && array_key_exists($code, static::COUNTRIES);
+    }
+
+    /**
+     * Get the name of the country by the locale (Japanese or English).
+     *
+     * @param string $code
+     * @param string|null $locale null: the application locale
+     * @return string|null null if the code is not in the list
+     */
+    public static function getName(string $code, ?string $locale = null): ?string
+    {
+        if (!static::exists($code)) {
+            return null;
+        }
+
+        $locale = $locale ?? config('app.locale');
+        return static::COUNTRIES[$code][$locale === 'ja' ? 'ja' : 'en'];
+    }
+
+    /**
+     * Get options for select box. "Japan (JP)", ordered by the name.
+     *
+     * @param string|null $locale null: the application locale
+     * @return array<string, string> key: country code
+     */
+    public static function getOptions(?string $locale = null): array
+    {
+        $options = [];
+        foreach (array_keys(static::COUNTRIES) as $code) {
+            $options[$code] = static::getName($code, $locale) . " ({$code})";
+        }
+        asort($options, SORT_STRING);
+
+        return $options;
+    }
+}

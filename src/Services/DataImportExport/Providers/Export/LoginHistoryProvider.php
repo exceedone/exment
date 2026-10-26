@@ -65,6 +65,8 @@ class LoginHistoryProvider extends ProviderBase
             'is_new_ip',
             'auth_2factor_verified',
             'user_agent',
+            // added later: appended to keep the position of the other columns
+            'blocked_reason',
         ];
 
         // 2nd row, column view name
@@ -83,6 +85,7 @@ class LoginHistoryProvider extends ProviderBase
             exmtrans('login_history.is_new_ip'),
             exmtrans('login_history.auth_2factor_verified'),
             exmtrans('login_history.user_agent'),
+            exmtrans('login_history.blocked_reason'),
         ];
 
         return $rows;
@@ -136,6 +139,7 @@ class LoginHistoryProvider extends ProviderBase
             $body_items[] = boolval($record->is_new_ip) ? 1 : 0;
             $body_items[] = is_null($record->auth_2factor_verified) ? null : (boolval($record->auth_2factor_verified) ? 1 : 0);
             $body_items[] = $this->escapeFormula($record->user_agent);
+            $body_items[] = $record->blocked_reason;
 
             $bodies[] = $body_items;
         }

@@ -184,8 +184,8 @@ class LoginHistoryController extends AdminControllerBase
         $grid->column('login_type', exmtrans('login_history.login_type'))->display(function ($value, $column, $model) {
             return $model->login_type_text;
         })->escape(true);
-        $grid->column('is_new_ip', exmtrans('login_history.is_new_ip'))->display(function ($value) {
-            return UserLoginHistoryGrid::getNewIpLabel($value);
+        $grid->column('is_new_ip', exmtrans('login_history.is_new_ip'))->display(function ($value, $column, $model) {
+            return UserLoginHistoryGrid::getWarningLabel($model);
         });
         $grid->column('auth_2factor_verified', exmtrans('login_history.auth_2factor_verified'))->display(function ($value) {
             if (is_null($value)) {
@@ -215,6 +215,16 @@ class LoginHistoryController extends AdminControllerBase
             $filter->equal('is_new_ip', exmtrans('login_history.is_new_ip'))->select([
                 1 => exmtrans('login_history.is_new_ip_options.1'),
                 0 => exmtrans('login_history.is_new_ip_options.0'),
+            ]);
+            $filter->exmwhere(function ($query, $input) {
+                if (boolval($input)) {
+                    $query->whereNotNull('blocked_reason');
+                } else {
+                    $query->whereNull('blocked_reason');
+                }
+            }, exmtrans('login_history.blocked_reason'), 'blocked')->select([
+                1 => exmtrans('login_history.blocked_filter_options.1'),
+                0 => exmtrans('login_history.blocked_filter_options.0'),
             ]);
             $filter->betweendatetime(function ($query, $input) {
                 if (array_key_value_exists('start', $input)) {
@@ -292,6 +302,9 @@ class LoginHistoryController extends AdminControllerBase
                     return exmtrans('login_history.auth_2factor_verified_options.none');
                 }
                 return exmtrans('login_history.auth_2factor_verified_options.' . (boolval($value) ? '1' : '0'));
+            });
+            $show->field('blocked_reason', exmtrans('login_history.blocked_reason'))->as(function ($value) {
+                return UserLoginHistoryGrid::getBlockedText($value) ?? '';
             });
             $show->field('user_agent', exmtrans('login_history.user_agent'));
 

@@ -26,6 +26,7 @@ use Exceedone\Exment\Enums\LoginType;
  * @property mixed $is_new_ip
  * @property mixed $via_remember
  * @property mixed $auth_2factor_verified
+ * @property mixed $blocked_reason
  * @property mixed $created_at
  * @property mixed $updated_at
  * @property mixed $created_user_id
@@ -37,6 +38,21 @@ class LoginHistory extends ModelBase
      * Chunk size for deleting old records.
      */
     public const DELETE_CHUNK_SIZE = 1000;
+
+    /**
+     * "blocked_reason": blocked by the login restriction by country. (null: logged in)
+     */
+    public const BLOCKED_REASON_COUNTRY = 'country';
+
+    /**
+     * Whether the login was blocked. (not logged in)
+     *
+     * @return bool
+     */
+    public function isBlocked(): bool
+    {
+        return !is_nullorempty($this->blocked_reason);
+    }
 
     protected $casts = [
         'is_new_ip' => 'boolean',

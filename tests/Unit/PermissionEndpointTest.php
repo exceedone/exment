@@ -119,6 +119,8 @@ class PermissionEndpointTest extends UnitTestBase
         'login_history',
         'login_history/1',
         'login_history/setting',
+        'login_setting',
+        'login_setting/country',
         'notify',
         'notify/create',
         'notify/foobar',

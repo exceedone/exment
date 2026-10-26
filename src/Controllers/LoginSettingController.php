@@ -23,6 +23,9 @@ use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\GeoIp\CountryList;
+use Exceedone\Exment\Services\GeoIp\GeoIpService;
+use Exceedone\Exment\Services\Login\LoginCountryRestrictionService;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Services\Login as LoginServiceBase;
 use ExmentAdminCore\Admin\Layout\Content;
@@ -51,6 +54,9 @@ class LoginSettingController extends AdminControllerBase
 
         $content->row($this->grid());
         $content->row($this->globalSettingBox($request));
+
+        // login restriction by country
+        $content->row(new Box(exmtrans('login.country_restriction'), $this->getCountryRestrictionSettingForm($request)->render()));
 
         // 2factor box
         if (boolval(config('exment.login_use_2factor', false))) {
@@ -628,6 +634,124 @@ class LoginSettingController extends AdminControllerBase
             'result'  => true,
             'message' => trans('admin.update_succeeded'),
         ]);
+    }
+
+    /**
+     * Get the setting form of the login restriction by country.
+     *
+     * @param Request $request
+     * @return WidgetForm
+     */
+    protected function getCountryRestrictionSettingForm(Request $request): WidgetForm
+    {
+        // keep the entered values when the saving failed
+        $values = System::get_system_values([LoginCountryRestrictionService::SETTING_GROUP]);
+        foreach (array_keys($values) as $key) {
+            $key = (string)$key;
+            if ($request->session()->hasOldInput($key)) {
+                $values[$key] = $request->old($key);
+            }
+        }
+
+        $form = new WidgetForm($values);
+        $form->action(route('exment.post_login_country'));
+        $form->disableReset();
+
+        $form->descriptionHtml($this->getCountryRestrictionDescriptionHtml($request));
+
+        $form->switchbool('login_country_restriction', exmtrans('login.login_country_restriction'))
+            ->help(exmtrans('login.help.login_country_restriction'))
+            ->attribute(['data-filtertrigger' => true]);
+
+        $filter = ['data-filter' => json_encode(['key' => 'login_country_restriction', 'value' => '1'])];
+
+        $form->multipleSelect('login_country_allowed', exmtrans('login.login_country_allowed'))
+            ->options(CountryList::getOptions())
+            ->help(exmtrans('login.help.login_country_allowed'))
+            ->attribute($filter);
+
+        $form->switchbool('login_country_unknown_allowed', exmtrans('login.login_country_unknown_allowed'))
+            ->help(exmtrans('login.help.login_country_unknown_allowed'))
+            ->attribute($filter);
+
+        $form->textarea('login_country_allowed_ips', exmtrans('login.login_country_allowed_ips'))
+            ->rows(3)
+            ->help(exmtrans('login.help.login_country_allowed_ips'))
+            ->attribute($filter);
+
+        return $form;
+    }
+
+    /**
+     * Description of the login restriction by country: the GeoIP database status, and the IP address / country of the current access.
+     *
+     * @param Request $request
+     * @return string HTML
+     */
+    protected function getCountryRestrictionDescriptionHtml(Request $request): string
+    {
+        $html = esc_html(exmtrans('login.help.country_restriction'));
+
+        if (!GeoIpService::isAvailable()) {
+            return $html . '<br /><span class="red">' . esc_html(exmtrans('login.help.country_geoip_not_available')) . '</span>';
+        }
+
+        $geo = app(LoginCountryRestrictionService::class)->lookup($request->ip());
+        $country = is_nullorempty($geo['country_code']) ? exmtrans('login.country_unknown') : (CountryList::getName($geo['country_code']) ?? $geo['country_code']) . " ({$geo['country_code']})";
+        return $html . '<br />' . esc_html(exmtrans('login.help.country_current_ip', $request->ip(), $country));
+    }
+
+    /**
+     * Save the login restriction by country.
+     * Not saved if the administrator saving it could not log in from the current IP address any more.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function postCountryRestriction(Request $request)
+    {
+        $service = app(LoginCountryRestrictionService::class);
+        $settings = LoginCountryRestrictionService::makeSettings(
+            boolval($request->input('login_country_restriction')),
+            $request->input('login_country_allowed', []),
+            boolval($request->input('login_country_unknown_allowed')),
+            $request->input('login_country_allowed_ips')
+        );
+        $ipsText = $request->input('login_country_allowed_ips');
+
+        $errors = [];
+        if (count(array_diff($settings['countries'], array_keys(CountryList::COUNTRIES))) > 0) {
+            $errors['login_country_allowed'] = exmtrans('login.message.country_invalid');
+        }
+        $invalidIps = LoginCountryRestrictionService::getInvalidIps($ipsText);
+        if (count($invalidIps) > 0) {
+            $errors['login_country_allowed_ips'] = exmtrans('login.message.country_ips_invalid', implode(', ', $invalidIps));
+        }
+
+        if ($settings['enabled'] && count($errors) == 0) {
+            if (count($settings['countries']) == 0) {
+                $errors['login_country_allowed'] = exmtrans('login.message.country_allowed_required');
+            } elseif (!GeoIpService::isAvailable()) {
+                // every IP address would be "unknown"
+                $errors['login_country_restriction'] = exmtrans('login.help.country_geoip_not_available');
+            } elseif (!($result = $service->check($request->ip(), $settings))['allowed']) {
+                $country = $result['geo']['country_code'] ?? exmtrans('login.country_unknown');
+                $errors['login_country_restriction'] = exmtrans('login.message.country_self_blocked', $request->ip(), $country);
+            }
+        }
+
+        if (count($errors) > 0) {
+            admin_toastr(exmtrans('common.message.error_execute'), 'error');
+            return back()->withInput()->withErrors($errors);
+        }
+
+        System::login_country_restriction($settings['enabled']);
+        System::login_country_allowed($settings['countries']);
+        System::login_country_unknown_allowed($settings['unknown_allowed']);
+        System::login_country_allowed_ips(implode("\r\n", $settings['ips']));
+
+        admin_toastr(trans('admin.save_succeeded'));
+        return redirect(admin_url('login_setting'));
     }
 
     /**

@@ -150,6 +150,16 @@ class Define
         'login_history_new_ip_count' => ['type' => 'int', 'default' => '10', 'group' => 'login_history'],
         'login_history_notify_new_ip' => ['type' => 'boolean', 'default' => '1', 'group' => 'login_history'],
 
+        // Login restriction by country ----------------------------------
+        // off (default): no restriction. on: login only from the allowed countries (judged by the IP address with GeoIP).
+        'login_country_restriction' => ['type' => 'boolean', 'default' => '0', 'group' => 'login_country'],
+        // allowed country codes (ISO 3166-1 alpha-2). See CountryList
+        'login_country_allowed' => ['type' => 'array', 'default' => '', 'group' => 'login_country'],
+        // the IP address whose country cannot be judged (not in the GeoIP database, or no database). allowed by default.
+        'login_country_unknown_allowed' => ['type' => 'boolean', 'default' => '1', 'group' => 'login_country'],
+        // IP addresses (or CIDR) allowed regardless of the country, 1 per line.
+        'login_country_allowed_ips' => ['default' => '', 'group' => 'login_country'],
+
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
         'login_2factor_provider' => ['default' => 'email', 'group' => '2factor'],

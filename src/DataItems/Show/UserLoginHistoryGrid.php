@@ -55,8 +55,8 @@ class UserLoginHistoryGrid
         $grid->column('location', exmtrans('login_history.location'))->display(function ($value, $column, $model) {
             return $model->location;
         })->escape(true);
-        $grid->column('is_new_ip', exmtrans('login_history.is_new_ip'))->display(function ($value) {
-            return UserLoginHistoryGrid::getNewIpLabel($value);
+        $grid->column('is_new_ip', exmtrans('login_history.is_new_ip'))->display(function ($value, $column, $model) {
+            return UserLoginHistoryGrid::getWarningLabel($model);
         });
 
         // read only, like the child tables in the detail page
@@ -89,5 +89,48 @@ class UserLoginHistoryGrid
             return '';
         }
         return '<span class="label label-danger">' . esc_html(exmtrans('login_history.is_new_ip_options.1')) . '</span>';
+    }
+
+    /**
+     * Label of the column "warning": blocked login (Ex. by the login restriction by country), or login from a new IP address.
+     * (A blocked attempt is never warned as a new IP address.) Also used by the login history list.
+     *
+     * @param LoginHistory $history
+     * @return string HTML
+     */
+    public static function getWarningLabel(LoginHistory $history): string
+    {
+        $blocked = static::getBlockedLabel($history->blocked_reason);
+        return $blocked !== '' ? $blocked : static::getNewIpLabel($history->is_new_ip);
+    }
+
+    /**
+     * Label of a blocked login.
+     *
+     * @param mixed $blocked_reason LoginHistory::BLOCKED_REASON_*
+     * @return string HTML
+     */
+    public static function getBlockedLabel($blocked_reason): string
+    {
+        $text = static::getBlockedText($blocked_reason);
+        if (is_null($text)) {
+            return '';
+        }
+        return '<span class="label label-warning">' . esc_html($text) . '</span>';
+    }
+
+    /**
+     * Text of the reason why the login was blocked.
+     *
+     * @param mixed $blocked_reason LoginHistory::BLOCKED_REASON_*
+     * @return string|null null if not blocked
+     */
+    public static function getBlockedText($blocked_reason): ?string
+    {
+        if (is_nullorempty($blocked_reason) || !is_string($blocked_reason)) {
+            return null;
+        }
+        $key = "login_history.blocked_reason_options.{$blocked_reason}";
+        return \Lang::has("exment::exment.{$key}") ? exmtrans($key) : $blocked_reason;
     }
 }

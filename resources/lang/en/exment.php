@@ -885,6 +885,12 @@ return [
         'sso_setting' => 'SSO Setting',
         'sso_accept_mail_domain' => 'Accept Domain',
         'sso_jit' => 'Create User',
+        'country_restriction' => 'Login Restriction by Country',
+        'login_country_restriction' => 'Use Login Restriction by Country',
+        'login_country_allowed' => 'Allowed Countries',
+        'login_country_unknown_allowed' => 'Allow Login When Country Is Unknown',
+        'login_country_allowed_ips' => 'IP Addresses Allowed Regardless of Country',
+        'country_unknown' => 'Unknown',
 
         'saml_name' => 'SAML Name',
         'saml_idp' => 'IdP Setting',
@@ -981,6 +987,13 @@ return [
             'activate' => 'Enable this login. We recommend that you perform a [login test] in advance to confirm that you can successfully log in. Do you want to activate it?',
             'activate_ldap_error' => 'Other LDAP authentication is enabled. If you want to enable this authentication, please disable the corresponding LDAP authentication first.',
             'deactivate' => 'Disable this login. is this good?',
+            'country_restriction' => 'When logging in, the country is judged from the IP address, and only logins from the allowed countries are accepted. Applies to the login form, LDAP, SSO (OAuth, SAML) and the login by "Remember me" (cookie). Operations after login are not checked. Blocked logins are recorded in the login history.',
+            'country_geoip_not_available' => 'The country cannot be judged because the GeoIP database is not placed. Please get the GeoIP database on the setting of the login history.',
+            'country_current_ip' => 'Current IP address: %s (Country: %s)',
+            'login_country_restriction' => 'If YES, logins from countries other than the allowed countries are blocked.',
+            'login_country_allowed' => 'Select the countries allowed to log in. Logins from private IP addresses, such as the company network, are always allowed.',
+            'login_country_unknown_allowed' => 'Set YES to allow logins from IP addresses whose country cannot be judged, such as addresses not in the GeoIP database.',
+            'login_country_allowed_ips' => 'Enter IP addresses allowed to log in regardless of the country, such as overseas offices or business trips. CIDR format (Ex. 203.0.113.0/24) is also available. Separate multiple addresses with line breaks.',
         ],
 
         'message' => [
@@ -988,6 +1001,11 @@ return [
             'login_provider_caution' => '*First, additional settings for OAuth login are required. <a href=":url" target="_blank">Follow the steps below<i class="fa fa-external-link"></i></a> to install.',
             'login_test_description' => 'Test the login with the set login information.<br />We recommend performing a login test before activating the login settings. <br>*If the setting value has been changed, save it first and then perform the test.',
             'not_match_mapping' => 'The :mappingKey specified in the Exment field :key was not included in the field from the provider.',
+            'country_restricted' => 'You cannot log in from your network. Please contact your system administrator.',
+            'country_allowed_required' => 'Select at least one country allowed to log in.',
+            'country_invalid' => 'The selected country is invalid.',
+            'country_ips_invalid' => 'Invalid IP address format: %s',
+            'country_self_blocked' => 'This setting cannot be saved because you could not log in from the current IP address (%s Country: %s). Add it to the allowed countries or the IP addresses.',
         ],
 
         'login_type_options' => [
@@ -2663,6 +2681,7 @@ return [
         'is_new_ip' => 'Warning',
         'auth_2factor_verified' => 'Two-factor authentication',
         'user_agent' => 'Browser information',
+        'blocked_reason' => 'Blocked',
         'setting' => 'Login history setting',
         'new_ip_count' => 'Number of recent logins to compare',
         'enable_automatic' => 'Auto-delete login histories',
@@ -2686,6 +2705,15 @@ return [
             'none' => 'Not applicable',
             '0' => 'Not completed',
             '1' => 'Completed',
+        ],
+
+        'blocked_reason_options' => [
+            'country' => 'Blocked (country)',
+        ],
+
+        'blocked_filter_options' => [
+            '1' => 'Blocked logins',
+            '0' => 'Successful logins',
         ],
 
         'notify' => [

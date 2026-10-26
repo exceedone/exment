@@ -37,6 +37,8 @@ return new class extends Migration
                 $table->boolean('via_remember')->default(false);
                 // null: 2factor is not used, false: not verified yet, true: verified
                 $table->boolean('auth_2factor_verified')->nullable();
+                // null: logged in. "country": blocked by the login restriction by country. See LoginHistory::BLOCKED_REASON_*
+                $table->string('blocked_reason', 32)->nullable();
                 $table->timestamps();
                 $table->timeusers();
 

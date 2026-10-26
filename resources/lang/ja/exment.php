@@ -885,6 +885,12 @@ return [
         'sso_setting' => 'SSO設定',
         'sso_accept_mail_domain' => 'ログイン許可ドメイン',
         'sso_jit' => 'ユーザー新規作成',
+        'country_restriction' => '国別ログイン制限',
+        'login_country_restriction' => '国別ログイン制限を使用する',
+        'login_country_allowed' => 'ログインを許可する国',
+        'login_country_unknown_allowed' => '国を判定できない場合はログインを許可する',
+        'login_country_allowed_ips' => '国に関係なくログインを許可するIPアドレス',
+        'country_unknown' => '不明',
 
         'saml_name' => 'SAML名(英数字)',
         'saml_idp' => 'IdP設定',
@@ -981,6 +987,13 @@ return [
             'activate' => 'このログインを有効化します。事前に「ログインテスト」を実施し、ログインが正常に実行できることの確認をおすすめします。有効化しますか？',
             'activate_ldap_error' => '他のLDAP認証が有効になっています。この認証を有効にする場合、先に該当のLDAP認証を無効にしてください。',
             'deactivate' => 'このログインを無効化します。よろしいでしょうか？',
+            'country_restriction' => 'ログイン時にIPアドレスから国を判定し、許可した国からのログインのみ受け付けます。ログインフォーム、LDAP、SSO(OAuth・SAML)、ログイン状態の保持(Cookie)によるログインが対象です。ログイン済みの画面操作は対象外です。ブロックしたログインはログイン履歴に記録されます。',
+            'country_geoip_not_available' => 'GeoIPデータベースが配置されていないため、国を判定できません。ログイン履歴の設定画面でGeoIPデータベースを取得してください。',
+            'country_current_ip' => '現在のIPアドレス: %s (国: %s)',
+            'login_country_restriction' => 'YESにした場合、許可した国以外からのログインをブロックします。',
+            'login_country_allowed' => 'ログインを許可する国を選択してください。社内ネットワークなどのプライベートIPアドレスからのログインは、常に許可されます。',
+            'login_country_unknown_allowed' => 'GeoIPデータベースに登録されていないなど、国を判定できないIPアドレスからのログインを許可する場合、YESにしてください。',
+            'login_country_allowed_ips' => '海外拠点や出張先など、国に関係なくログインを許可するIPアドレスを記入してください。CIDR形式(例: 203.0.113.0/24)も使用できます。複数ある場合は改行区切りで記入してください。',
         ],
 
         'message' => [
@@ -988,6 +1001,11 @@ return [
             'login_provider_caution' => '※はじめに、OAuthのログインを行うための追加設定が必要です。 <a href=":url" target="_blank">こちら<i class="fa fa-external-link"></i></a> の手順でインストールを行ってください。',
             'login_test_description' => '設定したログイン情報で、ログインのテストを行います。<br />ログイン設定を有効化する前に、ログインテストを実施することをおすすめします。<br>※設定値を変更していた場合、先に保存を行ってから、テストを行ってください。',
             'not_match_mapping' => 'Exmentのフィールド :key で指定した :mappingKey は、プロバイダからのフィールドに含まれていませんでした。',
+            'country_restricted' => 'お使いのネットワークからはログインできません。システム管理者にお問い合わせください。',
+            'country_allowed_required' => 'ログインを許可する国を1つ以上選択してください。',
+            'country_invalid' => '選択された国が正しくありません。',
+            'country_ips_invalid' => 'IPアドレスの形式が正しくありません: %s',
+            'country_self_blocked' => 'この設定を保存すると、現在のIPアドレス(%s 国: %s)からログインできなくなるため、保存できません。ログインを許可する国、またはIPアドレスに追加してください。',
         ],
 
         'login_type_options' => [
@@ -2663,6 +2681,7 @@ return [
         'is_new_ip' => '警告',
         'auth_2factor_verified' => '2段階認証',
         'user_agent' => 'ブラウザ情報',
+        'blocked_reason' => 'ブロック',
         'setting' => 'ログイン履歴設定',
         'new_ip_count' => '比較するログイン回数',
         'enable_automatic' => 'ログイン履歴自動削除',
@@ -2686,6 +2705,15 @@ return [
             'none' => '対象外',
             '0' => '未完了',
             '1' => '完了',
+        ],
+
+        'blocked_reason_options' => [
+            'country' => '国別制限でブロック',
+        ],
+
+        'blocked_filter_options' => [
+            '1' => 'ブロックされたログイン',
+            '0' => 'ログイン成功',
         ],
 
         'notify' => [

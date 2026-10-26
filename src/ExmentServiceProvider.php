@@ -23,6 +23,7 @@ use Exceedone\Exment\Auth\PublicFormGuard;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
+use Exceedone\Exment\Services\Login\LoginCountryRestrictionService;
 use Exceedone\Exment\Services\Login\LoginHistoryService;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Auth;
@@ -131,6 +132,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.login'  => \Exceedone\Exment\Middleware\Login::class,
+        'admin.login-country'  => \Exceedone\Exment\Middleware\LoginCountryRestriction::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
         'adminwebapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateWebApi::class,
@@ -461,6 +463,8 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected function bootEvent()
     {
+        // Login restriction by country ("remember me" cookie) must be first: it returns false to stop recording a blocked login.
+        Event::listen(Login::class, [LoginCountryRestrictionService::class, 'handleLogin']);
         Event::listen(Login::class, [LoginHistoryService::class, 'handleLogin']);
     }
 

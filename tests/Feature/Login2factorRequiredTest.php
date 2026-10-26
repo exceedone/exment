@@ -63,6 +63,8 @@ class Login2factorRequiredTest extends FeatureTestBase
         System::login_2factor_provider(Login2FactorProviderType::GOOGLE);
         System::login_2factor_target_role_group(false);
         System::login_2factor_setup_grace_minutes(Auth2factorService::DEFAULT_SETUP_GRACE_MINUTES);
+        // logins must not be blocked by the login restriction by country saved in the database
+        System::login_country_restriction(false);
     }
 
     protected function tearDown(): void
