@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.EXMENT_REPOSITORY}}
-          ref: feature/v7.0
+          ref: feature/fix-v7-wf
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2

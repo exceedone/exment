@@ -34,16 +34,22 @@ jobs:
         with:
           repository: ${{ env.EXMENT_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate/exment
-          ref: feature/v7.0
+          ref: feature/fix-v7-wf
 
       # exment-boilerplate require ca exceedone/exment-admin-core (dev-master).
       # Bat buoc branch master: composer doan version cua path repository theo ten branch
       # dang checkout, branch khac se ra dev-<branch> va khong khop rang buoc dev-master.
+      # Dang test code cua feature/v1.0.1: checkout branch do roi dat ten branch local la
+      # master (van la commit do) de composer van thay dev-master.
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.EXMENT_ADMIN_CORE_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate/exment-admin-core
-          ref: master
+          ref: feature/v1.0.1
+
+      - name: Name the exment-admin-core branch master
+        working-directory: docker-exment/exment-boilerplate/exment-admin-core
+        run: git checkout -B master
 
       # composer.dev.lock da tro exceedone/exment-admin-core vao ./exment-admin-core, nhung
       # composer.dev.json lai thieu repository tuong ung nen composer install khong tim thay
