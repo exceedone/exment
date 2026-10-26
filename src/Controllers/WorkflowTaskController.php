@@ -290,11 +290,15 @@ class WorkflowTaskController extends AdminControllerBase
         $count = (new WorkflowTaskService())->hideSelected($keys, $request->get('listed_at'));
 
         if ($count === 0) {
-            // already off the list, acted on in the meantime, or never this user's task. The
-            // request comes from a confirm dialog, which only a swal answer closes.
+            // already off the list, acted on in the meantime, its record deleted, or never this
+            // user's task. The request comes from a confirm dialog, which only a swal answer
+            // closes. The row the button sat on is stale, so the list is drawn again behind the
+            // message (CommonEvent.CallbackExmentAjax): left as it was, the row of a deleted
+            // record stayed on the screen until the user reloaded the page (TC-WT-36).
             return getAjaxResponse([
                 'result' => false,
                 'swaltext' => exmtrans('workflow_task.message.delete_notfound'),
+                'reload' => true,
             ]);
         }
 

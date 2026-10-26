@@ -3075,7 +3075,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame(0, (new WorkflowTaskService())->hideSelected([$key], $actedAt->format($format)), 'a list drawn in the second of the last action took the task off');
         $this->assertTrue((new WorkflowTaskService())->getTasks()->contains('task_key', $key), 'a refused delete still changed the list');
 
-        // the button gets the answer of "nothing to delete", whose text asks for a reload
+        // the button gets the answer of "nothing to delete", and the list is drawn again
         $response = (new WorkflowTaskController())->rowDelete(Request::create('/workflow_task/rowDelete', 'POST', [
             'keys' => $key,
             'listed_at' => $actedAt->format($format),
@@ -3135,6 +3135,45 @@ class WorkflowTaskServiceTest extends UnitTestBase
             'listed_at' => \Carbon\Carbon::now()->addSecond()->format('Y-m-d H:i:s'),
         ]));
         $this->assertSame(exmtrans('workflow_task.message.delete_succeeded'), array_get(json_decode((string)$response->getContent(), true), 'toastr'));
+    }
+
+    /**
+     * TC-WT-36, step 5: somebody deletes the record of a row while the list is open. The trash
+     * button of that row then finds nothing to take off: no 500 and no mark written, the answer
+     * says so, and it asks the screen to draw the list again, which drops the row of the deleted
+     * record. Found in testing: the message asked the user to reload, and the row stayed on the
+     * screen until they did.
+     *
+     * @return void
+     */
+    public function testRemovingTheRowOfADeletedRecordDrawsTheListAgain()
+    {
+        $this->init();
+
+        $task = (new WorkflowTaskService())->getTasks()->first();
+        $this->assertNotNull($task, 'the test dataset must give this user a task');
+        $listedAt = \Carbon\Carbon::now()->format('Y-m-d H:i:s');
+
+        // somebody deletes the record after the list was drawn (rolled back after the test)
+        $record = CustomTable::getEloquent($task['custom_table_id'])->getValueModel($task['morph_id']);
+        $this->assertNotNull($record);
+        $record->delete();
+        System::clearCache();
+        $this->assertFalse((new WorkflowTaskService())->getTasks()->contains('task_key', $task['task_key']), 'precondition: a deleted record is no task');
+
+        $response = (new WorkflowTaskController())->rowDelete(Request::create('/workflow_task/rowDelete', 'POST', [
+            'keys' => $task['task_key'],
+            'listed_at' => $listedAt,
+        ]));
+        $answer = json_decode((string)$response->getContent(), true);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame(exmtrans('workflow_task.message.delete_notfound'), array_get($answer, 'swaltext'));
+        $this->assertTrue(array_get($answer, 'reload'), 'the screen must draw the list again, without the row of the deleted record');
+        $this->assertSame(0, WorkflowTaskRead::where('target_user_id', \Exment::getUserId())
+            ->where('custom_table_id', $task['custom_table_id'])
+            ->where('morph_id', $task['morph_id'])
+            ->count(), 'a refused delete wrote a mark');
     }
 
     /**

@@ -3205,7 +3205,7 @@ return [
             'check_notfound' => 'There is no data to update.',
             'delete_succeeded' => 'Removed from your task list.',
             'delete_partial' => 'Removed %s tasks from your task list. The other %s were not removed: they have been processed, or changed after this list was shown.',
-            'delete_notfound' => 'There is no task to remove. It may have been processed, or changed after this list was shown. Please reload the list and check.',
+            'delete_notfound' => 'There is no task to remove. It may have been processed, or changed after this list was shown. The list has been reloaded.',
             'restore_succeeded' => 'Put %s tasks back on your task list.',
             'restore_notfound' => 'There is no task to put back. It may have been processed, or put back already. Please reload the list and check.',
         ],

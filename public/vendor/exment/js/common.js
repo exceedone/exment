@@ -221,6 +221,11 @@ var Exment;
                     Exment.CommonEvent.UndefinedError();
                     return;
                 }
+                // the answer may ask to draw the list again behind the message, because the row
+                // it was about is stale (WorkflowTaskController::rowDelete())
+                if (res.reload === true) {
+                    $.pjax.reload('#pjax-container');
+                }
             }
         }
         static redirectCallback(res) {
