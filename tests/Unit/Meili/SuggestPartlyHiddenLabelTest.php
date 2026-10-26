@@ -29,7 +29,7 @@ class SuggestPartlyHiddenLabelTest extends TestCase
     }
 
     /** @param array<string,mixed> $hit */
-    private function snippet(array $hit, $table, $model, string $label): ?string
+    private function snippet(array $hit, object $table, ?object $model, string $label): ?string
     {
         $suggester = (new \ReflectionClass(HeaderSuggester::class))->newInstanceWithoutConstructor();
         $method = new \ReflectionMethod(HeaderSuggester::class, 'permittedSnippet');
@@ -38,17 +38,23 @@ class SuggestPartlyHiddenLabelTest extends TestCase
         return $method->invoke($suggester, $hit, $table, $model, $label);
     }
 
-    /** A table exposing the given freeword columns as plain (non linked) text. */
-    private function tableWithReadableColumns(array $names)
+    /**
+     * A table exposing the given freeword columns as plain (non linked) text.
+     *
+     * @param array<int, string> $names
+     */
+    private function tableWithReadableColumns(array $names): object
     {
         $columns = array_map(fn ($n) => (object) ['column_name' => $n, 'column_type' => 'text'], $names);
 
         return new class ($columns) {
+            /** @param array<int, object> $columns */
             public function __construct(private array $columns)
             {
             }
 
-            public function getFreewordSearchColumns()
+            /** @return \Illuminate\Support\Collection<int, object> */
+            public function getFreewordSearchColumns(): \Illuminate\Support\Collection
             {
                 return collect($this->columns);
             }

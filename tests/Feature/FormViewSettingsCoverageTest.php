@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Feature;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\OperationUpdateType;
@@ -16,12 +17,15 @@ use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
+use Illuminate\Support\Str;
 
 /**
  * Form, view, copy and operation settings that no test reached: the form designer's setting
@@ -185,6 +189,121 @@ class FormViewSettingsCoverageTest extends FeatureTestBase
         $this->put(admin_url("view/{$table->table_name}/{$view->id}/preview"), $payload)
             ->assertOk()
             ->assertSee('Claude preview header (saved put)');
+    }
+
+    /**
+     * A setting row still half-filled on screen - a column with no target, a filter with no
+     * condition - is left out of the preview, which says how many rows it left out and draws
+     * the finished ones as usual.
+     */
+    public function testViewPreviewLeavesOutUnfinishedSettingRowsAndSaysHowMany(): void
+    {
+        $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $payload = $this->viewPayload($table, ViewKindType::DEFAULT, 'Claude preview header (finished)');
+        $payload['custom_view_columns']['new_2'] = [
+            'view_column_target' => '',
+            'order' => 2,
+            'view_column_name' => 'Claude preview header (no target)',
+            '_remove_' => 0,
+        ];
+        $payload['custom_view_filters'] = [
+            'new_1' => [
+                'view_column_target' => $this->allDataViewColumn($table, 'odd_even')->view_column_target,
+                'view_filter_condition' => '',
+                '_remove_' => 0,
+            ],
+        ];
+
+        $this->post(admin_url("view/{$table->table_name}/preview"), $payload)
+            ->assertOk()
+            ->assertSee('Claude preview header (finished)')
+            ->assertSee(exmtrans('custom_view.message.preview_skipped', ['count' => 2]), false);
+    }
+
+    /**
+     * The warning counts setting rows, not records: a column that is empty in the records is
+     * drawn as empty cells, as on the data screen, and nothing is said to be left out.
+     */
+    public function testViewPreviewOfAColumnEmptyInTheRecordsLeavesNothingOut(): void
+    {
+        $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        // the seeder fills "user" and "odd_even" of every record; this one has neither
+        $record = $table->getValueModel();
+        $this->assertInstanceOf(CustomValue::class, $record);
+        $record->setValue(['text' => 'Claude preview record (no user)'])->save();
+
+        $response = $this->post(admin_url("view/{$table->table_name}/preview"), [
+            'view_view_name' => 'Claude preview',
+            'view_type' => ViewType::SYSTEM,
+            'view_kind_type' => ViewKindType::DEFAULT,
+            'custom_view_columns' => [
+                'new_1' => [
+                    'view_column_target' => $this->allDataViewColumn($table, 'text')->view_column_target,
+                    'order' => 1,
+                    'view_column_name' => 'Claude preview header (text)',
+                    '_remove_' => 0,
+                ],
+                'new_2' => [
+                    'view_column_target' => $this->allDataViewColumn($table, 'user')->view_column_target,
+                    'order' => 2,
+                    'view_column_name' => 'Claude preview header (user)',
+                    '_remove_' => 0,
+                ],
+            ],
+            // only the records with no odd_even, so the one made above is on the first page
+            'custom_view_filters' => [
+                'new_1' => [
+                    'view_column_target' => $this->allDataViewColumn($table, 'odd_even')->view_column_target,
+                    'view_filter_condition' => FilterOption::NULL,
+                    '_remove_' => 0,
+                ],
+            ],
+        ]);
+
+        $response->assertOk()
+            ->assertSee('Claude preview header (user)')
+            ->assertSee('Claude preview record (no user)')
+            // the page draws its messages, so the warning would be on it
+            ->assertSee(exmtrans('common.message.preview'), false);
+        // the words of the warning after its count, in the language the page was drawn in
+        $skipped = exmtrans('custom_view.message.preview_skipped');
+        $this->assertIsString($skipped);
+        $this->assertStringContainsString(':count', $skipped);
+        $response->assertDontSee(trim(Str::after($skipped, ':count')), false);
+    }
+
+    /**
+     * A sort row whose column the list can no longer offer - here a column with no search index -
+     * stays on the edit screen with its target, named with a label that says it cannot be chosen
+     * in this setting, instead of being dropped from the form.
+     */
+    public function testViewEditKeepsASortTargetTheListNoLongerOffersWithALabel(): void
+    {
+        $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $column = CustomColumn::getEloquent('integer', $table);
+        $this->assertNotNull($column);
+        $this->assertFalse(boolval($column->index_enabled), 'a sort offers indexed columns only');
+
+        $view = CustomView::create([
+            'custom_table_id' => $table->id,
+            'view_view_name' => 'Claude view sorted by a column it cannot offer',
+            'view_type' => ViewType::SYSTEM,
+            'view_kind_type' => ViewKindType::DEFAULT,
+        ]);
+        $sort = new CustomViewSort();
+        $sort->custom_view_id = $view->id;
+        $sort->view_column_type = ConditionType::COLUMN;
+        $sort->view_column_table_id = $table->id;
+        $sort->view_column_target_id = $column->id;
+        $sort->sort = 1;
+        $sort->priority = 1;
+        $sort->save();
+        // exment caches records for a request, and the view above is new to it
+        System::clearRequestSession();
+
+        $this->get(admin_url("view/{$table->table_name}/{$view->id}/edit"), ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()
+            ->assertSee(exmtrans('custom_view.column_target_unavailable', $column->column_view_name), false);
     }
 
     public function testViewSendShares(): void
@@ -411,6 +530,22 @@ class FormViewSettingsCoverageTest extends FeatureTestBase
             ->where('custom_table_id', $table->id)
             ->where('view_kind_type', ViewKindType::ALLDATA)
             ->where('view_view_name', $table->table_name . '-view-all')
+            ->firstOrFail();
+    }
+
+    /**
+     * The column of the "all data" view that shows this custom column: its view_column_target
+     * is what the view edit screen posts for it.
+     */
+    protected function allDataViewColumn(CustomTable $table, string $columnName): CustomViewColumn
+    {
+        $customColumn = CustomColumn::getEloquent($columnName, $table);
+        $this->assertNotNull($customColumn, "seed data must have the column $columnName");
+
+        return CustomViewColumn::query()
+            ->where('custom_view_id', $this->allDataView($table)->id)
+            ->where('view_column_type', ConditionType::COLUMN)
+            ->where('view_column_target_id', $customColumn->id)
             ->firstOrFail();
     }
 }

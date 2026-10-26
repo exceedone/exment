@@ -77,14 +77,10 @@ class HasTableHelperTest extends UnitTestBase
      */
     public function testEveryDriverGetsAnExmentBuilderWithATableListing()
     {
-        $this->assertTrue(is_subclass_of(
-            \Exceedone\Exment\Database\Schema\MariaDBBuilder::class,
-            \Exceedone\Exment\Database\Schema\MySqlBuilder::class
-        ));
-        $this->assertTrue(is_subclass_of(
-            \Exceedone\Exment\Database\Schema\Grammars\MariaDBGrammar::class,
-            \Exceedone\Exment\Database\Schema\Grammars\MySqlGrammar::class
-        ));
+        $this->assertTrue((new \ReflectionClass(\Exceedone\Exment\Database\Schema\MariaDBBuilder::class))
+            ->isSubclassOf(\Exceedone\Exment\Database\Schema\MySqlBuilder::class));
+        $this->assertTrue((new \ReflectionClass(\Exceedone\Exment\Database\Schema\Grammars\MariaDBGrammar::class))
+            ->isSubclassOf(\Exceedone\Exment\Database\Schema\Grammars\MySqlGrammar::class));
 
         foreach ([
             \Exceedone\Exment\Database\Schema\MySqlBuilder::class,

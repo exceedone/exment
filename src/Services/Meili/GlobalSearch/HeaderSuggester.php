@@ -133,7 +133,7 @@ class HeaderSuggester
         // may see; built from a hidden linked record, the two differ. Compare the
         // RAW indexed label, not the highlighted one with its markers stripped:
         // the markers are a fixed literal, so a record that happens to contain
-        // that literal lost characters to stripHighlight() and never compared
+        // that literal lost characters when the markers were stripped and never compared
         // equal - the record then disappeared from the suggestions entirely.
         $indexedLabel = (string) ($formatted['label'] ?? '');
         $labelReadable = (string) (array_get($hit, 'label') ?? '') === $label;
@@ -226,11 +226,6 @@ class HeaderSuggester
         $shown = $model ? (string) $model->getValue($column, true) : '';
 
         return $shown !== '' && strpos($shown, exmtrans('common.message.no_permission')) === false;
-    }
-
-    private static function stripHighlight(string $value): string
-    {
-        return str_replace([MeiliSearchService::highlightPre(), MeiliSearchService::highlightPost()], '', $value);
     }
 
     /**

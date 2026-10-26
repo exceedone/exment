@@ -86,16 +86,16 @@ class IndexingContextTest extends UnitTestBase
     {
         $this->loginSomeone();
 
+        // the exception must reach the caller, and the viewer is back before it does
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('meilisearch is down');
         try {
             IndexingContext::run(function () {
                 throw new \RuntimeException('meilisearch is down');
             });
-            $this->fail('the exception must reach the caller');
-        } catch (\RuntimeException $e) {
-            $this->assertSame('meilisearch is down', $e->getMessage());
+        } finally {
+            $this->assertNotNull(\Exment::user());
         }
-
-        $this->assertNotNull(\Exment::user());
     }
 
     /** A queue worker has no viewer to begin with: nothing to swap, nothing to clear. */

@@ -85,7 +85,7 @@ class RestoreConfigVersionTest extends UnitTestBase
      */
     protected function writeVersionFile(array $versions)
     {
-        \File::put($this->versionFilePath(), json_encode($versions));
+        \File::put($this->versionFilePath(), json_encode($versions, JSON_THROW_ON_ERROR));
     }
 
     /**

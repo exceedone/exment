@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Meili\ExmentIndexer;
 use Exceedone\Exment\Services\Meili\MeiliClientFactory;
@@ -62,6 +64,9 @@ class JMeiliSearchTest extends ExmentKitTestCase
      */
     public function testSearchPageRendersTheFilterSidebar(): void
     {
+        // the table group is built from the counts Meilisearch answers
+        $this->requireMeilisearch();
+
         $this->visit(admin_url('search') . '?query=test')
             ->seeElement('div[class="meili-filter"]')
             ->seeOuterElement('button[type="submit"]', trans('admin.filter'))
@@ -75,6 +80,8 @@ class JMeiliSearchTest extends ExmentKitTestCase
      */
     public function testPressingFilterWithATableTickedShowsTheChip(): void
     {
+        $this->requireMeilisearch();
+
         $this->visit(admin_url('search') . '?query=test');
 
         $boxes = $this->crawler->filter('input[name="tables[]"]');
@@ -97,6 +104,11 @@ class JMeiliSearchTest extends ExmentKitTestCase
      */
     public function testExportOfTooManyMatchesComesBackAsAMessage(): void
     {
+        if (LoginUser::find(12) === null || CustomTable::getEloquent('meili_bulk') === null) {
+            $this->markTestSkipped('needs the data of tools/meili-testdata (login user 12, table meili_bulk)');
+        }
+        $this->requireMeilisearch();
+
         $this->login(12);
 
         $url = admin_url('search/export') . '?' . http_build_query([
@@ -159,16 +171,21 @@ class JMeiliSearchTest extends ExmentKitTestCase
             ->dontSeeElement('input[name="facets[]"]');
     }
 
-    /** A throwaway index whose owner marker names a different installation. */
-    private function foreignOwnedIndex(): string
+    /** Skips the test where no Meilisearch answers, as on the CI. */
+    private function requireMeilisearch(): void
     {
-        $client = MeiliClientFactory::make();
-
         try {
-            $client->health();
+            MeiliClientFactory::make()->health();
         } catch (\Throwable $e) {
             $this->markTestSkipped('needs a running Meilisearch: ' . $e->getMessage());
         }
+    }
+
+    /** A throwaway index whose owner marker names a different installation. */
+    private function foreignOwnedIndex(): string
+    {
+        $this->requireMeilisearch();
+        $client = MeiliClientFactory::make();
 
         $index = 'exment_ui_foreign_' . substr(md5((string) mt_rand()), 0, 8);
         $marker = MeiliIndexOwnership::markerIndexName($index);

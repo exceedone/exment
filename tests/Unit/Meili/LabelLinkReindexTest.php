@@ -17,12 +17,18 @@ use PHPUnit\Framework\TestCase;
  */
 class LabelLinkReindexTest extends TestCase
 {
-    private function labelLinkColumns($table)
+    /**
+     * @param object $table a stand-in with only what labelLinkColumns() reads
+     * @return \Illuminate\Support\Collection<array-key, mixed>
+     */
+    private function labelLinkColumns(object $table): \Illuminate\Support\Collection
     {
         $method = new \ReflectionMethod(MeiliSync::class, 'labelLinkColumns');
         $method->setAccessible(true);
+        $columns = $method->invoke(null, $table);
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $columns);
 
-        return $method->invoke(null, $table);
+        return $columns;
     }
 
     /**
@@ -37,14 +43,16 @@ class LabelLinkReindexTest extends TestCase
         ];
 
         $table = new class ($columns) {
+            /** @var array<int, object> */
             public $custom_columns_cache;
 
+            /** @param array<int, object> $columns */
             public function __construct(array $columns)
             {
                 $this->custom_columns_cache = $columns;
             }
 
-            public function getLabelColumns()
+            public function getLabelColumns(): string
             {
                 return '【社外秘】${value:product_code} ${value:name}';
             }
@@ -57,9 +65,11 @@ class LabelLinkReindexTest extends TestCase
     public function testAnEmptyLabelDefinitionContributesNothing(): void
     {
         $table = new class () {
+            /** @var array<int, object> */
             public $custom_columns_cache = [];
 
-            public function getLabelColumns()
+            /** @return array<int, object> */
+            public function getLabelColumns(): array
             {
                 return [];
             }

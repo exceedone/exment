@@ -383,12 +383,14 @@ parameters:
 			identifier: method.nonObject
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/CustomColumnController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Cannot call method editable\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
 			identifier: method.nonObject
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/CustomColumnController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -407,6 +409,7 @@ parameters:
 			identifier: method.nonObject
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/CustomCopyController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -425,6 +428,7 @@ parameters:
 			identifier: method.nonObject
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/CustomFormController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Parameter \#1 \$value of function collect expects Illuminate\\Contracts\\Support\\Arrayable\<\(int\|string\), mixed\>\|iterable\<\(int\|string\), mixed\>\|null, array\|string given\.$#'
@@ -461,6 +465,7 @@ parameters:
 			identifier: method.nonObject
 			count: 3
 			path: vendor/exceedone/exment/src/Controllers/CustomNotifyController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -479,6 +484,7 @@ parameters:
 			identifier: method.nonObject
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/CustomOperationController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -497,12 +503,14 @@ parameters:
 			identifier: method.nonObject
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/CustomRelationController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Cannot call method editable\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
 			identifier: method.nonObject
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/CustomTableController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -522,12 +530,14 @@ parameters:
 			identifier: method.nonObject
 			count: 2
 			path: vendor/exceedone/exment/src/Controllers/CustomViewController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Cannot call method editable\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
 			identifier: method.nonObject
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/CustomViewController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -588,6 +598,7 @@ parameters:
 			identifier: method.nonObject
 			count: 2
 			path: vendor/exceedone/exment/src/Controllers/NotifyNavbarController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -708,6 +719,7 @@ parameters:
 			identifier: method.nonObject
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/RoleGroupController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -750,6 +762,7 @@ parameters:
 			identifier: method.nonObject
 			count: 3
 			path: vendor/exceedone/exment/src/Controllers/WorkflowNotifyController.php
+			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'

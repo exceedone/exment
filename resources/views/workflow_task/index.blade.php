@@ -272,8 +272,9 @@
                                  deleted from here. data-add-swal is Exment's confirm-then-ajax
                                  convention (CommonEvent.addShowModalEvent); data-add-swal-data is
                                  read by jQuery as JSON and posted along, with the moment this list
-                                 was drawn (see WorkflowTaskController::rowDelete). On success it
-                                 pjax-reloads this list. --}}
+                                 was drawn (see WorkflowTaskController::rowDelete). It pjax-reloads
+                                 this list on success, and when there was nothing to take off: the
+                                 row was stale. --}}
                             <a href="javascript:void(0);" class="text-red"
                                data-add-swal="{{ admin_url('workflow_task/rowDelete') }}"
                                data-add-swal-data="{{ json_encode(['keys' => $row['task_key'], 'listed_at' => $listedAt]) }}"
