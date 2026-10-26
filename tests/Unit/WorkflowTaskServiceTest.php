@@ -484,6 +484,92 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
+     * TC-WT-11: the workflow of ONE table switched off on the 利用設定 screen, then switched on with
+     * its period over, then with its period not begun yet, then put back.
+     *
+     * Switched off, the table has no task left and the table box no longer offers it. Out of its
+     * period, the workflow starts nothing new: a record that has not started leaves the list. A record
+     * already in the workflow goes on in it to the end (see
+     * testExpiredWorkflowStartsNothingAndCarriesWhatIsUnderway()): it stays on the list, the record
+     * page keeps its buttons and the box keeps its table. The tasks of the other tables never move.
+     * Logged in as the test user who has tasks of both kinds.
+     *
+     * @return void
+     */
+    public function testWorkflowOfOneTableSwitchedOffOrOutOfItsPeriod()
+    {
+        $this->init(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+
+        $underway = function (array $row) {
+            return !is_null(CustomTable::getEloquent($row['custom_table_id'])->getValueModel($row['morph_id'])->workflow_value);
+        };
+        $keys = function (Collection $rows) {
+            return $rows->pluck('task_key')->sort()->values()->all();
+        };
+
+        $before = (new WorkflowTaskService())->getTasks();
+        // a table where this user has tasks of both kinds
+        $tableId = $before->groupBy('custom_table_id')->filter(function (Collection $rows) use ($underway) {
+            $carried = $rows->filter($underway)->count();
+            return $carried > 0 && $carried < $rows->count();
+        })->keys()->first();
+        $this->assertNotNull($tableId, 'the test dataset must give this user tasks underway and not started yet on one table');
+        $tableId = (int)$tableId;
+        $ofTable = $before->where('custom_table_id', $tableId);
+        $others = $keys($before->where('custom_table_id', '!=', $tableId));
+        $stays = $keys($before->filter(function (array $row) use ($tableId, $underway) {
+            return $row['custom_table_id'] != $tableId || $underway($row);
+        }));
+
+        // the workflows in use on the table, as the 利用設定 screen saves them (rolled back after the test)
+        $original = \DB::table(SystemTableName::WORKFLOW_TABLE)
+            ->where('custom_table_id', $tableId)
+            ->where('active_flg', 1)
+            ->get(['id', 'active_flg', 'active_start_date', 'active_end_date']);
+        $set = function (array $values) use ($original) {
+            \DB::table(SystemTableName::WORKFLOW_TABLE)->whereIn('id', $original->pluck('id')->all())->update($values);
+            System::clearCache();
+        };
+        $listed = function () use ($keys) {
+            return $keys((new WorkflowTaskService())->getTasks());
+        };
+
+        // step 2: switched off
+        $set(['active_flg' => 0, 'active_start_date' => null, 'active_end_date' => null]);
+        $this->assertSame($others, $listed(), 'switched off: no task of the table is left, the other tables keep theirs');
+        $this->assertArrayNotHasKey($tableId, WorkflowTaskService::tableOptions(), 'switched off: the box no longer offers the table');
+
+        // steps 3 and 4: switched on again, its period over since yesterday, then beginning tomorrow
+        $periods = [
+            'over' => [null, \Carbon\Carbon::yesterday()->toDateString()],
+            'not begun' => [\Carbon\Carbon::tomorrow()->toDateString(), '2099-12-31'],
+        ];
+        foreach ($periods as $label => [$start, $end]) {
+            $set(['active_flg' => 1, 'active_start_date' => $start, 'active_end_date' => $end]);
+            $this->assertSame($stays, $listed(), "period $label: what is underway stays, what has not started leaves");
+            $this->assertArrayHasKey($tableId, WorkflowTaskService::tableOptions(), "period $label: the box keeps the table of the work underway");
+            foreach ($ofTable as $row) {
+                $this->assertSame(
+                    $underway($row),
+                    $this->recordPageOffers($tableId, (int)$row['morph_id']),
+                    "period $label, {$row['task_key']}: the list and the record page disagree"
+                );
+            }
+        }
+
+        // step 5: put back as it was
+        foreach ($original as $row) {
+            \DB::table(SystemTableName::WORKFLOW_TABLE)->where('id', $row->id)->update([
+                'active_flg' => $row->active_flg,
+                'active_start_date' => $row->active_start_date,
+                'active_end_date' => $row->active_end_date,
+            ]);
+        }
+        System::clearCache();
+        $this->assertSame($keys($before), $listed(), 'put back: every task is back');
+    }
+
+    /**
      * The status filter keeps the starts of different workflows apart, as the column does: a record
      * led back to the start is at the start of ITS workflow, one not started yet at the start of the
      * workflow in use today.
