@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Services\Dashboard;
 
 use Encore\Admin\Facades\Admin;
+use Encore\Admin\Form\NestedForm;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 
 /**
@@ -23,16 +25,30 @@ final class FilterBarForm
         $form->exmheader(exmtrans('dashboard.filter_bar.header'))->hr();
         $form->descriptionHtml(exmtrans('dashboard.filter_bar.description'));
 
+        // a bar on a table this user may not view (a user dashboard shared for editing, an
+        // owner who lost the right) cannot be listed by the fields: the table select would
+        // post blank and the save drop the whole bar. Without the fields, the save keeps it.
+        if (self::sourceHidden($model)) {
+            $form->descriptionHtml('<span class="help-block"><i class="fa fa-info-circle"></i>&nbsp;' . esc_html(exmtrans('dashboard.filter_bar.locked')) . '</span>');
+            return;
+        }
+
         $columnsUrl = admin_urls('dashboard', 'filter_bar_columns');
         $form->select('filter_bar_table', exmtrans('dashboard.filter_bar.source_table'))
-            ->options(CustomTable::filterList()->pluck('table_view_name', 'table_name')->toArray())
+            // the tables whose rows this user may read, as the chart box and the item endpoints
+            // offer them (not the tables this user may define: a user dashboard's owner has none)
+            ->options(CustomTable::filterList(null, ['permissions' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE])->pluck('table_view_name', 'table_name')->toArray())
             ->help(exmtrans('dashboard.filter_bar.help.source_table'))
             // repoints every item's column select at the newly chosen table
             ->attribute(['data-linkage' => json_encode(['column' => $columnsUrl])]);
 
         $valuesUrl = admin_urls('dashboard', 'filter_bar_values');
         $dashboardId = $model ? $model->id : '';
-        $columns = self::columnOptions($model ? $model->getOption('filter_bar.source_table') : null);
+        // the column choices of the table on the form: the one posted when the form comes back
+        // with a validation error (else every item's column would show blank, and the next save
+        // would drop the items), the stored one otherwise
+        $posted = old('filter_bar_table');
+        $columns = self::columnOptions(is_string($posted) ? $posted : ($model ? $model->getOption('filter_bar.source_table') : null));
         $boxes = self::boxOptions($model);
 
         $form->hasManyJsonTable('filter_bar_dims', exmtrans('dashboard.filter_bar.dims'), function ($form) use ($columns, $boxes) {
@@ -42,7 +58,13 @@ final class FilterBarForm
                 // against the table the request actually carries
                 ->validationOptions(function () {
                     return self::columnOptions(request()->input('filter_bar_table'));
-                });
+                })
+                // one item per column: the bar keeps the first, a second one would vanish on save
+                ->rules([function ($attribute, $value, $fail) {
+                    if (self::columnCount(request()->input('filter_bar_dims'), $value) > 1) {
+                        $fail(trans('validation.distinct', ['attribute' => exmtrans('dashboard.filter_bar.dim_column')]));
+                    }
+                }]);
             $form->text('label', exmtrans('dashboard.filter_bar.dim_label'));
             // posts the stored value(s) as text ("a,b" for a list column, "min~max" for a range
             // column); dashboard.js (ExmentDashboardForm) draws a picker or from / to inputs in
@@ -70,7 +92,41 @@ final class FilterBarForm
     }
 
     /**
-     * Filter column choices of a table, as column_name => "label (column_name)".
+     * Whether the dashboard's stored filter bar is on a table this user may not view.
+     *
+     * @param \Exceedone\Exment\Model\Dashboard|null $model  null on a new dashboard
+     */
+    private static function sourceHidden($model): bool
+    {
+        $source = $model ? $model->getOption('filter_bar.source_table') : null;
+        if (!is_scalar($source) || is_nullorempty($source)) {
+            return false;
+        }
+        $table = CustomTable::getEloquent($source);
+        return $table !== null && !$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE);
+    }
+
+    /**
+     * How many items of the posted items table (rows not removed) are on $column.
+     *
+     * @param mixed $rows  the posted filter_bar_dims
+     * @param mixed $column
+     */
+    private static function columnCount($rows, $column): int
+    {
+        $count = 0;
+        foreach (is_array($rows) ? $rows : [] as $row) {
+            if (is_array($row) && array_get($row, NestedForm::REMOVE_FLAG_NAME) != 1 && is_scalar($column)
+                && (string) array_get($row, 'column') === (string) $column) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * Filter column choices of a table, as column_name => "label (column_name)": none of a
+     * table this user may not view (the form's table list offers no other, a posted one may be).
      *
      * @param CustomTable|string|int|null $tableName  the table, or its name / id
      * @return array<string, string>
@@ -78,7 +134,7 @@ final class FilterBarForm
     public static function columnOptions($tableName): array
     {
         $table = is_nullorempty($tableName) ? null : CustomTable::getEloquent($tableName);
-        if ($table === null) {
+        if ($table === null || !$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return [];
         }
         $options = [];
@@ -91,6 +147,7 @@ final class FilterBarForm
     /**
      * Targeting choices: this dashboard's chart boxes (the only boxes that apply filters).
      *
+     * @param \Exceedone\Exment\Model\Dashboard|null $model  null on a new dashboard
      * @return array<string, string> suuid => "name (row-column)"
      */
     private static function boxOptions($model): array

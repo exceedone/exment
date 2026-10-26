@@ -8,7 +8,7 @@ use Exceedone\Exment\Tests\Unit\Dashboard\Support\DashboardUnitTestCase;
 
 class DashboardModelTest extends DashboardUnitTestCase
 {
-    public function testRowSettingMergesIntoOptions()
+    public function testRowSettingMergesIntoOptions(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade']), ['row1' => 1, 'row2' => 2, 'keep_me' => true]);
         $dashboard->row_setting = ['row1' => 3, 'row2' => 0];
@@ -18,15 +18,17 @@ class DashboardModelTest extends DashboardUnitTestCase
         $this->assertSame('fake_table', $dashboard->getOption('filter_bar.source_table'));
     }
 
-    public function testFilterBarTableAndDims()
+    public function testFilterBarTableAndDims(): void
     {
         $dashboard = $this->makeDashboard(null);
         $dashboard->filter_bar_table = 'f_score';
-        $dashboard->filter_bar_dims = [
+        // the form posts raw rows (setFilterBarDimsAttribute normalizes them); the property
+        // type is the normalized one
+        $dashboard->setAttribute('filter_bar_dims', [
             ['column' => 'grade', 'label' => ' 学年 ', 'targets' => ['b1', '', 'b2'], 'default' => ' 1 '],
             ['column' => '', 'label' => 'blank row'],
             ['column' => 'subject', 'label' => '', 'targets' => [], 'default' => '  '],
-        ];
+        ]);
         $this->assertSame('f_score', $dashboard->filter_bar_table);
         $this->assertSame([
             ['column' => 'grade', 'label' => '学年', 'targets' => ['b1', 'b2'], 'default' => '1'],
@@ -42,7 +44,7 @@ class DashboardModelTest extends DashboardUnitTestCase
             ['column' => 'score', 'label' => '点数', 'style' => 'range'],
             ['column' => 'grade', 'label' => '学年', 'style' => 'nonsense'],
         ]]);
-        $styled->filter_bar_dims = [['column' => 'grade', 'label' => '学年'], ['column' => 'score', 'label' => '点数']];
+        $styled->setAttribute('filter_bar_dims', [['column' => 'grade', 'label' => '学年'], ['column' => 'score', 'label' => '点数']]);
         $this->assertSame([
             ['column' => 'grade', 'label' => '学年'],
             ['column' => 'score', 'label' => '点数', 'style' => 'range'],
@@ -64,7 +66,11 @@ class DashboardModelTest extends DashboardUnitTestCase
         return $box;
     }
 
-    /** Unsaved Dashboard whose save() is counted instead of reaching the database. */
+    /**
+     * Unsaved Dashboard whose save() is counted instead of reaching the database.
+     *
+     * @param array<string, mixed>|null $filterBar
+     */
     private function countingDashboard(?array $filterBar): Dashboard
     {
         $dashboard = new class () extends Dashboard {
@@ -82,7 +88,7 @@ class DashboardModelTest extends DashboardUnitTestCase
         return $dashboard;
     }
 
-    public function testRenameFilterBarTargets()
+    public function testRenameFilterBarTargets(): void
     {
         $dims = [
             ['column' => 'grade', 'targets' => ['old-a', 'old-b']],
@@ -100,7 +106,7 @@ class DashboardModelTest extends DashboardUnitTestCase
         $this->assertSame([], Dashboard::renameFilterBarTargets([], ['1-1' => 'x']));
     }
 
-    public function testTemplateExportNamesFilterBarTargetsByPosition()
+    public function testTemplateExportNamesFilterBarTargetsByPosition(): void
     {
         // a box does not keep its suuid through an import: the export names a target by "{row}-{column}"
         $dashboard = $this->makeDashboard(['source_table' => 'fake_table', 'dims' => [
@@ -120,7 +126,7 @@ class DashboardModelTest extends DashboardUnitTestCase
         $this->assertArrayNotHasKey('options', $dashboard->getTemplateExportItems(true), 'the language export has no options to rename');
     }
 
-    public function testImportedBoxesTakeTheirPositionsPlaceInTheFilterBar()
+    public function testImportedBoxesTakeTheirPositionsPlaceInTheFilterBar(): void
     {
         $bar = ['source_table' => 'fake_table', 'dims' => [
             ['column' => 'grade', 'label' => '学年', 'targets' => ['1-1', '2-1', '3-3'], 'default' => '1'],
@@ -153,7 +159,7 @@ class DashboardModelTest extends DashboardUnitTestCase
         }
     }
 
-    public function testImportTemplateEndsWithThePositionPass()
+    public function testImportTemplateEndsWithThePositionPass(): void
     {
         // Dashboard::importTemplate: the trait's import (the dashboard, then its boxes), then
         // the pass over the bar's position targets on what it returned
@@ -163,6 +169,12 @@ class DashboardModelTest extends DashboardUnitTestCase
             /** @var Dashboard|null what the trait's import returns */
             public static $imported;
 
+            /**
+             * @param array<string, mixed> $array
+             * @param bool $is_update
+             * @param array<string, mixed> $options
+             * @return Dashboard|null
+             */
             protected static function templateImport($array, $is_update, $options = [])
             {
                 return static::$imported;
@@ -177,7 +189,7 @@ class DashboardModelTest extends DashboardUnitTestCase
         $this->assertNull($importing::importTemplate([], false), 'an import the trait refused: nothing to resolve');
     }
 
-    public function testNormalizeDropsHalfConfiguredBarAndDuplicateColumns()
+    public function testNormalizeDropsHalfConfiguredBarAndDuplicateColumns(): void
     {
         $normalize = new \ReflectionMethod(\Exceedone\Exment\Model\Dashboard::class, 'normalizeFilterBarOption');
         $normalize->setAccessible(true);
@@ -198,5 +210,30 @@ class DashboardModelTest extends DashboardUnitTestCase
         $dashboard = $this->makeDashboard(null);
         $normalize->invoke($dashboard);
         $this->assertArrayNotHasKey('filter_bar', $dashboard->options);
+
+        // a template may carry an array where a text belongs: skipped, no error
+        $dashboard = $this->makeDashboard(['source_table' => 't', 'dims' => [['column' => ['a']], ['column' => 'b']]]);
+        $normalize->invoke($dashboard);
+        $this->assertSame([['column' => 'b']], $dashboard->getOption('filter_bar.dims'));
+
+        $dashboard = $this->makeDashboard(['source_table' => ['t'], 'dims' => [['column' => 'a']]]);
+        $normalize->invoke($dashboard);
+        $this->assertArrayNotHasKey('filter_bar', $dashboard->options);
+    }
+
+    public function testFilterBarFormIgnoresArraysWhereATextBelongs(): void
+    {
+        $dashboard = $this->makeDashboard(null);
+        $dashboard->filter_bar_table = ['f_score'];
+        $this->assertNull($dashboard->filter_bar_table);
+
+        $dashboard->setAttribute('filter_bar_dims', [
+            ['column' => ['grade'], 'label' => 'x'],
+            ['column' => 'subject', 'label' => ['x'], 'default' => ['1']],
+        ]);
+        $this->assertSame([['column' => 'subject', 'label' => 'subject']], $dashboard->getOption('filter_bar.dims'), 'an array column is a blank row; an array label / default is none');
+
+        $stored = $this->makeDashboard(['source_table' => 't', 'dims' => [['column' => 'a', 'default' => ['1']]]]);
+        $this->assertSame('', $stored->filter_bar_dims[0]['default'], 'an imported array default reads as none');
     }
 }

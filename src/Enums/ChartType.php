@@ -61,6 +61,8 @@ class ChartType extends EnumBase
 
     /**
      * Multi-series type (ECharts, pivoted matrix).
+     *
+     * @param string|null $type
      */
     public static function isMulti($type): bool
     {
@@ -70,6 +72,8 @@ class ChartType extends EnumBase
     /**
      * Single-series type drawn by ECharts; anything else (bar / line / pie, or an unknown
      * legacy value) is drawn by Chart.js.
+     *
+     * @param string|null $type
      */
     public static function isEcharts($type): bool
     {
@@ -78,6 +82,8 @@ class ChartType extends EnumBase
 
     /**
      * Types without X/Y axes (slices / petals) — the ones where a legend is meaningful.
+     *
+     * @param string|null $type
      */
     public static function isCircular($type): bool
     {
@@ -112,6 +118,7 @@ class ChartType extends EnumBase
     /**
      * Types a box configured as $configured may be switched to at runtime.
      *
+     * @param string|null $configured
      * @return string[]
      */
     public static function switchPool($configured): array
@@ -124,6 +131,9 @@ class ChartType extends EnumBase
 
     /**
      * The type to render: the requested one when it is a legal switch, else the configured one.
+     *
+     * @param string|null $configured
+     * @param mixed $requested  the `ct` request value
      */
     public static function resolve($configured, $requested): ?string
     {

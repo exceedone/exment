@@ -9,7 +9,7 @@ use Exceedone\Exment\Tests\Unit\Dashboard\Support\FakeCustomTable;
 
 class FilterBarConfigTest extends DashboardUnitTestCase
 {
-    public function testNullWithoutUsableConfig()
+    public function testNullWithoutUsableConfig(): void
     {
         $this->assertNull(FilterBarConfig::fromArray(null));
         $this->assertNull(FilterBarConfig::fromArray([]));
@@ -20,12 +20,11 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertNull(FilterBarConfig::fromDashboard(null));
     }
 
-    public function testDimsAreNormalized()
+    public function testDimsAreNormalized(): void
     {
         $config = FilterBarConfig::fromDashboard($this->makeDashboard($this->bar([
-            'grade' => ['label' => ' 学年 ', 'targets' => ['box1', '', 7, 'box2']],
-            'subject',
             'grade' => ['label' => 'dup'],
+            'subject',
             'x-y',
         ])));
         $this->assertSame('fake_table', $config->sourceTable());
@@ -37,7 +36,16 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame(FilterBarConfig::DEFAULT_MAX_OPTIONS, $config->maxOptions());
     }
 
-    public function testTargetsFilteringAndMaxOptions()
+    public function testArraysWhereATextBelongsReadAsNone(): void
+    {
+        // an imported template may carry them: no "Array to string conversion"
+        $config = FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'grade', 'label' => ['x'], 'default' => ['1']]]]);
+        $this->assertSame('grade', $config->label('grade'), 'no label: the column name');
+        $this->assertSame('', $config->dim('grade')['default']);
+        $this->assertNull(FilterBarConfig::fromArray(['source_table' => ['t'], 'dims' => [['column' => 'grade']]]));
+    }
+
+    public function testTargetsFilteringAndMaxOptions(): void
     {
         $config = FilterBarConfig::fromArray([
             'source_table' => 't',
@@ -47,9 +55,10 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame(['box1', 'box2'], $config->dim('grade')['targets']);
         $this->assertSame(20, $config->maxOptions());
         $this->assertSame(FilterBarConfig::DEFAULT_MAX_OPTIONS, FilterBarConfig::fromArray(['source_table' => 't', 'max_options' => -1, 'dims' => [['column' => 'a']]])->maxOptions());
+        $this->assertSame(FilterBarConfig::MAX_OPTIONS_LIMIT, FilterBarConfig::fromArray(['source_table' => 't', 'max_options' => 10000000, 'dims' => [['column' => 'a']]])->maxOptions());
     }
 
-    public function testFixedScope()
+    public function testFixedScope(): void
     {
         $config = FilterBarConfig::fromArray([
             'source_table' => 't',
@@ -60,7 +69,7 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame([], FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'a']]])->scope());
     }
 
-    public function testAppliesToHonoursTargeting()
+    public function testAppliesToHonoursTargeting(): void
     {
         $config = FilterBarConfig::fromDashboard($this->makeDashboard($this->bar([
             'grade',
@@ -78,7 +87,7 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertFalse($config->appliesTo('unknown', $box1), 'a column that is not an item never applies');
     }
 
-    public function testDefaultQuery()
+    public function testDefaultQuery(): void
     {
         $config = FilterBarConfig::fromDashboard($this->makeDashboard($this->bar([
             'grade' => ['default' => ' 1 '],
@@ -104,7 +113,7 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame([], $config->defaultQuery(null));
     }
 
-    public function testDefaultQueryRangeBounds()
+    public function testDefaultQueryRangeBounds(): void
     {
         $table = new FakeCustomTable([new FakeCustomColumn('score', 'integer')]);
         $only = function ($default, $style = 'range') use ($table) {
@@ -128,7 +137,19 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame(['df_memo' => 'a~b'], FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'memo', 'default' => 'a~b']]])->defaultQuery($text));
     }
 
-    public function testSelectionKeepsOnlyTheBarsItems()
+    public function testListDefaultKeepsAnEscapedCommaInItsValue(): void
+    {
+        $this->assertSame(['a', 'b'], FilterBarConfig::listDefault(' a , ,b '));
+        $this->assertSame(['Tokyo, Japan', 'Osaka'], FilterBarConfig::listDefault('Tokyo\, Japan,Osaka'), 'the picker writes a comma inside a value as "\,"');
+        $this->assertSame(['x\\', 'y'], FilterBarConfig::listDefault('x\\\\,y'), 'and a backslash as "\\\\"');
+        $this->assertSame(['a\\b'], FilterBarConfig::listDefault('a\\b'), 'any other backslash is a character, as before');
+        $this->assertSame([], FilterBarConfig::listDefault(''));
+
+        $table = new FakeCustomTable([new FakeCustomColumn('city', 'text')]);
+        $this->assertSame(['df_city' => 'Tokyo, Japan'], FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'city', 'default' => 'Tokyo\, Japan']]])->defaultQuery($table));
+    }
+
+    public function testSelectionKeepsOnlyTheBarsItems(): void
     {
         $config = FilterBarConfig::fromArray(['source_table' => 't', 'dims' => [['column' => 'grade'], ['column' => 'subject'], ['column' => 'score'], ['column' => 'class']]]);
 
@@ -147,7 +168,7 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame([], $config->selection([]));
     }
 
-    public function testQueryStringUsesTheBarsOwnUrlFormat()
+    public function testQueryStringUsesTheBarsOwnUrlFormat(): void
     {
         $this->assertSame(
             'dashboard=abc&df_grade=1&df_subject%5B%5D=%E5%9B%BD%E8%AA%9E&df_subject%5B%5D=a%20b&df_score%5Bfrom%5D=60&dfr=1',
@@ -163,7 +184,7 @@ class FilterBarConfigTest extends DashboardUnitTestCase
         $this->assertSame('', FilterBarConfig::queryString([]));
     }
 
-    public function testDimsForHonoursColumnsAndTargeting()
+    public function testDimsForHonoursColumnsAndTargeting(): void
     {
         $config = FilterBarConfig::fromDashboard($this->makeDashboard($this->bar([
             'grade',

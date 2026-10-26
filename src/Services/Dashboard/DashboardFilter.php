@@ -10,14 +10,19 @@ namespace Exceedone\Exment\Services\Dashboard;
  * a dashboard that has no bar. A box is narrowed by an item when its table has the column
  * AND the item's targeting includes the box — except a chart's own X item, which the chart
  * highlights instead of filtering by (ChartItem::highlightColumn; applyTo's $except).
+ *
+ * @phpstan-import-type FilterSpec from FilterValue
  */
 final class DashboardFilter
 {
     /** @var FilterBarConfig|null */
     private $config;
-    /** @var array<string, array> column => spec */
+    /** @var array<string, FilterSpec> column => spec */
     private $values = [];
 
+    /**
+     * @param array<string, mixed> $params  request params
+     */
     private function __construct(?FilterBarConfig $config, array $params)
     {
         $this->config = $config;
@@ -32,11 +37,18 @@ final class DashboardFilter
         }
     }
 
+    /**
+     * @param mixed $dashboard  Dashboard|null
+     */
     public static function fromRequest($dashboard): self
     {
-        return new self(FilterBarConfig::fromDashboard($dashboard), request()->all());
+        return new self(FilterBarConfig::forViewer($dashboard), request()->all());
     }
 
+    /**
+     * @param mixed $dashboard  Dashboard|null
+     * @param array<string, mixed> $params  request params
+     */
     public static function of($dashboard, array $params): self
     {
         return new self(FilterBarConfig::fromDashboard($dashboard), $params);
@@ -53,13 +65,30 @@ final class DashboardFilter
     }
 
     /**
-     * @return array<string, array> column => spec
+     * @return array<string, FilterSpec> column => spec
      */
     public function values(): array
     {
         return $this->values;
     }
 
+    /**
+     * The selection as df_ params, in the shape FilterBarConfig::selection produces.
+     *
+     * @return array<string, string|array<string|int, string>> param name (df_{column}) => value
+     */
+    public function query(): array
+    {
+        $out = [];
+        foreach ($this->values as $column => $spec) {
+            $out['df_' . $column] = FilterBarConfig::paramOf($spec);
+        }
+        return $out;
+    }
+
+    /**
+     * @return FilterSpec|null
+     */
     public function spec(string $column): ?array
     {
         return $this->values[$column] ?? null;
@@ -90,6 +119,10 @@ final class DashboardFilter
      * date item, which shows from / to for it. A from / to on a text item, which always
      * lists its values, would narrow every chart while the bar displayed nothing selected,
      * so it is dropped.
+     *
+     * @param mixed $table  CustomTable|null
+     * @param mixed $box  DashboardBox|null
+     * @return array<string, mixed> column => CustomColumn
      */
     public function columnsFor($table, $box = null): array
     {
@@ -113,6 +146,8 @@ final class DashboardFilter
     /**
      * Active items that do NOT narrow this box (no such column, or targeted elsewhere).
      *
+     * @param mixed $table  CustomTable|null
+     * @param mixed $box  DashboardBox|null
      * @return string[] column names
      */
     public function ignoredFor($table, $box = null): array
@@ -133,6 +168,9 @@ final class DashboardFilter
     /**
      * AND every active item this box can honour onto $query.
      *
+     * @param mixed $query  query on the table's rows
+     * @param mixed $table  CustomTable|null
+     * @param mixed $box  DashboardBox|null
      * @param string[] $except items to leave out — a chart's own X item, which it highlights
      *                         instead of filtering by (ChartItem::highlightColumn)
      * @return string[] the columns applied
@@ -153,6 +191,9 @@ final class DashboardFilter
     /**
      * AND the bar's fixed scope (config `scope`) onto an OPTION-LIST query, for the scope
      * columns $table carries. Option lists only — box data is never narrowed by it.
+     *
+     * @param mixed $query  query on the table's rows
+     * @param mixed $table  CustomTable|null
      */
     public function applyFixedScope($query, $table): void
     {
@@ -164,6 +205,9 @@ final class DashboardFilter
     /**
      * The fixed scope entries (filter_bar.scope) $table carries, as column => CustomColumn;
      * [] for a table without those columns — nothing narrows its lists.
+     *
+     * @param mixed $table  CustomTable|null
+     * @return array<string, mixed> column => CustomColumn
      */
     public function fixedScopeColumnsFor($table): array
     {

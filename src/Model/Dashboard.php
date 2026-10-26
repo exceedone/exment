@@ -61,7 +61,9 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<DashboardBox, $this>
+     */
     public function dashboard_boxes(): HasMany
     {
         return $this->hasMany(DashboardBox::class, 'dashboard_id')
@@ -119,7 +121,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     // @phpstan-ignore-next-line
     public function setFilterBarTableAttribute($value)
     {
-        return $this->setFilterBarOption('source_table', is_nullorempty($value) ? null : strval($value));
+        return $this->setFilterBarOption('source_table', is_scalar($value) && !is_nullorempty($value) ? strval($value) : null);
     }
 
     /**
@@ -127,7 +129,6 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      *
      * @return array<int, array{column:?string, label:?string, targets:string[], default:string}>
      */
-    // @phpstan-ignore-next-line
     public function getFilterBarDimsAttribute()
     {
         $dims = $this->getOption('filter_bar.dims');
@@ -136,7 +137,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
                 'column' => array_get($dim, 'column'),
                 'label' => array_get($dim, 'label'),
                 'targets' => array_values(array_filter((array) array_get($dim, 'targets', []), 'is_string')),
-                'default' => strval(array_get($dim, 'default', '')),
+                'default' => static::textOf(array_get($dim, 'default')),
             ];
         })->values()->toArray();
     }
@@ -155,11 +156,11 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         }
         $dims = [];
         foreach (is_array($value) ? $value : [] as $row) {
-            $column = trim(strval(array_get($row, 'column', '')));
+            $column = trim(static::textOf(array_get($row, 'column')));
             if ($column === '') {
                 continue; // a row left blank is not a filter item
             }
-            $label = trim(strval(array_get($row, 'label', '')));
+            $label = trim(static::textOf(array_get($row, 'label')));
             $dim = ['column' => $column, 'label' => $label !== '' ? $label : $column];
             // target boxes: an empty multi-select posts nothing = every box
             $targets = array_values(array_filter((array) array_get($row, 'targets', []), function ($v) {
@@ -169,7 +170,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
                 $dim['targets'] = $targets;
             }
             // initial selection (stored values; "min~max" for range items) — empty = none
-            $default = trim(strval(array_get($row, 'default', '')));
+            $default = trim(static::textOf(array_get($row, 'default')));
             if ($default !== '') {
                 $dim['default'] = $default;
             }
@@ -180,6 +181,17 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             $dims[] = $dim;
         }
         return $this->setFilterBarOption('dims', count($dims) ? $dims : null);
+    }
+
+    /**
+     * A posted or imported value as text: '' for one that is no scalar (an array where a
+     * text is expected), which strval() would fail on.
+     *
+     * @param mixed $value
+     */
+    protected static function textOf($value): string
+    {
+        return is_scalar($value) ? strval($value) : '';
     }
 
     /**
@@ -201,6 +213,41 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         return $this->setOption('filter_bar', $bar);
     }
 
+    /**
+     * Forgets deleted boxes among the filter items' target boxes (filter_bar.dims[].targets),
+     * in one save: boxes deleted together each hold their own copy of the dashboard, a save
+     * per box would write back the targets the one before removed.
+     * An item left without a target narrows every box again — what its setting form shows for
+     * it, and what the form's next save would make of a target it cannot list anyway.
+     *
+     * @param string[] $suuids
+     */
+    public function forgetFilterBarTargets(array $suuids): void
+    {
+        $dims = $this->getOption('filter_bar.dims');
+        if (!is_array($dims) || empty($suuids)) {
+            return;
+        }
+        $changed = false;
+        foreach ($dims as $i => $dim) {
+            $targets = is_array($dim) ? array_get($dim, 'targets') : null;
+            if (!is_array($targets) || empty(array_intersect($targets, $suuids))) {
+                continue;
+            }
+            $targets = array_values(array_diff($targets, $suuids));
+            if (empty($targets)) {
+                unset($dims[$i]['targets']);
+            } else {
+                $dims[$i]['targets'] = $targets;
+            }
+            $changed = true;
+        }
+        if ($changed) {
+            $this->setFilterBarOption('dims', $dims);
+            $this->save();
+        }
+    }
+
     // Template export / import -----------------------------------------------------------
     // A box does not keep its suuid through a template import (DashboardBox excepts it), so
     // the filter bar's target boxes (filter_bar.dims[].targets) are exported by POSITION,
@@ -214,7 +261,6 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      * @param bool $is_lang
      * @return array<string, mixed>
      */
-    // @phpstan-ignore-next-line
     public function getTemplateExportItems($is_lang = false)
     {
         $array = $this->templateExportItems($is_lang);
@@ -236,9 +282,8 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      * @param array<string, mixed> $array
      * @param bool $is_update
      * @param array<string, mixed> $options
-     * @return static|null
+     * @return \Illuminate\Database\Eloquent\Model|null  the trait's result (TemplateTrait::importTemplate)
      */
-    // @phpstan-ignore-next-line
     public static function importTemplate($array, $is_update, $options = [])
     {
         $dashboard = static::templateImport($array, $is_update, $options);
@@ -312,11 +357,13 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         $dims = [];
         foreach ((array) array_get($bar, 'dims', []) as $dim) {
             $column = array_get($dim, 'column');
-            if (!is_nullorempty($column) && !isset($dims[$column])) {
-                $dims[$column] = $dim;
+            $key = is_scalar($column) ? strval($column) : '';
+            if ($key !== '' && !isset($dims[$key])) {
+                $dims[$key] = $dim;
             }
         }
-        if (is_nullorempty(array_get($bar, 'source_table')) || empty($dims)) {
+        $source = array_get($bar, 'source_table');
+        if (!is_scalar($source) || is_nullorempty($source) || empty($dims)) {
             $this->forgetOption('filter_bar');
             return;
         }
@@ -432,8 +479,16 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         $query->where('dashboard_type', $this->dashboard_type);
 
         if ($this->dashboard_type == DashboardType::USER) {
-            $login_user = \Exment::user();
-            $query->where('created_user_id', isset($login_user) ? $login_user->getUserId() : null);
+            // the dashboard owner's, not the saving user's: a user it is shared with for
+            // editing saves it too (setting form, a box deleted), and must reach the owner's
+            // dashboards not shared with them as well
+            $query->withoutGlobalScope('showableDashboards');
+            $owner = $this->created_user_id;
+            if (!isset($owner)) {
+                $login_user = \Exment::user();
+                $owner = isset($login_user) ? $login_user->getUserId() : null;
+            }
+            $query->where('created_user_id', $owner);
         }
     }
 

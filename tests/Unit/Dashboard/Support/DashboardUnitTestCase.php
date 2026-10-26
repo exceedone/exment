@@ -37,7 +37,11 @@ abstract class DashboardUnitTestCase extends TestCase
         }
     }
 
-    /** Swap the container's request for a fresh GET carrying $params. */
+    /**
+     * Swap the container's request for a fresh GET carrying $params.
+     *
+     * @param array<string, mixed> $params
+     */
     protected function swapRequest(array $params = []): Request
     {
         $request = Request::create('/admin', 'GET', $params);
@@ -46,7 +50,12 @@ abstract class DashboardUnitTestCase extends TestCase
         return $request;
     }
 
-    /** Unsaved Dashboard carrying options.filter_bar = $filterBar (null = no bar). */
+    /**
+     * Unsaved Dashboard carrying options.filter_bar = $filterBar (null = no bar).
+     *
+     * @param array<string, mixed>|null $filterBar
+     * @param array<string, mixed> $extraOptions
+     */
     protected function makeDashboard(?array $filterBar, array $extraOptions = []): Dashboard
     {
         $options = $extraOptions;
@@ -59,7 +68,11 @@ abstract class DashboardUnitTestCase extends TestCase
         return $dashboard;
     }
 
-    /** Unsaved chart box attached in memory to $dashboard. */
+    /**
+     * Unsaved chart box attached in memory to $dashboard.
+     *
+     * @param array<string, mixed> $options
+     */
     protected function makeBox(string $suuid, array $options, ?Dashboard $dashboard = null, string $type = 'chart'): DashboardBox
     {
         $box = new DashboardBox();
@@ -71,7 +84,13 @@ abstract class DashboardUnitTestCase extends TestCase
         return $box;
     }
 
-    /** filter_bar config from plain dims (column, or column => extra keys). */
+    /**
+     * filter_bar config from plain dims (column, or column => extra keys).
+     *
+     * @param array<int|string, string|array<string, mixed>> $dims
+     * @param array<string, mixed> $extra
+     * @return array<string, mixed>
+     */
     protected function bar(array $dims, array $extra = []): array
     {
         $rows = [];

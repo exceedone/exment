@@ -44,7 +44,7 @@ class ChartSorter
      * points re-ordered. `chart_fields[i]` = the texts of X column i, one per point; without
      * it the label stands in for `x0`. An X index the chart does not have leaves it as is.
      *
-     * @param array<string, mixed> $result
+     * @param array{chart_label?: iterable<mixed>|null, chart_data?: iterable<mixed>|null, chart_fields?: array<int, iterable<mixed>>, ...<string, mixed>} $result
      * @return array<string, mixed>
      */
     public static function applySingle(array $result, ChartSort $sort): array

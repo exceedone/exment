@@ -88,7 +88,9 @@ trait TableItemTrait
             $custom_table = CustomTable::getEloquent(array_get($field->data(), 'target_table_id'));
         }
 
-        if (!isset($custom_table)) {
+        // of a table this user may view only, as its ajax list (table_views): the form is open
+        // to anyone who may view the dashboard, with any view id posted back
+        if (!isset($custom_table) || !$custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return [];
         }
 

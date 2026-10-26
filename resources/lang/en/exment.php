@@ -610,6 +610,7 @@ return [
             'narrow_first' => 'Too many values — narrow another filter first',
             'not_affected' => 'Not affected by filters',
             'partially_affected' => 'Filters not applied here',
+            'locked' => 'You have no permission to view the filter source table, so the filter settings of this dashboard cannot be changed here. Saving keeps them as they are.',
             'help' => [
                 'source_table' => 'Table the filter choices are read from. Leave empty to hide the filter bar.',
                 'dims' => 'Items shown on the filter bar. The choices of each item are narrowed by the selection of the other items.',
@@ -645,6 +646,7 @@ return [
             'standard' => 'Standard colors',
             'auto' => 'Automatic',
             'more' => 'More colors...',
+            'ok' => 'OK',
             'reset' => 'Reset colors',
         ],
 

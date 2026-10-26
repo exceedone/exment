@@ -12,9 +12,11 @@
  *   cd                    display option 値ラベル ("labels"; per box; remembered per user)
  *   bf_{column}           chart filter selection (page-lifetime, per box)
  *
- * A filter bar change is applied selectively (see `navigate`): pushState the new URL,
- * reload only the boxes the changed items narrow (their data-df-dims attribute), refresh
- * the bar from a partial request (?_df_bar=1) — untouched boxes keep their content.
+ * A filter bar change is applied selectively (see `navigate`): push a history entry for
+ * the new URL, reload only the boxes the changed items narrow (their data-df-dims
+ * attribute), refresh the bar from a partial request (?_df_bar=1) — untouched boxes keep
+ * their content. The entry is one of pjax's own (see `pushEntry`), so back / forward
+ * re-render the page for the entry's URL the way pjax restores any page.
  *
  * Cross-highlight: a chart never filters by its own X item (ChartItem::highlightColumn), it
  * draws the picked values solid and fades the rest. A change on that item alone — a click on
@@ -29,6 +31,7 @@
     var A = {};      // asset base URLs (init's options.assets)
     var state = {};  // suuid => {ct: type, cs: sort, cd: "labels", bf: {column: [values] | {from, to}}, reopen: true}
     var saving = {}; // suuid => true while its toolbar choices are being saved, 'again' when they changed meanwhile
+    var pagePath = ''; // path of the dashboard page, set by init: a pjax link pushes its own URL before it renders
 
     function esc(s) { return $('<i>').text(String(s == null ? '' : s)).html(); }
     function boxOf(suuid) { return $('[data-suuid="' + suuid + '"]'); }
@@ -105,6 +108,10 @@
             return;
         }
         $box.removeData('pending').addClass('loading');
+        // the popover a chart-filter change came from reopens on the render of this request
+        // alone: one that fails, or lands on a page rendered again meanwhile, drops it
+        var reopen = !!stateOf(suuid).reopen;
+        delete stateOf(suuid).reopen;
         var $body = $box.find('.box-body-inner-body');
         $body.css('height', $body.height());
         $box.find('.box-body-inneritem').html('');
@@ -114,6 +121,7 @@
             url: url || (admin_url('dashboardbox/html/' + suuid) + boxQuery(suuid)),
             type: 'GET',
             success: function (data) {
+                if (replaced($box)) { return; }
                 // the new body's script registers the chart hooks afresh: a stale hook must never answer for it
                 if (window.ExmentCharts) { delete window.ExmentCharts[suuid]; }
                 if (data.header) { $box.find('.box-body-inner-header').html(data.header); }
@@ -126,8 +134,7 @@
                 if ($box.find('.exment-bf-list, .exment-bf-range').length) {
                     stateOf(suuid).bf = collectChartFilter($box);
                 }
-                if (stateOf(suuid).reopen) {
-                    delete stateOf(suuid).reopen;
+                if (reopen) {
                     openPop($box.find('[data-ct-pop]').first());
                 }
                 // the request may have been built before a pushState'd filter change:
@@ -139,12 +146,19 @@
                 flushPending($box, suuid);
             },
             error: function () {
+                if (replaced($box)) { return; }
                 $box.find('.overlay').hide();
                 $box.removeClass('loading');
                 $box.find('.box-body-inner-body').html(esc(L.error));
                 flushPending($box, suuid);
             }
         });
+    }
+
+    // The page was rendered again (pjax) while the box was fetching: its suuid — the chart
+    // hooks, the toolbar state — belongs to the new page's box now, which loads on its own
+    function replaced($box) {
+        return !$.contains(document.documentElement, $box[0]);
     }
 
     function flushPending($box, suuid) {
@@ -235,7 +249,14 @@
         var hook = (window.ExmentCharts || {})[suuid], $box = boxOf(suuid);
         if (!hook || typeof hook.data !== 'function') { return; }
         var d = hook.data(), rows = [];
-        var cell = function (v) { var s = String(v == null ? '' : v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+        // a text that a spreadsheet would read as a formula (= + - @, a tab or a CR first) is
+        // kept as text by a quote in front (CSV injection); a number stays a number, written as
+        // a label shows one too ("-1,234", "-10.5%")
+        var cell = function (v) {
+            var s = String(v == null ? '' : v);
+            if (typeof v !== 'number' && /^[=+\-@\t\r]/.test(s) && !/^[+-]?(\d{1,3}(,\d{3})+|\d+)(\.\d+)?%?$/.test(s)) { s = "'" + s; }
+            return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+        };
         if (d.matrix) {
             rows.push([d.axisx || ''].concat(d.series));
             $.each(d.categories, function (i, c) { rows.push([c].concat($.map(d.series, function (s, si) { return (d.matrix[si] || [])[i]; }))); });
@@ -340,7 +361,7 @@
                     }).join('') + '</div>'
                     + '<div class="cc-f-hex"><label><input type="text" class="cc-hexin" maxlength="7" spellcheck="false" autocomplete="off"><span>HEX</span></label></div>'
                     + '<button type="button" class="cc-mode" title="RGB / HEX"><i class="fa fa-sort"></i></button></div>'
-                    + '<div class="cc-pick-foot"><button type="button" class="cc-ok">OK</button></div>'
+                    + '<div class="cc-pick-foot"><button type="button" class="cc-ok">' + esc(L.color_ok || 'OK') + '</button></div>'
                 );
                 render();
             }
@@ -486,7 +507,8 @@
         if (!$('#exment-ionslider-css').length) {
             $('<link id="exment-ionslider-css" rel="stylesheet">').attr('href', base + '/ion.rangeSlider.css').appendTo('head');
         }
-        ionLoading = $.getScript(base + '/ion.rangeSlider.min.js');
+        ionLoading = $.getScript(base + '/ion.rangeSlider.min.js')
+            .fail(function () { ionLoading = null; }); // a failed fetch is retried by the next bar
         return ionLoading;
     }
     // the decimals the two ends are written with give the step: 1 for integers, 0.1 for "72.5"
@@ -494,6 +516,29 @@
         var d = 0;
         $.each([a, b], function (i, s) { var m = /\.(\d+)$/.exec(String(s)); if (m && m[1].length > d) { d = m[1].length; } });
         return { step: Math.pow(10, -d), decimals: d };
+    }
+    // Ion binds its drag handlers to <body> and window, which outlive the bar: a slider is
+    // removed (its handlers with it) before its bar is replaced or left
+    var sliders = [];
+    function removeSliders() {
+        $.each(sliders, function (i, $input) {
+            try { $input.ionRangeSlider('remove'); } catch (e) {}
+        });
+        sliders = [];
+    }
+    // A handle held down: the bar is not replaced under it — its release applies the drag
+    // from the inputs of this bar. Ion stops the mousedown from bubbling, so it is seen on
+    // its way down (capture), once per document.
+    var sliding = false, slidingWatched = false;
+    function watchSliding() {
+        if (slidingWatched) { return; }
+        slidingWatched = true;
+        var down = function (ev) { sliding = !!$(ev.target).closest('.exment-df-bar .irs').length; };
+        var up = function () { sliding = false; };
+        document.addEventListener('mousedown', down, true);
+        document.addEventListener('touchstart', down, true);
+        document.addEventListener('mouseup', up, true);
+        document.addEventListener('touchend', up, true);
     }
     function initSliders() {
         var $ranges = $('.exment-df-bar .df-range[data-slider]').filter(function () { return !$(this).find('.irs').length; });
@@ -508,6 +553,7 @@
                 var clamp = function (v, dflt) { v = $.trim(String(v == null ? '' : v)); var n = Number(v); return (v === '' || isNaN(n)) ? dflt : Math.min(max, Math.max(min, n)); };
                 var show = function (n) { return String(Number(Number(n).toFixed(s.decimals))); };
                 var $input = $('<input type="hidden" class="df-slider">').appendTo($wrap.empty());
+                sliders.push($input);
                 $input.ionRangeSlider({
                     type: 'double', min: min, max: max, step: s.step,
                     from: clamp($from.val(), min), to: clamp($to.val(), max),
@@ -549,7 +595,7 @@
         params.forEach(function (v, k) { if (k.indexOf('df_') === 0) { hasDf = true; } });
         if (!hasDf) { params.set('dfr', '1'); }
         var query = params.toString();
-        return window.location.pathname + (query ? '?' + query : '');
+        return pagePath + (query ? '?' + query : '');
     }
 
     // Click-to-filter from a chart: select `value` on the bar's `column` item — click = only
@@ -558,7 +604,10 @@
     function pick(column, value, toggle) {
         var $s = $('.exment-df-bar .df-select[data-column="' + column + '"]');
         value = String(value == null ? '' : value);
-        if (!$s.length || value === '' || !$s.find('option[value="' + value.replace(/"/g, '\\"') + '"]').length) { return; }
+        // the option is found by comparing values: a value is free text, and a backslash or
+        // a quote in it would break a selector
+        var known = $s.find('option').filter(function () { return this.value === value; }).length > 0;
+        if (!$s.length || value === '' || !known) { return; }
         var current = ($s.val() || []).slice(), values;
         if (toggle) {
             values = current.indexOf(value) >= 0 ? current.filter(function (v) { return v !== value; }) : current.concat([value]);
@@ -572,10 +621,10 @@
     // ---- selective apply --------------------------------------------------------------
     // A bar change reloads ONLY the boxes the changed items narrow (data-df-dims, written
     // per box by DashboardController): the others keep their rendered content — no spinner
-    // that could read as "this chart was filtered too". The URL still updates (pushState,
-    // so F5 / back keep working) and the bar re-renders its option lists from a partial
-    // request. Anything unexpected falls back to a full pjax render.
-    var barReq = 0, pushedState = false;
+    // that could read as "this chart was filtered too". The URL still updates (a history
+    // entry, so F5 / back keep working) and the bar re-renders its option lists from a
+    // partial request. Anything unexpected falls back to a full pjax render.
+    var barReq = 0;
 
     function dfColumnOf(key) {
         if (key.indexOf('df_') !== 0) { return null; }
@@ -680,7 +729,7 @@
         var $bar = $('.exment-df-bar').first();
         if (!$fresh.length || !$bar.length) { return; }
         var active = document.activeElement;
-        var busy = $bar.find('.df-select').toArray().some(function (el) {
+        var busy = sliding || $bar.find('.df-select').toArray().some(function (el) {
             try { return $(el).data('select2') && $(el).select2('isOpen'); } catch (e) { return false; }
         }) || ($.contains($bar[0], active) && (
             $(active).hasClass('df-range-input')                                             // typing a range bound
@@ -690,8 +739,15 @@
         $bar.find('.df-select').each(function () {
             try { $(this).select2('destroy'); } catch (e) {}
         });
+        removeSliders();
         $bar.replaceWith($fresh);
         initFilterBar();
+    }
+
+    // pjax's request is sent and not answered yet (readyState 0 again once aborted)
+    function rendering() {
+        var xhr = $.pjax && $.pjax.xhr;
+        return !!xhr && xhr.readyState > 0 && xhr.readyState < 4;
     }
 
     function fullNavigate(url) {
@@ -702,6 +758,59 @@
         if ($.pjax) { $.pjax({ url: url, container: '#pjax-container' }); } else { window.location.href = url; }
     }
 
+    // ---- history ----------------------------------------------------------------------
+    // A filter change gets a history entry of its own, written as one of pjax's: an entry
+    // whose state has pjax's shape (id, url, container) is restored by pjax on back /
+    // forward through a full render of its URL — fetched afresh each time, open-admin keeps
+    // no pjax cache (maxCacheLength 0) — and pjax's notion of the current entry
+    // ($.pjax.state) follows ours, or it would skip the entry it still believes current.
+    // The entry the dashboard was rendered in becomes such an entry too when it is not one
+    // yet (a full page load), and its URL says explicitly that the bar is empty (dfr) when
+    // it carries no filter state: fetched again on the way back, a URL without one is
+    // redirected to this user's remembered selection (DashboardController::
+    // filterDefaultRedirect), and the entry would show another state than its URL.
+    var lastId = 0;
+
+    // pjax reads the navigation direction off its ids (timestamps): strictly increasing
+    function entryState(url) {
+        lastId = Math.max(Date.now(), lastId + 1);
+        return { id: lastId, url: url, title: document.title, container: '#pjax-container' };
+    }
+
+    // `href` with its filter state made explicit: dfr=1 when no df_ value and no dfr is on it
+    function explicitUrl(href) {
+        var u = new URL(href), explicit = false;
+        u.searchParams.forEach(function (v, k) { if (k === 'dfr' || (k.indexOf('df_') === 0 && v !== '')) { explicit = true; } });
+        if (!explicit) { u.searchParams.set('dfr', '1'); }
+        return u.href;
+    }
+
+    function pushEntry(url) {
+        var current = explicitUrl(window.location.href), st = window.history.state;
+        st = (st && st.container) ? $.extend({}, st, { url: current }) : entryState(current);
+        window.history.replaceState(st, '', current);
+        $.pjax.state = st;
+        st = entryState(new URL(url, window.location.href).href);
+        window.history.pushState(st, '', st.url);
+        $.pjax.state = st;
+    }
+
+    // The entry's URL with the selection the page was rendered with (the bar's data-query),
+    // when they differ: fetched for back / forward, a URL without filter state is redirected
+    // to the remembered selection, and pjax keeps the entry's own URL — the boxes, which take
+    // the selection off the URL (dfParams), would show unfiltered data under that bar.
+    function alignEntry() {
+        var query = $('.exment-df-bar').attr('data-query');
+        if (query == null || !window.history.replaceState) { return; }
+        if (!changedColumns(window.location.search, '?' + query).length) { return; }
+        var href = new URL(pagePath + '?' + query, window.location.href).href, st = window.history.state;
+        if (st && st.container) {
+            st = $.extend({}, st, { url: href });
+            if ($.pjax && $.pjax.state && $.pjax.state.id === st.id) { $.pjax.state = st; }
+        }
+        window.history.replaceState(st, '', href);
+    }
+
     function navigate(url) {
         $('.exment-df-bar .df-select').each(function () {
             $(this).data('applied', ($(this).val() || []).slice());
@@ -709,12 +818,13 @@
         });
         if (url === window.location.pathname + window.location.search) { return; }
         var $boxes = $('[data-suuid]').filter(function () { return $(this).data('suuid'); });
-        var canPartial = window.history && window.history.pushState && $boxes.length
+        var canPartial = $.pjax && window.history && window.history.pushState && $boxes.length
             && $boxes.filter('[data-df-dims]').length === $boxes.length;
-        if (!canPartial) { fullNavigate(url); return; }
+        // a pjax render under way (back / forward, a link) is about to replace the page this
+        // change was made on: render the change instead — a new pjax request drops that one
+        if (!canPartial || rendering()) { fullNavigate(url); return; }
         var changed = changedColumns(window.location.search, url.indexOf('?') >= 0 ? url.slice(url.indexOf('?')) : '');
-        window.history.pushState({ exdf: true }, '', url);
-        pushedState = true;
+        pushEntry(url);
         $boxes.each(function () {
             var $box = $(this), suuid = $box.data('suuid'), dims = boxDims($box), hit = [];
             $.each(changed, function (i, column) { if (dims.indexOf(column) >= 0) { hit.push(column); } });
@@ -733,6 +843,29 @@
             loadBox(suuid);
         });
         refreshFilterBar(url);
+    }
+
+    // Handler of a range bound input: apply($input) once a bound is entered. A number input
+    // fires change once left (or on Enter). A date input fires it at every digit typed into
+    // its year (2025: 0002, 0020, 0202, 2025): a typed date applies once the input is left
+    // (Enter leaves it), a day picked on its calendar at once, as before.
+    function rangeEdited(apply) {
+        return function (ev) {
+            var el = this, $el = $(el);
+            if (el.type !== 'date') {
+                if (ev.type === 'change') { apply($el); }
+                return;
+            }
+            switch (ev.type) {
+                case 'focusin': $el.data('entered', el.value).removeData('typing'); return;
+                case 'keydown': $el.data('typing', true); return;
+                case 'change': if ($el.data('typing')) { return; } break;
+                case 'focusout': $el.removeData('typing'); break;
+            }
+            if (el.value === $el.data('entered')) { return; }
+            $el.data('entered', el.value);
+            apply($el);
+        };
     }
 
     // ---- bindings ---------------------------------------------------------------------
@@ -761,17 +894,10 @@
         $(document).on('change' + NS, '.exment-df-bar .df-select', function () {
             if (!$(this).select2('isOpen') && selectChanged($(this))) { navigate(filterBarUrl()); }
         });
-        $(document).on('change' + NS, '.exment-df-bar .df-range-input', function () { navigate(filterBarUrl()); });
+        $(document).on('change' + NS + ' focusin' + NS + ' focusout' + NS + ' keydown' + NS, '.exment-df-bar .df-range-input', rangeEdited(function () { navigate(filterBarUrl()); }));
         // リセット: back to the configured defaults (the bar renders their URL query)
         $(document).on('click' + NS, '.exment-df-bar .df-reset', function () {
-            navigate(window.location.pathname + '?' + String($(this).closest('.exment-df-bar').attr('data-reset-query') || ''));
-        });
-        // back/forward across pushState'd filter states: pjax restores its own entries
-        // (state.container), everything else re-renders in full
-        $(window).on('popstate' + NS, function (ev) {
-            var st = ev.originalEvent.state;
-            if (!pushedState || (st && st.container)) { return; }
-            fullNavigate(window.location.href);
+            navigate(pagePath + '?' + String($(this).closest('.exment-df-bar').attr('data-reset-query') || ''));
         });
 
         // chart toolbar
@@ -825,7 +951,8 @@
             delete stateOf(suuid).cd;
             applySort(suuid, '');
         });
-        $(document).on('change' + NS, '.exment-bf-check, .exment-bf-range', function () { reloadFromToolbar($(this), false); });
+        $(document).on('change' + NS, '.exment-bf-check', function () { reloadFromToolbar($(this), false); });
+        $(document).on('change' + NS + ' focusin' + NS + ' focusout' + NS + ' keydown' + NS, '.exment-bf-range', rangeEdited(function ($input) { reloadFromToolbar($input, false); }));
         $(document).on('click' + NS, '.exment-bf-reset', function () { reloadFromToolbar($(this), true); });
         $(document).on('keydown' + NS, '.exment-bf-range, .exment-bf-search, .exment-df-bar .df-range-input', function (ev) {
             if (ev.key === 'Enter') { ev.preventDefault(); $(this).blur(); }
@@ -845,7 +972,12 @@
         init: function (options) {
             L = (options && options.lang) || {};
             A = (options && options.assets) || {};
+            pagePath = window.location.pathname;
+            alignEntry();     // before any box reads the selection off the URL
             closeColorMenu(); // a menu left open on <body> across a pjax render
+            barReq++;         // a bar refresh still in flight is the page before's: never swapped in here
+            removeSliders();  // the page before's
+            watchSliding();
             bind();
             initFilterBar();
             var $boxes = $('[data-suuid]');
@@ -960,9 +1092,26 @@ window.ExmentDashboardForm = (function ($) {
         });
     }
 
+    // A list default as it is stored: the values joined by commas, a comma inside a value
+    // written "\,", a backslash "\\" (FilterBarConfig::listDefault reads it on the server)
+    function joinList(values) {
+        return $.map(values, function (v) { return String(v).replace(/\\/g, '\\\\').replace(/,/g, '\\,'); }).join(',');
+    }
+    function splitList(text) {
+        var values = [], current = '';
+        for (var i = 0; i < text.length; i++) {
+            var c = text.charAt(i), next = text.charAt(i + 1);
+            if (c === '\\' && (next === ',' || next === '\\')) { current += next; i++; }
+            else if (c === ',') { values.push(current); current = ''; }
+            else { current += c; }
+        }
+        values.push(current);
+        return $.map(values, function (v) { v = $.trim(v); return v === '' ? null : v; });
+    }
+
     // a select2 picker of the stored values, so a default is picked by label instead of typed by id
     function pickerWidget(shell, inp, res, current) {
-        var selected = current.split(',').filter(function (v) { return v !== ''; });
+        var selected = splitList(current);
         var sel = $('<select multiple class="df-default-picker form-control" style="width:100%"></select>');
         var seen = {};
         $.each(res.options, function (i, o) { seen[o.id] = true; sel.append($('<option>').val(o.id).text(o.text)); });
@@ -970,7 +1119,7 @@ window.ExmentDashboardForm = (function ($) {
         shell.hide();
         shell.after(sel);
         sel.val(selected).select2({ width: '100%' });
-        sel.on('change', function () { inp.val((sel.val() || []).join(',')); });
+        sel.on('change', function () { inp.val(joinList(sel.val() || [])); });
     }
 
     return {

@@ -19,11 +19,10 @@ class DashboardFilterTest extends DashboardUnitTestCase
         ]);
     }
 
-    public function testReadsOnlyConfiguredItems()
+    public function testReadsOnlyConfiguredItems(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade', 'subject', 'score']));
-        $this->swapRequest(['df_grade' => '1', 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50'], 'df_other' => 'x', 'df_' => 'y', 'grade' => 'z']);
-        $filter = DashboardFilter::fromRequest($dashboard);
+        $filter = DashboardFilter::of($dashboard, ['df_grade' => '1', 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50'], 'df_other' => 'x', 'df_' => 'y', 'grade' => 'z']);
 
         $this->assertFalse($filter->isEmpty());
         $this->assertSame(['grade', 'subject', 'score'], array_keys($filter->values()));
@@ -33,7 +32,17 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertNull($filter->spec('other'));
     }
 
-    public function testSameAsComparesTheSelectionNotTheParams()
+    public function testQueryIsTheSelectionAsTheBarWritesIt(): void
+    {
+        // rendered as the bar's data-query: dashboard.js aligns the entry's URL with it
+        $dashboard = $this->makeDashboard($this->bar(['grade', 'subject', 'score']));
+        $filter = DashboardFilter::of($dashboard, ['df_grade' => ['1'], 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50', 'to' => ''], 'df_other' => 'x']);
+
+        $this->assertSame(['df_grade' => '1', 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50']], $filter->query());
+        $this->assertSame([], DashboardFilter::of($dashboard, [])->query());
+    }
+
+    public function testSameAsComparesTheSelectionNotTheParams(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade', 'subject', 'score']));
         $of = function (array $params) use ($dashboard) {
@@ -51,7 +60,7 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertFalse($of(['df_score' => ['from' => '50']])->sameAs($of(['df_score' => ['to' => '50']])));
     }
 
-    public function testNoBarMeansNoFilterEvenWithParams()
+    public function testNoBarMeansNoFilterEvenWithParams(): void
     {
         $filter = DashboardFilter::of($this->makeDashboard(null), ['df_grade' => '1']);
         $this->assertTrue($filter->isEmpty());
@@ -59,7 +68,7 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertSame([], $filter->columnsFor($this->table(), null));
     }
 
-    public function testColumnsForRespectsTableMembershipAndTargeting()
+    public function testColumnsForRespectsTableMembershipAndTargeting(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade', 'subject' => ['targets' => ['box1']], 'region']));
         $box1 = $this->makeBox('box1', [], $dashboard);
@@ -75,7 +84,7 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertSame([], $filter->columnsFor(null, $box1));
     }
 
-    public function testSelectionInTheWrongShapeForItsControlNarrowsNothing()
+    public function testSelectionInTheWrongShapeForItsControlNarrowsNothing(): void
     {
         // grade always lists its values (text), so a from / to left over in a URL (or in
         // the remembered selection) has no control that could show it — it must not filter
@@ -90,8 +99,8 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $score = $this->wrap('exm__fake.value->score');
         $this->assertSame([
             "{$score} IS NOT NULL AND {$score} <> ''",
-            "CAST({$score} AS DECIMAL(20,4)) >= ? [\"45\"]",
-            "CAST({$score} AS DECIMAL(20,4)) <= ? [\"59\"]",
+            "CAST({$score} AS DECIMAL(22,8)) >= ? [\"45\"]",
+            "CAST({$score} AS DECIMAL(22,8)) <= ? [\"59\"]",
         ], $q->sql(), 'the stale range on the text item emits no WHERE; the number range does');
         $this->assertSame(['grade'], $filter->ignoredFor($this->table(), $box));
 
@@ -102,7 +111,7 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertSame([], $picked->applyTo(new FakeQuery(), $this->table(), $rangedBox));
     }
 
-    public function testStyleOfIsTheOneRuleForAnItemsControl()
+    public function testStyleOfIsTheOneRuleForAnItemsControl(): void
     {
         // the bar, columnsFor and a chart's highlight all decide by styleOf, so an item that
         // shows from / to for its current value is a range item to every one of them at
@@ -130,7 +139,7 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertSame('select', DashboardFilter::of($this->makeDashboard(null), [])->styleOf($score), 'no bar: the column default');
     }
 
-    public function testApplyToEmitsOneWherePerHonouredItem()
+    public function testApplyToEmitsOneWherePerHonouredItem(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade', 'subject' => ['targets' => ['box1']], 'score' => ['style' => 'range']]));
         $box2 = $this->makeBox('box2', [], $dashboard);
@@ -143,11 +152,11 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertSame([
             'exm__fake.column_grade IN ["1","2"]',
             "{$score} IS NOT NULL AND {$score} <> ''",
-            "CAST({$score} AS DECIMAL(20,4)) <= ? [\"60\"]",
+            "CAST({$score} AS DECIMAL(22,8)) <= ? [\"60\"]",
         ], $q->sql());
     }
 
-    public function testFixedScopeNarrowsOptionListsOnly()
+    public function testFixedScopeNarrowsOptionListsOnly(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade'], ['scope' => ['subject' => '3', 'school' => '17'], 'max_options' => 1000]));
         $filter = DashboardFilter::of($dashboard, ['df_grade' => '1']);
@@ -166,7 +175,7 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertSame(500, DashboardFilter::of($this->makeDashboard(null), [])->maxOptions());
     }
 
-    public function testExceptedItemNarrowsNothing()
+    public function testExceptedItemNarrowsNothing(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade', 'subject', 'score']));
         $filter = DashboardFilter::of($dashboard, ['df_grade' => '1', 'df_subject' => ['2', '3'], 'df_score' => ['from' => '50']]);
@@ -179,7 +188,7 @@ class DashboardFilterTest extends DashboardUnitTestCase
         $this->assertSame([], $filter->selected('other'));
     }
 
-    public function testLabels()
+    public function testLabels(): void
     {
         $dashboard = $this->makeDashboard($this->bar(['grade' => ['label' => '学年'], 'subject']));
         $filter = DashboardFilter::of($dashboard, ['df_grade' => ['1', '2'], 'df_subject' => '5']);

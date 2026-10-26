@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Services\Dashboard;
 
+use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Model\CustomTable;
+
 /**
  * The dashboard filter bar configuration, read from options.filter_bar:
  *
@@ -33,20 +36,29 @@ namespace Exceedone\Exment\Services\Dashboard;
  * which is why a nationwide class or pupil master still lists one school's on such a
  * dashboard, while a small master would list every entry. `scope` never filters box data:
  * a box takes its scope from its view.
+ *
+ * @phpstan-import-type FilterSpec from FilterValue
+ * @phpstan-type FilterBarDim array{column:string,label:string,targets:string[],default:string,style:?string}
  */
 final class FilterBarConfig
 {
     public const DEFAULT_MAX_OPTIONS = 500;
+    /** ceiling of a configured max_options (every option is a row read and an <option> drawn) */
+    public const MAX_OPTIONS_LIMIT = 5000;
 
     /** @var string */
     private $sourceTable;
-    /** @var array<string, array{column:string,label:string,targets:string[],default:string,style:?string}> */
+    /** @var array<string, FilterBarDim> */
     private $dims;
     /** @var int */
     private $maxOptions;
-    /** @var array<string, array> column => spec */
+    /** @var array<string, FilterSpec> column => spec */
     private $scope;
 
+    /**
+     * @param array<string, FilterBarDim> $dims  column => dim
+     * @param array<string, FilterSpec> $scope  column => spec
+     */
     private function __construct(string $sourceTable, array $dims, int $maxOptions, array $scope)
     {
         $this->sourceTable = $sourceTable;
@@ -57,15 +69,37 @@ final class FilterBarConfig
 
     /**
      * null when the dashboard has no usable filter bar.
+     *
+     * @param mixed $dashboard  Dashboard|null
      */
     public static function fromDashboard($dashboard): ?self
     {
         return self::fromArray($dashboard ? $dashboard->getOption('filter_bar') : null);
     }
 
+    /**
+     * The filter bar as the signed-in user sees the dashboard: null as well when the user may
+     * not read its source table — such a bar does not exist for them (no items, no defaults,
+     * no remembered selection, no box narrowed), as its items and lists come from that table.
+     *
+     * @param mixed $dashboard  Dashboard|null
+     */
+    public static function forViewer($dashboard): ?self
+    {
+        $config = self::fromDashboard($dashboard);
+        if ($config === null) {
+            return null;
+        }
+        $table = CustomTable::getEloquent($config->sourceTable());
+        return $table !== null && $table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE) ? $config : null;
+    }
+
+    /**
+     * @param mixed $raw  options.filter_bar as stored
+     */
     public static function fromArray($raw): ?self
     {
-        if (!is_array($raw) || is_nullorempty(array_get($raw, 'source_table')) || !is_array(array_get($raw, 'dims'))) {
+        if (!is_array($raw) || self::text(array_get($raw, 'source_table')) === '' || !is_array(array_get($raw, 'dims'))) {
             return null;
         }
         $dims = [];
@@ -74,14 +108,14 @@ final class FilterBarConfig
             if (!FilterValue::isIdentifier($column) || isset($dims[$column])) {
                 continue;
             }
-            $label = trim((string) array_get($dim, 'label', ''));
+            $label = trim(self::text(array_get($dim, 'label')));
             $dims[$column] = [
                 'column' => $column,
                 'label' => $label !== '' ? $label : $column,
                 'targets' => array_values(array_filter((array) array_get($dim, 'targets', []), function ($t) {
                     return is_string($t) && $t !== '';
                 })),
-                'default' => trim((string) array_get($dim, 'default', '')),
+                'default' => trim(self::text(array_get($dim, 'default'))),
                 'style' => in_array(array_get($dim, 'style'), ['select', 'range'], true)
                     ? (string) array_get($dim, 'style') : null,
             ];
@@ -97,7 +131,18 @@ final class FilterBarConfig
                 $scope[$column] = $spec;
             }
         }
-        return new self((string) $raw['source_table'], $dims, $max > 0 ? $max : self::DEFAULT_MAX_OPTIONS, $scope);
+        return new self(self::text($raw['source_table']), $dims, $max > 0 ? min($max, self::MAX_OPTIONS_LIMIT) : self::DEFAULT_MAX_OPTIONS, $scope);
+    }
+
+    /**
+     * A stored value as text: '' for one that is no scalar (an imported template may carry an
+     * array where a text belongs), which a string cast would fail on.
+     *
+     * @param mixed $value
+     */
+    private static function text($value): string
+    {
+        return is_scalar($value) ? (string) $value : '';
     }
 
     public function sourceTable(): string
@@ -106,13 +151,16 @@ final class FilterBarConfig
     }
 
     /**
-     * @return array<int, array{column:string,label:string,targets:string[],default:string,style:?string}>
+     * @return array<int, FilterBarDim>
      */
     public function dims(): array
     {
         return array_values($this->dims);
     }
 
+    /**
+     * @return FilterBarDim|null
+     */
     public function dim(string $column): ?array
     {
         return $this->dims[$column] ?? null;
@@ -131,11 +179,41 @@ final class FilterBarConfig
     /**
      * Fixed scope of the option lists, as column => spec.
      *
-     * @return array<string, array>
+     * @return array<string, FilterSpec>
      */
     public function scope(): array
     {
         return $this->scope;
+    }
+
+    /**
+     * The values of a list item's default ("a,b"), trimmed, empty ones dropped. The setting
+     * form writes a comma inside a value as "\," and a backslash as "\\" (dashboard.js
+     * joinList), so a stored value holding a comma stays one value; a default saved without
+     * either reads as it did.
+     *
+     * @return list<string>
+     */
+    public static function listDefault(string $raw): array
+    {
+        $values = [];
+        $current = '';
+        $length = strlen($raw);
+        for ($i = 0; $i < $length; $i++) {
+            $char = $raw[$i];
+            if ($char === '\\' && $i + 1 < $length && ($raw[$i + 1] === ',' || $raw[$i + 1] === '\\')) {
+                $current .= $raw[++$i];
+            } elseif ($char === ',') {
+                $values[] = $current;
+                $current = '';
+            } else {
+                $current .= $char;
+            }
+        }
+        $values[] = $current;
+        return array_values(array_filter(array_map('trim', $values), function ($v) {
+            return $v !== '';
+        }));
     }
 
     /**
@@ -144,7 +222,8 @@ final class FilterBarConfig
      * each item's column — "min~max" is a range on a range item and on any number / date
      * item, comma-separated stored values otherwise.
      *
-     * @return array<string, string|array> param name (df_{column}) => value
+     * @param mixed $table  CustomTable|null
+     * @return array<string, string|array<string|int, string>> param name (df_{column}) => value
      */
     public function defaultQuery($table): array
     {
@@ -153,7 +232,7 @@ final class FilterBarConfig
         }
         $params = [];
         foreach ($this->dims as $column => $dim) {
-            $raw = (string) ($dim['default'] ?? '');
+            $raw = $dim['default'];
             $customColumn = $raw === '' ? null : $table->custom_columns->firstWhere('column_name', $column);
             if ($customColumn === null) {
                 continue;
@@ -172,9 +251,7 @@ final class FilterBarConfig
                     $params['df_' . $column] = $spec;
                 }
             } else {
-                $values = array_values(array_filter(array_map('trim', explode(',', $raw)), function ($v) {
-                    return $v !== '';
-                }));
+                $values = self::listDefault($raw);
                 if (count($values) === 1) {
                     $params['df_' . $column] = $values[0];
                 } elseif (!empty($values)) {
@@ -191,25 +268,34 @@ final class FilterBarConfig
      * empty ones and malformed values are dropped.
      *
      * @param array<string, mixed> $params
-     * @return array<string, string|array> param name (df_{column}) => value
+     * @return array<string, string|array<string|int, string>> param name (df_{column}) => value
      */
     public function selection(array $params): array
     {
         $out = [];
         foreach (array_keys($this->dims) as $column) {
             $spec = FilterValue::parse($params['df_' . $column] ?? null);
-            if ($spec === null) {
-                continue;
-            }
-            if (isset($spec['in'])) {
-                $out['df_' . $column] = count($spec['in']) === 1 ? $spec['in'][0] : $spec['in'];
-            } else {
-                $out['df_' . $column] = array_filter(['from' => $spec['from'], 'to' => $spec['to']], function ($v) {
-                    return $v !== null;
-                });
+            if ($spec !== null) {
+                $out['df_' . $column] = static::paramOf($spec);
             }
         }
         return $out;
+    }
+
+    /**
+     * The df_ param value of one item's spec (FilterValue::parse): v, [v, ...] or [from, to].
+     *
+     * @param FilterSpec $spec
+     * @return string|array<string|int, string>
+     */
+    public static function paramOf(array $spec)
+    {
+        if (isset($spec['in'])) {
+            return count($spec['in']) === 1 ? $spec['in'][0] : $spec['in'];
+        }
+        return array_filter(['from' => $spec['from'], 'to' => $spec['to']], function ($v) {
+            return $v !== null;
+        });
     }
 
     /**
@@ -217,7 +303,7 @@ final class FilterBarConfig
      * df_col[from]=v — the one dashboard.js writes, so a URL built here (the entry redirect,
      * リセット) compares item by item with the bar's.
      *
-     * @param array<string, string|int|array> $query
+     * @param array<string, string|int|array<string|int, mixed>> $query
      */
     public static function queryString(array $query): string
     {
@@ -241,6 +327,8 @@ final class FilterBarConfig
      * includes the box — regardless of the current selection. Rendered as the box's
      * `data-df-dims` attribute, so a bar change only reloads the boxes it narrows.
      *
+     * @param mixed $table  CustomTable|null
+     * @param mixed $box  DashboardBox|null
      * @return string[] column names
      */
     public function dimsFor($table, $box): array
@@ -259,6 +347,8 @@ final class FilterBarConfig
 
     /**
      * Slicer targeting gate: whether the item on $column narrows $box.
+     *
+     * @param mixed $box  DashboardBox|null
      */
     public function appliesTo(string $column, $box): bool
     {

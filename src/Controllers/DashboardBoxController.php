@@ -23,7 +23,9 @@ use Illuminate\Support\Collection;
 
 class DashboardBoxController extends AdminControllerBase
 {
-    use HasResourceActions;
+    use HasResourceActions {
+        destroy as resourceDestroy;
+    }
     // @phpstan-ignore-next-line
     protected $dashboard;
     // @phpstan-ignore-next-line
@@ -49,6 +51,111 @@ class DashboardBoxController extends AdminControllerBase
     }
 
     /**
+     * Saves an edited box: only of a dashboard this user may edit, and into that same
+     * dashboard (the request was open to anyone who may view the dashboard).
+     *
+     * @param int $id
+     * @return mixed
+     */
+    public function update($id)
+    {
+        $box = DashboardBox::getEloquent($id);
+        $this->denyUnlessEditable($box ? $box->dashboard : null);
+        // the form posts the box's own dashboard (a hidden field): a box never moves into
+        // another one, which this user may not even edit
+        $posted = request()->input('dashboard_id');
+        if (request()->has('dashboard_id') && (!is_scalar($posted) || (string) $posted !== (string) $box->dashboard_id)) {
+            abort(403, exmtrans('common.message.notfound_or_deny'));
+        }
+        return $this->form($id)->update($id);
+    }
+
+    /**
+     * Saves a new box: only into a dashboard this user may edit.
+     *
+     * @return mixed
+     */
+    public function store()
+    {
+        $this->denyUnlessEditable(Dashboard::getEloquent(request()->input('dashboard_id')));
+        return $this->form()->store();
+    }
+
+    /**
+     * 403 unless $dashboard is one this user may edit (null: none, or one this user may not
+     * even view — Dashboard's showable scope).
+     *
+     * @param mixed $dashboard
+     */
+    protected function denyUnlessEditable($dashboard): void
+    {
+        if (!$dashboard instanceof Dashboard || !$dashboard->hasEditPermission()) {
+            abort(403, exmtrans('common.message.notfound_or_deny'));
+        }
+    }
+
+    /**
+     * Deletes boxes (DELETE admin/dashboardbox/{id}, ids comma separated): like delete(),
+     * only boxes of a dashboard this user may edit.
+     *
+     * @param mixed $id
+     * @return mixed
+     */
+    public function destroy($id)
+    {
+        $boxes = [];
+        foreach (collect(explode(',', (string) $id))->filter() as $key) {
+            $box = DashboardBox::getEloquent($key);
+            if (!$box instanceof DashboardBox || !isset($box->dashboard) || !$box->dashboard->hasEditPermission()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => trans('admin.deny'),
+                ], 403);
+            }
+            $boxes[] = $box;
+        }
+        return $this->deleteBoxes(function () use ($id) {
+            return $this->resourceDestroy($id);
+        }, $boxes);
+    }
+
+    /**
+     * Runs $delete, then forgets the boxes of $boxes it deleted among their dashboards'
+     * filter targets (Dashboard::forgetFilterBarTargets) — one save per dashboard — in one
+     * transaction: a box never goes while a filter item still targets it.
+     *
+     * @param callable $delete  answers the response
+     * @param DashboardBox[] $boxes
+     * @return mixed
+     */
+    private function deleteBoxes(callable $delete, array $boxes)
+    {
+        try {
+            return \ExmentDB::transaction(function () use ($delete, $boxes) {
+                $response = $delete();
+                $dashboards = [];
+                $deleted = [];
+                foreach ($boxes as $box) {
+                    if (!DashboardBox::where('id', $box->id)->exists()) {
+                        $dashboards[$box->dashboard_id] = $dashboards[$box->dashboard_id] ?? $box->dashboard;
+                        $deleted[$box->dashboard_id][] = (string) $box->suuid;
+                    }
+                }
+                foreach ($deleted as $dashboardId => $suuids) {
+                    $dashboards[$dashboardId]->forgetFilterBarTargets($suuids);
+                }
+                return $response;
+            });
+        } catch (\Exception $ex) {
+            \Log::error($ex);
+            return response()->json([
+                'status'  => false,
+                'message' => trans('admin.delete_failed'),
+            ]);
+        }
+    }
+
+    /**
      * Delete interface.
      *
      * @param Request $request
@@ -60,12 +167,24 @@ class DashboardBoxController extends AdminControllerBase
     {
         // get suuid
         $box = DashBoardBox::findBySuuid($suuid);
-        if (isset($box)) {
-            $box->delete();
+        // whoever may edit the dashboard removes its boxes: the icon is shown to them alone,
+        // the request is open to anyone who knows the suuid. A dashboard this user cannot
+        // view resolves to null (Dashboard's showable scope).
+        if ($box instanceof DashboardBox && (!isset($box->dashboard) || !$box->dashboard->hasEditPermission())) {
             return response()->json([
-                'status'  => true,
-                'message' => trans('admin.delete_succeeded'),
-            ]);
+                'status'  => false,
+                'message' => trans('admin.deny'),
+            ], 403);
+        }
+        if ($box instanceof DashboardBox) {
+            // a filter item targeting this box would otherwise narrow no box at all
+            return $this->deleteBoxes(function () use ($box) {
+                $box->delete();
+                return response()->json([
+                    'status'  => true,
+                    'message' => trans('admin.delete_succeeded'),
+                ]);
+            }, [$box]);
         } else {
             return response()->json([
                 'status'  => false,
@@ -80,11 +199,15 @@ class DashboardBoxController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function getHtml($suuid)
     {
-        // get dashboardbox object
+        // get dashboardbox object; a box of a dashboard this user cannot view (null:
+        // Dashboard's showable scope) renders as a missing one
         $box = DashBoardBox::findBySuuid($suuid);
+        if ($box instanceof DashboardBox && !isset($box->dashboard)) {
+            $box = null;
+        }
 
         // get box html --------------------------------------------------
-        if (isset($box)) {
+        if ($box instanceof DashboardBox) {
             $dashboard_box_item = $box->dashboard_box_item;
             // null for an unknown box type (a removed plugin): render an empty box instead of erroring
             if (isset($dashboard_box_item)) {
@@ -120,7 +243,7 @@ class DashboardBoxController extends AdminControllerBase
     {
         $box = DashboardBox::findBySuuid($suuid);
         $user = Admin::user();
-        if (!isset($box) || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard) || $user === null) {
+        if (!$box instanceof DashboardBox || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard) || $user === null) {
             return response()->json(['status' => false], 404);
         }
         $state = ChartItem::toolbarState($request->only(['ct', 'cs', 'cd']), array_get($box, 'options.chart_type'));
@@ -146,20 +269,23 @@ class DashboardBoxController extends AdminControllerBase
     public function chartColor(Request $request, $suuid)
     {
         $box = DashboardBox::findBySuuid($suuid);
-        if (!isset($box) || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard)) {
+        if (!$box instanceof DashboardBox || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard)) {
             return response()->json(['status' => false], 404);
         }
         if (!$box->dashboard->hasEditPermission()) {
             return response()->json(['status' => false], 403);
         }
         $kind = $request->input('kind');
-        $key = (string) $request->input('key', '');
-        if (!$request->boolean('reset') && (!in_array($kind, [ChartColors::POINT, ChartColors::SERIES], true) || mb_strlen($key) > 255)) {
+        $key = $request->input('key') ?? ''; // posted empty arrives as null
+        if (!$request->boolean('reset') && (!in_array($kind, [ChartColors::POINT, ChartColors::SERIES], true) || !is_scalar($key) || mb_strlen((string) $key) > 255)) {
             return response()->json(['status' => false], 422);
         }
         $options = $box->options ?? [];
-        $colors = $request->boolean('reset') ? []
-            : ChartColors::fromOption(array_get($options, 'chart_colors'))->with($kind, $key, $request->input('color'));
+        $painted = ChartColors::fromOption(array_get($options, 'chart_colors'));
+        if (!$request->boolean('reset') && !$painted->accepts($kind, (string) $key, $request->input('color'))) {
+            return response()->json(['status' => false], 422);
+        }
+        $colors = $request->boolean('reset') ? [] : $painted->with($kind, (string) $key, $request->input('color'));
         if (empty($colors)) {
             unset($options['chart_colors']);
         } else {
@@ -234,8 +360,8 @@ class DashboardBoxController extends AdminControllerBase
             $classname::saving($form);
         });
 
-        // saved. redirect to top
-        $form->saved(function ($form) use (&$painted) {
+        // in the save's transaction, so the box never stays saved without its colors
+        $form->savedInTransaction(function ($form) use (&$painted) {
             $model = $form->model();
             if (!empty($painted) && isset($model) && !array_has($model->options ?? [], 'chart_colors')) {
                 $options = $model->options ?? [];
@@ -243,6 +369,10 @@ class DashboardBoxController extends AdminControllerBase
                 $model->options = $options;
                 $model->save();
             }
+        });
+
+        // saved. redirect to top
+        $form->saved(function ($form) {
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url());
@@ -329,8 +459,12 @@ class DashboardBoxController extends AdminControllerBase
             return [];
         }
 
-        // get custom views
-        $custom_table = CustomTable::getEloquent($id);
+        // get custom views: of a table this user may view (the form lists no other), the
+        // request itself is open to anyone
+        $custom_table = is_scalar($id) ? CustomTable::getEloquent($id) : null;
+        if (!isset($custom_table) || !$custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            return [];
+        }
         $views = $custom_table->custom_views
             ->where('view_kind_type', '<>', ViewKindType::FILTER)
             ->filter(function ($value) use ($dashboard_type) {
@@ -376,8 +510,8 @@ class DashboardBoxController extends AdminControllerBase
             return [];
         }
         // get custom views
-        $custom_view = CustomView::getEloquent($id);
-        if (!isset($custom_view)) {
+        $custom_view = is_scalar($id) ? CustomView::getEloquent($id) : null;
+        if (!isset($custom_view) || !$custom_view->custom_table?->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return [];
         }
         // series column of a multi-series chart = the view's group columns
@@ -396,10 +530,11 @@ class DashboardBoxController extends AdminControllerBase
      * @param Request $request
      * @return array<int, array{id:string, text:string}>
      */
-    // @phpstan-ignore-next-line
     public function chartFilterColumns(Request $request)
     {
-        $custom_table = CustomTable::getEloquent($request->get('q'));
+        $q = $request->get('q');
+        // a table id or name: getEloquent() would answer an array (?q[id][]=1) with itself
+        $custom_table = is_scalar($q) ? CustomTable::getEloquent($q) : null;
         if ($custom_table !== null && !$custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $custom_table = null;
         }

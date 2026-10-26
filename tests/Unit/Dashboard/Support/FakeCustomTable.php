@@ -9,10 +9,14 @@ use Illuminate\Support\Collection;
  */
 class FakeCustomTable
 {
-    /** @var Collection */
+    /** @var Collection<int, FakeCustomColumn> */
     public $custom_columns;
+    /** @var string */
     public $table_name;
 
+    /**
+     * @param FakeCustomColumn[] $columns
+     */
     public function __construct(array $columns, string $tableName = 'fake_table')
     {
         $this->custom_columns = collect($columns);

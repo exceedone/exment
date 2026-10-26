@@ -20,10 +20,15 @@ final class ChartColors
     public const SERIES = 'series';
     /** series key of the one series of a single-series chart */
     public const SINGLE = '';
+    /** colors painted per kind at most */
+    public const MAX_PER_KIND = 1000;
 
     /** @var array<string, array<string, string>> */
     private $colors;
 
+    /**
+     * @param array<string, array<string, string>> $colors
+     */
     private function __construct(array $colors)
     {
         $this->colors = $colors;
@@ -63,6 +68,9 @@ final class ChartColors
         return empty($this->colors);
     }
 
+    /**
+     * @param mixed $key  category text / series name
+     */
     public function get(string $kind, $key): ?string
     {
         return $this->colors[$kind][(string) $key] ?? null;
@@ -72,7 +80,7 @@ final class ChartColors
      * One color per name, index-aligned: the painted one, else the palette's, cycled by
      * position — what the chart shows today for anything not painted.
      *
-     * @param iterable $names  category texts (POINT) or series names (SERIES), in drawing order
+     * @param iterable<mixed> $names  category texts (POINT) or series names (SERIES), in drawing order
      * @param string[] $palette
      * @return string[]
      */
@@ -88,8 +96,22 @@ final class ChartColors
     }
 
     /**
+     * Whether with() may set this color: a color taken back or repainted always, a new one
+     * while the kind holds fewer than MAX_PER_KIND.
+     *
+     * @param mixed $color
+     */
+    public function accepts(string $kind, string $key, $color): bool
+    {
+        return self::normalize($color) === null
+            || isset($this->colors[$kind][$key])
+            || count($this->colors[$kind] ?? []) < self::MAX_PER_KIND;
+    }
+
+    /**
      * The stored option with one color set (null / invalid color = back to the palette).
      *
+     * @param mixed $color
      * @return array<string, array<string, string>>
      */
     public function with(string $kind, string $key, $color): array
