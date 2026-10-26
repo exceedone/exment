@@ -20,6 +20,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -269,6 +270,40 @@ class FormViewSettingsCoverageTest extends FeatureTestBase
         $this->assertIsString($skipped);
         $this->assertStringContainsString(':count', $skipped);
         $response->assertDontSee(trim(Str::after($skipped, ':count')), false);
+    }
+
+    /**
+     * A sort row whose column the list can no longer offer - here a column with no search index -
+     * stays on the edit screen with its target, named with a label that says it cannot be chosen
+     * in this setting, instead of being dropped from the form.
+     */
+    public function testViewEditKeepsASortTargetTheListNoLongerOffersWithALabel(): void
+    {
+        $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $column = CustomColumn::getEloquent('integer', $table);
+        $this->assertNotNull($column);
+        $this->assertFalse(boolval($column->index_enabled), 'a sort offers indexed columns only');
+
+        $view = CustomView::create([
+            'custom_table_id' => $table->id,
+            'view_view_name' => 'Claude view sorted by a column it cannot offer',
+            'view_type' => ViewType::SYSTEM,
+            'view_kind_type' => ViewKindType::DEFAULT,
+        ]);
+        $sort = new CustomViewSort();
+        $sort->custom_view_id = $view->id;
+        $sort->view_column_type = ConditionType::COLUMN;
+        $sort->view_column_table_id = $table->id;
+        $sort->view_column_target_id = $column->id;
+        $sort->sort = 1;
+        $sort->priority = 1;
+        $sort->save();
+        // exment caches records for a request, and the view above is new to it
+        System::clearRequestSession();
+
+        $this->get(admin_url("view/{$table->table_name}/{$view->id}/edit"), ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()
+            ->assertSee(exmtrans('custom_view.column_target_unavailable', $column->column_view_name), false);
     }
 
     public function testViewSendShares(): void

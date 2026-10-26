@@ -331,16 +331,19 @@ SCRIPT);
      *
      * Each of these lists is narrowed - a filter and a sort take indexed
      * columns only, a sort leaves out the multi-value ones - so what may be
-     * offered can change after a row was written. Turning off the search
-     * setting of one column is enough. The row itself goes on working, the
-     * grid still filters and sorts by it, but the form cannot show it any
-     * more; and since the target is required, one such row stops the whole
-     * setting screen from saving, with nothing on screen to say which row or
-     * why.
+     * offered can change after a row was written: turning on the multiple
+     * values of a column a sort uses is enough. Turning off the search index
+     * of a column a filter or a sort uses is not - CustomColumnUsingIndexRule
+     * refuses it - and deleting a column deletes the rows that use it
+     * (CustomColumn::deletingChildren()), so neither leaves such a row. The
+     * row itself goes on working, the grid still filters and sorts by it, but
+     * the form cannot show it any more; and since the target is required, one
+     * such row stops the whole setting screen from saving, with nothing on
+     * screen to say which row or why.
      *
      * Kept rather than quietly dropped: the row still does its job, the
-     * column may be given its index back tomorrow, and throwing away a filter
-     * the user never asked to remove is the worse mistake.
+     * column may be switched back tomorrow, and throwing away a filter the
+     * user never asked to remove is the worse mistake.
      *
      * @param array<string, string> $targetOptions list the form can offer
      * @param CustomView|null $custom_view view being edited or copied from
