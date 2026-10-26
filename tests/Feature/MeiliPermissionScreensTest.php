@@ -49,6 +49,14 @@ class MeiliPermissionScreensTest extends FeatureTestBase
     private const EMPTIED_COLUMN = 'kanri_no';
 
     /**
+     * The highlight marker as someone reading the source would write it. The real
+     * markers carry a per-process nonce (MeiliSearchService::highlightPre()), so
+     * this is what a record can actually contain - and it must not be taken for a
+     * match.
+     */
+    private const GUESSED_MARKER = '__EXM_HL__';
+
+    /**
      * One index for the whole class, not one per test: a Meilisearch index
      * reserves a large memory mapping whether or not it holds anything, and
      * four of them at once is enough to take a developer machine down.
@@ -306,7 +314,7 @@ class MeiliPermissionScreensTest extends FeatureTestBase
                 ->get();
             foreach ($records as $record) {
                 $record->setValue(self::EMPTIED_COLUMN, null);
-                $record->setValue('note', MeiliSearchService::HIGHLIGHT_PRE . ' ' . (string) $record->getValue('note', true));
+                $record->setValue('note', self::GUESSED_MARKER . ' ' . (string) $record->getValue('note', true));
                 $docs[] = $mapper->map(
                     $record,
                     $columns,

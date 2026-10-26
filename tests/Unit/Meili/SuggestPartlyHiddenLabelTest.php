@@ -17,8 +17,16 @@ use PHPUnit\Framework\TestCase;
  */
 class SuggestPartlyHiddenLabelTest extends TestCase
 {
-    private const PRE = MeiliSearchService::HIGHLIGHT_PRE;
-    private const POST = MeiliSearchService::HIGHLIGHT_POST;
+    /** The markers carry a per-process nonce, so they cannot be class constants. */
+    private function pre(): string
+    {
+        return MeiliSearchService::highlightPre();
+    }
+
+    private function post(): string
+    {
+        return MeiliSearchService::highlightPost();
+    }
 
     /** @param array<string,mixed> $hit */
     private function snippet(array $hit, $table, $model, string $label): ?string
@@ -58,8 +66,8 @@ class SuggestPartlyHiddenLabelTest extends TestCase
             // what the document stores: the real linked partner name
             'label' => 'ミライ建設 本社ビル 設備保守契約 株式会社ミライ建設',
             'formatted' => [
-                'label' => self::PRE . 'ミライ建設' . self::POST . ' 本社ビル 設備保守契約 株式会社ミライ建設',
-                'fields' => ['title' => self::PRE . 'ミライ建設' . self::POST . ' 本社ビル 設備保守契約'],
+                'label' => $this->pre() . 'ミライ建設' . $this->post() . ' 本社ビル 設備保守契約 株式会社ミライ建設',
+                'fields' => ['title' => $this->pre() . 'ミライ建設' . $this->post() . ' 本社ビル 設備保守契約'],
             ],
             'matches' => [
                 'label' => [['start' => 0, 'length' => 5]],
@@ -76,7 +84,7 @@ class SuggestPartlyHiddenLabelTest extends TestCase
         );
 
         $this->assertSame(
-            self::PRE . 'ミライ建設' . self::POST . ' 本社ビル 設備保守契約',
+            $this->pre() . 'ミライ建設' . $this->post() . ' 本社ビル 設備保守契約',
             $snippet,
             'the readable field carried the keyword, so the hit must be shown'
         );
@@ -92,8 +100,8 @@ class SuggestPartlyHiddenLabelTest extends TestCase
         $hit = [
             'label' => '基本取引覚書 2026年度 ZZTEST',
             'formatted' => [
-                'label' => '基本取引覚書 2026年度 ' . self::PRE . 'ZZTEST' . self::POST,
-                'fields' => ['partner_id' => self::PRE . 'ZZTEST' . self::POST],
+                'label' => '基本取引覚書 2026年度 ' . $this->pre() . 'ZZTEST' . $this->post(),
+                'fields' => ['partner_id' => $this->pre() . 'ZZTEST' . $this->post()],
             ],
             'matches' => [
                 'label' => [['start' => 17, 'length' => 6]],
@@ -120,10 +128,10 @@ class SuggestPartlyHiddenLabelTest extends TestCase
      */
     public function testARecordContainingTheMarkerLiteralIsStillSuggested(): void
     {
-        $name = 'PREFIX' . self::PRE . 'INJECT' . self::POST;
+        $name = 'PREFIX' . $this->pre() . 'INJECT' . $this->post();
         $hit = [
             'label' => $name,
-            'formatted' => ['label' => self::PRE . 'PREFIX' . self::POST . self::PRE . 'INJECT' . self::POST],
+            'formatted' => ['label' => $this->pre() . 'PREFIX' . $this->post() . $this->pre() . 'INJECT' . $this->post()],
             'matches' => ['label' => [['start' => 0, 'length' => 6]]],
         ];
 
@@ -138,12 +146,12 @@ class SuggestPartlyHiddenLabelTest extends TestCase
     {
         $hit = [
             'label' => '日本電機サービス株式会社',
-            'formatted' => ['label' => self::PRE . '日本電機サービス' . self::POST . '株式会社'],
+            'formatted' => ['label' => $this->pre() . '日本電機サービス' . $this->post() . '株式会社'],
             'matches' => ['label' => [['start' => 0, 'length' => 8]]],
         ];
 
         $snippet = $this->snippet($hit, $this->tableWithReadableColumns([]), null, '日本電機サービス株式会社');
 
-        $this->assertSame(self::PRE . '日本電機サービス' . self::POST . '株式会社', $snippet);
+        $this->assertSame($this->pre() . '日本電機サービス' . $this->post() . '株式会社', $snippet);
     }
 }

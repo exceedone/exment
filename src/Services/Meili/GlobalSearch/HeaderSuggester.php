@@ -190,7 +190,7 @@ class HeaderSuggester
             return !empty($matches[$path]);
         }
 
-        return strpos($formattedValue, MeiliSearchService::HIGHLIGHT_PRE) !== false;
+        return strpos($formattedValue, MeiliSearchService::highlightPre()) !== false;
     }
 
     /**
@@ -230,7 +230,7 @@ class HeaderSuggester
 
     private static function stripHighlight(string $value): string
     {
-        return str_replace([MeiliSearchService::HIGHLIGHT_PRE, MeiliSearchService::HIGHLIGHT_POST], '', $value);
+        return str_replace([MeiliSearchService::highlightPre(), MeiliSearchService::highlightPost()], '', $value);
     }
 
     /**
@@ -242,7 +242,7 @@ class HeaderSuggester
     public static function toHighlightedHtml(string $snippet): string
     {
         return str_replace(
-            [MeiliSearchService::HIGHLIGHT_PRE, MeiliSearchService::HIGHLIGHT_POST],
+            [MeiliSearchService::highlightPre(), MeiliSearchService::highlightPost()],
             ['<mark>', '</mark>'],
             e($snippet)
         );
