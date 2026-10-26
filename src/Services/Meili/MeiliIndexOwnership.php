@@ -34,10 +34,10 @@ class MeiliIndexOwnership
     /** How long to wait for Meilisearch to store a freshly written marker. */
     public const WRITE_WAIT_MS = 10000;
 
-    /** index name => true once this process has verified or taken ownership. */
+    /** @var array<string, true> index name => true once this process has verified or taken ownership. */
     private static array $verified = [];
 
-    /** index name => the owner found, for an index this installation does not own. */
+    /** @var array<string, string> index name => the owner found, for an index this installation does not own. */
     private static array $foreign = [];
 
     public static function markerIndexName(string $indexName): string

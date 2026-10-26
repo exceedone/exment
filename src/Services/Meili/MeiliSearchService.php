@@ -653,7 +653,7 @@ class MeiliSearchService
      * The SearchQuery objects for one multi-search attempt.
      *
      * @param array<int,array{filters:MeiliFilters,attributes:array<int,string>,searchOn?:array<int,string>|null}> $queries
-     * @return array<int,\Meilisearch\Contracts\SearchQuery>
+     * @return list<\Meilisearch\Contracts\SearchQuery>
      */
     private function buildBatch(string $q, array $queries): array
     {
@@ -672,6 +672,7 @@ class MeiliSearchService
                 $search->setFilter([$expr]);
             }
 
+            /** @var array<int,non-empty-string>|null $searchOn attribute names, never empty */
             $searchOn = $spec['searchOn'] ?? null;
             if ($searchOn !== null) {
                 $search->setAttributesToSearchOn(array_values($searchOn));
@@ -693,7 +694,7 @@ class MeiliSearchService
      * something else, so the caller rethrows it untouched.
      *
      * @param array<int,array{filters:MeiliFilters,attributes:array<int,string>,searchOn?:array<int,string>|null}> $queries
-     * @return array<int,array<string,mixed>>|null
+     * @return array<int,array{filters:MeiliFilters,attributes:array<int,string>,searchOn?:array<int,string>|null}>|null
      */
     public static function narrowBatchQuery(array $queries, \Throwable $e): ?array
     {
@@ -707,6 +708,7 @@ class MeiliSearchService
             return null;
         }
 
+        /** @var array{attributesToSearchOn: list<string>}|null $narrowed the same option, reduced */
         $narrowed = self::withoutUnknownSearchAttributes(['attributesToSearchOn' => $searchOn], $e);
         if ($narrowed === null) {
             return null;

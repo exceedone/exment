@@ -306,7 +306,7 @@ class MeiliNestedLabelLeakTest extends FeatureTestBase
             $hidden[] = $name;
         }
 
-        return array_values($hidden);
+        return $hidden;
     }
 
     /** Make $column the table's label. */

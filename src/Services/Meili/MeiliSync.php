@@ -162,7 +162,7 @@ class MeiliSync
      * pointing at it holding the old name: the search answered the old name and
      * not the new one until the table was reindexed by hand.
      *
-     * @param  mixed  $table
+     * @param  \Exceedone\Exment\Model\CustomTable  $table
      * @return \Illuminate\Support\Collection<int,\Exceedone\Exment\Model\CustomColumn>
      */
     protected static function labelLinkColumns($table)

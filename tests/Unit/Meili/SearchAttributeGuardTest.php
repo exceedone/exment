@@ -97,8 +97,9 @@ class SearchAttributeGuardTest extends TestCase
 
         $narrowed = MeiliSearchService::narrowBatchQuery($queries, new \Exception(self::BATCH_MESSAGE));
 
-        $this->assertNull($narrowed[0]['searchOn'], 'the queries that were fine stay as they were');
-        $this->assertSame(['label'], $narrowed[1]['searchOn']);
+        $this->assertNotNull($narrowed);
+        $this->assertSame($queries[0], $narrowed[0], 'the queries that were fine stay as they were');
+        $this->assertSame(['label'], $narrowed[1]['searchOn'] ?? null);
     }
 
     public function testABatchErrorAboutSomethingElseIsRethrown(): void
