@@ -74,8 +74,13 @@ class NotifyScheduleLineTest extends FeatureTestBase
         /** @var CustomTable $table */
         $table = CustomTable::find($notify->target_id);
         $record = $table->getValueModel()
-            ->where('created_user_id', '<>', $loginUserId)->first();
+            ->where('created_user_id', '<>', $loginUserId)->orderBy('id')->first();
         $this->assertNotNull($record, 'Fixture: a record created by another user is required.');
+        // Only this record may fall due that day: another one with the same date (from the seed
+        // data, or left behind by an earlier test) gets its own reminder and adds a job.
+        $table->getValueModel()->where('id', '<>', $record->id)
+            ->whereDate('value->date', $targetDate)
+            ->update(['value->date' => null]);
         $record->update(['value->date' => $targetDate]);
 
         $recipientUserId = (int) $record->created_user_id;
