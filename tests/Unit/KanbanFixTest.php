@@ -32,6 +32,7 @@ use ExmentAdminCore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ViewErrorBag;
+use Illuminate\Testing\TestResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -746,6 +747,82 @@ class KanbanFixTest extends UnitTestBase
         $this->assertSame(200, $status, 'The lock from the answer passes the next write.');
     }
 
+    // ------------------------------------------ card edit window (2026-10-27)
+
+    /**
+     * A click on a card opens the edit form of its record in the board's own
+     * window: the editor url of the board, asked for over ajax (fetchForm() in
+     * widgets/kanban/script.blade.php). Reported: the window failed with
+     *   htmlspecialchars(): Argument #1 ($string) must be of type string,
+     *   array given (form/hidden.blade.php)
+     * on a form that shows a column of several values as a hidden field (form
+     * setting "field type: hidden"). Such a column holds an array, and the
+     * hidden field of exment-admin-core prints its value into one input.
+     *
+     * Every column that may hold several values is hidden at once, so one
+     * window covers all of them. Each value must reach the page as an input of
+     * its own, named "...[]", the way a multiple select posts its values.
+     */
+    public function testCardWindowOpensWhenTheFormHidesColumnsOfSeveralValues(): void
+    {
+        [$table, $id, $values] = $this->recordWithHiddenMultipleColumns();
+
+        $window = $this->openCardWindow($table, $id);
+
+        $this->assertOpened($window, 'The card window');
+        $inputs = $this->hiddenInputs($this->editForm(strval($window->json('body')), $table, $id));
+        foreach ($values as $column_name => $column_values) {
+            $this->assertSame(
+                array_map('strval', $column_values),
+                $inputs["value[{$column_name}][]"] ?? null,
+                "Each value of the hidden column {$column_name} is an input of its own."
+            );
+        }
+    }
+
+    /**
+     * The record's own edit screen shows the same form. The failure was never
+     * the board's: no setting of the board or of the view is missing.
+     */
+    public function testEditScreenOpensWhenTheFormHidesColumnsOfSeveralValues(): void
+    {
+        [$table, $id, $values] = $this->recordWithHiddenMultipleColumns();
+
+        $screen = $this->get(admin_urls('data', $table->table_name, $id, 'edit'));
+
+        $this->assertOpened($screen, 'The edit screen');
+        $inputs = $this->hiddenInputs($this->editForm(strval($screen->getContent()), $table, $id));
+        foreach ($values as $column_name => $column_values) {
+            $this->assertSame(array_map('strval', $column_values), $inputs["value[{$column_name}][]"] ?? null);
+        }
+    }
+
+    /**
+     * Saved from the window, the hidden columns keep their values. The board
+     * posts the form as it stands (saveForm()), so the inputs on the page are
+     * what is written back: one input holding every value would post a single
+     * string, and a name without "[]" would post the last value only.
+     *
+     * Only the hidden inputs are sent - the ones this test is about. The
+     * record lock (updated_at) and the PUT of the form are among them.
+     */
+    public function testSavingTheCardWindowKeepsTheValuesOfTheHiddenColumns(): void
+    {
+        [$table, $id, $values] = $this->recordWithHiddenMultipleColumns();
+        $window = $this->openCardWindow($table, $id);
+        $this->assertOpened($window, 'The card window');
+        $form = $this->editForm(strval($window->json('body')), $table, $id);
+
+        System::clearRequestSession();
+        $saved = $this->post($form->getAttribute('action'), $this->postedAs($this->hiddenInputs($form)), $this->ajaxHeaders());
+
+        $this->assertOpened($saved, 'The save of the card window');
+        $this->assertTrue($saved->json('saved'), 'The window reports the record as saved: ' . strval($saved->getContent()));
+        foreach ($values as $column_name => $column_values) {
+            $this->assertEquals($column_values, $this->storedValue($table, $id, $column_name), "{$column_name} keeps its values.");
+        }
+    }
+
     // ---------------------------------------------------------------- helpers
 
     /**
@@ -1011,6 +1088,158 @@ class KanbanFixTest extends UnitTestBase
         $this->assertSame(1, $updated, 'Precondition: the form shows the column.');
         System::clearRequestSession();
         System::clearCache();
+    }
+
+    /**
+     * A record of the columns table with two values in every column that may
+     * hold several, on a default form that shows each of those columns as a
+     * hidden field. The admin opens every record with the default form.
+     *
+     * @return array{0: CustomTable, 1: int, 2: array<string, array<int, int|string>>}
+     */
+    protected function recordWithHiddenMultipleColumns(): array
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        // records 1 and 2 of custom_value_view_all, the user and the
+        // organization table are seeded fixtures
+        $values = [
+            'select_multiple' => ['foo', 'baz'],
+            'select_valtext_multiple' => ['foo', 'baz'],
+            'select_table_multiple' => [1, 2],
+            'user_multiple' => [1, 2],
+            'organization_multiple' => [1, 2],
+        ];
+
+        $form = CustomForm::getDefault($table);
+        foreach (array_keys($values) as $column_name) {
+            $column = CustomColumn::getEloquent($column_name, $table);
+            $this->assertTrue($column->isMultipleEnabled(), "Precondition: {$column_name} holds several values.");
+            $this->setFormColumnOptions($form, $column, ['field_showing_type' => 'hidden']);
+        }
+
+        $record = $table->getValueModel();
+        $record->setValue(array_merge(['text' => 'kanban card', 'select' => 'foo'], $values));
+        $record->save();
+        System::clearRequestSession();
+
+        return [$table, intval($record->id), $values];
+    }
+
+    /**
+     * Open a card the way a click does: the url the board gives the browser
+     * for its window, with the record's id in it, asked for over ajax.
+     *
+     * @param CustomTable $table
+     * @param int $id
+     * @return TestResponse<SymfonyResponse>
+     */
+    protected function openCardWindow(CustomTable $table, int $id)
+    {
+        $view = $this->createKanbanView($table->table_name, [
+            'kanban_group_column_id' => CustomColumn::getEloquent('select', $table)->id,
+        ]);
+        $url = $this->boardOf($view)['editor']['url'] ?? null;
+        $this->assertIsString($url, 'Precondition: the board opens a card in a window of its own.');
+
+        System::clearRequestSession();
+        return $this->get(str_replace('{id}', strval($id), $url), $this->ajaxHeaders());
+    }
+
+    /**
+     * The request went through. Exment draws many errors inside a page that
+     * answers 200, so the exception is checked as well as the status.
+     *
+     * @param TestResponse<SymfonyResponse> $response
+     * @param string $what
+     * @return void
+     */
+    protected function assertOpened($response, string $what)
+    {
+        $exception = $response->exception;
+        $this->assertNull($exception, $what . ' failed: ' . ($exception ? get_class($exception) . ': ' . $exception->getMessage() : ''));
+        $this->assertSame(200, $response->getStatusCode(), $what . ' answered ' . $response->getStatusCode() . '.');
+    }
+
+    /**
+     * The edit form of the record in a page: the form sent to the record's url.
+     *
+     * @param string $html
+     * @param CustomTable $table
+     * @param int $id
+     * @return \DOMElement
+     */
+    protected function editForm(string $html, CustomTable $table, int $id)
+    {
+        $dom = new \DOMDocument();
+        $errors = libxml_use_internal_errors(true);
+        // the page is utf-8, which libxml would otherwise read as latin-1
+        $dom->loadHTML('<?xml encoding="utf-8"?>' . $html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($errors);
+
+        $path = '/data/' . $table->table_name . '/' . $id;
+        foreach ($dom->getElementsByTagName('form') as $form) {
+            if (str_ends_with(strval(parse_url($form->getAttribute('action'), PHP_URL_PATH)), $path)) {
+                return $form;
+            }
+        }
+
+        // A form that fails to draw is replaced by an alert box saying why
+        // (Handler::renderException of exment-admin-core), in a page that
+        // still answers 200.
+        $alerts = [];
+        foreach ($dom->getElementsByTagName('div') as $div) {
+            if (str_contains(' ' . $div->getAttribute('class') . ' ', ' alert ')) {
+                $alerts[] = trim(strval(preg_replace('/\s+/', ' ', $div->textContent)));
+            }
+        }
+        $this->fail('The page holds no edit form of the record.' . (count($alerts) > 0 ? ' It shows: ' . implode(' / ', $alerts) : ''));
+    }
+
+    /**
+     * The values of the hidden inputs of a form, by name, in page order.
+     *
+     * @param \DOMElement $form
+     * @return array<string, array<int, string>>
+     */
+    protected function hiddenInputs(\DOMElement $form): array
+    {
+        $inputs = [];
+        foreach ($form->getElementsByTagName('input') as $input) {
+            if (strtolower($input->getAttribute('type')) !== 'hidden' || $input->getAttribute('name') === '') {
+                continue;
+            }
+            // a has-many block keeps the row it copies in a template, which
+            // is not sent with the form
+            for ($node = $input->parentNode; $node !== null && $node !== $form; $node = $node->parentNode) {
+                if ($node->nodeName === 'template') {
+                    continue 2;
+                }
+            }
+            $inputs[$input->getAttribute('name')][] = $input->getAttribute('value');
+        }
+
+        return $inputs;
+    }
+
+    /**
+     * Inputs as PHP reads them once posted: the inputs named "name[]" become
+     * one list.
+     *
+     * @param array<string, array<int, string>> $inputs
+     * @return array<mixed>
+     */
+    protected function postedAs(array $inputs): array
+    {
+        $pairs = [];
+        foreach ($inputs as $name => $values) {
+            foreach ($values as $value) {
+                $pairs[] = rawurlencode($name) . '=' . rawurlencode($value);
+            }
+        }
+        parse_str(implode('&', $pairs), $post);
+
+        return $post;
     }
 
     /**
