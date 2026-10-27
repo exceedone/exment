@@ -101,9 +101,6 @@ class PermissionEndpointTest extends UnitTestBase
         'api_setting',
         'api_setting/create',
         'api_setting/foobar',
-        'auth/permissions',
-        'auth/roles',
-        'auth/users',
         'auth/logs',
         'auth/menu',
         'backup',
@@ -170,6 +167,21 @@ class PermissionEndpointTest extends UnitTestBase
         'view/information',
     ];
 
+    /**
+     * Open-admin's builtin user / role / permission screens.
+     * Exment replaces them with loginuser and role_group, and InstallSeeder drops
+     * their tables, so they must be denied for everyone, system admin included.
+     */
+    public const EndpointsDenyAlways = [
+        'auth/permissions',
+        'auth/permissions/1/edit',
+        'auth/roles',
+        'auth/roles/1/edit',
+        'auth/users',
+        'auth/users/create',
+        'auth/users/1/edit',
+    ];
+
 
     /**
      * @return void
@@ -202,7 +214,12 @@ class PermissionEndpointTest extends UnitTestBase
     {
         $this->init();
 
-        foreach (static::EndpointsDeny as $endpoint) {
+        $array = array_merge(
+            static::EndpointsDeny,
+            static::EndpointsDenyAlways
+        );
+
+        foreach ($array as $endpoint) {
             $this->executeTestPermission($endpoint, false);
         }
     }
@@ -237,7 +254,10 @@ class PermissionEndpointTest extends UnitTestBase
         $this->be(LoginUser::find(9)); // dev2-userE
         $user = \Exment::user();
 
-        $array = array_remove(static::EndpointsDeny, static::EndpointsPassNoPermission);
+        $array = array_remove(
+            array_merge(static::EndpointsDeny, static::EndpointsDenyAlways),
+            static::EndpointsPassNoPermission
+        );
 
         foreach ($array as $endpoint) {
             $this->executeTestPermissionUser($endpoint, false, $user);
@@ -275,7 +295,10 @@ class PermissionEndpointTest extends UnitTestBase
         $this->be(LoginUser::find(3)); // manage
         $user = \Exment::user();
 
-        $array = array_remove(static::EndpointsDeny, static::EndpointsPassNoPermission);
+        $array = array_remove(
+            array_merge(static::EndpointsDeny, static::EndpointsDenyAlways),
+            static::EndpointsPassNoPermission
+        );
 
         foreach ($array as $endpoint) {
             $this->executeTestPermissionUser($endpoint, false, $user);
@@ -300,6 +323,20 @@ class PermissionEndpointTest extends UnitTestBase
 
         foreach ($array as $endpoint) {
             $this->executeTestPermissionUser($endpoint, true, $user);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function testPermissionAdminDenyAlways()
+    {
+        $this->init();
+        $this->be(LoginUser::find(1)); // admin
+        $user = \Exment::user();
+
+        foreach (static::EndpointsDenyAlways as $endpoint) {
+            $this->executeTestPermissionUser($endpoint, false, $user);
         }
     }
 
