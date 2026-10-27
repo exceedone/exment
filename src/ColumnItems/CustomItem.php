@@ -514,8 +514,10 @@ abstract class CustomItem implements ItemInterface
         // - max 99999 / maxlength 5: a larger value overflows the Carbon date math on the server
         //   (Carbon::today()->addDays(-x)) so the filter returns no rows; the spinner honours max
         //   and maxlength caps typed/pasted input. The client also strips non-digit characters.
+        // - type text: the box stays a text input as in v6 (laravel-admin); the Number field of
+        //   exment-admin-core renders type="number" unless the type is given.
         if ($value_type == FilterType::NUMBER) {
-            $field->default(0)->attribute(['min' => 0, 'max' => 99999, 'maxlength' => 5, 'data-day-count' => 1]);
+            $field->default(0)->attribute(['type' => 'text', 'min' => 0, 'max' => 99999, 'maxlength' => 5, 'data-day-count' => 1]);
         }
 
         return $field;

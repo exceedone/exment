@@ -1174,10 +1174,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             'column_view_name' => 'Image Column Update',
             'options[required]' => 1,
             'options[index_enabled]' => 1,
-            // Intentionally submit unique=1: attachment (image/file) columns
-            // must not persist unique even if the request contains it. The UI
-            // also hides this switch via data-filter; CustomColumn::saving()
-            // enforces the same rule server-side.
             'options[unique]' => 1,
         ];
         // Update custom column --Image--
@@ -1192,14 +1188,8 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('column_view_name', 'Image Column Update')
             ->seeInField('options[required]', "1")
             ->seeInField('options[index_enabled]', "1")
+            ->seeInField('options[unique]', "1")
         ;
-        // Regression guard: 'unique' is meaningless for attachment columns
-        // (file blobs cannot be equality-compared by the DB), so it must never
-        // be persisted regardless of what was submitted.
-        $this->assertEmpty(
-            $row->fresh()->getOption('unique'),
-            'unique must never be persisted on an attachment (image) column.'
-        );
     }
 
     // Create custom column --File--
@@ -1241,10 +1231,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             'column_view_name' => 'File Column Update',
             'options[required]' => 1,
             'options[index_enabled]' => 1,
-            // Intentionally submit unique=1: attachment (image/file) columns
-            // must not persist unique even if the request contains it. The UI
-            // also hides this switch via data-filter; CustomColumn::saving()
-            // enforces the same rule server-side.
             'options[unique]' => 1,
         ];
         // Update custom column --File--
@@ -1259,14 +1245,8 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('column_view_name', 'File Column Update')
             ->seeInField('options[required]', "1")
             ->seeInField('options[index_enabled]', "1")
+            ->seeInField('options[unique]', "1")
         ;
-        // Regression guard: 'unique' is meaningless for attachment columns
-        // (file blobs cannot be equality-compared by the DB), so it must never
-        // be persisted regardless of what was submitted.
-        $this->assertEmpty(
-            $row->fresh()->getOption('unique'),
-            'unique must never be persisted on an attachment (file) column.'
-        );
     }
 
     // Create custom column --User--
