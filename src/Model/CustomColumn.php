@@ -418,11 +418,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
-            // unique is meaningless for attachment(image, file) column.
-            // set null (not forget), so prepareJson removes the key instead of restoring the original value.
-            if (ColumnType::isAttachment($model->column_type)) {
-                $model->setOption('unique', null);
-            }
             $model->filterGridStyleOptions();
             $model->prepareJson('options');
         });

@@ -949,7 +949,7 @@ namespace Exment {
                             }
                             
                             if (a.notValue) {
-                                if(hasValue(filterVal) && CommonEvent.findValue(filterVal, a.notValue)){
+                                if(!hasValue(filterVal) || CommonEvent.findValue(filterVal, a.notValue)){
                                     isShow = false;
                                 }
                             }
