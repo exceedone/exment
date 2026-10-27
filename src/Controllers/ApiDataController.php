@@ -435,6 +435,13 @@ class ApiDataController extends AdminControllerTableBase
             return abortJson(403, $code);
         }
 
+        // The edit page of an administrator's user record is not offered to
+        // the other users, so neither is a write from a list screen - see
+        // GridInlineEditor::isScreenEditableRecord().
+        if ($screenWrite && !GridInlineEditor::isScreenEditableRecord($custom_value)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
         if ($screenWrite && ($response = $this->validateScreenWrite($request, $custom_value)) instanceof Response) {
             return $response;
         }
