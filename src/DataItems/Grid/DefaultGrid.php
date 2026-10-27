@@ -764,7 +764,7 @@ class DefaultGrid extends GridBase
 
                 if (!is_null($parent_value = $actions->row->getParentValue(null, true))) {
                     if (boolval($custom_table->getOption('editable_with_parent')??1)) {
-                        if ($parent_value->enableEdit(true) !== true) {
+                        if ($parent_value->enableEdit(true, false) !== true) {
                             $enableCreate = false;
                             $enableEdit = false;
                             $enableDelete = false;

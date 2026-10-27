@@ -179,7 +179,7 @@ class DefaultShow extends ShowBase
 
                 if (!is_null($parent_value = $this->custom_value->getParentValue(null, true))) {
                     if (boolval($this->custom_table->getOption('editable_with_parent')??1)) {
-                        if ($parent_value->enableEdit(true) !== true) {
+                        if ($parent_value->enableEdit(true, false) !== true) {
                             $tools->disableEdit();
                             $tools->disableDelete();
                         }
@@ -438,7 +438,7 @@ class DefaultShow extends ShowBase
                 $custom_value = $this->custom_value;
                 $grid->tools(function ($tools) use ($custom_value, $target_table, $custom_form_block) {
                     // Add new button if one_to_many
-                    if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY && $custom_value->enableEdit(true) === true && $target_table->enableCreate(true) === true) {
+                    if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY && $custom_value->enableEdit(true, false) === true && $target_table->enableCreate(true) === true) {
                         $tools->append(view(
                             'exment::custom-value.new-button',
                             ['table_name' => $target_table->table_name, 'params' => ['select_parent' => $this->custom_value->id]]
@@ -590,7 +590,7 @@ EOT;
     protected function useFileUpload()
     {
         // if no permission, return
-        if ($this->custom_value->enableEdit() !== true) {
+        if ($this->custom_value->enableEdit(false, false) !== true) {
             return false;
         }
 

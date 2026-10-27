@@ -1984,9 +1984,13 @@ abstract class CustomValue extends ModelBase
      * User can edit this custom value
      *
      * @param bool $checkFormAction if true, check as display
+     * @param bool $checkAdministrator false for what hangs off the record - its child records,
+     *        attachments and documents - rather than its own values: only those values of an
+     *        administrator's user record are kept from other users (UserTrait::disabled_edit_trait),
+     *        the rest stays as on v6.2.15
      * @return bool|ErrorCode
      */
-    public function enableEdit($checkFormAction = false)
+    public function enableEdit($checkFormAction = false, $checkAdministrator = true)
     {
         // Deleted to address the case where users with view authority are sharing data
         // if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
@@ -2013,7 +2017,7 @@ abstract class CustomValue extends ModelBase
         // check parent permission
         if (!is_null($parent_value = $this->getParentValue())) {
             if (boolval($this->custom_table->getOption('editable_with_parent')??1)) {
-                if (($code = $parent_value->enableEdit($checkFormAction)) !== true) {
+                if (($code = $parent_value->enableEdit($checkFormAction, false)) !== true) {
                     return $code;
                 }
             } else {
@@ -2025,6 +2029,12 @@ abstract class CustomValue extends ModelBase
 
         if ($this->trashed()) {
             return ErrorCode::ALREADY_DELETED();
+        }
+
+        // only administrator can edit administrator record (UserTrait::disabled_edit_trait).
+        // Last, so that every other answer stays as it was.
+        if ($checkAdministrator && method_exists($this, 'disabled_edit_trait') && $this->disabled_edit_trait()) {
+            return ErrorCode::PERMISSION_DENY();
         }
 
         return true;

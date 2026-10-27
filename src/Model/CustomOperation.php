@@ -287,6 +287,15 @@ class CustomOperation extends ModelBase
             return exmtrans('custom_value.message.operation_contains_notmatch_condition', $label);
         }
 
+        // only administrator can change administrator record (UserTrait::disabled_edit_trait).
+        // An operation saves without asking enableEdit(), so it asks this itself.
+        $lockedValues = $custom_values->filter(function ($custom_value) {
+            return method_exists($custom_value, 'disabled_edit_trait') && $custom_value->disabled_edit_trait();
+        });
+        if ($lockedValues->count() > 0) {
+            return Enums\ErrorCode::PERMISSION_DENY()->getMessage();
+        }
+
         // Update value
         \DB::beginTransaction();
         try {
