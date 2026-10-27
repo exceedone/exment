@@ -649,9 +649,34 @@ HTML;
     }
 
     /**
+     * Whether the user may change the record from a screen at all, before
+     * any column is looked at.
+     *
+     * Only an administrator may change the user record of an administrator:
+     * the list, show and edit pages hide its Edit button from everyone else
+     * (LoginUserItem::setEditDelete). That rule lives in the tools of those
+     * pages, not in the permissions, so enableEdit() does not know it and a
+     * write from a list screen - inline edit, bulk edit, "Set me as" - has
+     * to ask it here. Without a login user, such a record is not changed.
+     *
+     * @param CustomValue $custom_value
+     * @return bool
+     */
+    public static function isScreenEditableRecord(CustomValue $custom_value): bool
+    {
+        if (!method_exists($custom_value, 'isAdministrator') || !$custom_value->isAdministrator()) {
+            return true;
+        }
+
+        $login_user = \Exment::user();
+        return isset($login_user) && $login_user->isAdministrator();
+    }
+
+    /**
      * Whether the record's edit page offers an input for the column - the
      * question every list screen write has to answer the way that page
-     * would.
+     * would. A record the user may not change from a screen at all
+     * (isScreenEditableRecord) offers none.
      *
      * @param CustomTable $custom_table
      * @param CustomValue|null $custom_value
@@ -661,6 +686,10 @@ HTML;
     public static function isFormEditableColumn(CustomTable $custom_table, ?CustomValue $custom_value, CustomColumn $custom_column): bool
     {
         if ($custom_column->custom_table_id != $custom_table->id) {
+            return false;
+        }
+
+        if (isset($custom_value) && !static::isScreenEditableRecord($custom_value)) {
             return false;
         }
 
