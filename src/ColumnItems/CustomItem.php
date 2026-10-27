@@ -546,9 +546,9 @@ abstract class CustomItem implements ItemInterface
         $form_column_options = $form_column->options ?? [];
         $this->form_column_options = array_merge($this->form_column_options, $form_column_options);
 
-        // if hidden setting, add hidden field
+        // if hidden setting, add hidden field (array-safe for multi-value columns)
         if ($this->hidden()) {
-            $classname = Field\Hidden::class;
+            $classname = ExmentField\Hidden::class;
         } elseif ($this->initonly()) {
             $classname = ExmentField\InitOnly::class;
         } elseif ($this->viewonly()) {
