@@ -125,6 +125,26 @@ trait UserTrait
     }
 
     /**
+     * Whether the login user may not edit this record
+     *
+     * Only an administrator can edit an administrator's record, the login
+     * settings of that user included. CustomValue::enableEdit() asks this, so
+     * the rule holds on every page and in the API, not only where the Edit
+     * button is hidden (LoginUserItem::setEditDelete).
+     *
+     * @return bool
+     */
+    public function disabled_edit_trait(): bool
+    {
+        if (!$this->isAdministrator()) {
+            return false;
+        }
+
+        $login_user = \Exment::user();
+        return !isset($login_user) || !$login_user->isAdministrator();
+    }
+
+    /**
      * Get avatar
      *
      * @return void

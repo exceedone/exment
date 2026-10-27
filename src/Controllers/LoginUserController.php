@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use ExmentAdminCore\Admin\Form;
 use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Auth\Permission as Checker;
 use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Form\Tools;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\DataImportExport;
@@ -37,6 +39,20 @@ class LoginUserController extends AdminControllerBase
     public function show(Request $request, Content $content, $id)
     {
         return redirect(admin_urls('loginuser', $id, 'edit'));
+    }
+
+    /**
+     * Edit interface.
+     *
+     * @param Request $request
+     * @param Content $content
+     * @param mixed $id
+     * @return Content
+     */
+    public function edit(Request $request, Content $content, $id)
+    {
+        $this->denyUneditableUser($id);
+        return parent::edit($request, $content, $id);
     }
 
     /**
@@ -68,6 +84,10 @@ class LoginUserController extends AdminControllerBase
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableDelete();
             $actions->disableView();
+            // only administrator can change administrator's login (see denyUneditableUser)
+            if ($actions->row instanceof CustomValue && method_exists($actions->row, 'disabled_edit_trait') && $actions->row->disabled_edit_trait()) {
+                $actions->disableEdit();
+            }
         });
 
         $grid->filter(function ($filter) use ($table) {
@@ -161,6 +181,8 @@ class LoginUserController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function update($id)
     {
+        $this->denyUneditableUser($id);
+
         DB::beginTransaction();
         try {
             $result = LoginUserItem::getItem()->saved(null, $id);
@@ -219,6 +241,24 @@ class LoginUserController extends AdminControllerBase
         admin_toastr($message);
         $url = admin_url('loginuser');
         return redirect($url);
+    }
+
+    /**
+     * Only an administrator can change the login of an administrator
+     * (UserTrait::disabled_edit_trait). The list hides the Edit button of
+     * that row; the edit page and the save refuse it. The user is read
+     * without the record scope: LoginUserItem finds the login by its user
+     * id, whether the scope shows that user or not.
+     *
+     * @param mixed $id
+     * @return void
+     */
+    protected function denyUneditableUser($id)
+    {
+        $user = getModelName(SystemTableName::USER)::withoutGlobalScopes()->find($id);
+        if (isset($user) && $user->disabled_edit_trait()) {
+            Checker::error();
+        }
     }
 
     // @phpstan-ignore-next-line
