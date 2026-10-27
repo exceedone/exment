@@ -173,6 +173,12 @@ class Permission
             return $result;
         }
 
+        // open-admin's builtin user/role/permission screens. Exment replaces them with
+        // loginuser and role_group, and InstallSeeder drops their tables, so deny everyone.
+        if (in_array($endpoint, ['auth/users', 'auth/roles', 'auth/permissions'])) {
+            return false;
+        }
+
         // if 'role' or 'role_group' and !System::permission_available(), false
         if (in_array($endpoint, ['role', 'role_group']) && !System::permission_available()) {
             return false;
