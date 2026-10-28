@@ -448,6 +448,12 @@ var Exment;
                 Exment.CommonEvent.UndefinedError();
                 return;
             }
+            if (!hasValue(res.responseJSON.toastr)
+                && $.isEmptyObject(res.responseJSON.errors || {})
+                && $.isEmptyObject(res.responseJSON.messages || {})) {
+                Exment.CommonEvent.UndefinedError();
+                return;
+            }
             // show toastr
             if (hasValue(res.responseJSON.toastr)) {
                 toastr.error(res.responseJSON.toastr);

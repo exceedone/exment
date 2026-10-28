@@ -261,6 +261,13 @@ namespace Exment {
                     Exment.CommonEvent.UndefinedError();
                     return;
                 }
+
+                if(!hasValue(res.responseJSON.toastr)
+                    && $.isEmptyObject(res.responseJSON.errors || {})
+                    && $.isEmptyObject(res.responseJSON.messages || {})){
+                    Exment.CommonEvent.UndefinedError();
+                    return;
+                }
                 
                 // show toastr
                 if(hasValue(res.responseJSON.toastr)){
@@ -548,5 +555,4 @@ $(function () {
     Exment.ModalEvent.AddEvent();
     Exment.ModalEvent.AddEventOnce();
 });
-
 

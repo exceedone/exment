@@ -2321,6 +2321,12 @@ return [
             'import_error_message' => 'Error Message',
             'import_error_format' => 'Line %d : %s',
             'import_error_format_sheet' => '%s(Line %d) : %s',
+            'duplicate_id_in_file' => 'ID :id is repeated in this file (first occurrence: line :row).',
+            'deleted_id_conflict' => 'ID :id belongs to a deleted record. Check the trash and restore the record if needed before importing.',
+            'id_conflict' => 'ID :id already exists but could not be selected for update. Ask an administrator to check the record and access permissions.',
+            'unique_conflict' => 'A record with the same ID or unique field value already exists. Check the import data and existing records.',
+            'stopped_after_save_error' => 'Import stopped. Earlier rows may already have been saved.',
+            'unexpected_error' => 'An unexpected error occurred during import. Contact your administrator to check the application log.',
             'target_column_name' => 'Replacement target column name (alphanumeric characters)',
 
             'help' => [

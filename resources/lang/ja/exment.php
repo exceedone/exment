@@ -2321,6 +2321,12 @@ return [
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
             'import_error_format_sheet' => '%s(行%d) : %s',
+            'duplicate_id_in_file' => 'ID :id がファイル内で重複しています（最初の出現箇所：:row行目）。',
+            'deleted_id_conflict' => 'ID :id は削除済みのデータに使用されています。ゴミ箱を確認し、必要に応じて復元してからインポートしてください。',
+            'id_conflict' => 'ID :id は既に存在しますが、更新対象として取得できませんでした。管理者にデータとアクセス権の確認を依頼してください。',
+            'unique_conflict' => '同じIDまたは一意項目の値を持つデータが既に存在します。インポートデータと既存データを確認してください。',
+            'stopped_after_save_error' => 'インポートを中止しました。エラー発生前の行は保存されている可能性があります。',
+            'unexpected_error' => 'インポート中に予期しないエラーが発生しました。管理者にアプリケーションログの確認を依頼してください。',
             'target_column_name' => '置換対象列名(英数字)',
 
             'help' => [

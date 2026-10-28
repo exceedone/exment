@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\RelationType;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 class CustomTableAction implements ActionInterface
 {
@@ -199,6 +200,7 @@ class CustomTableAction implements ActionInterface
             }
             $data_imports[] = [
                 'provider' => $provider,
+                'table_name' => $table_name,
                 'data_import' => $data_import
             ];
         }
@@ -213,7 +215,32 @@ class CustomTableAction implements ActionInterface
                     $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
                 }
 
-                $provider->importData($row);
+                try {
+                    $provider->importData($row);
+                } catch (UniqueConstraintViolationException $ex) {
+                    report($ex);
+
+                    $message = exmtrans('custom_value.import.unique_conflict');
+                    if (isset($row['row_number'])) {
+                        $message = sprintf(
+                            exmtrans('custom_value.import.import_error_format_sheet'),
+                            $data_import['table_name'],
+                            $row['row_number'],
+                            $message
+                        );
+                    } else {
+                        $message = $data_import['table_name'].': '.$message;
+                    }
+
+                    return response([
+                        'result' => false,
+                        'toastr' => exmtrans('common.message.import_error'),
+                        'errors' => ['import_error_message' => [
+                            'type' => 'input',
+                            'message' => $message."\r\n".exmtrans('custom_value.import.stopped_after_save_error'),
+                        ]],
+                    ], 400);
+                }
             }
         }
 

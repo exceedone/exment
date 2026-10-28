@@ -14,8 +14,14 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Exceedone\Exment\Services\DataImportExport\Formats\SpOut\SpOut;
 use Exceedone\Exment\Services\DataImportExport\Formats\SpOut\Xlsx;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Throwable;
 use Validator;
 
 /**
@@ -207,6 +213,37 @@ trait DataImportExportServiceTrait
      * @return mixed|void error message or success message etc...
      */
     public function import($request)
+    {
+        // Only web requests convert exceptions to a response.
+        // Other callers, such as patch commands, rely on exceptions to stop execution.
+        if (!($request instanceof Request)) {
+            return $this->performImport($request);
+        }
+
+        try {
+            return $this->performImport($request);
+        } catch (HttpExceptionInterface | HttpResponseException | ValidationException | AuthorizationException | AuthenticationException $ex) {
+            throw $ex;
+        } catch (Throwable $ex) {
+            report($ex);
+
+            return response([
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error'),
+                'errors' => ['import_error_message' => [
+                    'type' => 'input',
+                    'message' => exmtrans('custom_value.import.unexpected_error')
+                        ."\r\n".exmtrans('custom_value.import.stopped_after_save_error'),
+                ]],
+            ], 500);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @return mixed
+     */
+    protected function performImport($request)
     {
         \Exment::setTimeLimitLong();
 

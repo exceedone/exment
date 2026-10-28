@@ -91,10 +91,21 @@ class DefaultTableProvider extends ProviderBase
         // get all custom value for performance
         $models = $this->custom_table->getMatchedCustomValues($primary_values, $this->primary_key);
 
+        // Recheck unmatched IDs including soft-deleted records, which still occupy their primary keys.
+        // These records are used only to report conflicts, not to restore or update them.
+        $conflicting_models = [];
+        if ($this->primary_key === 'id') {
+            $unmatched_ids = array_filter($primary_values, function ($id) use ($models) {
+                return !is_nullorempty($id) && !isset($models[strval($id)]);
+            });
+            $conflicting_models = $this->custom_table->getMatchedCustomValues($unmatched_ids, 'id', true);
+        }
+
         // set all select table's value
         $this->custom_table->setSelectTableValues(collect($value_customs));
 
         $results = [];
+        $seen_ids = [];
         foreach ($value_customs as $line_no => $value_custom) {
             $options['datalist'] = $value_customs;
             ///// convert data first.
@@ -122,7 +133,44 @@ class DefaultTableProvider extends ProviderBase
             }
             $model->saved_notify(false);
 
-            $results[] = ['data' => $value_custom, 'model' => $model];
+            $row_errors = [];
+            if ($this->primary_key === 'id' && !is_nullorempty($primary_value)) {
+                $id = strval($primary_value);
+                // Only new records are checked: repeating an ID to be inserted always fails with a duplicate key.
+                // Repeated IDs of existing records keep their previous behavior.
+                // Keep the first data row number so repeated IDs can point back to their original row.
+                if (!$model->exists) {
+                    if (isset($seen_ids[$id])) {
+                        $row_errors[] = exmtrans('custom_value.import.duplicate_id_in_file', [
+                            'id' => $id,
+                            'row' => $seen_ids[$id],
+                        ]);
+                    } else {
+                        $seen_ids[$id] = $line_no - 1;
+                    }
+                }
+
+                // Distinguish deleted records from other existing records that were not matched for update.
+                if (isset($conflicting_models[$id])) {
+                    $key = $conflicting_models[$id]->trashed() ? 'deleted_id_conflict' : 'id_conflict';
+                    $row_errors[] = exmtrans('custom_value.import.'.$key, ['id' => $id]);
+                }
+            }
+
+            // Carry conflict errors and the data row number (header rows excluded) forward for validation before saving.
+            $results[] = [
+                'data' => $value_custom,
+                'model' => $model,
+                'row_number' => $line_no - 1,
+                'import_errors' => array_map(function ($message) use ($line_no) {
+                    return sprintf(
+                        exmtrans('custom_value.import.import_error_format_sheet'),
+                        $this->custom_table->table_name,
+                        $line_no - 1,
+                        $message
+                    );
+                }, $row_errors),
+            ];
         }
 
         return $results;
@@ -146,6 +194,10 @@ class DefaultTableProvider extends ProviderBase
         $error_data = [];
         $success_data = [];
         foreach ($dataObjects as $line_no => $value) {
+            if (!empty($value['import_errors'])) {
+                $error_data = array_merge($error_data, $value['import_errors']);
+                continue;
+            }
             $check = $this->validateDataRow($line_no, $value, $validate_columns, $dataObjects);
             if ($check === true) {
                 $success_data[] = $value;
