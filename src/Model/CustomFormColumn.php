@@ -33,7 +33,6 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     protected $casts = ['options' => 'json'];
     protected $appends = ['form_column_target'];
 
-    // @phpstan-ignore-next-line
     protected $with = ['custom_column'];
 
     /**
@@ -118,14 +117,18 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomFormBlock, $this>
+     */
     public function custom_form_block(): BelongsTo
     {
         return $this->belongsTo(CustomFormBlock::class, 'custom_form_block_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomColumn, $this>
+     */
     public function custom_column(): BelongsTo
     {
         return $this->belongsTo(CustomColumn::class, 'form_column_target_id');

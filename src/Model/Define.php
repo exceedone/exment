@@ -16,10 +16,10 @@ use Exceedone\Exment\Enums\SystemColumn;
 class Define
 {
     public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
-    public const COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN = 'exceedone/laravel-admin';
+    public const COMPOSER_PACKAGE_NAME_EXMENT_ADMIN = 'exceedone/exment-admin-core';
     public const COMPOSER_VERSION_CHECK_URL = 'https://packagist.org/packages/exceedone/exment.json';
     public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
-    public const EXMENT_NEWS_LINK = 'https://exment.net/archives/category/news';
+    public const EXMENT_NEWS_LINK = 'https://exment.net/category/news';
     public const USER_IMAGE_LINK = 'vendor/exment/images/user.png';
     public const ORGANIZATION_IMAGE_LINK = 'vendor/exment/images/organization.png';
 
@@ -29,8 +29,15 @@ class Define
     public const RULES_REGEX_LINK_FORMAT = "|<a href=[\"'](.*?)[\"'].*?>(.*?)</a>|mis";
     public const RULES_REGEX_BACKUP_FILENAME = '[ぁ-んァ-ヶ亜-熙a-zA-Z0-9]+';
 
+    /**
+     * Input keys not to flash to the session when redirecting with input
+     */
+    public const DONT_FLASH_INPUT_KEYS = ['password', 'password_confirmation', 'current_password'];
+
     public const DELETE_CONFIRM_KEYWORD = 'delete me';
     public const RESTORE_CONFIRM_KEYWORD = 'restore me';
+    // file in a backup zip recording the Exment / Laravel versions it was taken on
+    public const BACKUP_VERSION_FILE = 'backup_version.json';
     public const YES_KEYWORD = 'yes';
 
     public const API_FEATURE_TEST = 'API_FEATURE_TEST';
@@ -105,6 +112,18 @@ class Define
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
         'filter_multi_user' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
 
+        // Meilisearch (full-text search) — 'config' maps let get_system_value fall back to .env.
+        'meili_host' => ['config' => 'meilisearch.host', 'group' => 'advanced'],
+        'meili_key' => ['type' => 'password', 'config' => 'meilisearch.key', 'group' => 'advanced'],
+        'meili_index' => ['config' => 'meilisearch.index', 'group' => 'advanced'],
+        'meili_global_search' => ['type' => 'boolean', 'config' => 'meilisearch.global_search', 'group' => 'advanced'],
+        'meili_realtime_sync' => ['type' => 'boolean', 'config' => 'meilisearch.realtime_sync', 'group' => 'advanced'],
+        'meili_batch_size' => ['type' => 'int', 'config' => 'meilisearch.batch_size', 'group' => 'advanced'],
+        'meili_repair_enabled' => ['type' => 'boolean', 'config' => 'meilisearch.repair_enabled', 'group' => 'advanced'],
+        'meili_repair_at' => ['config' => 'meilisearch.repair_at', 'group' => 'advanced'],
+        'meili_filter_mode' => ['config' => 'meilisearch.filter.mode', 'group' => 'advanced'],
+        'meili_indexed_at' => ['type' => 'json', 'group' => 'meili_state'],
+
 
         // notify
         'system_mail_host' => ['config' => 'mail.host', 'group' => 'notify'],
@@ -117,6 +136,19 @@ class Define
         'system_mail_body_type' => ['default' => 'html', 'group' => 'notify'],
 
         'system_slack_user_column' => ['group' => 'notify'],
+
+        'system_line_channel_token' => ['type' => 'password', 'config' => 'exment.line.channel_access_token', 'group' => 'notify'],
+        'system_line_channel_secret' => ['type' => 'password', 'config' => 'exment.line.channel_secret', 'group' => 'notify'],
+        'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
+
+        'safety_check_auto_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'notify'],
+        'safety_check_min_scale' => ['type' => 'int', 'default' => '45', 'group' => 'notify'],
+        'safety_check_cooldown_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'notify'],
+        'safety_check_comment_window_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'notify'],
+        'safety_check_max_bulletin_age_minutes' => ['type' => 'int', 'default' => '10', 'group' => 'notify'],
+        'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'notify'],
+        'safety_check_answer_url_expire_days' => ['type' => 'int', 'default' => '7', 'group' => 'notify'],
+        'safety_check_last_feed_time' => ['type' => 'datetime'],
 
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
@@ -244,6 +276,14 @@ class Define
             'uri' => 'system',
             'icon' => 'fa-cogs',
         ],
+        'meili_filter' => [
+            'uri' => 'meili-filter',
+            'icon' => 'fa-filter',
+        ],
+        'meili_dictionary' => [
+            'uri' => 'meili-dictionary',
+            'icon' => 'fa-language',
+        ],
         'custom_table' => [
             'uri' => 'table',
             'icon' => 'fa-table',
@@ -259,6 +299,10 @@ class Define
         'template' => [
             'uri' => 'template',
             'icon' => 'fa-clone',
+        ],
+        'cell_style_preset' => [
+            'uri' => 'cell_style_preset',
+            'icon' => 'fa-paint-brush',
         ],
         'workflow' => [
             'uri' => 'workflow',
@@ -406,9 +450,13 @@ class Define
         'sqlsrv' => ['min' => '13.0.0.0'],
     ];
 
+    /**
+     * PHP version range checked on the install screen: [min (inclusive), max (exclusive)].
+     * min must match "php" in composer.json.
+     */
     public const PHP_VERSION = [
-        '8.1.0',
-        '8.3.0',
+        '8.2.0',
+        '8.5.0',
     ];
 
     public const CUSTOM_TABLE_ENDPOINTS = [
@@ -451,6 +499,9 @@ class Define
     public const HELP_URLS = [
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'search', 'help_uri'=> 'search'],
+        // if has "query", match only when the url has the query string parameter. Set before the entry without "query".
+        ['uri'=> 'table', 'query'=> 'qrcodesetting', 'help_uri'=> '2d_barcode'],
+        ['uri'=> 'table', 'query'=> 'jancodesetting', 'help_uri'=> 'jancode'],
         ['uri'=> 'table', 'help_uri'=> 'table'],
         ['uri'=> 'column', 'help_uri'=> 'column'],
         ['uri'=> 'relation', 'help_uri'=> 'relation'],
@@ -464,6 +515,8 @@ class Define
         ['uri'=> 'backup', 'help_uri'=> 'backup'],
         ['uri'=> 'role_group', 'help_uri'=> 'permission'],
         ['uri'=> 'auth/menu', 'help_uri'=> 'menu'],
+        ['uri'=> 'auth/logs', 'help_uri'=> 'logs'],
+        ['uri'=> 'notify', 'help_uri'=> 'notify'],
         ['uri'=> 'loginuser', 'help_uri'=> 'user'],
         ['uri'=> 'data/user', 'help_uri'=> 'user'],
         ['uri'=> 'data/mail_template', 'help_uri'=> 'mail'],
@@ -497,7 +550,7 @@ class Define
     public const DISKNAME_TEMP_UPLOAD = 'tmpupload';
     public const DISKNAME_PUBLIC_FORM_TMP = 'public_form_tmp';
 
-    public const IMAGE_RULE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
+    public const IMAGE_RULE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
 
     public const CHARTITEM_LABEL = 'chartitem_label';
 

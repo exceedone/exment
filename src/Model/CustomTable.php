@@ -25,7 +25,8 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
-use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\ColumnItems\WorkflowItem;
+use ExmentAdminCore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewType;
@@ -111,14 +112,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected $cached_custom_columns = [];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumn, $this>
+     */
     public function custom_columns(): HasMany
     {
         return $this->hasMany(CustomColumn::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomView, $this>
+     */
     public function custom_views(): HasMany
     {
         return $this->hasMany(CustomView::class, 'custom_table_id')
@@ -127,49 +132,63 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomForm, $this>
+     */
     public function custom_forms(): HasMany
     {
         return $this->hasMany(CustomForm::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomOperation, $this>
+     */
     public function custom_operations(): HasMany
     {
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomRelation, $this>
+     */
     public function custom_relations(): HasMany
     {
         return $this->hasMany(CustomRelation::class, 'parent_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomRelation, $this>
+     */
     public function child_custom_relations(): HasMany
     {
         return $this->hasMany(CustomRelation::class, 'child_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomCopy, $this>
+     */
     public function from_custom_copies(): HasMany
     {
         return $this->hasMany(CustomCopy::class, 'from_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomCopy, $this>
+     */
     public function to_custom_copies(): HasMany
     {
         return $this->hasMany(CustomCopy::class, 'to_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<Notify, $this>
+     */
     public function notifies(): HasMany
     {
         return $this->hasMany(Notify::class, 'target_id')
@@ -178,10 +197,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * @return HasMany
+     * @return HasMany<Notify, $this>
      */
-
-    // @phpstan-ignore-next-line
     public function notify_all()
     {
         return $this->hasMany(Notify::class, 'target_id')
@@ -189,42 +206,54 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomOperation, $this>
+     */
     public function operations(): HasMany
     {
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomFormBlock, $this>
+     */
     public function custom_form_block_target_tables(): HasMany
     {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function custom_column_multisettings(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasManyThrough<CustomFormPriority, CustomForm, $this>
+     */
     public function custom_form_priorities(): HasManyThrough
     {
         return $this->hasManyThrough(CustomFormPriority::class, CustomForm::class, 'custom_table_id', 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<WorkflowTable, $this>
+     */
     public function workflow_tables(): HasMany
     {
         return $this->hasMany(WorkflowTable::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function multi_uniques(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
@@ -232,7 +261,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function table_labels(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
@@ -240,7 +271,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function compare_columns(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
@@ -248,7 +281,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomColumnMulti, $this>
+     */
     public function share_settings(): HasMany
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
@@ -303,9 +338,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * get Custom columns using cache
+     *
+     * @return \Illuminate\Support\Collection<int, CustomColumn>
      */
-
-    // @phpstan-ignore-next-line
     public function getCustomColumnsCacheAttribute()
     {
         if (!empty($this->cached_custom_columns)) {
@@ -625,10 +660,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // the task list marks of this table's records, of every user: nothing reads them once the
-        // table is gone, and a later table given the same id would inherit them
-        WorkflowTaskRead::withoutGlobalScopes()
-            ->where('custom_table_id', $this->id)
-            ->delete();
+        // table is gone, and a later table given the same id would inherit them.
+        // Guarded by hasTable(): migrate:reset rolls migrations back newest-first, so the
+        // 2026_07_01 workflow_task_reads table is already dropped when an older migration
+        // (e.g. 2026_06_29 line_flex_template) deletes its custom table through this hook.
+        $readsTable = (new WorkflowTaskRead())->getTable();
+        if (\Illuminate\Support\Facades\Schema::hasTable($readsTable)) {
+            WorkflowTaskRead::withoutGlobalScopes()
+                ->where('custom_table_id', $this->id)
+                ->delete();
+        }
     }
 
     protected static function boot()
@@ -1253,7 +1294,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // @phpstan-ignore-next-line
             if (isset($view) && array_key_exists($view, $settings)) {
 
-                // @phpstan-ignore-next-line
                 $parameters = array_get($settings, $view);
             }
 
@@ -1894,7 +1934,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set selectTable value's. for after calling from select_table object
      *
-     * @param \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|null $customValueCollection
+     * @param \Illuminate\Support\Collection|null $customValueCollection
      * @return void
      */
 
@@ -2278,13 +2318,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set select table's field info.
      *
-     * @param \Encore\Admin\Form\Field $field
+     * @param \ExmentAdminCore\Admin\Form\Field $field
      * @param array $options
-     * @return \Encore\Admin\Form\Field
+     * @return \ExmentAdminCore\Admin\Form\Field
      */
-
-    // @phpstan-ignore-next-line
-    public function setSelectTableField(\Encore\Admin\Form\Field $field, array $options = []): \Encore\Admin\Form\Field
+    public function setSelectTableField(\ExmentAdminCore\Admin\Form\Field $field, array $options = []): \ExmentAdminCore\Admin\Form\Field
     {
         $options = array_merge([
             'custom_value' => null, // select custom value, if called custom value's select table
@@ -3562,6 +3600,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::FORM_ACTION_DISABLED();
         }
 
+        if ($this->isOneRecord() && $this->getValueModel()->query()
+                ->withoutGlobalScope(CustomValueModelScope::class)->exists()) {
+            return ErrorCode::ONE_RECORD_ALREADY();
+        }
+
         return true;
     }
 
@@ -3861,9 +3904,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                                 $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
                                 if ($column_form_column_name && $column_form_column_name == 'image') {
                                     $file = ExmentFile::getFileFromFormColumn($custom_form_column->id);
-                                    $new_file = $file->replicate(['uuid']);
-                                    $new_file->custom_form_column_id = $new_form_column->id;
-                                    $new_file->save();
+                                    if (isset($file)) {
+                                        $new_file = $file->replicate(['uuid']);
+                                        $new_file->custom_form_column_id = $new_form_column->id;
+                                        $new_file->save();
+                                    }
                                 }
                             }
                         }

@@ -1,1 +1,1 @@
-{{ Form::hidden("", array_get($custom_form_column, $param_name), array_merge(['class' => $param_name, 'disabled' => 'disabled'], $param_parameters ?? [])) }}
+<input type="hidden" name="" value="{{ \Illuminate\Support\Arr::get($custom_form_column, $param_name) }}" class="{{ $param_name }}" disabled="disabled" @foreach(($param_parameters ?? []) as $attr => $val) {{ $attr }}="{{ $val }}" @endforeach />

@@ -294,11 +294,8 @@ abstract class FormatBase
         // get file
         if ($target instanceof Request) {
             $file = $target->file('custom_table_file');
-            // @phpstan-ignore-next-line
             $path = $file->getRealPath();
-            // @phpstan-ignore-next-line
             $extension = $file->extension();
-            // @phpstan-ignore-next-line
             $originalName = $file->getClientOriginalName();
         } elseif ($target instanceof \SplFileInfo) {
             $path = $target->getPathName();

@@ -17,9 +17,9 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterOption;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
-use Encore\Admin\Grid\Filter;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
 
 /**
@@ -92,6 +92,28 @@ class SelectTable extends CustomItem
     protected function _html($v)
     {
         return $this->getValue($v, true, true);
+    }
+
+    /**
+     * A reference the viewer may not open is printed as "no permission"
+     * (see getValue()), and its per-value color is keyed on the id of the
+     * record it points at. Painting it would tell, color by color, which
+     * record that is - so only a reference the viewer can open is painted.
+     *
+     * The lookup is the one getValue() just made for the label, answered
+     * from the request cache. Anything but an id is not a reference the
+     * viewer could open, so it is left plain without asking.
+     *
+     * @param mixed $v
+     * @return bool
+     */
+    protected function isStyledValue($v): bool
+    {
+        if (!isset($this->target_table) || !is_numeric($v)) {
+            return false;
+        }
+
+        return !is_null($this->target_table->getValueModel($v));
     }
 
     // @phpstan-ignore-next-line
@@ -229,9 +251,52 @@ class SelectTable extends CustomItem
                         'target_view_id' => $this->custom_column->getOption('select_target_view'),
                         'display_table_id' => $this->custom_table->id,
                         'linkage' => $linkage_expand,
-                        'target_column_multiple' => $field instanceof \Encore\Admin\Form\Field\MultipleSelect ? 1 : 0,
+                        'target_column_multiple' => $field instanceof \ExmentAdminCore\Admin\Form\Field\MultipleSelect ? 1 : 0,
                     ]),
                     'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'class_' . $this->uniqueName()]),
+                ],
+            ];
+        }
+
+        // "assign to me", Backlog's 私が担当. Rides the same button strip the search
+        // button uses, so it lands next to the field with no new markup. The user
+        // id travels in the attribute rather than a JS global, because nothing
+        // exposes the logged-in user to scripts today.
+        if (isMatchString($this->custom_column->column_type, ColumnType::USER)
+            && boolval($this->custom_column->getOption('assign_me_enabled'))
+        ) {
+            $assign_me_id = \Exment::getUserId();
+            if (!is_nullorempty($assign_me_id)) {
+                $login_user = \Exment::user();
+                $buttons[] = [
+                    'label' => exmtrans('custom_column.assign_me'),
+                    'btn_class' => 'btn-default',
+                    'icon' => 'fa-user',
+                    'attributes' => [
+                        'data-assign-me' => $assign_me_id,
+                        'data-assign-me-label' => $login_user ? $login_user->user_name : $assign_me_id,
+                    ],
+                ];
+            }
+        }
+
+        // Quick add, Backlog's + beside カテゴリー. Hidden unless this user could
+        // create the record anyway, so the button never offers something the save
+        // would then refuse.
+        if (boolval($this->custom_column->getOption('quickadd_enabled'))
+            && isMatchString($this->custom_column->column_type, ColumnType::SELECT_TABLE)
+            && $this->target_table->enableCreate(true) === true
+        ) {
+            $buttons[] = [
+                'label' => exmtrans('custom_column.quickadd'),
+                'btn_class' => 'btn-default',
+                'icon' => 'fa-plus',
+                'attributes' => [
+                    'data-quickadd-url' => admin_urls('webapi', $this->target_table->table_name, 'quickadd'),
+                    'data-quickadd-title' => $this->label(),
+                    'data-quickadd-ok' => trans('admin.submit'),
+                    'data-quickadd-cancel' => trans('admin.cancel'),
+                    'data-quickadd-error' => exmtrans('common.message.error_execute'),
                 ],
             ];
         }
@@ -408,7 +473,7 @@ class SelectTable extends CustomItem
     // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
-        return [\Encore\Admin\Validator\HasOptionRule::class];
+        return [\ExmentAdminCore\Admin\Validator\HasOptionRule::class];
     }
 
     /**
@@ -589,7 +654,6 @@ class SelectTable extends CustomItem
             $searchAsId = $use_table_label_id && substr($items[0], 0, 1) == '#';
 
             if ($searchAsId) {
-                // @phpstan-ignore-next-line
                 $searchId = substr($items[0], 1);
                 $query->where('id', $searchId);
 
@@ -603,7 +667,6 @@ class SelectTable extends CustomItem
                     return null;
                 }
 
-                // @phpstan-ignore-next-line
                 if ($this->setSelectTableQuery($query, array_get($labelColumns[$labelColumnIndex++], 'table_label_id'), $items[$i])) {
                     $executeSearch = true;
                 }
@@ -700,6 +763,10 @@ class SelectTable extends CustomItem
     public function setCustomColumnOptionForm(&$form)
     {
         $this->setCustomColumnOptionFormSelectTable($form);
+
+        $form->switchbool('quickadd_enabled', exmtrans("custom_column.options.quickadd_enabled"))
+            ->help(exmtrans("custom_column.help.quickadd_enabled"))
+            ->default('0');
     }
 
 

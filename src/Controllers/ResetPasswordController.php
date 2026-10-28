@@ -85,7 +85,7 @@ class ResetPasswordController extends Controller
         $email = $this->getEmailByToken($request->get('token'));
         if (!isset($email)) {
             admin_toastr(trans('passwords.token'));
-            return back()->withInput();
+            return back()->withInput(get_flash_input());
         }
 
         $array = [
@@ -97,7 +97,7 @@ class ResetPasswordController extends Controller
         // get user for password history validation
         $this->login_user = $broker->getUser($array);
 
-        $this->validate($request, $this->rules(), $this->validationErrorMessages());
+        $request->validate($this->rules(), $this->validationErrorMessages());
 
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the
@@ -147,6 +147,9 @@ class ResetPasswordController extends Controller
 
         //$user->setRememberToken(Str::random(60));
 
+        // the user chose a password: an admin-imposed "change password at next login" is satisfied
+        $user->password_reset_flg = false;
+
         $user->saveOrFail();
 
         event(new PasswordReset($user));
@@ -174,10 +177,15 @@ class ResetPasswordController extends Controller
     protected function getEmailByToken($token)
     {
         $broker = $this->broker();
+        $expire = (int)config('auth.passwords.exment_admins.expire', 60);
         // get email by table 'password_resets'
         $records = \DB::table(SystemTableName::PASSWORD_RESET)->get()->toArray();
 
         foreach ($records as $record) {
+            // skip expired records (same expiry rule as PasswordBroker::tokenExpired)
+            if (\Carbon\Carbon::parse($record->created_at)->addMinutes($expire)->isPast()) {
+                continue;
+            }
             // if match token
             if ($broker->getRepository()->getHasher()->check($token, $record->token)) {
                 return $record->email;

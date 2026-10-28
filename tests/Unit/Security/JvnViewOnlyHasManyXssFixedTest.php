@@ -136,8 +136,9 @@ class JvnViewOnlyHasManyXssFixedTest extends SecurityRegressionTestCase
     }
 
     /**
-     * The other ajax select2 fields are built by exceedone/laravel-admin: Select::ajax() (parent
-     * picker, n:n relation, share dialog, role group, notify targets) and the grid filter select.
+     * The other ajax select2 fields are built by the admin framework package used here
+     * (exceedone/exment-admin-core): Select::ajax() (parent picker, n:n relation, share dialog,
+     * role group, notify targets) and the grid filter select.
      * Both wrote the same pass-through escapeMarkup into their script; without it select2 escapes
      * the labels by default. Only the escapeMarkup(true) opt-in for trusted html options stays.
      */
@@ -149,13 +150,13 @@ class JvnViewOnlyHasManyXssFixedTest extends SecurityRegressionTestCase
             'Grid/Filter/Presenter/Select.php' => 0,
         ];
         foreach ($files as $rel => $allowed) {
-            $path = base_path('vendor/exceedone/laravel-admin/src/' . $rel);
+            $path = base_path('vendor/exceedone/exment-admin-core/src/' . $rel);
             $this->assertFileExists($path);
             $count = preg_match_all('/escapeMarkup:\s*function\s*\(markup\)\s*\{\s*return markup;/', (string)file_get_contents($path));
 
-            // The fix is in exceedone/laravel-admin and not yet in the tagged release installed by CI.
+            // The fix (made in exceedone/laravel-admin) is not yet ported to the installed exceedone/exment-admin-core.
             if ($count > $allowed) {
-                $this->markTestSkipped("Installed exceedone/laravel-admin does not yet contain the ajax select escaping fix ({$rel}).");
+                $this->markTestSkipped("Installed exceedone/exment-admin-core does not yet contain the ajax select escaping fix ({$rel}).");
             }
             $this->assertSame($allowed, $count, $rel);
         }

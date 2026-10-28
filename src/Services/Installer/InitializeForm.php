@@ -46,9 +46,10 @@ class InitializeForm
     public function post()
     {
         $request = request();
-        \DB::beginTransaction();
 
         try {
+            \DB::beginTransaction();
+
             $result = $this->postInitializeForm($request, 'initialize', true, true);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 // close the transaction before leaving, so nothing else in this request
@@ -100,8 +101,10 @@ class InitializeForm
             DB::rollback();
             return back()->withInput()->withErrors(['upload_template' => $exception->getMessage()]);
         } catch (\Exception $exception) {
-            //TODO:error handling
             DB::rollback();
+            return back()->withErrors([
+                'initialize_error' => exmtrans('install.error.initialize_error'),
+            ]);
         }
     }
 

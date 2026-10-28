@@ -2,12 +2,12 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Admin;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
-use Encore\Admin\Form\Field\Hidden;
-use Encore\Admin\Form\Field\Select;
-use Encore\Admin\Form\NestedForm;
+use ExmentAdminCore\Admin\Admin;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field\Hidden;
+use ExmentAdminCore\Admin\Form\Field\Select;
+use ExmentAdminCore\Admin\Form\NestedForm;
 
 /**
  * Class HasMany.
@@ -18,7 +18,6 @@ class HasManyTable extends HasMany
     protected $tablecolumnwidths = [];
     // @phpstan-ignore-next-line
     protected $count = null;
-    // @phpstan-ignore-next-line
     protected $enableHeader = true;
 
     /**
@@ -129,7 +128,6 @@ class HasManyTable extends HasMany
         return $this;
     }
 
-    // @phpstan-ignore-next-line
     public function disableHeader()
     {
         $this->enableHeader = false;
@@ -209,7 +207,7 @@ class HasManyTable extends HasMany
         $requires[] = is_array($field->getAttributes()) && array_has($field->getAttributes(), 'required');
 
         // set label viewclass hidden
-        $field->setLabelClass(['hidden']);
+        $field->setLabelClass(['d-none']);
         $field->setElementClass(['w-100']);
         if (!($field instanceof Select)) {
             $field->attribute(['style' => 'max-width:999999px']);

@@ -2,13 +2,14 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Auth\Permission as Checker;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Grid;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Auth\Permission as Checker;
+use ExmentAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Row;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid\Exporter;
 use Exceedone\Exment\Enums\ColumnType;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
@@ -21,11 +22,17 @@ use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\DataItems\Grid\GridBase;
+use Exceedone\Exment\DataItems\Grid\KanbanGrid;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginPageType;
@@ -41,6 +48,7 @@ use Carbon\Carbon;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Elibyy\TCPDF\Facades\TCPDF;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomColumn;
 
@@ -59,6 +67,23 @@ class CustomValueController extends AdminControllerTableBase
     public const DATANAME_CUSTOM_VIEW_ID = 'data-custom_view_id';
     public const DATANAME_CUSTOM_VIEW_SUUID = 'data-custom_view_suuid';
     public const DATANAME_CUSTOM_VIEW_NAME = 'data-view_view_name';
+    /**
+     * Query flag that asks for the edit form on a bare page, for a screen that
+     * shows it in a frame of its own.
+     */
+    public const FORM_FRAME_KEY = 'formframe';
+
+    /**
+     * Whether the view named by the request becomes the one this table opens
+     * with for the user next time. True for the screens the user navigates to.
+     * The calls a kanban board makes in the background set it to false: they
+     * name the board's view only to say which board is asking, and a board
+     * embedded in another screen would otherwise become the default view of
+     * the table's own list.
+     *
+     * @var bool
+     */
+    protected $remember_view = true;
 
     /**
      * CustomValueController constructor.
@@ -89,7 +114,28 @@ class CustomValueController extends AdminControllerTableBase
         if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
             return $response;
         }
-        return $this->updateTrait($tableKey, $id);
+        $response = $this->updateTrait($tableKey, $id);
+
+        if ($request->has(static::FORM_FRAME_KEY)) {
+            // Sent by the window the form is in. It is staying on screen
+            // either way, so all it is told is whether the record went in -
+            // and if it did not, what to write beside which field. Redrawing
+            // the form here would take back everything typed since.
+            if ($request->ajax() && $response instanceof RedirectResponse) {
+                return $this->frameSaveResult($id);
+            }
+            // Opened in a frame of its own. Following the redirect would load
+            // a whole screen inside a window the size of a dialog, and the
+            // screen it would load is the one already open behind it - so the
+            // frame reports the save instead, and its opener does the rest.
+            // A failed validation redirects back to the form itself, which is
+            // exactly what should happen: the frame redraws it, errors and all.
+            if ($response instanceof RedirectResponse && $this->isFrameSaved($response, $id)) {
+                return $this->frameSignal('saved', $id);
+            }
+        }
+
+        return $response;
     }
 
     /**
@@ -149,9 +195,18 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
-        // checking export
-        if ($request->get('action') == 'export') {
-            if (($response = $this->firstFlow($request, CustomValuePageType::EXPORT)) instanceof Response) {
+        // Checking export. Any request that carries the exporter's key is
+        // answered with a file - `action` only picks which one: the plain list
+        // (export, or no action at all), the view's own layout (view_export) or
+        // a plugin's (plugin_export). So the right is checked whenever a file is
+        // asked for, not only for action=export.
+        if (!is_nullorempty($request->get(Exporter::$queryName))) {
+            // The import template is the heading row and nothing else, and the
+            // import dialog offers it to whoever may import.
+            $page_type = GridBase::isImportTemplateRequest($request) && $this->custom_table->enableExport() !== true
+                ? CustomValuePageType::IMPORT
+                : CustomValuePageType::EXPORT;
+            if (($response = $this->firstFlow($request, $page_type)) instanceof Response) {
                 return $response;
             }
         }
@@ -185,7 +240,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
-                // @phpstan-ignore-next-line
+                /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Form given */
                 $row = new Row($form);
             }
             // no record
@@ -197,7 +252,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form(null);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
-                // @phpstan-ignore-next-line
+                /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Form given*/
                 $row = new Row($form);
             }
 
@@ -321,7 +376,7 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
-        // @phpstan-ignore-next-line
+        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Form given */
         $row = new Row($form);
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
@@ -334,6 +389,106 @@ class CustomValueController extends AdminControllerTableBase
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
             'page_type' => PluginPageType::CREATE
         ]);
+        return $content;
+    }
+
+    /**
+     * Show what the record will look like, without saving it.
+     *
+     * Backlog puts a プレビュー button next to 追加 for a reason: an issue is read far
+     * more often than it is written, and the writer is the only person who can
+     * still fix a mangled table or a broken link. Once it is saved, every watcher
+     * has already had it in their inbox.
+     *
+     * Reached by posting the form itself - preview.js retargets the form at this
+     * url in a second window - so what is rendered is the form as it stands, not
+     * as it was last saved. Nothing here writes: the record is built in memory and
+     * dropped when the response ends.
+     *
+     * @param Request $request
+     * @param Content $content
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return Content|Response
+     */
+    public function preview(Request $request, Content $content, $tableKey, $id = null)
+    {
+        $pageType = is_null($id) ? CustomValuePageType::CREATE : CustomValuePageType::EDIT;
+        if (($response = $this->firstFlow($request, $pageType, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $this->AdminContent($content);
+
+        // Start from the stored record when editing, so columns kept off the form
+        // (or not editable by this user) still show their real value rather than
+        // appearing to have been emptied.
+        $custom_value = isset($id) ? $this->custom_table->getValueModel($id) : null;
+        if (!isset($custom_value)) {
+            $custom_value = $this->custom_table->getValueModel();
+        }
+
+        $posted = $request->get('value');
+        if (is_array($posted)) {
+            $custom_value->setValue($posted);
+        }
+
+        $groups = [];
+        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            if (!boolval($custom_form_block->available)) {
+                continue;
+            }
+            // A child block holds another table's columns. The detail page lists
+            // those rows on their own and never reads them off this record.
+            if (array_get($custom_form_block, 'form_block_type') != FormBlockType::DEFAULT) {
+                continue;
+            }
+
+            $rows = [];
+            foreach ($custom_form_block->custom_form_columns as $form_column) {
+                if ($form_column->form_column_type != FormColumnType::COLUMN) {
+                    continue;
+                }
+
+                $column_item = $form_column->column_item;
+                if (is_null($column_item)) {
+                    continue;
+                }
+
+                // the same options and the same hiding as the detail page
+                $column_item->setFormColumnOptions($form_column->options);
+                $column_item->setCustomForm($this->custom_form);
+                if ($column_item->disableDisplayWhenShow()) {
+                    continue;
+                }
+
+                try {
+                    $html = $column_item->setCustomValue($custom_value)->html();
+                } catch (\Throwable $ex) {
+                    // one column that cannot render must not cost the whole preview
+                    \Log::warning($ex);
+                    $html = null;
+                }
+
+                $rows[] = [
+                    'label' => $column_item->label(),
+                    'html' => $html,
+                ];
+            }
+
+            if (!empty($rows)) {
+                $groups[] = [
+                    'title' => $custom_form_block->form_block_view_name,
+                    'rows' => $rows,
+                ];
+            }
+        }
+
+        $content->row(view('exment::form.preview', [
+            'table_view_name' => $this->custom_table->table_view_name,
+            'groups' => $groups,
+        ]));
+
         return $content;
     }
 
@@ -355,10 +510,32 @@ class CustomValueController extends AdminControllerTableBase
         // if user doesn't have edit permission, redirect to show
         $redirect = $this->redirectShow($id);
         if (isset($redirect)) {
+            // Followed inside a frame that redirect would draw a whole record
+            // screen, sidebar and all, at the size of a dialog. The screen
+            // that opened the frame is told instead, and shows this reader
+            // what they were always going to get: the record, not the form.
+            if ($request->has(static::FORM_FRAME_KEY)) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'noedit' => true,
+                        'id' => strval($id),
+                        'table' => $this->custom_table->table_name,
+                    ]);
+                }
+                return $this->frameSignal('noedit', $id);
+            }
             return $redirect;
         }
 
         $custom_value = $this->custom_table->getValueModel($id);
+
+        // Asked for by a screen that draws its own chrome and wants the form
+        // inside a frame - the kanban board's edit popup. Same permissions,
+        // same form, same save: only the header, the sidebar and the footer
+        // of the admin around it are left out.
+        if ($request->has(static::FORM_FRAME_KEY)) {
+            return $this->editFrame($request, $id, $custom_value);
+        }
 
         $this->AdminContent($content);
 
@@ -366,7 +543,7 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::EDIT,
             'custom_value' => $custom_value
         ]);
-        // @phpstan-ignore-next-line
+        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Form given */
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
@@ -381,6 +558,212 @@ class CustomValueController extends AdminControllerTableBase
             'custom_value' => $custom_value
         ]);
         return $content;
+    }
+
+    /**
+     * The edit form, alone: no header, no sidebar, no menu.
+     *
+     * Asked for over ajax - which is how the kanban board asks - the answer
+     * is the form and nothing else, because the screen it is going into is a
+     * page of this same admin and already holds every stylesheet and script
+     * the form needs. Sending all of them again, into a frame of its own,
+     * was more than a second of the two it took to open a card.
+     *
+     * @param Request $request
+     * @param mixed $id
+     * @param mixed $custom_value
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+     */
+    protected function editFrame(Request $request, $id, $custom_value)
+    {
+        Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
+            'page_type' => PluginPageType::EDIT,
+            'custom_value' => $custom_value
+        ]);
+
+        $form = $this->frameForm($id);
+        $ajax = $request->ajax();
+        $body = view('exment::widgets.formframe', array_filter([
+            'content' => $form->render(),
+            // a page of its own may style the page; a form going into one
+            // that is already open may not
+            'standalone' => !$ajax,
+        ]))->render();
+
+        Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
+            'page_type' => PluginPageType::EDIT,
+            'custom_value' => $custom_value
+        ]);
+
+        if ($ajax) {
+            return response()->json([
+                // the order the layout itself uses: what the fields look
+                // like, the fields, what they need beside them, what starts
+                // them up
+                'body' => static::renderAssetView(Admin::style())
+                    . $body
+                    . static::renderAssetView(Admin::html())
+                    . static::renderAssetView(Admin::script()),
+                'assets' => static::frameAssets(),
+                'title' => $custom_value->getLabel(),
+            ]);
+        }
+
+        // Opened as a page of its own - a saved link, or a screen that shows
+        // it in a frame. Meant to be framed, which is the reason to say by
+        // whom: an edit form of this site, framed by another site, is a form
+        // a reader can be made to save without seeing what they are saving.
+        return response(view('exment::widgets.partialindex', ['content' => $body])->render())
+            ->header('X-Frame-Options', 'SAMEORIGIN');
+    }
+
+    /**
+     * The edit form as a window wants it: saving to itself, with no way out
+     * of the window written into it.
+     *
+     * @param mixed $id
+     * @return \ExmentAdminCore\Admin\Form
+     */
+    protected function frameForm($id)
+    {
+        // Every after-save choice leaves for a screen a dialog cannot show -
+        // the list, a new record - and "continue editing" would leave the
+        // window sitting on a form the board has already been told was saved.
+        $form = $this->custom_form->form_item
+            ->id($id)
+            ->disableSavedRedirectCheck()
+            ->form()
+            ->edit($id);
+        // Pjax posts the form and then looks for a pjax container in the
+        // answer. There is none in an answer that only reports the save, so
+        // pjax reloaded the url it had posted to - the record screen, chrome
+        // and all, in a window the size of a dialog.
+        $form->disablePjax();
+        // Form::disablePjax() only sets the builder's flag; the attribute
+        // that the pjax handler actually matches on lives on the form itself
+        $form->removeAttribute('pjax-container');
+        // the save has to come back here, not to the screen behind the window
+        $form->setAction(admin_urls_query('data', $this->custom_table->table_name, $id, [
+            static::FORM_FRAME_KEY => 1,
+        ]));
+
+        return $form;
+    }
+
+    /**
+     * Stylesheets and scripts a field asked for while the form was drawn.
+     *
+     * A json answer skips the layout, so these buckets hold what the fields
+     * added and little else. The screen that receives them loads only what
+     * it does not already have.
+     *
+     * @return array<string, array<int, string>>
+     */
+    protected static function frameAssets(): array
+    {
+        $srcs = function ($html, $pattern) {
+            preg_match_all($pattern, $html, $matches);
+            return array_values(array_unique($matches[1] ?? []));
+        };
+
+        return [
+            'js' => $srcs(static::renderAssetView(Admin::js()), '/<script[^>]+src=["\']([^"\']+)/'),
+            'css' => $srcs(static::renderAssetView(Admin::css()), '/<link[^>]+href=["\']([^"\']+)/'),
+        ];
+    }
+
+    /**
+     * Html of one of the layout's asset buckets.
+     *
+     * Called without an argument, Admin::style(), html(), script(), js() and
+     * css() return the view that draws their bucket; the array in their
+     * declared return type belongs to the call that adds to it.
+     *
+     * @param mixed $view
+     * @return string
+     */
+    protected static function renderAssetView($view): string
+    {
+        return $view instanceof \Illuminate\Contracts\Support\Renderable ? $view->render() : '';
+    }
+
+    /**
+     * Did a save from a framed form go through?
+     *
+     * Read the other way round: a refused save sends the reader back to the
+     * form they were on, with the messages in the session. Anything still
+     * pointing at that form counts as refused, so a doubtful answer leaves
+     * the form on screen instead of closing it over work not yet written.
+     *
+     * @param RedirectResponse $response
+     * @param mixed $id
+     * @return bool
+     */
+    protected function isFrameSaved(RedirectResponse $response, $id): bool
+    {
+        if (session()->has('errors')) {
+            return false;
+        }
+
+        $target = $response->getTargetUrl();
+
+        return strpos($target, "/$id/edit") === false
+            && strpos($target, static::FORM_FRAME_KEY) === false;
+    }
+
+    /**
+     * What became of a save sent from a window, as json.
+     *
+     * admin-core answers a refused save with back()->withErrors(), so by now
+     * the messages are in the session, keyed the way the form names its
+     * fields. They are taken out of it: the window shows them itself, and
+     * left where they are they would surface on the next page opened.
+     *
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function frameSaveResult($id)
+    {
+        $errors = session()->get('errors');
+        $bag = $errors ? $errors->getBag('default') : null;
+
+        session()->forget(['toastr', 'errors', '_old_input']);
+
+        if ($bag && $bag->any()) {
+            $messages = [];
+            foreach ($bag->messages() as $key => $texts) {
+                $messages[$key] = implode(' ', (array)$texts);
+            }
+
+            return response()->json(['errors' => $messages], 422);
+        }
+
+        return response()->json([
+            'saved' => true,
+            'id' => strval($id),
+            'table' => $this->custom_table->table_name,
+        ]);
+    }
+
+    /**
+     * Tell the screen that opened the frame what became of the record.
+     *
+     * @param string $action 'saved', or 'noedit' for a record this user may read but not write
+     * @param mixed $id
+     * @return \Illuminate\Http\Response
+     */
+    protected function frameSignal(string $action, $id)
+    {
+        // the message belongs to the board, which says so itself. Left in the
+        // session it would surface on whatever page the user opened next.
+        session()->forget('toastr');
+
+        return response(view('exment::widgets.formframe-signal', [
+            'action' => $action,
+            'id' => $id,
+            'table' => $this->custom_table->table_name,
+            'fallback' => admin_url('data', [$this->custom_table->table_name, $id]),
+        ])->render())->header('X-Frame-Options', 'SAMEORIGIN');
     }
 
     /**
@@ -694,6 +1077,176 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * The board a background call of a kanban board belongs to.
+     *
+     * The call names the board's view, and that view is the one answered for -
+     * not the one the user opened last, which can be another board in another
+     * tab. Naming it does not make it the table's default view for the user
+     * either, see $remember_view.
+     *
+     * @param Request $request
+     * @return KanbanGrid|Response
+     */
+    protected function kanbanGridOf(Request $request)
+    {
+        $this->remember_view = false;
+        if (($response = $this->firstFlow($request, CustomValuePageType::GRID)) instanceof Response) {
+            return $response;
+        }
+
+        // A view that no longer exists, or one of another table, leaves the
+        // user's default view of this table in its place - an answer for a
+        // board nobody asked about.
+        if (!isMatchString($this->custom_view->suuid, $request->get('view'))) {
+            abort(404);
+        }
+
+        $grid_item = $this->custom_view->grid_item;
+        if (!($grid_item instanceof KanbanGrid)) {
+            abort(404);
+        }
+
+        return $grid_item;
+    }
+
+    /**
+     * Next slice of one kanban column, for the "load more" button.
+     *
+     * The board asks for one column at a time, so a lane with thousands of
+     * records never has to arrive in one page. The same route answers the
+     * keyword search and the column figures, so a board only ever has one
+     * url to know about.
+     */
+    // @phpstan-ignore-next-line
+    public function kanbanCards(Request $request, $tableKey)
+    {
+        $grid_item = $this->kanbanGridOf($request);
+        if ($grid_item instanceof Response) {
+            return $grid_item;
+        }
+
+        // an embedded board (project portal) shows one parent's records only,
+        // and its ajax calls have to stay inside that parent too
+        if (!is_nullorempty($request->get('embed_ptype')) && !is_nullorempty($request->get('embed_pid'))) {
+            $grid_item->setEmbedRelation($request->get('embed_ptype'), $request->get('embed_pid'));
+        }
+
+        // the board asks for its figures again after it has written a record,
+        // so the totals it shows describe the table as it is now
+        if ($request->get('stats')) {
+            return response()->json($grid_item->columnStats());
+        }
+
+        // one card read back after it was edited on the board, so the chip,
+        // the colour and the label on it come from the same place they came
+        // from when the board was drawn
+        if (!is_nullorempty($request->get('cards'))) {
+            return response()->json($grid_item->cardsOf(explode(',', strval($request->get('cards')))));
+        }
+
+        // the same endpoint answers both: a keyword searches the whole table,
+        // otherwise it is the next slice of one board column
+        $keyword = trim(strval($request->get('q')));
+        if ($keyword !== '') {
+            return response()->json($grid_item->searchCards($keyword));
+        }
+
+        return response()->json($grid_item->moreCards(
+            strval($request->get('key')),
+            intval($request->get('offset')),
+            $request->get('lane')
+        ));
+    }
+
+    /**
+     * Save what a kanban board is showing as a new view of the same table.
+     *
+     * The board filters in the browser, so this writes no filter conditions:
+     * it copies the view the board was drawn from and remembers the state on
+     * screen as the state the new view opens with.
+     */
+    // @phpstan-ignore-next-line
+    public function kanbanSaveView(Request $request, $tableKey)
+    {
+        $grid_item = $this->kanbanGridOf($request);
+        if ($grid_item instanceof Response) {
+            return $grid_item;
+        }
+
+        // A view belongs to the table's settings, not to its data, so the
+        // board asks the same as the view settings screen does - see
+        // KanbanGrid::canSaveAsView().
+        if (!KanbanGrid::canSaveAsView($this->custom_table)) {
+            abort(403);
+        }
+
+        // the length of the column the name is stored in, as on the view
+        // settings screen
+        $validator = \Validator::make($request->all(), [
+            'name' => 'required|string|max:40',
+        ], [], [
+            'name' => exmtrans('custom_view.kanban_save_view_name'),
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $view = $grid_item->saveAsView(
+            strval($request->get('name')),
+            (array)$request->get('state', [])
+        );
+
+        return response()->json([
+            'suuid' => strval($view->suuid),
+            'url' => $this->custom_table->getGridUrl(true, ['view' => $view->suuid]),
+            'name' => strval($view->view_view_name),
+        ]);
+    }
+
+
+    /**
+     * Workflow history of one record, as plain json.
+     *
+     * The record screen already has a modal for this, built as a form. The
+     * board draws a compact timeline inside its drawer instead, and asks for
+     * it only when a card is opened - so a 300 card board keeps its weight.
+     */
+    // @phpstan-ignore-next-line
+    public function kanbanHistory(Request $request, $tableKey, $id = null)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $custom_value = $this->custom_table->getValueModel($id);
+        if (!isset($custom_value)) {
+            abort(404);
+        }
+
+        $rows = [];
+        foreach ($custom_value->getWorkflowHistories() as $workflow_value) {
+            $workflow_action = $workflow_value->workflow_action_cache;
+            // created_user is already the printable name, not a model
+            $created_user = strval($workflow_value->created_user);
+
+            $rows[] = [
+                'at' => isset($workflow_value->created_at) ? $workflow_value->created_at->format('Y-m-d H:i') : '',
+                'action' => isset($workflow_action) ? strval($workflow_action->action_name) : '',
+                // a deleted (deactivated) workflow's start is still named
+                'from' => strval(WorkflowStatus::getWorkflowStatusName(
+                    $workflow_value->workflow_status_from_id,
+                    Workflow::getEloquentWithTrashed($workflow_value->workflow_id)
+                )),
+                'to' => strval($workflow_value->workflow_status_name),
+                'user' => $created_user,
+                'comment' => strval($workflow_value->comment),
+            ];
+        }
+
+        return response()->json(['rows' => $rows]);
+    }
+
+    /**
      * get action modal
      */
     // @phpstan-ignore-next-line
@@ -734,8 +1287,8 @@ class CustomValueController extends AdminControllerTableBase
 
         $custom_value = $this->custom_table->getValueModel($id);
 
-        //validation
-        $workflow_actions = $custom_value->getWorkflowActions(true);
+        //validation - an approval this user already gave is not given again
+        $workflow_actions = $custom_value->getWorkflowActions(true, false, true);
         if (!$workflow_actions->contains(function($workflow_action) use($action){
             // @phpstan-ignore-next-line
             return $workflow_action->id == $action->id;
@@ -949,7 +1502,14 @@ class CustomValueController extends AdminControllerTableBase
     public function shareClick(Request $request, $tableKey, $id)
     {
         // get customvalue
-        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        $custom_table = CustomTable::getEloquent($tableKey);
+        $custom_value = $custom_table->getValueModel($id);
+        // the dialog, like its save (CustomValueAuthoritable::saveShareDialogForm), is for whoever
+        // may edit and share the record: the button is shown to them alone, the request itself is
+        // open to anyone who may view it
+        if (!isset($custom_value) || !$custom_table->hasPermissionEditData($id) || !$custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+            return getAjaxResponse(['result' => false, 'toastr' => trans('admin.deny')]);
+        }
         $form = CustomValueAuthoritable::getShareDialogForm($custom_value);
 
         return getAjaxResponse([
@@ -1176,8 +1736,9 @@ class CustomValueController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     protected function setFormViewInfo(Request $request, $formActionType, $id = null)
     {
-        // set view
-        $this->custom_view = CustomView::getDefault($this->custom_table);
+        // set view. The third argument only decides whether the view is kept
+        // as the user's choice, see $remember_view.
+        $this->custom_view = CustomView::getDefault($this->custom_table, true, !$this->remember_view);
 
         // set form data type for form priority
         $form_data_type = CustomValuePageType::getFormDataType($formActionType);
@@ -1361,9 +1922,7 @@ class CustomValueController extends AdminControllerTableBase
             // 一時ファイルの名前を生成する
             $fileName = '2D-barcode_' . Carbon::now()->format('YmdHis') . '.pdf';
             $tmpPath = getFullpath($fileName, Define::DISKNAME_ADMIN_TMP);
-            /** @phpstan-ignore-next-line Instantiated class Elibyy\TCPDF\Facades\TCPDF not found. */
             $pdf = new TCPDF;
-            // @phpstan-ignore-next-line
             $pdf::setAutoPageBreak(true, 0);
             // @phpstan-ignore-next-line
             $pdf::AddPage('P', 'mm', array(210, 297), true, 'UTF-8', false);
@@ -1374,7 +1933,6 @@ class CustomValueController extends AdminControllerTableBase
                 if (($checkWidth + 1) * $_img_width <= (210 - $margin_left * 2 - ($col_per_page - 1) * $col_spacing)) {
                     $pos_x = ($margin_left + ($_img_width + $col_spacing) * $checkWidth);
                     $pos_y = ($margin_top + ($_img_height  + $row_spacing) * $count);
-                    // @phpstan-ignore-next-line
                     $pdf::Image($img, $pos_x, $pos_y, $_img_width, $_img_height);
                     $checkWidth++;
                 } else {
@@ -1387,11 +1945,9 @@ class CustomValueController extends AdminControllerTableBase
                     }
                     $pos_x = $margin_left;
                     $pos_y = ($margin_top + ($_img_height  + $row_spacing) * $count);
-                    // @phpstan-ignore-next-line
                     $pdf::Image($img, $pos_x, $pos_y, $_img_width, $_img_height);
                 }
             }
-            // @phpstan-ignore-next-line
             $pdf::Output($tmpPath, 'F');
 
             foreach ($img_arr as $value) {
@@ -1431,13 +1987,10 @@ class CustomValueController extends AdminControllerTableBase
         $sticker_file_path = getFullpath($sticker_file_name, Define::DISKNAME_ADMIN_TMP);
         $sticker_img = imagecreatetruecolor($sticker_img_width, $sticker_img_height);
 
-        // @phpstan-ignore-next-line
         $white  = imagecolorallocate($sticker_img, 255, 255, 255);
-        // @phpstan-ignore-next-line
         $black = imagecolorallocate($sticker_img, 0, 0, 0);
         $font = base_path('public/font/MS_Gothic.ttf');
         imagefilledrectangle(
-            // @phpstan-ignore-next-line
             $sticker_img,
             0,
             0,
@@ -1459,7 +2012,6 @@ class CustomValueController extends AdminControllerTableBase
         $x_cordinate = $text_center_x - $width_ww / 2;
         $font_size = ($sticker_img_width > 280) ? (floor($size_ww * 0.6)) : (floor($size_ww * 0.5));
         imagettftext(
-            // @phpstan-ignore-next-line
             $sticker_img,
             $font_size,
             0,
@@ -1480,7 +2032,6 @@ class CustomValueController extends AdminControllerTableBase
             foreach ($lines as $key => $line) {
                 if ($key < 2) {
                     imagettftext(
-                        // @phpstan-ignore-next-line
                         $sticker_img,
                         $font_size,
                         0,
@@ -1496,7 +2047,6 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
         imagecopyresized(
-            // @phpstan-ignore-next-line
             $sticker_img,
             // @phpstan-ignore-next-line
             $qr_img,
@@ -1509,10 +2059,8 @@ class CustomValueController extends AdminControllerTableBase
             200,
             200
         );
-        // @phpstan-ignore-next-line
         imagepng($sticker_img, $sticker_file_path);
 
-        // @phpstan-ignore-next-line
         imagedestroy($sticker_img);
         // @phpstan-ignore-next-line
         imagedestroy($qr_img);

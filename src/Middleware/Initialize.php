@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
-use Encore\Admin\Grid\Filter;
+use ExmentAdminCore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\System;
@@ -16,10 +16,10 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\PartialCrudService;
-use Encore\Admin\Form;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Grid;
-use Encore\Admin\Show;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Show;
 use Html;
 use PDO;
 
@@ -39,10 +39,10 @@ class Initialize
             // Check install directory
             if (!$this->isInstallPath($request)) {
                 // check has 'EXMENT_INITIALIZE' on .env directly
-                // if true, already installed
+                // if true, already installed but DB is unreachable — return 503 instead of redirecting to install
                 if (boolval(env('EXMENT_INITIALIZE', false))) {
-                    // Throwing error connecting database purposely.
-                    hasTable(SystemTableName::SYSTEM);
+                    \Log::error('Database connection failed during initialization. EXMENT_INITIALIZE is set to true, but DB is unreachable.');
+                    abort(503, 'Database connection failed. Please check your database settings in .env');
                 }
 
                 // If not initialized, return to install path
@@ -116,11 +116,12 @@ class Initialize
                 'provider' => 'exment-auth',
                 'table' => 'password_reset_tokens',
                 'expire' => 720,
+                'throttle' => 60,
             ]);
         }
         if (!Config::has('auth.providers.exment-auth')) {
             Config::set('auth.providers.exment-auth', [
-                'driver' => 'eloquent',
+                'driver' => 'exment-auth',
                 'model' => \Exceedone\Exment\Model\LoginUser::class,
             ]);
         }
@@ -339,7 +340,7 @@ class Initialize
             // Logo
             $val = System::site_logo();
             if (!is_nullorempty($val)) {
-                Config::set('admin.logo', Html::image($val, 'header logo'));
+                Config::set('admin.logo', html_image($val, 'header logo'));
             } else {
                 $val = System::site_name();
                 if (!is_nullorempty($val)) {
@@ -350,7 +351,7 @@ class Initialize
             // Logo(Short)
             $val = System::site_logo_mini();
             if (!is_nullorempty($val)) {
-                Config::set('admin.logo-mini', Html::image($val, 'header logo mini'));
+                Config::set('admin.logo-mini', html_image($val, 'header logo mini'));
             } else {
                 $val = System::site_name_short();
                 if (!is_nullorempty($val)) {

@@ -69,7 +69,9 @@ class CustomViewSummary extends ModelBase
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomView, $this>
+     */
     public function custom_view(): BelongsTo
     {
         return $this->belongsTo(CustomView::class, 'custom_view_id');
@@ -86,7 +88,9 @@ class CustomViewSummary extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'view_column_table_id');

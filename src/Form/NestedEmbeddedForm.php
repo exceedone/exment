@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Form;
 
-use Encore\Admin\Admin;
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Admin;
+use ExmentAdminCore\Admin\Form\Field;
 
 class NestedEmbeddedForm extends EmbeddedForm
 {

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Encore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -53,14 +53,18 @@ class PublicForm extends ModelBase
 
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<CustomForm, $this>
+     */
     public function custom_form()
     {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Notify, $this>
+     */
     public function notify_complete_admin()
     {
         return $this->hasOne(Notify::class, 'target_id')
@@ -68,7 +72,9 @@ class PublicForm extends ModelBase
             ->where('active_flg', 1);
     }
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Notify, $this>
+     */
     public function notify_complete_user()
     {
         return $this->hasOne(Notify::class, 'target_id')
@@ -76,7 +82,9 @@ class PublicForm extends ModelBase
             ->where('active_flg', 1);
     }
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Notify, $this>
+     */
     public function notify_error()
     {
         return $this->hasOne(Notify::class, 'target_id')
@@ -85,7 +93,9 @@ class PublicForm extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Notify, $this>
+     */
     public function notify_all()
     {
         return $this->hasMany(Notify::class, 'target_id')
@@ -324,7 +334,7 @@ class PublicForm extends ModelBase
 
 
         // set footer as PublicFormFooter
-        \Encore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
+        \ExmentAdminCore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
 
         $custom_form = $this->custom_form;
         if (!$custom_form) {
@@ -723,8 +733,7 @@ class PublicForm extends ModelBase
     public static function isEnableRecaptcha()
     {
         $message = null;
-        // checking NoCaptcha
-        // Exment helper class not recognized
+        // checking the optional google/recaptcha library is installed
         if (!\Exment::isAvailableGoogleRecaptcha()) {
             $message = exmtrans('login.message.not_install_library', [
                 'name' => 'Google reCaptcha',

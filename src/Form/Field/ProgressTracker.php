@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 
 /**
  * progress tracker
@@ -11,7 +11,6 @@ class ProgressTracker extends Field\Display
 {
     protected $view = 'exment::form.field.progresstracker';
 
-    // @phpstan-ignore-next-line
     protected static $css = [
         '/vendor/exment/css/progresstracker.css',
     ];

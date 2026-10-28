@@ -1,5 +1,5 @@
-<div class="box">
-    <div class="box-header with-border">
+<div class="box card p-2">
+    <div class="box-header with-border pb-2">
         <span>
             @foreach($tools as $tool)
             {!! $tool !!}
@@ -26,8 +26,15 @@
             weekNumbers: true,
             navLinks: true,
             eventDidMount: function(info) {
-                info.el.setAttribute('data-toggle', 'tooltip');
-                info.el.setAttribute('data-original-title', info.event.title);
+                info.el.setAttribute('data-bs-toggle', 'tooltip');
+                info.el.setAttribute('title', info.event.title);
+            },
+            eventWillUnmount: function(info) {
+                // hide, not dispose: dispose() during the fade-out makes Bootstrap's queued hide callback throw
+                var tooltip = bootstrap.Tooltip.getInstance(info.el);
+                if (tooltip) {
+                    tooltip.hide();
+                }
             },
             // call when reading event data
             eventDataTransform: function(event) { 

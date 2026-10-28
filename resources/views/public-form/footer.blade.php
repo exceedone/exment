@@ -2,10 +2,7 @@
 
     {{ csrf_field() }}
 
-    <div class="col-md-{{$width['label']}}">
-    </div>
-
-    <div class="col-md-{{$width['field']}}">
+    <div style="width: 100%; clear: both;">
         <div class="text-center">
             @if($useRecaptchaV2 || $useRecaptchaV3)
                 @if($errors->has('g-recaptcha-response'))
@@ -17,11 +14,7 @@
                 @endif
             @endif
 
-            @if($useRecaptchaV2)
-            {!! no_captcha()->display() !!}
-            @elseif($useRecaptchaV3)
-            {{ no_captcha()->input('g-recaptcha-response') }}
-            @endif
+            {!! $recaptchaWidget !!}
 
             @if(in_array('submit', $buttons))
             <div class="">
@@ -32,16 +25,4 @@
     </div>
 </div>
 
-@if($useRecaptchaV2)
-{!! no_captcha()->script() !!}
-@elseif($useRecaptchaV3)
-{!! no_captcha()->script() !!}
-{!! no_captcha()->getApiScript() !!}
-<script>
-    grecaptcha.ready(function() {
-        window.noCaptcha.render('login', function (token) {
-            document.querySelector('#g-recaptcha-response').value = token;
-        });
-    });
-</script>
-@endif
+{!! $recaptchaScript !!}

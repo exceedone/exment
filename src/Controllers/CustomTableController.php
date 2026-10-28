@@ -2,19 +2,20 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Grid\Linker;
-use Exceedone\Exment\Model\CustomRelation;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Row;
+use ExmentAdminCore\Admin\Grid\Linker;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
@@ -62,7 +63,7 @@ class CustomTableController extends AdminControllerBase
     {
         $content = $this->AdminContent($content);
 
-        // @phpstan-ignore-next-line
+        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Grid given*/
         $row = new Row($this->grid());
         $row->class(['block_custom_table']);
 
@@ -75,7 +76,7 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function qrcodeActivate(Request $request, $id)
+    public function qrcodeActivate(Request $request, $id)
     {
         // @phpstan-ignore-next-line
         return $this->toggleActivateQr($request, $id, true);
@@ -88,7 +89,7 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function qrcodeDeactivate(Request $request, $id)
+    public function qrcodeDeactivate(Request $request, $id)
     {
         // @phpstan-ignore-next-line
         return $this->toggleActivateQr($request, $id, false);
@@ -103,6 +104,9 @@ class CustomTableController extends AdminControllerBase
      */
     protected function toggleActivateQr(Request $request, $id, $active_qr_flg)
     {
+        if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
+            return getAjaxResponse(['result' => false]);
+        }
         $custom_table = CustomTable::getEloquent($id);
         $custom_table->setOption('active_qr_flg', $active_qr_flg);
         $custom_table->setOption('qr_use', true);
@@ -120,7 +124,7 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function jancodeActivate(Request $request, $id)
+    public function jancodeActivate(Request $request, $id)
     {
         // @phpstan-ignore-next-line
         return $this->toggleActivateJancode($request, $id, true);
@@ -133,7 +137,7 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function jancodeDeactivate(Request $request, $id)
+    public function jancodeDeactivate(Request $request, $id)
     {
         // @phpstan-ignore-next-line
         return $this->toggleActivateJancode($request, $id, false);
@@ -148,6 +152,9 @@ class CustomTableController extends AdminControllerBase
      */
     protected function toggleActivateJancode(Request $request, $id, $active_jan_flg)
     {
+        if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
+            return getAjaxResponse(['result' => false]);
+        }
         $custom_table = CustomTable::getEloquent($id);
         $custom_table->setOption('active_jan_flg', $active_jan_flg);
         $custom_table->setOption('jan_use', true);
@@ -172,7 +179,7 @@ class CustomTableController extends AdminControllerBase
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
-            // @phpstan-ignore-next-line
+            /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuAjaxButton given */
             $tools->append(new Tools\CustomTableMenuAjaxButton());
         });
 
@@ -207,7 +214,6 @@ class CustomTableController extends AdminControllerBase
             // add data
             if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 $linker = (new Linker())
-                // @phpstan-ignore-next-line
                 ->url($actions->row->getGridUrl())
                 ->icon('fa-database')
                 ->tooltip(exmtrans('change_page_menu.custom_value'));
@@ -222,7 +228,7 @@ class CustomTableController extends AdminControllerBase
                         'icon' => 'fa-copy',
                         'modal_title' => exmtrans('common.copy_item', exmtrans('custom_table.table')),
                         'attributes' => [
-                            'data-toggle' => "tooltip",
+                            'data-bs-toggle' => "tooltip",
                         ],
                     ]
                 ))->render());
@@ -460,9 +466,9 @@ SCRIPT;
         Admin::script($script);
 
         return <<<HTML
-<div class="btn-group pull-right" style="margin-right: 5px">
-    <a href="javascript:void(0);" class="btn btn-sm btn-danger {$class}-delete" title="{$trans['delete']}">
-        <i class="fa fa-trash"></i><span class="hidden-xs">  {$trans['delete']}</span>
+<div class="btn-group float-end" style="margin-right: 5px">
+    <a href="javascript:void(0);" class="btn btn-sm btn-danger d-flex align-items-center p-2 {$class}-delete" title="{$trans['delete']}">
+        <i class="fa fa-trash"></i><span class="d-none d-md-inline">  {$trans['delete']}</span>
     </a>
 </div>
 HTML;
@@ -502,19 +508,22 @@ HTML;
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                     'include_parent_id' => true,
-                    'ignore_many_to_many' => true
+                    'ignore_many_to_many' => true,
+                    'ignore_attachment' => true
                 ]));
             $form->select('unique2', exmtrans("custom_table.custom_column_multi.unique2"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                     'include_parent_id' => true,
-                    'ignore_many_to_many' => true
+                    'ignore_many_to_many' => true,
+                    'ignore_attachment' => true
                 ]));
             $form->select('unique3', exmtrans("custom_table.custom_column_multi.unique3"))
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                     'include_parent_id' => true,
-                    'ignore_many_to_many' => true
+                    'ignore_many_to_many' => true,
+                    'ignore_attachment' => true
                 ]));
             $form->hidden('multisetting_type')->default(MultisettingType::MULTI_UNIQUES);
         })->setTableColumnWidth(4, 4, 3, 1)

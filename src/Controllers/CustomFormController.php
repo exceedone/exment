@@ -3,13 +3,13 @@
 namespace Exceedone\Exment\Controllers;
 
 use App\Http\Controllers\Controller;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Grid;
-use Encore\Admin\Grid\Linker;
-use Encore\Admin\Form;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid\Linker;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
@@ -400,7 +400,7 @@ class CustomFormController extends AdminControllerTableBase
 
         $custom_table = $this->custom_table;
         $grid->tools(function (Grid\Tools $tools) {
-            // @phpstan-ignore-next-line
+            /**@phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->append(new Tools\CustomTableMenuButton('form', $this->custom_table));
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
@@ -531,7 +531,6 @@ class CustomFormController extends AdminControllerTableBase
             ->help(exmtrans('custom_form.help.form_label_type'))
             ->default(FormLabelType::HORIZONTAL)
             ->options(FormLabelType::transArrayFilter('custom_form.form_label_type_options', FormLabelType::getFormLabelTypes()));
-        // @phpstan-ignore-next-line
         $box = new Box(exmtrans('custom_form.header_basic_setting'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => 'javascript:void(0);',
@@ -903,7 +902,6 @@ class CustomFormController extends AdminControllerTableBase
 
         return getAjaxResponse([
             'body'  => $form->render(),
-            // @phpstan-ignore-next-line
             'script' => $form->getScript(),
             'title' => trans('admin.setting'),
             'modalSize' => 'modal-xl',

@@ -2,13 +2,13 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Encore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\System;
@@ -26,7 +26,7 @@ use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Services\Login as LoginServiceBase;
-use Encore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Content;
 use Carbon\Carbon;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -261,12 +261,46 @@ class LoginSettingController extends AdminControllerBase
                     route('exment.logintest_modal', ['id' => $login_setting->id]),
                     [
                         'label' => exmtrans('login.login_test'),
-                        'button_class' => 'btn-success',
+                        'button_class' => 'btn-success p-2',
                         'icon' => 'fa-check-circle',
                     ]
                 ));
 
                 $className::appendActivateSwalButton($tools, $login_setting);
+            }
+        });
+
+        // Server-side "required" validation for OAuth options.
+        // Field::required() in laravel-admin only adds the HTML5 "required" attribute
+        // and the label asterisk; it does NOT add a validation rule (see Field::required()).
+        // So the browser check can be removed via devtools and empty values get saved.
+        // These fields are toggled by "login_type", so we validate conditionally here
+        // (the embedded form validator can't see the top-level "login_type").
+        $form->validatorSavingCallback(function ($input, $message, $form) {
+            if (array_get($input, 'login_type') != LoginType::OAUTH) {
+                return;
+            }
+
+            $rules = [
+                'options.oauth_provider_type' => 'required',
+                'options.oauth_client_id'     => 'required',
+                'options.oauth_client_secret' => 'required',
+            ];
+            $attributes = [
+                'options.oauth_provider_type' => exmtrans('login.oauth_provider_type'),
+                'options.oauth_client_id'     => exmtrans('login.oauth_client_id'),
+                'options.oauth_client_secret' => exmtrans('login.oauth_client_secret'),
+            ];
+
+            // "provider name" is required only when the provider type is "other".
+            if (array_get($input, 'options.oauth_provider_type') == Enums\LoginProviderType::OTHER) {
+                $rules['options.oauth_provider_name'] = 'required';
+                $attributes['options.oauth_provider_name'] = exmtrans('login.oauth_provider_name');
+            }
+
+            $validator = \Validator::make($input, $rules, [], $attributes);
+            if ($validator->fails()) {
+                $message->merge($validator->errors());
             }
         });
 
@@ -297,7 +331,7 @@ class LoginSettingController extends AdminControllerBase
             $errors[] = LoginType::SAML();
         }
 
-        if (!class_exists('\\Adldap\\Adldap')) {
+        if (!LoginServiceBase\Ldap\LdapService::isLibraryInstalled()) {
             $errors[] = LoginType::LDAP();
         }
 
@@ -321,7 +355,6 @@ class LoginSettingController extends AdminControllerBase
     protected function globalSettingBox(Request $request)
     {
         $form = $this->globalSettingForm($request);
-        // @phpstan-ignore-next-line
         $box = new Box(exmtrans('common.detail_setting'), $form);
         return $box;
     }

@@ -39,9 +39,9 @@ And more and more and more functions....
 
 ## Operating environment
 ### Server
-- PHP 7.3.0 or upper
-- MySQL 5.7.8 or upper and less than 8.0.0, or MariaDB 10.2.7 or upper
-- Laravel8.X
+- PHP 8.2.0 or upper
+- MySQL 8.0 or upper, or MariaDB 10.3 or upper
+- Laravel 12.X
 
 ### Support Browser
 - Google Chrome
@@ -71,7 +71,7 @@ And more and more and more functions....
 - Create Laravel project using composer. ("exment" is project name.)
 
 ~~~
-composer create-project "laravel/laravel=10.*" exment
+composer create-project "laravel/laravel=12.*" exment
 cd exment
 ~~~
 
@@ -103,23 +103,21 @@ APP_TIMEZONE=America/Santiago
 APP_LOCALE=en
 ~~~
 
-- (Recommend) Add error page. Open "app/Exceptions/Handler.php", and modify "render" function.
+- (Recommend) Add error page. Laravel 12 has no `app/Exceptions/Handler.php`; exception handling is configured in `bootstrap/app.php`. Modify the `withExceptions` block.
 
 ~~~ php
-    /**
-     * Render an exception into an HTTP response.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $exception
-     * @return \Illuminate\Http\Response
-     */
-    public function render($request, Exception $exception)
-    {
-        // Modify
-        return \Exment::error($request, $exception, function($request, $exception){
-            return parent::render($request, $exception);
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Http\Request;
+
+    ->withExceptions(function (Exceptions $exceptions) {
+        // Add
+        $exceptions->render(function (\Throwable $e, Request $request) {
+            // Returning null falls back to Laravel's default rendering.
+            return \Exment::error($request, $e, function ($request, $e) {
+                return null;
+            });
         });
-    }
+    })
 ~~~
 
 
@@ -150,8 +148,8 @@ Please write issues using English or Japanese.  / issuesには英語または日
 
 # Other repositories
 
-- **[laravel-admin](https://github.com/exceedone/laravel-admin)**  
-Based Exment's framework. Forked from [z-song/laravel-admin](https://github.com/z-song/laravel-admin).
+- **[exment-admin-core](https://github.com/exceedone/exment-admin-core)**  
+Based Exment's framework (namespace `ExmentAdminCore\Admin`). Forked from [open-admin](https://github.com/open-admin-org/open-admin) / [open-admin-core](https://github.com/dedermus/open-admin-core), which in turn derive from [z-song/laravel-admin](https://github.com/z-song/laravel-admin).
 
 - **[Manual](https://github.com/exceedone/exment-manual)**  
 For exment manual page.

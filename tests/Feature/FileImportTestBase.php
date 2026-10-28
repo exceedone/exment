@@ -55,7 +55,6 @@ abstract class FileImportTestBase extends FeatureTestBase
 
             $sourceDir = $this->getSourceFilePath();
             $dirs = scandir($sourceDir);
-            // @phpstan-ignore-next-line
             foreach ($dirs as $dir) {
                 if ($dir == '.' ||$dir == '..') {
                     continue;
@@ -133,6 +132,6 @@ abstract class FileImportTestBase extends FeatureTestBase
             }
         }
 
-        $this->assertTrue(false, 'Not matched file path');
+        $this->fail('Not matched file path');
     }
 }

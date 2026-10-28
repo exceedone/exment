@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\Validator;
-use Encore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 
 class SelectValtext extends Select
 {
@@ -57,7 +57,7 @@ class SelectValtext extends Select
      * Get pure value. If you want to change the search value, change it with this function.
      *
      * @param string $label
-     * @return ?string string:matched, null:not matched
+     * @return int|string|null the option key (PHP stores a numeric key as int), null:not matched
      */
     public function getPureValue($label)
     {

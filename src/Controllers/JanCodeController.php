@@ -8,10 +8,10 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\DataScanSubmitRedirect;
 use Exceedone\Exment\Model\CustomForm;
 use Illuminate\Support\Facades\DB;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Grid;
-use Encore\Admin\Widgets\Grid\Column;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Row;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Widgets\Grid\Column;
 
 class JanCodeController extends Controller
 {
@@ -23,7 +23,7 @@ class JanCodeController extends Controller
      * @return string
      */
     // @phpstan-ignore-next-line
-    protected function scanRedirect(Request $request, $id)
+    public function scanRedirect(Request $request, $id)
     {
         $jan_code = DB::table("jan_codes")
             ->where('jan_code', $id)
@@ -31,9 +31,7 @@ class JanCodeController extends Controller
             ->first();
         $url = '';
         if ($jan_code) {
-            // @phpstan-ignore-next-line
             $table_id = $jan_code->table_id;
-            // @phpstan-ignore-next-line
             $target_id = $jan_code->target_id;
             if ($table_id) {
                 $custom_table = CustomTable::getEloquent($table_id);
@@ -88,7 +86,7 @@ class JanCodeController extends Controller
      * @param $id
      */
     // @phpstan-ignore-next-line
-    protected function listTable(Request $request, $id, Content $content)
+    public function listTable(Request $request, $id, Content $content)
     {
         $grid = $this->grid($id);
         $row = new Row();
@@ -144,7 +142,7 @@ class JanCodeController extends Controller
      * @param Request $request
      */
     // @phpstan-ignore-next-line
-    protected function assignJancode(Request $request)
+    public function assignJancode(Request $request)
     {
         $table_id = $request->get('table_id');
         $jan_code_id = $request->get('jan_code_id');

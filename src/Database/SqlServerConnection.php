@@ -37,7 +37,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      */
     protected function getDefaultSchemaGrammar()
     {
-        return $this->withTablePrefix(new SchemaGrammar());
+        return new SchemaGrammar($this);
     }
 
     /**
@@ -47,7 +47,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      */
     protected function getDefaultQueryGrammar()
     {
-        return $this->withTablePrefix(new QueryGrammar());
+        return new QueryGrammar($this);
     }
 
     /**

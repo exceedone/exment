@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
@@ -124,8 +124,7 @@ class PluginController extends AdminControllerBase
     }
 
     //Function use to upload file and update or add new record
-    // @phpstan-ignore-next-line
-    protected function store(Request $request)
+    public function store(Request $request)
     {
         //Check file existed in Request
         if ($request->hasfile('fileUpload')) {
@@ -136,8 +135,7 @@ class PluginController extends AdminControllerBase
     }
 
     //Delete record from database (one or multi records)
-    // @phpstan-ignore-next-line
-    protected function destroy($id)
+    public function destroy($id)
     {
         foreach (stringToArray($id) as $i) {
             // @phpstan-ignore-next-line
@@ -157,8 +155,7 @@ class PluginController extends AdminControllerBase
     }
 
     //Delete one or multi folder corresponds to the plugins
-    // @phpstan-ignore-next-line
-    protected function deleteFolder($id)
+    public function deleteFolder($id)
     {
         $idlist = explode(",", $id);
         foreach ($idlist as $id) {
@@ -177,12 +174,11 @@ class PluginController extends AdminControllerBase
     }
 
     //Check request when edit record to delete null values in event_triggers
-    // @phpstan-ignore-next-line
-    protected function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $plugin = Plugin::getEloquent($id);
-        if (!$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
-            Checker::error();
+        if (!$plugin || !$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+            Checker::notFoundOrDeny();
             return false;
         }
 
@@ -225,7 +221,8 @@ class PluginController extends AdminControllerBase
         // create as label
         $form->display('plugin_types', exmtrans("plugin.plugin_type"))->with(function ($plugin_types) {
             return implode(exmtrans('common.separate_word'), collect($plugin_types)->map(function ($plugin_type) {
-                return PluginType::getEnum($plugin_type)->transKey("plugin.plugin_type_options") ?? null;
+                $enum = PluginType::getEnum($plugin_type);
+                return $enum ? $enum->transKey("plugin.plugin_type_options") : null;
             })->toArray());
         });
         $form->display('author', exmtrans("plugin.author"));

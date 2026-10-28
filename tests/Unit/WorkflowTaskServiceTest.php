@@ -22,6 +22,7 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * Behaviour tests for the "un-actioned workflow task" feature.
@@ -86,7 +87,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
-     * Empty / null keys must be ignored instead of inserting a junk row.
+     * Empty keys must be ignored instead of inserting a junk row. (markSeen() takes
+     * strings: the keys it is given are built by this service, never read raw from the
+     * browser - that goes through markSeenSelected().)
      *
      * @return void
      */
@@ -96,7 +99,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $before = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())->count();
 
-        (new WorkflowTaskService())->markSeen(['', null]);
+        (new WorkflowTaskService())->markSeen(['']);
 
         $after = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())->count();
 
@@ -481,6 +484,92 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
+     * TC-WT-11: the workflow of ONE table switched off on the 利用設定 screen, then switched on with
+     * its period over, then with its period not begun yet, then put back.
+     *
+     * Switched off, the table has no task left and the table box no longer offers it. Out of its
+     * period, the workflow starts nothing new: a record that has not started leaves the list. A record
+     * already in the workflow goes on in it to the end (see
+     * testExpiredWorkflowStartsNothingAndCarriesWhatIsUnderway()): it stays on the list, the record
+     * page keeps its buttons and the box keeps its table. The tasks of the other tables never move.
+     * Logged in as the test user who has tasks of both kinds.
+     *
+     * @return void
+     */
+    public function testWorkflowOfOneTableSwitchedOffOrOutOfItsPeriod()
+    {
+        $this->init(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+
+        $underway = function (array $row) {
+            return !is_null(CustomTable::getEloquent($row['custom_table_id'])->getValueModel($row['morph_id'])->workflow_value);
+        };
+        $keys = function (Collection $rows) {
+            return $rows->pluck('task_key')->sort()->values()->all();
+        };
+
+        $before = (new WorkflowTaskService())->getTasks();
+        // a table where this user has tasks of both kinds
+        $tableId = $before->groupBy('custom_table_id')->filter(function (Collection $rows) use ($underway) {
+            $carried = $rows->filter($underway)->count();
+            return $carried > 0 && $carried < $rows->count();
+        })->keys()->first();
+        $this->assertNotNull($tableId, 'the test dataset must give this user tasks underway and not started yet on one table');
+        $tableId = (int)$tableId;
+        $ofTable = $before->where('custom_table_id', $tableId);
+        $others = $keys($before->where('custom_table_id', '!=', $tableId));
+        $stays = $keys($before->filter(function (array $row) use ($tableId, $underway) {
+            return $row['custom_table_id'] != $tableId || $underway($row);
+        }));
+
+        // the workflows in use on the table, as the 利用設定 screen saves them (rolled back after the test)
+        $original = \DB::table(SystemTableName::WORKFLOW_TABLE)
+            ->where('custom_table_id', $tableId)
+            ->where('active_flg', 1)
+            ->get(['id', 'active_flg', 'active_start_date', 'active_end_date']);
+        $set = function (array $values) use ($original) {
+            \DB::table(SystemTableName::WORKFLOW_TABLE)->whereIn('id', $original->pluck('id')->all())->update($values);
+            System::clearCache();
+        };
+        $listed = function () use ($keys) {
+            return $keys((new WorkflowTaskService())->getTasks());
+        };
+
+        // step 2: switched off
+        $set(['active_flg' => 0, 'active_start_date' => null, 'active_end_date' => null]);
+        $this->assertSame($others, $listed(), 'switched off: no task of the table is left, the other tables keep theirs');
+        $this->assertArrayNotHasKey($tableId, WorkflowTaskService::tableOptions(), 'switched off: the box no longer offers the table');
+
+        // steps 3 and 4: switched on again, its period over since yesterday, then beginning tomorrow
+        $periods = [
+            'over' => [null, \Carbon\Carbon::yesterday()->toDateString()],
+            'not begun' => [\Carbon\Carbon::tomorrow()->toDateString(), '2099-12-31'],
+        ];
+        foreach ($periods as $label => [$start, $end]) {
+            $set(['active_flg' => 1, 'active_start_date' => $start, 'active_end_date' => $end]);
+            $this->assertSame($stays, $listed(), "period $label: what is underway stays, what has not started leaves");
+            $this->assertArrayHasKey($tableId, WorkflowTaskService::tableOptions(), "period $label: the box keeps the table of the work underway");
+            foreach ($ofTable as $row) {
+                $this->assertSame(
+                    $underway($row),
+                    $this->recordPageOffers($tableId, (int)$row['morph_id']),
+                    "period $label, {$row['task_key']}: the list and the record page disagree"
+                );
+            }
+        }
+
+        // step 5: put back as it was
+        foreach ($original as $row) {
+            \DB::table(SystemTableName::WORKFLOW_TABLE)->where('id', $row->id)->update([
+                'active_flg' => $row->active_flg,
+                'active_start_date' => $row->active_start_date,
+                'active_end_date' => $row->active_end_date,
+            ]);
+        }
+        System::clearCache();
+        $this->assertSame($keys($before), $listed(), 'put back: every task is back');
+    }
+
+    /**
      * The status filter keeps the starts of different workflows apart, as the column does: a record
      * led back to the start is at the start of ITS workflow, one not started yet at the start of the
      * workflow in use today.
@@ -813,16 +902,19 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
-     * Who may open the table is asked the way the permission scope lets people in: on a child
-     * table that inherits the permission of its parent, whoever may open every record of the
-     * parent may open the child's (CustomValueModelScope). Found in review: core's helper reads the
-     * roles of the child table only, so those colleagues heard nothing once the notice went to the
-     * members who may open the table. And the members are never bound as SQL parameters: thousands
-     * of them on top of core's own ids passed the 2,100 SQL Server takes, and nobody was told.
+     * Who may open a record of a child table that inherits the permission of its parent is asked
+     * the way the page of the record asks it: the child table itself first
+     * (CustomValue::enableAccess()), then the record - where a role with every record of the parent
+     * opens every record of the child (CustomValueModelScope). Found in review, both ways: core's
+     * helper reads the roles of the child table only, so a colleague with every record of the parent
+     * heard nothing; and then one with every record of the parent but no role at all on the child
+     * table was told the label and the status of a record whose page refuses them. And the members
+     * are never bound as SQL parameters: thousands of them on top of core's own ids passed the 2,100
+     * SQL Server takes, and nobody was told.
      *
      * @return void
      */
-    public function testSameOrgNotifyAsksWhoMayOpenTheTableLikeTheScope()
+    public function testSameOrgNotifyAsksWhoMayOpenTheRecordOfAnInheritingChild()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
 
@@ -831,59 +923,96 @@ class WorkflowTaskServiceTest extends UnitTestBase
         if (!isset($parent) || !isset($child) || $parent->allUserAccessable() || $child->allUserAccessable()) {
             $this->markTestSkipped('needs the parent and the child table of the test dataset, opened by role');
         }
+        /** @var \Exceedone\Exment\Model\CustomValue|null $childRecord */
+        $childRecord = $child->getValueQuery()->whereNotNull('parent_id')->first();
+        if (!isset($childRecord)) {
+            $this->markTestSkipped('needs a record of the child table');
+        }
 
         // a colleague who may open neither table - by the permissions they really have
-        $userId = null;
-        foreach (LoginUser::where('id', '<>', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->orderBy('id')->get() as $login) {
-            $this->be($login);
+        $login = null;
+        foreach (LoginUser::where('id', '<>', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->orderBy('id')->get() as $candidate) {
+            $this->be($candidate);
             System::clearCache();
             if (!$parent->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)
                 && !$child->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-                $userId = (int)$login->base_user_id;
+                $login = $candidate;
                 break;
             }
         }
-        if (!isset($userId)) {
+        if (!isset($login)) {
             $this->markTestSkipped('the test dataset has no user without any role');
         }
+        $userId = (int)$login->base_user_id;
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
-        // ... given every record of the parent table
+        // a role of their own on a table
         $now = \Carbon\Carbon::now();
-        $roleGroupId = \DB::table('role_groups')->insertGetId([
-            'role_group_name' => 'workflow_task_test_parent_all',
-            'role_group_view_name' => 'workflow task test',
-            'role_group_order' => 0,
-            'description' => 'workflow task test',
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        \DB::table('role_group_permissions')->insert([
-            'role_group_id' => $roleGroupId,
-            'role_group_permission_type' => \Exceedone\Exment\Enums\RoleType::TABLE,
-            'role_group_target_id' => $parent->id,
-            'permissions' => json_encode([\Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_EDIT_ALL]),
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        \DB::table('role_group_user_organizations')->insert([
-            'role_group_id' => $roleGroupId,
-            'role_group_user_org_type' => SystemTableName::USER,
-            'role_group_target_id' => $userId,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        System::clearCache();
+        $grant = function (CustomTable $table, string $permission) use ($userId, $now): void {
+            $roleGroupId = \DB::table('role_groups')->insertGetId([
+                'role_group_name' => 'workflow_task_test_' . $table->table_name,
+                'role_group_view_name' => 'workflow task test',
+                'role_group_order' => 0,
+                'description' => 'workflow task test',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            \DB::table('role_group_permissions')->insert([
+                'role_group_id' => $roleGroupId,
+                'role_group_permission_type' => \Exceedone\Exment\Enums\RoleType::TABLE,
+                'role_group_target_id' => $table->id,
+                'permissions' => json_encode([$permission]),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            \DB::table('role_group_user_organizations')->insert([
+                'role_group_id' => $roleGroupId,
+                'role_group_user_org_type' => SystemTableName::USER,
+                'role_group_target_id' => $userId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            System::clearCache();
+        };
 
         $method = new \ReflectionMethod(\Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::class, 'membersWhoMayOpen');
         $method->setAccessible(true);
-        $mayOpen = function (array $ids) use ($method, $child): array {
-            return array_map('intval', $method->invoke(null, $child, collect($ids))->all());
+        $mayOpen = function (array $ids) use ($method, $childRecord): array {
+            return array_map('intval', $method->invoke(null, $childRecord, new \Illuminate\Support\Collection($ids))->all());
+        };
+        // what the page of the record answers them - the reference for who may be told
+        $pageOpens = function () use ($login, $child, $childRecord): bool {
+            $this->be($login);
+            System::clearCache();
+            $record = CustomTable::getEloquent($child->id)->getValueModel($childRecord->id);
+            $open = isset($record) && $record->enableAccess() === true;
+            $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+            System::clearCache();
+
+            return $open;
         };
 
+        // every record of the parent table; the record is shared with nobody, so only that opens it
+        $grant($parent, \Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_EDIT_ALL);
+        \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
+            ->where('parent_type', $child->table_name)
+            ->where('parent_id', $childRecord->id)
+            ->delete();
         $this->assertSame([], $mayOpen([$userId]), 'precondition: the child table itself is closed to them');
-        $child->setOption('inherit_parent_permission', true);
-        $this->assertSame([$userId], $mayOpen([$userId]), 'inheriting the permission of the parent, it is open to them');
+
+        // stored, not set on $child: the record reads its table through the cache
+        // (CustomValue::getCustomTableAttribute()), and System::clearCache() hands out a new instance
+        \DB::table(SystemTableName::CUSTOM_TABLE)->where('id', $child->id)->update([
+            'options' => json_encode(array_merge((array)$child->options, ['inherit_parent_permission' => '1'])),
+        ]);
+        System::clearCache();
+        $this->assertFalse($pageOpens(), 'precondition: without a role on the child table its page refuses them, whatever the parent allows');
+        $this->assertSame([], $mayOpen([$userId]), 'every record of the parent must not tell them about a record whose page refuses them');
+
+        // the shared records of the child table: the table is open to them, and the parent opens the record
+        $grant($child, \Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_VIEW);
+        $this->assertTrue($pageOpens(), 'precondition: with a role on the child table, every record of the parent opens it');
+        $this->assertSame([$userId], $mayOpen([$userId]), 'inheriting the permission of the parent, the record is open to them');
 
         // thousands of members: not one statement carries more values than SQL Server takes
         $connection = \DB::connection();
@@ -898,6 +1027,138 @@ class WorkflowTaskServiceTest extends UnitTestBase
         foreach ($queries as $query) {
             $this->assertLessThanOrEqual(2100, count($query['bindings']), 'a statement carries more values than SQL Server takes');
         }
+    }
+
+    /**
+     * A member whose role covers the shared records of the table only (custom_value_edit /
+     * custom_value_view) opens a record shared with them or one of their organizations, nothing
+     * else (CustomValueModelScope). The workflow shares a record with the organizations of the next
+     * NORMAL actions only, so the organization of a special action (特殊なアクション) has members who
+     * may open the table but not the record. Found in review: they were told its label and its
+     * status. Who is told is pinned here to what the scope really lets them open.
+     *
+     * @return void
+     */
+    public function testSameOrgNotifySkipsMembersWhoCannotOpenTheRecord()
+    {
+        $this->init(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        $workflow = isset($custom_table) ? Workflow::getWorkflowByTable($custom_table) : null;
+        if (!isset($custom_table) || !isset($workflow) || $custom_table->allUserAccessable()) {
+            $this->markTestSkipped('needs a workflow table whose access goes by role');
+        }
+        /** @var WorkflowAction|null $start */
+        $start = WorkflowAction::where('workflow_id', $workflow->id)->where('status_from', Define::WORKFLOW_START_KEYNAME)->first();
+        /** @var \Exceedone\Exment\Model\CustomValue|null $custom_value */
+        $custom_value = $custom_table->getValueQuery()->first();
+        if (!isset($start) || !isset($custom_value)) {
+            $this->markTestSkipped('needs a record and a start action of the test workflow');
+        }
+
+        // a colleague who may not open every record of the table, and one who may - by the
+        // permissions they really have
+        /** @var array<int, LoginUser> $logins user id => login */
+        $logins = [];
+        $sharedOnly = null;
+        $everyRecord = null;
+        foreach (LoginUser::where('id', '<>', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->orderBy('id')->get() as $login) {
+            $this->be($login);
+            System::clearCache();
+            $userId = (int)$login->base_user_id;
+            if ($custom_table->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+                $everyRecord = $everyRecord ?? $userId;
+            } else {
+                $sharedOnly = $sharedOnly ?? $userId;
+            }
+            $logins[$userId] = $login;
+        }
+        if (!isset($sharedOnly) || !isset($everyRecord)) {
+            $this->markTestSkipped('the test dataset has no colleague who may open every record and one who may not');
+        }
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+
+        // the first may open the shared records of the table
+        $now = \Carbon\Carbon::now();
+        $roleGroupId = \DB::table('role_groups')->insertGetId([
+            'role_group_name' => 'workflow_task_test_shared_records',
+            'role_group_view_name' => 'workflow task test',
+            'role_group_order' => 0,
+            'description' => 'workflow task test',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        \DB::table('role_group_permissions')->insert([
+            'role_group_id' => $roleGroupId,
+            'role_group_permission_type' => \Exceedone\Exment\Enums\RoleType::TABLE,
+            'role_group_target_id' => $custom_table->id,
+            'permissions' => json_encode([\Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_VIEW]),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        \DB::table('role_group_user_organizations')->insert([
+            'role_group_id' => $roleGroupId,
+            'role_group_user_org_type' => SystemTableName::USER,
+            'role_group_target_id' => $sharedOnly,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        // an organization of the two, as the work target of the start action
+        $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel();
+        $org->setValue('organization_code', 'workflow_task_test_org');
+        $org->setValue('organization_name', 'workflow task test');
+        $org->save();
+        \DB::table(\Exceedone\Exment\Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER))->insert([
+            ['parent_id' => $org->id, 'child_id' => $sharedOnly],
+            ['parent_id' => $org->id, 'child_id' => $everyRecord],
+        ]);
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+            'related_id' => $org->id,
+            'related_type' => 'organization',
+            'workflow_action_id' => $start->id,
+        ]);
+        // the record is shared with nobody: only the roles with every record open it
+        \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
+            ->where('parent_type', $custom_table->table_name)
+            ->where('parent_id', $custom_value->id)
+            ->delete();
+
+        // whether the scope lets the user open the record - the reference for who may be told
+        $mayOpen = function (int $userId) use ($logins, $custom_table, $custom_value): bool {
+            $this->be($logins[$userId]);
+            System::clearCache();
+            $open = !is_null($custom_table->getValueModel($custom_value->id));
+            $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+            System::clearCache();
+
+            return $open;
+        };
+        // the administrator presses the button: neither colleague is the one who acted
+        $told = function () use ($start, $custom_value): array {
+            System::clearCache();
+
+            return array_map('intval', \Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::getOtherOrgMemberIds($start, $custom_value));
+        };
+
+        $this->assertFalse($mayOpen($sharedOnly), 'precondition: shared records only, and the record is not shared with them');
+        $this->assertTrue($mayOpen($everyRecord), 'precondition: every record is open to the other');
+        $told1 = $told();
+        $this->assertContains($everyRecord, $told1, 'the colleague who may open the record is told');
+        $this->assertNotContains($sharedOnly, $told1, 'the colleague who may not open the record must not be told about it');
+
+        // shared with their organization, the record is open to them - and they are told
+        \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)->insert([
+            'parent_id' => $custom_value->id,
+            'parent_type' => $custom_table->table_name,
+            'authoritable_type' => \Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_VIEW,
+            'authoritable_user_org_type' => SystemTableName::ORGANIZATION,
+            'authoritable_target_id' => $org->id,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $this->assertTrue($mayOpen($sharedOnly), 'precondition: shared with their organization, the record is open to them');
+        $this->assertContains($sharedOnly, $told(), 'shared with their organization, they are told');
     }
 
     /**
@@ -1342,13 +1603,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
     {
         $empty = WorkflowTaskService::normalizeFilter([]);
         $this->assertSame('asc', $empty['sort'], 'the screen must default to oldest first');
-        foreach (['custom_table_id', 'seen', 'status', 'from', 'to', 'q'] as $key) {
+        foreach (['custom_table_id', 'seen', 'removed', 'status', 'from', 'to', 'q'] as $key) {
             $this->assertNull($empty[$key], $key . ' must default to "no filter"');
         }
 
         $junk = WorkflowTaskService::normalizeFilter([
             'custom_table_id' => '1 OR 1=1',
             'seen'            => 'yes',
+            'removed'         => 'yes',
             'status'          => ['start'],
             'from'            => '2026-02-31',
             'to'              => "'; DROP TABLE users; --",
@@ -1358,6 +1620,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $this->assertNull($junk['custom_table_id'], 'a table id that is not a number must be dropped');
         $this->assertNull($junk['seen'], 'an unknown seen value must be dropped');
+        $this->assertNull($junk['removed'], 'only "1" asks for the 削除済み list');
         $this->assertNull($junk['status'], '"?status[]=" hands over an array, not a status name');
         // a status name is compared as it is, never cut: a cut name could be another status
         $this->assertNull(
@@ -1379,6 +1642,106 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame($empty, WorkflowTaskService::normalizeFilter($empty), 'normalizeFilter must be idempotent');
         $this->assertSame(1, WorkflowTaskService::normalizeFilter(['custom_table_id' => '1'])['custom_table_id']);
         $this->assertSame(0, WorkflowTaskService::normalizeFilter(['seen' => '0'])['seen'], '"0" is a value, not an absence');
+    }
+
+    /**
+     * 状態 has two choices, 未読 and 既読, and すべて is neither: any other "seen" in the URL lists
+     * every task, "?seen=2" as much as "?seen=abc" (test case TC-WT-27 on v7.0). The 削除済み list
+     * is no 状態 (testTheListLeadsToTheTasksTakenOffIt()): it has a key of its own, "?removed=1".
+     *
+     * @return void
+     */
+    public function testSeenOnlyTakesTheStateChoices()
+    {
+        $this->init();
+
+        $tasks = (new WorkflowTaskService())->getTasks();
+        if ($tasks->count() < 2) {
+            $this->markTestSkipped('needs two un-actioned workflow tasks for this user');
+        }
+        // one task taken off the list: the 削除済み list is not empty, so it cannot pass for すべて
+        (new WorkflowTaskService())->hideSelected([$tasks->first()['task_key']]);
+        $everyTask = $this->openList([])['rows']->pluck('task_key')->all();
+
+        foreach (['2', 'abc', '-1', '01', ''] as $seen) {
+            $filter = WorkflowTaskService::normalizeFilter(['seen' => $seen]);
+            $this->assertNull($filter['seen'], '"?seen=' . $seen . '" is no 状態');
+            $this->assertNull($filter['removed'], '"?seen=' . $seen . '" must not open the 削除済み list');
+
+            $list = $this->openList(['seen' => $seen]);
+            $this->assertFalse($list['removedView'], '"?seen=' . $seen . '" must show the task list, not the 削除済み list');
+            $this->assertSame($everyTask, $list['rows']->pluck('task_key')->all(), '"?seen=' . $seen . '" must list every task, like すべて');
+        }
+
+        // the 削除済み list answers to its own key, and to "1" only
+        $this->assertTrue(WorkflowTaskService::normalizeFilter(['removed' => '1'])['removed']);
+        $this->assertTrue($this->openList(['removed' => '1'])['removedView']);
+        foreach (['0', '2', 'abc', ''] as $removed) {
+            $this->assertNull(WorkflowTaskService::normalizeFilter(['removed' => $removed])['removed'], '"?removed=' . $removed . '" is not the 削除済み list');
+        }
+    }
+
+    /**
+     * 表示件数 offers 10, 20, 50 and 100 rows a page, and the URL gets no other: "?per_page=30"
+     * lists 20 rows like "?per_page=1000000" does, and the box says 20 (test case TC-WT-32 on
+     * v7.0). The page size decides how many rows a request reads.
+     *
+     * @return void
+     */
+    public function testPageSizeOnlyTakesWhatTheBoxOffers()
+    {
+        $this->init();
+
+        $list = $this->openList([]);
+        $total = $list['total'];
+        if ($total < 1) {
+            $this->markTestSkipped('this user has no workflow task');
+        }
+        $options = $list['perPageOptions'];
+        $this->assertSame([10, 20, 50, 100], $options, '表示件数 offers 10, 20, 50 and 100 rows a page');
+        $this->assertSame(20, $list['perPage'], 'the list shows 20 rows a page by default');
+
+        foreach ($options as $offered) {
+            $list = $this->openList(['per_page' => (string)$offered]);
+            $this->assertSame($offered, $list['perPage'], '"?per_page=' . $offered . '" is a page size the box offers');
+            $this->assertSame(min($offered, $total), $list['rows']->count(), '"?per_page=' . $offered . '" did not list as many rows');
+        }
+        foreach (['30', '1000000', 'abc', '-5', '0', ''] as $junk) {
+            $list = $this->openList(['per_page' => $junk]);
+            // the box marks the page size the list uses
+            $this->assertSame(20, $list['perPage'], '"?per_page=' . $junk . '" is no page size of the box: the list must use 20');
+            $this->assertSame(20, $list['paginator']->perPage(), '"?per_page=' . $junk . '" must page by 20 rows');
+            $this->assertSame(min(20, $total), $list['rows']->count(), '"?per_page=' . $junk . '" must list 20 rows');
+        }
+    }
+
+    /**
+     * The pager serves a page that exists: past the last one the last one, not an empty page,
+     * and the first one for "?page=0", "-1" or "abc" (test case TC-WT-32 on v7.0). It marks the
+     * page it served.
+     *
+     * @return void
+     */
+    public function testPagerServesAPageThatExists()
+    {
+        $this->init();
+
+        $total = $this->openList([])['total'];
+        if ($total < 11) {
+            $this->markTestSkipped('needs more than one page of 10 workflow tasks for this user');
+        }
+        $lastPage = (int)ceil($total / 10);
+
+        $list = $this->openList(['per_page' => '10', 'page' => '99999']);
+        $this->assertSame($lastPage, $list['paginator']->currentPage(), 'a page past the last one must serve the last one');
+        $this->assertSame($total - ($lastPage - 1) * 10, $list['rows']->count(), 'the last page must show the last tasks');
+
+        $first = $this->openList(['per_page' => '10'])['rows']->pluck('task_key')->all();
+        foreach (['0', '-1', 'abc', ''] as $page) {
+            $list = $this->openList(['per_page' => '10', 'page' => $page]);
+            $this->assertSame(1, $list['paginator']->currentPage(), '"?page=' . $page . '" must serve the first page');
+            $this->assertSame($first, $list['rows']->pluck('task_key')->all(), '"?page=' . $page . '" must show the first page');
+        }
     }
 
     /**
@@ -1531,6 +1894,240 @@ class WorkflowTaskServiceTest extends UnitTestBase
             (new WorkflowTaskService(['from' => '2000-01-01', 'to' => '2000-01-02']))->countAll(),
             'the count must follow the range as well'
         );
+    }
+
+    /**
+     * The 更新日時 of a task is when its record was last updated - the record's own updated_at, the
+     * 更新日時 the record page and the CSV export print for it - not when the previous action ran
+     * on it (test case TC-WT-01 on v7.0). The list sorts by it and the date filter looks at it.
+     *
+     * Built like testApproverWhoAlreadyActedIsNotAskedAgain(): user1 starts the flow on one of their
+     * records, and the second step waits for two approvers, user1 and user2. The approval of one of
+     * them writes a workflow value after the record was edited: it must not move the 更新日時 either.
+     *
+     * @return void
+     */
+    public function testUpdatedAtIsTheRecordsOwnNotThePreviousAction()
+    {
+        $this->init();
+
+        $custom_table = CustomTable::getEloquent('custom_value_edit_all');
+        $workflow = isset($custom_table) ? Workflow::getWorkflowByTable($custom_table) : null;
+        if (!isset($workflow)) {
+            $this->markTestSkipped('the test dataset has no workflow on custom_value_edit_all');
+        }
+
+        // the accessor is untyped (mixed), which collect() cannot resolve: name the type instead
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
+        $first = $actions->first(function ($action) {
+            return $action->status_from == Define::WORKFLOW_START_KEYNAME;
+        });
+        /** @var WorkflowConditionHeader|null $firstHeader */
+        $firstHeader = isset($first) ? $first->workflow_condition_headers_cache->first() : null;
+        $firstStatusTo = isset($firstHeader) ? $firstHeader->status_to : null;
+        $second = isset($firstStatusTo) ? $actions->first(function ($action) use ($firstStatusTo) {
+            return (string)$action->status_from === (string)$firstStatusTo;
+        }) : null;
+        if (!isset($second)) {
+            $this->markTestSkipped('the common test workflow no longer has two consecutive steps');
+        }
+
+        $user1 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $user2 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        if (!isset($user2)) {
+            $this->markTestSkipped('needs user2 in the test dataset');
+        }
+
+        // second step: two approvers out of user1 and user2 (rolled back after the test)
+        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
+            'options' => json_encode(array_merge((array)$second->options, [
+                'work_target_type' => 'fix',
+                'flow_next_type' => 'some',
+                'flow_next_count' => '2',
+            ])),
+        ]);
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+            ['related_id' => $user1->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
+            ['related_id' => $user2->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
+        ]);
+        System::clearCache();
+
+        $dbTable = getDBTableName($custom_table);
+        $latest = function ($morphId) use ($custom_table) {
+            return \DB::table(SystemTableName::WORKFLOW_VALUE)
+                ->where('morph_type', $custom_table->table_name)
+                ->where('morph_id', $morphId)
+                ->where('latest_flg', 1);
+        };
+
+        // two of user1's own records no action has run on yet
+        $filter = ['custom_table_id' => $custom_table->id];
+        $notStarted = (new WorkflowTaskService($filter))->getTasks()->filter(function ($task) use ($latest) {
+            return !$latest($task['morph_id'])->exists();
+        })->values();
+        if ($notStarted->count() < 2) {
+            $this->markTestSkipped('user1 has fewer than two tasks at the start in custom_value_edit_all');
+        }
+        [$acted, $waiting] = $notStarted->take(2)->all();
+
+        // user1 starts the flow on one of them: it comes to the two-approver step
+        WorkflowAction::getEloquent($first->id)->executeAction($custom_table->getValueModel($acted['morph_id']), ['comment' => 'workflow task test']);
+        System::clearCache();
+
+        // the action ran on the 10th and somebody edited the record on the 20th; the other record
+        // was last edited on the 15th
+        $latest($acted['morph_id'])->update(['created_at' => '2001-01-10 10:00:00']);
+        \DB::table($dbTable)->where('id', $acted['morph_id'])->update(['updated_at' => '2001-01-20 10:00:00']);
+        \DB::table($dbTable)->where('id', $waiting['morph_id'])->update(['updated_at' => '2001-01-15 10:00:00']);
+
+        $updatedAt = function () use ($filter) {
+            return (new WorkflowTaskService($filter))->getTasks()->mapWithKeys(function ($row) {
+                return [$row['task_key'] => (string)$row['updated_at']];
+            });
+        };
+        $times = $updatedAt();
+        $this->assertSame('2001-01-20 10:00:00', $times->get($acted['task_key']), 'the 更新日時 must be the record\'s own, not the time the previous action ran');
+        $this->assertSame('2001-01-15 10:00:00', $times->get($waiting['task_key']), 'a record no action has run on yet shows its own updated_at as well');
+
+        // oldest first: the record edited on the 15th comes before the one edited on the 20th,
+        // although the action on that one ran on the 10th
+        $pair = [$waiting['task_key'], $acted['task_key']];
+        $this->assertSame(
+            $pair,
+            array_values(array_intersect(array_column($this->walk($filter), 'task_key'), $pair)),
+            'the list must sort by the record\'s own 更新日時'
+        );
+
+        // the date filter looks at the time the column prints
+        $onDay = function (string $day) use ($filter) {
+            return array_column($this->walk($filter + ['from' => $day, 'to' => $day]), 'task_key');
+        };
+        $this->assertSame([$acted['task_key']], $onDay('2001-01-20'), 'the day of the edit must find the task');
+        $this->assertSame([], $onDay('2001-01-10'), 'the day of the action must not find it');
+        $this->assertSame([$waiting['task_key']], $onDay('2001-01-15'), 'the record without an action is found on the day it was updated');
+
+        // user2 approves on the 1st of February: one of two, so the step stays where it is
+        $this->be($user2);
+        System::clearCache();
+        WorkflowAction::getEloquent($second->id)->executeAction($custom_table->getValueModel($acted['morph_id']), ['comment' => 'workflow task test']);
+        $this->assertSame(
+            1,
+            (int)$latest($acted['morph_id'])->value('action_executed_flg'),
+            'precondition: one approval out of two leaves the step waiting for the other'
+        );
+        $latest($acted['morph_id'])->update(['created_at' => '2001-02-01 10:00:00']);
+        $this->be($user1);
+        System::clearCache();
+
+        // the approval wrote a workflow value, not the record: the 更新日時 stays at the edit
+        $this->assertSame(
+            '2001-01-20 10:00:00',
+            $updatedAt()->get($acted['task_key']),
+            'an approval must not move the 更新日時 of the record'
+        );
+    }
+
+    /**
+     * A record an action took back to the start shows its own updated_at as well, not the time it
+     * was taken back, like every task (testUpdatedAtIsTheRecordsOwnNotThePreviousAction()): an edit
+     * there moves it, as it does on a record never sent on.
+     *
+     * The common test workflow has no action back to the start: its second step is made one for
+     * the test, pressed by user1 (rolled back after the test).
+     *
+     * @return void
+     */
+    public function testUpdatedAtOfARecordTakenBackToTheStartIsItsOwn()
+    {
+        $this->init();
+
+        $custom_table = CustomTable::getEloquent('custom_value_edit_all');
+        $workflow = isset($custom_table) ? Workflow::getWorkflowByTable($custom_table) : null;
+        if (!isset($workflow)) {
+            $this->markTestSkipped('the test dataset has no workflow on custom_value_edit_all');
+        }
+
+        // the accessor is untyped (mixed), which collect() cannot resolve: name the type instead
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
+        $first = $actions->first(function ($action) {
+            return $action->status_from == Define::WORKFLOW_START_KEYNAME;
+        });
+        /** @var WorkflowConditionHeader|null $firstHeader */
+        $firstHeader = isset($first) ? $first->workflow_condition_headers_cache->first() : null;
+        $firstStatusTo = isset($firstHeader) ? $firstHeader->status_to : null;
+        $second = isset($firstStatusTo) ? $actions->first(function ($action) use ($firstStatusTo) {
+            return (string)$action->status_from === (string)$firstStatusTo;
+        }) : null;
+        if (!isset($second)) {
+            $this->markTestSkipped('the common test workflow no longer has two consecutive steps');
+        }
+        $user1 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1);
+
+        // the second step takes the record back to the start, pressed by user1 alone
+        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
+            'options' => json_encode(array_merge((array)$second->options, [
+                'work_target_type' => 'fix',
+                'flow_next_type' => 'some',
+                'flow_next_count' => '1',
+            ])),
+        ]);
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+            'related_id' => $user1->base_user_id,
+            'related_type' => 'user',
+            'workflow_action_id' => $second->id,
+        ]);
+        WorkflowConditionHeader::where('workflow_action_id', $second->id)->update(['status_to' => Define::WORKFLOW_START_KEYNAME]);
+        System::clearCache();
+
+        $dbTable = getDBTableName($custom_table);
+        $latest = function ($morphId) use ($custom_table) {
+            return \DB::table(SystemTableName::WORKFLOW_VALUE)
+                ->where('morph_type', $custom_table->table_name)
+                ->where('morph_id', $morphId)
+                ->where('latest_flg', 1);
+        };
+
+        // one of user1's own records no action has run on yet
+        $filter = ['custom_table_id' => $custom_table->id];
+        $task = (new WorkflowTaskService($filter))->getTasks()->first(function ($task) use ($latest) {
+            return !$latest($task['morph_id'])->exists();
+        });
+        if (!isset($task)) {
+            $this->markTestSkipped('user1 has no task at the start in custom_value_edit_all');
+        }
+
+        // sent on on the 5th and taken back on the 6th; the record itself was last edited on the 3rd
+        WorkflowAction::getEloquent($first->id)->executeAction($custom_table->getValueModel($task['morph_id']), ['comment' => 'workflow task test']);
+        $latest($task['morph_id'])->update(['created_at' => '2001-01-05 10:00:00']);
+        System::clearCache();
+        WorkflowAction::getEloquent($second->id)->executeAction($custom_table->getValueModel($task['morph_id']), ['comment' => 'workflow task test']);
+        $this->assertNull(
+            $latest($task['morph_id'])->value('workflow_status_to_id'),
+            'precondition: the second step took the record back to the start'
+        );
+        $latest($task['morph_id'])->update(['created_at' => '2001-01-06 10:00:00']);
+        \DB::table($dbTable)->where('id', $task['morph_id'])->update(['updated_at' => '2001-01-03 10:00:00']);
+        System::clearCache();
+
+        $updatedAt = function () use ($filter, $task) {
+            return (new WorkflowTaskService($filter))->getTasks()->mapWithKeys(function ($row) {
+                return [$row['task_key'] => (string)$row['updated_at']];
+            })->get($task['task_key']);
+        };
+        $this->assertSame('2001-01-03 10:00:00', $updatedAt(), 'back at the start, the 更新日時 must be the record\'s own, not the time it was taken back');
+
+        // an edit there moves it, as on a record never sent on - and the date filter follows
+        \DB::table($dbTable)->where('id', $task['morph_id'])->update(['updated_at' => '2001-01-25 10:00:00']);
+        $this->assertSame('2001-01-25 10:00:00', $updatedAt(), 'an edit of a record back at the start must move its 更新日時');
+        $onDay = function (string $day) use ($filter) {
+            return array_column($this->walk($filter + ['from' => $day, 'to' => $day]), 'task_key');
+        };
+        $this->assertSame([$task['task_key']], $onDay('2001-01-25'), 'the day of the edit must find the task');
+        $this->assertSame([], $onDay('2001-01-06'), 'the day it was taken back must not find it');
     }
 
     /**
@@ -2016,12 +2613,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
         (new WorkflowTaskService())->markSeen([$seen['task_key']]);
 
         // 更新日時: one task a year before the day, one a year after it
-        $dbTable = getDBTableName(CustomTable::getEloquent($customTableId));
         [$before, $after] = $moved->all();
-        \DB::table($dbTable)->where('id', $before['morph_id'])
-            ->update(['updated_at' => \Carbon\Carbon::parse($day)->subYear()->format('Y-m-d') . ' 12:00:00']);
-        \DB::table($dbTable)->where('id', $after['morph_id'])
-            ->update(['updated_at' => \Carbon\Carbon::parse($day)->addYear()->format('Y-m-d') . ' 12:00:00']);
+        $this->setTaskUpdatedAt($before, \Carbon\Carbon::parse($day)->subYear()->format('Y-m-d') . ' 12:00:00');
+        $this->setTaskUpdatedAt($after, \Carbon\Carbon::parse($day)->addYear()->format('Y-m-d') . ' 12:00:00');
 
         return [
             'filter' => [
@@ -2042,6 +2636,21 @@ class WorkflowTaskServiceTest extends UnitTestBase
                 'q' => $missing['task_key'],
             ],
         ];
+    }
+
+    /**
+     * Give a task the 更新日時 $at: the time its record was updated (WorkflowTaskService::taskUpdatedAt()).
+     * DatabaseTransactions rolls it back.
+     *
+     * @param array<string, mixed> $task a row of the task list
+     * @param string $at "Y-m-d H:i:s"
+     * @return void
+     */
+    private function setTaskUpdatedAt(array $task, string $at): void
+    {
+        $custom_table = CustomTable::getEloquent($task['custom_table_id']);
+
+        \DB::table(getDBTableName($custom_table))->where('id', $task['morph_id'])->update(['updated_at' => $at]);
     }
 
     /**
@@ -2094,7 +2703,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
         $this->listData = [];
 
-        (new WorkflowTaskController())->index(Request::create('/workflow_task', 'GET', $query), new \Encore\Admin\Layout\Content());
+        (new WorkflowTaskController())->index(Request::create('/workflow_task', 'GET', $query), new \ExmentAdminCore\Admin\Layout\Content());
         $this->assertArrayHasKey('rows', $this->listData, 'the list screen did not draw its view');
 
         return $this->listData;
@@ -2222,7 +2831,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
                 $request = Request::create('/workflow_task/' . $method, 'POST', $params);
                 $request->headers->set('X-Requested-With', 'XMLHttpRequest');
 
-                $answer = json_decode($controller->{$method}($request)->getContent(), true);
+                $content = $controller->{$method}($request)->getContent();
+                $this->assertIsString($content, "{$method} answered without a body");
+                $answer = json_decode($content, true);
                 $this->assertSame(exmtrans('workflow_task.message.' . $expected), array_get($answer, 'toastr'), "{$method} with " . json_encode($params));
             }
         }
@@ -2486,7 +3097,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
             return $api->workflowTaskPage(Request::create('/webapi/workflowTaskPage', 'GET'));
         };
         $shows = function (array $answer, string $key) {
-            return collect($answer['items'])->contains(function ($item) use ($key) {
+            // buildWorkflowTaskPage() answers the items as a Collection
+            $this->assertInstanceOf(Collection::class, $answer['items']);
+            return $answer['items']->contains(function ($item) use ($key) {
                 return str_contains($item['href'], '?key=' . rawurlencode($key));
             });
         };
@@ -2547,7 +3160,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame(0, (new WorkflowTaskService())->hideSelected([$key], $actedAt->format($format)), 'a list drawn in the second of the last action took the task off');
         $this->assertTrue((new WorkflowTaskService())->getTasks()->contains('task_key', $key), 'a refused delete still changed the list');
 
-        // the button gets the answer of "nothing to delete", whose text asks for a reload
+        // the button gets the answer of "nothing to delete", and the list is drawn again
         $response = (new WorkflowTaskController())->rowDelete(Request::create('/workflow_task/rowDelete', 'POST', [
             'keys' => $key,
             'listed_at' => $actedAt->format($format),
@@ -2610,6 +3223,206 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
+     * TC-WT-36, step 5: somebody deletes the record of a row while the list is open. The trash
+     * button of that row then finds nothing to take off: no 500 and no mark written, the answer
+     * says so, and it asks the screen to draw the list again, which drops the row of the deleted
+     * record. Found in testing: the message asked the user to reload, and the row stayed on the
+     * screen until they did.
+     *
+     * @return void
+     */
+    public function testRemovingTheRowOfADeletedRecordDrawsTheListAgain()
+    {
+        $this->init();
+
+        $task = (new WorkflowTaskService())->getTasks()->first();
+        $this->assertNotNull($task, 'the test dataset must give this user a task');
+        $listedAt = \Carbon\Carbon::now()->format('Y-m-d H:i:s');
+
+        // somebody deletes the record after the list was drawn (rolled back after the test)
+        $record = CustomTable::getEloquent($task['custom_table_id'])->getValueModel($task['morph_id']);
+        $this->assertNotNull($record);
+        $record->delete();
+        System::clearCache();
+        $this->assertFalse((new WorkflowTaskService())->getTasks()->contains('task_key', $task['task_key']), 'precondition: a deleted record is no task');
+
+        $response = (new WorkflowTaskController())->rowDelete(Request::create('/workflow_task/rowDelete', 'POST', [
+            'keys' => $task['task_key'],
+            'listed_at' => $listedAt,
+        ]));
+        $answer = json_decode((string)$response->getContent(), true);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame(exmtrans('workflow_task.message.delete_notfound'), array_get($answer, 'swaltext'));
+        $this->assertTrue(array_get($answer, 'reload'), 'the screen must draw the list again, without the row of the deleted record');
+        $this->assertSame(0, WorkflowTaskRead::where('target_user_id', \Exment::getUserId())
+            ->where('custom_table_id', $task['custom_table_id'])
+            ->where('morph_id', $task['morph_id'])
+            ->count(), 'a refused delete wrote a mark');
+    }
+
+    /**
+     * TC-WT-15: workflow data from before the task list existed. The list is read from the
+     * workflow itself - who has to act on which record now - and workflow_task_reads only holds
+     * the marks of what a user opened. With that table empty, as the migration creates it, every
+     * task already waiting is on the list and unread, and the badge counts them all. Drawing the
+     * list or the badge writes no notification, so nothing is sent afterwards for the actions
+     * taken before. Logged in as the test user who is in the organization the seeded records 1
+     * and 3 of custom_value_edit wait for.
+     *
+     * @return void
+     */
+    public function testTasksFromBeforeTheListExistedAreListedUnread()
+    {
+        $this->init(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+
+        // the table as the migration creates it (rolled back after the test)
+        WorkflowTaskRead::withoutGlobalScopes()->delete();
+        System::clearCache();
+        $notifies = NotifyNavbar::withoutGlobalScopes()->count();
+
+        $tasks = (new WorkflowTaskService())->getTasksWithSeen();
+        $this->assertGreaterThan(0, $tasks->count(), 'the test dataset must give this user tasks');
+        foreach ($tasks as $row) {
+            $this->assertFalse($row['seen'], $row['task_key'] . ': a task from before the list existed must be unread');
+        }
+
+        // waiting for the organization of the user, not for the user: the seeder put them at a
+        // status whose action is for the dev organization
+        $customTableId = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT)->id;
+        foreach ([1, 3] as $id) {
+            $this->assertTrue(
+                $tasks->contains('task_key', WorkflowTaskService::taskKey($customTableId, $id)),
+                "custom_value_edit $id waits for the organization of this user"
+            );
+        }
+
+        $this->assertSame($tasks->count(), (new WorkflowTaskService())->countUnseen(), 'the badge must count every task from before');
+        $this->assertSame($notifies, NotifyNavbar::withoutGlobalScopes()->count(), 'drawing the list or the badge wrote a notification');
+    }
+
+    /**
+     * TC-WT-34: the language of the screen (APP_LOCALE) switched from Japanese to English and
+     * back. The labels of the list, the answers of its batch menu and the navbar come from the
+     * language files, and the cached navbar answer is kept per language: the English screen does
+     * not get the Japanese answer polled a moment before. Nothing of the other language is left
+     * among the labels of the list (its rows hold data, its script holds comments).
+     *
+     * @return void
+     */
+    public function testTheListSpeaksTheLanguageOfTheScreen()
+    {
+        $this->init();
+
+        // every task unread, and no navbar answer cached from before (rolled back after the test)
+        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exment::getUserId())->delete();
+        WorkflowTaskService::navbarCacheForget();
+        $tasks = (new WorkflowTaskService())->getTasks();
+        $this->assertGreaterThan(1, $tasks->count(), 'the test dataset must give this user two tasks');
+
+        $shows = function (string $html, $label, string $what) {
+            $this->assertIsString($label, $what);
+            $this->assertStringContainsString(e($label), $html, $what);
+        };
+        foreach (['ja', 'en', 'ja'] as $locale) {
+            app()->setLocale($locale);
+            $html = $this->drawList($this->openList([]));
+            foreach (['header', 'seen_flg', 'table', 'data', 'status', 'updated_at'] as $key) {
+                $shows($html, exmtrans("workflow_task.$key"), "$locale screen: workflow_task.$key");
+            }
+            $shows($html, trans('admin.action'), "$locale screen: admin.action");
+            $shows($html, trans('admin.search'), "$locale screen: admin.search");
+
+            // the labels of the screen: not its rows, which hold data, nor its script, which holds comments
+            $text = (string)preg_replace(['#<script\b.*?</script>#s', '#<tbody\b.*?</tbody>#s'], '', $html);
+            if ($locale === 'en') {
+                $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]/u', $text, 'Japanese left on the English screen');
+                continue;
+            }
+            foreach (['Pending tasks', 'Target table', 'Current status', 'Updated at'] as $english) {
+                $this->assertStringNotContainsString($english, $text, 'English left on the Japanese screen');
+            }
+        }
+
+        // the answers of the batch menu on the English screen: one row first, then all of them
+        app()->setLocale('en');
+        $ajax = ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'];
+        $response = (new WorkflowTaskController())->rowCheck(Request::create('/workflow_task/rowCheck', 'POST', ['keys' => $tasks[0]['task_key']], [], [], $ajax));
+        $this->assertSame('The selected data has been marked as read.', array_get(json_decode((string)$response->getContent(), true), 'toastr'));
+        $response = (new WorkflowTaskController())->readAll(Request::create('/workflow_task/readAll', 'POST', [], [], [], $ajax));
+        $this->assertSame('All tasks have been marked as read.', array_get(json_decode((string)$response->getContent(), true), 'toastr'));
+
+        // a user with no task (every workflow switched off): the navbar polled on the Japanese
+        // screen, and at once on the English one
+        \DB::table(SystemTableName::WORKFLOW_TABLE)->update(['active_flg' => 0]);
+        System::clearCache();
+        WorkflowTaskService::navbarCacheForget();
+        $api = new \Exceedone\Exment\Controllers\ApiController();
+        app()->setLocale('ja');
+        $answer = $api->workflowTaskPage(Request::create('/webapi/workflowTaskPage', 'GET'));
+        $this->assertSame(0, $answer['count']);
+        $this->assertSame(trans('exment::exment.workflow_task.empty', [], 'ja'), $answer['noItemMessage']);
+        app()->setLocale('en');
+        $answer = $api->workflowTaskPage(Request::create('/webapi/workflowTaskPage', 'GET'));
+        $this->assertSame('You have no pending tasks.', $answer['noItemMessage'], 'the English screen got the Japanese answer of the cache');
+        $this->assertStringContainsString('You have no pending tasks.', $this->drawList($this->openList([])));
+    }
+
+    /**
+     * TC-WT-45, a known limit: a condition the settings screen cannot make - here one on a column
+     * of another table, which only an import or an old version brings - is not guessed at. The
+     * list leaves the action as the work-user query has it, so the task stays listed although the
+     * record does not meet the condition and the record page offers no button for it: rather a
+     * task too many than one hidden that the user has to act on. The same condition on the
+     * table's own column is read, and hides the task.
+     *
+     * @return void
+     */
+    public function testAConditionTheListCannotReadLeavesTheTaskListed()
+    {
+        $this->init(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+
+        // custom_value_edit 1 waits at a status whose action the dev organization runs on every record
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $key = WorkflowTaskService::taskKey($custom_table->id, 1);
+        $this->assertTrue((new WorkflowTaskService())->getTasks()->contains('task_key', $key), 'precondition: custom_value_edit 1 is a task of this user');
+        $this->assertTrue($this->recordPageOffers($custom_table->id, 1), 'precondition: the record page offers its action');
+
+        $record = $custom_table->getValueModel(1);
+        $this->assertNotNull($record);
+        $action = $record->getWorkflowActions()->first(function ($action) {
+            return !boolval($action->ignore_work);
+        });
+        $this->assertNotNull($action);
+        $header = $action->workflow_condition_headers()->first();
+        $this->assertNotNull($header);
+
+        // what an import can bring and the settings screen cannot make: a condition on a column of
+        // another table, with a value the record does not hold (rolled back after the test)
+        $condition = new \Exceedone\Exment\Model\Condition();
+        $condition->morph_type = 'workflow_condition_header';
+        $condition->morph_id = $header->id;
+        $condition->condition_type = \Exceedone\Exment\Enums\ConditionType::COLUMN;
+        $condition->condition_key = FilterOption::EQ;
+        $condition->target_column_id = \Exceedone\Exment\Model\CustomColumn::getEloquent('text', TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL)->id;
+        $condition->condition_value = 'a value no record holds';
+        $condition->save();
+        System::clearCache();
+
+        $this->assertFalse($this->recordPageOffers($custom_table->id, 1), 'the record does not meet the condition: the record page offers nothing');
+        // the list does not guess: the task stays, as it did before conditions were checked
+        $this->assertTrue((new WorkflowTaskService())->getTasks()->contains('task_key', $key), 'a condition the list cannot read hid the task');
+        $this->assertContains($key, $this->openList(['per_page' => '100'])['rows']->pluck('task_key')->all(), 'the list screen must show it too');
+
+        // the control: the same condition on the table's own column is read, and hides the task
+        $condition->target_column_id = \Exceedone\Exment\Model\CustomColumn::getEloquent('text', $custom_table)->id;
+        $condition->save();
+        System::clearCache();
+        $this->assertFalse($this->recordPageOffers($custom_table->id, 1));
+        $this->assertFalse((new WorkflowTaskService())->getTasks()->contains('task_key', $key), 'a condition on the table\'s own column must hide the task');
+    }
+
+    /**
      * A task taken off the list is found under 状態 = 削除済み, and put back from there as unread.
      *
      * Found in review: such a task came back only with the next action on its record. One that
@@ -2631,7 +3444,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $listed = function (array $filter = []) {
             return (new WorkflowTaskService($filter))->getTasks()->pluck('task_key')->all();
         };
-        $removed = ['seen' => WorkflowTaskService::SEEN_REMOVED];
+        $removed = ['removed' => '1'];
         $wasSeen = in_array($key, (new WorkflowTaskService())->seenKeys(), true);
         $unseen = (new WorkflowTaskService())->countUnseen();
 
@@ -2675,15 +3488,16 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
         $key = $tasks->first()['task_key'];
         $table = (string)$tasks->first()['custom_table_id'];
-        $removed = (string)WorkflowTaskService::SEEN_REMOVED;
+        $removed = ['removed' => '1'];
         (new WorkflowTaskService())->hideSelected([$key]);
 
-        $list = $this->openList(['seen' => $removed]);
-        $this->assertSame([$key], collect($list['rows'])->pluck('task_key')->all(), 'the 削除済み list shows what was taken off');
+        $list = $this->openList($removed);
+        $this->assertSame([$key], $list['rows']->pluck('task_key')->all(), 'the 削除済み list shows what was taken off');
         $this->assertFalse($list['isFiltered'], 'the 削除済み list alone filters nothing');
         $this->assertTrue($list['removedView']);
         $this->assertFalse($list['expandFilter'], 'the 削除済み list is no condition of the panel');
-        $this->assertSame($removed, (string)array_get($list['panelKeep'], 'seen'), 'a search in the panel must stay in the 削除済み list');
+        $this->assertSame('1', (string)array_get($list['panelKeep'], 'removed'), 'a search in the panel must stay in the 削除済み list');
+        $this->assertSame('1', (string)array_get($list['quickSearchKeep'], 'removed'), 'and so must a search for a free word');
 
         $html = $this->drawList($list);
         $this->assertStringNotContainsString('class="workflow-task-filter-seen"', $html, 'the 削除済み list offers no 状態 choice');
@@ -2692,9 +3506,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // narrowed in the panel: the table opens it, リセット drops the table and keeps the list,
         // キャンセル keeps the table and leaves the list
-        $list = $this->openList(['seen' => $removed, 'custom_table_id' => $table, 'page' => '1']);
+        $list = $this->openList($removed + ['custom_table_id' => $table, 'page' => '1']);
         $this->assertTrue($list['expandFilter']);
-        $this->assertSame(['seen' => $removed], $this->queryOf($list['resetUrl']));
+        $this->assertSame($removed, $this->queryOf($list['resetUrl']));
         $this->assertSame(['custom_table_id' => $table], $this->queryOf($list['cancelUrl']));
 
         $restore = function () use ($key) {
@@ -2709,7 +3523,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame(exmtrans('workflow_task.message.restore_notfound'), array_get(json_decode((string)$response->getContent(), true), 'toastr'));
 
         // emptied: it says so, not "nothing matches the filter"
-        $list = $this->openList(['seen' => $removed]);
+        $list = $this->openList($removed);
         $this->assertSame(0, $list['total']);
         $this->assertStringContainsString(e(exmtrans('workflow_task.empty_removed_list')), $this->drawList($list));
     }
@@ -2750,7 +3564,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // the header says how many, and the link takes the rest of the filter along - not the page
         $list = $this->openList(['custom_table_id' => $table, 'seen' => '0', 'page' => '1']);
         $this->assertSame(1, $list['removedTotal']);
-        $this->assertSame(['custom_table_id' => $table, 'seen' => $removed], $this->queryOf($list['removedUrl']));
+        $this->assertSame(['custom_table_id' => $table, 'removed' => '1'], $this->queryOf($list['removedUrl']));
         $this->assertStringContainsString(e(exmtrans('workflow_task.removed_count', 1)), $this->drawList($list));
 
         // nothing else left on the list: the empty list still leads to the task
@@ -2845,8 +3659,8 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $last = $tasks->last();
         $this->assertSame(2, (new WorkflowTaskService())->hideSelected([$first['task_key'], $last['task_key']]));
 
-        foreach (['', '0', '1', (string)WorkflowTaskService::SEEN_REMOVED] as $seen) {
-            $this->assertSame(2, (new WorkflowTaskService(['seen' => $seen]))->countRemoved(), "状態 = '{$seen}'");
+        foreach ([[], ['seen' => '0'], ['seen' => '1'], ['removed' => '1']] as $filter) {
+            $this->assertSame(2, (new WorkflowTaskService($filter))->countRemoved(), 'filter: ' . http_build_query($filter));
         }
 
         // narrowed like any list
@@ -2924,7 +3738,8 @@ class WorkflowTaskServiceTest extends UnitTestBase
             if ($action->status_from != Define::WORKFLOW_START_KEYNAME) {
                 continue;
             }
-            $headers = collect($action->workflow_condition_headers_cache);
+            /** @var \Illuminate\Support\Collection<int, WorkflowConditionHeader> $headers */
+            $headers = $action->workflow_condition_headers_cache;
             $conditioned = $headers->filter(function ($header) {
                 return count($header->workflow_conditions) > 0;
             });
@@ -2992,10 +3807,13 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('the test dataset has no workflow on custom_value_edit');
         }
 
-        $start = collect($workflow->workflow_actions_cache)->first(function ($action) {
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
+        $start = $actions->first(function ($action) {
             return $action->status_from == Define::WORKFLOW_START_KEYNAME;
         });
-        $headers = isset($start) ? collect($start->workflow_condition_headers_cache) : collect();
+        /** @var \Illuminate\Support\Collection<int, WorkflowConditionHeader> $headers */
+        $headers = isset($start) ? $start->workflow_condition_headers_cache : collect();
         if ($headers->isEmpty()) {
             $this->markTestSkipped('the start action of the test workflow has no condition header');
         }
@@ -3204,27 +4022,22 @@ class WorkflowTaskServiceTest extends UnitTestBase
                     'target_column_id' => $custom_column->id,
                     'condition_value' => $value,
                 ])]));
-                // an action whose only header is the one above
-                $action = new class ($header) extends WorkflowAction {
-                    /** @var WorkflowConditionHeader|null */
-                    private $testHeader;
-
-                    // optional: booting the model registers its observers, and Eloquent builds an
-                    // instance for that with no argument at all (HasEvents::registerObserver())
-                    public function __construct(?WorkflowConditionHeader $testHeader = null)
-                    {
-                        parent::__construct();
-                        $this->testHeader = $testHeader;
-                    }
+                // an action whose only header is the one above. No constructor of its own: ModelBase
+                // is @phpstan-consistent-constructor, and booting the model registers its observers
+                // with an instance built with no argument at all (HasEvents::registerObserver())
+                $action = new class () extends WorkflowAction {
+                    /** @var WorkflowConditionHeader */
+                    public $testHeader;
 
                     /**
-                     * @return \Illuminate\Support\Collection<int, WorkflowConditionHeader|null>
+                     * @return \Illuminate\Support\Collection<int, WorkflowConditionHeader>
                      */
                     public function getWorkflowConditionHeadersCacheAttribute()
                     {
                         return new \Illuminate\Support\Collection([$this->testHeader]);
                     }
                 };
+                $action->testHeader = $header;
 
                 $page = $records->filter(function ($record) use ($header) {
                     return $header->isMatchCondition($record);
@@ -3265,45 +4078,10 @@ class WorkflowTaskServiceTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_table = CustomTable::getEloquent('custom_value_edit_all');
-        $workflow = isset($custom_table) ? Workflow::getWorkflowByTable($custom_table) : null;
-        if (!isset($workflow)) {
-            $this->markTestSkipped('the test dataset has no workflow on custom_value_edit_all');
-        }
-
-        $actions = collect($workflow->workflow_actions_cache);
-        $first = $actions->first(function ($action) {
-            return $action->status_from == Define::WORKFLOW_START_KEYNAME;
-        });
-        $firstHeader = isset($first) ? collect($first->workflow_condition_headers_cache)->first() : null;
-        $firstStatusTo = isset($firstHeader) ? $firstHeader->status_to : null;
-        $second = isset($firstStatusTo) ? $actions->first(function ($action) use ($firstStatusTo) {
-            return (string)$action->status_from === (string)$firstStatusTo;
-        }) : null;
-        if (!isset($second)) {
-            $this->markTestSkipped('the common test workflow no longer has two consecutive steps');
-        }
-
-        $user1 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        $user2 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
-        if (!isset($user2)) {
-            $this->markTestSkipped('needs user2 in the test dataset');
-        }
-
-        // second step: two approvers out of user1 and user2 (rolled back after the test)
-        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
-            'options' => json_encode(array_merge((array)$second->options, [
-                'work_target_type' => 'fix',
-                'flow_next_type' => 'some',
-                'flow_next_count' => '2',
-            ])),
-        ]);
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
-            ['related_id' => $user1->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
-            ['related_id' => $user2->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
-        ]);
-        System::clearCache();
+        // second step: two approvers out of user1 and user2
+        ['table' => $custom_table, 'first' => $first, 'second' => $second, 'user2' => $user2]
+            = $this->stepOfTwoApprovers(['flow_next_type' => 'some', 'flow_next_count' => '2']);
+        $firstStatusTo = $second->status_from;
 
         // one of user1's own records, still at the start
         $filter = ['custom_table_id' => $custom_table->id];
@@ -3345,6 +4123,148 @@ class WorkflowTaskServiceTest extends UnitTestBase
             (new WorkflowTaskService($filter))->getTasks()->contains('task_key', $key),
             'the approver who has not acted yet lost the task'
         );
+    }
+
+    /**
+     * TC-WT-43 on v7.0: a 全員承認 step of user1 and user2. Once user1 approved, the task list and
+     * the record page agree for each of them. user1 has nothing left: no task, no button, a modal
+     * with nothing to send, and a second post is refused without a second approval. user2 still
+     * has both, the task 未読 again - an action clears what was read. user2's approval moves the
+     * record on, and the task leaves both lists.
+     *
+     * @return void
+     */
+    public function testAllApproveStepLeavesWhoApprovedOutOfTheListAndTheRecordPage()
+    {
+        $this->init();
+
+        ['table' => $custom_table, 'first' => $first, 'second' => $second, 'user1' => $user1, 'user2' => $user2]
+            = $this->stepOfTwoApprovers(['flow_next_type' => 'all']);
+
+        // one of user1's own records, still at the start
+        $filter = ['custom_table_id' => $custom_table->id];
+        $task = (new WorkflowTaskService($filter))->getTasks()->first();
+        if (is_null($task)) {
+            $this->markTestSkipped('user1 has no task in custom_value_edit_all');
+        }
+        $key = $task['task_key'];
+        $id = $task['morph_id'];
+
+        // user1 starts the flow: the record comes to the 全員承認 step
+        WorkflowAction::getEloquent($first->id)->executeAction($custom_table->getValueModel($id), ['comment' => 'workflow task test']);
+        System::clearCache();
+
+        $page = admin_urls('data', $custom_table->table_name, $id);
+        // what every action button of the record page opens (DefaultShow)
+        $button = admin_urls('data', $custom_table->table_name, $id, 'actionModal');
+        $click = admin_urls('data', $custom_table->table_name, $id, 'actionClick');
+        $waiting = (string)$second->status_from;
+        $status = function () use ($custom_table, $id) {
+            return (string)WorkflowValue::where('morph_type', $custom_table->table_name)->where('morph_id', $id)
+                ->where('latest_flg', 1)->value('workflow_status_to_id');
+        };
+        $listed = function () use ($filter, $key) {
+            return (new WorkflowTaskService($filter))->getTasksWithSeen()->firstWhere('task_key', $key);
+        };
+        $as = function (LoginUser $user) {
+            $this->be($user);
+            System::clearRequestSession();
+        };
+
+        // step 2: both have it, on the list and on the record page; user2 reads it
+        foreach (['user1' => $user1, 'user2' => $user2] as $name => $user) {
+            $as($user);
+            $row = $listed();
+            $this->assertNotNull($row, 'precondition: the task is on the list of ' . $name);
+            $this->get($page)->assertOk()->assertSee($button, false);
+        }
+        (new WorkflowTaskService())->markSeen([$key]);
+
+        // step 3: user1 approves, one of two: the status stays
+        $as($user1);
+        $this->post($click, ['action_id' => $second->id])->assertOk()->assertJson(['result' => true]);
+        $this->assertSame($waiting, $status(), 'one approval out of two moved the status');
+
+        // step 4: user1 has nothing left, on either screen
+        $as($user1);
+        $row = $listed();
+        $this->assertNull($row, 'user1 already approved: the task must leave their list');
+        $this->get($page)->assertOk()->assertDontSee($button, false);
+        $this->get($button . '?action_id=' . $second->id)->assertOk()->assertJson(['showSubmit' => false]);
+        $this->post($click, ['action_id' => $second->id])->assertOk()->assertJson(['result' => false]);
+        $approvals = WorkflowValue::where('morph_type', $custom_table->table_name)->where('morph_id', $id)
+            ->where('workflow_action_id', $second->id)->where('created_user_id', $user1->base_user_id)->count();
+        $this->assertSame(1, $approvals, 'a second post recorded the approval of user1 twice');
+        $this->assertSame($waiting, $status(), 'a second post of user1 moved the status');
+
+        // step 5: user2 still has both, the task 未読 again
+        $as($user2);
+        $row = $listed();
+        $this->assertNotNull($row, 'the approver who has not acted yet lost the task');
+        $this->assertFalse($row['seen'], 'an approval clears what the others read: the task is 未読 again');
+        $this->get($page)->assertOk()->assertSee($button, false);
+
+        // step 6: user2 approves and picks who acts next (実行時に選択): the status moves on, and
+        // the task leaves both lists
+        $admin = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->post($click, ['action_id' => $second->id, 'next_work_users' => ['user_' . $admin->base_user_id]])
+            ->assertOk()->assertJson(['result' => true]);
+        $this->assertNotSame($waiting, $status(), 'the approval of the last approver did not move the status');
+        foreach (['user1' => $user1, 'user2' => $user2] as $name => $user) {
+            $as($user);
+            $row = $listed();
+            $this->assertNull($row, 'the task stayed on the list of ' . $name);
+        }
+    }
+
+    /**
+     * The common test workflow of custom_value_edit_all, its second step made one of user1 and
+     * user2 (rolled back with the test): start -(creator)-> middle -(user1, user2)-> temp -> end.
+     *
+     * @param array<string, string> $options how many of the two the step waits for
+     * @return array{table: CustomTable, first: WorkflowAction, second: WorkflowAction, user1: LoginUser, user2: LoginUser}
+     */
+    private function stepOfTwoApprovers(array $options): array
+    {
+        $custom_table = CustomTable::getEloquent('custom_value_edit_all');
+        $workflow = isset($custom_table) ? Workflow::getWorkflowByTable($custom_table) : null;
+        if (!isset($workflow)) {
+            $this->markTestSkipped('the test dataset has no workflow on custom_value_edit_all');
+        }
+
+        // the accessor is untyped (mixed), which collect() cannot resolve: name the type instead
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
+        $first = $actions->first(function ($action) {
+            return $action->status_from == Define::WORKFLOW_START_KEYNAME;
+        });
+        /** @var WorkflowConditionHeader|null $firstHeader */
+        $firstHeader = isset($first) ? $first->workflow_condition_headers_cache->first() : null;
+        $firstStatusTo = isset($firstHeader) ? $firstHeader->status_to : null;
+        $second = isset($firstStatusTo) ? $actions->first(function ($action) use ($firstStatusTo) {
+            return (string)$action->status_from === (string)$firstStatusTo;
+        }) : null;
+        if (!isset($first, $second)) {
+            $this->markTestSkipped('the common test workflow no longer has two consecutive steps');
+        }
+
+        $user1 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $user2 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        if (!isset($user1, $user2)) {
+            $this->markTestSkipped('needs user2 in the test dataset');
+        }
+
+        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
+            'options' => json_encode(array_merge((array)$second->options, ['work_target_type' => 'fix'] + $options)),
+        ]);
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
+        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+            ['related_id' => $user1->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
+            ['related_id' => $user2->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
+        ]);
+        System::clearCache();
+
+        return ['table' => $custom_table, 'first' => $first, 'second' => $second, 'user1' => $user1, 'user2' => $user2];
     }
 
     /**
@@ -3537,14 +4457,17 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         // the three consecutive steps of the workflow
-        $actions = collect($workflow->workflow_actions_cache);
+        // the accessor is untyped (mixed), which collect() cannot resolve: name the type instead
+        /** @var \Illuminate\Support\Collection<int, WorkflowAction> $actions */
+        $actions = $workflow->workflow_actions_cache;
         $after = function ($statusFrom) use ($actions) {
             return is_null($statusFrom) ? null : $actions->first(function ($action) use ($statusFrom) {
                 return (string)$action->status_from === (string)$statusFrom;
             });
         };
         $statusTo = function ($action) {
-            $header = isset($action) ? collect($action->workflow_condition_headers_cache)->first() : null;
+            /** @var WorkflowConditionHeader|null $header */
+            $header = isset($action) ? $action->workflow_condition_headers_cache->first() : null;
             return isset($header) ? $header->status_to : null;
         };
         $first = $after(Define::WORKFLOW_START_KEYNAME);
@@ -3791,7 +4714,8 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $connection = \DB::connection();
         $original = app('db.transactions');
-        $manager = new \Illuminate\Foundation\Testing\DatabaseTransactionsManager();
+        // Laravel 11+ is told which connections the wrapper belongs to and skips that many
+        $manager = new \Illuminate\Foundation\Testing\DatabaseTransactionsManager([$connection->getName()]);
         $manager->begin($connection->getName(), $connection->transactionLevel());
         $connection->setTransactionManager($manager);
 

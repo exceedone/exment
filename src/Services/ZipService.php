@@ -88,8 +88,9 @@ class ZipService
         }
 
         $output = [];
-        // quote every path: both come from the install directory, and an install path
-        // carrying a space used to cut the command in half.
+        // escapeshellarg() wraps each argument in single quotes, preventing shell
+        // metacharacter expansion even when paths contain spaces or special chars
+        // (an install path carrying a space used to cut the command in half).
         $cmd = sprintf(
             '(cd %s && zip -e --password=%s %s ./*)',
             escapeshellarg($tmpFolderPath),

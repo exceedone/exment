@@ -80,10 +80,31 @@ use Cache;
  * @method static string|void sso_accept_mail_domain($arg = null)
  * @method static array|void jit_rolegroups($arg = null)
  * @method static string|void system_slack_user_column($arg = null)
+ * @method static string|void system_line_channel_token($arg = null)
+ * @method static string|void system_line_channel_secret($arg = null)
+ * @method static string|void system_line_oa_basic_id($arg = null)
+ * @method static boolean|void safety_check_auto_enabled($arg = null)
+ * @method static int|void safety_check_min_scale($arg = null)
+ * @method static int|void safety_check_cooldown_minutes($arg = null)
+ * @method static int|void safety_check_comment_window_minutes($arg = null)
+ * @method static int|void safety_check_max_bulletin_age_minutes($arg = null)
+ * @method static int|void safety_check_resend_throttle_minutes($arg = null)
+ * @method static int|void safety_check_answer_url_expire_days($arg = null)
+ * @method static Carbon|void safety_check_last_feed_time($arg = null)
  * @method static bool|void publicform_available($arg = null)
  * @method static string|void recaptcha_site_key($arg = null)
  * @method static string|void recaptcha_secret_key($arg = null)
  * @method static string|void recaptcha_type($arg = null)
+ * @method static string|void meili_host($arg = null)
+ * @method static string|void meili_key($arg = null)
+ * @method static string|void meili_index($arg = null)
+ * @method static boolean|void meili_global_search($arg = null)
+ * @method static boolean|void meili_realtime_sync($arg = null)
+ * @method static int|void meili_batch_size($arg = null)
+ * @method static boolean|void meili_repair_enabled($arg = null)
+ * @method static string|void meili_repair_at($arg = null)
+ * @method static string|void meili_filter_mode($arg = null)
+ * @method static array<string, mixed>|void meili_indexed_at($arg = null)
  * @phpstan-consistent-constructor
  */
 class System extends ModelBase
@@ -176,6 +197,25 @@ class System extends ModelBase
         } else {
             array_forget(static::$requestSession, $key);
         }
+    }
+
+    /**
+     * All request session entries, to put back after a block whose own cache
+     * entries must not outlive it.
+     *
+     * @return array<string,mixed>
+     */
+    public static function getRequestSessionAll(): array
+    {
+        return static::$requestSession;
+    }
+
+    /**
+     * @param array<string,mixed> $entries
+     */
+    public static function setRequestSessionAll(array $entries): void
+    {
+        static::$requestSession = $entries;
     }
 
     /**

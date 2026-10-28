@@ -3,7 +3,7 @@
 namespace App\Plugins\TestPluginGlobalFunction;
 
 /**
- * @return true
+ * @return bool
  */
 function testPluginGlobalFunction()
 {

@@ -74,7 +74,7 @@ class LoginService
                 catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     admin_error(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
-                    return back()->withInput();
+                    return back()->withInput(get_flash_input());
                 }
             }
             $login_user->save();
@@ -349,7 +349,7 @@ class LoginService
                 'url' => route('exment.login_activate', ['id' => $login_setting->id]),
                 'label' => exmtrans('common.activate'),
                 'icon' => 'fa-check-circle',
-                'btn_class' => 'btn-success',
+                'btn_class' => 'btn-success p-2',
                 'title' => exmtrans('common.activate'),
                 'text' => exmtrans('login.help.activate'),
                 'method' => 'post',
@@ -359,7 +359,7 @@ class LoginService
             $tools->append(new Tools\SwalInputButton([
                 'url' => route('exment.login_deactivate', ['id' => $login_setting->id]),
                 'label' => exmtrans('common.deactivate'),
-                'icon' => 'fa-check-circle',
+                'icon' => 'fa-check-circle p-2',
                 'btn_class' => 'btn-default',
                 'title' => exmtrans('common.deactivate'),
                 'text' => exmtrans('login.help.deactivate'),
@@ -510,7 +510,6 @@ class LoginService
      */
     public static function getLoginUser(CustomLoginUserBase $custom_login_user, $exment_user, $socialiteProvider = null): LoginUser
     {
-        $hasLoginUser = false;
         // get login_user
         $login_user = LoginUserProvider::findByCredential(
             [
@@ -520,9 +519,9 @@ class LoginService
                 'login_type' => $custom_login_user->login_type,
             ]
         );
+        $hasLoginUser = !is_null($login_user);
 
         // if don't has, create loginuser or match email
-        // @phpstan-ignore-next-line
         if (!$hasLoginUser) {
             $login_user = LoginUser::firstOrNew([
                 'base_user_id' => $exment_user->getUserId(),
@@ -535,7 +534,6 @@ class LoginService
         }
 
         // get avatar
-        // @phpstan-ignore-next-line
         if (!$hasLoginUser || boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
             $avatar  = static::getAvatar($custom_login_user, $socialiteProvider = null);
             if (isset($avatar)) {

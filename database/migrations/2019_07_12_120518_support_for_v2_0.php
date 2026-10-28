@@ -18,8 +18,8 @@ class SupportForV20 extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function ($table, $callback) {
-            return new ExtendedBlueprint($table, $callback);
+        $schema->blueprintResolver(function ($connection, $table, $callback) {
+            return new ExtendedBlueprint($connection, $table, $callback);
         });
 
         if (!\Schema::hasTable(SystemTableName::ROLE_GROUP)) {

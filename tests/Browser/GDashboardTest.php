@@ -45,10 +45,10 @@ class GDashboardTest extends ExmentKitTestCase
             ->seePageIs(admin_url('dashboard/create'))
             ->type('DashboardTest', 'dashboard_name')
             ->type('DashboardTest', 'dashboard_view_name')
-            ->type('3', 'options[row1]')
-            ->type('3', 'options[row2]')
-            ->type('3', 'options[row3]')
-            ->type('3', 'options[row4]')
+            ->type('3', 'row_setting[row1]')
+            ->type('3', 'row_setting[row2]')
+            ->type('3', 'row_setting[row3]')
+            ->type('3', 'row_setting[row4]')
             ->press('admin-submit')
             ->seePageIs(admin_url(''))
         ;
@@ -417,7 +417,9 @@ class GDashboardTest extends ExmentKitTestCase
 
         // get select option item
         $custom_view_column = $custom_view->custom_view_columns->first(function ($custom_view_column) {
-            return $custom_view_column->view_column_type == Enums\ConditionType::COLUMN && $custom_view_column->custom_column->column_type == 'integer';
+            $custom_column = $custom_view_column->custom_column;
+            return $custom_view_column->view_column_type == Enums\ConditionType::COLUMN
+                && $custom_column instanceof Model\CustomColumn && $custom_column->column_type == 'integer';
         });
 
         $options = array_merge(

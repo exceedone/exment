@@ -61,8 +61,8 @@ class CCustomFormTest extends ExmentKitTestCase
                 ->visit(admin_url('form/exmenttest_form/create'))
                 ->seeInElement('h1', 'カスタムフォーム設定')
                 ->seeInElement('label', 'フォーム表示名')
-                ->seeInElement('h3[class=box-title]', exmtrans('custom_form.header_basic_setting'))
-                ->seeInElement('h3[class=box-title]', 'テーブル - Exmenttest Form')
+                ->seeInElement('h3.box-title', exmtrans('custom_form.header_basic_setting'))
+                ->seeInElement('h3.box-title', 'テーブル - Exmenttest Form')
                 ->seeInElement('label', 'フォームブロック名')
                 ->seeInElement('h4', 'フォーム項目')
                 ->seeInElement('h5', 'フォーム項目 候補一覧')
@@ -175,9 +175,9 @@ class CCustomFormTest extends ExmentKitTestCase
         $block_ids = CustomFormBlock::where('custom_form_id', $id)->pluck('id');
 
         $this->visit(admin_url('form/parent_table/'. $id . '/edit'))
-            ->seeInElement('h3[class=box-title]', 'テーブル - parent_table')
-            ->seeInElement('h3[class=box-title]', '子テーブル - child_table')
-            ->seeInElement('h3[class=box-title]', '子テーブル - child_table_2')
+            ->seeInElement('h3.box-title', 'テーブル - parent_table')
+            ->seeInElement('h3.box-title', '子テーブル - child_table')
+            ->seeInElement('h3.box-title', '子テーブル - child_table_2')
             ->type('親テーブルのブロック', 'custom_form_blocks[' . $block_ids[0] .'][form_block_view_name]')
             ->type('子テーブル１のブロック', 'custom_form_blocks[' . $block_ids[1] .'][form_block_view_name]')
             ->type('子テーブル２のブロック', 'custom_form_blocks[' . $block_ids[2] .'][form_block_view_name]')
@@ -193,7 +193,7 @@ class CCustomFormTest extends ExmentKitTestCase
 
         // check before update
         $this->visit(admin_url('data/parent_table/create'));
-        $crawler = $this->crawler()->filter('h4[class=field-header]');
+        $crawler = $this->crawler()->filter('h4.field-header');
         $element = $crawler->eq(0);
         $this->assertEquals('子テーブル１のブロック', $element->text());
         $element = $crawler->eq(1);
@@ -208,7 +208,7 @@ class CCustomFormTest extends ExmentKitTestCase
 
         // check after update
         $this->visit(admin_url('data/parent_table/create'));
-        $crawler = $this->crawler()->filter('h4[class=field-header]');
+        $crawler = $this->crawler()->filter('h4.field-header');
         $element = $crawler->eq(0);
         $this->assertEquals('子テーブル２のブロック', $element->text());
         $element = $crawler->eq(1);

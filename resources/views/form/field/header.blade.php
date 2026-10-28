@@ -1,8 +1,8 @@
 
-<div class="form-group">
+<div class="form-group box-header with-border">
     <div class="row" {!! $attributes !!} >
         <div class="col-sm-12" >
-            <h{{$no}} class="field-header">
+            <h{{$no}} class="field-header" style="margin: 0px 70px;">
                 @if($escape)
                     {{ $headerLabel }}
                 @else
@@ -11,9 +11,5 @@
             </h{{$no}}>
         </div>
     </div>
-
-    @if($hr)
-    <hr style="margin: 0px 15px;" />
-    @endif
 </div>
 

@@ -1,1 +1,1 @@
-{{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[$param_name]", array_get($custom_form_column, $param_name), array_merge(['class' => $param_name], $param_parameters ?? [])) }}
+<input type="hidden" name="{{ $custom_form_block['header_name'] }}{{ $custom_form_column['header_column_name'] }}[{{ $param_name }}]" value="{{ \Illuminate\Support\Arr::get($custom_form_column, $param_name) }}" @foreach(array_merge(['class' => $param_name], $param_parameters ?? []) as $attrKey => $attrValue) {{ $attrKey }}="{{ $attrValue }}" @endforeach>

@@ -12,20 +12,45 @@ class CustomFormPriority extends ModelBase
 {
     use Traits\ClearCacheTrait;
     use Traits\DatabaseJsonOptionTrait;
+    use Traits\TemplateTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['form_priority_text', 'condition_join', 'condition_reverse'];
     protected $casts = ['options' => 'json'];
 
-
+    /**
+     * A form display priority is nothing but its conditions plus the order they
+     * are evaluated in, so the conditions have to travel with it.
+     *
+     * The three appended attributes are all derived: form_priority_text is
+     * display text, and condition_join / condition_reverse are read from and
+     * written back into options, which is exported on its own. Carrying them
+     * would only write their values into options a second time - as null when
+     * they were never set.
+     */
     // @phpstan-ignore-next-line
+    public static $templateItems = [
+        'excepts' => ['id', 'form_priority_text', 'condition_join', 'condition_reverse'],
+        'uniqueKeys' => ['custom_form_id', 'order'],
+        'parent' => 'custom_form_id',
+        'children' => [
+            'custom_form_priority_conditions' => Condition::class,
+        ],
+    ];
+
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<CustomForm, $this>
+     */
     public function custom_form()
     {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Condition, $this>
+     */
     public function custom_form_priority_conditions()
     {
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');
@@ -80,8 +105,7 @@ class CustomFormPriority extends ModelBase
                 $list[] = $condition->condition_text;
             }
 
-            // @phpstan-ignore-next-line
-            $glue = exmtrans('common.join_'.$this->condition_join??'and');
+            $glue = exmtrans('common.join_' . ($this->condition_join ?? 'and'));
             $text = implode($glue, $list);
             if (boolval($this->condition_reverse)) {
                 $text = exmtrans('common.condition_reverse'). $text;

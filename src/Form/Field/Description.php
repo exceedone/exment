@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 
 class Description extends Field\Display
 {
@@ -38,9 +38,8 @@ class Description extends Field\Display
     {
         // replace offset col-sm and col-md as offset
         $offset = array_get($this->getViewElementClasses(), 'label');
-        $offset = str_replace("col-sm-", "col-sm-offset-", $offset);
-        $offset = str_replace("col-md-", "col-md-offset-", $offset);
-        // @phpstan-ignore-next-line
+        $offset = str_replace("col-sm-", "offset-sm-", $offset);
+        $offset = str_replace("col-md-", "offset-md-", $offset);
         return parent::render()->with(
             [
                 'offset' => $offset,

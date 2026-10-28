@@ -10,11 +10,10 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Laravel\BrowserKitTesting\TestCase as BaseTestCase;
 
 /**
- * @method \Exceedone\Exment\Tests\DatabaseTransactions beginDatabaseTransaction()
+ * @method void beginDatabaseTransaction()
  */
 abstract class ExmentKitTestCase extends BaseTestCase
 {
-    use \Tests\CreatesApplication;
     use TestTrait;
 
     /**
@@ -29,9 +28,10 @@ abstract class ExmentKitTestCase extends BaseTestCase
      */
     protected function setUp(): void
     {
-        // cannot call method "config", so call env function
-        $this->baseUrl = env('APP_URL');
         parent::setUp();
+        // config() works once parent::setUp() has created the application;
+        // the url is first read by a request, which comes after setUp().
+        $this->baseUrl = config('app.url');
         System::clearCache();
     }
 
@@ -109,7 +109,7 @@ abstract class ExmentKitTestCase extends BaseTestCase
      */
     public function seeOuterElement($element, $text, $negate = false)
     {
-        return $this->assertInPage(new Constraints\HasOuterElement($element, $text), $negate);
+        return $this->assertInPage(new Constraints\HasOuterElement($element, (string) $text), $negate);
     }
 
 

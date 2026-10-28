@@ -29,6 +29,13 @@ var Exment;
             $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
             $(document).off('click', '[copyScript]').on('click', '[copyScript]', {}, CommonEvent.copyScriptEvent);
 
+            // Day-count filter value (X日前/X日後の日付): integer in [0, 99999] (max 5 digits).
+            // The number-spinner plugin reads the value with parseInt, so a full-width (IME) value such
+            // as "１２３" makes parseInt return NaN and breaks the +/- buttons. Normalize full-width digits
+            // to ASCII and strip any remaining non-digit. Cap at 5 digits because a huge value (e.g.
+            // "9999999999999999") overflows the server-side Carbon date math and the filter returns no rows.
+            // Run on input (but not while the IME is still composing) and on compositionend (when the IME
+            // commits, where the input event may be skipped).
             const sanitizeDayCount = (el) => {
                 const s = String(el.value).replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
                 const clean = s.replace(/[^0-9]/g, '').slice(0, 5);
@@ -97,6 +104,10 @@ var Exment;
                 }
                 else {
                     isMatch = pathname.indexOf(uri) === 0;
+                }
+                // if has "query", match only when the url has the query string parameter(ex. qrcodesetting)
+                if (isMatch && hasValue(help.query)) {
+                    isMatch = new URLSearchParams(location.search).has(help.query);
                 }
                 if (isMatch) {
                     // set new url
@@ -209,6 +220,11 @@ var Exment;
                 else {
                     Exment.CommonEvent.UndefinedError();
                     return;
+                }
+                // the answer may ask to draw the list again behind the message, because the row
+                // it was about is stale (WorkflowTaskController::rowDelete())
+                if (res.reload === true) {
+                    $.pjax.reload('#pjax-container');
                 }
             }
         }
@@ -388,46 +404,101 @@ var Exment;
          * if click grid row, move page
          */
         static tableHoverLink() {
+            // On a cell wired to the inline editor the first click has to
+            // wait out the double-click window before it is allowed to
+            // navigate - see the note further down. One timer for the whole
+            // table: the next click on any row cancels whatever is pending.
+            let rowClickTimer = null;
+            // Was an inline editor open when the mouse went down? While one
+            // is, the grid behaves like a form: a click on a row means "I am
+            // done with this cell", not "open this row". The answer is
+            // latched on mousedown because that is the last moment the editor
+            // is still marked - losing focus closes it about 80ms later, so a
+            // click held longer than that would find nothing left to test.
+            let inlineEditWasOpen = false;
             $('table').find('[data-id],.rowclick').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev) {
+                if (rowClickTimer) {
+                    clearTimeout(rowClickTimer);
+                    rowClickTimer = null;
+                }
+                // The click that puts the editor away is spent doing exactly
+                // that. The editor commits itself on blur, and navigating now
+                // would leave the page while that save is still in flight.
+                if (inlineEditWasOpen || $('td.exm-editing,td.exm-saving').length > 0) {
+                    inlineEditWasOpen = false;
+                    return;
+                }
                 // if e.target closest"a" is length > 0, return
                 if ($(ev.target).closest('a,.rowclick').length > 0) {
+                    return;
+                }
+                // the batch checkbox is a control, not a link to the row:
+                // ticking it must not navigate away, otherwise selecting
+                // rows for a batch action is impossible
+                if ($(ev.target).closest('.grid-row-checkbox,.column-__row_selector__').length > 0) {
+                    return;
+                }
+                // the pen icon and an editor that is already open are
+                // controls in their own right - clicking either of them is
+                // never a request to leave the page
+                if ($(ev.target).closest('.exm-edit-pen,td.exm-editing').length > 0) {
                     return;
                 }
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }
-                let editFlg = $('#gridrow_select_edit').val();
-                let tableOpt = $('#gridrow_select_transition').val();
-                let linkElem = $(ev.target).closest('tr').find('.rowclick');
-                if (tableOpt == 'edit') {
-                    editFlg = 1;
-                }
-                else if (tableOpt == 'show') {
-                    editFlg = 0;
-                }
-                if (editFlg) {
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                let openRow = function () {
+                    let editFlg = $('#gridrow_select_edit').val();
+                    let tableOpt = $('#gridrow_select_transition').val();
+                    let linkElem = $(ev.target).closest('tr').find('.rowclick');
+                    if (tableOpt == 'edit') {
+                        editFlg = 1;
+                    }
+                    else if (tableOpt == 'show') {
+                        editFlg = 0;
+                    }
+                    if (editFlg) {
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                        }
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                        }
+                    }
+                    else {
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                        }
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                        }
                     }
                     if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                    }
-                }
-                else {
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                        linkElem = $(ev.target).closest('tr').find('.fa-external-link');
                     }
                     if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                        return;
                     }
-                }
-                if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-external-link');
-                }
-                if (!hasValue(linkElem)) {
+                    linkElem.closest('a,.rowclick').trigger('click');
+                };
+                // An editable cell carries two gestures on the same spot:
+                // one click opens the row, like everywhere else in the grid,
+                // two clicks open the inline editor. The browser cannot know
+                // which is coming when the first click fires, so here the
+                // navigation is held back for the length of the double-click
+                // window; the second click arrives with detail == 2 and has
+                // already cancelled the timer at the top of this handler.
+                if ($(ev.target).closest('td.exm-editable').length > 0) {
+                    let clicks = ev.detail || (ev.originalEvent ? ev.originalEvent.detail : 0) || 1;
+                    if (clicks > 1) {
+                        return;
+                    }
+                    rowClickTimer = setTimeout(openRow, 250);
                     return;
                 }
-                linkElem.closest('a,.rowclick').trigger('click');
+                openRow();
+            }).on('mousedown', function () {
+                inlineEditWasOpen = $('td.exm-editing,td.exm-saving').length > 0;
             }).addClass('tableHoverLinkEvent');
 
             $('.janCodeRow').on('click', function (ev) {

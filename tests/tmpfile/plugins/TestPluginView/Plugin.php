@@ -2,7 +2,7 @@
 
 namespace App\Plugins\TestPluginView;
 
-use Encore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Services\Plugin\PluginViewBase;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomTable;
@@ -93,6 +93,8 @@ class Plugin extends PluginViewBase
     protected function getBoardItems($items)
     {
         $category = CustomColumn::getEloquent($this->custom_view->getCustomOption('category'));
+        // getEloquent() is not typed, so the options are not either
+        /** @var array<int|string, string|null> $options value => label */
         $options = $category->createSelectOptions();
 
         $update_url = $this->plugin->getFullUrl('update');

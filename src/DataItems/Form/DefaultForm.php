@@ -4,9 +4,9 @@ namespace Exceedone\Exment\DataItems\Form;
 
 use Exceedone\Exment\Model\CustomFormColumn;
 use Symfony\Component\HttpFoundation\Response;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
@@ -555,6 +555,28 @@ EOT;
                 foreach ($listButtons as $listButton) {
                     $tools->append(new Tools\PluginMenuButton($listButton, $custom_table, $id));
                 }
+            }
+
+            // Preview before saving. [data-preview] is handled by preview.js, which
+            // already runs on every admin page: it retargets this form at the url
+            // below in a second window, so what is shown is the form as it stands.
+            //
+            // New-record screen only. An edit screen already carries the record's
+            // own View button, and a second eye icon beside it reads as the same
+            // thing twice - the preview endpoint itself is left in place.
+            if (!$disableToolsButton && !isset($id)) {
+                $tools->append(view('exment::tools.button', [
+                    'href' => 'javascript:void(0);',
+                    'label' => exmtrans('common.preview'),
+                    'icon' => 'fa-eye',
+                    'btn_class' => 'btn-warning',
+                    'attributes' => [
+                        'data-preview' => true,
+                        'data-preview-url' => admin_urls('data', $custom_table->table_name, 'preview'),
+                        'data-preview-error-title' => '',
+                        'data-preview-error-text' => '',
+                    ],
+                ]));
             }
 
             if (!$disableToolsButton) {

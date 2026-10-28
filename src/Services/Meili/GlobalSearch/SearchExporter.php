@@ -1,0 +1,118 @@
+<?php
+
+namespace Exceedone\Exment\Services\Meili\GlobalSearch;
+
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Services\DataImportExport\Actions\Export\ViewAction;
+use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\Services\Meili\IndexSettings;
+use Exceedone\Exment\Services\Meili\MeiliSearchService;
+use Illuminate\Http\Request;
+
+/**
+ * Export the search results of ONE table (CSV/XLSX) via Exment's existing export
+ * engine: Meili filters out ids by the current keyword + filters -> inject
+ * whereIn(id) into the grid -> ViewAction exports the exact CustomView columns
+ * (like the list screen).
+ *
+ * Permission: the query runs through the global scope so ids without permission
+ * drop off by themselves; a user can only export what they can see on screen.
+ * Limit: at most permission_scan_cap (default 1000) records per run.
+ */
+class SearchExporter
+{
+    public function __construct(private MeiliSearchService $service)
+    {
+    }
+
+    /**
+     * @param \Exceedone\Exment\Model\CustomTable $custom_table
+     * @return mixed  Normally never returns: FormatBase::sendResponse() sends the
+     *   file and exits. The value is still propagated for the paths that do return.
+     */
+    public function export(Request $request, string $q, $custom_table)
+    {
+        // max(1): with a cap of 0 the "too many results" test below would refuse
+        // every export, including an empty one.
+        $cap = max(1, (int) config('meilisearch.permission_scan_cap', 1000));
+        $sort = RequestFilters::sort($request);
+        // Same permission scope as the screen the export is started from.
+        $filters = ReadableAttributes::stripHiddenFacets(
+            RequestFilters::parse($request),
+            [$custom_table->table_name]
+        );
+        $result = $this->service->searchTablePaginated(
+            $q,
+            $custom_table->table_name,
+            $cap,
+            1,
+            $filters,
+            $sort,
+            ReadableAttributes::forTable($custom_table)
+        );
+        $ids = $result['ids'];
+
+        // A full page back means Meilisearch had at least this many matches, so
+        // exporting would drop the rest with nothing on the file to say so.
+        // Refusing is the only honest option: the index caps at maxTotalHits, so
+        // there is no page 2 to fetch. Compare against the ceiling Meilisearch
+        // can really reach - a permission_scan_cap raised above the index's
+        // maxTotalHits is unreachable, and the guard would never fire.
+        //
+        // Counted BEFORE the permission scope below narrows $ids, and that is
+        // deliberate: the rows this viewer may see are spread through the whole
+        // match set, not just its first $cap entries. Counting the permitted
+        // rows instead would pass a set of 5 that is really the first 5 of many
+        // and write a file that is silently missing the rest. The number in the
+        // message is the cap, never the match count, so it tells the user
+        // nothing about records they cannot see.
+        $limit = self::effectiveCap($cap, $this->service->maxTotalHits());
+        if (count($ids) >= $limit) {
+            admin_toastr(sprintf(exmtrans('search.export_too_many'), $limit), 'error');
+            return back();
+        }
+
+        $classname = getModelName($custom_table);
+        $grid = new \ExmentAdminCore\Admin\Grid(new $classname());
+        // Meili already applied the keyword; stop HasQuickSearch parsing "col:value" out of it.
+        $grid->quickSearch(fn () => null);
+        $grid->model()->usePaginate(false);
+        // No hits -> empty whereIn so the output file has only a header (not the whole table).
+        $grid->model()->whereIn('id', empty($ids) ? [-1] : $ids);
+
+        // The grid re-fetches by id and would otherwise use its own default
+        // order, losing the sort the user picked on screen. Meili sorts these
+        // two on f_date, i.e. created_at.
+        if ($sort === 'newest' || $sort === 'oldest') {
+            $grid->model()->orderBy('created_at', $sort === 'newest' ? 'desc' : 'asc');
+        }
+
+        $format = in_array($request->input('format'), ['csv', 'xlsx'], true)
+            ? $request->input('format')
+            : 'xlsx';
+
+        $service = (new DataImportExportService())
+            ->exportAction(new ViewAction([
+                'custom_table' => $custom_table,
+                'custom_view' => CustomView::getAllData($custom_table),
+                'grid' => $grid,
+            ]))
+            ->format($format)
+            ->filebasename($custom_table->table_name);
+
+        return $service->export();
+    }
+
+    /**
+     * How many hits the export can actually see: the smaller of the configured
+     * cap and the index's maxTotalHits.
+     */
+    public static function effectiveCap(int $cap, ?int $maxTotalHits): int
+    {
+        $ceiling = ($maxTotalHits !== null && $maxTotalHits > 0)
+            ? $maxTotalHits
+            : IndexSettings::DEFAULT_MAX_TOTAL_HITS;
+
+        return min($cap, $ceiling);
+    }
+}

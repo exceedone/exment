@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Form;
 
-use Encore\Admin\Show\Field;
-use Encore\Admin\Show as AdminShow;
+use ExmentAdminCore\Admin\Show\Field;
+use ExmentAdminCore\Admin\Show as AdminShow;
 use Exceedone\Exment\Form\Field\FieldGroupTrait;
 use Exceedone\Exment\Form\Show\GridShowPanel;
 
@@ -14,7 +14,6 @@ class Show extends AdminShow
     /**
      * Initialize panel.
      */
-    // @phpstan-ignore-next-line
     protected function initPanel()
     {
         $this->panel = new GridShowPanel($this);

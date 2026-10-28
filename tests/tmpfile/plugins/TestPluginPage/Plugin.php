@@ -2,7 +2,7 @@
 
 namespace App\Plugins\TestPluginPage;
 
-use Encore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Services\Plugin\PluginPageBase;
 
 class Plugin extends PluginPageBase
@@ -15,6 +15,6 @@ class Plugin extends PluginPageBase
 
     public function index()
     {
-        return view('exment_test_plugin_page::welcome');
+        return $this->pluginView('welcome');
     }
 }

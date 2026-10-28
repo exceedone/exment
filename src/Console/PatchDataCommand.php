@@ -37,6 +37,8 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\EnvService;
+use Exceedone\Exment\Services\Line\LineInstaller;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller;
 use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 use Exceedone\Exment\Middleware\Morph;
 use Carbon\Carbon;
@@ -243,6 +245,8 @@ class PatchDataCommand extends Command
             case 'workflow_value_authorities':
                 $this->carryWorkflowValueAuthorities();
                 return 0;
+            case 'line_safety_check':
+                return $this->installLineSafetyCheck();
         }
 
         $this->error('patch name not found.');
@@ -1289,40 +1293,37 @@ class PatchDataCommand extends Command
             return;
         }
 
-        $columns = \Exceedone\Exment\Middleware\LogOperation::getHideColumns();
-        \Encore\Admin\Auth\Database\OperationLog::query()->chunk(1000, function ($logs) use ($columns) {
+        \ExmentAdminCore\Admin\Auth\Database\OperationLog::query()->chunk(1000, function ($logs) {
             foreach ($logs as $log) {
-                $input = $log->input;
-                if (is_nullorempty($input)) {
-                    continue;
-                }
-
                 $isUpdate = false;
-                $json = json_decode_ex($input, true);
-                if (is_nullorempty($json)) {
-                    continue;
-                }
-                if (!is_array($json)) {
-                    continue;
-                }
-                foreach ($json as $key => &$value) {
-                    if (!in_array($key, $columns)) {
-                        continue;
-                    }
 
-                    if ($value == '***') {
-                        continue;
-                    }
-
-                    $value = '***';
+                // Mask sensitive path segments (e.g. api_setting/{client_id}).
+                $maskedPath = \Exceedone\Exment\Middleware\LogOperation::hidePathParams($log->path ?? '');
+                if (!is_nullorempty($log->path) && $maskedPath !== $log->path) {
+                    $log->path = $maskedPath;
                     $isUpdate = true;
+                }
+
+                $input = $log->input;
+                if (!is_nullorempty($input)) {
+                    $json = json_decode_ex($input, true);
+                    if (!is_nullorempty($json) && is_array($json)) {
+                        // Mask keys resolved per row: global keys + URI-scoped keys
+                        // matched against this row's logged path. Recursive, so
+                        // secrets ne-sted inside objects/arrays are masked too.
+                        // NOTE: use the original (unmasked) path for matching.
+                        $masked = \Exceedone\Exment\Middleware\LogOperation::maskInputArray($json, $log->getOriginal('path') ?? '');
+                        if ($masked != $json) {
+                            $log->input = json_encode($masked);
+                            $isUpdate = true;
+                        }
+                    }
                 }
 
                 if (!$isUpdate) {
                     continue;
                 }
 
-                $log->input = json_encode($json);
                 $log->save();
             }
         });
@@ -1856,7 +1857,6 @@ class PatchDataCommand extends Command
         Model\File::where('parent_type', $custom_table->table_name)
             ->chunk(1000, function ($files) use ($custom_table) {
                 foreach ($files as $file) {
-                    // @phpstan-ignore-next-line
                     $exists = $custom_table->getValueModel()->query()
                         ->where('id', $file->parent_id)
                         ->withoutGlobalScopes()
@@ -2240,5 +2240,28 @@ class PatchDataCommand extends Command
                     Model\WorkflowAction::carryWorkflowValueAuthorities($workflow_value);
                 }
             });
+    }
+
+    /**
+     * @return int
+     */
+    protected function installLineSafetyCheck()
+    {
+        if (!LineInstaller::systemTemplateImported()) {
+            $this->error('Exment is not installed. Run "php artisan exment:install" first.');
+            return 1;
+        }
+
+        try {
+            // LINE first: the safety check flex template is stored in line_flex_template
+            LineInstaller::ensureAll();
+            SafetyCheckInstaller::ensureAll();
+        } catch (\RuntimeException $ex) {
+            $this->error($ex->getMessage());
+            return 1;
+        }
+
+        System::clearCache();
+        return 0;
     }
 }

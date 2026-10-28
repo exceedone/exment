@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 
-class Html extends \Encore\Admin\Form\Field\Html
+class Html extends \ExmentAdminCore\Admin\Form\Field\Html
 {
     /**
      * Render html field.

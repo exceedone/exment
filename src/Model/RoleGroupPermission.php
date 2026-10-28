@@ -50,7 +50,9 @@ class RoleGroupPermission extends ModelBase
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<RoleGroup, $this>
+     */
     public function role_group()
     {
         return $this->belongsTo(RoleGroup::class, 'role_group_id');

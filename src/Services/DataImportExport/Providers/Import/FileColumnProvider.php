@@ -120,7 +120,6 @@ class FileColumnProvider extends ProviderBase
         $error_data = [];
         $success_data = [];
         foreach ($dataObjects as $line_no => $value) {
-            // @phpstan-ignore-next-line
             $check = $this->validateDataRow($line_no, $value, $validate_columns, $dataObjects);
             if ($check === true) {
                 $success_data[] = $value;
@@ -136,7 +135,7 @@ class FileColumnProvider extends ProviderBase
      * validate data row
      * @param int $line_no
      * @param array $dataAndModel
-     * @param array $validate_columns
+     * @param \Illuminate\Support\Collection<int, \Exceedone\Exment\Model\CustomColumn> $validate_columns the attachment columns of the table
      * @param array $dataObjects
      */
     // @phpstan-ignore-next-line

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use Encore\Admin\Form\Field\MultipleSelect;
+use ExmentAdminCore\Admin\Form\Field\MultipleSelect;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
@@ -122,7 +122,7 @@ class WorkflowItem extends SystemItem
 
         // get workflow statuses
         $workflow = Workflow::getWorkflowByTable($this->custom_table);
-        $options = $workflow->getStatusOptions() ?? [];
+        $options = $workflow ? ($workflow->getStatusOptions() ?? []) : [];
 
         $field->options($options);
         $field->default($this->value);

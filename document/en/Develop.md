@@ -21,7 +21,7 @@ This page explains how to set up developing Exment engine.
 - Please execute this command on any path.
 
 ~~~
-composer create-project "laravel/laravel=10.*" (project name)
+composer create-project "laravel/laravel=12.*" (project name)
 cd (project name)
 ~~~
 
@@ -53,27 +53,27 @@ composer require psr/simple-cache=^2.0.0
 ~~~
 git clone https://github.com/hirossyi73/exment.git
 ~~~
-- (Optional)Clone your laravel-admin repository.
-(ex. https://github.com/hirossyi73/laravel-admin.git)
+- (Optional)Clone your exment-admin-core repository.
+(ex. https://github.com/hirossyi73/exment-admin-core.git)
 
 ~~~
-git clone https://github.com/hirossyi73/laravel-admin.git
+git clone https://github.com/hirossyi73/exment-admin-core.git
 ~~~
 - rewrite composer.json on project root directory.  
 ***When you edit composer.json, please remove comments. We cannot add comments on json file.**
 
 ~~~
     "require": {
-        "php": ">=8.1",
-        "guzzlehttp/guzzle": "^7.2",
-        "laravel/framework": "^10.10",
-        "laravel/sanctum": "^3.3",
-        "laravel/tinker": "^2.8",
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.10",
+        "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.2",
+        "laravel/tinker": "^2.10",
         "psr/simple-cache": "2.0.0",
         // Add this line
         "exceedone/exment": "dev-master"
         // Optional
-        ,"exceedone/laravel-admin": "dev-master as 4.10.10"
+        ,"exceedone/exment-admin-core": "dev-master"
     },
 
     "autoload": {
@@ -99,7 +99,7 @@ git clone https://github.com/hirossyi73/laravel-admin.git
         ,
         {
             "type": "path",
-            "url": "packages/hirossyi73/laravel-admin",
+            "url": "packages/hirossyi73/exment-admin-core",
             "options": {
                 "symlink": true
             }
@@ -251,9 +251,9 @@ composer global require friendsofphp/php-cs-fixer
 
 ```
 #Remove unused use
-php-cs-fixer fix ./vendor/hirossyi73/exment --rules=no_unused_imports
+php-cs-fixer fix ./packages/hirossyi73/exment --rules=no_unused_imports
 #Fix all source
-php-cs-fixer fix ./vendor/hirossyi73/exment
+php-cs-fixer fix ./packages/hirossyi73/exment
 ```
 
 

@@ -91,8 +91,9 @@ class ExmentDebug
      */
     protected static function logRequest($request)
     {
-        $input = collect($request->input())->map(function ($value, $key) {
-            if (in_array($key, LogOperation::getHideColumns())) {
+        $hideColumns = LogOperation::getHideColumnsByPath($request->path());
+        $input = collect($request->input())->map(function ($value, $key) use ($hideColumns) {
+            if (in_array($key, $hideColumns)) {
                 return "$key:xxxx";
             } elseif (is_array($value)) {
                 return "$key:" . json_encode($value);

@@ -20,7 +20,7 @@ abstract class ExistsBase extends ViewFilterBase
 
         $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
         $query_value = collect($query_value)->map(function ($val) use ($isMultiple, $isUseUnicode) {
-            return $isMultiple && $isUseUnicode ? unicode_encode($val) : $val;
+            return $isMultiple && $isUseUnicode ? json_list_item($val) : $val;
         })->toArray();
         if ($isMultiple) {
             $method_name_suffix = $this->isExists() ? 'InArrayString' : 'NotInArrayString';

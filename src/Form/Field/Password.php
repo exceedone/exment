@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-class Password extends \Encore\Admin\Form\Field\Password
+class Password extends \ExmentAdminCore\Admin\Form\Field\Password
 {
     // @phpstan-ignore-next-line
     protected $showToggleIcon = false;

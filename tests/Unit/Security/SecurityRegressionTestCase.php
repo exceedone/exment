@@ -6,7 +6,8 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
- * Base class for the JVN security-fix regression tests.
+ * Base class for security regression tests (proving the commit b26a6dd fixes and the
+ * JVN security fixes work at runtime).
  *
  * DATA SAFETY:
  *  - Uses DatabaseTransactions => every INSERT/UPDATE is ROLLED BACK in tearDown.
@@ -15,10 +16,14 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
  *
  * Running: the whole Security folder is safe (these tests never migrate:fresh):
  *   vendor/bin/phpunit exment/tests/Unit/Security/
+ * or a single file, e.g.:
+ *   vendor/bin/phpunit exment/tests/Unit/Security/Bug1GroupKeySqlInjectionFixedTest.php
  * Do NOT run the entire Unit suite, which pulls in ExmentTestCase -> DatabaseMigrations
  * -> migrate:fresh -> dev data loss.
  *
- * Covered: JvnPluginPublicFileTraversalFixedTest, JvnFieldTypeFlashMessageXssFixedTest,
+ * Covered: Bug1GroupKeySqlInjectionFixedTest, Bug2TemplateDeleteAuthFixedTest,
+ * Bug3FileAuthzConstraintTest, Bug5FileDeleteArraySpliceFixedTest,
+ * JvnPluginPublicFileTraversalFixedTest, JvnFieldTypeFlashMessageXssFixedTest,
  * JvnColumnItemXssFixedTest, JvnNotifyNavbarLabelXssFixedTest,
  * JvnPublicFormCustomCssInjectionFixedTest, JvnUrlLinkXssHardeningTest.
  */

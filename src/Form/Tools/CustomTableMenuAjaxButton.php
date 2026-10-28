@@ -12,26 +12,26 @@ class CustomTableMenuAjaxButton extends ModalTileAjaxMenuButton
     use CustomTableMenuTrait;
 
     public function __construct()
-    {
-        $this->page_name = 'table';
-        $this->page_name_sub = null;
+{
+    $this->page_name = 'table';
+    $this->page_name_sub = null;
 
-        parent::__construct(
-            null,
-            [
+    parent::__construct(
+        null,
+        [
             'label' => exmtrans("change_page_menu.change_page_label"),
             'icon' => 'fa-cog',
-            'button_class' => 'btn-default',
+            'button_class' => 'btn-default disabled',
         ]
-        );
-        $this->modal_title = exmtrans("change_page_menu.change_page_label");
-    }
+    );
+    $this->modal_title = exmtrans("change_page_menu.change_page_label");
+}
 
     // @phpstan-ignore-next-line
     public function id($id)
     {
         $this->custom_table = CustomTable::getEloquent($id);
-    }
+    } 
 
     // @phpstan-ignore-next-line
     protected function script()

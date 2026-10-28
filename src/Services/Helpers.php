@@ -1078,6 +1078,7 @@ if (!function_exists('is_list')) {
      *
      * @param mixed $value
      * @return bool
+     * @phpstan-assert-if-true array<mixed>|Collection<array-key, mixed> $value
      */
     function is_list($value): bool
     {
@@ -1285,6 +1286,19 @@ if (!function_exists('get_password_rule')) {
     }
 }
 
+if (!function_exists('get_flash_input')) {
+    /**
+     * Get request input to flash to the session when redirecting with input. Passwords are removed.
+     * Same input as withInput() flashes: input(), not all(), so that empty file inputs are not flashed as null.
+     *
+     * @return array<mixed>
+     */
+    function get_flash_input(): array
+    {
+        return \Illuminate\Support\Arr::except(request()->input(), Define::DONT_FLASH_INPUT_KEYS);
+    }
+}
+
 if (!function_exists('get_omitted_string')) {
     /**
      * if over string length. remove text, add "..."
@@ -1458,14 +1472,24 @@ if (!function_exists('hasTable')) {
      * @param string $table_name *only table name
      * @return bool
      */
-    function hasTable($table_name)
+    function hasTable(string $table_name): bool
     {
         $tables = System::cache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
             // get all table names
-            return DB::connection()->getDoctrineSchemaManager()->listTableNames();
+            try {
+                // Through the connection's own schema builder, so it follows
+                // whichever driver is configured (MySQL, MariaDB, SQL Server)
+                // and its socket / SSL / read-write settings. A separate DBAL
+                // connection built from host and port only would fail on any of
+                // those, and the empty list below would then read as "no tables".
+                return \Schema::getTableListing();
+            } catch (\Throwable $e) {
+                \Log::error('Error fetching table names: ' . $e->getMessage());
+                return [];
+            }
         }, true);
 
-        return in_array($table_name, $tables);
+        return in_array($table_name, $tables, true);
     }
 }
 
@@ -1901,6 +1925,27 @@ if (!function_exists('admin_exclusion_path')) {
         }
     }
 
+    if (!function_exists('json_list_item')) {
+        /**
+         * One value of a multiple-value column as it reads in the stored list on MariaDB /
+         * SQL Server (ExmentDB::isUseUnicodeMultipleColumn): as json_encode wrote it — every
+         * non-ASCII character as \uXXXX, "/" as "\/" — without the quotes the list search
+         * drops (whereInArrayString). unicode_encode() escapes 3-byte characters only, so
+         * "café" or "東京/大阪" would never match.
+         *
+         * @param mixed $value
+         * @return mixed  the escaped text; anything that is no scalar as given
+         */
+        function json_list_item($value)
+        {
+            if (!is_scalar($value)) {
+                return $value;
+            }
+            $json = json_encode((string) $value);
+            return $json === false ? $value : str_replace('"', '', substr($json, 1, -1));
+        }
+    }
+
     if (!function_exists('json_decode_ex')) {
         /**
          * Wrapper for json_decode that throws when an error occurs.
@@ -1950,5 +1995,17 @@ if (!function_exists('admin_exclusion_path')) {
             }
             return $validName;
         }
+    }
+}
+
+if (!function_exists('html_image')) {
+    function html_image($path, $alt = '', $attributes = [])
+    {
+        $src = asset($path);
+        $attrString = '';
+        foreach ($attributes as $key => $value) {
+            $attrString .= " {$key}=\"{$value}\"";
+        }
+        return "<img src=\"{$src}\" alt=\"{$alt}\"{$attrString}>";
     }
 }

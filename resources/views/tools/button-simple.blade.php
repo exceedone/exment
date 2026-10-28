@@ -2,5 +2,5 @@
     @if(isset($icon))
     <i class="fa {{ $icon }}"></i>
     @endif
-    <span class="hidden-xs">&nbsp;{{ $label }}</span>
+    <span class="d-none d-md-inline">&nbsp;{{ $label }}</span>
 </a>

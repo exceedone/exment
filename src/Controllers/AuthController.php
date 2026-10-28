@@ -19,7 +19,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Validator as ExmentValidator;
-use Encore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
 use Carbon\Carbon;
@@ -27,7 +27,7 @@ use Carbon\Carbon;
 /**
  * For login controller
  */
-class AuthController extends \Encore\Admin\Controllers\AuthController
+class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
 {
     use AuthTrait;
 
@@ -127,19 +127,19 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             // user surpasses their maximum number of attempts they will get locked out.
             $this->incrementLoginAttempts($request);
 
-            return back()->withInput()->withErrors([
+            return back()->withInput(get_flash_input())->withErrors([
                 $this->username() => $this->getFailedLoginMessage(),
             ]);
         }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
             \Log::error($ex);
-            return redirect($error_url)->withInput()->withErrors(
+            return redirect($error_url)->withInput(get_flash_input())->withErrors(
                 [$this->username() => $ex->getSsoErrorMessage()]
             );
         } catch (\Exception $ex) {
             \Log::error($ex);
-            return redirect($error_url)->withInput()->withErrors(
+            return redirect($error_url)->withInput(get_flash_input())->withErrors(
                 [$this->username() => exmtrans('login.sso_provider_error')]
             );
         }
@@ -196,8 +196,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         }
 
         // calc diff days
-        $diff_days = $last_history->created_at->diffInDays(Carbon::now());
-
+        $diff_days = (int) $last_history->created_at->diffInDays(Carbon::now(), true);
         if ($diff_days > $expiration_days) {
             return false;
         }

@@ -77,6 +77,8 @@ class TestDataSeeder extends Seeder
 
         $this->createUnicodeDataTable($menu, $users);
 
+        $this->createOneRecordTable($menu, $users);
+
         $this->createApiSetting();
 
         $this->createMailTemplate();
@@ -367,7 +369,7 @@ class TestDataSeeder extends Seeder
 
                         for ($i = 1; $i <= 10; $i++) {
                             $index++;
-                            $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+                            $new_id = ($custom_table->getValueModel()->withoutGlobalScopes()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                             $custom_value = $custom_table->getValueModel();
                             // only use rand
@@ -634,7 +636,7 @@ class TestDataSeeder extends Seeder
 
                         for ($i = 1; $i <= 10; $i++) {
                             $index++;
-                            $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+                            $new_id = ($custom_table->getValueModel()->withoutGlobalScopes()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                             $custom_value = $custom_table->getValueModel();
                             // only use rand
@@ -724,7 +726,7 @@ class TestDataSeeder extends Seeder
 
                     for ($i = 1; $i <= 10; $i++) {
                         $index++;
-                        $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+                        $new_id = ($custom_table->getValueModel()->withoutGlobalScopes()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                         $custom_value = $custom_table->getValueModel();
                         // only use rand
@@ -768,6 +770,37 @@ class TestDataSeeder extends Seeder
         }
         return $result;
     }
+
+    /**
+     * Create the "table_a" one-record custom table used by
+     * OneRecordBatchBypassTest. It has a single required text column "name"
+     * and starts empty.
+     *
+     * @param mixed $menu
+     * @param mixed $users
+     * @return void
+     */
+    protected function createOneRecordTable($menu, $users)
+    {
+        $custom_table = $this->createTable('table_a', [
+            'menuParentId' => $menu->id,
+            'customTableOptions' => ['one_record_flg' => 1, 'search_enabled' => 1],
+            'createColumnCallback' => function ($custom_table, &$custom_columns) {
+                $custom_column = CustomColumn::create([
+                    'custom_table_id' => $custom_table->id,
+                    'column_name' => 'name',
+                    'column_view_name' => 'name',
+                    'column_type' => ColumnType::TEXT,
+                    'options' => ['required' => '1'],
+                ]);
+                $custom_columns[] = $custom_column;
+            },
+            'createValue' => false,
+        ]);
+
+        $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
+    }
+
     /**
      * Create relation filter to custom form column
      *
@@ -1090,7 +1123,7 @@ class TestDataSeeder extends Seeder
 
             for ($i = 1; $i <= $options['count']; $i++) {
                 $count++;
-                $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+                $new_id = ($custom_table->getValueModel()->withoutGlobalScopes()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                 $custom_value = $custom_table->getValueModel();
                 $custom_value->setValue("text", 'test_'.$user_id);
@@ -1186,7 +1219,6 @@ class TestDataSeeder extends Seeder
             case 0:
                 break;
             case 1:
-                // @phpstan-ignore-next-line
                 $result = $date->addDays($new_id-4);
                 break;
             case 2:
@@ -1214,13 +1246,11 @@ class TestDataSeeder extends Seeder
                 $result = $date;
                 break;
             default:
-                // @phpstan-ignore-next-line
                 $result = \Carbon\Carbon::create(2019, 12, 28)->addDays($new_id);
                 break;
         }
 
         if (isset($result)) {
-            // @phpstan-ignore-next-line
             return $result->format('Y-m-d');
         }
         return null;

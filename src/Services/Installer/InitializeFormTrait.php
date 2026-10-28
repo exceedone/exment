@@ -2,12 +2,14 @@
 
 namespace Exceedone\Exment\Services\Installer;
 
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Box;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
+use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -132,7 +134,7 @@ trait InitializeFormTrait
             ->attribute(['data-senddata' => json_encode(['test_mail_to'])])
             ->button_label(exmtrans('system.submit_test_mail'))
             ->send_params('test_mail_to');
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         return new Box(exmtrans("system.submit_test_mail"), $form);
     }
 
@@ -172,6 +174,52 @@ trait InitializeFormTrait
         $form->select('system_slack_user_column', exmtrans('system.system_slack_user_column'))
             ->help(exmtrans('system.help.system_slack_user_column'))
             ->options($this->getUserOrgSlackColumns('user'));
+
+        $form->exmheader(exmtrans('system.system_line'))->hr();
+
+        $form->password('system_line_channel_token', exmtrans('system.system_line_channel_token'));
+
+        $form->password('system_line_channel_secret', exmtrans('system.system_line_channel_secret'));
+
+        $form->text('system_line_oa_basic_id', exmtrans('system.system_line_oa_basic_id'))
+            ->help(exmtrans('system.help.system_line_oa_basic_id'));
+
+        $form->display('system_line_webhook_url', exmtrans('system.system_line_webhook_url'))
+            ->default(admin_url('line/webhook'));
+
+        $form->exmheader(exmtrans('system.safety_check'))->hr();
+
+        $form->switchbool('safety_check_auto_enabled', exmtrans('system.safety_check_auto_enabled'))
+            ->help(exmtrans('system.help.safety_check_auto_enabled'));
+
+        $form->select('safety_check_min_scale', exmtrans('system.safety_check_min_scale'))
+            ->help(exmtrans('system.help.safety_check_min_scale'))
+            ->options(SafetyCheckDefine::scaleOptions())
+            ->disableClear()
+            ->default(45);
+
+        $form->number('safety_check_cooldown_minutes', exmtrans('system.safety_check_cooldown_minutes'))
+            ->help(exmtrans('system.help.safety_check_cooldown_minutes'))
+            ->default(60)
+            ->min(1);
+        $form->number('safety_check_comment_window_minutes', exmtrans('system.safety_check_comment_window_minutes'))
+            ->help(exmtrans('system.help.safety_check_comment_window_minutes'))
+            ->default(60)
+            ->min(1);
+        $form->number('safety_check_max_bulletin_age_minutes', exmtrans('system.safety_check_max_bulletin_age_minutes'))
+            ->help(exmtrans('system.help.safety_check_max_bulletin_age_minutes'))
+            ->default(10)
+            ->min(1);
+        $form->number('safety_check_resend_throttle_minutes', exmtrans('system.safety_check_resend_throttle_minutes'))
+            ->help(exmtrans('system.help.safety_check_resend_throttle_minutes'))
+            ->default(5)
+            ->min(0);
+        $form->number('safety_check_answer_url_expire_days', exmtrans('system.safety_check_answer_url_expire_days'))
+            ->help(exmtrans('system.help.safety_check_answer_url_expire_days'))
+            ->default(7)
+            ->required()
+            ->min(0)
+            ->max(SafetyCheckSender::ANSWER_URL_MAX_EXPIRE_DAYS);
     }
 
 
@@ -197,7 +245,7 @@ trait InitializeFormTrait
 
         $validation = Validator::make($request->all(), $rules);
         if ($validation->fails()) {
-            return back()->withInput()->withErrors($validation);
+            return back()->withInput(get_flash_input())->withErrors($validation);
         }
 
         $inputs = $request->all(System::get_system_keys($group));

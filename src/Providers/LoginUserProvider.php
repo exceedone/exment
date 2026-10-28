@@ -25,9 +25,12 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
 
     public function retrieveById($identifier)
     {
-        //return \Encore\Admin\Auth\Database\Administrator::find($identifier);
-        // @phpstan-ignore-next-line
-        return LoginUser::find($identifier);
+        try {
+            //return \ExmentAdminCore\Admin\Auth\Database\Administrator::find($identifier);
+            return LoginUser::find($identifier);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -74,6 +77,32 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
     public function validateCredentials(Authenticatable $login_user, array $credentials)
     {
         return static::ValidateCredential($login_user, $credentials);
+    }
+
+    /**
+     * Rehash the password after login when the hash cost changed (Laravel 11+ "rehash_on_login").
+     *
+     * Only the Exment password login is rehashed: SSO/LDAP credentials have no Exment password.
+     * The new hash is saved quietly, because LoginUser hashes the password again while saving
+     * and would store a hash of the hash.
+     *
+     * @param array<string, mixed> $credentials
+     */
+    public function rehashPasswordIfRequired(Authenticatable $user, #[\SensitiveParameter] array $credentials, bool $force = false)
+    {
+        $credentials = static::getCredentialDefault($credentials);
+        if ($credentials['login_type'] != LoginType::PURE || !isset($credentials['password'])) {
+            return;
+        }
+
+        if (!$this->hasher->needsRehash($user->getAuthPassword()) && !$force) {
+            return;
+        }
+
+        /** @var LoginUser $user */
+        $user->forceFill([
+            $user->getAuthPasswordName() => $this->hasher->make($credentials['password']),
+        ])->saveQuietly();
     }
 
     /**

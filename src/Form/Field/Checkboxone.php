@@ -2,28 +2,25 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field;
-use Encore\Admin\Validator\HasOptionRule;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Validator\HasOptionRule;
 
 class Checkboxone extends Field
 {
     protected $view = 'exment::form.field.checkboxone';
 
-    // @phpstan-ignore-next-line
     protected static $css = [
-        '/vendor/laravel-admin/AdminLTE/plugins/iCheck/all.css',
+        '/vendor/open-admin/AdminLTE/plugins/iCheck/all.css',
     ];
 
-    // @phpstan-ignore-next-line
     protected static $js = [
-        '/vendor/laravel-admin/AdminLTE/plugins/iCheck/icheck.min.js',
+        '/vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js',
     ];
 
     // @phpstan-ignore-next-line
     protected $check_label = '';
     // @phpstan-ignore-next-line
     protected $check_value = '';
-    // @phpstan-ignore-next-line
     protected $options = [];
 
 

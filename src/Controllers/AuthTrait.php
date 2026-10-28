@@ -140,6 +140,11 @@ trait AuthTrait
      */
     protected function sendLoginResponse(Request $request)
     {
+        // clear throttle counter on successful login (mirrors parent SendsPasswordResetEmails behaviour)
+        if (method_exists($this, 'clearLoginAttempts')) {
+            $this->clearLoginAttempts($request);
+        }
+
         /** @phpstan-ignore-next-line */
         admin_toastr(trans('admin.login_successful'));
 

@@ -3,8 +3,8 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
 use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
@@ -153,6 +153,13 @@ class File extends CustomItem
         $fileOption = File::getFileOptions($this->custom_column, $this->id);
         $field->options($fileOption)->removable();
         $field->help(array_get($fileOption, 'maxFileSizeHelp'));
+
+        // Paste a screenshot into this column instead of saving it to disk first.
+        // Marked per column rather than switched on everywhere, so a paste on a
+        // form with several file columns has one obvious destination.
+        if (boolval($this->custom_column->getOption('paste_attach_enabled'))) {
+            $field->attribute(['data-paste-attach' => '1']);
+        }
 
         // set filename rule
         $custom_table = $this->getCustomTable();
@@ -509,6 +516,10 @@ class File extends CustomItem
             $form->text('accept_extensions', exmtrans("custom_column.options.accept_extensions"))
                 ->help(exmtrans("custom_column.help.accept_extensions"));
         }
+
+        $form->switchbool('paste_attach_enabled', exmtrans("custom_column.options.paste_attach_enabled"))
+            ->help(exmtrans("custom_column.help.paste_attach_enabled"))
+            ->default('0');
     }
 
     /**

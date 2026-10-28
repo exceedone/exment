@@ -1,9 +1,9 @@
-<div class="box box-info">
+<div class="box custom-border-info card p-2">
     <!-- box-header -->
     <div class="box-header with-border">
-        <h3 class="box-title">{{ exmtrans('plugincode.upload_header') }}</h3>
+        <h3 class="box-title float-start">{{ exmtrans('plugincode.upload_header') }}</h3>
 
-        <div class="box-tools pull-right">
+        <div class="box-tools float-end">
             <button type="button" class="btn btn-box-tool" data-widget="collapse">
                 <i class="fa fa-minus"></i>
             </button>
@@ -16,15 +16,15 @@
         <!-- box-body -->
         <div class="box-body">
             <div class="fields-group">
-                <div class="form-group">
-                    <input class="" required type="file" name="fileUpload[]" multiple /><br/>
-                    <span class="help-block">
+                <div class="form-group ps-2 pt-3 pb-4 box-header with-border">
+                    <input class="pb-4" required type="file" name="fileUpload[]" multiple /><br/>
+                    <span class="help-block d-block pb-2 text-secondary">
                         <i class="fa fa-info-circle"></i>&nbsp;{{ exmtrans('plugincode.message.upload_file', $filepath) }}
                     </span>
-                    <span class="help-block">
+                    <span class="help-block d-block pb-2 text-secondary">
                         <i class="fa fa-info-circle"></i>&nbsp;{{ exmtrans('plugincode.message.file_edit') }}
                     </span>
-                    <span class="help-block">
+                    <span class="help-block d-block pb-2 text-secondary">
                         <i class="fa fa-warning"></i>&nbsp;{{ exmtrans('plugincode.message.force_updated') }}
                     </span>
                 </div>
@@ -36,10 +36,10 @@
         </div>
         <!-- /.box-body -->
 
-        <div class="box-footer">
+        <div class="box-footer pt-2">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
             <input type="hidden" id="nodeid" name="nodeid" value="{{ $nodeid }}">
-            <button type="submit" class="btn btn-info btn-upload submit_disabled" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{trans('admin.upload')}}">{{trans('admin.upload')}}</button>
+            <button type="submit" class="btn btn-info btn-upload submit_disabled text-white" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{trans('admin.upload')}}">{{trans('admin.upload')}}</button>
         </div>
     </form>
 </div>

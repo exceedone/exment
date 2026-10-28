@@ -2,10 +2,24 @@
 
 namespace Exceedone\Exment\Grid\Tools;
 
-use Encore\Admin\Grid\Tools\BatchDelete as BatchDeleteBase;
+use ExmentAdminCore\Admin\Grid\Tools\BatchDelete as BatchDeleteBase;
 
 class BatchDelete extends BatchDeleteBase
 {
+    /**
+     * Prefix the standard batch delete label with a trash icon. The
+     * icon shows up both in the stock dropdown menu (`{!! $action->render() !!}`)
+     * and in the copy grid_tools.js hangs in the floating selection bar,
+     * so the two entries stay recognisable at a glance without wiring
+     * two icon lookups.
+     *
+     * @return string
+     */
+    public function render()
+    {
+        return '<i class="fa fa-trash"></i>&nbsp;' . e((string)$this->getTitle());
+    }
+
     /**
      * Script of batch delete action.
      *
@@ -23,6 +37,7 @@ class BatchDelete extends BatchDeleteBase
         return <<<EOT
 
 $('{$this->getElementClass()}').on('click', function() {
+    event.preventDefault(); 
 
     swal({
         title: "{$trans['delete_confirm']}",

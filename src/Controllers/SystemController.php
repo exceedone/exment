@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;
@@ -64,7 +64,6 @@ class SystemController extends AdminControllerBase
     {
         $this->AdminContent($content);
         $form = $this->formBasic($request);
-        // @phpstan-ignore-next-line
         $box = new Box(exmtrans('common.basic_setting'), $form);
         $box->tools(new Tools\SystemChangePageMenu());
 
@@ -128,7 +127,6 @@ class SystemController extends AdminControllerBase
         $this->AdminContent($content);
 
         $form = $this->formAdvanced($request);
-        // @phpstan-ignore-next-line
         $box = new Box(exmtrans('common.detail_setting'), $form);
 
         $box->tools(new Tools\SystemChangePageMenu());
@@ -306,6 +304,27 @@ class SystemController extends AdminControllerBase
 
         // use mail setting
         $this->setNotifyForm($form);
+
+        // full-text search setting
+        $form->exmheader(exmtrans('system.meili'))->hr();
+        $form->text('meili_host', exmtrans('system.meili_host'))->help(exmtrans('system.help.meili_host'));
+        $form->password('meili_key', exmtrans('system.meili_key'))->help(exmtrans('system.help.meili_key'));
+        $form->text('meili_index', exmtrans('system.meili_index'))->help(exmtrans('system.help.meili_index'));
+        $form->switchbool('meili_global_search', exmtrans('system.meili_global_search'))->help(exmtrans('system.help.meili_global_search'));
+        $form->switchbool('meili_realtime_sync', exmtrans('system.meili_realtime_sync'))->help(exmtrans('system.help.meili_realtime_sync'));
+        $form->number('meili_batch_size', exmtrans('system.meili_batch_size'))
+            ->min(1)
+            ->rules(['nullable', 'integer', 'min:1'])
+            ->help(exmtrans('system.help.meili_batch_size'));
+        $form->switchbool('meili_repair_enabled', exmtrans('system.meili_repair_enabled'))->help(exmtrans('system.help.meili_repair_enabled'));
+        $form->text('meili_repair_at', exmtrans('system.meili_repair_at'))
+            ->rules(['nullable', 'regex:/^([01][0-9]|2[0-3]):[0-5][0-9]$/'])
+            ->help(exmtrans('system.help.meili_repair_at'));
+        $form->select('meili_filter_mode', exmtrans('system.meili_filter_mode'))
+            ->options(['override' => exmtrans('system.meili_filter_mode_options.override'), 'manual' => exmtrans('system.meili_filter_mode_options.manual')])
+            ->default('override')
+            ->disableClear()
+            ->help(exmtrans('system.help.meili_filter_mode'));
 
         $form->exmheader(exmtrans('system.ip_filter'))->hr();
         $form->descriptionHtml(exmtrans("system.help.ip_filter"));

@@ -18,8 +18,8 @@ class SupportForV300 extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function ($table, $callback) {
-            return new ExtendedBlueprint($table, $callback);
+        $schema->blueprintResolver(function ($connection, $table, $callback) {
+            return new ExtendedBlueprint($connection, $table, $callback);
         });
 
         $schema->create('custom_form_priorities', function (ExtendedBlueprint $table) {

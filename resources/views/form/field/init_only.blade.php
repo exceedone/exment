@@ -6,7 +6,7 @@
     $valueSafe = is_array($value) ? implode(', ', \Illuminate\Support\Arr::flatten($value)) : $value;
 @endphp
 <div class="{{$viewClass['form-group']}}">
-    <label class="{{$viewClass['label']}} control-label" style="padding-top:10px;">{{$label}}</label>
+    <label class="{{$viewClass['label']}} control-label text-lg-end pt-2" style="padding-top:10px;">{{$label}}</label>
     <div class="{{$viewClass['field']}}">
         <div class="no-margin">
             @if($prepareDefault)

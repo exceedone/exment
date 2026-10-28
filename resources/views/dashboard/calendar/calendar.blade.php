@@ -9,8 +9,15 @@
             //height: 'auto',
             height: 395, // dashboard box height - 5
             eventDidMount: function(info) {
-                info.el.setAttribute('data-toggle', 'tooltip');
-                info.el.setAttribute('data-original-title', info.event.title);
+                info.el.setAttribute('data-bs-toggle', 'tooltip');
+                info.el.setAttribute('title', info.event.title);
+            },
+            eventWillUnmount: function(info) {
+                // hide, not dispose: dispose() during the fade-out makes Bootstrap's queued hide callback throw
+                var tooltip = bootstrap.Tooltip.getInstance(info.el);
+                if (tooltip) {
+                    tooltip.hide();
+                }
             },
             eventDataTransform: function(event) { // call when reading event data
                 if(event.allDayBetween) {
@@ -93,6 +100,7 @@
 </script>
 
 <style>
+
 
 .fc-day-sun,.fc-day-hol {
     .fc-col-header-cell-cushion,.fc-daygrid-day-number,.fc-list-day-text,.fc-list-day-side-text{

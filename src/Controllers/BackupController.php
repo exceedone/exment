@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Box;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -122,7 +122,6 @@ class BackupController extends AdminControllerBase
             ->min(0)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
-        // @phpstan-ignore-next-line
         return new Box(exmtrans("backup.setting_header"), $form);
     }
 
@@ -261,8 +260,7 @@ class BackupController extends AdminControllerBase
      * @param $file_key
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    // @phpstan-ignore-next-line
-    protected function importModal($file_key = null)
+    public function importModal($file_key = null)
     {
         $import_path = admin_url(url_join('backup', 'import'));
         // create form fields
@@ -317,8 +315,7 @@ class BackupController extends AdminControllerBase
     /**
      * Upload zip file
      */
-    // @phpstan-ignore-next-line
-    protected function import(Request $request)
+    public function import(Request $request)
     {
         \Exment::setTimeLimitLong();
 
@@ -359,7 +356,6 @@ class BackupController extends AdminControllerBase
             // get upload file
             $file = $request->file('upload_zipfile');
             // store uploaded file
-            // @phpstan-ignore-next-line
             $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
             try {
                 $result = $this->restore->execute($filename, true);

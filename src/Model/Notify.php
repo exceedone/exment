@@ -242,7 +242,6 @@ class Notify extends ModelBase
                 }
 
 
-                // @phpstan-ignore-next-line
                 $users = $this->uniqueUsers($users);
                 foreach ($users as $user) {
                     // send mail
@@ -456,7 +455,6 @@ class Notify extends ModelBase
             }
 
 
-            // @phpstan-ignore-next-line
             $users = $this->uniqueUsers($users);
             foreach ($users as $user) {
                 // send mail
@@ -669,7 +667,7 @@ class Notify extends ModelBase
      * @param CustomValue $custom_value target custom value
      * @param array $action_setting
      * @param CustomTable|null $custom_table
-     * @return array|Collection|\Tightenco\Collect\Support\Collection
+     * @return array|Collection
      */
 
     // @phpstan-ignore-next-line
@@ -700,7 +698,7 @@ class Notify extends ModelBase
      * @param WorkflowAction $workflow_action
      * @param WorkflowValue $workflow_value
      * @param $statusTo
-     * @return array|Collection|\Tightenco\Collect\Support\Collection
+     * @return array|Collection
      */
 
     // @phpstan-ignore-next-line
@@ -763,7 +761,7 @@ class Notify extends ModelBase
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
 
         // if already send notify in 1 minutes, continue.
-        if ($checkHistory && $custom_value) {
+        if ($checkHistory && $custom_value && $mail_template) {
             $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
             $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
             $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)::where($index_user, $user->id())
@@ -775,7 +773,8 @@ class Notify extends ModelBase
 
             foreach ($mail_send_histories as $mail_send_log) {
                 // If user were sending within 5 minutes, false
-                $skip_mitutes = config('exment.notify_saved_skip_minutes', 5);
+                // (int): read from .env as a string, which Carbon 3 refuses
+                $skip_mitutes = (int) config('exment.notify_saved_skip_minutes', 5);
                 $send_datetime = (new Carbon($mail_send_log->getValue('send_datetime')))
                     ->addMinutes($skip_mitutes);
                 $now = Carbon::now();

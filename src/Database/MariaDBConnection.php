@@ -34,17 +34,17 @@ class MariaDBConnection extends MySqlConnection
      */
     protected function getDefaultSchemaGrammar()
     {
-        return $this->withTablePrefix(new SchemaGrammar());
+        return new SchemaGrammar($this);
     }
 
     /**
      * Get the default query grammar instance.
      *
-     * @return Grammar|QueryGrammar
+     * @return Grammar|SchemaGrammar
      */
     protected function getDefaultQueryGrammar()
     {
-        return $this->withTablePrefix(new QueryGrammar());
+        return new QueryGrammar($this);
     }
 
     /**

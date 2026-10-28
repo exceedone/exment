@@ -124,17 +124,15 @@ class WorkflowTaskWiringTest extends TestCase
      */
     public function testControllerExposesRoutedActions()
     {
-        foreach (['index', 'read', 'readAll', 'unreadAll', 'rowCheck', 'rowDelete', 'rowRestore'] as $action) {
-            $this->assertTrue(
-                method_exists(\Exceedone\Exment\Controllers\WorkflowTaskController::class, $action),
-                "WorkflowTaskController::{$action}() is routed but missing"
-            );
+        $routed = [
+            \Exceedone\Exment\Controllers\WorkflowTaskController::class => ['index', 'read', 'readAll', 'unreadAll', 'rowCheck', 'rowDelete', 'rowRestore'],
+            \Exceedone\Exment\Controllers\ApiController::class => ['workflowTaskPage'],
+        ];
+        foreach ($routed as $controller => $actions) {
+            foreach ($actions as $action) {
+                $this->assertTrue(method_exists($controller, $action), class_basename($controller) . "::{$action}() is routed but missing");
+            }
         }
-
-        $this->assertTrue(
-            method_exists(\Exceedone\Exment\Controllers\ApiController::class, 'workflowTaskPage'),
-            'ApiController::workflowTaskPage() is routed but missing'
-        );
     }
 
     /**
@@ -434,9 +432,10 @@ class WorkflowTaskWiringTest extends TestCase
         $pageEnd = strpos($content, "\n    }", $page);
         $pageMethod = substr($content, $page, $pageEnd === false ? null : $pageEnd - $page);
         $this->assertStringContainsString('$direction = $this->filter[\'sort\']', $pageMethod);
-        $this->assertStringContainsString("orderBy(\$tableName . '.updated_at', \$direction)", $pageMethod);
+        // the one 更新日時 every read sorts and filters by (taskUpdatedAt())
+        $this->assertStringContainsString('orderBy(self::UPDATED_AT, $direction)', $pageMethod);
         $this->assertStringNotContainsString(
-            "orderBy(\$tableName . '.updated_at', 'desc')",
+            "orderBy(self::UPDATED_AT, 'desc')",
             $pageMethod,
             'a hard coded direction ignores what the user picked'
         );

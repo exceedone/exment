@@ -16,6 +16,13 @@ class Restore
     use EnvTrait;
 
     /**
+     * Whether the last restore skipped the backup's config files.
+     *
+     * @var bool
+     */
+    protected $configSkipped = false;
+
+    /**
      * Create a new command instance.
      *
      * @return void
@@ -64,6 +71,8 @@ class Restore
     // @phpstan-ignore-next-line
     public function execute($file = null, ?bool $tmp = null)
     {
+        $this->configSkipped = false;
+
         try {
             \Artisan::call('down');
 
@@ -136,6 +145,14 @@ class Restore
                 continue;
             }
 
+            // config files of another Laravel version would overwrite the current ones and
+            // stop the application from starting (e.g. config/app.php listing providers
+            // a Laravel 12 skeleton no longer has)
+            if ($setting[2] == BackupTarget::CONFIG && !$this->canRestoreConfig()) {
+                $this->configSkipped = true;
+                continue;
+            }
+
             $fromDirectory = $tmpDisk->path(path_join($this->diskService->tmpDiskItem()->dirName(), $keyname));
 
             $s = $setting[0];
@@ -172,7 +189,75 @@ class Restore
             }
         }
 
+        if ($this->configSkipped) {
+            \Log::warning('Exment: restore skipped the config files of the backup: ' . $this->getBackupLaravelVersionText());
+        }
+
         return $result;
+    }
+
+    /**
+     * Whether the last restore skipped the backup's config files.
+     *
+     * @return bool
+     */
+    public function isConfigSkipped(): bool
+    {
+        return $this->configSkipped;
+    }
+
+    /**
+     * Whether the backup's config files fit this installation.
+     *
+     * Only a backup taken on the same Laravel major version restores them. A backup without
+     * version information was taken before it was recorded (Exment v6 and older): its config
+     * files are of Laravel 10 or older.
+     *
+     * @return bool
+     */
+    protected function canRestoreConfig(): bool
+    {
+        $backupVersion = $this->getBackupLaravelVersion();
+        if (is_nullorempty($backupVersion)) {
+            return false;
+        }
+
+        return $this->getMajorVersion($backupVersion) === $this->getMajorVersion(app()->version());
+    }
+
+    /**
+     * Get the Laravel version the backup was taken on, null if the backup does not record it.
+     *
+     * @return string|null
+     */
+    protected function getBackupLaravelVersion(): ?string
+    {
+        $file = path_join($this->diskService->tmpDiskItem()->dirFullPath(), Define::BACKUP_VERSION_FILE);
+        if (!\File::exists($file)) {
+            return null;
+        }
+
+        $versions = json_decode_ex(\File::get($file), true);
+        $laravel = is_array($versions) ? array_get($versions, 'laravel') : null;
+
+        return is_string($laravel) ? $laravel : null;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getBackupLaravelVersionText(): string
+    {
+        return sprintf('backup Laravel version: %s, current: %s', $this->getBackupLaravelVersion() ?? '(not recorded)', app()->version());
+    }
+
+    /**
+     * @param string $version
+     * @return int|null
+     */
+    protected function getMajorVersion(string $version): ?int
+    {
+        return preg_match('/^v?(\d+)/', $version, $matches) ? intval($matches[1]) : null;
     }
 
     /**

@@ -152,7 +152,7 @@ var Exment;
                 type: 'hidden',
             }));
             // rename for toggle
-            if (hasValue($elem.find('[data-toggle]'))) {
+            if (hasValue($elem.find('[data-bs-toggle]'))) {
                 let uuid = getUuid();
                 $elem.find('[data-parent]')
                     .attr('data-parent', '#' + uuid)
@@ -246,10 +246,10 @@ var Exment;
         }
         static toggleConfigIcon($elem, isShow) {
             if (isShow) {
-                $elem.find('.delete,.options,[data-toggle],.setting').show();
+                $elem.find('.delete,.options,[data-bs-toggle],.setting').show();
             }
             else {
-                $elem.find('.delete,.options,[data-toggle],.setting').hide();
+                $elem.find('.delete,.options,[data-bs-toggle],.setting').hide();
             }
         }
         static toggleColumnSuggest(isShow, $item) {
@@ -516,7 +516,7 @@ var Exment;
                     },
                 });
                 resizableEl.prop('data-add-resizable', 1);
-                $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
+                $('.ui-resizable-e').attr('data-bs-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
             });
         }
         /**
@@ -741,6 +741,33 @@ var Exment;
         let form = $('#modal-showmodal form').get()[0];
         if (!form.reportValidity()) {
             return;
+        }
+        // Validate image file extension
+        let $imageInput = $('#modal-showmodal').find('input.image[type="file"]');
+        if ($imageInput.length > 0 && $imageInput.get(0).files && $imageInput.get(0).files.length > 0) {
+            let file = $imageInput.get(0).files[0];
+            let fileName = file.name;
+            let ext = fileName.split('.').pop().toLowerCase();
+            let allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
+            if (allowedExtensions.indexOf(ext) === -1) {
+                let errorMessage = $('#validate_image_error_message').val();
+                if (!errorMessage) {
+                    errorMessage = 'Please specify an image file.';
+                }
+                // Show inline error at the image input
+                let $formGroup = $imageInput.closest('.form-group, .form-group-vertical');
+                $formGroup.find('.error-label').remove();
+                $formGroup.addClass('has-error');
+                $formGroup.children('div').prepend($('<label/>', {
+                    'class': 'control-label error-label',
+                    'for': 'inputError',
+                    'html': [
+                        $('<i/>', { 'class': 'fa fa-times-circle-o' }),
+                        $('<span/>', { 'text': ' ' + errorMessage }),
+                    ]
+                }));
+                return;
+            }
         }
         let formItem = Exment.CustomFromItem.makeByModal();
         let options = formItem.getOption();

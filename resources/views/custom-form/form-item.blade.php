@@ -17,12 +17,12 @@
                 </span>
             </span>
 
-            <a href="javascript:void(0);" class="config-icon pull-right delete" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-toggle="tooltip" title="{{exmtrans('common.deleted')}}">
+            <a href="javascript:void(0);" class="config-icon float-end delete" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-bs-toggle="tooltip" title="{{exmtrans('common.deleted')}}">
                 <i class="fa fa-trash"></i>
             </a>
             
             @if(boolval($custom_form_column['use_setting']))
-            <a href="javascript:void(0);" class="config-icon pull-right setting" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-widgetmodal_method="POST" data-toggle="tooltip" title="{{trans('admin.setting')}}">
+            <a href="javascript:void(0);" class="config-icon float-end setting" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-widgetmodal_method="POST" data-bs-toggle="tooltip" title="{{trans('admin.setting')}}">
                 <i class="fa fa-cog"></i>
             </a>
             @endif
@@ -47,7 +47,7 @@
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'row_no'])
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'column_no'])
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'width'])
-        {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[required]", array_get($custom_form_column, 'required'), ['class' => 'required_item']) }}
+        <input type="hidden" name="{{ $custom_form_block['header_name'] }}{{ $custom_form_column['header_column_name'] }}[required]" value="{{ array_get($custom_form_column, 'required') }}" class="required_item" />
         @endif
 
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'delete_flg'])

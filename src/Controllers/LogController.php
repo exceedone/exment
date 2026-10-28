@@ -6,11 +6,11 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\DataImportExport;
-use Encore\Admin\Grid;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Show;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Show;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Carbon\Carbon;
@@ -121,7 +121,6 @@ class LogController extends AdminControllerBase
             ->help(exmtrans('operation_log.automatic_minute_help'))
             ->attribute(['data-filter' => $dataFilter]);
 
-        /** @phpstan-ignore-next-line */
         return new Box(exmtrans('operation_log.enable_automatic'), $form);
     }
 
@@ -217,7 +216,7 @@ class LogController extends AdminControllerBase
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $button = new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true, false);
             $button->setBaseKey('common');
-            // @phpstan-ignore-next-line
+            /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
             $tools->append($button);
         });
 

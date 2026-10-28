@@ -15,8 +15,8 @@ class SupportForV21 extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function ($table, $callback) {
-            return new ExtendedBlueprint($table, $callback);
+        $schema->blueprintResolver(function ($connection, $table, $callback) {
+            return new ExtendedBlueprint($connection, $table, $callback);
         });
 
         if (!\Schema::hasTable('custom_operations')) {

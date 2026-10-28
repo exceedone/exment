@@ -59,7 +59,7 @@ class WorkflowTaskNav implements Renderable
         <input id="workflow_task_navbar_noitem" type="hidden" value="$no_newitem" />
         <input id="workflow_task_navbar_interval" type="hidden" value="$interval" />
 <li class="navbar-workflow-task dropdown notifications-menu">
-    <a href="javascript:void(0);" class="container-workflow-task hidden-xs dropdown-toggle" data-toggle="dropdown" title="$list">
+    <a href="javascript:void(0);" class="container-workflow-task hidden-xs dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="$list">
       <i class="fa fa-sitemap"></i>
     </a>
 
@@ -69,7 +69,7 @@ class WorkflowTaskNav implements Renderable
         <ul class="menu">
         </ul>
         </li>
-        <li class="footer"><a href="$list_url">$list</a></li>
+        <li class="footer text-center"><a href="$list_url">$list</a></li>
     </ul>
 </li>
 EOT;

@@ -433,7 +433,7 @@ class ImportExportTest extends FeatureTestBase
                     if ($colvalue instanceof CustomValue) {
                         $colvalue = array_get($colvalue, 'id');
                     }
-                    if (is_list($colvalue)) {
+                    if (is_array($colvalue) || $colvalue instanceof \Illuminate\Support\Collection) {
                         $colvalue = collect($colvalue)->map(function ($item) use ($header, $custom_table) {
                             if ($item instanceof CustomValue) {
                                 return array_get($item, 'id');

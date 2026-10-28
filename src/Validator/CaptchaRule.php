@@ -2,15 +2,15 @@
 
 namespace Exceedone\Exment\Validator;
 
+use Exceedone\Exment\Services\ReCaptchaService;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Support\Arr;
 
 /**
- * Class     CaptchaRule. Copied from \Arcanedev\NoCaptcha\Rules\CaptchaRule
- * Because we want to set trans for exment
- *
- * @package  Arcanedev\NoCaptcha\Rules
- * @author   ARCANEDEV <arcanedev.maroc@gmail.com>
+ * Class     CaptchaRule. Originally copied from \Arcanedev\NoCaptcha\Rules\CaptchaRule
+ * so that exment could translate the message. That package cannot be installed
+ * alongside Laravel 12, so the verification now goes through ReCaptchaService,
+ * which calls google/recaptcha directly.
  */
 class CaptchaRule implements Rule
 {
@@ -39,8 +39,10 @@ class CaptchaRule implements Rule
     public function __construct($version = null)
     {
         $this->version($version);
+        // The second lookup only matters on a site upgraded from an older
+        // Laravel that still has a published config/no-captcha.php lying around.
         $this->skipIps(
-            config()->get('no-captcha.skip-ips', [])
+            config('exment.recaptcha_skip_ips') ?? config('no-captcha.skip-ips', [])
         );
     }
 
@@ -50,7 +52,8 @@ class CaptchaRule implements Rule
      */
 
     /**
-     * Set the ReCaptcha version.
+     * Set the ReCaptcha version. Leave it null to follow the version chosen on
+     * the system settings screen, which is what the public form does.
      *
      * @param  string|null  $version
      *
@@ -99,10 +102,11 @@ class CaptchaRule implements Rule
             return true;
         }
 
-        /** @phpstan-ignore-next-line */
-        return no_captcha($this->version)
-            ->verify($value, $ip)
-            ->isSuccess();
+        return ReCaptchaService::verify(
+            is_string($value) ? $value : null,
+            $ip,
+            $this->version
+        );
     }
 
     /**

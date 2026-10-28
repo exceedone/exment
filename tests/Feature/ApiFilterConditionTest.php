@@ -419,6 +419,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
         $json = collect(json_decode_ex($response, true))->pluck('text', 'id')->toArray();
 
         $expectOptions = array_get(FilterOption::FILTER_OPTIONS(), $filterType, []);
+        $this->assertIsArray($expectOptions);
         $expectOptions = collect($expectOptions)->map(function ($arr) {
             $arr['name'] = exmtrans("custom_view.filter_condition_options.{$arr['name']}");
             return $arr;

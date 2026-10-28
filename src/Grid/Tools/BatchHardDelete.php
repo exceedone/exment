@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Grid\Tools;
 
-use Encore\Admin\Grid\Tools\BatchAction;
+use ExmentAdminCore\Admin\Grid\Tools\BatchAction;
 
 class BatchHardDelete extends BatchAction
 {
@@ -14,6 +14,18 @@ class BatchHardDelete extends BatchAction
     public function __construct($title)
     {
         $this->title = $title;
+    }
+
+    /**
+     * Hard delete carries a stronger icon than a plain trash to hint
+     * that the row will not be recoverable. The icon rides along both
+     * the dropdown link and its copy in the bulk action bar.
+     *
+     * @return string
+     */
+    public function render()
+    {
+        return '<i class="fa fa-times-circle"></i>&nbsp;' . e((string)$this->getTitle());
     }
 
     /**

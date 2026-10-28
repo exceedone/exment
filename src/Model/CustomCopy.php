@@ -59,21 +59,27 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function from_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'from_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function to_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'to_custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomCopyColumn, $this>
+     */
     public function custom_copy_columns(): HasMany
     {
         return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
@@ -81,7 +87,9 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomCopyColumn, $this>
+     */
     public function custom_copy_input_columns(): HasMany
     {
         return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
@@ -200,6 +208,9 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (isset($inputs)) {
             foreach ($custom_copy_input_columns as $custom_copy_input_column) {
                 $custom_column = $custom_copy_input_column->to_custom_column;
+                if (is_nullorempty($custom_column)) {
+                    continue;
+                }
                 // get input value
                 $val = array_get($inputs, $custom_column->column_name);
                 if (isset($val)) {

@@ -70,21 +70,27 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomForm, $this>
+     */
     public function custom_form(): BelongsTo
     {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomFormColumn, $this>
+     */
     public function custom_form_columns(): HasMany
     {
         return $this->hasMany(CustomFormColumn::class, 'custom_form_block_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function target_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
@@ -113,7 +119,9 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Support\Collection<int, CustomFormColumn>
+     */
     public function getCustomFormColumnsCacheAttribute()
     {
         return $this->hasManyCache(CustomFormColumn::class, 'custom_form_block_id');

@@ -2,14 +2,13 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field\Textarea;
+use ExmentAdminCore\Admin\Form\Field\Textarea;
 use Exceedone\Exment\Model\Define;
 
 class Tinymce extends Textarea
 {
     protected $view = 'admin::form.textarea';
 
-    // @phpstan-ignore-next-line
     protected static $js = [
         '/vendor/exment/tinymce/tinymce.min.js',
     ];

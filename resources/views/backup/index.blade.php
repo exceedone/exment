@@ -1,7 +1,7 @@
-<div class="box">
+<div class="box p-3">
     <div class="box-header with-border">
-        <div class="pull-right">
-            <div class="btn-group pull-right" style="margin-right: 5px">
+        <div class="float-end pb-3">
+            <div class="btn-group float-end" style="margin-right: 5px">
                 <button type="button" style="margin-right:5px;" class="btn btn-sm btn-twitter btn-backup">
                     <i class="fa fa-download"></i> {{exmtrans("backup.backup")}}
                 </button>
@@ -15,8 +15,8 @@
             <input type="checkbox" class="grid-select-all" />
             &nbsp;
             <div class="btn-group">
-                <a class="btn btn-sm btn-default">&nbsp;<span class="hidden-xs">{{trans('admin.action')}}</span></a>
-                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">
+                <a class="btn btn-sm btn-default">&nbsp;<span class="d-none d-md-inline">{{trans('admin.action')}}</span></a>
+                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown">
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>
                 </button>
@@ -26,7 +26,7 @@
             </div>
             <a class="btn btn-sm btn-primary grid-refresh" title="{{trans('admin.refresh')}}">
                 <i class="fa fa-refresh"></i>
-                <span class="hidden-xs"> {{trans('admin.refresh')}}</span>
+                <span class="d-none d-md-inline"> {{trans('admin.refresh')}}</span>
             </a> 
         </span>
     </div>
@@ -60,16 +60,16 @@
                         {{ $file['created'] }}
                     </td>
                     <td class="column-__actions__">
-                        <a href="javascript:void(0);" data-widgetmodal_url="{{admin_urls('backup', 'importModal', $file['file_key'])}}" data-toggle="tooltip" title="{{exmtrans('backup.restore')}}">
+                        <a href="javascript:void(0);" data-widgetmodal_url="{{admin_urls('backup', 'importModal', $file['file_key'])}}" data-bs-toggle="tooltip" title="{{exmtrans('backup.restore')}}">
                             <i class="fa fa-undo"></i>
                         </a>
-                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-toggle="tooltip" title="{{trans('admin.delete')}}" class="grid-row-delete">
+                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-bs-toggle="tooltip" title="{{trans('admin.delete')}}" class="grid-row-delete">
                             <i class="fa fa-trash"></i>
                         </a>
-                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-toggle="tooltip" title="{{exmtrans('backup.message.edit_filename_confirm')}}" class="grid-row-editname">
+                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-bs-toggle="tooltip" title="{{exmtrans('backup.message.edit_filename_confirm')}}" class="grid-row-editname">
                             <i class="fa fa-edit"></i>
                         </a>
-                        <a href="{{admin_url('backup/download/'.$file['file_key'])}}" data-toggle="tooltip" title="{{exmtrans('common.download')}}" target="_blank">
+                        <a href="{{admin_url('backup/download/'.$file['file_key'])}}" data-bs-toggle="tooltip" title="{{exmtrans('common.download')}}" target="_blank">
                             <i class="fa fa-download"></i>
                         </a>
                     </td>

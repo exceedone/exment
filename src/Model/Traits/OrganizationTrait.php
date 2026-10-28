@@ -9,8 +9,8 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Encore\Admin\Traits\ModelTree;
-use Encore\Admin\Traits\AdminBuilder;
+use ExmentAdminCore\Admin\Traits\ModelTree;
+use ExmentAdminCore\Admin\Traits\AdminBuilder;
 
 /**
  * @uses \Exceedone\Exment\Services\ClassBuilder
@@ -24,6 +24,8 @@ trait OrganizationTrait
     /**
      * get parent organization.
      * (*)Only one deeply parent. not all deeply parents.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<static, $this>
      */
     public function parent_organization()
     {
@@ -33,6 +35,8 @@ trait OrganizationTrait
     /**
      * get children organizations.
      * (*)Only one deeply organizations. not all deeply organizations.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<static, $this>
      */
     public function children_organizations()
     {

@@ -18,8 +18,8 @@ class CreateTableDefine extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function ($table, $callback) {
-            return new ExtendedBlueprint($table, $callback);
+        $schema->blueprintResolver(function ($connection, $table, $callback) {
+            return new ExtendedBlueprint($connection, $table, $callback);
         });
 
         // remove defalut login_users and create

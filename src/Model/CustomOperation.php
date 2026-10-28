@@ -33,14 +33,18 @@ class CustomOperation extends ModelBase
 
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomOperationColumn, $this>
+     */
     public function custom_operation_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
@@ -48,7 +52,9 @@ class CustomOperation extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomOperationColumn, $this>
+     */
     public function custom_operation_input_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
@@ -56,7 +62,9 @@ class CustomOperation extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return MorphMany<Condition, $this>
+     */
     public function custom_operation_conditions(): MorphMany
     {
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');
@@ -279,6 +287,15 @@ class CustomOperation extends ModelBase
             return exmtrans('custom_value.message.operation_contains_notmatch_condition', $label);
         }
 
+        // only administrator can change administrator record (UserTrait::disabled_edit_trait).
+        // An operation saves without asking enableEdit(), so it asks this itself.
+        $lockedValues = $custom_values->filter(function ($custom_value) {
+            return method_exists($custom_value, 'disabled_edit_trait') && $custom_value->disabled_edit_trait();
+        });
+        if ($lockedValues->count() > 0) {
+            return Enums\ErrorCode::PERMISSION_DENY()->getMessage();
+        }
+
         // Update value
         \DB::beginTransaction();
         try {
@@ -312,11 +329,10 @@ class CustomOperation extends ModelBase
     protected function getUpdateValues($model, $inputs = null)
     {
 
-        // @phpstan-ignore-next-line
         $updates = collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) use ($model) {
             $custom_column = $operation_column->custom_column;
             if (is_nullorempty($custom_column)) {
-                return null;
+                return [];
             }
 
             $column_name = $custom_column->column_name;
