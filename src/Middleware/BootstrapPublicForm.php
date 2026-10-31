@@ -100,7 +100,10 @@ class BootstrapPublicForm
             }
 
             if (!is_null($css = $public_form->getOption("custom_css"))) {
-                Ad::style($css);
+                // custom_css is intentional, but it must stay inside the <style> block:
+                // css_clean() neutralizes any "</style>" breakout that would escalate the
+                // documented CSS injection (JVN#92835104) into stored XSS.
+                Ad::style(css_clean($css));
             }
             if (!is_null($js = $public_form->getOption("custom_js"))) {
                 Ad::script($js);

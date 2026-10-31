@@ -23,8 +23,8 @@ class Html extends FormOtherItem
     // @phpstan-ignore-next-line
     public function _html($v)
     {
-        // Not escaping html whether html item
-        return $this->_text($v);
+       // Sanitize with HTML Purifier to prevent stored XSS while keeping rich formatting
+        return html_clean($this->_text($v));
     }
 
     /**

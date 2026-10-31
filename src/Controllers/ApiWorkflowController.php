@@ -34,6 +34,10 @@ class ApiWorkflowController extends AdminControllerBase
         $workflow = Workflow::getEloquent($id, $join_tables);
 
         if ($workflow instanceof Workflow) {
+            if (($response = $this->checkWorkflowAccess($workflow)) instanceof Response) {
+                return $response;
+            }
+
             if (in_array('workflow_statuses', $join_tables)) {
                 return $workflow->appendStartStatus();
             }
@@ -42,6 +46,20 @@ class ApiWorkflowController extends AdminControllerBase
         }
 
         return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+    }
+
+    /**
+     * @param Workflow $workflow
+     * @return \Symfony\Component\HttpFoundation\Response|null 403 response when denied, otherwise null
+     */
+    protected function checkWorkflowAccess(Workflow $workflow)
+    {
+        $custom_table = $workflow->getDesignatedTable();
+        if (isset($custom_table) && $custom_table->enableAccess() !== true) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
+        return null;
     }
 
     /**
@@ -87,6 +105,10 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
+        if (($response = $this->checkWorkflowAccess($workflow)) instanceof Response) {
+            return $response;
+        }
+
         $workflow = $workflow->appendStartStatus();
 
         return $workflow->workflow_statuses;
@@ -103,6 +125,10 @@ class ApiWorkflowController extends AdminControllerBase
 
         if (!isset($workflow)) {
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+        }
+
+        if (($response = $this->checkWorkflowAccess($workflow)) instanceof Response) {
+            return $response;
         }
 
         return $workflow->workflow_actions;

@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Services\BackupRestore;
 
 use Exceedone\Exment\Enums\BackupTarget;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\Installer\EnvTrait;
+use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use File;
@@ -231,10 +233,21 @@ class Restore
             $zipPath = getFullpath($file, Define::DISKNAME_ADMIN_TMP);
             // open new zip file
             $zip = new \ZipArchive();
-            if ($zip->open($zipPath) === true) {
-                $zip->extractTo($this->diskService->tmpDiskItem()->dirFullPath());
-                $zip->close();
+            if ($zip->open($zipPath) !== true) {
+                // an unreadable zip must not look like a successful restore: execute()
+                // would find an empty folder, restore nothing, still return 0, and the
+                // screen would answer "restore succeeded" and log the user out.
+                throw new InvalidZipEntryException(strval(exmtrans('backup.message.restore_file_error')));
             }
+
+            $zipEntryError = ZipService::validateZipEntries($zip);
+            if ($zipEntryError !== null) {
+                $zip->close();
+                throw new InvalidZipEntryException($zipEntryError);
+            }
+
+            $zip->extractTo($this->diskService->tmpDiskItem()->dirFullPath());
+            $zip->close();
         }
 
         return true;
