@@ -44,6 +44,7 @@ abstract class RelationBase extends BlockBase
         $block->available = 0;
         $block->options = [
             'hasmany_type' => null,
+            'lazy_load_enabled' => 0,
             'form_block_order' => 0
         ];
 

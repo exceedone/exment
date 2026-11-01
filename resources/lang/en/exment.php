@@ -1194,6 +1194,7 @@ return [
         'color' => 'Color',
         'icon' => 'Icon',
         'search_enabled' => 'Search Enabled',
+        'lazy_grid_enabled' => 'Optimize list display',
         'one_record_flg' => 'Save Only One Record',
         'attachment_flg' => 'Use Attachment File',
         'comment_flg' => 'Use Comment',
@@ -1278,6 +1279,7 @@ return [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
             'search_enabled' => 'If set on, can search from search display.',
+            'lazy_grid_enabled' => 'Prioritize displaying the list interface, then automatically load its rows. This defers row rendering, not database queries. Applies when opening the data list again.',
             'one_record_flg' => 'Can Save Only One Record. For example, yourself company information.',
             'attachment_flg' => 'If set to YES, you can add attachments to each data.',
             'comment_flg' => 'If set to YES, comments can be added to each data.',
@@ -1611,6 +1613,7 @@ return [
         'image' => 'Display image',
         'available' => 'Available',
         'hasmany_type' => 'Make the form in table form.',
+        'lazy_load_enabled' => 'Optimize loading of child-table data',
         'header_basic_setting' => 'Form Basic Setting',
         'changedata' => 'Data Linkage Setting',
         'relation_filter' => 'Relation Filter Setting',
@@ -1684,6 +1687,7 @@ return [
             'required' => 'If you want this item to be required on this form, please set it to YES.',
             'append_hr' => 'Set to YES to draw a ruled line under the heading.',
             'hasmany_type_table' => 'By checking, the data on the child side is displayed in table format (table format). * Recommended when the number of items is small. Also, in the case of table format, the multi-column setting is disabled and only the item setting is considered.',
+            'lazy_load_enabled' => 'Automatically load this child table after the edit page opens. Available for 1:N blocks displayed in table form when editing existing data. Saving remains disabled until loading completes. Disabling table form also turns this setting off when the form is saved.',
         ],
 
         'message' => [

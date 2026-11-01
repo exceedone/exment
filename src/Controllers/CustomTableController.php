@@ -310,6 +310,11 @@ class CustomTableController extends AdminControllerBase
                 ->default(DataSubmitRedirectEx::INHERIT)
                 ->help(exmtrans("system.help.data_submit_redirect"));
 
+            $form->switchbool('lazy_grid_enabled', exmtrans('custom_table.lazy_grid_enabled'))
+                ->help(exmtrans('custom_table.help.lazy_grid_enabled'))
+                ->default("0")
+                ->rules('boolean');
+
             $form->exmheader(exmtrans('role_group.permission_setting'))->hr();
 
             $form->switchbool('all_user_editable_flg', exmtrans("custom_table.all_user_editable_flg"))->help(exmtrans("custom_table.help.all_user_editable_flg"))
@@ -328,7 +333,7 @@ class CustomTableController extends AdminControllerBase
                 $form->switchbool('editable_with_parent', exmtrans("custom_table.editable_with_parent"))->help(exmtrans("custom_table.help.editable_with_parent"))
                     ->default("1");
             }
-        })->disableHeader();
+        })->disableHeader()->preserveExistingValues();
 
         // if create table, show menulist
         if (!isset($id)) {
