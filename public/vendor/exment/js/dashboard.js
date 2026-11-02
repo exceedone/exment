@@ -171,8 +171,130 @@
 
     // ---- chart toolbar ----------------------------------------------------------------
     function closePops() {
+        endPreview();
         $('.ct-pop').removeClass('show');
         $('.ct-btn').removeClass('open');
+        $('.ctp-open').removeClass('ctp-open');
+    }
+
+    // ---- chart type picker: preview ------------------------------------------------------
+    // The picker's preview panel draws the box's own data (the chart's data() hook — the same
+    // points the CSV export reads) in the hovered type, the current one otherwise, as Excel's
+    // Change Chart Type dialog does: the chart itself is left alone. Drawn with ECharts whatever
+    // library draws the real chart; types of one switch pool share their data shape, so no
+    // request is needed. Closing the picker disposes the panel's chart.
+    var preview = null, previewSeq = 0;
+
+    function endPreview() {
+        previewSeq++;
+        if (!preview) { return; }
+        try { preview.chart.dispose(); } catch (e) {}
+        preview = null;
+    }
+
+    // $tile: the thumbnail to preview — the hovered one, or the current type's (.on)
+    function renderPreview($tile) {
+        var $pop = $tile.closest('.ctp-pop'), $panel = $pop.find('.ctp-prev');
+        var suuid = $pop.closest('[data-suuid]').data('suuid');
+        var hook = window.ExmentCharts && window.ExmentCharts[suuid];
+        if (!$tile.length || !hook || typeof hook.data !== 'function') { $panel.hide(); return; }
+        var seq = ++previewSeq, type = String($tile.data('ctType'));
+        withECharts().done(function () {
+            if (seq !== previewSeq || !$pop.hasClass('show')) { return; }
+            $panel.show().find('.ctp-prev-name').text($tile.attr('title'));
+            var el = $panel.find('.ctp-prev-chart')[0];
+            try {
+                if (!preview || preview.el !== el) {
+                    endPreview();
+                    preview = { el: el, chart: echarts.init(el) };
+                }
+                preview.chart.setOption(previewOption(type, hook.data(), JSON.parse($pop.attr('data-palette') || '[]')), true);
+            } catch (e) {
+                endPreview();
+                $panel.hide();
+            }
+        });
+    }
+
+    // ECharts option of a type for the data() of a single-series ({labels, values}) or a
+    // multi-series ({categories, series, matrix}) chart — a sketch of the real renderers
+    // (chart / echart / echart_multi blades) at the same data
+    function previewOption(type, d, palette) {
+        var P = palette.length ? palette : ['#ff6384', '#36a2eb', '#ffce56', '#339900', '#ff6633'];
+        var grid = { left: 12, right: 18, top: 34, bottom: 16, containLabel: true };
+        var num = function (v) { v = Number(v); return isFinite(v) ? v : 0; };
+        var maxOf = function (list) { return Math.max.apply(null, list.length ? list : [1]) || 1; };
+        if (d.matrix) {
+            var cats = $.map(d.categories || [], String), names = $.map(d.series || [], String);
+            var m = $.map(d.matrix || [], function (row) { return [$.map(row || [], num)]; });
+            var cell = function (s, x) { return (m[s] && m[s][x]) || 0; };
+            switch (type) {
+                case 'heatmap': {
+                    var heat = [], hmax = 0;
+                    names.forEach(function (n, s) { cats.forEach(function (c, x) { heat.push([x, s, cell(s, x)]); hmax = Math.max(hmax, cell(s, x)); }); });
+                    return {
+                        grid: { left: 12, right: 70, top: 10, bottom: 20, containLabel: true },
+                        xAxis: { type: 'category', data: cats }, yAxis: { type: 'category', data: names },
+                        visualMap: { min: 0, max: hmax || 1, right: 0, top: 'center', calculable: true, inRange: { color: ['#e0ffff', '#5b8ff9', '#1d39c4'] } },
+                        series: [{ type: 'heatmap', data: heat }]
+                    };
+                }
+                case 'treemap':
+                case 'sunburst': {
+                    var tree = names.map(function (n, s) { return { name: n, children: cats.map(function (c, x) { return { name: c, value: cell(s, x) }; }) }; });
+                    return type === 'treemap'
+                        ? { color: P, series: [{ type: 'treemap', roam: false, breadcrumb: { show: false }, data: tree, top: 6, bottom: 6, left: 6, right: 6 }] }
+                        : { color: P, series: [{ type: 'sunburst', radius: ['15%', '88%'], data: tree }] };
+                }
+                case 'boxplot': {
+                    var q = function (a, p) { var pos = (a.length - 1) * p, b = Math.floor(pos), r = pos - b; return a[b + 1] !== undefined ? a[b] + r * (a[b + 1] - a[b]) : a[b]; };
+                    var boxes = cats.map(function (c, x) {
+                        var col = names.map(function (n, s) { return cell(s, x); }).sort(function (a, b) { return a - b; });
+                        return [col[0], q(col, 0.25), q(col, 0.5), q(col, 0.75), col[col.length - 1]];
+                    });
+                    return { color: P, grid: grid, xAxis: { type: 'category', data: cats }, yAxis: { type: 'value' }, series: [{ type: 'boxplot', data: boxes }] };
+                }
+                default: { // mbar / sbar / mline / sarea
+                    var line = type === 'mline' || type === 'sarea', stack = type === 'sbar' || type === 'sarea';
+                    return {
+                        color: P, grid: grid, legend: { top: 0, type: 'scroll', data: names },
+                        xAxis: { type: 'category', data: cats, boundaryGap: !line }, yAxis: { type: 'value' },
+                        series: names.map(function (n, s) {
+                            var o = { name: n, type: line ? 'line' : 'bar', data: m[s] || [] };
+                            if (stack) { o.stack = 'total'; }
+                            if (type === 'sarea') { o.areaStyle = { opacity: 0.35 }; }
+                            if (line) { o.smooth = true; } else { o.barMaxWidth = 36; }
+                            return o;
+                        })
+                    };
+                }
+            }
+        }
+        var labels = $.map(d.labels || [], String), values = $.map(d.values || [], num);
+        var pairs = labels.map(function (l, i) { return { name: l, value: values[i] }; });
+        switch (type) {
+            case 'pie':
+                return { color: P, series: [{ type: 'pie', radius: '68%', data: pairs }] };
+            case 'doughnut':
+                return { color: P, series: [{ type: 'pie', radius: ['40%', '68%'], data: pairs }] };
+            case 'funnel':
+                return { color: P, series: [{ type: 'funnel', sort: 'descending', gap: 2, left: '8%', right: '8%', top: 10, bottom: 10, data: pairs, label: { formatter: '{b}: {c}' } }] };
+            case 'radar':
+                return { color: P, radar: { indicator: labels.map(function (l) { return { name: l, max: maxOf(values) }; }), radius: '62%' }, series: [{ type: 'radar', data: [{ value: values, areaStyle: { opacity: 0.2 } }] }] };
+            case 'gauge':
+                return { color: P, series: [{ type: 'gauge', min: 0, max: maxOf(values), progress: { show: true, width: 14 }, axisLine: { lineStyle: { width: 14 } }, axisTick: { show: false }, detail: { fontSize: 18, formatter: function (v) { return Math.round(v).toLocaleString(); } }, data: [{ name: labels[0] || '', value: values[0] || 0 }] }] };
+            case 'hbar':
+                return { color: P, grid: grid, xAxis: { type: 'value' }, yAxis: { type: 'category', data: labels, inverse: true }, series: [{ type: 'bar', data: values, barMaxWidth: 36 }] };
+            case 'scatter':
+                return { color: P, grid: grid, xAxis: { type: 'category', data: labels }, yAxis: { type: 'value' }, series: [{ type: 'scatter', symbolSize: 12, data: values }] };
+            default: { // bar / line / area
+                var isLine = type === 'line' || type === 'area';
+                var s = { type: isLine ? 'line' : 'bar', data: values };
+                if (type === 'area') { s.areaStyle = { opacity: 0.35 }; }
+                if (!isLine) { s.barMaxWidth = 36; }
+                return { color: P, grid: grid, xAxis: { type: 'category', data: labels, boundaryGap: !isLine }, yAxis: { type: 'value' }, series: [s] };
+            }
+        }
     }
 
     function openPop($btn) {
@@ -191,6 +313,12 @@
         var p = $pop[0].getBoundingClientRect(), i = item.getBoundingClientRect();
         if (p.left < c.left + PAD) { $pop.css({ left: (c.left + PAD - i.left) + 'px', right: 'auto' }); }
         else if (p.right > c.right - PAD) { $pop.css({ left: 'auto', right: (i.right - (c.right - PAD)) + 'px' }); }
+        // the type picker opens on a preview of the current type; taller than the box's scrolled
+        // body, it hangs out of the box like a dropdown while it is open
+        if ($pop.hasClass('ctp-pop')) {
+            $pop.closest('.box-body-inner-body').addClass('ctp-open');
+            renderPreview($pop.find('.ctp-tile.on'));
+        }
     }
 
     // A range input is rendered with the data's end (its data-end: the min for "from", the max
@@ -936,6 +1064,15 @@
             saveToolbar(suuid);
             loadBox(suuid);
         });
+        // type picker: a thumbnail drives the hidden switcher above; hover previews the type
+        $(document).on('click' + NS, '[data-ct-type]', function () {
+            var $tile = $(this), $switch = $tile.closest('.ctp-item').find('.exment-ct-switch');
+            closePops();
+            if ($tile.hasClass('on')) { return; }
+            $switch.val(String($tile.data('ctType'))).trigger('change');
+        });
+        $(document).on('mouseenter' + NS + ' focusin' + NS, '[data-ct-type]', function () { renderPreview($(this)); });
+        $(document).on('mouseleave' + NS, '.ctp-grid', function () { renderPreview($(this).find('.ctp-tile.on')); });
         // sort menu (Power BI's "Sort by"): a field row or a direction row applies at once and the
         // box re-renders (menu closed, like Power BI). A direction alone sorts by the measure (the
         // last field); a field alone takes its natural direction — high to low for the measure,

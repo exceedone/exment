@@ -785,6 +785,11 @@ return [
             'desc' => '降順',
         ],
 
+        // chart type picker (toolbar): thumbnails of the switchable types, hover = preview
+        'chart_type_pick' => [
+            'hint' => '同じデータで表示できる種類です。クリックで切り替え',
+        ],
+
         // box menu (⋯): display options and export
         'chart_menu' => [
             'label' => 'オプション',

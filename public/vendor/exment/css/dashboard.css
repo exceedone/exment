@@ -47,7 +47,23 @@
 .exment-chart-toolbar .ct-lbl { font-size: 11px; font-weight: 600; color: #6b6b80; }
 .exment-chart-toolbar .ct-car { font-size: 9px; color: #b9b9cc; }
 .exment-chart-toolbar .ct-cnt { min-width: 16px; height: 16px; padding: 0 5px; border-radius: 8px; background: #5b6ef5; color: #fff; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-.exment-chart-toolbar .ct-sel { height: 28px; border: 1px solid #d7d5e6; border-radius: 14px; background: #fff; font-size: 12px; color: #2b2b3a; padding: 0 8px; max-width: 180px; }
+/* chart type picker: the button shows the current type's thumbnail, the panel every switchable one */
+.exment-chart-toolbar .ctp-btn .ctp-icon { width: 24px; height: 15px; }
+.exment-chart-toolbar .ctp-cur { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+.exment-chart-toolbar .ctp-pop { width: 440px; padding: 12px 14px 14px; }
+.exment-chart-toolbar .ctp-hint { font-size: 11px; color: #8a89a0; margin: -3px 0 10px; }
+.exment-chart-toolbar .ctp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.exment-chart-toolbar .ctp-grid.ctp-wide { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.exment-chart-toolbar .ctp-pop.ctp-pop-wide { width: 520px; }
+.exment-chart-toolbar .ctp-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 4px 6px; background: #fff; border: 1px solid #e6e4f0; border-radius: 9px; cursor: pointer; font-size: 11px; line-height: 1.25; color: #2b2b3a; text-align: center; }
+.exment-chart-toolbar .ctp-tile .ctp-icon { width: 100%; max-width: 64px; height: 40px; }
+.exment-chart-toolbar .ctp-tile:hover, .exment-chart-toolbar .ctp-tile:focus { border-color: #f5a623; background: #fff8ec; box-shadow: 0 0 0 3px #fff1d6; outline: none; }
+.exment-chart-toolbar .ctp-tile.on { border: 2px solid #5b6ef5; background: #f3f5ff; padding: 7px 3px 5px; box-shadow: none; }
+.exment-chart-toolbar .ctp-tile.on::after { content: "✓"; position: absolute; top: 3px; right: 6px; color: #5b6ef5; font-weight: 700; font-size: 12px; }
+.box.box-dashboard .box-body .box-body-inner-body.ctp-open { overflow: visible; }
+.exment-chart-toolbar .ctp-prev { display: none; margin-top: 12px; padding-top: 10px; border-top: 1px solid #ecebf5; }
+.exment-chart-toolbar .ctp-prev-name { font-size: 12px; font-weight: 600; color: #2b2b3a; margin-bottom: 4px; }
+.exment-chart-toolbar .ctp-prev-chart { width: 100%; height: 190px; border: 1px solid #ecebf5; border-radius: 8px; background: #fff; }
 .exment-chart-toolbar .ct-pop { position: absolute; top: 34px; right: 0; z-index: 1030; min-width: 230px; background: #fff; border: 1px solid #d7d5e6; border-radius: 10px; box-shadow: 0 10px 28px rgba(43, 43, 58, .14); padding: 10px 12px; display: none; text-align: left; }
 .exment-chart-toolbar .ct-pop.show { display: block; }
 .exment-chart-toolbar .ct-pop h4 { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: #9a9ab0; margin: 0 0 7px; }

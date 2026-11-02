@@ -785,6 +785,11 @@ return [
             'desc' => 'Sort descending',
         ],
 
+        // chart type picker (toolbar): thumbnails of the switchable types, hover = preview
+        'chart_type_pick' => [
+            'hint' => 'Types that can show the same data. Click to switch',
+        ],
+
         // box menu (⋯): display options and export
         'chart_menu' => [
             'label' => 'Options',

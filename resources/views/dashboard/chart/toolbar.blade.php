@@ -67,11 +67,39 @@
     </div>
     @endif
     @if(count($types))
-    <select class="exment-ct-switch ct-sel" data-configured="{{ $configured_type }}" title="{{ exmtrans('dashboard.dashboard_box_options.chart_type') }}">
-        @foreach($types as $type => $label)
-        <option value="{{ $type }}" {{ $type === $current_type ? 'selected' : '' }}>{{ $label }}</option>
-        @endforeach
-    </select>
+    {{-- chart type picker: a thumbnail per switchable type (type_icon.blade); a click sets the
+         hidden select, whose change event switches the box as before. The panel below the
+         thumbnails previews the box's data in the hovered type, the current one otherwise, as
+         Excel's Change Chart Type dialog does — the chart itself stays (dashboard.js renderPreview) --}}
+    {{-- a tile names its type short (積み上げ棒グラフ（複数系列） → 積み上げ棒); its title keeps the full name --}}
+    @php($shortLabel = function ($label) { return preg_replace(['/\s*[（(][^（()）]*[)）]\s*$/u', '/\s*(グラフ|チャート|chart)$/iu'], '', (string) $label); })
+    <div class="ct-item ctp-item">
+        <button type="button" class="ct-btn ctp-btn" data-ct-pop title="{{ exmtrans('dashboard.dashboard_box_options.chart_type') }}">
+            @include('exment::dashboard.chart.type_icon', ['type' => $current_type])
+            <span class="ctp-cur">{{ $shortLabel($types[$current_type] ?? $current_type) }}</span><span class="ct-car">▾</span>
+        </button>
+        <div class="ct-pop ctp-pop{{ count($types) > 8 ? ' ctp-pop-wide' : '' }}" data-palette="{{ json_encode($palette) }}">
+            <h4>{{ exmtrans('dashboard.dashboard_box_options.chart_type') }}</h4>
+            <div class="ctp-hint">{{ exmtrans('dashboard.chart_type_pick.hint') }}</div>
+            <div class="ctp-grid{{ count($types) > 8 ? ' ctp-wide' : '' }}">
+                @foreach($types as $type => $label)
+                <button type="button" class="ctp-tile{{ $type === $current_type ? ' on' : '' }}" data-ct-type="{{ $type }}" title="{{ $label }}">
+                    @include('exment::dashboard.chart.type_icon', ['type' => $type])
+                    <span>{{ $shortLabel($label) }}</span>
+                </button>
+                @endforeach
+            </div>
+            <div class="ctp-prev">
+                <div class="ctp-prev-name"></div>
+                <div class="ctp-prev-chart"></div>
+            </div>
+        </div>
+        <select class="exment-ct-switch" data-configured="{{ $configured_type }}" hidden>
+            @foreach($types as $type => $label)
+            <option value="{{ $type }}" {{ $type === $current_type ? 'selected' : '' }}>{{ $label }}</option>
+            @endforeach
+        </select>
+    </div>
     @endif
     @if($menu)
     <div class="ct-item">

@@ -468,6 +468,8 @@ class ChartItem implements ItemInterface
         }
         return view('exment::dashboard.chart.toolbar', [
             'types' => $types,
+            // the type picker's preview draws in the box's palette
+            'palette' => $this->getChartPalette(),
             'current_type' => $this->chart_type,
             'configured_type' => $this->configured_type,
             'menu' => $menu,
