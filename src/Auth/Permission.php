@@ -256,6 +256,7 @@ class Permission
             case "auth/menu":
             case "auth/logs":
             case "login_history":
+            case "login_ip_block":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
                 }

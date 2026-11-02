@@ -81,6 +81,9 @@ class LoginCountryRestrictionTest extends FeatureTestBase
         System::login_country_allowed([]);
         System::login_country_unknown_allowed(true);
         System::login_country_allowed_ips('');
+        // logins must not be blocked by the protection against brute-force attacks saved in the database
+        System::login_ip_block(false);
+        System::login_captcha(false);
     }
 
     // ------------------------------------------------------------------ //

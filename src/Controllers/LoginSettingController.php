@@ -22,10 +22,15 @@ use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorLockService;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\GeoIp\CountryList;
 use Exceedone\Exment\Services\GeoIp\GeoIpService;
+use Exceedone\Exment\Services\Login\IpAddressList;
+use Exceedone\Exment\Services\Login\LoginCaptchaService;
 use Exceedone\Exment\Services\Login\LoginCountryRestrictionService;
+use Exceedone\Exment\Services\Login\LoginFailureService;
+use Exceedone\Exment\Services\Login\LoginIpBlockService;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Services\Login as LoginServiceBase;
 use ExmentAdminCore\Admin\Layout\Content;
@@ -57,6 +62,9 @@ class LoginSettingController extends AdminControllerBase
 
         // login restriction by country
         $content->row(new Box(exmtrans('login.country_restriction'), $this->getCountryRestrictionSettingForm($request)->render()));
+
+        // protection against brute-force attacks
+        $content->row(new Box(exmtrans('login.brute_force'), $this->getBruteForceSettingForm($request)->render()));
 
         // 2factor box
         if (boolval(config('exment.login_use_2factor', false))) {
@@ -749,6 +757,243 @@ class LoginSettingController extends AdminControllerBase
         System::login_country_allowed($settings['countries']);
         System::login_country_unknown_allowed($settings['unknown_allowed']);
         System::login_country_allowed_ips(implode("\r\n", $settings['ips']));
+
+        admin_toastr(trans('admin.save_succeeded'));
+        return redirect(admin_url('login_setting'));
+    }
+
+    /**
+     * Integer settings of the protection against brute-force attacks, and their ranges. key: setting name, value: [min, max]
+     *
+     * @return array<string, array{0: int, 1: int}>
+     */
+    protected static function getBruteForceIntegerSettings(): array
+    {
+        return [
+            'login_failure_minutes' => [1, LoginIpBlockService::FAILURE_MINUTES_MAX],
+            'login_ip_block_failures' => [1, LoginIpBlockService::FAILURES_MAX],
+            'login_ip_block_minutes' => [1, LoginIpBlockService::BLOCK_MINUTES_MAX],
+            'login_ip_block_minutes_2' => [1, LoginIpBlockService::BLOCK_MINUTES_MAX],
+            'login_ip_block_minutes_3' => [1, LoginIpBlockService::BLOCK_MINUTES_MAX],
+            'login_captcha_failures' => [1, LoginCaptchaService::FAILURES_MAX],
+            'login_multi_ip_count' => [LoginFailureService::MULTI_IP_COUNT_MIN, LoginFailureService::MULTI_IP_COUNT_MAX],
+            'login_multi_ip_minutes' => [1, LoginFailureService::MULTI_IP_MINUTES_MAX],
+            'login_2factor_lock_failures' => [1, Auth2factorLockService::FAILURES_MAX],
+            'login_2factor_lock_minutes' => [1, Auth2factorLockService::LOCK_MINUTES_MAX],
+        ];
+    }
+
+    /**
+     * Switches of the protection against brute-force attacks.
+     *
+     * @return array<string>
+     */
+    protected static function getBruteForceBooleanSettings(): array
+    {
+        return [
+            'login_ip_block',
+            'login_ip_block_progressive',
+            'login_ip_block_notify',
+            'login_captcha',
+            'login_multi_ip_warning',
+            'login_2factor_lock',
+            'login_brute_force_notify_mail',
+        ];
+    }
+
+    /**
+     * Get the setting form of the protection against brute-force attacks. (IP block, CAPTCHA, warning of many IP addresses)
+     *
+     * @param Request $request
+     * @return WidgetForm
+     */
+    protected function getBruteForceSettingForm(Request $request): WidgetForm
+    {
+        // keep the entered values when the saving failed
+        $values = System::get_system_values([LoginIpBlockService::SETTING_GROUP]);
+        foreach (array_keys($values) as $key) {
+            $key = (string)$key;
+            if ($request->session()->hasOldInput($key)) {
+                $values[$key] = $request->old($key);
+            }
+        }
+        $ranges = static::getBruteForceIntegerSettings();
+
+        $form = new WidgetForm($values);
+        $form->action(route('exment.post_login_brute_force'));
+        $form->disableReset();
+
+        $form->descriptionHtml(esc_html(exmtrans('login.help.brute_force'))
+            . '<br />' . esc_html(exmtrans('login.help.brute_force_current_ip', $request->ip())));
+
+        $form->number('login_failure_minutes', exmtrans('login.login_failure_minutes'))
+            ->help(exmtrans('login.help.login_failure_minutes', $ranges['login_failure_minutes'][1]))
+            ->min($ranges['login_failure_minutes'][0])
+            ->max($ranges['login_failure_minutes'][1]);
+
+        // IP block
+        $form->exmheader(exmtrans('login.ip_block'))->hr();
+        $form->switchbool('login_ip_block', exmtrans('login.login_ip_block'))
+            ->help(exmtrans('login.help.login_ip_block'))
+            ->attribute(['data-filtertrigger' => true]);
+
+        $ipBlockFilter = ['key' => 'login_ip_block', 'value' => '1'];
+        $form->number('login_ip_block_failures', exmtrans('login.login_ip_block_failures'))
+            ->help(exmtrans('login.help.login_ip_block_failures', $ranges['login_ip_block_failures'][1]))
+            ->min($ranges['login_ip_block_failures'][0])
+            ->max($ranges['login_ip_block_failures'][1])
+            ->attribute(['data-filter' => json_encode($ipBlockFilter)]);
+        $form->number('login_ip_block_minutes', exmtrans('login.login_ip_block_minutes'))
+            ->help(exmtrans('login.help.login_ip_block_minutes', $ranges['login_ip_block_minutes'][1]))
+            ->min($ranges['login_ip_block_minutes'][0])
+            ->max($ranges['login_ip_block_minutes'][1])
+            ->attribute(['data-filter' => json_encode($ipBlockFilter)]);
+        $form->switchbool('login_ip_block_progressive', exmtrans('login.login_ip_block_progressive'))
+            ->help(exmtrans('login.help.login_ip_block_progressive', LoginIpBlockService::RECURRENCE_HOURS))
+            ->attribute(['data-filtertrigger' => true, 'data-filter' => json_encode($ipBlockFilter)]);
+
+        $progressiveFilter = json_encode([$ipBlockFilter, ['key' => 'login_ip_block_progressive', 'value' => '1']]);
+        $form->number('login_ip_block_minutes_2', exmtrans('login.login_ip_block_minutes_2'))
+            ->min($ranges['login_ip_block_minutes_2'][0])
+            ->max($ranges['login_ip_block_minutes_2'][1])
+            ->attribute(['data-filter' => $progressiveFilter]);
+        $form->number('login_ip_block_minutes_3', exmtrans('login.login_ip_block_minutes_3'))
+            ->help(exmtrans('login.help.login_ip_block_minutes_3'))
+            ->min($ranges['login_ip_block_minutes_3'][0])
+            ->max($ranges['login_ip_block_minutes_3'][1])
+            ->attribute(['data-filter' => $progressiveFilter]);
+
+        $form->textarea('login_ip_block_allowed_ips', exmtrans('login.login_ip_block_allowed_ips'))
+            ->rows(3)
+            ->help(exmtrans('login.help.login_ip_block_allowed_ips'))
+            ->attribute(['data-filter' => json_encode($ipBlockFilter)]);
+        $form->switchbool('login_ip_block_notify', exmtrans('login.login_ip_block_notify'))
+            ->help(exmtrans('login.help.login_ip_block_notify'))
+            ->attribute(['data-filter' => json_encode($ipBlockFilter)]);
+        $form->html('<a href="' . esc_html(admin_url('login_ip_block')) . '"><i class="fa fa-ban"></i> ' . esc_html(exmtrans('login.ip_block_list')) . '</a>');
+
+        // CAPTCHA
+        $form->exmheader(exmtrans('login.captcha_header'))->hr();
+        if (!LoginCaptchaService::isAvailable()) {
+            $form->descriptionHtml('<span class="red">' . esc_html(exmtrans('login.help.captcha_not_available')) . '</span>');
+        }
+        $form->switchbool('login_captcha', exmtrans('login.login_captcha'))
+            ->help(exmtrans('login.help.login_captcha'))
+            ->attribute(['data-filtertrigger' => true]);
+        $form->number('login_captcha_failures', exmtrans('login.login_captcha_failures'))
+            ->help(exmtrans('login.help.login_captcha_failures', $ranges['login_captcha_failures'][1]))
+            ->min($ranges['login_captcha_failures'][0])
+            ->max($ranges['login_captcha_failures'][1])
+            ->attribute(['data-filter' => json_encode(['key' => 'login_captcha', 'value' => '1'])]);
+
+        // warning of an account tried from many IP addresses
+        $form->exmheader(exmtrans('login.multi_ip_header'))->hr();
+        $form->switchbool('login_multi_ip_warning', exmtrans('login.login_multi_ip_warning'))
+            ->help(exmtrans('login.help.login_multi_ip_warning'))
+            ->attribute(['data-filtertrigger' => true]);
+        $multiIpFilter = json_encode(['key' => 'login_multi_ip_warning', 'value' => '1']);
+        $form->number('login_multi_ip_count', exmtrans('login.login_multi_ip_count'))
+            ->help(exmtrans('login.help.login_multi_ip_count', $ranges['login_multi_ip_count'][0], $ranges['login_multi_ip_count'][1]))
+            ->min($ranges['login_multi_ip_count'][0])
+            ->max($ranges['login_multi_ip_count'][1])
+            ->attribute(['data-filter' => $multiIpFilter]);
+        $form->number('login_multi_ip_minutes', exmtrans('login.login_multi_ip_minutes'))
+            ->help(exmtrans('login.help.login_multi_ip_minutes', $ranges['login_multi_ip_minutes'][1]))
+            ->min($ranges['login_multi_ip_minutes'][0])
+            ->max($ranges['login_multi_ip_minutes'][1])
+            ->attribute(['data-filter' => $multiIpFilter]);
+
+        // limit of wrong codes of 2factor authentication
+        $form->exmheader(exmtrans('login.login_2factor_lock_header'))->hr();
+        $form->switchbool('login_2factor_lock', exmtrans('login.login_2factor_lock'))
+            ->help(exmtrans('login.help.login_2factor_lock'))
+            ->attribute(['data-filtertrigger' => true]);
+        $twoFactorLockFilter = json_encode(['key' => 'login_2factor_lock', 'value' => '1']);
+        $form->number('login_2factor_lock_failures', exmtrans('login.login_2factor_lock_failures'))
+            ->help(exmtrans('login.help.login_2factor_lock_failures', $ranges['login_2factor_lock_failures'][1]))
+            ->min($ranges['login_2factor_lock_failures'][0])
+            ->max($ranges['login_2factor_lock_failures'][1])
+            ->attribute(['data-filter' => $twoFactorLockFilter]);
+        $form->number('login_2factor_lock_minutes', exmtrans('login.login_2factor_lock_minutes'))
+            ->help(exmtrans('login.help.login_2factor_lock_minutes', $ranges['login_2factor_lock_minutes'][1]))
+            ->min($ranges['login_2factor_lock_minutes'][0])
+            ->max($ranges['login_2factor_lock_minutes'][1])
+            ->attribute(['data-filter' => $twoFactorLockFilter]);
+
+        // mail
+        $form->exmheader(exmtrans('login.brute_force_notify_header'))->hr();
+        $form->switchbool('login_brute_force_notify_mail', exmtrans('login.login_brute_force_notify_mail'))
+            ->help(exmtrans('login.help.login_brute_force_notify_mail'));
+
+        return $form;
+    }
+
+    /**
+     * Save the protection against brute-force attacks.
+     * A setting not posted (hidden on the form while its switch is off) keeps the saved value.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function postBruteForce(Request $request)
+    {
+        $errors = [];
+
+        // integers: in the range. Empty keeps the saved value.
+        $integers = [];
+        foreach (static::getBruteForceIntegerSettings() as $key => $range) {
+            $value = $request->input($key);
+            if (is_null($value) || $value === '') {
+                $integers[$key] = System::{$key}();
+                continue;
+            }
+            if (!is_string($value) || !preg_match('/^\d+$/', $value) || intval($value) < $range[0] || intval($value) > $range[1]) {
+                $errors[$key] = exmtrans('login.message.integer_range', exmtrans("login.{$key}"), $range[0], $range[1]);
+                continue;
+            }
+            $integers[$key] = intval($value);
+        }
+
+        $booleans = [];
+        foreach (static::getBruteForceBooleanSettings() as $key) {
+            $booleans[$key] = $request->has($key) ? boolval($request->input($key)) : boolval(System::{$key}());
+        }
+
+        // the block time must not get shorter when blocked again
+        if ($booleans['login_ip_block_progressive'] && count(array_intersect(['login_ip_block_minutes', 'login_ip_block_minutes_2', 'login_ip_block_minutes_3'], array_keys($errors))) == 0) {
+            if (intval($integers['login_ip_block_minutes_2']) < intval($integers['login_ip_block_minutes'])) {
+                $errors['login_ip_block_minutes_2'] = exmtrans('login.message.block_minutes_order', exmtrans('login.login_ip_block_minutes_2'), exmtrans('login.login_ip_block_minutes'));
+            } elseif (intval($integers['login_ip_block_minutes_3']) < intval($integers['login_ip_block_minutes_2'])) {
+                $errors['login_ip_block_minutes_3'] = exmtrans('login.message.block_minutes_order', exmtrans('login.login_ip_block_minutes_3'), exmtrans('login.login_ip_block_minutes_2'));
+            }
+        }
+
+        $hasIps = $request->has('login_ip_block_allowed_ips');
+        $ipsText = $request->input('login_ip_block_allowed_ips');
+        $invalidIps = $hasIps ? IpAddressList::getInvalid($ipsText) : [];
+        if (count($invalidIps) > 0) {
+            $errors['login_ip_block_allowed_ips'] = exmtrans('login.message.country_ips_invalid', implode(', ', $invalidIps));
+        }
+
+        // CAPTCHA image is drawn by GD
+        if ($booleans['login_captcha'] && !LoginCaptchaService::isAvailable()) {
+            $errors['login_captcha'] = exmtrans('login.help.captcha_not_available');
+        }
+
+        if (count($errors) > 0) {
+            admin_toastr(exmtrans('common.message.error_execute'), 'error');
+            return back()->withInput()->withErrors($errors);
+        }
+
+        foreach ($integers as $key => $value) {
+            System::{$key}($value);
+        }
+        foreach ($booleans as $key => $value) {
+            System::{$key}($value);
+        }
+        if ($hasIps) {
+            System::login_ip_block_allowed_ips(implode("\r\n", IpAddressList::parse($ipsText)));
+        }
 
         admin_toastr(trans('admin.save_succeeded'));
         return redirect(admin_url('login_setting'));

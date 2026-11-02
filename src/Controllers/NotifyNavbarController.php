@@ -10,9 +10,7 @@ use Illuminate\Http\Request;
 use ExmentAdminCore\Admin\Show;
 use Exceedone\Exment\Form\Tools\SwalMenuButton;
 use Exceedone\Exment\Grid\Tools\BatchCheck;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\LoginHistory;
 use Exceedone\Exment\Model\NotifyNavbar;
 
 class NotifyNavbarController extends AdminControllerBase
@@ -36,8 +34,8 @@ class NotifyNavbarController extends AdminControllerBase
             return exmtrans("notify_navbar.read_flg_options.$read_flg");
         });
         $grid->column('parent_type', exmtrans('notify_navbar.parent_type'))->sortable()->display(function ($parent_type) {
-            if (isMatchString($parent_type, SystemTableName::LOGIN_HISTORY)) {
-                return exmtrans('login_history.header');
+            if (!is_null($header = NotifyNavbar::getSystemParentHeader($parent_type))) {
+                return $header;
             }
             if (is_null($parent_type) || is_null($custom_table = CustomTable::getEloquent($parent_type))) {
                 return null;
@@ -166,29 +164,29 @@ class NotifyNavbarController extends AdminControllerBase
 
         $parent_type = array_get($model, 'parent_type');
 
-        // warning of login history. The linked data is a login history (system table), not a custom value,
+        // warning of the login security (login history, blocked IP address). The linked data is a system table, not a custom value,
         // so it is judged before looking for a custom table of the parent type.
         // @phpstan-ignore-next-line
-        $isLoginHistory = $model->isLoginHistory();
-        // null when the login history was deleted (manually or by the auto-delete), same as a deleted custom value below.
+        $isSystemParent = $model->isSystemParent();
+        // false when the linked data was deleted (manually or by the auto-delete), same as a deleted custom value below.
         // @phpstan-ignore-next-line
-        $login_history = $isLoginHistory ? LoginHistory::find($model->parent_id) : null;
+        $systemParentExists = $isSystemParent && $model->systemParentExists();
 
         $custom_value = null;
         /** @var CustomValue|null $custom_table */
         $custom_table = null;
-        if (!$isLoginHistory && !is_null($parent_type)) {
+        if (!$isSystemParent && !is_null($parent_type)) {
             if (!is_null($custom_table = CustomTable::getEloquent($parent_type))) {
                 $custom_value = $custom_table->getValueModel(array_get($model, 'parent_id'));
             }
         }
 
         // @phpstan-ignore-next-line
-        return new Show($model, function (Show $show) use ($id, $parent_type, $custom_value, $custom_table, $isLoginHistory, $login_history) {
+        return new Show($model, function (Show $show) use ($id, $parent_type, $custom_value, $custom_table, $isSystemParent, $systemParentExists) {
             if (isset($parent_type)) {
-                $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use ($custom_table, $isLoginHistory) {
-                    if ($isLoginHistory) {
-                        return exmtrans('login_history.header');
+                $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use ($custom_table, $isSystemParent) {
+                    if ($isSystemParent) {
+                        return NotifyNavbar::getSystemParentHeader($parent_type);
                     }
                     if (is_null($parent_type) || is_null($custom_table)) {
                         return null;
@@ -209,11 +207,11 @@ class NotifyNavbarController extends AdminControllerBase
                     return  html_clean(replaceBreak($v, false));
                 })->setEscape(false);
 
-            $show->panel()->tools(function ($tools) use ($id, $custom_value, $login_history) {
+            $show->panel()->tools(function ($tools) use ($id, $custom_value, $systemParentExists) {
                 $tools->disableEdit();
 
                 // the button to the linked data is shown only while the data exists
-                if ($custom_value || $login_history) {
+                if ($custom_value || $systemParentExists) {
                     $tools->append(view('exment::tools.button', [
                         'href' => admin_url("notify_navbar/rowdetail/{$id}"),
                         'label' => exmtrans('notify_navbar.data_refer'),
@@ -289,12 +287,11 @@ class NotifyNavbarController extends AdminControllerBase
             $model->update(['read_flg' => true]);
         }
 
-        // warning of login history: redirect to the login history page
+        // warning of the login security: redirect to the page of the system table (login history, blocked IP address)
         // @phpstan-ignore-next-line
-        if ($model->isLoginHistory()) {
-            // (a deleted login history is handled by the login history page: to the list with the "data not found" message)
-            // @phpstan-ignore-next-line
-            return redirect(admin_urls('login_history', $model->parent_id));
+        if (!is_null($url = $model->getSystemParentUrl())) {
+            // (deleted data is handled by the page: to the list with the "data not found" message)
+            return redirect($url);
         }
 
         // @phpstan-ignore-next-line

@@ -160,6 +160,35 @@ class Define
         // IP addresses (or CIDR) allowed regardless of the country, 1 per line.
         'login_country_allowed_ips' => ['default' => '', 'group' => 'login_country'],
 
+        // Protection against brute-force attacks ----------------------------------
+        // minutes in which failed logins are counted, for the IP block and CAPTCHA.
+        'login_failure_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'login_brute_force'],
+        // IP block (default off): too many failed logins from an IP address in the minutes above -> the IP address cannot log in for a while.
+        'login_ip_block' => ['type' => 'boolean', 'default' => '0', 'group' => 'login_brute_force'],
+        'login_ip_block_failures' => ['type' => 'int', 'default' => '10', 'group' => 'login_brute_force'],
+        'login_ip_block_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'login_brute_force'],
+        // blocked again within 24 hours after the last block: the 2nd block time, the block time from the 3rd.
+        'login_ip_block_progressive' => ['type' => 'boolean', 'default' => '1', 'group' => 'login_brute_force'],
+        'login_ip_block_minutes_2' => ['type' => 'int', 'default' => '30', 'group' => 'login_brute_force'],
+        'login_ip_block_minutes_3' => ['type' => 'int', 'default' => '1440', 'group' => 'login_brute_force'],
+        // IP addresses (or CIDR) never blocked, 1 per line. (Also CAPTCHA is not shown)
+        'login_ip_block_allowed_ips' => ['default' => '', 'group' => 'login_brute_force'],
+        'login_ip_block_notify' => ['type' => 'boolean', 'default' => '1', 'group' => 'login_brute_force'],
+        // CAPTCHA (default off): shown on the login form after failed logins of the IP address or the entered ID.
+        'login_captcha' => ['type' => 'boolean', 'default' => '0', 'group' => 'login_brute_force'],
+        'login_captcha_failures' => ['type' => 'int', 'default' => '3', 'group' => 'login_brute_force'],
+        // warning of an account tried from many IP addresses: notified to the system administrators.
+        'login_multi_ip_warning' => ['type' => 'boolean', 'default' => '1', 'group' => 'login_brute_force'],
+        'login_multi_ip_count' => ['type' => 'int', 'default' => '5', 'group' => 'login_brute_force'],
+        'login_multi_ip_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'login_brute_force'],
+        // limit of wrong codes of 2factor authentication (one-time password or recovery code), per user (default on):
+        // too many wrong codes in the minutes -> logged out, and 2factor authentication is locked until the minutes pass.
+        'login_2factor_lock' => ['type' => 'boolean', 'default' => '1', 'group' => 'login_brute_force'],
+        'login_2factor_lock_failures' => ['type' => 'int', 'default' => '5', 'group' => 'login_brute_force'],
+        'login_2factor_lock_minutes' => ['type' => 'int', 'default' => '15', 'group' => 'login_brute_force'],
+        // also notify the IP block and the warning above by mail.
+        'login_brute_force_notify_mail' => ['type' => 'boolean', 'default' => '0', 'group' => 'login_brute_force'],
+
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
         'login_2factor_provider' => ['default' => 'email', 'group' => '2factor'],
@@ -223,6 +252,8 @@ class Define
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR_RECOVERY_CODES = "auth_2factor_recovery_codes";
     public const SYSTEM_KEY_SESSION_LOGIN_HISTORY_ID = "login_history_id";
+    public const SYSTEM_KEY_SESSION_LOGIN_CAPTCHA = "login_captcha";
+    public const SYSTEM_KEY_SESSION_LOGIN_CAPTCHA_REQUIRED = "login_captcha_required";
     public const SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER = "custom_login_user";
     public const SYSTEM_KEY_SESSION_PROVIDER_TOKEN = "provider_token";
     public const SYSTEM_KEY_SESSION_SAML_SESSION = "saml_session";
@@ -315,6 +346,10 @@ class Define
         'login_history' => [
             'uri' => 'login_history',
             'icon' => 'fa-history',
+        ],
+        'login_ip_block' => [
+            'uri' => 'login_ip_block',
+            'icon' => 'fa-ban',
         ],
         'api_setting' => [
             'uri' => 'api_setting',
@@ -503,6 +538,7 @@ class Define
         ['uri'=> 'notify', 'help_uri'=> 'notify'],
         ['uri'=> 'loginuser', 'help_uri'=> 'user'],
         ['uri'=> 'login_history', 'help_uri'=> 'login_history'],
+        ['uri'=> 'login_ip_block', 'help_uri'=> 'login_ip_block'],
         ['uri'=> 'data/user', 'help_uri'=> 'user'],
         ['uri'=> 'data/mail_template', 'help_uri'=> 'mail'],
         ['uri'=> 'data/base_info', 'help_uri'=> 'base_info'],

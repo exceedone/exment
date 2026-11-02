@@ -528,12 +528,12 @@ class ApiController extends AdminControllerBase
         return [
             'count' => $count,
             'items' => $list->map(function ($l) {
-                // Warning of login history: shown as a warning, to be distinguished from normal notifications.
-                // Judged before looking for a custom table, because its parent is the system table "login_histories".
-                if ($l->isLoginHistory()) {
+                // Warnings of the login security (login history, blocked IP address): shown as a warning, to be distinguished
+                // from normal notifications. Judged before looking for a custom table, because the parent is a system table.
+                if ($l->isSystemParent()) {
                     $icon = 'fa-exclamation-triangle';
                     $color = '#dd4b39';
-                    $table_view_name = exmtrans('login_history.header');
+                    $table_view_name = NotifyNavbar::getSystemParentHeader($l->parent_type);
                 } elseif (!is_null($custom_table = CustomTable::getEloquent(array_get($l, 'parent_type')))) {
                     $icon = $custom_table->getOption('icon');
                     $color = $custom_table->getOption('color');

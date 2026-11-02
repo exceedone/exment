@@ -4,12 +4,17 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorLockService;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorRecoveryCodeService;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\LoginFailure;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Services\Login\LoginCaptchaService;
+use Exceedone\Exment\Services\Login\LoginFailureService;
+use Exceedone\Exment\Services\Login\LoginIpBlockService;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\PasswordHistory;
 use Exceedone\Exment\Providers\LoginUserProvider;
@@ -53,7 +58,33 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
             return redirect($this->redirectPath());
         }
 
-        return view('exment::auth.login', $this->getLoginPageData());
+        $data = $this->getLoginPageData();
+        // CAPTCHA after failed logins
+        $data['captcha_required'] = app(LoginCaptchaService::class)->isRequired($request);
+        // the IP address blocked by failed logins: tell it before the user posts the form
+        $block = app(LoginIpBlockService::class)->getActiveBlock($request->ip());
+        $data['ip_block_message'] = is_null($block) ? null : LoginIpBlockService::getBlockedMessage($block);
+
+        return view('exment::auth.login', $data);
+    }
+
+    /**
+     * Image of CAPTCHA. A new code each time. (The code is kept in the session)
+     *
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function getCaptcha(Request $request)
+    {
+        if (!LoginCaptchaService::isAvailable()) {
+            abort(404);
+        }
+
+        return response(app(LoginCaptchaService::class)->createImage($request), 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+        ]);
     }
 
     /**
@@ -80,16 +111,94 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
         $credentials = $request->only([$this->username(), 'password']);
         $credentials['islogin_from_provider'] = true;
 
+        $ldap_setting = null;
         foreach (LoginSetting::getLdapSettings() as $login_setting) {
             if ($request->has("login_setting_{$login_setting->provider_name}")) {
-                $credentials['login_setting'] =  $login_setting;
-                $credentials['login_type'] =  $login_setting->login_type;
-                return $this->executeLogin($request, $credentials, $login_setting);
+                $ldap_setting = $login_setting;
+                break;
             }
+        }
+
+        // CAPTCHA after failed logins: checked before the password.
+        if (!is_null($response = $this->checkCaptcha($request, $ldap_setting))) {
+            return $response;
+        }
+
+        if (!is_null($ldap_setting)) {
+            $credentials['login_setting'] =  $ldap_setting;
+            $credentials['login_type'] =  $ldap_setting->login_type;
+            return $this->executeLogin($request, $credentials, $ldap_setting);
         }
 
         $credentials['login_type'] = LoginType::PURE;
         return $this->executeLogin($request, $credentials);
+    }
+
+    /**
+     * Check CAPTCHA, if required. A wrong CAPTCHA is a failed login of the IP address. (The password is not checked)
+     *
+     * @param Request $request
+     * @param LoginSetting|null $ldap_setting
+     * @return \Illuminate\Http\RedirectResponse|null null: passed, or not required.
+     */
+    protected function checkCaptcha(Request $request, ?LoginSetting $ldap_setting)
+    {
+        $captcha = app(LoginCaptchaService::class);
+        if (!$captcha->isRequired($request, true)) {
+            return null;
+        }
+
+        // shown on the form from now on, even if the request below passes
+        $captcha->markRequired($request);
+        if ($captcha->verify($request)) {
+            return null;
+        }
+
+        $block = app(LoginFailureService::class)->handleLoginFailure(
+            $request,
+            LoginFailure::REASON_CAPTCHA,
+            $ldap_setting ? $ldap_setting->login_type : LoginType::PURE,
+            null,
+            $ldap_setting ? $ldap_setting->provider_name : null
+        );
+        if (!is_null($block)) {
+            return LoginIpBlockService::getBlockedResponse($request, $block);
+        }
+
+        // keep the entered ID only. (never flash the password)
+        return back()->withInput($request->only([$this->username(), 'remember']))->withErrors([
+            LoginCaptchaService::INPUT_NAME => exmtrans('login.message.captcha_failed'),
+        ]);
+    }
+
+    /**
+     * Record the failed login (wrong ID or password), then block the IP address if it failed too many times.
+     *
+     * @param Request $request
+     * @param array<string, mixed> $credentials
+     * @param LoginSetting|null $login_setting
+     * @return \Illuminate\Http\RedirectResponse|null the response of the block, if the IP address is blocked now.
+     */
+    protected function handleLoginFailure(Request $request, array $credentials, ?LoginSetting $login_setting)
+    {
+        // the user of the entered ID, if exists. (The account is counted whichever ID is entered: user code or e-mail)
+        $guard = $this->guard();
+        $attempted = method_exists($guard, 'getLastAttempted') ? $guard->getLastAttempted() : null;
+        $login_user = $attempted instanceof LoginUser ? $attempted : null;
+
+        $block = app(LoginFailureService::class)->handleLoginFailure(
+            $request,
+            LoginFailure::REASON_PASSWORD,
+            array_get($credentials, 'login_type'),
+            $login_user,
+            $login_setting ? $login_setting->provider_name : null
+        );
+        if (!is_null($block)) {
+            return LoginIpBlockService::getBlockedResponse($request, $block);
+        }
+
+        app(LoginCaptchaService::class)->requireIfNeeded($request, $login_user);
+        return null;
     }
 
     /**
@@ -108,6 +217,9 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
 
         try {
             if ($this->guard()->attempt($credentials, $remember)) {
+                // logged in: CAPTCHA is not shown any more in this session
+                app(LoginCaptchaService::class)->clear($request);
+
                 // check change password first time.
                 if ($this->firstChangePassword($credentials['login_type'])) {
                     session([Define::SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD => true]);
@@ -129,6 +241,11 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
             // to login and redirect the user back to the login form. Of course, when this
             // user surpasses their maximum number of attempts they will get locked out.
             $this->incrementLoginAttempts($request);
+
+            // protection against brute-force attacks: the IP address may be blocked now
+            if (!is_null($response = $this->handleLoginFailure($request, $credentials, $login_setting))) {
+                return $response;
+            }
 
             return back()->withInput()->withErrors([
                 $this->username() => $this->getFailedLoginMessage(),
@@ -235,7 +352,13 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
     protected function postVerifyEmail2factor()
     {
         // not use 2factor, or the login user is not required 2factor (specified by role group)
-        if (!Auth2factorService::isRequiredFor(\Exment::user())) {
+        $login_user = \Exment::user();
+        if (!Auth2factorService::isRequiredFor($login_user)) {
+            return;
+        }
+
+        // locked by too many wrong codes: no new code is sent. (The page of 2factor authentication logs out the user)
+        if ($login_user instanceof LoginUser && Auth2factorLockService::isLocked($login_user)) {
             return;
         }
 

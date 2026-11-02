@@ -4,7 +4,9 @@ namespace Exceedone\Exment\Services\Auth2factor\Providers;
 
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorLockService;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorRecoveryCodeService;
 use Exceedone\Exment\Controllers\AuthTrait;
 use PragmaRX\Google2FA\Google2FA;
@@ -176,9 +178,17 @@ class Google
         $loginuser = \Admin::user();
         $key = decrypt($loginuser->auth2fa_key);
 
-        // validation google 2fa
-        if (!$g2fa->verifyKey($key, $verify_code, 5)) {
+        // validation google 2fa: a code accepted before is never accepted again (the code of the same or an older time step)
+        $timestep = is_string($verify_code)
+            ? $g2fa->verifyKeyNewer($key, $verify_code, $this->getLastTimestep($loginuser), Auth2factorService::getGoogleWindow())
+            : false;
+        if ($timestep === false || $timestep === true || !$this->saveLastTimestep($loginuser, (int)$timestep)) {
             $this->incrementLoginAttempts($request);
+
+            // too many wrong codes: logged out
+            if (Auth2factorLockService::recordFailure($loginuser)) {
+                return Auth2factorLockService::getLockedResponse($loginuser);
+            }
 
             return back()->withInput()->withErrors([
                 'verify_code' => exmtrans('2factor.message.verify_failed')
@@ -203,6 +213,45 @@ class Google
     // @phpstan-ignore-next-line
     public function insertVerify()
     {
+    }
+
+    /**
+     * Time step of the last accepted one-time password of the user. 0: none, or before "exment:update" of the version that added the column.
+     *
+     * @param LoginUser $login_user
+     * @return int
+     */
+    protected function getLastTimestep(LoginUser $login_user): int
+    {
+        if (!hasColumn(SystemTableName::LOGIN_USER, 'auth2fa_last_timestep')) {
+            return 0;
+        }
+        $value = LoginUser::query()->where('id', $login_user->id)->value('auth2fa_last_timestep');
+        return intval($value);
+    }
+
+    /**
+     * Save the time step of the accepted one-time password, only if it is newer than the saved one.
+     * The same code posted twice at once: only one of them is saved, and the other is rejected.
+     *
+     * @param LoginUser $login_user
+     * @param int $timestep
+     * @return bool false: a code of the same or a newer time step was accepted before.
+     */
+    protected function saveLastTimestep(LoginUser $login_user, int $timestep): bool
+    {
+        if (!hasColumn(SystemTableName::LOGIN_USER, 'auth2fa_last_timestep')) {
+            return true;
+        }
+
+        $updated = LoginUser::query()
+            ->where('id', $login_user->id)
+            ->where(function ($query) use ($timestep) {
+                $query->whereNull('auth2fa_last_timestep')
+                    ->orWhere('auth2fa_last_timestep', '<', $timestep);
+            })
+            ->update(['auth2fa_last_timestep' => $timestep]);
+        return $updated > 0;
     }
 
     // @phpstan-ignore-next-line

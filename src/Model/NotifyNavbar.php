@@ -21,6 +21,15 @@ use Exceedone\Exment\Enums\SystemTableName;
  */
 class NotifyNavbar extends ModelBase
 {
+    /**
+     * System tables a notification links to, instead of a custom value. (warnings of the login security)
+     * key: parent_type (the table name), value: uri of the admin page, and the key of its header.
+     */
+    public const SYSTEM_PARENTS = [
+        SystemTableName::LOGIN_HISTORY => ['uri' => 'login_history', 'header' => 'login_history.header'],
+        SystemTableName::LOGIN_IP_BLOCK => ['uri' => 'login_ip_block', 'header' => 'login_ip_block.header'],
+    ];
+
     protected static function boot()
     {
         parent::boot();
@@ -33,14 +42,54 @@ class NotifyNavbar extends ModelBase
     }
 
     /**
-     * Whether this notification is a warning of login history.
-     * (parent_type is "login_histories", parent_id is the id of the login history.)
+     * Whether this notification links to a system table (SYSTEM_PARENTS), not to a custom value.
+     * (Ex. warning of login history, blocked IP address)
      *
      * @return bool
      */
-    public function isLoginHistory(): bool
+    public function isSystemParent(): bool
     {
-        return isMatchString($this->parent_type, SystemTableName::LOGIN_HISTORY) && !is_nullorempty($this->parent_id);
+        return !is_null(static::getSystemParentHeader($this->parent_type)) && !is_nullorempty($this->parent_id);
+    }
+
+    /**
+     * Header of the system table of the parent type. (Ex. "login history")
+     *
+     * @param mixed $parent_type
+     * @return string|null null: not a system table of SYSTEM_PARENTS
+     */
+    public static function getSystemParentHeader($parent_type): ?string
+    {
+        if (!is_string($parent_type) || !array_key_exists($parent_type, static::SYSTEM_PARENTS)) {
+            return null;
+        }
+        return exmtrans(static::SYSTEM_PARENTS[$parent_type]['header']);
+    }
+
+    /**
+     * Url of the linked data of the system table.
+     *
+     * @return string|null null: not linked to a system table
+     */
+    public function getSystemParentUrl(): ?string
+    {
+        if (!$this->isSystemParent()) {
+            return null;
+        }
+        return admin_urls(static::SYSTEM_PARENTS[$this->parent_type]['uri'], $this->parent_id);
+    }
+
+    /**
+     * Whether the linked data of the system table still exists. (It may have been deleted manually or automatically)
+     *
+     * @return bool
+     */
+    public function systemParentExists(): bool
+    {
+        if (!$this->isSystemParent() || !hasTable($this->parent_type)) {
+            return false;
+        }
+        return \DB::table($this->parent_type)->where('id', $this->parent_id)->exists();
     }
 
     /**
@@ -52,7 +101,7 @@ class NotifyNavbar extends ModelBase
      * table permissions, so a user without any table permission still gets the list.
      * Notifications without parent_type, and parent_type of a table that no longer exists, are skipped.
      * Hidden tables (showlist_flg false) are kept, because their notification rows are listed anyway.
-     * The warning of login history (parent_type is the system table "login_histories") is listed under its own name.
+     * The warnings linked to a system table (Ex. "login_histories", see SYSTEM_PARENTS) are listed under its own name.
      *
      * @return array<string, string>
      */
@@ -80,8 +129,10 @@ class NotifyNavbar extends ModelBase
             ->toArray();
 
         // Set after the custom tables, so that a custom table of the same name never takes the place of the warning.
-        if ($parent_types->contains(SystemTableName::LOGIN_HISTORY)) {
-            $options[SystemTableName::LOGIN_HISTORY] = exmtrans('login_history.header');
+        foreach ($parent_types as $parent_type) {
+            if (!is_null($header = static::getSystemParentHeader($parent_type))) {
+                $options[$parent_type] = $header;
+            }
         }
 
         return $options;

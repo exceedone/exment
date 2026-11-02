@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorLockService;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorRecoveryCodeService;
 use Illuminate\Http\Request;
 
@@ -36,12 +38,58 @@ class Auth2factorController extends \ExmentAdminCore\Admin\Controllers\AuthContr
     }
 
     /**
+     * Input page of the one-time password. (by the provider of the user)
+     * A user locked by too many wrong codes is logged out.
+     *
+     * @return mixed
+     */
+    public function index()
+    {
+        if (!is_null($response = $this->getLockedResponse())) {
+            return $response;
+        }
+        return Auth2factorService::getProvider()->index();
+    }
+
+    /**
+     * Verify the one-time password. (by the provider of the user)
+     * A user locked by too many wrong codes is logged out without checking the code.
+     *
+     * @return mixed
+     */
+    public function verify()
+    {
+        if (!is_null($response = $this->getLockedResponse())) {
+            return $response;
+        }
+        return Auth2factorService::getProvider()->verify();
+    }
+
+    /**
+     * Response for the user locked by too many wrong codes. (logged out)
+     *
+     * @return \Illuminate\Http\RedirectResponse|null null: not locked
+     */
+    protected function getLockedResponse()
+    {
+        $login_user = \Exment::user();
+        if (!($login_user instanceof LoginUser) || !Auth2factorLockService::isLocked($login_user)) {
+            return null;
+        }
+        return Auth2factorLockService::getLockedResponse($login_user);
+    }
+
+    /**
      * Login by a recovery code, instead of the one-time password: input page.
      *
-     * @return \Illuminate\Contracts\View\View
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
      */
     public function recovery()
     {
+        if (!is_null($response = $this->getLockedResponse())) {
+            return $response;
+        }
+
         $login_user = \Exment::user();
 
         return view('exment::auth.2factor.2factor-recovery', $this->getLoginPageData([
@@ -65,6 +113,10 @@ class Auth2factorController extends \ExmentAdminCore\Admin\Controllers\AuthContr
             return;
         }
 
+        if (!is_null($response = $this->getLockedResponse())) {
+            return $response;
+        }
+
         $login_user = \Exment::user();
         $code = $request->get('recovery_code');
 
@@ -73,6 +125,11 @@ class Auth2factorController extends \ExmentAdminCore\Admin\Controllers\AuthContr
             || !Auth2factorService::canUseRecoveryCodes($login_user)
             || !Auth2factorRecoveryCodeService::verify($login_user, $code)) {
             $this->incrementLoginAttempts($request);
+
+            // too many wrong codes (one-time passwords and recovery codes): logged out
+            if ($login_user instanceof LoginUser && Auth2factorLockService::recordFailure($login_user)) {
+                return Auth2factorLockService::getLockedResponse($login_user);
+            }
 
             return back()->withErrors([
                 'recovery_code' => exmtrans('2factor.message.recovery_verify_failed'),

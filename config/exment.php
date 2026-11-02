@@ -302,6 +302,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Login 2factor Google authenticator window
+    |--------------------------------------------------------------------------
+    |
+    | Number of 30 seconds steps before and after the current time, accepted
+    | for the one-time password of Google authenticator (for a difference of
+    | the clock). 1: from 30 seconds before to 30 seconds after.
+    |
+    */
+    'login_2factor_google_window' =>  env('EXMENT_LOGIN_2FACTOR_GOOGLE_WINDOW', 1),
+
+    /*
+    |--------------------------------------------------------------------------
     | GeoIP database path
     |--------------------------------------------------------------------------
     |

@@ -3,8 +3,10 @@
 namespace Exceedone\Exment\Services\Auth2factor\Providers;
 
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorLockService;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorRecoveryCodeService;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Controllers\AuthTrait;
 use Carbon\Carbon;
@@ -74,8 +76,13 @@ class Email
         /** @var LoginUser $loginuser */
         $loginuser = \Admin::user();
 
-        if (!Auth2factorService::verifyCode('email', $verify_code, true)) {
+        if (!is_string($verify_code) || !Auth2factorService::verifyCode('email', $verify_code, true)) {
             $this->incrementLoginAttempts($request);
+
+            // too many wrong codes: logged out
+            if (Auth2factorLockService::recordFailure($loginuser)) {
+                return Auth2factorLockService::getLockedResponse($loginuser);
+            }
 
             // error
             return back()->withInput()->withErrors([
@@ -89,7 +96,11 @@ class Email
     // @phpstan-ignore-next-line
     public function insertVerify()
     {
+        /** @var LoginUser $loginuser */
         $loginuser = \Admin::user();
+
+        // only the latest one-time password is valid: the codes sent before are invalidated.
+        Auth2factorService::deleteCodes($loginuser, Login2FactorProviderType::EMAIL);
 
         // set 2factor params
         $verify_code = random_int(100000, 999999);

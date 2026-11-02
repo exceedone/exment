@@ -65,6 +65,9 @@ class Login2factorRequiredTest extends FeatureTestBase
         System::login_2factor_setup_grace_minutes(Auth2factorService::DEFAULT_SETUP_GRACE_MINUTES);
         // logins must not be blocked by the login restriction by country saved in the database
         System::login_country_restriction(false);
+        // nor by the protection against brute-force attacks
+        System::login_ip_block(false);
+        System::login_captcha(false);
     }
 
     protected function tearDown(): void
@@ -495,7 +498,7 @@ class Login2factorRequiredTest extends FeatureTestBase
         $this->assertSame(0, Auth2factorRecoveryCodeService::getRemainingCount($login_user));
 
         $this->postLogin($login_user)->assertStatus(302);
-        $this->postVerify(['verify_code' => $this->otp($secret)])->assertRedirect(admin_url(''));
+        $this->postVerify(['verify_code' => $this->otp($secret, 1)])->assertRedirect(admin_url(''));
         $this->assertSame(0, Auth2factorRecoveryCodeService::getRemainingCount($login_user), 'not re-issued');
     }
 
@@ -1143,9 +1146,14 @@ class Login2factorRequiredTest extends FeatureTestBase
         return $secret;
     }
 
-    protected function otp(string $secret): string
+    /**
+     * @param int $step 0: the current code. 1: the code of the next 30 seconds (accepted for a clock difference).
+     *                  A code is accepted only once, so a second login in the same 30 seconds uses the next code.
+     */
+    protected function otp(string $secret, int $step = 0): string
     {
-        return (new Google2FA())->getCurrentOtp($secret);
+        $g2fa = new Google2FA();
+        return $g2fa->oathTotp($secret, $g2fa->getTimestamp() + $step);
     }
 
     protected function travelMinutes(int $minutes): void

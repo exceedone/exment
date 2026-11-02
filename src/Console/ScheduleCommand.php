@@ -8,6 +8,8 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\LoginHistory;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\GeoIp\GeoIpService;
+use Exceedone\Exment\Services\Login\LoginFailureService;
+use Exceedone\Exment\Services\Login\LoginIpBlockService;
 use Carbon\Carbon;
 
 class ScheduleCommand extends Command
@@ -53,9 +55,26 @@ class ScheduleCommand extends Command
         $this->backup();
         $this->clearOperationLog();
         $this->clearLoginHistory();
+        $this->clearLoginFailures();
         $this->updateGeoIp();
         $this->pluginBatch();
         return 0;
+    }
+
+    /**
+     * Delete the failed logins and the IP blocks not needed any more. (protection against brute-force attacks)
+     * Always: the records are only for counting, and nothing is deleted while nothing is old.
+     *
+     * @return void
+     */
+    protected function clearLoginFailures()
+    {
+        try {
+            LoginFailureService::deleteOld();
+            LoginIpBlockService::deleteExpired();
+        } catch (\Throwable $ex) {
+            \Log::error($ex);
+        }
     }
 
     // @phpstan-ignore-next-line

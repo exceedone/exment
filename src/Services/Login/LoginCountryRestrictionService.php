@@ -296,18 +296,7 @@ class LoginCountryRestrictionService
      */
     public static function parseIps($text): array
     {
-        if (!is_string($text) || $text === '') {
-            return [];
-        }
-
-        $ips = [];
-        foreach (preg_split('/\R/', $text) ?: [] as $line) {
-            $line = trim($line);
-            if ($line !== '') {
-                $ips[] = $line;
-            }
-        }
-        return $ips;
+        return IpAddressList::parse($text);
     }
 
     /**
@@ -318,27 +307,7 @@ class LoginCountryRestrictionService
      */
     public static function getInvalidIps($text): array
     {
-        return array_values(array_filter(static::parseIps($text), function ($line) {
-            return !static::isValidIpOrCidr($line);
-        }));
-    }
-
-    /**
-     * @param string $value
-     * @return bool
-     */
-    protected static function isValidIpOrCidr(string $value): bool
-    {
-        $parts = explode('/', $value, 2);
-        if (filter_var($parts[0], FILTER_VALIDATE_IP) === false) {
-            return false;
-        }
-        if (count($parts) == 1) {
-            return true;
-        }
-
-        $max = filter_var($parts[0], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false ? 32 : 128;
-        return ctype_digit($parts[1]) && intval($parts[1]) <= $max;
+        return IpAddressList::getInvalid($text);
     }
 
     /**
@@ -349,16 +318,7 @@ class LoginCountryRestrictionService
      */
     protected static function normalizeIp(?string $ip): ?string
     {
-        if (is_nullorempty($ip) || filter_var($ip, FILTER_VALIDATE_IP) === false) {
-            return null;
-        }
-
-        // a valid IP address: always packed
-        $packed = (string)inet_pton($ip);
-        if (strlen($packed) == 16 && substr($packed, 0, 12) === str_repeat("\x00", 10) . "\xff\xff") {
-            return (string)inet_ntop(substr($packed, 12));
-        }
-        return $ip;
+        return IpAddressList::normalize($ip);
     }
 
     /**

@@ -192,51 +192,77 @@ class LoginHistoryService
             return;
         }
 
+        // link to the login history. See NotifyNavbar::SYSTEM_PARENTS
+        static::notifyAdministrators(
+            SystemTableName::LOGIN_HISTORY,
+            $history->id,
+            $history->base_user_id,
+            static::getNotifySubject($history),
+            function (bool $isHtml) use ($history) {
+                return static::getNotifyBody($history, $isHtml);
+            },
+            boolval(System::login_history_notify_mail())
+        );
+    }
+
+    /**
+     * Notify system administrators on the page (bell icon of the header), and also by mail if $mail is true.
+     * A failure of notification never blocks login.
+     *
+     * @param string $parent_type the linked data. (Ex. "login_histories". See NotifyNavbar::SYSTEM_PARENTS)
+     * @param mixed $parent_id
+     * @param mixed $trigger_user_id the user the notification is about, if known.
+     * @param string $subject
+     * @param \Closure(bool): string $body gets the body. Argument: true -> HTML, false -> plain text.
+     * @param bool $mail
+     * @return void
+     */
+    public static function notifyAdministrators(string $parent_type, $parent_id, $trigger_user_id, string $subject, \Closure $body, bool $mail): void
+    {
         try {
-            $subject = static::getNotifySubject($history);
-            $body = static::getNotifyBody($history, true);
+            $html = $body(true);
 
             foreach (static::getAdminUserIds() as $admin_id) {
                 $notify = new NotifyNavbar();
                 $notify->saving_users = false;
                 $notify->notify_id = 0;
-                // link to the login history. See NotifyNavbar::isLoginHistory()
-                $notify->parent_type = SystemTableName::LOGIN_HISTORY;
-                $notify->parent_id = $history->id;
+                $notify->parent_type = $parent_type;
+                $notify->parent_id = $parent_id;
                 $notify->target_user_id = $admin_id;
-                $notify->trigger_user_id = $history->base_user_id;
+                $notify->trigger_user_id = $trigger_user_id;
                 $notify->notify_subject = mb_substr($subject, 0, 200);
-                $notify->notify_body = mb_substr($body, 0, 2000);
-                $notify->created_user_id = $history->base_user_id;
-                $notify->updated_user_id = $history->base_user_id;
+                $notify->notify_body = mb_substr($html, 0, 2000);
+                $notify->created_user_id = $trigger_user_id;
+                $notify->updated_user_id = $trigger_user_id;
                 $notify->save();
             }
         } catch (\Throwable $ex) {
             \Log::error($ex);
         }
 
-        if (boolval(System::login_history_notify_mail())) {
+        if ($mail) {
             // Sending mail may take time. Send after the response is sent, so that login is not delayed.
             // Terminating callbacks are kept while the application lives, so make sure to send only once.
             $sent = false;
-            app()->terminating(function () use ($history, &$sent) {
+            app()->terminating(function () use ($subject, $body, &$sent) {
                 if ($sent) {
                     return;
                 }
                 $sent = true;
 
-                static::sendNotifyMail($history);
+                static::sendAdministratorMail($subject, $body);
             });
         }
     }
 
     /**
-     * Send the warning mail to system administrators.
+     * Send a mail to system administrators.
      *
-     * @param LoginHistory $history
+     * @param string $subject
+     * @param \Closure(bool): string $body gets the body. Argument: true -> HTML, false -> plain text.
      * @return void
      */
-    public static function sendNotifyMail(LoginHistory $history): void
+    public static function sendAdministratorMail(string $subject, \Closure $body): void
     {
         try {
             $user_table = CustomTable::getEloquent(SystemTableName::USER);
@@ -252,8 +278,8 @@ class LoginHistoryService
             $isHtml = !isMatchString(System::system_mail_body_type(), MailBodyType::PLAIN);
 
             MailSender::make(null, $addresses)
-                ->subject(static::escapeMailFormat(static::getNotifySubject($history)))
-                ->body(static::escapeMailFormat(static::getNotifyBody($history, $isHtml)))
+                ->subject(static::escapeMailFormat($subject))
+                ->body(static::escapeMailFormat($body($isHtml)))
                 ->send();
         } catch (\Throwable $ex) {
             \Log::error($ex);
@@ -295,7 +321,29 @@ class LoginHistoryService
             exmtrans('login_history.login_type') => $history->login_type_text,
         ];
 
-        $lines = [exmtrans('login_history.notify.body'), ''];
+        return static::makeNotifyBody(
+            exmtrans('login_history.notify.body'),
+            $items,
+            admin_urls('login_history', $history->id),
+            exmtrans('login_history.notify.link'),
+            $isHtml
+        );
+    }
+
+    /**
+     * Make a notification body: the message, the items ("label : value", empty values are skipped), and the link.
+     * Lines are separated by line feed.
+     *
+     * @param string $message
+     * @param array<string, mixed> $items key: label, value: value
+     * @param string $url
+     * @param string $link text of the link
+     * @param bool $isHtml true: values are escaped and the link is an anchor tag. false: plain text.
+     * @return string
+     */
+    public static function makeNotifyBody(string $message, array $items, string $url, string $link, bool $isHtml): string
+    {
+        $lines = [$message, ''];
         foreach ($items as $label => $value) {
             if (is_nullorempty($value)) {
                 continue;
@@ -304,8 +352,6 @@ class LoginHistoryService
         }
         $lines[] = '';
 
-        $url = admin_urls('login_history', $history->id);
-        $link = exmtrans('login_history.notify.link');
         if (!$isHtml) {
             $lines[] = exmtrans('common.format_keyvalue', $link, $url);
             return implode("\n", $lines);

@@ -89,9 +89,12 @@ class RefreshDataService
             // table over at id 1: a mark left behind would hide or "read" a task of a NEW record
             'workflow_task_reads',
         ];
-        // login histories are transaction data too. (The table does not exist before "exment:update" of the version that added it.)
-        if (hasTable(SystemTableName::LOGIN_HISTORY)) {
-            $tables[] = SystemTableName::LOGIN_HISTORY;
+        // login histories, failed logins and blocked IP addresses are transaction data too.
+        // (The tables do not exist before "exment:update" of the version that added them.)
+        foreach ([SystemTableName::LOGIN_HISTORY, SystemTableName::LOGIN_FAILURE, SystemTableName::LOGIN_IP_BLOCK] as $table) {
+            if (hasTable($table)) {
+                $tables[] = $table;
+            }
         }
 
         return $tables;

@@ -66,6 +66,9 @@ class LoginHistoryTest extends FeatureTestBase
         System::login_history_notify_mail(false);
         // logins from abroad must not be blocked by the login restriction by country saved in the database
         System::login_country_restriction(false);
+        // nor by the protection against brute-force attacks
+        System::login_ip_block(false);
+        System::login_captcha(false);
     }
 
     // ------------------------------------------------------------------ //
@@ -362,7 +365,8 @@ class LoginHistoryTest extends FeatureTestBase
         );
 
         $notify = $notifies[0];
-        $this->assertTrue($notify->isLoginHistory());
+        $this->assertSame(SystemTableName::LOGIN_HISTORY, $notify->parent_type);
+        $this->assertTrue($notify->isSystemParent());
         $this->assertEquals($history->id, $notify->parent_id);
         $this->assertFalse(boolval($notify->read_flg));
         $this->assertStringContainsString($login_user->user_name, $notify->notify_subject);
@@ -497,7 +501,7 @@ class LoginHistoryTest extends FeatureTestBase
 
     /**
      * A custom table may be named "login_histories" too (the name is not reserved). The warning is judged by
-     * isLoginHistory() before looking for a custom table of the parent type, so such a table never turns the warning
+     * isSystemParent() before looking for a custom table of the parent type, so such a table never turns the warning
      * into a normal notification of that table (bell icon, list, detail, "show the linked data").
      */
     public function testWarningIsNotMistakenForCustomTableOfSameName(): void
@@ -639,7 +643,7 @@ class LoginHistoryTest extends FeatureTestBase
             'is_new_ip' => true,
         ]);
 
-        LoginHistoryService::sendNotifyMail($history);
+        $this->sendWarningMail($history);
 
         $mailInfo = $this->sentMailInfo();
         $this->assertStringContainsString('lh_$ {system:site_name}_name', (string)$mailInfo->getSubject());
@@ -667,7 +671,7 @@ class LoginHistoryTest extends FeatureTestBase
 
         // html (default)
         System::system_mail_body_type(MailBodyType::HTML);
-        LoginHistoryService::sendNotifyMail($history);
+        $this->sendWarningMail($history);
         $body = (string)$this->sentMailInfo()->getBody();
         $this->assertStringContainsString('<a href="' . $url . '">', $body);
         $this->assertStringContainsString('lh_mail &lt;name&gt;', $body);
@@ -676,7 +680,7 @@ class LoginHistoryTest extends FeatureTestBase
         // plain text
         \Notification::fake();
         System::system_mail_body_type(MailBodyType::PLAIN);
-        LoginHistoryService::sendNotifyMail($history);
+        $this->sendWarningMail($history);
         $body = (string)$this->sentMailInfo()->getBody();
         $this->assertStringNotContainsString('<a href', $body);
         $this->assertStringContainsString($url, $body);
@@ -695,8 +699,7 @@ class LoginHistoryTest extends FeatureTestBase
         $login_user = $this->createLoginUser();
         $history = $this->createHistory($login_user, ['ip_address' => self::IP_US, 'is_new_ip' => true]);
 
-        LoginHistoryService::notifyNewIp($history);
-        LoginHistoryService::sendNotifyMail($history);
+        $this->sendWarningMail($history);
 
         $this->assertCount(0, $this->notifiesTriggeredBy($login_user));
         \Notification::assertNothingSent();
@@ -1785,6 +1788,17 @@ class LoginHistoryTest extends FeatureTestBase
             ->get()
             ->values()
             ->toBase();
+    }
+
+    /**
+     * Send the warning mail of the login history, the same way as a login does:
+     * notifyNewIp() sends it after the response is sent. (terminating callback)
+     */
+    protected function sendWarningMail(LoginHistory $history): void
+    {
+        System::login_history_notify_mail(true);
+        LoginHistoryService::notifyNewIp($history);
+        $this->app->terminate();
     }
 
     /**

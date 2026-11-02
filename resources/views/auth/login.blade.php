@@ -5,10 +5,12 @@
     @if($show_default_form)
         <form style="margin-bottom:0px;" action="{{ admin_url('auth/login') }}" method="post">
         <div class="mb-3 {!! !$errors->has('username') ?: 'is-invalid' !!}">
-            @if($errors->has('username')) 
+            @if($errors->has('username'))
                 @foreach($errors->get('username') as $message)
                     <label class="control-label mb-1 text-danger fw-bold" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label><br>
-                @endforeach 
+                @endforeach
+            @elseif(!empty($ip_block_message))
+                <label class="control-label mb-1 text-danger fw-bold" for="inputError"><i class="fa fa-times-circle-o"></i>{{$ip_block_message}}</label><br>
             @endif
             <div class="position-relative">
                 <input type="text" class="form-control {!! !$errors->has('username') ?: 'is-invalid' !!}" placeholder="{{ exmtrans('login.email_or_usercode') }}" name="username" value="{{ old('username') }}" required>
@@ -26,6 +28,28 @@
                     <span class="position-absolute top-50 end-0 translate-middle-y pe-3"><i class="fa fa-lock"></i></span>
                 </div>
             </div>
+            @if(!empty($captcha_required))
+            <div class="mb-3 login-captcha {!! !$errors->has('captcha') ?: 'is-invalid' !!}">
+                @if($errors->has('captcha'))
+                    @foreach($errors->get('captcha') as $message)
+                        <label class="control-label mb-1 text-danger fw-bold" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label><br>
+                    @endforeach
+                @endif
+                <p class="mb-1 small">{{ exmtrans('login.captcha_description') }}</p>
+                <div class="d-flex align-items-center mb-1">
+                    <img src="{{ admin_url('auth/captcha') }}?t={{ \Illuminate\Support\Str::random(8) }}" id="login-captcha-image" alt="CAPTCHA" width="160" height="50" style="border:1px solid #ccc;">
+                    <a href="#" id="login-captcha-refresh" class="ms-2 text-decoration-none" title="{{ exmtrans('login.captcha_refresh') }}"><i class="fa fa-refresh"></i> {{ exmtrans('login.captcha_refresh') }}</a>
+                </div>
+                <input type="text" class="form-control {!! !$errors->has('captcha') ?: 'is-invalid' !!}" placeholder="{{ exmtrans('login.captcha') }}" name="captcha" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" required>
+                <script>
+                    // without jQuery: it is loaded after the content of this page
+                    document.getElementById('login-captcha-refresh').addEventListener('click', function (e) {
+                        e.preventDefault();
+                        document.getElementById('login-captcha-image').src = {!! json_encode(admin_url('auth/captcha'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!} + '?t=' + Date.now();
+                    });
+                </script>
+            </div>
+            @endif
             <div class="row">
                 <div class="col-12 text-center mb-2">
                     @if(config('admin.auth.remember'))

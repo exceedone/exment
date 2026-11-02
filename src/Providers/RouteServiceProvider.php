@@ -132,6 +132,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
             $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal')->name('exment.postglobal');
             $router->post('login_setting/country', 'LoginSettingController@postCountryRestriction')->name('exment.post_login_country');
+            $router->post('login_setting/brute_force', 'LoginSettingController@postBruteForce')->name('exment.post_login_brute_force');
             $router->get("login_setting/loginOptionHtml", 'LoginSettingController@loginOptionHtml');
 
             $router->get('plugin/edit_code/{id}/getTree', 'PluginCodeController@getTreeData');
@@ -170,6 +171,8 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post('login_history/setting', 'LoginHistoryController@postSetting');
             $router->resource('login_history', 'LoginHistoryController', ['only' => ['index', 'show', 'destroy']]);
+            // IP addresses blocked now. "destroy" releases the block.
+            $router->resource('login_ip_block', 'LoginIpBlockController', ['only' => ['index', 'show', 'destroy']]);
 
             $router->get("role_group/importModal", 'RoleGroupController@importModal');
             $router->post("role_group/import", 'RoleGroupController@import');
@@ -310,7 +313,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('initialize', 'InitializeController@post');
             $router->get('auth/login', 'AuthController@getLoginExment')->name('exment.login');
             $router->get('auth/logout', 'AuthController@getLogout')->name('exment.logout');
-            $router->post('auth/login', 'AuthController@postLogin')->middleware('admin.login-country:' . LoginType::PURE);
+            // IP block first: a blocked IP address is not checked by the country (and not recorded as blocked by country)
+            $router->post('auth/login', 'AuthController@postLogin')->middleware(['admin.login-ip-block', 'admin.login-country:' . LoginType::PURE]);
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
             $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');
@@ -343,6 +347,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('favicon', 'FileController@downloadFavicon');
             $router->get('auth/file/background', 'FileController@downloadLoginBackground');
             $router->get('auth/file/header', 'FileController@downloadLoginHeader');
+            // image of CAPTCHA on the login form (the code is kept in the session)
+            $router->get('auth/captcha', 'AuthController@getCaptcha')->name('exment.login_captcha');
         });
     }
 

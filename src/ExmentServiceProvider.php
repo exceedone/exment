@@ -133,6 +133,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.login'  => \Exceedone\Exment\Middleware\Login::class,
         'admin.login-country'  => \Exceedone\Exment\Middleware\LoginCountryRestriction::class,
+        'admin.login-ip-block'  => \Exceedone\Exment\Middleware\LoginIpBlock::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
         'adminwebapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateWebApi::class,

@@ -13,6 +13,8 @@ class SystemTableName extends EnumBase
     public const SYSTEM_LOGS = 'system_logs';
     public const LOGIN_USER = 'login_users';
     public const LOGIN_HISTORY = 'login_histories';
+    public const LOGIN_FAILURE = 'login_failures';
+    public const LOGIN_IP_BLOCK = 'login_ip_blocks';
     public const PLUGIN = 'plugins';
     public const USER = 'user';
     public const ROLE_GROUP = 'role_groups';

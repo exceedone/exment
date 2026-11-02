@@ -281,6 +281,7 @@ class Auth2factorService
         // set session for 2factor
         session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
         LoginHistoryService::verified2factor();
+        Auth2factorLockService::clear($login_user);
 
         if ($issueRecoveryCodes) {
             $codes = Auth2factorRecoveryCodeService::issueIfNone($login_user);
@@ -409,6 +410,38 @@ class Auth2factorService
         return $sender;
     }
 
+
+    /**
+     * Delete the codes of the user not used yet. (Ex. the one-time passwords sent by mail before)
+     *
+     * @param LoginUser $login_user
+     * @param string|null $verify_type Login2FactorProviderType. null: all types.
+     * @return void
+     */
+    public static function deleteCodes(LoginUser $login_user, ?string $verify_type = null): void
+    {
+        $query = \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
+            ->where('login_user_id', $login_user->id);
+        if (is_null($verify_type)) {
+            $query->whereIn('verify_type', array_map(function ($type) {
+                return static::VERIFY_TYPE_2FACTOR . $type;
+            }, Login2FactorProviderType::arrays()));
+        } else {
+            $query->where('verify_type', static::VERIFY_TYPE_2FACTOR . $verify_type);
+        }
+        $query->delete();
+    }
+
+    /**
+     * Number of time steps (30 seconds) before and after the current one, accepted for the one-time password of Google authenticator.
+     * (config "exment.login_2factor_google_window", default 1: the codes of 30 seconds before and after are accepted for a clock difference)
+     *
+     * @return int
+     */
+    public static function getGoogleWindow(): int
+    {
+        return max(0, intval(config('exment.login_2factor_google_window', 1)));
+    }
 
     // @phpstan-ignore-next-line
     public static function deleteCode($verify_type, $verify_code)
