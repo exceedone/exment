@@ -38,6 +38,8 @@ use Illuminate\Support\Facades\DB;
  */
 class DashboardEditPermissionFixedTest extends SecurityRegressionTestCase
 {
+    use RemovesBareTableLeftovers;
+
     public function test_a_viewer_cannot_save_a_system_dashboard(): void
     {
         [$dashboard] = $this->systemDashboard();

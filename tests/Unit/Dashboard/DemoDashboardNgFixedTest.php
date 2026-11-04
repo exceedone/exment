@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Tests\Unit\Security\RemovesBareTableLeftovers;
 use Exceedone\Exment\Tests\Unit\Security\SecurityRegressionTestCase;
 use Illuminate\Support\Facades\DB;
 
@@ -31,6 +32,8 @@ use Illuminate\Support\Facades\DB;
  */
 class DemoDashboardNgFixedTest extends SecurityRegressionTestCase
 {
+    use RemovesBareTableLeftovers;
+
     public function test_the_series_list_preselects_the_second_group_column(): void
     {
         $this->asAdmin();

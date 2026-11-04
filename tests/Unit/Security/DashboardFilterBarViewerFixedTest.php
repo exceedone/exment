@@ -26,6 +26,8 @@ use Illuminate\Support\Facades\DB;
  */
 class DashboardFilterBarViewerFixedTest extends SecurityRegressionTestCase
 {
+    use RemovesBareTableLeftovers;
+
     public function test_a_user_who_may_not_view_the_source_table_gets_no_filter_bar(): void
     {
         $this->asUser(LoginUser::find(1));

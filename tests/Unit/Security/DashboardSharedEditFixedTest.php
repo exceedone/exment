@@ -37,6 +37,8 @@ use Illuminate\Support\Facades\Event;
  */
 class DashboardSharedEditFixedTest extends SecurityRegressionTestCase
 {
+    use RemovesBareTableLeftovers;
+
     public function test_a_shared_editor_who_cannot_view_the_source_table_keeps_the_filter_bar(): void
     {
         $tableName = $this->hiddenTable();
