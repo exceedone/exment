@@ -151,8 +151,9 @@ class Auth2factorController extends \ExmentAdminCore\Admin\Controllers\AuthContr
 
     /**
      * Show the recovery codes just issued. They are shown only this once.
+     * The page must not be kept by the browser: the "back" button would show the codes again.
      *
-     * @return \Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
     public function recoveryCodes()
     {
@@ -161,10 +162,13 @@ class Auth2factorController extends \ExmentAdminCore\Admin\Controllers\AuthContr
             return redirect(admin_url(''));
         }
 
-        return view('exment::auth.2factor.2factor-recovery-codes', $this->getLoginPageData([
+        return response()->view('exment::auth.2factor.2factor-recovery-codes', $this->getLoginPageData([
             'codes' => $codes,
             'continue_url' => admin_url(''),
-        ]));
+        ]))->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+        ]);
     }
 
     /**

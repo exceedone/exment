@@ -55,9 +55,10 @@ class UserLoginHistoryGrid
         $grid->column('location', exmtrans('login_history.location'))->display(function ($value, $column, $model) {
             return $model->location;
         })->escape(true);
+        // the label is html built here (its text is escaped): not escaped again
         $grid->column('is_new_ip', exmtrans('login_history.is_new_ip'))->display(function ($value, $column, $model) {
             return UserLoginHistoryGrid::getWarningLabel($model);
-        });
+        })->escape(false);
 
         // read only, like the child tables in the detail page
         $grid->disableFilter();

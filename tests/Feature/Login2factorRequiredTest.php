@@ -657,6 +657,54 @@ class Login2factorRequiredTest extends FeatureTestBase
     }
 
     /**
+     * The page of the recovery codes (after the setup) is not kept by the browser: the "back" button asks the server again,
+     * and the codes are not shown any more.
+     */
+    public function testRecoveryCodesPageAfterSetupIsNotStored(): void
+    {
+        $this->useRoleGroupTarget();
+        $login_user = $this->createLoginUser();
+        $this->addToRoleGroup($this->createRoleGroup(true), $login_user);
+        $secret = $this->setUpGoogle($login_user, true);
+
+        $this->postLogin($login_user)->assertStatus(302);
+        $this->postVerify(['verify_code' => $this->otp($secret)])->assertRedirect(admin_url('auth-2factor/recovery-codes'));
+
+        $response = $this->get(admin_url('auth-2factor/recovery-codes'));
+        $response->assertStatus(200);
+        $this->assertCount(Auth2factorRecoveryCodeService::CODE_COUNT, $this->codesOnPage($response));
+        $this->assertNotStoredByBrowser($response);
+
+        // asked again (ex. "back" after continue): no code
+        $again = $this->get(admin_url('auth-2factor/recovery-codes'));
+        $again->assertRedirect(admin_url(''));
+        $this->assertCount(0, $this->codesOnPage($again));
+    }
+
+    /**
+     * The page of the recovery codes issued again from the user setting is not kept by the browser either.
+     */
+    public function testReissuedRecoveryCodesPageIsNotStored(): void
+    {
+        $login_user = $this->createLoginUser();
+        $this->setUpGoogle($login_user, true);
+        Auth2factorRecoveryCodeService::generate($login_user);
+
+        $this->loginAs($login_user);
+        session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+        $this->withoutMiddleware(VerifyCsrfToken::class)
+            ->post(admin_url('auth/setting/recovery-codes'))
+            ->assertRedirect(admin_url('auth-2factor/recovery-codes'));
+
+        $response = $this->get(admin_url('auth-2factor/recovery-codes'));
+        $response->assertStatus(200);
+        $this->assertCount(Auth2factorRecoveryCodeService::CODE_COUNT, $this->codesOnPage($response));
+        $this->assertNotStoredByBrowser($response);
+
+        $this->get(admin_url('auth-2factor/recovery-codes'))->assertRedirect(admin_url(''));
+    }
+
+    /**
      * A user who is not required 2factor has no recovery code section, and cannot issue codes.
      */
     public function testUserSettingHidesRecoveryCodesWhenNotRequired(): void
@@ -1483,6 +1531,19 @@ class Login2factorRequiredTest extends FeatureTestBase
     {
         preg_match_all('/[A-Z2-9]{5}-[A-Z2-9]{5}/', (string)$response->getContent(), $matches);
         return array_values(array_unique($matches[0]));
+    }
+
+    /**
+     * The response must not be stored by the browser (nor shown again by the "back" button).
+     *
+     * @param TestResponse<\Symfony\Component\HttpFoundation\Response> $response
+     */
+    protected function assertNotStoredByBrowser(TestResponse $response): void
+    {
+        $cacheControl = (string)$response->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('no-cache', $cacheControl);
+        $this->assertSame('no-cache', $response->headers->get('Pragma'));
     }
 
     /**

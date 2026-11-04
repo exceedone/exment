@@ -897,6 +897,28 @@ class LoginHistoryTest extends FeatureTestBase
     }
 
     /**
+     * The labels of the columns "warning" and "2factor" are shown as labels: their html is not escaped by the grid
+     * (exment-admin-core escapes the result of display() by default).
+     */
+    public function testIndexLabelsAreHtml(): void
+    {
+        $login_user = $this->createLoginUser();
+        $this->createHistory($login_user, ['ip_address' => self::IP_US, 'is_new_ip' => true]);
+        $this->createHistory($login_user, ['ip_address' => self::IP_JP, 'blocked_reason' => LoginHistory::BLOCKED_REASON_COUNTRY]);
+        $this->createHistory($login_user, ['ip_address' => self::IP_JP, 'auth_2factor_verified' => true]);
+        $this->createHistory($login_user, ['ip_address' => self::IP_JP, 'auth_2factor_verified' => false]);
+
+        $this->loginAsAdmin();
+        $content = $this->indexContent(['user_code' => $login_user->user_code]);
+
+        $this->assertStringContainsString(UserLoginHistoryGrid::getNewIpLabel(true), $content);
+        $this->assertStringContainsString(UserLoginHistoryGrid::getBlockedLabel(LoginHistory::BLOCKED_REASON_COUNTRY), $content);
+        $this->assertStringContainsString('<span class="label label-success">' . esc_html(exmtrans('login_history.auth_2factor_verified_options.1')) . '</span>', $content);
+        $this->assertStringContainsString('<span class="label label-warning">' . esc_html(exmtrans('login_history.auth_2factor_verified_options.0')) . '</span>', $content);
+        $this->assertStringNotContainsString('&lt;span class=&quot;label', $content, 'a label must not be printed as text');
+    }
+
+    /**
      * Filter: by user code, only warned / only normal histories, by country.
      */
     public function testIndexFilter(): void
@@ -1074,6 +1096,23 @@ class LoginHistoryTest extends FeatureTestBase
         $this->assertStringContainsString(admin_urls('login_history', $new->id) . '"', $content);
         $this->assertStringContainsString(admin_urls('login_history', $old->id) . '"', $content);
         $this->assertStringNotContainsString(admin_urls('login_history', $new->id, 'edit'), $content, 'no edit link');
+    }
+
+    /**
+     * The label of the column "warning" in the detail page of a user is shown as a label: its html is not escaped by the grid.
+     */
+    public function testUserDetailWarningLabelIsHtml(): void
+    {
+        $login_user = $this->createLoginUser();
+        $this->createHistory($login_user, ['ip_address' => self::IP_US, 'is_new_ip' => true]);
+        $this->createHistory($login_user, ['ip_address' => self::IP_JP, 'blocked_reason' => LoginHistory::BLOCKED_REASON_COUNTRY, 'via_remember' => true]);
+
+        $this->loginAsAdmin();
+        $content = (string)$this->get(admin_urls('data', SystemTableName::USER, $login_user->base_user_id))->assertStatus(200)->getContent();
+
+        $this->assertStringContainsString(UserLoginHistoryGrid::getNewIpLabel(true), $content);
+        $this->assertStringContainsString(UserLoginHistoryGrid::getBlockedLabel(LoginHistory::BLOCKED_REASON_COUNTRY), $content);
+        $this->assertStringNotContainsString('&lt;span class=&quot;label', $content, 'a label must not be printed as text');
     }
 
     /**

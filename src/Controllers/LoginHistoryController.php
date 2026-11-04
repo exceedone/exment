@@ -184,9 +184,10 @@ class LoginHistoryController extends AdminControllerBase
         $grid->column('login_type', exmtrans('login_history.login_type'))->display(function ($value, $column, $model) {
             return $model->login_type_text;
         })->escape(true);
+        // the labels are html built here (their text is escaped): not escaped again
         $grid->column('is_new_ip', exmtrans('login_history.is_new_ip'))->display(function ($value, $column, $model) {
             return UserLoginHistoryGrid::getWarningLabel($model);
-        });
+        })->escape(false);
         $grid->column('auth_2factor_verified', exmtrans('login_history.auth_2factor_verified'))->display(function ($value) {
             if (is_null($value)) {
                 return '';
@@ -194,7 +195,7 @@ class LoginHistoryController extends AdminControllerBase
             $verified = boolval($value);
             return '<span class="label label-' . ($verified ? 'success' : 'warning') . '">'
                 . esc_html(exmtrans('login_history.auth_2factor_verified_options.' . ($verified ? '1' : '0'))) . '</span>';
-        });
+        })->escape(false);
 
         // Same as the operation log: show / delete per row, checkbox for batch delete, no edit.
         // (The row selector and the delete link also make the whole row clickable. See CommonEvent.tableHoverLink)
