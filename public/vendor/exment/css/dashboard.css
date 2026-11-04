@@ -159,3 +159,8 @@
 .box-dashboard > .box-header { align-items: center; gap: 6px; }
 .box-dashboard > .box-header > .box-title { flex: 1 1 auto; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .box-dashboard > .box-header > .box-tools { position: static; flex: 0 0 auto; white-space: nowrap; }
+
+/* ---- dashboard selector ------------------------------------------------------------- */
+/* many dashboards: the list scrolls inside the menu and ends above the footer, which would
+   be drawn over it (the footer stacks above the content) */
+#dashboard-menu { max-height: calc(100vh - 220px); overflow-y: auto; }
