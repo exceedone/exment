@@ -6,6 +6,12 @@ on:
       - 'src/**'
       - 'tests/**'
 
+# Pin the fixer version so upstream rule changes don't break CI unexpectedly.
+# When bumping, update both values (sha256 of the release's php-cs-fixer.phar).
+env:
+  PHP_CS_FIXER_VERSION: 3.94.2
+  PHP_CS_FIXER_SHA256: aaafc3a53b877c6741ddccac0a783f0fb73fff5f84fba5870d5dd306ee22dde0
+
 jobs:
   php-cs-fixer:
     runs-on: ubuntu-latest
@@ -25,7 +31,8 @@ jobs:
 
       - name: Prepare
         run: |
-          wget https://cs.symfony.com/download/php-cs-fixer-v3.phar -O php-cs-fixer
+          wget "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/releases/download/v${PHP_CS_FIXER_VERSION}/php-cs-fixer.phar" -O php-cs-fixer
+          echo "${PHP_CS_FIXER_SHA256}  php-cs-fixer" | sha256sum -c -
           chmod a+x php-cs-fixer
 
       - name: Versions
