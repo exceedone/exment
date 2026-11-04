@@ -45,6 +45,9 @@ class LoginCountryRestrictionTest extends FeatureTestBase
     protected const IP_JP = '133.242.0.1';
     protected const IP_US = '8.8.8.8';
     protected const IP_CN = '1.24.0.1';
+    protected const IP_VN = '14.161.0.1';
+    protected const IP_TH = '1.46.0.1';
+    protected const IP_KP = '175.45.176.1';
     protected const IP_UNKNOWN = '5.5.5.5';
     protected const IP_PRIVATE = '192.168.1.10';
 
@@ -91,18 +94,15 @@ class LoginCountryRestrictionTest extends FeatureTestBase
     // ------------------------------------------------------------------ //
 
     /**
-     * Default settings: off, unknown country allowed, nothing allowed yet.
+     * Default settings: off, unknown country allowed, Japan / United States / Vietnam / Thailand allowed.
      */
     public function testDefaultSettings(): void
     {
-        foreach (array_keys(System::get_system_values([LoginCountryRestrictionService::SETTING_GROUP])) as $key) {
-            \DB::table(SystemTableName::SYSTEM)->where('system_name', $key)->delete();
-        }
-        System::clearCache();
+        $this->deleteSettings();
 
         $this->assertSame([
             'enabled' => false,
-            'countries' => [],
+            'countries' => ['JP', 'US', 'VN', 'TH'],
             'unknown_allowed' => true,
             'ips' => [],
         ], app(LoginCountryRestrictionService::class)->getSettings());
@@ -793,17 +793,109 @@ class LoginCountryRestrictionTest extends FeatureTestBase
         $this->assertFalse(System::login_country_unknown_allowed());
         $this->assertSame("198.51.100.7\r\n203.0.113.0/24", System::login_country_allowed_ips());
 
-        // turned off: saved even without countries
+        // turned off, as posted by the browser (the hidden fields are not posted): the countries and the IP addresses are kept
         $this->postCountrySetting([
             'login_country_restriction' => '0',
+            'login_country_unknown_allowed' => '1',
+        ])->assertRedirect(admin_url('login_setting'));
+
+        System::clearCache();
+        $this->assertFalse(System::login_country_restriction());
+        $this->assertSame(['JP', 'US'], System::login_country_allowed());
+        $this->assertTrue(System::login_country_unknown_allowed());
+        $this->assertSame("198.51.100.7\r\n203.0.113.0/24", System::login_country_allowed_ips());
+
+        // turned off with the values posted: the IP addresses are saved, the countries are not changed while off
+        $this->postCountrySetting([
+            'login_country_restriction' => '0',
+            'login_country_allowed' => ['CN'],
             'login_country_unknown_allowed' => '1',
             'login_country_allowed_ips' => '',
         ])->assertRedirect(admin_url('login_setting'));
 
         System::clearCache();
         $this->assertFalse(System::login_country_restriction());
+        $this->assertSame(['JP', 'US'], System::login_country_allowed());
+        $this->assertSame('', System::login_country_allowed_ips());
+    }
+
+    /**
+     * Never saved: turned on with the default countries. Japan / United States / Vietnam / Thailand can log in,
+     * the other countries (North Korea, China) are blocked.
+     */
+    public function testDefaultCountriesWhenTurnedOn(): void
+    {
+        $this->fakeCountries([
+            self::IP_JP => 'JP',
+            self::IP_US => 'US',
+            self::IP_VN => 'VN',
+            self::IP_TH => 'TH',
+            self::IP_KP => 'KP',
+            self::IP_CN => 'CN',
+        ]);
+        $this->deleteSettings();
+        System::login_country_restriction(true);
+        $login_user = $this->createLoginUser();
+
+        foreach ([self::IP_JP, self::IP_US, self::IP_VN, self::IP_TH] as $ip) {
+            $this->postLogin($login_user, $ip)->assertRedirect();
+            $this->assertLoggedIn();
+        }
+        foreach ([self::IP_KP => 'KP', self::IP_CN => 'CN'] as $ip => $code) {
+            $this->postLogin($login_user, $ip)
+                ->assertRedirect(admin_url('auth/login'))
+                ->assertSessionHasErrors(['username' => exmtrans('login.message.country_restricted')]);
+            $this->assertFalse(\Auth::guard(Define::AUTHENTICATE_KEY_WEB)->check(), $code);
+        }
+        $this->assertSame(['KP', 'CN'], $this->blockedHistories()->orderBy('id')->pluck('country_code')->all());
+    }
+
+    /**
+     * The default is used only when never saved: a saved value (also an empty one, saved before the default) is kept.
+     */
+    public function testSavedCountriesAreNotReplacedByDefault(): void
+    {
+        System::login_country_allowed(['JP']);
+        System::clearCache();
+        $this->assertSame(['JP'], System::login_country_allowed());
+
+        System::login_country_allowed([]);
+        System::clearCache();
         $this->assertSame([], System::login_country_allowed());
-        $this->assertTrue(System::login_country_unknown_allowed());
+        $this->assertSame([], app(LoginCountryRestrictionService::class)->getSettings()['countries']);
+    }
+
+    /**
+     * Never saved: the setting form shows the default countries selected.
+     */
+    public function testSettingFormShowsDefaultCountries(): void
+    {
+        $this->deleteSettings();
+        $this->loginAsAdmin();
+        $content = (string)$this->get(admin_url('login_setting'))->assertStatus(200)->getContent();
+
+        foreach (['JP', 'US', 'VN', 'TH'] as $code) {
+            $this->assertMatchesRegularExpression('/<option value="' . $code . '"\s+selected/', $content, $code);
+        }
+        $this->assertDoesNotMatchRegularExpression('/<option value="KP"\s+selected/', $content);
+    }
+
+    /**
+     * Never saved, and saved while off (as by the browser): the default countries are kept, so they are there when turned on later.
+     */
+    public function testTurningOffKeepsDefaultCountries(): void
+    {
+        $this->deleteSettings();
+        $this->loginAsAdmin();
+
+        $this->postCountrySetting([
+            'login_country_restriction' => '0',
+            'login_country_unknown_allowed' => '1',
+        ])->assertRedirect(admin_url('login_setting'))->assertSessionHasNoErrors();
+
+        System::clearCache();
+        $this->assertFalse(System::login_country_restriction());
+        $this->assertSame(['JP', 'US', 'VN', 'TH'], System::login_country_allowed());
         $this->assertSame('', System::login_country_allowed_ips());
     }
 
@@ -1007,6 +1099,17 @@ class LoginCountryRestrictionTest extends FeatureTestBase
         System::login_country_restriction(true);
         System::login_country_allowed($countries);
         System::login_country_unknown_allowed($unknown_allowed);
+    }
+
+    /**
+     * Delete the saved settings of the login restriction by country: the default values are used.
+     */
+    protected function deleteSettings(): void
+    {
+        foreach (array_keys(System::get_system_values([LoginCountryRestrictionService::SETTING_GROUP])) as $key) {
+            \DB::table(SystemTableName::SYSTEM)->where('system_name', $key)->delete();
+        }
+        System::clearCache();
     }
 
     protected function requireGeoIp(): void

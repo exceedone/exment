@@ -719,13 +719,16 @@ class LoginSettingController extends AdminControllerBase
     public function postCountryRestriction(Request $request)
     {
         $service = app(LoginCountryRestrictionService::class);
+        $enabled = boolval($request->input('login_country_restriction'));
+        // turned off: the fields below the switch are hidden and not posted, so the saved countries / IP addresses are kept
+        // (also the default countries, when never saved)
+        $ipsText = $request->exists('login_country_allowed_ips') ? $request->input('login_country_allowed_ips') : System::login_country_allowed_ips();
         $settings = LoginCountryRestrictionService::makeSettings(
-            boolval($request->input('login_country_restriction')),
-            $request->input('login_country_allowed', []),
+            $enabled,
+            $enabled ? $request->input('login_country_allowed', []) : System::login_country_allowed(),
             boolval($request->input('login_country_unknown_allowed')),
-            $request->input('login_country_allowed_ips')
+            $ipsText
         );
-        $ipsText = $request->input('login_country_allowed_ips');
 
         $errors = [];
         if (count(array_diff($settings['countries'], array_keys(CountryList::COUNTRIES))) > 0) {

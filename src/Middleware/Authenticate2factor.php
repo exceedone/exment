@@ -6,6 +6,8 @@ use Closure;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\Login\LoginHistoryService;
+use Illuminate\Http\Response;
 
 class Authenticate2factor extends \ExmentAdminCore\Admin\Middleware\Authenticate
 {
@@ -21,7 +23,7 @@ class Authenticate2factor extends \ExmentAdminCore\Admin\Middleware\Authenticate
     {
         // not use 2 factor, go next
         if (!Auth2factorService::isUse2factor()) {
-            return $next($request);
+            return $this->nextWithAdministratorWarning($request, $next, 'admin_not_set_disabled', admin_url('login_setting'));
         }
 
         // check url
@@ -58,7 +60,7 @@ class Authenticate2factor extends \ExmentAdminCore\Admin\Middleware\Authenticate
         // specified by role group: the user is not required 2factor, go next
         if (!Auth2factorService::isRequiredFor($login_user)) {
             Auth2factorService::clearRequiredAt($login_user);
-            return $next($request);
+            return $this->nextWithAdministratorWarning($request, $next, 'admin_not_set_role_group', admin_url('role_group'));
         }
 
         // required but not set up yet: the user can use Exment for a while (grace period), with a warning on every page.
@@ -77,5 +79,62 @@ class Authenticate2factor extends \ExmentAdminCore\Admin\Middleware\Authenticate
         }
 
         return redirect(admin_url('auth-2factor'));
+    }
+
+    /**
+     * Go next. A system administrator who logged in without 2factor is warned to set it up, once after each login:
+     * the warning is done when a page has shown it, and the session is cleared at logout.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Closure $next
+     * @param string $message key of "2factor.message"
+     * @param string $url the page to set it up
+     * @return mixed
+     */
+    protected function nextWithAdministratorWarning($request, Closure $next, string $message, string $url)
+    {
+        if (!$this->isAdministratorToWarn($request)) {
+            return $next($request);
+        }
+
+        admin_warning_once(
+            exmtrans('2factor.message.admin_not_set_title'),
+            exmtrans("2factor.message.{$message}", esc_html($url))
+        );
+        $response = $next($request);
+
+        // shown only on a page. Not on a redirect, a file, json...
+        if ($response instanceof Response && $response->isSuccessful()
+            && in_array(trim(explode(';', (string)$response->headers->get('Content-Type'))[0]), ['', 'text/html'], true)) {
+            session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR_ADMIN_WARNED => true]);
+        }
+        return $response;
+    }
+
+    /**
+     * Whether to warn the logged-in user: a system administrator not warned yet since the login.
+     * Only on the sites where 2factor can be used (config "login_use_2factor"), so the sites without it see no change.
+     * Not for OAuth / SAML, whose login is not subject to 2factor of Exment.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return bool
+     */
+    protected function isAdministratorToWarn($request): bool
+    {
+        if (!boolval(config('exment.login_use_2factor', false))) {
+            return false;
+        }
+        // a page of the browser (pjax shows the warning too). An ajax response does not show it.
+        if (!$request->isMethod('GET') || ($request->ajax() && !$request->pjax())) {
+            return false;
+        }
+        if (boolval(session(Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR_ADMIN_WARNED))) {
+            return false;
+        }
+
+        $login_user = \Exment::user();
+        return $login_user instanceof LoginUser
+            && $login_user->isAdministrator()
+            && !in_array($login_user->login_type, LoginHistoryService::LOGIN_TYPES_WITHOUT_2FACTOR);
     }
 }

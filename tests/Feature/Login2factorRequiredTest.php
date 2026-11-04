@@ -1024,6 +1024,184 @@ class Login2factorRequiredTest extends FeatureTestBase
     }
 
     // ------------------------------------------------------------------ //
+    //  Warning to a system administrator without 2factor                  //
+    // ------------------------------------------------------------------ //
+
+    /**
+     * A system administrator not required 2factor by the role groups: warned to set it up, once after each login,
+     * with the link to the role groups.
+     */
+    public function testAdministratorNotRequiredIsWarnedOnceAfterLogin(): void
+    {
+        $this->useRoleGroupTarget();
+        $admin = $this->createLoginUser();
+        $this->addToRoleGroup($this->createRoleGroup(false), $admin);
+        $this->makeAdministrator($admin);
+
+        $this->postLogin($admin)->assertRedirect(admin_url(''));
+        $response = $this->get(admin_url('auth/setting'));
+        $response->assertStatus(200);
+        $response->assertSee(exmtrans('2factor.message.admin_not_set_title'));
+        $response->assertSee(exmtrans('2factor.message.admin_not_set_role_group', esc_html(admin_url('role_group'))), false);
+
+        // once per login
+        $this->forgetSharedWarning();
+        $this->get(admin_url('auth/setting'))->assertDontSee(exmtrans('2factor.message.admin_not_set_title'));
+
+        // the next login: warned again
+        $this->forgetSharedWarning();
+        $this->postLogin($admin)->assertRedirect(admin_url(''));
+        $this->get(admin_url('auth/setting'))->assertSee(exmtrans('2factor.message.admin_not_set_title'));
+    }
+
+    /**
+     * 2factor is turned off in the login setting: a system administrator is warned, with the link to the login setting.
+     */
+    public function testAdministratorIsWarnedWhen2factorIsOff(): void
+    {
+        System::login_use_2factor(false);
+        $admin = $this->createLoginUser();
+        $this->makeAdministrator($admin);
+
+        $this->postLogin($admin)->assertRedirect(admin_url(''));
+        $response = $this->get(admin_url('auth/setting'));
+        $response->assertSee(exmtrans('2factor.message.admin_not_set_title'));
+        $response->assertSee(exmtrans('2factor.message.admin_not_set_disabled', esc_html(admin_url('login_setting'))), false);
+    }
+
+    /**
+     * The site cannot use 2factor (config "login_use_2factor" off): no warning, as before.
+     */
+    public function testNoWarningWhenTheSiteDoesNotUse2factor(): void
+    {
+        config(['exment.login_use_2factor' => false]);
+        $admin = $this->createLoginUser();
+        $this->makeAdministrator($admin);
+
+        $this->postLogin($admin)->assertRedirect(admin_url(''));
+        $this->get(admin_url('auth/setting'))->assertStatus(200)->assertDontSee(exmtrans('2factor.message.admin_not_set_title'));
+    }
+
+    /**
+     * No warning to a system administrator who logged in with 2factor, nor during the grace period (that warning is shown instead).
+     */
+    public function testNoWarningToAdministratorUsing2factor(): void
+    {
+        // every user is required: logged in with the one-time password
+        $admin = $this->createLoginUser();
+        $this->makeAdministrator($admin);
+        $secret = $this->setUpGoogle($admin, true);
+        $this->postLogin($admin)->assertStatus(302);
+        $this->postVerify(['verify_code' => $this->otp($secret)])->assertStatus(302);
+        $this->assertTrue(boolval(session(Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR)), 'precondition: verified');
+        $this->get(admin_url('auth/setting'))->assertStatus(200)->assertDontSee(exmtrans('2factor.message.admin_not_set_title'));
+
+        // required by the role group, not set up yet: the warning of the grace period
+        $this->useRoleGroupTarget();
+        $other = $this->createLoginUser();
+        $this->makeAdministrator($other);
+        $this->postLogin($other)->assertStatus(302);
+        $response = $this->get(admin_url('auth/setting'));
+        $response->assertSee(exmtrans('2factor.message.setup_required_title'));
+        $response->assertDontSee(exmtrans('2factor.message.admin_not_set_title'));
+    }
+
+    /**
+     * A user who is not a system administrator is not warned.
+     */
+    public function testNoWarningToUserNotAdministrator(): void
+    {
+        $this->useRoleGroupTarget();
+        $login_user = $this->createLoginUser();
+        $this->addToRoleGroup($this->createRoleGroup(false), $login_user);
+
+        $this->postLogin($login_user)->assertRedirect(admin_url(''));
+        $this->get(admin_url('auth/setting'))->assertStatus(200)->assertDontSee(exmtrans('2factor.message.admin_not_set_title'));
+    }
+
+    /**
+     * OAuth / SAML: the login is not subject to 2factor of Exment, so no warning.
+     */
+    public function testNoWarningToSsoAdministrator(): void
+    {
+        System::login_use_2factor(false);
+        $admin = $this->createLoginUser(LoginType::OAUTH, 'l2fa_provider');
+        $this->makeAdministrator($admin);
+
+        $this->loginAs($admin);
+        $this->get(admin_url('auth/setting'))->assertDontSee(exmtrans('2factor.message.admin_not_set_title'));
+        $this->assertNull(session(Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR_ADMIN_WARNED));
+    }
+
+    /**
+     * An ajax request (ex. a widget of the dashboard) does not use up the warning: it is shown on the next page.
+     */
+    public function testAjaxRequestDoesNotUseUpTheWarning(): void
+    {
+        System::login_use_2factor(false);
+        $admin = $this->createLoginUser();
+        $this->makeAdministrator($admin);
+
+        $this->postLogin($admin)->assertRedirect(admin_url(''));
+        $this->get(admin_url('auth/setting'), ['X-Requested-With' => 'XMLHttpRequest']);
+        $this->assertNull(session(Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR_ADMIN_WARNED));
+        $this->forgetSharedWarning();
+        $this->get(admin_url('auth/setting'))->assertSee(exmtrans('2factor.message.admin_not_set_title'));
+    }
+
+    /**
+     * A redirect (ex. the first page after login is not found) shows nothing, so it does not use up the warning.
+     */
+    public function testRedirectDoesNotUseUpTheWarning(): void
+    {
+        System::login_use_2factor(false);
+        $admin = $this->createLoginUser();
+        $this->makeAdministrator($admin);
+
+        $this->postLogin($admin)->assertRedirect(admin_url(''));
+        $this->get(admin_urls('login_history', intval(LoginHistory::max('id')) + 1))->assertRedirect(admin_url('login_history'));
+        $this->assertNull(session(Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR_ADMIN_WARNED));
+        $this->forgetSharedWarning();
+        $this->get(admin_url('auth/setting'))->assertSee(exmtrans('2factor.message.admin_not_set_title'));
+    }
+
+    /**
+     * A page opened by pjax (the menu of Exment) shows the warning.
+     */
+    public function testPjaxPageShowsTheWarning(): void
+    {
+        System::login_use_2factor(false);
+        $admin = $this->createLoginUser();
+        $this->makeAdministrator($admin);
+
+        $this->postLogin($admin)->assertRedirect(admin_url(''));
+        $this->get(admin_url('auth/setting'), ['X-Requested-With' => 'XMLHttpRequest', 'X-PJAX' => 'true', 'X-PJAX-Container' => '#pjax-container'])
+            ->assertStatus(200)
+            ->assertSee(exmtrans('2factor.message.admin_not_set_title'));
+        $this->assertTrue(session(Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR_ADMIN_WARNED));
+    }
+
+    /**
+     * Logout clears the session: warned again at the next login.
+     */
+    public function testWarnedAgainAfterLogout(): void
+    {
+        System::login_use_2factor(false);
+        $admin = $this->createLoginUser();
+        $this->makeAdministrator($admin);
+
+        $this->postLogin($admin)->assertRedirect(admin_url(''));
+        $this->get(admin_url('auth/setting'))->assertSee(exmtrans('2factor.message.admin_not_set_title'));
+        $this->get(admin_url('auth/logout'))->assertStatus(302);
+        $this->assertNull(session(Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR_ADMIN_WARNED));
+
+        // logged in again, without clearing the session in the test
+        $this->forgetSharedWarning();
+        $this->loginAs($admin);
+        $this->get(admin_url('auth/setting'))->assertSee(exmtrans('2factor.message.admin_not_set_title'));
+    }
+
+    // ------------------------------------------------------------------ //
     //  helpers                                                             //
     // ------------------------------------------------------------------ //
 
@@ -1268,6 +1446,24 @@ class Login2factorRequiredTest extends FeatureTestBase
         app('auth')->forgetGuards();
         System::clearRequestSession();
         $this->be($this->freshLoginUser($login_user), Define::AUTHENTICATE_KEY_WEB);
+    }
+
+    /**
+     * The view factory is shared by the requests of a test (a new one at each request on a real server), and so is the warning
+     * shared by admin_warning_once(). Forget it before a request whose warning is checked.
+     */
+    protected function forgetSharedWarning(): void
+    {
+        app('view')->share('alert_warning', null);
+    }
+
+    /**
+     * Make the user the system administrator (the only one).
+     */
+    protected function makeAdministrator(LoginUser $login_user): void
+    {
+        System::system_admin_users([$login_user->base_user_id]);
+        System::clearCache();
     }
 
     protected function loginAsAdmin(): void

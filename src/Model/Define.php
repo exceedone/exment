@@ -154,7 +154,8 @@ class Define
         // off (default): no restriction. on: login only from the allowed countries (judged by the IP address with GeoIP).
         'login_country_restriction' => ['type' => 'boolean', 'default' => '0', 'group' => 'login_country'],
         // allowed country codes (ISO 3166-1 alpha-2). See CountryList
-        'login_country_allowed' => ['type' => 'array', 'default' => '', 'group' => 'login_country'],
+        // default: Japan, United States, Vietnam, Thailand. The other countries (e.g. North Korea) are blocked when turned on.
+        'login_country_allowed' => ['type' => 'array', 'default' => 'JP,US,VN,TH', 'group' => 'login_country'],
         // the IP address whose country cannot be judged (not in the GeoIP database, or no database). allowed by default.
         'login_country_unknown_allowed' => ['type' => 'boolean', 'default' => '1', 'group' => 'login_country'],
         // IP addresses (or CIDR) allowed regardless of the country, 1 per line.
@@ -251,6 +252,7 @@ class Define
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR_RECOVERY_CODES = "auth_2factor_recovery_codes";
+    public const SYSTEM_KEY_SESSION_AUTH_2FACTOR_ADMIN_WARNED = "auth_2factor_admin_warned";
     public const SYSTEM_KEY_SESSION_LOGIN_HISTORY_ID = "login_history_id";
     public const SYSTEM_KEY_SESSION_LOGIN_CAPTCHA = "login_captcha";
     public const SYSTEM_KEY_SESSION_LOGIN_CAPTCHA_REQUIRED = "login_captcha_required";
