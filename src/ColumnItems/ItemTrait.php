@@ -21,6 +21,7 @@ use Illuminate\Contracts\Database\Query\Builder;
  * @property CustomColumn $custom_column
  * @method array<string, mixed> getSummaryParams()
  * @method mixed getSummaryCondition()
+ * @method string getSummaryAverageJoinResultWrapTableColumn()
  * @method mixed getViewPivotCustomValue($custom_value, $options)
  * @method string name()
  * @method string sqlname()
@@ -501,6 +502,7 @@ trait ItemTrait
      *
      * MIN, MAX : non summary.
      * COUNT, SUM : SUM.
+     * AVG : total of the sums / total of the counts (getSummaryAverageJoinResultWrapTableColumn).
      *
      * Join table: true
      * Wrap: true
@@ -512,6 +514,9 @@ trait ItemTrait
         $options = $this->getSummaryParams();
         // get normal summary condition.
         $summary_condition = $this->getSummaryCondition();
+        if (isset($summary_condition) && (string) $summary_condition === SummaryCondition::AVG) {
+            return $this->getSummaryAverageJoinResultWrapTableColumn();
+        }
 
         $new_summary_condition = null;
         switch ($summary_condition) {

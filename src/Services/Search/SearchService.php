@@ -440,13 +440,18 @@ class SearchService
 
         // if has sub query(for child relation), set to sub query
         if ($relationTable && SearchType::isSummarySearchType($relationTable->searchType)) {
-            $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($wrap_column, $sqlAsName) {
-                $subquery->selectRaw("$wrap_column AS $sqlAsName");
+            // one column per parent; an AVG selects its sum and count (getSummarySubQueryColumns)
+            $sub_columns = $column_item->getSummarySubQueryColumns();
+            $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($sub_columns) {
+                foreach ($sub_columns as $as_name => $sub_column) {
+                    $subquery->selectRaw("$sub_column AS " . \Exment::wrapColumn($as_name));
+                }
             };
 
             // set to default query.
             // MIN, MAX : non summary.
             // COUNT, SUM : SUM.
+            // AVG : total of the sums / total of the counts.
             $result_column = $column_item->getSummaryJoinResultWrapTableColumn();
             $this->query->selectRaw("$result_column AS $sqlAsName");
 

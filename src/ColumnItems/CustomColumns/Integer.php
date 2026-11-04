@@ -21,13 +21,29 @@ class Integer extends CustomItem
             return null;
         }
 
-        if (boolval(array_get($this->custom_column, 'options.number_format'))
-            && is_numeric($v)
-            && !boolval(array_get($this->options, 'disable_number_format'))) {
+        $number_format = boolval(array_get($this->custom_column, 'options.number_format'))
+            && !boolval(array_get($this->options, 'disable_number_format'));
+
+        if ($this->isSummaryAverage() && is_numeric($v)) {
+            return $this->getAverageText((float) $v, $number_format);
+        }
+
+        if ($number_format && is_numeric($v)) {
             // @phpstan-ignore-next-line
             return number_format($v);
         }
         return $v;
+    }
+
+    /**
+     * An average of the column (aggregate view): not a whole number, so it keeps the decimals
+     * the query rounded it to, without trailing zeros (69.20 => 69.2, 60.00 => 60).
+     */
+    protected function getAverageText(float $v, bool $number_format): string
+    {
+        $digits = $this->getSummaryAverageDigits();
+        $text = $number_format ? number_format($v, $digits) : number_format($v, $digits, '.', '');
+        return str_contains($text, '.') ? rtrim(rtrim($text, '0'), '.') : $text;
     }
 
     // @phpstan-ignore-next-line

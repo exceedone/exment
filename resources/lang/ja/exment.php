@@ -790,6 +790,16 @@ return [
             'hint' => '同じデータで表示できる種類です。クリックで切り替え',
         ],
 
+        // summary switch (toolbar, runtime, not remembered): the measure drawn by another summary type
+        'chart_summary' => [
+            'menu' => '集計方法',
+            'heading' => '集計方法（%s）',
+            'view_setting' => 'ビューの設定',
+            'hint' => 'この画面だけで切り替え（ビューは変わりません）',
+            'title' => '%s別 %s',
+            'reset' => 'ビューの設定に戻す',
+        ],
+
         // box menu (⋯): display options and export
         'chart_menu' => [
             'label' => 'オプション',
@@ -825,6 +835,8 @@ return [
         'message' => [
             'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
             'need_multiseries' => 'このグラフ種別は、2列でグループ化した集計ビュー（1列目＝横軸、2列目＝系列）と集計値が必要です。',
+            'need_average_groups' => '集計値が平均の場合、このグラフ種別は横軸と系列の2列だけでグループ化した集計ビューが必要です。3列以上でグループ化すると、平均を正しく合算できません。',
+            'need_average_groups_form' => '平均を集計するY軸は、3列以上でグループ化した集計ビューでは複数系列のグラフに表示できません。集計ビューのグループ列を2列にするか、集計タイプを平均以外にするか、単一系列のグラフを選択してください。',
             'chart_render_error' => 'このグラフを表示できませんでした（データが適していない可能性があります）。',
             'chart_load_error' => 'グラフの描画ライブラリを読み込めませんでした。ページを再読み込みしてください。',
             'not_exists_table' => 'テーブルまたはビューが削除されました。',

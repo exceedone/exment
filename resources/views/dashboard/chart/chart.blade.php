@@ -15,6 +15,8 @@
         var values = {!! $chart_data !!};
         // display option of the box menu (値ラベル), live-toggled through the hook below
         var display = { labels: {{ $chart_labels_on ? 'true' : 'false' }} };
+        // switched by the box menu's 集計方法, the tooltip names what the value is (最小値 ： 点数); null otherwise
+        var valueName = @json($chart_value_name ?? null);
         var num = function (v) { var n = parseFloat(v); return isNaN(n) ? null : n; };
         // the value as it is (0.04 stays 0.04), grouped; up to 10 decimals cut off float noise
         var fmt = function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 10 }); };
@@ -108,6 +110,8 @@
             data: {
                 labels: labels,
                 datasets: [{
+                    // the legend names the dataset: the Y axis' name (Chart.js shows "undefined" without one)
+                    label: @json((string) ($chart_axisy ?? '')),
                     data: values,
                     @if($chart_type != 'line')
                     backgroundColor: pointColors(),
@@ -135,11 +139,21 @@
                     if (click && elements.length) { ExmentDashboard.pick(click.column, click.values[elements[0]._index], evt.ctrlKey || evt.metaKey); }
                 },
                 hover: { onHover: function (evt, elements) { evt.target.style.cursor = (click && elements.length) ? 'pointer' : 'default'; } },
-                tooltips: { callbacks: { label: function (item, data) {
-                    var v = data.datasets[item.datasetIndex].data[item.index];
-                    var text = (@json($chart_type == 'pie') && data.labels ? data.labels[item.index] + ': ' : '') + (v == null ? '' : String(v));
-                    return text;
-                } } },
+                tooltips: { callbacks: {
+                    label: function (item, data) {
+                        var v = data.datasets[item.datasetIndex].data[item.index];
+                        @if($chart_type == 'pie')
+                        var name = data.labels ? data.labels[item.index] + ': ' : '';
+                        @else
+                        var name = valueName ? valueName + ': ' : '';
+                        @endif
+                        return name + (v == null ? '' : String(v));
+                    },
+                    @if($chart_type == 'pie')
+                    // a slice's tooltip has no title ('' as Chart.js gives it): the switched measure heads it
+                    title: function () { return valueName || ''; },
+                    @endif
+                } },
                 @if(!$chart_legend)
                 legend : {
                     display: false

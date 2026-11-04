@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\ChartType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
@@ -19,12 +20,13 @@ use Exceedone\Exment\Services\Dashboard\ChartFilter;
 use Exceedone\Exment\Services\Dashboard\ChartPivot;
 use Exceedone\Exment\Services\Dashboard\ChartSort;
 use Exceedone\Exment\Services\Dashboard\ChartSorter;
+use Exceedone\Exment\Services\Dashboard\ChartSummarySwitch;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Exceedone\Exment\Services\Dashboard\FilterValue;
 
 /**
  * Chart box. On top of the configured chart, the box renders a toolbar (runtime chart-type
- * switcher + the box's own chart filter). Every data path applies the dashboard filter bar
+ * switcher, summary switch, the box's own chart filter). Every data path applies the dashboard filter bar
  * (df_*) and the chart filter (bf_*) of the request, so chart and popover options see the
  * same rows.
  *
@@ -90,6 +92,9 @@ class ChartItem implements ItemInterface
 
     /** @var bool|null canEditColors() memo */
     protected $can_edit_colors;
+
+    /** @var ChartSummarySwitch|null summarySwitch() memo */
+    protected $summary_switch;
 
     // @phpstan-ignore-next-line
     public function __construct($dashboard_box)
@@ -177,10 +182,17 @@ class ChartItem implements ItemInterface
             'chart_labels_on' => in_array('labels', $this->chart_display, true),
             // right-click a point / series to paint it (dashboard.js colorMenu)
             'chart_color_edit' => $this->canEditColors(),
+            // the measure's label while the 集計 switch draws it another way (tooltips), else null
+            'chart_value_name' => $this->summarySwitch()->valueLabel(),
         ];
 
         if (ChartType::isMulti($this->chart_type)) {
-            $result = $this->getMultiSeriesData();
+            if ($this->isAverageOfExtraGroups()) {
+                return exmtrans('dashboard.message.need_average_groups');
+            }
+            $result = $this->summarySwitch()->apply(function () {
+                return $this->getMultiSeriesData();
+            });
             if ($result === false) {
                 return exmtrans('dashboard.message.need_multiseries');
             }
@@ -199,7 +211,11 @@ class ChartItem implements ItemInterface
                 'chart_click' => json_encode($result['chart_click'], static::JSON_FLAGS),
             ]);
         } else {
-            $result = $this->isAggregateView() ? $this->getAggregateData() : $this->getListData();
+            $result = $this->isAggregateView()
+                ? $this->summarySwitch()->apply(function () {
+                    return $this->getAggregateData();
+                })
+                : $this->getListData();
             if ($result === false) {
                 return exmtrans('dashboard.message.need_setting');
             }
@@ -232,12 +248,73 @@ class ChartItem implements ItemInterface
             }
         }
 
-        return $this->toolbarHtml($fields) . $chart->render();
+        return $this->toolbarHtml($fields, $result['axisx_label']) . $chart->render();
     }
 
     protected function isAggregateView(): bool
     {
         return array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE;
+    }
+
+    /**
+     * The 集計 switch of the toolbar (`ca` on the request): the measure of an aggregate view
+     * drawn by another summary condition. Offers no AVG where the rendered type could not
+     * draw it (isAverageOfExtraGroups), unless the view sets it.
+     */
+    protected function summarySwitch(): ChartSummarySwitch
+    {
+        if ($this->summary_switch === null) {
+            $aggregate = $this->isAggregateView() && is_string($this->axis_y);
+            $this->summary_switch = new ChartSummarySwitch(
+                $aggregate ? $this->custom_view : null,
+                $aggregate ? CustomViewSummary::getSummaryViewColumn($this->axis_y) : null,
+                request()->input(ChartSummarySwitch::PARAM),
+                !(ChartType::isMulti($this->chart_type) && $this->groupColumnCount() > 2)
+            );
+        }
+        return $this->summary_switch;
+    }
+
+    /**
+     * The summary condition the measure is drawn by: the 集計 switch's pick, else the view's.
+     *
+     * @param mixed $view_column_y  the measure (CustomViewSummary / CustomViewColumn)
+     * @return mixed
+     */
+    protected function summaryCondition($view_column_y)
+    {
+        return $this->summarySwitch()->condition() ?? array_get($view_column_y, 'view_summary_condition');
+    }
+
+    protected function groupColumnCount(): int
+    {
+        return collect($this->custom_view->custom_view_columns ?? [])->count();
+    }
+
+    /**
+     * The 集計方法 submenu of the box menu (⋯); null when the measure has no other condition to take.
+     *
+     * @param mixed $axisx_label  the X axis label, for the box title while switched
+     * @return array{choices: array<string, string>, configured: string|null, current: string|null, column: string, title: string|null}|null
+     */
+    protected function summaryMenu($axisx_label): ?array
+    {
+        $switch = $this->summarySwitch();
+        if (!$switch->available()) {
+            return null;
+        }
+        $choices = [];
+        foreach ($switch->choices() as $condition) {
+            $choices[$condition] = ChartSummarySwitch::conditionLabel($condition);
+        }
+        return [
+            'choices' => $choices,
+            'configured' => $switch->configured(),
+            'current' => $switch->condition(),
+            'column' => $switch->columnLabel(),
+            // while switched the box is titled by what it draws: 教科別 最小値 ： 点数
+            'title' => $switch->switched() ? (string) exmtrans('dashboard.chart_summary.title', (string) $axisx_label, $switch->valueLabel()) : null,
+        ];
     }
 
     /**
@@ -397,7 +474,8 @@ class ChartItem implements ItemInterface
         $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
         if (!is_nullorempty($view_column_y) && $view_column_y != Define::CHARTITEM_LABEL) {
             $column = $view_column_y->custom_column;
-            $fields[] = ['key' => 'y', 'label' => array_get($view_column_y, 'view_column_name') ?? ($column ? $column->column_view_name : $view_column_y->column_item->label())];
+            $fields[] = ['key' => 'y', 'label' => $this->summarySwitch()->valueLabel()
+                ?? array_get($view_column_y, 'view_column_name') ?? ($column ? $column->column_view_name : $view_column_y->column_item->label())];
         }
         return $fields;
     }
@@ -438,12 +516,13 @@ class ChartItem implements ItemInterface
     }
 
     /**
-     * The toolbar above the chart: [フィルター ▾] [chart type ▾] [⋯]; '' when no control
-     * applies.
+     * The toolbar above the chart: [フィルター ▾] [chart type ▾] [⋯] (with 集計方法 ◀ in ⋯);
+     * '' when no control applies.
      *
      * @param array<int, array<string, mixed>> $fields  chartFilterFields()
+     * @param mixed $axisx_label  the X axis label of the drawn data
      */
-    protected function toolbarHtml(array $fields): string
+    protected function toolbarHtml(array $fields, $axisx_label): string
     {
         $types = [];
         foreach (ChartType::switchPool($this->configured_type) as $type) {
@@ -462,11 +541,14 @@ class ChartItem implements ItemInterface
         $display_labels = $labels_available && in_array('labels', $this->chart_display, true);
         // painted colors can be taken back to the palette by whoever may paint them
         $colors_reset = $this->canEditColors() && !$this->chartColors()->isEmpty();
-        $menu = !empty($sort_fields) || $labels_available || $colors_reset;
+        // the 集計方法 submenu of the box menu
+        $summary = $this->summaryMenu($axisx_label);
+        $menu = !empty($sort_fields) || $labels_available || $colors_reset || $summary !== null;
         if (empty($types) && empty($fields) && !$menu) {
             return '';
         }
         return view('exment::dashboard.chart.toolbar', [
+            'summary' => $summary,
             'types' => $types,
             // the type picker's preview draws in the box's palette
             'palette' => $this->getChartPalette(),
@@ -687,12 +769,16 @@ class ChartItem implements ItemInterface
 
     /**
      * The chart's Y-axis label: the view column's own name, else the item's label — which the
-     * engine has decorated with the view's summary condition.
+     * engine has decorated with the view's summary condition. Switched by the 集計 menu, the
+     * label of what is drawn instead: 最小値 ： 点数.
      *
      * @param CustomViewSummary $view_column_y
      */
     protected function axisYLabel($view_column_y): ?string
     {
+        if (($switched = $this->summarySwitch()->valueLabel()) !== null) {
+            return $switched;
+        }
         $named = array_get($view_column_y, 'view_column_name');
         if (!is_nullorempty($named)) {
             return $named;
@@ -760,6 +846,59 @@ class ChartItem implements ItemInterface
     }
 
     /**
+     * Whether a multi-series chart would draw the AVG of a view grouped by more columns than
+     * its X axis and series: each cell would hold several averages, which ChartPivot cannot
+     * combine into the cell's own average.
+     */
+    protected function isAverageOfExtraGroups(): bool
+    {
+        $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
+        return isset($view_column_y)
+            && static::averageOfExtraGroups($this->custom_view, $this->summaryCondition($view_column_y));
+    }
+
+    /**
+     * Whether a multi-series chart of $custom_view, its measure summarized by $condition, would
+     * draw an average of more group columns than its X axis and series (isAverageOfExtraGroups).
+     *
+     * @param mixed $custom_view
+     * @param mixed $condition  the measure's summary condition
+     */
+    public static function averageOfExtraGroups($custom_view, $condition): bool
+    {
+        return $custom_view instanceof CustomView
+            && $custom_view->view_kind_type == ViewKindType::AGGREGATE
+            && (string) $condition === SummaryCondition::AVG
+            && collect($custom_view->custom_view_columns ?? [])->count() > 2;
+    }
+
+    /**
+     * Whether the box form posts a multi-series chart that could draw nothing but the
+     * need_average_groups message: an AVG measure of a view grouped by 3+ columns. The form
+     * refuses it on save; a view changed afterwards still meets the message when drawn.
+     *
+     * @param mixed $chart_type
+     */
+    public static function formAverageOfExtraGroups($chart_type): bool
+    {
+        if (!is_string($chart_type) || !ChartType::isMulti($chart_type)) {
+            return false;
+        }
+        $view_id = request()->input('options.target_view_id');
+        $axis_y = request()->input('options.chart_axisy');
+        if (!is_scalar($view_id) || !is_string($axis_y)) {
+            return false;
+        }
+        $custom_view = CustomView::getEloquent($view_id);
+        $view_column_y = CustomViewSummary::getSummaryViewColumn($axis_y);
+        if (!$custom_view instanceof CustomView || !$view_column_y instanceof CustomViewSummary
+            || $view_column_y->custom_view_id != $custom_view->id) {
+            return false;
+        }
+        return static::averageOfExtraGroups($custom_view, $view_column_y->view_summary_condition);
+    }
+
+    /**
      * Pivoted data of a multi-series chart from an aggregate view grouped by 2+ columns:
      * the series column (chart_series, default = 2nd column) splits the legend, the first
      * other group column is the X axis, the measure (chart_axisy) fills each cell —
@@ -808,7 +947,7 @@ class ChartItem implements ItemInterface
                 'y' => data_get($val, $y_key),
             ];
         }
-        $pivot = ChartPivot::build($rows, array_get($view_column_y, 'view_summary_condition'));
+        $pivot = ChartPivot::build($rows, $this->summaryCondition($view_column_y));
 
         return [
             'x_categories' => $pivot['x_categories'],
@@ -833,7 +972,13 @@ class ChartItem implements ItemInterface
     {
         $form->select('chart_type', exmtrans("dashboard.dashboard_box_options.chart_type"))
                 ->required()
-                ->options(ChartType::transArray("chart.chart_type_options"));
+                ->options(ChartType::transArray("chart.chart_type_options"))
+                // a multi-series type of an AVG measure grouped by 3+ columns would draw a message only
+                ->rules([function ($attribute, $value, $fail) {
+                    if (ChartItem::formAverageOfExtraGroups($value)) {
+                        $fail(exmtrans('dashboard.message.need_average_groups_form'));
+                    }
+                }]);
 
         // get only has summaryview
         $model = CustomTable::query();

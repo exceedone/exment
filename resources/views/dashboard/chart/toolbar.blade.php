@@ -1,10 +1,12 @@
 {{--
     Chart box toolbar: [フィルター ▾] (the box's own chart filter, popover), the box menu [⋯]
-    (sort by a field, 値ラベル, CSV export) and the runtime chart-type switcher. Handlers and styles: public/vendor/exment/js/dashboard.js, css/dashboard.css.
+    (sort by a field, 集計方法 ◀ submenu, 値ラベル, CSV export) and the runtime chart-type switcher. Handlers and styles: public/vendor/exment/js/dashboard.js, css/dashboard.css.
     The selection is kept by the JS per box and sent as bf_* / ct / cs / cd on the box request; the
     re-rendered body echoes it back, so state survives every reload. ct / cs / cd are also remembered
     per user (DashboardBoxController::chartState); the chart filter (bf_*) is page-lifetime.
 
+    $summary       ChartItem::summaryMenu(): the 集計 switch {choices, configured, current, column,
+                   title} (null = none). Sent as `ca`, page-lifetime like bf_*: never remembered
     $types         type => label of the switchable types ([] = no switcher)
     $current_type  the rendered type
     $configured_type  the box's own type: picking it on the switcher drops the remembered choice
@@ -19,7 +21,7 @@
     $filter_count  active chart-filter columns (badge)
     $captions      [{label, value}] of the active chart filters (caption under the toolbar)
 --}}
-<div class="exment-chart-toolbar">
+<div class="exment-chart-toolbar" @if(!empty($summary['title'])) data-ca-title="{{ $summary['title'] }}" data-ca-reset-label="{{ exmtrans('dashboard.chart_summary.reset') }}" @endif>
     <span class="ct-spacer"></span>
     @if(count($fields))
     <div class="ct-item">
@@ -104,6 +106,7 @@
     @if($menu)
     <div class="ct-item">
         {{-- the box menu (Power BI's "…"): sort by a field, display options, export; monochrome, colored only while open --}}
+        @php($summary_switched = !empty($summary) && $summary['current'] !== $summary['configured'])
         <button type="button" class="ct-btn ct-ico" data-cs-pop title="{{ exmtrans('dashboard.chart_menu.label') }}"><i class="fa fa-ellipsis-h"></i></button>
         <div class="ct-pop cs-pop">
             @if(!empty($sort_fields))
@@ -116,6 +119,27 @@
             <ul class="cs-list cs-sep">
                 <li class="cs-row{{ $sort_field && $sort_desc ? ' on' : '' }}" data-cs-dir="desc"><i class="fa fa-check"></i><i class="fa fa-sort-amount-desc"></i><span>{{ exmtrans('dashboard.chart_sort.desc') }}</span></li>
                 <li class="cs-row{{ $sort_field && !$sort_desc ? ' on' : '' }}" data-cs-dir="asc"><i class="fa fa-check"></i><i class="fa fa-sort-amount-asc"></i><span>{{ exmtrans('dashboard.chart_sort.asc') }}</span></li>
+            </ul>
+            @endif
+            @if(!empty($summary))
+            {{-- 集計方法 ◀: the measure drawn by another summary type for this screen only — the
+                 server reruns the view's query with it (ChartSummarySwitch). One row opening a
+                 submenu, as Excel's 値の集計方法 ▸. data-ca-applied echoes the condition drawn
+                 when it is not the view's ('' otherwise): the JS mirrors it --}}
+            <ul class="cs-list{{ empty($sort_fields) ? '' : ' cs-sep' }}" data-ca-configured="{{ $summary['configured'] }}" data-ca-applied="{{ $summary_switched ? $summary['current'] : '' }}">
+                <li class="cs-row ca-row{{ $summary_switched ? ' ca-on' : '' }}" data-ca-open>
+                    <i class="fa fa-calculator"></i><span>{{ exmtrans('dashboard.chart_summary.menu') }}</span>
+                    <b class="ca-cur">{{ $summary['choices'][$summary['current']] ?? '' }}</b><i class="fa fa-caret-left ca-arrow"></i>
+                    <div class="ca-fly"><div class="ca-fly-in">
+                        <h4>{{ exmtrans('dashboard.chart_summary.heading', $summary['column']) }}</h4>
+                        <ul class="cs-list">
+                            @foreach($summary['choices'] as $condition => $label)
+                            <li class="cs-row{{ (string) $condition === $summary['current'] ? ' on' : '' }}" data-ca-pick="{{ $condition }}"><i class="fa fa-check"></i><span>{{ $label }}</span>@if((string) $condition === $summary['configured'])<em class="ca-badge">{{ exmtrans('dashboard.chart_summary.view_setting') }}</em>@endif</li>
+                            @endforeach
+                        </ul>
+                        <div class="ca-hint">{{ exmtrans('dashboard.chart_summary.hint') }}</div>
+                    </div></div>
+                </li>
             </ul>
             @endif
             @if($labels_available)

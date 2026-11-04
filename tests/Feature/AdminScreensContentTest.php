@@ -558,8 +558,8 @@ class AdminScreensContentTest extends FeatureTestBase
 
     public function testViewSummaryAndGroupConditionsFollowTheColumnType(): void
     {
-        // a number can be summed; any column can be counted and have a min and a max
-        $this->assertSame(['1', '3', '4', '5'], $this->ids('view/all_columns_table_fortest/summary-condition?q=' . urlencode($this->columnTarget(ColumnType::INTEGER))));
+        // a number can be summed and averaged; any column can be counted and have a min and a max
+        $this->assertSame(['1', '2', '3', '4', '5'],$this->ids('view/all_columns_table_fortest/summary-condition?q=' . urlencode($this->columnTarget(ColumnType::INTEGER))));
         $this->assertSame(['3', '4', '5'], $this->ids('view/all_columns_table_fortest/summary-condition?q=' . urlencode($this->columnTarget(ColumnType::TEXT))));
         // a date groups by year, month, day...
         $this->assertSame(['y', 'ym', 'ymd', 'm', 'd', 'w'], $this->ids('view/all_columns_table_fortest/group-condition?q=' . urlencode($this->columnTarget(ColumnType::DATE))));

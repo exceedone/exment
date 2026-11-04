@@ -34,8 +34,12 @@
         var showLegend = {{ $chart_legend ? 'true' : 'false' }};
         var axisXName = @json($chart_axisx);
         var axisYName = @json($chart_axisy);
+        // switched by the box menu's 集計方法, a tooltip names what its value is (最小値 ： 点数); null otherwise
+        var valueName = @json($chart_value_name ?? null);
         // the value as it is (0.04 stays 0.04), grouped; up to 10 decimals cut off float noise
         var fmt = function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 10 }); };
+        // tooltip of a point: "算数: 23", or "算数<br>最小値 ： 点数: 23" while valueName is set
+        var tip = function (name, v) { return escHtml(name) + (valueName ? '<br>' + escHtml(valueName) : '') + ': ' + fmt(v); };
         // px width of a label as ECharts draws it (its default font), to keep labels inside the box
         var ctx2d = document.createElement('canvas').getContext('2d');
         var textWidth = function (s, size) { ctx2d.font = size + 'px sans-serif'; return ctx2d.measureText(String(s)).width; };
@@ -80,7 +84,7 @@
             case 'hbar':
                 option = {
                     color: byPoint,
-                    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (ps) { var p = ps[0] || ps; return escHtml(p.name) + ': ' + fmt(p.value); } },
+                    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: function (ps) { var p = ps[0] || ps; return tip(p.name, p.value); } },
                     // the value axis's name under its ticks, the category axis's above the first bar
                     // (inverse: 'start' is the top)
                     grid: { left: '3%', right: '6%', bottom: 30, top: 34, containLabel: true },
@@ -93,7 +97,7 @@
             case 'area':
                 option = {
                     color: colors,
-                    tooltip: { trigger: 'axis', formatter: function (ps) { var p = ps[0] || ps; return escHtml(p.name) + ': ' + fmt(p.value); } },
+                    tooltip: { trigger: 'axis', formatter: function (ps) { var p = ps[0] || ps; return tip(p.name, p.value); } },
                     grid: grid,
                     xAxis: { type: 'category', boundaryGap: false, data: labels, name: axisXName, nameLocation: 'middle', nameGap: 26 },
                     yAxis: { type: 'value', name: axisYName, nameTextStyle: { align: 'left' } },
@@ -133,7 +137,7 @@
                 var gmax = Math.max.apply(null, values.length ? values : [1]) || 1;
                 option = {
                     color: colors,
-                    tooltip: { formatter: function (p) { return escHtml(p.name) + ': ' + fmt(p.value); } },
+                    tooltip: { formatter: function (p) { return tip(p.name, p.value); } },
                     series: [$.extend({
                         type: 'gauge', min: 0, max: gmax,
                         progress: { show: true, width: 14 },
@@ -149,7 +153,7 @@
             case 'scatter':
                 option = {
                     color: byPoint,
-                    tooltip: { trigger: 'item', formatter: function (p) { return escHtml(labels[p.dataIndex]) + ': ' + fmt(p.value[1]); } },
+                    tooltip: { trigger: 'item', formatter: function (p) { return tip(labels[p.dataIndex], p.value[1]); } },
                     grid: grid,
                     xAxis: { type: 'category', data: labels, name: axisXName, nameLocation: 'middle', nameGap: 26 },
                     yAxis: { type: 'value', name: axisYName, nameTextStyle: { align: 'left' } },
@@ -158,6 +162,10 @@
                 break;
             default:
                 return;
+        }
+        // the item tooltips of a slice / a funnel step name their series: the switched measure
+        if (valueName && (type === 'doughnut' || type === 'funnel')) {
+            option.series[0].name = valueName;
         }
         // point i drawn in byPoint[i]: ECharts' own coloring by data hands its palette out per
         // distinct NAME, so a repeated label (two rows of a list view) shifts every later color

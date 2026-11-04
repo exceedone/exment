@@ -20,10 +20,14 @@ use Exceedone\Exment\Enums\SummaryCondition;
  * cell; they are folded the way the measure's own summary condition folds rows: the lowest
  * for MIN, the highest for MAX, the sum otherwise — SUM, COUNT (the count of a cell is the
  * sum of its rows' counts) and a plain group column as the measure, which has no condition.
+ * AVG has no such fold: the average of a cell is not the average of its rows' averages
+ * unless they hold as many values each, and the rows do not tell how many they hold. Such
+ * a cell is left empty (null) rather than drawn with a wrong number; ChartItem asks for a
+ * view grouped by the chart's two columns only.
  *
  * A cell no row falls into is 0 for an adding measure — the sum or count of no rows — but
- * null for MIN / MAX, where 0 would be a value no row has: the boxplot would count it into
- * the spread, the heatmap and the lines would show it as a measured 0.
+ * null for MIN / MAX / AVG, where 0 would be a value no row has: the boxplot would count it
+ * into the spread, the heatmap and the lines would show it as a measured 0.
  */
 final class ChartPivot
 {
@@ -63,7 +67,12 @@ final class ChartPivot
             }
             $xi = $x_index[$x];
             $si = $s_index[$s];
-            $cells[$si][$xi] = isset($cells[$si][$xi]) ? self::fold($cells[$si][$xi], (float) $y, $condition) : (float) $y;
+            if (!isset($cells[$si]) || !array_key_exists($xi, $cells[$si])) {
+                $cells[$si][$xi] = (float) $y;
+            } elseif ($cells[$si][$xi] !== null) {
+                // null: a cell that cannot be folded (AVG) stays empty
+                $cells[$si][$xi] = self::fold($cells[$si][$xi], (float) $y, $condition);
+            }
         }
         $matrix = array_fill(0, count($series_names), array_fill(0, count($x_values), self::emptyCell($condition)));
         foreach ($cells as $si => $row) {
@@ -81,22 +90,26 @@ final class ChartPivot
 
     /**
      * The value of a cell no row falls into: 0 for an adding measure (SUM, COUNT, a group
-     * column), null for MIN / MAX — the lowest or highest of no rows is no number.
+     * column), null for MIN / MAX / AVG — the lowest, highest or average of no rows is no number.
      *
      * @param string|int|null $condition
      */
     public static function emptyCell($condition): ?int
     {
-        return in_array((string) $condition, [SummaryCondition::MIN, SummaryCondition::MAX], true) ? null : 0;
+        return in_array((string) $condition, [SummaryCondition::MIN, SummaryCondition::MAX, SummaryCondition::AVG], true) ? null : 0;
     }
 
     /**
-     * Two values of one cell folded as $condition (SummaryCondition) folds rows.
+     * Two values of one cell folded as $condition (SummaryCondition) folds rows; null for AVG,
+     * which two averages without their counts cannot give.
      *
      * @param string|int|null $condition
      */
-    public static function fold(float $a, float $b, $condition): float
+    public static function fold(float $a, float $b, $condition): ?float
     {
+        if ((string) $condition === SummaryCondition::AVG) {
+            return null;
+        }
         if ((string) $condition === SummaryCondition::MIN) {
             return min($a, $b);
         }

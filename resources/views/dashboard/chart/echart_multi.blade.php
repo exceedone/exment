@@ -30,6 +30,8 @@
         var showLegend = {{ $chart_legend ? 'true' : 'false' }};
         var axisXName = @json($chart_axisx);
         var axisYName = @json($chart_axisy);
+        // switched by the box menu's 集計方法, a tooltip names what its values are (最小値 ： 点数); null otherwise
+        var valueName = @json($chart_value_name ?? null);
         var legend = { show: showLegend, type: 'scroll', top: 0, data: seriesNames };
         var heatData = null; // heatmap cells [x, s, value]
         // a cell no row fell into is null for a MIN / MAX measure (ChartPivot::emptyCell): no
@@ -126,6 +128,24 @@
                     yAxis: { type: 'value', name: axisYName, nameTextStyle: { align: 'left' } },
                     series: series
                 };
+            }
+        }
+        if (valueName) { nameTheValues(); }
+
+        // The switched measure named in the tooltips (the heatmap's series is named after it
+        // already): under the category of an axis tooltip, before the value of a tile, as the
+        // series of a box. A function formatter is injected as innerHTML: labels escaped.
+        function nameTheValues() {
+            var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+            if (cartesian) {
+                option.tooltip.formatter = function (ps) {
+                    ps = [].concat(ps);
+                    return esc(ps.length ? ps[0].name : '') + '<br>' + esc(valueName) + ps.map(function (p) { return '<br>' + p.marker + esc(p.seriesName) + ': ' + fmt(p.value); }).join('');
+                };
+            } else if (type === 'treemap' || type === 'sunburst') {
+                option.tooltip.formatter = function (p) { return esc(p.name) + '<br>' + esc(valueName) + ': ' + fmt(p.value); };
+            } else if (type === 'boxplot') {
+                option.series[0].name = valueName;
             }
         }
 

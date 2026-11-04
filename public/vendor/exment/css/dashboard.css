@@ -112,6 +112,37 @@
 .ct-active .fa { color: #5b6ef5; font-size: 10.5px; margin-right: 2px; }
 .ct-active b { font-weight: 600; color: #3b4a9e; }
 .ct-active-sep { color: #b6b6c8; }
+
+/* summary switch (集計方法 ◀ in the box menu): no color of its own — while the measure is drawn
+   by another condition than the view's, the row's value is bold and the box title names it (with
+   a × back), as Excel renames the value field. The submenu opens beside the menu, to the left (the
+   ⋯ button sits at the box's right edge) or to the right when there is no room (dashboard.js openSummary) */
+.exment-chart-toolbar .ca-row { position: relative; }
+.exment-chart-toolbar .ca-row > span { flex: 1 1 auto; }
+.exment-chart-toolbar .ca-row > .fa-calculator { width: 12px; font-size: 11px; color: #9a9ab0; }
+.exment-chart-toolbar .ca-row .ca-cur { font-weight: 600; color: #6b6b80; }
+.exment-chart-toolbar .ca-row.ca-on .ca-cur { color: #2b2b3a; font-weight: 700; }
+.exment-chart-toolbar .ca-row .ca-arrow { width: 8px; font-size: 11px; color: #9a9ab0; }
+.exment-chart-toolbar .ca-row.ca-right .ca-arrow::before { content: "\f0da"; } /* fa-caret-right */
+.exment-chart-toolbar .ca-row.ca-open { background: #e6e9fb; }
+/* the padding bridges the gap to the row, so the pointer reaches the submenu without closing it */
+.exment-chart-toolbar .ca-fly { display: none; position: absolute; top: -9px; right: 100%; padding-right: 6px; z-index: 1; cursor: default; white-space: nowrap; }
+.exment-chart-toolbar .ca-row.ca-right .ca-fly { right: auto; left: 100%; padding-right: 0; padding-left: 6px; }
+.exment-chart-toolbar .ca-row.ca-open .ca-fly { display: block; }
+/* no room on either side (a narrow screen): the submenu opens under the row, inside the menu */
+.exment-chart-toolbar .ca-row.ca-inline, .exment-chart-toolbar .ca-row.ca-inline:hover { flex-wrap: wrap; background: transparent; }
+.exment-chart-toolbar .ca-row.ca-inline .ca-fly { position: static; flex: 1 0 100%; padding: 4px 0 0; white-space: normal; }
+.exment-chart-toolbar .ca-row.ca-inline .ca-fly-in { min-width: 0; border: 0; box-shadow: none; padding: 0; background: transparent; }
+.exment-chart-toolbar .ca-row.ca-inline .ca-arrow::before { content: "\f0d7"; } /* fa-caret-down */
+.exment-chart-toolbar .ca-fly-in { min-width: 220px; background: #fff; border: 1px solid #d7d5e6; border-radius: 10px; box-shadow: 0 10px 28px rgba(43, 43, 58, .14); padding: 8px 6px 6px; font-weight: 400; color: #2b2b3a; }
+.exment-chart-toolbar .ca-fly-in h4 { padding: 0 8px; }
+.exment-chart-toolbar .ca-fly-in .cs-row > span { flex: 1 1 auto; }
+.exment-chart-toolbar .ca-badge { font-style: normal; font-size: 10.5px; font-weight: 400; color: #6b6b80; background: #ecebf3; border-radius: 9px; padding: 1px 7px; }
+.exment-chart-toolbar .ca-hint { margin-top: 8px; padding: 7px 8px 0; border-top: 1px solid #ecebf3; font-size: 11px; line-height: 1.5; color: #9a9ab0; }
+.box-dashboard > .box-header > .box-title.ca-titled { display: flex; align-items: center; gap: 6px; }
+.box-title .ca-title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.box-title .ca-title-reset { flex: 0 0 auto; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: #ecebf3; color: #6b6b80; font-size: 11px; line-height: 20px; text-align: center; cursor: pointer; }
+.box-title .ca-title-reset:hover { background: #dcdbe8; color: #2b2b3a; }
 .exment-chart-error { display: flex; height: 100%; align-items: center; justify-content: center; text-align: center; color: #8a8a8a; font-size: 13px; padding: 16px; line-height: 1.6; }
 
 /* dashboard setting form, filter items table: the widget drawn in front of the デフォルト値 input (dashboard.js ExmentDashboardForm) */

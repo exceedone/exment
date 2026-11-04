@@ -56,10 +56,10 @@ trait SummaryItemTrait
         $group_condition = $options['group_condition'];
 
         $summary_condition = $this->getSummaryConditionName();
-        if (isset($summary_condition)) {
-            // get cast. Already set table, so getCastColumn 3 arg is false.
-            $wrapCastColumn = $this->getCastColumn($value_table_column, true, false);
-            $result = "$summary_condition($wrapCastColumn)";
+        if ($this->isSummaryAverage()) {
+            $result = $this->getSummaryAverageSql("AVG(1.0 * {$this->getSummaryCastColumn()})");
+        } elseif (isset($summary_condition)) {
+            $result = "$summary_condition({$this->getSummaryCastColumn()})";
         } elseif (isset($group_condition)) {
             /** @phpstan-ignore-next-line */
             $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, false);
@@ -69,6 +69,92 @@ trait SummaryItemTrait
         }
 
         return $result;
+    }
+
+    /**
+     * Columns the sub query of a child relation (1:n, n:n, select_table) selects for this
+     * summary, alias => SQL, one row per parent. The main query folds them again:
+     * getSummaryJoinResultWrapTableColumn().
+     *
+     * AVG cannot be folded from per-parent averages (an average of averages weighs a parent
+     * with one row as much as one with many), so it selects the sum and the count of the
+     * values instead, and the main query divides their totals.
+     *
+     * @return array<string, string>
+     */
+    public function getSummarySubQueryColumns(): array
+    {
+        if (!$this->isSummaryAverage()) {
+            return [$this->sqlAsName() => $this->getSummaryWrapTableColumn()];
+        }
+
+        $castColumn = $this->getSummaryCastColumn();
+        return [
+            $this->sqlAsName() => "SUM($castColumn)",
+            $this->getSummaryCountAsName() => "COUNT($castColumn)",
+        ];
+    }
+
+    /**
+     * The average of a child relation's values, from the per-parent sums and counts its sub
+     * query selected (getSummarySubQueryColumns()). A group without a value is NULL, as AVG
+     * gives it.
+     * Join table: true
+     * Wrap: true
+     */
+    public function getSummaryAverageJoinResultWrapTableColumn(): string
+    {
+        $sum = \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
+        $count = \Exment::wrapColumn($this->getTableColumn($this->getSummaryCountAsName()));
+        return $this->getSummaryAverageSql("1.0 * SUM($sum) / NULLIF(SUM($count), 0)");
+    }
+
+    /**
+     * Whether this column is summarized as AVG.
+     */
+    protected function isSummaryAverage(): bool
+    {
+        $summary_condition = $this->getSummaryCondition();
+        return isset($summary_condition) && (string) $summary_condition === SummaryCondition::AVG;
+    }
+
+    /**
+     * Decimal places of an average: the column's own (decimal, currency), else 2 —
+     * an integer column has none, but the average of whole numbers is rarely one.
+     */
+    protected function getSummaryAverageDigits(): int
+    {
+        $digits = isset($this->custom_column) ? array_get($this->custom_column, 'options.decimal_digit') : null;
+        return is_numeric($digits) ? max(0, intval($digits)) : 2;
+    }
+
+    /**
+     * An average rounded to getSummaryAverageDigits(). "1.0 *" in $average keeps it from
+     * being an integer division: SQL Server averages and divides integers as integers.
+     */
+    protected function getSummaryAverageSql(string $average): string
+    {
+        return "ROUND($average, {$this->getSummaryAverageDigits()})";
+    }
+
+    /**
+     * The summarized value cast to the column's type: the column a summary function reads.
+     * Join table: true
+     * Wrap: true
+     */
+    protected function getSummaryCastColumn(): string
+    {
+        $options = $this->getSummaryParams();
+        // Already set table, so getCastColumn 3 arg is false.
+        return $this->getCastColumn($options['value_table_column'], true, false);
+    }
+
+    /**
+     * Alias of the count an AVG's sub query selects beside its sum.
+     */
+    protected function getSummaryCountAsName(): string
+    {
+        return $this->sqlAsName() . '_count';
     }
 
     /**

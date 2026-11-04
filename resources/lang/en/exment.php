@@ -790,6 +790,16 @@ return [
             'hint' => 'Types that can show the same data. Click to switch',
         ],
 
+        // summary switch (toolbar, runtime, not remembered): the measure drawn by another summary type
+        'chart_summary' => [
+            'menu' => 'Summary type',
+            'heading' => 'Summary type (%s)',
+            'view_setting' => 'View setting',
+            'hint' => 'Switches on this screen only (the view is not changed)',
+            'title' => '%2$s by %1$s',
+            'reset' => 'Back to the view setting',
+        ],
+
         // box menu (⋯): display options and export
         'chart_menu' => [
             'label' => 'Options',
@@ -825,6 +835,8 @@ return [
         'message' => [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
             'need_multiseries' => 'This chart type needs an aggregate view grouped by 2 columns (1st = X axis, 2nd = series) and a summary value.',
+            'need_average_groups' => 'For an average, this chart type needs an aggregate view grouped by its X axis and series columns only. Averages of more groups cannot be combined correctly.',
+            'need_average_groups_form' => 'A Y axis summarized by average cannot be drawn on a multi-series chart of an aggregate view grouped by 3 or more columns. Group the view by 2 columns, summarize by other than average, or choose a single-series chart.',
             'chart_render_error' => 'Could not render this chart (the data may be unsuitable for this type).',
             'chart_load_error' => 'Could not load the chart library. Please reload the page.',
             'not_exists_table' => 'The table or view has been deleted.',

@@ -7,7 +7,7 @@ class SummaryCondition extends EnumBase
     use EnumOptionTrait;
 
     public const SUM = "1";
-    //const AVG = 2;
+    public const AVG = "2";
     public const COUNT = "3";
     public const MIN = "4";
     public const MAX = "5";
@@ -19,7 +19,7 @@ class SummaryCondition extends EnumBase
     // @phpstan-ignore-next-line
     protected static $options = [
         "1" => ['id' => "1", 'name' => 'sum', 'numeric' => true, 'countable' => true],
-        //2 => ['id' => 2, 'name' => 'avg', 'numeric' => true],
+        "2" => ['id' => "2", 'name' => 'avg', 'numeric' => true],
         "3" => ['id' => "3", 'name' => 'count', 'countable' => true],
         "4" => ['id' => "4", 'name' => 'min'],
         "5" => ['id' => "5", 'name' => 'max'],

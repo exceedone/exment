@@ -10,6 +10,7 @@
  *   ct                    runtime chart type (per box; remembered per user)
  *   cs                    runtime sort of the points (per box; remembered per user)
  *   cd                    display option 値ラベル ("labels"; per box; remembered per user)
+ *   ca                    summary condition of the measure, 集計 menu (page-lifetime, per box)
  *   bf_{column}           chart filter selection (page-lifetime, per box)
  *
  * A filter bar change is applied selectively (see `navigate`): push a history entry for
@@ -29,7 +30,7 @@
     var NS = '.exdash';
     var L = {};      // texts
     var A = {};      // asset base URLs (init's options.assets)
-    var state = {};  // suuid => {ct: type, cs: sort, cd: "labels", bf: {column: [values] | {from, to}}, reopen: true}
+    var state = {};  // suuid => {ct: type, cs: sort, cd: "labels", ca: summary condition, bf: {column: [values] | {from, to}}, reopen: true}
     var saving = {}; // suuid => true while its toolbar choices are being saved, 'again' when they changed meanwhile
     var pagePath = ''; // path of the dashboard page, set by init: a pjax link pushes its own URL before it renders
 
@@ -85,6 +86,7 @@
         if (s.ct) { out.push('ct=' + encodeURIComponent(s.ct)); }
         if (s.cs) { out.push('cs=' + encodeURIComponent(s.cs)); }
         if (s.cd) { out.push('cd=' + encodeURIComponent(s.cd)); }
+        if (s.ca) { out.push('ca=' + encodeURIComponent(s.ca)); }
         $.each(s.bf || {}, function (column, v) {
             var key = 'bf_' + encodeURIComponent(column);
             if ($.isArray(v)) {
@@ -134,6 +136,13 @@
                 if ($box.find('.exment-bf-list, .exment-bf-range').length) {
                     stateOf(suuid).bf = collectChartFilter($box);
                 }
+                // the 集計 the server drew by (it ignores one the measure cannot take) — unless a
+                // newer pick is waiting to be loaded (flushPending below)
+                if (!$box.data('pending')) {
+                    var applied = String($box.find('[data-ca-applied]').attr('data-ca-applied') || '');
+                    if (applied) { stateOf(suuid).ca = applied; } else { delete stateOf(suuid).ca; }
+                }
+                syncTitle($box);
                 if (reopen) {
                     openPop($box.find('[data-ct-pop]').first());
                 }
@@ -174,6 +183,7 @@
         endPreview();
         $('.ct-pop').removeClass('show');
         $('.ct-btn').removeClass('open');
+        $('.ca-open').removeClass('ca-open');
         $('.ctp-open').removeClass('ctp-open');
     }
 
@@ -346,6 +356,50 @@
             sel[column][bound] = v;
         });
         return sel;
+    }
+
+    // ---- summary switch (集計) ------------------------------------------------------------
+    // The measure drawn by another summary condition: the box re-renders with `ca`, the server
+    // reruns the view's query with it (ChartSummarySwitch). Page-lifetime, never saved: picking
+    // the view's own condition, the title's ×, or a reload of the page goes back to the view.
+    function applySummary(suuid, ca) {
+        if (!suuid) { return; }
+        if (ca) { stateOf(suuid).ca = ca; } else { delete stateOf(suuid).ca; }
+        loadBox(suuid);
+    }
+
+    // The box menu's 集計方法 row opens its submenu beside the menu, as Excel's 値の集計方法 ▸:
+    // to the left, the ⋯ button sitting at the box's right edge, else to the right, else (a
+    // narrow screen) under the row. Like the type picker, it hangs out of the box's scrolled
+    // body while open.
+    function openSummary($row) {
+        if ($row.hasClass('ca-open')) { return; }
+        var PAD = 8, fly = $row.find('.ca-fly-in')[0];
+        $row.removeClass('ca-right ca-inline').addClass('ca-open');
+        $row.closest('.box-body-inner-body').addClass('ctp-open');
+        if (!fly || fly.getBoundingClientRect().left >= PAD) { return; }
+        $row.addClass('ca-right');
+        if (fly.getBoundingClientRect().right > document.documentElement.clientWidth - PAD) {
+            $row.removeClass('ca-right').addClass('ca-inline');
+        }
+    }
+
+    // While switched, the box title says what the chart draws (the toolbar's data-ca-title:
+    // 教科別 最小値 ： 点数) with a × back to the view's setting; the configured title returns
+    // otherwise. The configured one is kept on the title element, which a page render replaces.
+    function syncTitle($box) {
+        var $title = $box.find('.box-title').first(), $bar = $box.find('.exment-chart-toolbar').first();
+        var text = $bar.attr('data-ca-title'), saved = $title.data('caSaved');
+        if (!$title.length) { return; }
+        if (text) {
+            if (!saved) { $title.data('caSaved', saved = { html: $title.html(), title: $title.attr('title') }); }
+            var $reset = $('<button type="button" class="ca-title-reset" data-ca-reset><i class="fa fa-times"></i></button>')
+                .attr('title', $bar.attr('data-ca-reset-label') || '');
+            $title.addClass('ca-titled').attr('title', text).empty()
+                .append($('<span class="ca-title-text">').text(text), $reset);
+        } else if (saved) {
+            $title.removeClass('ca-titled').html(saved.html).attr('title', saved.title).removeData('caSaved');
+        }
     }
 
     function applySort(suuid, cs) {
@@ -1083,6 +1137,21 @@
             var dir = $(this).data('csDir') || $pop.find('[data-cs-dir].on').data('csDir') || (field === 'y' ? 'desc' : 'asc');
             applySort($(this).closest('[data-suuid]').data('suuid'), field ? field + ':' + dir : '');
         });
+        // 集計方法 row: the pointer opens its submenu, so does a tap (no hover on a touch screen);
+        // it closes with the pointer leaving or the menu closing
+        $(document).on('mouseenter' + NS + ' click' + NS, '[data-ca-open]', function () { openSummary($(this)); });
+        $(document).on('mouseleave' + NS, '[data-ca-open]', function () { $(this).removeClass('ca-open'); });
+        // a condition applies at once (the view's own one drops the switch)
+        $(document).on('click' + NS, '[data-ca-pick]', function () {
+            var $row = $(this), ca = String($row.data('caPick'));
+            var configured = String($row.closest('[data-ca-configured]').attr('data-ca-configured') || '');
+            closePops();
+            if ($row.hasClass('on')) { return; }
+            applySummary($row.closest('[data-suuid]').data('suuid'), ca === configured ? '' : ca);
+        });
+        $(document).on('click' + NS, '[data-ca-reset]', function () {
+            applySummary($(this).closest('[data-suuid]').data('suuid'), '');
+        });
         $(document).on('click' + NS, '[data-cd-toggle]', function () {
             var $row = $(this), $box = $row.closest('[data-suuid]'), suuid = $box.data('suuid'), on = displayOf(suuid);
             on[$row.data('cdToggle')] = !on[$row.data('cdToggle')];
@@ -1106,6 +1175,8 @@
         $(document).on('click' + NS, '.exment-cs-reset', function () {
             var suuid = $(this).closest('[data-suuid]').data('suuid');
             delete stateOf(suuid).cd;
+            // the menu's 集計方法 too: back to the view's setting
+            delete stateOf(suuid).ca;
             applySort(suuid, '');
         });
         $(document).on('change' + NS, '.exment-bf-check', function () { reloadFromToolbar($(this), false); });

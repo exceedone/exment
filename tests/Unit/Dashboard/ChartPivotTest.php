@@ -141,5 +141,47 @@ class ChartPivotTest extends DashboardUnitTestCase
         $this->assertSame(4.0, ChartPivot::fold(3.0, 4.0, SummaryCondition::MAX));
         $this->assertSame(7.0, ChartPivot::fold(3.0, 4.0, null), 'no condition: the sum');
         $this->assertSame(3.0, ChartPivot::fold(3.0, 4.0, (int) SummaryCondition::MIN), 'the condition may come as an int');
+        $this->assertNull(ChartPivot::fold(3.0, 4.0, SummaryCondition::AVG), 'two averages without their counts have no average');
+        $this->assertNull(ChartPivot::fold(3.0, 4.0, (int) SummaryCondition::AVG));
+    }
+
+    /**
+     * AVG: a cell no row falls into has no average (null, not 0), and a cell several rows fall
+     * into is left empty: (10 + 4) / 2 = 7 is the cell's average only when both rows hold as
+     * many values, which the rows do not tell. A cell of one row keeps its average.
+     */
+    public function testAnAverageIsNeverFoldedOrZeroFilled(): void
+    {
+        $this->assertNull(ChartPivot::emptyCell(SummaryCondition::AVG));
+        $this->assertNull(ChartPivot::emptyCell((int) SummaryCondition::AVG), 'the condition may come as an int');
+
+        $pivot = ChartPivot::build($this->rows(), SummaryCondition::AVG);
+        $this->assertSame(['北海道', '青森県'], $pivot['x_categories']);
+        $this->assertSame(['男', '女'], $pivot['series_names']);
+        $this->assertSame([[null, null], [7.5, 2.0]], $pivot['matrix'], '北海道 × 男 has two rows: empty; 青森県 × 男 has none: empty');
+
+        // a third row into the same cell keeps it empty instead of folding into a fresh value
+        $rows = array_merge($this->rows(), [['x' => 'hokkaido', 'x_text' => '北海道', 'series' => '男', 'y' => '1']]);
+        $this->assertSame([[null, null], [7.5, 2.0]], ChartPivot::build($rows, SummaryCondition::AVG)['matrix']);
+
+        // one row per cell — the view grouped by the chart's two columns only: every average kept
+        $rows = [
+            ['x' => 'A', 'x_text' => 'A', 'series' => 'S1', 'y' => '45.6'],
+            ['x' => 'A', 'x_text' => 'A', 'series' => 'S2', 'y' => '73.3'],
+            ['x' => 'B', 'x_text' => 'B', 'series' => 'S1', 'y' => '60'],
+        ];
+        $this->assertSame([[45.6, 60.0], [73.3, null]], ChartPivot::build($rows, SummaryCondition::AVG)['matrix']);
+    }
+
+    /**
+     * The other conditions still fold a cell of several rows — an empty AVG cell is no
+     * "stop folding" mark for them.
+     */
+    public function testOtherConditionsStillFoldEveryRowOfACell(): void
+    {
+        $rows = array_merge($this->rows(), [['x' => 'hokkaido', 'x_text' => '北海道', 'series' => '男', 'y' => '1']]);
+        $this->assertSame([[15.0, 0], [7.5, 2.0]], ChartPivot::build($rows, SummaryCondition::SUM)['matrix']);
+        $this->assertSame([[1.0, null], [7.5, 2.0]], ChartPivot::build($rows, SummaryCondition::MIN)['matrix']);
+        $this->assertSame([[10.0, null], [7.5, 2.0]], ChartPivot::build($rows, SummaryCondition::MAX)['matrix']);
     }
 }
