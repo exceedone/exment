@@ -44,12 +44,31 @@
             <div class="col-12">
                 {{-- select hasmany or hasmanytable --}}
                 @if($custom_form_block['form_block_type'] == '1')
+                @php
+                    $hasManyTypeId = "custom_form_block_{$custom_form_block['id']}__options__hasmany_type_";
+                    $lazyLoadId = "custom_form_block_{$custom_form_block['id']}__options__lazy_load_enabled_";
+                    $lazyLoadName = "{$custom_form_block['header_name']}[options][lazy_load_enabled]";
+                    $lazyLoadErrorKey = str_replace(['[', ']'], ['.', ''], $lazyLoadName);
+                    $hasManyType = boolval(\Illuminate\Support\Arr::get($custom_form_block, 'hasmany_type'));
+                    $lazyLoadEnabled = $hasManyType && boolval(\Illuminate\Support\Arr::get($custom_form_block, 'lazy_load_enabled'));
+                @endphp
                 <div class="form-group mb-3">
-                    <input type="checkbox" name="{{ $custom_form_block['header_name'] }}[options][hasmany_type]" value="1" id="custom_form_block_{{ $custom_form_block['id'] }}__options__hasmany_type_" class="icheck icheck_hasmany_type" data-add-icheck="1" {{ \Illuminate\Support\Arr::get($custom_form_block, 'hasmany_type') ? 'checked' : '' }} />
-                    <label for="custom_form_block_{{ $custom_form_block['id'] }}__options__hasmany_type_">{{ exmtrans('custom_form.hasmany_type') }}</label>
+                    <input type="checkbox" name="{{ $custom_form_block['header_name'] }}[options][hasmany_type]" value="1" id="{{ $hasManyTypeId }}" class="icheck icheck_hasmany_type" data-add-icheck="1" {{ $hasManyType ? 'checked' : '' }} />
+                    <label for="{{ $hasManyTypeId }}">{{ exmtrans('custom_form.hasmany_type') }}</label>
                     <i class="fa fa-info-circle" 
                        data-help-text="{{exmtrans('custom_form.help.hasmany_type_table')}}" 
                        data-help-title="{{exmtrans('custom_form.hasmany_type')}}"></i>
+                </div>
+                <div class="form-group mb-3 {{ $errors->has($lazyLoadErrorKey) ? 'has-error' : '' }}">
+                    <input type="hidden" name="{{ $lazyLoadName }}" value="0" />
+                    <input type="checkbox" name="{{ $lazyLoadName }}" value="1" id="{{ $lazyLoadId }}" class="icheck icheck_lazy_load_enabled" data-add-icheck="1" {{ $lazyLoadEnabled ? 'checked' : '' }} {{ $hasManyType ? '' : 'disabled' }} />
+                    <label for="{{ $lazyLoadId }}">{{ exmtrans('custom_form.lazy_load_enabled') }}</label>
+                    <i class="fa fa-info-circle" 
+                       data-help-text="{{exmtrans('custom_form.help.lazy_load_enabled')}}" 
+                       data-help-title="{{exmtrans('custom_form.lazy_load_enabled')}}"></i>
+                    @error($lazyLoadErrorKey)
+                    <span class="help-block text-danger">{{ $message }}</span>
+                    @enderror
                 </div>
                 @endif
             </div>

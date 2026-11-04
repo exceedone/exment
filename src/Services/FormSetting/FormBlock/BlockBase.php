@@ -133,6 +133,7 @@ abstract class BlockBase
             'suggests' => $this->getSuggestItems(),
             'custom_form_rows' => $this->getCustomFormRows(),
             'hasmany_type' => $this->custom_form_block->getOption('hasmany_type'),
+            'lazy_load_enabled' => $this->custom_form_block->getOption('lazy_load_enabled', 0),
             'form_block_order' => $this->custom_form_block->getOption('form_block_order')
         ];
     }

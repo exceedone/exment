@@ -425,7 +425,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $custom_value = $this->getValueModel($id);
-
         if (isset($custom_value)) {
             $custom_form_priorities = $this->custom_form_priorities->sortBy('order');
             foreach ($custom_form_priorities as $custom_form_priority) {
@@ -482,7 +481,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get Label Columns.
      *
-     * @return Collection|string
+        * @return Collection<int, CustomColumnMulti>|string
      */
 
     // @phpstan-ignore-next-line
@@ -494,7 +493,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             if (boolval(config('exment.expart_mode', false)) && isset($table_label_format)) {
                 return $table_label_format;
             }
-            return $this->table_labels;
+            $labelColumns = CustomColumnMulti::allRecords(function ($labelColumn) {
+                return $labelColumn->custom_table_id == $this->id
+                    && $labelColumn->multisetting_type == MultisettingType::TABLE_LABELS;
+            }, false);
+            return $labelColumns->values();
         });
     }
 
@@ -2195,8 +2198,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return true;
         }
         // if custom table option's select_load_ajax is true, return false (as ajax).
-        elseif (isset($options['custom_column']) && boolval(array_get($options['custom_column'], 'options.select_load_ajax'))) {
-            return false;
+        elseif (isset($options['custom_column'])) {
+            $customColumn = $options['custom_column'];
+            $selectLoadAjax = $customColumn instanceof CustomColumn
+                ? $customColumn->getOption('select_load_ajax')
+                : array_get($customColumn, 'options.select_load_ajax');
+            if (boolval($selectLoadAjax)) {
+                return false;
+            }
         }
 
         // get count table. get Database value directly
@@ -2304,14 +2313,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected function getAccessibleUserOrganizationIds($target_table)
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE, $target_table, $this->table_name);
-        return System::requestSession($key, function () use ($target_table) {
+        $userId = \Exment::getUserId();
+        $key .= '.user.' . md5((string) ($userId ?? 'guest'));
+        $resolver = function () use ($target_table) {
             // $target_table : user or org
             $table = CustomTable::getEloquent($target_table);
             $query = $table->getValueQuery();
             $table->filterDisplayTable($query, $this);
 
             return $query->select(['id'])->pluck('id');
-        });
+        };
+
+        return isset($userId) ? System::cache($key, $resolver) : System::requestSession($key, $resolver);
     }
 
 
@@ -2403,7 +2416,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $options
         );
         $selected_value = $options['selected_value'];
-
         // if ajax, return []. (set callQuery is false)
         if (!$this->isGetOptions(array_merge(['callQuery' => false], $options))) {
             return $this->getSelectedOptionDefault($selected_value);
@@ -2417,11 +2429,43 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $this->getSelectedOptionDefault($selected_value);
         }
 
-        $items = $query->get()->pluck("label", "id");
+        $items = $this->getRequestCachedSelectOptions($options, function () use ($query) {
+            $models = $query->get();
+
+            return $models->mapWithKeys(function ($model) {
+                return [$model->id => $model->label];
+            });
+        });
 
         return $this->putSelectedValue($items, $selected_value, $options);
     }
 
+    /**
+     * Reuse an unfiltered select option list while rendering one request.
+     *
+     * Filtered options may depend on arbitrary closures or view state, so they
+     * deliberately bypass this cache.
+     *
+     * @param array<string, mixed> $options
+     * @param \Closure $resolver
+     * @return Collection
+     */
+    protected function getRequestCachedSelectOptions(array $options, \Closure $resolver): Collection
+    {
+        if (isset($options['filterCallback']) || isset($options['target_view']) || isset($options['target_id'])) {
+            return $resolver();
+        }
+
+        $displayTable = array_get($options, 'display_table');
+        $displayTable = $displayTable instanceof CustomTable ? $displayTable->id : $displayTable;
+        $key = 'select_options.' . $this->id . '.' . md5(json_encode([
+            'display_table' => $displayTable,
+            'all' => boolval(array_get($options, 'all')),
+            'permission' => array_get($options, 'permission'),
+        ]) ?: '');
+
+        return clone System::requestSession($key, $resolver);
+    }
     /**
      * get ajax uri for options for select, multipleselect.
      *

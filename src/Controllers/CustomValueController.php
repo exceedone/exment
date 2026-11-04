@@ -217,7 +217,6 @@ class CustomValueController extends AdminControllerTableBase
                 'page_type' => PluginPageType::LIST
             ]);
         }
-
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
@@ -299,6 +298,9 @@ class CustomValueController extends AdminControllerTableBase
                     TableService::appendCreateAndDownloadButtonQRCode($tools, $this->custom_table);
                 });
             }
+            if ($request->boolean('lazy_grid_rows') && $grid instanceof Grid) {
+                return response($grid->render());
+            }
             if ($modal) {
                 $content = $grid_item->renderModal($grid);
                 Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
@@ -326,7 +328,6 @@ class CustomValueController extends AdminControllerTableBase
         if (!$modal) {
             PartialCrudService::setGridContent($this->custom_table, $content);
         }
-
         if (!$modalframe || $modal) {
             Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
                 'is_modal' => $modal,
@@ -551,8 +552,8 @@ class CustomValueController extends AdminControllerTableBase
             static::DATANAME_CUSTOM_VIEW_SUUID => $this->custom_view->suuid,
             static::DATANAME_CUSTOM_VIEW_NAME => $this->custom_view->view_view_name,
         ]);
-        $content->row($row);
 
+        $content->row($row);
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
             'page_type' => PluginPageType::EDIT,
             'custom_value' => $custom_value
@@ -764,6 +765,28 @@ class CustomValueController extends AdminControllerTableBase
             'table' => $this->custom_table->table_name,
             'fallback' => admin_url('data', [$this->custom_table->table_name, $id]),
         ])->render())->header('X-Frame-Options', 'SAMEORIGIN');
+    }
+
+    /**
+     * Render one opt-in relation block after the edit page has loaded.
+     *
+     * @param Request $request
+     * @param string $tableKey
+     * @param int|string $id
+     * @param int|string $blockId
+      * @return \Illuminate\Http\JsonResponse|Response
+     */
+    public function lazyRelation(Request $request, $tableKey, $id, $blockId)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
+            return $response;
+        }
+
+        if ($this->redirectShow($id) !== null) {
+            abort(403);
+        }
+
+        return response()->json($this->custom_form->form_item->id($id)->renderLazyRelationBlock($blockId));
     }
 
     /**

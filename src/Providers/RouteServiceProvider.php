@@ -385,6 +385,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('data/{tableKey}/preview', 'CustomValueController@preview')->name('exment.data.preview');
             $router->post('data/{tableKey}/{id}/preview', 'CustomValueController@preview');
 
+            $router->get('data/{tableKey}/{id}/lazy-relation/{blockId}', 'CustomValueController@lazyRelation')->name('exment.data.lazy-relation');
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
             $this->setTableResouce($router, 'form', 'CustomFormController');

@@ -234,6 +234,11 @@ class CustomFormController extends AdminControllerTableBase
      */
     public function preview(Request $request)
     {
+        $validator = $this->saveformValidate($request, null, false);
+        if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator);
+        }
+
         // get requested form
         $requestItem = $this->getModelFromRequest($request, null, false);
         $custom_form = $requestItem['custom_form'];
@@ -626,7 +631,7 @@ class CustomFormController extends AdminControllerTableBase
      * validate before update or store
      */
     // @phpstan-ignore-next-line
-    protected function saveformValidate($request, $id = null)
+    protected function saveformValidate($request, $id = null, $validateImages = true)
     {
         //not required check, confirm on display.
         // $inputs = $request->get('custom_form_blocks');
@@ -663,8 +668,18 @@ class CustomFormController extends AdminControllerTableBase
         //     // }
         // }
 
-        return \Validator::make($request->all(), [
-            'custom_form_blocks.*.custom_form_columns.*.options.image' => ['nullable', new \Exceedone\Exment\Validator\ImageRule()],
+        $rules = [
+            'custom_form_blocks.*.options' => ['sometimes', 'array'],
+            'custom_form_blocks.*.options.hasmany_type' => ['nullable', 'boolean'],
+            'custom_form_blocks.*.options.lazy_load_enabled' => ['sometimes', 'boolean'],
+        ];
+        if ($validateImages) {
+            $rules['custom_form_blocks.*.custom_form_columns.*.options.image'] = ['nullable', new \Exceedone\Exment\Validator\ImageRule()];
+        }
+
+        return \Validator::make($request->all(), $rules, [], [
+            'custom_form_blocks.*.options.hasmany_type' => exmtrans('custom_form.hasmany_type'),
+            'custom_form_blocks.*.options.lazy_load_enabled' => exmtrans('custom_form.lazy_load_enabled'),
         ]);
     }
 
@@ -774,7 +789,16 @@ class CustomFormController extends AdminControllerTableBase
             // @phpstan-ignore-next-line
             $block->form_block_view_name = array_get($value, 'form_block_view_name');
             // @phpstan-ignore-next-line
-            $block->options = array_get($value, 'options', []);
+            $submittedOptions = array_get($value, 'options', []);
+            $blockOptions = array_replace(jsonToArray($block->options), $submittedOptions);
+            if ($block->form_block_type == FormBlockType::ONE_TO_MANY) {
+                $blockOptions['hasmany_type'] = array_get($submittedOptions, 'hasmany_type', 0);
+            }
+            $blockOptions['lazy_load_enabled'] = $block->form_block_type == FormBlockType::ONE_TO_MANY
+                && boolval(array_get($blockOptions, 'hasmany_type'))
+                    ? intval(boolval(array_get($blockOptions, 'lazy_load_enabled', 0)))
+                    : 0;
+            $block->options = $blockOptions;
 
             // create columns --------------------------------------------------
             $order = 1;

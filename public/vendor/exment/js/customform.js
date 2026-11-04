@@ -3,12 +3,16 @@ var Exment;
     class CustomFromEvent {
         static AddEvent() {
             $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
+            CustomFromEvent.syncLazyLoadOptions($('.box-custom_form_block'));
             CustomFromEvent.loadingEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
             //CustomFromEvent.resizeEvent($('.custom_form_area'));
         }
         static AddEventOnce() {
             $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
+            $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_hasmany_type', {}, (ev) => {
+                CustomFromEvent.syncLazyLoadOptions($(ev.target).closest('.box-custom_form_block'));
+            });
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .delete', {}, CustomFromEvent.deleteColumnEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .setting', {}, CustomFromEvent.settingModalEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_area_header .delete', {}, CustomFromEvent.deleteBoxEvent);
@@ -20,6 +24,20 @@ var Exment;
             $(document).on('click.exment_custom_form', '.preview-custom_form', {}, CustomFromEvent.previewCustomForm);
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
+            });
+        }
+        static syncLazyLoadOptions($blocks) {
+            $blocks.each(function (_index, element) {
+                const $block = $(element);
+                const $lazyLoad = $block.find('.icheck_lazy_load_enabled');
+                if (!$lazyLoad.length) {
+                    return;
+                }
+                const isTable = $block.find('.icheck_hasmany_type').prop('checked');
+                if (!isTable) {
+                    $lazyLoad.prop('checked', false);
+                }
+                $lazyLoad.prop('disabled', !isTable).iCheck('update');
             });
         }
         /**
@@ -130,7 +148,7 @@ var Exment;
             }));
             $elem.append($('<input/>', {
                 name: header_name + '[required]',
-                value: $elem.find('.required_item').val(),
+                value: $elem.find('.required_item').val(), // if name 'required', validation wrong call.
                 type: 'hidden',
             }));
             $elem.append($('<input/>', {
@@ -710,7 +728,7 @@ var Exment;
                 $('.changedata_column_id').children('option').remove();
                 $('.changedata_column_id').append($('<option>').val('').text(''));
                 $.each(data, function (value, name) {
-                    if(name.view_id) {
+                    if (name.view_id) {
                         value = name.view_id;
                         name = name.view_name;
                     }
