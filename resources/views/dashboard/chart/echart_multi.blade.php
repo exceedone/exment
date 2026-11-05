@@ -34,9 +34,15 @@
         var valueName = @json($chart_value_name ?? null);
         var legend = { show: showLegend, type: 'scroll', top: 0, data: seriesNames };
         var heatData = null; // heatmap cells [x, s, value]
+        // the values are percents (the box menu's 表示方法: 総計に対する比率 / 差分の比率), 1 decimal
+        var percent = {{ !empty($chart_percent) ? 'true' : 'false' }};
         // a cell no row fell into is null for a MIN / MAX measure (ChartPivot::emptyCell): no
         // value to show, place in a heatmap or count into a boxplot's spread
-        var fmt = function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 10 }); };
+        var fmt = percent
+            ? function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%'; }
+            : function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 10 }); };
+        // a stack of calculated values (表示方法 on the stacked bar) is labelled with its total on top
+        var stackTotal = {{ !empty($chart_stack_total) ? 'true' : 'false' }};
 
         function hierarchy() {
             return seriesNames.map(function (name, i) {
@@ -128,9 +134,34 @@
                     yAxis: { type: 'value', name: axisYName, nameTextStyle: { align: 'left' } },
                     series: series
                 };
+                if (percent) { option.yAxis.axisLabel = { formatter: '{value}%' }; }
+                if (stackTotal) { series.push(stackTotalSeries()); }
             }
         }
         if (valueName) { nameTheValues(); }
+
+        // The total of each stack, above it: an invisible point at the stack's top — the end of
+        // its positive part (0 when it has none: ECharts piles negatives down from 0) — whose
+        // label prints the total. Not stacked itself, so a negative last series cannot drag the
+        // label into the column. It is no series of the data — after seriesNames, out of the
+        // legend (legend.data), the tooltip and the clicks.
+        function stackTotalSeries() {
+            var totals = [], tops = [];
+            xCategories.forEach(function (xc, xi) {
+                var t = null, top = 0;
+                matrix.forEach(function (row) {
+                    var v = row ? row[xi] : null;
+                    if (v != null) { t = (t || 0) + v; if (v > 0) { top += v; } }
+                });
+                totals.push(t);
+                tops.push(t == null ? null : top);
+            });
+            return {
+                name: '', type: 'scatter', silent: true, symbolSize: 1, itemStyle: { color: 'transparent' }, tooltip: { show: false },
+                data: tops,
+                label: { show: true, position: 'top', distance: 4, fontSize: 11, color: '#2b2b3a', formatter: function (p) { return fmt(totals[p.dataIndex]); } }
+            };
+        }
 
         // The switched measure named in the tooltips (the heatmap's series is named after it
         // already): under the category of an axis tooltip, before the value of a tile, as the
@@ -139,7 +170,8 @@
             var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
             if (cartesian) {
                 option.tooltip.formatter = function (ps) {
-                    ps = [].concat(ps);
+                    // the series of the data only (not the stack totals' one)
+                    ps = [].concat(ps).filter(function (p) { return p.seriesIndex < seriesNames.length; });
                     return esc(ps.length ? ps[0].name : '') + '<br>' + esc(valueName) + ps.map(function (p) { return '<br>' + p.marker + esc(p.seriesName) + ': ' + fmt(p.value); }).join('');
                 };
             } else if (type === 'treemap' || type === 'sunburst') {
@@ -246,7 +278,7 @@
             self: (pickable && click.highlight) ? click.column : null,
             highlight: function (list) { setPicked(list); render(); },
             display: function (opts) { $.extend(display, opts || {}); render(); },
-            data: function () { return { axisx: axisXName, axisy: axisYName, categories: xCategories, series: seriesNames, matrix: matrix }; }
+            data: function () { return { axisx: axisXName, axisy: axisYName, categories: xCategories, series: seriesNames, matrix: matrix, percent: percent }; }
         };
     });
 </script>

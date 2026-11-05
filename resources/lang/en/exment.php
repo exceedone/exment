@@ -800,6 +800,20 @@ return [
             'reset' => 'Back to the view setting',
         ],
 
+        // box menu (⋯): Show values as ▸, the drawn values shown another way (ChartShowAs)
+        'chart_show_as' => [
+            'menu' => 'Show values as',
+            'heading' => 'Show values as (%s)',
+            'decorated' => '%s (%s)',
+            'options' => [
+                'none' => 'No calculation',
+                'percent_of_total' => '% of grand total',
+                'running_total' => 'Running total',
+                'difference' => 'Difference from previous',
+                'percent_difference' => '% difference from previous',
+            ],
+        ],
+
         // box menu (⋯): display options and export
         'chart_menu' => [
             'label' => 'Options',

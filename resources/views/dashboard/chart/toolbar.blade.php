@@ -1,12 +1,16 @@
 {{--
     Chart box toolbar: [フィルター ▾] (the box's own chart filter, popover), the box menu [⋯]
-    (sort by a field, 集計方法 ◀ submenu, 値ラベル, CSV export) and the runtime chart-type switcher. Handlers and styles: public/vendor/exment/js/dashboard.js, css/dashboard.css.
+    (sort by a field, 集計方法 ◀ / 表示方法 ◀ submenus, 値ラベル, CSV export) and the runtime chart-type switcher. Handlers and styles: public/vendor/exment/js/dashboard.js, css/dashboard.css.
     The selection is kept by the JS per box and sent as bf_* / ct / cs / cd on the box request; the
     re-rendered body echoes it back, so state survives every reload. ct / cs / cd are also remembered
     per user (DashboardBoxController::chartState); the chart filter (bf_*) is page-lifetime.
 
-    $summary       ChartItem::summaryMenu(): the 集計 switch {choices, configured, current, column,
-                   title} (null = none). Sent as `ca`, page-lifetime like bf_*: never remembered
+    $summary       ChartItem::summaryMenu(): the 集計 switch {choices, configured, current, column}
+                   (null = none). Sent as `ca`, page-lifetime like bf_*: never remembered
+    $show_as       ChartItem::showAsMenu(): the 表示方法 {choices, current, column} (null = none).
+                   Sent as `sv`, page-lifetime like `ca`
+    $title         ChartItem::boxTitle(): the box title while 集計方法 / 表示方法 draws the measure
+                   another way (null = the configured title)
     $types         type => label of the switchable types ([] = no switcher)
     $current_type  the rendered type
     $configured_type  the box's own type: picking it on the switcher drops the remembered choice
@@ -21,7 +25,7 @@
     $filter_count  active chart-filter columns (badge)
     $captions      [{label, value}] of the active chart filters (caption under the toolbar)
 --}}
-<div class="exment-chart-toolbar" @if(!empty($summary['title'])) data-ca-title="{{ $summary['title'] }}" data-ca-reset-label="{{ exmtrans('dashboard.chart_summary.reset') }}" @endif>
+<div class="exment-chart-toolbar" @if(!empty($title)) data-ca-title="{{ $title }}" data-ca-reset-label="{{ exmtrans('dashboard.chart_summary.reset') }}" @endif>
     <span class="ct-spacer"></span>
     @if(count($fields))
     <div class="ct-item">
@@ -135,6 +139,29 @@
                         <ul class="cs-list">
                             @foreach($summary['choices'] as $condition => $label)
                             <li class="cs-row{{ (string) $condition === $summary['current'] ? ' on' : '' }}" data-ca-pick="{{ $condition }}"><i class="fa fa-check"></i><span>{{ $label }}</span>@if((string) $condition === $summary['configured'])<em class="ca-badge">{{ exmtrans('dashboard.chart_summary.view_setting') }}</em>@endif</li>
+                            @endforeach
+                        </ul>
+                        <div class="ca-hint">{{ exmtrans('dashboard.chart_summary.hint') }}</div>
+                    </div></div>
+                </li>
+            </ul>
+            @endif
+            @if(!empty($show_as))
+            {{-- 表示方法 ◀: the drawn values shown as a share of the total, a running total, a
+                 difference from the previous item, for this screen only (ChartShowAs), as Excel's
+                 値の表示方法 ▸ — opens like the 集計方法 row. data-sv-applied echoes the way the
+                 values are shown ('' = as they are): the JS mirrors it --}}
+            @php($show_as_on = $show_as['current'] !== \Exceedone\Exment\Services\Dashboard\ChartShowAs::NONE)
+            {{-- one group with the 集計方法 row, under it --}}
+            <ul class="cs-list{{ empty($sort_fields) || !empty($summary) ? '' : ' cs-sep' }}" data-sv-applied="{{ $show_as_on ? $show_as['current'] : '' }}">
+                <li class="cs-row ca-row sv-row{{ $show_as_on ? ' ca-on' : '' }}" data-ca-open>
+                    <i class="fa fa-percent"></i><span>{{ exmtrans('dashboard.chart_show_as.menu') }}</span>
+                    <b class="ca-cur">{{ $show_as['choices'][$show_as['current']] ?? '' }}</b><i class="fa fa-caret-left ca-arrow"></i>
+                    <div class="ca-fly"><div class="ca-fly-in">
+                        <h4>{{ exmtrans('dashboard.chart_show_as.heading', $show_as['column']) }}</h4>
+                        <ul class="cs-list">
+                            @foreach($show_as['choices'] as $choice => $label)
+                            <li class="cs-row{{ $choice === $show_as['current'] ? ' on' : '' }}" data-sv-pick="{{ $choice }}"><i class="fa fa-check"></i><span>{{ $label }}</span></li>
                             @endforeach
                         </ul>
                         <div class="ca-hint">{{ exmtrans('dashboard.chart_summary.hint') }}</div>

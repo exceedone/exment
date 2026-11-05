@@ -800,6 +800,20 @@ return [
             'reset' => 'ビューの設定に戻す',
         ],
 
+        // box menu (⋯): 表示方法 ▸, the drawn values shown another way (ChartShowAs)
+        'chart_show_as' => [
+            'menu' => '表示方法',
+            'heading' => '値の表示方法（%s）',
+            'decorated' => '%s（%s）',
+            'options' => [
+                'none' => '計算なし',
+                'percent_of_total' => '総計に対する比率',
+                'running_total' => '累計',
+                'difference' => '前の項目との差分',
+                'percent_difference' => '前の項目との差分の比率',
+            ],
+        ],
+
         // box menu (⋯): display options and export
         'chart_menu' => [
             'label' => 'オプション',

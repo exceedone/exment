@@ -18,8 +18,12 @@
         // switched by the box menu's 集計方法, the tooltip names what the value is (最小値 ： 点数); null otherwise
         var valueName = @json($chart_value_name ?? null);
         var num = function (v) { var n = parseFloat(v); return isNaN(n) ? null : n; };
+        // the values are percents (the box menu's 表示方法: 総計に対する比率 / 差分の比率), 1 decimal
+        var percent = {{ !empty($chart_percent) ? 'true' : 'false' }};
         // the value as it is (0.04 stays 0.04), grouped; up to 10 decimals cut off float noise
-        var fmt = function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 10 }); };
+        var fmt = percent
+            ? function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%'; }
+            : function (n) { return (n == null || isNaN(n)) ? '' : Number(n).toLocaleString(undefined, { maximumFractionDigits: 10 }); };
 
         // Cross-highlight: the bar's pick on this chart's own X item (the server leaves that
         // item out of the chart's filter, so every category is here) — the picked points
@@ -147,7 +151,7 @@
                         @else
                         var name = valueName ? valueName + ': ' : '';
                         @endif
-                        return name + (v == null ? '' : String(v));
+                        return name + (v == null ? '' : (percent ? fmt(num(v)) : String(v)));
                     },
                     @if($chart_type == 'pie')
                     // a slice's tooltip has no title ('' as Chart.js gives it): the switched measure heads it
@@ -181,6 +185,9 @@
                             @endif
                             @if($chart_begin_zero)
                             beginAtZero: true,
+                            @endif
+                            @if(!empty($chart_percent))
+                            callback: function (v) { return Number(v).toLocaleString() + '%'; },
                             @endif
                         },
                         @if($chart_axisy_name)
@@ -235,7 +242,7 @@
                 @endif
                 myChart.update();
             },
-            data: function () { return { axisx: @json($chart_axisx), axisy: @json($chart_axisy), labels: labels, values: values }; }
+            data: function () { return { axisx: @json($chart_axisx), axisy: @json($chart_axisy), labels: labels, values: values, percent: percent }; }
         };
     });
 </script>

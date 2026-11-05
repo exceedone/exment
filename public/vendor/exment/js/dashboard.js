@@ -11,6 +11,7 @@
  *   cs                    runtime sort of the points (per box; remembered per user)
  *   cd                    display option 値ラベル ("labels"; per box; remembered per user)
  *   ca                    summary condition of the measure, 集計 menu (page-lifetime, per box)
+ *   sv                    the values shown as % of total / running total / difference, 表示方法 menu (page-lifetime, per box)
  *   bf_{column}           chart filter selection (page-lifetime, per box)
  *
  * A filter bar change is applied selectively (see `navigate`): push a history entry for
@@ -30,7 +31,7 @@
     var NS = '.exdash';
     var L = {};      // texts
     var A = {};      // asset base URLs (init's options.assets)
-    var state = {};  // suuid => {ct: type, cs: sort, cd: "labels", ca: summary condition, bf: {column: [values] | {from, to}}, reopen: true}
+    var state = {};  // suuid => {ct: type, cs: sort, cd: "labels", ca: summary condition, sv: show values as, bf: {column: [values] | {from, to}}, reopen: true}
     var saving = {}; // suuid => true while its toolbar choices are being saved, 'again' when they changed meanwhile
     var pagePath = ''; // path of the dashboard page, set by init: a pjax link pushes its own URL before it renders
 
@@ -87,6 +88,7 @@
         if (s.cs) { out.push('cs=' + encodeURIComponent(s.cs)); }
         if (s.cd) { out.push('cd=' + encodeURIComponent(s.cd)); }
         if (s.ca) { out.push('ca=' + encodeURIComponent(s.ca)); }
+        if (s.sv) { out.push('sv=' + encodeURIComponent(s.sv)); }
         $.each(s.bf || {}, function (column, v) {
             var key = 'bf_' + encodeURIComponent(column);
             if ($.isArray(v)) {
@@ -136,11 +138,13 @@
                 if ($box.find('.exment-bf-list, .exment-bf-range').length) {
                     stateOf(suuid).bf = collectChartFilter($box);
                 }
-                // the 集計 the server drew by (it ignores one the measure cannot take) — unless a
-                // newer pick is waiting to be loaded (flushPending below)
+                // the 集計 and the 表示方法 the server drew by (it ignores one the measure or the
+                // type cannot take) — unless a newer pick is waiting to be loaded (flushPending below)
                 if (!$box.data('pending')) {
                     var applied = String($box.find('[data-ca-applied]').attr('data-ca-applied') || '');
                     if (applied) { stateOf(suuid).ca = applied; } else { delete stateOf(suuid).ca; }
+                    var shown = String($box.find('[data-sv-applied]').attr('data-sv-applied') || '');
+                    if (shown) { stateOf(suuid).sv = shown; } else { delete stateOf(suuid).sv; }
                 }
                 syncTitle($box);
                 if (reopen) {
@@ -368,6 +372,15 @@
         loadBox(suuid);
     }
 
+    // The values shown another way (表示方法): the box re-renders with `sv`, the server calculates
+    // on the drawn numbers (ChartShowAs). Page-lifetime like `ca`: 計算なし, the title's × or a
+    // reload of the page shows them as they are.
+    function applyShowAs(suuid, sv) {
+        if (!suuid) { return; }
+        if (sv) { stateOf(suuid).sv = sv; } else { delete stateOf(suuid).sv; }
+        loadBox(suuid);
+    }
+
     // The box menu's 集計方法 row opens its submenu beside the menu, as Excel's 値の集計方法 ▸:
     // to the left, the ⋯ button sitting at the box's right edge, else to the right, else (a
     // narrow screen) under the row. Like the type picker, it hangs out of the box's scrolled
@@ -436,8 +449,10 @@
         // whatever it looks like; only a measured value is a number (`measure`: a number, or the
         // plain number string a stored value comes as)
         var cell = function (v, measure) {
+            // percents (表示方法) as a spreadsheet reads one: "32.40%", 2 decimals
+            if (measure && d.percent && v != null && v !== '' && isFinite(v)) { v = Number(v).toFixed(2) + '%'; }
             var s = String(v == null ? '' : v);
-            var number = typeof v === 'number' || (measure && /^-?\d+(\.\d+)?$/.test(s));
+            var number = typeof v === 'number' || (measure && /^-?\d+(\.\d+)?%?$/.test(s));
             if (!number && /^[=+\-@\t\r]/.test(s)) { s = "'" + s; }
             return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
         };
@@ -1149,8 +1164,18 @@
             if ($row.hasClass('on')) { return; }
             applySummary($row.closest('[data-suuid]').data('suuid'), ca === configured ? '' : ca);
         });
+        // 表示方法: a way applies at once (計算なし drops it)
+        $(document).on('click' + NS, '[data-sv-pick]', function () {
+            var $row = $(this), sv = String($row.data('svPick'));
+            closePops();
+            if ($row.hasClass('on')) { return; }
+            applyShowAs($row.closest('[data-suuid]').data('suuid'), sv === 'none' ? '' : sv);
+        });
+        // the title's ×: back to what the view draws, its summary type and its plain values
         $(document).on('click' + NS, '[data-ca-reset]', function () {
-            applySummary($(this).closest('[data-suuid]').data('suuid'), '');
+            var suuid = $(this).closest('[data-suuid]').data('suuid');
+            if (suuid) { delete stateOf(suuid).sv; }
+            applySummary(suuid, '');
         });
         $(document).on('click' + NS, '[data-cd-toggle]', function () {
             var $row = $(this), $box = $row.closest('[data-suuid]'), suuid = $box.data('suuid'), on = displayOf(suuid);
@@ -1175,8 +1200,9 @@
         $(document).on('click' + NS, '.exment-cs-reset', function () {
             var suuid = $(this).closest('[data-suuid]').data('suuid');
             delete stateOf(suuid).cd;
-            // the menu's 集計方法 too: back to the view's setting
+            // the menu's 集計方法 and 表示方法 too: back to the view's setting
             delete stateOf(suuid).ca;
+            delete stateOf(suuid).sv;
             applySort(suuid, '');
         });
         $(document).on('change' + NS, '.exment-bf-check', function () { reloadFromToolbar($(this), false); });

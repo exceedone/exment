@@ -18,6 +18,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\ChartFilter;
 use Exceedone\Exment\Services\Dashboard\ChartPivot;
+use Exceedone\Exment\Services\Dashboard\ChartShowAs;
 use Exceedone\Exment\Services\Dashboard\ChartSort;
 use Exceedone\Exment\Services\Dashboard\ChartSorter;
 use Exceedone\Exment\Services\Dashboard\ChartSummarySwitch;
@@ -95,6 +96,9 @@ class ChartItem implements ItemInterface
 
     /** @var ChartSummarySwitch|null summarySwitch() memo */
     protected $summary_switch;
+
+    /** @var ChartShowAs|null showAs() memo */
+    protected $show_as;
 
     // @phpstan-ignore-next-line
     public function __construct($dashboard_box)
@@ -182,8 +186,8 @@ class ChartItem implements ItemInterface
             'chart_labels_on' => in_array('labels', $this->chart_display, true),
             // right-click a point / series to paint it (dashboard.js colorMenu)
             'chart_color_edit' => $this->canEditColors(),
-            // the measure's label while the 集計 switch draws it another way (tooltips), else null
-            'chart_value_name' => $this->summarySwitch()->valueLabel(),
+            // the values shown as percents (表示方法): drawn and exported with "%"
+            'chart_percent' => $this->showAs()->isPercent(),
         ];
 
         if (ChartType::isMulti($this->chart_type)) {
@@ -196,13 +200,17 @@ class ChartItem implements ItemInterface
             if ($result === false) {
                 return exmtrans('dashboard.message.need_multiseries');
             }
+            // the 表示方法 runs on the cells in the order they are drawn, as Excel's on the pivot
             $result = $this->sorted($result, true);
+            $result['matrix'] = $this->showAs()->applyMatrix($result['matrix']);
+            $common += $this->valueNames($result);
             $chart = view('exment::dashboard.chart.echart_multi', $common + [
+                // a stack of calculated values is labelled with its total
+                'chart_stack_total' => $this->showAs()->active() && $this->chart_type === ChartType::SBAR,
                 'x_categories' => json_encode($result['x_categories'], static::JSON_FLAGS),
                 'series_names' => json_encode($result['series_names'], static::JSON_FLAGS),
                 'matrix' => json_encode($result['matrix'], static::JSON_FLAGS),
                 'chart_axisx' => $result['axisx_label'],
-                'chart_axisy' => $result['axisy_label'],
                 // one color per series (index-aligned with series_names); the heatmap and the
                 // boxplot paint no series, they keep the palette
                 'chart_colors' => json_encode(ChartType::supportsColorEdit($this->chart_type)
@@ -224,11 +232,12 @@ class ChartItem implements ItemInterface
             // repainting the categories (a viewer recognises a bar by its color)
             $result['point_colors'] = $this->pointColors(collect($result['chart_label'])->values()->all());
             $result = $this->sorted($result, false);
+            $result['chart_data'] = $this->showAs()->applyValues($result['chart_data']);
+            $common += $this->valueNames($result);
             $vars = $common + [
                 'chart_data' => json_encode($result['chart_data'], static::JSON_FLAGS),
                 'chart_labels' => json_encode($result['chart_label'], static::JSON_FLAGS),
                 'chart_axisx' => $result['axisx_label'],
-                'chart_axisy' => $result['axisy_label'],
                 'chart_click' => json_encode($result['chart_click'] ?? null, static::JSON_FLAGS),
             ];
             if (ChartType::isEcharts($this->chart_type)) {
@@ -248,7 +257,24 @@ class ChartItem implements ItemInterface
             }
         }
 
-        return $this->toolbarHtml($fields, $result['axisx_label']) . $chart->render();
+        return $this->toolbarHtml($fields, $result['axisx_label'], $result['axisy_label']) . $chart->render();
+    }
+
+    /**
+     * The names of the drawn values, from the data's Y label: the Y axis — and the CSV — name
+     * the way they are shown (合計 ： 売上金額（累計）), and so do the tooltips, which name the
+     * values only when they are not the view's own (switched by 集計方法 or 表示方法).
+     *
+     * @param array<string, mixed> $result  the chart data, its axisy_label the measure's label
+     * @return array{chart_axisy: mixed, chart_value_name: string|null}
+     */
+    protected function valueNames(array $result): array
+    {
+        $axisy = $this->showAs()->decorate($result['axisy_label']);
+        return [
+            'chart_axisy' => $axisy,
+            'chart_value_name' => $this->showAs()->active() ? (string) $axisy : $this->summarySwitch()->valueLabel(),
+        ];
     }
 
     protected function isAggregateView(): bool
@@ -276,6 +302,69 @@ class ChartItem implements ItemInterface
     }
 
     /**
+     * The 表示方法 of the box menu (`sv` on the request): the drawn values shown as a share of
+     * the total, a running total, a difference from the previous item. Offered on an aggregate
+     * view's summary column only, by the rendered type and the condition it is drawn by
+     * (ChartShowAs::choicesFor).
+     */
+    protected function showAs(): ChartShowAs
+    {
+        if ($this->show_as === null) {
+            $view_column_y = $this->isAggregateView() && is_string($this->axis_y) ? CustomViewSummary::getSummaryViewColumn($this->axis_y) : null;
+            $numeric = $view_column_y instanceof CustomViewSummary && ColumnType::isCalc(data_get($view_column_y->custom_column, 'column_type'));
+            // condition(): null unless the measure is a summary column of the view
+            $this->show_as = new ChartShowAs(
+                ChartShowAs::choicesFor($this->chart_type, $this->summarySwitch()->condition(), $numeric),
+                request()->input(ChartShowAs::PARAM)
+            );
+        }
+        return $this->show_as;
+    }
+
+    /**
+     * The 表示方法 submenu of the box menu (⋯); null when the chart has no way to show its values
+     * but as they are.
+     *
+     * @return array{choices: array<string, string>, current: string, column: string}|null
+     */
+    protected function showAsMenu(): ?array
+    {
+        $show_as = $this->showAs();
+        if (!$show_as->available()) {
+            return null;
+        }
+        $choices = [];
+        foreach ($show_as->choices() as $choice) {
+            $choices[$choice] = ChartShowAs::label($choice);
+        }
+        $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
+        return [
+            'choices' => $choices,
+            'current' => $show_as->current(),
+            // the heading names the measure's column as the 集計方法 one does, else the measure
+            'column' => $this->summarySwitch()->columnLabel() !== '' ? $this->summarySwitch()->columnLabel() : (string) $this->axisYLabel($view_column_y),
+        ];
+    }
+
+    /**
+     * The box title while the chart draws its measure other than the view does — summarized by
+     * another condition (集計方法) or shown another way (表示方法): what it draws, 教科別 最小値 ：
+     * 点数 / 受注月別 合計 ： 売上金額（累計）. null otherwise (the configured title stays).
+     *
+     * @param mixed $axisx_label  the X axis label of the drawn data
+     * @param mixed $axisy_label  the measure's label, before the 表示方法 decorates it
+     */
+    protected function boxTitle($axisx_label, $axisy_label): ?string
+    {
+        $switch = $this->summarySwitch();
+        if (!$switch->switched() && !$this->showAs()->active()) {
+            return null;
+        }
+        $title = exmtrans('dashboard.chart_summary.title', (string) $axisx_label, $switch->valueLabel() ?? (string) $axisy_label);
+        return (string) $this->showAs()->decorate($title);
+    }
+
+    /**
      * The summary condition the measure is drawn by: the 集計 switch's pick, else the view's.
      *
      * @param mixed $view_column_y  the measure (CustomViewSummary / CustomViewColumn)
@@ -294,10 +383,9 @@ class ChartItem implements ItemInterface
     /**
      * The 集計方法 submenu of the box menu (⋯); null when the measure has no other condition to take.
      *
-     * @param mixed $axisx_label  the X axis label, for the box title while switched
-     * @return array{choices: array<string, string>, configured: string|null, current: string|null, column: string, title: string|null}|null
+     * @return array{choices: array<string, string>, configured: string|null, current: string|null, column: string}|null
      */
-    protected function summaryMenu($axisx_label): ?array
+    protected function summaryMenu(): ?array
     {
         $switch = $this->summarySwitch();
         if (!$switch->available()) {
@@ -312,8 +400,6 @@ class ChartItem implements ItemInterface
             'configured' => $switch->configured(),
             'current' => $switch->condition(),
             'column' => $switch->columnLabel(),
-            // while switched the box is titled by what it draws: 教科別 最小値 ： 点数
-            'title' => $switch->switched() ? (string) exmtrans('dashboard.chart_summary.title', (string) $axisx_label, $switch->valueLabel()) : null,
         ];
     }
 
@@ -516,13 +602,14 @@ class ChartItem implements ItemInterface
     }
 
     /**
-     * The toolbar above the chart: [フィルター ▾] [chart type ▾] [⋯] (with 集計方法 ◀ in ⋯);
-     * '' when no control applies.
+     * The toolbar above the chart: [フィルター ▾] [chart type ▾] [⋯] (with 集計方法 ◀ and
+     * 表示方法 ◀ in ⋯); '' when no control applies.
      *
      * @param array<int, array<string, mixed>> $fields  chartFilterFields()
      * @param mixed $axisx_label  the X axis label of the drawn data
+     * @param mixed $axisy_label  the measure's label of the drawn data
      */
-    protected function toolbarHtml(array $fields, $axisx_label): string
+    protected function toolbarHtml(array $fields, $axisx_label, $axisy_label): string
     {
         $types = [];
         foreach (ChartType::switchPool($this->configured_type) as $type) {
@@ -541,14 +628,17 @@ class ChartItem implements ItemInterface
         $display_labels = $labels_available && in_array('labels', $this->chart_display, true);
         // painted colors can be taken back to the palette by whoever may paint them
         $colors_reset = $this->canEditColors() && !$this->chartColors()->isEmpty();
-        // the 集計方法 submenu of the box menu
-        $summary = $this->summaryMenu($axisx_label);
-        $menu = !empty($sort_fields) || $labels_available || $colors_reset || $summary !== null;
+        // the 集計方法 and 表示方法 submenus of the box menu
+        $summary = $this->summaryMenu();
+        $show_as = $this->showAsMenu();
+        $menu = !empty($sort_fields) || $labels_available || $colors_reset || $summary !== null || $show_as !== null;
         if (empty($types) && empty($fields) && !$menu) {
             return '';
         }
         return view('exment::dashboard.chart.toolbar', [
             'summary' => $summary,
+            'show_as' => $show_as,
+            'title' => $this->boxTitle($axisx_label, $axisy_label),
             'types' => $types,
             // the type picker's preview draws in the box's palette
             'palette' => $this->getChartPalette(),
