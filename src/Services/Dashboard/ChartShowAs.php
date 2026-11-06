@@ -34,6 +34,13 @@ final class ChartShowAs
     public const RUNNING_TOTAL = 'running_total';
     public const DIFFERENCE = 'difference';
     public const PERCENT_DIFFERENCE = 'percent_difference';
+    /**
+     * 行集計に対する比率: each cell as its share of its X item (a row of the pivot), over the
+     * size of the item — the total of its cells as they are, a negative one counted by its size,
+     * as Excel's 100% stacked chart draws it below 0 (with no negative cell, Excel's 行集計に対する
+     * 比率 itself). What the 100% stacked types draw (fullStacked()); not in the 表示方法 menu.
+     */
+    public const PERCENT_OF_ROW = 'percent_of_row';
 
     /** decimals a calculated value keeps: float noise (0.1 + 0.2) off, any real digit on */
     private const PRECISION = 10;
@@ -81,6 +88,10 @@ final class ChartShowAs
         if (!$additive && !$numeric) {
             return [];
         }
+        if (ChartType::isFullStacked($chart_type)) {
+            // the type itself shows the values as shares of their bar: nothing to calculate on top
+            return [self::NONE];
+        }
         $all = [self::PERCENT_OF_TOTAL, self::RUNNING_TOTAL, self::DIFFERENCE, self::PERCENT_DIFFERENCE];
         $by_type = [
             ChartType::BAR => $all,
@@ -102,11 +113,19 @@ final class ChartShowAs
     }
 
     /**
-     * Whether the box menu offers the 表示方法 row.
+     * The values of a 100% stacked chart: each cell its share of its X item (PERCENT_OF_ROW).
+     */
+    public static function fullStacked(): self
+    {
+        return new self([self::PERCENT_OF_ROW], self::PERCENT_OF_ROW);
+    }
+
+    /**
+     * Whether the box menu offers the 表示方法 row: a 100% stacked type shows it with 計算なし only.
      */
     public function available(): bool
     {
-        return count($this->choices) > 1;
+        return !empty($this->choices);
     }
 
     /**
@@ -138,7 +157,7 @@ final class ChartShowAs
      */
     public function isPercent(): bool
     {
-        return in_array($this->picked, [self::PERCENT_OF_TOTAL, self::PERCENT_DIFFERENCE], true);
+        return in_array($this->picked, [self::PERCENT_OF_TOTAL, self::PERCENT_DIFFERENCE, self::PERCENT_OF_ROW], true);
     }
 
     /**
@@ -216,6 +235,21 @@ final class ChartShowAs
                     return array_map(function ($v) use ($total) {
                         return static::percent($v, $total);
                     }, $row);
+                }, $rows);
+
+            case self::PERCENT_OF_ROW:
+                $sizes = [];
+                foreach ($rows as $row) {
+                    foreach ($row as $x => $v) {
+                        $sizes[$x] = ($sizes[$x] ?? 0.0) + abs($v ?? 0.0);
+                    }
+                }
+                return array_map(function ($row) use ($sizes) {
+                    $out = [];
+                    foreach ($row as $x => $v) {
+                        $out[] = static::percent($v, $sizes[$x]);
+                    }
+                    return $out;
                 }, $rows);
 
             case self::RUNNING_TOTAL:

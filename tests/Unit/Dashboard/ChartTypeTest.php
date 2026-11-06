@@ -21,7 +21,7 @@ class ChartTypeTest extends DashboardUnitTestCase
 
     public function testPointPickOnlyWherePointsMapToValues(): void
     {
-        foreach (['bar', 'line', 'pie', 'hbar', 'area', 'doughnut', 'funnel', 'scatter', 'mbar', 'sbar', 'mline', 'sarea', 'heatmap'] as $type) {
+        foreach (['bar', 'line', 'pie', 'hbar', 'area', 'doughnut', 'funnel', 'scatter', 'mbar', 'sbar', 'sbar100', 'shbar100', 'mline', 'sarea', 'heatmap'] as $type) {
             $this->assertTrue(ChartType::supportsPointPick($type), $type);
         }
         foreach (['radar', 'gauge', 'treemap', 'sunburst', 'boxplot', null, 'xyz'] as $type) {
@@ -31,7 +31,7 @@ class ChartTypeTest extends DashboardUnitTestCase
 
     public function testOnlyChartTypesAreEnumValues(): void
     {
-        $this->assertCount(18, ChartType::arrays(), 'every constant becomes a form option — no helper constants allowed');
+        $this->assertCount(20, ChartType::arrays(), 'every constant becomes a form option — no helper constants allowed');
     }
 
     public function testSwitchPoolStaysWithinDatasetShape(): void
@@ -44,7 +44,9 @@ class ChartTypeTest extends DashboardUnitTestCase
         $this->assertSame($single, ChartType::switchPool(null));
 
         $multi = ChartType::switchPool('mline');
-        $this->assertCount(8, $multi);
+        $this->assertCount(10, $multi);
+        $this->assertContains('sbar100', $multi);
+        $this->assertContains('shbar100', $multi);
         $this->assertNotContains('bar', $multi);
     }
 

@@ -135,6 +135,11 @@ class ChartItem implements ItemInterface
         // runtime chart-type switch (`ct` on the box request): presentation only, same data
         $this->configured_type = array_get($this->dashboard_box, 'options.chart_type');
         $this->chart_type = ChartType::resolve($this->configured_type, $this->params['ct'] ?? null);
+        if ($this->chart_type !== $this->configured_type && ChartType::isFullStacked($this->chart_type) && !$this->measureAddsUp()) {
+            // no switch to a 100% stacked type of a measure that does not add up (a choice remembered
+            // before the view changed): it would draw a message only, with no picker to switch back
+            $this->chart_type = $this->configured_type;
+        }
         $this->chart_sort = ChartSort::parse($this->params['cs'] ?? null);
         $this->chart_display = static::displayOptions($this->params['cd'] ?? null);
         if ($this->chart_type !== $this->configured_type) {
@@ -199,13 +204,16 @@ class ChartItem implements ItemInterface
             'chart_labels_on' => in_array('labels', $this->chart_display, true),
             // right-click a point / series to paint it (dashboard.js colorMenu)
             'chart_color_edit' => $this->canEditColors(),
-            // the values shown as percents (表示方法): drawn and exported with "%"
-            'chart_percent' => $this->showAs()->isPercent(),
+            // the values shown as percents (表示方法, a 100% stacked type): drawn with "%"
+            'chart_percent' => $this->showAs()->isPercent() || ChartType::isFullStacked($this->chart_type),
         ];
 
         if (ChartType::isMulti($this->chart_type)) {
             if ($this->isAverageOfExtraGroups()) {
                 return exmtrans('dashboard.message.need_average_groups');
+            }
+            if ($this->isFullStackOfNonAdditive()) {
+                return exmtrans('dashboard.message.need_additive');
             }
             $result = $this->summarySwitch()->apply(function () {
                 return $this->getMultiSeriesData();
@@ -213,11 +221,19 @@ class ChartItem implements ItemInterface
             if ($result === false) {
                 return exmtrans('dashboard.message.need_multiseries');
             }
-            // the 表示方法 runs on the cells in the order they are drawn, as Excel's on the pivot
+            // the 表示方法 runs on the cells in the order they are drawn, as Excel's on the pivot;
+            // a 100% stacked type draws each cell as its share of its X item the same way
             $result = $this->sorted($result, true);
-            $result['matrix'] = $this->showAs()->applyMatrix($result['matrix']);
+            $full = ChartType::isFullStacked($this->chart_type);
+            $values = $result['matrix'];
+            $result['matrix'] = ($full ? ChartShowAs::fullStacked() : $this->showAs())->applyMatrix($values);
             $common += $this->valueNames($result);
             $chart = view('exment::dashboard.chart.echart_multi', $common + [
+                // a 100% stacked chart's own numbers, for its tooltip and the CSV, and their texts
+                'chart_values' => $full ? json_encode(array_map(function ($row) {
+                    return array_values((array) $row);
+                }, array_values($values)), static::JSON_FLAGS) : 'null',
+                'chart_full_texts' => $full ? $this->fullStackTexts() : null,
                 // a stack of calculated values is labelled with its total
                 'chart_stack_total' => $this->showAs()->active() && $this->chart_type === ChartType::SBAR,
                 'x_categories' => json_encode($result['x_categories'], static::JSON_FLAGS),
@@ -399,7 +415,8 @@ class ChartItem implements ItemInterface
                 $aggregate ? $this->custom_view : null,
                 $aggregate ? CustomViewSummary::getSummaryViewColumn($this->axis_y) : null,
                 $this->params[ChartSummarySwitch::PARAM] ?? null,
-                !(ChartType::isMulti($this->chart_type) && $this->groupColumnCount() > 2)
+                !(ChartType::isMulti($this->chart_type) && $this->groupColumnCount() > 2),
+                ChartType::isFullStacked($this->chart_type)
             );
         }
         return $this->summary_switch;
@@ -717,6 +734,11 @@ class ChartItem implements ItemInterface
     {
         $types = [];
         foreach (ChartType::switchPool($this->configured_type) as $type) {
+            // a 100% stacked type where the view sums or counts the measure only (else it draws a
+            // message, isFullStackOfNonAdditive) — the box's own type stays on the picker
+            if (ChartType::isFullStacked($type) && $type !== $this->configured_type && !$this->measureAddsUp()) {
+                continue;
+            }
             $types[$type] = exmtrans('chart.chart_type_options.' . $type);
         }
         // the box menu: the chart's sort fields (the applied one checked, if still a field of the
@@ -1065,6 +1087,47 @@ class ChartItem implements ItemInterface
     }
 
     /**
+     * Whether a 100% stacked chart would draw shares of a measure that adds up to nothing: one
+     * summarized by AVG / MIN / MAX (the view's, the 集計方法 offers a 100% stacked type no other).
+     */
+    protected function isFullStackOfNonAdditive(): bool
+    {
+        if (!ChartType::isFullStacked($this->chart_type)) {
+            return false;
+        }
+        $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
+        return isset($view_column_y) && !ChartSummarySwitch::isAdditive($this->summaryCondition($view_column_y));
+    }
+
+    /**
+     * Whether the view summarizes the measure so that it adds up (SUM / COUNT, its own setting):
+     * a 100% stacked type is offered only then.
+     */
+    protected function measureAddsUp(): bool
+    {
+        $view_column_y = $this->isAggregateView() && is_string($this->axis_y) ? CustomViewSummary::getSummaryViewColumn($this->axis_y) : null;
+        return $view_column_y instanceof CustomViewSummary && ChartSummarySwitch::isAdditive($view_column_y->view_summary_condition);
+    }
+
+    /**
+     * The tooltip texts of a 100% stacked chart, {n} for a number: the total of a bar (（計 62件）)
+     * and the value behind a share (（12件）) — a count in 件, a sum as it is.
+     *
+     * @return array{total: string, value: string}
+     */
+    protected function fullStackTexts(): array
+    {
+        $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
+        $n = (string) $this->summaryCondition($view_column_y) === SummaryCondition::COUNT
+            ? (string) exmtrans('dashboard.chart_full_stack.count', '{n}')
+            : '{n}';
+        return [
+            'total' => (string) exmtrans('dashboard.chart_full_stack.total', $n),
+            'value' => (string) exmtrans('dashboard.chart_full_stack.value', $n),
+        ];
+    }
+
+    /**
      * Whether a multi-series chart of $custom_view, its measure summarized by $condition, would
      * draw an average of more group columns than its X axis and series (isAverageOfExtraGroups).
      *
@@ -1091,18 +1154,46 @@ class ChartItem implements ItemInterface
         if (!is_string($chart_type) || !ChartType::isMulti($chart_type)) {
             return false;
         }
+        $measure = static::formMeasure();
+        return $measure !== null && static::averageOfExtraGroups($measure[0], $measure[1]->view_summary_condition);
+    }
+
+    /**
+     * Whether the box form posts a 100% stacked chart of a measure summarized other than by SUM /
+     * COUNT, which could draw nothing but the need_additive message. A view changed afterwards
+     * still meets the message when drawn.
+     *
+     * @param mixed $chart_type
+     */
+    public static function formFullStackOfNonAdditive($chart_type): bool
+    {
+        if (!is_string($chart_type) || !ChartType::isFullStacked($chart_type)) {
+            return false;
+        }
+        $measure = static::formMeasure();
+        return $measure !== null && !ChartSummarySwitch::isAdditive($measure[1]->view_summary_condition);
+    }
+
+    /**
+     * The aggregate view and its summary column the box form posts as the measure; null when
+     * the posted Y axis is no summary column of the posted view.
+     *
+     * @return array{0: CustomView, 1: CustomViewSummary}|null
+     */
+    protected static function formMeasure(): ?array
+    {
         $view_id = request()->input('options.target_view_id');
         $axis_y = request()->input('options.chart_axisy');
         if (!is_scalar($view_id) || !is_string($axis_y)) {
-            return false;
+            return null;
         }
         $custom_view = CustomView::getEloquent($view_id);
         $view_column_y = CustomViewSummary::getSummaryViewColumn($axis_y);
         if (!$custom_view instanceof CustomView || !$view_column_y instanceof CustomViewSummary
             || $view_column_y->custom_view_id != $custom_view->id) {
-            return false;
+            return null;
         }
-        return static::averageOfExtraGroups($custom_view, $view_column_y->view_summary_condition);
+        return [$custom_view, $view_column_y];
     }
 
     /**
@@ -1199,6 +1290,9 @@ class ChartItem implements ItemInterface
                 ->rules([function ($attribute, $value, $fail) {
                     if (ChartItem::formAverageOfExtraGroups($value)) {
                         $fail(exmtrans('dashboard.message.need_average_groups_form'));
+                    } elseif (ChartItem::formFullStackOfNonAdditive($value)) {
+                        // shares of an average / minimum / maximum mean nothing
+                        $fail(exmtrans('dashboard.message.need_additive_form'));
                     }
                 }]);
 

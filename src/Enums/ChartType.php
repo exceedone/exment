@@ -26,6 +26,10 @@ class ChartType extends EnumBase
     // multi series (X × series matrix from a 2-column aggregate view) — ECharts
     public const MBAR = 'mbar';
     public const SBAR = 'sbar';
+    // 100% stacked (Excel's 100% 積み上げ縦棒 / 横棒): every X item a bar of 100%, each series
+    // its share of the bar (ChartShowAs::PERCENT_OF_ROW)
+    public const SBAR100 = 'sbar100';
+    public const SHBAR100 = 'shbar100';
     public const MLINE = 'mline';
     public const HEATMAP = 'heatmap';
     public const SAREA = 'sarea';
@@ -56,7 +60,7 @@ class ChartType extends EnumBase
      */
     public static function multiTypes(): array
     {
-        return [self::MBAR, self::SBAR, self::MLINE, self::HEATMAP, self::SAREA, self::TREEMAP, self::SUNBURST, self::BOXPLOT];
+        return [self::MBAR, self::SBAR, self::SBAR100, self::SHBAR100, self::MLINE, self::HEATMAP, self::SAREA, self::TREEMAP, self::SUNBURST, self::BOXPLOT];
     }
 
     /**
@@ -67,6 +71,17 @@ class ChartType extends EnumBase
     public static function isMulti($type): bool
     {
         return in_array($type, self::multiTypes(), true);
+    }
+
+    /**
+     * A 100% stacked type: each X item drawn as the shares of its series. Its measure must add
+     * up (summarized by SUM / COUNT): shares of averages, minimums or maximums mean nothing.
+     *
+     * @param string|null $type
+     */
+    public static function isFullStacked($type): bool
+    {
+        return in_array($type, [self::SBAR100, self::SHBAR100], true);
     }
 
     /**
@@ -150,7 +165,7 @@ class ChartType extends EnumBase
      */
     public static function supportsPointPick(?string $type): bool
     {
-        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::DOUGHNUT, self::FUNNEL, self::SCATTER, self::MBAR, self::SBAR, self::MLINE, self::SAREA, self::HEATMAP], true);
+        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::DOUGHNUT, self::FUNNEL, self::SCATTER, self::MBAR, self::SBAR, self::SBAR100, self::SHBAR100, self::MLINE, self::SAREA, self::HEATMAP], true);
     }
 
     /**
@@ -170,7 +185,7 @@ class ChartType extends EnumBase
      */
     public static function supportsDataLabels(?string $type): bool
     {
-        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::SCATTER, self::MBAR, self::SBAR, self::MLINE, self::SAREA], true);
+        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::SCATTER, self::MBAR, self::SBAR, self::SBAR100, self::SHBAR100, self::MLINE, self::SAREA], true);
     }
 
     /**

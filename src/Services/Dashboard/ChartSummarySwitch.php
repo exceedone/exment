@@ -47,8 +47,10 @@ final class ChartSummarySwitch
      * @param mixed $view_column_y  the measure (CustomViewSummary::getSummaryViewColumn of chart_axisy)
      * @param mixed $requested  `ca` of the request
      * @param bool $average_allowed  false when the rendered type cannot draw an average (ChartItem::isAverageOfExtraGroups)
+     * @param bool $additive_only  the rendered type draws shares of a total (ChartType::isFullStacked):
+     *   SUM / COUNT only; a view setting other than those leaves no switch
      */
-    public function __construct($custom_view, $view_column_y, $requested, bool $average_allowed = true)
+    public function __construct($custom_view, $view_column_y, $requested, bool $average_allowed = true, bool $additive_only = false)
     {
         if (!$custom_view instanceof CustomView || !$view_column_y instanceof CustomViewSummary
             || $view_column_y->custom_view_id != $custom_view->id) {
@@ -63,6 +65,9 @@ final class ChartSummarySwitch
             $choices = array_values(array_filter($choices, function ($condition) {
                 return $condition !== SummaryCondition::AVG || $condition === $this->configured;
             }));
+        }
+        if ($additive_only) {
+            $choices = array_values(array_filter($choices, [self::class, 'isAdditive']));
         }
         // a measure set in a way the form no longer offers keeps it: no switch
         if ($this->configured === null || !in_array($this->configured, $choices, true)) {
@@ -93,6 +98,17 @@ final class ChartSummarySwitch
             return static::allConditions();
         }
         return [SummaryCondition::COUNT];
+    }
+
+    /**
+     * Whether values summarized by $condition add up to a total (SUM, COUNT): what a share of a
+     * total (a 100% stacked chart) needs. An average, a minimum, a maximum does not.
+     *
+     * @param mixed $condition
+     */
+    public static function isAdditive($condition): bool
+    {
+        return in_array(static::normalize($condition), [SummaryCondition::SUM, SummaryCondition::COUNT], true);
     }
 
     /**

@@ -814,6 +814,13 @@ return [
             ],
         ],
 
+        // tooltip of a 100% stacked chart: the total of a bar and the value behind a share ({n})
+        'chart_full_stack' => [
+            'total' => ' (total %s)',
+            'value' => ' (%s)',
+            'count' => '%s',
+        ],
+
         // a double click on a chart point lists the rows behind it (ChartDetail)
         'chart_detail' => [
             'title' => 'Details of "%s"',
@@ -861,6 +868,8 @@ return [
             'need_multiseries' => 'This chart type needs an aggregate view grouped by 2 columns (1st = X axis, 2nd = series) and a summary value.',
             'need_average_groups' => 'For an average, this chart type needs an aggregate view grouped by its X axis and series columns only. Averages of more groups cannot be combined correctly.',
             'need_average_groups_form' => 'A Y axis summarized by average cannot be drawn on a multi-series chart of an aggregate view grouped by 3 or more columns. Group the view by 2 columns, summarize by other than average, or choose a single-series chart.',
+            'need_additive' => 'A 100% stacked chart can show a summary value summarized by sum or count only (averages, minimums and maximums do not add up).',
+            'need_additive_form' => 'For a 100% stacked chart, choose a Y axis summarized by sum or count. An average, a minimum or a maximum cannot be shown as shares.',
             'chart_render_error' => 'Could not render this chart (the data may be unsuitable for this type).',
             'chart_load_error' => 'Could not load the chart library. Please reload the page.',
             'not_exists_table' => 'The table or view has been deleted.',
@@ -3426,6 +3435,8 @@ return [
             'scatter' => 'Scatter',
             'mbar' => 'Grouped bar (multi-series)',
             'sbar' => 'Stacked bar (multi-series)',
+            'sbar100' => '100% stacked bar (multi-series)',
+            'shbar100' => '100% stacked horizontal bar (multi-series)',
             'mline' => 'Multi-line (multi-series)',
             'heatmap' => 'Heatmap (multi-series)',
             'sarea' => 'Stacked area (multi-series)',

@@ -59,6 +59,28 @@
                     . '<rect x="' . $x . '" y="' . (6 - $i * 2) . '" width="12" height="' . (10 + $i) . '" fill="' . $c[2] . '"/>';
             }
             break;
+        case 'sbar100':
+            // every column as tall as the plot, split in shares
+            $svg = $axis;
+            foreach ([[8, [14, 10, 8]], [25, [8, 16, 8]], [42, [18, 6, 8]]] as [$x, $parts]) {
+                $y = 36;
+                foreach ($parts as $i => $h) {
+                    $y -= $h;
+                    $svg .= '<rect x="' . $x . '" y="' . $y . '" width="12" height="' . $h . '" fill="' . $c[$i] . '"/>';
+                }
+            }
+            break;
+        case 'shbar100':
+            // every bar as long as the plot, split in shares, the first item on top
+            $svg = '<line x1="5" y1="3" x2="5" y2="37" stroke="#d0cfe0"/>';
+            foreach ([[5, [22, 18, 12]], [14, [14, 26, 12]], [23, [30, 12, 10]], [32, [10, 20, 22]]] as [$y, $parts]) {
+                $x = 6;
+                foreach ($parts as $i => $w) {
+                    $svg .= '<rect x="' . $x . '" y="' . $y . '" width="' . $w . '" height="6" fill="' . $c[$i] . '"/>';
+                    $x += $w;
+                }
+            }
+            break;
         case 'mline':
             $svg = $axis . '<polyline points="4,30 18,22 32,26 46,12 60,16" fill="none" stroke="' . $c[0] . '" stroke-width="2.5"/><polyline points="4,20 18,28 32,14 46,20 60,6" fill="none" stroke="' . $c[1] . '" stroke-width="2.5"/><polyline points="4,34 18,32 32,30 46,28 60,26" fill="none" stroke="' . $c[2] . '" stroke-width="2.5"/>';
             break;

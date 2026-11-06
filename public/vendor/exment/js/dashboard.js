@@ -268,6 +268,21 @@
                     });
                     return { color: P, grid: grid, xAxis: { type: 'category', data: cats }, yAxis: { type: 'value' }, series: [{ type: 'boxplot', data: boxes }] };
                 }
+                case 'sbar100':
+                case 'shbar100': {
+                    // each category as the shares of its series, over its size (ChartShowAs::PERCENT_OF_ROW)
+                    var size = cats.map(function (c, x) { return names.reduce(function (t, n, s) { return t + Math.abs(cell(s, x)); }, 0); });
+                    var neg = m.some(function (row) { return row.some(function (v) { return v < 0; }); });
+                    var shareAxis = { type: 'value', min: neg ? -100 : 0, max: 100, axisLabel: { formatter: '{value}%' } };
+                    var catAxis = { type: 'category', data: cats, inverse: type === 'shbar100' };
+                    return {
+                        color: P, grid: grid, legend: { top: 0, type: 'scroll', data: names },
+                        xAxis: type === 'shbar100' ? shareAxis : catAxis, yAxis: type === 'shbar100' ? catAxis : shareAxis,
+                        series: names.map(function (n, s) {
+                            return { name: n, type: 'bar', stack: 'total', barMaxWidth: 36, data: cats.map(function (c, x) { return size[x] ? cell(s, x) / size[x] * 100 : 0; }) };
+                        })
+                    };
+                }
                 default: { // mbar / sbar / mline / sarea
                     var line = type === 'mline' || type === 'sarea', stack = type === 'sbar' || type === 'sarea';
                     return {
