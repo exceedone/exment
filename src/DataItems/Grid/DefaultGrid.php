@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\Services\Dashboard\ChartDetailRequest;
 use Illuminate\Http\Request;
 use ExmentAdminCore\Admin\Form;
 // todo 一覧ソートバグ対応用の追加です
@@ -325,6 +326,8 @@ class DefaultGrid extends GridBase
         if (!$this->modal) {
             $query = array_filter(request()->all([
                 '_scope_',
+                // a filter on a chart point's rows (明細) filters within them
+                ChartDetailRequest::PARAM,
             ]));
         } else {
             $query = array_filter(request()->all([
@@ -613,6 +616,10 @@ class DefaultGrid extends GridBase
             $grid->disableColumnSelector();
             // Reads what the request is filtering on and says so on the
             // grid. Appended first so it renders above the button row.
+            // a list of the rows behind a dashboard chart point (明細) says which, above that
+            if (!$this->modal && ($chart_detail = ChartDetailRequest::current($this->custom_table)) !== null) {
+                $tools->append(new GridTools\ChartDetailChips($chart_detail));
+            }
             $tools->append(new GridTools\GridFilterChips($this->custom_table, $this->filterChipPairs));
             $tools->append(new GridTools\GridColumnVisibility($grid));
             $storageKey = static::gridStorageKey($this->custom_table);

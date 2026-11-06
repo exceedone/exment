@@ -29,6 +29,10 @@
         var click = {!! $chart_click !!};
         var type = '{{ $chart_type }}';
         var pickable = !!click && ['hbar', 'area', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
+        // 明細: a double click on a point lists the rows behind it — {url, points[i] = the point's
+        // group values} (ChartItem::detailPayload), else null; the same types
+        var detail = {!! $chart_detail ?? 'null' !!};
+        var drillable = !!(detail && detail.points) && ['hbar', 'area', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
         // types colored point by point (byPoint) — the others draw one shape in one color
         var perPoint = ['hbar', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
         var showLegend = {{ $chart_legend ? 'true' : 'false' }};
@@ -177,6 +181,16 @@
             if (type === 'area') { option.yAxis.axisLabel = { formatter: '{value}%' }; }
             if (type === 'doughnut') { option.tooltip.formatter = function (p) { return tip(p.name, p.value); }; }
         }
+        // the tooltip of a point with a 明細 ends with the way to it
+        if (drillable && option.tooltip && ExmentDashboard.detailHint()) {
+            var baseTip = option.tooltip.formatter;
+            option.tooltip.formatter = function (p) {
+                var q = Array.isArray(p) ? p[0] : p;
+                var text = typeof baseTip === 'function' ? baseTip(p)
+                    : (valueName ? escHtml(valueName) + '<br>' : '') + q.marker + escHtml(q.name) + ': ' + fmt(q.value) + (q.percent != null ? ' (' + q.percent + '%)' : '');
+                return text + '<br><span style="font-size:11px;color:#8a8a8a;">' + escHtml(ExmentDashboard.detailHint()) + '</span>';
+            };
+        }
         // point i drawn in byPoint[i]: ECharts' own coloring by data hands its palette out per
         // distinct NAME, so a repeated label (two rows of a list view) shifts every later color
         if (perPoint) {
@@ -224,17 +238,20 @@
         }
 
         // a point a click does nothing on shows no hand cursor
-        if (!pickable) {
+        if (!pickable && !drillable) {
             chart.on('mousemove', function (p) {
                 if (p.componentType === 'series') { chart.getZr().setCursorStyle('default'); }
             });
         }
-        if (pickable) {
+        // a click picks the point on the filter bar, a double click lists its rows (明細)
+        if (pickable || drillable) {
             chart.on('click', function (p) {
                 var i = typeof p.dataIndex === 'number' ? pointOf(p.dataIndex) : undefined;
-                if (typeof i !== 'number' || i >= click.values.length) { return; }
-                var ne = p.event && p.event.event;
-                ExmentDashboard.pick(click.column, click.values[i], !!(ne && (ne.ctrlKey || ne.metaKey)));
+                if (typeof i !== 'number') { return; }
+                var ne = p.event && p.event.event, toggle = !!(ne && (ne.ctrlKey || ne.metaKey));
+                ExmentDashboard.pointClick('{{ $suuid }}', 'p' + i,
+                    (pickable && i < click.values.length) ? function () { ExmentDashboard.pick(click.column, click.values[i], toggle); } : null,
+                    (drillable && detail.points[i]) ? function () { ExmentDashboard.openDetail('{{ $suuid }}', detail.url, detail.points[i]); } : null);
             });
         }
 

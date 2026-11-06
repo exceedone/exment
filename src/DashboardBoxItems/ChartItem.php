@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Dashboard\ChartColors;
+use Exceedone\Exment\Services\Dashboard\ChartDetail;
 use Exceedone\Exment\Services\Dashboard\ChartFilter;
 use Exceedone\Exment\Services\Dashboard\ChartPivot;
 use Exceedone\Exment\Services\Dashboard\ChartShowAs;
@@ -100,10 +101,22 @@ class ChartItem implements ItemInterface
     /** @var ChartShowAs|null showAs() memo */
     protected $show_as;
 
-    // @phpstan-ignore-next-line
-    public function __construct($dashboard_box)
+    /** @var array<string, mixed> the box's request params (ct, cs, cd, ca, sv, df_*, bf_*) */
+    protected $params;
+
+    /** @var ChartDetail|null|false detail() memo (false = not resolved yet) */
+    protected $detail = false;
+
+    /**
+     * @param mixed $dashboard_box
+     * @param array<string, mixed>|null $params  the box's request params; null = the current
+     *   request's. A chart's 明細 list (ChartDetail) rebuilds the box from the params of the
+     *   box request the chart was drawn by, on a request of its own.
+     */
+    public function __construct($dashboard_box, ?array $params = null)
     {
         $this->dashboard_box = $dashboard_box;
+        $this->params = $params ?? request()->all();
 
         $table_id = array_get($this->dashboard_box, 'options.target_table_id');
         $view_id = array_get($this->dashboard_box, 'options.target_view_id');
@@ -121,9 +134,9 @@ class ChartItem implements ItemInterface
 
         // runtime chart-type switch (`ct` on the box request): presentation only, same data
         $this->configured_type = array_get($this->dashboard_box, 'options.chart_type');
-        $this->chart_type = ChartType::resolve($this->configured_type, request()->input('ct'));
-        $this->chart_sort = ChartSort::parse(request()->input('cs'));
-        $this->chart_display = static::displayOptions(request()->input('cd'));
+        $this->chart_type = ChartType::resolve($this->configured_type, $this->params['ct'] ?? null);
+        $this->chart_sort = ChartSort::parse($this->params['cs'] ?? null);
+        $this->chart_display = static::displayOptions($this->params['cd'] ?? null);
         if ($this->chart_type !== $this->configured_type) {
             // the saved flags belong to the configured type — give the switched type its own
             // defaults: its option flag, and, on a switch to a Chart.js axis type from a type
@@ -137,8 +150,8 @@ class ChartItem implements ItemInterface
             }
         }
 
-        $this->dashboard_filter = DashboardFilter::fromRequest($this->dashboard_box->dashboard ?? null);
-        $this->chart_filter = ChartFilter::fromRequest($this->dashboard_box, $this->custom_table);
+        $this->dashboard_filter = DashboardFilter::fromRequest($this->dashboard_box->dashboard ?? null, $this->params);
+        $this->chart_filter = ChartFilter::of($this->dashboard_box, $this->custom_table, $this->params);
     }
 
     /**
@@ -217,6 +230,7 @@ class ChartItem implements ItemInterface
                     ? $this->chartColors()->colorsFor(ChartColors::SERIES, $result['series_names'], $this->getChartPalette())
                     : $this->getChartPalette()),
                 'chart_click' => json_encode($result['chart_click'], static::JSON_FLAGS),
+                'chart_detail' => json_encode($this->detailPayload($result), static::JSON_FLAGS),
             ]);
         } else {
             $result = $this->isAggregateView()
@@ -239,6 +253,7 @@ class ChartItem implements ItemInterface
                 'chart_labels' => json_encode($result['chart_label'], static::JSON_FLAGS),
                 'chart_axisx' => $result['axisx_label'],
                 'chart_click' => json_encode($result['chart_click'] ?? null, static::JSON_FLAGS),
+                'chart_detail' => json_encode($this->detailPayload($result), static::JSON_FLAGS),
             ];
             if (ChartType::isEcharts($this->chart_type)) {
                 $chart = view('exment::dashboard.chart.echart', $vars + [
@@ -283,6 +298,95 @@ class ChartItem implements ItemInterface
     }
 
     /**
+     * The 明細 of this chart (Excel's 詳細の表示): the rows behind a point, which a double click
+     * on it lists. null when the chart has none — a list view, a type whose point is no one
+     * group of the view (ChartType::supportsDetail), a measure whose rows cannot be listed
+     * (ChartDetail::resolve).
+     */
+    public function detail(): ?ChartDetail
+    {
+        if ($this->detail !== false) {
+            return $this->detail;
+        }
+        $this->detail = null;
+        if (is_null($this->custom_table) || !$this->isAggregateView() || !is_string($this->axis_y) || !ChartType::supportsDetail($this->chart_type)) {
+            return null;
+        }
+        $measure = CustomViewSummary::getSummaryViewColumn($this->axis_y);
+        if (!$measure instanceof CustomViewSummary || $measure->custom_view_id != $this->custom_view->id) {
+            return null;
+        }
+        $this->detail = ChartDetail::resolve($this->custom_table, $this->custom_view, $measure, function () {
+            return $this->filteredRows();
+        });
+        return $this->detail;
+    }
+
+    /**
+     * Settle the chart filter the way drawing the chart does (body(): ticked values the scope
+     * no longer offers are dropped), for a request that reads the box's rows without drawing.
+     */
+    public function settleFilters(): void
+    {
+        $this->chartFilterFields();
+    }
+
+    /**
+     * The box's filters narrowing what the chart draws, human-readable: the filter bar's
+     * items it honours (not its highlighted X item) and its own chart filter.
+     *
+     * @return array<int, array{label: string, value: string}>
+     */
+    public function filterCaptions(): array
+    {
+        return array_merge(
+            $this->dashboard_filter->captions($this->custom_table, $this->dashboard_box, $this->dashboardExcept()),
+            $this->chart_filter->captions()
+        );
+    }
+
+    /**
+     * What the chart hands its double click: the list to open and the keys of each point
+     * (ChartDetail::keys) — per point for a single-series chart (`points`), per X category
+     * and per series for a multi-series one (`x` / `series`: the view column ids, `x_keys` /
+     * `series_keys`: their values, index-aligned with the categories and the series). null
+     * when the chart has no 明細.
+     *
+     * @param array<string, mixed> $result  the chart data, sorted
+     * @return array<string, mixed>|null
+     */
+    protected function detailPayload(array $result): ?array
+    {
+        $detail = $this->detail();
+        $keys = $result['detail'] ?? null;
+        if ($detail === null || !is_array($keys)) {
+            return null;
+        }
+        return ['url' => admin_url('data/' . $detail->table()->table_name)] + $keys;
+    }
+
+    /**
+     * Group values per point of an aggregate view's rows: [{view column id: stored value}].
+     *
+     * @param \Illuminate\Support\Collection<array-key, mixed> $datalist  the view's rows
+     * @param \Illuminate\Support\Collection<array-key, mixed> $view_columns  its group columns
+     * @param \Illuminate\Support\Collection<array-key, mixed> $items  their summary items, index-aligned
+     * @return array<int, array<int|string, mixed>>
+     */
+    protected function detailKeys($datalist, $view_columns, $items): array
+    {
+        $view_columns = $view_columns->values();
+        $items = $items->values();
+        return $datalist->values()->map(function ($val) use ($view_columns, $items) {
+            $keys = [];
+            foreach ($view_columns as $i => $column) {
+                $keys[$column->id] = data_get($val, $items[$i]->uniqueName());
+            }
+            return $keys;
+        })->all();
+    }
+
+    /**
      * The 集計 switch of the toolbar (`ca` on the request): the measure of an aggregate view
      * drawn by another summary condition. Offers no AVG where the rendered type could not
      * draw it (isAverageOfExtraGroups), unless the view sets it.
@@ -294,7 +398,7 @@ class ChartItem implements ItemInterface
             $this->summary_switch = new ChartSummarySwitch(
                 $aggregate ? $this->custom_view : null,
                 $aggregate ? CustomViewSummary::getSummaryViewColumn($this->axis_y) : null,
-                request()->input(ChartSummarySwitch::PARAM),
+                $this->params[ChartSummarySwitch::PARAM] ?? null,
                 !(ChartType::isMulti($this->chart_type) && $this->groupColumnCount() > 2)
             );
         }
@@ -315,7 +419,7 @@ class ChartItem implements ItemInterface
             // condition(): null unless the measure is a summary column of the view
             $this->show_as = new ChartShowAs(
                 ChartShowAs::choicesFor($this->chart_type, $this->summarySwitch()->condition(), $numeric),
-                request()->input(ChartShowAs::PARAM)
+                $this->params[ChartShowAs::PARAM] ?? null
             );
         }
         return $this->show_as;
@@ -727,7 +831,7 @@ class ChartItem implements ItemInterface
     /**
      * get chart data from aggregate-view
      *
-     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, sort_keys: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: string|null, chart_click: array{column: string, values: array<int, string>, selected: string[], highlight: bool}|null}|false
+     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, sort_keys: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: string|null, chart_click: array{column: string, values: array<int, string>, selected: string[], highlight: bool}|null, detail: array{points: array<int, array<int|string, mixed>>}|null}|false
      */
     protected function getAggregateData()
     {
@@ -793,6 +897,8 @@ class ChartItem implements ItemInterface
             'axisx_label'   => $axisx_label,
             'axisy_label'   => $this->axisYLabel($view_column_y),
             'chart_click'   => $chart_click,
+            // a double click on a point lists the rows of its group values (明細)
+            'detail'        => $this->detail() === null ? null : ['points' => $this->detailKeys($datalist, collect($view_column_x_list), $item_x_list)],
         ];
     }
 
@@ -837,9 +943,20 @@ class ChartItem implements ItemInterface
      */
     protected function summaryRows()
     {
+        return $this->viewForQuery()->getQuery($this->filteredRows())->get();
+    }
+
+    /**
+     * The rows of the box's table this chart summarizes: the box's filters applied (the
+     * view's own, its query adds).
+     *
+     * @return \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>
+     */
+    protected function filteredRows()
+    {
         $query = $this->custom_table->getValueQuery();
         $this->applyFilters($query);
-        return $this->viewForQuery()->getQuery($query)->get();
+        return $query;
     }
 
     /**
@@ -1026,7 +1143,13 @@ class ChartItem implements ItemInterface
         $series_key = $item_series->uniqueName();
         $y_key = $item_y->uniqueName();
         $rows = [];
+        // the stored value behind each category / series, as ChartPivot tells them apart (the
+        // first one met: a NULL stays NULL for the 明細, which the pivot's texts cannot keep)
+        $x_raw = [];
+        $series_raw = [];
         foreach ($this->summaryRows() as $val) {
+            $x_raw += [ChartPivot::key(data_get($val, $x_key)) => data_get($val, $x_key)];
+            $series_raw += [ChartPivot::key(data_get($val, $series_key)) => data_get($val, $series_key)];
             $rows[] = [
                 'x' => data_get($val, $x_key),
                 'x_text' => $item_x->setCustomValue($val)->text(),
@@ -1051,6 +1174,15 @@ class ChartItem implements ItemInterface
             'axisy_label'  => $this->axisYLabel($view_column_y),
             // a click on a category picks the stored value its rows hold
             'chart_click'  => $this->clickFilter($view_columns[$x_pos], $pivot['x_values']),
+            // a double click on a cell lists the rows of its category and series (明細)
+            'detail'       => $this->detail() === null ? null : [
+                'x' => $view_columns[$x_pos]->id,
+                'series' => $view_columns[$series_pos]->id,
+                'x_keys' => array_map(function ($v) use ($x_raw) {
+                    return $x_raw[$v] ?? null;
+                }, $pivot['x_values']),
+                'series_keys' => array_values($series_raw),
+            ],
         ];
     }
 

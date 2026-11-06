@@ -159,6 +159,12 @@ class ChartSorter
         if (is_array($result['chart_click'] ?? null) && is_array($result['chart_click']['values'] ?? null)) {
             $result['chart_click']['values'] = static::pick($result['chart_click']['values'], $order);
         }
+        // the 明細 keys of each point / X category (ChartItem::detailPayload)
+        foreach (['points', 'x_keys'] as $key) {
+            if (is_array($result['detail'][$key] ?? null)) {
+                $result['detail'][$key] = static::pick($result['detail'][$key], $order);
+            }
+        }
         return $result;
     }
 }

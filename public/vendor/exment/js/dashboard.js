@@ -834,6 +834,49 @@
         navigate(filterBarUrl());
     }
 
+    // ---- 明細: a double click on a chart point lists the rows behind it -----------------
+    // A point answers a click (pick it on the bar, above) and a double click (its 明細, Excel's
+    // 詳細の表示 — ChartItem::detailPayload). Both come through the chart's own click events,
+    // a mouse's and a finger's alike, so a double tap on a phone is one too. On a chart that
+    // has a 明細 the click waits DBL ms for a second one on the same point: a double click
+    // never toggles the pick. A chart without one clicks at once, as before.
+    var DBL = 300;
+    var waiting = null; // {suuid, key, single, timer}: a click waiting for its second
+
+    function fireWaiting() {
+        var p = waiting;
+        waiting = null;
+        if (p) { clearTimeout(p.timer); if (p.single) { p.single(); } }
+    }
+
+    // key: the point within its box; single: the click's action (null: none); detail: the
+    // double click's (null: the chart has no 明細)
+    function pointClick(suuid, key, single, detail) {
+        if (!detail) { if (single) { single(); } return; }
+        if (waiting && waiting.suuid === suuid && waiting.key === key) {
+            clearTimeout(waiting.timer);
+            waiting = null;
+            detail();
+            return;
+        }
+        fireWaiting(); // a click on another point: the one before was a click
+        waiting = { suuid: suuid, key: key, single: single, timer: setTimeout(fireWaiting, DBL) };
+    }
+
+    // The data list of the point's rows: the box is rebuilt there from its request params,
+    // the point named by the stored values of its groups (ChartDetailRequest)
+    function openDetail(suuid, url, keys) {
+        var param = JSON.stringify({ b: suuid, k: keys, q: boxQuery(suuid).replace(/^\?/, '') });
+        url += (url.indexOf('?') >= 0 ? '&' : '?') + 'chart_detail=' + encodeURIComponent(param);
+        if ($.pjax) { $.pjax({ url: url, container: '#pjax-container' }); } else { window.location.href = url; }
+    }
+
+    // the tooltip's hint line: a finger double-taps
+    function detailHint() {
+        var touch = window.matchMedia && window.matchMedia('(hover: none)').matches;
+        return touch ? (L.detail_hint_touch || '') : (L.detail_hint || '');
+    }
+
     // ---- selective apply --------------------------------------------------------------
     // A bar change reloads ONLY the boxes the changed items narrow (data-df-dims, written
     // per box by DashboardController): the others keep their rendered content — no spinner
@@ -1249,6 +1292,9 @@
         },
         load: loadBox,
         pick: pick,
+        pointClick: pointClick,
+        openDetail: openDetail,
+        detailHint: detailHint,
         colorMenu: colorMenu,
         withECharts: withECharts,
         chartError: chartError

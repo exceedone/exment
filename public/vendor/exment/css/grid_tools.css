@@ -102,6 +102,12 @@
   margin: 0 0 8px;
 }
 
+/* Above the table the row sits outside the box-header, whose padding lines
+   the toolbar up: the same inset lines the chips up with it. */
+.exm-filter-chips[data-exm-placed="1"] {
+  padding: 0 10px;
+}
+
 .exm-filter-chips-title {
   font-size: 12px;
   font-weight: 700;
@@ -160,6 +166,26 @@
   border-color: transparent;
   color: #64748b;
   text-decoration: underline;
+}
+
+/* The row of a list opened from a dashboard chart point (ChartDetailChips):
+   its conditions name the point together, so they are no links to take
+   off one by one, and the way back to the dashboard closes the row. */
+.exm-chart-detail-chip,
+.exm-chart-detail-chip:hover {
+  background-color: #eef4fb;
+  border-color: #cfdcea;
+  color: #33475b;
+}
+
+.exm-chart-detail-back {
+  margin-left: auto;
+  background-color: #fff;
+  border-color: #c5d0dc;
+}
+
+.exm-chart-detail-back:hover {
+  background-color: #f4f7fa;
 }
 
 

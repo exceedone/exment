@@ -819,17 +819,23 @@
    * caption for the table - and that is also where the page-filter chip
    * appears, so the two kinds of "this list is narrowed" sit together
    * instead of in two unrelated places.
+   *
+   * Every row of them, in toolbar order: a list opened from a dashboard
+   * chart point (ChartDetailChips) has one for the point besides the
+   * grid's own filters.
    */
   function placeFilterChips() {
-    var chips = document.querySelector('.exm-filter-chips');
-    if (!chips || chips.getAttribute('data-exm-placed') === '1') return;
+    var rows = document.querySelectorAll('.exm-filter-chips:not([data-exm-placed="1"])');
+    if (!rows.length) return;
 
     var table = document.querySelector('table.exm-grid');
     var sc = table ? scrollBoxOf(table) : null;
     if (!sc || !sc.parentNode) return;
 
-    chips.setAttribute('data-exm-placed', '1');
-    sc.parentNode.insertBefore(chips, sc);
+    each(rows, function (chips) {
+      chips.setAttribute('data-exm-placed', '1');
+      sc.parentNode.insertBefore(chips, sc);
+    });
   }
 
   function initPin() {

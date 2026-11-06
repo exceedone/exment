@@ -39,6 +39,7 @@ use Exceedone\Exment\Enums\PluginPageType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\Services\Dashboard\ChartDetailRequest;
 use Exceedone\Exment\Services\FormHelper;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -279,9 +280,16 @@ class CustomValueController extends AdminControllerTableBase
                 $this->custom_view = CustomView::getAllData($this->custom_table);
             }
 
+            // the rows behind a dashboard chart point (明細): every column of the table, the
+            // rows picked in place of the view's filter
+            $chart_detail = $modal || $modalframe ? null : ChartDetailRequest::current($this->custom_table);
+            if ($chart_detail !== null) {
+                $this->custom_view = CustomView::getAllData($this->custom_table);
+            }
+
             $grid_item = $this->custom_view->grid_item
                 ->modal($modal);
-            $grid_item->callback($grid_item->getCallbackFilter());
+            $grid_item->callback($chart_detail !== null ? $chart_detail->filter() : $grid_item->getCallbackFilter());
 
             if ($request->has('filter_ajax')) {
                 return $grid_item->getFilterHtml();

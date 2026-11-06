@@ -195,3 +195,7 @@
 /* many dashboards: the list scrolls inside the menu and ends above the footer, which would
    be drawn over it (the footer stacks above the content) */
 #dashboard-menu { max-height: calc(100vh - 220px); overflow-y: auto; }
+
+/* ---- 明細 (a double click / tap on a chart point) ------------------------------------ */
+/* a double tap on a phone is the chart's, not the browser's zoom (ChartDetail) */
+[data-canvas-id], [data-echart-id] { touch-action: manipulation; }

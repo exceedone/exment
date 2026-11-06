@@ -120,6 +120,16 @@ final class ChartPivot
     }
 
     /**
+     * The key a stored X / series value is told apart by: x_values holds them.
+     *
+     * @param mixed $value
+     */
+    public static function key($value): string
+    {
+        return self::text($value);
+    }
+
+    /**
      * @param mixed $value
      */
     private static function text($value): string

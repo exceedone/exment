@@ -154,6 +154,17 @@ class ChartType extends EnumBase
     }
 
     /**
+     * Types whose every point stands for one group of the view's rows, so a double click on it
+     * lists those rows (明細, ChartDetail): the point types, a treemap tile (a series × X cell,
+     * its frame a series) and a boxplot box (an X value over every series). Not the radar
+     * and the gauge, which draw no point per group, nor the sunburst, a click on which zooms.
+     */
+    public static function supportsDetail(?string $type): bool
+    {
+        return self::supportsPointPick($type) || in_array($type, [self::TREEMAP, self::BOXPLOT], true);
+    }
+
+    /**
      * Types whose points can carry their value as a label (the box menu's 値ラベル): the
      * cartesian ones and pie; doughnut / funnel always label, the shape types cannot.
      */

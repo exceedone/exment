@@ -213,6 +213,9 @@ class DashboardController extends AdminControllerBase
             'color_more' => exmtrans('dashboard.chart_color.more'),
             'color_ok' => exmtrans('dashboard.chart_color.ok'),
             'chart_load_error' => exmtrans('dashboard.message.chart_load_error'),
+            // the tooltip line of a chart point that lists its rows on a double click (明細)
+            'detail_hint' => exmtrans('dashboard.chart_detail.hint'),
+            'detail_hint_touch' => exmtrans('dashboard.chart_detail.hint_touch'),
         ];
         // each chart box starts with the toolbar choices this user left on it
         // (DashboardBoxController::chartState): box suuid => {ct, cs, cd}

@@ -11,6 +11,12 @@
         // click-to-filter: {column, values[], selected[], highlight} when the group column is a
         // filter-bar item (else null) — ChartItem::clickFilter
         var click = {!! $chart_click !!};
+        // 明細: a double click on a point lists the rows behind it — {url, points[i] = the point's
+        // group values} (ChartItem::detailPayload), else null
+        var detail = {!! $chart_detail ?? 'null' !!};
+        var detailOf = function (i) {
+            return (detail && detail.points && detail.points[i]) ? function () { ExmentDashboard.openDetail('{{ $suuid }}', detail.url, detail.points[i]); } : null;
+        };
         var labels = {!! $chart_labels !!};
         var values = {!! $chart_data !!};
         // display option of the box menu (値ラベル), live-toggled through the hook below
@@ -139,11 +145,16 @@
                 // the plot gives up LABEL_ROOM px while the labels are on
                 layout: { padding: { top: display.labels ? LABEL_ROOM : 0 } },
                 @endif
+                // a click picks the point on the filter bar, a double click lists its rows (明細)
                 onClick: function (evt, elements) {
-                    if (click && elements.length) { ExmentDashboard.pick(click.column, click.values[elements[0]._index], evt.ctrlKey || evt.metaKey); }
+                    if (!elements.length) { return; }
+                    var i = elements[0]._index, toggle = !!(evt.ctrlKey || evt.metaKey);
+                    ExmentDashboard.pointClick('{{ $suuid }}', 'p' + i, click ? function () { ExmentDashboard.pick(click.column, click.values[i], toggle); } : null, detailOf(i));
                 },
-                hover: { onHover: function (evt, elements) { evt.target.style.cursor = (click && elements.length) ? 'pointer' : 'default'; } },
+                hover: { onHover: function (evt, elements) { evt.target.style.cursor = ((click || detail) && elements.length) ? 'pointer' : 'default'; } },
                 tooltips: { callbacks: {
+                    // the way to the point's rows
+                    footer: function () { return detail ? ExmentDashboard.detailHint() : ''; },
                     label: function (item, data) {
                         var v = data.datasets[item.datasetIndex].data[item.index];
                         @if($chart_type == 'pie')
@@ -157,7 +168,7 @@
                     // a slice's tooltip has no title ('' as Chart.js gives it): the switched measure heads it
                     title: function () { return valueName || ''; },
                     @endif
-                } },
+                }, footerFontStyle: 'normal', footerFontSize: 11 },
                 @if(!$chart_legend)
                 legend : {
                     display: false

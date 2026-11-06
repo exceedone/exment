@@ -814,6 +814,16 @@ return [
             ],
         ],
 
+        // a double click on a chart point lists the rows behind it (ChartDetail)
+        'chart_detail' => [
+            'title' => '「%s」の明細',
+            'back' => 'ダッシュボードへ戻る',
+            'clear' => 'すべてのデータを表示',
+            'invalid' => 'グラフの明細を表示できません（ダッシュボード・グラフが変更されたか、権限がありません）',
+            'hint' => 'ダブルクリックで明細を表示',
+            'hint_touch' => 'ダブルタップで明細を表示',
+        ],
+
         // box menu (⋯): display options and export
         'chart_menu' => [
             'label' => 'オプション',

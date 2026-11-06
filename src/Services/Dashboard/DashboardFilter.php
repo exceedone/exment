@@ -38,11 +38,14 @@ final class DashboardFilter
     }
 
     /**
+     * The selection as the viewer's bar reads it (FilterBarConfig::forViewer).
+     *
      * @param mixed $dashboard  Dashboard|null
+     * @param array<string, mixed>|null $params  request params; null = the current request's
      */
-    public static function fromRequest($dashboard): self
+    public static function fromRequest($dashboard, ?array $params = null): self
     {
-        return new self(FilterBarConfig::forViewer($dashboard), request()->all());
+        return new self(FilterBarConfig::forViewer($dashboard), $params ?? request()->all());
     }
 
     /**
@@ -186,6 +189,36 @@ final class DashboardFilter
             $applied[] = $column;
         }
         return $applied;
+    }
+
+    /**
+     * The active items that narrow this box, human-readable (the conditions of a chart's
+     * 明細 list): the item's label and its values, or its from 〜 to.
+     *
+     * @param mixed $table  CustomTable|null
+     * @param mixed $box  DashboardBox|null
+     * @param string[] $except items left out, as applyTo's
+     * @return array<int, array{label: string, value: string}>
+     */
+    public function captions($table, $box = null, array $except = []): array
+    {
+        $out = [];
+        foreach ($this->columnsFor($table, $box) as $column => $customColumn) {
+            if (in_array($column, $except, true)) {
+                continue;
+            }
+            $spec = $this->values[$column];
+            if (isset($spec['in'])) {
+                $labels = ColumnOptions::labels($customColumn, $spec['in']);
+                $value = implode(', ', array_map(function ($v) use ($labels) {
+                    return (string) ($labels[$v] ?? $v);
+                }, $spec['in']));
+            } else {
+                $value = trim(exmtrans('common.grid_filter_chip_range', ['start' => (string) ($spec['from'] ?? ''), 'end' => (string) ($spec['to'] ?? '')]));
+            }
+            $out[] = ['label' => $this->labels([$column])[0], 'value' => $value];
+        }
+        return $out;
     }
 
     /**

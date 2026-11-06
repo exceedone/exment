@@ -27,6 +27,18 @@
         // the heatmap only (treemap / sunburst / boxplot have no point per X value)
         var click = {!! $chart_click !!};
         var pickable = !!click && (cartesian || type === 'heatmap');
+        // 明細: a double click on a cell lists the rows behind it — {url, x, series: the view column
+        // ids, x_keys[xi] / series_keys[si]: their values} (ChartItem::detailPayload), else null.
+        // A bar / line point and a heatmap or treemap cell are a category of a series, a treemap's
+        // frame a series, a boxplot's box a category over every series; the sunburst zooms on a click
+        var detail = {!! $chart_detail ?? 'null' !!};
+        var drillable = !!(detail && detail.x_keys) && (cartesian || ['heatmap', 'treemap', 'boxplot'].indexOf(type) >= 0);
+        function detailKeys(xi, si) {
+            var keys = {};
+            if (xi != null) { if (xi >= detail.x_keys.length) { return null; } keys[detail.x] = detail.x_keys[xi]; }
+            if (si != null) { if (si >= detail.series_keys.length) { return null; } keys[detail.series] = detail.series_keys[si]; }
+            return keys;
+        }
         var showLegend = {{ $chart_legend ? 'true' : 'false' }};
         var axisXName = @json($chart_axisx);
         var axisYName = @json($chart_axisy);
@@ -46,7 +58,8 @@
 
         function hierarchy() {
             return seriesNames.map(function (name, i) {
-                return { name: String(name), children: xCategories.map(function (xc, xi) { return { name: String(xc), value: (matrix[i] && matrix[i][xi]) || 0 }; }) };
+                // si / xi: the series and the category a tile stands for (a click names its 明細)
+                return { name: String(name), si: i, children: xCategories.map(function (xc, xi) { return { name: String(xc), si: i, xi: xi, value: (matrix[i] && matrix[i][xi]) || 0 }; }) };
             });
         }
         function quantile(sorted, q) {
@@ -139,6 +152,7 @@
             }
         }
         if (valueName) { nameTheValues(); }
+        if (drillable) { hintTheDetail(); }
 
         // The total of each stack, above it: an invisible point at the stack's top — the end of
         // its positive part (0 when it has none: ECharts piles negatives down from 0) — whose
@@ -181,6 +195,31 @@
             }
         }
 
+        // The tooltip of a point with a 明細 ends with the way to it (after what it says now: the
+        // formatter of nameTheValues, else the one the type's tooltip option gives)
+        function hintTheDetail() {
+            var hint = ExmentDashboard.detailHint();
+            if (!hint || !option.tooltip) { return; }
+            var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+            var base = option.tooltip.formatter;
+            var plain = function (p) {
+                if (Array.isArray(p)) {
+                    p = p.filter(function (q) { return q.seriesIndex < seriesNames.length; });
+                    return esc(p.length ? p[0].name : '') + p.map(function (q) { return '<br>' + q.marker + esc(q.seriesName) + ': ' + fmt(q.value); }).join('');
+                }
+                if (type === 'heatmap' && Array.isArray(p.value)) {
+                    return p.marker + esc(xCategories[p.value[0]]) + ' / ' + esc(seriesNames[p.value[1]]) + ': ' + fmt(p.value[2]);
+                }
+                if (type === 'boxplot') {
+                    return esc(p.name) + (p.seriesName ? '<br>' + esc(p.seriesName) : '') + (Array.isArray(p.value) ? '<br>' + p.value.slice(1).map(fmt).join(' / ') : '');
+                }
+                return esc(p.name) + ': ' + fmt(p.value);
+            };
+            option.tooltip.formatter = function (p) {
+                return (typeof base === 'function' ? base(p) : plain(p)) + '<br><span style="font-size:11px;color:#8a8a8a;">' + esc(hint) + '</span>';
+            };
+        }
+
         // Cross-highlight: the bar's pick on this chart's own X item (the server leaves that
         // item out of the chart's filter, so every X category is here) — the picked categories
         // solid across every series, the rest faded, as per-point opacity; line types also grow
@@ -220,20 +259,38 @@
         // a point a click does nothing on shows no hand cursor (the series `cursor` option is
         // not read by every type, the treemap and the boxplot among them); the sunburst keeps
         // it, a click there zooms into the series
-        if (!pickable && type !== 'sunburst') {
+        if (!pickable && !drillable && type !== 'sunburst') {
             chart.on('mousemove', function (p) {
                 if (p.componentType === 'series') { chart.getZr().setCursorStyle('default'); }
             });
         }
 
-        // click-to-filter on the X category (cartesian series: dataIndex; heatmap: value[0])
-        if (pickable) {
+        // click-to-filter on the X category (cartesian series: dataIndex; heatmap: value[0]); a
+        // double click lists the cell's rows (明細: the series as well — seriesIndex, value[1],
+        // a treemap tile's si / xi; a boxplot's box is its category over every series)
+        if (pickable || drillable) {
             chart.on('click', function (p) {
-                var xi = (p.componentSubType === 'heatmap' && Array.isArray(p.value)) ? p.value[0]
-                    : ((p.componentSubType === 'bar' || p.componentSubType === 'line') ? p.dataIndex : null);
-                if (typeof xi !== 'number' || xi >= click.values.length) { return; }
-                var ne = p.event && p.event.event;
-                ExmentDashboard.pick(click.column, click.values[xi], !!(ne && (ne.ctrlKey || ne.metaKey)));
+                var xi = null, si = null;
+                if (p.componentSubType === 'heatmap' && Array.isArray(p.value)) {
+                    xi = p.value[0];
+                    si = p.value[1];
+                } else if (p.componentSubType === 'bar' || p.componentSubType === 'line') {
+                    if (p.seriesIndex >= seriesNames.length) { return; } // the stack totals
+                    xi = p.dataIndex;
+                    si = p.seriesIndex;
+                } else if (p.componentSubType === 'treemap' && p.data && typeof p.data.si === 'number') {
+                    si = p.data.si;
+                    xi = typeof p.data.xi === 'number' ? p.data.xi : null;
+                } else if (p.componentSubType === 'boxplot') {
+                    xi = p.dataIndex;
+                } else {
+                    return;
+                }
+                var ne = p.event && p.event.event, toggle = !!(ne && (ne.ctrlKey || ne.metaKey));
+                var keys = drillable ? detailKeys(xi, si) : null;
+                ExmentDashboard.pointClick('{{ $suuid }}', 'c' + si + ':' + xi,
+                    (pickable && typeof xi === 'number' && xi < click.values.length) ? function () { ExmentDashboard.pick(click.column, click.values[xi], toggle); } : null,
+                    keys ? function () { ExmentDashboard.openDetail('{{ $suuid }}', detail.url, keys); } : null);
             });
         }
 

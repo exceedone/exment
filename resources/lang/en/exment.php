@@ -814,6 +814,16 @@ return [
             ],
         ],
 
+        // a double click on a chart point lists the rows behind it (ChartDetail)
+        'chart_detail' => [
+            'title' => 'Details of "%s"',
+            'back' => 'Back to dashboard',
+            'clear' => 'Show all data',
+            'invalid' => 'The details of this chart cannot be shown (the dashboard or the chart has changed, or you have no permission).',
+            'hint' => 'Double-click to show details',
+            'hint_touch' => 'Double-tap to show details',
+        ],
+
         // box menu (⋯): display options and export
         'chart_menu' => [
             'label' => 'Options',
