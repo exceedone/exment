@@ -58,7 +58,15 @@
         // switched by the box menu's 集計方法, a tooltip names what its values are (最小値 ： 点数); null otherwise
         var valueName = @json($chart_value_name ?? null);
         var legend = { show: showLegend, type: 'scroll', top: 0, data: seriesNames };
-        var heatData = null; // heatmap cells [x, s, value]
+        var heatData = null; // heatmap cells [x, s, value] (+ class, colored by thresholds)
+        // the box's color thresholds (色分けのしきい値, ChartThresholds::payload): the legend's
+        // pieces {value: the class of their cells, rule: the rule's index (-1: the cells meeting
+        // none), color, label} and each cell's class; null: the continuous scale
+        var thresholds = {!! $chart_thresholds ?? 'null' !!};
+        var colorByRules = !!thresholds && type === 'heatmap';
+        var hiddenClasses = {}; // class => true: hidden from the legend
+        var HEAT_COLORS = ['#e0ffff', '#5b8ff9', '#1d39c4']; // the continuous scale, low to high
+        var heatRange = [0, 1]; // its ends (scaleOf)
         // the values are percents (the box menu's 表示方法: 総計に対する比率 / 差分の比率), 1 decimal
         var percent = {{ !empty($chart_percent) ? 'true' : 'false' }};
         // a cell no row fell into is null for a MIN / MAX measure (ChartPivot::emptyCell): no
@@ -84,23 +92,29 @@
         var option;
         switch (type) {
             case 'heatmap': {
-                var maxVal = 0;
                 heatData = [];
                 for (var s = 0; s < matrix.length; s++) {
                     for (var x = 0; x < matrix[s].length; x++) {
                         if (matrix[s][x] == null) { continue; }
-                        heatData.push([x, s, matrix[s][x]]);
-                        if (matrix[s][x] > maxVal) { maxVal = matrix[s][x]; }
+                        heatData.push(colorByRules ? [x, s, matrix[s][x], classOf(s, x)] : [x, s, matrix[s][x]]);
                     }
                 }
+                heatRange = scaleOf(heatData);
                 option = {
                     tooltip: { position: 'top' },
                     grid: { left: '3%', right: '7%', bottom: 30, top: '6%', containLabel: true },
                     xAxis: { type: 'category', data: xCategories, name: axisXName, nameLocation: 'middle', nameGap: 26, splitArea: { show: true } },
                     yAxis: { type: 'category', data: seriesNames, splitArea: { show: true } },
-                    visualMap: { min: 0, max: maxVal || 1, calculable: true, orient: 'vertical', right: 0, top: 'center', inRange: { color: ['#e0ffff', '#5b8ff9', '#1d39c4'] } },
-                    series: [{ name: axisYName, type: 'heatmap', data: heatData, label: { show: true }, emphasis: { itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' } } }]
+                    visualMap: { min: heatRange[0], max: heatRange[1], calculable: true, orient: 'vertical', right: 0, top: 'center', inRange: { color: HEAT_COLORS } },
+                    series: [{ name: axisYName, type: 'heatmap', data: heatData.map(heatItem), label: { show: true }, emphasis: { itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' } } }]
                 };
+                if (colorByRules) { colorTheCells(); }
+                // a heatmap of many rows is as tall as they need (ChartItem): the box grows to it,
+                // no scrollbar of its own
+                if ({{ (int) $chart_height }} > 300) {
+                    var inner = el.closest('.box-body-inner-body');
+                    if (inner) { inner.style.maxHeight = 'none'; }
+                }
                 break;
             }
             case 'treemap':
@@ -185,6 +199,56 @@
         }
         if (fullStack) { tellTheShares(); } else if (valueName) { nameTheValues(); }
         if (drillable) { hintTheDetail(); }
+
+        // The heatmap colored by the thresholds, as by Excel's highlight rules: a cell in the
+        // color of the first rule it meets (its class, the cell's 4th value), one meeting none
+        // plain; every label bold, in ink that reads on its cell. The legend under the plot
+        // lists the rules along the scale (60 未満 / 60〜75 / 75 以上); a click on one hides its
+        // cells (out of the visualMap's range: no color, label, tooltip or click), another shows them.
+        function colorTheCells() {
+            option.visualMap = {
+                type: 'piecewise', dimension: 3, orient: 'horizontal', left: 'center', bottom: 0, itemGap: 18,
+                pieces: thresholds.pieces.map(function (p) { return { value: p.value, color: p.color, label: p.label }; }),
+                outOfRange: { color: 'rgba(0,0,0,0)' }
+            };
+            option.grid.right = '3%';
+            option.grid.bottom = 56;
+            var series = option.series[0];
+            series.data = heatData.map(heatItem);
+            series.itemStyle = { borderColor: '#e6e6e6', borderWidth: 1 };
+            series.label = { show: true, fontWeight: 'bold', formatter: function (p) { return hiddenClasses[p.value[3]] ? '' : fmt(p.value[2]); } };
+        }
+        function classOf(s, x) {
+            var row = thresholds.classes[s];
+            return row ? row[x] : null;
+        }
+        // The continuous scale: from the lowest value drawn to the highest, so the cells tell
+        // apart (from 0, values of 45 to 78 came out one dark blue); a single value from 0 to it.
+        function scaleOf(cells) {
+            if (!cells.length) { return [0, 1]; }
+            var lo = Infinity, hi = -Infinity;
+            cells.forEach(function (d) { lo = Math.min(lo, d[2]); hi = Math.max(hi, d[2]); });
+            if (lo === hi) { lo = Math.min(0, lo); }
+            return [lo, hi === lo ? lo + 1 : hi];
+        }
+        // the color the continuous scale gives a value (ECharts mixes the stops' RGB linearly)
+        function scaleColor(v) {
+            var t = Math.max(0, Math.min(1, (v - heatRange[0]) / (heatRange[1] - heatRange[0])));
+            var at = t * (HEAT_COLORS.length - 1), i = Math.min(Math.floor(at), HEAT_COLORS.length - 2), f = at - i;
+            var a = parseInt(HEAT_COLORS[i].slice(1), 16), b = parseInt(HEAT_COLORS[i + 1].slice(1), 16);
+            var mix = function (shift) { return Math.round((a >> shift & 255) + ((b >> shift & 255) - (a >> shift & 255)) * f); };
+            return '#' + ((1 << 24) + (mix(16) << 16) + (mix(8) << 8) + mix(0)).toString(16).slice(1);
+        }
+        // a cell: its number in ink that reads on its color — the scale's, or its rule's (a cell
+        // meeting no rule: dark); a cell hidden from the thresholds' legend has no tooltip
+        function heatItem(d) {
+            if (!colorByRules) { return { value: d, label: { color: inkOn(scaleColor(d[2])) } }; }
+            var piece = null;
+            thresholds.pieces.forEach(function (p) { if (p.value === d[3]) { piece = p; } });
+            var item = { value: d, label: { color: (piece && piece.rule >= 0) ? inkOn(piece.color) : '#2b2b3a' } };
+            if (hiddenClasses[d[3]]) { item.tooltip = { show: false }; }
+            return item;
+        }
 
         // Whether a cell of a series shown is below 0 (the 100% stacked chart's axis then reaches -100%).
         function hasNegative() {
@@ -314,7 +378,11 @@
             });
         }
         function heatSeriesData() {
-            return heatData.map(function (d) { return { value: d, itemStyle: { opacity: faded(d[0]) ? 0.18 : 1 } }; });
+            return heatData.map(function (d) {
+                var item = heatItem(d);
+                item.itemStyle = { opacity: faded(d[0]) ? 0.18 : 1 };
+                return item;
+            });
         }
 
         window.ExmentECharts = window.ExmentECharts || {};
@@ -346,6 +414,7 @@
             chart.on('click', function (p) {
                 var xi = null, si = null;
                 if (p.componentSubType === 'heatmap' && Array.isArray(p.value)) {
+                    if (colorByRules && hiddenClasses[p.value[3]]) { return; } // hidden from the legend
                     xi = p.value[0];
                     si = p.value[1];
                 } else if (p.componentSubType === 'bar' || p.componentSubType === 'line') {
@@ -412,8 +481,15 @@
                     if (pickable) { s.data = seriesData(i); } else if (fullStack) { s.data = cellsOf(i); }
                     return s;
                 }) });
-            } else if (type === 'heatmap' && pickable) {
-                chart.setOption({ series: [{ data: heatSeriesData() }] });
+            } else if (type === 'heatmap' && (pickable || colorByRules)) {
+                var heatOption = { series: [{ data: heatSeriesData() }] };
+                if (colorByRules) {
+                    // new data resets the legend's pieces to all shown: keep the ones hidden hidden
+                    var selected = {};
+                    thresholds.pieces.forEach(function (p, i) { selected[i] = !hiddenClasses[p.value]; });
+                    heatOption.visualMap = { selected: selected };
+                }
+                chart.setOption(heatOption);
             }
         }
         // Whether a share's label fits in its share of the bar, as drawn now: its length along the
@@ -452,6 +528,17 @@
         if (fullStack) {
             ['legendselectchanged', 'legendselectall', 'legendinverseselect'].forEach(function (name) { chart.on(name, onLegend); });
         }
+        // the thresholds' legend: the classes of the pieces switched off are hidden
+        if (colorByRules) {
+            chart.on('datarangeselected', function (e) {
+                hiddenClasses = {};
+                $.each((e && e.selected) || {}, function (i, on) {
+                    var piece = thresholds.pieces[i];
+                    if (piece && !on) { hiddenClasses[piece.value] = true; }
+                });
+                render();
+            });
+        }
         function onLegend(e) {
             shown = (e && e.selected) || null;
             reshare();
@@ -467,7 +554,8 @@
             display: function (opts) { $.extend(display, opts || {}); render(); },
             // a 100% stacked chart hands its own numbers, as Excel's chart is drawn from the cells
             // of the sheet: the CSV exports them, a preview of another type draws them
-            data: function () { return { axisx: axisXName, axisy: axisYName, categories: xCategories, series: seriesNames, matrix: fullStack ? values : matrix, percent: fullStack ? false : percent }; }
+            // (the thresholds too: a preview of the heatmap colors its cells by them)
+            data: function () { return { axisx: axisXName, axisy: axisYName, categories: xCategories, series: seriesNames, matrix: fullStack ? values : matrix, percent: fullStack ? false : percent, thresholds: thresholds }; }
         };
     });
 </script>

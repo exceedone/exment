@@ -216,6 +216,7 @@
         withECharts().done(function () {
             if (seq !== previewSeq || !$pop.hasClass('show')) { return; }
             $panel.show().find('.ctp-prev-name').text($tile.attr('title'));
+            placeVertically($pop);
             var el = $panel.find('.ctp-prev-chart')[0];
             try {
                 if (!preview || preview.el !== el) {
@@ -244,12 +245,37 @@
             var cell = function (s, x) { return (m[s] && m[s][x]) || 0; };
             switch (type) {
                 case 'heatmap': {
-                    var heat = [], hmax = 0;
-                    names.forEach(function (n, s) { cats.forEach(function (c, x) { heat.push([x, s, cell(s, x)]); hmax = Math.max(hmax, cell(s, x)); }); });
+                    var heat = [], hmax = 0, th = d.thresholds;
+                    if (th && th.classes) {
+                        // colored by the box's thresholds, as the heatmap draws them (echart_multi colorTheCells)
+                        names.forEach(function (n, s) {
+                            cats.forEach(function (c, x) {
+                                var k = th.classes[s] ? th.classes[s][x] : null;
+                                if (k != null) { heat.push([x, s, cell(s, x), k]); }
+                            });
+                        });
+                        return {
+                            grid: { left: 12, right: 12, top: 10, bottom: 34, containLabel: true },
+                            xAxis: { type: 'category', data: cats }, yAxis: { type: 'category', data: names },
+                            visualMap: { type: 'piecewise', dimension: 3, orient: 'horizontal', left: 'center', bottom: 0, itemGap: 10, itemWidth: 12, itemHeight: 10, textStyle: { fontSize: 10 }, pieces: $.map(th.pieces || [], function (p) { return { value: p.value, color: p.color, label: p.label }; }) },
+                            series: [{ type: 'heatmap', data: heat, itemStyle: { borderColor: '#e6e6e6', borderWidth: 1 } }]
+                        };
+                    }
+                    // the scale from the lowest value to the highest, as the heatmap draws it (scaleOf);
+                    // an empty cell is none of them
+                    var hmin = Infinity;
+                    hmax = -Infinity;
+                    names.forEach(function (n, s) {
+                        cats.forEach(function (c, x) {
+                            heat.push([x, s, cell(s, x)]);
+                            if (d.matrix[s] && d.matrix[s][x] != null) { hmin = Math.min(hmin, cell(s, x)); hmax = Math.max(hmax, cell(s, x)); }
+                        });
+                    });
+                    if (hmin === Infinity) { hmin = 0; hmax = 1; } else if (hmin === hmax) { hmin = Math.min(0, hmin); hmax = hmax === hmin ? hmin + 1 : hmax; }
                     return {
                         grid: { left: 12, right: 70, top: 10, bottom: 20, containLabel: true },
                         xAxis: { type: 'category', data: cats }, yAxis: { type: 'category', data: names },
-                        visualMap: { min: 0, max: hmax || 1, right: 0, top: 'center', calculable: true, inRange: { color: ['#e0ffff', '#5b8ff9', '#1d39c4'] } },
+                        visualMap: { min: hmin, max: hmax, right: 0, top: 'center', calculable: true, inRange: { color: ['#e0ffff', '#5b8ff9', '#1d39c4'] } },
                         series: [{ type: 'heatmap', data: heat }]
                     };
                 }
@@ -347,6 +373,31 @@
         if ($pop.hasClass('ctp-pop')) {
             $pop.closest('.box-body-inner-body').addClass('ctp-open');
             renderPreview($pop.find('.ctp-tile.on'));
+        }
+        placeVertically($pop);
+    }
+
+    // A panel that would run past the end of the page (a box of the dashboard's last row: the
+    // footer covered it) opens above its button instead, when the page has more room there —
+    // hanging out of the box's scrolled body as the type picker does — and the page scrolls
+    // up to show it whole. Called again when the picker's preview shows and the panel grows.
+    function placeVertically($pop) {
+        var item = $pop.closest('.ct-item')[0];
+        if (!item || !$pop.hasClass('show')) { return; }
+        $pop.removeClass('ct-pop-up');
+        var footer = document.querySelector('.main-footer');
+        var end = footer ? footer.getBoundingClientRect().top : document.documentElement.scrollHeight - window.scrollY;
+        var p = $pop[0].getBoundingClientRect(), i = item.getBoundingClientRect();
+        if (p.bottom <= end - 4) { return; }
+        // the page's room above the button: down to it from the header (or the page's top)
+        var header = document.querySelector('.main-header');
+        var above = i.top - (header ? header.getBoundingClientRect().bottom : -window.scrollY);
+        if (above < p.height && above <= end - i.bottom) { return; }
+        $pop.addClass('ct-pop-up');
+        $pop.closest('.box-body-inner-body').addClass('ctp-open');
+        var top = $pop[0].getBoundingClientRect().top;
+        if (top < 8) {
+            window.scrollTo({ top: window.scrollY + top - 8, behavior: 'instant' });
         }
     }
 
@@ -1452,6 +1503,211 @@ window.ExmentDashboardForm = (function ($) {
             $(document).on('change' + NS, 'select[name="filter_bar_table"]', function () {
                 rows().each(function () { $(this).find('input.default').val(''); defaultInit($(this)); });
             });
+        }
+    };
+})(jQuery);
+
+/**
+ * Dashboard BOX form — the 色分けのしきい値 table of a heatmap (ChartItem::setAdminExtraFields).
+ * init() runs on every render of the form (pjax included). A row's color is its text input
+ * `color` (#rrggbb), which is posted and validated as it is but hidden: a button shows the color
+ * and its name (赤 / 橙 / 黄 … or カスタム) and opens a panel under it — the palette, the browser's
+ * own picker (その他) and the #rrggbb as text. A pick closes the panel, so does a click outside
+ * or Esc. The panel is fixed to the window, so the table and the form box do not clip it, and
+ * opens above its button when the window has no room below. The upper end (B) belongs to a range
+ * only: on another condition it is emptied and disabled, so not posted.
+ *
+ *   palette  [{name, color}]   table  the table's name (chart_thresholds)   range  the range condition
+ *   labels   {title, other, custom, placeholder, picker}: the panel's title, the label of its
+ *            #rrggbb line, the name of a color not in the palette, the button with no color, the
+ *            title of the browser's picker
+ */
+window.ExmentChartThresholdForm = (function ($) {
+    'use strict';
+
+    var NS = '.exthform';
+    var HEX = /^#[0-9a-f]{6}$/i;
+    var GAP = 4;
+    var opt = {};
+
+    function root() { return '#has-many-table-' + opt.table; }
+    function label(key) { return (opt.labels || {})[key] || ''; }
+    function colorOf(tr) { return $.trim(String(tr.find('input.color').val() || '')).toLowerCase(); }
+    // #rrggbb as typed into the panel: the # may be left out
+    function typed(v) { v = $.trim(String(v || '')).toLowerCase(); return /^[0-9a-f]{6}$/.test(v) ? '#' + v : v; }
+
+    function nameOf(color) {
+        var found = null;
+        $.each(opt.palette || [], function (i, p) { if (String(p.color).toLowerCase() === color) { found = p.name; return false; } });
+        return found;
+    }
+
+    // a row's button and panel (once); the text input stays, hidden, as what is posted
+    function decorate(tr) {
+        var input = tr.find('input.color');
+        if (input.length && !tr.find('.th-picker').length) {
+            var group = input.closest('.input-group');
+            (group.length ? group : input).addClass('th-source');
+            var picker = $('<div class="th-picker"></div>');
+            $('<button type="button" class="th-btn" aria-haspopup="dialog" aria-expanded="false"></button>')
+                .append('<span class="th-sw"></span>', '<span class="th-name"></span>', '<i class="fa fa-caret-down" aria-hidden="true"></i>')
+                .appendTo(picker);
+            var pop = $('<div class="th-pop" role="dialog" hidden></div>').attr('aria-label', label('title')).appendTo(picker);
+            $('<div class="th-pop-title"></div>').text(label('title')).appendTo(pop);
+            var grid = $('<div class="th-grid"></div>').appendTo(pop);
+            $.each(opt.palette || [], function (i, p) {
+                $('<button type="button" class="th-chip"><i class="fa fa-check" aria-hidden="true"></i></button>')
+                    .attr({ title: p.name, 'aria-label': p.name, 'aria-pressed': 'false', 'data-color': String(p.color).toLowerCase() })
+                    .css('background-color', p.color)
+                    .appendTo(grid);
+            });
+            $('<div class="th-sep"></div>').appendTo(pop);
+            var more = $('<div class="th-more"></div>').appendTo(pop);
+            $('<label class="th-rainbow"></label>').attr('title', label('picker'))
+                .append($('<input type="color">').attr('aria-label', label('picker')))
+                .appendTo(more);
+            $('<span class="th-more-label"></span>').text(label('other')).appendTo(more);
+            $('<input type="text" class="th-hex" maxlength="7" placeholder="#rrggbb" spellcheck="false" autocomplete="off">')
+                .attr('aria-label', label('other'))
+                .appendTo(more);
+            (group.length ? group : input).after(picker);
+        }
+        sync(tr);
+    }
+
+    function sync(tr) {
+        var range = tr.find('select.condition').val() === opt.range;
+        var upper = tr.find('input.value2');
+        if (!range) { upper.val(''); }
+        upper.prop('disabled', !range);
+        var color = colorOf(tr);
+        var valid = HEX.test(color);
+        tr.find('.th-btn .th-sw').css('background-color', valid ? color : '').toggleClass('th-none', !valid);
+        tr.find('.th-btn .th-name').text(color === '' ? label('placeholder') : (nameOf(color) || label('custom')))
+            .toggleClass('th-placeholder', color === '');
+        tr.find('.th-chip').each(function () {
+            var on = String($(this).data('color')) === color;
+            $(this).toggleClass('on', on).attr('aria-pressed', on ? 'true' : 'false');
+        });
+        if (valid) { tr.find('.th-rainbow input').val(color); }
+        var hex = tr.find('.th-hex');
+        if (!hex.is(':focus')) { hex.val(color); }
+    }
+
+    function pick(tr, color) {
+        tr.find('input.color').val(color).trigger('change');
+    }
+
+    // ---- the panel ----
+    function picker(el) { return $(el).closest('.th-picker'); }
+    function openOne() { return $(root() + ' .th-picker.open'); }
+
+    // under its button, or above it when the window has no room below and more above
+    function place(p) {
+        var pop = p.find('.th-pop'), btn = p.find('.th-btn')[0];
+        if (!btn || pop.prop('hidden')) { return; }
+        var r = btn.getBoundingClientRect();
+        var h = pop.outerHeight(), w = pop.outerWidth();
+        var below = window.innerHeight - r.bottom - GAP, above = r.top - GAP;
+        var up = h > below && above > below;
+        pop.toggleClass('th-pop-up', up).css({
+            top: up ? Math.max(0, r.top - GAP - h) : r.bottom + GAP,
+            left: Math.max(0, Math.min(r.left, window.innerWidth - w - GAP))
+        });
+    }
+
+    function open(p) {
+        close(openOne().not(p), false);
+        p.addClass('open').find('.th-btn').attr('aria-expanded', 'true');
+        p.find('.th-pop').prop('hidden', false);
+        place(p);
+        var on = p.find('.th-chip.on');
+        (on.length ? on : p.find('.th-chip').first()).trigger('focus');
+    }
+
+    function close(p, focus) {
+        if (!p.length) { return; }
+        p.removeClass('open').find('.th-btn').attr('aria-expanded', 'false');
+        p.find('.th-pop').prop('hidden', true);
+        if (focus) { p.find('.th-btn').trigger('focus'); }
+    }
+
+    function decorateAll() { $(root() + ' tbody tr').each(function () { decorate($(this)); }); }
+
+    // the open panel follows its button as the page (or a box in it) scrolls
+    function follow() { openOne().each(function () { place($(this)); }); }
+
+    return {
+        init: function (options) {
+            opt = options || {};
+            $(document).off(NS);
+            $(window).off(NS);
+            document.removeEventListener('scroll', follow, true);
+            decorateAll();
+            // a "+ new" row
+            $(root()).off(NS).on('admin_hasmany_row_change' + NS, decorateAll);
+            $(document).on('change' + NS, root() + ' select.condition', function () { sync($(this).closest('tr')); });
+            $(document).on('change' + NS + ' input' + NS, root() + ' input.color', function () { sync($(this).closest('tr')); });
+
+            $(document).on('click' + NS, root() + ' .th-btn', function () {
+                var p = picker(this);
+                if (p.hasClass('open')) { close(p, false); } else { open(p); }
+            });
+            $(document).on('click' + NS, root() + ' .th-chip', function () {
+                pick($(this).closest('tr'), String($(this).data('color')));
+                close(picker(this), true);
+            });
+            // the browser's picker: the color as it moves, closed with it
+            $(document).on('input' + NS, root() + ' .th-rainbow input', function () {
+                pick($(this).closest('tr'), String(this.value).toLowerCase());
+            });
+            $(document).on('change' + NS, root() + ' .th-rainbow input', function () {
+                pick($(this).closest('tr'), String(this.value).toLowerCase());
+                close(picker(this), true);
+            });
+            // #rrggbb typed: a whole color as it is typed, anything else when it is left (the
+            // save reports it); Enter takes it and closes, without submitting the form
+            $(document).on('input' + NS, root() + ' .th-hex', function () {
+                var v = typed(this.value);
+                if (HEX.test(v)) { pick($(this).closest('tr'), v); }
+            });
+            $(document).on('change' + NS, root() + ' .th-hex', function () {
+                pick($(this).closest('tr'), typed(this.value));
+            });
+            $(document).on('keydown' + NS, root() + ' .th-hex', function (e) {
+                if (e.key !== 'Enter') { return; }
+                e.preventDefault();
+                pick($(this).closest('tr'), typed(this.value));
+                close(picker(this), true);
+            });
+            $(document).on('keydown' + NS, root() + ' .th-picker', function (e) {
+                if (e.key === 'Escape') {
+                    if (!$(this).hasClass('open')) { return; }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    close($(this), true);
+                    return;
+                }
+                // ← → between the palette's colors
+                if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && $(e.target).hasClass('th-chip')) {
+                    e.preventDefault();
+                    var chips = $(this).find('.th-chip'), i = chips.index(e.target) + (e.key === 'ArrowRight' ? 1 : -1);
+                    chips.eq((i + chips.length) % chips.length).trigger('focus');
+                }
+            });
+            // Tab out of the panel (to the next cell) closes it
+            $(document).on('focusout' + NS, root() + ' .th-picker', function (e) {
+                var p = $(this);
+                if (e.relatedTarget && !$.contains(this, e.relatedTarget)) { close(p, false); }
+            });
+            // a click anywhere else
+            $(document).on('mousedown' + NS + ' touchstart' + NS, function (e) {
+                var p = openOne();
+                if (p.length && !$(e.target).closest(p).length) { close(p, false); }
+            });
+            $(document).on('pjax:start' + NS, function () { close(openOne(), false); });
+            $(window).on('resize' + NS, follow);
+            document.addEventListener('scroll', follow, true);
         }
     };
 })(jQuery);

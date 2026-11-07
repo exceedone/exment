@@ -821,6 +821,50 @@ return [
             'count' => '%s件',
         ],
 
+        // color thresholds of a heatmap box (box form table + legend): ChartThresholds
+        'chart_threshold' => [
+            'label' => '色分けのしきい値',
+            'help' => 'ヒートマップのセルを値で色分けします（Excel の「条件付き書式 → セルの強調表示ルール」と同じ考え方）。セルは上のルールから順に判定し、最初に当てはまったルールの色で表示します。どのルールにも当てはまらないセルは白で表示します。ルールがない場合は、値に応じた連続の色で表示します。値はビューの集計方法で判定するため、ダッシュボードで集計方法を切り替えている間は連続の色で表示します。最大%s件まで設定できます。※ヒートマップのみの設定です。チャートの種類をヒートマップ以外に変更して保存すると、しきい値は削除されます。',
+            'color' => '色',
+            'condition' => '条件',
+            'value' => '値（A）',
+            'value2' => '上限（B）',
+            'condition_options' => [
+                'lt' => 'A 未満',
+                'lte' => 'A 以下',
+                'gte' => 'A 以上',
+                'gt' => 'A より大きい',
+                'range' => '範囲（A 以上 B 未満）',
+            ],
+            'legend' => [
+                'lt' => '%s 未満',
+                'lte' => '%s 以下',
+                'gte' => '%s 以上',
+                'gt' => '%s より大きい',
+                'range' => '%s 以上 %s 未満',
+                'between' => '%s〜%s',
+                'separator' => '、',
+            ],
+            'custom_color' => 'その他の色',
+            'color_select' => '色を選択',
+            'color_other' => 'その他',
+            'color_custom' => 'カスタム',
+            'color_placeholder' => '選択してください',
+            'message' => [
+                'range_order' => ':attributeには、値（A）より大きい数値を指定してください。',
+                'max_rules' => '色分けのしきい値は%s件まで設定できます。',
+            ],
+            'palette' => [
+                'red' => '赤',
+                'orange' => '橙',
+                'yellow' => '黄',
+                'green' => '緑',
+                'blue' => '青',
+                'purple' => '紫',
+                'gray' => '灰',
+            ],
+        ],
+
         // a double click on a chart point lists the rows behind it (ChartDetail)
         'chart_detail' => [
             'title' => '「%s」の明細',

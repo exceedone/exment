@@ -821,6 +821,50 @@ return [
             'count' => '%s',
         ],
 
+        // color thresholds of a heatmap box (box form table + legend): ChartThresholds
+        'chart_threshold' => [
+            'label' => 'Color thresholds',
+            'help' => 'Colors the cells of the heatmap by their values (as Excel\'s Conditional Formatting → Highlight Cells Rules). A cell is checked against the rules from the top and takes the color of the first one it meets; a cell that meets no rule is drawn white. Without rules, the cells are colored on a continuous scale by their values. The values are those the view\'s summary type gives: while the summary type is switched on the dashboard, the continuous scale is used. Up to %s rules. *For heatmaps only: saving the box as another chart type removes the thresholds.',
+            'color' => 'Color',
+            'condition' => 'Condition',
+            'value' => 'Value (A)',
+            'value2' => 'Upper end (B)',
+            'condition_options' => [
+                'lt' => 'Less than A',
+                'lte' => 'A or less',
+                'gte' => 'A or more',
+                'gt' => 'Greater than A',
+                'range' => 'Between (A or more, less than B)',
+            ],
+            'legend' => [
+                'lt' => 'Less than %s',
+                'lte' => '%s or less',
+                'gte' => '%s or more',
+                'gt' => 'Greater than %s',
+                'range' => '%s to less than %s',
+                'between' => '%s–%s',
+                'separator' => ', ',
+            ],
+            'custom_color' => 'Other color',
+            'color_select' => 'Select a color',
+            'color_other' => 'Other',
+            'color_custom' => 'Custom',
+            'color_placeholder' => 'Please select',
+            'message' => [
+                'range_order' => 'The :attribute must be greater than the value (A).',
+                'max_rules' => 'Up to %s color thresholds can be set.',
+            ],
+            'palette' => [
+                'red' => 'Red',
+                'orange' => 'Orange',
+                'yellow' => 'Yellow',
+                'green' => 'Green',
+                'blue' => 'Blue',
+                'purple' => 'Purple',
+                'gray' => 'Gray',
+            ],
+        ],
+
         // a double click on a chart point lists the rows behind it (ChartDetail)
         'chart_detail' => [
             'title' => 'Details of "%s"',

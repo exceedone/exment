@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Services\Dashboard\ChartThresholds;
 
 /**
  * @phpstan-consistent-constructor
@@ -142,6 +143,27 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         return $this->row_no . '-' . $this->column_no;
     }
 
+
+    /**
+     * The 色分けのしきい値 of a heatmap box (options.chart_thresholds) as the box form's rows:
+     * the form binds it out of the embedded options (ChartItem::setAdminExtraFields).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getChartThresholdsAttribute(): array
+    {
+        return ChartThresholds::normalize($this->getOption(ChartThresholds::OPTION));
+    }
+
+    /**
+     * The form's rows are no column: the save of the embedded options replaces them, so they
+     * are stored after it (ChartItem::savedOptions), not here.
+     *
+     * @param mixed $value
+     */
+    public function setChartThresholdsAttribute($value): void
+    {
+    }
 
     // @phpstan-ignore-next-line
     public function getDashboardBoxItemAttribute()

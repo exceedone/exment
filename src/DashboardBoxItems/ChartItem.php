@@ -23,8 +23,10 @@ use Exceedone\Exment\Services\Dashboard\ChartShowAs;
 use Exceedone\Exment\Services\Dashboard\ChartSort;
 use Exceedone\Exment\Services\Dashboard\ChartSorter;
 use Exceedone\Exment\Services\Dashboard\ChartSummarySwitch;
+use Exceedone\Exment\Services\Dashboard\ChartThresholds;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Exceedone\Exment\Services\Dashboard\FilterValue;
+use Exceedone\Exment\Validator\ChartThresholdRule;
 
 /**
  * Chart box. On top of the configured chart, the box renders a toolbar (runtime chart-type
@@ -43,6 +45,9 @@ class ChartItem implements ItemInterface
 
     /** labels / values are printed raw into a <script>: hex-encode so they can never break out */
     protected const JSON_FLAGS = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
+
+    /** px per row of a heatmap: each cell prints its number, which needs the room */
+    protected const HEATMAP_ROW_HEIGHT = 26;
 
     // @phpstan-ignore-next-line
     protected $dashboard_box;
@@ -226,6 +231,12 @@ class ChartItem implements ItemInterface
             $result = $this->sorted($result, true);
             $full = ChartType::isFullStacked($this->chart_type);
             $values = $result['matrix'];
+            $thresholds = $this->thresholds();
+            if ($this->chart_type === ChartType::HEATMAP) {
+                // a heatmap is read by its numbers, as the cells of a sheet: a row tall enough for
+                // its label (the axes and a legend under the plot besides); a few rows keep 300px
+                $common['chart_height'] = max($common['chart_height'], static::HEATMAP_ROW_HEIGHT * count($result['series_names']) + 110);
+            }
             $result['matrix'] = ($full ? ChartShowAs::fullStacked() : $this->showAs())->applyMatrix($values);
             $common += $this->valueNames($result);
             $chart = view('exment::dashboard.chart.echart_multi', $common + [
@@ -247,6 +258,9 @@ class ChartItem implements ItemInterface
                     : $this->getChartPalette()),
                 'chart_click' => json_encode($result['chart_click'], static::JSON_FLAGS),
                 'chart_detail' => json_encode($this->detailPayload($result), static::JSON_FLAGS),
+                // the heatmap colored by the box's thresholds: each cell's class and the legend
+                // (of the measure's own numbers; another type hands it to a heatmap's preview)
+                'chart_thresholds' => $thresholds === null ? 'null' : json_encode($thresholds->payload($values), static::JSON_FLAGS),
             ]);
         } else {
             $result = $this->isAggregateView()
@@ -440,6 +454,22 @@ class ChartItem implements ItemInterface
             );
         }
         return $this->show_as;
+    }
+
+    /**
+     * The box's color thresholds (色分けのしきい値), in the units of the measure as the view
+     * summarizes it: none when it has none, and none while the chart draws other numbers — the
+     * measure summarized by another condition (集計方法: 60 / 75 points mean nothing to a count)
+     * or shown another way (表示方法); the heatmap then keeps its continuous scale. Any type of
+     * the box is handed them: the type picker previews a heatmap by them.
+     */
+    protected function thresholds(): ?ChartThresholds
+    {
+        $thresholds = ChartThresholds::fromOption(array_get($this->dashboard_box, 'options.' . ChartThresholds::OPTION));
+        if ($thresholds->isEmpty() || $this->summarySwitch()->switched() || $this->showAs()->active()) {
+            return null;
+        }
+        return $thresholds;
     }
 
     /**
@@ -1385,6 +1415,8 @@ class ChartItem implements ItemInterface
         $legendTypes = json_encode(ChartType::legendTypes());
         $axisTypes = json_encode(ChartType::axisOptionTypes());
         $multiTypes = json_encode(ChartType::multiTypes());
+        $thresholdsTable = ChartThresholds::OPTION;
+        $heatmap = ChartType::HEATMAP;
         $script = <<<EOT
         var exmentLegendCharts = $legendTypes;
         var exmentAxisCharts = $axisTypes;
@@ -1399,6 +1431,8 @@ class ChartItem implements ItemInterface
             // the axis options are read by the Chart.js axis types only (ChartType::axisOptionTypes)
             $('#chart_axis_label, #chart_axis_name').closest('.form-group').toggle(axis);
             $('.options_chart_series').closest('.form-group').toggle(exmentMultiCharts.indexOf(val) >= 0);
+            // the color thresholds color a heatmap only (setAdminExtraFields)
+            $('#has-many-table-{$thresholdsTable}').toggle(val === '{$heatmap}');
         }
         setChartOptions($('.options_chart_type').val());
 
@@ -1447,6 +1481,78 @@ EOT;
         }
 
         $form->options = $options;
+    }
+
+    /**
+     * The fields of the box form out of its embedded options: the 色分けのしきい値 of a heatmap
+     * (ChartThresholds), as a table of rules — an embedded form keeps only its own fields, so
+     * the table is bound to the box (DashboardBox::chart_thresholds) and saved into the options
+     * by savedOptions(). Shown for a heatmap only (setAdminOptions' script).
+     */
+    // @phpstan-ignore-next-line
+    public static function setAdminExtraFields(&$form): void
+    {
+        $form->hasManyJsonTable(ChartThresholds::OPTION, exmtrans('dashboard.chart_threshold.label'), function ($form) {
+            // #rrggbb, hidden behind a button that picks it (dashboard.js ExmentChartThresholdForm)
+            // — not the color field, whose picker rounds a color it is given (#f8696b comes back
+            // #f8686b), so a box would change its colors on every save
+            $form->text('color', exmtrans('dashboard.chart_threshold.color'))
+                ->attribute(['maxlength' => 7, 'placeholder' => '#rrggbb'])
+                ->rules([new ChartThresholdRule('color')]);
+            $form->select('condition', exmtrans('dashboard.chart_threshold.condition'))
+                ->options(ChartThresholds::conditionOptions())
+                ->default(ChartThresholds::LT)
+                ->disableClear()
+                ->rules([new ChartThresholdRule('condition')]);
+            $form->text('value', exmtrans('dashboard.chart_threshold.value'))
+                ->attribute(['inputmode' => 'decimal'])
+                ->rules([new ChartThresholdRule('value')]);
+            // the upper end of a range (A以上B未満); the other conditions have none
+            $form->text('value2', exmtrans('dashboard.chart_threshold.value2'))
+                ->attribute(['inputmode' => 'decimal'])
+                ->rules([new ChartThresholdRule('value2')]);
+        })->rowUpDown('order')
+            ->setTableColumnWidth(3, 3, 2, 2, 2)
+            ->description(sprintf(exmtrans('dashboard.chart_threshold.help'), ChartThresholds::MAX));
+
+        // the rows are no column of the box (DashboardBox::setChartThresholdsAttribute takes
+        // nothing): savedOptions() stores them
+        $form->editing(function ($form) {
+            $form->model()->append([ChartThresholds::OPTION]);
+        });
+        Admin::script('ExmentChartThresholdForm.init(' . json_encode([
+            'palette' => ChartThresholds::palette(),
+            'table' => ChartThresholds::OPTION,
+            'range' => ChartThresholds::RANGE,
+            'labels' => [
+                'title' => exmtrans('dashboard.chart_threshold.color_select'),
+                'other' => exmtrans('dashboard.chart_threshold.color_other'),
+                'custom' => exmtrans('dashboard.chart_threshold.color_custom'),
+                'placeholder' => exmtrans('dashboard.chart_threshold.color_placeholder'),
+                'picker' => exmtrans('dashboard.chart_threshold.custom_color'),
+            ],
+        ], static::JSON_FLAGS) . ');');
+    }
+
+    /**
+     * The options a save of the box form stores: the embedded fields' and the 色分けのしきい値
+     * of a heatmap (setAdminExtraFields; validated by ChartThresholdRule) — none on another
+     * type, whose form hides the table as it does the options the type does not read.
+     *
+     * @param array<string, mixed> $options  the embedded fields' options as saved
+     * @return array<string, mixed>
+     */
+    public static function savedOptions(array $options): array
+    {
+        $rules = array_get($options, 'chart_type') === ChartType::HEATMAP
+            ? ChartThresholds::normalize(request()->input(ChartThresholds::OPTION))
+            : [];
+        if (count($rules)) {
+            $options[ChartThresholds::OPTION] = $rules;
+        } else {
+            unset($options[ChartThresholds::OPTION]);
+        }
+        return $options;
     }
 
     /**

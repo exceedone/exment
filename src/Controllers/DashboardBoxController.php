@@ -338,10 +338,15 @@ class DashboardBoxController extends AdminControllerBase
         $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->rules("max:40")->required();
 
         // Option Setting --------------------------------------------------
-        $form->embeds('options', function ($form) use ($dashboard, $dashboard_box_type) {
-            $classname = DashboardBoxType::getEnum($dashboard_box_type)->getDashboardBoxItemClass();
+        $classname = DashboardBoxType::getEnum($dashboard_box_type)->getDashboardBoxItemClass();
+        $form->embeds('options', function ($form) use ($dashboard, $classname) {
             $classname::setAdminOptions($form, $dashboard);
         })->disableHeader();
+        // the fields of a type kept off the embedded options, which keep only their own fields
+        // (ChartItem: the 色分けのしきい値 table of a heatmap), saved into them by savedOptions
+        if (method_exists($classname, 'setAdminExtraFields')) {
+            $classname::setAdminExtraFields($form);
+        }
 
         $form->tools(function (Form\Tools $tools) {
             $tools->disableList();
@@ -368,12 +373,23 @@ class DashboardBoxController extends AdminControllerBase
             $classname::saving($form);
         });
 
-        // in the save's transaction, so the box never stays saved without its colors
+        // in the save's transaction, so the box never stays saved without its colors (nor the
+        // options of the fields kept off the embedded form: ChartItem::savedOptions)
         $form->savedInTransaction(function ($form) use (&$painted) {
             $model = $form->model();
-            if (!empty($painted) && isset($model) && !array_has($model->options ?? [], 'chart_colors')) {
-                $options = $model->options ?? [];
+            if (!isset($model)) {
+                return;
+            }
+            $saved = $model->options ?? [];
+            $options = $saved;
+            if (!empty($painted) && !array_has($options, 'chart_colors')) {
                 $options['chart_colors'] = $painted;
+            }
+            $classname = DashboardBoxType::getEnum($form->dashboard_box_type)->getDashboardBoxItemClass();
+            if (method_exists($classname, 'savedOptions')) {
+                $options = $classname::savedOptions($options);
+            }
+            if ($options !== $saved) {
                 $model->options = $options;
                 $model->save();
             }

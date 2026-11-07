@@ -199,3 +199,41 @@
 /* ---- 明細 (a double click / tap on a chart point) ------------------------------------ */
 /* a double tap on a phone is the chart's, not the browser's zoom (ChartDetail) */
 [data-canvas-id], [data-echart-id] { touch-action: manipulation; }
+
+/* ---- 色分けのしきい値 (box form: a rule's color as a button and its panel, ExmentChartThresholdForm) ---- */
+/* the text input `color` is what is posted; the button stands for it */
+.th-source { display: none !important; }
+.th-picker { position: relative; }
+/* as high and as framed as the select2 of 条件 next to it */
+.th-btn { display: flex; align-items: center; gap: 8px; width: 100%; height: calc(1.5em + .75rem + 4px); padding: 0 9px 0 5px; border: 1px solid #ced4da; border-radius: .375rem; background: #fff; color: #444; font-size: 13px; line-height: 1; text-align: left; cursor: pointer; }
+.th-btn:hover { border-color: #b5b9c3; }
+.th-btn:focus-visible, .th-picker.open .th-btn { border-color: #5b6ef5; outline: 0; box-shadow: 0 0 0 3px rgba(91, 110, 245, .15); }
+.has-error .th-btn { border-color: #dd4b39; }
+.th-btn .th-sw { flex: none; width: 20px; height: 20px; border: 1px solid rgba(0, 0, 0, .12); border-radius: 4px; }
+.th-btn .th-sw.th-none { background: repeating-linear-gradient(45deg, #fff, #fff 3px, #ddd 3px, #ddd 5px); }
+.th-btn .th-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.th-btn .th-name.th-placeholder { color: #999; }
+.th-btn .fa-caret-down { flex: none; color: #888; }
+/* fixed to the window: neither the table nor the form box clips it (top / left set by the script) */
+.th-pop { position: fixed; z-index: 1060; width: 236px; padding: 12px; background: #fff; border: 1px solid #e3e3ee; border-radius: 8px; box-shadow: 0 8px 24px rgba(30, 30, 60, .16); text-align: left; }
+.th-pop[hidden] { display: none; }
+.th-pop-title { margin: 0 0 8px; font-size: 11px; font-weight: 600; color: #8a8aa0; }
+.th-grid { display: grid; grid-template-columns: repeat(7, 24px); gap: 6px; }
+.th-chip { position: relative; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 1px solid rgba(0, 0, 0, .1); border-radius: 5px; cursor: pointer; }
+.th-chip .fa-check { display: none; color: #fff; font-size: 12px; text-shadow: 0 0 2px rgba(0, 0, 0, .45); }
+.th-chip.on { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2b2b3a; }
+.th-chip.on .fa-check { display: inline-block; }
+.th-chip:hover { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #5b6ef5; }
+.th-chip:focus-visible, .th-rainbow:focus-within { outline: 2px solid #5b6ef5; outline-offset: 2px; }
+.th-sep { height: 1px; margin: 10px 0; background: #eee; }
+.th-more { display: flex; align-items: center; gap: 8px; }
+.th-rainbow { position: relative; flex: none; width: 24px; height: 24px; margin: 0; overflow: hidden; border-radius: 5px; background: conic-gradient(#f8696b, #ffeb84, #63be7b, #5a8ac6, #a881c9, #f8696b); cursor: pointer; }
+.th-rainbow input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.th-more-label { font-size: 12px; color: #555; white-space: nowrap; }
+.th-hex { width: 90px; height: 26px; padding: 0 6px; border: 1px solid #d2d6de; border-radius: 4px; font-family: monospace; font-size: 12px; }
+.th-hex:focus { border-color: #5b6ef5; outline: 0; }
+/* the columns keep their widths: a long error under a cell wraps instead of pushing 操作 out */
+#has-many-table-chart_thresholds-table { table-layout: fixed; }
+#has-many-table-chart_thresholds-table label { white-space: normal; }
+/* a toolbar panel of a box at the end of the page opens above its button (dashboard.js placeVertically) */
+.exment-chart-toolbar .ct-pop.ct-pop-up { top: auto; bottom: 34px; }
