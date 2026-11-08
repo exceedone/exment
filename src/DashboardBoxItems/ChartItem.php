@@ -200,6 +200,10 @@ class ChartItem implements ItemInterface
         // the chart-filter popover first: building it also drops ticked values the current
         // scope no longer offers, and the data query below must see that
         $fields = $this->chartFilterFields();
+        $result = $this->drawnData();
+        if (!is_array($result)) {
+            return $result;
+        }
 
         $common = [
             'suuid' => $this->dashboard_box->suuid,
@@ -211,34 +215,17 @@ class ChartItem implements ItemInterface
             'chart_color_edit' => $this->canEditColors(),
             // the values shown as percents (表示方法, a 100% stacked type): drawn with "%"
             'chart_percent' => $this->showAs()->isPercent() || ChartType::isFullStacked($this->chart_type),
-        ];
+        ] + $this->valueNames($result);
 
         if (ChartType::isMulti($this->chart_type)) {
-            if ($this->isAverageOfExtraGroups()) {
-                return exmtrans('dashboard.message.need_average_groups');
-            }
-            if ($this->isFullStackOfNonAdditive()) {
-                return exmtrans('dashboard.message.need_additive');
-            }
-            $result = $this->summarySwitch()->apply(function () {
-                return $this->getMultiSeriesData();
-            });
-            if ($result === false) {
-                return exmtrans('dashboard.message.need_multiseries');
-            }
-            // the 表示方法 runs on the cells in the order they are drawn, as Excel's on the pivot;
-            // a 100% stacked type draws each cell as its share of its X item the same way
-            $result = $this->sorted($result, true);
             $full = ChartType::isFullStacked($this->chart_type);
-            $values = $result['matrix'];
+            $values = $result['numbers'];
             $thresholds = $this->thresholds();
             if ($this->chart_type === ChartType::HEATMAP) {
                 // a heatmap is read by its numbers, as the cells of a sheet: a row tall enough for
                 // its label (the axes and a legend under the plot besides); a few rows keep 300px
                 $common['chart_height'] = max($common['chart_height'], static::HEATMAP_ROW_HEIGHT * count($result['series_names']) + 110);
             }
-            $result['matrix'] = ($full ? ChartShowAs::fullStacked() : $this->showAs())->applyMatrix($values);
-            $common += $this->valueNames($result);
             $chart = view('exment::dashboard.chart.echart_multi', $common + [
                 // a 100% stacked chart's own numbers, for its tooltip and the CSV, and their texts
                 'chart_values' => $full ? json_encode(array_map(function ($row) {
@@ -251,11 +238,7 @@ class ChartItem implements ItemInterface
                 'series_names' => json_encode($result['series_names'], static::JSON_FLAGS),
                 'matrix' => json_encode($result['matrix'], static::JSON_FLAGS),
                 'chart_axisx' => $result['axisx_label'],
-                // one color per series (index-aligned with series_names); the heatmap and the
-                // boxplot paint no series, they keep the palette
-                'chart_colors' => json_encode(ChartType::supportsColorEdit($this->chart_type)
-                    ? $this->chartColors()->colorsFor(ChartColors::SERIES, $result['series_names'], $this->getChartPalette())
-                    : $this->getChartPalette()),
+                'chart_colors' => json_encode($this->seriesColors($result['series_names'])),
                 'chart_click' => json_encode($result['chart_click'], static::JSON_FLAGS),
                 'chart_detail' => json_encode($this->detailPayload($result), static::JSON_FLAGS),
                 // the heatmap colored by the box's thresholds: each cell's class and the legend
@@ -263,21 +246,6 @@ class ChartItem implements ItemInterface
                 'chart_thresholds' => $thresholds === null ? 'null' : json_encode($thresholds->payload($values), static::JSON_FLAGS),
             ]);
         } else {
-            $result = $this->isAggregateView()
-                ? $this->summarySwitch()->apply(function () {
-                    return $this->getAggregateData();
-                })
-                : $this->getListData();
-            if ($result === false) {
-                return exmtrans('dashboard.message.need_setting');
-            }
-            // a point's color is decided in the VIEW's own order and then travels with the
-            // point through the runtime sort, so re-sorting moves the colors instead of
-            // repainting the categories (a viewer recognises a bar by its color)
-            $result['point_colors'] = $this->pointColors(collect($result['chart_label'])->values()->all());
-            $result = $this->sorted($result, false);
-            $result['chart_data'] = $this->showAs()->applyValues($result['chart_data']);
-            $common += $this->valueNames($result);
             $vars = $common + [
                 'chart_data' => json_encode($result['chart_data'], static::JSON_FLAGS),
                 'chart_labels' => json_encode($result['chart_label'], static::JSON_FLAGS),
@@ -303,6 +271,128 @@ class ChartItem implements ItemInterface
         }
 
         return $this->toolbarHtml($fields, $result['axisx_label'], $result['axisy_label']) . $chart->render();
+    }
+
+    /**
+     * The numbers the chart draws — the box's filters, the 集計方法, the sort and the 表示方法
+     * applied — for body() and the Excel download alike; the message the box shows instead
+     * when the setting cannot be drawn. Run after chartFilterFields().
+     *
+     * A multi-series chart: {x_categories, series_names, matrix (as drawn), numbers (the cells
+     * before the 表示方法 / the 100% stack made them shares), ...}; a single-series one:
+     * {chart_label, chart_data (as drawn), point_colors, ...} (getMultiSeriesData /
+     * getAggregateData / getListData).
+     *
+     * @return array<string, mixed>|string
+     */
+    protected function drawnData()
+    {
+        if (ChartType::isMulti($this->chart_type)) {
+            if ($this->isAverageOfExtraGroups()) {
+                return exmtrans('dashboard.message.need_average_groups');
+            }
+            if ($this->isFullStackOfNonAdditive()) {
+                return exmtrans('dashboard.message.need_additive');
+            }
+            $result = $this->summarySwitch()->apply(function () {
+                return $this->getMultiSeriesData();
+            });
+            if ($result === false) {
+                return exmtrans('dashboard.message.need_multiseries');
+            }
+            // the 表示方法 runs on the cells in the order they are drawn, as Excel's on the pivot;
+            // a 100% stacked type draws each cell as its share of its X item the same way
+            $result = $this->sorted($result, true);
+            $result['numbers'] = $result['matrix'];
+            $full = ChartType::isFullStacked($this->chart_type);
+            $result['matrix'] = ($full ? ChartShowAs::fullStacked() : $this->showAs())->applyMatrix($result['numbers']);
+            return $result;
+        }
+
+        $result = $this->isAggregateView()
+            ? $this->summarySwitch()->apply(function () {
+                return $this->getAggregateData();
+            })
+            : $this->getListData();
+        if ($result === false) {
+            return exmtrans('dashboard.message.need_setting');
+        }
+        // a point's color is decided in the VIEW's own order and then travels with the
+        // point through the runtime sort, so re-sorting moves the colors instead of
+        // repainting the categories (a viewer recognises a bar by its color)
+        $result['point_colors'] = $this->pointColors(collect($result['chart_label'])->values()->all());
+        $result = $this->sorted($result, false);
+        $result['chart_data'] = $this->showAs()->applyValues($result['chart_data']);
+        return $result;
+    }
+
+    /**
+     * What the box's Excel download writes (ChartExcel): the chart as body() draws it for the same
+     * request — filters, sort, 集計方法, 表示方法, type, colors — or the message the box shows
+     * instead (no table, no permission, a setting it cannot draw); null without a view.
+     *
+     * `matrix` holds a row per series, a cell per category, as drawn: the 表示方法's values
+     * (percents when `percent`, 32.4 = 32.4%); a 100% stacked type's own numbers, whose shares
+     * the Excel chart draws itself. `adds_up`: the values may be summed (a SUM / COUNT measure
+     * shown as it is). `point_colors`: per category, for the types that paint each point.
+     *
+     * @return array<string, mixed>|string|null
+     */
+    public function excelData()
+    {
+        if (($permission = $this->hasPermission()) !== true) {
+            return is_string($permission) ? $permission : null;
+        }
+        if (is_null($this->custom_view)) {
+            return null;
+        }
+        $this->chartFilterFields();
+        $result = $this->drawnData();
+        if (!is_array($result)) {
+            return $result;
+        }
+
+        $type = $this->chart_type;
+        $axisy = (string) $this->valueNames($result)['chart_axisy'];
+        if (ChartType::isMulti($type)) {
+            $categories = $result['x_categories'];
+            $series = $result['series_names'];
+            $matrix = ChartType::isFullStacked($type) ? $result['numbers'] : $result['matrix'];
+            $colors = $this->seriesColors($series);
+            $point_colors = null;
+        } else {
+            $labels = $result['chart_label'];
+            $categories = $labels instanceof \Illuminate\Support\Collection ? $labels->values()->all() : array_values((array) $labels);
+            $series = [$axisy];
+            $matrix = [$result['chart_data']];
+            // the one-color types draw the series in the first color, the others paint each point
+            $one_color = in_array($type, [ChartType::LINE, ChartType::AREA, ChartType::RADAR, ChartType::GAUGE], true);
+            $colors = [$this->singleSeriesPalette()[0]];
+            $point_colors = $one_color ? null : $result['point_colors'];
+        }
+
+        return [
+            'type' => $type,
+            'title' => $this->boxTitle($result['axisx_label'], $result['axisy_label']) ?? (string) array_get($this->dashboard_box, 'dashboard_box_view_name'),
+            'dashboard' => (string) data_get($this->dashboard_box, 'dashboard.dashboard_view_name'),
+            'view' => (string) $this->custom_view->view_view_name,
+            'captions' => $this->filterCaptions(),
+            'axisx' => (string) $result['axisx_label'],
+            'series_label' => (string) ($result['series_label'] ?? ''),
+            'axisy' => $axisy,
+            'categories' => array_values($categories),
+            'series' => array_values($series),
+            'matrix' => array_map(function ($row) {
+                return array_values((array) $row);
+            }, array_values($matrix)),
+            'percent' => $this->showAs()->isPercent(),
+            'adds_up' => !$this->showAs()->active() && ChartSummarySwitch::isAdditive($this->summarySwitch()->condition()),
+            'colors' => $colors,
+            'point_colors' => $point_colors,
+            'labels' => ChartType::supportsDataLabels($type) && in_array('labels', $this->chart_display, true),
+            'legend' => in_array(ChartOptionType::LEGEND, $this->chart_options),
+            'thresholds' => $type === ChartType::HEATMAP ? $this->thresholds() : null,
+        ];
     }
 
     /**
@@ -1233,7 +1323,7 @@ class ChartItem implements ItemInterface
      * ChartPivot: a category per stored X value, the rows of a cell folded as the
      * measure's summary condition folds rows.
      *
-     * @return array|false {x_categories[], series_names[], matrix[seriesIdx][xIdx], axisx_label, axisy_label, chart_click}
+     * @return array|false {x_categories[], series_names[], matrix[seriesIdx][xIdx], axisx_label, series_label, axisy_label, chart_click}
      */
     // @phpstan-ignore-next-line
     protected function getMultiSeriesData()
@@ -1292,6 +1382,7 @@ class ChartItem implements ItemInterface
                 return $pivot['x_values'];
             })], 'is_array'),
             'axisx_label'  => array_get($view_columns[$x_pos], 'view_column_name') ?? $item_x->label(),
+            'series_label' => array_get($view_columns[$series_pos], 'view_column_name') ?? $item_series->label(),
             'axisy_label'  => $this->axisYLabel($view_column_y),
             // a click on a category picks the stored value its rows hold
             'chart_click'  => $this->clickFilter($view_columns[$x_pos], $pivot['x_values']),
@@ -1653,6 +1744,21 @@ EOT;
         $palette = $this->getChartPalette();
         $palette[0] = $this->chartColors()->get(ChartColors::SERIES, ChartColors::SINGLE) ?? $palette[0];
         return $palette;
+    }
+
+    /**
+     * One color per series of a multi-series chart (index-aligned with the series names): the
+     * one an editor painted on it, else the palette's; the heatmap and the boxplot paint no
+     * series, they keep the palette.
+     *
+     * @param array<int, mixed> $series_names
+     * @return string[]
+     */
+    protected function seriesColors(array $series_names): array
+    {
+        return ChartType::supportsColorEdit($this->chart_type)
+            ? $this->chartColors()->colorsFor(ChartColors::SERIES, $series_names, $this->getChartPalette())
+            : $this->getChartPalette();
     }
 
     /**

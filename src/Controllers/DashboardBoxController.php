@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\DashboardBoxItems\ChartItem;
 use Exceedone\Exment\Services\Dashboard\ChartColors;
+use Exceedone\Exment\Services\Dashboard\ChartExcel;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Illuminate\Support\Collection;
 
@@ -227,6 +228,38 @@ class DashboardBoxController extends AdminControllerBase
             'footer' => $footer ?? null,
             'suuid' => $suuid,
         ];
+    }
+
+    /**
+     * A chart box as an Excel workbook (the box menu's Excel出力): the chart as the box draws it
+     * for the same request values (ct / cs / ca / sv / df_* / bf_*) — its table and Excel's own
+     * chart of it (ChartExcel). A box this user cannot view is missing (404); one that draws a
+     * message instead of a chart (no permission on its table, a setting it cannot draw) answers
+     * that message (422) for the page to show.
+     *
+     * @param string $suuid
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function excel($suuid)
+    {
+        $box = DashboardBox::findBySuuid($suuid);
+        if (!$box instanceof DashboardBox || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard)) {
+            return response()->json(['message' => exmtrans('dashboard.chart_excel.failed')], 404);
+        }
+        $item = $box->dashboard_box_item;
+        $data = $item instanceof ChartItem ? $item->excelData() : null;
+        if (!is_array($data)) {
+            return response()->json(['message' => is_string($data) && $data !== '' ? $data : exmtrans('dashboard.chart_excel.failed')], 422);
+        }
+        $excel = new ChartExcel($data);
+        $path = tempnam(sys_get_temp_dir(), 'exment_chart_');
+        if ($path === false) {
+            return response()->json(['message' => exmtrans('dashboard.chart_excel.failed')], 500);
+        }
+        $excel->save($path);
+        return response()->download($path, $excel->fileName(), [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     /**

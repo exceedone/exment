@@ -137,6 +137,7 @@ class RouteServiceProvider extends ServiceProvider
         ], function (Router $router) {
             $router->get('/', 'DashboardController@home');
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
+            $router->get('dashboardbox/excel/{suuid}', 'DashboardBoxController@excel');
             $router->post('dashboardbox/chart_state/{suuid}', 'DashboardBoxController@chartState');
             $router->post('dashboardbox/chart_color/{suuid}', 'DashboardBoxController@chartColor');
             $router->delete('dashboardbox/delete/{suuid}', 'DashboardBoxController@delete');

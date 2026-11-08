@@ -545,6 +545,53 @@
         a.click();
         setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
     }
+    // the box as an Excel workbook made by the server (DashboardBoxController::excel): the chart as
+    // drawn now — the box's request values — its table and Excel's own chart. A box that cannot be
+    // exported answers why, shown as an error; so does a response that is no workbook (a login page)
+    function exportExcel(suuid) {
+        var $box = boxOf(suuid);
+        if (!suuid || $box.hasClass('exporting')) { return; }
+        $box.addClass('exporting');
+        $box.find('.overlay').show();
+        var done = function () {
+            $box.removeClass('exporting');
+            if (!$box.hasClass('loading')) { $box.find('.overlay').hide(); }
+        };
+        var fail = function (message) {
+            if (window.toastr) { window.toastr.error(message || L.excel_failed || L.error); }
+        };
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', admin_url('dashboardbox/excel/' + suuid) + boxQuery(suuid));
+        xhr.responseType = 'blob';
+        xhr.onload = function () {
+            done();
+            var type = String(xhr.getResponseHeader('Content-Type') || '');
+            if (xhr.status === 200 && type.indexOf('spreadsheetml') >= 0) {
+                // the name the server gives it (box title_date.xlsx), UTF-8 encoded
+                var disposition = String(xhr.getResponseHeader('Content-Disposition') || ''), m, name = 'chart.xlsx';
+                if ((m = /filename\*=UTF-8''([^;]+)/i.exec(disposition))) {
+                    try { name = decodeURIComponent(m[1]); } catch (e) {}
+                } else if ((m = /filename="?([^";]+)"?/i.exec(disposition))) {
+                    name = m[1];
+                }
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(xhr.response);
+                a.download = name;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+                return;
+            }
+            if (type.indexOf('json') < 0 || !xhr.response || typeof xhr.response.text !== 'function') { fail(); return; }
+            xhr.response.text().then(function (text) {
+                var message = null;
+                try { message = (JSON.parse(text) || {}).message; } catch (e) {}
+                fail(message);
+            }, function () { fail(); });
+        };
+        xhr.onerror = function () { done(); fail(); };
+        xhr.send();
+    }
 
     // ---- chart colors -------------------------------------------------------------------
     // A dashboard editor right-clicks a point / slice / series and picks its color, the way
@@ -1295,6 +1342,10 @@
         $(document).on('click' + NS, '[data-cd-export]', function () {
             closePops();
             exportCsv($(this).closest('[data-suuid]').data('suuid'));
+        });
+        $(document).on('click' + NS, '[data-cx-export]', function () {
+            closePops();
+            exportExcel($(this).closest('[data-suuid]').data('suuid'));
         });
         $(document).on('click' + NS, '[data-cc-reset]', function () {
             closePops();

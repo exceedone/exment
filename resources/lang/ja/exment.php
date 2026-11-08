@@ -881,6 +881,22 @@ return [
             'display' => '表示',
             'labels' => '値ラベル',
             'export' => 'データをエクスポート',
+            'export_excel' => 'Excel出力（グラフ付き）',
+        ],
+
+        // the chart downloaded as an Excel workbook: its table and Excel's chart (ChartExcel)
+        'chart_excel' => [
+            'printed' => '出力日 %s',
+            'dashboard' => 'ダッシュボード：%s',
+            'view' => 'ビュー：%s',
+            'filters' => '絞り込み：%s',
+            'no_filter' => 'なし',
+            'total' => '合計',
+            'share' => '割合',
+            'table_only' => '「%s」は Excel にないグラフのため、表のみ出力しています。',
+            'heatmap_rules' => '色分けのしきい値：%s（条件付き書式）',
+            'heatmap_plain' => '色分けのしきい値が設定されていないため、色は付けていません。',
+            'failed' => 'Excel出力に失敗しました。',
         ],
 
         // colors painted on a chart by right-clicking it (box option chart_colors)

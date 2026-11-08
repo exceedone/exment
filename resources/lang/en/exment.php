@@ -881,6 +881,22 @@ return [
             'display' => 'Display',
             'labels' => 'Data labels',
             'export' => 'Export data',
+            'export_excel' => 'Export to Excel (with chart)',
+        ],
+
+        // the chart downloaded as an Excel workbook: its table and Excel's chart (ChartExcel)
+        'chart_excel' => [
+            'printed' => 'Exported %s',
+            'dashboard' => 'Dashboard: %s',
+            'view' => 'View: %s',
+            'filters' => 'Filters: %s',
+            'no_filter' => 'None',
+            'total' => 'Total',
+            'share' => 'Share',
+            'table_only' => 'Excel has no "%s" chart, so only the table is exported.',
+            'heatmap_rules' => 'Color thresholds: %s (conditional formatting)',
+            'heatmap_plain' => 'No color thresholds are set, so the cells are not colored.',
+            'failed' => 'Failed to export to Excel.',
         ],
 
         // colors painted on a chart by right-clicking it (box option chart_colors)

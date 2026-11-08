@@ -213,6 +213,7 @@ class DashboardController extends AdminControllerBase
             'color_more' => exmtrans('dashboard.chart_color.more'),
             'color_ok' => exmtrans('dashboard.chart_color.ok'),
             'chart_load_error' => exmtrans('dashboard.message.chart_load_error'),
+            'excel_failed' => exmtrans('dashboard.chart_excel.failed'),
             // the tooltip line of a chart point that lists its rows on a double click (明細)
             'detail_hint' => exmtrans('dashboard.chart_detail.hint'),
             'detail_hint_touch' => exmtrans('dashboard.chart_detail.hint_touch'),
