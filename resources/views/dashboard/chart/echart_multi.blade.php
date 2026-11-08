@@ -46,9 +46,15 @@
         // frame a series, a boxplot's box a category over every series; the sunburst zooms on a click
         var detail = {!! $chart_detail ?? 'null' !!};
         var drillable = !!(detail && detail.x_keys) && (cartesian || ['heatmap', 'treemap', 'boxplot'].indexOf(type) >= 0);
+        // the その他 category of 表示件数 (ChartItem::restTip): {index, count, items, more}, else null;
+        // its cells' 明細 are the rows of the categories left out (detail.rest: its index, when it has one)
+        var rest = {!! $chart_rest ?? 'null' !!};
         function detailKeys(xi, si) {
             var keys = {};
-            if (xi != null) { if (xi >= detail.x_keys.length) { return null; } keys[detail.x] = detail.x_keys[xi]; }
+            if (rest && xi === rest.index) {
+                if (detail.rest !== xi) { return null; }
+                keys.rest = 1;
+            } else if (xi != null) { if (xi >= detail.x_keys.length) { return null; } keys[detail.x] = detail.x_keys[xi]; }
             if (si != null) { if (si >= detail.series_keys.length) { return null; } keys[detail.series] = detail.series_keys[si]; }
             return keys;
         }
@@ -198,6 +204,7 @@
             }
         }
         if (fullStack) { tellTheShares(); } else if (valueName) { nameTheValues(); }
+        if (rest) { listTheRest(); }
         if (drillable) { hintTheDetail(); }
 
         // The heatmap colored by the thresholds, as by Excel's highlight rules: a cell in the
@@ -334,27 +341,45 @@
             }
         }
 
+        // A tooltip as the type's own tooltip option writes it, for one without a formatter.
+        function plainTip(p) {
+            if (Array.isArray(p)) {
+                p = p.filter(function (q) { return q.seriesIndex < seriesNames.length; });
+                return esc(p.length ? p[0].name : '') + p.map(function (q) { return '<br>' + q.marker + esc(q.seriesName) + ': ' + fmt(q.value); }).join('');
+            }
+            if (type === 'heatmap' && Array.isArray(p.value)) {
+                return p.marker + esc(xCategories[p.value[0]]) + ' / ' + esc(seriesNames[p.value[1]]) + ': ' + fmt(p.value[2]);
+            }
+            if (type === 'boxplot') {
+                return esc(p.name) + (p.seriesName ? '<br>' + esc(p.seriesName) : '') + (Array.isArray(p.value) ? '<br>' + p.value.slice(1).map(fmt).join(' / ') : '');
+            }
+            return esc(p.name) + ': ' + fmt(p.value);
+        }
+
+        // The tooltip of the その他 category lists the categories it groups (with their total
+        // over the series), after what it says now.
+        function listTheRest() {
+            if (!option.tooltip) { return; }
+            // its list makes it tall: kept inside the chart, or the box cuts it
+            option.tooltip.confine = true;
+            var base = option.tooltip.formatter;
+            option.tooltip.formatter = function (p) {
+                var text = typeof base === 'function' ? base(p) : plainTip(p);
+                var q = Array.isArray(p) ? p[0] : p;
+                // a bar / line point's category, a tile's (a series' frame has none)
+                var xi = !q ? null : (cartesian ? q.dataIndex : (q.data && typeof q.data.xi === 'number' ? q.data.xi : null));
+                return xi === rest.index ? text + ExmentDashboard.restTip(rest) : text;
+            };
+        }
+
         // The tooltip of a point with a 明細 ends with the way to it (after what it says now: the
         // formatter of nameTheValues, else the one the type's tooltip option gives)
         function hintTheDetail() {
             var hint = ExmentDashboard.detailHint();
             if (!hint || !option.tooltip) { return; }
             var base = option.tooltip.formatter;
-            var plain = function (p) {
-                if (Array.isArray(p)) {
-                    p = p.filter(function (q) { return q.seriesIndex < seriesNames.length; });
-                    return esc(p.length ? p[0].name : '') + p.map(function (q) { return '<br>' + q.marker + esc(q.seriesName) + ': ' + fmt(q.value); }).join('');
-                }
-                if (type === 'heatmap' && Array.isArray(p.value)) {
-                    return p.marker + esc(xCategories[p.value[0]]) + ' / ' + esc(seriesNames[p.value[1]]) + ': ' + fmt(p.value[2]);
-                }
-                if (type === 'boxplot') {
-                    return esc(p.name) + (p.seriesName ? '<br>' + esc(p.seriesName) : '') + (Array.isArray(p.value) ? '<br>' + p.value.slice(1).map(fmt).join(' / ') : '');
-                }
-                return esc(p.name) + ': ' + fmt(p.value);
-            };
             option.tooltip.formatter = function (p) {
-                return (typeof base === 'function' ? base(p) : plain(p)) + '<br><span style="font-size:11px;color:#8a8a8a;">' + esc(hint) + '</span>';
+                return (typeof base === 'function' ? base(p) : plainTip(p)) + '<br><span style="font-size:11px;color:#8a8a8a;">' + esc(hint) + '</span>';
             };
         }
 

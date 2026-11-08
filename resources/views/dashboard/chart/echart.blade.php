@@ -33,6 +33,8 @@
         // group values} (ChartItem::detailPayload), else null; the same types
         var detail = {!! $chart_detail ?? 'null' !!};
         var drillable = !!(detail && detail.points) && ['hbar', 'area', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
+        // the その他 point of 表示件数 (ChartItem::restTip): {index, count, items, more}, else null
+        var rest = {!! $chart_rest ?? 'null' !!};
         // types colored point by point (byPoint) — the others draw one shape in one color
         var perPoint = ['hbar', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
         var showLegend = {{ $chart_legend ? 'true' : 'false' }};
@@ -181,13 +183,26 @@
             if (type === 'area') { option.yAxis.axisLabel = { formatter: '{value}%' }; }
             if (type === 'doughnut') { option.tooltip.formatter = function (p) { return tip(p.name, p.value); }; }
         }
+        // an item tooltip as ECharts writes it, for a type whose tooltip has no formatter of its own
+        var plainTip = function (q) {
+            return (valueName ? escHtml(valueName) + '<br>' : '') + q.marker + escHtml(q.name) + ': ' + fmt(q.value) + (q.percent != null ? ' (' + q.percent + '%)' : '');
+        };
+        // the tooltip of その他 lists the points it groups
+        if (rest && option.tooltip) {
+            // its list makes it tall: kept inside the chart, or the box cuts it
+            option.tooltip.confine = true;
+            var restBase = option.tooltip.formatter;
+            option.tooltip.formatter = function (p) {
+                var q = Array.isArray(p) ? p[0] : p;
+                var text = typeof restBase === 'function' ? restBase(p) : plainTip(q);
+                return (q && pointOf(q.dataIndex) === rest.index) ? text + ExmentDashboard.restTip(rest) : text;
+            };
+        }
         // the tooltip of a point with a 明細 ends with the way to it
         if (drillable && option.tooltip && ExmentDashboard.detailHint()) {
             var baseTip = option.tooltip.formatter;
             option.tooltip.formatter = function (p) {
-                var q = Array.isArray(p) ? p[0] : p;
-                var text = typeof baseTip === 'function' ? baseTip(p)
-                    : (valueName ? escHtml(valueName) + '<br>' : '') + q.marker + escHtml(q.name) + ': ' + fmt(q.value) + (q.percent != null ? ' (' + q.percent + '%)' : '');
+                var text = typeof baseTip === 'function' ? baseTip(p) : plainTip(Array.isArray(p) ? p[0] : p);
                 return text + '<br><span style="font-size:11px;color:#8a8a8a;">' + escHtml(ExmentDashboard.detailHint()) + '</span>';
             };
         }
@@ -260,7 +275,8 @@
         // (area / radar / gauge) paint their one series
         chart.on('contextmenu', function (p) {
             var i = typeof p.dataIndex === 'number' ? pointOf(p.dataIndex) : undefined;
-            if (perPoint && (typeof i !== 'number' || i >= labels.length)) { return; }
+            // (その他 is no category of its own to paint)
+            if (perPoint && (typeof i !== 'number' || i >= labels.length || (rest && i === rest.index))) { return; }
             var ne = p.event && p.event.event;
             if (ne && ne.preventDefault) { ne.preventDefault(); }
             ExmentDashboard.colorMenu('{{ $suuid }}', perPoint

@@ -24,6 +24,7 @@ use Exceedone\Exment\Services\Dashboard\ChartSort;
 use Exceedone\Exment\Services\Dashboard\ChartSorter;
 use Exceedone\Exment\Services\Dashboard\ChartSummarySwitch;
 use Exceedone\Exment\Services\Dashboard\ChartThresholds;
+use Exceedone\Exment\Services\Dashboard\ChartTopN;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Exceedone\Exment\Services\Dashboard\FilterValue;
 use Exceedone\Exment\Validator\ChartThresholdRule;
@@ -106,7 +107,13 @@ class ChartItem implements ItemInterface
     /** @var ChartShowAs|null showAs() memo */
     protected $show_as;
 
-    /** @var array<string, mixed> the box's request params (ct, cs, cd, ca, sv, df_*, bf_*) */
+    /** @var ChartTopN|null topN() memo */
+    protected $top_n;
+
+    /** @var int|null the number of points of the chart before 表示件数 cuts them (ranked()) */
+    protected $point_count;
+
+    /** @var array<string, mixed> the box's request params (ct, cs, cd, ca, sv, tn, df_*, bf_*) */
     protected $params;
 
     /** @var ChartDetail|null|false detail() memo (false = not resolved yet) */
@@ -215,6 +222,8 @@ class ChartItem implements ItemInterface
             'chart_color_edit' => $this->canEditColors(),
             // the values shown as percents (表示方法, a 100% stacked type): drawn with "%"
             'chart_percent' => $this->showAs()->isPercent() || ChartType::isFullStacked($this->chart_type),
+            // the その他 point of 表示件数 (ChartTopN): its index and the points in it, for its tooltip
+            'chart_rest' => json_encode($this->restTip($result), static::JSON_FLAGS),
         ] + $this->valueNames($result);
 
         if (ChartType::isMulti($this->chart_type)) {
@@ -270,7 +279,37 @@ class ChartItem implements ItemInterface
             }
         }
 
-        return $this->toolbarHtml($fields, $result['axisx_label'], $result['axisy_label']) . $chart->render();
+        return $this->toolbarHtml($fields, $result['axisx_label'], $result['axisy_label']) . $chart->render() . $this->topNNote();
+    }
+
+    /**
+     * The その他 point's tooltip data: {index, count, items [[label, value]], more}; null when
+     * the chart has none.
+     *
+     * @param array<string, mixed> $result  drawnData()
+     * @return array<string, mixed>|null
+     */
+    protected function restTip(array $result): ?array
+    {
+        $rest = $result['top_n'] ?? null;
+        if (!is_array($rest)) {
+            return null;
+        }
+        unset($rest['excluded']);
+        return $rest;
+    }
+
+    /**
+     * The line under a chart cut to its top N without その他, saying what is left out
+     * (※ 上位5件のみ表示（ほか 13 件は非表示）); '' otherwise.
+     */
+    protected function topNNote(): string
+    {
+        $top_n = $this->topN();
+        if (!$top_n->active() || $top_n->withOther() || $top_n->hidden() === 0) {
+            return '';
+        }
+        return '<div class="ct-topn-note">' . esc_html(exmtrans('dashboard.chart_top_n.note', $top_n->n(), $top_n->hidden())) . '</div>';
     }
 
     /**
@@ -302,10 +341,15 @@ class ChartItem implements ItemInterface
             }
             // the 表示方法 runs on the cells in the order they are drawn, as Excel's on the pivot;
             // a 100% stacked type draws each cell as its share of its X item the same way
-            $result = $this->sorted($result, true);
+            $result = $this->ranked($result, true);
             $result['numbers'] = $result['matrix'];
             $full = ChartType::isFullStacked($this->chart_type);
             $result['matrix'] = ($full ? ChartShowAs::fullStacked() : $this->showAs())->applyMatrix($result['numbers']);
+            if ($this->restHasNoDifference($result)) {
+                foreach (array_keys($result['matrix']) as $s) {
+                    $result['matrix'][$s][$result['top_n']['index']] = null;
+                }
+            }
             return $result;
         }
 
@@ -321,9 +365,78 @@ class ChartItem implements ItemInterface
         // point through the runtime sort, so re-sorting moves the colors instead of
         // repainting the categories (a viewer recognises a bar by its color)
         $result['point_colors'] = $this->pointColors(collect($result['chart_label'])->values()->all());
-        $result = $this->sorted($result, false);
+        $result = $this->ranked($result, false);
         $result['chart_data'] = $this->showAs()->applyValues($result['chart_data']);
+        if ($this->restHasNoDifference($result)) {
+            $result['chart_data'][$result['top_n']['index']] = null;
+        }
         return $result;
+    }
+
+    /**
+     * The result's points cut to the top N of 表示件数 (ChartTopN), in the runtime sort; just
+     * sorted when the chart is not cut.
+     *
+     * @param array<string, mixed> $result
+     * @return array<string, mixed>
+     */
+    protected function ranked(array $result, bool $multi): array
+    {
+        $labels = ChartSorter::listOf($multi ? ($result['x_categories'] ?? null) : ($result['chart_label'] ?? null));
+        $this->point_count = count($labels);
+        $top_n = $this->top_n = $this->makeTopN($labels);
+        if (!$top_n->active()) {
+            return $this->sorted($result, $multi);
+        }
+        if ($multi) {
+            $x = $this->xViewColumn();
+            return $top_n->applyMulti($result, $this->chart_sort, $this->restHasDetail(), $x ? $x->id : null);
+        }
+        return $top_n->applySingle($result, $this->chart_sort, $this->restHasDetail());
+    }
+
+    /**
+     * Whether the その他 point shows no 前の項目との差分 (表示方法): it is no item that follows
+     * the one before it — the points it groups are anywhere in the order.
+     *
+     * @param array<string, mixed> $result
+     */
+    protected function restHasNoDifference(array $result): bool
+    {
+        return isset($result['top_n']['index']) && $this->showAs()->isDifference();
+    }
+
+    /**
+     * Whether a double click on その他 lists its rows: the chart has a 明細 and the rows of the
+     * points left out can be told apart (ChartDetail::supportsRest).
+     */
+    protected function restHasDetail(): bool
+    {
+        $detail = $this->detail();
+        return $detail !== null && $detail->supportsRest(collect($this->xViewColumns())->pluck('id')->all());
+    }
+
+    /**
+     * The 明細 of the その他 point (ChartDetailRequest): the keys of the points kept — a row of
+     * その他 is a row of none of them — and the caption naming what is listed; null when the
+     * chart draws no その他 with a 明細. Run after settleFilters().
+     *
+     * @return array{excluded: array<int, array<int|string, mixed>>, caption: array{label: string, value: string}}|null
+     */
+    public function restDetail(): ?array
+    {
+        $result = $this->drawnData();
+        $excluded = is_array($result) ? ($result['top_n']['excluded'] ?? null) : null;
+        if (!is_array($excluded)) {
+            return null;
+        }
+        return [
+            'excluded' => $excluded,
+            'caption' => [
+                'label' => (string) $result['axisx_label'],
+                'value' => (string) exmtrans('dashboard.chart_top_n.detail', $this->topN()->n(), $result['top_n']['count']),
+            ],
+        ];
     }
 
     /**
@@ -547,6 +660,109 @@ class ChartItem implements ItemInterface
     }
 
     /**
+     * The 表示件数 of the box menu (`tn` on the request): the chart cut to its N largest points,
+     * the rest grouped into その他 (ChartTopN). Offered on a type read across its categories,
+     * along an X axis that is no date — a month folded into その他 would break the time line —
+     * and grouped into その他 only for a summary that adds up (SUM / COUNT, as drawn).
+     */
+    protected function topN(): ChartTopN
+    {
+        return $this->top_n ?? ($this->top_n = $this->makeTopN([]));
+    }
+
+    /**
+     * The 表示件数 of the chart drawing points labelled $labels: a time line by its labels too
+     * (ChartTopN::isTimeline: a text column of months). ranked() makes it from the drawn points.
+     *
+     * @param array<int, mixed> $labels
+     */
+    protected function makeTopN(array $labels): ChartTopN
+    {
+        return new ChartTopN(
+            ChartTopN::supportsType($this->chart_type) && !$this->xIsDate() && !ChartTopN::isTimeline($labels),
+            $this->isAggregateView() && ChartSummarySwitch::isAdditive($this->summarySwitch()->condition()),
+            $this->params[ChartTopN::PARAM] ?? null
+        );
+    }
+
+    /**
+     * The view columns a point of the rendered type is labelled by: the group columns of an
+     * aggregate view (the X column only of a multi-series chart, its series split the
+     * legend), the X item of a list view. [] for none (the table's label).
+     *
+     * @return array<int, mixed>  CustomViewColumn / CustomViewSummary
+     */
+    protected function xViewColumns(): array
+    {
+        if (is_null($this->custom_view)) {
+            return [];
+        }
+        if ($this->isAggregateView()) {
+            $columns = collect($this->custom_view->custom_view_columns)->values();
+            if (ChartType::isMulti($this->chart_type)) {
+                return $columns->count() >= 2 ? [$columns[$this->multiSeriesXPos($columns)]] : [];
+            }
+            return $columns->all();
+        }
+        $view_column_x = CustomViewSummary::getSummaryViewColumn($this->axis_x);
+        return is_object($view_column_x) ? [$view_column_x] : [];
+    }
+
+    /**
+     * Whether the points run along time: a column labelling them is a date (a date / datetime
+     * column, the created / updated dates, grouped by year, month or day or not).
+     */
+    protected function xIsDate(): bool
+    {
+        foreach ($this->xViewColumns() as $column) {
+            $item = data_get($column, 'column_item');
+            if (is_object($item) && method_exists($item, 'isDate') && $item->isDate()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The 表示件数 submenu of the box menu (⋯); null when the chart cannot be cut, or has no
+     * more points than the fewest it could be cut to (unless it is cut: the pick stays to be
+     * taken back).
+     *
+     * @param mixed $axisx_label  the X axis label of the drawn data
+     * @param mixed $axisy_label  the measure's label of the drawn data
+     * @return array<string, mixed>|null
+     */
+    protected function topNMenu($axisx_label, $axisy_label): ?array
+    {
+        $top_n = $this->topN();
+        if (!$top_n->available() || $this->point_count === null) {
+            return null;
+        }
+        if (!$top_n->active() && $this->point_count <= min(ChartTopN::CHOICES)) {
+            return null;
+        }
+        $choices = ['' => (string) exmtrans('dashboard.chart_top_n.all', $this->point_count)];
+        foreach (ChartTopN::CHOICES as $n) {
+            $choices[(string) $n] = (string) exmtrans('dashboard.chart_top_n.top', $n);
+        }
+        if ($top_n->groupable()) {
+            $other_hint = null;
+        } else {
+            $other_hint = (string) exmtrans($this->isAggregateView() ? 'dashboard.chart_top_n.other_not_additive' : 'dashboard.chart_top_n.other_list_view');
+        }
+        return [
+            'choices' => $choices,
+            'current' => $top_n->active() ? (string) $top_n->n() : '',
+            'label' => $top_n->active() ? $top_n->label() : $choices[''],
+            'applied' => $top_n->applied(),
+            'other' => $top_n->groupable() && $top_n->otherRequested(),
+            'other_hint' => $other_hint,
+            'column' => (string) $axisx_label,
+            'hint' => (string) exmtrans('dashboard.chart_top_n.hint', (string) $axisy_label),
+        ];
+    }
+
+    /**
      * The box's color thresholds (色分けのしきい値), in the units of the measure as the view
      * summarizes it: none when it has none, and none while the chart draws other numbers — the
      * measure summarized by another condition (集計方法: 60 / 75 points mean nothing to a count)
@@ -598,11 +814,11 @@ class ChartItem implements ItemInterface
     protected function boxTitle($axisx_label, $axisy_label): ?string
     {
         $switch = $this->summarySwitch();
-        if (!$switch->switched() && !$this->showAs()->active()) {
+        if (!$switch->switched() && !$this->showAs()->active() && !$this->topN()->active()) {
             return null;
         }
         $title = exmtrans('dashboard.chart_summary.title', (string) $axisx_label, $switch->valueLabel() ?? (string) $axisy_label);
-        return (string) $this->showAs()->decorate($title);
+        return (string) $this->topN()->decorate($this->showAs()->decorate($title));
     }
 
     /**
@@ -731,9 +947,10 @@ class ChartItem implements ItemInterface
     }
 
     /**
-     * The toolbar choices of a box worth remembering, from the request values ct / cs / cd:
+     * The toolbar choices of a box worth remembering, from the request values ct / cs / cd / tn:
      * a chart type that is a legal switch AND differs from the configured one, a well-formed
-     * sort, the known display options. null when nothing is left (= the box setting).
+     * sort, the known display options, a well-formed 表示件数 (kept whether the chart can be cut
+     * now or not, as a sort is). null when nothing is left (= the box setting).
      *
      * @param array<string, mixed> $input
      * @param string|null $configured  the box's configured chart type
@@ -753,6 +970,10 @@ class ChartItem implements ItemInterface
         $display = static::displayOptions($input['cd'] ?? null);
         if (!empty($display)) {
             $state['cd'] = implode(',', $display);
+        }
+        $top_n = ChartTopN::normalize($input[ChartTopN::PARAM] ?? null);
+        if ($top_n !== null) {
+            $state[ChartTopN::PARAM] = $top_n;
         }
         return empty($state) ? null : $state;
     }
@@ -843,8 +1064,8 @@ class ChartItem implements ItemInterface
     }
 
     /**
-     * The toolbar above the chart: [フィルター ▾] [chart type ▾] [⋯] (with 集計方法 ◀ and
-     * 表示方法 ◀ in ⋯); '' when no control applies.
+     * The toolbar above the chart: [フィルター ▾] [chart type ▾] [⋯] (with 表示件数 ◀, 集計方法 ◀
+     * and 表示方法 ◀ in ⋯); '' when no control applies.
      *
      * @param array<int, array<string, mixed>> $fields  chartFilterFields()
      * @param mixed $axisx_label  the X axis label of the drawn data
@@ -877,13 +1098,15 @@ class ChartItem implements ItemInterface
         // the 集計方法 and 表示方法 submenus of the box menu
         $summary = $this->summaryMenu();
         $show_as = $this->showAsMenu();
-        $menu = !empty($sort_fields) || $labels_available || $colors_reset || $summary !== null || $show_as !== null;
+        $top_n = $this->topNMenu($axisx_label, $axisy_label);
+        $menu = !empty($sort_fields) || $labels_available || $colors_reset || $summary !== null || $show_as !== null || $top_n !== null;
         if (empty($types) && empty($fields) && !$menu) {
             return '';
         }
         return view('exment::dashboard.chart.toolbar', [
             'summary' => $summary,
             'show_as' => $show_as,
+            'top_n' => $top_n,
             'title' => $this->boxTitle($axisx_label, $axisy_label),
             'types' => $types,
             // the type picker's preview draws in the box's palette

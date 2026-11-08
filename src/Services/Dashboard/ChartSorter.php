@@ -66,19 +66,33 @@ class ChartSorter
         } else {
             return $result;
         }
+        return static::pickSingle($result, $order);
+    }
 
-        $result['chart_label'] = static::pick($labels, $order);
-        $result['chart_data'] = static::pick($values, $order);
+    /**
+     * A single-series result with its points taken in $order (indexes of the points as they
+     * are): re-ordered, and left out when not listed (ChartTopN keeps the top N). Every list
+     * of the points moves along — labels, values, the X texts and numbers, the colors, the
+     * click-to-filter values, the 明細 keys.
+     *
+     * @param array<string, mixed> $result
+     * @param int[] $order
+     * @return array<string, mixed>
+     */
+    public static function pickSingle(array $result, array $order): array
+    {
+        $result['chart_label'] = static::pick(static::listOf($result['chart_label'] ?? null), $order);
+        $result['chart_data'] = static::pick(static::listOf($result['chart_data'] ?? null), $order);
         if (isset($result['chart_fields'])) {
             $result['chart_fields'] = array_map(function ($column) use ($order) {
-                return static::pick($column, $order);
-            }, $fields);
+                return static::pick(static::listOf($column), $order);
+            }, array_values((array) $result['chart_fields']));
         }
         // each point keeps the color it was given in the view's own order
         if (is_array($result['point_colors'] ?? null)) {
             $result['point_colors'] = static::pick($result['point_colors'], $order);
         }
-        return static::pickClick($result, $order);
+        return static::pickKeys(static::pickClick($result, $order), $order);
     }
 
     /**
@@ -108,12 +122,57 @@ class ChartSorter
         } else {
             return $result;
         }
+        return static::pickMulti($result, $order);
+    }
 
-        $result['x_categories'] = static::pick($categories, $order);
+    /**
+     * A multi-series result with its X categories taken in $order (indexes of the categories
+     * as they are), as pickSingle() takes the points of a single-series one.
+     *
+     * @param array<string, mixed> $result
+     * @param int[] $order
+     * @return array<string, mixed>
+     */
+    public static function pickMulti(array $result, array $order): array
+    {
+        $result['x_categories'] = static::pick(array_values($result['x_categories'] ?? []), $order);
         $result['matrix'] = array_map(function ($row) use ($order) {
             return static::pick(array_values((array) $row), $order);
         }, array_values($result['matrix'] ?? []));
-        return static::pickClick($result, $order);
+        return static::pickKeys(static::pickClick($result, $order), $order);
+    }
+
+    /**
+     * The stored numbers of the numeric X columns (`sort_keys`) taken in $order.
+     *
+     * @param array<string, mixed> $result
+     * @param int[] $order
+     * @return array<string, mixed>
+     */
+    protected static function pickKeys(array $result, array $order): array
+    {
+        if (is_array($result['sort_keys'] ?? null)) {
+            foreach ($result['sort_keys'] as $x => $keys) {
+                if (is_iterable($keys)) {
+                    $result['sort_keys'][$x] = static::pick(static::listOf($keys), $order);
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * The items of a list of a result (an array or a collection), re-indexed; [] for none.
+     *
+     * @param mixed $items
+     * @return array<int, mixed>
+     */
+    public static function listOf($items): array
+    {
+        if ($items instanceof \Illuminate\Support\Collection) {
+            return $items->values()->all();
+        }
+        return is_iterable($items) ? array_values(is_array($items) ? $items : iterator_to_array($items, false)) : [];
     }
 
     /**

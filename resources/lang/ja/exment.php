@@ -814,6 +814,23 @@ return [
             ],
         ],
 
+        // box menu (⋯): 表示件数 ▸, the N largest points only, the rest as その他 (ChartTopN)
+        'chart_top_n' => [
+            'menu' => '表示件数',
+            'heading' => '表示件数（%s）',
+            'all' => 'すべて（%s件）',
+            'top' => '上位%s件',
+            'top_other' => '上位%s件＋その他',
+            'group_rest' => '残りを「その他」にまとめる',
+            'hint' => '値（%s）の大きい順に選びます',
+            'other_not_additive' => '平均・最小・最大は合計できないため、「その他」にはまとめません',
+            'other_list_view' => '一覧ビューのグラフは、「その他」にはまとめません',
+            'other' => 'その他（%s件）',
+            'more' => '…ほか %s 件',
+            'note' => '※ 上位%s件のみ表示（ほか %s 件は非表示）',
+            'detail' => '上位%s件以外（%s件）',
+        ],
+
         // tooltip of a 100% stacked chart: the total of a bar and the value behind a share ({n})
         'chart_full_stack' => [
             'total' => '（計 %s）',

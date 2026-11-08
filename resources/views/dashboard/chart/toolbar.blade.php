@@ -1,17 +1,19 @@
 {{--
     Chart box toolbar: [フィルター ▾] (the box's own chart filter, popover), the box menu [⋯]
-    (sort by a field, 集計方法 ◀ / 表示方法 ◀ submenus, 値ラベル, CSV export, Excel export — the table and
+    (sort by a field, 集計方法 ◀ / 表示件数 ◀ / 表示方法 ◀ submenus, 値ラベル, CSV export, Excel export — the table and
     Excel's own chart, made by DashboardBoxController::excel) and the runtime chart-type switcher. Handlers and styles: public/vendor/exment/js/dashboard.js, css/dashboard.css.
-    The selection is kept by the JS per box and sent as bf_* / ct / cs / cd on the box request; the
-    re-rendered body echoes it back, so state survives every reload. ct / cs / cd are also remembered
+    The selection is kept by the JS per box and sent as bf_* / ct / cs / cd / tn on the box request; the
+    re-rendered body echoes it back, so state survives every reload. ct / cs / cd / tn are also remembered
     per user (DashboardBoxController::chartState); the chart filter (bf_*) is page-lifetime.
 
     $summary       ChartItem::summaryMenu(): the 集計 switch {choices, configured, current, column}
                    (null = none). Sent as `ca`, page-lifetime like bf_*: never remembered
     $show_as       ChartItem::showAsMenu(): the 表示方法 {choices, current, column} (null = none).
                    Sent as `sv`, page-lifetime like `ca`
-    $title         ChartItem::boxTitle(): the box title while 集計方法 / 表示方法 draws the measure
-                   another way (null = the configured title)
+    $top_n         ChartItem::topNMenu(): the 表示件数 {choices, current, label, applied, other,
+                   other_hint, column, hint} (null = none). Sent as `tn`, remembered like `cs`
+    $title         ChartItem::boxTitle(): the box title while 集計方法 / 表示方法 / 表示件数 draws
+                   the measure another way (null = the configured title)
     $types         type => label of the switchable types ([] = no switcher)
     $current_type  the rendered type
     $configured_type  the box's own type: picking it on the switcher drops the remembered choice
@@ -147,14 +149,39 @@
                 </li>
             </ul>
             @endif
+            @if(!empty($top_n))
+            {{-- 表示件数 ◀: the N largest points only, the rest grouped into その他 (ChartTopN) —
+                 opens like the 集計方法 row; a pick applies at once. Remembered per user like the
+                 sort. data-tn-applied echoes what is drawn ('' = every point); the checkbox says
+                 whether a pick groups the rest (disabled where the values do not add up) --}}
+            {{-- one group with the 集計方法 row, under it --}}
+            <ul class="cs-list{{ empty($sort_fields) || !empty($summary) ? '' : ' cs-sep' }}" data-tn-applied="{{ $top_n['applied'] }}">
+                <li class="cs-row ca-row tn-row{{ $top_n['current'] !== '' ? ' ca-on' : '' }}" data-ca-open>
+                    <i class="fa fa-sort-amount-desc"></i><span>{{ exmtrans('dashboard.chart_top_n.menu') }}</span>
+                    <b class="ca-cur">{{ $top_n['label'] }}</b><i class="fa fa-caret-left ca-arrow"></i>
+                    <div class="ca-fly"><div class="ca-fly-in">
+                        <h4>{{ exmtrans('dashboard.chart_top_n.heading', $top_n['column']) }}</h4>
+                        <ul class="cs-list">
+                            @foreach($top_n['choices'] as $n => $label)
+                            <li class="cs-row{{ (string) $n === $top_n['current'] ? ' on' : '' }}" data-tn-pick="{{ $n }}"><i class="fa fa-check"></i><span>{{ $label }}</span></li>
+                            @endforeach
+                        </ul>
+                        <ul class="cs-list cs-sep">
+                            <li class="cs-row tn-other{{ $top_n['other'] ? ' on' : '' }}{{ $top_n['other_hint'] ? ' dis' : '' }}" data-tn-other{!! $top_n['other_hint'] ? ' aria-disabled="true"' : '' !!}><i class="fa tn-box"></i><span>{{ exmtrans('dashboard.chart_top_n.group_rest') }}</span></li>
+                        </ul>
+                        <div class="ca-hint">{{ $top_n['hint'] }}@if($top_n['other_hint'])<br>{{ $top_n['other_hint'] }}@endif</div>
+                    </div></div>
+                </li>
+            </ul>
+            @endif
             @if(!empty($show_as))
             {{-- 表示方法 ◀: the drawn values shown as a share of the total, a running total, a
                  difference from the previous item, for this screen only (ChartShowAs), as Excel's
                  値の表示方法 ▸ — opens like the 集計方法 row. data-sv-applied echoes the way the
                  values are shown ('' = as they are): the JS mirrors it --}}
             @php($show_as_on = $show_as['current'] !== \Exceedone\Exment\Services\Dashboard\ChartShowAs::NONE)
-            {{-- one group with the 集計方法 row, under it --}}
-            <ul class="cs-list{{ empty($sort_fields) || !empty($summary) ? '' : ' cs-sep' }}" data-sv-applied="{{ $show_as_on ? $show_as['current'] : '' }}">
+            {{-- one group with the 集計方法 / 表示件数 rows, under them --}}
+            <ul class="cs-list{{ empty($sort_fields) || !empty($summary) || !empty($top_n) ? '' : ' cs-sep' }}" data-sv-applied="{{ $show_as_on ? $show_as['current'] : '' }}">
                 <li class="cs-row ca-row sv-row{{ $show_as_on ? ' ca-on' : '' }}" data-ca-open>
                     <i class="fa fa-percent"></i><span>{{ exmtrans('dashboard.chart_show_as.menu') }}</span>
                     <b class="ca-cur">{{ $show_as['choices'][$show_as['current']] ?? '' }}</b><i class="fa fa-caret-left ca-arrow"></i>

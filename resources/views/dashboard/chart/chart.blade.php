@@ -19,6 +19,8 @@
         };
         var labels = {!! $chart_labels !!};
         var values = {!! $chart_data !!};
+        // the その他 point of 表示件数 (ChartItem::restTip): {index, count, items, more}, else null
+        var rest = {!! $chart_rest ?? 'null' !!};
         // display option of the box menu (値ラベル), live-toggled through the hook below
         var display = { labels: {{ $chart_labels_on ? 'true' : 'false' }} };
         // switched by the box menu's 集計方法, the tooltip names what the value is (最小値 ： 点数); null otherwise
@@ -155,6 +157,10 @@
                 tooltips: { callbacks: {
                     // the way to the point's rows
                     footer: function () { return detail ? ExmentDashboard.detailHint() : ''; },
+                    // その他 lists the points it groups
+                    afterBody: function (items) {
+                        return (rest && items.length && items[0].index === rest.index) ? ExmentDashboard.restLines(rest) : [];
+                    },
                     label: function (item, data) {
                         var v = data.datasets[item.datasetIndex].data[item.index];
                         @if($chart_type == 'pie')
@@ -218,6 +224,10 @@
         ctx.canvas.addEventListener('contextmenu', function (evt) {
             var el = myChart.getElementAtEvent(evt)[0];
             if (!el) { return; }
+            @if($chart_type != 'line')
+            // その他 is no category of its own to paint
+            if (rest && el._index === rest.index) { return; }
+            @endif
             evt.preventDefault();
             @if($chart_type == 'line')
             ExmentDashboard.colorMenu('{{ $suuid }}', { kind: 'series', key: '', color: base }, evt);

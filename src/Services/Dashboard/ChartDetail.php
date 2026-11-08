@@ -164,6 +164,29 @@ final class ChartDetail
     }
 
     /**
+     * Whether the rows of a point grouping the points left out of a chart (表示件数's その他) can
+     * be listed: a row behind none of the points kept, told apart by group columns $column_ids
+     * (the view column ids labelling a point). Not when the rows listed are a child table's and a
+     * point is told apart by a column of it: one parent row would stand behind kept points and
+     * その他 both.
+     *
+     * @param array<int, mixed> $column_ids
+     */
+    public function supportsRest(array $column_ids): bool
+    {
+        if ($this->relation === null) {
+            return true;
+        }
+        $columns = $this->groupColumns();
+        foreach ($column_ids as $id) {
+            if (!isset($columns[$id]) || $columns[$id]->view_column_table_id == $this->grain->id) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * The point's group values, human-readable: the column's label (the view's name for it)
      * and the value as the chart labels it — 未設定 for a group without a value.
      *
@@ -196,14 +219,16 @@ final class ChartDetail
 
     /**
      * Narrow a query on the listed table to the rows behind the point named by $keys
-     * (keys()).
+     * (keys()) — of the その他 point of 表示件数 when $excluded names the points kept: the rows
+     * behind none of them ($keys then names the series of a cell, or nothing).
      *
      * @param mixed $query  query on $this->table()'s rows (the data grid's model)
      * @param array<int|string, string|int|float|bool|null> $keys
+     * @param array<int, array<int|string, string|int|float|bool|null>>|null $excluded  keys() of the points kept
      */
-    public function apply($query, array $keys): void
+    public function apply($query, array $keys, ?array $excluded = null): void
     {
-        $ids = $this->groupRowIds($keys);
+        $ids = $this->groupRowIds($keys, $excluded ?? []);
         if ($this->relation === null) {
             $query->whereIn(getDBTableName($this->table) . '.id', $ids);
             return;
@@ -240,12 +265,14 @@ final class ChartDetail
      * Ids of the view's table whose rows fall into the point: the view's summary query on the
      * box's rows, grouped by the row id besides its group columns, its groups read back. On
      * the view's table, a row without a value of the measure is left out (its per-row
-     * measure is NULL; a COUNT, 0).
+     * measure is NULL; a COUNT, 0). With $excluded, the rows whose groups are none of the points
+     * it names.
      *
      * @param array<int|string, string|int|float|bool|null> $keys
+     * @param array<int, array<int|string, string|int|float|bool|null>> $excluded
      * @return \Illuminate\Database\Query\Builder
      */
-    private function groupRowIds(array $keys)
+    private function groupRowIds(array $keys, array $excluded = [])
     {
         $db = getDBTableName($this->table);
         $query = ($this->rows)();
@@ -264,6 +291,21 @@ final class ChartDetail
         $columns = $this->groupColumns();
         foreach ($keys as $id => $value) {
             static::whereExpr($ids, \Exment::wrapColumn('chart_detail.' . $columns[$id]->column_item->sqlAsName()), $value);
+        }
+        // a row of none of the points kept: for each, one group value differs from the point's
+        // (NULL-safe: a group without a value is another value than the point's, and the same as
+        // a point's that has none)
+        foreach ($excluded as $point) {
+            $ids->where(function ($differs) use ($point, $columns) {
+                foreach ($point as $id => $value) {
+                    $expr = \Exment::wrapColumn('chart_detail.' . $columns[$id]->column_item->sqlAsName());
+                    if ($value === null) {
+                        $differs->orWhereRaw("$expr IS NOT NULL");
+                    } else {
+                        $differs->orWhereRaw("($expr IS NULL OR $expr <> ?)", [$value]);
+                    }
+                }
+            });
         }
         if ($this->relation === null) {
             $measure = \Exment::wrapColumn('chart_detail.' . $this->measure->column_item->sqlAsName());

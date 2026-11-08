@@ -217,9 +217,11 @@ class DashboardController extends AdminControllerBase
             // the tooltip line of a chart point that lists its rows on a double click (明細)
             'detail_hint' => exmtrans('dashboard.chart_detail.hint'),
             'detail_hint_touch' => exmtrans('dashboard.chart_detail.hint_touch'),
+            // the tooltip of 表示件数's その他: the points it groups beyond the ones it names ({n})
+            'top_n_more' => exmtrans('dashboard.chart_top_n.more', '{n}'),
         ];
         // each chart box starts with the toolbar choices this user left on it
-        // (DashboardBoxController::chartState): box suuid => {ct, cs, cd}
+        // (DashboardBoxController::chartState): box suuid => {ct, cs, cd, tn}
         $charts = Admin::user() ? Admin::user()->getSettingValue('dashboard_chart.' . $this->dashboard->suuid) : null;
         // the bundle is cached by the browser (dashboard.js fetches it with cache: true), so its
         // URL carries the version the way Bootstrap's script list does, and an upgrade is fetched

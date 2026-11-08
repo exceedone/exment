@@ -814,6 +814,23 @@ return [
             ],
         ],
 
+        // box menu (⋯): Items shown ▸, the N largest points only, the rest as Others (ChartTopN)
+        'chart_top_n' => [
+            'menu' => 'Items shown',
+            'heading' => 'Items shown (%s)',
+            'all' => 'All (%s)',
+            'top' => 'Top %s',
+            'top_other' => 'Top %s + Others',
+            'group_rest' => 'Group the rest as "Others"',
+            'hint' => 'Picked by value (%s), largest first',
+            'other_not_additive' => 'An average, minimum or maximum does not add up: the rest is not grouped as "Others"',
+            'other_list_view' => 'A chart of a list view does not group the rest as "Others"',
+            'other' => 'Others (%s)',
+            'more' => '...and %s more',
+            'note' => '* Top %s only (%s more not shown)',
+            'detail' => 'Other than the top %s (%s)',
+        ],
+
         // tooltip of a 100% stacked chart: the total of a bar and the value behind a share ({n})
         'chart_full_stack' => [
             'total' => ' (total %s)',

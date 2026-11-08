@@ -14,7 +14,9 @@ use Exceedone\Exment\Model\System;
  * data/{table}, a JSON object the dashboard sends on a double click —
  *
  *   b  the chart box's suuid
- *   k  the point's keys, {view column id: stored value} (ChartDetail::keys)
+ *   k  the point's keys, {view column id: stored value} (ChartDetail::keys); the その他 point of
+ *      表示件数 is {rest: 1} besides its series' key, if any (the points it leaves out are the
+ *      box's to work out again: ChartItem::restDetail)
  *   q  the box's request params (dashboard.js boxQuery: df_*, bf_*, ct, ...), a query string
  *
  * The box is rebuilt from them as the chart was drawn, so the list holds the rows behind
@@ -36,6 +38,10 @@ final class ChartDetailRequest
     private $keys;
     /** @var array<string, mixed> the box's request params */
     private $params = [];
+    /** @var array<int, array<int|string, string|int|float|bool|null>>|null the points kept, when the point is 表示件数's その他 */
+    private $excluded;
+    /** @var array{label: string, value: string}|null what その他 lists (上位5件以外（13件）) */
+    private $rest_caption;
 
     /**
      * The 明細 the current request lists of $table, or null when it lists none (no param).
@@ -77,12 +83,28 @@ final class ChartDetailRequest
         if ($detail === null || $detail->table()->id != $table->id) {
             return;
         }
-        $keys = $detail->keys($data['k'] ?? null);
+        // the その他 point of 表示件数: named by no keys of its own (the series of its cell at
+        // most) — the points it leaves out are worked out again here, never sent (hundreds)
+        $raw_keys = $data['k'] ?? null;
+        $rest = is_array($raw_keys) && array_key_exists(ChartTopN::REST_KEY, $raw_keys);
+        if ($rest) {
+            unset($raw_keys[ChartTopN::REST_KEY]);
+        }
+        $keys = $rest && $raw_keys === [] ? [] : $detail->keys($raw_keys);
         if ($keys === null) {
             return;
         }
         // the chart filter as the chart was drawn by
         $item->settleFilters();
+        if ($rest) {
+            $rest_detail = $item->restDetail();
+            $excluded = $rest_detail === null ? null : array_map([$detail, 'keys'], $rest_detail['excluded']);
+            if ($excluded === null || in_array(null, $excluded, true)) {
+                return;
+            }
+            $this->excluded = $excluded;
+            $this->rest_caption = $rest_detail['caption'];
+        }
         $this->item = $item;
         $this->detail = $detail;
         $this->keys = $keys;
@@ -104,7 +126,7 @@ final class ChartDetailRequest
     {
         return function ($query) {
             if ($this->detail !== null && $this->keys !== null) {
-                $this->detail->apply($query, $this->keys);
+                $this->detail->apply($query, $this->keys, $this->excluded);
             } else {
                 $query->whereNotMatch();
             }
@@ -133,7 +155,8 @@ final class ChartDetailRequest
             return [];
         }
         $out = [];
-        foreach (array_merge($this->detail->captions($this->keys), $this->item->filterCaptions()) as $caption) {
+        $rest = $this->rest_caption === null ? [] : [$this->rest_caption];
+        foreach (array_merge($rest, $this->detail->captions($this->keys), $this->item->filterCaptions()) as $caption) {
             $out[$caption['label'] . "\0" . $caption['value']] = $caption;
         }
         return array_values($out);

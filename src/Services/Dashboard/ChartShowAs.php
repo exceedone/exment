@@ -161,6 +161,14 @@ final class ChartShowAs
     }
 
     /**
+     * Whether the shown values are differences from the previous item (as a number or a percent).
+     */
+    public function isDifference(): bool
+    {
+        return in_array($this->picked, [self::DIFFERENCE, self::PERCENT_DIFFERENCE], true);
+    }
+
+    /**
      * The name of a way: 総計に対する比率, 累計, …
      */
     public static function label(string $show_as): string

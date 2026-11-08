@@ -12,6 +12,7 @@
  *   cd                    display option 値ラベル ("labels"; per box; remembered per user)
  *   ca                    summary condition of the measure, 集計 menu (page-lifetime, per box)
  *   sv                    the values shown as % of total / running total / difference, 表示方法 menu (page-lifetime, per box)
+ *   tn                    the top N points only ("5" / "5:other": the rest as その他), 表示件数 menu (per box; remembered per user)
  *   bf_{column}           chart filter selection (page-lifetime, per box)
  *
  * A filter bar change is applied selectively (see `navigate`): push a history entry for
@@ -31,7 +32,7 @@
     var NS = '.exdash';
     var L = {};      // texts
     var A = {};      // asset base URLs (init's options.assets)
-    var state = {};  // suuid => {ct: type, cs: sort, cd: "labels", ca: summary condition, sv: show values as, bf: {column: [values] | {from, to}}, reopen: true}
+    var state = {};  // suuid => {ct: type, cs: sort, cd: "labels", ca: summary condition, sv: show values as, tn: top N, bf: {column: [values] | {from, to}}, reopen: true}
     var saving = {}; // suuid => true while its toolbar choices are being saved, 'again' when they changed meanwhile
     var pagePath = ''; // path of the dashboard page, set by init: a pjax link pushes its own URL before it renders
 
@@ -39,7 +40,7 @@
     function boxOf(suuid) { return $('[data-suuid="' + suuid + '"]'); }
     function stateOf(suuid) { return state[suuid] || (state[suuid] = {}); }
 
-    // The toolbar choices (chart type, sort, display) survive the visit per user, on the server
+    // The toolbar choices (chart type, sort, display, 表示件数) survive the visit per user, on the server
     // (DashboardBoxController::chartState): the next entry starts the box with them (init's
     // options.charts). One save per box at a time, the last one carrying the latest choices, so
     // quick changes can never land out of order. A stale value is harmless — the server falls
@@ -52,7 +53,7 @@
             url: admin_url('dashboardbox/chart_state/' + suuid),
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || '' },
-            data: { ct: s.ct || '', cs: s.cs || '', cd: s.cd || '' }
+            data: { ct: s.ct || '', cs: s.cs || '', cd: s.cd || '', tn: s.tn || '' }
         }).always(function () {
             var again = saving[suuid] === 'again';
             delete saving[suuid];
@@ -89,6 +90,7 @@
         if (s.cd) { out.push('cd=' + encodeURIComponent(s.cd)); }
         if (s.ca) { out.push('ca=' + encodeURIComponent(s.ca)); }
         if (s.sv) { out.push('sv=' + encodeURIComponent(s.sv)); }
+        if (s.tn) { out.push('tn=' + encodeURIComponent(s.tn)); }
         $.each(s.bf || {}, function (column, v) {
             var key = 'bf_' + encodeURIComponent(column);
             if ($.isArray(v)) {
@@ -445,6 +447,41 @@
         if (!suuid) { return; }
         if (sv) { stateOf(suuid).sv = sv; } else { delete stateOf(suuid).sv; }
         loadBox(suuid);
+    }
+
+    // 表示件数: the top N points only, the rest grouped into その他 or left out (ChartTopN). Remembered
+    // per user like the sort; すべて, the title's × or the menu's リセット draws every point again.
+    function applyTopN(suuid, tn) {
+        if (!suuid) { return; }
+        if (tn) { stateOf(suuid).tn = tn; } else { delete stateOf(suuid).tn; }
+        saveToolbar(suuid);
+        loadBox(suuid);
+    }
+
+    // the 表示件数 picked in the submenu of $row's menu: "5" / "5:other" as its checkbox says, '' = すべて
+    function topNOf($fly, n) {
+        if (!n) { return ''; }
+        var $other = $fly.find('[data-tn-other]');
+        return n + ($other.hasClass('on') && !$other.hasClass('dis') ? ':other' : '');
+    }
+
+    // The tooltip of その他 (ChartItem::restTip {index, count, items [[label, value]], more}): the
+    // points it groups, largest first, as lines of text (Chart.js) or HTML (ECharts)
+    function restNumber(v) {
+        return (v == null || isNaN(v)) ? '-' : Number(v).toLocaleString(undefined, { maximumFractionDigits: 10 });
+    }
+    function restLines(rest) {
+        var lines = ['──────────'];
+        $.each(rest.items || [], function (i, item) { lines.push(String(item[0]) + ': ' + restNumber(item[1])); });
+        if (rest.more > 0) { lines.push(String(L.top_n_more || '').replace('{n}', rest.more)); }
+        return lines;
+    }
+    function restTip(rest) {
+        var rows = $.map(rest.items || [], function (item) {
+            return '<div style="display:flex;justify-content:space-between;gap:18px;"><span>' + esc(item[0]) + '</span><b>' + esc(restNumber(item[1])) + '</b></div>';
+        }).join('');
+        if (rest.more > 0) { rows += '<div style="color:#8a8a8a;">' + esc(String(L.top_n_more || '').replace('{n}', rest.more)) + '</div>'; }
+        return '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e6e6ee;font-size:12px;line-height:1.6;">' + rows + '</div>';
     }
 
     // The box menu's 集計方法 row opens its submenu beside the menu, as Excel's 値の集計方法 ▸:
@@ -1327,10 +1364,30 @@
             if ($row.hasClass('on')) { return; }
             applyShowAs($row.closest('[data-suuid]').data('suuid'), sv === 'none' ? '' : sv);
         });
-        // the title's ×: back to what the view draws, its summary type and its plain values
+        // 表示件数: a number applies at once (すべて drops it)
+        $(document).on('click' + NS, '[data-tn-pick]', function () {
+            var $row = $(this), $fly = $row.closest('.ca-fly-in');
+            closePops();
+            if ($row.hasClass('on')) { return; }
+            applyTopN($row.closest('[data-suuid]').data('suuid'), topNOf($fly, String($row.data('tnPick') || '')));
+        });
+        // its checkbox: redraws a chart cut to its top N, else waits for a number to be picked
+        $(document).on('click' + NS, '[data-tn-other]', function () {
+            var $row = $(this), $fly = $row.closest('.ca-fly-in');
+            if ($row.hasClass('dis')) { return; }
+            $row.toggleClass('on');
+            var n = String($fly.find('[data-tn-pick].on').data('tnPick') || '');
+            if (!n) { return; }
+            closePops();
+            applyTopN($row.closest('[data-suuid]').data('suuid'), topNOf($fly, n));
+        });
+        // the title's ×: back to what the view draws, its summary type, its plain values and every point
         $(document).on('click' + NS, '[data-ca-reset]', function () {
             var suuid = $(this).closest('[data-suuid]').data('suuid');
-            if (suuid) { delete stateOf(suuid).sv; }
+            if (suuid) {
+                delete stateOf(suuid).sv;
+                if (stateOf(suuid).tn) { delete stateOf(suuid).tn; saveToolbar(suuid); }
+            }
             applySummary(suuid, '');
         });
         $(document).on('click' + NS, '[data-cd-toggle]', function () {
@@ -1360,9 +1417,10 @@
         $(document).on('click' + NS, '.exment-cs-reset', function () {
             var suuid = $(this).closest('[data-suuid]').data('suuid');
             delete stateOf(suuid).cd;
-            // the menu's 集計方法 and 表示方法 too: back to the view's setting
+            // the menu's 集計方法, 表示方法 and 表示件数 too: back to the view's setting
             delete stateOf(suuid).ca;
             delete stateOf(suuid).sv;
+            delete stateOf(suuid).tn;
             applySort(suuid, '');
         });
         $(document).on('change' + NS, '.exment-bf-check', function () { reloadFromToolbar($(this), false); });
@@ -1396,11 +1454,11 @@
             initFilterBar();
             var $boxes = $('[data-suuid]');
             $boxes.parents('.row').addClass('row-eq-height row-dashboard');
-            var charts = (options && options.charts) || {}; // suuid => {ct, cs, cd} remembered for this user
+            var charts = (options && options.charts) || {}; // suuid => {ct, cs, cd, tn} remembered for this user
             $boxes.each(function () {
                 var suuid = $(this).data('suuid'), saved = suuid ? charts[suuid] : null;
                 if (saved) {
-                    $.each(['ct', 'cs', 'cd'], function (i, k) {
+                    $.each(['ct', 'cs', 'cd', 'tn'], function (i, k) {
                         if (saved[k] && !stateOf(suuid)[k]) { stateOf(suuid)[k] = saved[k]; }
                     });
                 }
@@ -1412,6 +1470,8 @@
         pointClick: pointClick,
         openDetail: openDetail,
         detailHint: detailHint,
+        restTip: restTip,
+        restLines: restLines,
         colorMenu: colorMenu,
         withECharts: withECharts,
         chartError: chartError
