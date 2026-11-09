@@ -882,6 +882,20 @@ return [
             ],
         ],
 
+        // the target line of a chart box (box form + chart): ChartTarget
+        'chart_target' => [
+            'header' => 'Target line',
+            'value' => 'Value',
+            'help' => 'Draws a dashed line at the target on the chart. Enter it in the units of the view\'s summary type (not drawn while the summary type or the way values are shown is switched on the dashboard). Leave it empty for no line.',
+            'label' => 'Label',
+            'label_placeholder' => 'e.g. Pass line (default: "Target")',
+            'color' => 'Color',
+            'below' => 'Bars below',
+            'below_option' => 'Draw the bars below the target in the line\'s color',
+            'below_help' => 'Bar and horizontal bar charts (one series) only. The "Others" bar is not colored.',
+            'default_name' => 'Target',
+            'diff' => ' (gap %s)',
+        ],
         // a double click on a chart point lists the rows behind it (ChartDetail)
         'chart_detail' => [
             'title' => 'Details of "%s"',
@@ -913,6 +927,7 @@ return [
             'table_only' => 'Excel has no "%s" chart, so only the table is exported.',
             'heatmap_rules' => 'Color thresholds: %s (conditional formatting)',
             'heatmap_plain' => 'No color thresholds are set, so the cells are not colored.',
+            'target_column_only' => 'Excel draws no target line across a horizontal bar chart: "%s" is output as a column of the table only.',
             'failed' => 'Failed to export to Excel.',
         ],
 

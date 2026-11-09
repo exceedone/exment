@@ -83,6 +83,9 @@
             : plain;
         // a stack of calculated values (表示方法 on the stacked bar) is labelled with its total on top
         var stackTotal = {{ !empty($chart_stack_total) ? 'true' : 'false' }};
+        // the target line (目標線, ChartItem::targetPayload): {value, name, text, diff, color}, else
+        // null — across the grouped / stacked bars and lines, a stack's total read against it
+        var target = {!! $chart_target ?? 'null' !!};
 
         function hierarchy() {
             return seriesNames.map(function (name, i) {
@@ -204,6 +207,7 @@
             }
         }
         if (fullStack) { tellTheShares(); } else if (valueName) { nameTheValues(); }
+        if (target && cartesian && !fullStack) { drawTheTarget(); }
         if (rest) { listTheRest(); }
         if (drillable) { hintTheDetail(); }
 
@@ -339,6 +343,20 @@
             } else if (type === 'boxplot') {
                 option.series[0].name = valueName;
             }
+        }
+
+        // The target line, as Excel's combo chart draws a column of the target: dashed across the
+        // plot at the target, named right of it in the room the grid leaves there, on a series of
+        // its own — no data, out of the legend (legend.data), the tooltip and the clicks — so that
+        // hiding a series keeps it; the value axis reaches it; the tooltip names it.
+        function drawTheTarget() {
+            ExmentDashboard.chartTargetAxis(option.yAxis, target.value);
+            option.series.push({ name: '', type: 'line', data: [], silent: true, tooltip: { show: false }, markLine: ExmentDashboard.chartTargetLine(target, false) });
+            option.grid.right = Math.max(Math.round((el.clientWidth || 0) * 0.05), ExmentDashboard.chartTargetRoom(target));
+            var base = option.tooltip.formatter;
+            option.tooltip.formatter = function (p) {
+                return (typeof base === 'function' ? base(p) : plainTip(p)) + '<br>' + esc(ExmentDashboard.chartTargetTip(target, null, fmt));
+            };
         }
 
         // A tooltip as the type's own tooltip option writes it, for one without a formatter.

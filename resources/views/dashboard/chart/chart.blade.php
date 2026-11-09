@@ -21,6 +21,11 @@
         var values = {!! $chart_data !!};
         // the その他 point of 表示件数 (ChartItem::restTip): {index, count, items, more}, else null
         var rest = {!! $chart_rest ?? 'null' !!};
+        // the target line (目標線, ChartItem::targetPayload): {value, name, text, diff, color, below[]
+        // the bars drawn in its color}, else null
+        var target = {!! $chart_target ?? 'null' !!};
+        var below = {};
+        (target ? target.below : []).forEach(function (i) { below[i] = true; });
         // display option of the box menu (値ラベル), live-toggled through the hook below
         var display = { labels: {{ $chart_labels_on ? 'true' : 'false' }} };
         // switched by the box menu's 集計方法, the tooltip names what the value is (最小値 ： 点数); null otherwise
@@ -68,7 +73,8 @@
         var base = {!! $chart_color !!};
         var baseOf = function (i) { return $.isArray(base) ? base[i % base.length] : base; };
         var paint = function (i) {
-            var color = baseOf(i);
+            // a bar under the target in the line's color (its own stays for the color menu)
+            var color = below[i] ? target.color : baseOf(i);
             return faded(i) ? fade(color, 0.18) : color;
         };
         var pointColors = function () { return values.map(function (v, i) { return paint(i); }); };
@@ -117,7 +123,55 @@
             }
         };
 
-        var myChart = new Chart(ctx, {
+        // The target line, as Excel's combo chart draws a column of the target: dashed across the
+        // plot at the target, named right of the plot (its name over its value) in the room the
+        // layout leaves there; the value axis reaches it, the tooltip tells a point's gap to it.
+        var TARGET_FONT = '600 11px sans-serif', TARGET_LINE_H = 13, TARGET_GAP = 6;
+        var targetLines = target ? [String(target.name), String(target.text)] : [];
+        var targetPlugin = {
+            afterDatasetsDraw: function (chart) {
+                var c = chart.chart.ctx, area = chart.chartArea, scale = null;
+                $.each(chart.scales || {}, function (id, s) { if (!s.isHorizontal()) { scale = s; return false; } });
+                if (!scale || !area) { return; }
+                var y = scale.getPixelForValue(target.value);
+                c.save();
+                c.strokeStyle = target.color;
+                c.lineWidth = 2;
+                c.setLineDash([6, 4]);
+                c.beginPath();
+                c.moveTo(area.left, y);
+                c.lineTo(area.right, y);
+                c.stroke();
+                c.setLineDash([]);
+                c.font = TARGET_FONT;
+                c.fillStyle = target.color;
+                c.textAlign = 'left';
+                c.textBaseline = 'middle';
+                // centred on the line, kept inside the canvas at its edges
+                var half = TARGET_LINE_H * targetLines.length / 2;
+                var top = Math.min(Math.max(y - half, 0), chart.height - 2 * half);
+                targetLines.forEach(function (t, k) { c.fillText(t, area.right + TARGET_GAP, top + TARGET_LINE_H * (k + 0.5)); });
+                c.restore();
+            }
+        };
+        function withTarget(config) {
+            var ticks = config.options.scales.yAxes[0].ticks;
+            // the axis reaches the target (suggested: the data's own range still widens it)
+            ticks.suggestedMin = target.value;
+            ticks.suggestedMax = target.value;
+            var measure = document.createElement('canvas').getContext('2d');
+            measure.font = TARGET_FONT;
+            var room = Math.max.apply(null, targetLines.map(function (t) { return measure.measureText(t).width; }));
+            config.options.layout.padding.right = Math.ceil(room) + TARGET_GAP + 4;
+            // under the value labels, which are drawn over it
+            config.plugins.unshift(targetPlugin);
+            // the gap of the point to the target: 合格ライン: 60（差 -3）
+            config.options.tooltips.callbacks.afterLabel = function (item, data) {
+                return ExmentDashboard.chartTargetTip(target, num(data.datasets[item.datasetIndex].data[item.index]), fmt);
+            };
+        }
+
+        var config = {
             type: '{{ $chart_type }}',
             data: {
                 labels: labels,
@@ -217,7 +271,9 @@
                 },
                 @endif
             }
-        });
+        };
+        if (target) { withTarget(config); }
+        var myChart = new Chart(ctx, config);
 
         @if(!empty($chart_color_edit))
         // paint a color (dashboard editors): right-click a bar / slice; a line is one series

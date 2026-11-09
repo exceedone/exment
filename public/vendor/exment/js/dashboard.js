@@ -484,6 +484,55 @@
         return '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e6e6ee;font-size:12px;line-height:1.6;">' + rows + '</div>';
     }
 
+    // The target line of a chart (目標線, ChartItem::targetPayload {value, name, text, diff, color}),
+    // for the ECharts types: the dashed line (a markLine) named at its end — over its value right
+    // of a horizontal line, beside it above a vertical one —, the room right of the plot for that
+    // name, the value axis reaching it, a tooltip's line of the gap of a point to it.
+    var TARGET_FONT = 'bold 11px sans-serif';
+    var targetCtx = null;
+    function targetWidth(text) {
+        targetCtx = targetCtx || document.createElement('canvas').getContext('2d');
+        targetCtx.font = TARGET_FONT;
+        return targetCtx.measureText(String(text)).width;
+    }
+    function chartTargetLine(target, vertical) {
+        var name = String(target.name), text = String(target.text);
+        return {
+            silent: true, symbol: 'none', animation: false,
+            lineStyle: { color: target.color, type: [6, 4], width: 2 },
+            // a function: a name holding "{b}" is no template. The vertical line runs down the horizontal
+            // bar, whose first category is on top (an inverse axis): it starts at the top, named there
+            label: { show: true, position: vertical ? 'start' : 'end', distance: 6, color: target.color, fontWeight: 'bold', fontSize: 11, lineHeight: 13,
+                formatter: function () { return vertical ? name + ' ' + text : name + '\n' + text; } },
+            emphasis: { disabled: true },
+            data: [vertical ? { xAxis: target.value } : { yAxis: target.value }]
+        };
+    }
+    function chartTargetRoom(target) {
+        return Math.ceil(Math.max(targetWidth(target.name), targetWidth(target.text))) + 14;
+    }
+    // ECharts' axis spans 0 and the data (a line drawn past it is not counted): past both, the
+    // axis ends on a round step beyond the target (1, 2, 3, 5 × 10^n, as ECharts' own steps), a
+    // step further when it would end on the target itself, which would lie on the frame
+    function chartTargetAxis(axis, value) {
+        var end = function (from, to) {
+            var span = Math.abs(to - from);
+            if (!span) { return to; }
+            var raw = span / 5, mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / mag;
+            var step = (f < 1.5 ? 1 : f < 2.5 ? 2 : f < 4 ? 3 : f < 7 ? 5 : 10) * mag, dir = to > from ? 1 : -1;
+            var n = dir > 0 ? Math.ceil(to / step) : Math.floor(to / step);
+            if (n * step === to) { n += dir; }
+            return Number((n * step).toPrecision(12));
+        };
+        axis.max = function (e) { return value > Math.max(e.max, 0) ? end(Math.min(e.min, 0), value) : null; };
+        axis.min = function (e) { return value < Math.min(e.min, 0) ? end(Math.max(e.max, 0), value) : null; };
+    }
+    // 合格ライン: 60（差 -3）; without a value, the target only
+    function chartTargetTip(target, v, fmt) {
+        var d = (v == null || v === '' || isNaN(v)) ? null : Math.round((Number(v) - target.value) * 1e10) / 1e10;
+        return String(target.name) + ': ' + String(target.text) + (d === null ? '' : String(target.diff).replace('{d}', (d > 0 ? '+' : '') + fmt(d)));
+    }
+
     // The box menu's 集計方法 row opens its submenu beside the menu, as Excel's 値の集計方法 ▸:
     // to the left, the ⋯ button sitting at the box's right edge, else to the right, else (a
     // narrow screen) under the row. Like the type picker, it hangs out of the box's scrolled
@@ -1472,6 +1521,10 @@
         detailHint: detailHint,
         restTip: restTip,
         restLines: restLines,
+        chartTargetLine: chartTargetLine,
+        chartTargetRoom: chartTargetRoom,
+        chartTargetAxis: chartTargetAxis,
+        chartTargetTip: chartTargetTip,
         colorMenu: colorMenu,
         withECharts: withECharts,
         chartError: chartError
@@ -1642,8 +1695,15 @@ window.ExmentChartThresholdForm = (function ($) {
     var opt = {};
 
     function root() { return '#has-many-table-' + opt.table; }
+    // a color picked out of the table too (opt.single: its input, the 目標線's): its form group
+    // stands for a row
+    var SINGLE = '.th-single';
+    // $(sel(' .th-btn')): the table's and the single fields' alike
+    function sel(sub) { return root() + sub + ', ' + SINGLE + sub; }
+    function rowOf(el) { return $(el).closest('tr, ' + SINGLE); }
+    var INPUT = 'input.color, input.th-color';
     function label(key) { return (opt.labels || {})[key] || ''; }
-    function colorOf(tr) { return $.trim(String(tr.find('input.color').val() || '')).toLowerCase(); }
+    function colorOf(tr) { return $.trim(String(tr.find(INPUT).val() || '')).toLowerCase(); }
     // #rrggbb as typed into the panel: the # may be left out
     function typed(v) { v = $.trim(String(v || '')).toLowerCase(); return /^[0-9a-f]{6}$/.test(v) ? '#' + v : v; }
 
@@ -1655,7 +1715,7 @@ window.ExmentChartThresholdForm = (function ($) {
 
     // a row's button and panel (once); the text input stays, hidden, as what is posted
     function decorate(tr) {
-        var input = tr.find('input.color');
+        var input = tr.find(INPUT).first();
         if (input.length && !tr.find('.th-picker').length) {
             var group = input.closest('.input-group');
             (group.length ? group : input).addClass('th-source');
@@ -1706,12 +1766,12 @@ window.ExmentChartThresholdForm = (function ($) {
     }
 
     function pick(tr, color) {
-        tr.find('input.color').val(color).trigger('change');
+        tr.find(INPUT).val(color).trigger('change');
     }
 
     // ---- the panel ----
     function picker(el) { return $(el).closest('.th-picker'); }
-    function openOne() { return $(root() + ' .th-picker.open'); }
+    function openOne() { return $(sel(' .th-picker.open')); }
 
     // under its button, or above it when the window has no room below and more above
     function place(p) {
@@ -1743,7 +1803,7 @@ window.ExmentChartThresholdForm = (function ($) {
         if (focus) { p.find('.th-btn').trigger('focus'); }
     }
 
-    function decorateAll() { $(root() + ' tbody tr').each(function () { decorate($(this)); }); }
+    function decorateAll() { $(root() + ' tbody tr, ' + SINGLE).each(function () { decorate($(this)); }); }
 
     // the open panel follows its button as the page (or a box in it) scrolls
     function follow() { openOne().each(function () { place($(this)); }); }
@@ -1754,44 +1814,45 @@ window.ExmentChartThresholdForm = (function ($) {
             $(document).off(NS);
             $(window).off(NS);
             document.removeEventListener('scroll', follow, true);
+            if (opt.single) { $(opt.single).addClass('th-color').closest('.form-group').addClass(SINGLE.slice(1)); }
             decorateAll();
             // a "+ new" row
             $(root()).off(NS).on('admin_hasmany_row_change' + NS, decorateAll);
             $(document).on('change' + NS, root() + ' select.condition', function () { sync($(this).closest('tr')); });
-            $(document).on('change' + NS + ' input' + NS, root() + ' input.color', function () { sync($(this).closest('tr')); });
+            $(document).on('change' + NS + ' input' + NS, root() + ' input.color, ' + SINGLE + ' input.th-color', function () { sync(rowOf(this)); });
 
-            $(document).on('click' + NS, root() + ' .th-btn', function () {
+            $(document).on('click' + NS, sel(' .th-btn'), function () {
                 var p = picker(this);
                 if (p.hasClass('open')) { close(p, false); } else { open(p); }
             });
-            $(document).on('click' + NS, root() + ' .th-chip', function () {
-                pick($(this).closest('tr'), String($(this).data('color')));
+            $(document).on('click' + NS, sel(' .th-chip'), function () {
+                pick(rowOf(this), String($(this).data('color')));
                 close(picker(this), true);
             });
             // the browser's picker: the color as it moves, closed with it
-            $(document).on('input' + NS, root() + ' .th-rainbow input', function () {
-                pick($(this).closest('tr'), String(this.value).toLowerCase());
+            $(document).on('input' + NS, sel(' .th-rainbow input'), function () {
+                pick(rowOf(this), String(this.value).toLowerCase());
             });
-            $(document).on('change' + NS, root() + ' .th-rainbow input', function () {
-                pick($(this).closest('tr'), String(this.value).toLowerCase());
+            $(document).on('change' + NS, sel(' .th-rainbow input'), function () {
+                pick(rowOf(this), String(this.value).toLowerCase());
                 close(picker(this), true);
             });
             // #rrggbb typed: a whole color as it is typed, anything else when it is left (the
             // save reports it); Enter takes it and closes, without submitting the form
-            $(document).on('input' + NS, root() + ' .th-hex', function () {
+            $(document).on('input' + NS, sel(' .th-hex'), function () {
                 var v = typed(this.value);
-                if (HEX.test(v)) { pick($(this).closest('tr'), v); }
+                if (HEX.test(v)) { pick(rowOf(this), v); }
             });
-            $(document).on('change' + NS, root() + ' .th-hex', function () {
-                pick($(this).closest('tr'), typed(this.value));
+            $(document).on('change' + NS, sel(' .th-hex'), function () {
+                pick(rowOf(this), typed(this.value));
             });
-            $(document).on('keydown' + NS, root() + ' .th-hex', function (e) {
+            $(document).on('keydown' + NS, sel(' .th-hex'), function (e) {
                 if (e.key !== 'Enter') { return; }
                 e.preventDefault();
-                pick($(this).closest('tr'), typed(this.value));
+                pick(rowOf(this), typed(this.value));
                 close(picker(this), true);
             });
-            $(document).on('keydown' + NS, root() + ' .th-picker', function (e) {
+            $(document).on('keydown' + NS, sel(' .th-picker'), function (e) {
                 if (e.key === 'Escape') {
                     if (!$(this).hasClass('open')) { return; }
                     e.preventDefault();
@@ -1807,7 +1868,7 @@ window.ExmentChartThresholdForm = (function ($) {
                 }
             });
             // Tab out of the panel (to the next cell) closes it
-            $(document).on('focusout' + NS, root() + ' .th-picker', function (e) {
+            $(document).on('focusout' + NS, sel(' .th-picker'), function (e) {
                 var p = $(this);
                 if (e.relatedTarget && !$.contains(this, e.relatedTarget)) { close(p, false); }
             });

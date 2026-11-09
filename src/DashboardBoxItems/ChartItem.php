@@ -23,10 +23,12 @@ use Exceedone\Exment\Services\Dashboard\ChartShowAs;
 use Exceedone\Exment\Services\Dashboard\ChartSort;
 use Exceedone\Exment\Services\Dashboard\ChartSorter;
 use Exceedone\Exment\Services\Dashboard\ChartSummarySwitch;
+use Exceedone\Exment\Services\Dashboard\ChartTarget;
 use Exceedone\Exment\Services\Dashboard\ChartThresholds;
 use Exceedone\Exment\Services\Dashboard\ChartTopN;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Exceedone\Exment\Services\Dashboard\FilterValue;
+use Exceedone\Exment\Validator\ChartTargetRule;
 use Exceedone\Exment\Validator\ChartThresholdRule;
 
 /**
@@ -224,6 +226,8 @@ class ChartItem implements ItemInterface
             'chart_percent' => $this->showAs()->isPercent() || ChartType::isFullStacked($this->chart_type),
             // the その他 point of 表示件数 (ChartTopN): its index and the points in it, for its tooltip
             'chart_rest' => json_encode($this->restTip($result), static::JSON_FLAGS),
+            // the target line (目標線) and the bars under it: null when the chart draws none
+            'chart_target' => json_encode($this->targetPayload($result), static::JSON_FLAGS),
         ] + $this->valueNames($result);
 
         if (ChartType::isMulti($this->chart_type)) {
@@ -297,6 +301,37 @@ class ChartItem implements ItemInterface
         }
         unset($rest['excluded']);
         return $rest;
+    }
+
+    /**
+     * The box's target line (目標線, ChartTarget), in the units of the measure as the view
+     * summarizes it: none when it has none, on a type it is not drawn on, and while the chart
+     * draws other numbers — the measure summarized by another condition (集計方法: a target of 60
+     * points means nothing to a count) or shown another way (表示方法) — as the thresholds.
+     */
+    protected function target(): ?ChartTarget
+    {
+        if (!ChartTarget::supportsType($this->chart_type) || $this->summarySwitch()->switched() || $this->showAs()->active()) {
+            return null;
+        }
+        return ChartTarget::fromOptions(array_get($this->dashboard_box, 'options'));
+    }
+
+    /**
+     * What the chart draws the target line by (ChartTarget::payload): the bars under it on a
+     * single series of bars when the box asks for them, その他 never one; null without a line.
+     *
+     * @param array<string, mixed> $result  drawnData()
+     * @return array<string, mixed>|null
+     */
+    protected function targetPayload(array $result): ?array
+    {
+        $target = $this->target();
+        if ($target === null) {
+            return null;
+        }
+        $values = ChartTarget::supportsBelow($this->chart_type) ? ($result['chart_data'] ?? null) : null;
+        return $target->payload(is_iterable($values) ? $values : null, $result['top_n']['index'] ?? null);
     }
 
     /**
@@ -447,7 +482,8 @@ class ChartItem implements ItemInterface
      * `matrix` holds a row per series, a cell per category, as drawn: the 表示方法's values
      * (percents when `percent`, 32.4 = 32.4%); a 100% stacked type's own numbers, whose shares
      * the Excel chart draws itself. `adds_up`: the values may be summed (a SUM / COUNT measure
-     * shown as it is). `point_colors`: per category, for the types that paint each point.
+     * shown as it is). `point_colors`: per category, for the types that paint each point (a bar
+     * under the target in its color). `target`: the target line {value, name, color}, or null.
      *
      * @return array<string, mixed>|string|null
      */
@@ -483,6 +519,13 @@ class ChartItem implements ItemInterface
             $colors = [$this->singleSeriesPalette()[0]];
             $point_colors = $one_color ? null : $result['point_colors'];
         }
+        // the target line: its column and line (ChartExcel), the bars under it in its color as drawn
+        $target = $this->targetPayload($result);
+        if ($target !== null && is_array($point_colors)) {
+            foreach ($target['below'] as $i) {
+                $point_colors[$i] = $target['color'];
+            }
+        }
 
         return [
             'type' => $type,
@@ -505,6 +548,7 @@ class ChartItem implements ItemInterface
             'labels' => ChartType::supportsDataLabels($type) && in_array('labels', $this->chart_display, true),
             'legend' => in_array(ChartOptionType::LEGEND, $this->chart_options),
             'thresholds' => $type === ChartType::HEATMAP ? $this->thresholds() : null,
+            'target' => $target === null ? null : ['value' => $target['value'], 'name' => $target['name'], 'color' => $target['color']],
         ];
     }
 
@@ -1726,15 +1770,44 @@ class ChartItem implements ItemInterface
                 2 => exmtrans("dashboard.dashboard_box_options.chart_begin_zero")])
         ;
 
+        // 目標線 (ChartTarget): shown for the types the line is drawn on (the script below)
+        $form->exmheader(exmtrans('dashboard.chart_target.header'))->hr()
+            ->attribute(['data-chart-target' => 'header']);
+        // a number input, short as one: any decimal or negative number (step any); not the number
+        // field, whose +/- buttons count in whole numbers and whose keys refuse "." and "-"
+        $form->text(ChartTarget::VALUE, exmtrans('dashboard.chart_target.value'))
+            ->prepend('')
+            ->attribute(['type' => 'number', 'step' => 'any', 'inputmode' => 'decimal', 'style' => 'flex: 0 0 160px; width: 160px'])
+            ->rules([new ChartTargetRule(ChartTarget::VALUE)])
+            ->help(exmtrans('dashboard.chart_target.help'));
+        $form->text(ChartTarget::LABEL, exmtrans('dashboard.chart_target.label'))
+            ->attribute(['maxlength' => ChartTarget::LABEL_MAX, 'placeholder' => exmtrans('dashboard.chart_target.label_placeholder')])
+            ->rules([new ChartTargetRule(ChartTarget::LABEL)]);
+        // #rrggbb, hidden behind a button that picks it, as a threshold's color (dashboard.js
+        // ExmentChartThresholdForm, set up by setAdminExtraFields)
+        $form->text(ChartTarget::COLOR, exmtrans('dashboard.chart_target.color'))
+            ->default(ChartTarget::DEFAULT_COLOR)
+            ->attribute(['maxlength' => 7, 'placeholder' => '#rrggbb'])
+            ->rules([new ChartTargetRule(ChartTarget::COLOR)]);
+        $form->checkboxone(ChartTarget::BELOW, exmtrans('dashboard.chart_target.below'))
+            ->option(['1' => exmtrans('dashboard.chart_target.below_option')])
+            ->help(exmtrans('dashboard.chart_target.below_help'));
+
         $legendTypes = json_encode(ChartType::legendTypes());
         $axisTypes = json_encode(ChartType::axisOptionTypes());
         $multiTypes = json_encode(ChartType::multiTypes());
         $thresholdsTable = ChartThresholds::OPTION;
         $heatmap = ChartType::HEATMAP;
+        $targetTypes = json_encode(array_values(array_filter(ChartType::arrays(), [ChartTarget::class, 'supportsType'])));
+        $belowTypes = json_encode(array_values(array_filter(ChartType::arrays(), [ChartTarget::class, 'supportsBelow'])));
+        $targetFields = '.options_' . implode(', .options_', [ChartTarget::VALUE, ChartTarget::LABEL, ChartTarget::COLOR]);
+        $belowField = '.options_' . ChartTarget::BELOW;
         $script = <<<EOT
         var exmentLegendCharts = $legendTypes;
         var exmentAxisCharts = $axisTypes;
         var exmentMultiCharts = $multiTypes;
+        var exmentTargetCharts = $targetTypes;
+        var exmentBelowCharts = $belowTypes;
         function setChartOptions(val) {
             var legend = exmentLegendCharts.indexOf(val) >= 0;
             var axis = exmentAxisCharts.indexOf(val) >= 0;
@@ -1747,6 +1820,11 @@ class ChartItem implements ItemInterface
             $('.options_chart_series').closest('.form-group').toggle(exmentMultiCharts.indexOf(val) >= 0);
             // the color thresholds color a heatmap only (setAdminExtraFields)
             $('#has-many-table-{$thresholdsTable}').toggle(val === '{$heatmap}');
+            // the target line on the types it is drawn on, the bars under it on a bar / horizontal bar
+            var target = exmentTargetCharts.indexOf(val) >= 0;
+            $('[data-chart-target]').closest('.form-group').toggle(target);
+            $('{$targetFields}').closest('.form-group').toggle(target);
+            $('{$belowField}').closest('.form-group').toggle(target && exmentBelowCharts.indexOf(val) >= 0);
         }
         setChartOptions($('.options_chart_type').val());
 
@@ -1794,6 +1872,9 @@ EOT;
             unset($options['chart_filters']);
         }
 
+        // 目標線: a number, on the types the form shows it on only (none without a value)
+        $options = ChartTarget::saved($options);
+
         $form->options = $options;
     }
 
@@ -1838,6 +1919,8 @@ EOT;
             'palette' => ChartThresholds::palette(),
             'table' => ChartThresholds::OPTION,
             'range' => ChartThresholds::RANGE,
+            // the 目標線's color is picked the same way (setAdminOptions)
+            'single' => 'input.options_' . ChartTarget::COLOR,
             'labels' => [
                 'title' => exmtrans('dashboard.chart_threshold.color_select'),
                 'other' => exmtrans('dashboard.chart_threshold.color_other'),

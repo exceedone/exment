@@ -882,6 +882,20 @@ return [
             ],
         ],
 
+        // the target line of a chart box (box form + chart): ChartTarget
+        'chart_target' => [
+            'header' => '目標線',
+            'value' => '値',
+            'help' => 'グラフに目標値の点線を引きます。ビューの集計方法の単位で入力してください（ダッシュボードで集計方法・表示方法を切り替えている間は表示しません）。空欄の場合は表示しません。',
+            'label' => 'ラベル',
+            'label_placeholder' => '例：合格ライン（省略時は「目標」）',
+            'color' => '色',
+            'below' => '下回る棒',
+            'below_option' => '目標を下回る棒を目標線の色で表示する',
+            'below_help' => '棒グラフ・横棒グラフ（系列が1つ）のみ。「その他」の棒は対象外です。',
+            'default_name' => '目標',
+            'diff' => '（差 %s）',
+        ],
         // a double click on a chart point lists the rows behind it (ChartDetail)
         'chart_detail' => [
             'title' => '「%s」の明細',
@@ -913,6 +927,7 @@ return [
             'table_only' => '「%s」は Excel にないグラフのため、表のみ出力しています。',
             'heatmap_rules' => '色分けのしきい値：%s（条件付き書式）',
             'heatmap_plain' => '色分けのしきい値が設定されていないため、色は付けていません。',
+            'target_column_only' => '横棒グラフには Excel で目標線を描けないため、「%s」は表の列のみ出力しています。',
             'failed' => 'Excel出力に失敗しました。',
         ],
 

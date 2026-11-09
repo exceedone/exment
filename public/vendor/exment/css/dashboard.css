@@ -244,5 +244,7 @@
 /* the columns keep their widths: a long error under a cell wraps instead of pushing 操作 out */
 #has-many-table-chart_thresholds-table { table-layout: fixed; }
 #has-many-table-chart_thresholds-table label { white-space: normal; }
+/* the 目標線 color of the box form, picked the same way: as wide as a short select */
+.th-single .th-picker { max-width: 220px; }
 /* a toolbar panel of a box at the end of the page opens above its button (dashboard.js placeVertically) */
 .exment-chart-toolbar .ct-pop.ct-pop-up { top: auto; bottom: 34px; }

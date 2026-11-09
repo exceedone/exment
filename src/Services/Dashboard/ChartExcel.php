@@ -29,7 +29,8 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
  * conditional formatting. A type Excel has no chart for gets the table and a note.
  *
  * Layout: row 1 the title, 2 the dashboard / view / time, 3 the filters, 4 a note, 5 the table's
- * header, its rows below; the chart under the table.
+ * header, its rows below; the chart under the table. A box's target line (目標線) is a column of the
+ * target drawn as a dashed line over the chart, as Excel's combo chart draws one.
  */
 class ChartExcel
 {
@@ -67,6 +68,10 @@ class ChartExcel
 
     /** an area's fill, % transparent (the chart's opacity 0.25–0.3) */
     protected const AREA_TRANSPARENCY = 70;
+
+    /** the target line's width, pt (the chart's 2px), and its dashes (Excel's 破線) */
+    protected const TARGET_WIDTH = 1.5;
+    protected const TARGET_DASH = 'dash';
 
     /** @var array<string, mixed> ChartItem::excelData() */
     protected $data;
@@ -166,9 +171,10 @@ class ChartExcel
 
     /**
      * The table of a chart: a row per category (column A), a column per series, as drawn; then a
-     * 合計 per row where the series stack and add up, a 割合 per slice of a pie that adds up.
+     * 合計 per row where the series stack and add up, a 割合 per slice of a pie that adds up, and
+     * the target of the box's target line on every row, under its name.
      *
-     * @return array{last_row: int, last_col: int, series: int}  the table's extent
+     * @return array{last_row: int, last_col: int, series: int, target_col: int|null}  the table's extent
      */
     protected function writeTable(Worksheet $sheet): array
     {
@@ -212,8 +218,20 @@ class ChartExcel
             $sheet->getStyle("{$col}{$top}:{$col}{$last_row}")->getNumberFormat()->setFormatCode('0.0%');
         }
 
+        $target = $this->data['target'] ?? null;
+        $target_col = null;
+        if (is_array($target) && count($categories) > 0) {
+            $target_col = ++$last_col;
+            $col = Coordinate::stringFromColumnIndex($target_col);
+            $this->text($sheet, $col . static::HEADER_ROW, (string) $target['name']);
+            for ($row = $top; $row <= $last_row; $row++) {
+                $sheet->setCellValueExplicit($col . $row, $target['value'], DataType::TYPE_NUMERIC);
+            }
+            $sheet->getStyle("{$col}{$top}:{$col}{$last_row}")->getNumberFormat()->setFormatCode(static::formatOf([$target['value']]));
+        }
+
         $this->frame($sheet, $last_col, $last_row);
-        return ['last_row' => $last_row, 'last_col' => $last_col, 'series' => count($series)];
+        return ['last_row' => $last_row, 'last_col' => $last_col, 'series' => count($series), 'target_col' => $target_col];
     }
 
     /**
@@ -333,9 +351,11 @@ class ChartExcel
     }
 
     /**
-     * Excel's chart of the table, under it, in the box's colors.
+     * Excel's chart of the table, under it, in the box's colors; the target column a dashed line
+     * over it (a combo chart) — but on a horizontal bar, across which Excel draws no line: there
+     * the column only, and a note.
      *
-     * @param array{last_row: int, last_col: int, series: int} $table
+     * @param array{last_row: int, last_col: int, series: int, target_col: int|null} $table
      */
     protected function addChart(Worksheet $sheet, array $table): void
     {
@@ -417,11 +437,20 @@ class ChartExcel
             $value_axis->setAxisOptionsProperties(Axis::AXIS_LABELS_NEXT_TO, null, Axis::HORIZONTAL_CROSSES_MAXIMUM);
         }
 
+        $plots = [$series];
+        if ($table['target_col'] !== null) {
+            if ($direction === DataSeries::DIRECTION_BAR) {
+                $this->note($sheet, exmtrans('dashboard.chart_excel.target_column_only', (string) $this->data['target']['name']));
+            } else {
+                $plots[] = $this->targetSeries($quoted, $table['target_col'], $categories, $count);
+            }
+        }
+
         $chart = new Chart(
             'chart1',
             new Title((string) $this->data['title']),
             $legend,
-            new PlotArea($layout, [$series]),
+            new PlotArea($layout, $plots),
             true,
             DataSeries::EMPTY_AS_GAP,
             $axis_titles[0],
@@ -435,6 +464,28 @@ class ChartExcel
         $chart->setTopLeftPosition('A' . $from);
         $chart->setBottomRightPosition(Coordinate::stringFromColumnIndex(max(8, $table['last_col'])) . ($from + $height));
         $sheet->addChart($chart);
+    }
+
+    /**
+     * The target column as a line of the chart: dashed, in the target's color, no markers.
+     *
+     * @param string $quoted  the sheet's name, quoted for a reference
+     * @param array<int, DataSeriesValues> $categories
+     */
+    protected function targetSeries(string $quoted, int $target_col, array $categories, int $count): DataSeries
+    {
+        $col = Coordinate::stringFromColumnIndex($target_col);
+        $top = static::HEADER_ROW + 1;
+        $last = max($top, static::HEADER_ROW + $count);
+        $label = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "{$quoted}!\${$col}\$" . static::HEADER_ROW, null, 1);
+        $value = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "{$quoted}!\${$col}\${$top}:\${$col}\${$last}", null, $count);
+        $color = static::rgb($this->data['target']['color'] ?? null);
+        if ($color !== null) {
+            $value->setLineColorProperties($color, null, ChartColor::EXCEL_COLOR_TYPE_RGB);
+        }
+        $value->setLineStyleProperties(static::TARGET_WIDTH, '', static::TARGET_DASH);
+        $value->setPointMarker('none');
+        return new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, [0], [$label], $categories, [$value]);
     }
 
     /**
@@ -520,14 +571,28 @@ class ChartExcel
         if (!empty($this->data['percent'])) {
             return '0.0%';
         }
-        $decimals = 0;
+        $values = [];
         foreach ($this->data['matrix'] as $row) {
             foreach ($row as $value) {
-                if (is_numeric($value)) {
-                    $fixed = rtrim(rtrim(sprintf('%.10F', $value + 0), '0'), '.');
-                    $dot = strpos($fixed, '.');
-                    $decimals = max($decimals, $dot === false ? 0 : strlen($fixed) - $dot - 1);
-                }
+                $values[] = $value;
+            }
+        }
+        return static::formatOf($values);
+    }
+
+    /**
+     * Numbers grouped by thousands with as many decimals as $values have (up to 10, as the chart's).
+     *
+     * @param array<int, mixed> $values
+     */
+    protected static function formatOf(array $values): string
+    {
+        $decimals = 0;
+        foreach ($values as $value) {
+            if (is_numeric($value)) {
+                $fixed = rtrim(rtrim(sprintf('%.10F', $value + 0), '0'), '.');
+                $dot = strpos($fixed, '.');
+                $decimals = max($decimals, $dot === false ? 0 : strlen($fixed) - $dot - 1);
             }
         }
         return $decimals === 0 ? '#,##0' : '#,##0.0' . str_repeat('#', $decimals - 1);

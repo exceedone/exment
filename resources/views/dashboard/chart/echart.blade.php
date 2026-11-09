@@ -35,6 +35,11 @@
         var drillable = !!(detail && detail.points) && ['hbar', 'area', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
         // the その他 point of 表示件数 (ChartItem::restTip): {index, count, items, more}, else null
         var rest = {!! $chart_rest ?? 'null' !!};
+        // the target line (目標線, ChartItem::targetPayload): {value, name, text, diff, color, below[]
+        // the bars drawn in its color}, else null — on the horizontal bar and the area only
+        var target = {!! $chart_target ?? 'null' !!};
+        var below = {};
+        (target ? target.below : []).forEach(function (i) { below[i] = true; });
         // types colored point by point (byPoint) — the others draw one shape in one color
         var perPoint = ['hbar', 'doughnut', 'funnel', 'scatter'].indexOf(type) >= 0;
         var showLegend = {{ $chart_legend ? 'true' : 'false' }};
@@ -183,6 +188,7 @@
             if (type === 'area') { option.yAxis.axisLabel = { formatter: '{value}%' }; }
             if (type === 'doughnut') { option.tooltip.formatter = function (p) { return tip(p.name, p.value); }; }
         }
+        if (target && (type === 'hbar' || type === 'area')) { drawTheTarget(); }
         // an item tooltip as ECharts writes it, for a type whose tooltip has no formatter of its own
         var plainTip = function (q) {
             return (valueName ? escHtml(valueName) + '<br>' : '') + q.marker + escHtml(q.name) + ': ' + fmt(q.value) + (q.percent != null ? ' (' + q.percent + '%)' : '');
@@ -211,9 +217,35 @@
         if (perPoint) {
             option.series[0].data = option.series[0].data.map(function (d, i) {
                 var item = (d !== null && typeof d === 'object' && !Array.isArray(d)) ? $.extend({}, d) : { value: d };
-                item.itemStyle = { color: byPoint[pointOf(i) % byPoint.length] };
+                // a bar under the target in the line's color (its own stays for the color menu)
+                item.itemStyle = { color: below[pointOf(i)] ? target.color : byPoint[pointOf(i) % byPoint.length] };
                 return item;
             });
+        }
+
+        // The target line, as Excel's combo chart draws a column of the target: dashed across the
+        // plot at the target — up the horizontal bar's — named at its end (right of the area's
+        // plot, in the room the grid leaves there; above the horizontal bar's); the value axis
+        // reaches it; the tooltip tells a point's gap to it.
+        function drawTheTarget() {
+            var vertical = type === 'hbar';
+            ExmentDashboard.chartTargetAxis(vertical ? option.xAxis : option.yAxis, target.value);
+            option.series[0].markLine = ExmentDashboard.chartTargetLine(target, vertical);
+            if (!vertical) {
+                option.grid = $.extend({}, option.grid, { right: ExmentDashboard.chartTargetRoom(target) });
+            }
+            var base = option.tooltip.formatter;
+            option.tooltip.formatter = function (p) {
+                var q = Array.isArray(p) ? p[0] : p;
+                return base(p) + '<br>' + escHtml(ExmentDashboard.chartTargetTip(target, q ? q.value : null, fmt));
+            };
+        }
+        // the name above the vertical line, kept inside the box at its edges
+        function placeTheTargetLabel() {
+            if (!target || type !== 'hbar' || (chart.isDisposed && chart.isDisposed())) { return; }
+            var x = chart.convertToPixel({ xAxisIndex: 0 }, target.value);
+            var half = textWidth(target.name + ' ' + target.text, 11) / 2 + 4, w = chart.getWidth();
+            chart.setOption({ series: [{ markLine: { label: { align: x + half > w ? 'right' : (x - half < 0 ? 'left' : 'center') } } }] });
         }
         // Cross-highlight: the bar's pick on this chart's own X item (the server leaves that
         // item out of the chart's filter, so every category is here) — the picked points solid,
@@ -308,7 +340,7 @@
             }
         }
         fit();
-        var resize = function () { chart.resize(); fit(); render(); };
+        var resize = function () { chart.resize(); fit(); render(); placeTheTargetLabel(); };
         $(window).off('resize.echart_{{ $suuid }}').on('resize.echart_{{ $suuid }}', resize);
         $('[data-suuid="{{ $suuid }}"]').off('exment:dashboard_loaded.echart').on('exment:dashboard_loaded.echart', function () { setTimeout(resize, 50); });
 
@@ -337,6 +369,7 @@
         }
         // (the horizontal bar always: its room and ticks depend on the box's width)
         if (state.labels || pickedN > 0 || horizontal) { render(); }
+        placeTheTargetLabel();
 
         // Per-box hooks for dashboard.js: `highlight` repaints the bar's pick on the chart's own
         // X item (`self`), `display` (menu toggles, live), `data` (the
