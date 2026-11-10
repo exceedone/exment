@@ -121,6 +121,23 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
                 'uniqueKeyFunctionArgs' => ['options.chart_series'],
             ],
+            // the 2つ目の値 of a 複合 chart: a summary column like the Y axis
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.chart_axisy2_table_name',
+                            'column_name' => 'options.chart_axisy2_column_name',
+                            'view_column_type' => 'options.chart_axisy2_view_column_type',
+                            'view_kind_type' => 'options.chart_axisy2_type',
+                            // its summary condition too: a 2つ目の値 is often the count of the column the 値 sums
+                            'summary_condition' => 'options.chart_axisy2_summary_condition',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.chart_axisy2'],
+            ],
         ],
     ];
 
@@ -252,6 +269,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
             'column_name' => array_get($items, 'column_name'),
             'view_column_type' => array_get($items, 'column_type'),
             'view_kind_type' => $view_column instanceof CustomViewSummary ? ViewKindType::AGGREGATE : ViewKindType::DEFAULT,
+            // (exported for the options that name it in their replacedName only)
+            'summary_condition' => $view_column instanceof CustomViewSummary ? (string) $view_column->view_summary_condition : null,
         ];
     }
 
@@ -285,6 +304,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         static::importReplaceJsonCustomColumn('chart_axisx', $json);
         static::importReplaceJsonCustomColumn('chart_axisy', $json);
         static::importReplaceJsonCustomColumn('chart_series', $json);
+        static::importReplaceJsonCustomColumn('chart_axisy2', $json);
     }
 
 
@@ -295,6 +315,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         $custom_table_key = "options.{$key}_table_name";
         $view_column_type_key = "options.{$key}_view_column_type";
         $table_type_key = "options.{$key}_type";
+        $summary_condition_key = "options.{$key}_summary_condition";
 
         $table_name = array_get($json, $custom_table_key);
         $column_name = array_get($json, $custom_column_key);
@@ -321,10 +342,16 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         if (isset($id) && \is_numeric($id)) {
             $table_type = array_get($json, $table_type_key);
             if ($table_type == ViewKindType::AGGREGATE) {
-                /** @var CustomViewColumn|null $view_column */
-                $view_column = CustomViewSummary::where('custom_view_id', array_get($json, 'options.target_view_id'))
+                $query = CustomViewSummary::where('custom_view_id', array_get($json, 'options.target_view_id'))
                     ->where('view_column_type', $view_column_type)
-                    ->where('view_column_target_id', $id)->first();
+                    ->where('view_column_target_id', $id);
+                // a template naming the summary condition (the 2つ目の値) tells two summaries of a column apart
+                $condition = array_get($json, $summary_condition_key);
+                if (!is_nullorempty($condition)) {
+                    $query->where('view_summary_condition', $condition);
+                }
+                /** @var CustomViewColumn|null $view_column */
+                $view_column = $query->first();
             } else {
                 /** @var CustomViewColumn|null $view_column */
                 $view_column = CustomViewColumn::where('custom_view_id', array_get($json, 'options.target_view_id'))
@@ -344,5 +371,6 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         array_forget($json, $custom_table_key);
         array_forget($json, $view_column_type_key);
         array_forget($json, $table_type_key);
+        array_forget($json, $summary_condition_key);
     }
 }

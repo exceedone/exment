@@ -1,6 +1,6 @@
 {{--
     Chart box toolbar: [フィルター ▾] (the box's own chart filter, popover), the box menu [⋯]
-    (sort by a field, 集計方法 ◀ / 表示件数 ◀ / 表示方法 ◀ submenus, 値ラベル, CSV export, Excel export — the table and
+    (sort by a field, 集計方法 ◀ / 表示件数 ◀ / 表示方法 ◀ submenus, 値ラベル, Excel export — the table and
     Excel's own chart, made by DashboardBoxController::excel) and the runtime chart-type switcher. Handlers and styles: public/vendor/exment/js/dashboard.js, css/dashboard.css.
     The selection is kept by the JS per box and sent as bf_* / ct / cs / cd / tn on the box request; the
     re-rendered body echoes it back, so state survives every reload. ct / cs / cd / tn are also remembered
@@ -17,6 +17,8 @@
     $types         type => label of the switchable types ([] = no switcher)
     $current_type  the rendered type
     $configured_type  the box's own type: picking it on the switcher drops the remembered choice
+    $second        ChartItem::secondPreview(): the 2つ目の値 {name, values, type, right} the 複合 type's
+                   preview draws (null = none)
     $menu              whether the box menu renders at all
     $sort_fields       [{key, label}] the fields the chart can be sorted by ([] = no sort section)
     $sort_field        key of the applied sort's field (null = the view's order)
@@ -87,7 +89,7 @@
             @include('exment::dashboard.chart.type_icon', ['type' => $current_type])
             <span class="ctp-cur">{{ $shortLabel($types[$current_type] ?? $current_type) }}</span><span class="ct-car">▾</span>
         </button>
-        <div class="ct-pop ctp-pop{{ count($types) > 8 ? ' ctp-pop-wide' : '' }}" data-palette="{{ json_encode($palette) }}">
+        <div class="ct-pop ctp-pop{{ count($types) > 8 ? ' ctp-pop-wide' : '' }}" data-palette="{{ json_encode($palette) }}"@if(!empty($second)) data-second="{{ json_encode($second) }}"@endif>
             <h4>{{ exmtrans('dashboard.dashboard_box_options.chart_type') }}</h4>
             <div class="ctp-hint">{{ exmtrans('dashboard.chart_type_pick.hint') }}</div>
             <div class="ctp-grid{{ count($types) > 8 ? ' ctp-wide' : '' }}">
@@ -204,7 +206,6 @@
             </ul>
             @endif
             <ul class="cs-list cs-sep">
-                <li class="cs-row" data-cd-export><i class="fa fa-download"></i><span>{{ exmtrans('dashboard.chart_menu.export') }}</span></li>
                 <li class="cs-row" data-cx-export><i class="fa fa-file-excel-o"></i><span>{{ exmtrans('dashboard.chart_menu.export_excel') }}</span></li>
                 @if(!empty($colors_reset))<li class="cs-row" data-cc-reset><i class="fa fa-paint-brush"></i><span>{{ exmtrans('dashboard.chart_color.reset') }}</span></li>@endif
             </ul>

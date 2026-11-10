@@ -892,9 +892,30 @@ return [
             'color' => '色',
             'below' => '下回る棒',
             'below_option' => '目標を下回る棒を目標線の色で表示する',
-            'below_help' => '棒グラフ・横棒グラフ（系列が1つ）のみ。「その他」の棒は対象外です。',
+            'below_help' => '棒グラフ・横棒グラフ（系列が1つ）・複合グラフ（値の棒）のみ。「その他」の棒は対象外です。',
             'default_name' => '目標',
             'diff' => '（差 %s）',
+        ],
+        // the 2つ目の値 of a chart box, drawn with the 値 on the 複合 type (ChartSecondValue)
+        'chart_second' => [
+            'header' => '2つ目の値（複合グラフ）',
+            'column' => '2つ目の値',
+            'help' => 'ビューの別の集計列を、値（棒・左軸）と一緒に「複合グラフ」で表示します。選択するとグラフの種類が「複合グラフ」になります。集計列が2つ以上あるビューの棒・折れ線・エリアグラフで設定できます。',
+            'type' => '表示形式',
+            'type_line' => '折れ線',
+            'type_bar' => '棒',
+            'axis' => '軸',
+            'right' => '第2軸（右）に表示する',
+            'left_axis' => '%s（左軸）',
+            'right_axis' => '%s（右軸）',
+            'count_unit' => '件',
+            'compact_units' => '100000000:億,10000:万',
+            'excel_million' => '百万',
+            // the box title naming both values (上位N件 / 集計方法 drawn)
+            'title_values' => '%s・%s',
+            'required' => '複合グラフには2つ目の値を選択してください。',
+            'not_summary' => 'ビューの集計列を選択してください。',
+            'same' => '値と異なる集計列を選択してください。',
         ],
         // a double click on a chart point lists the rows behind it (ChartDetail)
         'chart_detail' => [
@@ -911,7 +932,6 @@ return [
             'label' => 'オプション',
             'display' => '表示',
             'labels' => '値ラベル',
-            'export' => 'データをエクスポート',
             'export_excel' => 'Excel出力（グラフ付き）',
         ],
 
@@ -3524,6 +3544,7 @@ return [
             'funnel' => 'ファネルグラフ',
             'gauge' => 'ゲージ',
             'scatter' => '散布図',
+            'combo' => '複合グラフ',
             'mbar' => 'グループ棒グラフ（複数系列）',
             'sbar' => '積み上げ棒グラフ（複数系列）',
             'sbar100' => '100%積み上げ棒グラフ（複数系列）',

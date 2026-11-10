@@ -231,13 +231,18 @@ final class ChartTopN
      * A single-series result {chart_label, chart_data, ...} cut to its top N points, in the
      * runtime sort ($sort) or largest first, その他 appended (rest()).
      *
+     * The points are ranked by their value; a 2つ目の値 (`chart_data2`, ChartSecondValue) goes with
+     * its point, its その他 the total of the rest when it adds up ($second_adds_up), else empty.
+     *
      * @param array<string, mixed> $result
      * @param bool $rest_detail  the その他 point has a 明細 (the rows of the points left out)
+     * @param bool $second_adds_up  the 2つ目の値 is a SUM / COUNT
      * @return array<string, mixed>
      */
-    public function applySingle(array $result, ?ChartSort $sort, bool $rest_detail): array
+    public function applySingle(array $result, ?ChartSort $sort, bool $rest_detail, bool $second_adds_up = false): array
     {
         $values = ChartSorter::listOf($result['chart_data'] ?? null);
+        $values2 = isset($result['chart_data2']) ? ChartSorter::listOf($result['chart_data2']) : null;
         $labels = ChartSorter::listOf($result['chart_label'] ?? null);
         $this->count = count($values);
         $ranks = $this->rank($values);
@@ -255,6 +260,12 @@ final class ChartTopN
         $result['chart_data'] = array_merge(ChartSorter::listOf($result['chart_data']), [static::sum(array_map(function ($i) use ($values) {
             return $values[$i];
         }, $rest))]);
+        if ($values2 !== null) {
+            // an average, a minimum, a maximum of the rest is no number of its kind: none
+            $result['chart_data2'] = array_merge(ChartSorter::listOf($result['chart_data2'] ?? null), [$second_adds_up ? static::sum(array_map(function ($i) use ($values2) {
+                return $values2[$i] ?? null;
+            }, $rest)) : null]);
+        }
         if (isset($result['chart_fields'])) {
             $result['chart_fields'] = array_map(function ($column, $x) use ($label) {
                 return array_merge(ChartSorter::listOf($column), [$x === 0 ? $label : '']);

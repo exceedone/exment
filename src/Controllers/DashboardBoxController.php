@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\DashboardBoxItems\ChartItem;
 use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\ChartExcel;
+use Exceedone\Exment\Services\Dashboard\ChartSecondValue;
 use Exceedone\Exment\Services\Dashboard\ChartTopN;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Illuminate\Support\Collection;
@@ -582,6 +583,12 @@ class DashboardBoxController extends AdminControllerBase
                 $options[1]['selected'] = true;
             }
             return $options;
+        }
+        // the 2つ目の値: the summary columns of an aggregate view, after an empty choice — the
+        // field may stay empty, and the select would take its first entry otherwise
+        if ($axis_type == 'y2') {
+            $options = ChartSecondValue::selectOptions($custom_view);
+            return empty($options) ? [] : array_merge([['id' => '', 'text' => '']], $options);
         }
 
         return $custom_view->getViewColumnsSelectOptions($axis_type == 'y');

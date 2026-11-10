@@ -194,8 +194,8 @@
     }
 
     // ---- chart type picker: preview ------------------------------------------------------
-    // The picker's preview panel draws the box's own data (the chart's data() hook — the same
-    // points the CSV export reads) in the hovered type, the current one otherwise, as Excel's
+    // The picker's preview panel draws the box's own data (the chart's data() hook — the
+    // plotted points) in the hovered type, the current one otherwise, as Excel's
     // Change Chart Type dialog does: the chart itself is left alone. Drawn with ECharts whatever
     // library draws the real chart; types of one switch pool share their data shape, so no
     // request is needed. Closing the picker disposes the panel's chart.
@@ -225,12 +225,21 @@
                     endPreview();
                     preview = { el: el, chart: echarts.init(el) };
                 }
-                preview.chart.setOption(previewOption(type, hook.data(), JSON.parse($pop.attr('data-palette') || '[]')), true);
+                preview.chart.setOption(previewOption(type, previewData(hook.data(), $pop), JSON.parse($pop.attr('data-palette') || '[]')), true);
             } catch (e) {
                 endPreview();
                 $panel.hide();
             }
         });
+    }
+
+    // the data() of a chart with the box's 2つ目の値 (data-second of the picker, ChartItem::secondPreview)
+    // while the chart drawn is not the 複合 one, so the 複合 tile previews it too
+    function previewData(d, $pop) {
+        var second = $pop.attr('data-second');
+        if (!second || d.matrix || d.values2) { return d; }
+        try { second = JSON.parse(second); } catch (e) { return d; }
+        return $.extend({}, d, { axisy2: second.name, values2: second.values || [], second: { type: second.type, right: second.right } });
     }
 
     // ECharts option of a type for the data() of a single-series ({labels, values}) or a
@@ -344,6 +353,16 @@
                 return { color: P, grid: grid, xAxis: { type: 'value' }, yAxis: { type: 'category', data: labels, inverse: true }, series: [{ type: 'bar', data: values, barMaxWidth: 36 }] };
             case 'scatter':
                 return { color: P, grid: grid, xAxis: { type: 'category', data: labels }, yAxis: { type: 'value' }, series: [{ type: 'scatter', symbolSize: 12, data: values }] };
+            case 'combo': { // the 値 as bars on the left axis, the 2つ目の値 on a right one of its own (echart_combo)
+                var second = d.second || {}, line2 = second.type !== 'bar', right = second.right !== false;
+                var axes = [{ type: 'value' }];
+                if (right) { axes.push({ type: 'value', scale: line2, splitLine: { show: false } }); }
+                return {
+                    color: P, grid: grid, xAxis: { type: 'category', data: labels }, yAxis: axes,
+                    series: [{ type: 'bar', data: values, barMaxWidth: 36 },
+                        { type: line2 ? 'line' : 'bar', yAxisIndex: right ? 1 : 0, data: $.map(d.values2 || [], num), barMaxWidth: 36, symbol: 'emptyCircle', z: 3 }]
+                };
+            }
             default: { // bar / line / area
                 var isLine = type === 'line' || type === 'area';
                 var s = { type: isLine ? 'line' : 'bar', data: values };
@@ -590,46 +609,6 @@
         var hook = (window.ExmentCharts || {})[suuid];
         if (hook && typeof hook.display === 'function') { try { hook.display({ labels: !!on.labels }); return; } catch (e) {} }
         loadBox(suuid);
-    }
-    // CSV of the plotted points (UTF-8 BOM for Excel), named after the box
-    function exportCsv(suuid) {
-        var hook = (window.ExmentCharts || {})[suuid], $box = boxOf(suuid);
-        if (!hook || typeof hook.data !== 'function') { return; }
-        var d = hook.data(), rows = [];
-        // a text that a spreadsheet would read as a formula or a number (= + - @, a tab or a CR
-        // first) is kept as text by a quote in front (CSV injection; a label "+1" stays "+1"),
-        // whatever it looks like; only a measured value is a number (`measure`: a number, or the
-        // plain number string a stored value comes as)
-        var cell = function (v, measure) {
-            // percents (表示方法) as a spreadsheet reads one: "32.40%", 2 decimals
-            if (measure && d.percent && v != null && v !== '' && isFinite(v)) { v = Number(v).toFixed(2) + '%'; }
-            var s = String(v == null ? '' : v);
-            var number = typeof v === 'number' || (measure && /^-?\d+(\.\d+)?%?$/.test(s));
-            if (!number && /^[=+\-@\t\r]/.test(s)) { s = "'" + s; }
-            return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-        };
-        if (d.matrix) {
-            rows.push([d.axisx || ''].concat(d.series));
-            // an empty cell (null: a MIN / MAX cell no row fell into) is an empty field — $.map
-            // would drop a null and shift the columns after it
-            $.each(d.categories, function (i, c) { rows.push([c].concat($.map(d.series, function (s, si) { var v = (d.matrix[si] || [])[i]; return v == null ? '' : v; }))); });
-        } else {
-            rows.push([d.axisx || '', d.axisy || '']);
-            $.each(d.labels, function (i, l) { rows.push([l, d.values[i]]); });
-        }
-        // the first row names the columns, the first column labels the points: texts; the
-        // other cells are the measured values
-        var csv = '\ufeff' + $.map(rows, function (r, ri) {
-            return $.map(r, function (v, ci) { return cell(v, ri > 0 && ci > 0); }).join(',');
-        }).join('\r\n');
-        var title = $.trim($box.find('.box-title').first().text()) || 'chart', now = new Date();
-        var stamp = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2);
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-        a.download = title + '_' + stamp + '.csv';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
     }
     // the box as an Excel workbook made by the server (DashboardBoxController::excel): the chart as
     // drawn now — the box's request values — its table and Excel's own chart. A box that cannot be
@@ -1444,10 +1423,6 @@
             on[$row.data('cdToggle')] = !on[$row.data('cdToggle')];
             $row.toggleClass('on', !!on[$row.data('cdToggle')]);
             applyDisplay(suuid, on);
-        });
-        $(document).on('click' + NS, '[data-cd-export]', function () {
-            closePops();
-            exportCsv($(this).closest('[data-suuid]').data('suuid'));
         });
         $(document).on('click' + NS, '[data-cx-export]', function () {
             closePops();

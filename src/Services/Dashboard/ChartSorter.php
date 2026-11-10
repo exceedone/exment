@@ -72,8 +72,8 @@ class ChartSorter
     /**
      * A single-series result with its points taken in $order (indexes of the points as they
      * are): re-ordered, and left out when not listed (ChartTopN keeps the top N). Every list
-     * of the points moves along — labels, values, the X texts and numbers, the colors, the
-     * click-to-filter values, the 明細 keys.
+     * of the points moves along — labels, values, the 2つ目の値, the X texts and numbers, the
+     * colors, the click-to-filter values, the 明細 keys.
      *
      * @param array<string, mixed> $result
      * @param int[] $order
@@ -83,6 +83,10 @@ class ChartSorter
     {
         $result['chart_label'] = static::pick(static::listOf($result['chart_label'] ?? null), $order);
         $result['chart_data'] = static::pick(static::listOf($result['chart_data'] ?? null), $order);
+        // the 2つ目の値 of the point (ChartSecondValue) goes with it
+        if (isset($result['chart_data2'])) {
+            $result['chart_data2'] = static::pick(static::listOf($result['chart_data2']), $order);
+        }
         if (isset($result['chart_fields'])) {
             $result['chart_fields'] = array_map(function ($column) use ($order) {
                 return static::pick(static::listOf($column), $order);

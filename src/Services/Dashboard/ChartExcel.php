@@ -3,6 +3,10 @@
 namespace Exceedone\Exment\Services\Dashboard;
 
 use Exceedone\Exment\Enums\ChartType;
+use DOMDocument;
+use DOMElement;
+use DOMNode;
+use DOMXPath;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Chart\Axis;
@@ -30,7 +34,9 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
  *
  * Layout: row 1 the title, 2 the dashboard / view / time, 3 the filters, 4 a note, 5 the table's
  * header, its rows below; the chart under the table. A box's target line (目標線) is a column of the
- * target drawn as a dashed line over the chart, as Excel's combo chart draws one.
+ * target drawn as a dashed line over the chart, as Excel's combo chart draws one. The 複合 type is
+ * Excel's 組み合わせグラフ: the 値's column as bars, the 2つ目の値's as a line (or bars) on the
+ * secondary axis — written into the chart's XML after PhpSpreadsheet, which has no secondary axis.
  */
 class ChartExcel
 {
@@ -46,6 +52,8 @@ class ChartExcel
         ChartType::SBAR => [DataSeries::TYPE_BARCHART, DataSeries::GROUPING_STACKED, DataSeries::DIRECTION_COL],
         ChartType::SBAR100 => [DataSeries::TYPE_BARCHART, DataSeries::GROUPING_PERCENT_STACKED, DataSeries::DIRECTION_COL],
         ChartType::HBAR => [DataSeries::TYPE_BARCHART, DataSeries::GROUPING_CLUSTERED, DataSeries::DIRECTION_BAR],
+        // the 値's bars; the 2つ目の値 a chart group of its own (addChart)
+        ChartType::COMBO => [DataSeries::TYPE_BARCHART, DataSeries::GROUPING_CLUSTERED, DataSeries::DIRECTION_COL],
         ChartType::SHBAR100 => [DataSeries::TYPE_BARCHART, DataSeries::GROUPING_PERCENT_STACKED, DataSeries::DIRECTION_BAR],
         ChartType::LINE => [DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, null],
         ChartType::MLINE => [DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, null],
@@ -73,6 +81,19 @@ class ChartExcel
     protected const TARGET_WIDTH = 1.5;
     protected const TARGET_DASH = 'dash';
 
+    /** the chart XML's namespace (the secondary axis is written into it) */
+    protected const CHART_NS = 'http://schemas.openxmlformats.org/drawingml/2006/chart';
+
+    /** the ids of the secondary axes: none PhpSpreadsheet gives its own */
+    protected const SECONDARY_CATEGORY_AXIS = '510438656';
+    protected const SECONDARY_VALUE_AXIS = '510444544';
+
+    /** an axis whose numbers reach this is numbered in millions (#,##0,,"百万"), as Excel's sample of the 複合 type */
+    protected const MILLIONS = 10000000;
+
+    /** the most points the 複合 type's line is labelled on by itself (more read as a blur; 値ラベル labels any) */
+    protected const LINE_LABELS_MAX = 24;
+
     /** @var array<string, mixed> ChartItem::excelData() */
     protected $data;
 
@@ -90,7 +111,7 @@ class ChartExcel
     }
 
     /**
-     * The download's name: the box title and the date, as the CSV's (売上_20261107.xlsx).
+     * The download's name: the box title and the date (売上_20261107.xlsx).
      */
     public function fileName(): string
     {
@@ -116,6 +137,7 @@ class ChartExcel
         $writer = new Xlsx($this->spreadsheet());
         $writer->setIncludeCharts(true);
         $writer->save($path);
+        $this->writeChartXml($path);
     }
 
     public function spreadsheet(): Spreadsheet
@@ -197,6 +219,11 @@ class ChartExcel
         $last_col = count($series) + 1;
         $values = Coordinate::stringFromColumnIndex(2) . $top . ':' . Coordinate::stringFromColumnIndex($last_col) . $last_row;
         $sheet->getStyle($values)->getNumberFormat()->setFormatCode($this->numberFormat());
+        // the 複合 type: each value in its own units (394件 / ¥1,200)
+        foreach ($this->comboUnits() as $s => $unit) {
+            $col = Coordinate::stringFromColumnIndex($s + 2);
+            $sheet->getStyle("{$col}{$top}:{$col}{$last_row}")->getNumberFormat()->setFormatCode(ChartSecondValue::excelFormat($unit, array_values((array) ($matrix[$s] ?? []))));
+        }
 
         $type = (string) $this->data['type'];
         $adds_up = !empty($this->data['adds_up']) && count($categories) > 0;
@@ -367,19 +394,23 @@ class ChartExcel
         $last = max($top, $table['last_row']);
 
         $per_point = $this->data['point_colors'] !== null && in_array($chart_type, [DataSeries::TYPE_BARCHART, DataSeries::TYPE_PIECHART, DataSeries::TYPE_DOUGHNUTCHART], true);
+        $second = $this->comboSecond();
         $labels = [];
         $values = [];
         for ($s = 0; $s < $table['series']; $s++) {
+            // the 複合 type's 2つ目の値: a line (or bars) in its own color, not the 値's bars
+            $own = $second !== null && $s === 1;
+            $as = $own ? ($second['type'] === ChartSecondValue::BAR ? DataSeries::TYPE_BARCHART : DataSeries::TYPE_LINECHART) : $chart_type;
             $col = Coordinate::stringFromColumnIndex($s + 2);
             $label = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "{$quoted}!\${$col}\$" . static::HEADER_ROW, null, 1);
             $value = new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "{$quoted}!\${$col}\${$top}:\${$col}\${$last}", null, $count);
             $color = static::rgb($this->data['colors'][$s % max(1, count($this->data['colors']))] ?? null);
-            if ($per_point) {
+            if ($per_point && !$own) {
                 $value->setFillColor(array_map(function ($c) {
                     return static::rgb($c) ?? '';
                 }, array_values($this->data['point_colors'])));
             } elseif ($color !== null) {
-                if (in_array($chart_type, [DataSeries::TYPE_LINECHART, DataSeries::TYPE_RADARCHART], true)) {
+                if (in_array($as, [DataSeries::TYPE_LINECHART, DataSeries::TYPE_RADARCHART], true)) {
                     // a line in the color, its points too
                     $value->setLineColorProperties($color, null, ChartColor::EXCEL_COLOR_TYPE_RGB);
                     $value->getMarkerFillColor()->setColorProperties($color);
@@ -392,7 +423,7 @@ class ChartExcel
                     $value->setFillColor($color);
                 }
             }
-            if (in_array($chart_type, [DataSeries::TYPE_LINECHART, DataSeries::TYPE_RADARCHART], true)) {
+            if (in_array($as, [DataSeries::TYPE_LINECHART, DataSeries::TYPE_RADARCHART], true)) {
                 $value->setPointMarker('circle');
                 $value->setPointSize($type === ChartType::SCATTER ? 9 : 5);
                 $value->setScatterLines($type !== ChartType::SCATTER);
@@ -401,9 +432,15 @@ class ChartExcel
             $values[] = $value;
         }
         $categories = [new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "{$quoted}!\$A\${$top}:\$A\${$last}", null, $count)];
-        $series = new DataSeries($chart_type, $grouping, range(0, count($values) - 1), $labels, $categories, $values, $direction, false, $chart_type === DataSeries::TYPE_RADARCHART ? DataSeries::STYLE_MARKER : null);
-        // the multi-series lines are curves on the chart, the single one is straight
-        $series->setSmoothLine($type === ChartType::MLINE);
+        $plots = [];
+        if ($second !== null && count($values) > 1) {
+            $plots = $this->comboSeries($second, $labels, $categories, $values);
+            $series = array_shift($plots);
+        } else {
+            $series = new DataSeries($chart_type, $grouping, range(0, count($values) - 1), $labels, $categories, $values, $direction, false, $chart_type === DataSeries::TYPE_RADARCHART ? DataSeries::STYLE_MARKER : null);
+            // the multi-series lines are curves on the chart, the single one is straight
+            $series->setSmoothLine($type === ChartType::MLINE);
+        }
 
         $layout = new Layout();
         $circular = in_array($chart_type, [DataSeries::TYPE_PIECHART, DataSeries::TYPE_DOUGHNUTCHART], true);
@@ -418,7 +455,8 @@ class ChartExcel
         $legend = null;
         if ($circular) {
             $legend = empty($this->data['legend']) ? null : new Legend(Legend::POSITION_RIGHT, null, false);
-        } elseif (ChartType::isMulti($type) && !empty($this->data['legend'])) {
+        } elseif ((ChartType::isMulti($type) && !empty($this->data['legend'])) || $second !== null) {
+            // (the 複合 type's two values are told apart by it)
             $legend = new Legend(Legend::POSITION_BOTTOM, null, false);
         }
 
@@ -436,8 +474,17 @@ class ChartExcel
             $value_axis = new Axis();
             $value_axis->setAxisOptionsProperties(Axis::AXIS_LABELS_NEXT_TO, null, Axis::HORIZONTAL_CROSSES_MAXIMUM);
         }
+        if ($second !== null) {
+            // the left axis numbered in the 値's units — and named after it when the 2つ目の値 has an
+            // axis of its own, else it is the axis of both
+            $value_axis = new Axis();
+            $value_axis->setAxisNumberProperties($this->axisFormat(0));
+            if (empty($second['right'])) {
+                $axis_titles[1] = null;
+            }
+        }
 
-        $plots = [$series];
+        $plots = array_merge([$series], $plots);
         if ($table['target_col'] !== null) {
             if ($direction === DataSeries::DIRECTION_BAR) {
                 $this->note($sheet, exmtrans('dashboard.chart_excel.target_column_only', (string) $this->data['target']['name']));
@@ -486,6 +533,307 @@ class ChartExcel
         $value->setLineStyleProperties(static::TARGET_WIDTH, '', static::TARGET_DASH);
         $value->setPointMarker('none');
         return new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, [0], [$label], $categories, [$value]);
+    }
+
+    /**
+     * The 複合 type's 2つ目の値 (ChartItem::excelData `second`): {type, right, units}; null on another type.
+     *
+     * @return array{type: string, right: bool, units: array<int, array{prefix: string, suffix: string, digits: int|null}>}|null
+     */
+    protected function comboSecond(): ?array
+    {
+        $second = $this->data['second'] ?? null;
+        if ($this->data['type'] !== ChartType::COMBO || !is_array($second) || count($this->data['series']) < 2) {
+            return null;
+        }
+        /** @var array{type: string, right: bool, units: array<int, array{prefix: string, suffix: string, digits: int|null}>} $second */
+        return $second;
+    }
+
+    /**
+     * The units of the 複合 type's two values, per series; [] on another type.
+     *
+     * @return array<int, array{prefix: string, suffix: string, digits: int|null}>
+     */
+    protected function comboUnits(): array
+    {
+        $second = $this->comboSecond();
+        return $second === null ? [] : array_values($second['units']);
+    }
+
+    /**
+     * Whether the 2つ目の値 has the secondary axis (第2軸).
+     */
+    protected function hasSecondaryAxis(): bool
+    {
+        $second = $this->comboSecond();
+        return $second !== null && !empty($second['right']);
+    }
+
+    /**
+     * The chart groups of the 複合 type: the 値's bars, and the 2つ目の値 — a line, or bars — as a
+     * group of its own (the one writeSecondaryAxis moves to the secondary axis); bars of both on one
+     * axis are one group, side by side. A line is labelled with its values, as on the chart — up to
+     * LINE_LABELS_MAX points, where Excel does not hide the labels that overlap.
+     *
+     * @param array{type: string, right: bool, units: array<int, array{prefix: string, suffix: string, digits: int|null}>} $second
+     * @param array<int, DataSeriesValues> $labels
+     * @param array<int, DataSeriesValues> $categories
+     * @param array<int, DataSeriesValues> $values
+     * @return array<int, DataSeries>
+     */
+    protected function comboSeries(array $second, array $labels, array $categories, array $values): array
+    {
+        $bars = $second['type'] === ChartSecondValue::BAR;
+        if ($bars && empty($second['right'])) {
+            return [new DataSeries(DataSeries::TYPE_BARCHART, DataSeries::GROUPING_CLUSTERED, [0, 1], $labels, $categories, $values, DataSeries::DIRECTION_COL)];
+        }
+        if (!$bars && (count($this->data['categories']) <= static::LINE_LABELS_MAX || !empty($this->data['labels']))) {
+            $layout = new Layout();
+            $layout->setShowVal(true);
+            $layout->setNumFmtCode(ChartSecondValue::excelFormat($second['units'][1], array_values((array) ($this->data['matrix'][1] ?? []))));
+            $layout->setNumFmtLinked(false);
+            $layout->setDLblPos('t');
+            $values[1]->setLabelLayout($layout);
+        }
+        return [
+            new DataSeries(DataSeries::TYPE_BARCHART, DataSeries::GROUPING_CLUSTERED, [0], [$labels[0]], $categories, [$values[0]], DataSeries::DIRECTION_COL),
+            $bars
+                ? new DataSeries(DataSeries::TYPE_BARCHART, DataSeries::GROUPING_CLUSTERED, [0], [$labels[1]], $categories, [$values[1]], DataSeries::DIRECTION_COL)
+                : new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, [0], [$labels[1]], $categories, [$values[1]]),
+        ];
+    }
+
+    /**
+     * The number format of the 複合 type's axis of series $s (0: the left one, 1: the right one):
+     * its value's units, in millions once its numbers reach MILLIONS (the left one holds the 2つ目の
+     * 値 too when it has no axis of its own, and the target).
+     */
+    protected function axisFormat(int $s): string
+    {
+        $units = $this->comboUnits();
+        $numbers = array_values((array) ($this->data['matrix'][$s] ?? []));
+        if ($s === 0 && !$this->hasSecondaryAxis()) {
+            $numbers = array_merge($numbers, array_values((array) ($this->data['matrix'][1] ?? [])));
+        }
+        if ($s === 0 && is_array($this->data['target'] ?? null)) {
+            $numbers[] = $this->data['target']['value'];
+        }
+        $top = 0;
+        foreach ($numbers as $n) {
+            if (is_numeric($n)) {
+                $top = max($top, abs((float) $n));
+            }
+        }
+        return ChartSecondValue::excelFormat($units[$s], $numbers, $top >= static::MILLIONS);
+    }
+
+    /**
+     * The chart's XML made what Excel reads (fixChart) — and, on the 複合 type, the 2つ目の値 on the
+     * secondary axis as Excel writes a 組み合わせグラフ (secondaryAxis; PhpSpreadsheet has none).
+     * Rewritten only when changed.
+     */
+    protected function writeChartXml(string $path): void
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            return;
+        }
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = (string) $zip->getNameIndex($i);
+            $xml = preg_match('#\Axl/charts/chart\d+\.xml\z#', $name) ? $zip->getFromName($name) : false;
+            if (!is_string($xml) || $xml === '') {
+                continue;
+            }
+            $dom = new DOMDocument();
+            $dom->loadXML($xml);
+            $changed = static::fixChart($dom);
+            if ($this->hasSecondaryAxis()) {
+                $changed = $this->secondaryAxis($dom) || $changed;
+            }
+            if ($changed) {
+                $zip->addFromString($name, (string) $dom->saveXML());
+            }
+        }
+        $zip->close();
+    }
+
+    /**
+     * PhpSpreadsheet writes the chart groups of one type — a line and the target's line, the 複合
+     * type's two values as bars — as one element, but heads the series with the type's settings
+     * (c:grouping …) once per group: Excel refuses such a file. They are kept once, before the series.
+     */
+    protected static function fixChart(DOMDocument $dom): bool
+    {
+        $xpath = new DOMXPath($dom);
+        $xpath->registerNamespace('c', static::CHART_NS);
+        $changed = false;
+        foreach (static::elements($xpath, '//c:plotArea/c:barChart|//c:plotArea/c:lineChart|//c:plotArea/c:areaChart') as $group) {
+            $seen = [];
+            foreach (static::elements($xpath, 'c:barDir|c:grouping|c:varyColors', $group) as $setting) {
+                if (isset($seen[$setting->localName])) {
+                    $group->removeChild($setting);
+                    $changed = true;
+                }
+                $seen[$setting->localName] = true;
+            }
+        }
+        return $changed;
+    }
+
+    /**
+     * The 2つ目の値 on the secondary axis, as Excel writes a 組み合わせグラフ: its chart group crosses a
+     * 2nd category axis (hidden) and a 2nd value axis on the right — named after it, numbered in its
+     * units, without gridlines — copied from the first ones. false when the chart is not the one
+     * expected (left as written).
+     */
+    protected function secondaryAxis(DOMDocument $dom): bool
+    {
+        $xpath = new DOMXPath($dom);
+        $xpath->registerNamespace('c', static::CHART_NS);
+        $xpath->registerNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
+        $plot = static::element($xpath, '//c:plotArea');
+        $cat = $plot === null ? null : static::element($xpath, 'c:catAx', $plot);
+        $val = $plot === null ? null : static::element($xpath, 'c:valAx', $plot);
+        $group = $plot === null ? null : $this->secondGroup($xpath, $plot);
+        $ids = $group === null ? [] : static::elements($xpath, 'c:axId', $group);
+        if ($plot === null || $cat === null || $val === null || count($ids) !== 2) {
+            return false;
+        }
+        $ids[0]->setAttribute('val', static::SECONDARY_CATEGORY_AXIS);
+        $ids[1]->setAttribute('val', static::SECONDARY_VALUE_AXIS);
+
+        // the value axis on the right, crossing at the categories' end, named after the 2つ目の値
+        $val2 = $val->cloneNode(true);
+        $cat2 = $cat->cloneNode(true);
+        if (!$val2 instanceof DOMElement || !$cat2 instanceof DOMElement) {
+            return false;
+        }
+        static::setVal($xpath, 'c:axId', $val2, static::SECONDARY_VALUE_AXIS);
+        static::setVal($xpath, 'c:crossAx', $val2, static::SECONDARY_CATEGORY_AXIS);
+        static::setVal($xpath, 'c:axPos', $val2, 'r');
+        foreach (static::elements($xpath, 'c:majorGridlines|c:minorGridlines|c:crossesAt', $val2) as $node) {
+            $val2->removeChild($node);
+        }
+        if (static::element($xpath, 'c:crosses', $val2) === null) {
+            $cross = static::element($xpath, 'c:crossAx', $val2);
+            $val2->insertBefore($dom->createElementNS(static::CHART_NS, 'c:crosses'), $cross === null ? null : $cross->nextSibling);
+        }
+        static::setVal($xpath, 'c:crosses', $val2, 'max');
+        foreach (static::elements($xpath, 'c:title//a:t', $val2) as $i => $text) {
+            $text->textContent = $i === 0 ? (string) ($this->data['series'][1] ?? '') : '';
+        }
+        $format = static::element($xpath, 'c:numFmt', $val2);
+        if ($format !== null) {
+            $format->setAttribute('formatCode', $this->axisFormat(1));
+            $format->setAttribute('sourceLinked', '0');
+        }
+
+        // its category axis: the first one's, hidden
+        static::setVal($xpath, 'c:axId', $cat2, static::SECONDARY_CATEGORY_AXIS);
+        static::setVal($xpath, 'c:crossAx', $cat2, static::SECONDARY_VALUE_AXIS);
+        static::setVal($xpath, 'c:delete', $cat2, '1');
+        foreach (static::elements($xpath, 'c:title', $cat2) as $node) {
+            $cat2->removeChild($node);
+        }
+
+        // after the first axes, as Excel lists them
+        $last = static::isAfter($val, $cat) ? $val : $cat;
+        $plot->insertBefore($cat2, $last->nextSibling);
+        $plot->insertBefore($val2, $cat2);
+        return true;
+    }
+
+    /**
+     * The chart group of the 2つ目の値 — the series of the table's column C — alone: PhpSpreadsheet
+     * writes the groups of one type as one element, the 2つ目の値's bars with the 値's, its line with
+     * the target's, which stay on the left axis: a group shared is split, the series in one of its own
+     * right after it. null without the series.
+     */
+    protected function secondGroup(DOMXPath $xpath, DOMElement $plot): ?DOMElement
+    {
+        $column = '$' . Coordinate::stringFromColumnIndex(3) . '$';
+        $isSecond = function (DOMElement $ser) use ($xpath, $column) {
+            $ref = static::element($xpath, 'c:val/c:numRef/c:f', $ser);
+            $text = $ref === null ? '' : (string) $ref->textContent;
+            $at = strrpos($text, '!');
+            return strpos($at === false ? $text : substr($text, $at + 1), $column) === 0;
+        };
+        $series = null;
+        foreach (static::elements($xpath, 'c:barChart/c:ser|c:lineChart/c:ser', $plot) as $ser) {
+            if ($isSecond($ser)) {
+                $series = $ser;
+                break;
+            }
+        }
+        $group = $series === null ? null : $series->parentNode;
+        if ($series === null || !$group instanceof DOMElement) {
+            return null;
+        }
+        if (count(static::elements($xpath, 'c:ser', $group)) === 1) {
+            return $group;
+        }
+        $own = $group->cloneNode(true);
+        if (!$own instanceof DOMElement) {
+            return null;
+        }
+        $group->removeChild($series);
+        foreach (static::elements($xpath, 'c:ser', $own) as $ser) {
+            if (!$isSecond($ser)) {
+                $own->removeChild($ser);
+            }
+        }
+        $plot->insertBefore($own, $group->nextSibling);
+        return $own;
+    }
+
+    /**
+     * The elements $path finds (under $node).
+     *
+     * @return DOMElement[]
+     */
+    protected static function elements(DOMXPath $xpath, string $path, ?DOMNode $node = null): array
+    {
+        $found = $xpath->query($path, $node);
+        $elements = [];
+        foreach ($found === false ? [] : $found as $item) {
+            if ($item instanceof DOMElement) {
+                $elements[] = $item;
+            }
+        }
+        return $elements;
+    }
+
+    /**
+     * The first element $path finds (under $node).
+     */
+    protected static function element(DOMXPath $xpath, string $path, ?DOMNode $node = null): ?DOMElement
+    {
+        return static::elements($xpath, $path, $node)[0] ?? null;
+    }
+
+    /**
+     * Sets the `val` of the element $path finds under $node.
+     */
+    protected static function setVal(DOMXPath $xpath, string $path, DOMElement $node, string $value): void
+    {
+        $element = static::element($xpath, $path, $node);
+        if ($element !== null) {
+            $element->setAttribute('val', $value);
+        }
+    }
+
+    /**
+     * Whether $node comes after $other among their parent's children.
+     */
+    protected static function isAfter(DOMElement $node, DOMElement $other): bool
+    {
+        for ($n = $other->nextSibling; $n !== null; $n = $n->nextSibling) {
+            if ($n === $node) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

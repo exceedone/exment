@@ -19,6 +19,7 @@ use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\ChartDetail;
 use Exceedone\Exment\Services\Dashboard\ChartFilter;
 use Exceedone\Exment\Services\Dashboard\ChartPivot;
+use Exceedone\Exment\Services\Dashboard\ChartSecondValue;
 use Exceedone\Exment\Services\Dashboard\ChartShowAs;
 use Exceedone\Exment\Services\Dashboard\ChartSort;
 use Exceedone\Exment\Services\Dashboard\ChartSorter;
@@ -28,6 +29,7 @@ use Exceedone\Exment\Services\Dashboard\ChartThresholds;
 use Exceedone\Exment\Services\Dashboard\ChartTopN;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Exceedone\Exment\Services\Dashboard\FilterValue;
+use Exceedone\Exment\Validator\ChartSecondValueRule;
 use Exceedone\Exment\Validator\ChartTargetRule;
 use Exceedone\Exment\Validator\ChartThresholdRule;
 
@@ -121,6 +123,9 @@ class ChartItem implements ItemInterface
     /** @var ChartDetail|null|false detail() memo (false = not resolved yet) */
     protected $detail = false;
 
+    /** @var ChartSecondValue|null|false second() memo (false = not resolved yet) */
+    protected $second = false;
+
     /**
      * @param mixed $dashboard_box
      * @param array<string, mixed>|null $params  the box's request params; null = the current
@@ -153,6 +158,11 @@ class ChartItem implements ItemInterface
             // no switch to a 100% stacked type of a measure that does not add up (a choice remembered
             // before the view changed): it would draw a message only, with no picker to switch back
             $this->chart_type = $this->configured_type;
+        }
+        if ($this->chart_type === ChartType::COMBO && $this->second() === null) {
+            // 複合 draws the 2つ目の値: a box without one (none set, or its column gone from the view)
+            // draws its 値 alone, as bars
+            $this->chart_type = $this->configured_type === ChartType::COMBO ? ChartType::BAR : $this->configured_type;
         }
         $this->chart_sort = ChartSort::parse($this->params['cs'] ?? null);
         $this->chart_display = static::displayOptions($this->params['cd'] ?? null);
@@ -266,7 +276,9 @@ class ChartItem implements ItemInterface
                 'chart_click' => json_encode($result['chart_click'] ?? null, static::JSON_FLAGS),
                 'chart_detail' => json_encode($this->detailPayload($result), static::JSON_FLAGS),
             ];
-            if (ChartType::isEcharts($this->chart_type)) {
+            if ($this->chart_type === ChartType::COMBO) {
+                $chart = view('exment::dashboard.chart.echart_combo', $vars + $this->comboVars($result));
+            } elseif (ChartType::isEcharts($this->chart_type)) {
                 $chart = view('exment::dashboard.chart.echart', $vars + [
                     'chart_colors' => json_encode($this->singleSeriesPalette()),
                     'chart_point_colors' => json_encode($result['point_colors']),
@@ -283,7 +295,7 @@ class ChartItem implements ItemInterface
             }
         }
 
-        return $this->toolbarHtml($fields, $result['axisx_label'], $result['axisy_label']) . $chart->render() . $this->topNNote();
+        return $this->toolbarHtml($fields, $result['axisx_label'], $result['axisy_label'], $this->secondPreview($result)) . $chart->render() . $this->topNNote();
     }
 
     /**
@@ -345,6 +357,104 @@ class ChartItem implements ItemInterface
             return '';
         }
         return '<div class="ct-topn-note">' . esc_html(exmtrans('dashboard.chart_top_n.note', $top_n->n(), $top_n->hidden())) . '</div>';
+    }
+
+    /**
+     * The box's 2つ目の値 (ChartSecondValue), drawn with the 値 on the 複合 type: null when it has
+     * none — none set, or none its view still has.
+     */
+    protected function second(): ?ChartSecondValue
+    {
+        if ($this->second === false) {
+            $this->second = $this->isAggregateView() ? ChartSecondValue::fromOptions($this->custom_view, array_get($this->dashboard_box, 'options')) : null;
+        }
+        return $this->second;
+    }
+
+    /**
+     * Whether the 2つ目の値 adds up (SUM / COUNT): its その他 of 表示件数 is the total of the rest.
+     */
+    protected function secondAddsUp(): bool
+    {
+        $second = $this->second();
+        return $second !== null && ChartSummarySwitch::isAdditive($second->condition());
+    }
+
+    /**
+     * The two colors of the 複合 type: the 値's bars in the box's one-series color (painted as a
+     * line's is), the 2つ目の値 in the one painted on it, else the palette's next one — never the
+     * bars' own.
+     *
+     * @return array{0: string, 1: string}
+     */
+    protected function comboColors(): array
+    {
+        $first = $this->singleSeriesPalette()[0];
+        $second = $this->chartColors()->get(ChartColors::SERIES, ChartSecondValue::COLOR_KEY);
+        if ($second === null) {
+            foreach (array_merge(array_slice($this->getChartPalette(), 1), ['#36a2eb', '#ff6633']) as $color) {
+                if (strcasecmp((string) $color, (string) $first) !== 0) {
+                    $second = (string) $color;
+                    break;
+                }
+            }
+        }
+        return [$first, $second ?? '#36a2eb'];
+    }
+
+    /**
+     * What the 複合 type's blade (echart_combo) draws besides a single series' data: the 2つ目の値's
+     * numbers, the names, units, axes and colors of the two values.
+     *
+     * @param array<string, mixed> $result  drawnData()
+     * @return array<string, mixed>
+     */
+    protected function comboVars(array $result): array
+    {
+        $second = $this->second();
+        if ($second === null) {
+            return []; // (the constructor draws such a box as bars)
+        }
+        $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
+        [$color1, $color2] = $this->comboColors();
+        $name1 = (string) $this->valueNames($result)['chart_axisy'];
+        $name2 = $second->label();
+        return [
+            'chart_data2' => json_encode(ChartSorter::listOf($result['chart_data2'] ?? null), static::JSON_FLAGS),
+            'chart_point_colors' => json_encode($result['point_colors']),
+            'chart_combo' => json_encode([
+                'name1' => $name1,
+                'name2' => $name2,
+                // the legend tells the axes apart when the values have one each
+                'legend1' => $second->onRight() ? (string) exmtrans('dashboard.chart_second.left_axis', $name1) : $name1,
+                'legend2' => $second->onRight() ? (string) exmtrans('dashboard.chart_second.right_axis', $name2) : $name2,
+                // the 値 in the units of the condition it is drawn by (集計方法)
+                'unit1' => ChartSecondValue::unitOf($view_column_y, $this->summaryCondition($view_column_y)),
+                'unit2' => $second->unit(),
+                'type2' => $second->type(),
+                'right' => $second->onRight(),
+                'color1' => $color1,
+                'color2' => $color2,
+                'key2' => ChartSecondValue::COLOR_KEY,
+                'compact' => ChartSecondValue::compactUnits(),
+            ], static::JSON_FLAGS),
+        ];
+    }
+
+    /**
+     * The 2つ目の値 as the type picker previews the 複合 type from another type: {name, values
+     * (one per point as drawn), type, right}; null without one.
+     *
+     * @param array<string, mixed> $result  drawnData()
+     * @return array<string, mixed>|null
+     */
+    protected function secondPreview(array $result): ?array
+    {
+        $second = $this->second();
+        if ($second === null || !array_key_exists('chart_data2', $result)) {
+            return null;
+        }
+        return ['name' => $second->label(), 'values' => ChartSorter::listOf($result['chart_data2']), 'type' => $second->type(), 'right' => $second->onRight()];
     }
 
     /**
@@ -427,7 +537,7 @@ class ChartItem implements ItemInterface
             $x = $this->xViewColumn();
             return $top_n->applyMulti($result, $this->chart_sort, $this->restHasDetail(), $x ? $x->id : null);
         }
-        return $top_n->applySingle($result, $this->chart_sort, $this->restHasDetail());
+        return $top_n->applySingle($result, $this->chart_sort, $this->restHasDetail(), $this->secondAddsUp());
     }
 
     /**
@@ -484,6 +594,8 @@ class ChartItem implements ItemInterface
      * the Excel chart draws itself. `adds_up`: the values may be summed (a SUM / COUNT measure
      * shown as it is). `point_colors`: per category, for the types that paint each point (a bar
      * under the target in its color). `target`: the target line {value, name, color}, or null.
+     * `second`: the 複合 type's 2つ目の値 — the 2nd series — {type (line / bar), right (on an axis of
+     * its own), units [the 値's, its own] (ChartSecondValue::unitOf)}, or null.
      *
      * @return array<string, mixed>|string|null
      */
@@ -519,6 +631,20 @@ class ChartItem implements ItemInterface
             $colors = [$this->singleSeriesPalette()[0]];
             $point_colors = $one_color ? null : $result['point_colors'];
         }
+        // the 複合 type: the 2つ目の値 a series of its own, in its own units and on its own axis
+        $second = null;
+        $value2 = $type === ChartType::COMBO ? $this->second() : null;
+        if ($value2 !== null) {
+            $series[] = $value2->label();
+            $matrix[] = ChartSorter::listOf($result['chart_data2'] ?? null);
+            $colors = $this->comboColors();
+            $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
+            $second = [
+                'type' => $value2->type(),
+                'right' => $value2->onRight(),
+                'units' => [ChartSecondValue::unitOf($view_column_y, $this->summaryCondition($view_column_y)), $value2->unit()],
+            ];
+        }
         // the target line: its column and line (ChartExcel), the bars under it in its color as drawn
         $target = $this->targetPayload($result);
         if ($target !== null && is_array($point_colors)) {
@@ -549,6 +675,7 @@ class ChartItem implements ItemInterface
             'legend' => in_array(ChartOptionType::LEGEND, $this->chart_options),
             'thresholds' => $type === ChartType::HEATMAP ? $this->thresholds() : null,
             'target' => $target === null ? null : ['value' => $target['value'], 'name' => $target['name'], 'color' => $target['color']],
+            'second' => $second,
         ];
     }
 
@@ -861,7 +988,13 @@ class ChartItem implements ItemInterface
         if (!$switch->switched() && !$this->showAs()->active() && !$this->topN()->active()) {
             return null;
         }
-        $title = exmtrans('dashboard.chart_summary.title', (string) $axisx_label, $switch->valueLabel() ?? (string) $axisy_label);
+        $value = $switch->valueLabel() ?? (string) $axisy_label;
+        $second = $this->chart_type === ChartType::COMBO ? $this->second() : null;
+        if ($second !== null) {
+            // the 複合 type draws its 2つ目の値 too: 顧客別 売上金額・受注件数
+            $value = exmtrans('dashboard.chart_second.title_values', $value, $second->label());
+        }
+        $title = exmtrans('dashboard.chart_summary.title', (string) $axisx_label, $value);
         return (string) $this->topN()->decorate($this->showAs()->decorate($title));
     }
 
@@ -1114,11 +1247,16 @@ class ChartItem implements ItemInterface
      * @param array<int, array<string, mixed>> $fields  chartFilterFields()
      * @param mixed $axisx_label  the X axis label of the drawn data
      * @param mixed $axisy_label  the measure's label of the drawn data
+     * @param array<string, mixed>|null $second  secondPreview(): the 2つ目の値 the picker previews the 複合 type with
      */
-    protected function toolbarHtml(array $fields, $axisx_label, $axisy_label): string
+    protected function toolbarHtml(array $fields, $axisx_label, $axisy_label, ?array $second = null): string
     {
         $types = [];
         foreach (ChartType::switchPool($this->configured_type) as $type) {
+            // 複合 draws the 2つ目の値: offered on a box that has one
+            if ($type === ChartType::COMBO && $this->second() === null) {
+                continue;
+            }
             // a 100% stacked type where the view sums or counts the measure only (else it draws a
             // message, isFullStackOfNonAdditive) — the box's own type stays on the picker
             if (ChartType::isFullStacked($type) && $type !== $this->configured_type && !$this->measureAddsUp()) {
@@ -1155,6 +1293,7 @@ class ChartItem implements ItemInterface
             'types' => $types,
             // the type picker's preview draws in the box's palette
             'palette' => $this->getChartPalette(),
+            'second' => $second,
             'current_type' => $this->chart_type,
             'configured_type' => $this->configured_type,
             'menu' => $menu,
@@ -1240,7 +1379,7 @@ class ChartItem implements ItemInterface
     /**
      * get chart data from aggregate-view
      *
-     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, sort_keys: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: string|null, chart_click: array{column: string, values: array<int, string>, selected: string[], highlight: bool}|null, detail: array{points: array<int, array<int|string, mixed>>}|null}|false
+     * @return array{chart_data: \Illuminate\Support\Collection<array-key, mixed>, chart_data2?: \Illuminate\Support\Collection<array-key, mixed>, chart_label: \Illuminate\Support\Collection<int, mixed>, chart_fields: array<int, array<int, mixed>>, sort_keys: array<int, array<int, mixed>>, axisx_label: mixed, axisy_label: string|null, chart_click: array{column: string, values: array<int, string>, selected: string[], highlight: bool}|null, detail: array{points: array<int, array<int|string, mixed>>}|null}|false
      */
     protected function getAggregateData()
     {
@@ -1298,7 +1437,11 @@ class ChartItem implements ItemInterface
             return array_get($item, 'view_column_name')?? $item->column_item->label();
         })->implode(' ');
 
-        return [
+        // the 2つ目の値, off the same rows (ChartSecondValue): the 複合 type draws it, the type picker previews it
+        $second = $this->second();
+        $data2 = $second === null ? [] : ['chart_data2' => $datalist->pluck($second->summary()->column_item->uniqueName())];
+
+        return $data2 + [
             'chart_data'    => $chart_data,
             'chart_label'   => $chart_label,
             'chart_fields'  => $chart_fields,
@@ -1706,8 +1849,8 @@ class ChartItem implements ItemInterface
                 return ChartItem::getCustomViewSelectOptions($value, $field, $model, $dashboard);
             })
             ->loads(
-                ['options_chart_axisx', 'options_chart_axisy', 'options_chart_series'],
-                [admin_url('dashboardbox/chart_axis').'/x', admin_url('dashboardbox/chart_axis').'/y', admin_url('dashboardbox/chart_axis').'/series']
+                ['options_chart_axisx', 'options_chart_axisy', 'options_chart_series', 'options_' . ChartSecondValue::COLUMN],
+                [admin_url('dashboardbox/chart_axis').'/x', admin_url('dashboardbox/chart_axis').'/y', admin_url('dashboardbox/chart_axis').'/series', admin_url('dashboardbox/chart_axis').'/y2']
             );
 
         // link to manual
@@ -1735,6 +1878,30 @@ class ChartItem implements ItemInterface
                 // the admin form binds this closure to the model, so the class is named explicitly
                 return array_column(ChartItem::seriesSelectOptions(ChartItem::formCustomView($model)), 'text', 'id');
             });
+
+        // 2つ目の値 (ChartSecondValue): another summary column of the view, drawn with the 値 on the
+        // 複合 type — shown on the types it is drawn with, for a view of 2 summary columns or more
+        // (the script below)
+        $form->exmheader(exmtrans('dashboard.chart_second.header'))->hr()
+            ->attribute(['data-chart-second' => 'header']);
+        $form->select(ChartSecondValue::COLUMN, exmtrans('dashboard.chart_second.column'))
+            ->options(function ($value, $model) {
+                // the admin form binds this closure to the model, so the class is named explicitly
+                return array_column(ChartSecondValue::selectOptions(ChartItem::formCustomView($model)), 'text', 'id');
+            })
+            ->rules([new ChartSecondValueRule(ChartSecondValue::COLUMN)])
+            ->help(exmtrans('dashboard.chart_second.help'));
+        $form->select(ChartSecondValue::TYPE, exmtrans('dashboard.chart_second.type'))
+            ->options([
+                ChartSecondValue::LINE => exmtrans('dashboard.chart_second.type_line'),
+                ChartSecondValue::BAR => exmtrans('dashboard.chart_second.type_bar'),
+            ])
+            ->default(ChartSecondValue::LINE)
+            ->disableClear()
+            ->rules([new ChartSecondValueRule(ChartSecondValue::TYPE)]);
+        $form->checkboxone(ChartSecondValue::RIGHT, exmtrans('dashboard.chart_second.axis'))
+            ->option(['1' => exmtrans('dashboard.chart_second.right')])
+            ->default('1');
 
         // chart filter: columns of the table offered as filter fields on this chart only
         $form->multipleSelect('chart_filters', exmtrans("dashboard.dashboard_box_options.chart_filters"))
@@ -1802,12 +1969,18 @@ class ChartItem implements ItemInterface
         $belowTypes = json_encode(array_values(array_filter(ChartType::arrays(), [ChartTarget::class, 'supportsBelow'])));
         $targetFields = '.options_' . implode(', .options_', [ChartTarget::VALUE, ChartTarget::LABEL, ChartTarget::COLOR]);
         $belowField = '.options_' . ChartTarget::BELOW;
+        $secondTypes = json_encode(array_values(array_filter(ChartType::arrays(), [ChartSecondValue::class, 'supportsType'])));
+        $secondColumn = 'select.options_' . ChartSecondValue::COLUMN;
+        $secondDetail = '.options_' . ChartSecondValue::TYPE . ', .options_' . ChartSecondValue::RIGHT;
+        $combo = ChartType::COMBO;
+        $bar = ChartType::BAR;
         $script = <<<EOT
         var exmentLegendCharts = $legendTypes;
         var exmentAxisCharts = $axisTypes;
         var exmentMultiCharts = $multiTypes;
         var exmentTargetCharts = $targetTypes;
         var exmentBelowCharts = $belowTypes;
+        var exmentSecondCharts = $secondTypes;
         function setChartOptions(val) {
             var legend = exmentLegendCharts.indexOf(val) >= 0;
             var axis = exmentAxisCharts.indexOf(val) >= 0;
@@ -1825,12 +1998,59 @@ class ChartItem implements ItemInterface
             $('[data-chart-target]').closest('.form-group').toggle(target);
             $('{$targetFields}').closest('.form-group').toggle(target);
             $('{$belowField}').closest('.form-group').toggle(target && exmentBelowCharts.indexOf(val) >= 0);
+            setSecondValue(val);
+        }
+        // an option of a select2 field enabled / disabled: a new element, select2 keeps what it read of the old one
+        function setOptionDisabled(option, disabled) {
+            if (option.disabled === disabled) { return; }
+            var copy = new Option(option.text, option.value, option.defaultSelected, option.selected);
+            copy.disabled = disabled;
+            $(option).replaceWith(copy);
+        }
+        // 2つ目の値 (ChartSecondValue): a summary column of the view other than the 値, offered on the
+        // types it is drawn with when the view has two; 複合 draws it, and needs one
+        function setSecondValue(type) {
+            var y = String($('select.options_chart_axisy').val() || ''), second = $('{$secondColumn}'), choices = 0;
+            if (y !== '' && second.val() === y) { second.val(null).trigger('change'); }
+            second.find('option').each(function () {
+                if (this.value === '') { return; }
+                choices++;
+                setOptionDisabled(this, this.value === y);
+            });
+            var shown = exmentSecondCharts.indexOf(type) >= 0 && choices >= 2, picked = shown && !!second.val();
+            if (type === '{$combo}' && !shown) {
+                // 複合 with no 2つ目の値 to pick (the view has fewer than two summary columns): a bar, as
+                // the dashboard draws it — the save would fail on the hidden field otherwise. Applied
+                // directly: on the form's first call, the type field's change handler is not bound yet
+                $('.options_chart_type').val('{$bar}').trigger('change.select2');
+                setChartOptions('{$bar}');
+                return;
+            }
+            $('[data-chart-second]').closest('.form-group').toggle(shown);
+            second.closest('.form-group').toggle(shown);
+            $('{$secondDetail}').closest('.form-group').toggle(picked);
+            $('select.options_chart_type option[value="{$combo}"]').each(function () { setOptionDisabled(this, !picked && type !== '{$combo}'); });
         }
         setChartOptions($('.options_chart_type').val());
 
         $(document).off('change.exment_dashboard', ".options_chart_type");
         $(document).on('change.exment_dashboard', ".options_chart_type", function () {
             setChartOptions($(this).val());
+        });
+        // a 2つ目の値 picked on a bar / line / area makes it 複合; none left on 複合, a bar
+        $(document).off('change.exment_second');
+        $(document).on('change.exment_second', '{$secondColumn}', function () {
+            setSecondValue($('.options_chart_type').val());
+            // (read after it: a view of one summary column has made a 複合 a bar)
+            var type = $('.options_chart_type').val();
+            if ($(this).val() && exmentSecondCharts.indexOf(type) >= 0 && type !== '{$combo}') {
+                $('.options_chart_type').val('{$combo}').trigger('change');
+            } else if (!$(this).val() && type === '{$combo}') {
+                $('.options_chart_type').val('{$bar}').trigger('change');
+            }
+        });
+        $(document).on('change.exment_second', 'select.options_chart_axisy', function () {
+            setSecondValue($('.options_chart_type').val());
         });
 EOT;
         Admin::script($script);
@@ -1874,6 +2094,8 @@ EOT;
 
         // 目標線: a number, on the types the form shows it on only (none without a value)
         $options = ChartTarget::saved($options);
+        // 2つ目の値: on the types the form shows it on only (none without a column)
+        $options = ChartSecondValue::saved($options);
 
         $form->options = $options;
     }
@@ -2032,6 +2254,10 @@ EOT;
      */
     protected function pointColors(array $labels): array
     {
+        if ($this->chart_type === ChartType::COMBO) {
+            // the 値's bars are one series of the 複合 type, in its one color (comboColors)
+            return array_fill(0, count($labels), $this->comboColors()[0]);
+        }
         $palette = $this->getChartPalette();
         if (!in_array($this->chart_type, [ChartType::PIE, ChartType::DOUGHNUT, ChartType::FUNNEL], true)) {
             $palette = [$palette[0]];

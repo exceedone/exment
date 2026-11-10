@@ -76,16 +76,17 @@ final class ChartTarget
      */
     public static function supportsType(?string $type): bool
     {
-        return in_array($type, [ChartType::BAR, ChartType::HBAR, ChartType::LINE, ChartType::AREA, ChartType::MBAR, ChartType::SBAR, ChartType::MLINE, ChartType::SAREA], true);
+        return in_array($type, [ChartType::BAR, ChartType::HBAR, ChartType::LINE, ChartType::AREA, ChartType::COMBO, ChartType::MBAR, ChartType::SBAR, ChartType::MLINE, ChartType::SAREA], true);
     }
 
     /**
      * The types the bars under the target are colored on: a single series of bars, whose bars
-     * have no color of their own to tell apart (a series of a multi-series type keeps its color).
+     * have no color of their own to tell apart (a series of a multi-series type keeps its color);
+     * the 複合 type's bars of its 値, the line read against the left axis, theirs.
      */
     public static function supportsBelow(?string $type): bool
     {
-        return in_array($type, [ChartType::BAR, ChartType::HBAR], true);
+        return in_array($type, [ChartType::BAR, ChartType::HBAR, ChartType::COMBO], true);
     }
 
     /**

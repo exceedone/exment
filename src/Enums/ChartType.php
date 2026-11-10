@@ -22,6 +22,9 @@ class ChartType extends EnumBase
     public const FUNNEL = 'funnel';
     public const GAUGE = 'gauge';
     public const SCATTER = 'scatter';
+    // 複合 (Excel's 組み合わせグラフ): the 値 as bars on the left axis, the box's 2つ目の値 as a line
+    // or bars on an axis of its own on the right (ChartSecondValue) — a box with a 2つ目の値 only
+    public const COMBO = 'combo';
 
     // multi series (X × series matrix from a 2-column aggregate view) — ECharts
     public const MBAR = 'mbar';
@@ -52,7 +55,7 @@ class ChartType extends EnumBase
      */
     public static function echartsSingleTypes(): array
     {
-        return [self::HBAR, self::AREA, self::DOUGHNUT, self::RADAR, self::FUNNEL, self::GAUGE, self::SCATTER];
+        return [self::HBAR, self::AREA, self::DOUGHNUT, self::RADAR, self::FUNNEL, self::GAUGE, self::SCATTER, self::COMBO];
     }
 
     /**
@@ -165,7 +168,7 @@ class ChartType extends EnumBase
      */
     public static function supportsPointPick(?string $type): bool
     {
-        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::DOUGHNUT, self::FUNNEL, self::SCATTER, self::MBAR, self::SBAR, self::SBAR100, self::SHBAR100, self::MLINE, self::SAREA, self::HEATMAP], true);
+        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::DOUGHNUT, self::FUNNEL, self::SCATTER, self::COMBO, self::MBAR, self::SBAR, self::SBAR100, self::SHBAR100, self::MLINE, self::SAREA, self::HEATMAP], true);
     }
 
     /**
@@ -185,7 +188,7 @@ class ChartType extends EnumBase
      */
     public static function supportsDataLabels(?string $type): bool
     {
-        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::SCATTER, self::MBAR, self::SBAR, self::SBAR100, self::SHBAR100, self::MLINE, self::SAREA], true);
+        return in_array($type, [self::BAR, self::LINE, self::PIE, self::HBAR, self::AREA, self::SCATTER, self::COMBO, self::MBAR, self::SBAR, self::SBAR100, self::SHBAR100, self::MLINE, self::SAREA], true);
     }
 
     /**

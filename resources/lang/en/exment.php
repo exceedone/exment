@@ -892,9 +892,30 @@ return [
             'color' => 'Color',
             'below' => 'Bars below',
             'below_option' => 'Draw the bars below the target in the line\'s color',
-            'below_help' => 'Bar and horizontal bar charts (one series) only. The "Others" bar is not colored.',
+            'below_help' => 'Bar and horizontal bar charts (one series) and the combo chart (the value\'s bars) only. The "Others" bar is not colored.',
             'default_name' => 'Target',
             'diff' => ' (gap %s)',
+        ],
+        // the 2つ目の値 of a chart box, drawn with the 値 on the 複合 type (ChartSecondValue)
+        'chart_second' => [
+            'header' => 'Second value (combo chart)',
+            'column' => 'Second value',
+            'help' => 'Draws another summary column of the view with the value (bars, left axis) as a "Combo chart". Picking one makes the chart type "Combo chart". Available on bar, line and area charts of a view with two summary columns or more.',
+            'type' => 'Drawn as',
+            'type_line' => 'Line',
+            'type_bar' => 'Bars',
+            'axis' => 'Axis',
+            'right' => 'On the secondary axis (right)',
+            'left_axis' => '%s (left axis)',
+            'right_axis' => '%s (right axis)',
+            'count_unit' => '',
+            'compact_units' => '1000000000:B,1000000:M,1000:K',
+            'excel_million' => 'M',
+            // the box title naming both values (上位N件 / 集計方法 drawn)
+            'title_values' => '%s / %s',
+            'required' => 'Select the second value for a combo chart.',
+            'not_summary' => 'Select a summary column of the view.',
+            'same' => 'Select a summary column other than the value.',
         ],
         // a double click on a chart point lists the rows behind it (ChartDetail)
         'chart_detail' => [
@@ -911,7 +932,6 @@ return [
             'label' => 'Options',
             'display' => 'Display',
             'labels' => 'Data labels',
-            'export' => 'Export data',
             'export_excel' => 'Export to Excel (with chart)',
         ],
 
@@ -3525,6 +3545,7 @@ return [
             'funnel' => 'Funnel chart',
             'gauge' => 'Gauge',
             'scatter' => 'Scatter',
+            'combo' => 'Combo chart',
             'mbar' => 'Grouped bar (multi-series)',
             'sbar' => 'Stacked bar (multi-series)',
             'sbar100' => '100% stacked bar (multi-series)',

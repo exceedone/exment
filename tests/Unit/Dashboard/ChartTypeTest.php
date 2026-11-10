@@ -31,14 +31,16 @@ class ChartTypeTest extends DashboardUnitTestCase
 
     public function testOnlyChartTypesAreEnumValues(): void
     {
-        $this->assertCount(20, ChartType::arrays(), 'every constant becomes a form option — no helper constants allowed');
+        $this->assertCount(21, ChartType::arrays(), 'every constant becomes a form option — no helper constants allowed');
     }
 
     public function testSwitchPoolStaysWithinDatasetShape(): void
     {
         $single = ChartType::switchPool('bar');
-        $this->assertCount(10, $single);
+        $this->assertCount(11, $single);
         $this->assertContains('doughnut', $single);
+        // 複合: offered by the box only when it has a 2つ目の値 (ChartItem::toolbarHtml)
+        $this->assertContains('combo', $single);
         $this->assertNotContains('mbar', $single);
         $this->assertSame($single, ChartType::switchPool('gauge'));
         $this->assertSame($single, ChartType::switchPool(null));

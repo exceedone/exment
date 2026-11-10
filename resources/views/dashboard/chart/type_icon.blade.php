@@ -48,6 +48,14 @@
                 $svg .= '<circle cx="' . $x . '" cy="' . $y . '" r="2.6" fill="' . $c[1] . '"/>';
             }
             break;
+        case 'combo':
+            // bars on the left axis, a line of another value over them, its own axis on the right
+            $svg = $axis . '<line x1="61" y1="3" x2="61" y2="37" stroke="#d0cfe0"/>' . $bars([6, 18, 30, 42], [18, 10, 14, 6], $c[1])
+                . '<polyline points="10,28 22,14 34,20 46,8 56,12" fill="none" stroke="' . $c[0] . '" stroke-width="2.5"/>';
+            foreach ([[10, 28], [22, 14], [34, 20], [46, 8], [56, 12]] as [$x, $y]) {
+                $svg .= '<circle cx="' . $x . '" cy="' . $y . '" r="2.2" fill="#fff" stroke="' . $c[0] . '" stroke-width="1.5"/>';
+            }
+            break;
         case 'mbar':
             $svg = $axis . $bars([6, 27, 48], [18, 14, 20], $c[0]) . $bars([11, 32, 53], [10, 6, 12], $c[1]) . $bars([16, 37, 58], [22, 18, 24], $c[2]);
             break;
