@@ -22,7 +22,16 @@ namespace Exment {
             });
             // Lazy relations load sequentially after the initial page becomes idle; keep submits disabled until they hydrate.
             CommonEvent.bindLazyRelationLoad();
+            CommonEvent.bindLazyRelationAddGuard();
             CommonEvent.startLazyRelationAutoload();
+
+            // Rows inserted by the Core lazy grid exist only after AddEvent ran, so bind row navigation and
+            // row actions (data-add-swal, e.g. restore / hard delete) to them. Both skip already-bound elements.
+            $(document).off('admin:lazy-grid:loaded.exmentRowLink').on('admin:lazy-grid:loaded.exmentRowLink', () => {
+                CommonEvent.initGridRowLink();
+                CommonEvent.addShowModalEvent();
+            });
+
             CommonEvent.syncLazyRelationSubmitState();
             $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev: JQueryEventObject) => {
                 CommonEvent.setFormFilter($(ev.target));
@@ -82,14 +91,18 @@ namespace Exment {
             CommonEvent.addShowModalEvent();
             CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
+            CommonEvent.initGridRowLink();
 
+            $.numberformat('[number_format]:not(".disableNumberFormat")');
+        }
+
+        /** Bind grid row navigation unless the table disables it. Already-bound rows are skipped. */
+        private static initGridRowLink() {
             let gridrow_select_transition = $('#gridrow_select_transition').val() || "default";
             if (gridrow_select_transition !== 'none' &&
                (gridrow_select_transition !== 'default' || !$('#gridrow_select_disabled').val())) {
                 CommonEvent.tableHoverLink();
             }
-
-            $.numberformat('[number_format]:not(".disableNumberFormat")');
         }
 
         /** Bind manual lazy-relation load clicks once for the document. */
@@ -99,10 +112,79 @@ namespace Exment {
             });
         }
 
+        /**
+         * Block the "New" action of a relation block whose rows are not loaded yet. A capture listener runs before the
+         * delegated add handler registered by the field script (which is re-registered on every hydration), so no row is created.
+         */
+        private static bindLazyRelationAddGuard() {
+            if ((<any>window).__exmentLazyRelationAddGuardBound) {
+                return;
+            }
+
+            (<any>window).__exmentLazyRelationAddGuardBound = true;
+            document.addEventListener('click', (ev: MouseEvent) => {
+                const target = <Element>ev.target;
+                const add = target && target.closest ? target.closest('.add') : null;
+                if (!add) {
+                    return;
+                }
+
+                const $add = $(add);
+                const $block = $add.closest('.has-many-table-div');
+                if ($add.data('lazy-relation-add-locked') || $block.find('tbody[data-lazy-relation-url]').length > 0) {
+                    ev.preventDefault();
+                    ev.stopImmediatePropagation();
+                }
+            }, true);
+        }
+
+        /** Lock the add action of every block that still has a lazy placeholder. Unlocking happens only after a successful load. */
+        private static lockPendingLazyRelationAdd($root = $(document)) {
+            $root.find('.has-many-table-div').each(function() {
+                const $block = $(this);
+                if ($block.find('tbody[data-lazy-relation-url]').length === 0) {
+                    return;
+                }
+
+                const $add = $block.find('.add');
+                if ($add.length === 0 || $add.data('lazy-relation-add-locked')) {
+                    return;
+                }
+
+                $add.data('lazy-relation-add-locked', true)
+                    .data('lazy-relation-add-original-disabled', $add.hasClass('disabled'))
+                    .data('lazy-relation-add-original-aria', $add.attr('aria-disabled'))
+                    .addClass('disabled').attr('aria-disabled', 'true');
+            });
+        }
+
+        /** Restore the add action to the state it had before it was locked. */
+        private static unlockLazyRelationAdd($block) {
+            const $add = $block.find('.add');
+            if (!$add.data('lazy-relation-add-locked')) {
+                return;
+            }
+
+            if (!$add.data('lazy-relation-add-original-disabled')) {
+                $add.removeClass('disabled');
+            }
+            const originalAria = $add.data('lazy-relation-add-original-aria');
+            if (typeof originalAria === 'undefined') {
+                $add.removeAttr('aria-disabled');
+            }
+            else {
+                $add.attr('aria-disabled', originalAria);
+            }
+            $add.removeData('lazy-relation-add-locked')
+                .removeData('lazy-relation-add-original-disabled')
+                .removeData('lazy-relation-add-original-aria');
+        }
+
         /** Fetch one relation fragment, then allow the next queued relation to load. */
         private static async loadLazyRelation($button) {
             const $tbody = $button.closest('tbody[data-lazy-relation-url]');
             const $form = $tbody.closest('form');
+            const $block = $tbody.closest('.has-many-table-div');
             const url = $tbody.data('lazy-relation-url');
             if (!hasValue(url) || $button.data('lazy-relation-loading')) {
                 return;
@@ -112,6 +194,7 @@ namespace Exment {
             try {
                 const response = await $.get(url);
                 CommonEvent.hydrateLazyRelation($tbody, response);
+                CommonEvent.unlockLazyRelationAdd($block);
             }
             catch (_error) {
                 $button.data('lazy-relation-loading', false).prop('disabled', false);
@@ -169,6 +252,7 @@ namespace Exment {
 
         /** Disable submits while relation inputs are absent, then restore their prior state. */
         private static syncLazyRelationSubmitState($forms = $('form')) {
+            CommonEvent.lockPendingLazyRelationAdd();
             $forms.each(function() {
                 const $form = $(this);
                 const hasPendingLazyRelations = $form.find('tbody[data-lazy-relation-url]').length > 0;

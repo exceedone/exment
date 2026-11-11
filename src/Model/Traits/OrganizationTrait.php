@@ -22,6 +22,18 @@ trait OrganizationTrait
     }
 
     /**
+     * Clear cache after saving/deleting an organization (called from ModelBase events).
+     * The membership pivot and parent_organization decide the users in the accessible user/organization
+     * caches, and the form syncs the pivot after the model is saved, so clear after the commit.
+     *
+     * @return void
+     */
+    public static function clearCacheTrait()
+    {
+        System::clearCacheAfterCommit();
+    }
+
+    /**
      * get parent organization.
      * (*)Only one deeply parent. not all deeply parents.
      *

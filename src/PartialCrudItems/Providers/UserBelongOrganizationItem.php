@@ -91,6 +91,10 @@ class UserBelongOrganizationItem extends ProviderBase
                 return array_get((array)$dbValue, 'parent_id') == array_get($value, 'parent_id');
             },
         ]);
+
+        // The accessible user/organization caches are scoped per user, so every user's entry depends on this pivot.
+        // The editor may not have the role group permission, so do not rely on the Role Setting item to clear it.
+        System::clearCacheAfterCommit();
     }
 
     // @phpstan-ignore-next-line
