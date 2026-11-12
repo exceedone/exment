@@ -13,6 +13,7 @@
  *   ca                    summary condition of the measure, 集計 menu (page-lifetime, per box)
  *   sv                    the values shown as % of total / running total / difference, 表示方法 menu (page-lifetime, per box)
  *   tn                    the top N points only ("5" / "5:other": the rest as その他), 表示件数 menu (per box; remembered per user)
+ *   pu                    the date on the X axis grouped by ymd / yw / ym / yq / y, 期間の単位 menu (per box; remembered per user)
  *   bf_{column}           chart filter selection (page-lifetime, per box)
  *
  * A filter bar change is applied selectively (see `navigate`): push a history entry for
@@ -32,7 +33,7 @@
     var NS = '.exdash';
     var L = {};      // texts
     var A = {};      // asset base URLs (init's options.assets)
-    var state = {};  // suuid => {ct: type, cs: sort, cd: "labels", ca: summary condition, sv: show values as, tn: top N, bf: {column: [values] | {from, to}}, reopen: true}
+    var state = {};  // suuid => {ct: type, cs: sort, cd: "labels", ca: summary condition, sv: show values as, tn: top N, pu: period unit, bf: {column: [values] | {from, to}}, reopen: true}
     var saving = {}; // suuid => true while its toolbar choices are being saved, 'again' when they changed meanwhile
     var pagePath = ''; // path of the dashboard page, set by init: a pjax link pushes its own URL before it renders
 
@@ -53,7 +54,7 @@
             url: admin_url('dashboardbox/chart_state/' + suuid),
             type: 'POST',
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || '' },
-            data: { ct: s.ct || '', cs: s.cs || '', cd: s.cd || '', tn: s.tn || '' }
+            data: { ct: s.ct || '', cs: s.cs || '', cd: s.cd || '', tn: s.tn || '', pu: s.pu || '' }
         }).always(function () {
             var again = saving[suuid] === 'again';
             delete saving[suuid];
@@ -91,6 +92,7 @@
         if (s.ca) { out.push('ca=' + encodeURIComponent(s.ca)); }
         if (s.sv) { out.push('sv=' + encodeURIComponent(s.sv)); }
         if (s.tn) { out.push('tn=' + encodeURIComponent(s.tn)); }
+        if (s.pu) { out.push('pu=' + encodeURIComponent(s.pu)); }
         $.each(s.bf || {}, function (column, v) {
             var key = 'bf_' + encodeURIComponent(column);
             if ($.isArray(v)) {
@@ -473,6 +475,16 @@
     function applyTopN(suuid, tn) {
         if (!suuid) { return; }
         if (tn) { stateOf(suuid).tn = tn; } else { delete stateOf(suuid).tn; }
+        saveToolbar(suuid);
+        loadBox(suuid);
+    }
+
+    // 期間の単位: the date on the X axis grouped by another unit, the server rerunning the view's query
+    // grouped so (ChartPeriod). Remembered per user like the sort; the view's own unit, the title's ×
+    // or the menu's リセット goes back to the view's grouping.
+    function applyPeriod(suuid, pu) {
+        if (!suuid) { return; }
+        if (pu) { stateOf(suuid).pu = pu; } else { delete stateOf(suuid).pu; }
         saveToolbar(suuid);
         loadBox(suuid);
     }
@@ -1392,6 +1404,14 @@
             if ($row.hasClass('on')) { return; }
             applyShowAs($row.closest('[data-suuid]').data('suuid'), sv === 'none' ? '' : sv);
         });
+        // 期間の単位: a unit applies at once (the view's own one drops the switch)
+        $(document).on('click' + NS, '[data-pu-pick]', function () {
+            var $row = $(this), pu = String($row.attr('data-pu-pick') || '');
+            var configured = String($row.closest('[data-pu-configured]').attr('data-pu-configured') || '');
+            closePops();
+            if ($row.hasClass('on')) { return; }
+            applyPeriod($row.closest('[data-suuid]').data('suuid'), pu === configured ? '' : pu);
+        });
         // 表示件数: a number applies at once (すべて drops it)
         $(document).on('click' + NS, '[data-tn-pick]', function () {
             var $row = $(this), $fly = $row.closest('.ca-fly-in');
@@ -1409,12 +1429,12 @@
             closePops();
             applyTopN($row.closest('[data-suuid]').data('suuid'), topNOf($fly, n));
         });
-        // the title's ×: back to what the view draws, its summary type, its plain values and every point
+        // the title's ×: back to what the view draws, its summary type, its plain values, every point and its date grouping
         $(document).on('click' + NS, '[data-ca-reset]', function () {
             var suuid = $(this).closest('[data-suuid]').data('suuid');
             if (suuid) {
                 delete stateOf(suuid).sv;
-                if (stateOf(suuid).tn) { delete stateOf(suuid).tn; saveToolbar(suuid); }
+                if (stateOf(suuid).tn || stateOf(suuid).pu) { delete stateOf(suuid).tn; delete stateOf(suuid).pu; saveToolbar(suuid); }
             }
             applySummary(suuid, '');
         });
@@ -1441,7 +1461,8 @@
         $(document).on('click' + NS, '.exment-cs-reset', function () {
             var suuid = $(this).closest('[data-suuid]').data('suuid');
             delete stateOf(suuid).cd;
-            // the menu's 集計方法, 表示方法 and 表示件数 too: back to the view's setting
+            // the menu's 期間の単位, 集計方法, 表示方法 and 表示件数 too: back to the view's setting
+            delete stateOf(suuid).pu;
             delete stateOf(suuid).ca;
             delete stateOf(suuid).sv;
             delete stateOf(suuid).tn;
@@ -1478,11 +1499,11 @@
             initFilterBar();
             var $boxes = $('[data-suuid]');
             $boxes.parents('.row').addClass('row-eq-height row-dashboard');
-            var charts = (options && options.charts) || {}; // suuid => {ct, cs, cd, tn} remembered for this user
+            var charts = (options && options.charts) || {}; // suuid => {ct, cs, cd, tn, pu} remembered for this user
             $boxes.each(function () {
                 var suuid = $(this).data('suuid'), saved = suuid ? charts[suuid] : null;
                 if (saved) {
-                    $.each(['ct', 'cs', 'cd', 'tn'], function (i, k) {
+                    $.each(['ct', 'cs', 'cd', 'tn', 'pu'], function (i, k) {
                         if (saved[k] && !stateOf(suuid)[k]) { stateOf(suuid)[k] = saved[k]; }
                     });
                 }

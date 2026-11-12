@@ -286,7 +286,13 @@ class SystemItem implements ItemInterface
         // For summary. When summary, not get as system column name.
         if (array_key_value_exists($this->uniqueName, $custom_value)) {
             $option = $this->getSystemColumnOption();
-            $custom_value->{array_get($option, 'sqlname')} = $custom_value[$this->uniqueName];
+            try {
+                $custom_value->{array_get($option, 'sqlname')} = $custom_value[$this->uniqueName];
+            } catch (\Carbon\Exceptions\InvalidFormatException $ex) {
+                // a date grouped by a unit no date stands for (a quarter 2026-Q1, the month 01 of
+                // any year, a weekday) is a label the model cannot cast to its date: the summary
+                // reads it by its own name (getTargetValue) anyway
+            }
         }
 
         $this->custom_value = $this->getTargetCustomValue($custom_value);

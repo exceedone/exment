@@ -53,11 +53,13 @@ final class ChartDetail
     private $grain;
     /** @var CustomRelation|null the 1:n / n:n relation to $grain, null when it is $table */
     private $relation;
+    /** @var \Closure|null runs a callable with the view grouped as the chart is drawn (ChartPeriod::apply), null = as the view sets */
+    private $scope;
 
     /**
      * @param \Closure(): \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $rows
      */
-    private function __construct(CustomTable $table, CustomView $view, CustomViewSummary $measure, \Closure $rows, CustomTable $grain, ?CustomRelation $relation)
+    private function __construct(CustomTable $table, CustomView $view, CustomViewSummary $measure, \Closure $rows, CustomTable $grain, ?CustomRelation $relation, ?\Closure $scope = null)
     {
         $this->table = $table;
         $this->view = $view;
@@ -65,6 +67,7 @@ final class ChartDetail
         $this->rows = $rows;
         $this->grain = $grain;
         $this->relation = $relation;
+        $this->scope = $scope;
     }
 
     /**
@@ -74,8 +77,10 @@ final class ChartDetail
      * the user may not view.
      *
      * @param \Closure(): \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $rows  the box's rows, filters applied
+     * @param \Closure|null $scope  runs a callable with the view's groups as the chart draws them
+     *   (a 期間の単位 picked: ChartPeriod::apply), so a point's keys are read back by the same expression
      */
-    public static function resolve(CustomTable $table, CustomView $view, CustomViewSummary $measure, \Closure $rows): ?self
+    public static function resolve(CustomTable $table, CustomView $view, CustomViewSummary $measure, \Closure $rows, ?\Closure $scope = null): ?self
     {
         $measure_table = CustomTable::getEloquent($measure->view_column_table_id);
         if ($measure_table === null) {
@@ -104,7 +109,7 @@ final class ChartDetail
         if (!$grain->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return null;
         }
-        return new self($table, $view, $measure, $rows, $grain, $relation);
+        return new self($table, $view, $measure, $rows, $grain, $relation, $scope);
     }
 
     /**
@@ -227,6 +232,24 @@ final class ChartDetail
      * @param array<int, array<int|string, string|int|float|bool|null>>|null $excluded  keys() of the points kept
      */
     public function apply($query, array $keys, ?array $excluded = null): void
+    {
+        if ($this->scope === null) {
+            $this->applyKeys($query, $keys, $excluded);
+            return;
+        }
+        ($this->scope)(function () use ($query, $keys, $excluded) {
+            $this->applyKeys($query, $keys, $excluded);
+        });
+    }
+
+    /**
+     * apply(), the view grouped as the chart draws it.
+     *
+     * @param mixed $query
+     * @param array<int|string, string|int|float|bool|null> $keys
+     * @param array<int, array<int|string, string|int|float|bool|null>>|null $excluded
+     */
+    private function applyKeys($query, array $keys, ?array $excluded): void
     {
         $ids = $this->groupRowIds($keys, $excluded ?? []);
         if ($this->relation === null) {

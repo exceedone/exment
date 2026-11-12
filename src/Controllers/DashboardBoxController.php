@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\DashboardBoxItems\ChartItem;
 use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\ChartExcel;
+use Exceedone\Exment\Services\Dashboard\ChartPeriod;
 use Exceedone\Exment\Services\Dashboard\ChartSecondValue;
 use Exceedone\Exment\Services\Dashboard\ChartTopN;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
@@ -266,7 +267,7 @@ class DashboardBoxController extends AdminControllerBase
 
     /**
      * Remembers the toolbar choices of a chart box for the current user — chart type, sort,
-     * display options, 表示件数 — as user setting `dashboard_chart.{dashboard suuid}.{box suuid}`;
+     * display options, 表示件数, 期間の単位 — as user setting `dashboard_chart.{dashboard suuid}.{box suuid}`;
      * the next dashboard entry starts the box with them (DashboardController::home). A
      * choice equal to the box setting is not kept, so the box follows its setting again.
      *
@@ -281,7 +282,7 @@ class DashboardBoxController extends AdminControllerBase
         if (!$box instanceof DashboardBox || $box->dashboard_box_type != DashboardBoxType::CHART || !isset($box->dashboard) || $user === null) {
             return response()->json(['status' => false], 404);
         }
-        $state = ChartItem::toolbarState($request->only(['ct', 'cs', 'cd', ChartTopN::PARAM]), array_get($box, 'options.chart_type'));
+        $state = ChartItem::toolbarState($request->only(['ct', 'cs', 'cd', ChartTopN::PARAM, ChartPeriod::PARAM]), array_get($box, 'options.chart_type'));
         $key = 'dashboard_chart.' . $box->dashboard->suuid . '.' . $box->suuid;
         if ($user->getSettingValue($key) !== $state) {
             $user->setSettingValue($key, $state);

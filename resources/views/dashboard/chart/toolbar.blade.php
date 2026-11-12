@@ -1,18 +1,21 @@
 {{--
     Chart box toolbar: [フィルター ▾] (the box's own chart filter, popover), the box menu [⋯]
-    (sort by a field, 集計方法 ◀ / 表示件数 ◀ / 表示方法 ◀ submenus, 値ラベル, Excel export — the table and
+    (sort by a field, 期間の単位 ◀ / 集計方法 ◀ / 表示件数 ◀ / 表示方法 ◀ submenus, 値ラベル, Excel export — the table and
     Excel's own chart, made by DashboardBoxController::excel) and the runtime chart-type switcher. Handlers and styles: public/vendor/exment/js/dashboard.js, css/dashboard.css.
-    The selection is kept by the JS per box and sent as bf_* / ct / cs / cd / tn on the box request; the
-    re-rendered body echoes it back, so state survives every reload. ct / cs / cd / tn are also remembered
+    The selection is kept by the JS per box and sent as bf_* / ct / cs / cd / tn / pu on the box request; the
+    re-rendered body echoes it back, so state survives every reload. ct / cs / cd / tn / pu are also remembered
     per user (DashboardBoxController::chartState); the chart filter (bf_*) is page-lifetime.
 
+    $period        ChartItem::periodMenu(): the 期間の単位 {choices, configured, current, column} of the
+                   date on the X axis (null = none; '' = a datetime the view does not group). Sent as
+                   `pu`, remembered like `cs`
     $summary       ChartItem::summaryMenu(): the 集計 switch {choices, configured, current, column}
                    (null = none). Sent as `ca`, page-lifetime like bf_*: never remembered
     $show_as       ChartItem::showAsMenu(): the 表示方法 {choices, current, column} (null = none).
                    Sent as `sv`, page-lifetime like `ca`
     $top_n         ChartItem::topNMenu(): the 表示件数 {choices, current, label, applied, other,
                    other_hint, column, hint} (null = none). Sent as `tn`, remembered like `cs`
-    $title         ChartItem::boxTitle(): the box title while 集計方法 / 表示方法 / 表示件数 draws
+    $title         ChartItem::boxTitle(): the box title while 期間の単位 / 集計方法 / 表示方法 / 表示件数 draws
                    the measure another way (null = the configured title)
     $types         type => label of the switchable types ([] = no switcher)
     $current_type  the rendered type
@@ -130,12 +133,34 @@
                 <li class="cs-row{{ $sort_field && !$sort_desc ? ' on' : '' }}" data-cs-dir="asc"><i class="fa fa-check"></i><i class="fa fa-sort-amount-asc"></i><span>{{ exmtrans('dashboard.chart_sort.asc') }}</span></li>
             </ul>
             @endif
+            @if(!empty($period))
+            {{-- 期間の単位 ◀: the date on the X axis grouped by day / week / month / quarter / year —
+                 the server reruns the view's query grouped so (ChartPeriod). A group of its own, opening
+                 like the 集計方法 row; remembered per user like the sort. data-pu-applied echoes the
+                 unit drawn when it is not the view's ('' otherwise) --}}
+            @php($period_on = $period['current'] !== $period['configured'])
+            <ul class="cs-list{{ empty($sort_fields) ? '' : ' cs-sep' }}" data-pu-configured="{{ $period['configured'] }}" data-pu-applied="{{ $period_on ? $period['current'] : '' }}">
+                <li class="cs-row ca-row pu-row{{ $period_on ? ' ca-on' : '' }}" data-ca-open>
+                    <i class="fa fa-calendar"></i><span>{{ exmtrans('dashboard.chart_period.menu') }}</span>
+                    <b class="ca-cur">{{ $period['choices'][$period['current']] ?? '' }}</b><i class="fa fa-caret-left ca-arrow"></i>
+                    <div class="ca-fly"><div class="ca-fly-in">
+                        <h4>{{ exmtrans('dashboard.chart_period.heading', $period['column']) }}</h4>
+                        <ul class="cs-list">
+                            @foreach($period['choices'] as $unit => $label)
+                            <li class="cs-row{{ (string) $unit === $period['current'] ? ' on' : '' }}" data-pu-pick="{{ $unit }}"><i class="fa fa-check"></i><span>{{ $label }}</span>@if((string) $unit === $period['configured'])<em class="ca-badge">{{ exmtrans('dashboard.chart_summary.view_setting') }}</em>@endif</li>
+                            @endforeach
+                        </ul>
+                        <div class="ca-hint">{{ exmtrans('dashboard.chart_summary.hint') }}</div>
+                    </div></div>
+                </li>
+            </ul>
+            @endif
             @if(!empty($summary))
             {{-- 集計方法 ◀: the measure drawn by another summary type for this screen only — the
                  server reruns the view's query with it (ChartSummarySwitch). One row opening a
                  submenu, as Excel's 値の集計方法 ▸. data-ca-applied echoes the condition drawn
                  when it is not the view's ('' otherwise): the JS mirrors it --}}
-            <ul class="cs-list{{ empty($sort_fields) ? '' : ' cs-sep' }}" data-ca-configured="{{ $summary['configured'] }}" data-ca-applied="{{ $summary_switched ? $summary['current'] : '' }}">
+            <ul class="cs-list{{ empty($sort_fields) && empty($period) ? '' : ' cs-sep' }}" data-ca-configured="{{ $summary['configured'] }}" data-ca-applied="{{ $summary_switched ? $summary['current'] : '' }}">
                 <li class="cs-row ca-row{{ $summary_switched ? ' ca-on' : '' }}" data-ca-open>
                     <i class="fa fa-calculator"></i><span>{{ exmtrans('dashboard.chart_summary.menu') }}</span>
                     <b class="ca-cur">{{ $summary['choices'][$summary['current']] ?? '' }}</b><i class="fa fa-caret-left ca-arrow"></i>
@@ -157,7 +182,7 @@
                  sort. data-tn-applied echoes what is drawn ('' = every point); the checkbox says
                  whether a pick groups the rest (disabled where the values do not add up) --}}
             {{-- one group with the 集計方法 row, under it --}}
-            <ul class="cs-list{{ empty($sort_fields) || !empty($summary) ? '' : ' cs-sep' }}" data-tn-applied="{{ $top_n['applied'] }}">
+            <ul class="cs-list{{ (empty($sort_fields) && empty($period)) || !empty($summary) ? '' : ' cs-sep' }}" data-tn-applied="{{ $top_n['applied'] }}">
                 <li class="cs-row ca-row tn-row{{ $top_n['current'] !== '' ? ' ca-on' : '' }}" data-ca-open>
                     <i class="fa fa-sort-amount-desc"></i><span>{{ exmtrans('dashboard.chart_top_n.menu') }}</span>
                     <b class="ca-cur">{{ $top_n['label'] }}</b><i class="fa fa-caret-left ca-arrow"></i>
@@ -183,7 +208,7 @@
                  values are shown ('' = as they are): the JS mirrors it --}}
             @php($show_as_on = $show_as['current'] !== \Exceedone\Exment\Services\Dashboard\ChartShowAs::NONE)
             {{-- one group with the 集計方法 / 表示件数 rows, under them --}}
-            <ul class="cs-list{{ empty($sort_fields) || !empty($summary) || !empty($top_n) ? '' : ' cs-sep' }}" data-sv-applied="{{ $show_as_on ? $show_as['current'] : '' }}">
+            <ul class="cs-list{{ (empty($sort_fields) && empty($period)) || !empty($summary) || !empty($top_n) ? '' : ' cs-sep' }}" data-sv-applied="{{ $show_as_on ? $show_as['current'] : '' }}">
                 <li class="cs-row ca-row sv-row{{ $show_as_on ? ' ca-on' : '' }}" data-ca-open>
                     <i class="fa fa-percent"></i><span>{{ exmtrans('dashboard.chart_show_as.menu') }}</span>
                     <b class="ca-cur">{{ $show_as['choices'][$show_as['current']] ?? '' }}</b><i class="fa fa-caret-left ca-arrow"></i>

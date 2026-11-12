@@ -243,6 +243,11 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
                 return "date_format($column, '%d')";
             case GroupCondition::W:
                 return "date_format($column, '%w')";
+            case GroupCondition::YQ:
+                return "concat(date_format($column, '%Y'), '-Q', quarter($column))";
+            case GroupCondition::YW:
+                // %x: the year of the ISO week (%v), 2027-01-01 is 2026-W53
+                return "date_format($column, '%x-W%v')";
             case GroupCondition::YMDHIS:
                 // not use
                 return null;
@@ -274,6 +279,10 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
                 return $carbon->format('d');
             case GroupCondition::W:
                 return $carbon->format('w');
+            case GroupCondition::YQ:
+                return $carbon->format('Y') . '-Q' . $carbon->quarter;
+            case GroupCondition::YW:
+                return $carbon->format('o-\WW');
             case GroupCondition::YMDHIS:
                 return $carbon->format('Y-m-d H:i:s');
         }

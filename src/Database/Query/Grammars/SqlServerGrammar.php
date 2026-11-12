@@ -247,6 +247,12 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
                     return "datepart(WEEKDAY, $column)";
                 }
                 return $this->getWeekdayCaseWhenQuery("datepart(WEEKDAY, $column)");
+            case GroupCondition::YQ:
+                return "format(datepart(YEAR, $column), '0000') + '-Q' + format(datepart(QUARTER, $column), '0')";
+            case GroupCondition::YW:
+                // the year of the ISO week: the year of the week's Thursday, found 26 - week days
+                // away (2027-01-01, week 53 → 2026-12-05 → 2026-W53)
+                return "format(datepart(YEAR, dateadd(DAY, 26 - datepart(ISO_WEEK, $column), $column)), '0000') + '-W' + format(datepart(ISO_WEEK, $column), '00')";
             case GroupCondition::YMDHIS:
                 return "format(datepart(YEAR, $column), '0000') + '-' + format(datepart(MONTH, $column), '00') + '-' + format(datepart(DAY, $column), '00') + ' ' + format(datepart(HOUR, $column), '00') + ':' + format(datepart(MINUTE, $column), '00') + ':' + format(datepart(SECOND, $column), '00')";
         }
@@ -277,6 +283,10 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
                 return $carbon->format('d');
             case GroupCondition::W:
                 return $carbon->format('w');
+            case GroupCondition::YQ:
+                return $carbon->format('Y') . '-Q' . $carbon->quarter;
+            case GroupCondition::YW:
+                return $carbon->format('o-\WW');
             case GroupCondition::YMDHIS:
                 return $carbon->format('Y-m-d H:i:s');
         }

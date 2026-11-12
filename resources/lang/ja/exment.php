@@ -831,6 +831,20 @@ return [
             'detail' => '上位%s件以外（%s件）',
         ],
 
+        // box menu (⋯): 期間の単位 ▸, the date on the X axis grouped by another unit (ChartPeriod)
+        'chart_period' => [
+            'menu' => '期間の単位',
+            'heading' => '期間の単位（%s）',
+            'units' => [
+                'ymd' => '日',
+                'yw' => '週',
+                'ym' => '月',
+                'yq' => '四半期',
+                'y' => '年',
+                'none' => '日時',
+            ],
+        ],
+
         // tooltip of a 100% stacked chart: the total of a bar and the value behind a share ({n})
         'chart_full_stack' => [
             'total' => '（計 %s）',

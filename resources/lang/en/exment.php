@@ -831,6 +831,20 @@ return [
             'detail' => 'Other than the top %s (%s)',
         ],
 
+        // box menu (⋯): 期間の単位 ▸, the date on the X axis grouped by another unit (ChartPeriod)
+        'chart_period' => [
+            'menu' => 'Date grouping',
+            'heading' => 'Date grouping (%s)',
+            'units' => [
+                'ymd' => 'Day',
+                'yw' => 'Week',
+                'ym' => 'Month',
+                'yq' => 'Quarter',
+                'y' => 'Year',
+                'none' => 'Date and time',
+            ],
+        ],
+
         // tooltip of a 100% stacked chart: the total of a bar and the value behind a share ({n})
         'chart_full_stack' => [
             'total' => ' (total %s)',

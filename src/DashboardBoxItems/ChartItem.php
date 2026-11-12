@@ -18,6 +18,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\ChartDetail;
 use Exceedone\Exment\Services\Dashboard\ChartFilter;
+use Exceedone\Exment\Services\Dashboard\ChartPeriod;
 use Exceedone\Exment\Services\Dashboard\ChartPivot;
 use Exceedone\Exment\Services\Dashboard\ChartSecondValue;
 use Exceedone\Exment\Services\Dashboard\ChartShowAs;
@@ -114,10 +115,13 @@ class ChartItem implements ItemInterface
     /** @var ChartTopN|null topN() memo */
     protected $top_n;
 
+    /** @var ChartPeriod|null period() memo */
+    protected $period;
+
     /** @var int|null the number of points of the chart before 表示件数 cuts them (ranked()) */
     protected $point_count;
 
-    /** @var array<string, mixed> the box's request params (ct, cs, cd, ca, sv, tn, df_*, bf_*) */
+    /** @var array<string, mixed> the box's request params (ct, cs, cd, ca, sv, tn, pu, df_*, bf_*) */
     protected $params;
 
     /** @var ChartDetail|null|false detail() memo (false = not resolved yet) */
@@ -478,8 +482,10 @@ class ChartItem implements ItemInterface
             if ($this->isFullStackOfNonAdditive()) {
                 return exmtrans('dashboard.message.need_additive');
             }
-            $result = $this->summarySwitch()->apply(function () {
-                return $this->getMultiSeriesData();
+            $result = $this->period()->apply(function () {
+                return $this->summarySwitch()->apply(function () {
+                    return $this->getMultiSeriesData();
+                });
             });
             if ($result === false) {
                 return exmtrans('dashboard.message.need_multiseries');
@@ -499,8 +505,10 @@ class ChartItem implements ItemInterface
         }
 
         $result = $this->isAggregateView()
-            ? $this->summarySwitch()->apply(function () {
-                return $this->getAggregateData();
+            ? $this->period()->apply(function () {
+                return $this->summarySwitch()->apply(function () {
+                    return $this->getAggregateData();
+                });
             })
             : $this->getListData();
         if ($result === false) {
@@ -722,6 +730,9 @@ class ChartItem implements ItemInterface
         }
         $this->detail = ChartDetail::resolve($this->custom_table, $this->custom_view, $measure, function () {
             return $this->filteredRows();
+        }, function (callable $query) {
+            // the rows behind a point of the 期間の単位 drawn: the view's query grouping as the chart did
+            return $this->period()->apply($query);
         });
         return $this->detail;
     }
@@ -828,6 +839,52 @@ class ChartItem implements ItemInterface
             );
         }
         return $this->show_as;
+    }
+
+    /**
+     * The 期間の単位 of the box menu (`pu` on the request): the date column on the X axis of an
+     * aggregate view grouped by day, week, month, quarter or year (ChartPeriod) — the first one
+     * that is a time line among the columns labelling a point. Not on a gauge, one value.
+     */
+    protected function period(): ChartPeriod
+    {
+        if ($this->period === null) {
+            $aggregate = $this->isAggregateView() && $this->chart_type !== ChartType::GAUGE;
+            $this->period = new ChartPeriod(
+                $aggregate ? $this->custom_view : null,
+                $aggregate ? ChartPeriod::columnOf($this->xViewColumns()) : null,
+                $this->params[ChartPeriod::PARAM] ?? null
+            );
+        }
+        return $this->period;
+    }
+
+    /**
+     * The 期間の単位 submenu of the box menu (⋯); null when the chart has no date column to group
+     * another way. A datetime the view does not group offers its own grouping (日時) first.
+     *
+     * @return array{choices: array<string, string>, configured: string, current: string, column: string}|null
+     */
+    protected function periodMenu(): ?array
+    {
+        $period = $this->period();
+        $column = $period->column();
+        if ($column === null) {
+            return null;
+        }
+        $choices = [];
+        if ($period->configured() === null) {
+            $choices[''] = ChartPeriod::label(null);
+        }
+        foreach (ChartPeriod::UNITS as $unit) {
+            $choices[$unit] = ChartPeriod::label($unit);
+        }
+        return [
+            'choices' => $choices,
+            'configured' => (string) $period->configured(),
+            'current' => (string) $period->current(),
+            'column' => (string) (array_get($column, 'view_column_name') ?? $column->column_item->label()),
+        ];
     }
 
     /**
@@ -985,7 +1042,7 @@ class ChartItem implements ItemInterface
     protected function boxTitle($axisx_label, $axisy_label): ?string
     {
         $switch = $this->summarySwitch();
-        if (!$switch->switched() && !$this->showAs()->active() && !$this->topN()->active()) {
+        if (!$switch->switched() && !$this->showAs()->active() && !$this->topN()->active() && !$this->period()->switched()) {
             return null;
         }
         $value = $switch->valueLabel() ?? (string) $axisy_label;
@@ -1124,10 +1181,11 @@ class ChartItem implements ItemInterface
     }
 
     /**
-     * The toolbar choices of a box worth remembering, from the request values ct / cs / cd / tn:
+     * The toolbar choices of a box worth remembering, from the request values ct / cs / cd / tn / pu:
      * a chart type that is a legal switch AND differs from the configured one, a well-formed
      * sort, the known display options, a well-formed 表示件数 (kept whether the chart can be cut
-     * now or not, as a sort is). null when nothing is left (= the box setting).
+     * now or not, as a sort is), a 期間の単位 (the JS sends none equal to the view's). null when
+     * nothing is left (= the box setting).
      *
      * @param array<string, mixed> $input
      * @param string|null $configured  the box's configured chart type
@@ -1151,6 +1209,10 @@ class ChartItem implements ItemInterface
         $top_n = ChartTopN::normalize($input[ChartTopN::PARAM] ?? null);
         if ($top_n !== null) {
             $state[ChartTopN::PARAM] = $top_n;
+        }
+        $period = ChartPeriod::normalize($input[ChartPeriod::PARAM] ?? null);
+        if ($period !== null) {
+            $state[ChartPeriod::PARAM] = $period;
         }
         return empty($state) ? null : $state;
     }
@@ -1281,11 +1343,13 @@ class ChartItem implements ItemInterface
         $summary = $this->summaryMenu();
         $show_as = $this->showAsMenu();
         $top_n = $this->topNMenu($axisx_label, $axisy_label);
-        $menu = !empty($sort_fields) || $labels_available || $colors_reset || $summary !== null || $show_as !== null || $top_n !== null;
+        $period = $this->periodMenu();
+        $menu = !empty($sort_fields) || $labels_available || $colors_reset || $summary !== null || $show_as !== null || $top_n !== null || $period !== null;
         if (empty($types) && empty($fields) && !$menu) {
             return '';
         }
         return view('exment::dashboard.chart.toolbar', [
+            'period' => $period,
             'summary' => $summary,
             'show_as' => $show_as,
             'top_n' => $top_n,
@@ -1432,9 +1496,9 @@ class ChartItem implements ItemInterface
             $chart_click = $this->clickFilter(collect($view_column_x_list)->first(), $datalist->pluck($item_x_list->first()->uniqueName()));
         }
 
-        // get item label
+        // get item label (a date grouped by another 期間の単位 names it: 受注日（四半期）)
         $axisx_label = collect($view_column_x_list)->map(function ($item) {
-            return array_get($item, 'view_column_name')?? $item->column_item->label();
+            return $this->period()->decorateColumn($item, array_get($item, 'view_column_name')?? $item->column_item->label());
         })->implode(' ');
 
         // the 2つ目の値, off the same rows (ChartSecondValue): the 複合 type draws it, the type picker previews it
@@ -1596,6 +1660,7 @@ class ChartItem implements ItemInterface
         }
         if (array_get($view_column, 'view_column_table_id') != $this->custom_table->id
             || !is_nullorempty(array_get($view_column, 'view_group_condition'))
+            || $this->period()->switches($view_column)
             || FilterValue::isMultiple($custom_column)
             || $config->dim($custom_column->column_name) === null
             || $this->dashboard_filter->styleOf($custom_column) !== 'select') {
@@ -1791,7 +1856,7 @@ class ChartItem implements ItemInterface
             'sort_keys'    => array_filter([0 => $this->numericSortKeys($view_columns[$x_pos], function () use ($pivot) {
                 return $pivot['x_values'];
             })], 'is_array'),
-            'axisx_label'  => array_get($view_columns[$x_pos], 'view_column_name') ?? $item_x->label(),
+            'axisx_label'  => $this->period()->decorateColumn($view_columns[$x_pos], array_get($view_columns[$x_pos], 'view_column_name') ?? $item_x->label()),
             'series_label' => array_get($view_columns[$series_pos], 'view_column_name') ?? $item_series->label(),
             'axisy_label'  => $this->axisYLabel($view_column_y),
             // a click on a category picks the stored value its rows hold
