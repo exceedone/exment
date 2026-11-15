@@ -58,6 +58,13 @@ jobs:
         run: |
           make mysql-init
 
+      # Optional libraries that Exment supports but does not require (composer.json "suggest").
+      # Install them so PHPStan can resolve their classes.
+      - name: install optional libraries
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T -e COMPOSER_PROCESS_TIMEOUT=600 php composer require --no-interaction --no-progress google/recaptcha
+
       - name: setup phpstan
         working-directory: docker-exment
         run: |
