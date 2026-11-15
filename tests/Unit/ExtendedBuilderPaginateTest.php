@@ -150,4 +150,68 @@ class ExtendedBuilderPaginateTest extends UnitTestBase
             collect($paginator->items())->pluck('role_group_name')->all()
         );
     }
+
+    /**
+     * #1718: a string binding that looks numeric ('01') must stay a string in the "id only" sub query.
+     * It was inlined unquoted (FIND_IN_SET(01, ...)), which does not match '01',
+     * so the page was empty while total was correct.
+     */
+    public function testPaginateZeroPaddedStringBinding(): void
+    {
+        $this->skipIfNotMysql();
+
+        $paginator = RoleGroup::where('role_group_name', 'like', $this->prefix . '%')
+            ->whereRaw("FIND_IN_SET(?, '01,02') > 0", ['01'])
+            ->orderBy('role_group_order')
+            ->paginate(2);
+
+        $this->assertSame(3, $paginator->total());
+        $this->assertCount(2, $paginator->items(), 'page 1 must not be empty when the binding is a zero-padded string');
+        $this->assertSame(
+            [$this->prefix . '1', $this->prefix . '2'],
+            collect($paginator->items())->pluck('role_group_name')->all()
+        );
+
+        $paginator = RoleGroup::where('role_group_name', 'like', $this->prefix . '%')
+            ->whereRaw("FIND_IN_SET(?, '01,02') > 0", ['01'])
+            ->orderBy('role_group_order')
+            ->paginate(2, ['*'], 'page', 2);
+
+        $this->assertSame(3, $paginator->total());
+        $this->assertCount(1, $paginator->items());
+        $this->assertSame($this->prefix . '3', $paginator->items()[0]->role_group_name);
+    }
+
+    /**
+     * Bindings containing a quote, a backslash and "?" are escaped correctly when inlined.
+     */
+    public function testPaginateStringBindingWithSpecialCharacters(): void
+    {
+        $name = $this->prefix . "x'y\z?";
+        RoleGroup::create([
+            'role_group_name' => $name,
+            'role_group_view_name' => $name,
+            'role_group_order' => 99,
+        ]);
+
+        $paginator = RoleGroup::where('role_group_name', $name)
+            ->where('role_group_view_name', 'like', $this->prefix . '%')
+            ->orderBy('role_group_order')
+            ->paginate(2);
+
+        $this->assertSame(1, $paginator->total());
+        $this->assertCount(1, $paginator->items());
+        $this->assertSame($name, $paginator->items()[0]->role_group_name);
+    }
+
+    /**
+     * FIND_IN_SET is MySQL / MariaDB only.
+     */
+    protected function skipIfNotMysql(): void
+    {
+        $driver = \DB::connection()->getDriverName();
+        if (!in_array($driver, ['mysql', 'mariadb'], true)) {
+            $this->markTestSkipped('FIND_IN_SET is available only on MySQL / MariaDB.');
+        }
+    }
 }
