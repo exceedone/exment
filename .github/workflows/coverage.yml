@@ -15,7 +15,6 @@ on:
 env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
-  # TEMP: exceedone/docker-exment#17 (coverage targets). Set back to master after it is merged.
   DOCKER_EXMENT_REF: master
 
 jobs:
