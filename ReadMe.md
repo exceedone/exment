@@ -1,14 +1,15 @@
 <p align="center">
+<b>English</b> | <a href="ReadMe.ja.md">日本語</a> | <a href="ReadMe.vi.md">Tiếng Việt</a>
+</p>
+
+<p align="center">
 <img src="https://exment.net/docs/img/common/exment_logo_side.png" alt="Exment">
 </p>
 
 <h3 align="center">Free, open-source, no-code web database</h3>
-<p align="center">ノーコードで業務システムを作れる、無料のオープンソース Web データベース</p>
 
 <p align="center">
-<a href="https://exment.net/">日本語</a> ·
-<a href="https://exment.net/en/">English</a> ·
-<a href="https://exment.net/vi/">Tiếng Việt</a> ·
+<a href="https://exment.net/en/">Official site</a> ·
 <a href="https://exment.net/en/demo-env/">Demo</a> ·
 <a href="https://exment.net/docs/#/">Manual</a> ·
 <a href="https://exment.net/en/whats-new/">What's new</a> ·
@@ -20,37 +21,13 @@
 </p>
 
 
-## For Japanese(日本語)
-Exment（エクスメント）は、プログラミングなしで業務システムを作れる、無料のオープンソース Web データベースです。Excel やバラバラのファイルで管理していた顧客・案件・申請などの情報を、画面の設定だけでひとつにまとめられます。  
-ワークフロー、カンバン、ガントチャート、SSO・2 段階認証など、業務に必要な機能がそろっています。自社のサーバー、国内・海外の 99% のレンタルサーバー（XServer・さくらインターネットなど）、クラウド（AWS・Azure など）で動くので、データを自社で持てます。ユーザーが何人になっても、料金は増えません。
-
-- **無料。ユーザー数で料金が増えない**: オープンソース（GPL）。ユーザー数・機能の制限はありません
-- **業務向けのテンプレートですぐ始められる**: 「タスク管理」「顧客管理」などのテンプレートを用意しています
-- **自社のサーバーで動き、データを自社で持てる**: PHP（Laravel）と MySQL / MariaDB / SQL Server で動きます
-- **v7.0.0（2026 年 10 月 28 日リリース）の新機能**: カンバンビュー、ガントチャートビュー、ワークフローのフロー設計、セルのスタイル、データ一覧のツール（列の固定・グループ化・インライン編集など）。Laravel 12・PHP 8.2 以上に対応
-- **実績**: オープンソース版のインストール 40,000 回以上（Packagist の累計、2026 年 11 月時点）、2018 年の公開から 200 回以上のバージョンアップ
-
-| | |
-|---|---|
-| 製品の紹介 | [公式サイト](https://exment.net/) ・ [主な機能](https://exment.net/functions/) ・ [活用法の紹介](https://exment.net/modelcases/) ・ [資料（PDF）](https://exment.net/assets/exment-flyer.pdf) |
-| 試す | [デモサイト一覧](https://exment.net/demo-env/) ・ [インストール手順](https://exment.net/docs/#/ja/quickstart) |
-| 料金・比較 | [料金・サポート・ライセンス](https://exment.net/plan/) ・ [ほかのサービスとの比較](https://exment.net/compare/) |
-| AI | [AI-OCR](https://exment.net/ai-ocr/) ・ [Exment AI Chatbot](https://exment.net/exment-ai-chatbot/) |
-| 新機能・予定 | [What's new（新機能）](https://exment.net/whats-new/) ・ [今後の予定（ロードマップ）](https://exment.net/roadmap/) |
-| 使い方 | [マニュアル](https://exment.net/docs/#/ja/) |
-| お問い合わせ | [お問い合わせ](https://exment.net/inquiry/)（導入・乗り換えのご相談、保守サポート） |
-
-脆弱性を見つけた場合は、公開の issue には書かず、[SECURITY.md](SECURITY.md) の方法でご報告ください。  
-開発: [株式会社カジトリ](https://exment.net/company/)（エクシード・ワン グループ）
-
-
 ## What is Exment?
 Exment is a free, open-source web database that lets you build business applications without programming. Bring customers, deals, requests and other information scattered across Excel sheets and files into one place, just by configuring screens.  
-For Web Database, SFA, CRM, Business improvement, ...
+It comes with everything business teams need: workflow, Kanban, Gantt charts, SSO, two-factor authentication and more. Exment runs on your own server, on 99% of shared hosting providers in Japan and abroad, or in the cloud (AWS, Azure, etc.), so your data stays with you. And no matter how many users you add, the price never goes up.
 
 - **Free, with no per-user fees**: open source (GPL), with no limits on users or features
 - **Get started fast with business templates** such as Task Management and Customer Management
-- **Runs on your own server, so you own your data**: your own server, 99% of shared hosting providers, or clouds such as AWS and Azure
+- **Runs on your own server, so you own your data**: PHP (Laravel) with MySQL / MariaDB / SQL Server
 - **40,000+ installs** of the open-source edition (Packagist, as of November 2026) and 200+ releases since 2018
 
 | | |
@@ -67,6 +44,8 @@ For Web Database, SFA, CRM, Business improvement, ...
 Then please enter  
 Usercode：admin  
 Password：adminadmin
+
+Developed by [Kajitori Co., Ltd.](https://exment.net/company/) (Exceed One group)
 
 
 ## What's new in v7.0.0
@@ -91,7 +70,7 @@ Show or hide columns, freeze columns, group rows, edit inline, quick preview, bu
 ![Data grid tools](https://exment.net/docs/img/data_grid_tools/grid_overview.png)
 
 ### Laravel 12 and PHP 8.2+
-The framework is updated to Laravel 12 and the admin UI libraries are refreshed. Please check the notes before updating. ([Update to v7.0.0](https://exment.net/docs/#/update))
+The framework is updated to Laravel 12 and the admin UI libraries are refreshed. Please check the notes before updating. ([Update](https://exment.net/docs/#/update))
 
 
 ## Functions
@@ -211,26 +190,23 @@ php artisan serve
 ~~~
 
 # Security
-If you find a security vulnerability, please do not open a public issue. Report it privately as described in [SECURITY.md](SECURITY.md).  
-脆弱性を見つけた場合は、公開の issue には書かず、[SECURITY.md](SECURITY.md) の方法で非公開でご報告ください。
+If you find a security vulnerability, please do not open a public issue. Report it privately as described in [SECURITY.md](SECURITY.md).
 
 # Community
-Exment does not currently have a community forum. I am taking advantage of issues. However, we may use some other platform in the future. If you have detailed knowledge, I would be grateful if you could give me a recommendation.  
-現在、Exmentではコミュニティ・フォーラムを用意していません。issueを活用しています。  ただし、将来的に何か他のプラットフォームを使うかもしれません。詳しい知見をお持ちの方は、推奨を教えてください。
+Exment does not currently have a community forum. I am taking advantage of issues. However, we may use some other platform in the future. If you have detailed knowledge, I would be grateful if you could give me a recommendation.
 
 ## Pull Request
-Pull Requests are always welcome. Currently, I'd be happy if you actually implemented the function rather than requesting a new function.  
-Pull Requestはいつでも大歓迎です。現在は、新しい機能の要望よりも、その機能を実際に実装していただいた方が、嬉しいです。
+Pull Requests are always welcome. Currently, I'd be happy if you actually implemented the function rather than requesting a new function.
 
 
 # Other pages
-Setup for Develop [En](document/en/Develop.md) / 開発方法 [日本語](document/ja/Develop.md)  
-Setup for Test [En](document/en/Test.md) / テスト実行方法 [日本語](document/ja/Test.md)  
+Setup for Develop [En](document/en/Develop.md) / [日本語](document/ja/Develop.md)  
+Setup for Test [En](document/en/Test.md) / [日本語](document/ja/Test.md)  
 
 
 # issues
-Please write issues using English or Japanese.  / issuesには英語または日本語で記載してください。  
-Security vulnerabilities: see [SECURITY.md](SECURITY.md). / 脆弱性は [SECURITY.md](SECURITY.md) をご覧ください。
+Please write issues using English or Japanese.  
+Security vulnerabilities: see [SECURITY.md](SECURITY.md).
 
 
 # Other repositories
