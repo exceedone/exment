@@ -225,6 +225,8 @@ When modifying the program, please edit the 'packages' folder.
 GitHub brunch is operated as follows.  
 *Reference(Japanese site)： [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
 
+> Since v7.0.0, pull requests are made against the master branch. The table below describes the previous branch model.
+
 | GitHub Brunch Name | Derived from | Explain |
 | ------------------ | -------------| ------------- |
 | `master` | - | The current stable version. Manage source code at the time of release. |
@@ -262,6 +264,6 @@ If you want to commit to exceedone/exment of the main unit, follow the procedure
 
 - Exment pull request on GitHub.  
 
-- Execute a pull request for the branch hotfix (fixing a bug) or develop (adding a function) of exceedone/exment.  
+- Execute a pull request for the **master** branch of exceedone/exment (the workflow since v7.0.0). Please name your branch `feature/XXX` for new functions or `fix/XXX` for bug fixes.  
 Please include comments as much as possible.
 

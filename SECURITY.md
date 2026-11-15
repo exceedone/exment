@@ -5,7 +5,7 @@
 | Version | Supported |
 | ------- | --------- |
 | 7.0.x   | :white_check_mark: |
-| 6.2.x   | :white_check_mark: (security fixes only / 脆弱性の修正のみ) |
+| 6.2.x   | :white_check_mark: security fixes only, until 2027-03-31 / 脆弱性の修正のみ、2027-03-31 まで |
 | < 6.2   | :x: |
 
 Please update to the latest release before reporting.  
