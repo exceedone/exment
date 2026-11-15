@@ -15,7 +15,6 @@ class BooleanRuleTest extends PureTestBase
      */
     private function rule(): BooleanRule
     {
-        /** @var array<string, mixed> $option */
         $option = ['0' => 'No', '1' => 'Yes'];
 
         return new BooleanRule($option);
