@@ -7,14 +7,19 @@
 こちらのサイトにアクセスしてください。  
 <a href="https://exment.net" target="_blank">公式サイト</a>  
 <a href="https://exment.net/demo-env" target="_blank">デモサイト一覧</a>  
-<a href="https://exment.net/docs/#/ja/">マニュアル</a>
+<a href="https://exment.net/docs/#/ja/">マニュアル</a>  
+<a href="https://exment.net/whats-new/" target="_blank">What's new（新機能）</a>  
+<a href="https://exment.net/roadmap/" target="_blank">今後の予定（ロードマップ）</a>  
+脆弱性を見つけた場合は、公開の issue には書かず、[SECURITY.md](SECURITY.md) の方法でご報告ください。
 
 
 ## What is Exment?
 Exment is open source software for managing information assets on the Web.  
 For Web Database, SFA, CRM, Business improvement, ...  
 <a href="https://en.exment.net" target="_blank">Official Site</a>  
-<a href="https://exment.net/docs/#/">Manual</a>
+<a href="https://exment.net/docs/#/">Manual</a>  
+<a href="https://exment.net/en/whats-new/" target="_blank">What's new</a>  
+<a href="https://exment.net/en/roadmap/" target="_blank">Roadmap</a>  
 <a href="https://demo.exment.net/admin" target="_blank">Demo site</a>  
 Then please enter  
 Usercode：admin  
@@ -33,6 +38,12 @@ Password：adminadmin
 - Menu configuration management
 - Search (free word search, search words related to information)
 - Mail Template
+- Views (list, summary, calendar, kanban, Gantt chart)
+- Workflow (approval flow with a flow designer)
+- Public form (data entry without login)
+- Notifications (mail, in-app, Slack, Microsoft Teams, LINE)
+- Login security (2-factor authentication, SSO with SAML / LDAP / OAuth)
+- Plugins
 - API
 
 And more and more and more functions....
@@ -128,6 +139,10 @@ URL is http://127.0.0.1:8000/admin
 php artisan serve
 ~~~
 
+# Security
+If you find a security vulnerability, please do not open a public issue. Report it privately as described in [SECURITY.md](SECURITY.md).  
+脆弱性を見つけた場合は、公開の issue には書かず、[SECURITY.md](SECURITY.md) の方法で非公開でご報告ください。
+
 # Community
 Exment does not currently have a community forum. I am taking advantage of issues. However, we may use some other platform in the future. If you have detailed knowledge, I would be grateful if you could give me a recommendation.  
 現在、Exmentではコミュニティ・フォーラムを用意していません。issueを活用しています。  ただし、将来的に何か他のプラットフォームを使うかもしれません。詳しい知見をお持ちの方は、推奨を教えてください。
@@ -143,7 +158,8 @@ Setup for Test [En](document/en/Test.md) / テスト実行方法 [日本語](doc
 
 
 # issues
-Please write issues using English or Japanese.  / issuesには英語または日本語で記載してください。
+Please write issues using English or Japanese.  / issuesには英語または日本語で記載してください。  
+Security vulnerabilities: see [SECURITY.md](SECURITY.md). / 脆弱性は [SECURITY.md](SECURITY.md) をご覧ください。
 
 
 # Other repositories

@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability / 脆弱性の報告
+    url: https://github.com/exceedone/exment/security/policy
+    about: Please do not open a public issue. Report vulnerabilities privately as described in SECURITY.md. / 公開の issue には書かず、SECURITY.md の方法で非公開でご報告ください。
