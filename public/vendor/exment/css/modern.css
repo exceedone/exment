@@ -342,8 +342,9 @@ body[class*="skin-"] .main-header .logo .logo-mini img {
   padding: 4px;
 }
 
+/* !important: skin-blue-light sets the navbar color with !important. */
 body[class*="skin-"] .main-header .navbar {
-  background-color: var(--exm-ui-bg);
+  background-color: var(--exm-ui-bg) !important;
   box-shadow: inset 0 -1px 0 var(--exm-ui-line);
 }
 
@@ -446,6 +447,26 @@ body[class*="skin-"] .user-panel > .info > p {
 
 body[class*="skin-"] .user-panel > .info > p.gray {
   color: var(--exm-ui-text-faint);
+}
+
+/* The "custom" site menu layout (.custom-menu): the skins set its active and hover
+   colors with !important, so the same is needed here to show the modern colors. */
+body[class*="skin-"] .custom-menu > ul > li.active,
+body[class*="skin-"] .custom-menu > ul > li.active > a {
+  background: var(--exm-ui-accent-soft) !important;
+  border-left: none !important;
+  color: var(--exm-ui-accent-strong) !important;
+}
+
+body[class*="skin-"] .custom-menu a:active,
+body[class*="skin-"] .custom-menu a:focus,
+body[class*="skin-"] .custom-menu li > ul > li.active a,
+body[class*="skin-"] .custom-menu li > ul > li.active a span {
+  color: var(--exm-ui-accent-strong) !important;
+}
+
+body[class*="skin-"] .custom-menu ul a:hover {
+  color: var(--exm-ui-text) !important;
 }
 
 body[class*="skin-"] .sidebar-menu > li.header {
