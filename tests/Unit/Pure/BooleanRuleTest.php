@@ -17,6 +17,8 @@ class BooleanRuleTest extends PureTestBase
     {
         $option = ['0' => 'No', '1' => 'Yes'];
 
+        // The real options have numeric-string keys ('0', '1'), which PHP stores as int keys.
+        // @phpstan-ignore-next-line argument.type
         return new BooleanRule($option);
     }
 
