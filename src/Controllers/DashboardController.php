@@ -37,6 +37,18 @@ class DashboardController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected $dashboard;
 
+    /**
+     * The max height (px) of a dashboard item in the stylesheet (.box-body-inner-body), shown as
+     * the default of the max height of a row.
+     */
+    protected const ROW_HEIGHT_DEFAULT = 400;
+
+    /**
+     * The range (px) of the max height of a row. The lowest is the min-height of the stylesheet.
+     */
+    protected const ROW_HEIGHT_MIN = 150;
+    protected const ROW_HEIGHT_MAX = 3000;
+
     public function __construct()
     {
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"), null, 'fa-home');
@@ -308,6 +320,12 @@ class DashboardController extends AdminControllerBase
                     ->help(sprintf(exmtrans("dashboard.description_row"), $row_count))
                     ->required()
                     ->default($default);
+
+                // the max height of the items of the row. Empty: the height of the stylesheet
+                $form->text('row'.$row_count.'_height', sprintf(exmtrans("dashboard.row_height"), $row_count))
+                    ->rules(['nullable', 'integer', 'min:'.static::ROW_HEIGHT_MIN, 'max:'.static::ROW_HEIGHT_MAX])
+                    ->attribute(['placeholder' => static::ROW_HEIGHT_DEFAULT])
+                    ->help(sprintf(exmtrans("dashboard.description_row_height"), $row_count, static::ROW_HEIGHT_DEFAULT, static::ROW_HEIGHT_MIN, static::ROW_HEIGHT_MAX));
             }
         })->disableHeader();
 
@@ -509,6 +527,7 @@ class DashboardController extends AdminControllerBase
     protected function setDashboardBox($content, $row_column_count, $row_no)
     {
         $content->row(function ($row) use ($row_column_count, $row_no) {
+            $box_height = $this->getRowHeight($row_no);
             // check role.
             $has_role = $this->dashboard->hasEditPermission();
             $filter_bar = FilterBarConfig::forViewer($this->dashboard);
@@ -585,9 +604,31 @@ class DashboardController extends AdminControllerBase
                     'dashboardboxes_newbuttons' => $dashboardboxes_newbuttons,
                     'icons' => $icons,
                     'attributes' => \Exment::formatAttributes($attributes),
+                    'box_height' => $box_height,
                 ]));
             }
         });
+    }
+
+    /**
+     * Get the max height (px) of the items of a row, set on the dashboard setting page.
+     *
+     * @param int $row_no
+     * @return int|null null if not set: the items keep the height of the stylesheet
+     */
+    protected function getRowHeight($row_no): ?int
+    {
+        $height = $this->dashboard->getOption('row'.$row_no.'_height');
+        if (!is_numeric($height)) {
+            return null;
+        }
+
+        $height = intval($height);
+        if ($height < static::ROW_HEIGHT_MIN || $height > static::ROW_HEIGHT_MAX) {
+            return null;
+        }
+
+        return $height;
     }
 
     // @phpstan-ignore-next-line
