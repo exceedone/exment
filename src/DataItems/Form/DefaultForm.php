@@ -409,7 +409,9 @@ EOT;
 
                 // loop input's value
                 foreach ($relationValues as $relationK => $relationV) {
-                    $instance = $relation->findOrNew(array_get($relationV, $keyName));
+                    // get the relation again for every row: findOrNew() adds "where id = ?" to the
+                    // relation's query, so a reused relation finds only the first row.
+                    $instance = $model->$relation_name()->findOrNew(array_get($relationV, $keyName));
                     // remove self item
                     $uniqueCheckSiblings = array_filter($relationValues, function ($relationValue, $key) use ($relationK) {
                         return !isMatchString($relationK, $key);
