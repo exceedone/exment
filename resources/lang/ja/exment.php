@@ -2301,11 +2301,13 @@ return [
             'button_label' => 'ボタンのラベル',
             'button_class' => 'ボタンのHTML class',
             'button_icon' => 'ボタンのアイコン',
+            'button_workflow_locked' => 'ワークフローで編集不可のデータにもボタンを表示する',
         ],
         'help' => [
             'operation_type' => 'データ更新を行うタイミングを指定します。',
             'button_icon' => 'ボタンのHTMLに付加するアイコンです。',
             'button_class' => 'ボタンのHTMLに付加するclassです。',
+            'button_workflow_locked' => 'YESにした場合、ワークフローのステータスが「データ編集不可」のデータにも、データ詳細画面にボタンを表示します。ボタンを表示するのは、そのデータを編集する権限を持つユーザーのみです。',
             'custom_operation_columns' => 'データ更新の対象列と、更新値を設定します。',
             'custom_operation_conditions' => '登録した更新設定を実行することができるデータの、条件を指定します。',
         ],

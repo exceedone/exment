@@ -181,6 +181,10 @@ class CustomOperationController extends AdminControllerTableBase
             $form->text('button_class', exmtrans("custom_operation.options.button_class"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])])
                 ->help(exmtrans("custom_operation.help.button_class"));
+            $form->switchbool('button_workflow_locked', exmtrans("custom_operation.options.button_workflow_locked"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])])
+                ->help(exmtrans("custom_operation.help.button_workflow_locked"))
+                ->default(false);
         })->disableHeader();
 
         $form->switchbool('active_flg', exmtrans("custom_operation.active_flg"))
