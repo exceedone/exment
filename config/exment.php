@@ -721,15 +721,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Modern UI (trial)
+    | Screen design
     |--------------------------------------------------------------------------
     |
-    | Load the trial "modern UI" stylesheet (vendor/exment/css/modern.css).
-    | For now it restyles the login screen and the data list screen only.
-    | Default false: the stylesheet is not loaded and nothing changes.
+    | Which screen design is used: "modern" or "classic".
+    | "modern" loads the stylesheet vendor/exment/css/modern.css on top of
+    | the theme; "classic" is the look Exment had before.
+    |
+    | Not set (default): the "Screen design" item on the system setting page
+    | decides. Its default is "modern".
+    | "modern" / "classic": the server decides. The value here wins over the
+    | system setting, and the system setting page shows it read-only.
     |
     */
-    'modern_ui' => env('EXMENT_MODERN_UI', false),
+    'ui_design' => env('EXMENT_UI_DESIGN'),
 
     /*
     |--------------------------------------------------------------------------

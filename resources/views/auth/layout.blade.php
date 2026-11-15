@@ -25,11 +25,11 @@
   <!-- <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/square/blue.css") }}"> -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.css") }}">
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/open-admin/css/button-custom.css") }}">
-  {{-- Trial "modern UI" skin (EXMENT_MODERN_UI, default off). It stays before the inline style
+  {{-- The "modern" screen design (system setting, or EXMENT_UI_DESIGN). It stays before the inline style
        below, so a color or an image set on the login setting page still wins. The one exception
        is the untouched default gray: that gives way to the skin's own page color. --}}
   @php
-    $modern_ui = boolval(config('exment.modern_ui', false));
+    $modern_ui = \Exment::isModernUi();
     $modern_ui_default_bg = $modern_ui && isset($background_color)
         && strtolower($background_color) === \Exceedone\Exment\Model\Define::SYSTEM_SETTING_NAME_VALUE['login_background_color']['default'];
   @endphp

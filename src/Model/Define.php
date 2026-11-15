@@ -58,6 +58,7 @@ class Define
         'site_favicon' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
         'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
+        'ui_design' => ['default' => 'modern', 'group' => 'initialize'],
 
         'api_available' => ['type' => 'boolean', 'config' => 'exment.api', 'group' => 'initialize'],
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
@@ -188,6 +189,14 @@ class Define
         "skin-red-light",
         "skin-black",
         "skin-black-light",
+    ];
+
+    /**
+     * Screen designs. The first one is the default.
+     */
+    public const SYSTEM_UI_DESIGN = [
+        'modern',
+        'classic',
     ];
 
     public const SYSTEM_LAYOUT = [

@@ -1,9 +1,11 @@
 /* =====================================================================
-   modern.css - trial "modern UI" skin for Exment.
+   modern.css - the "modern" screen design of Exment.
    ---------------------------------------------------------------------
-   Loaded ONLY when `config('exment.modern_ui')` is true
-   (.env: EXMENT_MODERN_UI=true). With the flag off this file is never
-   sent, so existing installations see no change at all.
+   Loaded only when the screen design is "modern" (the default). The
+   design is chosen on the system setting page ("Screen design"), or
+   fixed by the server with EXMENT_UI_DESIGN=modern|classic in .env.
+   With "classic" this file is never sent and the screens look exactly
+   as they did before.
 
    What it covers:
      1. design tokens (CSS variables on :root)

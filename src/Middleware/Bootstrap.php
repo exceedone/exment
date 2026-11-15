@@ -89,11 +89,12 @@ class Bootstrap
             'vendor/exment/css/grid_tools.css',
         ], true, true);
 
-        // Trial "modern UI" skin. Off by default, so the stylesheet is not
-        // even requested unless EXMENT_MODERN_UI is set. It goes after
-        // grid_tools.css because it overrides that file's colors with the
-        // same selectors, and equal selectors are settled by order.
-        if (boolval(config('exment.modern_ui', false))) {
+        // The "modern" screen design (system setting "Screen design", or
+        // EXMENT_UI_DESIGN on the server). With "classic" the stylesheet is
+        // not even requested. It goes after grid_tools.css because it
+        // overrides that file's colors with the same selectors, and equal
+        // selectors are settled by order.
+        if (\Exment::isModernUi()) {
             static::setCssJsList([
                 'vendor/exment/css/modern.css',
             ], true, true);
