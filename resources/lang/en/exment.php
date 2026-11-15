@@ -2298,11 +2298,13 @@ return [
             'button_label' => 'Button Label',
             'button_class' => 'Button HTML class',
             'button_icon' => 'Button Icon',
+            'button_workflow_locked' => 'Show Button for Data Locked by Workflow',
         ],
         'help' => [
             'operation_type' => 'Specify the timing to update the data.',
             'button_icon' => 'The icon to add to the button HTML.',
             'button_class' => 'The class to add to the button HTML.',
+            'button_workflow_locked' => 'If set to YES, the button is also shown on the data detail page of a data whose workflow status does not allow editing. It is shown only to the users who have the permission to edit the data.',
             'custom_operation_columns' => 'Set the target column of data update and update value.',
             'custom_operation_conditions' => 'Specify the condition of the data that can execute the registered update settings.',
         ],
