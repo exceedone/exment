@@ -52,6 +52,31 @@ class CustomOperationPermissionTest extends FeatureTestBase
         $this->actAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
     }
 
+    /**
+     * Laravel keeps the controller it made for a route and hands it the next request of the
+     * same route. Exment's controllers read the table from the request when they are made, so
+     * a request for another table would be answered for the table of the request before. A new
+     * PHP process serves every request in production; here every request gets new controllers.
+     *
+     * @param string $method
+     * @param string $uri
+     * @param array<mixed> $parameters
+     * @param array<mixed> $cookies
+     * @param array<mixed> $files
+     * @param array<mixed> $server
+     * @param string|null $content
+     * @return TestResponse<Response>
+     */
+    public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+    {
+        foreach ($this->app['router']->getRoutes() as $route) {
+            $route->flushController();
+        }
+        System::clearRequestSession();
+
+        return parent::call($method, $uri, $parameters, $cookies, $files, $server, $content);
+    }
+
     protected function tearDown(): void
     {
         System::clearRequestSession();
