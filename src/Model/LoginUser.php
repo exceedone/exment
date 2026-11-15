@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Enums\MailKeyName;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * @phpstan-consistent-constructor
@@ -321,6 +322,12 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 
         static::saving(function ($model) {
             $model->setBcryptPassword();
+
+            // A "remember me" cookie is checked only against remember_token, not against the password.
+            // Renew the token when the password changes, so that the cookies issued before no longer sign in.
+            if ($model->exists && $model->isDirty('password')) {
+                $model->setRememberToken(Str::random(60));
+            }
         });
 
         static::saved(function ($model) {
