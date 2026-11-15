@@ -554,6 +554,7 @@ class Initialize
             'valueModal'          => Field\ValueModal::class,
             'changeField'          => Field\ChangeField::class,
             'progressTracker'          => Field\ProgressTracker::class,
+            'sectionNav'          => Field\SectionNav::class,
             'systemValues'          => Field\SystemValues::class,
 
             ///// workflow
