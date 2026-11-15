@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use ExmentAdminCore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\DemoMode;
 
 /**
  * Middleware as Bootstrap.
@@ -55,6 +56,9 @@ class Bootstrap
             $navbar->right(new \Exceedone\Exment\Form\Navbar\WorkflowTaskNav());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\NotifyNav());
+            if (DemoMode::enabled()) {
+                $navbar->left(new \Exceedone\Exment\Form\Navbar\DemoModeNav());
+            }
         });
         Ad::js(asset('lib/js/jquery-ui.min.js'));
         Ad::css(asset('lib/css/jquery-ui.min.css'));

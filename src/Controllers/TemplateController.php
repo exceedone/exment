@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
@@ -34,7 +35,10 @@ class TemplateController extends AdminControllerBase
     {
         $this->AdminContent($content);
         $this->exportBox($content);
-        $this->importBox($content);
+        // demo mode: export only
+        if (!DemoMode::enabled()) {
+            $this->importBox($content);
+        }
         return $content;
     }
 

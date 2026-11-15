@@ -3474,6 +3474,7 @@ return [
             'unsupported_view_kind_type' => '指定したビューの種類は、APIでサポートされていません。',
             'not_contains_custom_form' => 'このフォームでは、指定のAPIは実行できません。',
             'one_record_already' => 'このテーブルは1レコードのみ登録可能です。',
+            'demo_mode' => 'デモ環境のため、この操作は使えません。',
         ],
         
         'help' =>[
@@ -3651,5 +3652,12 @@ return [
         'answer_invalid_link' => 'リンクが無効です。管理者にお問い合わせください。',
         'answer_link_expired' => 'このリンクは有効期限が切れています。管理者にお問い合わせください。',
         'answer_invalid_status' => '回答内容が正しくありません。もう一度お試しください。',
+    ],
+    'demo_mode' => [
+        'banner' => 'デモ環境です。一部の操作（プラグイン・バックアップ・メールやログインの設定など）は使えません。データは毎晩元に戻ります。',
+        'message_blocked' => 'デモ環境のため、この操作は使えません。',
+        'message_system_setting' => 'デモ環境のため、メールサーバー・LINE・全文検索サーバー・IPフィルタ・reCAPTCHA・API・外部接続の設定は保存されません。',
+        'message_login_id' => 'デモ環境のため、ログインできるユーザーのユーザーコードとメールアドレスは変更できません。',
+        'message_user_delete' => 'デモ環境のため、ログインできるユーザーは削除できません。',
     ],
 ];

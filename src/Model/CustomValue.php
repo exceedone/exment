@@ -25,6 +25,7 @@ use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\DemoMode;
 
 /**
  * @property-read string $display_avatar
@@ -757,6 +758,9 @@ abstract class CustomValue extends ModelBase
 
         // call plugin validator
         $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this, ['called_type' => $options['calledType']]));
+
+        // demo mode: the login ID of a user who can log in stays
+        $errors = array_merge($errors, DemoMode::userLoginErrors($this->custom_table, $input, $this, $options));
 
         return count($errors) > 0 ? $errors : true;
     }

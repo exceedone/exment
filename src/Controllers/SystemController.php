@@ -22,6 +22,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Update\UpdateService;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\SystemRequire;
 use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
@@ -133,8 +134,10 @@ class SystemController extends AdminControllerBase
 
         $content->row($box);
 
-        // sendmail test
-        $content->row($this->getsendmailTestBox());
+        // sendmail test. demo mode sends no mail.
+        if (!DemoMode::enabled()) {
+            $content->row($this->getsendmailTestBox());
+        }
 
         return $content;
     }
@@ -147,9 +150,13 @@ class SystemController extends AdminControllerBase
      */
     protected function formAdvanced(Request $request): WidgetForm
     {
-        $form = new WidgetForm(System::get_system_values(['advanced', 'notify']));
+        $form = new WidgetForm(DemoMode::maskSystemValues(System::get_system_values(['advanced', 'notify'])));
         $form->disableReset();
         $form->action(admin_url('system'));
+
+        if (DemoMode::enabled()) {
+            $form->descriptionHtml(esc_html(exmtrans('demo_mode.message_system_setting')));
+        }
 
         $form->progressTracker()->options($this->getProgressInfo(true));
 
