@@ -3,6 +3,7 @@ name: phpunit
 on:
   pull_request:
     paths:
+      - '.github/workflows/**'
       - 'config/**'
       - 'database/**'
       - 'resources/**'
@@ -11,7 +12,12 @@ on:
 
 env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
+  # docker-exment master as of 2026-05-13 (PHP 8.2), the one v6.2.15 was tested on
+  DOCKER_EXMENT_REF: 9246d52e6a57a0c58b0e0e1fb3012d856ad83495
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+  # The last Laravel 10 / exceedone/laravel-admin commit of exment-boilerplate.
+  # main is for Exment v7 (Laravel 12, exment-admin-core) since 2026-10-28.
+  EXMENT_BOILERPLATE_REF: a5f5cdf4340f1b0074d1e135adcc92d64faf2647
 
 jobs:
   exment-testing:
@@ -25,11 +31,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.DOCKER_EXMENT_REPOSITORY}}
+          ref: ${{ env.DOCKER_EXMENT_REF }}
           path: ./docker-exment
 
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
+          ref: ${{ env.EXMENT_BOILERPLATE_REF }}
           path: ./docker-exment/exment-boilerplate
 
       - uses: actions/checkout@v4

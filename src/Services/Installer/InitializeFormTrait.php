@@ -197,7 +197,7 @@ trait InitializeFormTrait
 
         $validation = Validator::make($request->all(), $rules);
         if ($validation->fails()) {
-            return back()->withInput()->withErrors($validation);
+            return back()->withInput(get_flash_input())->withErrors($validation);
         }
 
         $inputs = $request->all(System::get_system_keys($group));

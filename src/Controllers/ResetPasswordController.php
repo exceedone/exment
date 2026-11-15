@@ -85,7 +85,7 @@ class ResetPasswordController extends Controller
         $email = $this->getEmailByToken($request->get('token'));
         if (!isset($email)) {
             admin_toastr(trans('passwords.token'));
-            return back()->withInput();
+            return back()->withInput(get_flash_input());
         }
 
         $array = [
@@ -145,7 +145,7 @@ class ResetPasswordController extends Controller
         $user->password = $password;
         //$user->password = Hash::make($password);
 
-        //$user->setRememberToken(Str::random(60));
+        // the remember token is renewed by LoginUser when the password changes
 
         $user->saveOrFail();
 

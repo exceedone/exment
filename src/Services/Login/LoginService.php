@@ -74,7 +74,7 @@ class LoginService
                 catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     admin_error(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
-                    return back()->withInput();
+                    return back()->withInput(get_flash_input());
                 }
             }
             $login_user->save();
