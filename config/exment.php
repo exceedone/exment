@@ -721,6 +721,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Modern UI (trial)
+    |--------------------------------------------------------------------------
+    |
+    | Load the trial "modern UI" stylesheet (vendor/exment/css/modern.css).
+    | For now it restyles the login screen and the data list screen only.
+    | Default false: the stylesheet is not loaded and nothing changes.
+    |
+    */
+    'modern_ui' => env('EXMENT_MODERN_UI', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Disabled ip filter
     |--------------------------------------------------------------------------
     |

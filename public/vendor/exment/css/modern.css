@@ -1,0 +1,506 @@
+/* =====================================================================
+   modern.css - trial "modern UI" skin for Exment.
+   ---------------------------------------------------------------------
+   Loaded ONLY when `config('exment.modern_ui')` is true
+   (.env: EXMENT_MODERN_UI=true). With the flag off this file is never
+   sent, so existing installations see no change at all.
+
+   What this step covers:
+     1. design tokens (CSS variables on :root) - shared by later steps
+     2. the login screen family  (scope: body.login-page)
+     3. the data list screen     (scope: table.exm-grid and the box
+                                  that holds it)
+
+   Everything else - sidebar, header, forms, dashboard - is left alone
+   on purpose. Every rule below starts from one of the two scopes, so
+   nothing can leak into a screen that has not been designed yet.
+
+   Design notes and the HTML samples: document/design/modern-ui/
+   ===================================================================== */
+
+
+/* ------------------------------------------------------------ tokens --- */
+/* Only variables here: defining them changes nothing by itself.
+   One accent (the blue family of the Exment logo), everything else is
+   white and gray. */
+:root {
+  /* accent - logo gradient is #3b82f6 -> #1d4ed8 */
+  --exm-ui-accent: #2563eb;
+  --exm-ui-accent-strong: #1d4ed8;
+  --exm-ui-accent-soft: #eff4ff;
+  --exm-ui-accent-ring: rgba(37, 99, 235, .22);
+
+  /* text */
+  --exm-ui-text: #1c2024;
+  --exm-ui-text-sub: #5f6b7a;
+  --exm-ui-text-faint: #8b95a1;
+
+  /* surfaces and lines */
+  --exm-ui-bg: #ffffff;
+  --exm-ui-bg-sub: #f7f8f9;
+  --exm-ui-bg-hover: #f3f5f7;
+  --exm-ui-line: #e6e8eb;
+  --exm-ui-line-soft: #eff1f3;
+
+  /* state colors - used for meaning only, never for decoration */
+  --exm-ui-danger: #d1242f;
+
+  /* type */
+  --exm-ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+  --exm-ui-fs-xs: 12px;
+  --exm-ui-fs-sm: 13px;
+  --exm-ui-fs-md: 14px;
+  --exm-ui-fs-lg: 18px;
+  --exm-ui-fs-xl: 24px;
+
+  /* spacing - a 4px scale */
+  --exm-ui-space-1: 4px;
+  --exm-ui-space-2: 8px;
+  --exm-ui-space-3: 12px;
+  --exm-ui-space-4: 16px;
+  --exm-ui-space-5: 24px;
+  --exm-ui-space-6: 32px;
+  --exm-ui-space-7: 48px;
+
+  /* shape */
+  --exm-ui-radius-sm: 6px;
+  --exm-ui-radius-md: 10px;
+}
+
+
+/* ====================================================== login screen === */
+/* auth/layout.blade.php is shared by login, password reset, password
+   change and the two-factor pages, so all of them get the same look. */
+
+/* The page color. A color or an image chosen on the "login setting"
+   page still wins: the layout prints it after this file. */
+.login-page {
+  background-color: var(--exm-ui-bg-sub);
+  font-family: var(--exm-ui-font);
+  color: var(--exm-ui-text);
+}
+
+body.login-page .login-box {
+  width: 380px;
+  max-width: calc(100vw - 32px);
+}
+
+/* Site name: told apart by size and weight, not by color. */
+body.login-page .login-logo {
+  margin-bottom: var(--exm-ui-space-5);
+  font-size: var(--exm-ui-fs-xl);
+  line-height: 1.3;
+}
+
+body.login-page .login-logo a {
+  color: var(--exm-ui-text);
+  text-decoration: none;
+}
+
+body.login-page .login-logo a b {
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+
+/* One hairline instead of a shadow. The card stays white so the form is
+   still readable when a background image is set. */
+body.login-page .login-box-body {
+  padding: var(--exm-ui-space-6) !important; /* beats the `p-3` utility */
+  background-color: var(--exm-ui-bg);
+  border: 1px solid var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-md);
+  box-shadow: none;
+}
+
+body.login-page .login-box-msg {
+  margin: 0 0 var(--exm-ui-space-5);
+  padding: 0;
+  font-size: var(--exm-ui-fs-lg);
+  font-weight: 600;
+  color: var(--exm-ui-text);
+  text-align: left;
+}
+
+body.login-page .login-box-body .mb-3 {
+  margin-bottom: var(--exm-ui-space-4) !important;
+}
+
+body.login-page .form-control {
+  padding: 10px var(--exm-ui-space-3);
+  font-size: var(--exm-ui-fs-md);
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg);
+  border: 1px solid var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-sm);
+  box-shadow: none;
+  transition: border-color .12s ease-out, box-shadow .12s ease-out;
+}
+
+/* Single-line fields only: a fixed height would crush a textarea (the
+   safety-check answer page shares this layout). The right padding keeps
+   the text clear of the icon inside the field. */
+body.login-page input.form-control {
+  height: 42px;
+  padding: 0 40px 0 var(--exm-ui-space-3);
+}
+
+body.login-page .form-control::placeholder {
+  color: var(--exm-ui-text-faint);
+}
+
+body.login-page .form-control:hover {
+  border-color: #cfd4da;
+}
+
+body.login-page .form-control:focus {
+  border-color: var(--exm-ui-accent);
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+  outline: 0;
+}
+
+body.login-page .form-control.is-invalid {
+  border-color: var(--exm-ui-danger);
+}
+
+/* The icon inside the field is a hint, so it stays faint. */
+body.login-page .position-relative > span > .fa {
+  color: var(--exm-ui-text-faint);
+}
+
+body.login-page .control-label {
+  font-size: var(--exm-ui-fs-sm);
+  font-weight: 500;
+}
+
+body.login-page .control-label > .fa {
+  margin-right: var(--exm-ui-space-1);
+}
+
+body.login-page .form-check {
+  font-size: var(--exm-ui-fs-sm);
+  color: var(--exm-ui-text-sub);
+  justify-content: flex-start;
+}
+
+body.login-page .form-check-input {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #c3c9d0;
+}
+
+body.login-page .form-check-input[type="checkbox"] {
+  border-radius: 4px;
+}
+
+body.login-page .form-check-input:checked {
+  background-color: var(--exm-ui-accent);
+  border-color: var(--exm-ui-accent);
+}
+
+body.login-page .form-check-input:focus {
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+}
+
+/* The submit button takes the full width of the form. */
+body.login-page .login-box-body form .col-sm-8.offset-sm-2 {
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+}
+
+body.login-page .btn {
+  min-height: 42px;
+  font-size: var(--exm-ui-fs-md);
+  font-weight: 600;
+  border-radius: var(--exm-ui-radius-sm);
+  box-shadow: none;
+}
+
+/* Only the standard login button is recolored. SSO / LDAP buttons keep
+   the colors set on the "login setting" page (inline styles). */
+body.login-page .btn-primary {
+  color: #fff;
+  background-color: var(--exm-ui-accent);
+  border-color: var(--exm-ui-accent);
+}
+
+body.login-page .btn-primary:hover,
+body.login-page .btn-primary:focus,
+body.login-page .btn-primary:active {
+  color: #fff;
+  background-color: var(--exm-ui-accent-strong);
+  border-color: var(--exm-ui-accent-strong);
+}
+
+body.login-page .btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+  outline: 0;
+}
+
+/* `!important` only because the views write `style="color:#3c8dbc"` on
+   these links, and an inline style outranks every selector. */
+body.login-page .login-box-body a.text-decoration-none {
+  color: var(--exm-ui-accent-strong) !important;
+  font-size: var(--exm-ui-fs-sm);
+}
+
+body.login-page .login-box-body a.text-decoration-none:hover {
+  text-decoration: underline !important;
+}
+
+body.login-page .social-auth-links > p {
+  color: var(--exm-ui-text-faint);
+  font-size: var(--exm-ui-fs-xs);
+}
+
+
+/* =================================================== data list screen === */
+/* `table.exm-grid` is the class grid_tools.js puts on the data grid only
+   (see grid_tools.css). Modal grids, dashboard list boxes and the system
+   tables never get it, so they are not touched.
+
+   The rules that reach the surrounding box use `:has()`. A browser
+   without `:has()` simply skips them and shows the modern table inside
+   the classic box - still a consistent screen. */
+
+.exm-grid {
+  /* grid_tools.css reads this for sort arrows and the dropdown tick */
+  --exm-grid-accent: var(--exm-ui-accent);
+  --exm-grid-line: var(--exm-ui-line);
+}
+
+/* ------------------------------------------------------- page + box --- */
+/* White page, and a box with no frame and no shadow: the table's own
+   row lines are enough to hold the list together. */
+.content-wrapper:has(table.exm-grid) {
+  background-color: var(--exm-ui-bg);
+}
+
+.content-wrapper:has(table.exm-grid) .content-header h1 {
+  font-size: var(--exm-ui-fs-xl);
+  font-weight: 700;
+  color: var(--exm-ui-text);
+}
+
+.box:has(table.exm-grid) {
+  background-color: var(--exm-ui-bg);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.box:has(table.exm-grid) > .box-header {
+  padding: var(--exm-ui-space-2) 0 var(--exm-ui-space-3);
+  border-bottom: 0;
+}
+
+.box:has(table.exm-grid) > .box-footer {
+  padding: var(--exm-ui-space-4) 0;
+  background-color: transparent;
+  border-top: 0;
+  color: var(--exm-ui-text-sub);
+  font-size: var(--exm-ui-fs-sm);
+}
+
+/* ---------------------------------------------------------- toolbar --- */
+/* Quiet gray buttons; color is kept for the one main action ("New"). */
+.box:has(table.exm-grid) > .box-header .btn {
+  border-radius: var(--exm-ui-radius-sm);
+  box-shadow: none;
+}
+
+.box:has(table.exm-grid) > .box-header .btn-default {
+  color: var(--exm-ui-text-sub);
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+.box:has(table.exm-grid) > .box-header .btn-default:hover,
+.box:has(table.exm-grid) > .box-header .btn-default:focus {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+.box:has(table.exm-grid) > .box-header .btn-success {
+  color: #fff;
+  background-color: var(--exm-ui-accent);
+  border-color: var(--exm-ui-accent);
+}
+
+.box:has(table.exm-grid) > .box-header .btn-success:hover,
+.box:has(table.exm-grid) > .box-header .btn-success:focus {
+  color: #fff;
+  background-color: var(--exm-ui-accent-strong);
+  border-color: var(--exm-ui-accent-strong);
+}
+
+/* "This tool is on" - soft accent instead of a solid block. */
+.box:has(table.exm-grid) > .box-header .exm-refresh-btn.active,
+.box:has(table.exm-grid) > .box-header .exm-pin-btn.active,
+.box:has(table.exm-grid) > .box-header .exm-group-btn.active {
+  color: var(--exm-ui-accent-strong);
+  background: var(--exm-ui-accent-soft);
+  border-color: transparent;
+}
+
+.box:has(table.exm-grid) .form-control:focus {
+  border-color: var(--exm-ui-accent);
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+}
+
+/* ------------------------------------------------------ filter chips --- */
+.exm-filter-chip {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-sub);
+  border-color: var(--exm-ui-line);
+}
+
+.exm-filter-chip:hover {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+.exm-filter-chips-title {
+  font-weight: 600;
+  color: var(--exm-ui-text-sub);
+}
+
+.exm-filter-chip-clear {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--exm-ui-text-sub);
+}
+
+/* ------------------------------------------------------------ table --- */
+/* The class is repeated for the same reason as in grid_tools.css: the
+   theme's border rule has a specificity of (0,3,0). This file is loaded
+   after grid_tools.css, so equal selectors here win by order. */
+.table.exm-grid.exm-grid {
+  font-family: var(--exm-ui-font);
+  color: var(--exm-ui-text);
+}
+
+/* Header: no fill. Small, gray and semi-bold is enough to read as a
+   header; one line under it separates it from the rows. */
+.table.exm-grid.exm-grid > thead > tr > th {
+  background-color: var(--exm-ui-bg);
+  color: var(--exm-ui-text-sub);
+  font-size: var(--exm-ui-fs-xs);
+  font-weight: 600;
+  letter-spacing: 0;
+  padding: 10px 12px;
+  border-top: 0;
+  border-bottom: 1px solid var(--exm-ui-line);
+}
+
+.table.exm-grid.exm-grid > tbody > tr > td {
+  border-top-color: var(--exm-ui-line-soft);
+  border-bottom-color: var(--exm-ui-line-soft);
+}
+
+/* A little more air in the default density. Compact and spacious keep
+   the values of grid_tools.css. */
+.table.exm-grid.table-density-comfortable > tbody > tr > td {
+  padding: 11px 12px;
+}
+
+/* No zebra: with wider rows the hover color does the same job with
+   less ink. */
+.table.exm-grid > tbody > tr:nth-of-type(even) > td {
+  background-color: var(--exm-ui-bg);
+}
+
+.table.exm-grid.table-hover > tbody > tr:hover > td {
+  background-color: var(--exm-ui-bg-hover);
+}
+
+.table.exm-grid > tbody > tr.selected > td,
+.table.exm-grid.table-hover > tbody > tr.selected:hover > td {
+  background-color: var(--exm-ui-accent-soft);
+}
+
+.table.exm-grid > tbody > tr > td a:not(.btn) {
+  color: var(--exm-ui-accent-strong);
+}
+
+/* Pinned cells are opaque so the scrolling columns pass under them.
+   They must repeat every row color above, or a pinned cell would show a
+   different color from the rest of its row. */
+.table.exm-grid.exm-grid > thead > tr > th.exm-pin,
+.exm-headlock > .table.exm-grid > thead > tr > th,
+.exm-headlock > .table.exm-grid.exm-grid > thead > tr > th.exm-pin {
+  background-color: var(--exm-ui-bg);
+}
+
+.table.exm-grid > tbody > tr > td.exm-pin,
+.table.exm-grid > tbody > tr:nth-of-type(even) > td.exm-pin {
+  background-color: var(--exm-ui-bg);
+}
+
+.table.exm-grid.table-hover > tbody > tr:hover > td.exm-pin {
+  background-color: var(--exm-ui-bg-hover);
+}
+
+.table.exm-grid > tbody > tr.selected > td.exm-pin,
+.table.exm-grid.table-hover > tbody > tr.selected:hover > td.exm-pin {
+  background-color: var(--exm-ui-accent-soft);
+}
+
+/* Softer edge shadows for pinned columns and the locked header. These
+   shadows carry meaning ("something is scrolled under here"), so they
+   stay - only lighter. */
+.exm-pin-scrolled .table.exm-grid > thead > tr > th.exm-pin-last,
+.exm-pin-scrolled .table.exm-grid > tbody > tr > td.exm-pin-last {
+  box-shadow: 6px 0 6px -5px rgba(15, 23, 42, .12);
+}
+
+.exm-pin-scrolled-end .table.exm-grid > thead > tr > th.exm-pin-right-first,
+.exm-pin-scrolled-end .table.exm-grid > tbody > tr > td.exm-pin-right-first {
+  box-shadow: -6px 0 6px -5px rgba(15, 23, 42, .12);
+}
+
+.exm-headlock-scrolled > .table.exm-grid > thead > tr > th {
+  box-shadow: 0 3px 4px -3px rgba(15, 23, 42, .14);
+}
+
+/* Group rows: a gray band, no heavy top line. */
+.table.exm-grid > tbody > tr.exm-group-row > td {
+  background-color: var(--exm-ui-bg-sub);
+  border-top: 1px solid var(--exm-ui-line);
+  color: var(--exm-ui-text);
+}
+
+.table.exm-grid > tbody > tr.exm-group-row .exm-group-count {
+  background-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub);
+}
+
+/* -------------------------------------------------------- pagination --- */
+.box:has(table.exm-grid) > .box-footer .pagination .page-link {
+  margin: 0 2px;
+  color: var(--exm-ui-text-sub);
+  background-color: transparent;
+  border: 0;
+  border-radius: var(--exm-ui-radius-sm);
+  box-shadow: none;
+}
+
+.box:has(table.exm-grid) > .box-footer .pagination .page-link:hover {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+}
+
+.box:has(table.exm-grid) > .box-footer .pagination .page-item.active .page-link {
+  color: var(--exm-ui-accent-strong);
+  background-color: var(--exm-ui-accent-soft);
+  font-weight: 600;
+}
+
+.box:has(table.exm-grid) > .box-footer .pagination .page-item.disabled .page-link {
+  color: var(--exm-ui-text-faint);
+  background-color: transparent;
+}
