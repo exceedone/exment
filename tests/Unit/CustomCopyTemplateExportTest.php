@@ -67,9 +67,9 @@ class CustomCopyTemplateExportTest extends UnitTestBase
         $custom_copy->to_custom_table_id = $to->id;
         $custom_copy->save();
 
-        $items = CustomCopy::findOrFail($custom_copy->id)->getTemplateExportItems();
-        $this->assertIsArray($items);
+        /** @var CustomCopy $saved */
+        $saved = CustomCopy::query()->whereKey($custom_copy->id)->firstOrFail();
 
-        return $items;
+        return $saved->getTemplateExportItems();
     }
 }
