@@ -527,7 +527,8 @@ class Plugin extends ModelBase
                     continue;
                 }
 
-                $event_triggers = array_get($plugin, 'options.event_triggers', []);
+                // a plugin installed before #1712 was fixed keeps the comma separated string
+                $event_triggers = stringToArray(array_get($plugin, 'options.event_triggers', []));
                 $enum = PluginEventType::getEnum($event);
 
                 $options['throw_ex'] = false;
@@ -597,7 +598,7 @@ class Plugin extends ModelBase
                         break;
                     case PluginType::TRIGGER:
                     case PluginType::BUTTON:
-                        $event_triggers = toArray(array_get($plugin->options, 'event_triggers', []));
+                        $event_triggers = stringToArray(array_get($plugin->options, 'event_triggers', []));
                         if (!in_array($event, $event_triggers) || is_null(PluginButtonType::getEnum($event))) {
                             break;
                         }
