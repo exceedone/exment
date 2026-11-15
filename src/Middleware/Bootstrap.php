@@ -89,6 +89,17 @@ class Bootstrap
             'vendor/exment/css/grid_tools.css',
         ], true, true);
 
+        // The "modern" screen design (system setting "Screen design", or
+        // EXMENT_UI_DESIGN on the server). With "classic" the stylesheet is
+        // not even requested. It goes after grid_tools.css because it
+        // overrides that file's colors with the same selectors, and equal
+        // selectors are settled by order.
+        if (\Exment::isModernUi()) {
+            static::setCssJsList([
+                'vendor/exment/css/modern.css',
+            ], true, true);
+        }
+
         static::setCssJsList([
             // see the note on the stylesheet above
             'vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js',

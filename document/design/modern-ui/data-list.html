@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>顧客情報 | Exment modern UI sample</title>
+<style>
+/* ---- tokens: same names and values as public/vendor/exment/css/modern.css ---- */
+:root{
+  --exm-ui-accent:#2563eb; --exm-ui-accent-strong:#1d4ed8; --exm-ui-accent-soft:#eff4ff; --exm-ui-accent-ring:rgba(37,99,235,.22);
+  --exm-ui-text:#1c2024; --exm-ui-text-sub:#5f6b7a; --exm-ui-text-faint:#8b95a1;
+  --exm-ui-bg:#ffffff; --exm-ui-bg-sub:#f7f8f9; --exm-ui-bg-hover:#f3f5f7; --exm-ui-line:#e6e8eb; --exm-ui-line-soft:#eff1f3;
+  --exm-ui-danger:#d1242f;
+  --exm-ui-font:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+  --exm-ui-fs-xs:12px; --exm-ui-fs-sm:13px; --exm-ui-fs-md:14px; --exm-ui-fs-lg:18px; --exm-ui-fs-xl:24px;
+  --exm-ui-space-1:4px; --exm-ui-space-2:8px; --exm-ui-space-3:12px; --exm-ui-space-4:16px; --exm-ui-space-5:24px; --exm-ui-space-6:32px; --exm-ui-space-7:48px;
+  --exm-ui-radius-sm:6px; --exm-ui-radius-md:10px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--exm-ui-font);font-size:var(--exm-ui-fs-md);line-height:1.6;color:var(--exm-ui-text);background:var(--exm-ui-bg)}
+a{color:var(--exm-ui-accent-strong);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:0;box-shadow:0 0 0 3px var(--exm-ui-accent-ring);border-radius:var(--exm-ui-radius-sm)}
+.mark{width:28px;height:28px;flex:0 0 auto}
+
+/* ---- buttons: one filled (the main action), the rest quiet ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;font-size:var(--exm-ui-fs-sm);font-weight:600;white-space:nowrap;color:var(--exm-ui-text-sub);background:var(--exm-ui-bg);border:1px solid var(--exm-ui-line);border-radius:var(--exm-ui-radius-sm);cursor:pointer;text-decoration:none}
+.btn:hover{color:var(--exm-ui-text);background:var(--exm-ui-bg-hover);text-decoration:none}
+.btn-primary{color:#fff;background:var(--exm-ui-accent);border-color:var(--exm-ui-accent)}
+.btn-primary:hover{color:#fff;background:var(--exm-ui-accent-strong);border-color:var(--exm-ui-accent-strong)}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-lg{height:42px;font-size:var(--exm-ui-fs-md)}
+
+/* ---- fields ---- */
+.input{width:100%;height:38px;padding:0 var(--exm-ui-space-3);background:var(--exm-ui-bg);border:1px solid var(--exm-ui-line);border-radius:var(--exm-ui-radius-sm);transition:border-color .12s,box-shadow .12s}
+textarea.input{height:auto;padding:10px var(--exm-ui-space-3);resize:vertical;line-height:1.6}
+.input::placeholder{color:var(--exm-ui-text-faint)}
+.input:hover{border-color:#cfd4da}
+.input:focus{border-color:var(--exm-ui-accent);box-shadow:0 0 0 3px var(--exm-ui-accent-ring);outline:0}
+input[type=checkbox],input[type=radio]{width:16px;height:16px;margin:0;accent-color:var(--exm-ui-accent)}
+
+/* ---- small parts ---- */
+.tag{display:inline-block;padding:1px 8px;font-size:var(--exm-ui-fs-xs);line-height:1.6;color:var(--exm-ui-text-sub);background:var(--exm-ui-bg-sub);border:1px solid var(--exm-ui-line);border-radius:999px;white-space:nowrap}
+.tag-accent{color:var(--exm-ui-accent-strong);background:var(--exm-ui-accent-soft);border-color:transparent}
+.muted{color:var(--exm-ui-text-sub)}
+.faint{color:var(--exm-ui-text-faint)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---- app shell: gray sidebar, white page, no dividing shadows ---- */
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.side{background:var(--exm-ui-bg-sub);padding:var(--exm-ui-space-4) var(--exm-ui-space-3);position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:var(--exm-ui-space-2) var(--exm-ui-space-2) var(--exm-ui-space-5);font-size:17px;font-weight:700;color:var(--exm-ui-text)}
+.brand:hover{text-decoration:none}
+.nav-title{padding:var(--exm-ui-space-4) var(--exm-ui-space-2) var(--exm-ui-space-1);font-size:var(--exm-ui-fs-xs);font-weight:600;color:var(--exm-ui-text-faint)}
+.nav a{display:block;padding:6px var(--exm-ui-space-2);margin:1px 0;font-size:var(--exm-ui-fs-md);color:var(--exm-ui-text-sub);border-radius:var(--exm-ui-radius-sm)}
+.nav a:hover{background:#eceef1;color:var(--exm-ui-text);text-decoration:none}
+.nav a.on{background:#e9ecef;color:var(--exm-ui-text);font-weight:600}
+.main{min-width:0}
+.top{display:flex;align-items:center;gap:var(--exm-ui-space-4);height:56px;padding:0 var(--exm-ui-space-6)}
+.top .search{flex:1 1 auto;max-width:360px}
+.top .search .input{height:34px;background:var(--exm-ui-bg-sub);border-color:transparent}
+.top .search .input:focus{background:var(--exm-ui-bg);border-color:var(--exm-ui-accent)}
+.top .sp{flex:1 1 auto}
+.top .who{display:flex;align-items:center;gap:8px;font-size:var(--exm-ui-fs-sm);color:var(--exm-ui-text-sub);white-space:nowrap}
+.avatar{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--exm-ui-accent-soft);color:var(--exm-ui-accent-strong);font-size:var(--exm-ui-fs-xs);font-weight:700}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--exm-ui-accent);color:#fff;font-size:11px;font-weight:700}
+.page{padding:var(--exm-ui-space-5) var(--exm-ui-space-6) var(--exm-ui-space-7);max-width:1240px}
+.crumb{font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint);margin-bottom:var(--exm-ui-space-2)}
+.crumb a{color:var(--exm-ui-text-faint)}
+.page-head{display:flex;align-items:flex-end;flex-wrap:wrap;gap:var(--exm-ui-space-3);margin-bottom:var(--exm-ui-space-5)}
+.page-head h1{font-size:var(--exm-ui-fs-xl);font-weight:700;line-height:1.3}
+.page-head .desc{font-size:var(--exm-ui-fs-sm);color:var(--exm-ui-text-sub);margin-top:2px}
+.page-head .sp{flex:1 1 auto}
+.sample-note{margin-top:var(--exm-ui-space-7);font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint)}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{display:none}
+  .top{padding:0 var(--exm-ui-space-4);gap:var(--exm-ui-space-1);justify-content:flex-end}
+  .top .sp{display:none}
+  .top .who span:last-child,.top .search{display:none}
+  .page{padding:var(--exm-ui-space-4) var(--exm-ui-space-4) var(--exm-ui-space-7)}
+}
+
+.tools{display:flex;align-items:center;flex-wrap:wrap;gap:var(--exm-ui-space-2);margin-bottom:var(--exm-ui-space-3)}
+.tools .sp{flex:1 1 auto}
+.tools .q{width:240px;max-width:100%}
+.tools .q .input{height:34px}
+.tools select.input{width:auto;height:34px;padding-right:28px}
+.chips{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:var(--exm-ui-space-3);font-size:var(--exm-ui-fs-xs)}
+.chips .t{font-weight:600;color:var(--exm-ui-text-sub)}
+.chips .tag{color:var(--exm-ui-text)}
+.scroll{overflow-x:auto}
+table.grid{width:100%;border-collapse:collapse}
+table.grid th{padding:10px 12px;font-size:var(--exm-ui-fs-xs);font-weight:600;color:var(--exm-ui-text-sub);text-align:left;white-space:nowrap;border-bottom:1px solid var(--exm-ui-line)}
+table.grid th .s{color:var(--exm-ui-accent);margin-left:4px}
+table.grid td{padding:11px 12px;border-bottom:1px solid var(--exm-ui-line-soft);white-space:nowrap;vertical-align:middle}
+table.grid tbody tr:hover td{background:var(--exm-ui-bg-hover)}
+table.grid tbody tr.selected td{background:var(--exm-ui-accent-soft)}
+table.grid .c{width:36px;padding-right:0}
+table.grid .act{text-align:right;font-size:var(--exm-ui-fs-sm)}
+table.grid .act a{visibility:hidden}
+table.grid tr:hover .act a,table.grid tr.selected .act a,table.grid .act a:focus{visibility:visible}
+.foot{display:flex;align-items:center;flex-wrap:wrap;gap:var(--exm-ui-space-3);padding-top:var(--exm-ui-space-4);font-size:var(--exm-ui-fs-sm);color:var(--exm-ui-text-sub)}
+.foot .sp{flex:1}
+.pager{display:flex;gap:2px}
+.pager a,.pager span{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;padding:0 8px;border-radius:var(--exm-ui-radius-sm);color:var(--exm-ui-text-sub)}
+.pager a:hover{background:var(--exm-ui-bg-hover);color:var(--exm-ui-text);text-decoration:none}
+.pager .on{background:var(--exm-ui-accent-soft);color:var(--exm-ui-accent-strong);font-weight:600}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="dashboard.html"><svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs><rect x="4" y="4" width="112" height="112" rx="26" fill="url(#g)"/><rect x="28" y="27" width="18" height="18" rx="4" fill="#bfdbfe"/><rect x="52" y="27" width="40" height="18" rx="4" fill="#fff"/><rect x="28" y="51" width="18" height="18" rx="4" fill="#bfdbfe"/><rect x="52" y="51" width="28" height="18" rx="4" fill="#fff"/><rect x="28" y="75" width="18" height="18" rx="4" fill="#bfdbfe"/><rect x="52" y="75" width="40" height="18" rx="4" fill="#fff"/></svg><span>Exment</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="dashboard.html">HOME</a>
+      <div class="nav-title">データ</div>
+      <a href="data-list.html" class="on" aria-current="page">顧客情報</a>
+      <a href="#">契約情報</a>
+      <a href="#">商談</a>
+      <a href="#">お知らせ</a>
+      <div class="nav-title">マスター管理</div>
+      <a href="#">ユーザー</a>
+      <a href="#">組織</a>
+      <div class="nav-title">管理者設定</div>
+      <a href="#">システム設定</a>
+      <a href="#">カスタムテーブル</a>
+      <a href="#">役割グループ</a>
+      <a href="#">ワークフロー</a>
+      <a href="#">通知</a>
+      <a href="#">プラグイン</a>
+      <a href="#">メニュー</a>
+      <a href="#">テンプレート</a>
+      <a href="#">バックアップ</a>
+      <a href="#">ログイン設定</a>
+      <a href="#">操作ログ</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <div class="search"><input class="input" type="search" placeholder="データを検索" aria-label="データを検索"></div>
+      <div class="sp"></div>
+      <a class="btn btn-ghost" href="#">未処理タスク <span class="badge">3</span></a>
+      <a class="btn btn-ghost" href="#">通知 <span class="badge">2</span></a>
+      <div class="who"><span class="avatar">山</span><span>山田 太郎</span></div>
+    </header>
+    <main class="page">
+      <p class="crumb"><a href="dashboard.html">HOME</a> / 顧客情報</p>
+      <div class="page-head">
+        <div><h1>顧客情報</h1><p class="desc">このテーブルのデータ一覧を表示します。</p></div>
+        <div class="sp"></div>
+        <a class="btn btn-primary" href="data-form.html">新規</a>
+      </div>
+
+      <div class="tools">
+        <select class="input" aria-label="ビュー"><option>全件ビュー</option><option>担当者別ビュー</option><option>業種別集計ビュー</option></select>
+        <div class="q"><input class="input" type="search" placeholder="この一覧を検索" aria-label="この一覧を検索"></div>
+        <a class="btn" href="#">フィルター</a>
+        <div class="sp"></div>
+        <a class="btn btn-ghost" href="#">表示列</a>
+        <a class="btn btn-ghost" href="#">インポート・エクスポート</a>
+      </div>
+
+      <div class="chips"><span class="t">絞り込み中</span><span class="tag">担当者：営業部</span><span class="tag">更新日時：今月</span><a href="#">すべて解除</a></div>
+
+      <div class="scroll">
+      <table class="grid">
+        <thead><tr>
+          <th class="c"><input type="checkbox" aria-label="すべて選択"></th>
+          <th>ID</th><th>顧客コード</th><th>顧客名</th><th>業種</th><th>担当者</th><th>ステータス</th><th>更新日時<span class="s" aria-label="降順">↓</span></th><th></th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="c"><input type="checkbox" aria-label="株式会社サンプル商事 を選択"></td><td class="num faint">128</td><td class="num">C-00128</td><td><a href="data-form.html">株式会社サンプル商事</a></td><td>卸売</td><td>山田 太郎</td><td><span class="tag tag-accent">取引中</span></td><td class="num faint">2026/11/16 09:12</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+          <tr><td class="c"><input type="checkbox" aria-label="東和システム株式会社 を選択"></td><td class="num faint">127</td><td class="num">C-00127</td><td><a href="data-form.html">東和システム株式会社</a></td><td>情報通信</td><td>佐藤 花子</td><td><span class="tag tag-accent">取引中</span></td><td class="num faint">2026/11/13 17:40</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+          <tr class="selected"><td class="c"><input type="checkbox" aria-label="みなと物流株式会社 を選択" checked></td><td class="num faint">126</td><td class="num">C-00126</td><td><a href="data-form.html">みなと物流株式会社</a></td><td>運輸</td><td>鈴木 一郎</td><td><span class="tag">商談中</span></td><td class="num faint">2026/11/13 11:05</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+          <tr><td class="c"><input type="checkbox" aria-label="合同会社あおぞら設計 を選択"></td><td class="num faint">125</td><td class="num">C-00125</td><td><a href="data-form.html">合同会社あおぞら設計</a></td><td>建設</td><td>山田 太郎</td><td><span class="tag tag-accent">取引中</span></td><td class="num faint">2026/11/12 15:28</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+          <tr><td class="c"><input type="checkbox" aria-label="北斗精機株式会社 を選択"></td><td class="num faint">124</td><td class="num">C-00124</td><td><a href="data-form.html">北斗精機株式会社</a></td><td>製造</td><td>高橋 健</td><td><span class="tag">見込み</span></td><td class="num faint">2026/11/11 10:02</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+          <tr><td class="c"><input type="checkbox" aria-label="株式会社ひかり食品 を選択"></td><td class="num faint">123</td><td class="num">C-00123</td><td><a href="data-form.html">株式会社ひかり食品</a></td><td>製造</td><td>佐藤 花子</td><td><span class="tag tag-accent">取引中</span></td><td class="num faint">2026/11/10 16:47</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+          <tr><td class="c"><input type="checkbox" aria-label="若葉メディカル株式会社 を選択"></td><td class="num faint">122</td><td class="num">C-00122</td><td><a href="data-form.html">若葉メディカル株式会社</a></td><td>医療</td><td>鈴木 一郎</td><td><span class="tag">商談中</span></td><td class="num faint">2026/11/09 13:30</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+          <tr><td class="c"><input type="checkbox" aria-label="株式会社青葉不動産 を選択"></td><td class="num faint">121</td><td class="num">C-00121</td><td><a href="data-form.html">株式会社青葉不動産</a></td><td>不動産</td><td>高橋 健</td><td><span class="tag">休止</span></td><td class="num faint">2026/11/06 09:55</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+          <tr><td class="c"><input type="checkbox" aria-label="西日本エネルギー株式会社 を選択"></td><td class="num faint">120</td><td class="num">C-00120</td><td><a href="data-form.html">西日本エネルギー株式会社</a></td><td>エネルギー</td><td>山田 太郎</td><td><span class="tag tag-accent">取引中</span></td><td class="num faint">2026/11/05 14:18</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+          <tr><td class="c"><input type="checkbox" aria-label="株式会社つばさ教育 を選択"></td><td class="num faint">119</td><td class="num">C-00119</td><td><a href="data-form.html">株式会社つばさ教育</a></td><td>教育</td><td>佐藤 花子</td><td><span class="tag">見込み</span></td><td class="num faint">2026/11/04 11:41</td><td class="act"><a href="data-form.html">編集</a></td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="foot">
+        <span class="num">128件中 1〜10件を表示</span>
+        <span class="sp"></span>
+        <nav class="pager" aria-label="ページ"><span class="faint">前へ</span><span class="on" aria-current="page">1</span><a href="#">2</a><a href="#">3</a><span class="faint">…</span><a href="#">13</a><a href="#">次へ</a></nav>
+      </div>
+      <p class="sample-note">デザインサンプル（静的HTML）。データはすべて架空です。 <a href="index.html">サンプル一覧へ</a></p>
+    </main>
+  </div>
+</div>
+</body>
+</html>

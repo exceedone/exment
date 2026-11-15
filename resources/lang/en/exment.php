@@ -360,6 +360,8 @@ return [
         'site_favicon' => 'Site Favicon(ico)',
         'site_skin' => 'Site Skin',
         'site_layout' => 'Site Menu Layout',
+        'ui_design' => 'Screen Design',
+        'ui_design_forced' => '%s (set by the server)',
         'default_date_format' => 'Date and time display format',
         'filter_search_type' => 'Data search method',
         'grid_filter_disable_flg' => 'Disable Grid Filter',
@@ -501,6 +503,11 @@ return [
             "skin-black-light" => "Header:White&nbsp;&nbsp;&nbsp;&nbsp;SideBar:White",
         ],
         
+        'ui_design_options' => [
+            "modern" => "Modern",
+            "classic" => "Classic",
+        ],
+
         'site_layout_options' => [
             "layout_default" => "Default",
             "layout_mini" => "Small Icon",
@@ -581,6 +588,7 @@ return [
             'site_favicon' => 'Site Favicon(.ico). It is used for bookmarks on the homepage. Recommended size:16px * 16px',
             'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
+            'ui_design' => 'Select the design of the login page and the admin pages. "Modern" is the new white-and-gray design, "Classic" is the design used until now. The default is "Modern". To go back to the previous design, select "Classic". *After saving, it will be reflected in reloading.<br/>If the design is set by the server (EXMENT_UI_DESIGN in .env), that value wins and it cannot be changed here.',
             'filter_search_type' => 'Set the search method for registered data. *In the case of partial match, performance may be affected depending on the number of data.',
             'grid_filter_disable_flg' => 'The checked item will be hidden in the filter item of the data list page.',
             'system_values_pos' => 'Set the position to display system values on the data edit screen and data details screen.',

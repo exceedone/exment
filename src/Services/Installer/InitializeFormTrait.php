@@ -87,6 +87,25 @@ trait InitializeFormTrait
             ->disableClear()
             ->help(exmtrans("system.help.site_layout"));
 
+        // Screen design: on the system setting page only. The installer does
+        // not ask - a new installation starts with the default design.
+        // When the server fixes it (EXMENT_UI_DESIGN), a select would have no
+        // effect, so the design in effect is shown as text instead and
+        // nothing is posted.
+        if (!$isInitialize) {
+            $uiDesignForced = \Exment::getUiDesignForced();
+            if (is_null($uiDesignForced)) {
+                $form->select('ui_design', exmtrans("system.ui_design"))
+                    ->options(getTransArray(Define::SYSTEM_UI_DESIGN, "system.ui_design_options"))
+                    ->disableClear()
+                    ->help(exmtrans("system.help.ui_design"));
+            } else {
+                $form->display('ui_design_forced', exmtrans("system.ui_design"))
+                    ->displayText(exmtrans("system.ui_design_forced", exmtrans("system.ui_design_options.$uiDesignForced")))
+                    ->help(exmtrans("system.help.ui_design"));
+            }
+        }
+
         $form->switchbool('api_available', exmtrans("system.api_available"))
             ->default(0)
             ->help(exmtrans("system.help.api_available", getManualUrl('system_setting?id=')));
@@ -250,6 +269,13 @@ trait InitializeFormTrait
 
         $inputs = $request->all(System::get_system_keys($group));
         array_forget($inputs, 'initialized');
+        // Screen design: save only one of the known designs. The installer
+        // form, and the system setting page when the server fixes the design,
+        // have no select; a missing or unknown value must not replace the
+        // stored one.
+        if (array_key_exists('ui_design', $inputs) && !in_array($inputs['ui_design'], Define::SYSTEM_UI_DESIGN, true)) {
+            array_forget($inputs, 'ui_design');
+        }
 
         // set system_key and value
         foreach ($inputs as $k => $input) {

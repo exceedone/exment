@@ -721,6 +721,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Screen design
+    |--------------------------------------------------------------------------
+    |
+    | Which screen design is used: "modern" or "classic".
+    | "modern" loads the stylesheet vendor/exment/css/modern.css on top of
+    | the theme; "classic" is the look Exment had before.
+    |
+    | Not set (default): the "Screen design" item on the system setting page
+    | decides. Its default is "modern".
+    | "modern" / "classic": the server decides. The value here wins over the
+    | system setting, and the system setting page shows it read-only.
+    |
+    */
+    'ui_design' => env('EXMENT_UI_DESIGN'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Disabled ip filter
     |--------------------------------------------------------------------------
     |

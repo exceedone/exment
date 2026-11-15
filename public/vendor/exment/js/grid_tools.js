@@ -213,12 +213,43 @@
     return DENSITIES.indexOf(d) === -1 ? DEFAULT_DENSITY : d;
   }
 
+  /**
+   * Copy the column type class of the body cells (exm-coltype-integer ...)
+   * to the header cell of the same column, so a stylesheet can align a
+   * header with its numbers.
+   *
+   * The server can only put the class on the <td>: the stock table blade
+   * prints the <th> with a single fixed class. Both carry the same
+   * `column-ckey_...` class, and that is how a cell finds its header -
+   * not by position, which pinned or hidden columns could shift.
+   */
+  function markHeaderColumnTypes(table) {
+    var head = table.tHead && table.tHead.rows[0];
+    var body = table.tBodies[0];
+    if (!head || !body) return;
+    // the first row that is a data row (a group row has one wide cell)
+    var row = null;
+    for (var r = 0; r < body.rows.length; r++) {
+      if (body.rows[r].cells.length > 1) { row = body.rows[r]; break; }
+    }
+    if (!row) return;
+    for (var i = 0; i < row.cells.length; i++) {
+      var cls = row.cells[i].className || '';
+      var type = /(?:^|\s)(exm-coltype-[a-z0-9_]+)(?:\s|$)/.exec(cls);
+      var key = /(?:^|\s)(column-ckey_[A-Za-z0-9_]+)(?:\s|$)/.exec(cls);
+      if (!type || !key) continue;
+      var th = head.getElementsByClassName(key[1])[0];
+      if (th) th.classList.add(type[1]);
+    }
+  }
+
   function applyDensity(table, density) {
     if (!table) return;
     // `exm-grid` is what scopes grid_tools.css to the data grid, so it is
     // set here rather than server-side: the stock laravel-admin table
     // blade has no hook for extra table classes.
     table.classList.add('exm-grid');
+    markHeaderColumnTypes(table);
     DENSITIES.forEach(function (d) {
       table.classList.remove('table-density-' + d);
     });

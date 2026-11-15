@@ -21,6 +21,7 @@ use Cache;
  * @method static string|void site_favicon($arg = null)
  * @method static string|void site_skin($arg = null)
  * @method static string|void site_layout($arg = null)
+ * @method static string|void ui_design($arg = null)
  * @method static boolean|void api_available($arg = null)
  * @method static boolean|void outside_api($arg = null)
  * @method static boolean|void permission_available($arg = null)
