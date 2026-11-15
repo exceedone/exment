@@ -702,6 +702,8 @@ return [
         'row' => 'Dashboard Row',
         'description_row' => 'The number of columns to display on the %s row of the dashboard.',
         'description_row2' => 'The number of columns to display on the %s row of the dashboard. *If you select "None", the %s row is not displayed.',
+        'row_height' => 'Dashboard Row %s Max Height(px)',
+        'description_row_height' => 'The max height (px) of the items on the %s row of the dashboard. An item scrolls when its content is higher. %spx if empty. Enter an integer from %s to %s.',
         'description_chart' => '*To display the chart, you need aggregation view and aggregation items. <br /> If you have not created a summary view, first create a summary view from the view setting page.',
         'default_dashboard_name' => 'Default Dashboard',
         'not_registered' => 'Not Registered',
