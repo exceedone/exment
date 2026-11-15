@@ -77,6 +77,8 @@ return [
         'grid_density_comfortable' => 'Comfortable',
         'grid_density_spacious' => 'Spacious',
         'grid_nowrap' => 'Single line rows',
+        'grid_keyboard' => 'Excel-like editing',
+        'grid_keyboard_hint' => 'arrow keys to move, F2 or type to edit',
         'grid_auto_refresh' => 'Auto refresh',
         'grid_auto_refresh_off' => 'Off',
         'grid_auto_refresh_30' => '30 seconds',

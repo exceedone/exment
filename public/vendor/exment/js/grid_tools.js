@@ -11,6 +11,8 @@
  *   - density switch     -> a class on the table, no request at all
  *   - auto refresh       -> periodic pjax reload of the current URL
  *   - bulk action bar    -> second entrance to the batch actions
+ *   - keyboard mode      -> Excel-like cell selection and editing, off
+ *                           until switched on in the toolbar
  *
  * Every listener is delegated on `document`, so the file is loaded once
  * (from Middleware\Bootstrap) and keeps working after any number of
@@ -2112,17 +2114,28 @@
   // Different records keep their own chain and still overlap freely.
   var inlineSaveChains = {};
 
-  function openInlineEditor(td) {
-    if (!td || !td.classList.contains('exm-editable')) return;
-    if (td.classList.contains('exm-editing')) return;
-    if (td.classList.contains('exm-saving')) return;
+  /**
+   * Open the editor on a cell. Returns whether it opened.
+   *
+   * `opts` is only ever passed by the Excel-like keyboard mode:
+   *   - typed:    the edit was started by typing. The editor starts empty
+   *               and what is being typed lands in it, replacing the value.
+   *   - initial:  open on this text instead of the cell's value ('' for
+   *               Delete, the refused value after a failed save).
+   *   - caretEnd: F2 - caret after the value instead of selecting it all.
+   */
+  function openInlineEditor(td, opts) {
+    opts = opts || {};
+    if (!td || !td.classList.contains('exm-editable')) return false;
+    if (td.classList.contains('exm-editing')) return false;
+    if (td.classList.contains('exm-saving')) return false;
 
     var meta = inlineColumnMeta(td);
-    if (!meta) return;
+    if (!meta) return false;
     var id = inlineRowId(td);
-    if (!id) return;
+    if (!id) return false;
     var cfg = inlineConfigFor(td);
-    if (!cfg) return;
+    if (!cfg) return false;
 
     if (activeInlineTd && activeInlineTd !== td) {
       // Committed, not reverted: opening another cell IS clicking away from
@@ -2143,19 +2156,41 @@
     // badge (`.exm-cell-pill`, `.exm-cell-dot`, ...) IS the first
     // child, and writing new markup INTO it would nest the fresh
     // badge inside the old one.
-    var snapshot = td.innerHTML;
+    //
+    // In keyboard mode the selected cell already holds its editor: an
+    // empty, invisible input that has the focus (see kbdArm). It is taken
+    // over where it stands rather than replaced, because the text being
+    // typed - an IME composition above all - belongs to the element that
+    // had the focus when the key went down, and is lost if the focus moves.
+    if (kbdOn(closest(td, 'table.exm-grid'))) kbdSelect(td, false);
+    var armed = kbdArmedInput(td);
+    var snapshot = armed ? kbdSnapshot(td) : td.innerHTML;
     td.setAttribute('data-exm-snapshot', snapshot);
     td.classList.add('exm-editing');
 
     var current = readCurrentValue(td, meta);
-    var editor = buildEditor(meta, current);
-    // What the editor actually holds after prefill, kept for the "did
-    // the user change anything" check on close. NOT the same thing as
-    // `current`: an <input> sanitizes what it is given (a stray newline
-    // inside a stored text is dropped on assignment), and comparing a
-    // later value against the cell would read that sanitization as a
-    // user edit - committing it on every blur.
-    editor._exmInitial = editor.value;
+    var editor = armed || buildEditor(meta, current);
+    // What the editor holds after a prefill with the cell's value, kept
+    // for the "did the user change anything" check on close. NOT the same
+    // thing as `current`: an <input> sanitizes what it is given (a stray
+    // newline inside a stored text is dropped on assignment), and
+    // comparing a later value against the cell would read that
+    // sanitization as a user edit - committing it on every blur.
+    //
+    // The armed input was built empty, so its prefilled twin is asked.
+    editor._exmInitial = armed ? buildEditor(meta, current).value : editor.value;
+    if (armed) {
+      armed.className = 'exm-edit-input';
+      // Typed: left exactly as it is. The key that started the edit has
+      // not been inserted yet (or a composition is just starting), and
+      // writing the value now would cancel either.
+      if (!opts.typed) armed.value = current;
+    }
+    if (opts.initial != null && !opts.typed
+      // A required picker has no empty choice to open on.
+      && !(meta.type === 'select' && meta.required && opts.initial === '')) {
+      editor.value = opts.initial;
+    }
     // The old markup stays in the cell as an invisible ghost so the
     // column keeps the width and the row the height the table was laid
     // out with, and the editor floats above them. Replacing the content
@@ -2168,32 +2203,63 @@
     ghost.className = 'exm-edit-ghost';
     ghost.setAttribute('aria-hidden', 'true');
     ghost.innerHTML = snapshot;
-    td.innerHTML = '';
-    td.appendChild(ghost);
-    td.appendChild(editor);
+    if (armed) {
+      // Everything but the editor goes; the editor itself is not moved,
+      // which would blur it.
+      while (td.firstChild && td.firstChild !== editor) td.removeChild(td.firstChild);
+      while (editor.nextSibling) td.removeChild(editor.nextSibling);
+      td.insertBefore(ghost, editor);
+    } else {
+      td.innerHTML = '';
+      td.appendChild(ghost);
+      td.appendChild(editor);
+    }
     sizeInlineEditor(td, editor, meta);
     var hasCalendar = (meta.type === 'date' || meta.type === 'datetime')
       && attachDatePicker(td, editor, meta, cfg);
+    var showCalendar = function () {
+      try {
+        var picker = window.jQuery(editor).data('DateTimePicker');
+        if (picker) picker.show();
+      } catch (e) { /* the editor still takes typed text */ }
+    };
+    // An edit started by typing opens the calendar now, while the editor
+    // is still empty. Opening reads the input, and a tick from now it holds
+    // the first digit - which the calendar would take for a whole date
+    // ("2" becomes the year 0002) and write back over what is being typed.
+    if (hasCalendar && opts.typed) showCalendar();
 
     // Focus & open picker as soon as the browser lets us - the second
     // click of a dblclick would otherwise land on the fresh element
     // and mark it selected without opening the dropdown.
     setTimeout(function () {
-      editor.focus();
+      if (document.activeElement !== editor) editor.focus();
       if (hasCalendar) {
         // Selected, so typing a date replaces the old one; the calendar
-        // open next to it for picking instead.
-        editor.select();
-        try {
-          var picker = window.jQuery(editor).data('DateTimePicker');
-          if (picker) picker.show();
-        } catch (e) { /* the editor still takes typed text */ }
+        // open next to it for picking instead. Not when the edit was
+        // started by typing: the selection would be the character just
+        // typed, and the next one would replace it.
+        if (!opts.typed) {
+          editor.select();
+          showCalendar();
+        }
         return;
       }
-      var wantsPicker = editor.tagName === 'SELECT';
+      // Opened on a value that was put there for the user (Delete, a
+      // refused save), the list stays shut: Enter then confirms what is
+      // shown instead of being spent on closing the list.
+      var wantsPicker = editor.tagName === 'SELECT' && opts.initial == null;
       if (wantsPicker && typeof editor.showPicker === 'function') {
         try { editor.showPicker(); } catch (e) { /* not supported everywhere */ }
       } else if (editor.tagName === 'INPUT') {
+        if (opts.typed) return;
+        if (opts.caretEnd) {
+          // A number input has no caret API; it falls through to select().
+          try {
+            editor.setSelectionRange(editor.value.length, editor.value.length);
+            return;
+          } catch (e) { /* select() below */ }
+        }
         editor.select();
         // Selecting puts the caret at the end, and a value too long for
         // the box then opens scrolled to its tail - the one part of it
@@ -2208,7 +2274,10 @@
     // segment), so those commit through Enter or click-away and cancel
     // through Escape, the way a text editor is expected to behave.
     if (editor.tagName === 'SELECT') {
-      editor.addEventListener('change', function () { finishInlineEditor(td, true); });
+      editor.addEventListener('change', function () {
+        finishInlineEditor(td, true);
+        kbdAfterEdit(td, null);
+      });
     }
     editor.addEventListener('blur', function () {
       // A tiny delay so a click on the dropdown's own option is not
@@ -2225,9 +2294,24 @@
       }, 80);
     });
     editor.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Enter') { ev.preventDefault(); finishInlineEditor(td, true); }
-      else if (ev.key === 'Escape') { ev.preventDefault(); finishInlineEditor(td, false); }
+      // While an IME composition is open, Enter and Escape belong to it:
+      // Enter confirms the conversion, it does not end the edit.
+      if (ev.isComposing || ev.keyCode === 229) return;
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        finishInlineEditor(td, true);
+        kbdAfterEdit(td, ev.shiftKey ? 'up' : 'down');
+      } else if (ev.key === 'Escape') {
+        ev.preventDefault();
+        finishInlineEditor(td, false);
+        kbdAfterEdit(td, null);
+      } else if (ev.key === 'Tab' && kbdOn(closest(td, 'table.exm-grid'))) {
+        ev.preventDefault();
+        finishInlineEditor(td, true);
+        kbdAfterEdit(td, ev.shiftKey ? 'left' : 'right');
+      }
     });
+    return true;
   }
 
   /**
@@ -2510,7 +2594,9 @@
       if (meta.type !== 'date') return;
       if (!editor._exmPickerDown || Date.now() - editor._exmPickerDown > 1000) return;
       setTimeout(function () {
-        if (td.classList.contains('exm-editing')) finishInlineEditor(td, true);
+        if (!td.classList.contains('exm-editing')) return;
+        finishInlineEditor(td, true);
+        kbdAfterEdit(td, null);
       }, 0);
     });
 
@@ -2630,6 +2716,7 @@
 
     if (!commit || !editor) {
       td.innerHTML = snapshot;
+      kbdRearm(td, false);
       return;
     }
     var newValue = editor.value;
@@ -2637,6 +2724,7 @@
     // Restore the snapshot first - every return below must leave the
     // cell showing its own markup again.
     td.innerHTML = snapshot;
+    kbdRearm(td, false);
     // No meta means the config this editor was opened from is gone - the
     // grid was re-rendered underneath it. Without the column definition
     // there is nothing to validate the picked value against, so the edit
@@ -2783,6 +2871,9 @@
       // change this column any more; the server says so in the markup.
       applyCellLock(td);
       addPenIcon(td);
+      // The repaint took the selected cell's hidden input with it, and the
+      // keyboard focus if it was there.
+      kbdRearm(td);
       td.classList.add('exm-saved');
       setTimeout(function () { td.classList.remove('exm-saved'); }, 1200);
       // The row may belong somewhere else now - see the note on
@@ -2803,12 +2894,14 @@
         // this save failed to change, so it is already showing it.
         if (!wasOnScreen) return;
         td.innerHTML = snapshot;
+        kbdRearm(td);
         td.classList.add('exm-error');
         setTimeout(function () { td.classList.remove('exm-error'); }, 2500);
         // ...and the reason goes with the flash: a refused value, a column
         // this record's form keeps view only, a newer save by someone else
         // each need something different from the user.
         notify('error', refusal || getInlineLabel(td, 'error'));
+        kbdReopenRefused(td, value);
         return;
       }
       // The value is stored and only the repaint failed. Restoring the
@@ -2822,6 +2915,9 @@
       // at all - one stray blur away from saving a value nobody picked.
       td.appendChild(rawCellMarker(value));
       addPenIcon(td);
+      // The repaint took the selected cell's hidden input with it, and the
+      // keyboard focus if it was there.
+      kbdRearm(td);
       td.classList.add('exm-stale');
       td.setAttribute('title', getInlineLabel(td, 'stale'));
       // The value is stored, so the row can belong under a different heading
@@ -2893,6 +2989,480 @@
     if (pen && pen.parentNode) pen.parentNode.removeChild(pen);
     return true;
   }
+
+  /* --------------------------------------- Excel-like keyboard mode --- */
+  /**
+   * A switch in the toolbar (GridKeyboard). Off, the grid is what it always
+   * was: a click opens the row, a double click or the pen edits a cell.
+   * On, a click selects a cell instead, the arrow keys move that selection,
+   * and F2 / Enter / typing opens the inline editor above on it - the
+   * editor itself, its save path and its rules are not touched.
+   *
+   * One setting for the whole browser, like the density: someone who works
+   * this way wants it on every table.
+   *
+   * Where the focus sits while a cell is selected is the part that matters.
+   * On a cell edited through a typed input it sits in an empty, invisible
+   * input inside that cell - the editor-to-be (kbdArm). Typing then goes
+   * into an element that already has the focus, and openInlineEditor only
+   * makes it visible. That is what lets a Japanese IME start a composition
+   * on a selected cell without losing its first characters: an editor
+   * created and focused on keydown gets the key too late. Any other cell
+   * (read only, or edited through a picker) holds the focus itself.
+   */
+  var KBD_KEY = 'exment_grid_kbd';
+  var KBD_ON = 'exm-kbd-on';
+  var KBD_ACTIVE = 'exm-cell-active';
+  var KBD_INPUT = 'exm-kbd-input';
+
+  // The selected cell. One for the page: a selection is where the keys go.
+  var kbdCell = null;
+  // Enough to find the selected cell again after pjax replaced the grid
+  // (sorting, paging, the auto refresh): grid key, record id, column.
+  var kbdMemo = null;
+  // The switch as last set on this page. What the storage says wins; this
+  // only carries the choice across pjax when the storage cannot be used.
+  var kbdPref = false;
+
+  function kbdOn(table) {
+    return !!table && table.classList.contains(KBD_ON);
+  }
+
+  function initKeyboard() {
+    var on = readFlag(KBD_KEY, kbdPref);
+    each(document.querySelectorAll('.exm-grid-kbd[data-grid]'), function (box) {
+      applyKeyboardMode(box, on);
+    });
+    if (kbdCell && !kbdCell.isConnected) {
+      // The grid was replaced under the selection. Put it back on the same
+      // record and column when they are still on the page.
+      var memo = kbdMemo;
+      kbdCell = null;
+      var again = memo ? kbdFindCell(memo) : null;
+      if (again) {
+        var lost = !document.activeElement || document.activeElement === document.body;
+        kbdSelect(again, memo.focus && lost);
+      }
+    }
+    kbdTabStops();
+  }
+
+  function applyKeyboardMode(box, on) {
+    var table = gridOf(box);
+    var btn = box.querySelector('.exm-kbd-toggle');
+    if (btn) {
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    if (!table) return;
+    table.classList.toggle(KBD_ON, on);
+    if (on) {
+      // Rows and cells of a table are announced as a grid's from here on.
+      table.setAttribute('role', 'grid');
+      return;
+    }
+    table.removeAttribute('role');
+    if (kbdCell && table.contains(kbdCell)) {
+      kbdUnmark(kbdCell);
+      kbdCell = null;
+      kbdMemo = null;
+    }
+    each(table.querySelectorAll('tbody > tr > td[tabindex]'), function (td) {
+      td.removeAttribute('tabindex');
+    });
+  }
+
+  /**
+   * The grid needs one tab stop for the Tab key to reach it at all (a
+   * roving tabindex): the selected cell, or the first cell while nothing
+   * is selected yet.
+   */
+  function kbdTabStops() {
+    each(document.querySelectorAll('table.exm-grid.' + KBD_ON), function (table) {
+      if (kbdCell && table.contains(kbdCell)) return;
+      var rows = kbdRows(table);
+      var first = rows.length ? kbdCells(rows[0])[0] : null;
+      if (first) first.setAttribute('tabindex', '0');
+    });
+  }
+
+  /** A data cell: not the checkbox column, the action column or a filler. */
+  function kbdIsCell(td) {
+    if (!td || td.tagName !== 'TD') return false;
+    var name = columnNameOf(td);
+    return !!name && name.indexOf('__') !== 0;
+  }
+
+  /** The rows the selection can stand on: on screen, and not a group heading. */
+  function kbdRows(table) {
+    var rows = [];
+    each(table.querySelectorAll('tbody > tr'), function (tr) {
+      if (tr.classList.contains('exm-group-row') || !tr.offsetHeight) return;
+      rows.push(tr);
+    });
+    return rows;
+  }
+
+  function kbdCells(tr) {
+    var cells = [];
+    each(tr.children, function (td) {
+      if (kbdIsCell(td) && td.offsetWidth) cells.push(td);
+    });
+    return cells;
+  }
+
+  function kbdFindCell(memo) {
+    var found = null;
+    each(document.querySelectorAll('table.exm-grid.' + KBD_ON), function (table) {
+      if (found || storeKeyOf(table) !== memo.key) return;
+      each(kbdRows(table), function (tr) {
+        if (found || rowIdOf(tr) !== memo.id) return;
+        each(kbdCells(tr), function (td) {
+          if (!found && uniqueColumnOf(td) === memo.col) found = td;
+        });
+      });
+    });
+    return found;
+  }
+
+  /** The invisible editor-to-be of a selected cell, if it has one. */
+  function kbdArmedInput(td) {
+    return td ? td.querySelector(':scope > .' + KBD_INPUT) : null;
+  }
+
+  /** A cell's markup without the armed input, which is not part of it. */
+  function kbdSnapshot(td) {
+    var copy = td.cloneNode(true);
+    var armed = kbdArmedInput(copy);
+    if (armed) copy.removeChild(armed);
+    return copy.innerHTML;
+  }
+
+  /**
+   * Give the selected cell what holds the focus: the armed input on a cell
+   * with a typed editor, the cell itself on any other.
+   */
+  function kbdArm(td) {
+    var armed = kbdArmedInput(td);
+    if (td.classList.contains('exm-editing')) return;
+    var meta = td.classList.contains('exm-editable') ? inlineColumnMeta(td) : null;
+    if (!meta || meta.type === 'select' || !inlineRowId(td)) {
+      if (armed) td.removeChild(armed);
+      td.setAttribute('tabindex', '0');
+      return;
+    }
+    // The tab stop is the input now; the cell stays focusable for a click.
+    td.setAttribute('tabindex', '-1');
+    if (armed) return;
+    armed = buildEditor(meta, '');
+    armed.className = KBD_INPUT;
+    armed.setAttribute('aria-label', kbdCellLabel(td));
+    td.appendChild(armed);
+  }
+
+  /** "Column: value", what a screen reader says for the armed input. */
+  function kbdCellLabel(td) {
+    var table = closest(td, 'table.exm-grid');
+    var th = table ? table.querySelector('thead > tr > th.column-' + cssEscape(uniqueColumnOf(td))) : null;
+    var head = th ? cellText(th) : '';
+    var text = cellText(td);
+    return head ? head + ': ' + text : text;
+  }
+
+  function kbdUnmark(td) {
+    td.classList.remove(KBD_ACTIVE);
+    td.removeAttribute('aria-selected');
+    td.removeAttribute('tabindex');
+    var armed = kbdArmedInput(td);
+    if (armed) td.removeChild(armed);
+  }
+
+  function kbdFocus(td) {
+    var el = kbdArmedInput(td) || td;
+    // The cell is brought into view by kbdReveal, which knows about the
+    // pinned columns; the browser's own scroll would put it under them.
+    try {
+      el.focus({ preventScroll: true });
+    } catch (e) {
+      el.focus();
+    }
+  }
+
+  function kbdHasFocus(td) {
+    var active = document.activeElement;
+    return !!td && td === kbdCell && !!active && (active === td || td.contains(active));
+  }
+
+  function kbdSelect(td, focus) {
+    if (kbdCell && kbdCell !== td) kbdUnmark(kbdCell);
+    var table = closest(td, 'table.exm-grid');
+    if (kbdCell !== td && table) {
+      // The first-cell tab stop from kbdTabStops has done its job.
+      each(table.querySelectorAll('tbody > tr > td[tabindex]'), function (other) {
+        if (other !== td) other.removeAttribute('tabindex');
+      });
+    }
+    kbdCell = td;
+    td.classList.add(KBD_ACTIVE);
+    td.setAttribute('aria-selected', 'true');
+    kbdArm(td);
+    if (focus) {
+      kbdFocus(td);
+      kbdReveal(td);
+    }
+    kbdMemo = {
+      key: storeKeyOf(table),
+      id: rowIdOf(td.parentNode),
+      col: uniqueColumnOf(td),
+      focus: kbdHasFocus(td)
+    };
+  }
+
+  /**
+   * A repaint wrote the cell's markup again and the armed input went with
+   * it - and the focus, when it was in there. `refocus` left out means
+   * "take the focus back if nothing else has it".
+   */
+  function kbdRearm(td, refocus) {
+    if (!td || td !== kbdCell || !td.isConnected) return;
+    kbdArm(td);
+    if (refocus === undefined) {
+      var active = document.activeElement;
+      refocus = (!active || active === document.body) && !document.querySelector('.modal.show');
+    }
+    if (refocus) kbdFocus(td);
+  }
+
+  /**
+   * Scroll the cell into the part of the grid that can be seen: clear of
+   * the pinned columns on either side and of the locked header, which all
+   * sit on top of whatever scrolls under them.
+   */
+  function kbdReveal(td) {
+    var sc = scrollBoxOf(td);
+    var r = td.getBoundingClientRect();
+    if (sc) {
+      var box = sc.getBoundingClientRect();
+      var left = box.left;
+      var right = box.left + sc.clientWidth;
+      if (!td.classList.contains('exm-pin')) {
+        var before = true;
+        each(td.parentNode.children, function (c) {
+          if (c === td) { before = false; return; }
+          if (!c.classList.contains('exm-pin')) return;
+          var cr = c.getBoundingClientRect();
+          if (before) left = Math.max(left, cr.right);
+          else right = Math.min(right, cr.left);
+        });
+        if (r.left < left) sc.scrollLeft -= left - r.left;
+        else if (r.right > right) sc.scrollLeft += Math.min(r.right - right, r.left - left);
+      }
+      if (sc.scrollHeight > sc.clientHeight + 1) {
+        var top = box.top;
+        var thead = td.parentNode.parentNode.parentNode.querySelector('thead');
+        if (thead && sc.classList.contains('exm-headlock')) {
+          top = Math.max(top, thead.getBoundingClientRect().bottom);
+        }
+        var bottom = box.top + sc.clientHeight;
+        if (r.top < top) sc.scrollTop -= top - r.top;
+        else if (r.bottom > bottom) sc.scrollTop += r.bottom - bottom;
+      }
+      r = td.getBoundingClientRect();
+    }
+    // ...and the page itself, under the fixed top bar and above the
+    // selection bar when that one is showing.
+    var head = document.querySelector('.main-header');
+    var floor = head ? Math.max(0, head.getBoundingClientRect().bottom) : 0;
+    var bar = document.querySelector('body > .exm-bulkbar.show');
+    var ceil = (bar ? bar.getBoundingClientRect().top : window.innerHeight) - 4;
+    if (r.top < floor) window.scrollBy(0, r.top - floor - 4);
+    else if (r.bottom > ceil) window.scrollBy(0, r.bottom - ceil);
+  }
+
+  /**
+   * Move the selection one step. Returns false at an edge, where it stays.
+   */
+  function kbdMove(td, dir) {
+    var tr = td.parentNode;
+    var table = closest(td, 'table.exm-grid');
+    if (!tr || !table) return false;
+    var cells = kbdCells(tr);
+    var at = cells.indexOf(td);
+    var target = null;
+    if (dir === 'left') target = cells[at - 1];
+    else if (dir === 'right') target = cells[at + 1];
+    else if (dir === 'home') target = cells[0];
+    else if (dir === 'end') target = cells[cells.length - 1];
+    else {
+      var rows = kbdRows(table);
+      var row = null;
+      if (dir === 'up') row = rows[rows.indexOf(tr) - 1];
+      else if (dir === 'down') row = rows[rows.indexOf(tr) + 1];
+      else if (dir === 'gridHome') row = rows[0];
+      else if (dir === 'gridEnd') row = rows[rows.length - 1];
+      if (row) {
+        var rowCells = kbdCells(row);
+        if (dir === 'gridHome') target = rowCells[0];
+        else if (dir === 'gridEnd') target = rowCells[rowCells.length - 1];
+        else target = rowCells[at];
+      }
+    }
+    if (!target || target === td) return false;
+    kbdSelect(target, true);
+    return true;
+  }
+
+  /**
+   * After an edit ended from the keyboard: on to the next cell, or back on
+   * this one when there is none that way (or no direction was asked for).
+   * Either way the focus stays in the grid.
+   */
+  function kbdAfterEdit(td, dir) {
+    if (!td.isConnected || !kbdOn(closest(td, 'table.exm-grid'))) return;
+    if (!dir || !kbdMove(td, dir)) kbdSelect(td, true);
+  }
+
+  /**
+   * A refused save put the old value back in the cell. In keyboard mode
+   * the editor comes back too, still holding what was refused, so it can
+   * be corrected where it was typed - the selection has usually moved on
+   * by the time the server answers. Left as it is, the refused value is not
+   * sent a second time: closing the editor then just gives the edit up.
+   *
+   * Not while another cell is being edited, and not when the user has left
+   * the grid: neither should lose the focus to an old edit.
+   */
+  function kbdReopenRefused(td, value) {
+    var table = closest(td, 'table.exm-grid');
+    if (!kbdOn(table) || activeInlineTd || document.querySelector('.modal.show')) return;
+    var active = document.activeElement;
+    if (active && active !== document.body && !table.contains(active)) return;
+    kbdSelect(td, true);
+    if (!openInlineEditor(td, { initial: value == null ? '' : String(value) })) return;
+    var editor = td.querySelector('.exm-edit-input');
+    if (editor) editor._exmInitial = editor.value;
+  }
+
+  /**
+   * A key pressed on the selected cell. What it handles, it prevents.
+   */
+  function onKbdKey(e, td, armed) {
+    var key = e.key;
+    var mod = e.ctrlKey || e.metaKey || e.altKey;
+    // AltGr reports itself as Ctrl+Alt, and it types characters.
+    var altGr = !!(e.getModifierState && e.getModifierState('AltGraph'));
+    var editable = td.classList.contains('exm-editable') && !!inlineColumnMeta(td);
+
+    var dir = null;
+    if (key === 'Home' || key === 'End') {
+      if (e.altKey || e.shiftKey) return;
+      dir = (e.ctrlKey || e.metaKey) ? (key === 'Home' ? 'gridHome' : 'gridEnd') : key.toLowerCase();
+    } else if (mod && !altGr) {
+      // Ctrl+C, Alt+Left... stay the browser's.
+      return;
+    } else if (key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight') {
+      if (e.shiftKey) return;
+      dir = key.substring(5).toLowerCase();
+    } else if (key === 'Tab') {
+      dir = e.shiftKey ? 'left' : 'right';
+    } else if (key === 'Enter' && (e.shiftKey || !editable)) {
+      dir = e.shiftKey ? 'up' : 'down';
+    }
+    if (dir) {
+      // Tab at the end of a row is let go: it walks on to the row's own
+      // links and out of the grid, so the keyboard is never trapped here.
+      if (kbdMove(td, dir) || key !== 'Tab') e.preventDefault();
+      return;
+    }
+
+    if (key === 'Enter' || key === 'F2') {
+      e.preventDefault();
+      if (editable) openInlineEditor(td, { caretEnd: key === 'F2' });
+      return;
+    }
+    if (key === 'Delete' || key === 'Backspace') {
+      if (!editable) return;
+      e.preventDefault();
+      // Opens the editor empty rather than saving an empty value at once:
+      // there is no undo here, and Enter is one more key.
+      openInlineEditor(td, { initial: '' });
+      return;
+    }
+    // What is left to handle is a character ("a", "あ", " "); named keys
+    // ("Escape", "PageDown", "Dead") are longer than one.
+    if (key.length !== 1 || !editable) return;
+
+    // On a picker a character just opens the list; on a typed editor it
+    // starts the edit and is the first thing in it.
+    if (!armed) {
+      armed = kbdArmedInput(td);
+      if (!armed) {
+        e.preventDefault();
+        openInlineEditor(td);
+        return;
+      }
+      // The focus was on the cell (after a drag over its text). Moved now,
+      // before the browser inserts the character.
+      armed.focus();
+    }
+    armed.value = '';
+    if (!openInlineEditor(td, { typed: true })) e.preventDefault();
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.defaultPrevented || !kbdCell) return;
+    var t = e.target;
+    var armed = t && t.classList && t.classList.contains(KBD_INPUT) ? t : null;
+    var td = armed ? armed.parentNode : t;
+    // Only keys pressed on the selected cell itself. Anything typed in a
+    // search box, a modal or an open editor never gets here.
+    if (td !== kbdCell || td.classList.contains('exm-editing')) return;
+    if (!kbdOn(closest(td, 'table.exm-grid'))) return;
+    // The IME has the key. If it starts a composition, compositionstart
+    // below opens the editor.
+    if (e.isComposing || e.keyCode === 229) return;
+    onKbdKey(e, td, armed);
+  });
+
+  // Text arriving in the armed input by any way other than a plain key: an
+  // IME composition, a paste, a dictation. The editor opens around it.
+  function onKbdText(e) {
+    var t = e.target;
+    if (!t || !t.classList || !t.classList.contains(KBD_INPUT)) return;
+    if (openInlineEditor(t.parentNode, { typed: true })) return;
+    // The cell cannot be edited right now (it is still saving). Nothing
+    // may pile up unseen in the hidden input.
+    if (e.type === 'input' && !e.isComposing) t.value = '';
+  }
+  document.addEventListener('compositionstart', onKbdText);
+  document.addEventListener('input', onKbdText);
+
+  // A click selects the cell. Links, buttons, the checkbox and the pen
+  // keep their own click; so does an editor that is open.
+  document.addEventListener('click', function (e) {
+    var td = closest(e.target, 'td');
+    if (!kbdIsCell(td) || !kbdOn(closest(td, 'table.exm-grid'))) return;
+    if (td.classList.contains('exm-editing')) return;
+    if (closest(e.target, 'a, button, input, select, textarea, label, .exm-edit-pen')) return;
+    kbdSelect(td, false);
+    // A drag that selected text keeps its selection - focusing an input
+    // would clear it - so the cell itself takes the focus then.
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (sel && !sel.isCollapsed) {
+      try { td.focus({ preventScroll: true }); } catch (err) { td.focus(); }
+    } else {
+      kbdFocus(td);
+    }
+  });
+
+  // Tab reaching the grid lands on a cell that is a tab stop but not yet
+  // the selection.
+  document.addEventListener('focusin', function (e) {
+    var t = e.target;
+    if (!t || t.tagName !== 'TD' || t === kbdCell || !kbdIsCell(t)) return;
+    if (!kbdOn(closest(t, 'table.exm-grid'))) return;
+    kbdSelect(t, true);
+  });
 
   /* ------------------------------------------------- screen writes --- */
 
@@ -3289,6 +3859,9 @@
       td.innerHTML = String(payload.html);
       applyCellLock(td);
       addPenIcon(td);
+      // The repaint took the selected cell's hidden input with it, and the
+      // keyboard focus if it was there.
+      kbdRearm(td);
       td.classList.add('exm-saved');
       setTimeout(function () { td.classList.remove('exm-saved'); }, 1200);
       // The row may belong somewhere else now (grouped, page-filtered)
@@ -3635,6 +4208,21 @@
       return;
     }
 
+    // Excel-like keyboard mode on / off. A real <button>, so Enter and
+    // Space on it arrive here as a click too.
+    var kbdBtn = closest(t, '.exm-kbd-toggle');
+    if (kbdBtn) {
+      e.preventDefault();
+      var kbdNow = !kbdBtn.classList.contains('active');
+      kbdPref = kbdNow;
+      writeStore('localStorage', KBD_KEY, kbdNow ? '1' : '0');
+      each(document.querySelectorAll('.exm-grid-kbd[data-grid]'), function (kbdBox) {
+        applyKeyboardMode(kbdBox, kbdNow);
+      });
+      kbdTabStops();
+      return;
+    }
+
     // ------ inline editor: pen icon opens the same picker double-click does.
     var pen = closest(t, '.exm-edit-pen');
     if (pen) {
@@ -3757,6 +4345,9 @@
     initBulk();
     initColModal();
     initInline();
+    // After the inline config is read: which cells get an editor-to-be
+    // depends on it.
+    initKeyboard();
     initCtxMenu();
   }
 
@@ -3827,6 +4418,9 @@
         // a config that no longer exists. Cancelled, never committed:
         // the auto-refresh is not the user pressing Enter.
         if (activeInlineTd) finishInlineEditor(activeInlineTd, false);
+        // Whether the keys were going to the selected cell, asked while
+        // the cell is still there to ask.
+        if (kbdCell && kbdMemo) kbdMemo.focus = kbdHasFocus(kbdCell);
         each(document.querySelectorAll('.exm-col-modal.show, .exm-col-modal.d-block'), hideModal);
         // The bar lives on <body>, outside the container being swapped,
         // so it would otherwise keep showing the count of a page that is

@@ -619,6 +619,7 @@ class DefaultGrid extends GridBase
             $tools->append(new GridTools\GridColumnPin($grid, $storageKey));
             $tools->append(new GridTools\GridGroupBy($grid, $storageKey));
             $tools->append(new GridTools\GridDensity());
+            $tools->append(new GridTools\GridKeyboard());
             $tools->append(new GridTools\GridAutoRefresh($storageKey));
 
             // Second entrance to the batch actions rendered further left.
