@@ -421,6 +421,17 @@ var Exment;
                     clearTimeout(rowClickTimer);
                     rowClickTimer = null;
                 }
+
+                // Excel-like keyboard mode (the toolbar switch, grid_tools.js):
+                // there a click selects a cell and does not leave the page.
+                // The row is opened by a double click on a cell that cannot
+                // be edited - on an editable one that gesture edits.
+                if ($(ev.target).closest('table.exm-kbd-on').length > 0) {
+                    let kbdClicks = ev.detail || (ev.originalEvent ? ev.originalEvent.detail : 0) || 1;
+                    if (kbdClicks < 2 || $(ev.target).closest('td.exm-editable').length > 0) {
+                        return;
+                    }
+                }
                 // The click that puts the editor away is spent doing exactly
                 // that. The editor commits itself on blur, and navigating now
                 // would leave the page while that save is still in flight.
