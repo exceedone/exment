@@ -153,6 +153,27 @@ class UiDesignSettingTest extends FeatureTestBase
         $this->assertSame('modern', \Exment::getUiDesign());
     }
 
+    /**
+     * The cells of the data list carry the column TYPE as a class, next to
+     * the class made from the column NAME. The stylesheet needs it to
+     * right-align numbers: a column named "price" is not found by its name.
+     */
+    public function testTheDataListMarksTheCellsWithTheColumnType(): void
+    {
+        $this->be($this->adminUser());
+
+        $content = (string) $this->get(admin_url('data/custom_value_edit_all'), ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertOk()
+            ->getContent();
+
+        // "index_text" and "multiples_of_3" are column names; text and yesno are their types
+        $this->assertMatchesRegularExpression('/class="column-index_text exm-coltype-text[ "]/', $content);
+        $this->assertMatchesRegularExpression('/class="column-multiples_of_3 exm-coltype-yesno[ "]/', $content);
+        $this->assertMatchesRegularExpression('/class="column-integer exm-coltype-integer[ "]/', $content);
+        // a system column (ID) has no type class
+        $this->assertDoesNotMatchRegularExpression('/class="column-id exm-coltype-/', $content);
+    }
+
     private function setDesign(string $design): void
     {
         System::ui_design($design);

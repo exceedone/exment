@@ -377,6 +377,12 @@ body[class*="skin-"] .main-header #manual_link:hover {
   color: var(--exm-ui-text);
 }
 
+/* "This page has its own help" turns the help icon yellow in the classic
+   design; on white that is hard to see, so it is the accent here. */
+body[class*="skin-"] .main-header .help_personal {
+  color: var(--exm-ui-accent);
+}
+
 /* The red skins turn the unread badges yellow so they show on a red
    bar. The bar is white now, so they go back to red. */
 body[class*="skin-"] .navbar-notify .label-danger,
@@ -589,6 +595,7 @@ body[class*="skin-"] .content-header > .breadcrumb > .active {
      .card                { border: none !important;
                             border-radius: 2px !important }
      .custom-border-info  { border-top: ... !important }
+     .box.box-info        { border-top: ... !important }
      .box.box-success     { border-top: ... !important } */
 body[class*="skin-"] .box {
   background: var(--exm-ui-bg);
@@ -603,6 +610,8 @@ body[class*="skin-"] .box.card {
 }
 
 body[class*="skin-"] .box.custom-border-info,
+body[class*="skin-"] .box.box-info,
+body[class*="skin-"] .card.box-info,
 body[class*="skin-"] .box.box-success,
 body[class*="skin-"] .card.box-success {
   border-top: 1px solid var(--exm-ui-line) !important;
@@ -628,6 +637,52 @@ body[class*="skin-"] .overlay-wrapper .overlay {
   border-radius: var(--exm-ui-radius-md);
 }
 
+
+/* Tables inside a box (the setting lists: custom tables, workflows,
+   users ...). Same header as the data list: no gray fill, small gray
+   semi-bold text, one hairline under it, soft row lines.
+   The fill is white, not transparent, because the data list's locked
+   header relies on an opaque header cell. */
+body[class*="skin-"] .box .table > thead > tr > th {
+  font-size: var(--exm-ui-fs-xs);
+  font-weight: 600;
+  color: var(--exm-ui-text-sub);
+  background: var(--exm-ui-bg);
+  border-bottom: 1px solid var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box .table > tbody > tr > td {
+  border-color: var(--exm-ui-line-soft);
+}
+
+/* Bootstrap draws a 2px line in the text color between header and body */
+body[class*="skin-"] .box .table > :not(:first-child) {
+  border-top: 1px solid var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box .table.table-hover > tbody > tr:hover > td {
+  background-color: var(--exm-ui-bg-hover);
+}
+
+/* In the tool row of a list, "New" is the one accent button. Any other
+   primary button there (e.g. "usage setting" on the workflow list) is a
+   tool and turns gray. Detail and edit pages keep their primary button:
+   their tools sit in `.box-tools`, not in `.pull-right`. */
+body[class*="skin-"] .box-header > .pull-right .btn.btn-primary:not(.btn-dropbox) {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub) !important; /* some carry `text-white` */
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box-header > .pull-right .btn.btn-primary:not(.btn-dropbox):hover,
+body[class*="skin-"] .box-header > .pull-right .btn.btn-primary:not(.btn-dropbox):focus {
+  color: var(--exm-ui-text) !important;
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
 
 /* Page numbers under any list: gray, with the current page in soft
    blue. */
@@ -801,6 +856,75 @@ body[class*="skin-"] .modal .input-group-text {
 body[class*="skin-"] .content-wrapper .has-error .form-control,
 body[class*="skin-"] .modal .has-error .form-control {
   border-color: var(--exm-ui-danger);
+}
+
+/* YES / NO switch (bootstrap-switch): the "on" side in the accent. */
+body[class*="skin-"] .bootstrap-switch {
+  border-color: var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+body[class*="skin-"] .bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-primary,
+body[class*="skin-"] .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-primary {
+  color: #fff;
+  background: var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .bootstrap-switch.bootstrap-switch-focused {
+  border-color: var(--exm-ui-accent);
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+}
+
+/* Step bar on the system setting pages (progresstracker.css): filled
+   arrows become plain steps with an underline on the current one. */
+body[class*="skin-"] .track-progress li {
+  background-color: transparent;
+}
+
+body[class*="skin-"] .track-progress li > a {
+  color: var(--exm-ui-text-sub);
+  font-weight: 600;
+  background-color: transparent;
+  box-shadow: inset 0 -1px 0 var(--exm-ui-line);
+}
+
+body[class*="skin-"] .track-progress li > a:hover {
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .track-progress li.complete > a {
+  color: var(--exm-ui-text);
+  background-color: transparent;
+}
+
+body[class*="skin-"] .track-progress li.active > a {
+  color: var(--exm-ui-accent-strong);
+  background-color: transparent;
+  box-shadow: inset 0 -2px 0 var(--exm-ui-accent);
+}
+
+/* the arrow heads */
+body[class*="skin-"] .track-progress li > a::before,
+body[class*="skin-"] .track-progress li > a::after {
+  display: none;
+}
+
+/* Helper buttons inside a field (the "Search" button under a select
+   field) are tools: gray, like the toolbar buttons. */
+body[class*="skin-"] .form-group .btn.btn-sm.btn-info {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub);
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .form-group .btn.btn-sm.btn-info:hover,
+body[class*="skin-"] .form-group .btn.btn-sm.btn-info:focus {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
 }
 
 body[class*="skin-"] .form-check-input:checked {
@@ -1118,6 +1242,241 @@ body[class*="skin-"] .exment-chart-toolbar .cs-row:hover {
 }
 
 
+/* ==================================================== detail pages === */
+/* The page that shows one record (/admin/data/{table}/{id}) and the
+   boxes under it: attachments, revisions, comments. Selectors here were
+   read from the real pages, not guessed. */
+
+/* ------------------------------------------------- nested card box --- */
+/* The boxes under the record are `.box.box-info > .card.p-1`. The outer
+   box already draws the hairline; the card inside must not add a second
+   frame or a shadow. */
+body[class*="skin-"] .box > .card {
+  margin-bottom: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------- header tool row --- */
+/* A calm row: every secondary action is a white button with a hairline
+   and gray text, whatever color the theme gave it (share = orange,
+   notify = cyan, related search = purple, export = "twitter" blue,
+   plugin and operation buttons = green). The icon and the label say
+   what the button does; the color said nothing.
+
+   What keeps a color:
+     - "Edit" (.btn-primary)            - the accent, from the general rule
+     - workflow actions (.btn-success inside a .btn-group) - green, they
+       are the approve / OK kind
+     - "Delete" (.btn-danger)           - red text on white, see below
+
+   `!important` on the text color only because these buttons carry
+   Bootstrap's `text-white` utility, which is itself `!important`. */
+body[class*="skin-"] .box-header .btn.btn-info,
+body[class*="skin-"] .box-header .btn.btn-warning,
+body[class*="skin-"] .box-header .btn.btn-purple,
+body[class*="skin-"] .box-header .btn.btn-twitter,
+body[class*="skin-"] .box-header a.btn[id^="menu_button_"] {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub) !important;
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box-header .btn.btn-info:hover,
+body[class*="skin-"] .box-header .btn.btn-info:focus,
+body[class*="skin-"] .box-header .btn.btn-warning:hover,
+body[class*="skin-"] .box-header .btn.btn-warning:focus,
+body[class*="skin-"] .box-header .btn.btn-purple:hover,
+body[class*="skin-"] .box-header .btn.btn-purple:focus,
+body[class*="skin-"] .box-header .btn.btn-twitter:hover,
+body[class*="skin-"] .box-header .btn.btn-twitter:focus,
+body[class*="skin-"] .box-header a.btn[id^="menu_button_"]:hover,
+body[class*="skin-"] .box-header a.btn[id^="menu_button_"]:focus {
+  color: var(--exm-ui-text) !important;
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+/* "Delete": still clearly the dangerous one, but not a red block. */
+body[class*="skin-"] .box-header .btn.btn-danger {
+  --bs-btn-color: var(--exm-ui-danger);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-danger) !important;
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box-header .btn.btn-danger:hover,
+body[class*="skin-"] .box-header .btn.btn-danger:focus {
+  color: var(--exm-ui-danger) !important;
+  background-color: #fdf1f1;
+  border-color: #f0c4c6;
+}
+
+/* ------------------------------------------------- system values --- */
+/* ID / created by / updated by / created at / updated at, and the
+   workflow status above them. They are facts about the record, not its
+   content, so they become one quiet line: small gray labels, normal
+   values, no colored bars. The block is left-aligned with the fields
+   instead of centered in a fixed 830px. */
+body[class*="skin-"] .system-values {
+  width: auto;
+  margin: 0;
+}
+
+body[class*="skin-"] .system-values .system-values-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--exm-ui-space-2) var(--exm-ui-space-6);
+  font-size: var(--exm-ui-fs-sm);
+}
+
+/* `.system-values li` is also where the skins put their color. */
+body[class*="skin-"] .system-values .system-values-list li {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border-left: 0;
+}
+
+body[class*="skin-"] .system-values .system-values-label {
+  margin: 0 0 2px;
+  font-size: var(--exm-ui-fs-xs);
+  font-weight: 500;
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .system-values .system-values-item {
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .system-values .system-values-flows {
+  margin-bottom: var(--exm-ui-space-3);
+  font-size: var(--exm-ui-fs-sm);
+}
+
+body[class*="skin-"] .system-values .system-values-flows .system-values-label {
+  margin-bottom: 0;
+}
+
+body[class*="skin-"] .system-values .system-values-flows .system-values-flow {
+  margin-right: var(--exm-ui-space-6);
+}
+
+@media (max-width: 1040px) {
+  body[class*="skin-"] .system-values .system-values-list {
+    display: flex;
+  }
+
+  body[class*="skin-"] .system-values .system-values-flows .system-values-flow {
+    margin: 0 var(--exm-ui-space-6) var(--exm-ui-space-1) 0;
+    padding: 0;
+  }
+}
+
+/* the theme: `.hr.border-bottom { border-bottom: 1px solid #ced4da !important }` */
+body[class*="skin-"] .hr.border-bottom {
+  border-bottom: 1px solid var(--exm-ui-line-soft) !important;
+  opacity: 1;
+}
+
+/* ---------------------------------------------------- field rows --- */
+/* On a detail page the form is a <div class="form-horizontal">, not a
+   <form> - that is how these rules tell a detail page from an edit
+   page. Labels: small, gray, not bold. Values: normal text. */
+body[class*="skin-"] div.form-horizontal .col-form-label {
+  text-align: left; /* in line with the system values above */
+  font-size: var(--exm-ui-fs-sm);
+  font-weight: 500 !important;
+  color: var(--exm-ui-text-sub);
+}
+
+body[class*="skin-"] div.form-horizontal .box-show > .box-body {
+  color: var(--exm-ui-text);
+}
+
+/* ----------------------------------------------------- attachments --- */
+/* bootstrap-fileinput. A compact drop area: no outer frame, one dashed
+   hairline, small gray text. */
+body[class*="skin-"] .file-preview {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+body[class*="skin-"] .file-drop-zone {
+  margin: 0 0 var(--exm-ui-space-2);
+  border: 1px dashed #c9ced4;
+  border-radius: var(--exm-ui-radius-sm);
+  background-color: var(--exm-ui-bg-sub);
+}
+
+/* the library makes the dashed line 2px on hover, which shifts the box */
+body[class*="skin-"] .file-drop-zone.clickable:hover,
+body[class*="skin-"] .file-drop-zone.clickable:focus {
+  border: 1px dashed var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .file-drop-zone .file-drop-zone-title {
+  padding: 18px 10px;
+  font-size: var(--exm-ui-fs-sm);
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .file-caption .form-control,
+body[class*="skin-"] .file-caption-name {
+  color: var(--exm-ui-text);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .file-caption-name::placeholder {
+  color: var(--exm-ui-text-faint);
+}
+
+/* "Browse" is a tool, not the action of the page: gray like the others. */
+body[class*="skin-"] .btn.btn-primary.btn-file {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub);
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .btn.btn-primary.btn-file:hover,
+body[class*="skin-"] .btn.btn-primary.btn-file:focus {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+/* the help line under the upload field */
+body[class*="skin-"] .box .form-group > div > span.text-secondary {
+  font-size: var(--exm-ui-fs-xs);
+  color: var(--exm-ui-text-faint) !important; /* beats `text-secondary` */
+}
+
+/* --------------------------------------------- revisions, comments --- */
+body[class*="skin-"] .form-revision .control-label {
+  font-weight: 500;
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .form-revision small,
+body[class*="skin-"] .commentline .commentline_header {
+  font-size: var(--exm-ui-fs-xs);
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .commentline {
+  color: var(--exm-ui-text);
+}
+
+
 /* =================================================== data list screen === */
 /* `table.exm-grid` is the class grid_tools.js puts on the data grid only
    (see grid_tools.css). Modal grids, dashboard list boxes and the system
@@ -1162,6 +1521,54 @@ body[class*="skin-"] .box:has(table.exm-grid) > .box-footer {
 /* ---------------------------------------------------------- toolbar --- */
 /* Button colors come from the general button rules above (gray for
    tools, the accent for the "New" link to the create page). */
+/* Keep the toolbar on one line on a normal laptop screen: a long view
+   name is cut with "...", and the search box is a little narrower (the
+   width is an inline style, hence !important). */
+body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-grid-tool > a.dropdown-toggle > span.d-lg-block {
+  max-width: 15em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[class*="skin-"] .box:has(table.exm-grid) > .box-header > .pull-left form .form-control {
+  width: 150px !important;
+}
+
+/* On a narrower screen the "table settings" button shows its cog only;
+   that is what lets the row fit at about 1400px. */
+@media (max-width: 1500px) {
+  body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-grid-tool > a:not(.dropdown-toggle):has(> .fa-cog) > span.d-lg-block {
+    display: none !important; /* `d-lg-block` is !important */
+  }
+}
+
+/* "Filter" is a .btn-primary pair (label + caret). It is a tool like its
+   neighbours, and "New" is the one accent button of the list, so it
+   turns gray. */
+body[class*="skin-"] .box-header .btn.btn-primary.btn-dropbox {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub);
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box-header .btn.btn-primary.btn-dropbox:hover,
+body[class*="skin-"] .box-header .btn.btn-primary.btn-dropbox:focus {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+/* the filter panel is open */
+body[class*="skin-"] .box-header .btn.btn-primary.btn-dropbox.active {
+  color: var(--exm-ui-accent-strong);
+  background-color: var(--exm-ui-accent-soft);
+  border-color: var(--exm-ui-line);
+}
+
 /* "This tool is on" - soft accent instead of a solid block. */
 body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-refresh-btn.active,
 body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-pin-btn.active,
@@ -1229,6 +1636,34 @@ body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-group-btn.activ
   padding: 11px 12px;
 }
 
+/* Numbers: right-aligned, with digits of equal width, so the ones, tens
+   and hundreds line up down the column. The header goes with them.
+   `exm-coltype-*` is the column type; the server puts it on the cells
+   and grid_tools.js copies it to the header. A text alignment set on
+   the custom column is an inline style and still wins. The ID column is
+   left as it is: it is a name for the row, not a quantity. */
+.table.exm-grid > thead > tr > th.exm-coltype-integer,
+.table.exm-grid > thead > tr > th.exm-coltype-decimal,
+.table.exm-grid > thead > tr > th.exm-coltype-currency,
+.table.exm-grid > tbody > tr > td.exm-coltype-integer,
+.table.exm-grid > tbody > tr > td.exm-coltype-decimal,
+.table.exm-grid > tbody > tr > td.exm-coltype-currency {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sort arrows: gray while the column is not sorted, the accent only on
+   the column the list is sorted by. (grid_tools.css paints all of them
+   in the accent.) */
+.table.exm-grid.exm-grid > thead > tr > th a.fa-sort {
+  color: #b6bdc6;
+  font-weight: 400;
+}
+
+.table.exm-grid.exm-grid > thead > tr > th a.fa-sort:hover {
+  color: var(--exm-ui-text-sub);
+}
+
 /* No zebra: with wider rows the hover color does the same job with
    less ink. */
 .table.exm-grid > tbody > tr:nth-of-type(even) > td {
@@ -1271,6 +1706,28 @@ body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-group-btn.activ
   background-color: var(--exm-ui-accent-soft);
 }
 
+/* The row actions (view / edit / delete) are not a column of their own:
+   `.__actions__div` is laid over the right end of the row. The theme
+   makes it transparent, so the icons sat on top of whatever value was
+   under them and that value looked cut off ("2022-"). Here it is filled
+   with the color of its row and gets a hairline on its left, so it
+   reads as a small panel in front of the row; the value under it
+   continues behind. */
+.table.exm-grid > tbody > tr > td .__actions__div {
+  padding-left: var(--exm-ui-space-2);
+  background: var(--exm-ui-bg);
+  border-left: 1px solid var(--exm-ui-line-soft);
+}
+
+.table.exm-grid.table-hover > tbody > tr:hover > td .__actions__div {
+  background: var(--exm-ui-bg-hover);
+}
+
+.table.exm-grid > tbody > tr.selected > td .__actions__div,
+.table.exm-grid.table-hover > tbody > tr.selected:hover > td .__actions__div {
+  background: var(--exm-ui-accent-soft);
+}
+
 /* Softer edge shadows for pinned columns and the locked header. These
    shadows carry meaning ("something is scrolled under here"), so they
    stay - only lighter. */
@@ -1279,9 +1736,17 @@ body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-group-btn.activ
   box-shadow: 6px 0 6px -5px rgba(15, 23, 42, .12);
 }
 
+/* The action column pinned on the right covers the columns scrolled
+   under it. A hairline plus the shadow make that edge visible, so a
+   half-covered value reads as "more to the right", not as cut off. */
+.table.exm-grid > thead > tr > th.exm-pin-right-first,
+.table.exm-grid > tbody > tr > td.exm-pin-right-first {
+  border-left: 1px solid var(--exm-ui-line);
+}
+
 .exm-pin-scrolled-end .table.exm-grid > thead > tr > th.exm-pin-right-first,
 .exm-pin-scrolled-end .table.exm-grid > tbody > tr > td.exm-pin-right-first {
-  box-shadow: -6px 0 6px -5px rgba(15, 23, 42, .12);
+  box-shadow: -8px 0 8px -6px rgba(15, 23, 42, .18);
 }
 
 .exm-headlock-scrolled > .table.exm-grid > thead > tr > th {
