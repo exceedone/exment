@@ -329,13 +329,14 @@ class DemoModeTest extends FeatureTestBase
     public function testTheLoginIdOfAUserWhoCanLogInStays(): void
     {
         $user2 = $this->userOf(TestDefine::TESTDATA_USER_LOGINID_USER2);
-        $code = $user2->getValue('user_code');
+        $email = $user2->getValue('email');
 
+        // the user code can never be changed; demo mode also keeps the e-mail address, a login ID too
         $response = $this->put(admin_urls('webapi', 'data', SystemTableName::USER, $user2->id), [
-            'value' => ['user_code' => 'demomoderenamed'],
+            'value' => ['email' => 'demomode-renamed@example.com'],
         ])->assertStatus(400);
         $this->assertStringContainsString(strval(exmtrans('demo_mode.message_login_id')), $this->jsonText($response));
-        $this->assertSame($code, $this->userOf(TestDefine::TESTDATA_USER_LOGINID_USER2)->getValue('user_code'));
+        $this->assertSame($email, $this->userOf(TestDefine::TESTDATA_USER_LOGINID_USER2)->getValue('email'));
 
         // the other values of the user can be changed
         $this->put(admin_urls('webapi', 'data', SystemTableName::USER, $user2->id), [
@@ -410,12 +411,12 @@ class DemoModeTest extends FeatureTestBase
         ])->assertRedirect();
         $this->assertNotNull(ApiClient::where('name', 'Demo mode off api client')->first());
 
-        // the login ID of a user can be changed
+        // the e-mail address of a user can be changed
         $user2 = $this->userOf(TestDefine::TESTDATA_USER_LOGINID_USER2);
         $this->put(admin_urls('webapi', 'data', SystemTableName::USER, $user2->id), [
-            'value' => ['user_code' => 'demomodeoff'],
+            'value' => ['email' => 'demomode-off@example.com'],
         ])->assertOk();
-        $this->assertSame('demomodeoff', $this->userOf(TestDefine::TESTDATA_USER_LOGINID_USER2)->getValue('user_code'));
+        $this->assertSame('demomode-off@example.com', $this->userOf(TestDefine::TESTDATA_USER_LOGINID_USER2)->getValue('email'));
 
         // mail settings are saved
         $this->post(admin_url('system'), $this->advancedSystemInput([
