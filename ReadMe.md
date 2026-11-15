@@ -1,30 +1,83 @@
 <p align="center">
+<b>English</b> | <a href="ReadMe.ja.md">日本語</a> | <a href="ReadMe.vi.md">Tiếng Việt</a>
+</p>
+
+<p align="center">
 <img src="https://exment.net/docs/img/common/exment_logo_side.png" alt="Exment">
 </p>
 
+<h3 align="center">Free, open-source, no-code web database</h3>
 
-## For Japanese(日本語)
-こちらのサイトにアクセスしてください。  
-<a href="https://exment.net" target="_blank">公式サイト</a>  
-<a href="https://exment.net/demo-env" target="_blank">デモサイト一覧</a>  
-<a href="https://exment.net/docs/#/ja/">マニュアル</a>
+<p align="center">
+<a href="https://exment.net/en/">Official site</a> ·
+<a href="https://exment.net/en/demo-env/">Demo</a> ·
+<a href="https://exment.net/docs/#/">Manual</a> ·
+<a href="https://exment.net/en/whats-new/">What's new</a> ·
+<a href="https://exment.net/en/roadmap/">Roadmap</a>
+</p>
+
+<p align="center">
+<img src="https://exment.net/docs/img/view_kanban/kanban_board.png" alt="Exment kanban view" width="800">
+</p>
 
 
 ## What is Exment?
-Exment is open source software for managing information assets on the Web.  
-For Web Database, SFA, CRM, Business improvement, ...  
-<a href="https://en.exment.net" target="_blank">Official Site</a>  
-<a href="https://exment.net/docs/#/">Manual</a>
+Exment is a free, open-source web database that lets you build business applications without programming. Bring customers, deals, requests and other information scattered across Excel sheets and files into one place, just by configuring screens.  
+It comes with everything business teams need: workflow, Kanban, Gantt charts, SSO, two-factor authentication and more. Exment runs on your own server, on 99% of shared hosting providers in Japan and abroad, or in the cloud (AWS, Azure, etc.), so your data stays with you. And no matter how many users you add, the price never goes up.
+
+- **Free, with no per-user fees**: open source (GPL), with no limits on users or features
+- **Get started fast with business templates** such as Task Management and Customer Management
+- **Runs on your own server, so you own your data**: PHP (Laravel) with MySQL / MariaDB / SQL Server
+- **40,000+ installs** of the open-source edition (Packagist, as of November 2026) and 200+ releases since 2018
+
+| | |
+|---|---|
+| Learn | [Official site](https://exment.net/en/) · [Features](https://exment.net/en/functions/) · [Use cases](https://exment.net/en/modelcases/) · [Flyer (PDF)](https://exment.net/assets/exment-flyer-en.pdf) |
+| Try | [Demo sites](https://exment.net/en/demo-env/) · [Installation](https://exment.net/docs/#/quickstart) |
+| Pricing | [Pricing, support and license](https://exment.net/en/plan/) · [Compare](https://exment.net/en/compare/) |
+| AI | [AI-OCR](https://exment.net/en/ai-ocr/) · [Exment AI Chatbot](https://exment.net/en/exment-ai-chatbot/) |
+| News | [What's new](https://exment.net/en/whats-new/) · [Roadmap](https://exment.net/en/roadmap/) |
+| Docs | [Manual](https://exment.net/docs/#/) |
+| Contact | [Contact us](https://exment.net/en/inquiry/) |
+
 <a href="https://demo.exment.net/admin" target="_blank">Demo site</a>  
 Then please enter  
 Usercode：admin  
 Password：adminadmin
+
+Developed by [Kajitori Co., Ltd.](https://exment.net/company/) (Exceed One group)
+
+
+## What's new in v7.0.0
+Released on October 28, 2026. See how work is progressing at a glance. ([What's new](https://exment.net/en/whats-new/))
+
+### Kanban view
+Show records as cards in columns by status or another field, and drag them to move. Works together with workflow. ([Manual](https://exment.net/docs/#/view_kanban)) The screenshot at the top of this page is the kanban view.
+
+### Gantt chart view
+Show each record as a bar on a timeline from start date to due date. Supports colors, progress, milestones and parent-child indentation. ([Manual](https://exment.net/docs/#/view_gantt))
+
+### Visual workflow designer
+Place statuses and actions on a diagram and design your workflow while seeing the whole flow. ([Manual](https://exment.net/docs/#/workflow_design))  
+![Workflow designer](https://exment.net/docs/img/workflow_design/wf_designer.png)
+
+### Cell styles
+Set up presets that change cell colors and text in the data grid and Kanban based on their values. ([Manual](https://exment.net/docs/#/cell_style_preset))  
+![Cell styles](https://exment.net/docs/img/cell_style_preset/preset_grid_result.png)
+
+### Data grid tools
+Show or hide columns, freeze columns, group rows, edit inline, quick preview, bulk actions and more. ([Manual](https://exment.net/docs/#/data_grid_tools))  
+![Data grid tools](https://exment.net/docs/img/data_grid_tools/grid_overview.png)
+
+### Laravel 12 and PHP 8.2+
+The framework is updated to Laravel 12 and the admin UI libraries are refreshed. Please check the notes before updating. ([Update](https://exment.net/docs/#/update))
 
 
 ## Functions
 - Dashboard
 - Data registration from the screen
 - Custom table/Custom column creation
+- Business templates (Task Management, Customer Management, ...)
 - Import/export templates (Custom tables/Columns can be used with other Exments)
 - Import/export data
 - Value calculation function in form (total amount, calculation of tax amount)
@@ -33,6 +86,14 @@ Password：adminadmin
 - Menu configuration management
 - Search (free word search, search words related to information)
 - Mail Template
+- Views (list, summary, calendar, kanban, Gantt chart) and cell styles
+- Data grid tools (column visibility, freeze, grouping, inline edit, bulk actions)
+- Workflow (approval flow with a visual designer)
+- Public form (data entry without login)
+- Notifications (mail, in-app, Slack, Microsoft Teams, LINE)
+- Login security (2-factor authentication, SSO with SAML / LDAP / OAuth)
+- Document output (PDF / Excel), backup and restore
+- Plugins
 - API
 
 And more and more and more functions....
@@ -40,7 +101,7 @@ And more and more and more functions....
 ## Operating environment
 ### Server
 - PHP 8.2.0 or upper
-- MySQL 8.0 or upper, or MariaDB 10.3 or upper
+- MySQL 8.0 or upper, or MariaDB 10.11 or upper
 - Laravel 12.X
 
 ### Support Browser
@@ -128,22 +189,24 @@ URL is http://127.0.0.1:8000/admin
 php artisan serve
 ~~~
 
+# Security
+If you find a security vulnerability, please do not open a public issue. Report it privately as described in [SECURITY.md](SECURITY.md).
+
 # Community
-Exment does not currently have a community forum. I am taking advantage of issues. However, we may use some other platform in the future. If you have detailed knowledge, I would be grateful if you could give me a recommendation.  
-現在、Exmentではコミュニティ・フォーラムを用意していません。issueを活用しています。  ただし、将来的に何か他のプラットフォームを使うかもしれません。詳しい知見をお持ちの方は、推奨を教えてください。
+Exment does not currently have a community forum. I am taking advantage of issues. However, we may use some other platform in the future. If you have detailed knowledge, I would be grateful if you could give me a recommendation.
 
 ## Pull Request
-Pull Requests are always welcome. Currently, I'd be happy if you actually implemented the function rather than requesting a new function.  
-Pull Requestはいつでも大歓迎です。現在は、新しい機能の要望よりも、その機能を実際に実装していただいた方が、嬉しいです。
+Pull Requests are always welcome. Currently, I'd be happy if you actually implemented the function rather than requesting a new function.
 
 
 # Other pages
-Setup for Develop [En](document/en/Develop.md) / 開発方法 [日本語](document/ja/Develop.md)  
-Setup for Test [En](document/en/Test.md) / テスト実行方法 [日本語](document/ja/Test.md)  
+Setup for Develop [En](document/en/Develop.md) / [日本語](document/ja/Develop.md)  
+Setup for Test [En](document/en/Test.md) / [日本語](document/ja/Test.md)  
 
 
 # issues
-Please write issues using English or Japanese.  / issuesには英語または日本語で記載してください。
+Please write issues using English or Japanese.  
+Security vulnerabilities: see [SECURITY.md](SECURITY.md).
 
 
 # Other repositories

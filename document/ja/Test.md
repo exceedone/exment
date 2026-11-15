@@ -97,8 +97,7 @@ composer require --dev larastan/larastan=^3.0
 
 # Exmentの関連ライブラリ
 composer require pragmarx/google2fa
-composer require simplesoftwareio/simple-qrcode=^2.0.0
-composer require laravel/socialite=^5.20
+# laravel/socialite と simplesoftwareio/simple-qrcode は、v7 では Exment の依存に含まれるため不要です。
 composer require aacotroneo/laravel-saml2
 composer require league/flysystem-ftp ~3.0
 composer require phpseclib/phpseclib ^3.0

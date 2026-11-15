@@ -231,6 +231,8 @@ php artisan exment:publish
 GitHubのブランチを、以下のように運用しています。  
 [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
 
+> v7.0.0 以降は、pull request は master ブランチに向けて出しています。下の表は以前のブランチの運用です。
+
 | GitHub Brunch Name | Derived from | Explain |
 | ------------------ | -------------| ------------- |
 | `master` | - | 現在の安定版です。リリースした時点でのソースコードを管理します。 |
@@ -268,5 +270,5 @@ php-cs-fixer fix ./packages/hirossyi73/exment
 
 - GitHubのpull requestを実行します。  
 
-- exceedone/exmentのブランチhotfix(不具合対応)、もしくはdevelop(機能追加)を対象に、pull requestを実行します。  
+- exceedone/exmentの**master**ブランチを対象に、pull requestを実行します（v7.0.0 以降の運用です）。ブランチ名は、機能追加は `feature/XXX`、不具合対応は `fix/XXX` としてください。  
 コメントは、可能な限り記載してください。

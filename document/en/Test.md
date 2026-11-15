@@ -97,8 +97,7 @@ composer require --dev larastan/larastan=^3.0
 
 # for Exment related libraries
 composer require pragmarx/google2fa
-composer require simplesoftwareio/simple-qrcode=^2.0.0
-composer require laravel/socialite=^5.20
+# laravel/socialite and simplesoftwareio/simple-qrcode are already required by Exment v7, so you do not need to install them.
 composer require aacotroneo/laravel-saml2
 composer require league/flysystem-ftp ~3.0
 composer require phpseclib/phpseclib ^3.0
