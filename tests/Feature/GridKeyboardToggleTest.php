@@ -50,9 +50,11 @@ class GridKeyboardToggleTest extends FeatureTestBase
     {
         $content = $this->pageContent(admin_urls('data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST));
 
-        $this->assertSame(1, preg_match('/<button[^>]*\bexm-kbd-toggle\b[^>]*>/', $content, $button));
-        $this->assertStringContainsString('aria-pressed="false"', $button[0]);
-        $this->assertDoesNotMatchRegularExpression('/class="[^"]*\bactive\b/', $button[0], 'the switch must not be rendered pressed');
+        preg_match('/<button[^>]*\bexm-kbd-toggle\b[^>]*>/', $content, $button);
+        $tag = $button[0] ?? '';
+        $this->assertNotSame('', $tag, 'the switch must be on the data list');
+        $this->assertStringContainsString('aria-pressed="false"', $tag);
+        $this->assertDoesNotMatchRegularExpression('/class="[^"]*\bactive\b/', $tag, 'the switch must not be rendered pressed');
         $this->assertStringNotContainsString('exm-kbd-on', $content, 'the grid must not be rendered in keyboard mode');
     }
 
