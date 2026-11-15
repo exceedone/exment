@@ -162,26 +162,40 @@ class ExportImportButton extends ModalTileMenuButton
 
         ///// Append default output
         if ($this->export_flg) {
+            $items = [
+                [
+                    'icon' => 'fa-table',
+                    'header' => $all,
+                    'description' => exmtrans("$base_key.help.export_all"),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&format=$key")], $format);
+                    })->toArray(),
+                ],
+                [
+                    'icon' => 'fa-table',
+                    'header' => $currentPage,
+                    'description' => exmtrans("$base_key.help.export_page"),
+                    'buttons' => collect($formats)->map(function ($format, $key) use ($page) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('page', $page) . "&action=export&format=$key")], $format);
+                    })->toArray(),
+                ],
+            ];
+
+            // all data with the comments, only if the table uses the comments
+            if ($this->enableCommentExport()) {
+                $items[] = [
+                    'icon' => 'fa-comments',
+                    'header' => exmtrans('custom_value.export_all_comment'),
+                    'description' => exmtrans('custom_value.help.export_all_comment'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&add_comment=1&format=$key")], $format);
+                    })->toArray(),
+                ];
+            }
+
             $groups[] = [
                 'header' => exmtrans("$base_key.default_export"),
-                'items' => [
-                    [
-                        'icon' => 'fa-table',
-                        'header' => $all,
-                        'description' => exmtrans("$base_key.help.export_all"),
-                        'buttons' => collect($formats)->map(function ($format, $key) {
-                            return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&format=$key")], $format);
-                        })->toArray(),
-                    ],
-                    [
-                        'icon' => 'fa-table',
-                        'header' => $currentPage,
-                        'description' => exmtrans("$base_key.help.export_page"),
-                        'buttons' => collect($formats)->map(function ($format, $key) use ($page) {
-                            return array_merge(['href' => url($this->grid->getExportUrl('page', $page) . "&action=export&format=$key")], $format);
-                        })->toArray(),
-                    ],
-                ]
+                'items' => $items,
             ];
         }
 
@@ -299,6 +313,20 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         return false;
+    }
+
+    /**
+     * Whether the dialog has "All data with the comments". Only for the data of a custom table that uses the comments.
+     *
+     * @return bool
+     */
+    protected function enableCommentExport(): bool
+    {
+        if (!isset($this->custom_table)) {
+            return false;
+        }
+
+        return boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
 
     // @phpstan-ignore-next-line

@@ -122,6 +122,7 @@ trait ExportCommandTrait
                 'grid' => $grid,
                 'add_setting' => boolval(array_get($options, 'add_setting', false)),
                 'add_relation' => boolval(array_get($options, 'add_relation', false)),
+                'add_comment' => boolval(array_get($options, 'add_comment', false)),
             ]
         );
     }
