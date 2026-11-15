@@ -3,7 +3,10 @@
 </p>
 
 <p align="center">
-<img src="https://exment.net/docs/img/common/exment_logo_side.png" alt="Exment">
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset=".github/images/exment_logo_dark.svg">
+<img src=".github/images/exment_logo.svg" alt="Exment" width="360">
+</picture>
 </p>
 
 <h3 align="center">Free, open-source, no-code web database</h3>
