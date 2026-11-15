@@ -1655,9 +1655,10 @@ body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-group-btn.activ
 /* Sort arrows: gray while the column is not sorted, the accent only on
    the column the list is sorted by. (grid_tools.css paints all of them
    in the accent.) */
+/* Keep the icon font's own weight: Font Awesome draws the sort arrow only
+   in its solid (900) style, so another weight shows a missing-glyph box. */
 .table.exm-grid.exm-grid > thead > tr > th a.fa-sort {
   color: #b6bdc6;
-  font-weight: 400;
 }
 
 .table.exm-grid.exm-grid > thead > tr > th a.fa-sort:hover {
