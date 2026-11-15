@@ -145,7 +145,7 @@ class ResetPasswordController extends Controller
         $user->password = $password;
         //$user->password = Hash::make($password);
 
-        //$user->setRememberToken(Str::random(60));
+        // the remember token is renewed by LoginUser when the password changes
 
         $user->saveOrFail();
 
