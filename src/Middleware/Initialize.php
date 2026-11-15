@@ -432,6 +432,14 @@ class Initialize
                         Config::set("mail.{$c}", $val);
                     }
                 }
+
+                // The settings above only fill the "smtp" mailer. Laravel 11+ has "log" as the default
+                // mailer (config/mail.php and MAIL_MAILER of .env.example), so a mail was only written
+                // to the log although the SMTP host is set on the system setting page.
+                // Another mailer chosen in .env (sendmail, ses...) is kept.
+                if (!is_nullorempty(System::system_mail_host()) && Config::get('mail.default') === 'log') {
+                    Config::set('mail.default', 'smtp');
+                }
             }
 
             // Google reCAPTCHA ----------------------------------------------------
