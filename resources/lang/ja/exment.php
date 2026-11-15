@@ -88,7 +88,7 @@ return [
         'grid_pin_preset_2' => '先頭2列を固定',
         'grid_pin_preset_3' => '先頭3列を固定',
         'grid_pin_none' => '固定を解除',
-        'grid_pin_actions' => '操作列を右に固定',
+        'grid_pin_actions' => '操作列を固定',
         'grid_pin_head' => 'ヘッダー行を固定',
         'grid_pin_flag' => '固定中',
         'grid_pin_narrow' => '画面幅が足りないため、一部の列は固定されませんでした。',

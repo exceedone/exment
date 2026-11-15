@@ -88,7 +88,7 @@ return [
         'grid_pin_preset_2' => 'Pin first 2 columns',
         'grid_pin_preset_3' => 'Pin first 3 columns',
         'grid_pin_none' => 'Unpin all',
-        'grid_pin_actions' => 'Pin action column to the right',
+        'grid_pin_actions' => 'Pin action column',
         'grid_pin_head' => 'Pin header row',
         'grid_pin_flag' => 'Pinned',
         'grid_pin_narrow' => 'Some columns were left unpinned because the screen is too narrow.',

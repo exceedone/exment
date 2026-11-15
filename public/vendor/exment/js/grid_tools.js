@@ -625,6 +625,57 @@
     sc.style.maxHeight = h + 'px';
   }
 
+  /* ------------------------------------------- action column side --- */
+  // On the table once its action column has been moved to the left.
+  var ACTIONS_LEFT = 'exm-actions-left';
+
+  /**
+   * Should the row actions (view / edit / delete) sit on the left, right
+   * after the checkbox, instead of at the far end of the row?
+   *
+   * Only in the modern design. There the far end is a bad place on a wide
+   * table: frozen to the right edge the icons cover the last columns that
+   * are on screen, and not frozen they are a sideways scroll away.
+   *
+   * An explicit `data-exm-actions` ("left" / "right") on the table or on
+   * <body> decides when present. Without one the design is told by its
+   * stylesheet: modern.css is only requested when the modern design is on,
+   * and nothing else on the page says which design it is.
+   */
+  function actionsLeftWanted(table) {
+    var mark = table.getAttribute('data-exm-actions')
+      || (document.body ? document.body.getAttribute('data-exm-actions') : null);
+    if (mark) return mark === 'left';
+    return !!document.querySelector('link[rel="stylesheet"][href*="/vendor/exment/css/modern.css"]');
+  }
+
+  /**
+   * Move the action cell of every row - header included - to right after
+   * the checkbox cell. The cells are moved, not copied, so the links keep
+   * their handlers; and nothing in this file finds a column by position
+   * (see columnNameOf), so pins, groups, the page filter and the cell
+   * navigation all follow without being told.
+   *
+   * Runs on every init and is a no-op on a row that is already in order.
+   */
+  function initActionsSide() {
+    each(document.querySelectorAll('table.exm-grid'), function (table) {
+      if (!actionsLeftWanted(table)) return;
+      table.classList.add(ACTIONS_LEFT);
+      each(table.querySelectorAll('thead > tr, tbody > tr'), function (tr) {
+        var act = null;
+        var sel = null;
+        each(tr.children, function (cell) {
+          if (cell.classList.contains('column-' + ACTION_COLUMN)) act = cell;
+          else if (cell.classList.contains('column-' + SELECTOR_COLUMN)) sel = cell;
+        });
+        if (!act) return;
+        var ref = sel ? sel.nextElementSibling : tr.firstElementChild;
+        if (ref !== act) tr.insertBefore(act, ref);
+      });
+    });
+  }
+
   /**
    * Freeze the chosen columns.
    *
@@ -643,6 +694,10 @@
     // view/edit links of a row sit outside the window, so the one thing a
     // list exists for - opening a record - needs a sideways scroll first.
     var pinRight = readFlag(PIN_RIGHT_PREFIX + key, true);
+    // With the action column on the left (initActionsSide) there is no
+    // right block: the buttons freeze as part of the left one instead.
+    var actionsLeft = table.classList.contains(ACTIONS_LEFT)
+      && !!table.querySelector('thead > tr > th.column-' + ACTION_COLUMN);
 
     // Height first, widths second - see the note on applyHeadLock.
     applyHeadLock(box, table, key);
@@ -678,7 +733,16 @@
     // when there IS a block. A pin whose column the column picker has
     // since hidden leaves nothing on screen to freeze, and freezing the
     // checkbox on its own looks like a bug rather than a preference.
-    if (group.length && table.querySelector('thead > tr > th.column-' + SELECTOR_COLUMN)) {
+    //
+    // The action column on the left sits between the checkbox and the
+    // data, so it is part of any block there is - a gap in the middle of
+    // the frozen columns would let the rest slide under it. And it makes
+    // a block of its own (checkbox included) while "pin the action
+    // column" is on, which is what keeps the buttons in reach on a table
+    // scrolled sideways.
+    var hasBlock = group.length > 0 || (actionsLeft && pinRight);
+    if (hasBlock && actionsLeft) group.unshift(ACTION_COLUMN);
+    if (hasBlock && table.querySelector('thead > tr > th.column-' + SELECTOR_COLUMN)) {
       group.unshift(SELECTOR_COLUMN);
     }
 
@@ -688,7 +752,7 @@
     // it - which is exactly how the marker ended up half cut off.
     var flagTitle = box.getAttribute('data-flag') || '';
     group.forEach(function (name) {
-      if (name === SELECTOR_COLUMN) return;
+      if (name === SELECTOR_COLUMN || name === ACTION_COLUMN) return;
       var th = table.querySelector('thead > tr > th.column-' + name);
       if (!th) return;
       th.insertAdjacentHTML(
@@ -710,7 +774,7 @@
     // stop inside this same box, so a left block sized without counting
     // the buttons ends up sliding underneath them.
     var rightWidth = 0;
-    if (pinRight) {
+    if (pinRight && !actionsLeft) {
       each(table.querySelectorAll('.column-' + ACTION_COLUMN), function (cell) {
         var w = cell.getBoundingClientRect().width;
         if (w > rightWidth) rightWidth = w;
@@ -736,11 +800,11 @@
         if (w > width) width = w;
       });
 
-      // The selector column rides along for free; a data column has to
-      // fit the budget. The FIRST data column is pinned even when it
+      // The selector column (and the action column, when it is on this
+      // side) rides along for free; a data column has to fit the budget. The FIRST data column is pinned even when it
       // alone is over - the user asked for that column by name, and one
       // frozen column always leaves the rest of the box scrollable.
-      var isData = name !== SELECTOR_COLUMN;
+      var isData = name !== SELECTOR_COLUMN && name !== ACTION_COLUMN;
       if (isData && keptData > 0 && left + width > budget) {
         dropped++;
         var straggler = table.querySelector('thead > tr > th.column-' + name + ' .exm-pin-flag');
@@ -779,7 +843,7 @@
     // buttons as well would park them on top of that frozen text, and the
     // buttons are the easier of the two to reach by scrolling. The stored
     // choice is untouched - it applies again on a wider screen.
-    if (pinRight && left + rightWidth <= boxWidth) {
+    if (pinRight && !actionsLeft && left + rightWidth <= boxWidth) {
       each(table.querySelectorAll('.column-' + ACTION_COLUMN), function (cell) {
         cell.classList.add('exm-pin', 'exm-pin-right-first');
         cell.style.right = '0px';
@@ -4334,6 +4398,9 @@
     placeFilterChips();
     initHeaderFlag();
     initDensity();
+    // Right after the density pass, which is what marks the table as a
+    // grid, and before anything measures a column.
+    initActionsSide();
     initRefresh();
     // Grouping moves rows around, so it runs before the pins are measured.
     initGroup();
@@ -4452,6 +4519,15 @@
       // through these two events only; nothing native fires.
       .on('ifChanged ifClicked', '.grid-row-checkbox, .grid-select-all', function () {
         setTimeout(syncBulk, 0);
+      })
+      // iCheck dresses the checkboxes after the first pin pass, and its
+      // widget is a few px wider than the bare input. The frozen offsets
+      // were added up from the narrower column, so the next frozen column
+      // sat that many px over the checkbox one. Measured again once the
+      // widgets are in (one event per checkbox, hence the timer).
+      .on('ifCreated', '.grid-row-checkbox, .grid-select-all', function () {
+        if (pinResizeTimer) clearTimeout(pinResizeTimer);
+        pinResizeTimer = setTimeout(initPin, 50);
       });
   }
   bindPjaxHooks();
