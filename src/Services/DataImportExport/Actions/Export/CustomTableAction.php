@@ -40,6 +40,13 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
      */
     protected $add_relation = true;
 
+    /**
+     * Whether appending the comments of the data
+     *
+     * @var bool
+     */
+    protected $add_comment = false;
+
     // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
@@ -52,6 +59,7 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
 
         $this->add_setting = array_get($args, 'add_setting', true);
         $this->add_relation = array_get($args, 'add_relation', true);
+        $this->add_comment = boolval(array_get($args, 'add_comment', false));
     }
 
     // @phpstan-ignore-next-line
@@ -86,6 +94,14 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
                     );
                 }
             }
+        }
+
+        // the comments of the data, only if the table uses the comments
+        if ($this->add_comment && boolval($this->custom_table->getOption('comment_flg') ?? true)) {
+            $providers[] = new Export\CommentProvider([
+                'custom_table' => $this->custom_table,
+                'grid' => $this->grid,
+            ]);
         }
 
         if (boolval($this->add_setting)) {
