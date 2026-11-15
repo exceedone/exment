@@ -14,6 +14,17 @@ var Exment;
             $(document).off('click', '#modal-showmodal .selectitembox-item .button-delete').on('click', '#modal-showmodal .selectitembox-item .button-delete', {}, Exment.ModalEvent.deleteSelectItemEvent);
             $(document).off('click', '#modal-showmodal .modal-selectitem .modal-submit').on('click', '#modal-showmodal .modal-selectitem .modal-submit', {}, Exment.ModalEvent.setCalledSelectItemEvent);
             Exment.ModalEvent.autoloadModalEvent();
+            // An open select2 list is put on the body, not in the modal, so it stays on the
+            // screen when the modal is closed with the list open (Esc key etc.). Close it first.
+            $('#modal-showmodal').on('hide.bs.modal', function (e) {
+                $('#modal-showmodal select.select2-hidden-accessible').each(function () {
+                    try {
+                        $(this).select2('close');
+                    }
+                    catch (ex) {
+                    }
+                });
+            });
             $('#modal-showmodal').on('hidden.bs.modal', function (e) {
                 $('#modal-showmodal .modal-body').html('');
             });
