@@ -258,14 +258,26 @@ class CustomOperation extends ModelBase
      * @param CustomTable $custom_table
      * @param int|string $id signle id or id string
      * @param array $inputs input from dialog form
+     * @param bool $checkFormAction if true, check the record's edit permission as display (the button of the record's page)
      * @return bool success or not
      */
 
     // @phpstan-ignore-next-line
-    public function execute($custom_table, $id, $inputs = null)
+    public function execute($custom_table, $id, $inputs = null, $checkFormAction = false)
     {
         $ids = stringToArray($id);
         $custom_values = $custom_table->getValueModel()->find($ids);
+
+        // The button is only shown to those who can edit the record, and the
+        // request has to hold to the same: the edit permission of each record,
+        // its workflow lock and its parent, as CustomValue::enableEdit() answers.
+        // That includes UserTrait::disabled_edit_trait: only an administrator
+        // changes an administrator's user record.
+        foreach ($custom_values as $custom_value) {
+            if (($code = $custom_value->enableEdit($checkFormAction)) !== true) {
+                return $code->getMessage();
+            }
+        }
 
         // check isMatchCondition
         $notMatchConditions = $custom_values->filter(function ($custom_value) {
