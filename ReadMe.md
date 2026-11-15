@@ -51,7 +51,7 @@ And more and more and more functions....
 ## Operating environment
 ### Server
 - PHP 8.2.0 or upper
-- MySQL 8.0 or upper, or MariaDB 10.3 or upper
+- MySQL 8.0 or upper, or MariaDB 10.11 or upper
 - Laravel 12.X
 
 ### Support Browser
