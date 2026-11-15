@@ -79,6 +79,7 @@ return [
         'grid_nowrap' => 'Single line rows',
         'grid_keyboard' => 'Excel-like editing',
         'grid_keyboard_hint' => 'arrow keys to move, F2 or type to edit',
+        'grid_keyboard_label' => 'Excel mode',
         'grid_auto_refresh' => 'Auto refresh',
         'grid_auto_refresh_off' => 'Off',
         'grid_auto_refresh_30' => '30 seconds',

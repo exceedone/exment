@@ -79,6 +79,7 @@ return [
         'grid_nowrap' => '1行で表示',
         'grid_keyboard' => 'Excel 風に編集',
         'grid_keyboard_hint' => '矢印キーで移動・F2 / 入力で編集',
+        'grid_keyboard_label' => 'Excel 風',
         'grid_auto_refresh' => '自動更新',
         'grid_auto_refresh_off' => 'オフ',
         'grid_auto_refresh_30' => '30秒',

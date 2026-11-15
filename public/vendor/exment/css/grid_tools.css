@@ -1149,6 +1149,10 @@ body.exm-bulkbar-open .content-wrapper {
    and ringed rather than filled, so it is not taken for a primary action.
    `!important` and the long selector only because the admin theme sets
    the three colours of `.btn-default` with `!important` itself. */
+.exm-grid-tool.exm-grid-kbd > .btn.exm-kbd-toggle .exm-kbd-label {
+  margin-left: 5px;
+}
+
 .exm-grid-tool.exm-grid-kbd > .btn.exm-kbd-toggle.active,
 .exm-grid-tool.exm-grid-kbd > .btn.exm-kbd-toggle.active:hover,
 .exm-grid-tool.exm-grid-kbd > .btn.exm-kbd-toggle.active:focus {

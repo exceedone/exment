@@ -34,6 +34,8 @@ class GridKeyboard extends AbstractTool
         // Name and keys in one line: the title is the only place a mouse
         // user can learn what the mode does before turning it on.
         $title = e(exmtrans('common.grid_keyboard') . ' (' . exmtrans('common.grid_keyboard_hint') . ')');
+        // A short visible label: the keyboard icon alone was not recognized as a button.
+        $label = e(exmtrans('common.grid_keyboard_label'));
 
         // aria-pressed starts false and grid_tools.js sets it from the
         // stored choice, together with the `active` class.
@@ -41,7 +43,7 @@ class GridKeyboard extends AbstractTool
 <div class="btn-group exm-grid-tool exm-grid-kbd" data-grid="{$gridId}">
     <button type="button" class="btn btn-sm btn-default exm-kbd-toggle" aria-pressed="false"
         title="{$title}" aria-label="{$title}">
-        <i class="fa fa-keyboard-o"></i>
+        <i class="fa fa-keyboard-o"></i><span class="exm-kbd-label">{$label}</span>
     </button>
 </div>
 HTML;
