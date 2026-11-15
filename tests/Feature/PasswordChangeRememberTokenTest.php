@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Middleware\VerifyCsrfToken;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Providers\LoginUserProvider;
@@ -10,6 +11,7 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * #1734: a "remember me" cookie is checked only against login_users.remember_token. The token
@@ -55,6 +57,11 @@ class PasswordChangeRememberTokenTest extends FeatureTestBase
 
     public function testResettingThePasswordByMailLinkRenewsTheRememberToken(): void
     {
+        // The table is made by the migrations of the Laravel application, not by Exment. An older
+        // boilerplate makes "password_resets" instead, and the reset by mail cannot run there.
+        if (!Schema::hasTable(SystemTableName::PASSWORD_RESET)) {
+            $this->markTestSkipped('The table ' . SystemTableName::PASSWORD_RESET . ' does not exist.');
+        }
         $login_user = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         if (empty($login_user->base_user->getValue('email'))) {
             $login_user->base_user->setValue(['email' => 'issue1734@example.invalid'])->saved_notify(false)->save();
