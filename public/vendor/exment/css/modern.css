@@ -320,6 +320,28 @@ body[class*="skin-"] .main-header .logo:hover {
   font-weight: 700;
 }
 
+/* An uploaded header logo was made for the colored bar of the classic
+   design - very often it is white, and would vanish on this light bar.
+   So an image logo sits on a small plate in the logo blue. The plate is
+   the image's own background and padding (`box-sizing: border-box`), so
+   it stays inside the size limits common.css sets (200x40 and 50x40)
+   and the bar keeps its height. The text logo (no <img>) is not
+   affected. */
+body[class*="skin-"] .main-header .logo .logo-lg img,
+body[class*="skin-"] .main-header .logo .logo-mini img {
+  box-sizing: border-box;
+  background-color: var(--exm-ui-accent);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+body[class*="skin-"] .main-header .logo .logo-lg img {
+  padding: 5px 10px;
+}
+
+body[class*="skin-"] .main-header .logo .logo-mini img {
+  padding: 4px;
+}
+
 body[class*="skin-"] .main-header .navbar {
   background-color: var(--exm-ui-bg);
   box-shadow: inset 0 -1px 0 var(--exm-ui-line);
@@ -606,10 +628,16 @@ body[class*="skin-"] .pagination .page-item.active .page-link {
 
 
 /* ----------------------------------------------------------- buttons --- */
-/* Gray for ordinary buttons, the accent for the main action. "New" is
-   .btn-success in this theme and "Save" is .btn-primary: both are "the
-   thing this screen is for", so both take the accent. Warning, danger
-   and info keep their own colors - there the color is the message.
+/* Gray for ordinary buttons, the accent for the main action of a
+   screen:
+     - "Save" at the bottom of a form is .btn-primary, and so is every
+       other primary button;
+     - "New" above a list is a green .btn-success in this theme. Green
+       also means "approve / OK" elsewhere, so .btn-success as a class is
+       left green. Only the link that opens a create page takes the
+       accent - it is recognized by its address (".../create").
+   Success, warning, danger and info keep their own colors - there the
+   color is the message.
 
    `!important` on .btn-default only because open-admin's custom.css sets
    its three colors with `!important`. */
@@ -628,7 +656,8 @@ body[class*="skin-"] .btn-default.show {
 }
 
 body[class*="skin-"] .btn-primary,
-body[class*="skin-"] .btn-success {
+body[class*="skin-"] a.btn-success[href$="/create"],
+body[class*="skin-"] a.btn-success[href*="/create?"] {
   --bs-btn-color: #fff;
   --bs-btn-bg: var(--exm-ui-accent);
   --bs-btn-border-color: var(--exm-ui-accent);
@@ -650,10 +679,12 @@ body[class*="skin-"] .btn-primary:hover,
 body[class*="skin-"] .btn-primary:focus,
 body[class*="skin-"] .btn-primary:active,
 body[class*="skin-"] .btn-primary.active,
-body[class*="skin-"] .btn-success:hover,
-body[class*="skin-"] .btn-success:focus,
-body[class*="skin-"] .btn-success:active,
-body[class*="skin-"] .btn-success.active {
+body[class*="skin-"] a.btn-success[href$="/create"]:hover,
+body[class*="skin-"] a.btn-success[href$="/create"]:focus,
+body[class*="skin-"] a.btn-success[href$="/create"]:active,
+body[class*="skin-"] a.btn-success[href*="/create?"]:hover,
+body[class*="skin-"] a.btn-success[href*="/create?"]:focus,
+body[class*="skin-"] a.btn-success[href*="/create?"]:active {
   color: #fff;
   background-color: var(--exm-ui-accent-strong);
   border-color: var(--exm-ui-accent-strong);
@@ -1109,7 +1140,7 @@ body[class*="skin-"] .box:has(table.exm-grid) > .box-footer {
 
 /* ---------------------------------------------------------- toolbar --- */
 /* Button colors come from the general button rules above (gray for
-   tools, the accent for "New"). */
+   tools, the accent for the "New" link to the create page). */
 /* "This tool is on" - soft accent instead of a solid block. */
 body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-refresh-btn.active,
 body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-pin-btn.active,

@@ -137,6 +137,22 @@ class UiDesignSettingTest extends FeatureTestBase
         );
     }
 
+    /**
+     * The installer does not ask for the design: a new installation starts
+     * with the default one.
+     */
+    public function testTheInstallerFormDoesNotOfferTheChoice(): void
+    {
+        System::initialized(0);
+        System::clearCache();
+
+        $content = (string) $this->get(admin_url('initialize'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('name="site_layout"', $content);
+        $this->assertStringNotContainsString('name="ui_design"', $content);
+        $this->assertSame('modern', \Exment::getUiDesign());
+    }
+
     private function setDesign(string $design): void
     {
         System::ui_design($design);
