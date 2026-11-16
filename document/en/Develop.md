@@ -225,7 +225,18 @@ When modifying the program, please edit the 'packages' folder.
 GitHub brunch is operated as follows.  
 *Reference(Japanese site)： [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
 
-> Since v7.0.0, pull requests are made against the master branch. The table below describes the previous branch model.
+> **Current workflow (since 2026-11)**: make pull requests against the branch of each version.
+>
+> | Branch | What it is | Pull requests for |
+> |---|---|---|
+> | `7.1` | Builds the next version (7.1.0). After 7.1.0 is released, it keeps 7.1.x | New features, performance and bug fixes for 7.1.0 |
+> | `master` | Development after that (7.2 and later) | Large changes not for 7.1.0. Fixes in `7.1` are merged from `7.1` into `master` together |
+> | `7.0` | Maintenance of 7.0.x (security fixes only) | Security fixes |
+> | `6.2` | Maintenance of 6.2.x (security fixes only, until 2027-03-31) | Security fixes |
+>
+> Security fixes are not handled in public issues or pull requests; see [SECURITY.md](../../SECURITY.md).
+>
+> The table below describes the previous branch model.
 
 | GitHub Brunch Name | Derived from | Explain |
 | ------------------ | -------------| ------------- |
@@ -264,6 +275,6 @@ If you want to commit to exceedone/exment of the main unit, follow the procedure
 
 - Exment pull request on GitHub.  
 
-- Execute a pull request for the **master** branch of exceedone/exment (the workflow since v7.0.0). Please name your branch `feature/XXX` for new functions or `fix/XXX` for bug fixes.  
+- Execute a pull request for the branch in the "Current workflow" table above (usually **7.1** for new functions and bug fixes) of exceedone/exment. Please name your branch `feature/XXX` for new functions or `fix/XXX` for bug fixes.  
 Please include comments as much as possible.
 
