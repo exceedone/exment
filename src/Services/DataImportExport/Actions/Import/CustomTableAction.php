@@ -131,14 +131,21 @@ class CustomTableAction implements ActionInterface
                     ];
                 }
 
-                foreach ($data_import as $index => &$row) {
-                    // call dataProcessing if method exists
-                    if (method_exists($provider, 'dataProcessing')) {
-                        // @phpstan-ignore-next-line
-                        $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
-                    }
+                try {
+                    foreach ($data_import as $index => &$row) {
+                        // call dataProcessing if method exists
+                        if (method_exists($provider, 'dataProcessing')) {
+                            // @phpstan-ignore-next-line
+                            $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
+                        }
 
-                    $provider->importData($row);
+                        $provider->importData($row);
+                    }
+                } finally {
+                    // per chunk, and also when a row throws: earlier rows stay written
+                    if (method_exists($provider, 'afterImportData')) {
+                        $provider->afterImportData();
+                    }
                 }
 
                 // $get_index++;
@@ -207,14 +214,21 @@ class CustomTableAction implements ActionInterface
         foreach ($data_imports as $data_import) {
             // execute imoport
             $provider = $data_import['provider'];
-            foreach ($data_import['data_import'] as $index => &$row) {
-                // call dataProcessing if method exists
-                if (method_exists($provider, 'dataProcessing')) {
-                    // @phpstan-ignore-next-line
-                    $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
-                }
+            try {
+                foreach ($data_import['data_import'] as $index => &$row) {
+                    // call dataProcessing if method exists
+                    if (method_exists($provider, 'dataProcessing')) {
+                        // @phpstan-ignore-next-line
+                        $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
+                    }
 
-                $provider->importData($row);
+                    $provider->importData($row);
+                }
+            } finally {
+                // also when a row throws: earlier rows stay written
+                if (method_exists($provider, 'afterImportData')) {
+                    $provider->afterImportData();
+                }
             }
         }
 
