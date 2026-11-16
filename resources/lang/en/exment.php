@@ -3660,5 +3660,7 @@ return [
         'message_system_setting' => 'This is a demo site: the mail server, LINE, full-text search server, IP filter, reCAPTCHA, API and outside connection settings are not saved.',
         'message_login_id' => 'This is a demo site: the user code and e-mail address of a user who can log in cannot be changed.',
         'message_user_delete' => 'This is a demo site: a user who can log in cannot be deleted.',
+        'message_public_form_script' => 'This is a demo site: custom CSS and JavaScript of public forms are not saved.',
+        'message_system_admin' => 'This is a demo site: the system administrators are not changed.',
     ],
 ];
