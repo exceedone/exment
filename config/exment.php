@@ -520,6 +520,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Demo mode
+    |--------------------------------------------------------------------------
+    |
+    | For a public demo site that publishes its login. If true, operations that run code
+    | on the server, change the server, send anything outside or show secrets are refused,
+    | even for the system administrator: plugin upload and code editing, backup, template
+    | import, mail / login / API settings, password changes and so on.
+    | Mail is written to the log only, and Slack, Teams and LINE messages are not sent.
+    | Console commands (ex. a nightly restore by cron) are not limited.
+    | See Exceedone\Exment\Services\DemoMode for the full list.
+    |
+    */
+    'demo_mode' => env('EXMENT_DEMO_MODE', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Login throttle
     |--------------------------------------------------------------------------
     |

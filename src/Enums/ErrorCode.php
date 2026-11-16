@@ -27,6 +27,7 @@ namespace Exceedone\Exment\Enums;
  * @method static ErrorCode NOT_CONTAINS_CUSTOM_FORM()
  * @method static ErrorCode ONE_RECORD_ALREADY()
  * @method static ErrorCode WORKFLOW_NOT_HAS_NEXT_USER()
+ * @method static ErrorCode DEMO_MODE()
  */
 class ErrorCode extends EnumBase
 {
@@ -52,6 +53,8 @@ class ErrorCode extends EnumBase
     public const DISAPPROVAL_IP = '301';
     public const NOT_CONTAINS_CUSTOM_FORM = '401';
     public const ONE_RECORD_ALREADY = '402';
+    // refused because the site runs in demo mode (config exment.demo_mode)
+    public const DEMO_MODE = '501';
 
     // @phpstan-ignore-next-line
     public function getMessage()

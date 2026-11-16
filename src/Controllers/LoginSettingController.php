@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Services\Login as LoginServiceBase;
@@ -90,7 +91,15 @@ class LoginSettingController extends AdminControllerBase
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
+            // demo mode: these settings are refused
+            if (DemoMode::enabled()) {
+                $actions->disableEdit();
+                $actions->disableDelete();
+            }
         });
+        if (DemoMode::enabled()) {
+            $grid->disableCreateButton();
+        }
         $grid->tools(function (Grid\Tools $tools) {
             $tools->prepend(new Tools\SystemChangePageMenu());
         });

@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
@@ -769,6 +770,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $errors = array_merge(
             $this->validatorPlugin($value, $custom_value, ['called_type' => $options['calledType']]),
+            $errors
+        );
+
+        // demo mode: the login ID of a user who can log in stays
+        $errors = array_merge(
+            DemoMode::userLoginErrors($this, $value, $custom_value, $options),
             $errors
         );
 
@@ -3993,6 +4000,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function validateValueDestroy($id)
     {
         $ids = stringToArray($id);
+
+        // demo mode: a user who can log in is not deleted
+        if (!is_null($res = DemoMode::userDestroyError($this, $ids))) {
+            return $res;
+        }
 
         // check if data referenced
         if ($this->checkReferenced($this, $ids)) {

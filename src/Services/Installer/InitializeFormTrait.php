@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Exceedone\Exment\Services\TemplateImportExport;
@@ -277,9 +278,16 @@ trait InitializeFormTrait
             array_forget($inputs, 'ui_design');
         }
 
+        // demo mode: the mail, LINE, search server, IP filter, reCAPTCHA and API settings are kept
+        $inputs = DemoMode::filterSystemInputs($inputs);
+
         // set system_key and value
         foreach ($inputs as $k => $input) {
             System::{$k}($input);
+        }
+        // demo mode: no template upload or import
+        if (DemoMode::enabled()) {
+            return true;
         }
         // upload zip file
         $this->uploadTemplate($request);

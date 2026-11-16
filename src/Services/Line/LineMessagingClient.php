@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Line;
 
 use GuzzleHttp\Client;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\DemoMode;
 use Illuminate\Support\Facades\Log;
 
 class LineMessagingClient
@@ -116,6 +117,16 @@ class LineMessagingClient
      */
     protected function request(string $path, array $json): array
     {
+        // demo mode sends nothing to LINE: answer as if it was accepted, so nothing retries
+        if (!DemoMode::allowsOutboundMessage('LINE', ['path' => $path])) {
+            return [
+                'status' => 200,
+                'ok'     => true,
+                'body'   => [],
+                'raw'    => '',
+            ];
+        }
+
         $res = $this->http->request('POST', $path, [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->token,

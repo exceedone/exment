@@ -3475,6 +3475,7 @@ return [
             'unsupported_view_kind_type' => 'The view type is not supported by the API.',
             'not_contains_custom_form' => 'The specified API cannot be executed on this form.',
             'one_record_already' => 'This table allows only one record.',
+            'demo_mode' => 'This operation is not available on this demo site.',
         ],
 
         'help' =>[
@@ -3652,5 +3653,12 @@ return [
         'answer_invalid_link' => 'This link is invalid. Please contact your administrator.',
         'answer_link_expired' => 'This link has expired. Please contact your administrator.',
         'answer_invalid_status' => 'The submitted answer is invalid. Please go back and try again.',
+    ],
+    'demo_mode' => [
+        'banner' => 'This is a demo site. Some operations (plugins, backup, mail and login settings, etc.) are not available. The data is reset every night.',
+        'message_blocked' => 'This operation is not available on this demo site.',
+        'message_system_setting' => 'This is a demo site: the mail server, LINE, full-text search server, IP filter, reCAPTCHA, API and outside connection settings are not saved.',
+        'message_login_id' => 'This is a demo site: the user code and e-mail address of a user who can log in cannot be changed.',
+        'message_user_delete' => 'This is a demo site: a user who can log in cannot be deleted.',
     ],
 ];

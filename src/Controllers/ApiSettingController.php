@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Enums\ApiClientType;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Services\DemoMode;
 
 class ApiSettingController extends AdminControllerBase
 {
@@ -63,7 +64,15 @@ class ApiSettingController extends AdminControllerBase
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
+            // demo mode: these settings are refused
+            if (DemoMode::enabled()) {
+                $actions->disableEdit();
+                $actions->disableDelete();
+            }
         });
+        if (DemoMode::enabled()) {
+            $grid->disableCreateButton();
+        }
         $grid->tools(function (Grid\Tools $tools) {
             $tools->prepend(new Tools\SystemChangePageMenu());
         });
