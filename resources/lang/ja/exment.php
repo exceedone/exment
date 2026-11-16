@@ -3659,5 +3659,7 @@ return [
         'message_system_setting' => 'デモ環境のため、メールサーバー・LINE・全文検索サーバー・IPフィルタ・reCAPTCHA・API・外部接続の設定は保存されません。',
         'message_login_id' => 'デモ環境のため、ログインできるユーザーのユーザーコードとメールアドレスは変更できません。',
         'message_user_delete' => 'デモ環境のため、ログインできるユーザーは削除できません。',
+        'message_public_form_script' => 'デモ環境のため、公開フォームのカスタムCSS・JavaScriptは保存されません。',
+        'message_system_admin' => 'デモ環境のため、システム管理者は変更されません。',
     ],
 ];

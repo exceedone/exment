@@ -14,7 +14,9 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Notifications\Mail\MailChannel;
 use Exceedone\Exment\Notifications\Navbar\NavbarChannel;
@@ -386,6 +388,125 @@ class DemoModeTest extends FeatureTestBase
             ->assertSee(DemoMode::bannerText());
     }
 
+    // operation log ---------------------------------------------------------------------------------
+
+    public function testTheOperationLogIsRefused(): void
+    {
+        $this->assertRefusedPage($this->get(admin_url('auth/logs')));
+        $this->assertRefusedPage($this->get(admin_url('auth/logs/1')));
+        $this->assertRefusedJson($this->delete(admin_url('auth/logs/1'), [], self::AJAX));
+        $this->assertRefusedPage($this->post(admin_url('auth/logs/setting'), ['logging_toggle_available' => 0]));
+        // the log API
+        $this->assertRefusedJson($this->get(admin_urls('webapi', 'log')));
+        $this->assertRefusedJson($this->get(admin_urls('webapi', 'log', 1)));
+    }
+
+    public function testTheMenuHasNoItemOfARefusedPage(): void
+    {
+        $uris = collect((new Menu())->allNodes())->pluck('uri')->all();
+
+        $this->assertNotContains('auth/logs', $uris);
+        $this->assertNotContains('backup', $uris);
+    }
+
+    // public form scripts ---------------------------------------------------------------------------
+
+    private function publicForm(): PublicForm
+    {
+        $public_form = PublicForm::query()->orderBy('id')->first();
+        $this->assertInstanceOf(PublicForm::class, $public_form);
+
+        return $public_form;
+    }
+
+    private function savedPublicForm(PublicForm $public_form): PublicForm
+    {
+        $saved = PublicForm::query()->find($public_form->id);
+        $this->assertInstanceOf(PublicForm::class, $saved);
+
+        return $saved;
+    }
+
+    public function testPublicFormScriptsKeepTheirOldValue(): void
+    {
+        // the owner's script, saved without demo mode
+        config(['exment.demo_mode' => false]);
+        $public_form = $this->publicForm();
+        $public_form->setOption('custom_js', 'console.log("owner");');
+        $public_form->save();
+
+        // a visitor's script and style are not saved, other settings are
+        config(['exment.demo_mode' => true]);
+        $public_form = $this->savedPublicForm($public_form);
+        $public_form->setOption('custom_js', 'alert("visitor");');
+        $public_form->setOption('custom_css', 'body { display: none; }');
+        $public_form->setOption('complete_title', 'demo mode complete');
+        $public_form->save();
+
+        $saved = $this->savedPublicForm($public_form);
+        $this->assertSame('console.log("owner");', $saved->getOption('custom_js'));
+        $this->assertNull($saved->getOption('custom_css'));
+        $this->assertSame('demo mode complete', $saved->getOption('complete_title'));
+    }
+
+    public function testThePublicFormSettingPageHasNoScriptInput(): void
+    {
+        $public_form = $this->publicForm();
+        $table_name = $public_form->custom_form->custom_table->table_name;
+
+        $this->get(admin_urls('formpublic', $table_name, $public_form->id, 'edit'), self::AJAX)
+            ->assertOk()
+            ->assertDontSee('css_js_setting[custom_js]', false)
+            ->assertDontSee('css_js_setting[custom_css]', false)
+            ->assertSee(strval(exmtrans('demo_mode.message_public_form_script')));
+    }
+
+    // system administrators ---------------------------------------------------------------------------
+
+    /**
+     * What the basic page of the system settings posts: the current values, and the changes.
+     *
+     * @param array<string, mixed> $changes
+     * @return array<string, mixed>
+     */
+    private function basicSystemInput(array $changes): array
+    {
+        $input = [];
+        foreach (System::get_system_values(['initialize']) as $key => $value) {
+            if (in_array($key, ['site_logo', 'site_logo_mini', 'site_favicon'], true)) {
+                continue;
+            }
+            $input[$key] = is_bool($value) ? ($value ? '1' : '0') : $value;
+        }
+
+        return array_merge($input, $changes);
+    }
+
+    public function testTheSystemAdministratorsStay(): void
+    {
+        $admins = System::system_admin_users();
+        $user2 = $this->userOf(TestDefine::TESTDATA_USER_LOGINID_USER2);
+
+        $this->post(admin_url('system'), $this->basicSystemInput([
+            'site_name' => 'Demo mode site',
+            'system_admin_users' => [strval($user2->id)],
+        ]))->assertRedirect(admin_url('system'))->assertSessionHasNoErrors();
+
+        System::clearCache();
+        $this->assertEquals($admins, System::system_admin_users(), 'the system administrators are kept');
+        $this->assertSame('Demo mode site', System::site_name(), 'the other basic settings are saved');
+    }
+
+    public function testTheAdministratorIsNotDeleted(): void
+    {
+        $admin = $this->userOf(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+
+        $status = $this->delete(admin_urls('webapi', 'data', SystemTableName::USER, $admin->id))->getStatusCode();
+        $this->assertGreaterThanOrEqual(400, $status);
+        $this->userOf(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->assertNotNull(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+    }
+
     // without demo mode ------------------------------------------------------------------------------
 
     public function testWithoutDemoModeNothingIsRefused(): void
@@ -430,6 +551,21 @@ class DemoModeTest extends FeatureTestBase
         Initialize::initializeConfig(false);
         $this->assertSame('array', config('mail.default'));
         $this->assertTrue(DemoMode::allowsNotificationChannel('slack'));
+
+        // the system administrators are changed
+        $admins = System::system_admin_users();
+        $user2 = $this->userOf(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->post(admin_url('system'), $this->basicSystemInput([
+            'system_admin_users' => array_merge(array_map('strval', $admins), [strval($user2->id)]),
+        ]))->assertRedirect(admin_url('system'))->assertSessionHasNoErrors();
+        System::clearCache();
+        $this->assertContains(strval($user2->id), array_map('strval', System::system_admin_users()));
+
+        // a public form script is saved
+        $public_form = $this->publicForm();
+        $public_form->setOption('custom_js', 'console.log("demo mode off");');
+        $public_form->save();
+        $this->assertSame('console.log("demo mode off");', $this->savedPublicForm($public_form)->getOption('custom_js'));
 
         // and the password is changed
         $this->post(admin_url('auth/change'), [

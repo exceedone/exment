@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Notifications\Mail\MailChannel;
 use Exceedone\Exment\Notifications\Navbar\NavbarChannel;
 use Illuminate\Http\Request;
@@ -31,6 +32,9 @@ use Symfony\Component\HttpFoundation\Response;
  * - changesOwnLogin(): the password and login ID on the user's own setting page.
  * - LOCKED_SYSTEM_KEYS: the system settings that are not saved.
  * - userLoginErrors() / userDestroyError(): the login ID and the deletion of users who can log in.
+ * - keepsSystemAdmins(): the system administrators of the system setting page.
+ * - keepPublicFormScripts(): the custom CSS and JavaScript of public forms.
+ * - hidesMenuUri(): the menu items of refused pages.
  * - allowsNotificationChannel(): only mail (to the log, see applyRuntimeConfig()) and the
  *   navbar notification are sent; Slack, Teams and any other channel are dropped.
  * - allowsOutboundMessage(): LINE messages are not sent.
@@ -71,7 +75,25 @@ class DemoMode
         Controllers\ForgetPasswordController::class => ['sendResetLinkEmail'],
         Controllers\ResetPasswordController::class => ['reset'],
         Controllers\LoginUserController::class => ['update', 'import'],
+        // operation log: it shows the IP addresses and requests of the other visitors
+        Controllers\LogController::class => ['*'],
+        Controllers\ApiController::class => ['authLogs', 'authLog'],
     ];
+
+    /**
+     * System menu items not shown in demo mode (their pages are refused).
+     *
+     * @var array<int, string>
+     */
+    public const HIDDEN_MENU_URIS = ['auth/logs', 'backup'];
+
+    /**
+     * Public form options that run in the browser of the next visitor. In demo mode
+     * saving a public form keeps their old value.
+     *
+     * @var array<int, string>
+     */
+    public const LOCKED_PUBLIC_FORM_OPTIONS = ['custom_css', 'custom_js'];
 
     /**
      * System settings that are not saved in demo mode: they reach outside, change how the
@@ -338,6 +360,50 @@ class DemoMode
             }
         }
         return $values;
+    }
+
+    /**
+     * Whether the system administrators (system setting page) are kept as they are.
+     */
+    public static function keepsSystemAdmins(): bool
+    {
+        return static::enabled();
+    }
+
+    /**
+     * Whether a system menu item is hidden.
+     *
+     * @param mixed $uri
+     */
+    public static function hidesMenuUri($uri): bool
+    {
+        return static::enabled() && in_array($uri, static::HIDDEN_MENU_URIS, true);
+    }
+
+    // Public forms ------------------------------------------------------------------
+
+    /**
+     * Before a public form is saved: put back the custom CSS and JavaScript it had,
+     * so no visitor can store a script that runs for the next visitors.
+     */
+    public static function keepPublicFormScripts(PublicForm $public_form): void
+    {
+        if (!static::enabled()) {
+            return;
+        }
+
+        $original = $public_form->exists ? json_decode(strval($public_form->getRawOriginal('options')), true) : [];
+        if (!is_array($original)) {
+            $original = [];
+        }
+        foreach (static::LOCKED_PUBLIC_FORM_OPTIONS as $key) {
+            $old = array_get($original, $key);
+            if (is_nullorempty($old)) {
+                $public_form->forgetOption($key);
+            } else {
+                $public_form->setOption($key, $old);
+            }
+        }
     }
 
     // Users -----------------------------------------------------------------------

@@ -96,7 +96,7 @@ class SystemController extends AdminControllerBase
 
         $admin_users = System::system_admin_users();
         $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
-            ->help(exmtrans('system.help.system_admin_users'))
+            ->help(DemoMode::keepsSystemAdmins() ? exmtrans('demo_mode.message_system_admin') : exmtrans('system.help.system_admin_users'))
             ->required()
             ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl())
             ->options(function ($option) use ($admin_users) {
@@ -500,8 +500,8 @@ class SystemController extends AdminControllerBase
                 return $result;
             }
 
-            // Set Role
-            if (!$advanced) {
+            // Set Role. demo mode keeps the system administrators, so the published login stays one.
+            if (!$advanced && !DemoMode::keepsSystemAdmins()) {
                 System::system_admin_users($request->get('system_admin_users'));
             }
 

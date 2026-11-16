@@ -142,6 +142,11 @@ class PublicForm extends ModelBase
             }
         });
 
+        // demo mode: the custom CSS and JavaScript keep their old value
+        static::saving(function ($model) {
+            \Exceedone\Exment\Services\DemoMode::keepPublicFormScripts($model);
+        });
+
         static::saved(function ($model) {
             $model->toggleNotify();
         });
