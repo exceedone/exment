@@ -1551,6 +1551,31 @@ return [
             'status_changed' => 'This action cannot be performed. Another user may have executed the workflow.',
         ],
         
+        'bulk' => [
+            'title' => 'Run Workflow',
+            'submit' => 'Run',
+            'action_option' => '%s (%d of the %d selected)',
+            'help' => [
+                'next_work_users' => 'Used for the data that needs the next work users chosen in "%s". The chosen users are set to all of that data.',
+                'comment' => 'A comment is required for "%s".',
+            ],
+            'message' => [
+                'description' => 'Run a workflow action on the %d selected data. The data that cannot take it is skipped.',
+                'no_action' => 'There is no workflow action you can run on the %d selected data.',
+                'comment_required' => 'Enter a comment for "%s".',
+                'next_work_users_required' => 'Choose the next work users for "%s".',
+                'executed' => 'Ran the workflow on %d data.',
+                'none_executed' => 'The workflow was not run on any data.',
+                'skipped' => '%d data were skipped (%s).',
+            ],
+            'skip_reasons' => [
+                'not_found' => 'data not found',
+                'status_changed' => 'the action cannot be run at its status',
+                'nextuser_not_found' => 'no next work user',
+                'error' => 'error',
+            ],
+        ],
+
         'comment_options' => [
             'required' => 'Required',
             'nullable' => 'Nullable',
