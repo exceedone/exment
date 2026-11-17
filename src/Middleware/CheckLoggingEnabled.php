@@ -186,7 +186,8 @@ class CheckLoggingEnabled
             }
         }
 
-        $base = substr($url, 0, strpos($url, '?'));
+        $pos = strpos($url, '?');
+        $base = $pos === false ? $url : substr($url, 0, $pos);
         $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
         return $base . '?' . implode('&', $query) . $fragment;
     }

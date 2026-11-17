@@ -126,6 +126,7 @@ class SystemPerformanceLogTest extends UnitTestBase
     /**
      * @param Request|null $request
      * @return array<string, mixed>|null
+     * @phpstan-impure
      */
     protected function makeLog(?Request $request = null): ?array
     {
