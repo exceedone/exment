@@ -275,7 +275,7 @@ class CustomOperation extends ModelBase
         // changes an administrator's user record.
         foreach ($custom_values as $custom_value) {
             if (($code = $custom_value->enableEdit($checkFormAction)) !== true) {
-                return $code->getMessage();
+                return ($code instanceof \Exceedone\Exment\Enums\ErrorCode ? $code : \Exceedone\Exment\Enums\ErrorCode::PERMISSION_DENY())->getMessage();
             }
         }
 

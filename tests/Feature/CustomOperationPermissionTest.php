@@ -65,11 +65,11 @@ class CustomOperationPermissionTest extends FeatureTestBase
      * @param array<mixed> $files
      * @param array<mixed> $server
      * @param string|null $content
-     * @return TestResponse<Response>
+     * @return TestResponse
      */
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {
-        foreach ($this->app['router']->getRoutes() as $route) {
+        foreach ($this->app['router']->getRoutes()->getRoutes() as $route) {
             $route->flushController();
         }
         System::clearRequestSession();
@@ -143,7 +143,7 @@ class CustomOperationPermissionTest extends FeatureTestBase
         $locked = null;
         foreach ([static::TABLE_EDIT, TestDefine::TESTDATA_TABLE_NAME_EDIT] as $table_name) {
             foreach ($this->newRow($table_name)->newQueryWithoutScopes()->whereNull('deleted_at')->get() as $row) {
-                if ($row instanceof CustomValue && $row->lockedWorkflow()) {
+                if ($row->lockedWorkflow()) {
                     $locked = $row;
                     break 2;
                 }
@@ -288,7 +288,7 @@ class CustomOperationPermissionTest extends FeatureTestBase
     /**
      * The button of the record's page.
      *
-     * @return TestResponse<Response>
+     * @return TestResponse
      */
     protected function click(CustomOperation $operation, string $table_name, CustomValue $record): TestResponse
     {
@@ -303,7 +303,7 @@ class CustomOperationPermissionTest extends FeatureTestBase
      * The bulk update of the list.
      *
      * @param array<int, CustomValue> $records
-     * @return TestResponse<Response>
+     * @return TestResponse
      */
     protected function bulk(CustomOperation $operation, string $table_name, array $records): TestResponse
     {

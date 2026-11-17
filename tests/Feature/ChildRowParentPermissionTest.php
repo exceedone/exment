@@ -70,11 +70,11 @@ class ChildRowParentPermissionTest extends ApiTestBase
      * @param array<mixed> $files
      * @param array<mixed> $server
      * @param string|null $content
-     * @return TestResponse<Response>
+     * @return TestResponse
      */
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {
-        foreach ($this->app['router']->getRoutes() as $route) {
+        foreach ($this->app['router']->getRoutes()->getRoutes() as $route) {
             $route->flushController();
         }
         System::clearRequestSession();
@@ -502,7 +502,7 @@ class ChildRowParentPermissionTest extends ApiTestBase
     /**
      * The ids of the rows a list call answered, ascending.
      *
-     * @param TestResponse<Response> $response
+     * @param TestResponse $response
      * @return array<int, int>
      */
     protected function listedIds(TestResponse $response): array
@@ -520,7 +520,7 @@ class ChildRowParentPermissionTest extends ApiTestBase
     }
 
     /**
-     * @return TestResponse<Response>
+     * @return TestResponse
      */
     protected function getApi(string $path): TestResponse
     {
@@ -531,7 +531,7 @@ class ChildRowParentPermissionTest extends ApiTestBase
 
     /**
      * @param array<string, mixed> $data
-     * @return TestResponse<Response>
+     * @return TestResponse
      */
     protected function putApi(string $path, array $data): TestResponse
     {
@@ -541,7 +541,7 @@ class ChildRowParentPermissionTest extends ApiTestBase
     }
 
     /**
-     * @return TestResponse<Response>
+     * @return TestResponse
      */
     protected function deleteApi(string $path): TestResponse
     {
