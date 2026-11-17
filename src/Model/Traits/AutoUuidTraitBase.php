@@ -34,6 +34,9 @@ trait AutoUuidTraitBase
         }
         // if exists "firstRecord" class, call this
         if (method_exists(get_called_class(), "firstRecord")) {
+            if (is_scalar($uuid) && method_exists(get_called_class(), "firstRecordBy")) {
+                return static::firstRecordBy([static::$uuid_key], [$uuid]);
+            }
             return static::firstRecord(function ($record) use ($uuid) {
                 return array_get($record, static::$uuid_key) == $uuid;
             });

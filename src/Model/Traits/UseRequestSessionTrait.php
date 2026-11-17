@@ -98,10 +98,36 @@ trait UseRequestSessionTrait
      */
     public static function recordsCacheBy(array $fields, array $values)
     {
+        return static::_recordsBy('cache', $fields, $values);
+    }
+
+    /**
+     * Same as recordsCacheBy(), but from the request session, like allRecords().
+     *
+     * @param array<string> $fields
+     * @param array<mixed> $values
+     * @return \Illuminate\Support\Collection<int, static>
+     */
+    public static function recordsBy(array $fields, array $values)
+    {
+        return static::_recordsBy('requestSession', $fields, $values);
+    }
+
+    /**
+     * @param string $func 'cache' or 'requestSession'
+     * @param array<string> $fields
+     * @param array<mixed> $values
+     * @return \Illuminate\Support\Collection<int, static>
+     */
+    protected static function _recordsBy(string $func, array $fields, array $values)
+    {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
-        $records = System::cache($key, function () {
+        $getRecords = function () {
             return self::with([])->get();
-        });
+        };
+        $records = $func === 'cache'
+            ? System::cache($key, $getRecords)
+            : System::requestSession($key, $getRecords);
 
         $indexKey = static::class . '|' . implode('|', $fields);
         if (!isset(static::$recordIndexes[$indexKey]) || static::$recordIndexes[$indexKey][0] !== $records) {
@@ -133,6 +159,30 @@ trait UseRequestSessionTrait
 
         // not found: same as firstRecordCache(), which reads all records again (e.g. a record made in this request)
         return static::firstRecordCache(function ($record) use ($fields, $values) {
+            foreach ($fields as $i => $field) {
+                if (array_get($record, $field) != $values[$i]) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Same as firstRecordCacheBy(), but from the request session, like firstRecord().
+     *
+     * @param array<string> $fields
+     * @param array<mixed> $values
+     * @return static|null
+     */
+    public static function firstRecordBy(array $fields, array $values)
+    {
+        $record = static::recordsBy($fields, $values)->first();
+        if (isset($record)) {
+            return $record;
+        }
+
+        return static::firstRecord(function ($record) use ($fields, $values) {
             foreach ($fields as $i => $field) {
                 if (array_get($record, $field) != $values[$i]) {
                     return false;
