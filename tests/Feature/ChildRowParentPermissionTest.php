@@ -74,7 +74,7 @@ class ChildRowParentPermissionTest extends ApiTestBase
      */
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {
-        foreach ($this->app['router']->getRoutes() as $route) {
+        foreach ($this->app['router']->getRoutes()->getRoutes() as $route) {
             $route->flushController();
         }
         System::clearRequestSession();

@@ -69,7 +69,7 @@ class CustomOperationPermissionTest extends FeatureTestBase
      */
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {
-        foreach ($this->app['router']->getRoutes() as $route) {
+        foreach ($this->app['router']->getRoutes()->getRoutes() as $route) {
             $route->flushController();
         }
         System::clearRequestSession();
@@ -143,7 +143,7 @@ class CustomOperationPermissionTest extends FeatureTestBase
         $locked = null;
         foreach ([static::TABLE_EDIT, TestDefine::TESTDATA_TABLE_NAME_EDIT] as $table_name) {
             foreach ($this->newRow($table_name)->newQueryWithoutScopes()->whereNull('deleted_at')->get() as $row) {
-                if ($row instanceof CustomValue && $row->lockedWorkflow()) {
+                if ($row->lockedWorkflow()) {
                     $locked = $row;
                     break 2;
                 }
