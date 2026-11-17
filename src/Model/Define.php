@@ -67,6 +67,10 @@ class Define
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'logging_toggle_available' => ['type' => 'boolean', 'default' => '0', 'group' => 'initialize'],
+        // system performance log: save only slow requests (seconds; both 0 = every request), at most N logs in an hour (0 = no limit)
+        'logging_slow_request_seconds' => ['type' => 'int', 'default' => '3', 'group' => 'initialize'],
+        'logging_slow_sql_seconds' => ['type' => 'int', 'default' => '1', 'group' => 'initialize'],
+        'logging_max_per_hour' => ['type' => 'int', 'default' => '100', 'group' => 'initialize'],
 
         // Advanced ----------------------------------
         'filter_search_type' => ['default' => 'forward', 'group' => 'advanced'],

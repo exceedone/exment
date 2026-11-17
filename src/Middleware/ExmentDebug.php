@@ -35,8 +35,9 @@ class ExmentDebug
             // Ignore errors when database is not yet set up
         }
 
-        if (boolval(config('exment.debugmode', false)) || boolval(config('exment.debugmode_sql', false)) || $loggingToggle) {
-            static::logDatabase();
+        $debugSql = boolval(config('exment.debugmode', false)) || boolval(config('exment.debugmode_sql', false));
+        if ($debugSql || $loggingToggle) {
+            static::logDatabase($debugSql, $loggingToggle);
         }
 
         if (isset($request) && boolval(config('exment.debugmode_request', false))) {
@@ -52,11 +53,21 @@ class ExmentDebug
     /**
      * Output log database
      *
+     * @param bool $debugSql write the SQL with the values to the application log (the debug settings in .env, for developers)
+     * @param bool $performanceLog keep the SQL for the system performance log (without the values)
      * @return void
      */
-    protected static function logDatabase()
+    protected static function logDatabase($debugSql = true, $performanceLog = false)
     {
-        \DB::listen(function ($query) {
+        \DB::listen(function ($query) use ($debugSql, $performanceLog) {
+            // system performance log: keep "?" as it is, so that no personal or secret data is saved
+            if ($performanceLog) {
+                QueryLogger::add($query->sql, $query->time);
+            }
+            if (!$debugSql) {
+                return;
+            }
+
             $sql = $query->sql;
             foreach ($query->bindings as $binding) {
                 if ($binding instanceof \DateTime) {
@@ -68,7 +79,6 @@ class ExmentDebug
             }
 
             $log_string = "TIME:{$query->time}ms SQL: $sql";
-            QueryLogger::add($log_string);
             if (boolval(config('exment.debugmode_sqlfunction', false))) {
                 $function = static::getFunctionName();
                 $log_string .= ";    function: $function";
