@@ -447,7 +447,6 @@ class AuthUserOrgHelper
      * @param array<string, int>|null $idIndex id => position in $orgs. if null, made from $orgs.
      * @return void
      */
-    // @phpstan-ignore-next-line
     protected static function parents(&$org, $orgs, $target, $indexName, ?array $idIndex = null)
     {
         if (is_null($idIndex)) {
@@ -495,7 +494,6 @@ class AuthUserOrgHelper
      * @param array<int, bool> $visited
      * @return void
      */
-    // @phpstan-ignore-next-line
     protected static function children(&$org, $orgs, $target, $indexName, ?array $childrenIndex = null, array &$visited = [])
     {
         if (is_null($childrenIndex)) {

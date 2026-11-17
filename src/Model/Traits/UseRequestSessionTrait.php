@@ -182,6 +182,7 @@ trait UseRequestSessionTrait
             return $record;
         }
 
+        // @phpstan-ignore-next-line
         return static::firstRecord(function ($record) use ($fields, $values) {
             foreach ($fields as $i => $field) {
                 if (array_get($record, $field) != $values[$i]) {
