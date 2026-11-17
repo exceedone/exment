@@ -1386,3 +1386,24 @@ const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
     const blob = new Blob(byteArrays, { type: contentType });
     return blob;
 };
+/**
+ * A switch field (YES/NO, boolean column) is a checkbox that bootstrapSwitch turns into a switch, and a hidden
+ * input next to it holds the value that is posted. When the switch is not made (e.g. a script stopped before it,
+ * #1716), the checkbox stays a plain checkbox and changing it did not change the hidden input, so the first value
+ * was saved. Keep the hidden input in step with the plain checkbox. (bootstrapSwitch triggers only
+ * "change.bootstrapSwitch", so this does not run for a working switch.)
+ */
+$(document).on('change', 'input[type="checkbox"].la_checkbox[data-onvalue]', function () {
+    const $checkbox = $(this);
+    if ($checkbox.closest('.bootstrap-switch').length > 0) {
+        return;
+    }
+    const $hidden = $checkbox.nextAll('input[type="hidden"]').first();
+    if ($hidden.length == 0) {
+        return;
+    }
+    const value = String($checkbox.prop('checked') ? $checkbox.data('onvalue') : $checkbox.data('offvalue'));
+    if ($hidden.val() !== value) {
+        $hidden.val(value).trigger('change');
+    }
+});
