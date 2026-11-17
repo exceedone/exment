@@ -1977,7 +1977,47 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::PERMISSION_DENY();
         }
 
+        // a comment or a document is only for those who can access the record it hangs off
+        if (in_array($this->custom_table->table_name, CustomValueModelScope::PARENT_ATTACHED_TABLES, true)
+            && $this->isParentInaccessible()) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
         return true;
+    }
+
+    /**
+     * Whether this row hangs off a parent record (parent_type and parent_id)
+     * that exists but that the login user cannot access.
+     *
+     * getParentValue() answers null for such a parent, the same as for a row
+     * without a parent, so a check written as "if there is a parent, ask it"
+     * is skipped for exactly the rows it is meant to refuse.
+     *
+     * False for a row without a parent, for a parent_type that is not a table
+     * and for a parent record that no longer exists at all. A soft deleted
+     * parent counts as the record it was.
+     *
+     * @return bool
+     */
+    public function isParentInaccessible(): bool
+    {
+        if (is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)) {
+            return false;
+        }
+
+        $parent_table = CustomTable::getEloquent($this->parent_type);
+        if (!isset($parent_table)) {
+            return false;
+        }
+
+        // through the login user's scope of the parent table
+        if (!is_null($parent_table->getValueModel($this->parent_id, true))) {
+            return false;
+        }
+
+        // not there for this user: refused if it is there at all
+        return $parent_table->getValueModel()->withoutGlobalScopes()->where('id', $this->parent_id)->exists();
     }
 
     /**
@@ -2025,6 +2065,8 @@ abstract class CustomValue extends ModelBase
                     return $code;
                 }
             }
+        } elseif ($this->isDeniedByInaccessibleParent()) {
+            return ErrorCode::PERMISSION_DENY();
         }
 
         if ($this->trashed()) {
@@ -2080,9 +2122,32 @@ abstract class CustomValue extends ModelBase
                     return $code;
                 }
             }
+        } elseif ($this->isDeniedByInaccessibleParent()) {
+            return ErrorCode::PERMISSION_DENY();
         }
 
         return true;
+    }
+
+    /**
+     * Whether editing or deleting this row is refused because its parent
+     * record is one the login user cannot access (isParentInaccessible()).
+     *
+     * A comment or a document always follows its record. A child record of a
+     * relation needs its parent as long as the table asks for the parent's
+     * edit permission ("editable_with_parent", on unless switched off): a
+     * parent that cannot even be accessed cannot be edited either.
+     *
+     * @return bool
+     */
+    protected function isDeniedByInaccessibleParent(): bool
+    {
+        if (!in_array($this->custom_table->table_name, CustomValueModelScope::PARENT_ATTACHED_TABLES, true)
+            && !boolval($this->custom_table->getOption('editable_with_parent')??1)) {
+            return false;
+        }
+
+        return $this->isParentInaccessible();
     }
 
     /**
