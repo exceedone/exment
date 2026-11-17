@@ -201,6 +201,16 @@ php artisan serve
 ## Pull Request
 Pull Request はいつでも大歓迎です。現在は、新しい機能の要望よりも、その機能を実際に実装していただけると嬉しいです。
 
+## ブランチ
+| ブランチ | Packagist | 中身 |
+|---|---|---|
+| `7.1` | `7.1.x-dev` | 次の版の 7.1.0。7.1.0 に入れる Pull Request はここに出してください |
+| `master` | `dev-master` | その次（7.2 以降）の開発 |
+| `7.0` | `7.0.x-dev` | 7.0 系の保守（7.0.1、7.0.2 …） |
+| `6.2` | `6.2.x-dev` | 6.2 系の保守（6.2.16、6.2.17 …） |
+
+Exment を入れるときは、`-dev` ではなく、リリースした版を使ってください（例: `composer require exceedone/exment`）。詳しくは [Develop.md](document/ja/Develop.md)
+
 
 # そのほかのページ
 開発方法 [日本語](document/ja/Develop.md) / [English](document/en/Develop.md)  
