@@ -224,7 +224,12 @@ class Editor extends CustomItem
             $isMarkdown = $index >= $htmlCount;
             $filename = pathinfo($src, PATHINFO_FILENAME);
 
-            $exists = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->exists($filename);
+            // Only a name Exment gave a temporary upload (a uuid) is looked up
+            // in the temp disk. Anything else is not ours, and a markdown image
+            // such as ![x](...) used to reach it as ".." - Flysystem then threw
+            // PathTraversalDetected and the save ended in a 500.
+            $isTempName = (bool) preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/i', $filename);
+            $exists = $isTempName && Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->exists($filename);
             // check url
             $tmpUrl = strpos($src, admin_urls('tmpfiles')); // check url
             $publicTemp = false;
