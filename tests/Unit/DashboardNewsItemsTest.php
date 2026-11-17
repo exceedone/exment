@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 class DashboardNewsItemsTest extends TestCase
 {
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, mixed>
      */
     protected function posts(): array
     {
