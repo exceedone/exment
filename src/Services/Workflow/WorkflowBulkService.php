@@ -102,20 +102,23 @@ class WorkflowBulkService
             return $this->candidates;
         }
 
+        /** @var array<int, array{action: WorkflowAction, ids: array<int, int>}> $candidates */
         $candidates = [];
         foreach ($this->getCustomValues() as $custom_value) {
             foreach ($custom_value->getWorkflowActions(true, false, true) as $workflow_action) {
                 /** @var WorkflowAction $workflow_action */
-                if (!isset($candidates[$workflow_action->id])) {
-                    $candidates[$workflow_action->id] = ['action' => $workflow_action, 'ids' => []];
+                $actionId = (int)$workflow_action->id;
+                if (!isset($candidates[$actionId])) {
+                    $candidates[$actionId] = ['action' => $workflow_action, 'ids' => []];
                 }
-                $candidates[$workflow_action->id]['ids'][] = $custom_value->id;
+                $candidates[$actionId]['ids'][] = (int)$custom_value->id;
             }
         }
-
-        return $this->candidates = collect($candidates)->sortBy(function ($candidate) {
-            return [$candidate['action']->workflow_id, $candidate['action']->id];
+        uasort($candidates, function ($a, $b) {
+            return [$a['action']->workflow_id, $a['action']->id] <=> [$b['action']->workflow_id, $b['action']->id];
         });
+
+        return $this->candidates = collect($candidates);
     }
 
     /**
@@ -226,7 +229,8 @@ class WorkflowBulkService
      */
     public static function nextWorkUsers(array $data): array
     {
-        return collect(array_get($data, 'next_work_users') ?? [])->filter(function ($value) {
+        $values = array_get($data, 'next_work_users');
+        return collect(is_array($values) ? $values : [])->filter(function ($value) {
             return is_string($value) && preg_match('/^(user|organization)_[0-9]+$/', $value) === 1;
         })->unique()->values()->all();
     }

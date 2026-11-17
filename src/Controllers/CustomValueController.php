@@ -1421,7 +1421,7 @@ class CustomValueController extends AdminControllerTableBase
     public function workflowBulkClick(Request $request, $tableKey)
     {
         $service = new WorkflowBulkService($this->custom_table, $request->input('id'));
-        $action = $request->input('action_id') === null ? null : WorkflowAction::find($request->input('action_id'));
+        $action = is_numeric($request->input('action_id')) ? WorkflowAction::where('id', $request->input('action_id'))->first() : null;
         $data = [
             'comment' => $request->get('comment'),
             'next_work_users' => $request->get('next_work_users'),
