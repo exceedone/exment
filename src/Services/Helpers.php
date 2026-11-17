@@ -1412,12 +1412,16 @@ if (!function_exists('getModelName')) {
             $suuid = CustomTable::getEloquent($obj)->suuid;
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
-            $table = CustomTable::allRecordsCache(function ($table) use ($obj) {
-                if (is_numeric($obj)) {
-                    return array_get($table, 'id') == $obj;
-                }
-                return array_get($table, 'table_name') == $obj;
-            })->first();
+            $table = CustomTable::recordsCacheBy([is_numeric($obj) ? 'id' : 'table_name'], [$obj])->first();
+            if (is_null($table)) {
+                // not found by the index: check all the records, and read them again if not found (as before)
+                $table = CustomTable::allRecordsCache(function ($table) use ($obj) {
+                    if (is_numeric($obj)) {
+                        return array_get($table, 'id') == $obj;
+                    }
+                    return array_get($table, 'table_name') == $obj;
+                })->first();
+            }
 
             // $table = collect($tables)->first(function ($table) use ($obj) {
             //     if (is_numeric($obj)) {

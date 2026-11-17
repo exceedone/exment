@@ -361,74 +361,164 @@ class AuthUserOrgHelper
             $indexName = $modelname::getParentOrgIndexName();
 
             // get query
-            $orgs = $modelname::with([
-                'users' => function ($query) {
-                    // pass aborting
-                    return $query->withoutGlobalScope(CustomValueModelScope::class);
-                }
-                ])
-                // pass aborting
-                ->withoutGlobalScopes([CustomValueModelScope::class])
-                ->get(['id', $indexName])->toArray();
-
-            $baseOrgs = $orgs;
+            // only the id and the parent are used, so do not make the models
+            $orgs = $modelname::withoutGlobalScopes([CustomValueModelScope::class])
+                ->toBase()
+                ->get(['id', $indexName])
+                ->map(function ($org) {
+                    $org = (array)$org;
+                    // same type as the model (the key is cast to int)
+                    $org['id'] = (int)$org['id'];
+                    return $org;
+                })->all();
 
             if (is_nullorempty($orgs)) {
                 return [];
             }
 
+            // set the users of each organization. Only the user id is used (setJoinedOrganization),
+            // so read the ids from the pivot table instead of loading all the user models.
+            $usersByOrg = static::getOrganizationUserIds(array_column($orgs, 'id'));
             foreach ($orgs as &$org) {
-                static::parents($org, $baseOrgs, $org, $indexName);
-                static::children($org, $orgs, $org, $indexName);
+                $org['users'] = $usersByOrg[$org['id']] ?? [];
+            }
+            unset($org);
+
+            $baseOrgs = $orgs;
+
+            // index: id => first position, parent id => positions of the children (in the order of $orgs)
+            $idIndex = [];
+            $childrenIndex = [];
+            foreach ($baseOrgs as $i => $o) {
+                $idKey = (string)$o['id'];
+                if (!array_key_exists($idKey, $idIndex)) {
+                    $idIndex[$idKey] = $i;
+                }
+                if (isset($o[$indexName]) && is_scalar($o[$indexName])) {
+                    $childrenIndex[(string)$o[$indexName]][] = $i;
+                }
             }
 
-            return $orgs;
+            $results = [];
+            foreach ($baseOrgs as $i => $org) {
+                static::parents($org, $baseOrgs, $org, $indexName, $idIndex);
+                static::children($org, $baseOrgs, $org, $indexName, $childrenIndex);
+                $results[$i] = $org;
+            }
+
+            return $results;
         });
     }
 
-    // @phpstan-ignore-next-line
-    protected static function parents(&$org, $orgs, $target, $indexName)
+    /**
+     * Get the user ids of the organizations, as [organization id => [['id' => user id], ...]].
+     * Same users as the "users" relation of the organization (deleted users are not contained).
+     *
+     * @param array<int|string> $orgIds
+     * @return array<int|string, array<int, array{id: int|string}>>
+     */
+    protected static function getOrganizationUserIds(array $orgIds): array
     {
-        if (!isset($target[$indexName])) {
-            return;
-        }
+        $userModelname = getModelName(SystemTableName::USER);
+        $userTable = getDBTableName(SystemTableName::USER);
+        $pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
 
-        // if same id, return
-        if ($org['id'] == $target[$indexName]) {
-            return;
+        $result = [];
+        foreach (array_chunk($orgIds, 1000) as $chunk) {
+            $rows = $userModelname::withoutGlobalScope(CustomValueModelScope::class)
+                ->join($pivot, "$pivot.child_id", '=', "$userTable.id")
+                ->whereIn("$pivot.parent_id", $chunk)
+                ->toBase()
+                ->get(["$pivot.parent_id as pivot_parent_id", "$userTable.id as user_id"]);
+            foreach ($rows as $row) {
+                $result[$row->pivot_parent_id][] = ['id' => $row->user_id];
+            }
         }
-
-        $newTarget = collect($orgs)->first(function ($o) use ($target, $indexName) {
-            return $target[$indexName] == $o['id'];
-        });
-        if (!isset($newTarget)) {
-            return;
-        }
-
-        // set parent
-        $org['parents'][] = $newTarget;
-        static::parents($org, $orgs, $newTarget, $indexName);
+        return $result;
     }
 
-    // @phpstan-ignore-next-line
-    protected static function children(&$org, $orgs, $target, $indexName)
+    /**
+     * Set all the parents of the target to $org['parents'] (the nearest first).
+     *
+     * @param array<string, mixed> $org
+     * @param array<int, array<string, mixed>> $orgs
+     * @param array<string, mixed> $target
+     * @param string $indexName
+     * @param array<string, int>|null $idIndex id => position in $orgs. if null, made from $orgs.
+     * @return void
+     */
+    protected static function parents(&$org, $orgs, $target, $indexName, ?array $idIndex = null)
     {
-        // @phpstan-ignore-next-line
-        $children = collect($orgs)->filter(function ($o) use ($target, $indexName) {
-            if (!isset($o[$indexName])) {
+        if (is_null($idIndex)) {
+            $idIndex = [];
+            foreach ($orgs as $i => $o) {
+                if (!array_key_exists((string)$o['id'], $idIndex)) {
+                    $idIndex[(string)$o['id']] = $i;
+                }
+            }
+        }
+
+        $visited = [];
+        while (true) {
+            if (!isset($target[$indexName]) || !is_scalar($target[$indexName])) {
                 return;
             }
 
-            return $o[$indexName] == $target['id'];
-        });
+            // if same id, return
+            if ($org['id'] == $target[$indexName]) {
+                return;
+            }
 
-        foreach ($children as $child) {
+            $position = $idIndex[(string)$target[$indexName]] ?? null;
+            if (is_null($position) || isset($visited[$position])) {
+                // not found, or a loop of parents that does not contain $org
+                return;
+            }
+            $visited[$position] = true;
+            $newTarget = $orgs[$position];
+
+            // set parent
+            $org['parents'][] = $newTarget;
+            $target = $newTarget;
+        }
+    }
+
+    /**
+     * Set all the children (and their children) of the target to $org['children'].
+     *
+     * @param array<string, mixed> $org
+     * @param array<int, array<string, mixed>> $orgs
+     * @param array<string, mixed> $target
+     * @param string $indexName
+     * @param array<string, array<int>>|null $childrenIndex parent id => positions of the children in $orgs. if null, made from $orgs.
+     * @param array<int, bool> $visited
+     * @return void
+     */
+    protected static function children(&$org, $orgs, $target, $indexName, ?array $childrenIndex = null, array &$visited = [])
+    {
+        if (is_null($childrenIndex)) {
+            $childrenIndex = [];
+            foreach ($orgs as $i => $o) {
+                if (isset($o[$indexName]) && is_scalar($o[$indexName])) {
+                    $childrenIndex[(string)$o[$indexName]][] = $i;
+                }
+            }
+        }
+
+        foreach ($childrenIndex[(string)$target['id']] ?? [] as $position) {
+            $child = $orgs[$position];
             if ($org['id'] == $child['id']) {
                 continue;
             }
+            // a loop of children that does not contain $org
+            if (isset($visited[$position])) {
+                continue;
+            }
+            $visited[$position] = true;
+
             // set children
             $org['children'][] = $child;
-            static::children($org, $orgs, $child, $indexName);
+            static::children($org, $orgs, $child, $indexName, $childrenIndex, $visited);
         }
     }
 

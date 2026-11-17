@@ -161,7 +161,11 @@ abstract class CustomValue extends ModelBase
             // treeview
             $this->titleColumn = 'label';
             $this->orderColumn = 'id';
-            $this->parentColumn = CustomColumn::getEloquent('parent_organization', $this->custom_table)->getIndexColumnName();
+            // the same for every organization: read once in a request (cleared with the other request sessions)
+            $custom_table = $this->custom_table;
+            $this->parentColumn = System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_PARENT_INDEX, function () use ($custom_table) {
+                return CustomColumn::getEloquent('parent_organization', $custom_table)->getIndexColumnName();
+            });
         }
 
         parent::__construct($attributes);
