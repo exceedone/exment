@@ -45,6 +45,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Services\TableService;
+use Exceedone\Exment\Services\Workflow\WorkflowBulkService;
+use Exceedone\Exment\Enums\WorkflowCommentType;
 use Carbon\Carbon;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Elibyy\TCPDF\Facades\TCPDF;
@@ -1321,6 +1323,138 @@ class CustomValueController extends AdminControllerTableBase
             'result'  => true,
             'toastr' => sprintf(exmtrans('common.message.success_execute')),
         ]);
+    }
+
+    /**
+     * The modal of the workflow action run on the ticked records of the list (#1648).
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @return Response
+     */
+    public function workflowBulkModal(Request $request, $tableKey)
+    {
+        $service = new WorkflowBulkService($this->custom_table, $request->input('id'));
+        $count = count($service->getIds());
+        $candidates = $service->getCandidates();
+
+        $form = new ModalForm();
+        $form->action(admin_urls('data', $this->custom_table->table_name, 'workflowBulkClick'));
+        $form->method('POST');
+
+        if ($candidates->count() == 0) {
+            $form->descriptionHtml('<p>' . esc_html(exmtrans('workflow.bulk.message.no_action', $count)) . '</p>');
+            return getAjaxResponse([
+                'body'  => $form->render(),
+                'script' => $form->getScript(),
+                'title' => exmtrans('workflow.bulk.title'),
+                'showSubmit' => false,
+            ]);
+        }
+
+        $form->descriptionHtml('<p>' . esc_html(exmtrans('workflow.bulk.message.description', $count)) . '</p>');
+
+        $options = $candidates->mapWithKeys(function ($candidate) use ($count) {
+            $action = $candidate['action'];
+            return [$action->id => exmtrans('workflow.bulk.action_option', $action->action_name, count($candidate['ids']), $count)];
+        })->toArray();
+        $field = $form->select('action_id', exmtrans('workflow.action_name'))
+            ->options($options)
+            ->required()
+            ->disableClear();
+        if (count($options) == 1) {
+            $field->default(array_key_first($options));
+        }
+
+        // the next work users: only when one of the actions asks for them on one of the records
+        $selectActions = $candidates->filter(function ($candidate) use ($service) {
+            return $service->needsNextWorkUsers($candidate['action']);
+        });
+        if ($selectActions->count() > 0) {
+            list($userOptions, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions($this->custom_table, null, true);
+            $field = $form->multipleSelect('next_work_users', exmtrans('workflow.next_work_users'))
+                ->options($userOptions)
+                ->ajax($ajax)
+                ->help(exmtrans('workflow.bulk.help.next_work_users', $selectActions->map(function ($candidate) {
+                    return $candidate['action']->action_name;
+                })->implode(exmtrans('common.separate_word'))));
+            if ($selectActions->count() == $candidates->count()) {
+                $field->required();
+            }
+        }
+
+        $commentActions = $candidates->filter(function ($candidate) {
+            return $candidate['action']->comment_type != WorkflowCommentType::NOTUSE;
+        });
+        if ($commentActions->count() > 0) {
+            $field = $form->textarea('comment', exmtrans('common.comment'))->rows(3);
+            $requiredActions = $candidates->filter(function ($candidate) {
+                return $candidate['action']->comment_type == WorkflowCommentType::REQUIRED;
+            });
+            if ($requiredActions->count() == $candidates->count()) {
+                $field->required();
+            } elseif ($requiredActions->count() > 0) {
+                $field->help(exmtrans('workflow.bulk.help.comment', $requiredActions->map(function ($candidate) {
+                    return $candidate['action']->action_name;
+                })->implode(exmtrans('common.separate_word'))));
+            }
+        }
+
+        $form->hidden('id')->default(implode(',', $service->getIds()));
+        $form->setWidth(9, 3);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('workflow.bulk.title'),
+            'submitlabel' => exmtrans('workflow.bulk.submit'),
+        ]);
+    }
+
+    /**
+     * Run the workflow action on the ticked records of the list (#1648).
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @return array<string, mixed>
+     */
+    public function workflowBulkClick(Request $request, $tableKey)
+    {
+        $service = new WorkflowBulkService($this->custom_table, $request->input('id'));
+        $action = $request->input('action_id') === null ? null : WorkflowAction::find($request->input('action_id'));
+        $data = [
+            'comment' => $request->get('comment'),
+            'next_work_users' => $request->get('next_work_users'),
+        ];
+
+        $error = $service->validate($action, $data);
+        if (!is_null($error)) {
+            return [
+                'result'  => false,
+                'toastr' => $error,
+            ];
+        }
+
+        \Exment::setTimeLimitLong();
+        /** @var WorkflowAction $action */
+        $result = $service->execute($action, $data);
+        $skipped = WorkflowBulkService::skippedText($result);
+
+        if (count($result['executed']) == 0) {
+            return [
+                'result'  => false,
+                'swal' => exmtrans('workflow.bulk.message.none_executed'),
+                'swaltext' => $skipped,
+                // the list behind is stale
+                'reload' => true,
+            ];
+        }
+
+        return [
+            'result'  => true,
+            'swal' => exmtrans('workflow.bulk.message.executed', count($result['executed'])),
+            'swaltext' => $skipped,
+        ];
     }
 
     /**

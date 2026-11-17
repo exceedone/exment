@@ -719,6 +719,12 @@ class DefaultGrid extends GridBase
                     // if cannot edit, disable delete and update operations
                     $batch->disableDelete();
                 }
+
+                // run a workflow action on the ticked rows (#1648). Not by the edit permission:
+                // the users who approve may only see the records.
+                if (request()->get('_scope_') != 'trashed' && !is_null(Workflow::getWorkflowByTable($this->custom_table))) {
+                    $batch->add(exmtrans('workflow.bulk.title'), new GridTools\BatchWorkflow());
+                }
             });
         });
     }

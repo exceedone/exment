@@ -890,6 +890,42 @@ class WorkflowAction extends ModelBase
     }
 
     /**
+     * What running this action on the record needs about the next work users - the same
+     * checks actionModal() makes before it shows the submit button (#1648, run on many records).
+     *
+     * @param CustomValue $custom_value
+     * @return array{select: bool, found: bool} select: the next users have to be chosen (ACTION_SELECT);
+     *     found: when they are not chosen, someone can do the next step
+     */
+    public function getNextWorkUsersRequirement($custom_value): array
+    {
+        $result = ['select' => false, 'found' => true];
+
+        $statusTo = $this->getStatusToId($custom_value);
+        if ($this->isActionNext($custom_value) !== true || WorkflowStatus::getWorkflowStatusCompleted($statusTo)) {
+            return $result;
+        }
+
+        $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow);
+        $normalActions = $nextActions->filter(function ($action) {
+            return !boolval($action->ignore_work);
+        });
+        if ($normalActions->count() == 0) {
+            return $result;
+        }
+
+        if ($nextActions->contains(function ($nextAction) {
+            return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
+        })) {
+            $result['select'] = true;
+            return $result;
+        }
+
+        $result['found'] = $this->getNextActionAuthorities($custom_value, $statusTo, $normalActions)->count() > 0;
+        return $result;
+    }
+
+    /**
      * Get action modal form
      *
      * @param CustomValue $custom_value

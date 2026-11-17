@@ -1552,6 +1552,31 @@ return [
             'status_changed' => 'このアクションは実行できません。他のユーザーがワークフローを実行した可能性があります。',
         ],
         
+        'bulk' => [
+            'title' => 'ワークフローを実行',
+            'submit' => '実行',
+            'action_option' => '%s（%d 件 / 選んだ %d 件）',
+            'help' => [
+                'next_work_users' => '「%s」で次の作業ユーザーを選ぶデータに使います。選んだユーザーを、そのデータすべてに設定します。',
+                'comment' => '「%s」では、コメントが必須です。',
+            ],
+            'message' => [
+                'description' => '選んだ %d 件のデータで、ワークフローのアクションを実行します。実行できないデータは飛ばします。',
+                'no_action' => '選んだ %d 件のデータに、実行できるワークフローのアクションはありません。',
+                'comment_required' => '「%s」では、コメントを入力してください。',
+                'next_work_users_required' => '「%s」では、次の作業ユーザーを選んでください。',
+                'executed' => '%d 件のデータで、ワークフローを実行しました。',
+                'none_executed' => 'ワークフローを実行できたデータはありませんでした。',
+                'skipped' => '%d 件は実行しませんでした（%s）。',
+            ],
+            'skip_reasons' => [
+                'not_found' => 'データが見つからない',
+                'status_changed' => 'このアクションを実行できない状態',
+                'nextuser_not_found' => '次の作業ユーザーがいない',
+                'error' => 'エラー',
+            ],
+        ],
+
         'comment_options' => [
             'required' => '必須',
             'nullable' => '任意',
