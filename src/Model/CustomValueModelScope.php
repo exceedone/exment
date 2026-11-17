@@ -149,7 +149,7 @@ class CustomValueModelScope implements Scope
      * Left as they were: rows without a parent, rows whose parent_type is not
      * a table (any more), and rows whose parent record no longer exists at all.
      *
-     * @param Builder $builder
+     * @param Builder<\Illuminate\Database\Eloquent\Model> $builder
      * @param string $db_table_name
      * @return void
      */
