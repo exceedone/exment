@@ -124,6 +124,22 @@ trait InitializeFormTrait
         $form->switchbool('logging_toggle_available', exmtrans("system.logging_toggle_available"))
             ->help(exmtrans("system.help.logging_toggle_available"));
 
+        // which requests the system performance log saves (not on the install screen)
+        if (!$isInitialize) {
+            $form->number('logging_slow_request_seconds', exmtrans("system.logging_slow_request_seconds"))
+                ->min(0)
+                ->default(3)
+                ->help(exmtrans("system.help.logging_slow_request_seconds"));
+            $form->number('logging_slow_sql_seconds', exmtrans("system.logging_slow_sql_seconds"))
+                ->min(0)
+                ->default(1)
+                ->help(exmtrans("system.help.logging_slow_sql_seconds"));
+            $form->number('logging_max_per_hour', exmtrans("system.logging_max_per_hour"))
+                ->min(0)
+                ->default(100)
+                ->help(exmtrans("system.help.logging_max_per_hour"));
+        }
+
         // template list
         if ($isInitialize) {
             $this->addTemplateTile($form);
