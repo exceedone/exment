@@ -242,7 +242,7 @@ class Notify extends ModelBase
                 }
 
 
-                $users = $this->uniqueUsers($users);
+                $users = $this->uniqueUsers($users, $action_setting);
                 foreach ($users as $user) {
                     // send mail
                     try {
@@ -377,9 +377,9 @@ class Notify extends ModelBase
                 continue;
             }
 
-            $users = $this->uniqueUsers($users);
+            $users = $this->uniqueUsers($users, $action_setting);
             foreach ($users as $user) {
-                if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
+                if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, true, $action_setting)) {
                     continue;
                 }
 
@@ -455,7 +455,7 @@ class Notify extends ModelBase
             }
 
 
-            $users = $this->uniqueUsers($users);
+            $users = $this->uniqueUsers($users, $action_setting);
             foreach ($users as $user) {
                 // send mail
                 try {
@@ -747,14 +747,21 @@ class Notify extends ModelBase
      */
 
     // @phpstan-ignore-next-line
-    protected function approvalSendUser($mail_template, $custom_table, $custom_value, NotifyTarget $user, $checkHistory = true)
+    protected function approvalSendUser($mail_template, $custom_table, $custom_value, NotifyTarget $user, $checkHistory = true, $action_setting = null)
     {
         // if $user is myself, return false
         // Exment helper class not recognized
         $loginuser = \Exment::user();
         if (!$this->isNotifyMyself()) {
-            if ($checkHistory && !is_nullorempty($loginuser) && isMatchString($loginuser->email, $user->email())) {
-                return false;
+            if ($checkHistory && !is_nullorempty($loginuser)) {
+                // system alert: only the user who did it (another user with the same mail address still gets it, #1668)
+                if (static::isPerUserAction($action_setting) && !is_nullorempty($user->id())) {
+                    if (isMatchString($loginuser->getUserId(), $user->id())) {
+                        return false;
+                    }
+                } elseif (isMatchString($loginuser->email, $user->email())) {
+                    return false;
+                }
             }
         }
 
@@ -803,17 +810,39 @@ class Notify extends ModelBase
 
     /**
      * Unique users. unique key is mail address.
+     * For the system alert, the key is the user: each user has the alert on the screen, even when some users
+     * have the same mail address (#1668).
      *
      * @param array|Collection $users
+     * @param array<mixed>|null $action_setting
      * @return Collection
      */
 
     // @phpstan-ignore-next-line
-    protected function uniqueUsers($users): Collection
+    protected function uniqueUsers($users, $action_setting = null): Collection
     {
-        return collect($users)->unique(function ($user) {
+        $perUser = static::isPerUserAction($action_setting);
+        return collect($users)->unique(function ($user) use ($perUser) {
+            if ($perUser && $user instanceof NotifyTarget && !is_nullorempty($user->id())) {
+                return 'user:' . $user->id();
+            }
             return NotifyService::getAddress($user);
         })->filter();
+    }
+
+    /**
+     * Whether the action is sent to each user, not to each mail address (the system alert).
+     *
+     * @param array<mixed>|string|null $action_setting
+     * @return bool
+     */
+    protected static function isPerUserAction($action_setting): bool
+    {
+        if (is_nullorempty($action_setting)) {
+            return false;
+        }
+        $notify_action = is_array($action_setting) ? array_get($action_setting, 'notify_action') : $action_setting;
+        return isMatchString($notify_action, NotifyAction::SHOW_PAGE);
     }
 
     protected static function boot()
