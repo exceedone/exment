@@ -140,8 +140,14 @@ class WorkflowBulkActionTest extends UnitTestBase
 
     public function testNextWorkUsersAreChosenWhenTheNextStepAsksForThem(): void
     {
+        // admin moves two of its records to middle, where dev0-userB runs temp_action
+        $this->beUser(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $atMiddle = array_slice($this->runnableIds('middle_action'), 0, 2);
+        (new WorkflowBulkService($this->table(), $atMiddle))->execute($this->action('middle_action'), []);
+
         $this->beUser(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
-        $runnable = $this->runnableIds('temp_action');
+        $runnable = array_values(array_intersect($this->runnableIds('temp_action'), $atMiddle));
+        $this->assertCount(2, $runnable);
         $this->assertNotEmpty($runnable, 'dev0-userB can run temp_action on the record at middle');
         $action = $this->action('temp_action');
 
