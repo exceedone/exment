@@ -18,7 +18,9 @@ class Define
     public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
     public const COMPOSER_PACKAGE_NAME_EXMENT_ADMIN = 'exceedone/exment-admin-core';
     public const COMPOSER_VERSION_CHECK_URL = 'https://packagist.org/packages/exceedone/exment.json';
-    public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
+    // A static JSON file in the WordPress REST API format (the WordPress path /wp-json/wp/v2/posts redirects here).
+    // It takes no query, so Exment picks the news itself (News::filterItems()).
+    public const EXMENT_NEWS_API_URL = 'https://exment.net/api/posts.json';
     public const EXMENT_NEWS_LINK = 'https://exment.net/category/news';
     public const USER_IMAGE_LINK = 'vendor/exment/images/user.png';
     public const ORGANIZATION_IMAGE_LINK = 'vendor/exment/images/organization.png';
