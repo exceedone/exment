@@ -37,7 +37,9 @@ class HPluginPageTest extends ExmentKitTestCase
         $this->visit($url)
             ->seePageIs($url)
             ->seeInElement('h1', '独自ページテスト')
-            ->seeInElement('div', 'exment-admin-core')
+            // inside the admin layout: its header is there (this used to look for
+            // the footer's "exment-admin-core", and the footer is gone)
+            ->seeElement('header.main-header')
             ->see('welcome-TestPluginPage')
         ;
     }
