@@ -50,6 +50,35 @@ class Auth2factorService
     }
 
     /**
+     * Whether 2factor authentication is enabled in the system. (config "exment.login_use_2factor" and the system setting)
+     *
+     * @return bool
+     */
+    public static function isUse2factor(): bool
+    {
+        return boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor());
+    }
+
+    /**
+     * Whether the login user has a verify code that has not expired yet.
+     * Uses the same expiration as verifyCode().
+     *
+     * @param string $verify_type
+     * @return bool
+     */
+    public static function hasValidCode($verify_type): bool
+    {
+        $loginuser = \Exment::user();
+
+        return \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
+            ->where('verify_type', static::VERIFY_TYPE_2FACTOR . $verify_type)
+            ->where('email', $loginuser->email)
+            ->where('login_user_id', $loginuser->id)
+            ->where('valid_period_datetime', '>=', \Carbon\Carbon::now())
+            ->exists();
+    }
+
+    /**
      * Verify code
      *
      * @param string $verify_type

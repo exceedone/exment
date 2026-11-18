@@ -31,6 +31,13 @@ class Email
      */
     public function index()
     {
+        // The code is sent at login. But a session can come here without a valid code:
+        // logged in before 2factor was turned on, changed the password at login, or the code has expired.
+        // Send one then, so that the user does not have to log in again.
+        if ($this->shouldSendVerify()) {
+            $this->insertVerify();
+        }
+
         return view('exment::auth.2factor.2factor-email', $this->getLoginPageData([
             'email_send_verify' => exmtrans('2factor.message.email_send_verify', config('exment.login_2factor_valid_period', 10))
         ]));
@@ -92,6 +99,28 @@ class Email
             // show warning message
             admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
         }
+    }
+
+    /**
+     * Whether the 2factor page has to send a verify code.
+     * Not for an ajax request (redirected here from an opened page), not when 2factor is off or already passed,
+     * and not when the code sent before is still valid (reloading the page does not send it again).
+     *
+     * @return bool
+     */
+    protected function shouldSendVerify(): bool
+    {
+        if (request()->ajax()) {
+            return false;
+        }
+        if (!Auth2factorService::isUse2factor()) {
+            return false;
+        }
+        if (boolval(session(Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR))) {
+            return false;
+        }
+
+        return !Auth2factorService::hasValidCode('email');
     }
 
     /**
