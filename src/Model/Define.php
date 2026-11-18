@@ -190,6 +190,9 @@ class Define
         "skin-black-light",
     ];
 
+    /** Cookie holding how the sidebar was last left: "collapsed" or "expanded". */
+    public const COOKIE_SIDEBAR_STATE = 'exment_sidebar';
+
     public const SYSTEM_LAYOUT = [
         'layout_default' => ['sidebar-mini'],
         'layout_mini' => ['sidebar-collapse', 'sidebar-mini'],
