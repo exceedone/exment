@@ -88,10 +88,6 @@ class Initialize
 
 
     /**
-     * @param bool $setDatabase
-     * @return void
-     */
-    /**
      * The sidebar folded or open the way this browser last left it.
      *
      * The toggle in the header saves "collapsed" or "expanded" in a cookie
@@ -120,6 +116,10 @@ class Initialize
         Config::set('admin.layout', $layout);
     }
 
+    /**
+     * @param bool $setDatabase
+     * @return void
+     */
     public static function initializeConfig($setDatabase = true)
     {
         //// set from env
