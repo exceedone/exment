@@ -91,6 +91,35 @@ class Initialize
      * @param bool $setDatabase
      * @return void
      */
+    /**
+     * The sidebar folded or open the way this browser last left it.
+     *
+     * The toggle in the header saves "collapsed" or "expanded" in a cookie
+     * (Define::COOKIE_SIDEBAR_STATE); the page is then drawn that way from
+     * the start, rather than in the site layout's state and switched over
+     * by script after it is on screen. No cookie: the site layout decides.
+     *
+     * Read from $_COOKIE, not the request: the cookie is written by script
+     * and is not encrypted, so Laravel's cookie decryption would drop it.
+     * Only the two known words are used; anything else is ignored.
+     */
+    protected static function applySidebarState(): void
+    {
+        if (app()->runningInConsole()) {
+            return;
+        }
+        $state = $_COOKIE[Define::COOKIE_SIDEBAR_STATE] ?? null;
+        if ($state !== 'collapsed' && $state !== 'expanded') {
+            return;
+        }
+
+        $layout = array_values(array_diff((array) config('admin.layout', []), ['sidebar-collapse']));
+        if ($state === 'collapsed') {
+            $layout[] = 'sidebar-collapse';
+        }
+        Config::set('admin.layout', $layout);
+    }
+
     public static function initializeConfig($setDatabase = true)
     {
         //// set from env
@@ -370,6 +399,7 @@ class Initialize
             if (!is_nullorempty($val)) {
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
+            static::applySidebarState();
 
             // Date format
             $list = null;
