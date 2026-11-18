@@ -1,21 +1,8 @@
-<!-- Main Footer -->
-<footer class="main-footer  d-flex justify-content-between align-items-center">
-    
-
-    <!-- To the left -->
-    <div class="d-flex justify-content-start align-items-center">
-        <strong>Powered by <a href="https://github.com/exceedone/exment" target="_blank">Exment</a></strong>&nbsp;(Interface&nbsp;<a href="https://github.com/exceedone/exment-admin-core" target="_blank">exment-admin-core</a>)
-        <button href="#" style="display: none" role="scanButtonDashboard" data-qr_action="url"></button>
-    </div>
-    <!-- To the right -->
-    <div class="d-flex align-items-center d-none d-lg-block">
-        @if(config('admin.show_version'))
-        <strong>Version</strong>&nbsp;&nbsp;<span id="version">{!! \Exment::version() !!}</span>
-        @endif
-    </div>
-</footer>
-
-
-<script>
-    var backButton = "{{ exmtrans('common.back_button') }}";
-</script>
+{{--
+    No footer. It only said "Powered by Exment" and the version, and took a
+    line at the foot of every page; the version is on the system settings
+    page (and /api/version). What else it carried has moved: the label of the
+    QR scanner's way back is set in Middleware\Bootstrap, and its hidden scan
+    button was never clicked - the dashboard's barcode box has the real one.
+    The file stays, empty, because exment-admin-core's layout includes it.
+--}}
