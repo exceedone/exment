@@ -159,8 +159,13 @@ class Bootstrap
         $delete_confirm = trans('admin.delete_confirm');
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
+        // the label of the QR scanner's way back (zxing.js). It used to be set
+        // by the footer, which is gone; every admin page carries this script.
+        $back_button = json_encode(exmtrans('common.back_button'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 
         $script = <<<EOT
+    window.backButton = $back_button;
+
     ///// delete click event
     $(document).off('click', '[data-exment-delete]').on('click', '[data-exment-delete]', {}, function(ev){
         ev.preventDefault();
