@@ -76,6 +76,11 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 // Desktop: use sidebar-collapse to collapse/expand sidebar
                 document.body.classList.toggle('sidebar-collapse');
+                // Remembered, so the next page opens the same way: the server
+                // reads it (Middleware\Initialize::applySidebarState).
+                var state = document.body.classList.contains('sidebar-collapse') ? 'collapsed' : 'expanded';
+                document.cookie = '{{ \Exceedone\Exment\Model\Define::COOKIE_SIDEBAR_STATE }}=' + state
+                    + '; path=/; max-age=31536000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
             }
         });
     }
