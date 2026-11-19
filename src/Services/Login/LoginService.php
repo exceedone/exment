@@ -471,7 +471,8 @@ class LoginService
         }
 
         $exment_user = null;
-        \ExmentDB::transaction(function () use ($custom_login_user, &$exment_user) {
+        $assignedJitRoles = false;
+        \ExmentDB::transaction(function () use ($custom_login_user, &$exment_user, &$assignedJitRoles) {
             $exment_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
 
             $update_user_columns = static::getUserColumns();
@@ -493,8 +494,13 @@ class LoginService
                 })->toArray();
 
                 \DB::table(SystemTableName::ROLE_GROUP_USER_ORGANIZATION)->insert($jit_rolegroups);
+                $assignedJitRoles = true;
             }
         });
+
+        if ($assignedJitRoles) {
+            System::clearCache();
+        }
 
         return $exment_user;
     }

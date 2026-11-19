@@ -24,6 +24,34 @@ class Embeds extends AdminField\Embeds
      */
     protected $gridEmbeds = false;
 
+    /**
+     * Whether to keep the saved values that the request does not send
+     *
+     * @var bool
+     */
+    protected $preserveExistingValues = false;
+
+    /**
+     * @return $this
+     */
+    public function preserveExistingValues()
+    {
+        $this->preserveExistingValues = true;
+        return $this;
+    }
+
+    public function prepare($input)
+    {
+        $prepared = parent::prepare($input);
+        // parent::prepare() says array, but a field can return something else
+        // @phpstan-ignore-next-line
+        if (!$this->preserveExistingValues || !is_array($prepared)) {
+            return $prepared;
+        }
+
+        return array_replace(jsonToArray($this->original), $prepared);
+    }
+
     // @phpstan-ignore-next-line
     public function disableHeader()
     {

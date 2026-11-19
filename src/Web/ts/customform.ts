@@ -7,6 +7,7 @@ namespace Exment {
             
             $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
 
+            CustomFromEvent.syncLazyLoadOptions($('.box-custom_form_block'));
             CustomFromEvent.loadingEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
             //CustomFromEvent.resizeEvent($('.custom_form_area'));
@@ -14,6 +15,9 @@ namespace Exment {
 
         public static AddEventOnce() {
             $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
+            $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_hasmany_type', {}, (ev: JQueryEventObject) => {
+                CustomFromEvent.syncLazyLoadOptions($(ev.target).closest('.box-custom_form_block'));
+            });
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .delete', {}, CustomFromEvent.deleteColumnEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .setting', {}, CustomFromEvent.settingModalEvent);
             
@@ -29,6 +33,22 @@ namespace Exment {
 
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
+            });
+        }
+
+        private static syncLazyLoadOptions($blocks: JQuery<HTMLElement>) {
+            $blocks.each(function (_index, element) {
+                const $block = $(element);
+                const $lazyLoad = $block.find('.icheck_lazy_load_enabled');
+                if (!$lazyLoad.length) {
+                    return;
+                }
+
+                const isTable = $block.find('.icheck_hasmany_type').prop('checked');
+                if (!isTable) {
+                    $lazyLoad.prop('checked', false);
+                }
+                $lazyLoad.prop('disabled', !isTable).iCheck('update');
             });
         }
 

@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\System;
+
 /**
  * Relation Pivot table (n:n)
  */
@@ -9,6 +12,13 @@ class RelationPivotTableProvider extends ProviderBase
 {
     // @phpstan-ignore-next-line
     protected $relation;
+
+    /**
+     * Whether a pivot row was inserted or deleted since the last afterImportData().
+     *
+     * @var bool
+     */
+    protected $changed = false;
 
     // @phpstan-ignore-next-line
     public function __construct($args = [])
@@ -92,6 +102,30 @@ class RelationPivotTableProvider extends ProviderBase
             \DB::table($table_name)->where('id', $id)->delete();
         } elseif (!isset($id)) {
             \DB::table($table_name)->insert($data);
+        } else {
+            return;
+        }
+        $this->changed = true;
+    }
+
+    /**
+     * Pivot rows are written without model events, so nothing clears the cache. User /
+     * organization membership feeds the cached permissions and accessible user lists:
+     * clear the cache once after the imported rows.
+     */
+    public function afterImportData(): void
+    {
+        if (!$this->changed) {
+            return;
+        }
+        $this->changed = false;
+
+        $tables = [
+            $this->relation->parent_custom_table->table_name ?? null,
+            $this->relation->child_custom_table->table_name ?? null,
+        ];
+        if (in_array(SystemTableName::USER, $tables, true) || in_array(SystemTableName::ORGANIZATION, $tables, true)) {
+            System::clearCacheAfterCommit();
         }
     }
 }
