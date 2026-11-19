@@ -122,7 +122,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         $parent_table = CustomTable::getEloquent($parent_table);
 
-        return static::allRecordsCache(function ($record) use ($parent_table, $relation_type) {
+        $filter = function ($record) use ($parent_table, $relation_type) {
             if ($record->parent_custom_table_id != array_get($parent_table, 'id')) {
                 return false;
             }
@@ -130,7 +130,19 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 return false;
             }
             return true;
-        }, $reget_database);
+        };
+
+        // find by the index (the same records as checking all of them). If none, check all of them as before.
+        $id = array_get($parent_table, 'id');
+        if (isset($id)) {
+            $records = static::recordsCacheBy(['parent_custom_table_id'], [$id])->filter($filter);
+            // the ids are integer columns, so the index finds the same records as "!=". Read the database again only when asked.
+            if ($records->count() > 0 || !$reget_database) {
+                return $records;
+            }
+        }
+
+        return static::allRecordsCache($filter, $reget_database);
     }
 
     /**
@@ -156,7 +168,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         $child_table = CustomTable::getEloquent($child_table);
 
-        return static::allRecordsCache(function ($record) use ($child_table, $relation_type) {
+        $filter = function ($record) use ($child_table, $relation_type) {
             if ($record->child_custom_table_id != array_get($child_table, 'id')) {
                 return false;
             }
@@ -164,7 +176,19 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 return false;
             }
             return true;
-        }, $reget_database);
+        };
+
+        // find by the index (the same records as checking all of them). If none, check all of them as before.
+        $id = array_get($child_table, 'id');
+        if (isset($id)) {
+            $records = static::recordsCacheBy(['child_custom_table_id'], [$id])->filter($filter);
+            // the ids are integer columns, so the index finds the same records as "!=". Read the database again only when asked.
+            if ($records->count() > 0 || !$reget_database) {
+                return $records;
+            }
+        }
+
+        return static::allRecordsCache($filter, $reget_database);
     }
 
 

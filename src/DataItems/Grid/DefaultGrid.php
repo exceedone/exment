@@ -168,6 +168,17 @@ class DefaultGrid extends GridBase
             //$name = $item->indexEnabled() ? $item->index() : $item->uniqueName();
             $className = 'column-' . $item->name();
             $classes = [$className];
+            // The column TYPE as a class (exm-coltype-integer, -currency ...).
+            // `column-<name>` above is the column NAME, which says nothing
+            // about what the cell holds, so a stylesheet could not tell a
+            // number column from a text column. Markup only: nothing reads
+            // it but CSS (grid_tools.js copies it to the header cell).
+            if ($item instanceof ColumnItems\CustomItem) {
+                $columnType = $item->getCustomColumn()->column_type ?? null;
+                if (is_string($columnType) && preg_match('/^[a-z0-9_]+$/', $columnType)) {
+                    $classes[] = 'exm-coltype-' . $columnType;
+                }
+            }
             // Mark cells the inline editor can edit. `.exm-editable` is what
             // grid_tools.js listens to on double-click; the badge and colour
             // are added elsewhere.
@@ -623,6 +634,7 @@ class DefaultGrid extends GridBase
             $tools->append(new GridTools\GridColumnPin($grid, $storageKey));
             $tools->append(new GridTools\GridGroupBy($grid, $storageKey));
             $tools->append(new GridTools\GridDensity());
+            $tools->append(new GridTools\GridKeyboard());
             $tools->append(new GridTools\GridAutoRefresh($storageKey));
 
             // Second entrance to the batch actions rendered further left.
@@ -710,6 +722,12 @@ class DefaultGrid extends GridBase
                 } else {
                     // if cannot edit, disable delete and update operations
                     $batch->disableDelete();
+                }
+
+                // run a workflow action on the ticked rows (#1648). Not by the edit permission:
+                // the users who approve may only see the records.
+                if (request()->get('_scope_') != 'trashed' && !is_null(Workflow::getWorkflowByTable($this->custom_table))) {
+                    $batch->add(exmtrans('workflow.bulk.title'), new GridTools\BatchWorkflow());
                 }
             });
         });

@@ -77,6 +77,9 @@ return [
         'grid_density_comfortable' => '標準',
         'grid_density_spacious' => '広め',
         'grid_nowrap' => '1行で表示',
+        'grid_keyboard' => 'Excel 風に編集',
+        'grid_keyboard_hint' => '矢印キーで移動・F2 / 入力で編集',
+        'grid_keyboard_label' => 'Excel 風',
         'grid_auto_refresh' => '自動更新',
         'grid_auto_refresh_off' => 'オフ',
         'grid_auto_refresh_30' => '30秒',
@@ -86,7 +89,7 @@ return [
         'grid_pin_preset_2' => '先頭2列を固定',
         'grid_pin_preset_3' => '先頭3列を固定',
         'grid_pin_none' => '固定を解除',
-        'grid_pin_actions' => '操作列を右に固定',
+        'grid_pin_actions' => '操作列を固定',
         'grid_pin_head' => 'ヘッダー行を固定',
         'grid_pin_flag' => '固定中',
         'grid_pin_narrow' => '画面幅が足りないため、一部の列は固定されませんでした。',
@@ -358,6 +361,8 @@ return [
         'site_favicon' => 'サイトファビコン(ico)',
         'site_skin' => 'サイトスキン',
         'site_layout' => 'サイトメニューレイアウト',
+        'ui_design' => '画面のデザイン',
+        'ui_design_forced' => '%s (サーバーの設定で固定されています)',
         'default_date_format' => '日時表示書式',
         'filter_search_type' => 'データ検索方法',
         'grid_filter_disable_flg' => 'データ一覧のフィルタ非表示',
@@ -369,6 +374,9 @@ return [
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
         'logging_toggle_available' => 'システムパフォーマンスログを有効にする',
+        'logging_slow_request_seconds' => 'パフォーマンスログ: 遅い画面の秒数',
+        'logging_slow_sql_seconds' => 'パフォーマンスログ: 遅いSQLの秒数',
+        'logging_max_per_hour' => 'パフォーマンスログ: 1時間に記録する上限',
         'system_admin_users' => 'システム管理者',
         'system_mail' => 'システムメール設定',
         'system_mail_host' => 'ホスト名',
@@ -499,6 +507,11 @@ return [
             "skin-black-light" => "ヘッダー：白&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：白",
         ],
         
+        'ui_design_options' => [
+            "modern" => "モダン",
+            "classic" => "クラシック",
+        ],
+
         'site_layout_options' => [
             "layout_default" => "標準",
             "layout_mini" => "小アイコン",
@@ -579,6 +592,7 @@ return [
             'site_favicon' => 'サイトのファビコン(.ico)です。ホームページのブックマークなどに利用されます。推奨サイズ：16px * 16px',
             'site_skin' => 'サイトのテーマ色を選択します。※保存後、再読込で反映されます。',
             'site_layout' => 'ページ左の、サイトメニューのレイアウトを選択します。※保存後、再読込で反映されます。',
+            'ui_design' => 'ログイン画面と管理画面のデザインを選択します。「モダン」は白と灰色を基本にした新しいデザイン、「クラシック」はこれまでのデザインです。初期値は「モダン」です。これまでのデザインに戻したい場合は「クラシック」を選択してください。※保存後、再読込で反映されます。<br/>サーバーの設定(.envのEXMENT_UI_DESIGN)がある場合は、そちらが優先され、この画面では変更できません。',
             'filter_search_type' => '登録データの検索方法を設定します。※部分一致の場合、データ件数によって、パフォーマンスに影響がある場合があります。',
             'grid_filter_disable_flg' => 'チェックした項目が、データ一覧画面のフィルタ項目で、非表示になります。',
             'system_values_pos' => 'データ編集画面及びデータ詳細画面でシステム項目を表示する位置を設定します。',
@@ -605,7 +619,10 @@ return [
             'meili_filter_include_mode' => '追加: この列をフィルタに追加します。除外: 自動対象の列をフィルタから外します（「自動 ＋ カスタム」モードのみ有効）。',
             'permission_available' => 'YESにした場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESにした場合、ユーザーが所属する組織や部署を作成します。',
-            'logging_toggle_available' => 'YESに設定すると、ログ機能が有効になり、ユーザーのすべての操作が記録されます。',
+            'logging_toggle_available' => 'YESにすると、遅い画面の操作を「システムパフォーマンスログ」（管理者設定メニュー）に記録します。記録するのは、画面のURL（検索などの値は伏せます）・ユーザー・処理時間・SQL（値は「?」のまま）です。',
+            'logging_slow_request_seconds' => '画面の処理にこの秒数以上かかったときに記録します。0にすると、この条件では記録しません。「遅いSQLの秒数」と両方0にすると、すべての操作を記録します（調査のときだけにしてください）。',
+            'logging_slow_sql_seconds' => '1つのSQLにこの秒数以上かかったときに記録します。0にすると、この条件では記録しません。',
+            'logging_max_per_hour' => '1時間に記録する件数の上限です。上限を超えた分は記録しません。0にすると上限なしです。',
             'system_admin_users' => 'システム管理者となるユーザーを設定してください。',
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
@@ -1536,6 +1553,31 @@ return [
             'status_changed' => 'このアクションは実行できません。他のユーザーがワークフローを実行した可能性があります。',
         ],
         
+        'bulk' => [
+            'title' => 'ワークフローを実行',
+            'submit' => '実行',
+            'action_option' => '%s（%d 件 / 選んだ %d 件）',
+            'help' => [
+                'next_work_users' => '「%s」で次の作業ユーザーを選ぶデータに使います。選んだユーザーを、そのデータすべてに設定します。',
+                'comment' => '「%s」では、コメントが必須です。',
+            ],
+            'message' => [
+                'description' => '選んだ %d 件のデータで、ワークフローのアクションを実行します。実行できないデータは飛ばします。',
+                'no_action' => '選んだ %d 件のデータに、実行できるワークフローのアクションはありません。',
+                'comment_required' => '「%s」では、コメントを入力してください。',
+                'next_work_users_required' => '「%s」では、次の作業ユーザーを選んでください。',
+                'executed' => '%d 件のデータで、ワークフローを実行しました。',
+                'none_executed' => 'ワークフローを実行できたデータはありませんでした。',
+                'skipped' => '%d 件は実行しませんでした（%s）。',
+            ],
+            'skip_reasons' => [
+                'not_found' => 'データが見つからない',
+                'status_changed' => 'このアクションを実行できない状態',
+                'nextuser_not_found' => '次の作業ユーザーがいない',
+                'error' => 'エラー',
+            ],
+        ],
+
         'comment_options' => [
             'required' => '必須',
             'nullable' => '任意',
@@ -3468,6 +3510,7 @@ return [
             'unsupported_view_kind_type' => '指定したビューの種類は、APIでサポートされていません。',
             'not_contains_custom_form' => 'このフォームでは、指定のAPIは実行できません。',
             'one_record_already' => 'このテーブルは1レコードのみ登録可能です。',
+            'demo_mode' => 'デモ環境のため、この操作は使えません。',
         ],
         
         'help' =>[
@@ -3645,5 +3688,14 @@ return [
         'answer_invalid_link' => 'リンクが無効です。管理者にお問い合わせください。',
         'answer_link_expired' => 'このリンクは有効期限が切れています。管理者にお問い合わせください。',
         'answer_invalid_status' => '回答内容が正しくありません。もう一度お試しください。',
+    ],
+    'demo_mode' => [
+        'banner' => 'デモ環境です。一部の操作（プラグイン・バックアップ・メールやログインの設定など）は使えません。データは毎晩元に戻ります。',
+        'message_blocked' => 'デモ環境のため、この操作は使えません。',
+        'message_system_setting' => 'デモ環境のため、メールサーバー・LINE・全文検索サーバー・IPフィルタ・reCAPTCHA・API・外部接続の設定は保存されません。',
+        'message_login_id' => 'デモ環境のため、ログインできるユーザーのユーザーコードとメールアドレスは変更できません。',
+        'message_user_delete' => 'デモ環境のため、ログインできるユーザーは削除できません。',
+        'message_public_form_script' => 'デモ環境のため、公開フォームのカスタムCSS・JavaScriptは保存されません。',
+        'message_system_admin' => 'デモ環境のため、システム管理者は変更されません。',
     ],
 ];

@@ -158,6 +158,8 @@ class ExmentServiceProvider extends ServiceProvider
         'publicform.session'    => \Exceedone\Exment\Middleware\PublicFormSession::class,
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
+
+        'admin.demo-mode' => \Exceedone\Exment\Middleware\DemoModeGuard::class,
     ];
 
     /**
@@ -184,6 +186,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap',
             'admin.permission',
             'admin.session',
+            'admin.demo-mode',
         ],
         // Exment not login web page. (Ex. login, forget password)
         'admin_anonymous' => [
@@ -198,6 +201,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap',
             'admin.permission',
             'admin.session',
+            'admin.demo-mode',
         ],
         // Exment not login web page, and simple config, (Almost use image)
         'admin_anonymous_simple' => [
@@ -237,6 +241,7 @@ class ExmentServiceProvider extends ServiceProvider
             //'bindings',
             //　↓
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            'admin.demo-mode',
         ],
         // Exment Plugin API
         'pluginapi' => [
@@ -250,6 +255,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.log',
             // 'bindings',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            'admin.demo-mode',
         ],
         // Extends web middleware If call exment's parts by user, please Add
         'exment_web' => [
@@ -590,6 +596,9 @@ class ExmentServiceProvider extends ServiceProvider
         }
 
         Initialize::initializeConfig(false);
+
+        // demo mode: drop Slack, Teams and other outside notifications
+        \Exceedone\Exment\Services\DemoMode::boot();
 
         if (method_exists("\ExmentAdminCore\Admin\Admin", "registered")) {
             Admin::registered(function () {

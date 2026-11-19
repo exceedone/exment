@@ -25,6 +25,21 @@
   <!-- <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/square/blue.css") }}"> -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.css") }}">
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/open-admin/css/button-custom.css") }}">
+  {{-- The "modern" screen design (system setting, or EXMENT_UI_DESIGN). It stays before the inline style
+       below, so a color or an image set on the login setting page still wins. The one exception
+       is the untouched default gray: that gives way to the skin's own page color.
+       The site skin goes on <body> as data-exm-skin, so the login button and the links take the
+       skin's accent color. It is not a class: a skin class would switch on the admin page rules. --}}
+  @php
+    $modern_ui = \Exment::isModernUi();
+    $modern_ui_skin = $modern_ui && in_array(config('admin.skin'), \Exceedone\Exment\Model\Define::SYSTEM_SKIN, true)
+        ? config('admin.skin') : null;
+    $modern_ui_default_bg = $modern_ui && isset($background_color)
+        && strtolower($background_color) === \Exceedone\Exment\Model\Define::SYSTEM_SETTING_NAME_VALUE['login_background_color']['default'];
+  @endphp
+  @if($modern_ui)
+  <link rel="stylesheet" href="{{ admin_asset("vendor/exment/css/modern.css") }}">
+  @endif
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
@@ -33,7 +48,7 @@
   <![endif]-->
   <style>
   .login-page{
-    @if(isset($background_color))
+    @if(isset($background_color) && !$modern_ui_default_bg)
       background-color:{{ $background_color }};
     @endif
     @if(isset($background_image))
@@ -82,7 +97,7 @@
   }
   </style>
 </head>
-<body class="hold-transition login-page">
+<body class="hold-transition login-page"@if($modern_ui_skin) data-exm-skin="{{ $modern_ui_skin }}"@endif>
       <div class="login-box">
           <div class="login-logo">
               <a href="{{ admin_url('/') }}">

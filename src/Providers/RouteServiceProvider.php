@@ -305,6 +305,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/import", 'CustomValueController@import');
             $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');
             $router->post("data/{tableKey}/operationClick", 'CustomValueController@operationClick');
+            $router->get("data/{tableKey}/workflowBulkModal", 'CustomValueController@workflowBulkModal');
+            $router->post("data/{tableKey}/workflowBulkClick", 'CustomValueController@workflowBulkClick');
             $router->get("data/{tableKey}/{id}/compare", 'CustomValueController@compare');
             $router->get("data/{tableKey}/{id}/compareitem", 'CustomValueController@compareitem');
             $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');

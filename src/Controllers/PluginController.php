@@ -10,6 +10,7 @@ use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\LoginType;
@@ -43,7 +44,8 @@ class PluginController extends AdminControllerBase
     {
         $this->AdminContent($content);
 
-        if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
+        // demo mode: no upload
+        if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL) && !DemoMode::enabled()) {
             $content->row(view('exment::plugin.upload'));
         }
 
@@ -112,6 +114,12 @@ class PluginController extends AdminControllerBase
             $actions->disableView();
 
             if ($actions->row->disabled_delete) {
+                $actions->disableDelete();
+            }
+
+            // demo mode: plugin settings and delete are refused
+            if (DemoMode::enabled()) {
+                $actions->disableEdit();
                 $actions->disableDelete();
             }
         });

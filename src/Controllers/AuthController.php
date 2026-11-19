@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -316,7 +317,8 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                     return $exmentfile->local_filename;
                 });
 
-            if (\Exment::user()->login_type == LoginType::PURE) {
+            // demo mode: the published password cannot be changed
+            if (\Exment::user()->login_type == LoginType::PURE && !DemoMode::enabled()) {
                 $form->password('current_password', exmtrans('user.current_password'))->rules(['required_with:password', new ExmentValidator\CurrentPasswordRule()])->help(exmtrans('user.help.change_only'));
                 $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false, \Exment::user()))->help(exmtrans('user.help.change_only') . \Exment::get_password_help());
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));

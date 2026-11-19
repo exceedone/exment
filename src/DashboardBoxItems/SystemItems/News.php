@@ -109,6 +109,37 @@ class News
     }
 
     /**
+     * Pick the news of a page: the posts of the category, newest first.
+     * The old WordPress API did this with the query; the static file has every post.
+     *
+     * @param array<mixed> $items the posts (WordPress REST API format)
+     * @param int $per_page
+     * @param int $page 1 or more
+     * @param int|null $category only the posts of this category. null: all
+     * @return array<int, array<mixed>>
+     */
+    public static function filterItems(array $items, int $per_page, int $page = 1, ?int $category = 6): array
+    {
+        $items = array_values(array_filter($items, function ($item) use ($category) {
+            if (!is_array($item) || !isset($item['date'])) {
+                return false;
+            }
+            if (isset($category) && isset($item['categories']) && is_array($item['categories'])) {
+                return in_array($category, $item['categories']);
+            }
+            return true;
+        }));
+
+        usort($items, function ($a, $b) {
+            return strcmp((string)$b['date'], (string)$a['date']);
+        });
+
+        $per_page = max(1, $per_page);
+        $page = max(1, $page);
+        return array_slice($items, ($page - 1) * $per_page, $per_page);
+    }
+
+    /**
      * Set exment news items
      *
      * @return void|null
@@ -160,9 +191,10 @@ class News
                 ]));
             }
 
-            // get wordpress items
-            // @phpstan-ignore-next-line
-            $this->items = json_decode_ex($contents, true);
+            // get the news items. The file has every post, so pick the page here.
+            $items = json_decode_ex($contents, true);
+            $query = $this->getQuery();
+            $this->items = static::filterItems(is_array($items) ? $items : [], (int)$query['per_page'], (int)$query['page'], (int)$query['categories']);
         } catch (\Exception $ex) {
             \Log::error($ex);
         }

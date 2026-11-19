@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
 use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Exceedone\Exment\Services\TemplateImportExport;
@@ -87,6 +88,25 @@ trait InitializeFormTrait
             ->disableClear()
             ->help(exmtrans("system.help.site_layout"));
 
+        // Screen design: on the system setting page only. The installer does
+        // not ask - a new installation starts with the default design.
+        // When the server fixes it (EXMENT_UI_DESIGN), a select would have no
+        // effect, so the design in effect is shown as text instead and
+        // nothing is posted.
+        if (!$isInitialize) {
+            $uiDesignForced = \Exment::getUiDesignForced();
+            if (is_null($uiDesignForced)) {
+                $form->select('ui_design', exmtrans("system.ui_design"))
+                    ->options(getTransArray(Define::SYSTEM_UI_DESIGN, "system.ui_design_options"))
+                    ->disableClear()
+                    ->help(exmtrans("system.help.ui_design"));
+            } else {
+                $form->display('ui_design_forced', exmtrans("system.ui_design"))
+                    ->displayText(exmtrans("system.ui_design_forced", exmtrans("system.ui_design_options.$uiDesignForced")))
+                    ->help(exmtrans("system.help.ui_design"));
+            }
+        }
+
         $form->switchbool('api_available', exmtrans("system.api_available"))
             ->default(0)
             ->help(exmtrans("system.help.api_available", getManualUrl('system_setting?id=')));
@@ -103,6 +123,22 @@ trait InitializeFormTrait
 
         $form->switchbool('logging_toggle_available', exmtrans("system.logging_toggle_available"))
             ->help(exmtrans("system.help.logging_toggle_available"));
+
+        // which requests the system performance log saves (not on the install screen)
+        if (!$isInitialize) {
+            $form->number('logging_slow_request_seconds', exmtrans("system.logging_slow_request_seconds"))
+                ->min(0)
+                ->default(3)
+                ->help(exmtrans("system.help.logging_slow_request_seconds"));
+            $form->number('logging_slow_sql_seconds', exmtrans("system.logging_slow_sql_seconds"))
+                ->min(0)
+                ->default(1)
+                ->help(exmtrans("system.help.logging_slow_sql_seconds"));
+            $form->number('logging_max_per_hour', exmtrans("system.logging_max_per_hour"))
+                ->min(0)
+                ->default(100)
+                ->help(exmtrans("system.help.logging_max_per_hour"));
+        }
 
         // template list
         if ($isInitialize) {
@@ -250,6 +286,18 @@ trait InitializeFormTrait
 
         $inputs = $request->all(System::get_system_keys($group));
         array_forget($inputs, 'initialized');
+        // Screen design: save only one of the known designs. The installer
+        // form, and the system setting page when the server fixes the design,
+        // have no select; a missing or unknown value must not replace the
+        // stored one.
+        if (array_key_exists('ui_design', $inputs) && !in_array($inputs['ui_design'], Define::SYSTEM_UI_DESIGN, true)) {
+            array_forget($inputs, 'ui_design');
+        }
+
+        // demo mode: the mail, LINE, search server, IP filter, reCAPTCHA and API settings are kept
+        $inputs = DemoMode::filterSystemInputs($inputs);
+
+        $loggingWasOn = boolval(System::logging_toggle_available());
 
         $loggingWasOn = boolval(System::logging_toggle_available());
 
@@ -260,6 +308,10 @@ trait InitializeFormTrait
         // the log is on: make the table "System Performance Log" if it is not there yet,
         // and its menu too when the log has just been turned on
         TemplateImportExport\TemplateImporter::importSystemLogsTemplateIfEnabled(!$loggingWasOn);
+        // demo mode: no template upload or import
+        if (DemoMode::enabled()) {
+            return true;
+        }
         // upload zip file
         $this->uploadTemplate($request);
         // import template

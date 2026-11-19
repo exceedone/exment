@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ダッシュボード | Exment modern UI sample</title>
+<style>
+/* ---- tokens: same names and values as public/vendor/exment/css/modern.css ---- */
+:root{
+  --exm-ui-accent:#2563eb; --exm-ui-accent-strong:#1d4ed8; --exm-ui-accent-soft:#eff4ff; --exm-ui-accent-ring:rgba(37,99,235,.22);
+  --exm-ui-text:#1c2024; --exm-ui-text-sub:#5f6b7a; --exm-ui-text-faint:#8b95a1;
+  --exm-ui-bg:#ffffff; --exm-ui-bg-sub:#f7f8f9; --exm-ui-bg-hover:#f3f5f7; --exm-ui-line:#e6e8eb; --exm-ui-line-soft:#eff1f3;
+  --exm-ui-danger:#d1242f;
+  --exm-ui-font:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+  --exm-ui-fs-xs:12px; --exm-ui-fs-sm:13px; --exm-ui-fs-md:14px; --exm-ui-fs-lg:18px; --exm-ui-fs-xl:24px;
+  --exm-ui-space-1:4px; --exm-ui-space-2:8px; --exm-ui-space-3:12px; --exm-ui-space-4:16px; --exm-ui-space-5:24px; --exm-ui-space-6:32px; --exm-ui-space-7:48px;
+  --exm-ui-radius-sm:6px; --exm-ui-radius-md:10px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--exm-ui-font);font-size:var(--exm-ui-fs-md);line-height:1.6;color:var(--exm-ui-text);background:var(--exm-ui-bg)}
+a{color:var(--exm-ui-accent-strong);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:0;box-shadow:0 0 0 3px var(--exm-ui-accent-ring);border-radius:var(--exm-ui-radius-sm)}
+.mark{width:28px;height:28px;flex:0 0 auto}
+
+/* ---- buttons: one filled (the main action), the rest quiet ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;font-size:var(--exm-ui-fs-sm);font-weight:600;white-space:nowrap;color:var(--exm-ui-text-sub);background:var(--exm-ui-bg);border:1px solid var(--exm-ui-line);border-radius:var(--exm-ui-radius-sm);cursor:pointer;text-decoration:none}
+.btn:hover{color:var(--exm-ui-text);background:var(--exm-ui-bg-hover);text-decoration:none}
+.btn-primary{color:#fff;background:var(--exm-ui-accent);border-color:var(--exm-ui-accent)}
+.btn-primary:hover{color:#fff;background:var(--exm-ui-accent-strong);border-color:var(--exm-ui-accent-strong)}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-lg{height:42px;font-size:var(--exm-ui-fs-md)}
+
+/* ---- fields ---- */
+.input{width:100%;height:38px;padding:0 var(--exm-ui-space-3);background:var(--exm-ui-bg);border:1px solid var(--exm-ui-line);border-radius:var(--exm-ui-radius-sm);transition:border-color .12s,box-shadow .12s}
+textarea.input{height:auto;padding:10px var(--exm-ui-space-3);resize:vertical;line-height:1.6}
+.input::placeholder{color:var(--exm-ui-text-faint)}
+.input:hover{border-color:#cfd4da}
+.input:focus{border-color:var(--exm-ui-accent);box-shadow:0 0 0 3px var(--exm-ui-accent-ring);outline:0}
+input[type=checkbox],input[type=radio]{width:16px;height:16px;margin:0;accent-color:var(--exm-ui-accent)}
+
+/* ---- small parts ---- */
+.tag{display:inline-block;padding:1px 8px;font-size:var(--exm-ui-fs-xs);line-height:1.6;color:var(--exm-ui-text-sub);background:var(--exm-ui-bg-sub);border:1px solid var(--exm-ui-line);border-radius:999px;white-space:nowrap}
+.tag-accent{color:var(--exm-ui-accent-strong);background:var(--exm-ui-accent-soft);border-color:transparent}
+.muted{color:var(--exm-ui-text-sub)}
+.faint{color:var(--exm-ui-text-faint)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---- app shell: gray sidebar, white page, no dividing shadows ---- */
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.side{background:var(--exm-ui-bg-sub);padding:var(--exm-ui-space-4) var(--exm-ui-space-3);position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:var(--exm-ui-space-2) var(--exm-ui-space-2) var(--exm-ui-space-5);font-size:17px;font-weight:700;color:var(--exm-ui-text)}
+.brand:hover{text-decoration:none}
+.nav-title{padding:var(--exm-ui-space-4) var(--exm-ui-space-2) var(--exm-ui-space-1);font-size:var(--exm-ui-fs-xs);font-weight:600;color:var(--exm-ui-text-faint)}
+.nav a{display:block;padding:6px var(--exm-ui-space-2);margin:1px 0;font-size:var(--exm-ui-fs-md);color:var(--exm-ui-text-sub);border-radius:var(--exm-ui-radius-sm)}
+.nav a:hover{background:#eceef1;color:var(--exm-ui-text);text-decoration:none}
+.nav a.on{background:#e9ecef;color:var(--exm-ui-text);font-weight:600}
+.main{min-width:0}
+.top{display:flex;align-items:center;gap:var(--exm-ui-space-4);height:56px;padding:0 var(--exm-ui-space-6)}
+.top .search{flex:1 1 auto;max-width:360px}
+.top .search .input{height:34px;background:var(--exm-ui-bg-sub);border-color:transparent}
+.top .search .input:focus{background:var(--exm-ui-bg);border-color:var(--exm-ui-accent)}
+.top .sp{flex:1 1 auto}
+.top .who{display:flex;align-items:center;gap:8px;font-size:var(--exm-ui-fs-sm);color:var(--exm-ui-text-sub);white-space:nowrap}
+.avatar{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--exm-ui-accent-soft);color:var(--exm-ui-accent-strong);font-size:var(--exm-ui-fs-xs);font-weight:700}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--exm-ui-accent);color:#fff;font-size:11px;font-weight:700}
+.page{padding:var(--exm-ui-space-5) var(--exm-ui-space-6) var(--exm-ui-space-7);max-width:1240px}
+.crumb{font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint);margin-bottom:var(--exm-ui-space-2)}
+.crumb a{color:var(--exm-ui-text-faint)}
+.page-head{display:flex;align-items:flex-end;flex-wrap:wrap;gap:var(--exm-ui-space-3);margin-bottom:var(--exm-ui-space-5)}
+.page-head h1{font-size:var(--exm-ui-fs-xl);font-weight:700;line-height:1.3}
+.page-head .desc{font-size:var(--exm-ui-fs-sm);color:var(--exm-ui-text-sub);margin-top:2px}
+.page-head .sp{flex:1 1 auto}
+.sample-note{margin-top:var(--exm-ui-space-7);font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint)}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{display:none}
+  .top{padding:0 var(--exm-ui-space-4);gap:var(--exm-ui-space-1);justify-content:flex-end}
+  .top .sp{display:none}
+  .top .who span:last-child,.top .search{display:none}
+  .page{padding:var(--exm-ui-space-4) var(--exm-ui-space-4) var(--exm-ui-space-7)}
+}
+
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--exm-ui-space-7) var(--exm-ui-space-6)}
+.grid .wide{grid-column:1 / -1}
+.box-head{display:flex;align-items:baseline;gap:var(--exm-ui-space-3);padding-bottom:var(--exm-ui-space-3);border-bottom:1px solid var(--exm-ui-line)}
+.box-head h2{font-size:16px;font-weight:600}
+.box-head .sub{font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint)}
+.box-head .sp{flex:1}
+.box-head a{font-size:var(--exm-ui-fs-sm)}
+.rows{list-style:none;margin:0;padding:0}
+.rows li{display:flex;align-items:baseline;gap:var(--exm-ui-space-3);padding:10px 0;border-bottom:1px solid var(--exm-ui-line-soft)}
+.rows li>a{flex:1 1 auto;min-width:0;color:var(--exm-ui-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rows .when{flex:0 0 auto;font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--exm-ui-space-5)}
+.stat .k{font-size:var(--exm-ui-fs-sm);color:var(--exm-ui-text-sub)}
+.stat .v{font-size:28px;font-weight:700;line-height:1.3}
+.stat .v small{font-size:var(--exm-ui-fs-sm);font-weight:400;color:var(--exm-ui-text-sub);margin-left:4px}
+.stat .d{font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint)}
+.chart{padding-top:var(--exm-ui-space-4)}
+.chart svg{display:block;width:100%;height:auto}
+.chart .ax{font-size:11px;fill:#8b95a1}
+.chart .val{font-size:12px;font-weight:600;fill:#1c2024}
+.chart .gl{stroke:#eff1f3;stroke-width:1}
+.chart .base{stroke:#d5d9de;stroke-width:1}
+.chart .bar:hover path{fill:#1d4ed8}
+table.mini{width:100%;border-collapse:collapse}
+table.mini th{padding:10px 12px 10px 0;font-size:var(--exm-ui-fs-xs);font-weight:600;color:var(--exm-ui-text-sub);text-align:left;border-bottom:1px solid var(--exm-ui-line-soft)}
+table.mini td{padding:10px 12px 10px 0;border-bottom:1px solid var(--exm-ui-line-soft);white-space:nowrap}
+table.mini .r{text-align:right;padding-right:0}
+.scroll{overflow-x:auto}
+@media (max-width:1000px){.grid{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="dashboard.html"><svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs><rect x="4" y="4" width="112" height="112" rx="26" fill="url(#g)"/><rect x="28" y="27" width="18" height="18" rx="4" fill="#bfdbfe"/><rect x="52" y="27" width="40" height="18" rx="4" fill="#fff"/><rect x="28" y="51" width="18" height="18" rx="4" fill="#bfdbfe"/><rect x="52" y="51" width="28" height="18" rx="4" fill="#fff"/><rect x="28" y="75" width="18" height="18" rx="4" fill="#bfdbfe"/><rect x="52" y="75" width="40" height="18" rx="4" fill="#fff"/></svg><span>Exment</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="dashboard.html" class="on" aria-current="page">HOME</a>
+      <div class="nav-title">データ</div>
+      <a href="data-list.html">顧客情報</a>
+      <a href="#">契約情報</a>
+      <a href="#">商談</a>
+      <a href="#">お知らせ</a>
+      <div class="nav-title">マスター管理</div>
+      <a href="#">ユーザー</a>
+      <a href="#">組織</a>
+      <div class="nav-title">管理者設定</div>
+      <a href="#">システム設定</a>
+      <a href="#">カスタムテーブル</a>
+      <a href="#">役割グループ</a>
+      <a href="#">ワークフロー</a>
+      <a href="#">通知</a>
+      <a href="#">プラグイン</a>
+      <a href="#">メニュー</a>
+      <a href="#">テンプレート</a>
+      <a href="#">バックアップ</a>
+      <a href="#">ログイン設定</a>
+      <a href="#">操作ログ</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <div class="search"><input class="input" type="search" placeholder="データを検索" aria-label="データを検索"></div>
+      <div class="sp"></div>
+      <a class="btn btn-ghost" href="#">未処理タスク <span class="badge">3</span></a>
+      <a class="btn btn-ghost" href="#">通知 <span class="badge">2</span></a>
+      <div class="who"><span class="avatar">山</span><span>山田 太郎</span></div>
+    </header>
+    <main class="page">
+      <div class="page-head">
+        <div><h1>ダッシュボード</h1><p class="desc">既定のダッシュボード</p></div>
+        <div class="sp"></div>
+        <a class="btn" href="#">ダッシュボード設定</a>
+      </div>
+
+      <div class="grid">
+        <section class="wide stats" aria-label="概要">
+          <div class="stat"><div class="k">未処理タスク</div><div class="v num">3<small>件</small></div><div class="d">うち期限切れ 1件</div></div>
+          <div class="stat"><div class="k">今月の新規顧客</div><div class="v num">12<small>社</small></div><div class="d">先月 9社</div></div>
+          <div class="stat"><div class="k">今月の契約金額</div><div class="v num">720<small>万円</small></div><div class="d">先月 590万円</div></div>
+          <div class="stat"><div class="k">進行中の商談</div><div class="v num">27<small>件</small></div><div class="d">今週の更新 8件</div></div>
+        </section>
+
+        <section>
+          <div class="box-head"><h2>お知らせ</h2><span class="sp"></span><a href="#">一覧</a></div>
+          <ul class="rows">
+            <li><a href="#">年末年始のサポート窓口について</a><span class="when num">2026/11/13</span></li>
+            <li><a href="#">顧客情報テーブルに「業種」列を追加しました</a><span class="when num">2026/11/10</span></li>
+            <li><a href="#">11月21日(土) 22時よりメンテナンスを行います</a><span class="when num">2026/11/06</span></li>
+            <li><a href="#">契約情報の入力ルールを見直しました</a><span class="when num">2026/10/29</span></li>
+          </ul>
+        </section>
+
+        <section>
+          <div class="box-head"><h2>未処理タスク一覧</h2><span class="sub">ワークフロー</span><span class="sp"></span><a href="#">一覧</a></div>
+          <ul class="rows">
+            <li><a href="#">契約情報：株式会社サンプル商事 年間保守契約</a><span class="tag tag-accent">承認待ち</span><span class="when num">11/14</span></li>
+            <li><a href="#">契約情報：東和システム株式会社 追加ライセンス</a><span class="tag tag-accent">承認待ち</span><span class="when num">11/13</span></li>
+            <li><a href="#">商談：みなと物流株式会社 見積書の確認</a><span class="tag">確認中</span><span class="when num">11/09</span></li>
+          </ul>
+        </section>
+
+        <section>
+          <div class="box-head"><h2>契約金額（月別）</h2><span class="sub">契約情報・単位：万円</span></div>
+          <div class="chart"><svg viewBox="0 0 520 220" role="img" aria-label="月別の契約金額（万円）。6月420、7月510、8月380、9月640、10月590、11月720。"><line x1="44" x2="520" y1="192.0" y2="192.0" class="base"/><text x="36" y="196.0" text-anchor="end" class="ax">0</text><line x1="44" x2="520" y1="149.0" y2="149.0" class="gl"/><text x="36" y="153.0" text-anchor="end" class="ax">200</text><line x1="44" x2="520" y1="106.0" y2="106.0" class="gl"/><text x="36" y="110.0" text-anchor="end" class="ax">400</text><line x1="44" x2="520" y1="63.0" y2="63.0" class="gl"/><text x="36" y="67.0" text-anchor="end" class="ax">600</text><line x1="44" x2="520" y1="20.0" y2="20.0" class="gl"/><text x="36" y="24.0" text-anchor="end" class="ax">800</text><g class="bar"><title>6月：420万円</title><rect x="44.0" y="20" width="78.0" height="172" fill="transparent"/><path d="M69.0 192.0 v-86.3 a4 4 0 0 1 4 -4 h20 a4 4 0 0 1 4 4 v86.3 z" fill="#2563eb"/><text x="83.0" y="212" text-anchor="middle" class="ax">6月</text></g><g class="bar"><title>7月：510万円</title><rect x="122.0" y="20" width="78.0" height="172" fill="transparent"/><path d="M147.0 192.0 v-105.7 a4 4 0 0 1 4 -4 h20 a4 4 0 0 1 4 4 v105.7 z" fill="#2563eb"/><text x="161.0" y="212" text-anchor="middle" class="ax">7月</text></g><g class="bar"><title>8月：380万円</title><rect x="200.0" y="20" width="78.0" height="172" fill="transparent"/><path d="M225.0 192.0 v-77.7 a4 4 0 0 1 4 -4 h20 a4 4 0 0 1 4 4 v77.7 z" fill="#2563eb"/><text x="239.0" y="212" text-anchor="middle" class="ax">8月</text></g><g class="bar"><title>9月：640万円</title><rect x="278.0" y="20" width="78.0" height="172" fill="transparent"/><path d="M303.0 192.0 v-133.6 a4 4 0 0 1 4 -4 h20 a4 4 0 0 1 4 4 v133.6 z" fill="#2563eb"/><text x="317.0" y="212" text-anchor="middle" class="ax">9月</text></g><g class="bar"><title>10月：590万円</title><rect x="356.0" y="20" width="78.0" height="172" fill="transparent"/><path d="M381.0 192.0 v-122.8 a4 4 0 0 1 4 -4 h20 a4 4 0 0 1 4 4 v122.8 z" fill="#2563eb"/><text x="395.0" y="212" text-anchor="middle" class="ax">10月</text></g><g class="bar"><title>11月：720万円</title><rect x="434.0" y="20" width="78.0" height="172" fill="transparent"/><path d="M459.0 192.0 v-150.8 a4 4 0 0 1 4 -4 h20 a4 4 0 0 1 4 4 v150.8 z" fill="#2563eb"/><text x="473.0" y="212" text-anchor="middle" class="ax">11月</text><text x="473.0" y="31.2" text-anchor="middle" class="val">720</text></g></svg></div>
+        </section>
+
+        <section>
+          <div class="box-head"><h2>顧客情報</h2><span class="sub">最近更新したデータ</span><span class="sp"></span><a href="data-list.html">一覧</a></div>
+          <div class="scroll">
+          <table class="mini">
+            <thead><tr><th>顧客名</th><th>担当者</th><th class="r">更新日時</th></tr></thead>
+            <tbody>
+              <tr><td><a href="data-form.html">株式会社サンプル商事</a></td><td>山田 太郎</td><td class="r num faint">2026/11/16 09:12</td></tr>
+              <tr><td><a href="#">東和システム株式会社</a></td><td>佐藤 花子</td><td class="r num faint">2026/11/13 17:40</td></tr>
+              <tr><td><a href="#">みなと物流株式会社</a></td><td>鈴木 一郎</td><td class="r num faint">2026/11/13 11:05</td></tr>
+              <tr><td><a href="#">合同会社あおぞら設計</a></td><td>山田 太郎</td><td class="r num faint">2026/11/12 15:28</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+      </div>
+      <p class="sample-note">デザインサンプル（静的HTML）。データはすべて架空です。 <a href="index.html">サンプル一覧へ</a></p>
+    </main>
+  </div>
+</div>
+</body>
+</html>
