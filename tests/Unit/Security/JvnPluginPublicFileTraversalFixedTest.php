@@ -68,6 +68,16 @@ class JvnPluginPublicFileTraversalFixedTest extends SecurityRegressionTestCase
         $controller->_readPublicFile(new Request(), $segment);
     }
 
+    public function test_safe_segment_without_plugin_is_not_found(): void
+    {
+        // A url whose plugin is not there (an old url, a removed plugin) must be a 404,
+        // not "Call to a member function getFullPath() on null" (500).
+        $controller = new PluginPageController(null);
+
+        $this->expectException(NotFoundHttpException::class);
+        $controller->_readPublicFile(new Request(), 'css', 'style.css');
+    }
+
     public function test_dotdot_segment_aborts_before_touching_plugin(): void
     {
         // Explicit, unambiguous case: '..' must be rejected even though the plugin is null,
