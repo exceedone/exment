@@ -483,6 +483,9 @@ class Initialize
                 Config::set('no-captcha.version', $val);
             }
         }
+
+        // demo mode: every mail goes to the log, whatever the mail settings above say
+        \Exceedone\Exment\Services\DemoMode::applyRuntimeConfig();
     }
 
     /**

@@ -328,6 +328,59 @@ class Exment
 
 
     /**
+     * The screen design fixed by the server (config exment.ui_design,
+     * .env EXMENT_UI_DESIGN).
+     *
+     * @return string|null "modern" or "classic" when the server fixes it, null when it is not set (or not one of the two)
+     */
+    public function getUiDesignForced(): ?string
+    {
+        $config = config('exment.ui_design');
+        if (!is_string($config)) {
+            return null;
+        }
+
+        $config = strtolower(trim($config));
+        return in_array($config, Define::SYSTEM_UI_DESIGN, true) ? $config : null;
+    }
+
+    /**
+     * The screen design in effect: "modern" or "classic".
+     * The value fixed by the server wins; without it, the system setting decides.
+     *
+     * @return string
+     */
+    public function getUiDesign(): string
+    {
+        $forced = $this->getUiDesignForced();
+        if (!is_null($forced)) {
+            return $forced;
+        }
+
+        $default = Define::SYSTEM_UI_DESIGN[0];
+        try {
+            $value = System::ui_design();
+        } catch (\Exception $ex) {
+            // The system table cannot be read (e.g. before the install).
+            return $default;
+        }
+
+        return in_array($value, Define::SYSTEM_UI_DESIGN, true) ? $value : $default;
+    }
+
+    /**
+     * Whether the "modern" stylesheet is loaded.
+     * This is the one place that answers the question: the admin pages
+     * (Middleware\Bootstrap) and the login layout both ask here.
+     *
+     * @return bool
+     */
+    public function isModernUi(): bool
+    {
+        return $this->getUiDesign() === 'modern';
+    }
+
+    /**
      * getExmentCurrentVersion
      *
      * @return string|null this version in server

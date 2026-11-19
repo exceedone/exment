@@ -206,10 +206,12 @@ Pull Request luôn được hoan nghênh. Hiện tại, chúng tôi sẽ rất v
 ## Branch
 | Branch | Packagist | Nội dung |
 |---|---|---|
-| `7.1` | `7.1.x-dev` | Phiên bản tiếp theo 7.1.0. Pull Request cho 7.1.0 hãy gửi vào đây |
-| `master` | `dev-master` | Phát triển bản sau đó (7.2 trở đi) |
-| `7.0` | `7.0.x-dev` | Bảo trì dòng 7.0 (7.0.1, 7.0.2 …) |
+| `master` | `dev-master` | **Phát triển phiên bản tiếp theo. Mọi Pull Request hãy gửi vào đây** (cả chức năng mới lẫn sửa lỗi) |
+| `7.1` | `7.1.x-dev` | Bảo trì dòng 7.1 (7.1.1, 7.1.2 …) |
+| `7.0` | `7.0.x-dev` | Bảo trì dòng 7.0 (7.0.4, 7.0.5 …) |
 | `6.2` | `6.2.x-dev` | Bảo trì dòng 6.2 (6.2.16, 6.2.17 …) |
+
+Bản sửa cần cho cả phiên bản đã phát hành thì gửi vào `master` trước, rồi gắn nhãn `backport-7.1` / `backport-7.0` / `backport-6.2` cho Pull Request. Người quản lý sẽ đưa vào nhánh đó. Quy trình phát hành: [Develop.md](document/en/Develop.md).
 
 Khi cài Exment, hãy dùng phiên bản đã phát hành, không dùng bản `-dev` (ví dụ `composer require exceedone/exment`). Chi tiết: [Develop.md](document/en/Develop.md)
 

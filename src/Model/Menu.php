@@ -220,6 +220,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                         $row['icon'] = array_get($defines, 'icon');
                     }
                     $row['uri'] = array_get($defines, "uri");
+                    // demo mode: the menu of a refused page
+                    if (\Exceedone\Exment\Services\DemoMode::hidesMenuUri($row['uri'])) {
+                        $result = false;
+                    }
                     break;
                 case MenuType::PARENT_NODE:
                     $row['uri'] = null;

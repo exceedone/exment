@@ -25,6 +25,7 @@ use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\DemoMode;
 
 /**
  * @property-read string $display_avatar
@@ -160,7 +161,11 @@ abstract class CustomValue extends ModelBase
             // treeview
             $this->titleColumn = 'label';
             $this->orderColumn = 'id';
-            $this->parentColumn = CustomColumn::getEloquent('parent_organization', $this->custom_table)->getIndexColumnName();
+            // the same for every organization: read once in a request (cleared with the other request sessions)
+            $custom_table = $this->custom_table;
+            $this->parentColumn = System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_PARENT_INDEX, function () use ($custom_table) {
+                return CustomColumn::getEloquent('parent_organization', $custom_table)->getIndexColumnName();
+            });
         }
 
         parent::__construct($attributes);
@@ -757,6 +762,9 @@ abstract class CustomValue extends ModelBase
 
         // call plugin validator
         $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this, ['called_type' => $options['calledType']]));
+
+        // demo mode: the login ID of a user who can log in stays
+        $errors = array_merge($errors, DemoMode::userLoginErrors($this->custom_table, $input, $this, $options));
 
         return count($errors) > 0 ? $errors : true;
     }

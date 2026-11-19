@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use ExmentAdminCore\Admin\Form;
+use Exceedone\Exment\Services\DemoMode;
 use ExmentAdminCore\Admin\Form\Field;
 use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
@@ -386,18 +387,25 @@ class CustomFormPublicController extends AdminControllerTableBase
             $form->exmheader(exmtrans("custom_form_public.css_js_setting"))->hr();
 
             $form->embeds("css_js_setting", exmtrans("common.css_js_setting"), function ($form) {
-                $form->textarea('custom_css', exmtrans("custom_form_public.custom_css"))
-                    ->help(exmtrans("custom_form_public.help.custom_css"))
-                ;
+                // demo mode: custom CSS and JavaScript are not saved (DemoMode::keepPublicFormScripts())
+                if (DemoMode::enabled()) {
+                    $form->descriptionHtml(esc_html(exmtrans('demo_mode.message_public_form_script')));
+                } else {
+                    $form->textarea('custom_css', exmtrans("custom_form_public.custom_css"))
+                        ->help(exmtrans("custom_form_public.help.custom_css"))
+                    ;
+                }
                 $form->multipleSelect('plugin_css', exmtrans("custom_form_public.plugin_css"))
                     ->help(exmtrans("custom_form_public.help.plugin_css"))
                     ->options(function () {
                         return Plugin::getByPluginTypes(PluginType::STYLE)->pluck('plugin_view_name', 'id')->toArray();
                     })
                 ;
-                $form->textarea('custom_js', exmtrans("custom_form_public.custom_js"))
-                    ->help(exmtrans("custom_form_public.help.custom_js"))
-                ;
+                if (!DemoMode::enabled()) {
+                    $form->textarea('custom_js', exmtrans("custom_form_public.custom_js"))
+                        ->help(exmtrans("custom_form_public.help.custom_js"))
+                    ;
+                }
                 $form->multipleSelect('plugin_js', exmtrans("custom_form_public.plugin_js"))
                     ->help(exmtrans("custom_form_public.help.plugin_js"))
                     ->options(function () {

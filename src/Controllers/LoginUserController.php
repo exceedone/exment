@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\PartialCrudItems\Providers\LoginUserItem;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
@@ -161,7 +162,7 @@ class LoginUserController extends AdminControllerBase
 
         LoginUserItem::getItem()->setAdminFormOptions($form, $id);
 
-        if (!LoginSetting::isUseDefaultLoginForm()) {
+        if (!LoginSetting::isUseDefaultLoginForm() || DemoMode::enabled()) {
             $form->disableSubmit();
         }
         $form->disableReset();

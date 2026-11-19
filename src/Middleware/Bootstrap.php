@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use ExmentAdminCore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\DemoMode;
 
 /**
  * Middleware as Bootstrap.
@@ -55,6 +56,9 @@ class Bootstrap
             $navbar->right(new \Exceedone\Exment\Form\Navbar\WorkflowTaskNav());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\NotifyNav());
+            if (DemoMode::enabled()) {
+                $navbar->left(new \Exceedone\Exment\Form\Navbar\DemoModeNav());
+            }
         });
         Ad::js(asset('lib/js/jquery-ui.min.js'));
         Ad::css(asset('lib/css/jquery-ui.min.css'));
@@ -88,6 +92,17 @@ class Bootstrap
         static::setCssJsList([
             'vendor/exment/css/grid_tools.css',
         ], true, true);
+
+        // The "modern" screen design (system setting "Screen design", or
+        // EXMENT_UI_DESIGN on the server). With "classic" the stylesheet is
+        // not even requested. It goes after grid_tools.css because it
+        // overrides that file's colors with the same selectors, and equal
+        // selectors are settled by order.
+        if (\Exment::isModernUi()) {
+            static::setCssJsList([
+                'vendor/exment/css/modern.css',
+            ], true, true);
+        }
 
         static::setCssJsList([
             // see the note on the stylesheet above

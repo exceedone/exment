@@ -77,6 +77,9 @@ return [
         'grid_density_comfortable' => 'Comfortable',
         'grid_density_spacious' => 'Spacious',
         'grid_nowrap' => 'Single line rows',
+        'grid_keyboard' => 'Excel-like editing',
+        'grid_keyboard_hint' => 'arrow keys to move, F2 or type to edit',
+        'grid_keyboard_label' => 'Excel mode',
         'grid_auto_refresh' => 'Auto refresh',
         'grid_auto_refresh_off' => 'Off',
         'grid_auto_refresh_30' => '30 seconds',
@@ -86,7 +89,7 @@ return [
         'grid_pin_preset_2' => 'Pin first 2 columns',
         'grid_pin_preset_3' => 'Pin first 3 columns',
         'grid_pin_none' => 'Unpin all',
-        'grid_pin_actions' => 'Pin action column to the right',
+        'grid_pin_actions' => 'Pin action column',
         'grid_pin_head' => 'Pin header row',
         'grid_pin_flag' => 'Pinned',
         'grid_pin_narrow' => 'Some columns were left unpinned because the screen is too narrow.',
@@ -358,6 +361,8 @@ return [
         'site_favicon' => 'Site Favicon(ico)',
         'site_skin' => 'Site Skin',
         'site_layout' => 'Site Menu Layout',
+        'ui_design' => 'Screen Design',
+        'ui_design_forced' => '%s (set by the server)',
         'default_date_format' => 'Date and time display format',
         'filter_search_type' => 'Data search method',
         'grid_filter_disable_flg' => 'Disable Grid Filter',
@@ -368,7 +373,10 @@ return [
         'outside_api' => 'Perform server external communication',
         'permission_available' => 'Use Role Management',
         'organization_available' => 'Use Organization Management',
-        'logging_toggle_available' => 'Enable Operation Log',
+        'logging_toggle_available' => 'Enable System Performance Log',
+        'logging_slow_request_seconds' => 'Performance log: seconds of a slow screen',
+        'logging_slow_sql_seconds' => 'Performance log: seconds of a slow SQL',
+        'logging_max_per_hour' => 'Performance log: maximum logs in an hour',
         'system_admin_users' => 'System Administrator',
         'system_mail' => 'System Mail Settings',
         'system_mail_host' => 'Host Name',
@@ -499,6 +507,11 @@ return [
             "skin-black-light" => "Header:White&nbsp;&nbsp;&nbsp;&nbsp;SideBar:White",
         ],
         
+        'ui_design_options' => [
+            "modern" => "Modern",
+            "classic" => "Classic",
+        ],
+
         'site_layout_options' => [
             "layout_default" => "Default",
             "layout_mini" => "Small Icon",
@@ -579,6 +592,7 @@ return [
             'site_favicon' => 'Site Favicon(.ico). It is used for bookmarks on the homepage. Recommended size:16px * 16px',
             'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
+            'ui_design' => 'Select the design of the login page and the admin pages. "Modern" is the new white-and-gray design, "Classic" is the design used until now. The default is "Modern". To go back to the previous design, select "Classic". *After saving, it will be reflected in reloading.<br/>If the design is set by the server (EXMENT_UI_DESIGN in .env), that value wins and it cannot be changed here.',
             'filter_search_type' => 'Set the search method for registered data. *In the case of partial match, performance may be affected depending on the number of data.',
             'grid_filter_disable_flg' => 'The checked item will be hidden in the filter item of the data list page.',
             'system_values_pos' => 'Set the position to display system values on the data edit screen and data details screen.',
@@ -605,7 +619,10 @@ return [
             'meili_filter_include_mode' => 'Include: add the column to the filter. Exclude: drop an auto column from the filter (only applies in "Auto + Custom" mode).',
             'permission_available' => 'If Select YES, management role using user or organozation.',
             'organization_available' => 'If Select YES, create organizations to which the user belongs.',
-            'logging_toggle_available' => 'If set to YES, the activity log feature will be enabled and all user operations will be recorded.',
+            'logging_toggle_available' => 'If YES, slow screen operations are saved in "System Performance Log" (Admin Setting menu): the URL of the screen (the values of searches etc. are hidden), the user, the time and the SQL (with "?", without the values).',
+            'logging_slow_request_seconds' => 'Save the log when a screen takes this number of seconds or more. 0: not by this condition. When this and "seconds of a slow SQL" are both 0, every operation is saved (use it only for an investigation).',
+            'logging_slow_sql_seconds' => 'Save the log when one SQL takes this number of seconds or more. 0: not by this condition.',
+            'logging_max_per_hour' => 'The maximum number of logs saved in an hour. Logs over it are not saved. 0: no limit.',
             'system_admin_users' => 'Set the user who will be the system administrator.',
             'system_mail' => 'Configure settings when sending mail from the system.',
             'system_mail_from' => 'the mail address from this system. Using this mail address as "from", this system sends users.',
@@ -1535,6 +1552,31 @@ return [
             'status_changed' => 'This action cannot be performed. Another user may have executed the workflow.',
         ],
         
+        'bulk' => [
+            'title' => 'Run Workflow',
+            'submit' => 'Run',
+            'action_option' => '%s (%d of the %d selected)',
+            'help' => [
+                'next_work_users' => 'Used for the data that needs the next work users chosen in "%s". The chosen users are set to all of that data.',
+                'comment' => 'A comment is required for "%s".',
+            ],
+            'message' => [
+                'description' => 'Run a workflow action on the %d selected data. The data that cannot take it is skipped.',
+                'no_action' => 'There is no workflow action you can run on the %d selected data.',
+                'comment_required' => 'Enter a comment for "%s".',
+                'next_work_users_required' => 'Choose the next work users for "%s".',
+                'executed' => 'Ran the workflow on %d data.',
+                'none_executed' => 'The workflow was not run on any data.',
+                'skipped' => '%d data were skipped (%s).',
+            ],
+            'skip_reasons' => [
+                'not_found' => 'data not found',
+                'status_changed' => 'the action cannot be run at its status',
+                'nextuser_not_found' => 'no next work user',
+                'error' => 'error',
+            ],
+        ],
+
         'comment_options' => [
             'required' => 'Required',
             'nullable' => 'Nullable',
@@ -3469,6 +3511,7 @@ return [
             'unsupported_view_kind_type' => 'The view type is not supported by the API.',
             'not_contains_custom_form' => 'The specified API cannot be executed on this form.',
             'one_record_already' => 'This table allows only one record.',
+            'demo_mode' => 'This operation is not available on this demo site.',
         ],
 
         'help' =>[
@@ -3646,5 +3689,14 @@ return [
         'answer_invalid_link' => 'This link is invalid. Please contact your administrator.',
         'answer_link_expired' => 'This link has expired. Please contact your administrator.',
         'answer_invalid_status' => 'The submitted answer is invalid. Please go back and try again.',
+    ],
+    'demo_mode' => [
+        'banner' => 'This is a demo site. Some operations (plugins, backup, mail and login settings, etc.) are not available. The data is reset every night.',
+        'message_blocked' => 'This operation is not available on this demo site.',
+        'message_system_setting' => 'This is a demo site: the mail server, LINE, full-text search server, IP filter, reCAPTCHA, API and outside connection settings are not saved.',
+        'message_login_id' => 'This is a demo site: the user code and e-mail address of a user who can log in cannot be changed.',
+        'message_user_delete' => 'This is a demo site: a user who can log in cannot be deleted.',
+        'message_public_form_script' => 'This is a demo site: custom CSS and JavaScript of public forms are not saved.',
+        'message_system_admin' => 'This is a demo site: the system administrators are not changed.',
     ],
 ];

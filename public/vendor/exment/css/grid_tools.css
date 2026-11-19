@@ -1144,6 +1144,80 @@ body.exm-bulkbar-open .content-wrapper {
   z-index: 1085;
 }
 
+/* -------------------------------------------- Excel-like keyboard mode --- */
+/* The toolbar switch (GridKeyboard). Pressed while the mode is on: tinted
+   and ringed rather than filled, so it is not taken for a primary action.
+   `!important` and the long selector only because the admin theme sets
+   the three colours of `.btn-default` with `!important` itself. */
+.exm-grid-tool.exm-grid-kbd > .btn.exm-kbd-toggle .exm-kbd-label {
+  margin-left: 5px;
+}
+
+.exm-grid-tool.exm-grid-kbd > .btn.exm-kbd-toggle.active,
+.exm-grid-tool.exm-grid-kbd > .btn.exm-kbd-toggle.active:hover,
+.exm-grid-tool.exm-grid-kbd > .btn.exm-kbd-toggle.active:focus {
+  color: #1d4ed8 !important;
+  background-color: #dbe7ff !important;
+  border-color: #2563eb !important;
+  box-shadow: inset 0 1px 3px rgba(37, 99, 235, .35);
+}
+
+/* Every rule below hangs on `.exm-kbd-on`, which grid_tools.js puts on the
+   table only while the mode is on - off, the grid is untouched. */
+.table.exm-grid.exm-kbd-on > tbody > tr > td {
+  cursor: cell;
+}
+
+.table.exm-grid.exm-kbd-on > tbody > tr > td a,
+.table.exm-grid.exm-kbd-on > tbody > tr > td .exm-edit-pen {
+  cursor: pointer;
+}
+
+/* The selected cell. An outline, because the cell's own box-shadow is
+   taken (the seam of a pinned column, the red of a refused save), and a
+   tint laid over the background as an image, because the background
+   colour is taken too: a pinned cell has to stay opaque in its row's
+   zebra / hover colour. Drawn inside the cell so the scrolling box cannot
+   clip it. */
+.table.exm-grid.exm-kbd-on > tbody > tr > td.exm-cell-active {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+  background-image: linear-gradient(rgba(37, 99, 235, .1), rgba(37, 99, 235, .1));
+}
+
+/* Still marked while the keys are going somewhere else, only paler - so
+   the full colour doubles as the focus indicator. */
+.table.exm-grid.exm-kbd-on > tbody > tr > td.exm-cell-active:not(:focus):not(:focus-within) {
+  outline-color: #9db9f3;
+}
+
+/* The pen follows the selection as it follows the mouse. */
+.table.exm-grid.exm-kbd-on > tbody > tr > td.exm-cell-active.exm-editable .exm-edit-pen {
+  display: block;
+}
+
+.table.exm-grid.exm-kbd-on > tbody > tr > td.exm-cell-active.exm-editing .exm-edit-pen {
+  display: none;
+}
+
+/* The selected cell's editor-to-be: it holds the focus so typing (and an
+   IME composition) has somewhere to land, and shows nothing until
+   grid_tools.js turns it into the editor. In the cell's corner, so the
+   IME's candidate window opens at the cell. */
+.table.exm-grid > tbody > tr > td > .exm-kbd-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Optimistic UI feedback. `-saving` dims the cell so the user knows the
    write is in flight; `-saved` flashes green once, then falls off. */
 .table.exm-grid > tbody > tr > td.exm-saving {
