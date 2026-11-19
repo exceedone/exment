@@ -165,7 +165,6 @@ class AuthUserOrgHelper
             };
 
             // Explicit permission checks and unauthenticated contexts must not use persistent cache.
-            // @phpstan-ignore-next-line
             $target_ids = isset($tablePermission)
                 ? $resolver()
                 : (!is_null($userId) ? System::cache($key, $resolver) : System::requestSession($key, $resolver));

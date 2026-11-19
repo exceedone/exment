@@ -483,8 +483,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
         * @return Collection<int, CustomColumnMulti>|string
      */
-
-    // @phpstan-ignore-next-line
     public function getLabelColumns()
     {
         $key = 'custom_table_use_label_flg_' . $this->table_name;
@@ -2448,7 +2446,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @param array<string, mixed> $options
      * @param \Closure $resolver
-     * @return Collection
+     * @return Collection<int|string, mixed>
      */
     protected function getRequestCachedSelectOptions(array $options, \Closure $resolver): Collection
     {
@@ -2464,7 +2462,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'permission' => array_get($options, 'permission'),
         ]) ?: '');
 
-        return clone System::requestSession($key, $resolver);
+        /** @var Collection<int|string, mixed> $cached */
+        $cached = System::requestSession($key, $resolver);
+        return clone $cached;
     }
     /**
      * get ajax uri for options for select, multipleselect.

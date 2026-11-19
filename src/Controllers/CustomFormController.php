@@ -230,7 +230,7 @@ class CustomFormController extends AdminControllerTableBase
      * Showing preview
      *
      * @param Request $request
-     * @return Content
+     * @return Content|\Illuminate\Http\RedirectResponse
      */
     public function preview(Request $request)
     {
@@ -784,11 +784,9 @@ class CustomFormController extends AdminControllerTableBase
             } else {
                 $block = CustomFormBlock::findOrFail($key);
             }
-            // @phpstan-ignore-next-line
+            /** @var CustomFormBlock $block */
             $block->available = array_get($value, 'available') ?? 0;
-            // @phpstan-ignore-next-line
             $block->form_block_view_name = array_get($value, 'form_block_view_name');
-            // @phpstan-ignore-next-line
             $submittedOptions = array_get($value, 'options', []);
             $blockOptions = array_replace(jsonToArray($block->options), $submittedOptions);
             if ($block->form_block_type == FormBlockType::ONE_TO_MANY) {
@@ -824,7 +822,6 @@ class CustomFormController extends AdminControllerTableBase
                     continue;
                 } elseif ($new_column) {
                     $column = new CustomFormColumn();
-                    // @phpstan-ignore-next-line
                     $column->custom_form_block_id = $block->id;
                     $column->form_column_type = array_get($column_value, 'form_column_type');
                     if (is_null(array_get($column_value, 'form_column_target_id'))) {

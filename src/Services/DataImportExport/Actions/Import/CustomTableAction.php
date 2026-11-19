@@ -143,7 +143,7 @@ class CustomTableAction implements ActionInterface
                     }
                 } finally {
                     // per chunk, and also when a row throws: earlier rows stay written
-                    if (method_exists($provider, 'afterImportData')) {
+                    if (is_object($provider) && method_exists($provider, 'afterImportData')) {
                         $provider->afterImportData();
                     }
                 }
@@ -226,7 +226,7 @@ class CustomTableAction implements ActionInterface
                 }
             } finally {
                 // also when a row throws: earlier rows stay written
-                if (method_exists($provider, 'afterImportData')) {
+                if (is_object($provider) && method_exists($provider, 'afterImportData')) {
                     $provider->afterImportData();
                 }
             }
