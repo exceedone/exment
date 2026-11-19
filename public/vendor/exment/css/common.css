@@ -4155,3 +4155,24 @@ label.checkboxone-label:has(input[readonly][type=checkbox]) {
 .btn.btn-file>input[type='file'] {
     font-size: 0px !important;
 }
+
+
+.content-header > h1.exm-has-back-to-list {
+  float: none;
+  width: 100%;
+}
+.content-header > h1 .exm-back-to-list {
+  float: right;
+  margin-left: auto;
+  margin-top: -2px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #3c8dbc;
+  border-color: #367fa9;
+}
+.content-header > h1 .exm-back-to-list:hover, .content-header > h1 .exm-back-to-list:focus {
+  color: #fff;
+  background-color: #367fa9;
+}

@@ -3107,6 +3107,7 @@ return [
 
     'custom_value' => [
         'description' => 'このテーブルのデータ一覧を表示します。',
+        'back_to_list' => '一覧に戻る',
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',

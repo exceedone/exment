@@ -557,6 +557,7 @@ class CustomValueController extends AdminControllerTableBase
         ]);
 
         $content->row($row);
+        $this->appendBackToListButton();
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
             'page_type' => PluginPageType::EDIT,
             'custom_value' => $custom_value
@@ -801,6 +802,28 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
+    /**
+     * A "back to the list" button on the right of the page title of the data show and edit pages.
+     * It goes where the small "list" button of the box goes (the table's list).
+     * Added by script: the page title is made by the admin layout, which has no place for buttons.
+     */
+    protected function appendBackToListButton(): void
+    {
+        $url = json_encode($this->custom_table->getGridUrl(true));
+        $label = json_encode(exmtrans('custom_value.back_to_list'));
+        \Admin::script(<<<EOT
+(function () {
+    var h1 = $('#pjax-container .content-header > h1').first();
+    if (!h1.length || h1.find('.exm-back-to-list').length) {
+        return;
+    }
+    var a = $('<a class="btn exm-back-to-list"><i class="fa fa-arrow-left"></i> </a>').attr('href', {$url});
+    a.append(document.createTextNode({$label}));
+    h1.addClass('exm-has-back-to-list').append(a);
+})();
+EOT);
+    }
+
     public function show(Request $request, Content $content, $tableKey, $id)
     {
         $modal = boolval($request->get('modal'));
@@ -837,6 +860,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $show_item->setOptionBoxes($row);
             });
+            $this->appendBackToListButton();
         }
 
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
