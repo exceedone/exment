@@ -936,6 +936,42 @@ class CustomValueController extends AdminControllerTableBase
 
 
     /**
+     * The html a comment will be shown as (the preview of the comment box).
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function previewComment(Request $request, $tableKey, $id)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->previewComment($request->get('comment'));
+    }
+
+    /**
+     * Attach an image pasted or dropped into the comment box.
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function uploadCommentImage(Request $request, $tableKey, $id)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->uploadCommentImage($request->file('file'));
+    }
+
+    /**
      * remove comment.
      */
     // @phpstan-ignore-next-line

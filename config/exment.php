@@ -606,6 +606,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | COMMENT IMAGE MAX SIZE
+    |--------------------------------------------------------------------------
+    |
+    | The largest image (PNG, JPEG, GIF, WebP) that can be pasted or dropped into
+    | the comment box of a data, in kilobytes.
+    |
+    */
+    'comment_image_max_size_kb' => env('EXMENT_COMMENT_IMAGE_MAX_SIZE_KB', 10240),
+
+    /*
+    |--------------------------------------------------------------------------
     | GRID_MIN_WIDTH
     |--------------------------------------------------------------------------
     |

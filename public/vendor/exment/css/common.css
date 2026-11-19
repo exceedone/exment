@@ -3790,6 +3790,79 @@ table img.image_html:hover {
   margin-bottom: 5px;
 }
 
+.comment-markdown img {
+  max-width: 100%;
+  height: auto;
+}
+.comment-markdown p, .comment-markdown ul, .comment-markdown ol, .comment-markdown pre, .comment-markdown blockquote, .comment-markdown table {
+  margin-bottom: 8px;
+}
+.comment-markdown > :last-child {
+  margin-bottom: 0;
+}
+.comment-markdown h1, .comment-markdown h2, .comment-markdown h3, .comment-markdown h4, .comment-markdown h5, .comment-markdown h6 {
+  margin: 10px 0 6px;
+  font-weight: bold;
+}
+.comment-markdown h1 {
+  font-size: 1.4em;
+}
+.comment-markdown h2 {
+  font-size: 1.25em;
+}
+.comment-markdown h3 {
+  font-size: 1.1em;
+}
+.comment-markdown h4, .comment-markdown h5, .comment-markdown h6 {
+  font-size: 1em;
+}
+.comment-markdown pre {
+  padding: 8px;
+  overflow-x: auto;
+  background: #f6f8fa;
+  border-radius: 3px;
+}
+.comment-markdown blockquote {
+  padding: 0 10px;
+  color: #6a737d;
+  border-left: 3px solid #dfe2e5;
+  font-size: 1em;
+}
+.comment-markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.comment-markdown th, .comment-markdown td {
+  padding: 4px 8px;
+  border: 1px solid #dfe2e5;
+}
+
+.comment-markdown-tabs {
+  margin-bottom: 4px;
+}
+.comment-markdown-tabs a {
+  margin-right: 10px;
+  cursor: pointer;
+}
+.comment-markdown-tabs a.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.comment-markdown-preview {
+  min-height: 74px;
+  padding: 6px 12px;
+  border: 1px solid #d2d6de;
+  border-radius: 3px;
+  word-wrap: break-word;
+}
+
+.comment-markdown-dragover {
+  outline: 2px dashed #3c8dbc;
+}
+
 .system-values {
   margin: 0 auto;
   width: 830px;

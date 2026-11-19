@@ -95,6 +95,7 @@ use Cache;
  * @method static int|void safety_check_resend_throttle_minutes($arg = null)
  * @method static int|void safety_check_answer_url_expire_days($arg = null)
  * @method static Carbon|void safety_check_last_feed_time($arg = null)
+ * @method static string|null|void comment_markdown_start($arg = null)
  * @method static bool|void publicform_available($arg = null)
  * @method static string|void recaptcha_site_key($arg = null)
  * @method static string|void recaptcha_secret_key($arg = null)

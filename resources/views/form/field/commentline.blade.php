@@ -13,7 +13,8 @@
 @endif
 </p>
 
-<p class="commentline_inner">
-{!! replaceBreakEsc($comment->getLabel()) !!}
-</p>
+{{-- Markdown, or plain text for a comment written before Markdown comments came; always escaped and cleaned (CommentMarkdown) --}}
+<div class="commentline_inner comment-markdown">
+{!! \Exceedone\Exment\Services\CommentMarkdown::commentHtml($comment) !!}
+</div>
 <hr />
