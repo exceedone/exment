@@ -298,12 +298,12 @@ class TemplateImporter
         }
 
         if (!CustomTable::where('table_name', SystemTableName::SYSTEM_LOGS)->exists()) {
-            (new static())->importSystemLogsTemplate();
+            (new self())->importSystemLogsTemplate();
             return true;
         }
 
         if ($addMenu && !Menu::where('menu_name', SystemTableName::SYSTEM_LOGS)->where('menu_type', MenuType::TABLE)->exists()) {
-            (new static())->importSystemLogsMenu();
+            (new self())->importSystemLogsMenu();
             return true;
         }
 
