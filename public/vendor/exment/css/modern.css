@@ -8,7 +8,8 @@
    as they did before.
 
    What it covers:
-     1. design tokens (CSS variables on :root)
+     1. design tokens (CSS variables on :root), and the accent color
+        of each site skin
      2. the login screen family   (scope: body.login-page)
      3. the admin pages           (scope: body[class*="skin-"])
           - page frame: header bar, sidebar menu, footer
@@ -25,8 +26,9 @@
 
 /* ------------------------------------------------------------ tokens --- */
 /* Only variables here: defining them changes nothing by itself.
-   One accent (the blue family of the Exment logo), everything else is
-   white and gray. */
+   One accent, everything else is white and gray. The accent here is the
+   blue family of the Exment logo; a site whose skin is not blue gets its
+   own accent from the "skin accents" block below. */
 :root {
   /* accent - logo gradient is #3b82f6 -> #1d4ed8 */
   --exm-ui-accent: #2563eb;
@@ -70,6 +72,81 @@
   /* shape */
   --exm-ui-radius-sm: 6px;
   --exm-ui-radius-md: 10px;
+}
+
+
+/* ------------------------------------------------------ skin accents --- */
+/* The site skin (system setting "Site Skin") chooses the accent. The
+   page stays white and gray in every skin; only the one accent color
+   changes - main buttons, links, the current menu item, the focus ring,
+   the open tab, selected rows.
+
+   Only variables again. The admin pages carry the skin as a class on
+   <body> (skin-red, skin-red-light, ...), the login pages as
+   `data-exm-skin` (they must not get the skin class: it would switch on
+   the admin rules). A skin and its "-light" twin share one accent, so
+   one prefix match covers both.
+
+   skin-blue and skin-blue-light are not listed: they use the :root
+   values above.
+
+   Each accent is a darkened shade of the AdminLTE skin color, dark
+   enough for white text on it (contrast 4.5 or more) and for a white
+   header logo on the logo plate. -strong is for text on white and on
+   -soft (6.5 or more). So "yellow" is a dark amber, not the bright
+   #f39c12 of the classic header: white text is unreadable on that. */
+
+/* Links follow the accent. These two are set on <body>, not on :root: a
+   variable that refers to another one is worked out where it is written,
+   so on :root it would keep the blue whatever the skin. */
+body {
+  --exm-ui-link: var(--exm-ui-accent-strong);
+  --exm-ui-link-hover: var(--exm-ui-accent);
+}
+
+body[class*="skin-yellow"],
+body[data-exm-skin^="skin-yellow"] {
+  --exm-ui-accent: #b45309;
+  --exm-ui-accent-strong: #92400e;
+  --exm-ui-accent-soft: #fff7e8;
+  --exm-ui-accent-ring: rgba(180, 83, 9, .22);
+}
+
+body[class*="skin-green"],
+body[data-exm-skin^="skin-green"] {
+  --exm-ui-accent: #008548;
+  --exm-ui-accent-strong: #006b3a;
+  --exm-ui-accent-soft: #ebf8f1;
+  --exm-ui-accent-ring: rgba(0, 133, 72, .22);
+}
+
+body[class*="skin-purple"],
+body[data-exm-skin^="skin-purple"] {
+  --exm-ui-accent: #605ca8;
+  --exm-ui-accent-strong: #4b478d;
+  --exm-ui-accent-soft: #f3f2fb;
+  --exm-ui-accent-ring: rgba(96, 92, 168, .22);
+}
+
+body[class*="skin-red"],
+body[data-exm-skin^="skin-red"] {
+  --exm-ui-accent: #d03b2b;
+  --exm-ui-accent-strong: #ab2c1f;
+  --exm-ui-accent-soft: #fdf1ef;
+  --exm-ui-accent-ring: rgba(208, 59, 43, .22);
+}
+
+/* Black: a dark slate. Links stay blue - in a dark gray they could not
+   be told from ordinary text (the classic black skin has blue links
+   too). */
+body[class*="skin-black"],
+body[data-exm-skin^="skin-black"] {
+  --exm-ui-accent: #334155;
+  --exm-ui-accent-strong: #1e293b;
+  --exm-ui-accent-soft: #eef1f5;
+  --exm-ui-accent-ring: rgba(51, 65, 85, .22);
+  --exm-ui-link: #1d4ed8;
+  --exm-ui-link-hover: #2563eb;
 }
 
 
@@ -246,7 +323,7 @@ body.login-page .btn:focus-visible {
 /* `!important` only because the views write `style="color:#3c8dbc"` on
    these links, and an inline style outranks every selector. */
 body.login-page .login-box-body a.text-decoration-none {
-  color: var(--exm-ui-accent-strong) !important;
+  color: var(--exm-ui-link) !important;
   font-size: var(--exm-ui-fs-sm);
 }
 
@@ -295,12 +372,12 @@ body[class*="skin-"] {
    specificity, so these weigh exactly like the theme's own `a` / `.btn`
    / `.form-control` and win only because this file comes last. */
 :where(body[class*="skin-"]) a {
-  color: var(--exm-ui-accent-strong);
+  color: var(--exm-ui-link);
 }
 
 :where(body[class*="skin-"]) a:hover,
 :where(body[class*="skin-"]) a:focus {
-  color: var(--exm-ui-accent);
+  color: var(--exm-ui-link-hover);
 }
 
 :where(body[class*="skin-"]) .btn,
@@ -322,7 +399,7 @@ body[class*="skin-"] .main-header .logo:hover {
 
 /* An uploaded header logo was made for the colored bar of the classic
    design - very often it is white, and would vanish on this light bar.
-   So an image logo sits on a small plate in the logo blue. The plate is
+   So an image logo sits on a small plate in the accent color. The plate is
    the image's own background and padding (`box-sizing: border-box`), so
    it stays inside the size limits common.css sets (200x40 and 50x40)
    and the bar keeps its height. The text logo (no <img>) is not
@@ -346,6 +423,21 @@ body[class*="skin-"] .main-header .logo .logo-mini img {
 body[class*="skin-"] .main-header .navbar {
   background-color: var(--exm-ui-bg) !important;
   box-shadow: inset 0 -1px 0 var(--exm-ui-line);
+}
+
+/* A skin other than blue: a thin line in the skin's accent along the top
+   edge, so the site color shows on every page while the bar stays
+   white. Inset shadows again - nothing changes size. On a narrow screen
+   the logo sits above the bar, so there only the logo carries the line. */
+body[class*="skin-"]:not([class*="skin-blue"]) .main-header .logo,
+body[class*="skin-"]:not([class*="skin-blue"]) .main-header .logo:hover {
+  box-shadow: inset 0 2px 0 var(--exm-ui-accent);
+}
+
+@media (min-width: 768px) {
+  body[class*="skin-"]:not([class*="skin-blue"]) .main-header .navbar {
+    box-shadow: inset 0 2px 0 var(--exm-ui-accent), inset 0 -1px 0 var(--exm-ui-line);
+  }
 }
 
 body[class*="skin-"] .main-header .navbar .nav > li > a,
@@ -527,7 +619,7 @@ body[class*="skin-"] .treeview-menu > li.active > a {
   color: var(--exm-ui-text);
 }
 
-/* The current page: soft blue fill, blue text. Works at any depth. */
+/* The current page: soft accent fill, accent text. Works at any depth. */
 body[class*="skin-"] .sidebar-menu li.active:not(.treeview) > a,
 body[class*="skin-"] .sidebar-menu li.active:not(.treeview):hover > a {
   color: var(--exm-ui-accent-strong);

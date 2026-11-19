@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -172,6 +173,53 @@ class UiDesignSettingTest extends FeatureTestBase
         $this->assertMatchesRegularExpression('/class="column-integer exm-coltype-integer[ "]/', $content);
         // a system column (ID) has no type class
         $this->assertDoesNotMatchRegularExpression('/class="column-id exm-coltype-/', $content);
+    }
+
+    /**
+     * The modern login page tells the stylesheet the site skin, so the
+     * login button takes the skin's accent color. It is a data attribute,
+     * never a skin class: that would switch on the admin page rules.
+     */
+    public function testTheModernLoginPageCarriesTheSiteSkin(): void
+    {
+        $this->setDesign('modern');
+        System::site_skin('skin-red-light');
+        System::clearCache();
+
+        $content = $this->loginPage();
+
+        $this->assertStringContainsString('<body class="hold-transition login-page" data-exm-skin="skin-red-light">', $content);
+    }
+
+    public function testTheClassicLoginPageDoesNotCarryTheSiteSkin(): void
+    {
+        $this->setDesign('classic');
+        System::site_skin('skin-red-light');
+        System::clearCache();
+
+        $content = $this->loginPage();
+
+        $this->assertStringContainsString('<body class="hold-transition login-page">', $content);
+        $this->assertStringNotContainsString('data-exm-skin', $content);
+    }
+
+    /**
+     * Every skin of the system setting except the two blue ones has its
+     * accent in the stylesheet, for the admin pages (class) and for the
+     * login pages (data attribute).
+     */
+    public function testTheStylesheetHasAnAccentForEverySkin(): void
+    {
+        $css = (string) file_get_contents(dirname(__DIR__, 2) . '/public/vendor/exment/css/modern.css');
+
+        foreach (Define::SYSTEM_SKIN as $skin) {
+            $family = preg_replace('/-light$/', '', $skin);
+            if ($family === 'skin-blue') {
+                continue;
+            }
+            $this->assertStringContainsString('body[class*="' . $family . '"],', $css);
+            $this->assertStringContainsString('body[data-exm-skin^="' . $family . '"] {', $css);
+        }
     }
 
     private function setDesign(string $design): void
