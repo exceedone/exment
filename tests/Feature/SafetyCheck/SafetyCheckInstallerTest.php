@@ -47,6 +47,80 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->assertNotNull($tmpl);
     }
 
+    public function testMenuIsMadeUnderAdminSetting(): void
+    {
+        SafetyCheckInstaller::removeMenu();
+        $admin = $this->adminSettingMenu();
+        $lastOrder = intval(Menu::where('parent_id', $admin->id)->max('order'));
+
+        SafetyCheckInstaller::ensureMenu();
+
+        $menu = Menu::where('menu_name', 'safety_check')->first();
+        $this->assertEquals($admin->id, $menu->parent_id, 'Only system administrators use it: it belongs under "Admin Setting".');
+        $this->assertEquals($lastOrder + 1, $menu->order, 'It goes after the menus already under "Admin Setting".');
+    }
+
+    public function testMenuIsMadeAtTheTopWhenThereIsNoAdminSetting(): void
+    {
+        SafetyCheckInstaller::removeMenu();
+        $admin = $this->adminSettingMenu();
+        $admin->menu_name = 'admin_renamed';
+        $admin->save();
+
+        SafetyCheckInstaller::ensureMenu();
+
+        $this->assertEquals(0, Menu::where('menu_name', 'safety_check')->first()->parent_id);
+    }
+
+    public function testUpdateMovesTheMenuStillAtTheTopUnderAdminSetting(): void
+    {
+        $menu = $this->topSafetyCheckMenu();
+        $admin = $this->adminSettingMenu();
+
+        $this->runMoveMigration();
+
+        $this->assertEquals($admin->id, Menu::find($menu->id)->parent_id);
+    }
+
+    public function testUpdateLeavesTheMenuSomeoneMoved(): void
+    {
+        $menu = $this->topSafetyCheckMenu();
+        $master = Menu::where('menu_type', 'parent_node')->where('menu_name', 'master')->first();
+        $this->assertNotNull($master);
+        $menu->parent_id = $master->id;
+        $menu->save();
+
+        $this->runMoveMigration();
+
+        $this->assertEquals($master->id, Menu::find($menu->id)->parent_id);
+    }
+
+    protected function adminSettingMenu(): Menu
+    {
+        $admin = Menu::where('menu_type', 'parent_node')->where('menu_name', 'admin')->first();
+        $this->assertNotNull($admin, 'The test site has the menu "Admin Setting".');
+        return $admin;
+    }
+
+    /**
+     * The menu as v7.0.3 made it: at the top of the menu.
+     */
+    protected function topSafetyCheckMenu(): Menu
+    {
+        SafetyCheckInstaller::ensureAll();
+        $menu = Menu::where('menu_name', 'safety_check')->first();
+        $menu->parent_id = 0;
+        $menu->order = 99;
+        $menu->save();
+        return $menu;
+    }
+
+    protected function runMoveMigration(): void
+    {
+        $migration = require __DIR__ . '/../../../database/migrations/2026_11_20_000000_move_safety_check_menu_under_admin.php';
+        $migration->up();
+    }
+
     public function testEnsureAllIsIdempotent(): void
     {
         SafetyCheckInstaller::ensureAll();

@@ -126,9 +126,12 @@ class SafetyCheckInstaller
         if (Menu::where('menu_type', MenuType::CUSTOM)->where('menu_name', 'safety_check')->exists()) {
             return;
         }
+        // only system administrators use it, so put it under "Admin Setting" when the site has that menu
+        $admin = Menu::where('menu_type', MenuType::PARENT_NODE)->where('menu_name', 'admin')->first();
+
         $menu = new Menu();
-        $menu->parent_id   = 0;
-        $menu->order       = 99;
+        $menu->parent_id   = $admin ? $admin->id : 0;
+        $menu->order       = $admin ? intval(Menu::where('parent_id', $admin->id)->max('order')) + 1 : 99;
         $menu->menu_type   = MenuType::CUSTOM;
         $menu->menu_name   = 'safety_check';
         $menu->menu_target = 'safety_check';
