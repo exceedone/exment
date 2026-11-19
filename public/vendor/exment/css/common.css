@@ -3347,9 +3347,18 @@
   max-height: 40px;
 }
 
-.sidebar-mini.sidebar-collapse .main-header .logo > .logo-lg {
-  display: none !important;
+@media (min-width: 768px) {
+  .sidebar-mini.sidebar-collapse .main-header .logo > .logo-lg {
+    display: none !important;
+  }
 }
+
+.main-header .user-menu > .dropdown-menu > .user-body,
+.main-header .user-menu > .dropdown-menu > .user-footer {
+  background-color: #eceff1;
+  border-top: 1px solid #dde1e4;
+}
+
 
 .form-revision .form-group {
   margin-bottom: 0;

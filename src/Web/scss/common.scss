@@ -38,9 +38,25 @@
     }
 }
 
-.sidebar-mini.sidebar-collapse .main-header .logo>.logo-lg {
-    display: none !important;
+// Folded side menu: the big logo gives way to the mini one. Only on a wide screen:
+// on a phone the logo bar is on its own row and the mini logo is hidden there,
+// so hiding the big one too left an empty bar.
+@media (min-width: 768px) {
+    .sidebar-mini.sidebar-collapse .main-header .logo>.logo-lg {
+        display: none !important;
+    }
 }
+
+// The lower part of the user menu (LINE, setting, logout): gray, so the white
+// buttons stand out from it.
+.main-header .user-menu > .dropdown-menu {
+    > .user-body,
+    > .user-footer {
+        background-color: #eceff1;
+        border-top: 1px solid #dde1e4;
+    }
+}
+
 
 .form-revision .form-group{
     margin-bottom: 0;
