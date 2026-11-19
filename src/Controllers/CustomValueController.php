@@ -794,15 +794,6 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
-     * Show interface.
-     *
-     * @param Request $request
-     * @param Content $content
-     * @param $tableKey
-     * @param $id
-     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    /**
      * A "back to the list" button on the right of the page title of the data show and edit pages.
      * It goes where the small "list" button of the box goes (the table's list).
      * Added by script: the page title is made by the admin layout, which has no place for buttons.
@@ -824,6 +815,15 @@ class CustomValueController extends AdminControllerTableBase
 EOT);
     }
 
+    /**
+     * Show interface.
+     *
+     * @param Request $request
+     * @param Content $content
+     * @param $tableKey
+     * @param $id
+     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function show(Request $request, Content $content, $tableKey, $id)
     {
         $modal = boolval($request->get('modal'));
