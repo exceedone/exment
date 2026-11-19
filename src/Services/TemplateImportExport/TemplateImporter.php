@@ -19,6 +19,7 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\ExportImportLibrary;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\ZipService;
@@ -276,6 +277,25 @@ class TemplateImporter
             'is_update' => $is_update,
             'basePath' => $templates_base_path,
         ]);
+    }
+
+    /**
+     * Make the table "System Performance Log" (and its menu under "Admin Setting") when the log is on
+     * and the table is not there yet. A site that never turns the log on gets no table and no empty menu.
+     *
+     * @return bool true when the table was made now
+     */
+    public static function importSystemLogsTemplateIfEnabled(): bool
+    {
+        if (!boolval(System::logging_toggle_available())) {
+            return false;
+        }
+        if (CustomTable::where('table_name', SystemTableName::SYSTEM_LOGS)->exists()) {
+            return false;
+        }
+
+        (new static())->importSystemLogsTemplate();
+        return true;
     }
 
     // @phpstan-ignore-next-line

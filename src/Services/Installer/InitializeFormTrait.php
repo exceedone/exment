@@ -301,6 +301,8 @@ trait InitializeFormTrait
         foreach ($inputs as $k => $input) {
             System::{$k}($input);
         }
+        // the log was turned on: make the table "System Performance Log" if it is not there yet
+        TemplateImportExport\TemplateImporter::importSystemLogsTemplateIfEnabled();
         // demo mode: no template upload or import
         if (DemoMode::enabled()) {
             return true;

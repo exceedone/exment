@@ -2,9 +2,13 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Middleware\CheckLoggingEnabled;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\QueryLogger;
+use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Illuminate\Http\Request;
 
@@ -121,6 +125,27 @@ class SystemPerformanceLogTest extends UnitTestBase
             $this->markTestSkipped('the process started less than 1 second ago');
         }
         $this->assertNotNull($this->makeLog($request));
+    }
+
+    public function testTableIsMadeOnlyWhenTheLogIsOn(): void
+    {
+        // the log is off: nothing is made
+        System::logging_toggle_available(false);
+        $exists = CustomTable::where('table_name', SystemTableName::SYSTEM_LOGS)->exists();
+        $this->assertFalse(TemplateImporter::importSystemLogsTemplateIfEnabled());
+        $this->assertSame($exists, CustomTable::where('table_name', SystemTableName::SYSTEM_LOGS)->exists());
+
+        // the log is on: the table is there afterwards, under "Admin Setting", and it is made only once
+        System::logging_toggle_available(true);
+        TemplateImporter::importSystemLogsTemplateIfEnabled();
+        $this->assertTrue(CustomTable::where('table_name', SystemTableName::SYSTEM_LOGS)->exists());
+        $this->assertFalse(TemplateImporter::importSystemLogsTemplateIfEnabled());
+
+        $menu = Menu::where('menu_name', SystemTableName::SYSTEM_LOGS)->where('menu_type', 'table')->first();
+        $admin = Menu::where('menu_name', 'admin')->where('menu_type', 'parent_node')->first();
+        if (isset($menu) && isset($admin) && !$exists) {
+            $this->assertSame(intval($admin->id), intval($menu->parent_id));
+        }
     }
 
     /**
