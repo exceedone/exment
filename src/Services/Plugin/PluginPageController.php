@@ -73,6 +73,11 @@ class PluginPageController extends Controller
             }
         }
 
+        // no plugin for this url (an old url, or a plugin that was removed): not found, not an error
+        if (!isset($this->plugin)) {
+            abort(404);
+        }
+
         // get file path
         $path = implode('/', $args);
 
