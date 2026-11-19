@@ -35,6 +35,19 @@ use Validator;
 
 class SystemController extends AdminControllerBase
 {
+    /** Flashed when the skin or the screen design changed: the next system page loads the whole page. */
+    public const SESSION_KEY_RELOAD_PAGE = 'exment_system_reload_page';
+
+    /**
+     * What the page frame looks like: the skin and the screen design.
+     *
+     * @return array<int, mixed>
+     */
+    protected static function screenLook(): array
+    {
+        return [System::site_skin(), \Exment::isModernUi()];
+    }
+
     use InitializeFormTrait;
 
     public function __construct()
@@ -49,6 +62,14 @@ class SystemController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
+        // The skin is a class of <body> and the screen design adds a stylesheet to <head>,
+        // both outside the part of the page that pjax replaces. After either changed,
+        // load the whole page once (the "saved" message is kept for that load).
+        if (session()->pull(static::SESSION_KEY_RELOAD_PAGE)) {
+            session()->keep(['toastr']);
+            \Admin::script('window.location.reload();');
+        }
+
         if ($request->has('advanced')) {
             return $this->formAdvancedBox($request, $content);
         }
@@ -483,6 +504,7 @@ class SystemController extends AdminControllerBase
     public function post(Request $request)
     {
         $advanced = $request->has('advanced');
+        $lookBefore = static::screenLook();
 
         // validation
         $form = $advanced ? $this->formAdvanced($request) : $this->formBasic($request);
@@ -508,6 +530,11 @@ class SystemController extends AdminControllerBase
             DB::commit();
 
             admin_toastr(trans('admin.save_succeeded'));
+
+            System::clearCache();
+            if (static::screenLook() !== $lookBefore) {
+                session()->flash(static::SESSION_KEY_RELOAD_PAGE, true);
+            }
 
             return redirect(admin_url('system') . ($advanced ? '?advanced=1' : ''));
         } catch (InvalidZipEntryException $exception) {
