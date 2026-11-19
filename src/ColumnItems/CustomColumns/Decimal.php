@@ -3,8 +3,8 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DatabaseDataType;
@@ -70,7 +70,10 @@ class Decimal extends CustomItem
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
                 // @phpstan-ignore-next-line
                 $number = number_format($v, $digit);
-                return preg_replace("/\.?0+$/", '', $number);
+                if ($digit > 0 && strpos($number, '.') !== false) {
+                    $number = rtrim(rtrim($number, '0'), '.');
+                }
+                return $number;
             } else {
                 // @phpstan-ignore-next-line
                 return number_format($v);

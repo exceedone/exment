@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
-use Encore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
@@ -23,6 +23,7 @@ use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\TemplateImportExport;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Exceptions\PublicFormNotFoundException;
 use Illuminate\Http\Request;
 use Symfony\Component\Console\Input\Input;
@@ -176,7 +177,8 @@ class CustomFormPublicController extends AdminControllerTableBase
                     })
                     ->caption(function ($caption) {
                         $file = ExmentFile::getData($caption);
-                        return $file->filename ?? basename($caption);
+                        // the upload widget inserts the caption into the page as html, so escape the file name
+                        return esc_html($file->filename ?? basename($caption));
                     })
                     ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_header', 'value' => '1'])])
                 ;
@@ -463,7 +465,6 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
             ->requiredRule()
             ->help(exmtrans("custom_form_public.help.custom_form_id"))
-            // @phpstan-ignore-next-line
             ->options(function ($value) use ($custom_table) {
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];
@@ -580,9 +581,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                         'label' => exmtrans('template.header_export'),
                         'icon' => 'fa-clone',
                         'btn_class' => 'btn-warning',
-                        'attributes' => [
-                            'target' => '_blank',
-                        ],
+                        'target' => '_blank',
                     ])->render());
                 }
             }
@@ -633,7 +632,12 @@ class CustomFormPublicController extends AdminControllerTableBase
         // get json from zip
         $importer = new TemplateImportExport\TemplateImporter();
         $file = $request->file('upload_template');
-        $json = $importer->getJsonFromZip($file);
+        try {
+            $json = $importer->getJsonFromZip($file);
+        } catch (InvalidZipEntryException $ex) {
+            // show the reason under the file field, like validateRedirect() above does
+            return back()->withInput()->withErrors(['upload_template' => $ex->getMessage()]);
+        }
 
         $public_form = null;
         \ExmentDB::transaction(function () use (&$public_form, $json, $request) {

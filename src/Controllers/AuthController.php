@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\PasswordHistory;
+use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\LoginType;
@@ -18,7 +19,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Validator as ExmentValidator;
-use Encore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
 use Carbon\Carbon;
@@ -26,7 +27,7 @@ use Carbon\Carbon;
 /**
  * For login controller
  */
-class AuthController extends \Encore\Admin\Controllers\AuthController
+class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
 {
     use AuthTrait;
 
@@ -126,19 +127,19 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             // user surpasses their maximum number of attempts they will get locked out.
             $this->incrementLoginAttempts($request);
 
-            return back()->withInput()->withErrors([
+            return back()->withInput(get_flash_input())->withErrors([
                 $this->username() => $this->getFailedLoginMessage(),
             ]);
         }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
             \Log::error($ex);
-            return redirect($error_url)->withInput()->withErrors(
+            return redirect($error_url)->withInput(get_flash_input())->withErrors(
                 [$this->username() => $ex->getSsoErrorMessage()]
             );
         } catch (\Exception $ex) {
             \Log::error($ex);
-            return redirect($error_url)->withInput()->withErrors(
+            return redirect($error_url)->withInput(get_flash_input())->withErrors(
                 [$this->username() => exmtrans('login.sso_provider_error')]
             );
         }
@@ -195,8 +196,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         }
 
         // calc diff days
-        $diff_days = $last_history->created_at->diffInDays(Carbon::now());
-
+        $diff_days = (int) $last_history->created_at->diffInDays(Carbon::now(), true);
         if ($diff_days > $expiration_days) {
             return false;
         }
@@ -322,6 +322,13 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
+            
+            $form->validatorSavingCallback(function ($input, $message, $form) {
+                if (static::currentPasswordVerificationFails(\Exment::user(), $input)) {
+                    $message->add('current_password', exmtrans('validation.current_password'));
+                }
+            });
+
             // show 2factor setting if use
             if (boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor())) {
                 $login_2factor_provider = \Exment::user()->getSettingValue(
@@ -363,6 +370,32 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 return redirect(admin_url('auth/setting'));
             });
         });
+    }
+
+    /**
+     * @param \Illuminate\Contracts\Auth\Authenticatable|\Exceedone\Exment\Model\LoginUser|null $login_user
+     * @param array<string, mixed> $input
+     * @return bool true => block the update (add a validation error)
+     */
+    protected static function currentPasswordVerificationFails($login_user, array $input): bool
+    {
+        // Only local (PURE) logins own/enforce a current password here; SSO/LDAP are out of scope.
+        if (is_null($login_user) || $login_user->login_type != LoginType::PURE) {
+            return false;
+        }
+
+        $new = array_get($input, 'password');
+        if ($new === null || $new === '') {
+            return false;
+        }
+
+        $current = array_get($input, 'current_password');
+        if (!filled($current)) {
+            return true;
+        }
+
+        // Present but not matching the stored credential => block.
+        return !LoginUserProvider::ValidateCredential($login_user, ['password' => $current]);
     }
 
     /**

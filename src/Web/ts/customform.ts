@@ -7,6 +7,7 @@ namespace Exment {
             
             $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
 
+            CustomFromEvent.syncLazyLoadOptions($('.box-custom_form_block'));
             CustomFromEvent.loadingEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
             //CustomFromEvent.resizeEvent($('.custom_form_area'));
@@ -14,6 +15,9 @@ namespace Exment {
 
         public static AddEventOnce() {
             $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
+            $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_hasmany_type', {}, (ev: JQueryEventObject) => {
+                CustomFromEvent.syncLazyLoadOptions($(ev.target).closest('.box-custom_form_block'));
+            });
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .delete', {}, CustomFromEvent.deleteColumnEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .setting', {}, CustomFromEvent.settingModalEvent);
             
@@ -29,6 +33,22 @@ namespace Exment {
 
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
+            });
+        }
+
+        private static syncLazyLoadOptions($blocks: JQuery<HTMLElement>) {
+            $blocks.each(function (_index, element) {
+                const $block = $(element);
+                const $lazyLoad = $block.find('.icheck_lazy_load_enabled');
+                if (!$lazyLoad.length) {
+                    return;
+                }
+
+                const isTable = $block.find('.icheck_hasmany_type').prop('checked');
+                if (!isTable) {
+                    $lazyLoad.prop('checked', false);
+                }
+                $lazyLoad.prop('disabled', !isTable).iCheck('update');
             });
         }
 
@@ -177,7 +197,7 @@ namespace Exment {
             }));
 
             // rename for toggle
-            if(hasValue($elem.find('[data-toggle]'))){
+            if(hasValue($elem.find('[data-bs-toggle]'))){
                 let uuid = getUuid();
                 $elem.find('[data-parent]')
                     .attr('data-parent', '#' + uuid)
@@ -340,9 +360,9 @@ namespace Exment {
 
         private static toggleConfigIcon($elem: JQuery<Element>, isShow:boolean){
             if(isShow){
-                $elem.find('.delete,.options,[data-toggle],.setting').show();
+                $elem.find('.delete,.options,[data-bs-toggle],.setting').show();
             }else{
-                $elem.find('.delete,.options,[data-toggle],.setting').hide();
+                $elem.find('.delete,.options,[data-bs-toggle],.setting').hide();
             }
         }
 
@@ -752,7 +772,35 @@ namespace Exment {
             if(!form.reportValidity()){
                 return;
             }
-            
+
+            // Validate image file extension
+            let $imageInput = $('#modal-showmodal').find('input.image[type="file"]');
+            if($imageInput.length > 0 && $imageInput.get(0).files && $imageInput.get(0).files.length > 0){
+                let file = $imageInput.get(0).files[0];
+                let fileName = file.name;
+                let ext = fileName.split('.').pop().toLowerCase();
+                let allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
+                if(allowedExtensions.indexOf(ext) === -1){
+                    let errorMessage = $('#validate_image_error_message').val() as string;
+                    if(!errorMessage){
+                        errorMessage = 'Please specify an image file.';
+                    }
+                    // Show inline error at the image input
+                    let $formGroup = $imageInput.closest('.form-group, .form-group-vertical');
+                    $formGroup.find('.error-label').remove();
+                    $formGroup.addClass('has-error');
+                    $formGroup.children('div').prepend($('<label/>', {
+                        'class': 'control-label error-label',
+                        'for': 'inputError',
+                        'html': [
+                            $('<i/>', { 'class': 'fa fa-times-circle-o' }),
+                            $('<span/>', { 'text': ' ' + errorMessage }),
+                        ]
+                    }));
+                    return;
+                }
+            }
+
             let formItem = CustomFromItem.makeByModal();
             let options = formItem.getOption();
             let $modal = $('#modal-showmodal');
@@ -906,7 +954,7 @@ namespace Exment {
                     },
                 });
                 resizableEl.prop('data-add-resizable', 1);
-                $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
+                $('.ui-resizable-e').attr('data-bs-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
             });
         }
         

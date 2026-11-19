@@ -27,4 +27,16 @@ trait JobTrait
      * @var int
      */
     public $timeout = 120;
+
+    /**
+     * Drop Exment's in-memory cache (table/column definitions, linked records) kept
+     * by a long-running worker. Skipped on the sync driver, which runs inside the caller's request.
+     */
+    protected function resetRequestSessionOnWorker(): void
+    {
+        if ($this->job === null || $this->job instanceof \Illuminate\Queue\Jobs\SyncJob) {
+            return;
+        }
+        \Exceedone\Exment\Model\System::clearRequestSession();
+    }
 }

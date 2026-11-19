@@ -11,7 +11,6 @@ class PublicShow extends \Exceedone\Exment\Form\Show
     /**
      * Initialize panel.
      */
-    // @phpstan-ignore-next-line
     protected function initPanel()
     {
         $this->panel = new PublicShowPanel($this);

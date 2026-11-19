@@ -1,0 +1,27 @@
+<?php
+
+namespace Mockery;
+
+interface LegacyMockInterface
+{
+    /**
+     * Mockery declares Expectation|ExpectationInterface|HigherOrderMessage,
+     * a union PHPStan cannot chain once(), with() or andReturnUsing() on.
+     * Called with method names it returns a CompositeExpectation, which
+     * forwards every call to the Expectation of each method - so the
+     * Expectation API is what a test can chain.
+     *
+     * @param string|array<string, mixed> ...$methodNames
+     * @return Expectation
+     */
+    public function shouldReceive(...$methodNames);
+}
+
+/**
+ * Declared only so that PHPStan's check of this stub can resolve the return
+ * type above: a stub file is checked against stub files alone. The analysis
+ * itself still reads the class, and all of its methods, from mockery/mockery.
+ */
+class Expectation
+{
+}

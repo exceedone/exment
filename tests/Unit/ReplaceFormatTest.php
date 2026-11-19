@@ -127,7 +127,7 @@ class ReplaceFormatTest extends UnitTestBase
     {
         $info = CustomTable::getEloquent('information')->getValueModel(1);
 
-        $systemValues = collect(SystemColumn::getOptions())->pluck('name')->toArray();
+        $systemValues = array_column(SystemColumn::getOptions(), 'name');
 
         foreach ($systemValues as $systemValue) {
             $text = ReplaceFormatService::replaceTextFromFormat('${' . $systemValue . '}', $info);

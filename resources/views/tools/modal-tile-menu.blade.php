@@ -9,9 +9,9 @@
         @endif
 
         @foreach(array_get($group, 'items', []) as $item)
-        <div class="col-sm-12 col-md-6 modal-tile-col">
+        <div class="col-md-12 col-lg-6 modal-tile-col">
             <div class="modal-tile-item">
-                <div class="col-sm-3 modal-tile-item-icon">
+                <div class="col-lg-3 col-sm-2 modal-tile-item-icon ms-3">
                     @if(!is_nullorempty(array_get($item, 'href')))
                         <a href="{{array_get($item, 'href')}}" class="btn btn-default">
                             <i class="fa {{array_get($item, 'icon')}}" aria-hidden="true"></i>
@@ -27,7 +27,7 @@
                     </div>
                     <div class="sub-buttons">
                         @foreach(array_get($item, 'buttons', []) as $button)
-                        <a href="{{array_get($button, 'href')}}" class="btn btn-default btn-sm" {!! array_get($button, 'attributes') !!}>
+                        <a href="{{array_get($button, 'href')}}" class="btn btn-default btn-sm p-2" {!! array_get($button, 'attributes') !!}>
                             <i class="fa {{array_get($button, 'icon')}}" aria-hidden="true"></i>&nbsp;{{array_get($button, 'label')}}
                         </a>
                         @endforeach

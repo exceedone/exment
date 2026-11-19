@@ -27,7 +27,9 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     protected $table = 'custom_column_multisettings';
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');

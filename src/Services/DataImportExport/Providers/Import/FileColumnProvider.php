@@ -120,7 +120,6 @@ class FileColumnProvider extends ProviderBase
         $error_data = [];
         $success_data = [];
         foreach ($dataObjects as $line_no => $value) {
-            // @phpstan-ignore-next-line
             $check = $this->validateDataRow($line_no, $value, $validate_columns, $dataObjects);
             if ($check === true) {
                 $success_data[] = $value;
@@ -136,7 +135,7 @@ class FileColumnProvider extends ProviderBase
      * validate data row
      * @param int $line_no
      * @param array $dataAndModel
-     * @param array $validate_columns
+     * @param \Illuminate\Support\Collection<int, \Exceedone\Exment\Model\CustomColumn> $validate_columns the attachment columns of the table
      * @param array $dataObjects
      */
     // @phpstan-ignore-next-line
@@ -276,6 +275,26 @@ class FileColumnProvider extends ProviderBase
             return null;
         }
 
+        if (!$this->isInFileDir($file_path)) {
+            return null;
+        }
+
         return $file_path;
+    }
+
+    /**
+     * @param string $file_path
+     * @return bool
+     */
+    protected function isInFileDir(string $file_path): bool
+    {
+        $baseReal   = realpath($this->fileDirFullPath);
+        $targetReal = realpath($file_path);
+        if ($baseReal === false || $targetReal === false) {
+            return false;
+        }
+
+        $baseReal = rtrim($baseReal, '/\\') . DIRECTORY_SEPARATOR;
+        return strncmp($targetReal, $baseReal, strlen($baseReal)) === 0;
     }
 }

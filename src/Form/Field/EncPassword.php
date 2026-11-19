@@ -34,7 +34,6 @@ class EncPassword extends Password
      * Format value by passing custom formater.
      * Always null.
      */
-    // @phpstan-ignore-next-line
     protected function formatValue()
     {
         $this->value = trydecrypt($this->value);

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field\Workflow;
 
-use Encore\Admin\Form\Field\Select;
+use ExmentAdminCore\Admin\Form\Field\Select;
 
 class StatusSelects extends Select
 {
@@ -39,8 +39,7 @@ class StatusSelects extends Select
      *
      * @return $this
      */
-    // @phpstan-ignore-next-line
-    public function setElementClass($class)
+    public function setElementClass($class): self
     {
         $classItem = collect($class)->map(function ($c) {
             return is_array($c) ? implode("_", $c) : $c;
@@ -71,7 +70,6 @@ class StatusSelects extends Select
             $this->script = "$('.workflow_actions_status_from').select2($configs);";
         }
 
-        // @phpstan-ignore-next-line
         if ($this->options instanceof \Closure) {
             // @phpstan-ignore-next-line
             if ($this->form && $this->form->model()) {

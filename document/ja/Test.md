@@ -7,17 +7,17 @@
 - 以下のコマンドを実行してください。  
 
 ```
-composer require symfony/css-selector=~6.3
-composer require laravel/browser-kit-testing=~7.0
+composer require symfony/css-selector=^7.0
+composer require laravel/browser-kit-testing=^7.2
 composer require dms/phpunit-arraysubset-asserts=~0.5.0
 ```
 
 ### PHPUnitバージョン変更(初回のみ)
-- Exmentでは、PHPUnitにバージョン10.Xを採用しています。  
+- Exmentでは、PHPUnitにバージョン11.Xを採用しています。  
 ルートフォルダのcomposer.jsonの、require-devに、"phpunit/phpunit"に関する記述があれば、以下のように修正してください。
 
 ```
-"phpunit/phpunit": "~10.1",
+"phpunit/phpunit": "^11.5",
 ```
 
 その後、以下のコマンドを実行してください。
@@ -41,26 +41,25 @@ composer update
 </phpunit>
 ```
 
+- **phpunit.xml** に `BCRYPT_ROUNDS` の値がハードコードされている場合は、テスト用データベースで使用されている `BCRYPT_ROUNDS` の値（`.env` または `config/hashing.php` で設定）と一致していることを確認してください。  
+  **⚠️ 設定されていない場合、デフォルト値は `12` です。**  
+  例えば、データベースが `BCRYPT_ROUNDS=12` で初期化されているにもかかわらず、**phpunit.xml** の値が `value="4"` になっている場合、テスト実行時に認証が失敗します。  
+  **→ 解決案：** **phpunit.xml** を開き、値が一致するように更新してください。
+
+``` xml
+<php>
+    <env name="BCRYPT_ROUNDS" value="12"/> <!-- テストデータ作成時に使用した BCRYPT_ROUNDS の値に合わせて変更してください -->
+</php>
+```
+
 - テストではAPIを施しますが、場合により、429エラー(Too Many Requests)が発生するようです。  
-app\Http\Kernel.phpを開き、以下の記述を修正してください。
+Laravel 12では`app/Http/Kernel.php`が存在せず、ミドルウェアは`bootstrap/app.php`で設定します。ファイルを開き、`withMiddleware`のブロックを修正してください。
 
 ``` php
-     protected $middlewareGroups = [
-        'web' => [
-            \App\Http\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-            // \Illuminate\Session\Middleware\AuthenticateSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        ],
-
-        'api' => [
-            'throttle:60000,1', // 値を大きな数に変更
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        ],
-    ];
+    ->withMiddleware(function (Middleware $middleware) {
+        // テストで429が発生しないよう、APIのレート制限を大きな値に変更
+        $middleware->throttleApi('60000,1');
+    })
 ```
 
 
@@ -93,15 +92,16 @@ Lint(PHPStan / Laratisan)を実行し、構文チェックなどを行います�
 
 ```
 # Lintのライブラリ
-composer require --dev nunomaduro/larastan=~2.6
+composer require --dev phpstan/phpstan=^2.1
+composer require --dev larastan/larastan=^3.0
 
 # Exmentの関連ライブラリ
 composer require pragmarx/google2fa
 composer require simplesoftwareio/simple-qrcode=^2.0.0
-composer require laravel/socialite=~5.1
+composer require laravel/socialite=^5.20
 composer require aacotroneo/laravel-saml2
 composer require league/flysystem-ftp ~3.0
-composer require phpseclib/phpseclib ^2.0
+composer require phpseclib/phpseclib ^3.0
 composer require league/flysystem-sftp ~3.0
 composer require league/flysystem-aws-s3-v3 ~3.0
 composer require league/flysystem-azure-blob-storage ~3.0

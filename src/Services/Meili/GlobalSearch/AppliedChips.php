@@ -1,0 +1,194 @@
+<?php
+
+namespace Exceedone\Exment\Services\Meili\GlobalSearch;
+
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Services\Meili\FilterConfig;
+use Exceedone\Exment\Services\Meili\MeiliSearchService;
+use Exceedone\Exment\Services\Meili\SavedSearchService;
+use Illuminate\Http\Request;
+
+/**
+ * Build the "applied filters" chips above the results: one chip per active
+ * condition with a URL to remove just that condition, plus a clear-all link.
+ */
+class AppliedChips
+{
+    /**
+     * Query params are attacker-controlled: `?tables[][]=x` nests an array, and
+     * strval() on it is an E_WARNING that Laravel turns into an ErrorException.
+     *
+     * @param  mixed  $value
+     * @return array<int,string>
+     */
+    private static function stringList($value): array
+    {
+        if (is_scalar($value)) {
+            $value = [$value];
+        }
+        if (!is_array($value)) {
+            return [];
+        }
+
+        return array_slice(array_values(array_filter(
+            array_map('strval', array_filter($value, 'is_scalar')),
+            fn ($v) => $v !== ''
+        )), 0, RequestFilters::MAX_VALUES);
+    }
+
+    /**
+     * The search screen's own parameters, with every repeatable list capped.
+     *
+     * Each chip's remove-url repeats whatever is left of this array, so it must
+     * not carry the raw query string: an unknown param (or an uncapped list)
+     * would be echoed back once per chip and decide the size of the response.
+     *
+     * @return array<string,mixed>
+     */
+    private static function searchParams(Request $request): array
+    {
+        $qs = [];
+        foreach (['query', 'date_from', 'date_to', 'sort'] as $k) {
+            $v = $request->query($k);
+            if (is_scalar($v) && (string) $v !== '') {
+                $qs[$k] = (string) $v;
+            }
+        }
+        foreach (['tables', 'users', 'facets'] as $k) {
+            $v = self::stringList($request->query($k));
+            if (!empty($v)) {
+                $qs[$k] = $v;
+            }
+        }
+        $ranges = array_slice((array) $request->query('range', []), 0, RequestFilters::MAX_VALUES, true);
+        if (!empty($ranges)) {
+            $qs['range'] = $ranges;
+        }
+
+        return $qs;
+    }
+
+    /**
+     * @return array{chips:array<int,array{label:string,url:string}>,clearUrl:string}
+     */
+    public static function build(Request $request): array
+    {
+        $qs = self::searchParams($request);
+        $base = admin_url('search');
+        $url = fn (array $params) => $base . '?' . http_build_query($params);
+
+        $chips = [];
+
+        // Labels are resolved from raw query keys, so scope them to the tables
+        // the user may view: an unpermitted key falls back to the raw token
+        // instead of leaking a hidden table's/column's display name.
+        $permitted = SavedSearchService::searchableTableNames();
+
+        // A facet on a column this viewer may not read is dropped from the
+        // search itself (ReadableAttributes). Dropped here as well, and from
+        // $qs rather than from the chip loop, so the other chips' remove-urls
+        // stop carrying it too - no chip may claim a condition that is not
+        // applied.
+        $qs = ReadableAttributes::stripFacetPrefixes($qs, ReadableAttributes::hiddenFacetPrefixes($permitted));
+
+        // Tables
+        $tables = self::stringList($qs['tables'] ?? null);
+        foreach ($tables as $tn) {
+            $rest = $qs;
+            $rest['tables'] = array_values(array_diff($tables, [$tn]));
+            if (empty($rest['tables'])) {
+                unset($rest['tables']);
+            }
+            $table = in_array($tn, $permitted, true) ? CustomTable::getEloquent($tn) : null;
+            $chips[] = [
+                'label' => exmtrans('custom_table.table') . ': ' . ($table ? ($table->table_view_name ?? $tn) : $tn),
+                'url' => $url($rest),
+            ];
+        }
+
+        // Status/category (facets)
+        // Same cap as the filter itself, so no chip claims a condition that is not applied.
+        $facets = array_slice(self::stringList($qs['facets'] ?? null), 0, RequestFilters::MAX_FACETS);
+        if (!empty($facets)) {
+            $cols = array_map(fn ($t) => MeiliSearchService::parseFacetToken($t)['col'], $facets);
+            // Only resolve column view-names for tables the user may view; alias
+            // labels are global admin search vocabulary, so they stay unscoped.
+            $safeCols = LabelResolver::permittedPrefixes($cols, $permitted);
+            $labels = FilterConfig::aliasLabels()
+                + LabelResolver::settingViewLabels($safeCols)
+                + LabelResolver::resolveColumnLabels($safeCols);
+            foreach ($facets as $token) {
+                $p = MeiliSearchService::parseFacetToken($token);
+                $rest = $qs;
+                $rest['facets'] = array_values(array_diff($facets, [$token]));
+                if (empty($rest['facets'])) {
+                    unset($rest['facets']);
+                }
+                $chips[] = [
+                    'label' => ($labels[$p['col']] ?? $p['col']) . ': ' . $p['value'],
+                    'url' => $url($rest),
+                ];
+            }
+        }
+
+        // Creator
+        $users = self::stringList($qs['users'] ?? null);
+        if (!empty($users)) {
+            $names = LabelResolver::resolveUserNames(array_map('intval', $users));
+            foreach ($users as $uid) {
+                $rest = $qs;
+                $rest['users'] = array_values(array_diff($users, [$uid]));
+                if (empty($rest['users'])) {
+                    unset($rest['users']);
+                }
+                $chips[] = [
+                    'label' => exmtrans('common.created_user') . ': ' . ($names[(int) $uid] ?? ('#' . $uid)),
+                    'url' => $url($rest),
+                ];
+            }
+        }
+
+        // Created date
+        foreach (['date_from' => 'search.filter_date_from', 'date_to' => 'search.filter_date_to'] as $key => $trans) {
+            if (empty($qs[$key])) {
+                continue;
+            }
+            $rest = $qs;
+            unset($rest[$key]);
+            $chips[] = [
+                'label' => exmtrans('common.created_at') . ' ' . exmtrans($trans) . ': ' . (is_scalar($qs[$key]) ? $qs[$key] : ''),
+                'url' => $url($rest),
+            ];
+        }
+
+        // Number/date range (range[n_col][from|to])
+        $ranges = array_slice((array) ($qs['range'] ?? []), 0, RequestFilters::MAX_VALUES, true);
+        if (!empty($ranges)) {
+            $cols = array_map(fn ($f) => preg_replace('/^n_/', '', (string) $f), array_keys($ranges));
+            $safeCols = LabelResolver::permittedPrefixes($cols, $permitted);
+            $labels = LabelResolver::settingViewLabels($safeCols) + LabelResolver::resolveColumnLabels($safeCols);
+            foreach ($ranges as $field => $r) {
+                $from = RequestFilters::rangeSide($r, 'from');
+                $to = RequestFilters::rangeSide($r, 'to');
+                if ($from === '' && $to === '') {
+                    continue;
+                }
+                $rest = $qs;
+                unset($rest['range'][$field]);
+                if (empty($rest['range'])) {
+                    unset($rest['range']);
+                }
+                $col = preg_replace('/^n_/', '', (string) $field);
+                $chips[] = [
+                    'label' => ($labels[$col] ?? $col) . ': ' . $from . ' - ' . $to,
+                    'url' => $url($rest),
+                ];
+            }
+        }
+
+        return [
+            'chips' => $chips,
+            'clearUrl' => $url(array_filter($qs, fn ($k) => $k === 'query', ARRAY_FILTER_USE_KEY)),
+        ];
+    }
+}

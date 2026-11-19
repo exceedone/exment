@@ -183,7 +183,7 @@ class CustomCopyTest extends UnitTestBase
 
     /**
      * @param array<string, mixed> $options
-     * @return \Exceedone\Exment\Model\CustomCopy.
+     * @return \Exceedone\Exment\Model\CustomCopy
      */
     protected function _prepareCustomCopy(array $options = [])
     {

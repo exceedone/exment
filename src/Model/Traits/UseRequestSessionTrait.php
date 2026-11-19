@@ -62,10 +62,11 @@ trait UseRequestSessionTrait
 
     /**
      * get children like hasMany. use cache
-     * @param class-string $className
+     * @template TChild
+     * @param class-string<TChild> $className a model using this trait
      * @param string $keyName
      * @param string $idName
-     * @return \Illuminate\Support\Collection<int, static>|static|null
+     * @return \Illuminate\Support\Collection<int, TChild>
      */
     public function hasManyCache($className, $keyName, $idName = 'id')
     {
@@ -87,9 +88,12 @@ trait UseRequestSessionTrait
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
         // get from request session
-        $records = System::{$func}($key, function () use ($with) {
+        $getRecords = function () use ($with) {
             return self::with($with)->get();
-        });
+        };
+        $records = $func === 'cache'
+            ? System::cache($key, $getRecords)
+            : System::requestSession($key, $getRecords);
 
         $collectFunc = $first ? 'first' : 'filter';
 
@@ -113,12 +117,17 @@ trait UseRequestSessionTrait
         }
 
         if ((!isset($records) || count($records) == 0) && !$isGetAll) {
+            /** @var \Illuminate\Support\Collection<int, static>|null $records */
             return $records;
         }
 
         // else, get all again
         $records = self::with($with)->get();
-        System::{$func}($key, $records);
+        if ($func === 'cache') {
+            System::cache($key, $records);
+        } else {
+            System::requestSession($key, $records);
+        }
 
         if (is_nullorempty($records)) {
 

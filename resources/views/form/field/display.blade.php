@@ -6,7 +6,7 @@
     $valueSafe = is_array($value) ? implode(', ', \Illuminate\Support\Arr::flatten($value)) : $value;
 @endphp
 <div class="{{$viewClass['form-group']}}">
-    <label class="{{$viewClass['label']}} control-label" style="padding-top:10px;">{{$label}}</label>
+    <label class="{{$viewClass['label']}} control-label text-lg-end pt-2" style="padding-top:10px;">{{$label}}</label>
     <div class="{{$viewClass['field']}}">
         <div class="no-margin">
             <!-- /.box-header -->
@@ -19,11 +19,9 @@
                     {{ $displayTextSafe }}
                     @endif
                 @else
-                    @if(!$escape)
-                    {!! $valueSafe !!}
-                    @else
+                    {{-- No prepared display text: $value is the raw stored (or re-submitted) value, so it is
+                         always escaped. $escape only applies to $displayText, which the caller built as safe HTML. --}}
                     {{ $valueSafe }}
-                    @endif
                 @endif
                 </span>
                 {{-- Hidden input to save value to database (array-safe for multi-value columns) --}}

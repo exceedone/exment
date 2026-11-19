@@ -332,8 +332,7 @@ class SelectTableTest extends UnitTestBase
         // get target column.
         $custom_column = $this->getTargetColumn($column_type, $options);
         if (is_nullorempty($custom_column)) {
-            $this->assertTrue(false, 'target column is not found. Please check.');
-            return;
+            $this->fail('target column is not found. Please check.');
         }
 
         $custom_table = $custom_column->custom_table_cache;
@@ -346,7 +345,9 @@ class SelectTableTest extends UnitTestBase
         $fieldOptions = $this->getSelectFieldOptions($custom_column, $linkage, $parentValue, $options);
 
         // get select option(Displaying)
-        $select_options = collect($custom_item->getSelectOptions(null, $field, $fieldOptions))->keys()->unique();
+        $displayed = $custom_item->getSelectOptions(null, $field, $fieldOptions);
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $displayed);
+        $select_options = $displayed->keys()->unique();
         // get ids directly
         $ids = $this->searchCustomValueDirectly($custom_column, $parentValue, $options)->unique();
 

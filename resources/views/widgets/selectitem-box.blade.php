@@ -10,7 +10,7 @@
 
 <div class="selectitembox-footer" style="">
     @foreach($items as $item)
-    <div class="selectitembox-item" style="height:60px; margin:10px 0;" 
+    <div class="selectitembox-item row" style="height:60px; margin:10px 0;" 
         data-selectitem="{{array_get($item, 'name')}}"  
         data-multiple="{{boolval(array_get($item, 'multiple'))}}" 
         data-selectitem-icon="{{array_get($item, 'icon')}}" 
@@ -57,7 +57,9 @@
 </div>
 
 <script>
-$('.selectitembox-body').load(function () {
-    $('.selectitembox-loading').fadeOut(200);
+$(document).ready(function() {
+    $('.selectitembox-body').on('load', function () {
+        $('.selectitembox-loading').fadeOut(200);
+    });
 });
 </script>

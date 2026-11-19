@@ -35,7 +35,7 @@ class PasswordGrant extends PasswordGrantBase
      *
      * @return UserEntityInterface
      */
-    protected function validateUser(ServerRequestInterface $request, ClientEntityInterface $client)
+    protected function validateUser(ServerRequestInterface $request, ClientEntityInterface $client): UserEntityInterface
     {
         $login_type = $this->getRequestParameter('login_type', $request);
         if (is_null($login_type)) {

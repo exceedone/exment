@@ -920,11 +920,14 @@ class RelationTable
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder|\Illuminate\Database\Eloquent\Builder $query
      * @param CustomTable $custom_table
      * @param boolean $or_option
+     * @param \Closure|null $actionFilter narrows the (record, action) rows before they are reduced
+     *        to record ids. Called as $actionFilter($subquery, $viewName) on both parts of the
+     *        union, where "$viewName.workflow_action_id" is the action a row stands for.
      * @return void
      */
 
     // @phpstan-ignore-next-line
-    public static function setWorkflowWorkUsersSubQuery($query, $custom_table, $or_option = false)
+    public static function setWorkflowWorkUsersSubQuery($query, $custom_table, $or_option = false, ?\Closure $actionFilter = null)
     {
         $tableName = getDBTableName($custom_table);
         // get user table name
@@ -968,6 +971,10 @@ class RelationTable
             ->distinct()
             ->select([$tableName .'.id  as morph_id']);
 
+        if (isset($actionFilter)) {
+            $actionFilter($subquery, SystemTableName::VIEW_WORKFLOW_VALUE_UNION);
+        }
+
 
         /////// second query. not has workflow value's custom value
         $subquery2 = \DB::table($tableName)
@@ -1000,6 +1007,12 @@ class RelationTable
             ->union($subquery)
             ->distinct()
             ->select([$tableName .'.id as morph_id']);
+
+        // a where added after union() still belongs to this first part, and joinSub() below
+        // compiles the sub query at once, so this is the last point it can be applied
+        if (isset($actionFilter)) {
+            $actionFilter($subquery2, SystemTableName::VIEW_WORKFLOW_START);
+        }
 
         // join query is $or_option is true then leftJoin
         $joinFunc = $or_option ? 'leftJoinSub' : 'joinSub';

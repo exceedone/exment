@@ -22,7 +22,7 @@
 - Laravelのプロジェクトを作成します。
 
 ~~~
-composer create-project "laravel/laravel=10.*" (プロジェクト名)
+composer create-project "laravel/laravel=12.*" (プロジェクト名)
 cd (プロジェクト名)
 ~~~
 
@@ -53,11 +53,11 @@ composer require psr/simple-cache=^2.0.0
 ~~~
 git clone https://github.com/hirossyi73/exment.git
 ~~~
-- (任意)あなたのlaravel-adminリポジトリをクローンします。
-(ex. https://github.com/hirossyi73/laravel-admin.git)
+- (任意)あなたのexment-admin-coreリポジトリをクローンします。
+(ex. https://github.com/hirossyi73/exment-admin-core.git)
 
 ~~~
-git clone https://github.com/hirossyi73/laravel-admin.git
+git clone https://github.com/hirossyi73/exment-admin-core.git
 ~~~
 
 - Laravelプロジェクトフォルダ直下の、composer.jsonを書き換えます。
@@ -65,16 +65,16 @@ git clone https://github.com/hirossyi73/laravel-admin.git
 
 ~~~
     "require": {
-        "php": ">=8.1",
-        "guzzlehttp/guzzle": "^7.2",
-        "laravel/framework": "^10.10",
-        "laravel/sanctum": "^3.3",
-        "laravel/tinker": "^2.8",
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.10",
+        "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.2",
+        "laravel/tinker": "^2.10",
         "psr/simple-cache": "2.0.0",
         // 行追加
         "exceedone/exment": "dev-master"
         // 任意
-        ,"exceedone/laravel-admin": "dev-master as 4.10.10"
+        ,"exceedone/exment-admin-core": "dev-master"
     },
 
     "autoload": {
@@ -100,7 +100,7 @@ git clone https://github.com/hirossyi73/laravel-admin.git
         ,
         {
             "type": "path",
-            "url": "packages/hirossyi73/laravel-admin",
+            "url": "packages/hirossyi73/exment-admin-core",
             "options": {
                 "symlink": true
             }
@@ -257,9 +257,9 @@ composer global require friendsofphp/php-cs-fixer
 #### ソース整形
 ~~~
 # 不要な"use"を削除
-php-cs-fixer fix ./vendor/hirossyi73/exment --rules=no_unused_imports 
+php-cs-fixer fix ./packages/hirossyi73/exment --rules=no_unused_imports 
 # すべてのソースを整形
-php-cs-fixer fix ./vendor/hirossyi73/exment
+php-cs-fixer fix ./packages/hirossyi73/exment
 ~~~
 
 

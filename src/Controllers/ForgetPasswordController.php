@@ -11,7 +11,9 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ForgetPasswordController extends Controller
 {
-    use SendsPasswordResetEmails;
+    use SendsPasswordResetEmails {
+        sendResetLinkFailedResponse as protected sendResetLinkFailedResponseDefault;
+    }
     use \Exceedone\Exment\Controllers\AuthTrait;
 
     /**
@@ -71,5 +73,23 @@ class ForgetPasswordController extends Controller
             \Log::error($ex);
             return back()->with('status_error', exmtrans('error.mailsend_failed'));
         }
+    }
+
+    /**
+     * Get the response for a failed password reset link.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $response
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+     */
+    protected function sendResetLinkFailedResponse(Request $request, $response)
+    {
+        // 'passwords.throttled' lives in the app's lang files (published from lang_vendor without --force),
+        // so an app installed before the key existed has no translation for the current locale.
+        if ($response == Password::RESET_THROTTLED && !\Lang::has($response, null, false)) {
+            $response = 'exment::exment.login.password_reset_throttled';
+        }
+
+        return $this->sendResetLinkFailedResponseDefault($request, $response);
     }
 }

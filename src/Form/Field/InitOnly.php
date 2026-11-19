@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field\Display;
+use ExmentAdminCore\Admin\Form\Field\Display;
 
 /**
  * Display for view only. Cannot save and update.
@@ -22,7 +22,6 @@ class InitOnly extends Display
         return $this;
     }
 
-    // @phpstan-ignore-next-line
     public function prepare($value)
     {
         // Even if set value, return always default.

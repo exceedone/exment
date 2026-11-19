@@ -25,7 +25,6 @@ class OrderScope implements Scope
     }
 
 
-    // @phpstan-ignore-next-line
     public function apply(Builder $builder, Model $model)
     {
         if (!$this->hasOrderById($builder, $this->column)) {

@@ -59,6 +59,7 @@ abstract class CustomValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
+    use Traits\HasCommentMentionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use \Exceedone\Exment\Revisionable\RevisionableTrait;
 
@@ -166,7 +167,9 @@ abstract class CustomValue extends ModelBase
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<WorkflowValue, $this>
+     */
     public function workflow_value()
     {
         return $this->hasOne(WorkflowValue::class, 'morph_id')
@@ -178,9 +181,9 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get all workflow values
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<WorkflowValue, $this>
      */
-
-    // @phpstan-ignore-next-line
     public function workflow_values()
     {
         return $this->hasMany(WorkflowValue::class, 'morph_id')
@@ -290,7 +293,7 @@ abstract class CustomValue extends ModelBase
     // @phpstan-ignore-next-line
     public function getWorkflowStatusTagAttribute()
     {
-        $icon = ' <i class="fa fa-lock" aria-hidden="true" data-toggle="tooltip" title="' . esc_html(exmtrans('workflow.message.locked')) . '"></i>';
+        $icon = ' <i class="fa fa-lock" aria-hidden="true" data-bs-toggle="tooltip" title="' . esc_html(exmtrans('workflow.message.locked')) . '"></i>';
         return esc_html($this->workflow_status_name) .
             ($this->lockedWorkflow() ? $icon : '');
     }
@@ -328,7 +331,9 @@ abstract class CustomValue extends ModelBase
 
     // value_authoritable. it's all role data.
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<CustomValueAuthoritable, $this>
+     */
     public function custom_value_authoritables()
     {
         return $this->hasMany(CustomValueAuthoritable::class, 'parent_id')
@@ -393,9 +398,11 @@ abstract class CustomValue extends ModelBase
 
 
     // get workflow actions which has authority
+    // $ignoreExecuted: leave out the actions the login user already executed in a step that
+    // waits for several approvers (WorkflowValue::isAlreadyExecuted()).
 
     // @phpstan-ignore-next-line
-    public function getWorkflowActions($onlyHasAuthority = false, $ignoreNextWork = false)
+    public function getWorkflowActions($onlyHasAuthority = false, $ignoreNextWork = false, $ignoreExecuted = false)
     {
         $workflow_value = $this->workflow_value;
 
@@ -436,6 +443,16 @@ abstract class CustomValue extends ModelBase
             });
         }
 
+        // A step that waits for several approvers keeps its status until the last of them acts.
+        // The ones who already did have nothing left to run: the task list leaves them out
+        // (WorkflowTaskService) and the action modal offers them no submit. Executing again
+        // only recorded the same approval twice.
+        if ($ignoreExecuted && !is_null($login_user = \Exment::user())) {
+            $workflow_actions = $workflow_actions->filter(function ($workflow_action) use ($login_user) {
+                return !WorkflowValue::isAlreadyExecuted($workflow_action->id, $this, $login_user->base_user);
+            });
+        }
+
         return $workflow_actions;
     }
 
@@ -461,8 +478,10 @@ abstract class CustomValue extends ModelBase
         $results = [];
         foreach ($workflow_values as $v) {
             $v->append('created_user');
-            $v->workflow_action->append('status_from_name');
-            $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action_cache->status_from_name, $v->workflow_status_name);
+            if (isset($v->workflow_action)) {
+                $v->workflow_action->append('status_from_name');
+                $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', optional($v->workflow_action_cache)->status_from_name, $v->workflow_status_name);
+            }
 
             $results[] = $v->toArray();
         }
@@ -543,6 +562,12 @@ abstract class CustomValue extends ModelBase
         parent::boot();
 
         static::saving(function ($model) {
+            // Before anything else, and before any early return: the comment
+            // body still in the database is about to be overwritten, and the
+            // mention notifier needs it to tell a newly written name from one
+            // the reader has already been told about.
+            $model->rememberPreviousCommentText();
+
             if ($model->disable_saving_event) {
                 return;
             }
@@ -570,6 +595,16 @@ abstract class CustomValue extends ModelBase
         });
         static::updated(function ($model) {
             $model->savedEvent(false);
+        });
+        static::saved(function ($model) {
+            // The mention notifier is not always reached: savedEvent() bails out
+            // when disable_saved_event is set, and a save with nothing dirty
+            // never fires updated at all. A snapshot left behind would become
+            // the answer for the next save of the same instance, which is a
+            // different save entirely. This event does run in all of those
+            // cases, and by the time it runs the notifier has already had its
+            // turn.
+            $model->forgetPreviousCommentText();
         });
 
         static::deleting(function ($model) {
@@ -663,6 +698,9 @@ abstract class CustomValue extends ModelBase
         ]);
 
         $this->savedValue();
+
+        // a comment naming a person tells that person
+        $this->notifyMentionedUsersInComment($isCreate);
 
         if ($isCreate) {
             // save Authoritable
@@ -983,6 +1021,34 @@ abstract class CustomValue extends ModelBase
         $this->workflow_values->each(function ($workflow_value) {
             $workflow_value->delete();
         });
+
+        // Feature 1: drop the "seen" marks of this record.
+        // WorkflowAction::forwardWorkflowValue() only clears them when an action is executed, so
+        // without this a hard-deleted record would leave one row per user in workflow_task_reads with
+        // nothing left to point at - and nothing would ever clean them up.
+        // withoutGlobalScopes(): the marks of every user have to go, not only those of the one
+        // pressing delete. A soft delete deliberately keeps them, so a restore keeps its state.
+        WorkflowTaskRead::withoutGlobalScopes()
+            ->where('custom_table_id', $custom_table->id)
+            ->where('morph_id', $this->id)
+            ->delete();
+
+        // ... and if the deleted record IS a user, that user's own marks go with it.
+        if ($custom_table->table_name == SystemTableName::USER) {
+            WorkflowTaskRead::withoutGlobalScopes()
+                ->where('target_user_id', $this->id)
+                ->delete();
+
+            // and its LINE link, so that LINE account can be linked to another user.
+            // A soft delete keeps it, so a restore keeps the link.
+            LineAccountLink::where('user_id', $this->id)->delete();
+        }
+
+        // the deleting user sees this record leave their own task list on their very next
+        // navbar poll; other users' caches expire within one poll interval. Once the delete has
+        // committed, when it runs in a transaction (see
+        // WorkflowTaskService::navbarCacheForgetAfterCommit()).
+        \Exceedone\Exment\Services\Workflow\WorkflowTaskService::navbarCacheForgetAfterCommit();
     }
 
     /**
@@ -1294,15 +1360,16 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get vustom_value's label
+    * @param \Illuminate\Support\Collection|string|null $label_columns
      * @return string
      */
-    public function getLabel()
+    public function getLabel($label_columns = null)
     {
         if (!is_null($this->_label)) {
             return $this->_label;
         }
 
-        $label_columns = $this->custom_table->getLabelColumns();
+        $label_columns = $label_columns ?? $this->custom_table->getLabelColumns();
 
         if (isset($label_columns) && is_string($label_columns)) {
             $this->_label = $this->getExpansionLabel($label_columns);
@@ -1323,6 +1390,8 @@ abstract class CustomValue extends ModelBase
 
         if (!isset($label_columns) || count($label_columns) == 0) {
             $columns = [$custom_table->custom_columns_cache->first()];
+        } elseif ($label_columns->first() instanceof CustomColumn) {
+            $columns = $label_columns;
         } else {
             $columns = $label_columns->map(function ($label_column) {
                 return CustomColumn::getEloquent($label_column->table_label_id);
@@ -1918,9 +1987,13 @@ abstract class CustomValue extends ModelBase
      * User can edit this custom value
      *
      * @param bool $checkFormAction if true, check as display
+     * @param bool $checkAdministrator false for what hangs off the record - its child records,
+     *        attachments and documents - rather than its own values: only those values of an
+     *        administrator's user record are kept from other users (UserTrait::disabled_edit_trait),
+     *        the rest stays as on v6.2.15
      * @return bool|ErrorCode
      */
-    public function enableEdit($checkFormAction = false)
+    public function enableEdit($checkFormAction = false, $checkAdministrator = true)
     {
         // Deleted to address the case where users with view authority are sharing data
         // if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
@@ -1947,7 +2020,7 @@ abstract class CustomValue extends ModelBase
         // check parent permission
         if (!is_null($parent_value = $this->getParentValue())) {
             if (boolval($this->custom_table->getOption('editable_with_parent')??1)) {
-                if (($code = $parent_value->enableEdit($checkFormAction)) !== true) {
+                if (($code = $parent_value->enableEdit($checkFormAction, false)) !== true) {
                     return $code;
                 }
             } else {
@@ -1959,6 +2032,12 @@ abstract class CustomValue extends ModelBase
 
         if ($this->trashed()) {
             return ErrorCode::ALREADY_DELETED();
+        }
+
+        // only administrator can edit administrator record (UserTrait::disabled_edit_trait).
+        // Last, so that every other answer stays as it was.
+        if ($checkAdministrator && method_exists($this, 'disabled_edit_trait') && $this->disabled_edit_trait()) {
+            return ErrorCode::PERMISSION_DENY();
         }
 
         return true;

@@ -383,6 +383,7 @@ class TemplateImportThumbnailTest extends FeatureTestBase
             );
         }
 
+        $this->assertIsArray($templates);
         $entry = collect($templates)->first(fn ($t) => array_get($t, 'template_name') === self::TEMPLATE_NAME);
 
         $this->assertNotNull(
@@ -483,7 +484,7 @@ class TemplateImportThumbnailTest extends FeatureTestBase
         $zip->open($tmpPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
         $zip->addFromString('config.json', (string)json_encode($config, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
-        if ($withThumbnail && $thumbnailBytes !== false) {
+        if (isset($thumbnailName, $thumbnailBytes)) {
             $zip->addFromString($thumbnailName, $thumbnailBytes);
         }
 

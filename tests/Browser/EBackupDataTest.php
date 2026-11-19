@@ -73,7 +73,7 @@ class EBackupDataTest extends ExmentKitTestCase
         $this->visit(admin_url('backup'))
                 ->seePageIs(admin_url('backup'))
                 ->seeInElement('h1', 'バックアップ一覧')
-                ->seeInElement('h3[class=box-title]', 'バックアップ設定')
+                ->seeInElement('h3.box-title', 'バックアップ設定')
                 ->seeInElement('label', 'バックアップ対象')
                 ->seeInElement('label', '自動バックアップ')
                 ->seeInElement('label', '自動バックアップ実行間隔(日)')

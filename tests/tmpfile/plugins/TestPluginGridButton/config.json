@@ -1,0 +1,11 @@
+{
+    "plugin_name": "TestPluginGridButton",
+    "uuid": "8c1f7a3e-5b2d-4e6a-9f10-3c4d5e6f7a81",
+    "plugin_view_name": "Plugin Grid Button",
+    "description": "一覧画面のプラグインボタンを実行するテストです。",
+    "author": "Exceedone",
+    "version": "1.0.0",
+    "plugin_type": "button",
+    "event_triggers": "grid_menubutton",
+    "target_tables": "custom_value_edit_all"
+}

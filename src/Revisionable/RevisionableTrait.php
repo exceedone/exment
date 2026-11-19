@@ -110,7 +110,7 @@ trait RevisionableTrait
     // }
 
     /**
-     * @return mixed
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<Revision, $this>
      */
     public function revisionHistory()
     {

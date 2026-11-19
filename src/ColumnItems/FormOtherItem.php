@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\FormLabelType;
-use Encore\Admin\Show\Field as ShowField;
+use ExmentAdminCore\Admin\Show\Field as ShowField;
 
 /**
  * @property \Exceedone\Exment\Model\CustomColumn $custom_column
@@ -212,7 +212,7 @@ abstract class FormOtherItem implements ItemInterface
             return new $className($form_column);
         }
 
-        admin_error('Error', "Field type [$form_column_name] does not exist.");
+        admin_error('Error', 'Field type [' . e($form_column_name) . '] does not exist.');
 
         return null;
     }

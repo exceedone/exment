@@ -3,12 +3,16 @@ var Exment;
     class CustomFromEvent {
         static AddEvent() {
             $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
+            CustomFromEvent.syncLazyLoadOptions($('.box-custom_form_block'));
             CustomFromEvent.loadingEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
             //CustomFromEvent.resizeEvent($('.custom_form_area'));
         }
         static AddEventOnce() {
             $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
+            $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_hasmany_type', {}, (ev) => {
+                CustomFromEvent.syncLazyLoadOptions($(ev.target).closest('.box-custom_form_block'));
+            });
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .delete', {}, CustomFromEvent.deleteColumnEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .setting', {}, CustomFromEvent.settingModalEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_area_header .delete', {}, CustomFromEvent.deleteBoxEvent);
@@ -20,6 +24,20 @@ var Exment;
             $(document).on('click.exment_custom_form', '.preview-custom_form', {}, CustomFromEvent.previewCustomForm);
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
+            });
+        }
+        static syncLazyLoadOptions($blocks) {
+            $blocks.each(function (_index, element) {
+                const $block = $(element);
+                const $lazyLoad = $block.find('.icheck_lazy_load_enabled');
+                if (!$lazyLoad.length) {
+                    return;
+                }
+                const isTable = $block.find('.icheck_hasmany_type').prop('checked');
+                if (!isTable) {
+                    $lazyLoad.prop('checked', false);
+                }
+                $lazyLoad.prop('disabled', !isTable).iCheck('update');
             });
         }
         /**
@@ -130,7 +148,7 @@ var Exment;
             }));
             $elem.append($('<input/>', {
                 name: header_name + '[required]',
-                value: $elem.find('.required_item').val(),
+                value: $elem.find('.required_item').val(), // if name 'required', validation wrong call.
                 type: 'hidden',
             }));
             $elem.append($('<input/>', {
@@ -152,7 +170,7 @@ var Exment;
                 type: 'hidden',
             }));
             // rename for toggle
-            if (hasValue($elem.find('[data-toggle]'))) {
+            if (hasValue($elem.find('[data-bs-toggle]'))) {
                 let uuid = getUuid();
                 $elem.find('[data-parent]')
                     .attr('data-parent', '#' + uuid)
@@ -246,10 +264,10 @@ var Exment;
         }
         static toggleConfigIcon($elem, isShow) {
             if (isShow) {
-                $elem.find('.delete,.options,[data-toggle],.setting').show();
+                $elem.find('.delete,.options,[data-bs-toggle],.setting').show();
             }
             else {
-                $elem.find('.delete,.options,[data-toggle],.setting').hide();
+                $elem.find('.delete,.options,[data-bs-toggle],.setting').hide();
             }
         }
         static toggleColumnSuggest(isShow, $item) {
@@ -516,7 +534,7 @@ var Exment;
                     },
                 });
                 resizableEl.prop('data-add-resizable', 1);
-                $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
+                $('.ui-resizable-e').attr('data-bs-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
             });
         }
         /**
@@ -710,7 +728,7 @@ var Exment;
                 $('.changedata_column_id').children('option').remove();
                 $('.changedata_column_id').append($('<option>').val('').text(''));
                 $.each(data, function (value, name) {
-                    if(name.view_id) {
+                    if (name.view_id) {
                         value = name.view_id;
                         name = name.view_name;
                     }
@@ -741,6 +759,33 @@ var Exment;
         let form = $('#modal-showmodal form').get()[0];
         if (!form.reportValidity()) {
             return;
+        }
+        // Validate image file extension
+        let $imageInput = $('#modal-showmodal').find('input.image[type="file"]');
+        if ($imageInput.length > 0 && $imageInput.get(0).files && $imageInput.get(0).files.length > 0) {
+            let file = $imageInput.get(0).files[0];
+            let fileName = file.name;
+            let ext = fileName.split('.').pop().toLowerCase();
+            let allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
+            if (allowedExtensions.indexOf(ext) === -1) {
+                let errorMessage = $('#validate_image_error_message').val();
+                if (!errorMessage) {
+                    errorMessage = 'Please specify an image file.';
+                }
+                // Show inline error at the image input
+                let $formGroup = $imageInput.closest('.form-group, .form-group-vertical');
+                $formGroup.find('.error-label').remove();
+                $formGroup.addClass('has-error');
+                $formGroup.children('div').prepend($('<label/>', {
+                    'class': 'control-label error-label',
+                    'for': 'inputError',
+                    'html': [
+                        $('<i/>', { 'class': 'fa fa-times-circle-o' }),
+                        $('<span/>', { 'text': ' ' + errorMessage }),
+                    ]
+                }));
+                return;
+            }
         }
         let formItem = Exment.CustomFromItem.makeByModal();
         let options = formItem.getOption();

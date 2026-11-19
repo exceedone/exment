@@ -11,6 +11,17 @@ use Exceedone\Exment\Storage\Disk\DiskServiceItem;
  */
 class PluginNamespaceRule implements Rule
 {
+    /**
+     * Top level folders whose PHP files are loaded by Laravel by path, not by
+     * class name, so they must not declare a plugin namespace:
+     *   resources - lang files and views are plain "return [...]" arrays
+     *   database  - migrations and seeders are resolved by the migrator
+     *   templates - Exment template definitions and their helper scripts
+     *
+     * Checking them would reject a correctly built plugin.
+     */
+    private const NON_NAMESPACED_DIRECTORIES = ['resources', 'database', 'templates'];
+
     // @phpstan-ignore-next-line
     protected $errors = [];
 
@@ -60,6 +71,12 @@ class PluginNamespaceRule implements Rule
 
             // get namespace
             $namespaces = array_filter(explode('/', \Exment::replaceBackToSlash($dirPath)));
+
+            $topDirectory = strtolower((string)reset($namespaces));
+            if (in_array($topDirectory, self::NON_NAMESPACED_DIRECTORIES, true)) {
+                continue;
+            }
+
             array_unshift($namespaces, "App", "Plugins", pascalize($value));
 
             $namespace = "namespace +" . implode("\\\\", $namespaces);

@@ -1,12 +1,12 @@
 <div class="form-group {!! !$errors->has($label) ?: 'has-error' !!}">
-    <label for="{{$id}}" class="col-sm-2 control-label">{{$label}}</label>
+    <label for="{{$id}}" class="col-sm-2 control-label text-lg-end pt-2">{{$label}}</label>
     <div class="{{$viewClass['field']}}">
         @include('admin::form.error')
 
         <div id="{{$id}}" style="width: 100%; height: 100%;">
             @if(isset($value))
             <p>
-                <a href="{!! $old !!}" class="{{ isset($button) ? 'btn '.$button : '' }}" target="{{ isset($target) ? $target : '_self' }}">
+                <a href="{{ $old }}" class="{{ isset($button) ? 'btn '.$button : '' }}" target="{{ isset($target) ? $target : '_self' }}">
                     @if(isset($icon))
                     <i class="fa {{ $icon }}">{{ $text }}</i>
                     @endif

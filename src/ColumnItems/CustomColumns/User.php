@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-use Encore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Enums\ColumnDefaultType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -61,6 +61,10 @@ class User extends SelectTable
 
         $form->switchbool('showing_all_user_organizations', exmtrans("custom_column.options.showing_all_user_organizations"))
             ->help(exmtrans("custom_column.help.showing_all_user_organizations"))
+            ->default('0');
+
+        $form->switchbool('assign_me_enabled', exmtrans("custom_column.options.assign_me_enabled"))
+            ->help(exmtrans("custom_column.help.assign_me_enabled"))
             ->default('0');
     }
 

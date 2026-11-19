@@ -76,35 +76,45 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     ];
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomCopy, $this>
+     */
     public function custom_copy(): BelongsTo
     {
         return $this->belongsTo(CustomCopy::class, 'custom_copy_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomColumn, $this>
+     */
     public function from_custom_column(): BelongsTo
     {
         return $this->belongsTo(CustomColumn::class, 'from_column_target_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomColumn, $this>
+     */
     public function to_custom_column(): BelongsTo
     {
         return $this->belongsTo(CustomColumn::class, 'to_column_target_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function from_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'from_column_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function to_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'to_column_table_id');

@@ -5,8 +5,8 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\UrlTagType;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
 
 class Url extends CustomItem
 {
@@ -19,6 +19,11 @@ class Url extends CustomItem
     {
         $value = $this->_value($v);
         $url = $this->_value($v);
+
+        // reject dangerous URL schemes (defense-in-depth; the 'url' validation rule already blocks these on write)
+        if (is_string($url) && preg_match('/^\s*(javascript|data|vbscript):/i', $url)) {
+            $url = '#';
+        }
 
         $value = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($value) : $value;
 

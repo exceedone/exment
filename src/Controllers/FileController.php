@@ -16,7 +16,7 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\PublicForm;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
-use Response;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
 class FileController extends AdminControllerBase
 {
@@ -207,8 +207,11 @@ class FileController extends AdminControllerBase
 
         // if has parent_id, check permission
         if (isset($data->parent_id) && isset($data->parent_type)) {
+            // The table named here can be gone while its files are not, and
+            // then getEloquent() answers null: asking it for a permission was
+            // a fatal error, so the download answered 500 instead of anything.
             $custom_table = CustomTable::getEloquent($data->parent_type);
-            if (!$custom_table->hasPermissionData($data->parent_id)) {
+            if (isset($custom_table) && !$custom_table->hasPermissionData($data->parent_id)) {
                 if ($options['asApi']) {
                     return abortJson(403, ErrorCode::PERMISSION_DENY());
                 }
@@ -216,8 +219,8 @@ class FileController extends AdminControllerBase
             }
         }
 
-        $file = Storage::disk(config('admin.upload.disk'))->get($path);
-        $type = Storage::disk(config('admin.upload.disk'))->mimeType($path);
+        $disk = Storage::disk(config('admin.upload.disk'));
+        $type = $disk->mimeType($path);
         // get page name
         $name = rawurlencode($data->filename);
 
@@ -225,20 +228,14 @@ class FileController extends AdminControllerBase
             return response([
                 'type' => $type,
                 'name' => $data->filename,
-                'base64' => base64_encode(($file)),
+                'base64' => base64_encode($disk->get($path)),
             ]);
         }
 
-        // create response
-        $response = Response::make($file, 200);
-        // @phpstan-ignore-next-line
-        $response->header("Content-Type", $type);
-
         // Disposition is attachment because inline is SVG XSS.
         $disposition = static::isDispositionInline($name) ? 'inline' : 'attachment';
-        $response->header('Content-Disposition', "$disposition; filename*=UTF-8''$name");
 
-        return $response;
+        return static::responseStream($disk, $path, $type, $name, $disposition);
     }
 
     /**
@@ -255,20 +252,78 @@ class FileController extends AdminControllerBase
             abort(404);
         }
 
-        $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($uuid);
-        $type = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->mimeType($uuid);
+        $disk = Storage::disk(Define::DISKNAME_TEMP_UPLOAD);
+        $type = $disk->mimeType($uuid);
         // get page name
         $name = rawurlencode($filename);
 
-        // create response
-        $response = Response::make($file, 200);
-        // @phpstan-ignore-next-line
-        $response->header("Content-Type", $type);
-
         // Disposition is attachment because inline is SVG XSS.
-        $response->header('Content-Disposition', "attachment; filename*=UTF-8''$name");
+        return static::responseStream($disk, $uuid, $type, $name, 'attachment');
+    }
 
-        return $response;
+    /**
+     * Create response sending the file without reading it into memory.
+     *
+     * Reading the whole file into a string needs as much memory as the file size, so a large
+     * file breaks the memory_limit of php.ini.
+     *
+     * A file of a local disk is sent as a BinaryFileResponse, which handles the "Range" header,
+     * so a download cut in the middle is resumed instead of started again. It is also the
+     * response the web server can take over through X-Sendfile / X-Accel-Redirect, once
+     * BinaryFileResponse::trustXSendfileTypeHeader() is called by the application.
+     *
+     * A file of a disk able to sign urls is fetched by the client from the storage itself, so
+     * php does not spend a worker on sending the bytes.
+     *
+     * @param \Illuminate\Filesystem\FilesystemAdapter $disk
+     * @param string $path path of the file in the disk
+     * @param string|false $type mime type
+     * @param string $name url encoded file name
+     * @param string $disposition "inline" or "attachment"
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected static function responseStream($disk, string $path, $type, string $name, string $disposition)
+    {
+        $headers = [
+            'Content-Type' => $type ?: 'application/octet-stream',
+            'Content-Disposition' => "$disposition; filename*=UTF-8''$name",
+        ];
+
+        if ($disk->getAdapter() instanceof LocalFilesystemAdapter) {
+            return response()->file($disk->path($path), $headers);
+        }
+
+        if ($disk->providesTemporaryUrls()) {
+            return redirect()->away($disk->temporaryUrl(
+                $path,
+                now()->addMinutes(intval(config('exment.file_download_temporary_url_minutes', 15))),
+                // the storage keeps the file under its own key, so tell it the name to send
+                [
+                    'ResponseContentType' => $headers['Content-Type'],
+                    'ResponseContentDisposition' => $headers['Content-Disposition'],
+                ]
+            ));
+        }
+
+        // let the browser show the progress, and allow the download to be resumed
+        if ($size = $disk->size($path)) {
+            $headers['Content-Length'] = $size;
+        }
+
+        $stream = $disk->readStream($path);
+
+        return response()->stream(function () use ($stream) {
+            // any output buffer would keep the whole file in memory again
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            fpassthru($stream);
+
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }, 200, $headers);
     }
 
     /**
@@ -339,11 +394,10 @@ class FileController extends AdminControllerBase
                         $current_val = $current_val->toArray();
                     }
                     if (is_array($current_val)) {
-                        foreach ($current_val as $key => $value) {
-                            if ($value == url_join($data->parent_type, $data->local_filename)) {
-                                array_splice($current_val, $key, 1);
-                            }
-                        }
+                        $removeTarget = url_join($data->parent_type, $data->local_filename);
+                        $current_val = array_values(array_filter($current_val, function ($value) use ($removeTarget) {
+                            return $value != $removeTarget;
+                        }));
                     } else {
                         $current_val = '';
                     }
@@ -434,7 +488,7 @@ class FileController extends AdminControllerBase
      *  upload file as temporary
      */
     // @phpstan-ignore-next-line
-    protected function uploadTempFile(Request $request)
+    public function uploadTempFile(Request $request)
     {
         return $this->_uploadTempFile($request, false);
     }
@@ -442,8 +496,7 @@ class FileController extends AdminControllerBase
     /**
      *  upload Image as temporary
      */
-    // @phpstan-ignore-next-line
-    protected function uploadTempImage(Request $request)
+    public function uploadTempImage(Request $request)
     {
         return $this->_uploadTempFile($request, true);
     }
@@ -452,7 +505,7 @@ class FileController extends AdminControllerBase
      *  upload Image as temporary
      */
     // @phpstan-ignore-next-line
-    protected function uploadTempImagePublicForm(Request $request, $publicFormUuid)
+    public function uploadTempImagePublicForm(Request $request, $publicFormUuid)
     {
         $public_form = PublicForm::getPublicFormByUuid($publicFormUuid);
         return $this->_uploadTempFile($request, true, $public_form);
@@ -482,11 +535,9 @@ class FileController extends AdminControllerBase
 
         // get upload file
         $file = $request->file('file');
-        // @phpstan-ignore-next-line
         $original_name = $file->getClientOriginalName();
         $uuid = make_uuid();
         // store uploaded file
-        // @phpstan-ignore-next-line
         $filename = $file->storeAs('', $uuid, Define::DISKNAME_TEMP_UPLOAD);
         try {
             $request->session()->put($uuid, $original_name);
@@ -550,11 +601,24 @@ class FileController extends AdminControllerBase
 
         // if has parent_id, check permission
         $parent_custom_table = CustomTable::getEloquent($data->parent_type);
-        if (!$parent_custom_table) {
-            return true;
-        }
-        $custom_value = $parent_custom_table->getValueModel($data->parent_id);
-        if ($custom_value && $custom_value->enableDelete() !== true) {
+        // A row that cannot be read is a refusal, not a pass. getValueModel()
+        // reads through CustomValueModelScope, so it answers null both for a
+        // row that is not there and for one this user may not see, and letting
+        // null through meant anyone holding a file's uuid could delete the
+        // attachments of a record they cannot even open - the file off disk,
+        // its document row and its file row. A file still being uploaded
+        // carries no parent_id at all and has already left above, so nothing
+        // legitimate arrives here with an unreadable parent. A parent_type
+        // naming a table that no longer exists resolves to nothing either and
+        // is refused the same way.
+        //
+        // Asking for the trashed one too keeps a record that is merely in the
+        // bin in scope: withTrashed() drops the soft-delete scope and not the
+        // permission one, so an unreadable record still answers null, while a
+        // deleted record's attachments stay exactly as deletable as they were
+        // before any of this.
+        $custom_value = $parent_custom_table ? $parent_custom_table->getValueModel($data->parent_id, true) : null;
+        if (!isset($custom_value) || $custom_value->enableDelete() !== true) {
             if ($options['asApi']) {
                 return abortJson(403, ErrorCode::PERMISSION_DENY());
             }

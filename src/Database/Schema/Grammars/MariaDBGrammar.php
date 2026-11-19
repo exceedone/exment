@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Database\Schema\Grammars;
 
+use Illuminate\Database\Connection;
 use Illuminate\Support\Fluent;
 use Illuminate\Database\Schema\Blueprint;
 
@@ -10,8 +11,9 @@ use Illuminate\Database\Schema\Blueprint;
  */
 class MariaDBGrammar extends MySqlGrammar
 {
-    public function __construct()
+    public function __construct(Connection $connection)
     {
+        parent::__construct($connection);
         if (!in_array('Check', $this->modifiers)) {
             array_splice(
                 $this->modifiers,

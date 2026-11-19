@@ -7,9 +7,10 @@ use Exceedone\Exment\Services\Plugin\PluginBatchBase;
 class Plugin extends PluginBatchBase
 {
     /**
-     * execute
+     * Call the functions this plugin defines in its own files. Answering
+     * false fails the batch (exit code 1), which the test checks.
      *
-     * @return void
+     * @return false|null
      */
     public function execute()
     {
@@ -17,7 +18,9 @@ class Plugin extends PluginBatchBase
         require_once dirname(__FILE__).'/Dir1/function.php';
 
         // call test global funciton
-        testPluginGlobalFunction();
-        Dir1\testPluginGlobalFunctionDir1();
+        if (!testPluginGlobalFunction() || !Dir1\testPluginGlobalFunctionDir1()) {
+            return false;
+        }
+        return null;
     }
 }

@@ -8,7 +8,7 @@ use Exceedone\Exment\Enums\SystemRequireResult;
 class SystemRequireTest extends UnitTestBase
 {
     /**
-     * @return null
+     * @return void
      */
     protected function init()
     {

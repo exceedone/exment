@@ -46,8 +46,7 @@ class IMenuTest extends ExmentKitTestCase
         $this->_testCreateMenu('parent_menu_name', [
             'parent_id' =>'0',
             'menu_type' =>'parent_node',
-            'menu_target' =>'',
-            'uri' =>'/',
+            'menu_target' => null,
             'title' =>'MenuTestParent',
             'icon' =>'fa-user',
         ]);
@@ -187,6 +186,100 @@ class IMenuTest extends ExmentKitTestCase
 
 
     /**
+     * Regression test: allNodes() must resolve system menu uri/icon from menu_target, not menu_name.
+     *
+     * Scenario (deduplication): when MenuController::menutargetvalue() detects a duplicate
+     * menu_name (e.g. 'custom_table' already exists), it suffixes the name ('custom_table_1').
+     * After the save:
+     *   menu_target = 'custom_table'  (FK key into MENU_SYSTEM_DEFINITION — unchanged)
+     *   menu_name   = 'custom_table_1' (UI label — deduplicated)
+     *
+     * Buggy code:  array_get(MENU_SYSTEM_DEFINITION, $row['menu_name'])  → null  → uri = null
+     * Fixed code:  array_get(MENU_SYSTEM_DEFINITION, $row['menu_target']) → correct uri/icon
+     *
+     * @return void
+     */
+    public function testAllNodesSystemMenuUsesMenuTarget()
+    {
+        $parentMenu = $this->getParentMenuTestModel();
+
+        // Directly insert a record that simulates a deduplicated menu_name
+        $menu = new Menu();
+        $menu->parent_id = $parentMenu->id;
+        $menu->menu_type = 'system';
+        $menu->menu_target = 'custom_table';   // key in MENU_SYSTEM_DEFINITION
+        $menu->menu_name   = 'custom_table_1'; // deduplicated name — NOT a key in MENU_SYSTEM_DEFINITION
+        $menu->title = 'AllNodesSystemTest';
+        $menu->icon  = '';                     // empty → allNodes() must fill from MENU_SYSTEM_DEFINITION
+        $menu->uri   = 'table';
+        $menu->order = Menu::where('parent_id', $parentMenu->id)->count() + 1;
+        $menu->save();
+
+        try {
+            $allNodes = (new Menu())->allNodes();
+            $node = collect($allNodes)->first(function ($n) use ($menu) {
+                return array_get($n, 'id') == $menu->id;
+            });
+
+            $this->assertNotNull($node, 'System menu node must appear in allNodes()');
+
+            // MENU_SYSTEM_DEFINITION['custom_table'] = ['uri' => 'table', 'icon' => 'fa-table']
+            // Using menu_name ('custom_table_1') returns null → uri = null  (BUG)
+            // Using menu_target ('custom_table')   returns definition → uri = 'table' (FIX)
+            $this->assertEquals(
+                'table',
+                array_get($node, 'uri'),
+                'URI must be resolved from menu_target, not deduplicated menu_name'
+            );
+            $this->assertEquals(
+                'fa-table',
+                array_get($node, 'icon'),
+                'Icon must be resolved from menu_target when icon column is empty'
+            );
+        } finally {
+            $menu->delete();
+        }
+    }
+
+
+    /**
+     * Baseline: allNodes() works correctly when menu_name == menu_target (no deduplication).
+     * Both old and fixed code pass this; it documents the expected normal-case contract.
+     *
+     * @return void
+     */
+    public function testAllNodesSystemMenuNormalCase()
+    {
+        $parentMenu = $this->getParentMenuTestModel();
+
+        $menu = new Menu();
+        $menu->parent_id = $parentMenu->id;
+        $menu->menu_type = 'system';
+        $menu->menu_target = 'backup'; // key in MENU_SYSTEM_DEFINITION
+        $menu->menu_name   = 'backup'; // same as menu_target — no deduplication
+        $menu->title = 'BackupAllNodesTest';
+        $menu->icon  = '';
+        $menu->uri   = 'backup';
+        $menu->order = Menu::where('parent_id', $parentMenu->id)->count() + 1;
+        $menu->save();
+
+        try {
+            $allNodes = (new Menu())->allNodes();
+            $node = collect($allNodes)->first(function ($n) use ($menu) {
+                return array_get($n, 'id') == $menu->id;
+            });
+
+            $this->assertNotNull($node, 'System menu node must appear in allNodes()');
+            // MENU_SYSTEM_DEFINITION['backup'] = ['uri' => 'backup', 'icon' => 'fa-database']
+            $this->assertEquals('backup', array_get($node, 'uri'));
+            $this->assertEquals('fa-database', array_get($node, 'icon'));
+        } finally {
+            $menu->delete();
+        }
+    }
+
+
+    /**
      * @param string $menu_name
      * @param array<mixed> $data
      * @param \Closure|null $checkFunc
@@ -208,6 +301,14 @@ class IMenuTest extends ExmentKitTestCase
         foreach ($data as $key => $value) {
             $this->assertMatch($model->{$key}, $value);
         }
+
+        // Additional assertion for parent_node: uri must be null
+        if (array_get($data, 'menu_type') === 'parent_node') {
+            $this->assertNull($model->uri, 'parent_node menu must have null uri');
+        }
+        if ($checkFunc instanceof \Closure) {
+            $checkFunc($model);
+        }
     }
 
     /**
@@ -224,7 +325,7 @@ class IMenuTest extends ExmentKitTestCase
 
         $data = [];
 
-        foreach (['parent_id', 'menu_type', 'menu_target_view', 'uri', 'menu_name', 'title', 'icon'] as $checkKey) {
+        foreach (['parent_id', 'menu_type', 'menu_target', 'menu_target_view', 'uri', 'menu_name', 'title', 'icon'] as $checkKey) {
             // if has editData in editData, set post value
             if (array_has($editData, $checkKey)) {
                 $data[$checkKey] = array_get($editData, $checkKey);
@@ -241,6 +342,9 @@ class IMenuTest extends ExmentKitTestCase
         $model = Menu::find($menu->id);
         foreach ($data as $key => $value) {
             $this->assertMatch($model->{$key}, $value);
+        }
+        if ($model->menu_type === 'parent_node') {
+            $this->assertNull($model->uri, 'parent_node menu must have null uri after edit');
         }
     }
 

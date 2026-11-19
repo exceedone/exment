@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Grid\Tools;
 
-use Encore\Admin\Grid\Tools\BatchAction;
+use ExmentAdminCore\Admin\Grid\Tools\BatchAction;
 
 class BatchUpdate extends BatchAction
 {
@@ -19,6 +19,20 @@ class BatchUpdate extends BatchAction
     public function __construct($operation)
     {
         $this->operation = $operation;
+    }
+
+    /**
+     * A batch update is a CustomOperation execution. Marking it with an
+     * "action" icon keeps the copied bulk action bar visually paired
+     * with delete / restore rather than showing a lone text button. The
+     * icon rides through both the dropdown link and the bar copy, so no
+     * client-side icon lookup is needed.
+     *
+     * @return string
+     */
+    public function render()
+    {
+        return '<i class="fa fa-magic"></i>&nbsp;' . e((string)$this->getTitle());
     }
 
     /**
@@ -74,6 +88,7 @@ class BatchUpdate extends BatchAction
         return <<<EOT
 
 $('{$this->getElementClass()}').on('click', function() {
+    event.preventDefault(); 
     var url = '{$url}/operationClick';
     Exment.CommonEvent.ShowSwal(url, {
         title: "$label",

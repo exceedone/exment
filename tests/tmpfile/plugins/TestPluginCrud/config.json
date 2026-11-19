@@ -1,0 +1,9 @@
+{
+    "plugin_name": "TestPluginCrud",
+    "plugin_view_name": "CRUDプラグインテスト",
+    "explain": "CRUDプラグインの一覧・詳細・作成・編集・削除とOAuthログインのテストです。",
+    "uuid": "ea62e7d5-4cdc-426c-8ca5-02d78727d422",
+    "author": "Exceedone",
+    "version": "1.0.0",
+    "plugin_type": "crud"
+}

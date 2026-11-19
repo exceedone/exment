@@ -3,9 +3,9 @@
 namespace Exceedone\Exment;
 
 use Storage;
-use Encore\Admin\Admin;
-use Encore\Admin\Middleware as AdminMiddleware;
-use Encore\Admin\AdminServiceProvider as ServiceProvider;
+use ExmentAdminCore\Admin\Admin;
+use ExmentAdminCore\Admin\Middleware as AdminMiddleware;
+use ExmentAdminCore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
@@ -23,12 +23,15 @@ use Exceedone\Exment\Auth\PublicFormGuard;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
+use Exceedone\Exment\Services\SafetyCheck\EarthquakeFeedInterface;
+use Exceedone\Exment\Services\SafetyCheck\P2pQuakeFeed;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -65,6 +68,11 @@ class ExmentServiceProvider extends ServiceProvider
      */
     // @phpstan-ignore-next-line
     protected $commands = [
+        \Exceedone\Exment\Console\MeiliIndexCommand::class,
+        \Exceedone\Exment\Console\MeiliSearchCommand::class,
+        \Exceedone\Exment\Console\MeiliSettingsCommand::class,
+        \Exceedone\Exment\Console\MeiliHealthCommand::class,
+        \Exceedone\Exment\Console\MeiliReconcileCommand::class,
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
         \Exceedone\Exment\Console\UpdateCommand::class,
@@ -95,6 +103,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
+        \Exceedone\Exment\Console\LineLinkCodeCommand::class,
+        \Exceedone\Exment\Console\SafetyWatchCommand::class,
     ];
 
 
@@ -209,9 +219,10 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment Web page. custom verify
         'adminweb' => [
-            \App\Http\Middleware\EncryptCookies::class,
+            \Exceedone\Exment\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
+            \Exceedone\Exment\Middleware\KeepAdminMessageOnRedirect::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \Exceedone\Exment\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
@@ -225,7 +236,8 @@ class ExmentServiceProvider extends ServiceProvider
             // 'throttle:60,1',
             //'bindings',
             //　↓
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,        ],
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
         // Exment Plugin API
         'pluginapi' => [
             'pluginapi.auth',
@@ -275,10 +287,22 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::boot();
 
+        // Re-register route middleware aliases.
+        // The auto-discovered AdminServiceProvider runs register() after this provider,
+        // and re-aliases names like "admin.log" or "admin.auth" back to the core classes.
+        // boot() always runs after every register(), so aliasing here makes Exment's win.
+        foreach ($this->routeMiddleware as $key => $middleware) {
+            app('router')->aliasMiddleware($key, $middleware);
+        }
+
+        foreach ($this->getMiddlewareGroups() as $key => $middleware) {
+            app('router')->middlewareGroup($key, $middleware);
+        }
         $this->bootApp();
         $this->bootSetting();
         $this->bootDatabase();
         $this->bootSchedule();
+        $this->bootMeilisearch();
 
         $this->publish();
         $this->load();
@@ -289,6 +313,51 @@ class ExmentServiceProvider extends ServiceProvider
     }
 
     /**
+     * Apply the System-screen settings to config + set up realtime index sync.
+     *
+     * @return void
+     */
+    protected function bootMeilisearch()
+    {
+        // Push the saved values (systems table) into config('meilisearch.*').
+        \Exceedone\Exment\Services\Meili\MeiliConfig::apply();
+
+        // Saved searches do not depend on realtime sync or the SDK. 'deleted', not 'forceDeleted':
+        // CustomValue::delete() returns nothing, so Laravel never fires forceDeleted for it.
+        \Illuminate\Support\Facades\Event::listen('eloquent.deleted: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Model\MeiliSavedSearch::deleteOwnedBy($payload[0] ?? null);
+        });
+
+        if (!boolval(config('meilisearch.realtime_sync'))) {
+            return;
+        }
+        if (!class_exists(\Meilisearch\Client::class)) {
+            return;
+        }
+
+        // Record changed -> dispatch a sync job; table/column config changed -> reindex the table.
+        \Illuminate\Support\Facades\Event::listen('eloquent.updating: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\MeiliSync::rememberLabel($payload[0] ?? null);
+        });
+        \Illuminate\Support\Facades\Event::listen('eloquent.saved: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'upsert');
+            \Exceedone\Exment\Services\Meili\MeiliSync::handleLabelChange($payload[0] ?? null);
+            \Exceedone\Exment\Services\Meili\MeiliDefinitionSync::handle($payload[0] ?? null);
+        });
+        \Illuminate\Support\Facades\Event::listen('eloquent.deleted: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'delete');
+            \Exceedone\Exment\Services\Meili\MeiliDefinitionSync::handle($payload[0] ?? null);
+        });
+        // Restore also fires 'saved' (restore() calls save()), but listen to
+        // 'restored' explicitly so the intent is covered even if that
+        // implementation detail changes; a duplicate upsert job is harmless.
+        \Illuminate\Support\Facades\Event::listen('eloquent.restored: *', function ($eventName, $payload) {
+            \Exceedone\Exment\Services\Meili\MeiliSync::handle($payload[0] ?? null, 'upsert');
+            \Exceedone\Exment\Services\Meili\MeiliSync::handleRestoredChildren($payload[0] ?? null);
+        });
+    }
+
+    /**
      * Register the application services.
      *
      * @return void
@@ -296,11 +365,17 @@ class ExmentServiceProvider extends ServiceProvider
     public function register()
     {
         parent::register();
-        require_once(__DIR__.'/Services/Helpers.php');
+        require_once(__DIR__ . '/Services/Helpers.php');
 
         $this->mergeConfigFrom(
-            __DIR__.'/../config/exment.php',
+            __DIR__ . '/../config/exment.php',
             'exment'
+        );
+
+        // global search config.
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/meilisearch.php',
+            'meilisearch'
         );
 
         // register global middleware.
@@ -309,14 +384,19 @@ class ExmentServiceProvider extends ServiceProvider
             $kernel->pushMiddleware($middleware);
         }
 
+        // Exment's API routes use the "api" group and its "api" rate limiter (RouteServiceProvider).
+        // The Laravel 10 app Kernel had "throttle:api" in that group; Laravel 11+ adds it only when
+        // bootstrap/app.php calls throttleApi(), so add it here unless the app already throttles the group.
+        $apiGroup = $kernel->getMiddlewareGroups()['api'] ?? null;
+        if (is_array($apiGroup) && !collect($apiGroup)->contains(function ($m) {
+            return is_string($m) && (str_starts_with($m, 'throttle') || str_starts_with($m, ThrottleRequests::class));
+        })) {
+            $kernel->prependMiddlewareToGroup('api', 'throttle:api');
+        }
+
         // register route middleware.
         foreach ($this->routeMiddleware as $key => $middleware) {
             app('router')->aliasMiddleware($key, $middleware);
-        }
-
-        ////// register middleware group.
-        foreach ($this->getMiddlewareGroups() as $key => $middleware) {
-            app('router')->middlewareGroup($key, $middleware);
         }
 
         // register database
@@ -343,6 +423,12 @@ class ExmentServiceProvider extends ServiceProvider
             return CustomTable::findByEndpoint();
         });
 
+        $this->app->bind(EarthquakeFeedInterface::class, P2pQuakeFeed::class);
+
+        $this->app->bind(\Exceedone\Exment\Services\Line\LineMessagingClient::class, function () {
+            return new \Exceedone\Exment\Services\Line\LineMessagingClient();
+        });
+
         // guard provider
         Auth::extend('publicformtoken', function ($app, $name, array $config) {
             return tap($this->makeGuard($config), function ($guard) {
@@ -357,27 +443,25 @@ class ExmentServiceProvider extends ServiceProvider
                 \Exceedone\Exment\Exceptions\Handler::class
             );
         }
-
-        Passport::ignoreMigrations();
     }
 
     // @phpstan-ignore-next-line
     protected function publish()
     {
-        $this->publishes([__DIR__.'/../config' => config_path()]);
-        $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
-        $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
-        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/assets') => public_path('vendor/laravel-admin')], 'laravel-admin-assets-exment');
-        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/lang') => resource_path('lang')], 'laravel-admin-lang-exment');
-        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
+        $this->publishes([__DIR__ . '/../config' => config_path()]);
+        $this->publishes([__DIR__ . '/../public' => public_path('')], 'public');
+        $this->publishes([__DIR__ . '/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
+        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_EXMENT_ADMIN . '/resources/assets') => public_path('vendor/open-admin')], 'open-admin-assets-exment');
+        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_EXMENT_ADMIN . '/resources/lang') => resource_path('lang')], 'open-admin-lang-exment');
+        $this->publishes([__DIR__ . '/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
     }
 
     // @phpstan-ignore-next-line
     protected function load()
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
-        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'exment');
+        $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'exment');
 
         // load plugins
         if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
@@ -388,6 +472,9 @@ class ExmentServiceProvider extends ServiceProvider
         foreach ($pluginPages as $pluginPage) {
             if (!is_null($items = $pluginPage->_getLoadView())) {
                 $this->loadViewsFrom($items[0], $items[1]);
+            }
+            if (is_object($pluginPage) && method_exists($pluginPage, '_getLoadTranslation') && !is_null($items = $pluginPage->_getLoadTranslation())) {
+                $this->loadTranslationsFrom($items[0], $items[1]);
             }
         }
     }
@@ -426,6 +513,24 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
+            $schedule->command('exment:safetywatch')->everyMinute()->withoutOverlapping(10);
+
+            // Daily index repair (fix drift accumulated from missed/failed sync
+            // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
+            // orphans) instead of a full exment:meili-index reindex, so it is cheap.
+            if (boolval(config('meilisearch.repair_enabled'))) {
+                $repairAt = (string) config('meilisearch.repair_at', '03:00');
+                if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/D', $repairAt)) {
+                    \Illuminate\Support\Facades\Log::warning(
+                        "[Meili] ignoring index repair schedule: '{$repairAt}' is not a HH:MM time."
+                    );
+                } else {
+                    $schedule->command('exment:meili-reconcile')
+                        ->dailyAt($repairAt)
+                        ->withoutOverlapping()
+                        ->runInBackground();
+                }
+            }
 
             // set cron event
             try {
@@ -486,7 +591,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         Initialize::initializeConfig(false);
 
-        if (method_exists("\Encore\Admin\Admin", "registered")) {
+        if (method_exists("\ExmentAdminCore\Admin\Admin", "registered")) {
             Admin::registered(function () {
                 Initialize::registeredLaravelAdmin();
             });

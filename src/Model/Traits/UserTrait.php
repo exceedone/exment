@@ -19,6 +19,8 @@ trait UserTrait
     /**
      * get login users.
      * Why "hasMany" not "hasOne" is It can be logged in by multiple providers.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Model\LoginUser, $this>
      */
     public function login_users()
     {
@@ -28,12 +30,17 @@ trait UserTrait
     /**
      * get login user.
      * only support login provider is null (default)
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Model\LoginUser, $this>
      */
     public function login_user()
     {
         return $this->hasOne(Model\LoginUser::class, "base_user_id")->whereNull('login_provider');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Model\UserSetting, $this>
+     */
     public function user_setting()
     {
         return $this->hasOne(Model\UserSetting::class, "user_id");
@@ -115,6 +122,26 @@ trait UserTrait
         if (\Exment::getUserId() == $this->id) {
             return true;
         }
+    }
+
+    /**
+     * Whether the login user may not edit this record
+     *
+     * Only an administrator can edit an administrator's record, the login
+     * settings of that user included. CustomValue::enableEdit() asks this, so
+     * the rule holds on every page and in the API, not only where the Edit
+     * button is hidden (LoginUserItem::setEditDelete).
+     *
+     * @return bool
+     */
+    public function disabled_edit_trait(): bool
+    {
+        if (!$this->isAdministrator()) {
+            return false;
+        }
+
+        $login_user = \Exment::user();
+        return !isset($login_user) || !$login_user->isAdministrator();
     }
 
     /**

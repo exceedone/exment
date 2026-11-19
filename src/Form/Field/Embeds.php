@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field  as AdminField;
+use ExmentAdminCore\Admin\Form\Field  as AdminField;
 use Exceedone\Exment\Form\EmbeddedForm;
 
 class Embeds extends AdminField\Embeds
@@ -23,6 +23,24 @@ class Embeds extends AdminField\Embeds
      * @var boolean
      */
     protected $gridEmbeds = false;
+
+    protected $preserveExistingValues = false;
+
+    public function preserveExistingValues()
+    {
+        $this->preserveExistingValues = true;
+        return $this;
+    }
+
+    public function prepare($input)
+    {
+        $prepared = parent::prepare($input);
+        if (!$this->preserveExistingValues || !is_array($prepared)) {
+            return $prepared;
+        }
+
+        return array_replace(jsonToArray($this->original), $prepared);
+    }
 
     // @phpstan-ignore-next-line
     public function disableHeader()

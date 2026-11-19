@@ -9,8 +9,8 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Encore\Admin\Traits\ModelTree;
-use Encore\Admin\Traits\AdminBuilder;
+use ExmentAdminCore\Admin\Traits\ModelTree;
+use ExmentAdminCore\Admin\Traits\AdminBuilder;
 
 /**
  * @uses \Exceedone\Exment\Services\ClassBuilder
@@ -22,8 +22,22 @@ trait OrganizationTrait
     }
 
     /**
+     * Clear cache after saving/deleting an organization (called from ModelBase events).
+     * The membership pivot and parent_organization decide the users in the accessible user/organization
+     * caches, and the form syncs the pivot after the model is saved, so clear after the commit.
+     *
+     * @return void
+     */
+    public static function clearCacheTrait()
+    {
+        System::clearCacheAfterCommit();
+    }
+
+    /**
      * get parent organization.
      * (*)Only one deeply parent. not all deeply parents.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<static, $this>
      */
     public function parent_organization()
     {
@@ -33,6 +47,8 @@ trait OrganizationTrait
     /**
      * get children organizations.
      * (*)Only one deeply organizations. not all deeply organizations.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<static, $this>
      */
     public function children_organizations()
     {

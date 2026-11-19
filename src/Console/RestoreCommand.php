@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 
 class RestoreCommand extends Command
 {
@@ -63,7 +64,16 @@ class RestoreCommand extends Command
             $tmp = boolval($this->option("tmp"));
 
             $result = $this->restore->execute($file, $tmp);
+
+            if ($this->restore->isConfigSkipped()) {
+                $this->warn(exmtrans('backup.message.restore_config_skipped'));
+            }
         } catch (BackupRestoreCheckException $e) {
+            $this->error($e->getMessage());
+            return 1;
+        } catch (InvalidZipEntryException $e) {
+            // a refused backup zip is a bad input file, not a crash: say so and stop.
+            // render() cannot help here, the console never renders a response.
             $this->error($e->getMessage());
             return 1;
         } catch (\Exception $e) {

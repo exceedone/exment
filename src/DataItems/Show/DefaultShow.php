@@ -3,15 +3,15 @@
 namespace Exceedone\Exment\DataItems\Show;
 
 use Illuminate\Http\Request;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Form\Field;
-use Encore\Admin\Show;
-use Encore\Admin\Show\Field as ShowField;
+use ExmentAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Layout\Row;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Show;
+use ExmentAdminCore\Admin\Show\Field as ShowField;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -24,6 +24,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FileType;
@@ -90,7 +91,7 @@ class DefaultShow extends ShowBase
     protected function setSystemValues($show)
     {
         $trashed = boolval(request()->get('trashed'));
-        // @phpstan-ignore-next-line
+        /** @phpstan-ignore-next-line class ExmentAdminCore\Admin\Show\Field constructor expects string, null given */
         $field = (new ShowField(null, null))->system_values([
             'withTrashed' => $trashed])->setWidth(12, 0);
 
@@ -178,7 +179,7 @@ class DefaultShow extends ShowBase
 
                 if (!is_null($parent_value = $this->custom_value->getParentValue(null, true))) {
                     if (boolval($this->custom_table->getOption('editable_with_parent')??1)) {
-                        if ($parent_value->enableEdit(true) !== true) {
+                        if ($parent_value->enableEdit(true, false) !== true) {
                             $tools->disableEdit();
                             $tools->disableDelete();
                         }
@@ -200,7 +201,8 @@ class DefaultShow extends ShowBase
                     ]));
                 }
 
-                if (count($this->custom_table->getRelationTables()) > 0) {
+                // not for trashed data: relation search targets undeleted data only
+                if (count($this->custom_table->getRelationTables()) > 0 && !$this->custom_value->trashed()) {
                     $tools->append(view('exment::tools.button', [
                         'href' => $this->custom_value->getRelationSearchUrl(true),
                         'label' => exmtrans('search.header_relation'),
@@ -229,7 +231,8 @@ class DefaultShow extends ShowBase
                             $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $this->custom_value->id));
                         }
 
-                        foreach ($this->custom_value->getWorkflowActions(true)->reverse() as $action) {
+                        // no button for an approval this user already gave (TC-WT-43)
+                        foreach ($this->custom_value->getWorkflowActions(true, false, true)->reverse() as $action) {
                             $tools->append(new Tools\ModalMenuButton(
                                 admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "actionModal"),
                                 [
@@ -435,7 +438,7 @@ class DefaultShow extends ShowBase
                 $custom_value = $this->custom_value;
                 $grid->tools(function ($tools) use ($custom_value, $target_table, $custom_form_block) {
                     // Add new button if one_to_many
-                    if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY && $custom_value->enableEdit(true) === true && $target_table->enableCreate(true) === true) {
+                    if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY && $custom_value->enableEdit(true, false) === true && $target_table->enableCreate(true) === true) {
                         $tools->append(view(
                             'exment::custom-value.new-button',
                             ['table_name' => $target_table->table_name, 'params' => ['select_parent' => $this->custom_value->id]]
@@ -540,7 +543,11 @@ class DefaultShow extends ShowBase
                 query['trashed'] = 1;
             }
 
-            $.pjax({container:'#pjax-container-revision', url: url +'?' + $.param(query) });
+            $.pjax({
+                container: '#pjax-container-revision',
+                fragment: '#pjax-container-revision',
+                url: url +'?' + $.param(query)
+            });
         });
 
 EOT;
@@ -573,7 +580,6 @@ EOT;
                 'No.'.($revision->revision_no)
             )->setWidth(9, 2);
         }
-        // @phpstan-ignore-next-line
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
     }
 
@@ -584,7 +590,7 @@ EOT;
     protected function useFileUpload()
     {
         // if no permission, return
-        if ($this->custom_value->enableEdit() !== true) {
+        if ($this->custom_value->enableEdit(false, false) !== true) {
             return false;
         }
 
@@ -680,7 +686,6 @@ EOT;
 
             Admin::script($script);
         }
-        // @phpstan-ignore-next-line
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
     }
 
@@ -732,9 +737,15 @@ EOT;
             ->rows(3)
             ->required()
             ->setLabelClass(['d-none'])
+            // "@" opens the member picker; mention.js reads both attributes off
+            // the field, so no page-level script tag is needed
+            ->attribute([
+                'data-mention' => '1',
+                'data-mention-url' => admin_url('webapi/mention/users'),
+                'placeholder' => exmtrans('common.message.comment_mention'),
+            ])
             ->setWidth(12, 0);
         }
-        // @phpstan-ignore-next-line
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
 
@@ -748,7 +759,8 @@ EOT;
 
         $form = new ModalForm();
 
-        $workflow = $this->custom_value->workflow_value->workflow;
+        // the history of a deleted (deactivated) workflow still names it
+        $workflow = Workflow::getEloquentWithTrashed($this->custom_value->workflow_value->workflow_id);
 
         $form->display('workflow_view_name', exmtrans('workflow.execute_workflow'))
             ->default($workflow->workflow_view_name ?? null);
@@ -849,8 +861,7 @@ EOT;
     /**
      * file delete custom column.
      */
-    // @phpstan-ignore-next-line
-    public function filedelete(Request $request, $form)
+   public function filedelete(Request $request, $form)
     {
         // get file delete flg column name
         $del_column_name = $request->input(Field::FILE_DELETE_FLAG);

@@ -4,8 +4,8 @@ namespace Exceedone\Exment\Form;
 
 use Closure;
 use Illuminate\Contracts\Support\Renderable;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Row;
+use ExmentAdminCore\Admin\Layout\Content;
 
 /**
  * For public form content
@@ -31,8 +31,7 @@ class PublicContent implements Renderable
     protected $background_color = '#FFFFFF';
     // @phpstan-ignore-next-line
     protected $background_color_outer = '#F9FAFC';
-    // @phpstan-ignore-next-line
-    protected $header_background_color = '#3C8DBC';
+    protected $header_background_color = '#3c8dbc';
     // @phpstan-ignore-next-line
     protected $footer_background_color = '#FFFFFF';
     // @phpstan-ignore-next-line

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\BackupRestore;
 
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 
@@ -63,6 +64,9 @@ class Backup
             if (!$this->copyFiles($target)) {
                 return -1;
             }
+
+            // record the versions this backup is taken on
+            $this->writeVersionFile();
 
             // archive whole folder to zip
             $this->createZip();
@@ -151,6 +155,25 @@ class Backup
         }
 
         return true;
+    }
+
+    /**
+     * Write the Exment and Laravel versions to the backup.
+     *
+     * Restore reads it to tell whether the backup's config files fit this installation:
+     * config files of another Laravel version must not overwrite the current ones.
+     *
+     * @return void
+     */
+    protected function writeVersionFile()
+    {
+        $dirName = $this->diskService->tmpDiskItem()->dirName();
+        \Exment::makeDirectoryDisk($this->tmpDisk(), $dirName);
+
+        \File::put($this->tmpDisk()->path(path_join($dirName, Define::BACKUP_VERSION_FILE)), json_encode([
+            'exment' => \Exment::getExmentCurrentVersion(),
+            'laravel' => app()->version(),
+        ], JSON_THROW_ON_ERROR));
     }
 
     /**

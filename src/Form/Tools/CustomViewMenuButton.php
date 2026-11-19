@@ -6,6 +6,8 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\DataItems\Grid\KanbanGrid;
+use Exceedone\Exment\DataItems\Grid\GanttGrid;
 
 class CustomViewMenuButton extends ModalTileMenuButton
 {
@@ -240,6 +242,28 @@ class CustomViewMenuButton extends ModalTileMenuButton
                 'description' => exmtrans('custom_view.custom_view_menulist.help.create_calendar'),
                 'icon' => 'fa-calendar',
             ];
+            // A board is made either from a single-value select column or from
+            // the statuses of a workflow. With neither, no board can exist, so
+            // the entry is hidden instead of leading to a form that cannot be saved.
+            if (KanbanGrid::canCreateBoard($this->custom_table)) {
+                $items[] = [
+                    'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=' . ViewKindType::KANBAN . '&from_data=1'),
+                    'header' => exmtrans('custom_view.custom_view_menulist.create_kanban'),
+                    'description' => exmtrans('custom_view.custom_view_menulist.help.create_kanban'),
+                    'icon' => 'fa-columns',
+                ];
+            }
+
+            // bars need a date to start on; with no date column at all the
+            // form could never be saved, so the entry is hidden instead
+            if (GanttGrid::canCreateChart($this->custom_table)) {
+                $items[] = [
+                    'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=' . ViewKindType::GANTT . '&from_data=1'),
+                    'header' => exmtrans('custom_view.custom_view_menulist.create_gantt'),
+                    'description' => exmtrans('custom_view.custom_view_menulist.help.create_gantt'),
+                    'icon' => 'fa-sliders',
+                ];
+            }
 
             if ($this->custom_table->hasSystemViewPermission()) {
                 $items[] = [

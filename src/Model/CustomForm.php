@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Encore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -59,7 +59,8 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
             ],
         ],
         'children' =>[
-            'custom_form_blocks' => CustomFormBlock::class
+            'custom_form_blocks' => CustomFormBlock::class,
+            'custom_form_priorities' => CustomFormPriority::class
         ],
     ];
 
@@ -78,35 +79,45 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     private $_show_item;
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return BelongsTo<CustomTable, $this>
+     */
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomFormBlock, $this>
+     */
     public function custom_form_blocks(): HasMany
     {
         return $this->hasMany(CustomFormBlock::class, 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<CustomFormPriority, $this>
+     */
     public function custom_form_priorities(): HasMany
     {
         return $this->hasMany(CustomFormPriority::class, 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasMany<PublicForm, $this>
+     */
     public function public_forms(): HasMany
     {
         return $this->hasMany(PublicForm::class, 'custom_form_id');
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return HasManyThrough<CustomFormColumn, CustomFormBlock, $this>
+     */
     public function custom_form_columns(): HasManyThrough
     {
         return $this->hasManyThrough(CustomFormColumn::class, CustomFormBlock::class, 'custom_form_id', 'custom_form_block_id');
@@ -120,7 +131,9 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
 
-    // @phpstan-ignore-next-line
+    /**
+     * @return \Illuminate\Support\Collection<int, CustomFormBlock>
+     */
     public function getCustomFormBlocksCacheAttribute()
     {
         return $this->hasManyCache(CustomFormBlock::class, 'custom_form_id');

@@ -24,8 +24,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Contracts\Support\Htmlable;
-use Encore\Admin\Admin;
-use Encore\Admin\Form\Field\UploadField;
+use ExmentAdminCore\Admin\Admin;
+use ExmentAdminCore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Finder\Finder;
@@ -172,6 +172,15 @@ class Exment
     {
         $this->guard = $guard;
         \Auth::shouldUse($guard);
+    }
+
+    /**
+     * The guard user() reads, for code that has to reach the same guard instance.
+     */
+    // @phpstan-ignore-next-line
+    public function getGuard()
+    {
+        return $this->guard;
     }
 
     /**
@@ -468,7 +477,7 @@ class Exment
         }
 
         if (isset($options['tooltipTitle'])) {
-            $attributes['data-toggle'] = 'tooltip';
+            $attributes['data-bs-toggle'] = 'tooltip';
             $attributes['title'] = esc_html($options['tooltipTitle']);
         }
 
@@ -992,7 +1001,6 @@ class Exment
             return null;
         }
         $carbon = Carbon::parse($value);
-        // @phpstan-ignore-next-line
         return Carbon::create($carbon->year, $carbon->month, $carbon->day);
     }
 
@@ -1019,13 +1027,14 @@ class Exment
 
 
     /**
-     * Whether Available Google recaptcha (whether has class)
+     * Whether Google reCAPTCHA can be used, that is whether the optional
+     * google/recaptcha library is installed.
      *
      * @return boolean
      */
     public function isAvailableGoogleRecaptcha()
     {
-        return class_exists(\Arcanedev\NoCaptcha\NoCaptchaManager::class);
+        return Services\ReCaptchaService::isAvailable();
     }
 
 

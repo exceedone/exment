@@ -74,7 +74,6 @@ class ScheduleCommand extends Command
             $term = System::backup_automatic_term();
             // set date as minute and second is 0
             $last_executed = Carbon::create($last_executed->year, $last_executed->month, $last_executed->day + $term, $last_executed->hour, 0, 0);
-            // @phpstan-ignore-next-line
             if ($last_executed->gt($nowHour)) {
                 return;
             }

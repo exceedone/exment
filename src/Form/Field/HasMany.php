@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Admin;
-use Encore\Admin\Form\NestedForm;
-use Encore\Admin\Form\Field\HasMany as AdminHasMany;
+use ExmentAdminCore\Admin\Admin;
+use ExmentAdminCore\Admin\Form\NestedForm;
+use ExmentAdminCore\Admin\Form\Field\HasMany as AdminHasMany;
 use Illuminate\Support\Arr;
 
 /**
@@ -83,8 +83,12 @@ class HasMany extends AdminHasMany
         $count = $this->getHasManyCount();
         $indexName = "index_{$this->column}";
 
-        $errortitle = exmtrans("common.error");
-        $requiremessage = sprintf(exmtrans("common.message.exists_row"), $this->label);
+        // Both values are written into the page script as js string literals, and the alert renders
+        // its message as html. The label is set by table administrators, so escape it for html and
+        // let json_encode build the literal (quotes and "</script>" can then not leave the string).
+        $jsonFlags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
+        $errortitle = json_encode(exmtrans("common.error"), $jsonFlags);
+        $requiremessage = json_encode(sprintf(exmtrans("common.message.exists_row"), esc_html($this->label)), $jsonFlags);
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -121,7 +125,7 @@ $("button[type='submit']").click(function(){
     }
     var cnt = $('#has-many-{$this->column} .has-many-{$this->column}-forms > .fields-group').filter(':visible').length;
     if (cnt == 0) {
-        swal("$errortitle", "$requiremessage", "error");
+        swal($errortitle, $requiremessage, "error");
         return false;
     };
     return true;
@@ -134,7 +138,7 @@ EOT;
         return $script;
     }
 
-    public function getScript()
+    public function getScript(): string
     {
         // @phpstan-ignore-next-line
         list($template, $script) = $this->buildNestedForm($this->column, $this->builder)
@@ -183,7 +187,6 @@ EOT;
             $column = $field->column();
             // if NestedEmbeds, loop hasmany items
             if ($field instanceof NestedEmbeds) {
-                // @phpstan-ignore-next-line
                 $nestedValues = Arr::get($input, $this->column);
                 if (!is_array($nestedValues)) {
                     continue;
@@ -273,7 +276,6 @@ EOT;
         }
 
         if (!empty($v = $this->getOld())) {
-            // @phpstan-ignore-next-line
             return count($v);
         }
 

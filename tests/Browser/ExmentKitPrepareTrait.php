@@ -45,7 +45,7 @@ trait ExmentKitPrepareTrait
         $custom_table = CustomTable::getEloquent($table_name);
 
         if (isset($custom_table)) {
-            $this->assertTrue(true);
+            $this->addToAssertionCount(1);
             return;
         }
 

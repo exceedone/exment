@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 use Illuminate\Database\Eloquent\Collection;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\CustomValue;
@@ -50,6 +50,9 @@ class RoleGroupItem extends ConditionDetailBase implements ConditionItemInterfac
                 return $row->role_group_view_name;
             })->implode(',');
         } else {
+            if (!isset($model)) {
+                return null;
+            }
             $result = $model->role_group_view_name;
         }
         return $result . ($showFilter ? FilterOption::getConditionKeyText($key) : '');
@@ -60,7 +63,7 @@ class RoleGroupItem extends ConditionDetailBase implements ConditionItemInterfac
      *
      * @param string $key
      * @param bool $show_condition_key
-     * @return \Encore\Admin\Form\Field
+     * @return \ExmentAdminCore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {

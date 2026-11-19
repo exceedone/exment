@@ -88,12 +88,19 @@ class Composer extends SystemRequireBase
             }
             // get composer version using regex
             else {
-                $composer_version_string = $output[0];
-                preg_match("/^(Composer version|Composer) (?<version>\d+\.\d+\.\d+)/u", $composer_version_string, $match);
-                if ($match) {
-                    $composer_version = $match['version'];
-                } else {
-                    $composer_version = false;
+                // Composer colours its output whenever it thinks a terminal is
+                // attached, and it may print a notice before the version line.
+                // Either one defeats a match anchored at the start of the first
+                // line, and a working composer then gets reported as unreadable,
+                // so strip the escape sequences and look at every line.
+                $composer_version = false;
+                foreach ($output as $composer_version_string) {
+                    $composer_version_string = preg_replace('/\e\[[0-9;]*[A-Za-z]/', '', $composer_version_string);
+                    preg_match("/^(Composer version|Composer) (?<version>\d+\.\d+\.\d+)/u", $composer_version_string, $match);
+                    if ($match) {
+                        $composer_version = $match['version'];
+                        break;
+                    }
                 }
             }
             \Cache::put(Define::SYSTEM_KEY_SESSION_COMPOSER_VERSION, $composer_version, Define::CACHE_CLEAR_MINUTE * 24);

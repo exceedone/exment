@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use Encore\Admin\Form\Field;
-use Encore\Admin\Grid;
-use Encore\Admin\Grid\Filter;
-use Encore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid\Filter;
+use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
@@ -42,12 +42,26 @@ abstract class CustomItem implements ItemInterface
     protected $required = true;
 
     /**
+     * Cached cell styling. false until built, then GridCellStyle or null.
+     *
+     * @var GridCellStyle|null|false
+     */
+    protected $grid_cell_style = false;
+
+    /**
      * Available fields.
      *
      * @var array
      */
     // @phpstan-ignore-next-line
     public static $availableFields = [];
+
+    /**
+     * Sanitized form help, scoped to the current PHP request.
+     *
+     * @var array<string, string|null>
+     */
+    protected static $cleanedHelpCache = [];
 
 
     // @phpstan-ignore-next-line
@@ -158,7 +172,91 @@ abstract class CustomItem implements ItemInterface
         if (isset($text_align)) {
             $array['text-align'] = $text_align;
         }
+
+        // Appended last so the cell setting wins over the defaults above -
+        // getStyleString keeps insertion order and the browser takes the last
+        // declaration of a property.
+        $cell_style = $this->getGridCellStyle();
+        if (isset($cell_style)) {
+            $array = array_merge($array, $cell_style->tdStyle());
+        }
+
         return $this->getStyleString($array);
+    }
+
+    /**
+     * get html(for display)
+     *
+     * Overrides the trait to give each value the badge configured on the
+     * column. The wrapping is applied value by value, not to the joined
+     * string, so every value of a multi-value column gets its own badge.
+     *
+     * @return mixed
+     */
+    public function html()
+    {
+        $cell_style = $this->getGridCellStyle();
+
+        $html = $this->_getMultipleValue(function ($v) use ($cell_style) {
+            $inner = $this->_html($v);
+
+            // An empty value must stay empty: _getMultipleValue drops empties
+            // after this callback, and an empty badge would survive that.
+            if (!isset($cell_style) || is_nullorempty($inner)) {
+                return $inner;
+            }
+
+            // A stand-in for something the viewer may not see is printed
+            // as it is - see isStyledValue().
+            if (!$this->isStyledValue($v)) {
+                return $inner;
+            }
+
+            return $cell_style->wrap($inner, $v, $this->_text($v));
+        });
+
+        return is_list($html) ? collect($html)->implode($this->getSeparateWord()) : $html;
+    }
+
+    /**
+     * Whether the cell style may paint this value.
+     *
+     * A value is painted by what it is: its per-value color is looked up
+     * by the stored value. A column that prints a stand-in instead of the
+     * value - because the viewer may not see what it points at - must not
+     * have the stand-in painted, or the color would give the value away.
+     *
+     * @param mixed $v
+     * @return bool
+     */
+    protected function isStyledValue($v): bool
+    {
+        return true;
+    }
+
+    /**
+     * Cell styling of this column, or null when it is not styled.
+     *
+     * Only the grid asks for it. The detail screen and the form show one
+     * record at a time, where a badge carries no comparison and would just
+     * fight the field layout.
+     *
+     * @return GridCellStyle|null
+     */
+    protected function getGridCellStyle()
+    {
+        if (!boolval(array_get($this->options, 'grid_column'))) {
+            return null;
+        }
+
+        // The grid reuses one item for every row, so this is built once per
+        // column. false is the "not built yet" marker because null is a real
+        // answer here - it means "this column is not styled".
+        if ($this->grid_cell_style === false) {
+            $this->grid_cell_style = GridCellStyle::make($this->custom_column, array_get($this->options, 'grid_preset'));
+        }
+
+        return $this->grid_cell_style;
     }
 
     /**
@@ -363,7 +461,6 @@ abstract class CustomItem implements ItemInterface
         if (is_nullorempty($default)) {
             return null;
         }
-        // @phpstan-ignore-next-line
         return $this->getPureValueByQuery($default);
     }
 
@@ -417,7 +514,20 @@ abstract class CustomItem implements ItemInterface
         $this->custom_column->setOption('number_format', false);
         $this->options['disable_number_format'] = true;
 
-        return $this->getCustomField($classname);
+        $field = $this->getCustomField($classname);
+
+        // For day-count filter (X日前/X日後の日付): default value 0, integer in [0, 99999].
+        // - min 0: disallow negative input.
+        // - max 99999 / maxlength 5: a larger value overflows the Carbon date math on the server
+        //   (Carbon::today()->addDays(-x)) so the filter returns no rows; the spinner honours max
+        //   and maxlength caps typed/pasted input. The client also strips non-digit characters.
+        // - type text: the box stays a text input as in v6 (laravel-admin); the Number field of
+        //   exment-admin-core renders type="number" unless the type is given.
+        if ($value_type == FilterType::NUMBER) {
+            $field->default(0)->attribute(['type' => 'text', 'min' => 0, 'max' => 99999, 'maxlength' => 5, 'data-day-count' => 1]);
+        }
+
+        return $field;
     }
 
 
@@ -443,9 +553,9 @@ abstract class CustomItem implements ItemInterface
         $form_column_options = $form_column->options ?? [];
         $this->form_column_options = array_merge($this->form_column_options, $form_column_options);
 
-        // if hidden setting, add hidden field
+        // if hidden setting, add hidden field (array-safe for multi-value columns)
         if ($this->hidden()) {
-            $classname = Field\Hidden::class;
+            $classname = ExmentField\Hidden::class;
         } elseif ($this->initonly()) {
             $classname = ExmentField\InitOnly::class;
         } elseif ($this->viewonly()) {
@@ -458,6 +568,34 @@ abstract class CustomItem implements ItemInterface
         }
 
         return $this->getCustomField($classname, $column_name_prefix);
+    }
+
+    /**
+     * Get the display html of this column for the given stored value,
+     * without changing the value this item currently holds.
+     *
+     * @param mixed $value stored value of this column
+     * @return mixed escaped html, or null when there is nothing to show
+     */
+    public function htmlFromValue($value)
+    {
+        if (is_nullorempty($value)) {
+            return null;
+        }
+
+        $original = $this->value;
+        $this->value = $value;
+        try {
+            // same as setCustomValue(), so the value is formatted like on the main form (e.g. decimal digits)
+            $this->prepare();
+            return $this->html();
+        } catch (\Throwable $ex) {
+            // never break the form for one cell: report it, the caller falls back to the escaped raw value
+            report($ex);
+            return null;
+        } finally {
+            $this->value = $original;
+        }
     }
 
     // @phpstan-ignore-next-line
@@ -475,11 +613,25 @@ abstract class CustomItem implements ItemInterface
         if (!$this->hidden()) {
             if ($this->initonly()) {
                 $field->displayText($this->html())->escape(false)->default($this->value)->prepareDefault();
-            } elseif ($this->viewonly() && is_null($this->id) && !isset($this->value)) {
-                // if view only and create (no id), set default value
-                $this->value = $this->getDefaultValue();
-                $field->displayText($this->html())->escape(false);
+            } elseif ($this->viewonly() && !isset($this->value)) {
+                // The item has no value while the form is built: a create form (no id), a record whose
+                // column is empty, or a row of a has-many table - there the row's value only reaches
+                // the field when it is rendered.
+                if (is_null($this->id)) {
+                    // if view only and create (no id), set default value
+                    $this->value = $this->getDefaultValue();
+                }
+                $emptyHtml = $this->html();
                 $this->value = null;
+
+                // So resolve the display html from the field's value at render time. Without a value,
+                // show what the item shows for none (the default on a create form).
+                // Display::render() runs the closure with Closure::call($field, $value), which rebinds
+                // $this to the field: keep the item in a variable, and the closure must not be static.
+                $item = $this;
+                $field->displayText(function ($value) use ($item, $emptyHtml) {
+                    return is_nullorempty($value) ? $emptyHtml : $item->htmlFromValue($value);
+                })->escape(false);
             } elseif ($this->viewonly()) {
                 $field->displayText($this->html())->escape(false);
             }
@@ -515,7 +667,10 @@ abstract class CustomItem implements ItemInterface
         // get help
         $help = $this->getHelp();
         if (isset($help)) {
-            $field->help(html_clean($help));
+            if (!array_key_exists($help, static::$cleanedHelpCache)) {
+                static::$cleanedHelpCache[$help] = html_clean($help);
+            }
+            $field->help(static::$cleanedHelpCache[$help]);
         }
         // append help
         $this->appendHelp($field);
@@ -737,7 +892,7 @@ abstract class CustomItem implements ItemInterface
             return new $className($custom_column, $custom_value, $view_column_target);
         }
 
-        admin_error('Error', "Field type [$column_type] does not exist.");
+        admin_error('Error', 'Field type [' . e($column_type) . '] does not exist.');
 
         return null;
     }

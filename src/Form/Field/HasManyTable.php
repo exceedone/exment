@@ -2,12 +2,12 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Admin;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
-use Encore\Admin\Form\Field\Hidden;
-use Encore\Admin\Form\Field\Select;
-use Encore\Admin\Form\NestedForm;
+use ExmentAdminCore\Admin\Admin;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field\Hidden;
+use ExmentAdminCore\Admin\Form\Field\Select;
+use ExmentAdminCore\Admin\Form\NestedForm;
 
 /**
  * Class HasMany.
@@ -18,8 +18,10 @@ class HasManyTable extends HasMany
     protected $tablecolumnwidths = [];
     // @phpstan-ignore-next-line
     protected $count = null;
-    // @phpstan-ignore-next-line
     protected $enableHeader = true;
+
+    /** @var string|null */
+    protected $lazyLoadUrl;
 
     /**
      * Show row up down button
@@ -129,10 +131,22 @@ class HasManyTable extends HasMany
         return $this;
     }
 
-    // @phpstan-ignore-next-line
     public function disableHeader()
     {
         $this->enableHeader = false;
+
+        return $this;
+    }
+
+    /**
+     * Render table metadata now and existing rows on an explicit AJAX request.
+     *
+     * @param string $url
+     * @return $this
+     */
+    public function lazyLoad($url)
+    {
+        $this->lazyLoadUrl = $url;
 
         return $this;
     }
@@ -171,7 +185,9 @@ class HasManyTable extends HasMany
         $requires = [];
         $helps = [];
 
-        foreach ($form->fields() as &$field) {
+        $fields = $form->fields();
+
+        foreach ($fields as &$field) {
             // when embeds item,
             if ($field instanceof NestedEmbeds) {
                 $embedfields = $field->fields();
@@ -209,7 +225,7 @@ class HasManyTable extends HasMany
         $requires[] = is_array($field->getAttributes()) && array_has($field->getAttributes(), 'required');
 
         // set label viewclass hidden
-        $field->setLabelClass(['hidden']);
+        $field->setLabelClass(['d-none']);
         $field->setElementClass(['w-100']);
         if (!($field instanceof Select)) {
             $field->attribute(['style' => 'max-width:999999px']);
@@ -236,8 +252,12 @@ class HasManyTable extends HasMany
     {
         $removeClass = NestedForm::REMOVE_FLAG_CLASS;
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
-        $title = exmtrans("common.error");
-        $message = sprintf(exmtrans("common.message.exists_row"), $this->label);
+        // Both values are written into the page script as js string literals, and the alert renders
+        // its message as html. The label is set by table administrators, so escape it for html and
+        // let json_encode build the literal (quotes and "</script>" can then not leave the string).
+        $jsonFlags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
+        $title = json_encode(exmtrans("common.error"), $jsonFlags);
+        $message = json_encode(sprintf(exmtrans("common.message.exists_row"), esc_html($this->label)), $jsonFlags);
         $count = $this->getHasManyCount();
         $indexName = "index_{$this->column}";
 
@@ -312,7 +332,7 @@ $("button[type='submit']").click(function(){
     }
     var cnt = $('#has-many-table-{$this->column}-table tr.has-many-table-{$this->column}-row').filter(':visible').length;
     if (cnt == 0) {
-        swal("$title", "$message", "error");
+        swal($title, $message, "error");
         return false;
     };
     return true;
@@ -385,8 +405,10 @@ EOT;
 
         // set related forms
         $relatedforms = [];
+        $builtRelatedForms = isset($this->lazyLoadUrl) ? [] : $this->buildRelatedForms();
+
         // set labelclass hidden
-        foreach ($this->buildRelatedForms() as $k => &$relatedform) {
+        foreach ($builtRelatedForms as $k => &$relatedform) {
             list($relatedtableitems, $relatedhiddens, $relatedrequires, $relatedhelps) = $this->getTableItem($relatedform);
 
             $relatedforms[$k] = [
@@ -417,9 +439,9 @@ EOT;
             'options'      => $this->options,
             'enableHeader' => $this->enableHeader,
             'hideDeleteButtonRow' => $this->hideDeleteButtonRow,
+            'lazyLoadUrl' => $this->lazyLoadUrl,
         ]);
     }
-
 
     // @phpstan-ignore-next-line
     protected function getParentRenderClass()

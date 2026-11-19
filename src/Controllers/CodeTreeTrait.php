@@ -59,7 +59,7 @@ trait CodeTreeTrait
      * Get node path from node id
      *
      * @param string $nodeId
-     * @return string|null
+     * @return string|null null when the node is not in the tree of this session (the tree was made again, e.g. in another tab)
      */
     protected function getNodePath($nodeId): ?string
     {
@@ -78,6 +78,6 @@ trait CodeTreeTrait
             return str_replace('//', '/', array_get($node, 'path'));
         }
 
-        throw new \Exception();
+        return null;
     }
 }

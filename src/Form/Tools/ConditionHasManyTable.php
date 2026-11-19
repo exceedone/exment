@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\FilterKind;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 /**
@@ -14,7 +15,7 @@ class ConditionHasManyTable
     /**
      * laravel-admin form
      *
-     * @var \Encore\Admin\Form
+     * @var \ExmentAdminCore\Admin\Form
      */
     protected $form;
 
@@ -177,7 +178,7 @@ class ConditionHasManyTable
                 $form->select($condition_key_name, $this->condition_key_label)
                 ->required()
                 // ignore HasOptionRule.
-                ->removeRules(\Encore\Admin\Validator\HasOptionRule::class)
+                ->removeRules(\ExmentAdminCore\Admin\Validator\HasOptionRule::class)
                 ->options(function ($val, $select, $model) use ($condition_target_name, $filterKind) {
                     if (!isset($val)) {
                         return [];
@@ -190,9 +191,20 @@ class ConditionHasManyTable
                     }
                     $item->filterKind($filterKind);
 
-                    return $item->getFilterCondition()->mapWithKeys(function ($item) {
+                    $options = $item->getFilterCondition()->mapWithKeys(function ($item) {
                         return [$item['id'] => $item['text']];
                     });
+
+                    // A condition saved earlier - by a template import, or
+                    // by a column whose type has changed since - may not be
+                    // one this column offers any more. Leaving it out of the
+                    // list shows the row as if no condition were set, which
+                    // then blocks the save and loses what is stored.
+                    if (!$options->has($val) && !is_nullorempty($text = FilterOption::getFilterOptionText($val))) {
+                        $options->put($val, $text);
+                    }
+
+                    return $options;
                 });
             }
             // call closure about condition. Almost use as operation update value.

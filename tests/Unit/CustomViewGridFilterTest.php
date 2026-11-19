@@ -77,7 +77,6 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $this->__testGridFilter(['updated_at.start' => '2025-02-01', 'updated_at.end' => '2025-02-02'], function ($data) {
             $actual = array_get($data, 'updated_at');
-            // @phpstan-ignore-next-line
             return $actual->between(Carbon::create(2025, 2, 1), Carbon::create(2025, 2, 2)->endOfDay());
         }, 2);
     }
@@ -527,7 +526,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     
         $this->__testGridFilter([$db_column_name => 'test1'], function ($data) {
             $actual = array_get($data, 'value.file_multiple');
-            return collect($actual)->contains(function($path) {
+            return is_array($actual) && collect($actual)->contains(function($path) {
                 $file = ExmentFile::getData($path);
                 return Str::startsWith($file->filename, 'test1');
             });

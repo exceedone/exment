@@ -1,7 +1,7 @@
 @if(Admin::user()->visible($item))
     @if(!isset($item['children']))
         <li>
-            @if(url()->isValidUrl($item['uri']))
+            @if(admin_is_valid_url($item['uri']))
                 <a href="{{ $item['uri'] }}" target="_blank">
             @else
                  <a href="{{ admin_url($item['uri']) }}">

@@ -1340,12 +1340,12 @@ class CustomColumnValidationTest extends UnitTestBase
             $custom_value->setValueStrictly($values);
 
             if (!$isSuccess) {
-                $this->assertTrue(false, 'This test excepts exception, but success validation.');
-                return;
+                $this->fail('This test excepts exception, but success validation.');
             }
 
             if (count($values) == 0) {
-                $this->assertTrue(true);
+                // nothing to compare: passing the validation is the result
+                $this->addToAssertionCount(1);
                 return;
             }
             foreach ($values as $key => $value) {
@@ -1355,7 +1355,7 @@ class CustomColumnValidationTest extends UnitTestBase
         } catch (ValidationException $ex) {
             if ($isSuccess) {
                 // @phpstan-ignore-next-line
-                $this->assertTrue(false, 'This test excepts success, but falls validation. Messages : ' . json_encode($ex->validator->getMessages()));
+                $this->fail('This test excepts success, but falls validation. Messages : ' . json_encode($ex->validator->getMessages()));
             }
 
             //TODO: Check error messages

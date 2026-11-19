@@ -10,10 +10,20 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\TestDefine;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 
 abstract class ApiTestBase extends FeatureTestBase
 {
     use TestTrait;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The API tests call the API many times as the same user: the "api" rate limit (60 per minute)
+        // would refuse them with 429. ApiThrottleTest tests the rate limit.
+        $this->withoutMiddleware(ThrottleRequests::class);
+    }
 
     /**
      * Get Client Id and Secret
@@ -45,7 +55,7 @@ abstract class ApiTestBase extends FeatureTestBase
      * @param string $user_code
      * @param string $password
      * @param array<mixed> $scope
-     * @return \Illuminate\Testing\TestResponse
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
      */
     protected function getPasswordToken($user_code, $password, $scope = [])
     {
@@ -69,7 +79,7 @@ abstract class ApiTestBase extends FeatureTestBase
     /**
      * Get API Key
      * @param array<mixed> $scope
-     * @return \Illuminate\Testing\TestResponse
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
      */
     protected function getApiKey($scope = [])
     {

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Actions\Import;
 
 use Exceedone\Exment\Services\DataImportExport\Providers\Import;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 
 class RoleGroupAction implements ActionInterface
 {
@@ -46,12 +47,18 @@ class RoleGroupAction implements ActionInterface
             ];
         }
 
+        $hasImportedRows = false;
         foreach ($data_imports as $data_import) {
             // execute imoport
             $provider = $data_import['provider'];
             foreach ($data_import['data_import'] as $index => &$row) {
                 $provider->importData($row);
+                $hasImportedRows = true;
             }
+        }
+
+        if ($hasImportedRows) {
+            System::clearCache();
         }
 
         return [

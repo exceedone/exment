@@ -1,4 +1,4 @@
-<p style="padding-top:7px;">
+<p style="padding-top:7px;margin-bottom:0px">
 <a href="{{$link}}">
     {{$revision->updated_at}}
 </a>

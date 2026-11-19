@@ -5,7 +5,7 @@ namespace App\Plugins\TestPluginStaticFunction;
 class StaticFunction
 {
     /**
-     * @return true
+     * @return bool
      */
     public static function testPluginStaticFunction()
     {

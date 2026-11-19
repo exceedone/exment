@@ -74,7 +74,7 @@ class CustomTableAction implements ActionInterface
 
             $import_loop_count = 0;
             $take = $options['take'] ?? 100;
-            $data_import_cnt = 0;
+            $table_import_cnt = 0;
             while (true) {
                 $options['row_start'] = ($import_loop_count * $take) + 1;
                 $options['row_end'] = (($import_loop_count + 1) * $take);
@@ -105,8 +105,8 @@ class CustomTableAction implements ActionInterface
                 // if has error data, return error data
                 if (is_array($error_data) && count($error_data) > 0) {
                     $error_msg = [];
-                    if ($data_import_cnt > 0) {
-                        $messages[] = $table_name.':'.$data_import_cnt;
+                    if ($table_import_cnt > 0) {
+                        $messages[] = $table_name.':'.$table_import_cnt;
                     }
                     if (count($messages) > 0) {
                         $error_msg[] = exmtrans('command.import.error_info_ex', implode(',', $messages));
@@ -131,18 +131,26 @@ class CustomTableAction implements ActionInterface
                     ];
                 }
 
-                foreach ($data_import as $index => &$row) {
-                    // call dataProcessing if method exists
-                    if (method_exists($provider, 'dataProcessing')) {
-                        // @phpstan-ignore-next-line
-                        $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
-                    }
+                try {
+                    foreach ($data_import as $index => &$row) {
+                        // call dataProcessing if method exists
+                        if (method_exists($provider, 'dataProcessing')) {
+                            // @phpstan-ignore-next-line
+                            $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
+                        }
 
-                    $provider->importData($row);
+                        $provider->importData($row);
+                    }
+                } finally {
+                    // per chunk, and also when a row throws: earlier rows stay written
+                    if (method_exists($provider, 'afterImportData')) {
+                        $provider->afterImportData();
+                    }
                 }
 
                 // $get_index++;
                 $data_import_cnt += count($data_import);
+                $table_import_cnt += count($data_import);
                 $import_loop_count++;
 
                 // Clear Select table's request session
@@ -206,14 +214,21 @@ class CustomTableAction implements ActionInterface
         foreach ($data_imports as $data_import) {
             // execute imoport
             $provider = $data_import['provider'];
-            foreach ($data_import['data_import'] as $index => &$row) {
-                // call dataProcessing if method exists
-                if (method_exists($provider, 'dataProcessing')) {
-                    // @phpstan-ignore-next-line
-                    $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
-                }
+            try {
+                foreach ($data_import['data_import'] as $index => &$row) {
+                    // call dataProcessing if method exists
+                    if (method_exists($provider, 'dataProcessing')) {
+                        // @phpstan-ignore-next-line
+                        $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
+                    }
 
-                $provider->importData($row);
+                    $provider->importData($row);
+                }
+            } finally {
+                // also when a row throws: earlier rows stay written
+                if (method_exists($provider, 'afterImportData')) {
+                    $provider->afterImportData();
+                }
             }
         }
 

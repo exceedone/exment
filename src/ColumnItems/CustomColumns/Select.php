@@ -6,9 +6,9 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\FilterOption;
-use Encore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Form\Field\RadioButton;
-use Encore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 
 class Select extends CustomItem
 {
@@ -139,7 +139,7 @@ class Select extends CustomItem
     // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
-        return [\Encore\Admin\Validator\HasOptionRule::class];
+        return [\ExmentAdminCore\Admin\Validator\HasOptionRule::class];
     }
 
     // @phpstan-ignore-next-line
@@ -219,21 +219,18 @@ class Select extends CustomItem
      * Convert filter value.
      * Ex. If value is decimal and Column Type is decimal, return floatval.
      *
+     * The values are not escaped here for the stored list of a multiple column: the filter
+     * that searches that list (ExistsBase) escapes them once, as json_list_item() — escaping
+     * twice would escape the backslashes of the first time.
+     *
      * @param mixed $value
      * @return mixed
      */
     public function convertFilterValue($value)
     {
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
-
         if (is_json($value)) {
             $value = json_decode_ex($value, true);
         }
-        if (is_array($value)) {
-            return collect($value)->map(function ($val) use ($isUseUnicode) {
-                return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($val) : $val;
-            })->toArray();
-        }
-        return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($value) : $value;
+        return $value;
     }
 }

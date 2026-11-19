@@ -6,7 +6,7 @@ use Exceedone\Exment\Database\Query\Grammars\SqlServerGrammar;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\TemplateImportResult;
-use Encore\Admin\Auth\Database\Menu as AdminMenu;
+use ExmentAdminCore\Admin\Auth\Database\Menu as AdminMenu;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -37,6 +37,18 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
     protected $appends = ['menu_target_view'];
     protected $casts = ['options' => 'json'];
+
+    /**
+     * The parent only declares the laravel-admin columns, so a Menu::create()
+     * would silently drop the columns that decide what the menu points at and
+     * leave an unusable row behind.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'parent_id', 'order', 'title', 'icon', 'uri', 'permission',
+        'menu_type', 'menu_name', 'menu_target', 'options',
+    ];
 
 
     // @phpstan-ignore-next-line
@@ -135,33 +147,35 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         // get all menu, custom table, plugin table.
         $query = DB::table("{$this->getTable()} as m")
             // join table
-            ->leftJoin(CustomTable::getTableName()." as c", function ($join) use ($tableQuery) {
+            ->leftJoin(CustomTable::getTableName() . " as c", function ($join) use ($tableQuery) {
                 $join->where("m.menu_type", MenuType::TABLE);
-                $join->whereRaw("m.menu_target = ". $tableQuery);
+                $join->whereRaw("m.menu_target = " . $tableQuery);
             })
             // join plugin
-            ->leftJoin(Plugin::getTableName()." as p", function ($join) use ($pluginQuery) {
+            ->leftJoin(Plugin::getTableName() . " as p", function ($join) use ($pluginQuery) {
                 $join->where("m.menu_type", MenuType::PLUGIN);
-                $join->whereRaw("m.menu_target = ". $pluginQuery);
+                $join->whereRaw("m.menu_target = " . $pluginQuery);
             })
             ->orderByRaw("CASE WHEN m.$orderColumn = 0 THEN 1 ELSE 0 END")
             ->orderByRaw("m.$orderColumn");
 
-        //->map(function ($item, $key) {
-        //    return (array) $item;
-        //})
-        //->all();
+            //->map(function ($item, $key) {
+            //    return (array) $item;
+            //})
+            //->all();
         ;
-        $rows = $query->get(['m.*',
-                'c.id AS custom_table_id',
-                'c.table_name',
-                'c.table_view_name',
-                'c.options AS table_options',
-                'p.id AS plugin_id',
-                'p.plugin_name'])->map(function ($item, $key) {
-                    return (array) $item;
-                })
-        ->all();
+        $rows = $query->get([
+            'm.*',
+            'c.id AS custom_table_id',
+            'c.table_name',
+            'c.table_view_name',
+            'c.options AS table_options',
+            'p.id AS plugin_id',
+            'p.plugin_name'
+        ])->map(function ($item, $key) {
+            return (array) $item;
+        })
+            ->all();
 
         $results = [];
         foreach ($rows as &$row) {
@@ -189,7 +203,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                         // @phpstan-ignore-next-line
                         $row['icon'] = array_get($table_options, 'icon');
                     }
-                    $row['uri'] = 'data/'.$row['table_name'];
+                    $row['uri'] = 'data/' . $row['table_name'];
 
                     if (!is_null($view_id = array_get($row, 'options.menu_target_view'))) {
                         $view = CustomView::getEloquent($view_id);
@@ -200,7 +214,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     break;
                 case MenuType::SYSTEM:
-                    $defines = array_get(Define::MENU_SYSTEM_DEFINITION, $row['menu_name']);
+                    $defines = array_get(Define::MENU_SYSTEM_DEFINITION, $row['menu_target']);
                     // if not set menu icon, set Define's default icon.
                     if (is_nullorempty($row['icon'])) {
                         $row['icon'] = array_get($defines, 'icon');
@@ -291,7 +305,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         if (!isset($json['icon'])) {
             switch ($json['menu_type']) {
                 case MenuType::SYSTEM:
-                    $json['icon'] = array_get(Define::MENU_SYSTEM_DEFINITION, $json['menu_name'].".icon");
+                    $json['icon'] = array_get(Define::MENU_SYSTEM_DEFINITION, $json['menu_name'] . ".icon");
                     break;
                 case MenuType::TABLE:
                     $json['icon'] = array_get(CustomTable::getEloquent($json['menu_name']), 'options.icon');
@@ -306,7 +320,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         if (!isset($json['uri'])) {
             switch ($json['menu_type']) {
                 case MenuType::SYSTEM:
-                    $json['uri'] = array_get(Define::MENU_SYSTEM_DEFINITION, $json['menu_name'].".uri");
+                    $json['uri'] = array_get(Define::MENU_SYSTEM_DEFINITION, $json['menu_name'] . ".uri");
                     break;
                 case MenuType::TABLE:
                     $json['uri'] = $json['menu_name'];

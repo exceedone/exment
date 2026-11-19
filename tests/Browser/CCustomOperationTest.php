@@ -59,12 +59,12 @@ class CCustomOperationTest extends ExmentKitTestCase
             ->seeInElement('label', 'テーブル表示名')
             ->seeInElement('label', '処理の名前')
             ->seeInElement('label', '更新のタイミング')
-            ->seeInElement('h4[class=field-header]', '更新列設定')
+            ->seeInElement('h4.field-header', '更新列設定')
             ->seeInElement('th', '対象列')
             ->seeInElement('th', '更新の種類')
             ->seeInElement('th', '更新値')
             ->seeInElement('th', '操作')
-            ->seeInElement('h4[class=field-header]', '更新条件')
+            ->seeInElement('h4.field-header', '更新条件')
             ->seeInElement('th', '条件項目')
             ->seeInElement('th', '条件')
             ->seeInElement('th', '条件値')
@@ -758,6 +758,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->post(admin_url("operation/$target_table_name"), $data);
         $this->assertPostResponse($this->response, admin_url("operation/$target_table_name"));
 
+        $this->assertIsArray($data['operation_type']);
         $this->visit(admin_url("operation/$target_table_name"))
             ->seePageIs(admin_url("operation/$target_table_name"))
             ->seeInElement('td', $data['operation_name'])
@@ -794,6 +795,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     protected function getFilterSelectOptions($filter_type): array
     {
         $options = FilterOption::FILTER_OPTIONS()[$filter_type];
+        $this->assertIsArray($options);
         return collect($options)->mapWithKeys(function ($option) {
             return [$option['id'] => exmtrans("custom_view.filter_condition_options.{$option['name']}")];
         })->toArray();

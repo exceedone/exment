@@ -3,6 +3,9 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\ValidateCalledType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
@@ -166,5 +169,111 @@ class ApiTableController extends AdminControllerTableBase
             return [];
         }
         return $item->getOperationFilterValueAjax($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
+    }
+
+    /**
+     * Create one record of this table from a single label, and hand back the id.
+     *
+     * Backlog puts a + beside カテゴリー and マイルストーン because the moment somebody
+     * needs a category that does not exist yet is the moment they are filling in an
+     * issue. Sending them to a master screen means abandoning the half-typed issue,
+     * so in practice they pick the wrong category instead.
+     *
+     * Only the label is asked for: anything else the master needs can be filled in
+     * later on its own screen, and asking for it here would rebuild the very form
+     * this is meant to avoid. The record still passes the checks one created
+     * through the api passes - the label column's own rules, and the columns the
+     * master requires - so a master that needs more than a label refuses it
+     * with the reason, rather than being left with a row its own form would not
+     * have accepted.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\Response
+     */
+    public function quickAdd(Request $request)
+    {
+        if (($code = $this->custom_table->enableCreate(true)) !== true) {
+            return abortJson(403, $code);
+        }
+
+        $validator = \Validator::make($request->all(), [
+            'label' => 'required|string|max:255',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, ['errors' => $this->getErrorMessages($validator)]);
+        }
+
+        $label = trim(strval($request->get('label')));
+
+        $column = $this->getQuickAddColumn();
+        if (!isset($column)) {
+            return abortJson(400, ['errors' => [exmtrans('custom_value.message.quickadd_no_column')]]);
+        }
+
+        // Re-using a row that already carries this label is the behaviour somebody
+        // expects from a master list; creating a second "画面・UI" would quietly
+        // split every report that groups by it.
+        $existing = $this->custom_table->getValueModel()->newQuery()
+            ->where($column->getQueryKey(), $label)
+            ->first();
+
+        if (isset($existing)) {
+            return response()->json([
+                'id' => $existing->id,
+                'label' => $existing->label,
+                'created' => false,
+            ]);
+        }
+
+        $value = $this->custom_table->setDefaultValue([$column->column_name => $label]);
+        $validator = $this->custom_table->validateValue(['value' => $value], null, [
+            'systemColumn' => true,
+            'column_name_prefix' => 'value.',
+            'appendKeyName' => false,
+            'asApi' => true,
+            'calledType' => ValidateCalledType::API,
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        $custom_value = $this->custom_table->getValueModel();
+        $custom_value->setValue($value);
+        $custom_value->save();
+
+        return response()->json([
+            'id' => $custom_value->id,
+            'label' => $custom_value->label,
+            'created' => true,
+        ]);
+    }
+
+    /**
+     * Which column a quick-added label goes into: the 見出し列, because that is what
+     * the select box will show back.
+     *
+     * @return \Exceedone\Exment\Model\CustomColumn|null
+     */
+    protected function getQuickAddColumn()
+    {
+        $labels = $this->custom_table->getLabelColumns();
+
+        if ($labels instanceof Collection) {
+            $first = $labels->first();
+            if (isset($first)) {
+                $column = CustomColumn::getEloquent(array_get($first->options, 'table_label_id'));
+                if (isset($column)) {
+                    return $column;
+                }
+            }
+        }
+
+        return $this->custom_table->custom_columns_cache
+            ->filter(function ($custom_column) {
+                return isMatchString($custom_column->column_type, ColumnType::TEXT);
+            })
+            ->first();
     }
 }

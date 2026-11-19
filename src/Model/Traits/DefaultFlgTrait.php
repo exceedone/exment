@@ -56,7 +56,8 @@ trait DefaultFlgTrait
         }
         // and if this model default flg is 1, set other id's default_flg is 1
         elseif (boolval($this->default_flg)) {
-            static::whereIn('id', $idlist)->update([
+            // by id alone: the filter callback may have lifted a global scope to find them
+            static::withoutGlobalScopes()->whereIn('id', $idlist)->update([
                 'default_flg' => false
             ]);
         }

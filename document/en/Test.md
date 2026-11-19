@@ -7,17 +7,17 @@ How to test.
 - Please execute this command.
 
 ```
-composer require symfony/css-selector=~6.3
-composer require laravel/browser-kit-testing=~7.0
+composer require symfony/css-selector=^7.0
+composer require laravel/browser-kit-testing=^7.2
 composer require dms/phpunit-arraysubset-asserts=~0.5.0
 ```
 
 ### Change PHPUnit version (Only first)
-- Exment uses version 10.X for PHPUnit.  
+- Exment uses version 11.X for PHPUnit.  
 If there is a description about "phpunit / phpunit" in require-dev of composer.json in the root folder, please modify it as follows.
 
 ```
-"phpunit/phpunit": "~10.1",
+"phpunit/phpunit": "^11.5",
 ```
 
 And execute this command.
@@ -41,26 +41,25 @@ After that, if the following description is included, comment it out.
 </phpunit>
 ```
 
+- If phpunit.xml contains a hardcoded `BCRYPT_ROUNDS` value, make sure it matches the `BCRYPT_ROUNDS` value used by your test database (set in `.env` or `config/hashing.php`).  
+  **If not explicitly set, the default value is 12.**  
+  For example, if your database was initialized with `BCRYPT_ROUNDS=12` but phpunit.xml has `value="4"`, authentication will fail during tests.  
+  Open phpunit.xml and update the value to match:
+
+``` xml
+<php>
+    <env name="BCRYPT_ROUNDS" value="12"/> <!-- Change to match the BCRYPT_ROUNDS value used when creating test data -->
+</php>
+```
+
 - The test does API, but in some cases it seems to get 429 errors (Too Many Requests).  
-Open app\Http\Kernel.php and modify the following description.
+Laravel 12 has no `app/Http/Kernel.php`; middleware is configured in `bootstrap/app.php`. Open it and modify the `withMiddleware` block.
 
 ``` php
-     protected $middlewareGroups = [
-        'web' => [
-            \App\Http\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-            // \Illuminate\Session\Middleware\AuthenticateSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        ],
-
-        'api' => [
-            'throttle:60000,1', // Change large value
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        ],
-    ];
+    ->withMiddleware(function (Middleware $middleware) {
+        // Raise the API rate limit so the tests do not hit 429.
+        $middleware->throttleApi('60000,1');
+    })
 ```
 
 
@@ -93,15 +92,16 @@ Execute Lint (PHPStan / Laratisan) and perform syntax check etc.
 
 ```
 # for lint
-composer require --dev nunomaduro/larastan=~2.6
+composer require --dev phpstan/phpstan=^2.1
+composer require --dev larastan/larastan=^3.0
 
 # for Exment related libraries
 composer require pragmarx/google2fa
 composer require simplesoftwareio/simple-qrcode=^2.0.0
-composer require laravel/socialite=~5.1
+composer require laravel/socialite=^5.20
 composer require aacotroneo/laravel-saml2
 composer require league/flysystem-ftp ~3.0
-composer require phpseclib/phpseclib ^2.0
+composer require phpseclib/phpseclib ^3.0
 composer require league/flysystem-sftp ~3.0
 composer require league/flysystem-aws-s3-v3 ~3.0
 composer require league/flysystem-azure-blob-storage ~3.0

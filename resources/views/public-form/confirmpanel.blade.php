@@ -34,16 +34,9 @@
 
             {{ csrf_field() }}
 
-            <div class="col-md-2">
-            </div>
-
-            <div class="col-md-8">
-                <div class="text-center">
-                    <div class="">
-                        <button style="margin-right: 2em;" id="admin-back" type="submit" name="admin-back" class="submit_disabled btn btn-default" formaction="{{$back_action}}">{{ trans('admin.back') }}</button>
-                        <button id="admin-submit" type="submit" class="submit_disabled btn btn-primary" formaction="{{$action}}" >{{ $submitLabel ?? trans('admin.submit') }}</button>
-                    </div>
-                </div>
+            <div style="width: 100%; display: flex; justify-content: center; flex-wrap: wrap; gap: 2em; clear: both;">
+                <button id="admin-back" type="submit" name="admin-back" class="submit_disabled btn btn-default" formaction="{{$back_action}}">{{ trans('admin.back') }}</button>
+                <button id="admin-submit" type="submit" class="submit_disabled btn btn-primary" formaction="{{$action}}" >{{ $submitLabel ?? trans('admin.submit') }}</button>
             </div>
         </div>
     </div>

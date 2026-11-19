@@ -104,6 +104,6 @@ class DocumentImportTest extends FileImportTestBase
             }
         }
 
-        $this->assertTrue(false, 'Not matched file path');
+        $this->fail('Not matched file path');
     }
 }

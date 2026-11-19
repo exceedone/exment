@@ -3,7 +3,7 @@
 namespace App\Plugins\TestPluginGlobalFunction\Dir1;
 
 /**
- * @return true
+ * @return bool
  */
 function testPluginGlobalFunctionDir1()
 {

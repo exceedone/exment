@@ -1,0 +1,1767 @@
+/* =====================================================================
+   grid_tools.css - Exment data grid toolbar + table polish.
+   ---------------------------------------------------------------------
+   Scoped to `table.exm-grid`, a class grid_tools.js puts on the data
+   grid only. Modal grids, dashboard list boxes and the system tables
+   never get that class, so nothing here can leak into them.
+   ===================================================================== */
+
+.exm-grid {
+  --exm-grid-accent: #3c8dbc;
+  --exm-grid-line: #e1e6ea;
+}
+
+
+/* ---------------------------------------------------- table polish --- */
+/* The class is repeated on purpose - it is not a typo.
+   open-admin/css/styles.css sets the cell borders through
+   `.table > :not(:last-child) > :last-child > *`, and the two
+   pseudo-classes give that selector a specificity of (0,3,0) - higher
+   than a plain `.table.exm-grid > thead > tr > th` at (0,2,3), because
+   the class count is compared before the element count. Repeating the
+   class lifts these rules to (0,3,3) so they win without !important. */
+.table.exm-grid.exm-grid > thead > tr > th {
+  background-color: #e9eef4;
+  color: #33475b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  white-space: nowrap;
+  padding: 10px;
+  border-bottom: 2px solid #c5d2e0;
+}
+
+.table.exm-grid.exm-grid > tbody > tr > td {
+  vertical-align: middle;
+  border-top-color: #e8edf2;
+  border-bottom-color: #e8edf2;
+}
+
+/* Zebra striping and a stronger hover than the theme's flat #DFDFDF -
+   this is what makes a wide table readable across a row. */
+.table.exm-grid > tbody > tr:nth-of-type(even) > td {
+  background-color: #f8fafc;
+}
+
+.table.exm-grid.table-hover > tbody > tr:hover > td {
+  background-color: #e4f0fb;
+}
+
+.table.exm-grid > tbody > tr.selected > td,
+.table.exm-grid.table-hover > tbody > tr.selected:hover > td {
+  background-color: #fff6d6;
+}
+
+/* Sort chevrons: laravel-admin renders them as bare <a class="fa fa-sort-*">
+   which is nearly invisible against the header text. */
+.table.exm-grid > thead > tr > th a.fa-sort,
+.table.exm-grid > thead > tr > th a.fa-sort-asc,
+.table.exm-grid > thead > tr > th a.fa-sort-desc,
+.table.exm-grid > thead > tr > th a.fa-sort-up,
+.table.exm-grid > thead > tr > th a.fa-sort-down {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--exm-grid-accent);
+}
+
+
+/* ------------------------------------------------ density modifiers --- */
+.table.exm-grid.table-density-comfortable > tbody > tr > td {
+  padding: 8px 10px;
+}
+
+.table.exm-grid.table-density-compact > tbody > tr > td {
+  padding: 3px 8px;
+  font-size: 12.5px;
+}
+
+.table.exm-grid.table-density-compact > thead > tr > th {
+  padding: 5px 8px;
+}
+
+.table.exm-grid.table-density-spacious > tbody > tr > td {
+  padding: 14px 10px;
+}
+
+
+/* --------------------------------------------------- filter chips --- */
+/* The row of "you are filtering on this" chips above the toolbar.
+   `flex-basis: 100%` puts it on a line of its own: the toolbar is a
+   wrapping flex row, and chips squeezed between the search box and the
+   buttons would read as another control rather than as the state of the
+   list. `order: -1` lifts it above them - the state comes before the
+   things that change it. */
+.exm-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  /* Bottom only: grid_tools.js drops this row straight above the table's
+     scroll box, so the space over it is the box-header's own padding. */
+  margin: 0 0 8px;
+}
+
+.exm-filter-chips-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.exm-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #33475b;
+  background-color: #eef4fb;
+  border: 1px solid #cfdcea;
+  border-radius: 12px;
+  text-decoration: none;
+}
+
+.exm-filter-chip:hover {
+  background-color: #e2ecf7;
+  border-color: #a9c3dd;
+  color: #1f2d3d;
+  text-decoration: none;
+}
+
+.exm-filter-chip-key {
+  font-weight: 700;
+}
+
+.exm-filter-chip-key::after {
+  content: ':';
+}
+
+.exm-filter-chip-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The X is what the whole chip does, so it is styled as the chip's own
+   affordance rather than as a separate button. */
+.exm-filter-chip .fa-times {
+  font-size: 11px;
+  color: #8296ad;
+}
+
+.exm-filter-chip:hover .fa-times {
+  color: #c0392b;
+}
+
+.exm-filter-chip-clear {
+  background-color: transparent;
+  border-color: transparent;
+  color: #64748b;
+  text-decoration: underline;
+}
+
+
+/* ------------------------------------------------------- one line --- */
+/* One row, one line: a cell that would wrap is cut with an ellipsis and
+   grid_tools.js moves the full text into `title`.
+
+   `max-width` is what makes the cut possible at all - in the automatic
+   table layout a cell is as wide as its content asks for, so without an
+   upper bound there is no overflow to cut. 340px is roughly 40 Japanese
+   characters at this size: long enough to read a summary, short enough
+   that the columns after it still reach the screen.
+
+   Same doubled class as the block at the top of this file, for the same
+   specificity reason. */
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td {
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* `!important` is the only thing that can win here: a text column
+     arrives with `style="min-width:100px; max-width:300px;
+     word-wrap:break-word; white-space:normal"` written on the cell by
+     the server, and an inline declaration outranks every selector. The
+     max-width above is deliberately NOT forced - where the server sent
+     one it knows the column better than a blanket number does, and this
+     one only fills in for the cells that came without. */
+  white-space: nowrap !important;
+}
+
+/* The two columns laravel-admin owns hold icons, never prose - clipping
+   them would cut the action links in half. */
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td.column-__row_selector__,
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td.column-__actions__ {
+  max-width: none;
+  overflow: visible;
+}
+
+/* An open inline editor floats out of its cell on purpose (see the
+   `.exm-editing` block below); clipping it here would put the editor back
+   inside the column width and undo that. This rule has to repeat the
+   values because the one above outranks the editing block. */
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td.exm-editing,
+.table.exm-grid.exm-grid.exm-nowrap > tbody > tr > td.exm-saving {
+  max-width: none;
+  overflow: visible;
+  /* Forced back for the same reason the rule above forces it on. */
+  white-space: normal !important;
+}
+
+
+/* --------------------------------------------------- cell appearance --- */
+/* Shapes for the "cell appearance" column setting. Every color arrives as an
+   inline style from GridCellStyle, so only geometry lives here - that is what
+   lets one value be red and the next one green with a single class.
+
+   Not scoped to .exm-grid: the class only ever reaches the page through a
+   styled column, and scoping it would make the badges disappear on the grids
+   that render without the toolbar (modal pickers, dashboard boxes). */
+.exm-cell-text {
+  white-space: nowrap;
+}
+
+.exm-cell-tag,
+.exm-cell-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  border: 1px solid #e1e6ea;
+  background-color: #f2f4f6;
+  color: #4a5562;
+}
+
+.exm-cell-tag {
+  border-radius: 3px;
+}
+
+.exm-cell-pill {
+  border-radius: 10px;
+}
+
+/* Solid sibling of the tag: the value's color is the fill, the text stays
+   white. The transparent border keeps it the exact height of a tag and
+   gives an inline border-color something to land on. */
+.exm-cell-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background-color: #95a5a6;
+  color: #fff;
+}
+
+/* Square mark for a rank, round mark for a level - the two read differently
+   at a glance, which is the whole reason both styles exist. */
+.exm-cell-dot,
+.exm-cell-lvl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.exm-cell-dot .exm-cell-mark,
+.exm-cell-lvl .exm-cell-mark {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  background-color: #95a5a6;
+}
+
+.exm-cell-dot .exm-cell-mark {
+  border-radius: 2px;
+}
+
+.exm-cell-lvl .exm-cell-mark {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.exm-cell-mono {
+  font-family: Consolas, "SFMono-Regular", Menlo, monospace;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* The icon is a hint next to the value, never the point of the cell, so it
+   stays a shade lighter than the text it sits in front of. */
+.exm-cell-text > .fa,
+.exm-cell-tag > .fa,
+.exm-cell-pill > .fa,
+.exm-cell-badge > .fa,
+.exm-cell-dot > .fa,
+.exm-cell-lvl > .fa,
+.exm-cell-mono > .fa {
+  margin-right: 5px;
+  font-size: 11px;
+  opacity: .75;
+}
+
+.exm-cell-avatar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.exm-cell-avatar .exm-cell-av {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Progress bar. Flex, not inline: the span owns its line, so the empty
+   track can take the width the number leaves over - inline sizing would
+   collapse it to nothing. */
+.exm-cell-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 120px;
+  max-width: 220px;
+}
+
+.exm-cell-bar .exm-cell-bar-track {
+  flex: 1 1 auto;
+  height: 5px;
+  border-radius: 3px;
+  background-color: #edeff2;
+  overflow: hidden;
+}
+
+.exm-cell-bar .exm-cell-bar-fill {
+  display: block;
+  height: 100%;
+}
+
+.exm-cell-bar .exm-cell-bar-txt {
+  flex: 0 0 auto;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Compact rows have no room for a track; the colored number says enough. */
+.table-density-compact .exm-cell-bar {
+  min-width: 0;
+}
+
+.table-density-compact .exm-cell-bar .exm-cell-bar-track {
+  display: none;
+}
+
+/* ------------------------------------------------- toolbar buttons --- */
+.exm-grid-tool {
+  margin-left: 5px;
+}
+
+.exm-grid-tool .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+/* One tick marks the current choice. The icon always occupies its slot
+   so the labels do not jump when the selection moves. */
+.exm-grid-tool .dropdown-item .fa-check {
+  visibility: hidden;
+  width: 12px;
+  font-size: 11px;
+  color: var(--exm-grid-accent, #3c8dbc);
+}
+
+.exm-grid-tool .dropdown-item.active .fa-check {
+  visibility: visible;
+}
+
+/* Bootstrap paints .active items solid blue; here "active" only means
+   "currently selected", so keep it quiet. */
+.exm-grid-tool .dropdown-item.active,
+.exm-grid-tool .dropdown-item.active:focus {
+  background-color: transparent;
+  color: inherit;
+  font-weight: 600;
+}
+
+.exm-grid-tool .dropdown-item:hover {
+  background-color: #f1f5f8;
+}
+
+.exm-refresh-btn.active {
+  color: #fff;
+  background: #3c8dbc;
+  border-color: #3c8dbc;
+}
+
+.exm-refresh-timer {
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+
+/* --------------------------------------------- column picker modal --- */
+.exm-col-modal .exm-col-actions {
+  margin: 8px 0 6px;
+  font-size: 12px;
+}
+
+.exm-col-modal .exm-col-actions a {
+  color: #3c8dbc;
+  font-weight: 600;
+  text-decoration: none;
+  margin-right: 12px;
+}
+
+.exm-col-modal .exm-col-actions a:hover {
+  text-decoration: underline;
+}
+
+.exm-col-modal .exm-col-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.exm-col-modal .exm-col-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 4px 4px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.exm-col-modal .exm-col-item label:hover {
+  background: #f5f7f9;
+}
+
+.exm-col-modal .exm-col-item input[type="checkbox"] {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.exm-col-modal .exm-col-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Pushed to the left of the footer by margin-right:auto, hidden until
+   the user tries to apply an empty selection. */
+.exm-col-modal .exm-col-warn {
+  display: none;
+  margin-right: auto;
+  color: #c0392b;
+  font-size: 12px;
+}
+
+.exm-col-modal .exm-col-warn.show {
+  display: inline-block;
+}
+
+
+/* ---------------------------------------------------- pinned columns --- */
+/* `position: sticky` needs a scrolling ancestor, and the grid already has
+   one: the stock blade wraps the table in `.box-body.table-responsive`,
+   which is where the horizontal scrollbar lives. That is the whole reason
+   the table markup could stay untouched - no second table, no cloned
+   rows, just these rules plus the `left` offset grid_tools.js writes. */
+.table.exm-grid > thead > tr > th.exm-pin,
+.table.exm-grid > tbody > tr > td.exm-pin {
+  position: sticky;
+  z-index: 2;
+}
+
+/* Header cells sit above body cells so a pinned th is never overlapped by
+   the row underneath it while scrolling. */
+.table.exm-grid.exm-grid > thead > tr > th.exm-pin {
+  z-index: 3;
+  background-color: #e9eef4;
+}
+
+/* A pinned cell scrolls over the cells next to it, so it must be opaque -
+   and its background has to repeat the zebra / hover / selected rules
+   exactly, otherwise the pinned part of a row ends up a different colour
+   from the rest of the same row. */
+.table.exm-grid > tbody > tr > td.exm-pin {
+  background-color: #ffffff;
+}
+
+.table.exm-grid > tbody > tr:nth-of-type(even) > td.exm-pin {
+  background-color: #f8fafc;
+}
+
+.table.exm-grid.table-hover > tbody > tr:hover > td.exm-pin {
+  background-color: #e4f0fb;
+}
+
+.table.exm-grid > tbody > tr.selected > td.exm-pin,
+.table.exm-grid.table-hover > tbody > tr.selected:hover > td.exm-pin {
+  background-color: #fff6d6;
+}
+
+/* The shadow marks the seam between frozen and scrolling columns, so it
+   only appears once there is something scrolled underneath. Before the
+   first scroll the table has to look exactly like it did before. */
+.exm-pin-scrolled .table.exm-grid > thead > tr > th.exm-pin-last,
+.exm-pin-scrolled .table.exm-grid > tbody > tr > td.exm-pin-last {
+  box-shadow: 6px 0 6px -4px rgba(0, 0, 0, .18);
+}
+
+.exm-pin-scrolled-end .table.exm-grid > thead > tr > th.exm-pin-right-first,
+.exm-pin-scrolled-end .table.exm-grid > tbody > tr > td.exm-pin-right-first {
+  box-shadow: -6px 0 6px -4px rgba(0, 0, 0, .18);
+}
+
+/* Marker in the header of a pinned column. Without it the feature is
+   invisible until the user scrolls sideways - and a user who does not
+   know a column is frozen has no reason to scroll and find out. */
+.table.exm-grid > thead > tr > th .exm-pin-flag {
+  margin-left: 5px;
+  font-size: 10px;
+  color: var(--exm-grid-accent, #3c8dbc);
+}
+
+/* The pin menu uses a thumbtack where the other dropdowns use a tick, so
+   the tick rules above do not apply: grey means "not pinned", accent
+   means "pinned". */
+.exm-grid-pin .dropdown-item .fa-thumbtack {
+  width: 12px;
+  font-size: 11px;
+  color: #ccd2d8;
+}
+
+.exm-grid-pin .dropdown-item.active .fa-thumbtack {
+  color: var(--exm-grid-accent, #3c8dbc);
+}
+
+.exm-pin-btn.active {
+  color: #fff;
+  background: #3c8dbc;
+  border-color: #3c8dbc;
+}
+
+
+/* ---------------------------------------------------- locked header --- */
+/* "Scroll inside the table" mode. grid_tools.js caps the box's height
+   (measured against the viewport, so no magic calc() here) and adds
+   `.exm-headlock`; from there sticky-top does the header the same way
+   sticky-left already does the pinned columns - against the very same
+   scrolling ancestor, which is why the two compose. */
+.table-responsive.exm-headlock {
+  overflow-y: auto;
+}
+
+/* Above the pinned BODY cells (z2): scrolling rows must slide under the
+   header, never over it. The background repeats the pinned header tint
+   so the locked strip reads as one piece, and because a transparent
+   sticky header would let every row show through it. */
+.exm-headlock > .table.exm-grid > thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background-color: #e9eef4;
+  background-clip: padding-box;
+}
+
+/* The corner cell: pinned column header inside a locked header row. It
+   sticks both ways (left comes inline from the pin pass, top from the
+   rule above) and has to sit over both the sliding header cells and the
+   pinned body cells - the extra class in the selector outweighs the
+   z-index:3 pin-header rule further up. */
+.exm-headlock > .table.exm-grid.exm-grid > thead > tr > th.exm-pin {
+  z-index: 5;
+}
+
+/* Same idea as the pin seam shadows: the line only appears once rows
+   are actually sliding underneath the header. */
+.exm-headlock-scrolled > .table.exm-grid > thead > tr > th {
+  box-shadow: 0 3px 5px -3px rgba(0, 0, 0, .25);
+}
+
+
+/* ------------------------------------------------------ grouped rows --- */
+.table.exm-grid > tbody > tr.exm-group-row > td {
+  background-color: #eef2f7;
+  font-weight: 700;
+  color: #33475b;
+  cursor: pointer;
+  border-top: 2px solid #d7dee6;
+  padding: 6px 10px;
+}
+
+/* The header cell spans the whole table, so on a wide grid its text would
+   scroll out of sight long before the rows it labels do. Sticking the
+   label - not the cell - keeps it against the left edge while the row
+   underneath scrolls. */
+.table.exm-grid > tbody > tr.exm-group-row .exm-group-label {
+  position: sticky;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.table.exm-grid > tbody > tr.exm-group-row .exm-group-count {
+  display: inline-block;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 9px;
+  background-color: #ccd6e0;
+  color: #33475b;
+}
+
+/* Says out loud that the count covers the current page only. Paging is
+   done by the server, so it can never mean anything else. */
+.table.exm-grid > tbody > tr.exm-group-row .exm-group-page {
+  font-weight: 400;
+  font-size: 11.5px;
+  color: #8a97a5;
+}
+
+/* Two independent reasons a row can be invisible, deliberately kept on
+   two classes: `-hidden` is "its group is collapsed", `-filtered` is "the
+   page filter took it out". Both can hold at once, and expanding a group
+   must not bring back rows the filter removed. */
+.table.exm-grid > tbody > tr.exm-row-hidden,
+.table.exm-grid > tbody > tr.exm-row-filtered {
+  display: none;
+}
+
+
+/* --------------------------------------------------- page filter --- */
+/* Strip above the table while a filter is on. It has to be impossible to
+   miss: the filter lives only in the DOM, so without this the missing
+   rows would look like the table simply lost data, and the way back
+   would be a page reload. */
+.exm-gridfilter-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  color: #7a5b00;
+  background-color: #fff8e1;
+  border: 1px solid #f0d68a;
+  border-radius: 4px;
+}
+
+.exm-gridfilter-chip > .fa-filter {
+  font-size: 11px;
+  color: #c8971c;
+}
+
+.exm-gridfilter-text {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exm-gridfilter-count {
+  padding: 1px 7px;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: #7a5b00;
+  background-color: #f6e3ab;
+  border-radius: 9px;
+}
+
+/* Pushed to the far end so the way out sits in the same place no matter
+   how long the value is. */
+.exm-gridfilter-clear {
+  margin-left: auto;
+  flex: none;
+  font-size: 12px;
+  color: #8a6d00;
+  text-decoration: underline;
+}
+
+.exm-gridfilter-clear:hover,
+.exm-gridfilter-clear:focus {
+  color: #5c4900;
+}
+
+.exm-group-btn.active {
+  color: #fff;
+  background: #3c8dbc;
+  border-color: #3c8dbc;
+}
+
+
+/* -------------------------------------------------- bulk action bar --- */
+/* Sits at the bottom of the viewport because that is where the user is
+   looking after ticking a row halfway down a long table - the stock batch
+   button is up in the box header, often scrolled off screen by then. */
+.exm-bulkbar {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  /* Never wider than the screen: the bar's natural width (~495px of
+     buttons) used to hang 60px past EACH edge of a 375px phone, cutting
+     off the buttons at both ends. Wrapping keeps every button reachable;
+     the bar just grows upward.
+
+     width is explicit because `left: 50%` halves the space the
+     shrink-to-fit algorithm thinks is available - left alone, the bar
+     folds itself into a half-screen tower on a phone. max-content
+     resolves against the content instead, and max-width caps it. */
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #2f4050;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .28);
+  font-size: 13px;
+  /* Parked below the fold rather than `display: none` so showing it is a
+     slide instead of a jump - and so it never takes part in layout. */
+  transform: translateX(-50%) translateY(160%);
+  transition: transform .18s ease-out;
+}
+
+.exm-bulkbar.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* The bar is fixed to the viewport, so at the foot of a scrolled page it
+   lies over the pager and the last rows. While it is up the page is given
+   that much more room to scroll past, so everything stays reachable. */
+body.exm-bulkbar-open .content-wrapper {
+  padding-bottom: 84px;
+}
+
+.exm-bulkbar .exm-bulk-count {
+  padding-right: 4px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.exm-bulkbar .exm-bulk-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* All bar buttons share the same silhouette so the row reads as a
+   toolbar rather than a random button pile. Colour comes from the
+   variant class the render step or `initBulk` adds on top. The
+   `.exm-bulk-actions` step in the selector raises specificity above
+   Bootstrap's `.btn.btn-default` so the coloured background wins
+   without an `!important`. */
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act,
+.exm-bulkbar .exm-bulk-actions .exm-bulk-edit,
+.exm-bulkbar .exm-bulk-actions .exm-bulk-export {
+  font-size: 12.5px;
+  white-space: nowrap;
+  border: 1px solid transparent !important;
+  background-color: #4a6072 !important;
+  color: #fff !important;
+  transition: background-color .12s ease-out, box-shadow .12s ease-out;
+}
+
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act > i,
+.exm-bulkbar .exm-bulk-actions .exm-bulk-edit > i,
+.exm-bulkbar .exm-bulk-actions .exm-bulk-export > i {
+  margin-right: 4px;
+}
+
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act:hover,
+.exm-bulkbar .exm-bulk-actions .exm-bulk-edit:hover,
+.exm-bulkbar .exm-bulk-actions .exm-bulk-export:hover,
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act:focus,
+.exm-bulkbar .exm-bulk-actions .exm-bulk-edit:focus,
+.exm-bulkbar .exm-bulk-actions .exm-bulk-export:focus {
+  color: #fff !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .18);
+  outline: none;
+}
+
+/* Static buttons keep a fixed identity - edit uses the warm amber
+   Redmine also picks for a bulk edit action, export uses a green that
+   reads as "download / take away" against the dark bar. `!important`
+   is here on purpose - AdminLTE ships `.btn.btn-default` with its
+   own hover / active variants that would otherwise flash grey when
+   the user clicks. */
+.exm-bulkbar .exm-bulk-actions .exm-bulk-edit          { background-color: #f39c12 !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-edit:hover    { background-color: #e08e0b !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-export        { background-color: #16a085 !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-export:hover  { background-color: #128572 !important; }
+
+/* Variant classes set by `initBulk` when it sees a matching icon in
+   the copied dropdown link - keeps the mapping icon -> colour in one
+   place. Anything the JS did not recognise stays neutral. */
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act.exm-bulk-danger        { background-color: #e74c3c !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act.exm-bulk-danger:hover  { background-color: #c0392b !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act.exm-bulk-danger-strong { background-color: #8e0e0e !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act.exm-bulk-danger-strong:hover { background-color: #6f0808 !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act.exm-bulk-success       { background-color: #27ae60 !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act.exm-bulk-success:hover { background-color: #1f8a4c !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act.exm-bulk-info          { background-color: #2980b9 !important; }
+.exm-bulkbar .exm-bulk-actions .exm-bulk-act.exm-bulk-info:hover    { background-color: #1f6690 !important; }
+
+.exm-bulkbar .exm-bulk-clear {
+  padding-left: 4px;
+  color: #cfd8e3;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.exm-bulkbar .exm-bulk-clear:hover {
+  color: #fff;
+}
+
+/* Bulk-edit modal is a tiny standalone overlay - not routed through
+   laravel-admin's Bootstrap modal so a click on the row's own link
+   handler cannot intercept it. `position: fixed` at z-index above the
+   bulk bar keeps it on top of the row highlight and the ctxmenu. */
+.exm-bulk-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  background-color: rgba(0, 0, 0, .38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.exm-bulk-modal {
+  background-color: #fff;
+  color: #1f2d3d;
+  border-radius: 8px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .28);
+  width: min(560px, 100%);
+  max-height: min(90vh, 720px);
+  display: flex;
+  flex-direction: column;
+}
+
+.exm-bulk-modal-header {
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eceff4;
+}
+
+/* The quick preview reuses the modal shell above and only changes its
+   size: it carries a whole record, not a handful of fields. */
+.exm-peek-modal {
+  width: min(980px, 100%);
+  max-height: min(88vh, 860px);
+}
+
+/* The show page lays its blocks out in bootstrap rows sized for a full
+   page. Inside the modal the body is the container, so the row's
+   negative margins would push the first block under the edge. */
+.exm-peek-body {
+  padding: 0 8px 8px;
+}
+
+.exm-peek-body .box {
+  box-shadow: none;
+  border: 1px solid #e6ebf1;
+}
+
+.exm-peek-note {
+  padding: 24px 8px;
+  text-align: center;
+  color: #64748b;
+}
+
+.exm-peek-error {
+  color: #c0392b;
+}
+
+.exm-bulk-modal-body {
+  padding: 14px 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exm-bulk-modal-hint {
+  font-size: 12.5px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+/* Redmine-style grid of fields: label on the left, editor on the
+   right. A single column at narrow widths collapses to stacked rows
+   automatically because the flex parent switches direction. */
+.exm-bulk-fields {
+  display: grid;
+  grid-template-columns: minmax(120px, 30%) 1fr;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+@media (max-width: 480px) {
+  .exm-bulk-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.exm-bulk-field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.exm-bulk-field-value {
+  display: block;
+}
+
+.exm-bulk-field-value > select,
+.exm-bulk-field-value > input {
+  width: 100%;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+/* Highlight the row(s) the user picked a value for, so that the
+   difference between "kept" and "changed" is visible before the user
+   commits. Attached via `.exm-bulk-dirty` toggled on the label +
+   value cell when the editor's value moves away from the sentinel. */
+.exm-bulk-field-label.exm-bulk-dirty {
+  color: #b7791f;
+  font-weight: 700;
+}
+
+.exm-bulk-field-value.exm-bulk-dirty > select,
+.exm-bulk-field-value.exm-bulk-dirty > input {
+  border-color: #f6ad55;
+  background-color: #fffbeb;
+}
+
+.exm-bulk-modal-progress {
+  min-height: 18px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.exm-bulk-modal-progress.is-error {
+  color: #b91c1c;
+}
+
+/* The rows a bulk edit could not change, each with the server's reason. A
+   long run can refuse many, so the list scrolls inside the dialog. */
+.exm-bulk-modal-progress .exm-bulk-failures {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.exm-bulk-modal-footer {
+  padding: 10px 16px 14px;
+  border-top: 1px solid #eceff4;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.exm-bulk-modal-apply[disabled],
+.exm-bulk-modal-cancel[disabled] {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+
+/* ------------------------------------------------------- inline edit --- */
+/* Scoped to `.exm-grid` so the hover pen never appears in modal pickers
+   or dashboard boxes - the same class scoping the whole file. Cells are
+   marked from DefaultGrid, so the badge / bar column classes underneath
+   still work unchanged. */
+.table.exm-grid > tbody > tr > td.exm-editable {
+  position: relative;
+  cursor: text;
+}
+
+/* A pinned column is sticky, and the `relative` above - same specificity,
+   written later - would quietly cancel that on any column that is both
+   pinned and editable. The px offset grid_tools.js writes for the sticky
+   position would then be read as a relative nudge and slide the cell
+   right over its neighbour, so the column looks frozen while it is not.
+   Sticky positions the pen exactly as well. */
+.table.exm-grid > tbody > tr > td.exm-editable.exm-pin {
+  position: sticky;
+}
+
+/* Carries the untruncated value of a shortened cell, for the inline
+   editor to open on. It is an empty element and must stay one - no box,
+   no line box, nothing that could change how the cell measures. */
+.exm-cell-raw {
+  display: none;
+}
+
+.table.exm-grid > tbody > tr > td.exm-editable .exm-edit-pen {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  margin-top: -9px;
+  display: none;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  font-size: 11px;
+  color: #7b8a9a;
+  background-color: rgba(255, 255, 255, .9);
+  border: 1px solid #d7dee6;
+  border-radius: 3px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Only reveal the pen on hover: showing it always would clutter every
+   grid row with a small icon column, and this way the editable columns
+   still read exactly like the read-only ones until intent is signalled. */
+.table.exm-grid.table-hover > tbody > tr:hover > td.exm-editable .exm-edit-pen {
+  display: block;
+}
+
+/* Editing state overrides the row's zebra / hover / selected colour.
+   `!important` here is on purpose: the badge / bar styles a Select column
+   sets on `.exm-cell-wrap > span` bring their own background, and the
+   editor sits on top of that. Without the override the yellow strip only
+   half shows. */
+.table.exm-grid > tbody > tr > td.exm-editing {
+  background-color: #fffbe6 !important;
+  cursor: default;
+  /* Containing block for the editor overlay below, and the layer it sits
+     on: above the pinned body cells (2) so a wide editor is not sliced by
+     a frozen column, below the locked header (4) so a row scrolling under
+     it still disappears underneath. */
+  position: relative;
+  z-index: 3;
+  /* A grid cell clips what sticks out of it, which would cut the editor
+     back to the column width and undo the whole point of floating it.
+     Nothing else can spill: the cell's own content is inside the hidden
+     ghost while the editor is open. */
+  overflow: visible;
+}
+
+/* A pinned cell carries an inline `left` for its sticky position, and
+   `position: relative` would read that same offset as a nudge - the cell
+   would jump sideways the moment the editor opened. Sticky is a
+   containing block for absolute children just as well. */
+.table.exm-grid > tbody > tr > td.exm-editing.exm-pin {
+  position: sticky;
+}
+
+.table.exm-grid > tbody > tr > td.exm-editing .exm-edit-pen {
+  display: none;
+}
+
+/* The cell's original markup, held in the flow but invisible. Column
+   widths are laid out around the VALUES, so an editor that took their
+   place would resize its own column - and every column to the right of it
+   would slide at the exact moment the user is aiming at the cell. This
+   keeps the grid still and lets the editor float above it instead. */
+.table.exm-grid > tbody > tr > td.exm-editing .exm-edit-ghost {
+  visibility: hidden;
+}
+
+/* Overlay, not a cell child: a 100px status column leaves a box too small
+   to read a value in, let alone type one. grid_tools.js measures the
+   value and writes the px width - the rules here are the floor it can
+   never fall below, and the look. */
+.table.exm-grid > tbody > tr > td.exm-editing select.exm-edit-input,
+.table.exm-grid > tbody > tr > td.exm-editing input.exm-edit-input {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 90px;
+  height: 26px;
+  padding: 1px 4px;
+  font-size: 12.5px;
+  color: #33475b;
+  background-color: #fff;
+  border: 1px solid #3c8dbc;
+  border-radius: 3px;
+  /* Reads as a floating editor rather than a cell that grew teeth - and
+     marks the edge where it covers the neighbouring column. */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+  outline: none;
+}
+
+/* Where the date editor's calendar opens: an empty box off <body>, so the
+   grid's scrolling box neither offsets nor clips it. It needs a position of
+   its own - the picker library refuses a static parent - and paints
+   nothing; the calendar itself is placed against the viewport by
+   grid_tools.js. Above the bulk bar and the pinned columns. */
+.exm-edit-date-host {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+}
+.exm-edit-date-host .bootstrap-datetimepicker-widget {
+  z-index: 1085;
+}
+
+/* Optimistic UI feedback. `-saving` dims the cell so the user knows the
+   write is in flight; `-saved` flashes green once, then falls off. */
+.table.exm-grid > tbody > tr > td.exm-saving {
+  opacity: .55;
+  pointer-events: none;
+}
+
+.table.exm-grid > tbody > tr > td.exm-saved {
+  animation: exm-cell-flash 1.1s ease-out;
+}
+
+.table.exm-grid > tbody > tr > td.exm-error {
+  box-shadow: inset 0 0 0 2px #c0392b;
+}
+
+/* The write landed but the cell could not be redrawn from the server, so
+   what is on screen is the plain value without its real styling. Amber,
+   not red: nothing was lost, the page just needs a reload. */
+.table.exm-grid > tbody > tr > td.exm-stale {
+  box-shadow: inset 0 0 0 2px #e0a800;
+}
+
+@keyframes exm-cell-flash {
+  from { background-color: #d9f2e0; }
+  to { background-color: transparent; }
+}
+
+
+/* ------------------------------------------------------ context menu --- */
+/* One `<div>` per grid, hidden by default. `grid_tools.js` moves it to
+   the cursor and adds `.show`. The z-index sits above the bulk bar
+   (1020) and below the theme's modals (1050), so clicking a menu item
+   that opens a modal keeps its stacking sensible. */
+/* Menu floats over the cell that was right-clicked. `fixed` positioning
+   ties left/top to the viewport, which is what `clientX/clientY` deliver.
+   `absolute` would have tied the menu to its parent (`.exm-grid-tool`)
+   whose own position depends on the toolbar layout - the menu would drift
+   by however much the toolbar itself is offset. z-index sits above the
+   grid but below the theme's modals so a menu entry that opens a modal
+   still stacks sensibly. */
+.exm-ctxmenu {
+  position: fixed;
+  z-index: 1040;
+  display: none;
+  min-width: 200px;
+  padding: 4px 0;
+  background-color: #fff;
+  border: 1px solid #d7dee6;
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+  font-size: 13px;
+  color: #33475b;
+}
+
+.exm-ctxmenu.show {
+  display: block;
+}
+
+.exm-ctxmenu a {
+  display: block;
+  padding: 5px 14px;
+  color: #33475b;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.exm-ctxmenu a:hover,
+.exm-ctxmenu a:focus {
+  background-color: #eef4fa;
+  color: #33475b;
+  outline: none;
+}
+
+.exm-ctxmenu a .fa {
+  width: 16px;
+  color: #7b8a9a;
+}
+
+/* An entry that does not apply to the cell that was right-clicked - the
+   filter over the checkbox or action column. Shown rather than removed so
+   the menu keeps the same shape wherever it opens, and the user is not
+   left wondering where the entry went. */
+.exm-ctxmenu a.disabled,
+.exm-ctxmenu a.disabled:hover,
+.exm-ctxmenu a.disabled:focus {
+  color: #aeb8c2;
+  background-color: transparent;
+  cursor: default;
+}
+
+.exm-ctxmenu a.disabled .fa {
+  color: #cdd4db;
+}
+
+.exm-ctxmenu a.exm-ctx-danger {
+  color: #c0392b;
+}
+
+.exm-ctxmenu a.exm-ctx-danger:hover {
+  background-color: #fdecea;
+}
+
+.exm-ctxmenu a.exm-ctx-danger .fa {
+  color: #c0392b;
+}
+
+.exm-ctxmenu .exm-ctx-sep {
+  height: 1px;
+  margin: 4px 0;
+  background-color: #eceff3;
+}
+
+/* Row summary at the top of the menu - reads the current row's first
+   two data columns to remind the user which record they right-clicked
+   on. Empty when JS has nothing to fill it with, so the border only
+   shows when the head has real text. */
+.exm-ctxmenu .exm-ctx-head {
+  padding: 4px 14px 6px;
+  font-size: 11.5px;
+  color: #8a97a5;
+  border-bottom: 1px solid #eceff3;
+  margin-bottom: 4px;
+}
+
+.exm-ctxmenu .exm-ctx-head:empty {
+  display: none;
+}
+
+/* ------------------------------------------------- grid toolbar, phone --- */
+/* `.exm-grid-header` is stamped on the grid's own box-header by
+   grid_tools.js (initHeaderFlag) - stock laravel-admin markup has no class
+   to scope a phone layout to, and these rules must never leak into the
+   headers of other admin screens. */
+
+/* A header dropdown is sized by its content: the pin menu lists every
+   column, the view menu every view name. On a phone that is wider than
+   the screen (267px menu on a 375px viewport) and taller than the grid.
+   The width cap pairs with the margin nudge grid_tools.js applies on
+   shown.bs.dropdown; long entries fade out with an ellipsis instead of
+   pushing the menu wide. */
+.exm-grid-header .dropdown-menu {
+  max-width: calc(100vw - 16px);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.exm-grid-header .dropdown-menu > li > a,
+.exm-grid-header .dropdown-menu .dropdown-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 767px) {
+  /* One wrapping flex flow instead of two floats. The floats are what
+     produced the ragged rows: the left block wrapped under itself, the
+     right block centered its own overflow, and every row started at a
+     different x. Flex keeps one gap everywhere and every row starts at
+     the same edge. */
+  .box-header.exm-grid-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* The clearfix pseudo-elements would become flex items - a zero-width
+     column each - and double the first and last gap. */
+  .box-header.exm-grid-header::before,
+  .box-header.exm-grid-header::after {
+    content: none;
+  }
+
+  /* Stop every float in the header, at any depth - laravel-admin wraps
+     the create/export tools in their own nested .pull-right divs, and a
+     right float inside the flex flow stacks its items in REVERSE DOM
+     order (that is where the mirrored second row came from). The grid's
+     own action buttons render unfloated now (gridTool()), so float-end
+     only shows up here when a plugin ships its own floated markup. */
+  .exm-grid-header .pull-left,
+  .exm-grid-header .pull-right,
+  .exm-grid-header .float-end {
+    float: none;
+  }
+
+  /* Dissolve the pure wrapper divs so every button group joins the same
+     flex flow with the same gap. Only wrappers: a .btn-group that
+     carries pull-right itself keeps its box, because dissolving it
+     would split the visually-joined buttons inside. Children keep
+     working as before - a modal inside is position:fixed, a hidden
+     group stays hidden. */
+  .exm-grid-header div.pull-left:not(.btn-group),
+  .exm-grid-header div.pull-right:not(.btn-group) {
+    display: contents;
+  }
+
+  /* The stock header spaces groups with inline `margin-right: 5px`,
+     and .exm-grid-tool carries margin-left for the PC row; both would
+     add to the flex gap and make the spacing uneven. !important is the
+     only thing that outranks an inline style. (.exm-grid-tool is not
+     always a .btn-group - a plugin button is a bare <a>.) */
+  .exm-grid-header .btn-group,
+  .exm-grid-header .exm-grid-tool {
+    margin: 0 !important;
+  }
+
+  /* The quick-search form is empty on a phone (its input is d-md-flex),
+     but the element itself would still sit in the flow as a zero-width
+     flex item and double one gap. */
+  .exm-grid-header form[pjax-container] {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------ cell style presets --- */
+/* The preset picker, its live sample and the preset editor. They live in
+   this file because they draw the very .exm-cell-* shapes defined above -
+   the setting screens show the same chip the grid will show, which is the
+   only honest way to preview one. */
+
+/* Picker and its edit button on one line. The select2 container is width
+   100% inside a table cell, so only a flex row keeps the button beside it
+   instead of under it. */
+.exm-preset-picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.exm-preset-picker-wrap .select2-container {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.exm-preset-open {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  line-height: 1;
+  color: #6b7785;
+}
+
+.exm-preset-open:hover {
+  color: #3c8dbc;
+}
+
+/* The list is read by comparing the chips, so it needs room for one whether
+   or not the control it hangs off has any: the kanban card table gives the
+   picker a fifth of the row. Only the open list is widened - the closed
+   picker stays inside its cell. */
+.exm-preset-dropdown {
+  min-width: 230px;
+}
+
+/* One row of the dropdown: the preset drawn in its own style on the left,
+   the pencil parked on the right. */
+.exm-preset-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 22px;
+}
+
+.exm-preset-option > .exm-cell-bar {
+  min-width: 90px;
+  max-width: 140px;
+}
+
+.exm-preset-edit {
+  margin-left: auto;
+  padding: 2px 4px;
+  opacity: .55;
+  cursor: pointer;
+}
+
+.exm-preset-edit:hover {
+  opacity: 1;
+  color: #3c8dbc;
+}
+
+/* The selected value shows the same chip, so the closed picker still says
+   what the column will look like. */
+.select2-selection__rendered .exm-preset-option .exm-preset-edit {
+  display: none;
+}
+
+/* select2 writes the value and the clear button into one block, and this
+   theme lays that button out as a block of its own. A chip is a box, not a
+   run of text, so it starts a second line there and drops out of the
+   control - laying the closed picker out as a row is what puts it back on
+   the line the value belongs on. The selectors carry the container class
+   only to outrank the theme, which sets these same properties. */
+.exm-preset-picker-wrap .select2-container .select2-selection {
+  display: flex;
+  align-items: center;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* The -2px the theme nudges the text by is measured for a line of text and
+   leaves a chip sitting high. */
+.exm-preset-picker-wrap .select2-container .select2-selection .select2-selection__rendered {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-top: 0;
+}
+
+/* The clear button keeps the place the theme gave it: the right end, in
+   front of the arrow. */
+.exm-preset-picker-wrap .select2-selection__rendered > .select2-selection__clear {
+  order: 2;
+  margin-left: auto;
+  line-height: 1;
+}
+
+/* Full width is what a row of the dropdown wants; in the closed picker it
+   would push the clear button out of the control. */
+.exm-preset-picker-wrap .select2-selection__rendered > .exm-preset-option {
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------ preview --- */
+.exm-cellstyle-preview {
+  padding: 10px 12px;
+  border: 1px solid #e1e6ea;
+  border-radius: 4px;
+  background-color: #fff;
+  background-image: linear-gradient(45deg, #fafbfc 25%, transparent 25%, transparent 75%, #fafbfc 75%),
+    linear-gradient(45deg, #fafbfc 25%, transparent 25%, transparent 75%, #fafbfc 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+/* Samples sit in a column, one per value, the way rows of a list do -
+   comparing two badges side by side says nothing about a list. */
+.exm-cellstyle-preview-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 26px;
+}
+
+.exm-cellstyle-preview-note {
+  margin-top: 8px;
+  color: #8b95a1;
+  font-size: 11.5px;
+}
+
+/* --------------------------------------------------------- preset modal --- */
+.exm-preset-row {
+  margin-bottom: 12px;
+}
+
+.exm-preset-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #4a5562;
+}
+
+.exm-preset-hint {
+  margin-top: 4px;
+  color: #8b95a1;
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.exm-preset-color {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exm-preset-color .exm-preset-color-swatch {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  border: 1px solid #e1e6ea;
+  border-radius: 3px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.exm-preset-color .exm-preset-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.exm-preset-color-clear {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  line-height: 1.2;
+}
+
+.exm-preset-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exm-preset-check label {
+  margin: 0;
+  font-weight: 400;
+}
+
+/* The column type list is long; a scrolling box keeps the editor the size
+   of a modal instead of the size of the enum. */
+.exm-preset-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  max-height: 210px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid #e1e6ea;
+  border-radius: 4px;
+}
+
+/* One per line. Two columns fit more types on screen but cut the labels,
+   and three of them start with the same word - a truncated list would make
+   the select types impossible to tell apart. */
+.exm-preset-type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+/* The editor is taller than the modal body on a laptop screen, and the two
+   save buttons are the whole point of it - they stay on screen instead of
+   waiting at the bottom of a scroll nobody knows is there. */
+.exm-preset-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 12px 0 4px;
+  border-top: 1px solid #eef1f4;
+  background-color: #fff;
+}
+
+.exm-preset-actions-right {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Second click confirms; the colour change is the only warning there is. */
+.exm-preset-delete.exm-preset-confirming {
+  background-color: #922b21;
+  border-color: #922b21;
+}
+
+.exm-preset-note {
+  margin-top: 8px;
+  color: #8b95a1;
+  font-size: 11.5px;
+}
+
+/* The "paint the whole cell" style has no wrapper in the grid - the <td>
+   itself is coloured - so its sample has to look like a cell instead of
+   like a chip. */
+.exm-cellstyle-sample-cell {
+  display: inline-block;
+  min-width: 120px;
+  padding: 4px 10px;
+  border: 1px solid #e1e6ea;
+  border-radius: 2px;
+}
+
+/* Only the progress bar needs a name beside it; every other shape prints
+   the preset name as its own text. */
+.exm-preset-option-name {
+  flex: 0 0 auto;
+}
+
+/* -------------------------------------------------------- icon picker --- */
+
+/* The field, a button showing what is set now, and a grid of icons that
+   opens under them. */
+.exm-iconpick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.exm-iconpick > input[type="text"] {
+  width: 130px;
+  flex: 0 0 auto;
+}
+
+.exm-iconpick-toggle,
+.exm-iconpick-clear {
+  width: 34px;
+  padding: 5px 0;
+  line-height: 1.4;
+}
+
+/* Nothing set yet - the dots stand for "pick one" without pretending to be
+   an icon somebody chose. */
+.exm-iconpick-none {
+  opacity: 0.35;
+}
+
+.exm-iconpick-panel {
+  flex: 1 0 100%;
+  /* Eight to a row: wide enough to scan, narrow enough that it reads as a
+     menu belonging to the field rather than a band across the form. */
+  max-width: 330px;
+  max-height: 210px;
+  margin-top: 4px;
+  padding: 6px;
+  border: 1px solid #d2d6de;
+  border-radius: 3px;
+  background-color: #fff;
+  overflow-y: auto;
+}
+
+.exm-iconpick-item {
+  width: 32px;
+  height: 30px;
+  padding: 0;
+  margin: 0 3px 3px 0;
+  line-height: 1;
+}
+
+.exm-iconpick-item.active {
+  border-color: #3c8dbc;
+  background-color: #eaf3fa;
+}
+
+/* ------------------------------------------------ per-value color table --- */
+
+/* Replaces the raw "key,#hex" textarea: one row per choice of the column,
+   a color beside each name. Kept visually light - it sits inside a form
+   the rest of which is plain labels and fields. */
+.exm-vc-table {
+  border-collapse: collapse;
+  margin-bottom: 6px;
+}
+
+.exm-vc-table th {
+  padding: 2px 10px 4px 0;
+  color: #8b95a1;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.exm-vc-table td {
+  padding: 3px 10px 3px 0;
+  vertical-align: middle;
+}
+
+.exm-vc-keytext {
+  display: inline-block;
+  min-width: 70px;
+  font-family: Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.exm-vc-label {
+  color: #666;
+}
+
+/* The value typed into the row beside it is not one of the column's
+   choices, so there is no name to show. */
+.exm-vc-label-missing {
+  color: #a0a7b0;
+  font-style: italic;
+}
+
+.exm-vc-colorcell {
+  white-space: nowrap;
+}
+
+/* The swatch is a way of typing into the text field, which stays the
+   value - a native color input cannot say "no color at all". */
+.exm-vc-swatch {
+  width: 30px;
+  height: 26px;
+  padding: 0 2px;
+  border: 1px solid #d2d6de;
+  border-radius: 3px;
+  margin-right: 5px;
+  background: #fff;
+  vertical-align: middle;
+}
+
+.exm-vc-hex {
+  display: inline-block;
+  width: 92px;
+  vertical-align: middle;
+}
+
+.exm-vc-key {
+  width: 110px;
+}
+
+.exm-vc-actions .btn {
+  line-height: 1.2;
+}
+
+.exm-vc-add {
+  margin-bottom: 4px;
+}

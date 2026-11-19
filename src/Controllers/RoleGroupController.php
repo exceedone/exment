@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Widgets\Form;
-use Encore\Admin\Grid;
+use ExmentAdminCore\Admin\Widgets\Form;
+use ExmentAdminCore\Admin\Grid;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
@@ -20,11 +20,11 @@ use Exceedone\Exment\Enums\RoleGroupType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Tools;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Grid\Linker;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Auth\Permission as Checker;
-use Encore\Admin\Form as AdminForm;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Grid\Linker;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Auth\Permission as Checker;
+use ExmentAdminCore\Admin\Form as AdminForm;
 use Exceedone\Exment\Services\DataImportExport;
 
 class RoleGroupController extends AdminControllerBase
@@ -44,17 +44,29 @@ class RoleGroupController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new RoleGroup());
+
+        // Count only users / organizations which are not deleted.
+        // role_group_user_organizations rows are kept until the target is deleted permanently,
+        // so counting the relation rows as-is would include soft-deleted users / organizations.
+        $withCount = [
+            'role_group_users as role_group_users_count' => function ($query) {
+                $query->whereTargetNotDeleted(SystemTableName::USER);
+            },
+        ];
+        if (System::organization_available()) {
+            $withCount['role_group_organizations as role_group_organizations_count'] = function ($query) {
+                $query->whereTargetNotDeleted(SystemTableName::ORGANIZATION);
+            };
+        }
+        $grid->model()->withCount($withCount);
+
         $grid->column('role_group_name', exmtrans('role_group.role_group_name'));
         $grid->column('role_group_view_name', exmtrans('role_group.role_group_view_name'));
         $grid->column('role_group_order', exmtrans('role_group.role_group_order'))->sortable()->editable();
-        $grid->column('role_group_users', exmtrans('role_group.users_count'))->display(function ($counts) {
-            return is_null($counts) ? null : count($counts);
-        });
+        $grid->column('role_group_users_count', exmtrans('role_group.users_count'));
 
         if (System::organization_available()) {
-            $grid->column('role_group_organizations', exmtrans('role_group.organizations_count'))->display(function ($counts) {
-                return is_null($counts) ? null : count($counts);
-            });
+            $grid->column('role_group_organizations_count', exmtrans('role_group.organizations_count'));
         }
 
         // check has ROLE_GROUP_ALL
@@ -134,9 +146,9 @@ class RoleGroupController extends AdminControllerBase
      */
     public function create(Request $request, Content $content)
     {
-        $isRolePermissionPage = $request->get('form_type') != 2;
-        $form = $isRolePermissionPage ? $this->form() : $this->formUserOrganization();
-        // @phpstan-ignore-next-line
+        // user/organization assignment screen requires an existing role group; force role-permission form on create
+        $isRolePermissionPage = true;
+        $form = $this->form();
         $box = new Box(trans('admin.create'), $form);
         $this->appendTools($box, null, $isRolePermissionPage);
         return $this->AdminContent($content)->body($box);
@@ -778,7 +790,6 @@ class RoleGroupController extends AdminControllerBase
         try {
             collect(explode(',', $id))->filter()->each(function ($id) {
                 $model = RoleGroup::findOrFail($id);
-                // @phpstan-ignore-next-line
                 $model->delete();
             });
 
@@ -837,7 +848,6 @@ class RoleGroupController extends AdminControllerBase
         
         if ($service->format() == 'csv') {
             $file = $request->file('custom_table_file');
-            // @phpstan-ignore-next-line
             $file_name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $service->filebasename($file_name);
         }

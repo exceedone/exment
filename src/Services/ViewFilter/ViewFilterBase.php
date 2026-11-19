@@ -259,7 +259,8 @@ abstract class ViewFilterBase
             return false;
         }
 
-        return ColumnType::isCalc($custom_column->column_type);
+        return ColumnType::isCalc($custom_column->column_type)
+            || in_array($custom_column->column_type, [ColumnType::YESNO, ColumnType::BOOLEAN]);
     }
 
 

@@ -1,0 +1,251 @@
+<?php
+
+namespace Exceedone\Exment\Tests\Unit\Meili;
+
+use Exceedone\Exment\Model\MeiliSavedSearch;
+use Exceedone\Exment\Services\Meili\SavedSearchService;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Saved Search: whitelist the filter on save, sanitize against metadata on apply
+ * (deleted column/table won't break it), and visibility rules by share scope.
+ */
+class SavedSearchTest extends TestCase
+{
+    // ---- filtersFromInput (whitelist on save) ----
+
+    public function testFiltersFromInputWhitelistsAndDropsJunk(): void
+    {
+        $out = SavedSearchService::filtersFromInput([
+            'tables' => ['a', '', 'b'],
+            'users' => [1, 2],
+            'facets' => ['status=open'],
+            'date_from' => '2026-01-01',
+            'date_to' => '',
+            // A range key must be "n_<table>::<column>" - the shape the search
+            // screen accepts; the other two can never match a field.
+            'range' => [
+                'n_sales::price' => ['from' => '10', 'to' => ''],
+                'n_price' => ['from' => '1', 'to' => '2'],
+                'bad' => 'x',
+            ],
+            'query' => 'keyword',      // not part of filters
+            'page' => 3,               // dropped
+            '_token' => 'abc',         // dropped
+        ]);
+
+        $this->assertSame(['a', 'b'], $out['tables']);
+        $this->assertSame(['1', '2'], $out['users']);
+        $this->assertSame(['status=open'], $out['facets']);
+        $this->assertSame('2026-01-01', $out['date_from']);
+        $this->assertArrayNotHasKey('date_to', $out);
+        $this->assertSame(['from' => '10'], $out['range']['n_sales::price']);
+        $this->assertArrayNotHasKey('n_price', $out['range']);
+        $this->assertArrayNotHasKey('bad', $out['range']);
+        $this->assertArrayNotHasKey('query', $out);
+        $this->assertArrayNotHasKey('page', $out);
+        $this->assertArrayNotHasKey('_token', $out);
+    }
+
+    /**
+     * One request must not decide how big a stored row is: a shared row is read
+     * back on every search screen, so each repeatable list is capped.
+     */
+    public function testFiltersFromInputCapsWhatOneRequestCanStore(): void
+    {
+        $many = 5 * SavedSearchService::MAX_LIST_ITEMS;
+        $out = SavedSearchService::filtersFromInput([
+            'tables' => array_map(fn ($i) => "t$i", range(1, $many)),
+            'users' => array_map(fn ($i) => (string) $i, range(1, $many)),
+            'facets' => array_map(fn ($i) => "c=v$i", range(1, $many)),
+            'range' => array_combine(
+                array_map(fn ($i) => "n_t$i::c", range(1, $many)),
+                array_fill(0, $many, ['from' => '1', 'to' => '2'])
+            ),
+        ]);
+
+        $this->assertCount(SavedSearchService::MAX_LIST_ITEMS, $out['tables']);
+        $this->assertCount(SavedSearchService::MAX_LIST_ITEMS, $out['users']);
+        $this->assertCount(SavedSearchService::MAX_LIST_ITEMS, $out['facets']);
+        $this->assertCount(SavedSearchService::MAX_LIST_ITEMS, $out['range']);
+        $this->assertTrue(SavedSearchService::withinSizeLimit($out));
+    }
+
+    /** An over-long value is dropped: truncated, it would match nothing anyway. */
+    public function testFiltersFromInputDropsOverlongValues(): void
+    {
+        $long = str_repeat('x', SavedSearchService::MAX_VALUE_LENGTH + 1);
+        $out = SavedSearchService::filtersFromInput([
+            'tables' => ['keiyaku', $long],
+            'date_from' => $long,
+        ]);
+
+        $this->assertSame(['keiyaku'], $out['tables']);
+        $this->assertArrayNotHasKey('date_from', $out);
+    }
+
+    public function testWithinSizeLimitRejectsAnOversizedFilterSet(): void
+    {
+        $this->assertFalse(SavedSearchService::withinSizeLimit([
+            'date_from' => str_repeat('x', SavedSearchService::MAX_FILTERS_BYTES + 1),
+        ]));
+    }
+
+    // ---- sanitizeWith (re-apply against current metadata) ----
+
+    /**
+     * @return array<string,array<int,int|string>>
+     */
+    private function ctx(): array
+    {
+        return [
+            'tables' => ['contract', 'customer'],
+            'facet_columns' => ['status'],
+            'range_fields' => ['n_price'],
+            'user_ids' => [1, 2],
+        ];
+    }
+
+    public function testSanitizeKeepsValidFilters(): void
+    {
+        $stored = [
+            'tables' => ['contract'],
+            'date_from' => '2026-01-01',
+            'users' => ['2'],
+            'facets' => ['status=open'],
+            'range' => ['n_price' => ['from' => '10', 'to' => '99']],
+        ];
+
+        $out = SavedSearchService::sanitizeWith($stored, $this->ctx());
+
+        $this->assertSame([], $out['dropped']);
+        $this->assertSame(['contract'], $out['params']['tables']);
+        $this->assertSame('2026-01-01', $out['params']['date_from']);
+        $this->assertSame([2], $out['params']['users']);
+        $this->assertSame(['status=open'], $out['params']['facets']);
+        $this->assertSame(['from' => '10', 'to' => '99'], $out['params']['range']['n_price']);
+    }
+
+    public function testSanitizeDropsDeletedTableColumnUserRange(): void
+    {
+        $stored = [
+            'tables' => ['contract', 'deleted_table'],
+            'users' => [1, 999],
+            'facets' => ['status=open', 'renamed_col=x'],
+            'range' => ['n_price' => ['from' => '1'], 'n_gone' => ['to' => '9']],
+            'date_from' => 'not-a-date',
+        ];
+
+        $out = SavedSearchService::sanitizeWith($stored, $this->ctx());
+
+        $this->assertSame(['contract'], $out['params']['tables']);
+        $this->assertSame([1], $out['params']['users']);
+        $this->assertSame(['status=open'], $out['params']['facets']);
+        $this->assertArrayHasKey('n_price', $out['params']['range']);
+        $this->assertArrayNotHasKey('n_gone', $out['params']['range']);
+        $this->assertArrayNotHasKey('date_from', $out['params']);
+        $this->assertEqualsCanonicalizing(
+            ['table:deleted_table', 'user:999', 'facet:renamed_col=x', 'range:n_gone', 'date_from:not-a-date'],
+            $out['dropped']
+        );
+    }
+
+    /**
+     * The facet prefix shapes that reach sanitizeWith after the tokens became
+     * table-qualified: "table::column" and a bare alias are both legitimate,
+     * a bare column_name is a pre-qualification leftover.
+     *
+     * existingColumnNames() decides which of these lands in facet_columns;
+     * this pins down what sanitizeWith must then do with each, so a regression
+     * there shows up as a failing test rather than as a saved search that
+     * silently returns nothing.
+     */
+    public function testSanitizeKeepsQualifiedAndAliasFacetsDropsBareOnes(): void
+    {
+        $stored = [
+            'facets' => [
+                'meili_contract::status=review',  // qualified, still configured
+                'territory=north',                // alias, still configured
+                'status=review',                  // bare -> stale, must go
+            ],
+        ];
+
+        $out = SavedSearchService::sanitizeWith($stored, [
+            'tables' => [],
+            // what existingColumnNames() returns for the tokens above
+            'facet_columns' => ['meili_contract::status', 'territory'],
+            'range_fields' => [],
+            'user_ids' => [],
+        ]);
+
+        $this->assertSame(
+            ['meili_contract::status=review', 'territory=north'],
+            $out['params']['facets']
+        );
+        $this->assertSame(['facet:status=review'], $out['dropped']);
+    }
+
+    public function testSanitizeEmptyStored(): void
+    {
+        $out = SavedSearchService::sanitizeWith([], $this->ctx());
+
+        $this->assertSame([], $out['params']);
+        $this->assertSame([], $out['dropped']);
+    }
+
+    // ---- visibleToUser (share rules) ----
+
+    /**
+     * A saved-search row as a plain object, so the share rules can be exercised
+     * without touching the database.
+     *
+     * @param array<int,int> $shareTargets
+     * @return object{owner_user_id:int,share_type:?string,share_targets:array<int,int>}
+     */
+    private function record(?string $shareType, array $shareTargets = [], int $ownerUserId = 10): object
+    {
+        return (object) [
+            'owner_user_id' => $ownerUserId,
+            'share_type' => $shareType,
+            'share_targets' => $shareTargets,
+        ];
+    }
+
+    public function testOwnerAlwaysSees(): void
+    {
+        $r = $this->record(MeiliSavedSearch::SHARE_PERSONAL);
+
+        $this->assertTrue(MeiliSavedSearch::visibleToUser($r, 10, [], []));
+        $this->assertFalse(MeiliSavedSearch::visibleToUser($r, 11, [], []));
+    }
+
+    public function testShareAll(): void
+    {
+        $r = $this->record(MeiliSavedSearch::SHARE_ALL);
+
+        $this->assertTrue(MeiliSavedSearch::visibleToUser($r, 999, [], []));
+    }
+
+    public function testShareRoleGroupRequiresMembership(): void
+    {
+        $r = $this->record(MeiliSavedSearch::SHARE_ROLE_GROUP, [5, 6]);
+
+        $this->assertTrue(MeiliSavedSearch::visibleToUser($r, 999, [6], []));
+        $this->assertFalse(MeiliSavedSearch::visibleToUser($r, 999, [7], []));
+    }
+
+    public function testShareOrganizationRequiresMembership(): void
+    {
+        $r = $this->record(MeiliSavedSearch::SHARE_ORGANIZATION, [3]);
+
+        $this->assertTrue(MeiliSavedSearch::visibleToUser($r, 999, [], [3]));
+        $this->assertFalse(MeiliSavedSearch::visibleToUser($r, 999, [], [4]));
+    }
+
+    public function testUnknownShareTypeIsPrivate(): void
+    {
+        $r = $this->record('weird');
+
+        $this->assertFalse(MeiliSavedSearch::visibleToUser($r, 999, [1], [1]));
+    }
+}

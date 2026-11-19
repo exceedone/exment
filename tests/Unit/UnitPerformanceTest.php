@@ -57,7 +57,8 @@ class UnitPerformanceTest extends TestCase
         //     });
         // }
 
-        $this->assertTrue(true);
+        // the measurement above is switched off: nothing to check
+        $this->expectNotToPerformAssertions();
     }
 
     /**
@@ -127,7 +128,8 @@ class UnitPerformanceTest extends TestCase
         //     });
         // }
 
-        $this->assertTrue(true);
+        // the measurement above is switched off: nothing to check
+        $this->expectNotToPerformAssertions();
     }
 
     /**

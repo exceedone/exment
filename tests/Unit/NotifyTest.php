@@ -501,7 +501,7 @@ class NotifyTest extends UnitTestBase
             $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
 
             foreach ($users as $user) {
-                $this->assertTrue(collect($targets)->contains(function ($target) use ($user) {
+                $this->assertTrue($targets->contains(function ($target) use ($user) {
                     return isMatchString($user->email(), $target->email());
                 }));
             }
@@ -573,12 +573,12 @@ class NotifyTest extends UnitTestBase
             $users = $org->users;
 
             foreach ($users as $user) {
-                $this->assertTrue(collect($targets)->contains(function ($target) use ($user) {
+                $this->assertTrue($targets->contains(function ($target) use ($user) {
                     return isMatchString($user->getValue('email'), $target->email());
                 }));
             }
             foreach ($targets as $target) {
-                $this->assertTrue(collect($users)->contains(function ($user) use ($target) {
+                $this->assertTrue($users->contains(function ($user) use ($target) {
                     return isMatchString($user->getValue('email'), $target->email());
                 }));
             }
@@ -647,7 +647,7 @@ class NotifyTest extends UnitTestBase
             $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
 
             foreach ($users as $user) {
-                $this->assertTrue(collect($targets)->contains(function ($target) use ($user) {
+                $this->assertTrue($targets->contains(function ($target) use ($user) {
                     return isMatchString($user->email(), $target->email());
                 }));
             }

@@ -1,0 +1,48 @@
+[
+    {
+        "id": "20260811085800.550",
+        "code": 551,
+        "time": "2026/08/11 09:00:00",
+        "earthquake": {
+            "time": "2026/08/11 08:58:00",
+            "maxScale": 45,
+            "hypocenter": {
+                "name": "千葉県北西部",
+                "magnitude": 5.3
+            }
+        },
+        "points": [
+            {"pref": "千葉県", "addr": "千葉市中央区", "scale": 45},
+            {"pref": "東京都", "addr": "新宿区", "scale": 40}
+        ]
+    },
+    {
+        "id": "20260811091500.551",
+        "code": 551,
+        "time": "2026/08/11 09:17:00",
+        "earthquake": {
+            "time": "2026/08/11 09:15:00",
+            "maxScale": 30,
+            "hypocenter": {
+                "name": "大阪府北部",
+                "magnitude": 4.1
+            }
+        },
+        "points": [
+            {"pref": "大阪府", "addr": "大阪市北区", "scale": 30}
+        ]
+    },
+    {
+        "id": "20260811093000.552",
+        "code": 551,
+        "time": "2026/08/11 09:32:00",
+        "earthquake": {
+            "time": "2026/08/11 09:30:00",
+            "maxScale": 40,
+            "hypocenter": {
+                "name": "茨城県沖",
+                "magnitude": 4.5
+            }
+        }
+    }
+]

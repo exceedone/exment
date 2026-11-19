@@ -7,14 +7,17 @@ use Exceedone\Exment\Services\Plugin\PluginBatchBase;
 class Plugin extends PluginBatchBase
 {
     /**
-     * execute
+     * Call the static functions this plugin defines in its own classes.
+     * Answering false fails the batch (exit code 1), which the test checks.
      *
-     * @return void
+     * @return false|null
      */
     public function execute()
     {
         // call test static funciton
-        StaticFunction::testPluginStaticFunction();
-        Dir1\StaticFunction::testPluginStaticFunctionDir1();
+        if (!StaticFunction::testPluginStaticFunction() || !Dir1\StaticFunction::testPluginStaticFunctionDir1()) {
+            return false;
+        }
+        return null;
     }
 }

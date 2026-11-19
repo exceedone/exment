@@ -5,7 +5,7 @@ namespace App\Plugins\TestPluginStaticFunction\Dir1;
 class StaticFunction
 {
     /**
-     * @return true
+     * @return bool
      */
     public static function testPluginStaticFunctionDir1()
     {

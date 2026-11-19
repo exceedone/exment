@@ -4,13 +4,13 @@ namespace Exceedone\Exment\Services\Plugin;
 
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Encore\Admin\Widgets\Grid\Grid;
-use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Widgets\Grid\Grid;
+use ExmentAdminCore\Admin\Widgets\Form;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
-
+// use ExmentAdminCore\Admin\Form;
 /**
  * Plugin CRUD(and List)
  */
@@ -144,8 +144,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return Form|null
      */
-    // @phpstan-ignore-next-line
-    public function setForm(Form $form, bool $isCreate, array $options = []): ?Form
+    public function setForm(Form $form, bool $isCreate, array $options = []) : ?Form
     {
         return null;
     }

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
-use Encore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Enums\PluginType;
@@ -364,13 +364,8 @@ class PluginTest extends FeatureTestBase
      */
     public function testBatchError()
     {
-        try {
-            \Artisan::call('exment:batch', ['--name' => 'TestPluginError']);
-            $this->assertTrue(false, 'This batch excepts error, but not throw exception.');
-        } catch (\Exception $ex) {
-            $this->assertTrue(true);
-        } catch (\Throwable $ex) {
-            $this->assertTrue(true);
-        }
+        // TestPluginError divides by zero: the error has to reach the caller
+        $this->expectException(\DivisionByZeroError::class);
+        \Artisan::call('exment:batch', ['--name' => 'TestPluginError']);
     }
 }

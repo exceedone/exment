@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field\Checkbox;
+use ExmentAdminCore\Admin\Form\Field\Checkbox;
 
 class CheckboxTable extends Checkbox
 {
