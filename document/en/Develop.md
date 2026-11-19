@@ -235,10 +235,10 @@ GitHub brunch is operated as follows.
 > | `6.2` | Maintenance of 6.2.x (security fixes only, until 2027-03-31) | Not directly. Label `backport-6.2` |
 >
 > **How a release is made**
-> 1. Merge into `master` **only what can ship in the next version**. Unfinished or large work (e.g. Laravel 13) grows in a feature branch (`feature/XXX`) and is merged once its version is decided. Work that is in but should not show yet goes behind a setting that is **off by default**
-> 2. Two or three days before the release, cut the version branch (e.g. `7.2`) from `master` and freeze it: only fixes go there. `master` goes on with the next version
-> 3. Tag the release (e.g. `v7.2.0`) on the version branch. The version branch then keeps maintenance
-> 4. If something that should not ship is in, `git revert` it on the version branch (it stays in `master` and ships in the next version)
+> 1. Merge into `master` **only what can ship in the next version**. **Do not merge a pull request that should not ship until the release is out.** Unfinished or large work (e.g. Laravel 13) grows in a feature branch (`feature/XXX`). Work that is in but should not show yet goes behind a setting that is **off by default**
+> 2. On the release day, tag the release (e.g. `v7.2.0`) on `master`
+> 3. **The version branch (e.g. `7.2`) is made when the tag is made, at the tag** (`git push origin v7.2.0^{commit}:refs/heads/7.2`), not before. It then keeps 7.2.x maintenance
+> 4. If something already in `master` should not ship, `git revert` it on `master` before tagging (and bring it back after the release)
 > 5. Fixes after the release go to `master` with a `backport-7.x` label; the maintainers cherry-pick them into the version branch and release 7.x.y
 >
 > Security fixes are not handled in public issues or pull requests; see [SECURITY.md](../../SECURITY.md).
