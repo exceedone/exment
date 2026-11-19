@@ -510,6 +510,14 @@ body[class*="skin-"] .main-header li.user-header > p > small {
   color: var(--exm-ui-text);
 }
 
+/* The lower part of the user menu (LINE, setting, logout): gray, so the
+   white buttons stand out from it. */
+body[class*="skin-"] .main-header li.user-body,
+body[class*="skin-"] .main-header li.user-footer {
+  background-color: var(--exm-ui-bg-sub);
+  border-top: 1px solid var(--exm-ui-line);
+}
+
 /* On a phone the skins paint the navbar dropdowns in the skin color with
    white text. Bring the text back so it is readable on white. */
 @media (max-width: 767px) {
