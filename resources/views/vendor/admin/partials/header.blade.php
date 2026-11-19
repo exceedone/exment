@@ -43,6 +43,11 @@
                                 <small>{!! Admin::user()->getHeaderInfo() !!}</small>
                             </p>
                         </li>
+                        @if(\Exceedone\Exment\Services\Line\LineInstaller::linkAvailable())
+                        <li class="user-body">
+                            <a href="{{ admin_url('line/link') }}" class="btn btn-default btn-flat btn-block"><i class="fa fa-comments"></i> {{ exmtrans('line.link_menu_title') }}</a>
+                        </li>
+                        @endif
                         <li class="user-footer">
                             @if(Admin::user()->visible('auth/setting'))
                             <div class="pull-left">
