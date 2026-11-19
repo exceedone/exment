@@ -1574,6 +1574,99 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * Whether the table of this data takes comments (the table setting "comment_flg").
+     *
+     * @return bool
+     */
+    public function isCommentEnabled(): bool
+    {
+        return boolval($this->custom_table->getOption('comment_flg') ?? true);
+    }
+
+    /**
+     * Get the comments of this data, oldest first.
+     *
+     * @param array<string, mixed> $options count: rows per page, paginate: whether to paginate
+     * @return \Illuminate\Database\Eloquent\Collection|AbstractPaginator
+     */
+    // @phpstan-ignore-next-line
+    public function getComments($options = [])
+    {
+        $options = array_merge(
+            [
+                'count' => 20,
+                'paginate' => false,
+            ],
+            $options
+        );
+        $query = getModelName(SystemTableName::COMMENT)::where('parent_id', $this->id)
+            ->where('parent_type', $this->custom_table_name)
+            ->orderBy('id')
+        ;
+
+        if ($options['paginate']) {
+            return $query->paginate($options['count']);
+        }
+        return $query->get();
+    }
+
+    /**
+     * Add a comment to this data and notify (NotifySavedType::COMMENT).
+     * The screen and the API both come here, so both save and notify the same way.
+     *
+     * @param string $comment
+     * @return CustomValue the saved comment
+     */
+    public function addComment($comment)
+    {
+        $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
+        $model->parent_id = $this->id;
+        $model->parent_type = $this->custom_table_name;
+        $model->setValue([
+            'comment_detail' => $comment,
+        ]);
+        $model->save();
+
+        // execute notify
+        foreach ($this->custom_table->notifies as $notify) {
+            $notify->notifyCreateUpdateUser($this, NotifySavedType::COMMENT, ['comment' => $comment]);
+        }
+
+        return $model;
+    }
+
+    /**
+     * Delete a comment of this data. Only the user who wrote it, or a system administrator, can.
+     * The screen and the API both come here.
+     *
+     * @param string $suuid suuid of the comment
+     * @return true|ErrorCode true: deleted, DATA_NOT_FOUND: this data has no such comment, PERMISSION_DENY: written by another user
+     */
+    public function deleteComment($suuid)
+    {
+        if (is_nullorempty($suuid)) {
+            return ErrorCode::DATA_NOT_FOUND();
+        }
+
+        $comment = getModelName(SystemTableName::COMMENT)::where('suuid', $suuid)
+            ->where('parent_id', $this->id)
+            ->where('parent_type', $this->custom_table_name)
+            ->first();
+        if (!isset($comment)) {
+            return ErrorCode::DATA_NOT_FOUND();
+        }
+
+        $login_user = \Exment::user();
+        $isAuthor = isset($login_user) && isMatchString($comment->created_user_id, \Exment::getUserId());
+        if (!$isAuthor && !(isset($login_user) && $login_user->isAdministrator())) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        $comment->delete();
+        return true;
+    }
+
+    /**
      * get target custom_value's relation search url
      */
 

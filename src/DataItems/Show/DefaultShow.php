@@ -738,12 +738,14 @@ EOT;
         $form->setWidth(10, 2);
 
         if (count($comments) > 0) {
+            $login_user = \Exment::user();
+            $isAdministrator = isset($login_user) && $login_user->isAdministrator();
             $html = [];
             foreach ($comments as $index => $comment) {
                 $html[] = "<div class='commentline'>" . view('exment::form.field.commentline', [
                     'comment' => $comment,
                     'table_name' => $this->custom_table->table_name,
-                    'isAbleRemove' => ($comment->created_user_id == \Exment::getUserId()),
+                    'isAbleRemove' => ($comment->created_user_id == \Exment::getUserId() || $isAdministrator),
                     'deleteUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'deletecomment', $comment->suuid),
                 ])->render() . "</div>";
             }
@@ -929,23 +931,19 @@ EOT;
     // @phpstan-ignore-next-line
     public function addComment($comment)
     {
-        if (!empty($comment)) {
-            // save Comment Model
-            $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
-            $model->parent_id = $this->custom_value->id;
-            $model->parent_type = $this->custom_table->table_name;
-            $model->setValue([
-                'comment_detail' => $comment,
-            ]);
-            $model->save();
+        $url = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id);
 
-            // execute notify
-            foreach ($this->custom_table->notifies as $notify) {
-                $notify->notifyCreateUpdateUser($this->custom_value, NotifySavedType::COMMENT, ['comment' => $comment]);
-            }
+        // a table set not to use comments has no comment box: refuse a request made by hand
+        if (!$this->custom_value->isCommentEnabled()) {
+            admin_toastr(ErrorCode::FORM_ACTION_DISABLED()->getMessage(), 'error');
+            return redirect($url);
         }
 
-        $url = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id);
+        if (!empty($comment)) {
+            // save Comment Model and notify. The API (ApiDataController) shares this.
+            $this->custom_value->addComment($comment);
+        }
+
         admin_toastr(trans('admin.save_succeeded'));
         return redirect($url);
     }
@@ -957,14 +955,16 @@ EOT;
     // @phpstan-ignore-next-line
     public function deleteComment($id, $suuid)
     {
-        if (!empty($suuid)) {
-            // save Comment Model
-            CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel()
-                ->where('suuid', $suuid)
-                ->where('parent_id', $id)
-                ->where('parent_type', $this->custom_table->table_name)
-                ->delete();
+        // The API (ApiDataController) shares this. The trash icon is only shown to the user
+        // who wrote the comment, and the model refuses the others also when asked by hand.
+        $result = $this->custom_value->deleteComment($suuid);
+        if ($result instanceof ErrorCode && $result == ErrorCode::PERMISSION_DENY) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => trans('admin.deny'),
+            ]);
         }
+
         return getAjaxResponse([
             'result' => true,
             'toastr' => trans('admin.delete_succeeded'),
