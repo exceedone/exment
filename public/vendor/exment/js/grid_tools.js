@@ -4562,4 +4562,27 @@
       });
   }
   bindPjaxHooks();
+
+  // A grid with "lazy rows" (the table option lazy_grid_enabled) is drawn
+  // first with an empty body; its rows come a moment later and are put in
+  // by open-admin.js, which then fires `admin:lazy-grid:loaded` on the
+  // tbody. initAll() ran before that, on a body without rows, so the rows
+  // that arrive have to be dressed here: without it the modern design
+  // leaves the action cell at the end of every row while the header has
+  // it on the left (the columns no longer line up), and the pins, the
+  // density, the grouping, the page filter, the inline edit and the
+  // keyboard mode miss the new rows.
+  // Only the passes that work on rows run again. initBulk, initColModal
+  // and initRefresh work on the toolbar, which the rows do not change,
+  // and initBulk must not run twice (see initAllQueued).
+  function initLazyRows() {
+    initDensity();
+    initActionsSide();
+    initGroup();
+    initPin();
+    initFilter();
+    initInline();
+    initKeyboard();
+  }
+  document.addEventListener('admin:lazy-grid:loaded', initLazyRows);
 })();
