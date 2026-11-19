@@ -107,6 +107,52 @@ class CommentMarkdownTest extends FeatureTestBase
         $this->assertSame('', CommentMarkdown::toHtml(''));
     }
 
+    public function testACommentWrittenBeforeMarkdownCameIsShownAsItWas(): void
+    {
+        $custom_value = $this->createValue();
+        $text = "金額は 100*2*3 です
+# 見出しではない
++ 追加
+本文
+---
+<b>tag</b>";
+        $old = $this->addComment($custom_value, $text);
+        $new = $this->addComment($custom_value, $text);
+
+        // Markdown comments came between the two
+        $comments = getModelName(SystemTableName::COMMENT);
+        $comments::where('id', $old->id)->update(['created_at' => '2020-01-01 10:00:00']);
+        $comments::where('id', $new->id)->update(['created_at' => '2030-01-01 10:00:00']);
+        System::comment_markdown_start('2026-11-20 12:00:00');
+        System::clearRequestSession();
+
+        $oldHtml = CommentMarkdown::commentHtml($comments::find($old->id));
+        $newHtml = CommentMarkdown::commentHtml($comments::find($new->id));
+
+        // exactly what the screen showed before
+        $this->assertSame(replaceBreakEsc($text), $oldHtml);
+        $this->assertStringContainsString('100*2*3', $oldHtml);
+        $this->assertStringNotContainsString('<h1>', $oldHtml);
+        $this->assertStringNotContainsString('<b>', $oldHtml);
+
+        $this->assertStringContainsString('<h1>見出しではない</h1>', $newHtml);
+        $this->assertStringContainsString('<em>2</em>', $newHtml);
+        $this->assertStringNotContainsString('<b>', $newHtml);
+
+        // and the data screen shows them the same way
+        $html = (string) $this->get($this->url($custom_value->id))->assertOk()->getContent();
+        $this->assertStringContainsString('金額は 100*2*3 です<br/># 見出しではない<br/>+ 追加', $html);
+        $this->assertStringContainsString('<h1>見出しではない</h1>', $html);
+    }
+
+    public function testEveryCommentIsMarkdownWhenNoStartIsKept(): void
+    {
+        System::where('system_name', 'comment_markdown_start')->delete();
+        System::clearRequestSession();
+
+        $this->assertFalse(CommentMarkdown::isBeforeMarkdown('2000-01-01 00:00:00'));
+    }
+
     public function testNothingDangerousIsLeft(): void
     {
         $html = CommentMarkdown::toHtml(implode("\n\n", [
@@ -305,13 +351,15 @@ class CommentMarkdownTest extends FeatureTestBase
         return $file;
     }
 
-    protected function addComment(CustomValue $custom_value, string $text): void
+    protected function addComment(CustomValue $custom_value, string $text): CustomValue
     {
         $comment = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
         $comment->parent_id = $custom_value->id;
         $comment->parent_type = static::TABLE;
         $comment->setValue(['comment_detail' => $text]);
         $comment->save();
+
+        return $comment;
     }
 
     protected function createValue(): CustomValue

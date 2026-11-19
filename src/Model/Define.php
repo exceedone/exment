@@ -149,6 +149,10 @@ class Define
         'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'notify'],
         'safety_check_answer_url_expire_days' => ['type' => 'int', 'default' => '7', 'group' => 'notify'],
         'safety_check_last_feed_time' => ['type' => 'datetime'],
+        // Comments written before this time ('Y-m-d H:i:s') are shown as the plain text they were
+        // written as; later ones are shown as Markdown. Set once, by the migration that brings
+        // Markdown comments. Not set: every comment is Markdown.
+        'comment_markdown_start' => [],
 
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],

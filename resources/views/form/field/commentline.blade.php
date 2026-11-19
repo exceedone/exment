@@ -13,8 +13,8 @@
 @endif
 </p>
 
-{{-- Markdown; html of the comment is escaped and the result is cleaned (CommentMarkdown) --}}
+{{-- Markdown, or plain text for a comment written before Markdown comments came; always escaped and cleaned (CommentMarkdown) --}}
 <div class="commentline_inner comment-markdown">
-{!! \Exceedone\Exment\Services\CommentMarkdown::toHtml($comment->getValue('comment_detail')) !!}
+{!! \Exceedone\Exment\Services\CommentMarkdown::commentHtml($comment) !!}
 </div>
 <hr />
