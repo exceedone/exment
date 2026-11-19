@@ -148,6 +148,28 @@ class SystemPerformanceLogTest extends UnitTestBase
         }
     }
 
+    public function testMenuIsMadeAgainWhenTheLogIsTurnedOn(): void
+    {
+        System::logging_toggle_available(true);
+        TemplateImporter::importSystemLogsTemplateIfEnabled();
+
+        // the update removed the menu of an unused log
+        Menu::where('menu_name', SystemTableName::SYSTEM_LOGS)->where('menu_type', 'table')->delete();
+
+        // the log stays on (the setting is saved again): the menu is not made
+        $this->assertFalse(TemplateImporter::importSystemLogsTemplateIfEnabled(false));
+        $this->assertFalse(Menu::where('menu_name', SystemTableName::SYSTEM_LOGS)->where('menu_type', 'table')->exists());
+
+        // the log has just been turned on: the menu is made under "Admin Setting"
+        $this->assertTrue(TemplateImporter::importSystemLogsTemplateIfEnabled(true));
+        $menu = Menu::where('menu_name', SystemTableName::SYSTEM_LOGS)->where('menu_type', 'table')->first();
+        $this->assertNotNull($menu);
+        $admin = Menu::where('menu_name', 'admin')->where('menu_type', 'parent_node')->first();
+        if (isset($admin)) {
+            $this->assertSame(intval($admin->id), intval($menu->parent_id));
+        }
+    }
+
     /**
      * @param Request|null $request
      * @return array<string, mixed>|null

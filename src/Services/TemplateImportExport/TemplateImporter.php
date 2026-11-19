@@ -19,6 +19,7 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\ExportImportLibrary;
+use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\DataImportExport;
@@ -280,22 +281,48 @@ class TemplateImporter
     }
 
     /**
-     * Make the table "System Performance Log" (and its menu under "Admin Setting") when the log is on
-     * and the table is not there yet. A site that never turns the log on gets no table and no empty menu.
+     * System performance log: make what the log needs, only when the log is on.
+     * A site that never turns the log on gets no table and no empty menu.
      *
-     * @return bool true when the table was made now
+     * - the table "System Performance Log" (and its menu under "Admin Setting") when it is not there yet
+     * - with $addMenu (the log has just been turned on), its menu when the table is there but the menu is not:
+     *   the update removes the menu of a log that was never used (2026_11_17_000000_remove_unused_system_logs_menu)
+     *
+     * @param bool $addMenu
+     * @return bool true when something was made now
      */
-    public static function importSystemLogsTemplateIfEnabled(): bool
+    public static function importSystemLogsTemplateIfEnabled(bool $addMenu = false): bool
     {
         if (!boolval(System::logging_toggle_available())) {
             return false;
         }
-        if (CustomTable::where('table_name', SystemTableName::SYSTEM_LOGS)->exists()) {
-            return false;
+
+        if (!CustomTable::where('table_name', SystemTableName::SYSTEM_LOGS)->exists()) {
+            (new static())->importSystemLogsTemplate();
+            return true;
         }
 
-        (new static())->importSystemLogsTemplate();
-        return true;
+        if ($addMenu && !Menu::where('menu_name', SystemTableName::SYSTEM_LOGS)->where('menu_type', MenuType::TABLE)->exists()) {
+            (new static())->importSystemLogsMenu();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Make only the menu of the template "System Performance Log" (the table is left as it is).
+     *
+     * @return void
+     */
+    protected function importSystemLogsMenu()
+    {
+        $templates_base_path = exment_package_path('templates/system_logs');
+        $json = $this->getMergeJson(File::get("$templates_base_path/config.json"), [
+            'basePath' => $templates_base_path,
+        ]);
+
+        $this->import(['admin_menu' => array_get($json, 'admin_menu', [])], true);
     }
 
     // @phpstan-ignore-next-line

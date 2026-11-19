@@ -297,12 +297,15 @@ trait InitializeFormTrait
         // demo mode: the mail, LINE, search server, IP filter, reCAPTCHA and API settings are kept
         $inputs = DemoMode::filterSystemInputs($inputs);
 
+        $loggingWasOn = boolval(System::logging_toggle_available());
+
         // set system_key and value
         foreach ($inputs as $k => $input) {
             System::{$k}($input);
         }
-        // the log was turned on: make the table "System Performance Log" if it is not there yet
-        TemplateImportExport\TemplateImporter::importSystemLogsTemplateIfEnabled();
+        // the log is on: make the table "System Performance Log" if it is not there yet,
+        // and its menu too when the log has just been turned on
+        TemplateImportExport\TemplateImporter::importSystemLogsTemplateIfEnabled(!$loggingWasOn);
         // demo mode: no template upload or import
         if (DemoMode::enabled()) {
             return true;
