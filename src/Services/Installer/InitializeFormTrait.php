@@ -251,10 +251,15 @@ trait InitializeFormTrait
         $inputs = $request->all(System::get_system_keys($group));
         array_forget($inputs, 'initialized');
 
+        $loggingWasOn = boolval(System::logging_toggle_available());
+
         // set system_key and value
         foreach ($inputs as $k => $input) {
             System::{$k}($input);
         }
+        // the log is on: make the table "System Performance Log" if it is not there yet,
+        // and its menu too when the log has just been turned on
+        TemplateImportExport\TemplateImporter::importSystemLogsTemplateIfEnabled(!$loggingWasOn);
         // upload zip file
         $this->uploadTemplate($request);
         // import template
