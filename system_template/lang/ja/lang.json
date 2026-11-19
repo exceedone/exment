@@ -518,6 +518,16 @@
             "menu_type": "table",
             "menu_name": "mail_send_log",
             "title": "メール送信履歴"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "login_setting",
+            "title": "ログイン設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "api_setting",
+            "title": "APIアプリ設定"
         }
     ]
 }
