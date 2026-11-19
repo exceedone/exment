@@ -299,8 +299,6 @@ trait InitializeFormTrait
 
         $loggingWasOn = boolval(System::logging_toggle_available());
 
-        $loggingWasOn = boolval(System::logging_toggle_available());
-
         // set system_key and value
         foreach ($inputs as $k => $input) {
             System::{$k}($input);
