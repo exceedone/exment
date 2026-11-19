@@ -88,6 +88,35 @@ class Initialize
 
 
     /**
+     * The sidebar folded or open the way this browser last left it.
+     *
+     * The toggle in the header saves "collapsed" or "expanded" in a cookie
+     * (Define::COOKIE_SIDEBAR_STATE); the page is then drawn that way from
+     * the start, rather than in the site layout's state and switched over
+     * by script after it is on screen. No cookie: the site layout decides.
+     *
+     * Read from $_COOKIE, not the request: the cookie is written by script
+     * and is not encrypted, so Laravel's cookie decryption would drop it.
+     * Only the two known words are used; anything else is ignored.
+     */
+    protected static function applySidebarState(): void
+    {
+        if (app()->runningInConsole()) {
+            return;
+        }
+        $state = $_COOKIE[Define::COOKIE_SIDEBAR_STATE] ?? null;
+        if ($state !== 'collapsed' && $state !== 'expanded') {
+            return;
+        }
+
+        $layout = array_values(array_diff((array) config('admin.layout', []), ['sidebar-collapse']));
+        if ($state === 'collapsed') {
+            $layout[] = 'sidebar-collapse';
+        }
+        Config::set('admin.layout', $layout);
+    }
+
+    /**
      * @param bool $setDatabase
      * @return void
      */
@@ -370,6 +399,7 @@ class Initialize
             if (!is_nullorempty($val)) {
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
+            static::applySidebarState();
 
             // Date format
             $list = null;
@@ -431,6 +461,14 @@ class Initialize
                     foreach ($configname as $c) {
                         Config::set("mail.{$c}", $val);
                     }
+                }
+
+                // The settings above only fill the "smtp" mailer. Laravel 11+ has "log" as the default
+                // mailer (config/mail.php and MAIL_MAILER of .env.example), so a mail was only written
+                // to the log although the SMTP host is set on the system setting page.
+                // Another mailer chosen in .env (sendmail, ses...) is kept.
+                if (!is_nullorempty(System::system_mail_host()) && Config::get('mail.default') === 'log') {
+                    Config::set('mail.default', 'smtp');
                 }
             }
 
@@ -546,6 +584,7 @@ class Initialize
             'valueModal'          => Field\ValueModal::class,
             'changeField'          => Field\ChangeField::class,
             'progressTracker'          => Field\ProgressTracker::class,
+            'sectionNav'          => Field\SectionNav::class,
             'systemValues'          => Field\SystemValues::class,
 
             ///// workflow

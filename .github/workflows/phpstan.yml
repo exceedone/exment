@@ -3,6 +3,7 @@ name: phpstan
 on:
   pull_request:
     paths:
+      - '.github/workflows/**'
       - 'config/**'
       - 'database/**'
       - 'resources/**'
@@ -31,6 +32,12 @@ jobs:
         with:
           path: ./docker-exment/exment-boilerplate/exment
           ref: ${{ github.event.pull_request.head.sha }}
+
+      # composer.dev.lock of exment-boilerplate installs exment-admin-core from the path ./exment-admin-core
+      - uses: actions/checkout@v4
+        with:
+          repository: exceedone/exment-admin-core
+          path: ./docker-exment/exment-boilerplate/exment-admin-core
 
       - name: Docker Compose Version
         run: docker compose --version

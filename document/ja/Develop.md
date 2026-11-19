@@ -231,6 +231,19 @@ php artisan exment:publish
 GitHubのブランチを、以下のように運用しています。  
 [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
 
+> **今の運用（2026-11 から）**: 版ごとのブランチに pull request を出します。
+>
+> | ブランチ | 内容 | pull request を出すもの |
+> |---|---|---|
+> | `7.1` | 次の版（7.1.0）を作るブランチ。7.1.0 を出したあとは 7.1.x の保守に使う | 7.1.0 に入れる機能の追加・高速化・不具合の修正 |
+> | `master` | その次（7.2 以降）の開発 | 7.1.0 に入れない大きな変更。`7.1` の修正は、`7.1` から `master` にまとめてマージする |
+> | `7.0` | 7.0.x の保守（脆弱性の修正だけ） | 脆弱性の修正 |
+> | `6.2` | 6.2.x の保守（脆弱性の修正だけ。2027-03-31 まで） | 脆弱性の修正 |
+>
+> 脆弱性の修正は、公開の Issue・pull request にせず、[SECURITY.md](../../SECURITY.md) の方法で扱います。
+>
+> 下の表は以前のブランチの運用です。
+
 | GitHub Brunch Name | Derived from | Explain |
 | ------------------ | -------------| ------------- |
 | `master` | - | 現在の安定版です。リリースした時点でのソースコードを管理します。 |
@@ -268,5 +281,5 @@ php-cs-fixer fix ./packages/hirossyi73/exment
 
 - GitHubのpull requestを実行します。  
 
-- exceedone/exmentのブランチhotfix(不具合対応)、もしくはdevelop(機能追加)を対象に、pull requestを実行します。  
+- exceedone/exmentの、上の「今の運用」の表のブランチ（新しい機能・不具合の修正は、ふつうは **7.1**）を対象に、pull requestを実行します。ブランチ名は、機能追加は `feature/XXX`、不具合対応は `fix/XXX` としてください。  
 コメントは、可能な限り記載してください。

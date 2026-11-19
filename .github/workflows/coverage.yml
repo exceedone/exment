@@ -1,0 +1,99 @@
+name: coverage
+
+on:
+  # Coverage takes long, so it does not run on every pull request.
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 18 * * 0'   # every Monday 03:00 JST
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/coverage.yml'
+
+env:
+  DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+  DOCKER_EXMENT_REF: master
+
+jobs:
+  coverage:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.DOCKER_EXMENT_REPOSITORY }}
+          ref: ${{ env.DOCKER_EXMENT_REF }}
+          path: ./docker-exment
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY }}
+          path: ./docker-exment/exment-boilerplate
+
+      - uses: actions/checkout@v4
+        with:
+          path: ./docker-exment/exment-boilerplate/exment
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # composer.dev.lock of exment-boilerplate installs exment-admin-core from the path ./exment-admin-core
+      - uses: actions/checkout@v4
+        with:
+          repository: exceedone/exment-admin-core
+          path: ./docker-exment/exment-boilerplate/exment-admin-core
+
+      - name: Docker Compose Version
+        run: docker compose --version
+
+      - name: Make mysql up
+        working-directory: docker-exment
+        run: make mysql-up
+
+      - name: Copy composer.dev.json
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
+          docker compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
+
+      - name: Initialize database and app
+        working-directory: docker-exment
+        run: make mysql-init
+
+      - name: Run unit + feature with coverage and merge
+        working-directory: docker-exment
+        run: make test-coverage
+
+      - name: Show coverage summary in job summary
+        working-directory: docker-exment
+        if: always()
+        run: |
+          {
+            echo "## Coverage (unit + feature merged)"
+            echo '```'
+            cat exment-boilerplate/storage/logs/coverage/merged/summary.txt || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-merged
+          path: |
+            docker-exment/exment-boilerplate/storage/logs/coverage/merged/clover.xml
+            docker-exment/exment-boilerplate/storage/logs/coverage/merged/html
+            docker-exment/exment-boilerplate/storage/logs/coverage/merged/summary.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Codecov upload. No token needed for public repos; for private repos add
+      # CODECOV_TOKEN to repository secrets.
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: docker-exment/exment-boilerplate/storage/logs/coverage/merged/clover.xml
+          flags: unit-feature
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

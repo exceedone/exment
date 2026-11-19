@@ -11,6 +11,7 @@ use ExmentAdminCore\Admin\Widgets\Box;
 use ExmentAdminCore\Admin\Grid;
 use ExmentAdminCore\Admin\Grid\Exporter;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\CustomOperationType;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -1044,9 +1045,19 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
+        // Only what the screens offer: an active operation of this table that
+        // is run by a button (the record's page) or as a bulk update (the list).
+        if ($operation->custom_table_id != $this->custom_table->id
+            || !$operation->active_flg
+            || !$operation->matchOperationType([CustomOperationType::BUTTON, CustomOperationType::BULK_UPDATE])) {
+            abort(404);
+        }
+
         \Exment::setTimeLimitLong();
 
-        $response = $operation->execute($this->custom_table, $ids, $request->all());
+        // The button of the record's page is not shown when the form does not
+        // allow editing from display, the bulk update of the list is.
+        $response = $operation->execute($this->custom_table, $ids, $request->all(), !is_nullorempty($id));
 
         if ($response === true) {
             return getAjaxResponse([

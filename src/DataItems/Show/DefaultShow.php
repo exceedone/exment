@@ -255,11 +255,12 @@ class DefaultShow extends ShowBase
                             }
                         }
 
-                        if ($enableEdit === true) {
-                            foreach ($operations as $operation) {
-                                if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
-                                    $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
-                                }
+                        foreach ($operations as $operation) {
+                            if (!$this->enableOperationButton($operation, $enableEdit)) {
+                                continue;
+                            }
+                            if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
+                                $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
                             }
                         }
 
@@ -687,6 +688,28 @@ EOT;
             Admin::script($script);
         }
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
+    }
+
+    /**
+     * Whether the button of the data update setting is shown for this data.
+     *
+     * The button is for the users who can edit the data. A data the workflow locks cannot be
+     * edited by anyone, so it has no button, unless the setting says to show the button also
+     * for such a data (options.button_workflow_locked). CustomValue::enableEdit() answers
+     * WORKFLOW_LOCK only after the permission check, so the user still has to be allowed to
+     * edit the data.
+     *
+     * @param \Exceedone\Exment\Model\CustomOperation $operation
+     * @param bool|ErrorCode $enableEdit the answer of CustomValue::enableEdit()
+     * @return bool
+     */
+    protected function enableOperationButton($operation, $enableEdit): bool
+    {
+        if ($enableEdit === true) {
+            return true;
+        }
+
+        return $enableEdit == ErrorCode::WORKFLOW_LOCK && boolval($operation->getOption('button_workflow_locked'));
     }
 
     // @phpstan-ignore-next-line

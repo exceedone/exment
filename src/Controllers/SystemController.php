@@ -153,8 +153,13 @@ class SystemController extends AdminControllerBase
 
         $form->progressTracker()->options($this->getProgressInfo(true));
 
+        // table of contents for the sections below
+        $form->sectionNav();
+
         $form->hidden('advanced')->default(1);
         $form->ignore('advanced');
+
+        $form->exmheader(exmtrans('system.display_header'))->hr();
 
         $grid_per_pages = stringToArray(config('exment.grid_per_pages'));
         if (empty($grid_per_pages)) {
