@@ -1891,3 +1891,18 @@ body[class*="skin-"] .box:has(table.exm-grid) > .box-footer .pagination .page-it
   color: var(--exm-ui-text-faint);
   background-color: transparent;
 }
+
+/* "Back to the list" on the right of the page title: the accent color. */
+body[class*="skin-"] .content-header > h1 .exm-back-to-list {
+  color: #fff;
+  background-color: var(--exm-ui-accent);
+  border-color: var(--exm-ui-accent);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+body[class*="skin-"] .content-header > h1 .exm-back-to-list:hover,
+body[class*="skin-"] .content-header > h1 .exm-back-to-list:focus {
+  color: #fff;
+  background-color: var(--exm-ui-accent-strong);
+  border-color: var(--exm-ui-accent-strong);
+}

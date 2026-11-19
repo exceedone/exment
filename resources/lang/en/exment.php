@@ -3107,6 +3107,7 @@ return [
     ],
 
     'custom_value' => [
+        'back_to_list' => 'Back to the list',
         'description' => 'Display the data list of this table.',
         'template' => 'Export Template',
         'import_export' => 'Import/Export',

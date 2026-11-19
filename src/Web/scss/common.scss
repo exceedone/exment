@@ -911,3 +911,28 @@ label.radio-inline:has(input[readonly][type=radio]) {
 label.checkboxone-label:has(input[readonly][type=checkbox]) {
     pointer-events: none;
 }
+
+
+// "Back to the list" on the right of the page title (data show and edit pages).
+// The title is only as wide as its text, so widen it to the row.
+.content-header > h1.exm-has-back-to-list {
+    float: none;
+    width: 100%;
+}
+.content-header > h1 .exm-back-to-list {
+    float: right;
+    margin-left: auto; // the title row is a flex box in the modern design
+    margin-top: -2px;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #3c8dbc;
+    border-color: #367fa9;
+
+    &:hover,
+    &:focus {
+        color: #fff;
+        background-color: #367fa9;
+    }
+}
