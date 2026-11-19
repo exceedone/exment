@@ -99,7 +99,7 @@ class ApiCommentTest extends ApiTestBase
         $this->api($token)->post($this->url($custom_value->id), ['comment' => ''])
             ->assertStatus(400)
             ->assertJsonFragment(['code' => ErrorCode::VALIDATION_ERROR]);
-        $this->assertCount(0, $custom_value->getComments());
+        $this->assertCount(0, $this->commentsOf(static::TABLE, $custom_value->id));
     }
 
     public function testADataThatDoesNotExist(): void
