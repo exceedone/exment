@@ -501,6 +501,72 @@ table img.image_html{
     }
 }
 
+// a comment is shown as Markdown (CommentMarkdown)
+.comment-markdown{
+    img{
+        max-width: 100%;
+        height: auto;
+    }
+    p, ul, ol, pre, blockquote, table{
+        margin-bottom: 8px;
+    }
+    > :last-child{
+        margin-bottom: 0;
+    }
+    h1, h2, h3, h4, h5, h6{
+        margin: 10px 0 6px;
+        font-weight: bold;
+    }
+    h1{ font-size: 1.4em; }
+    h2{ font-size: 1.25em; }
+    h3{ font-size: 1.1em; }
+    h4, h5, h6{ font-size: 1em; }
+    pre{
+        padding: 8px;
+        overflow-x: auto;
+        background: #f6f8fa;
+        border-radius: 3px;
+    }
+    blockquote{
+        padding: 0 10px;
+        color: #6a737d;
+        border-left: 3px solid #dfe2e5;
+        font-size: 1em;
+    }
+    table{
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        border-collapse: collapse;
+    }
+    th, td{
+        padding: 4px 8px;
+        border: 1px solid #dfe2e5;
+    }
+}
+.comment-markdown-tabs{
+    margin-bottom: 4px;
+
+    a{
+        margin-right: 10px;
+        cursor: pointer;
+    }
+    a.active{
+        font-weight: bold;
+        text-decoration: underline;
+    }
+}
+.comment-markdown-preview{
+    min-height: 74px;
+    padding: 6px 12px;
+    border: 1px solid #d2d6de;
+    border-radius: 3px;
+    word-wrap: break-word;
+}
+.comment-markdown-dragover{
+    outline: 2px dashed #3c8dbc;
+}
+
 
 .system-values{
     margin:0 auto;

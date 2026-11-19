@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Enums\FileType;
+use Exceedone\Exment\Services\MarkdownFileImage;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -126,6 +127,12 @@ class Editor extends CustomItem
         if (boolval(array_get($this->options, 'grid_column'))) {
             // if grid, remove tag and omit string
             $text = get_omitted_string(strip_tags($text));
+        }
+
+        if (!boolval(array_get($this->options, 'grid_column'))) {
+            // "![alt](file url of this Exment)", as a body written through the API has it,
+            // is shown as the picture. html_clean() still cleans what comes out of it.
+            $text = MarkdownFileImage::toHtml($text);
         }
 
         return  '<div class="show-tinymce">'.replaceBreak(html_clean($text), false).'</div>';

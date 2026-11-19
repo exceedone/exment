@@ -34,6 +34,7 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Services\CommentMarkdown;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ShowGridType;
@@ -762,11 +763,21 @@ EOT;
             ->setLabelClass(['d-none'])
             // "@" opens the member picker; mention.js reads both attributes off
             // the field, so no page-level script tag is needed
+            // comment_markdown.js reads the data-comment-* attributes: the preview, and a
+            // pasted or dropped image, which is attached to the data and written as Markdown
             ->attribute([
                 'data-mention' => '1',
                 'data-mention-url' => admin_url('webapi/mention/users'),
                 'placeholder' => exmtrans('common.message.comment_mention'),
+                'data-comment-markdown' => '1',
+                'data-comment-preview-url' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'previewcomment'),
+                'data-comment-image-url' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'commentimage'),
+                'data-comment-label-write' => exmtrans('common.comment_markdown.write'),
+                'data-comment-label-preview' => exmtrans('common.comment_markdown.preview'),
+                'data-comment-label-uploading' => exmtrans('common.comment_markdown.uploading'),
+                'data-comment-label-error' => exmtrans('common.comment_markdown.upload_error'),
             ])
+            ->help(exmtrans('common.comment_markdown.help'))
             ->setWidth(12, 0);
         }
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
@@ -878,6 +889,67 @@ EOT;
         return getAjaxResponse([
             'result'  => true,
             'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+
+    /**
+     * The html a comment will be shown as, for the preview of the comment box.
+     *
+     * @param string|null $comment
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function previewComment($comment)
+    {
+        return getAjaxResponse([
+            'result' => true,
+            'html' => CommentMarkdown::toHtml($comment),
+        ]);
+    }
+
+    /**
+     * Attach an image pasted or dropped into the comment box to the data, and answer the
+     * Markdown that shows it. The file is an attachment of the data like any other, so it is
+     * seen by the users who can see the data.
+     *
+     * @param \Illuminate\Http\UploadedFile|array<mixed>|null $httpfile
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function uploadCommentImage($httpfile)
+    {
+        $validator = \Validator::make(['file' => $httpfile], [
+            'file' => [
+                'required',
+                'file',
+                // by the content, not by the name. No svg: it can hold a script.
+                'mimetypes:image/png,image/jpeg,image/gif,image/webp',
+                'max:' . intval(config('exment.comment_image_max_size_kb', 10240)),
+            ],
+        ]);
+        if ($validator->fails() || !($httpfile instanceof \Illuminate\Http\UploadedFile)) {
+            return response()->json([
+                'result' => false,
+                'message' => $validator->errors()->first('file') ?: exmtrans('common.message.error_execute'),
+            ], 400);
+        }
+
+        // the name decides whether the file is shown as a picture, so it follows the content
+        $extensions = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+        $extension = $extensions[strval($httpfile->getMimeType())];
+        $filename = pathinfo(strval($httpfile->getClientOriginalName()), PATHINFO_FILENAME);
+        $filename = (is_nullorempty($filename) ? 'image' : $filename) . '.' . $extension;
+
+        $file = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $httpfile, $this->custom_table->table_name, $filename)
+            ->saveCustomValue($this->custom_value->id, null, $this->custom_table);
+        $file->saveDocumentModel($this->custom_value, $filename);
+
+        $url = admin_urls('files', $file->uuid);
+        // "[" and "]" would end the alt text
+        $alt = str_replace(['[', ']', "\r", "\n"], ['(', ')', ' ', ' '], pathinfo($filename, PATHINFO_FILENAME));
+
+        return getAjaxResponse([
+            'result' => true,
+            'url' => $url,
+            'markdown' => "![{$alt}]({$url})",
         ]);
     }
 

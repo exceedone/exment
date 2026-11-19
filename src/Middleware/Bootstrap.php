@@ -134,6 +134,7 @@ class Bootstrap
             'vendor/exment/js/paste_attach.js',
             'vendor/exment/js/quickadd.js',
             'vendor/exment/js/mention.js',
+            'vendor/exment/js/comment_markdown.js',
             'vendor/exment/js/webapi.js',
             'vendor/exment/js/admin.webapi.js',
             'vendor/exment/js/getbox.js',

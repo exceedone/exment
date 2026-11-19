@@ -52,6 +52,13 @@ return [
         'attachment' => 'Attachment File',
         'max_file_size' => 'Max Upload File Size',
         'comment' => 'Comment',
+        'comment_markdown' => [
+            'help' => 'You can write in Markdown (headings, lists, bold, code, links, tables). Paste or drag and drop an image to attach it and put it in the comment.',
+            'write' => 'Write',
+            'preview' => 'Preview',
+            'uploading' => 'Uploading the image...',
+            'upload_error' => 'The image could not be uploaded. Use a PNG, JPEG, GIF or WebP image.',
+        ],
         'separate_word' => ',',
         'format_keyvalue' => '%s : %s',
         'yes' => 'Yes',

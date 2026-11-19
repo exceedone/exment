@@ -52,6 +52,13 @@ return [
         'attachment' => '添付ファイル',
         'max_file_size' => 'アップロード上限サイズ',
         'comment' => 'コメント',
+        'comment_markdown' => [
+            'help' => 'Markdown で書けます（見出し・箇条書き・太字・コード・リンク・表）。画像は、貼り付けるかドラッグ＆ドロップすると添付され、本文に入ります。',
+            'write' => '入力',
+            'preview' => 'プレビュー',
+            'uploading' => '画像をアップロードしています…',
+            'upload_error' => '画像をアップロードできませんでした。PNG・JPEG・GIF・WebP の画像を指定してください。',
+        ],
         'separate_word' => '、',
         'format_keyvalue' => '%s ： %s',
         'yes' => 'はい',
