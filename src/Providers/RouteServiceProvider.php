@@ -565,6 +565,14 @@ class RouteServiceProvider extends ServiceProvider
                     $router->put("data/{tableKey}/{id}", 'ApiDataController@dataUpdate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                     $router->delete("data/{tableKey}/{id}", 'ApiDataController@dataDelete')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
 
+                    // comment -------------------------------------------------
+                    // The same shape and scopes as document/{tableKey}/{id}. A public form has
+                    // no comments, so these are private only. Registered after
+                    // data/{tableKey}/column/{column_name}, which a column named "comments" has to reach.
+                    $router->get("data/{tableKey}/{id}/comments", 'ApiDataController@getComments')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                    $router->post("data/{tableKey}/{id}/comments", 'ApiDataController@createComment')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                    $router->delete("data/{tableKey}/{id}/comments/{suuid}", 'ApiDataController@deleteComment')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+
                     // viewdata ----------------------------------------------------
                     $router->get("viewdata/{tableKey}/{viewid}", 'ApiDataController@viewDataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     $router->get("viewdata/{tableKey}/{viewid}/{id}", 'ApiDataController@viewDataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));

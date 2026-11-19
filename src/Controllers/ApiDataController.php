@@ -791,6 +791,125 @@ class ApiDataController extends AdminControllerTableBase
     }
 
     /**
+     * Get the comments of a data
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function getComments(Request $request, $tableKey, $id)
+    {
+        if (($custom_value = $this->getCommentTargetValue($id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        // get and check query parameter
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
+        $comments = $custom_value->getComments([
+            'count' => $count,
+            'paginate' => true,
+        ]);
+
+        // @phpstan-ignore-next-line
+        $comments->appends([
+            'count' => $count
+        ]);
+
+        // @phpstan-ignore-next-line
+        $comments->getCollection()->transform(function ($comment) {
+            return $this->getCommentArray($comment);
+        });
+
+        return $comments;
+    }
+
+    /**
+     * Add a comment to a data
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function createComment(Request $request, $tableKey, $id)
+    {
+        if (($custom_value = $this->getCommentTargetValue($id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        $validator = Validator::make($request->all(), [
+            'comment' => ['required', 'string', 'max:' . config('exment.char_length_limit', 63999)],
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        // saves and notifies the same way as the comment box of the data screen
+        $comment = $custom_value->addComment($request->get('comment'));
+
+        return response($this->getCommentArray($comment), 201);
+    }
+
+    /**
+     * Delete a comment of a data. Only the user who wrote it, or a system administrator, can.
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @param mixed $suuid
+     * @return mixed
+     */
+    public function deleteComment(Request $request, $tableKey, $id, $suuid)
+    {
+        if (($custom_value = $this->getCommentTargetValue($id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        $result = $custom_value->deleteComment($suuid);
+        if ($result instanceof ErrorCode) {
+            return abortJson($result == ErrorCode::PERMISSION_DENY ? 403 : 404, $result);
+        }
+
+        return response(null, 204);
+    }
+
+    /**
+     * Get the data whose comments are read or written. Checks, in this order: the user can
+     * access the table, the user can view the data, and the table is set to use comments.
+     *
+     * @param mixed $id
+     * @return \Exceedone\Exment\Model\CustomValue|Response
+     */
+    protected function getCommentTargetValue($id)
+    {
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        if (($code = $custom_value->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        if (!$custom_value->isCommentEnabled()) {
+            return abortJson(403, ErrorCode::FORM_ACTION_DISABLED());
+        }
+
+        return $custom_value;
+    }
+
+    /**
      * get selected id's children values
      * *parent_select_table_id(required) : The select_table of the parent column(Changed by user) that executed Linkage. .
      * *child_select_table_id(required) : The select_table of the child column(Linkage target column) that executed Linkage.
@@ -1334,6 +1453,23 @@ class ApiDataController extends AdminControllerTableBase
             'api_url' => $document->api_url,
             'created_at' => $document->created_at->__toString(),
             'created_user_id' => $document->created_user_id,
+        ];
+    }
+
+    /**
+     * @param \Exceedone\Exment\Model\CustomValue $comment
+     * @return array<string, mixed>
+     */
+    protected function getCommentArray($comment)
+    {
+        return [
+            'id' => $comment->id,
+            'suuid' => $comment->suuid,
+            'comment' => $comment->getValue('comment_detail'),
+            'created_at' => $comment->created_at->__toString(),
+            // a model just saved holds the id as the string it was given: answer the number the list answers
+            'created_user_id' => is_numeric($comment->created_user_id) ? intval($comment->created_user_id) : $comment->created_user_id,
+            'created_user' => $comment->created_user,
         ];
     }
 
