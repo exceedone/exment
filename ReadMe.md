@@ -209,7 +209,7 @@ Pull Requests are always welcome. Currently, I'd be happy if you actually implem
 | `7.0` | `7.0.x-dev` | Maintenance of 7.0 (7.0.4, 7.0.5 ...) |
 | `6.2` | `6.2.x-dev` | Maintenance of 6.2 (6.2.16, 6.2.17 ...) |
 
-A fix that a released version also needs goes to `master` first. Add the label `backport-7.1` / `backport-7.0` / `backport-6.2` to the pull request, and the maintainers pick it into that branch.
+A fix that a released version also needs goes to `master` first. Add the label `backport-7.1` / `backport-7.0` / `backport-6.2` to the pull request, and the maintainers pick it into that branch. How a release is cut: [Develop.md](document/en/Develop.md).
 
 To install Exment, use a released version (for example `composer require exceedone/exment`), not a `-dev` one. Details: [Develop.md](document/en/Develop.md)
 
