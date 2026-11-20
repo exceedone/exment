@@ -928,4 +928,14 @@ class CustomFormPublicController extends AdminControllerTableBase
         }
         return parent::validateTable($table, $role_name);
     }
+
+    /**
+     * The rows update() and destroy() check to be of this table.
+     *
+     * @return array<mixed>
+     */
+    protected function resourceRowRule(): array
+    {
+        return [\Exceedone\Exment\Model\PublicForm::class, \Exceedone\Exment\Enums\Permission::EDIT_CUSTOM_FORM_PUBLIC];
+    }
 }

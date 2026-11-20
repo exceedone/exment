@@ -22,7 +22,27 @@ trait HasResourceTableActions
     // @phpstan-ignore-next-line
     public function update($tableKey, $id)
     {
+        if (!$this->validateResourceRows($id)) {
+            return;
+        }
         return $this->form($id)->update($id);
+    }
+
+    /**
+     * A controller of a table's setting names the model of its rows and the
+     * permission they need (resourceRowRule()); the rows are then checked to be
+     * of this table before update() and destroy().
+     *
+     * @param mixed $id
+     * @return bool
+     */
+    protected function validateResourceRows($id): bool
+    {
+        if (!method_exists($this, 'resourceRowRule')) {
+            return true;
+        }
+        $rule = $this->resourceRowRule();
+        return $this->validateRowsOfTable($rule[0], $id, $rule[1], $rule[2] ?? null);
     }
 
     /**
@@ -45,6 +65,14 @@ trait HasResourceTableActions
     // @phpstan-ignore-next-line
     public function destroy($tableKey, $id)
     {
+        if (!$this->validateResourceRows($id)) {
+            return response()->json([
+                'status'  => false,
+                'message' => trans('admin.deny'),
+                'reload' => false,
+            ]);
+        }
+
         if (method_exists($this, 'validateDestroy')) {
             $data = $this->validateDestroy($id);
             if (!empty($data)) {

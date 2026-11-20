@@ -127,6 +127,14 @@ class PluginController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected function store(Request $request)
     {
+        // Uploading installs or replaces a plugin, that is PHP code. The route lets
+        // in the setting permission of a single plugin too, so check it here: the
+        // upload form itself is shown only with PLUGIN_ALL (index()).
+        if (!\Exment::user()->hasPermission(Permission::PLUGIN_ALL) || DemoMode::enabled()) {
+            Checker::error();
+            return false;
+        }
+
         //Check file existed in Request
         if ($request->hasfile('fileUpload')) {
             return PluginInstaller::uploadPlugin($request->file('fileUpload'));

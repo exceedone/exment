@@ -335,6 +335,9 @@ class CustomFormController extends AdminControllerTableBase
     // @phpstan-ignore-next-line
     public function update(Request $request, $tableKey, $id)
     {
+        if (!$this->validateResourceRows($id)) {
+            return null;
+        }
         $validator = $this->saveformValidate($request, $id);
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
@@ -973,5 +976,15 @@ class CustomFormController extends AdminControllerTableBase
             return false;
         }
         return true;
+    }
+
+    /**
+     * The rows update() and destroy() check to be of this table.
+     *
+     * @return array<mixed>
+     */
+    protected function resourceRowRule(): array
+    {
+        return [\Exceedone\Exment\Model\CustomForm::class, \Exceedone\Exment\Enums\Permission::EDIT_CUSTOM_FORM];
     }
 }
