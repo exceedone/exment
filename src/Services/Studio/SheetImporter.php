@@ -74,7 +74,8 @@ class SheetImporter
                 $number = str_replace(',', '', $raw);
                 return preg_match('/^-?\d{1,15}$/', $number) === 1 ? intval($number) : null;
             case ColumnType::DECIMAL:
-                $number = str_replace(',', '', $raw);
+            case ColumnType::CURRENCY:
+                $number = str_replace([',', '¥', '￥', '$'], '', $raw);
                 return is_numeric($number) ? $number : null;
             case ColumnType::DATE:
                 return SheetReader::toDateTime($raw, 'Y-m-d');

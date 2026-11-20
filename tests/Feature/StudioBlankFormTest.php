@@ -335,6 +335,58 @@ class StudioBlankFormTest extends FeatureTestBase
         $this->assertArrayHasKey('children', session('studio_errors'));
     }
 
+    public function testTheMoreParts(): void
+    {
+        $this->made[] = 'studio_test_parts';
+        $parent = CustomTable::getEloquent('parent_table');
+        $this->assertNotNull($parent);
+        $this->postScreen([
+            ['type' => ColumnType::SELECT_TABLE, 'label' => 'customer', 'target_table' => $parent->id],
+            ['type' => ColumnType::INTEGER, 'label' => 'quantity'],
+            ['type' => ColumnType::CURRENCY, 'label' => 'price'],
+            ['type' => BlankFormBuilder::CALC, 'label' => 'amount', 'formula' => '[quantity] * [price]'],
+            ['type' => ColumnType::ORGANIZATION, 'label' => 'section'],
+            ['type' => ColumnType::AUTO_NUMBER, 'label' => 'number'],
+        ], ['table_name' => 'studio_test_parts'])->assertRedirect(admin_urls('data', 'studio_test_parts', 'create'));
+
+        System::clearRequestSession();
+        $table = CustomTable::getEloquent('studio_test_parts');
+        $this->assertNotNull($table);
+        $columns = $table->custom_columns()->get()->keyBy('column_name');
+        $this->assertSame(ColumnType::SELECT_TABLE, $columns['customer']->column_type);
+        $this->assertSame(strval($parent->id), strval($columns['customer']->getOption('select_target_table')));
+        $this->assertSame('JPY1', $columns['price']->getOption('currency_symbol'));
+        // a calculated item is a decimal with the formula Exment calculates with
+        $this->assertSame(ColumnType::DECIMAL, $columns['amount']->column_type);
+        $this->assertSame('${value:quantity} * ${value:price}', $columns['amount']->getOption('calc_formula'));
+        $this->assertSame(ColumnType::ORGANIZATION, $columns['section']->column_type);
+        $this->assertSame('format', $columns['number']->getOption('auto_number_type'));
+
+        // the data page opens, and a saved data gets its number
+        $this->get(admin_urls('data', 'studio_test_parts', 'create'))->assertOk();
+        $value = $table->getValueModel();
+        $this->assertNotNull($value);
+        $value->setValue(['quantity' => 3]);
+        $value->save();
+        System::clearRequestSession();
+        $saved = getModelName('studio_test_parts')::find($value->id);
+        $this->assertMatchesRegularExpression('/^\d{8}-\d{4}$/', strval($saved->getValue('number')));
+    }
+
+    public function testMistakesOfTheMoreParts(): void
+    {
+        $this->made[] = 'studio_test_parts_bad';
+        $this->from(admin_url('studio/create'))->postScreen([
+            ['type' => ColumnType::SELECT_TABLE, 'label' => 'customer'],
+            ['type' => ColumnType::TEXT, 'label' => 'memo'],
+            ['type' => BlankFormBuilder::CALC, 'label' => 'amount', 'formula' => '[memo] * 2'],
+        ], ['table_name' => 'studio_test_parts_bad'])->assertRedirect(admin_url('studio/create'));
+        $errors = session('studio_errors');
+        $this->assertSame(exmtrans('studio.error.target_table'), $errors['fields.0.target_table'] ?? null);
+        $this->assertSame(exmtrans('studio.error.formula_number'), $errors['fields.2.formula'] ?? null);
+        $this->assertFalse(CustomTable::where('table_name', 'studio_test_parts_bad')->exists());
+    }
+
     public function testALayoutThatIsNotOfferedIsAMistake(): void
     {
         // deleted after the test if it were made by mistake
@@ -352,7 +404,7 @@ class StudioBlankFormTest extends FeatureTestBase
         $response = $this->from(admin_url('studio/create'))->postScreen([
             ['type' => ColumnType::TEXT, 'label' => '', 'column_name' => ''],
             ['type' => ColumnType::SELECT, 'label' => '区分', 'column_name' => 'id', 'choices' => ''],
-            ['type' => 'auto_number', 'label' => '番号', 'column_name' => 'no'],
+            ['type' => 'select_valtext', 'label' => '番号', 'column_name' => 'no'],
         ], ['table_view_name' => '', 'table_name' => '1bad']);
         $response->assertRedirect(admin_url('studio/create'));
 

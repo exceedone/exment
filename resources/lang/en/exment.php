@@ -2495,6 +2495,11 @@ return [
         'add_child_field' => 'Add an item',
         'remove_child' => 'Remove the detail',
         'notice_children' => ' The child tables %s are made too.',
+        'part_calc' => 'Calculation',
+        'target_table_of_item' => 'Table to select from',
+        'formula' => 'Formula',
+        'formula_help' => 'Write the other number items in brackets, e.g. [quantity] * [price]. The buttons below put an item in.',
+        'auto_number_preview' => 'Numbered automatically when saved (e.g. 20261121-0001)',
         'error' => [
             'check_input' => 'Some input is wrong. Please fix the places in red.',
             'required' => 'Please enter it.',
@@ -2522,6 +2527,11 @@ return [
             'condition_value' => 'Please enter the value of the condition.',
             'condition_required' => 'A required item cannot have a condition (hidden, it could not be filled in and the data could not be saved).',
             'too_many_children' => 'Up to %s details.',
+            'target_table' => 'Please choose the table to select from.',
+            'formula_empty' => 'Please enter the formula.',
+            'formula_item' => 'Write the name of another item of this screen in the brackets of the formula (two items of one name cannot be used).',
+            'formula_number' => 'A formula can use number items only (integer, decimal, money, calculation).',
+            'formula_symbol' => 'A formula can use items, numbers and + - * / ( ) only.',
         ],
     ],
 
