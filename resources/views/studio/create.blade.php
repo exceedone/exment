@@ -39,6 +39,24 @@
                 @if (isset($errors_by_key['table_id']))<p class="exm-builder-error">{{ $errors_by_key['table_id'] }}</p>@endif
             </div>
 
+            <div class="exm-builder-sheet" data-mode-only="new">
+                <div class="exm-builder-sheet-title"><i class="fa fa-file-excel-o" aria-hidden="true"></i> {{ exmtrans('studio.sheet_title') }}</div>
+                <div class="exm-builder-sheet-row">
+                    <input type="file" id="exm-builder-sheet-file" accept=".xlsx,.csv" aria-label="{{ exmtrans('studio.sheet_title') }}">
+                    <button type="button" class="btn btn-default btn-sm" id="exm-builder-sheet-read">{{ exmtrans('studio.sheet_button') }}</button>
+                </div>
+                <p class="exm-builder-hint">{{ sprintf(exmtrans('studio.sheet_help'), $sheet_max_rows) }}</p>
+                <p class="exm-builder-sheet-result" id="exm-builder-sheet-result" aria-live="polite"></p>
+                <label class="exm-builder-import" id="exm-builder-import" hidden>
+                    <input type="checkbox" name="import_data" value="1" id="exm-builder-import-data" @if (old('import_data')) checked @endif>
+                    <span id="exm-builder-import-label"></span>
+                </label>
+                <input type="hidden" name="sheet_token" id="exm-builder-sheet-token" value="{{ old('sheet_token') }}">
+                <input type="hidden" name="sheet_rows" id="exm-builder-sheet-rows" value="{{ old('sheet_rows') }}">
+                <input type="hidden" name="sheet_file_name" id="exm-builder-sheet-name" value="{{ old('sheet_file_name') }}">
+                @if (isset($errors_by_key['sheet']))<p class="exm-builder-error">{{ $errors_by_key['sheet'] }}</p>@endif
+            </div>
+
             <details class="exm-builder-detail" data-mode-only="new" @if (isset($errors_by_key['table_name']) || isset($errors_by_key['menu_parent_id'])) open @endif>
                 <summary>{{ exmtrans('studio.detail_setting') }}</summary>
                 <div class="exm-builder-detail-body">
@@ -112,6 +130,15 @@
 .exm-builder-table { margin-top: 10px; }
 .exm-builder-required { color: #dd4b39; }
 .exm-builder-detail { margin-top: 10px; }
+.exm-builder-sheet { margin-top: 12px; padding: 10px 12px; border: 1px dashed #d2d6de; border-radius: 4px; }
+.exm-builder-sheet-title { font-weight: 600; margin-bottom: 6px; }
+.exm-builder-sheet-title i { color: #1d6f42; }
+.exm-builder-sheet-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.exm-builder-sheet-row input[type=file] { max-width: 100%; }
+.exm-builder-sheet-result { margin: 6px 0 0; font-size: .9rem; }
+.exm-builder-sheet-result.is-error { color: #dd4b39; }
+.exm-builder-import { display: block; margin: 6px 0 0; font-weight: normal; }
+.exm-builder-source { font-size: .75rem; opacity: .65; white-space: nowrap; }
 .exm-builder-detail summary { cursor: pointer; font-size: .9rem; opacity: .8; }
 .exm-builder-detail-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 8px; }
 .exm-builder-hint { font-size: .8rem; opacity: .7; margin: 4px 0 0; }
@@ -176,6 +203,15 @@
         'confirm_clear' => exmtrans('studio.confirm_clear'),
         'no_column' => exmtrans('studio.no_column'),
         'missing_required' => exmtrans('studio.missing_required'),
+        'sheet_loaded' => exmtrans('studio.sheet_loaded'),
+        'sheet_truncated' => exmtrans('studio.sheet_truncated'),
+        'sheet_reading' => exmtrans('studio.sheet_reading'),
+        'sheet_choose' => exmtrans('studio.error.sheet_file'),
+        'sheet_failed' => exmtrans('studio.error.sheet_read'),
+        'sheet_replace' => exmtrans('studio.sheet_replace'),
+        'import_data' => exmtrans('studio.import_data'),
+        'notice_import' => exmtrans('studio.notice_import'),
+        'source' => exmtrans('studio.sheet_source'),
         'name_quote' => exmtrans('studio.name_quote'),
         'name_separator' => exmtrans('studio.name_separator'),
     ];
@@ -188,6 +224,7 @@
     var errors = @json((object) $errors_by_key);
     var maxFields = {{ intval($max_fields) }};
     var t = @json($texts);
+    var sheetUrl = @json($sheet_url);
 
     var form = document.getElementById('exm-builder');
     var canvas = document.getElementById('exm-builder-canvas');
@@ -221,7 +258,7 @@
     var fields = (initial || []).map(function (f, i) {
         var item = mode === 'existing'
             ? { column_id: f.column_id }
-            : { type: f.type, label: f.label, column_name: f.column_name, required: !!f.required, choices: f.choices || '' };
+            : { type: f.type, label: f.label, column_name: f.column_name, required: !!f.required, choices: f.choices || '', source: f.source === undefined ? null : f.source };
         item.error = i;
         return item;
     });
@@ -293,6 +330,7 @@
             el('i', { className: 'fa fa-bars exm-builder-grip', 'aria-hidden': 'true' }),
             el('span', { className: 'exm-builder-type' }, [el('i', { className: 'fa ' + part.icon, 'aria-hidden': 'true' }), document.createTextNode(' ' + part.label)]),
             label,
+            field.source !== null && field.source !== undefined ? el('span', { className: 'exm-builder-source', text: t.source.replace('%s', columnLetter(field.source)) }) : null,
             tools(index),
         ]));
         var labelError = errorOf(field, 'label') || errorOf(field, 'type');
@@ -409,6 +447,9 @@
         } else {
             var name = nameInput.value.trim();
             text = name ? t.notice_new.replace('%s', name) : t.notice_new_unnamed;
+            if (importBox.checked && tokenInput.value) {
+                text += t.notice_import.replace('%s', rowsInput.value);
+            }
         }
         notice.appendChild(el('i', { className: 'fa fa-info-circle', 'aria-hidden': 'true' }));
         notice.appendChild(document.createTextNode(text));
@@ -449,7 +490,7 @@
     }
 
     function add(type, at) {
-        if (!insert({ type: type, label: types[type].label, column_name: '', required: false, choices: '', error: null }, at)) { return; }
+        if (!insert({ type: type, label: types[type].label, column_name: '', required: false, choices: '', source: null, error: null }, at)) { return; }
         var inputs = canvas.querySelectorAll('.exm-builder-label');
         var target = inputs[at === undefined ? fields.length - 1 : at];
         if (target) { target.focus(); target.select(); }
@@ -475,6 +516,7 @@
         apply();
         fields = [];
         errors = {};
+        forgetSheet();
         showMode();
         render();
     }
@@ -508,11 +550,86 @@
         document.getElementById('exm-builder-fields').value = JSON.stringify(fields.map(function (f) {
             return mode === 'existing'
                 ? { column_id: f.column_id }
-                : { type: f.type, label: f.label, column_name: f.column_name, required: f.required, choices: f.choices };
+                : { type: f.type, label: f.label, column_name: f.column_name, required: f.required, choices: f.choices, source: f.source };
         }));
     });
 
+    // Excel or CSV -------------------------------------------------------------
+    var fileInput = document.getElementById('exm-builder-sheet-file');
+    var readButton = document.getElementById('exm-builder-sheet-read');
+    var resultLine = document.getElementById('exm-builder-sheet-result');
+    var importWrap = document.getElementById('exm-builder-import');
+    var importBox = document.getElementById('exm-builder-import-data');
+    var importLabel = document.getElementById('exm-builder-import-label');
+    var tokenInput = document.getElementById('exm-builder-sheet-token');
+    var rowsInput = document.getElementById('exm-builder-sheet-rows');
+    var sheetNameInput = document.getElementById('exm-builder-sheet-name');
+
+    function columnLetter(index) {
+        var n = index + 1, letters = '';
+        while (n > 0) { var m = (n - 1) % 26; letters = String.fromCharCode(65 + m) + letters; n = Math.floor((n - 1) / 26); }
+        return letters;
+    }
+
+    function showSheet(message, isError) {
+        resultLine.textContent = message || '';
+        resultLine.classList.toggle('is-error', !!isError);
+        var hasRows = !!tokenInput.value && parseInt(rowsInput.value || '0', 10) > 0;
+        importWrap.hidden = !hasRows;
+        importLabel.textContent = t.import_data.replace('%s', rowsInput.value || '0');
+        renderNotice();
+    }
+
+    function forgetSheet() {
+        tokenInput.value = '';
+        rowsInput.value = '';
+        sheetNameInput.value = '';
+        importBox.checked = false;
+        showSheet('', false);
+    }
+
+    readButton.addEventListener('click', function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) { showSheet(t.sheet_choose, true); return; }
+        if (fields.length > 0 && !confirm(t.sheet_replace)) { return; }
+        var body = new FormData();
+        body.append('sheet', file);
+        body.append('_token', form.querySelector('input[name="_token"]').value);
+        readButton.disabled = true;
+        showSheet(t.sheet_reading, false);
+        fetch(sheetUrl, { method: 'POST', body: body, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                readButton.disabled = false;
+                if (!data || data.result !== true) {
+                    // only the messages of the reader itself are shown; a server error is not
+                    forgetSheet();
+                    showSheet(data && data.result === false && data.message ? data.message : t.sheet_failed, true);
+                    return;
+                }
+                fields = data.fields.map(function (f) {
+                    return { type: f.type, label: f.label, column_name: '', required: false, choices: f.choices || '', source: f.source, error: null };
+                });
+                errors = {};
+                tokenInput.value = data.token;
+                rowsInput.value = String(data.row_count);
+                sheetNameInput.value = data.file_name;
+                importBox.checked = data.row_count > 0;
+                if (!nameInput.value.trim()) { nameInput.value = data.file_name.replace(/\.[^.]+$/, '').slice(0, 40); }
+                var message = t.sheet_loaded.replace('%1$s', data.file_name).replace('%2$s', data.column_count).replace('%3$s', data.row_count);
+                if (data.truncated) { message += t.sheet_truncated.replace('%s', data.row_count); }
+                render();
+                showSheet(message, false);
+            })
+            .catch(function () { readButton.disabled = false; showSheet(t.sheet_failed, true); });
+    });
+    importBox.addEventListener('change', renderNotice);
+
     showMode();
     render();
+    // after a mistake the page comes back with the sheet still read
+    if (tokenInput.value) {
+        showSheet(t.sheet_loaded.replace('%1$s', sheetNameInput.value).replace('%2$s', fields.length).replace('%3$s', rowsInput.value), false);
+    }
 })();
 </script>
