@@ -315,6 +315,42 @@ class StudioBlankFormTest extends FeatureTestBase
         $this->get(admin_urls('data', 'studio_test_order', 'create'))->assertOk()->assertSee('注文明細');
     }
 
+    public function testAnOrderSumsTheAmountsOfItsLines(): void
+    {
+        $this->made[] = 'studio_test_sum';
+        $this->made[] = 'studio_test_sum_d1';
+        $parent = CustomTable::getEloquent('parent_table');
+        $this->assertNotNull($parent);
+        $this->postScreen([
+            ['type' => ColumnType::TEXT, 'label' => 'customer'],
+            ['type' => BlankFormBuilder::CALC, 'label' => 'total', 'formula' => '合計[lines.amount]'],
+        ], [
+            'table_name' => 'studio_test_sum',
+            'children' => json_encode([[
+                'label' => 'lines',
+                'fields' => [
+                    ['type' => ColumnType::SELECT_TABLE, 'label' => 'product', 'target_table' => $parent->id],
+                    ['type' => ColumnType::INTEGER, 'label' => 'quantity'],
+                    ['type' => ColumnType::CURRENCY, 'label' => 'price'],
+                    ['type' => BlankFormBuilder::CALC, 'label' => 'amount', 'formula' => '[quantity] * [price]'],
+                ],
+            ]]),
+        ])->assertRedirect(admin_urls('data', 'studio_test_sum', 'create'));
+
+        System::clearRequestSession();
+        $order = CustomTable::getEloquent('studio_test_sum');
+        $lines = CustomTable::getEloquent('studio_test_sum_d1');
+        $this->assertNotNull($order);
+        $this->assertNotNull($lines);
+        $total = $order->custom_columns()->where('column_name', 'total')->firstOrFail();
+        $this->assertSame('${sum:studio_test_sum_d1.amount}', $total->getOption('calc_formula'));
+        $columns = $lines->custom_columns()->get()->keyBy('column_name');
+        $this->assertSame('${value:quantity} * ${value:price}', $columns['amount']->getOption('calc_formula'));
+        $this->assertSame(strval($parent->id), strval($columns['product']->getOption('select_target_table')));
+
+        $this->get(admin_urls('data', 'studio_test_sum', 'create'))->assertOk();
+    }
+
     public function testMistakesOfADetail(): void
     {
         $this->made[] = 'studio_test_order_bad';

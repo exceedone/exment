@@ -109,6 +109,28 @@ class BlankFormBuilder
     }
 
     /**
+     * Read the formulas of the calculated items: "calc_formula" (as Exment keeps it)
+     * and "formula_error" (the key of the mistake). Read again with the details
+     * once they are known, for the sums of their items.
+     *
+     * @param array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int, target_table: ?int, formula: string, calc_formula: ?string, formula_error: ?string}> $fields
+     * @param array<int, array<string, mixed>> $children the details (ScreenChildren::normalize)
+     * @return array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int, target_table: ?int, formula: string, calc_formula: ?string, formula_error: ?string}>
+     */
+    public static function resolveFormulas(array $fields, array $children = []): array
+    {
+        foreach ($fields as $index => $field) {
+            [$calc, $mistake] = $field['type'] === static::CALC
+                // @phpstan-ignore-next-line the details are read in the shape calcFormula() takes
+                ? static::calcFormula($field['formula'], $index, $fields, $children)
+                : [null, null];
+            $fields[$index]['calc_formula'] = $calc;
+            $fields[$index]['formula_error'] = $mistake;
+        }
+        return $fields;
+    }
+
+    /**
      * The tables a "select from a table" item can point at.
      *
      * @return array<int, array{id: int, name: string}>
@@ -123,11 +145,14 @@ class BlankFormBuilder
     /**
      * The formula of a calculated item, written with the names of the items in
      * brackets ("[quantity] * [price]"), as Exment keeps it ("${value:quantity} * ${value:price}").
+     * The sum of a number item of a detail is written "合計[detail.item]" (or SUM[...]),
+     * and kept as "${sum:<child table>.<column>}".
      *
      * @param array<int, array{label: string, column_name: string, type: string}> $fields the items of the screen
+     * @param array<int, array{table_view_name: string, table_name: string, fields: array<int, array{label: string, column_name: string, type: string}>}> $children the details of the screen
      * @return array{0: ?string, 1: ?string} the formula, or the key of the mistake
      */
-    public static function calcFormula(string $formula, int $self, array $fields): array
+    public static function calcFormula(string $formula, int $self, array $fields, array $children = []): array
     {
         $formula = trim($formula);
         if ($formula === '') {
@@ -138,6 +163,32 @@ class BlankFormBuilder
             $byLabel[$field['label']][] = $index;
         }
         $mistake = null;
+
+        // the sums of the details first: "合計[注文明細.金額]"
+        $formula = preg_replace_callback('/(?:合計|SUM|sum)\[([^\[\]]+?)\.([^\[\]]+)\]/u', function ($m) use ($children, &$mistake) {
+            $found = null;
+            foreach ($children as $child) {
+                if ($child['table_view_name'] !== trim($m[1])) {
+                    continue;
+                }
+                $items = array_values(array_filter($child['fields'], function ($field) use ($m) {
+                    return $field['label'] === trim($m[2]);
+                }));
+                if (count($items) === 1) {
+                    $found = [$child, $items[0]];
+                }
+            }
+            if ($found === null) {
+                $mistake = $mistake ?? 'formula_detail';
+                return '0';
+            }
+            if (!in_array($found[1]['type'], static::NUMBER_TYPES, true)) {
+                $mistake = $mistake ?? 'formula_number';
+                return '0';
+            }
+            return '${sum:' . $found[0]['table_name'] . '.' . $found[1]['column_name'] . '}';
+        }, $formula) ?? '';
+
         $converted = preg_replace_callback('/\[([^\[\]]+)\]/u', function ($m) use ($byLabel, $self, $fields, &$mistake) {
             $indexes = $byLabel[trim($m[1])] ?? [];
             if (count($indexes) !== 1 || $indexes[0] === $self) {
@@ -154,7 +205,7 @@ class BlankFormBuilder
             return [null, $mistake];
         }
         // what is left besides the items: numbers and + - * / ( )
-        if (preg_match('/^[0-9\s\.\+\-\*\/\(\)]*$/', preg_replace('/\$\{value:[^}]+\}/', '', $converted) ?? 'x') !== 1) {
+        if (preg_match('/^[0-9\s\.\+\-\*\/\(\)]*$/', preg_replace('/\$\{(value|sum):[^}]+\}/', '', $converted) ?? 'x') !== 1) {
             return [null, 'formula_symbol'];
         }
         return [$converted, null];
@@ -164,7 +215,7 @@ class BlankFormBuilder
      * Read the posted screen into a clean shape. Names left empty are made here.
      *
      * @param array<string, mixed> $input table_view_name, table_name, menu_parent_id, fields (JSON string or array)
-     * @return array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions: array<int, array{target: int, operator: string, value: string}>}
+     * @return array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int, target_table: ?int, formula: string, calc_formula: ?string, formula_error: ?string}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions: array<int, array{target: int, operator: string, value: string}>}
      */
     public static function normalize(array $input): array
     {
@@ -203,14 +254,13 @@ class BlankFormBuilder
                 'source' => is_numeric(array_get($field, 'source')) ? intval($field['source']) : null,
                 'target_table' => is_numeric(array_get($field, 'target_table')) ? intval($field['target_table']) : null,
                 'formula' => trim(strval(array_get($field, 'formula', ''))),
+                // read by resolveFormulas() once all the items are known
+                'calc_formula' => null,
+                'formula_error' => null,
             ];
         }
         // a formula names the other items: read once all the items have their column names
-        foreach ($result as $index => $field) {
-            [$calc, $mistake] = $field['type'] === static::CALC ? static::calcFormula($field['formula'], $index, $result) : [null, null];
-            $result[$index]['calc_formula'] = $calc;
-            $result[$index]['formula_error'] = $mistake;
-        }
+        $result = static::resolveFormulas($result);
 
         $parent = array_get($input, 'menu_parent_id');
         return [

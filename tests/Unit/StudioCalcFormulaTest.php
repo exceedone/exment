@@ -32,6 +32,24 @@ class StudioCalcFormulaTest extends UnitTestBase
         $this->assertSame(['(${value:quantity} + 1) * 1.1', null], BlankFormBuilder::calcFormula(' ([数量] + 1) * 1.1 ', 2, $this->fields()));
     }
 
+    public function testTheSumOfAnItemOfADetail(): void
+    {
+        $children = [[
+            'table_view_name' => '注文明細',
+            'table_name' => 'orders_d1',
+            'fields' => [
+                ['label' => '商品', 'column_name' => 'item', 'type' => ColumnType::TEXT],
+                ['label' => '金額', 'column_name' => 'amount', 'type' => BlankFormBuilder::CALC],
+            ],
+        ]];
+        $this->assertSame(['${sum:orders_d1.amount} * 1.1', null], BlankFormBuilder::calcFormula('合計[注文明細.金額] * 1.1', 2, $this->fields(), $children));
+        $this->assertSame(['${sum:orders_d1.amount} + ${value:quantity}', null], BlankFormBuilder::calcFormula('SUM[注文明細.金額] + [数量]', 2, $this->fields(), $children));
+        // a detail or an item that is not there, an item that is not a number
+        $this->assertSame([null, 'formula_detail'], BlankFormBuilder::calcFormula('合計[見積明細.金額]', 2, $this->fields(), $children));
+        $this->assertSame([null, 'formula_detail'], BlankFormBuilder::calcFormula('合計[注文明細.数量]', 2, $this->fields(), $children));
+        $this->assertSame([null, 'formula_number'], BlankFormBuilder::calcFormula('合計[注文明細.商品]', 2, $this->fields(), $children));
+    }
+
     public function testMistakes(): void
     {
         $fields = $this->fields();

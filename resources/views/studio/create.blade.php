@@ -260,6 +260,7 @@
         'formula' => exmtrans('studio.formula'),
         'formula_help' => exmtrans('studio.formula_help'),
         'auto_number' => exmtrans('studio.auto_number_preview'),
+        'sum_of' => exmtrans('studio.sum_of'),
         'child_name' => exmtrans('studio.child_name'),
         'child_name_placeholder' => exmtrans('studio.child_name_placeholder'),
         'add_child_field' => exmtrans('studio.add_child_field'),
@@ -309,7 +310,7 @@
     // the details of the screen: [{label, fields: [{type, label, required, choices}]}]
     var children = (@json($old_children) || []).map(function (c) {
         return { label: c.label || '', fields: (c.fields || []).map(function (f) {
-            return { type: f.type, label: f.label || '', required: !!f.required, choices: f.choices || '' };
+            return { type: f.type, label: f.label || '', required: !!f.required, choices: f.choices || '', target_table: f.target_table || null, formula: f.formula || '' };
         }) };
     });
 
@@ -575,6 +576,20 @@
                 });
                 chips.appendChild(chip);
             });
+            children.forEach(function (child) {
+                child.fields.forEach(function (item) {
+                    if (!(types[item.type] || {}).number || !child.label.trim()) { return; }
+                    var text = t.sum_of.replace('%s', child.label.trim() + '.' + item.label);
+                    var chip = el('button', { type: 'button', className: 'btn btn-default btn-xs', text: text });
+                    chip.addEventListener('click', function () {
+                        var at = formula.selectionStart === null ? formula.value.length : formula.selectionStart;
+                        formula.value = formula.value.slice(0, at) + text + formula.value.slice(at);
+                        field.formula = formula.value;
+                        formula.focus();
+                    });
+                    chips.appendChild(chip);
+                });
+            });
             body.appendChild(el('div', { className: 'exm-builder-choices' }, [
                 el('label', { text: t.formula }), formula, chips, el('p', { className: 'exm-builder-hint', text: t.formula_help }), errorOf(field, 'formula'),
             ]));
@@ -694,6 +709,7 @@
             var name = el('input', { type: 'text', className: 'form-control input-sm', maxlength: '40', placeholder: t.child_name_placeholder, 'aria-label': t.child_name });
             name.value = child.label;
             name.addEventListener('input', function () { child.label = name.value; renderNotice(); });
+            name.addEventListener('change', function () { render(); });
             var remove = el('button', { type: 'button', className: 'btn btn-default btn-sm', title: t.remove_child, 'aria-label': t.remove_child }, [el('i', { className: 'fa fa-trash' })]);
             remove.addEventListener('click', function () { children.splice(ci, 1); renderChildren(); renderNotice(); });
 
@@ -703,6 +719,7 @@
                 var label = el('input', { type: 'text', className: 'form-control input-sm', maxlength: '40', placeholder: t.label, 'aria-label': t.label });
                 label.value = field.label;
                 label.addEventListener('input', function () { field.label = label.value; });
+                label.addEventListener('change', function () { renderChildren(); render(); });
                 var required = el('input', { type: 'checkbox' });
                 required.checked = field.required;
                 required.addEventListener('change', function () { field.required = required.checked; });
@@ -720,7 +737,37 @@
                     choices.addEventListener('input', function () { field.choices = choices.value; });
                     li.appendChild(choices);
                 }
-                ['label', 'column_name', 'choices', 'type'].forEach(function (k) {
+                if (part.target) {
+                    var target = el('select', { className: 'form-control input-sm exm-builder-child-choices', 'aria-label': t.target_table });
+                    target.appendChild(el('option', { value: '', text: t.target_table_placeholder }));
+                    referenceTables.forEach(function (table) {
+                        var option = el('option', { value: String(table.id), text: table.name });
+                        if (field.target_table === table.id) { option.selected = true; }
+                        target.appendChild(option);
+                    });
+                    target.addEventListener('change', function () { field.target_table = target.value === '' ? null : parseInt(target.value, 10); });
+                    li.appendChild(target);
+                }
+                if (part.formula) {
+                    var formula = el('input', { type: 'text', className: 'form-control input-sm exm-builder-child-choices', placeholder: t.formula_help, 'aria-label': t.formula });
+                    formula.value = field.formula;
+                    formula.addEventListener('input', function () { field.formula = formula.value; });
+                    var chips = el('div', { className: 'exm-builder-chips exm-builder-child-choices' });
+                    child.fields.forEach(function (other) {
+                        if (other === field || !(types[other.type] || {}).number) { return; }
+                        var chip = el('button', { type: 'button', className: 'btn btn-default btn-xs', text: '[' + other.label + ']' });
+                        chip.addEventListener('click', function () {
+                            var at = formula.selectionStart === null ? formula.value.length : formula.selectionStart;
+                            formula.value = formula.value.slice(0, at) + '[' + other.label + ']' + formula.value.slice(at);
+                            field.formula = formula.value;
+                            formula.focus();
+                        });
+                        chips.appendChild(chip);
+                    });
+                    li.appendChild(formula);
+                    li.appendChild(chips);
+                }
+                ['label', 'column_name', 'choices', 'type', 'target_table', 'formula'].forEach(function (k) {
                     var e = childError(ci + '.fields.' + fi + '.' + k);
                     if (e) { li.appendChild(e); }
                 });
@@ -728,16 +775,15 @@
             });
 
             var typeSelect = el('select', { className: 'form-control input-sm', 'aria-label': t.add_child_field });
-            palette.forEach(function (p) {
-                if (p.target || p.formula) { return; }
-                typeSelect.appendChild(el('option', { value: p.type, text: p.label }));
-            });
+            palette.forEach(function (p) { typeSelect.appendChild(el('option', { value: p.type, text: p.label })); });
             var add = el('button', { type: 'button', className: 'btn btn-default btn-sm' }, [el('i', { className: 'fa fa-plus', 'aria-hidden': 'true' }), document.createTextNode(' ' + t.add_child_field)]);
             add.addEventListener('click', function () {
-                child.fields.push({ type: typeSelect.value, label: types[typeSelect.value].label, required: false, choices: '' });
+                child.fields.push({ type: typeSelect.value, label: types[typeSelect.value].label, required: false, choices: '', target_table: null, formula: '' });
                 renderChildren();
-                var inputs = childrenBox.querySelectorAll('.exm-builder-child')[ci].querySelectorAll('.exm-builder-child-field input[type=text]');
-                if (inputs.length) { inputs[inputs.length - 1].focus(); inputs[inputs.length - 1].select(); }
+                // the name of the new item: the first box of the last row (a calculation has a formula box after it)
+                var rowsOfChild = childrenBox.querySelectorAll('.exm-builder-child')[ci].querySelectorAll('.exm-builder-child-field');
+                var nameBox = rowsOfChild.length ? rowsOfChild[rowsOfChild.length - 1].querySelector('input[type=text]') : null;
+                if (nameBox) { nameBox.focus(); nameBox.select(); }
             });
 
             childrenBox.appendChild(el('div', { className: 'exm-builder-child' }, [

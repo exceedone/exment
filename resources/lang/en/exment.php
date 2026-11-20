@@ -2498,8 +2498,9 @@ return [
         'part_calc' => 'Calculation',
         'target_table_of_item' => 'Table to select from',
         'formula' => 'Formula',
-        'formula_help' => 'Write the other number items in brackets, e.g. [quantity] * [price]. The buttons below put an item in.',
+        'formula_help' => 'Write the other number items in brackets, e.g. [quantity] * [price]. The sum of a detail is SUM[detail.item]. The buttons below put them in.',
         'auto_number_preview' => 'Numbered automatically when saved (e.g. 20261121-0001)',
+        'sum_of' => 'SUM[%s]',
         'error' => [
             'check_input' => 'Some input is wrong. Please fix the places in red.',
             'required' => 'Please enter it.',
@@ -2532,6 +2533,7 @@ return [
             'formula_item' => 'Write the name of another item of this screen in the brackets of the formula (two items of one name cannot be used).',
             'formula_number' => 'A formula can use number items only (integer, decimal, money, calculation).',
             'formula_symbol' => 'A formula can use items, numbers and + - * / ( ) only.',
+            'formula_detail' => 'In SUM[ ] of the formula, write "name of the detail.name of the item" (a number item of a detail).',
         ],
     ],
 
