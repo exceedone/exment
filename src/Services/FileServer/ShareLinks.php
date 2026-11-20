@@ -33,6 +33,12 @@ class ShareLinks
     public const PASSWORD_TRIES = 10;
     public const PASSWORD_LOCK_MINUTES = 15;
 
+    /** The types a request link does not take, unless the site sets them (ISS00410). */
+    public const DEFAULT_DENIED_EXTENSIONS = 'exe,com,bat,cmd,scr,pif,msi,msp,msix,msixbundle,appx,appxbundle,dll,cpl,sys,drv,ocx,'
+        . 'js,jse,mjs,vbs,vbe,wsf,wsh,ps1,psm1,psd1,hta,jar,lnk,url,scf,reg,inf,sh,bash,py,pyw,pl,rb,'
+        . 'php,phtml,phar,asp,aspx,jsp,cgi,html,htm,xhtml,shtml,svg,svgz,xml,'
+        . 'iso,img,vhd,vhdx,dmg,docm,dotm,xlsm,xltm,xlam,pptm,potm,ppam,ppsm';
+
     protected Library $library;
 
     public function __construct(Library $library)
@@ -91,6 +97,7 @@ class ShareLinks
             'token' => Str::random(static::TOKEN_LENGTH),
             'workspace_id' => $workspace->id,
             'node_id' => $node->id,
+            'created_user_id' => $access->userId(),
             'kind' => $kind,
             'password_hash' => $password !== '' ? Hash::make($password) : null,
             'expires_at' => $expires,
@@ -188,7 +195,33 @@ class ShareLinks
         if (!isset($node) || !isset($workspace) || $node->isTrashed()) {
             return null;
         }
+        // the maker of the link must still be allowed to make it: a folder
+        // closed later (its own permissions, or one above it), a maker taken
+        // out of the workspace or removed, close the link too (ISS00410)
+        if (!static::makerMayGive($link, $workspace, $node)) {
+            return null;
+        }
         return $link;
+    }
+
+    protected static function makerMayGive(FileShareLink $link, FileWorkspace $workspace, FileNode $node): bool
+    {
+        $makerId = $link->created_user_id;
+        if (!isset($makerId)) {
+            return false;
+        }
+        $isAdmin = false;
+        try {
+            $login = \Exceedone\Exment\Model\LoginUser::query()->where('base_user_id', $makerId)->first();
+            if (!isset($login) && getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($makerId) === null) {
+                return false;
+            }
+            $isAdmin = isset($login) && boolval($login->hasPermission(\Exceedone\Exment\Enums\Permission::SYSTEM));
+        } catch (\Throwable $e) {
+            $isAdmin = false;
+        }
+        $level = $link->kind === FileShareLink::KIND_REQUEST ? Level::UPLOAD : Level::EDIT;
+        return (new Access(intval($makerId), $isAdmin))->can($workspace, $node, $level);
     }
 
     public static function isUnlocked(FileShareLink $link): bool
@@ -218,16 +251,20 @@ class ShareLinks
         if (!$link->hasPassword()) {
             return true;
         }
-        if (static::isLocked($link)) {
+        // each try is counted first, in one step of the cache, so tries at the
+        // same time from many places cannot pass the limit. Anyone who has the
+        // URL can stop the link for a while this way; that is the price of it
+        // (the maker can make a new link).
+        $key = static::lockKey($link);
+        Cache::add($key, 0, now()->addMinutes(static::PASSWORD_LOCK_MINUTES));
+        $tries = intval(Cache::increment($key));
+        if ($tries > static::PASSWORD_TRIES) {
             return false;
         }
         if (!Hash::check($password, strval($link->password_hash))) {
-            $key = static::lockKey($link);
-            Cache::add($key, 0, now()->addMinutes(static::PASSWORD_LOCK_MINUTES));
-            Cache::increment($key);
             return false;
         }
-        Cache::forget(static::lockKey($link));
+        Cache::forget($key);
         $list = (array)session(static::SESSION_KEY, []);
         $list[] = $link->token;
         session([static::SESSION_KEY => array_values(array_unique($list))]);
@@ -369,7 +406,25 @@ class ShareLinks
      */
     public static function requestDeniedExtensions(): array
     {
-        $value = config('exment.file_server_request_deny_extensions', 'exe,com,bat,cmd,scr,pif,msi,msp,dll,cpl,js,jse,vbs,vbe,wsf,wsh,ps1,psm1,hta,jar,lnk,reg,sh,php,phtml,phar');
+        $value = config('exment.file_server_request_deny_extensions', '');
+        return static::extensionList(is_array($value) || strval($value) !== '' ? $value : static::DEFAULT_DENIED_EXTENSIONS);
+    }
+
+    /**
+     * Only these types, when the site sets them (empty: all but the denied ones).
+     *
+     * @return string[]
+     */
+    public static function requestAllowedExtensions(): array
+    {
+        return static::extensionList(config('exment.file_server_request_allow_extensions', ''));
+    }
+
+    /**
+     * @return string[]
+     */
+    protected static function extensionList(mixed $value): array
+    {
         $list = is_array($value) ? $value : explode(',', strval($value));
         return array_values(array_filter(array_map(function ($ext) {
             return strtolower(trim(strval($ext), " .\t"));
@@ -396,9 +451,13 @@ class ShareLinks
         if ($max > 0 && $size > $max) {
             throw new FileServerException(exmtrans('file_server.error_too_large'), 413);
         }
+        // "run.exe." and "run.exe　" are run.exe on Windows: no dots or spaces
+        // (of any kind) at the end (ISS00410)
+        $name = preg_replace('/[\s\p{Z}\x{FEFF}.]+\z/u', '', $name) ?? '';
         $name = $library->validName($name);
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-        if ($ext !== '' && in_array($ext, static::requestDeniedExtensions(), true)) {
+        $allowed = static::requestAllowedExtensions();
+        if (count($allowed) > 0 ? !in_array($ext, $allowed, true) : ($ext !== '' && in_array($ext, static::requestDeniedExtensions(), true))) {
             throw new FileServerException(exmtrans('file_server.error_request_type', ['ext' => $ext]), 415);
         }
 

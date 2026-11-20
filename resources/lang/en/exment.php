@@ -2531,6 +2531,7 @@ return [
         'error_request_type' => 'Files of this type (.:ext) cannot be sent.',
         'error_request_full' => 'This link has reached the limit of the files it takes. Tell the person who sent it.',
         'share_password_locked' => 'The password was wrong too many times. This link cannot be used for :minutes minutes.',
+        'error_zip_busy' => 'Another download of many files is running. Please wait until it ends.',
         'error_zip_too_large' => 'Too large to download at once (up to :size). Download it in parts.',
         'apply_filter' => 'Filter',
         'clear_filter' => 'Clear filter',
