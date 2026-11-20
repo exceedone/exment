@@ -1291,6 +1291,18 @@ return [
     |
     */
     'role_group_import_export' => env('ROLE_GROUP_IMPORT_EXPORT', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notify webhook: deny private networks
+    |--------------------------------------------------------------------------
+    |
+    | Slack / Teams webhooks are never sent to the server itself or to the
+    | link-local range. With true, private networks (10/8, 172.16/12,
+    | 192.168/16, fc00::/7) are refused too, as on a shared service.
+    |
+    */
+    'notify_webhook_deny_private' => env('EXMENT_NOTIFY_WEBHOOK_DENY_PRIVATE', false),
     /*
     |--------------------------------------------------------------------------
     | Unavailable user view ( for tables )

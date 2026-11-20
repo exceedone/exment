@@ -98,7 +98,12 @@ trait NotifyTrait
         /** @phpstan-ignore-next-line */
         $form->url('webhook_url', exmtrans("notify.webhook_url"))
             ->required()
-            ->rules(["max:300"])
+            ->rules(["max:300", function ($attribute, $value, $fail) {
+                // not the server itself, nor the link-local range (cloud metadata)
+                if (!is_nullorempty($value) && !\Exceedone\Exment\Services\WebhookUrlGuard::isAllowed($value)) {
+                    $fail(exmtrans('notify.message.webhook_url_not_allowed'));
+                }
+            }])
             /** @phpstan-ignore-next-line */
             ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
             ->attribute([

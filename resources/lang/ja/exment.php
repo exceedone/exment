@@ -3600,6 +3600,7 @@ return [
         ],
 
         'message' => [
+            'webhook_url_not_allowed' => 'このURLには通知できません（このサーバー自身や内部のアドレスは指定できません）。',
             'no_action_target' => '通知対象がありませんでした。',
             'notify_moved' => '通知設定は移動しました。メニューから削除をお願いします。',
         ],

@@ -3601,6 +3601,7 @@ return [
         ],
 
         'message' => [
+            'webhook_url_not_allowed' => 'Notifications cannot be sent to this URL (the server itself and internal addresses are not allowed).',
             'no_action_target' => 'There was no notification target.',
             'notify_moved' => 'Notification settings have moved. Please delete it from the menu.',
         ],
