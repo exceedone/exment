@@ -65,6 +65,7 @@ class StudioController extends AdminControllerBase
             'diagram' => RelationDiagram::layout($tables, $list->relations()),
             'diagram_box' => ['width' => RelationDiagram::BOX_WIDTH, 'height' => RelationDiagram::BOX_HEIGHT],
             'create_url' => $this->canBuild() ? admin_urls('studio', 'create') : null,
+            'app_url' => admin_url('app'),
         ]));
         return $content;
     }

@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#00704a">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{{-- a manifest is fetched without the cookies unless asked; the app needs the login --}}
+<link rel="manifest" href="{{ $manifest }}" crossorigin="use-credentials">
+<title>{{ $title }}</title>
+<style>
+:root { --green: #00704a; --line: #e3e6ea; --text: #1f2933; --sub: #6b7280; --bg: #f5f6f8; --danger: #c0392b; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif; color: var(--text); background: var(--bg); font-size: 16px; }
+header { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; padding-top: env(safe-area-inset-top); background: var(--green); color: #fff; }
+header h1 { flex: 1; margin: 0; font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+header button, header a { color: #fff; background: none; border: 0; font-size: 1rem; padding: 6px; text-decoration: none; }
+header button[hidden] { display: none; }
+main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { border-bottom: 1px solid var(--line); }
+.list li:last-child { border-bottom: 0; }
+.list a, .list button.row { display: block; width: 100%; text-align: left; padding: 14px 14px; color: inherit; text-decoration: none; background: none; border: 0; font-size: 1rem; }
+.list .sub { display: block; color: var(--sub); font-size: .82rem; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.group { color: var(--sub); font-size: .85rem; margin: 16px 4px 6px; }
+.empty { color: var(--sub); padding: 16px; text-align: center; }
+.pager { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; color: var(--sub); font-size: .9rem; }
+.btn { display: inline-block; border: 1px solid var(--line); background: #fff; color: var(--text); border-radius: 6px; padding: 10px 14px; font-size: 1rem; }
+.btn.primary { background: var(--green); border-color: var(--green); color: #fff; }
+.btn.small { padding: 6px 10px; font-size: .85rem; }
+.btn:disabled { opacity: .5; }
+.fab { position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); width: 56px; height: 56px; border-radius: 50%; background: var(--green); color: #fff; border: 0; font-size: 1.8rem; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.form { padding: 12px; }
+.grid { display: grid; gap: 12px; margin-bottom: 12px; }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr !important; } }
+.field { margin-bottom: 14px; }
+.field[hidden] { display: none; }
+.field label.name { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 4px; }
+.field .req { color: var(--danger); margin-left: 2px; }
+.field .help { color: var(--sub); font-size: .8rem; margin-top: 3px; }
+.field input, .field select, .field textarea { width: 100%; font-size: 16px; padding: 10px; border: 1px solid #c9ced6; border-radius: 6px; background: #fff; }
+.field input[readonly] { background: #f3f4f6; }
+.field select[multiple] { min-height: 110px; }
+.header-item { font-weight: 700; font-size: 1.05rem; margin: 6px 0 10px; }
+.text-item { color: var(--sub); white-space: pre-wrap; margin: 0 0 10px; }
+.line-item { border: 0; border-top: 1px solid var(--line); margin: 6px 0 14px; }
+.image-item { max-width: 100%; margin-bottom: 10px; }
+.detail { border-top: 2px solid var(--line); margin-top: 8px; padding-top: 10px; }
+.detail h2 { font-size: 1rem; margin: 0 0 8px; }
+.detail-row { border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin-bottom: 8px; background: #fbfbfc; }
+.detail-row .remove { float: right; color: var(--danger); background: none; border: 0; font-size: .9rem; }
+.errors { background: #fdecea; color: var(--danger); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: .9rem; }
+.errors ul { margin: 0; padding-left: 18px; }
+.actions { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 8px; justify-content: flex-end; padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line); }
+.toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); background: #1f2933; color: #fff; padding: 10px 16px; border-radius: 20px; font-size: .9rem; }
+.notice { color: var(--sub); font-size: .85rem; }
+</style>
+</head>
+<body>
+<header>
+    <button type="button" id="back" aria-label="{{ exmtrans('studio.app_back') }}" hidden>&#8249;</button>
+    <h1 id="title">{{ $title }}</h1>
+    <a href="{{ $pc_url }}">{{ exmtrans('studio.app_pc') }}</a>
+</header>
+<main id="main" aria-live="polite"></main>
+
+@php
+    $texts = [
+        'title' => $title,
+        'screens' => exmtrans('studio.app_screens'),
+        'no_screens' => exmtrans('studio.app_no_screens'),
+        'no_data' => exmtrans('studio.app_no_data'),
+        'new' => exmtrans('studio.app_new'),
+        'save' => exmtrans('studio.app_save'),
+        'saving' => exmtrans('studio.app_saving'),
+        'saved' => exmtrans('studio.app_saved'),
+        'cancel' => exmtrans('studio.app_cancel'),
+        'add_row' => exmtrans('studio.app_add_row'),
+        'remove_row' => exmtrans('studio.app_remove_row'),
+        'prev' => exmtrans('studio.app_prev'),
+        'next' => exmtrans('studio.app_next'),
+        'page' => exmtrans('studio.app_page'),
+        'loading' => exmtrans('studio.app_loading'),
+        'failed' => exmtrans('studio.app_failed'),
+        'file_on_pc' => exmtrans('studio.app_file_on_pc'),
+        'auto_number' => exmtrans('studio.auto_number_preview'),
+        'choose' => exmtrans('studio.app_choose'),
+        'yes' => exmtrans('common.yes'),
+        'no' => exmtrans('common.no'),
+    ];
+@endphp
+<script>
+(function () {
+    var t = @json($texts);
+    var webapi = @json($webapi);
+    var loginUrl = @json($pc_url);
+    var csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var main = document.getElementById('main');
+    var titleBox = document.getElementById('title');
+    var back = document.getElementById('back');
+    var screensCache = {};
+    var optionsCache = {};
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register(@json($service_worker), { scope: @json($scope) }).catch(function () {});
+    }
+
+    function el(tag, attrs, children) {
+        var node = document.createElement(tag);
+        Object.keys(attrs || {}).forEach(function (k) {
+            var v = attrs[k];
+            if (v === null || v === undefined || v === false) { return; }
+            if (k === 'text') { node.textContent = v; }
+            else if (k === 'className') { node.className = v; }
+            else if (k === 'hidden' || k === 'required' || k === 'multiple' || k === 'readOnly' || k === 'disabled') { node[k] = !!v; }
+            else { node.setAttribute(k, v); }
+        });
+        (children || []).forEach(function (c) { if (c) { node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); } });
+        return node;
+    }
+    function toast(message) {
+        var box = el('div', { className: 'toast', text: message, role: 'status' });
+        document.body.appendChild(box);
+        setTimeout(function () { box.remove(); }, 2500);
+    }
+
+    // the data API of the web session -------------------------------------------------
+    function api(method, path, body) {
+        var options = { method: method, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf } };
+        if (body !== undefined) { options.headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(body); }
+        return fetch(webapi + path, options).then(function (r) {
+            if (r.status === 401 || r.status === 419) { location.href = loginUrl; throw new Error('login'); }
+            return r.text().then(function (text) {
+                var data = null;
+                try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+                if (!r.ok) { var error = new Error('api'); error.status = r.status; error.data = data; throw error; }
+                return data;
+            });
+        });
+    }
+    function screen(id) {
+        if (screensCache[id]) { return Promise.resolve(screensCache[id]); }
+        return api('GET', '/studio/screens/' + encodeURIComponent(id)).then(function (s) { screensCache[id] = s; return s; });
+    }
+    // the rows a "select from a table" (or a user, an organization) item chooses from
+    function optionsOf(table) {
+        if (!table) { return Promise.resolve([]); }
+        if (optionsCache[table]) { return Promise.resolve(optionsCache[table]); }
+        return api('GET', '/data/' + encodeURIComponent(table) + '?label=1&count=200').then(function (page) {
+            var list = (page && page.data ? page.data : []).map(function (row) { return { id: String(row.id), label: row.label || ('#' + row.id) }; });
+            optionsCache[table] = list;
+            return list;
+        }).catch(function () { return []; });
+    }
+
+    // pages -------------------------------------------------------------------------
+    function setTitle(text, backTo) {
+        titleBox.textContent = text;
+        document.title = text;
+        back.hidden = backTo === null;
+        back.onclick = function () { location.hash = backTo || ''; };
+    }
+    function loading() { main.innerHTML = ''; main.appendChild(el('p', { className: 'empty', text: t.loading })); }
+    function failed(error) {
+        main.innerHTML = '';
+        main.appendChild(el('p', { className: 'empty', text: t.failed + (error && error.status ? ' (' + error.status + ')' : '') }));
+    }
+
+    function route() {
+        var parts = location.hash.replace(/^#/, '').split('/').map(decodeURIComponent);
+        window.scrollTo(0, 0);
+        if (parts[0] === 's' && parts[1] && parts[2] === 'new') { return formPage(parts[1], null); }
+        if (parts[0] === 's' && parts[1] && parts[2] === 'edit' && parts[3]) { return formPage(parts[1], parts[3]); }
+        if (parts[0] === 's' && parts[1]) { return listPage(parts[1], parseInt(parts[3] || '1', 10)); }
+        return screensPage();
+    }
+    window.addEventListener('hashchange', route);
+
+    // the screens, by table
+    function screensPage() {
+        setTitle(t.title, null);
+        loading();
+        api('GET', '/studio/screens').then(function (result) {
+            main.innerHTML = '';
+            var screens = (result && result.data) || [];
+            if (screens.length === 0) { main.appendChild(el('p', { className: 'empty', text: t.no_screens })); return; }
+            var groups = {};
+            var order = [];
+            screens.forEach(function (s) {
+                if (!groups[s.table]) { groups[s.table] = { label: s.table_label, items: [] }; order.push(s.table); }
+                groups[s.table].items.push(s);
+            });
+            order.forEach(function (table) {
+                var group = groups[table];
+                group.items.sort(function (a, b) { return (b.default ? 1 : 0) - (a.default ? 1 : 0); });
+                main.appendChild(el('div', { className: 'group', text: group.label }));
+                var list = el('ul', { className: 'list' });
+                group.items.forEach(function (s) {
+                    list.appendChild(el('li', {}, [el('a', { href: '#s/' + encodeURIComponent(s.id) }, [s.name])]));
+                });
+                main.appendChild(el('div', { className: 'card' }, [list]));
+            });
+        }).catch(failed);
+    }
+
+    // the data of a screen
+    function listPage(id, page) {
+        loading();
+        screen(id).then(function (s) {
+            setTitle(s.table.label, '');
+            var fields = itemsOf(s.blocks[0] || { rows: [] }).filter(function (i) { return i.kind === 'field'; });
+            // the newest first
+            return api('GET', '/data/' + encodeURIComponent(s.table.name) + '?label=1&valuetype=text&count=20&orderby=' + encodeURIComponent('id desc') + '&page=' + page).then(function (result) {
+                main.innerHTML = '';
+                var rows = (result && result.data) || [];
+                if (rows.length === 0) { main.appendChild(el('p', { className: 'empty', text: t.no_data })); }
+                else {
+                    var list = el('ul', { className: 'list' });
+                    rows.forEach(function (row) {
+                        // the second line: the first values that are not the title itself
+                        var sub = fields.map(function (f) { var v = (row.value || {})[f.name]; return v === null || v === undefined || v === '' ? null : String(v); })
+                            .filter(function (v) { return v !== null && v !== row.label; }).slice(0, 3).join(' / ');
+                        list.appendChild(el('li', {}, [el('a', { href: '#s/' + encodeURIComponent(id) + '/edit/' + row.id }, [
+                            row.label || ('#' + row.id), el('span', { className: 'sub', text: sub }),
+                        ])]));
+                    });
+                    main.appendChild(el('div', { className: 'card' }, [list]));
+                }
+                var last = (result && result.last_page) || 1;
+                if (last > 1) {
+                    var prev = el('a', { className: 'btn small', href: '#s/' + encodeURIComponent(id) + '/p/' + (page - 1), text: t.prev });
+                    var next = el('a', { className: 'btn small', href: '#s/' + encodeURIComponent(id) + '/p/' + (page + 1), text: t.next });
+                    if (page <= 1) { prev.style.visibility = 'hidden'; }
+                    if (page >= last) { next.style.visibility = 'hidden'; }
+                    main.appendChild(el('div', { className: 'pager' }, [prev, el('span', { text: t.page.replace('%1$s', page).replace('%2$s', last) }), next]));
+                }
+                if (s.permissions.create) {
+                    var add = el('button', { type: 'button', className: 'fab', 'aria-label': t.new, text: '+' });
+                    add.addEventListener('click', function () { location.hash = 's/' + encodeURIComponent(id) + '/new'; });
+                    main.appendChild(add);
+                }
+            });
+        }).catch(failed);
+    }
+
+    // a form ------------------------------------------------------------------------
+    function itemsOf(block) {
+        var items = [];
+        (block.rows || []).forEach(function (row) { row.columns.forEach(function (c) { c.items.forEach(function (i) { items.push(i); }); }); });
+        return items;
+    }
+
+    // one input of a field; get() reads its value, set() writes it
+    function inputOf(field, value, onChange) {
+        var box, get, set;
+        var type = field.type;
+        var choices = field.choices;
+        if (choices || ['select_table', 'user', 'organization'].indexOf(type) !== -1) {
+            box = el('select', { multiple: field.multiple, required: field.required });
+            if (!field.multiple) { box.appendChild(el('option', { value: '', text: t.choose })); }
+            var fill = function (list) {
+                list.forEach(function (c) { box.appendChild(el('option', { value: String(c.value !== undefined ? c.value : c.id), text: c.label })); });
+                set(value);
+            };
+            get = function () {
+                var selected = Array.prototype.filter.call(box.options, function (o) { return o.selected && o.value !== ''; }).map(function (o) { return o.value; });
+                return field.multiple ? selected : (selected[0] === undefined ? null : selected[0]);
+            };
+            set = function (v) {
+                var values = (Array.isArray(v) ? v : [v]).filter(function (x) { return x !== null && x !== undefined; }).map(String);
+                Array.prototype.forEach.call(box.options, function (o) { o.selected = values.indexOf(o.value) !== -1; });
+            };
+            if (choices) { fill(choices); } else { optionsOf(field.reference ? field.reference.table : type).then(fill); }
+        } else if (type === 'textarea' || type === 'editor') {
+            box = el('textarea', { rows: '4', required: field.required });
+            get = function () { return box.value === '' ? null : box.value; };
+            set = function (v) { box.value = v === null || v === undefined ? '' : String(v); };
+        } else if (type === 'file' || type === 'image') {
+            box = el('p', { className: 'notice', text: t.file_on_pc });
+            get = function () { return undefined; };
+            set = function () {};
+        } else if (type === 'auto_number') {
+            box = el('input', { type: 'text', readOnly: true, placeholder: t.auto_number });
+            get = function () { return undefined; };
+            set = function (v) { box.value = v === null || v === undefined ? '' : String(v); };
+        } else {
+            var kinds = { integer: 'number', decimal: 'number', currency: 'number', date: 'date', datetime: 'datetime-local', time: 'time', email: 'email', url: 'url' };
+            box = el('input', { type: kinds[type] || 'text', required: field.required, readOnly: !!field.formula });
+            if (kinds[type] === 'number') { box.setAttribute('step', 'any'); box.setAttribute('inputmode', 'decimal'); }
+            get = function () {
+                if (box.value === '') { return null; }
+                if (type === 'datetime') { return box.value.replace('T', ' ') + (box.value.length === 16 ? ':00' : ''); }
+                return box.value;
+            };
+            set = function (v) {
+                var s = v === null || v === undefined ? '' : String(v);
+                if (type === 'datetime') { s = s.replace(' ', 'T').slice(0, 16); }
+                if (type === 'date') { s = s.slice(0, 10); }
+                if (type === 'time') { s = s.slice(0, 5); }
+                if (kinds[type] === 'number') { s = s.replace(/,/g, ''); }
+                box.value = s;
+            };
+        }
+        if (!choices && ['select_table', 'user', 'organization'].indexOf(type) === -1) { set(value); }
+        box.addEventListener('input', onChange);
+        box.addEventListener('change', onChange);
+        return { node: box, get: get, set: set };
+    }
+
+    function fieldBox(field, value, onChange) {
+        var input = inputOf(field, value, onChange);
+        var label = el('label', { className: 'name' }, [field.label, field.required ? el('span', { className: 'req', text: '*' }) : null]);
+        var box = el('div', { className: 'field' }, [label, input.node, field.help ? el('div', { className: 'help', text: field.help }) : null]);
+        return { field: field, node: box, input: input };
+    }
+
+    // a formula of Exment: ${value:column} and ${sum:child table.column}
+    function calculate(formula, values, sums) {
+        var expr = formula.replace(/\$\{value:([^}]+)\}/g, function (m, name) {
+            var v = parseFloat(String(values[name] === null || values[name] === undefined ? '' : values[name]).replace(/,/g, ''));
+            return isNaN(v) ? '0' : String(v);
+        }).replace(/\$\{sum:([^.}]+)\.([^}]+)\}/g, function (m, table, name) {
+            return String((sums[table] && sums[table][name]) || 0);
+        });
+        if (!/^[0-9\s.+\-*/()]*$/.test(expr) || expr.trim() === '') { return null; }
+        try {
+            var result = Function('"use strict"; return (' + expr + ');')();
+            return isFinite(result) ? Math.round(result * 100) / 100 : null;
+        } catch (e) { return null; }
+    }
+
+    function holds(condition, values) {
+        var v = values[condition.column];
+        var list = (Array.isArray(v) ? v : [v]).filter(function (x) { return x !== null && x !== undefined && String(x) !== ''; }).map(String);
+        switch (condition.operator) {
+            case 'eq': return list.indexOf(String(condition.value)) !== -1;
+            case 'ne': return list.indexOf(String(condition.value)) === -1;
+            case 'empty': return list.length === 0;
+            case 'not_empty': return list.length > 0;
+        }
+        return true;
+    }
+
+    function formPage(id, dataId) {
+        loading();
+        Promise.all([
+            screen(id),
+            dataId ? null : Promise.resolve(null),
+        ]).then(function (got) {
+            var s = got[0];
+            var load = dataId ? api('GET', '/data/' + encodeURIComponent(s.table.name) + '/' + encodeURIComponent(dataId) + '?children=1') : Promise.resolve(null);
+            return load.then(function (data) { drawForm(id, s, data); });
+        }).catch(failed);
+    }
+
+    function drawForm(id, s, data) {
+        setTitle(s.table.label, 's/' + encodeURIComponent(id));
+        main.innerHTML = '';
+        var value = (data && data.value) || {};
+        var children = (data && data.children) || {};
+        var errorsBox = el('div', { className: 'errors', hidden: true });
+        var form = el('form', { className: 'card form', novalidate: 'novalidate' }, [errorsBox]);
+        var fields = [];   // the fields of the parent
+        var details = [];  // {block, rows: [{id, fields}], removed: [ids]}
+
+        function readValues(list) {
+            var values = {};
+            list.forEach(function (f) { var v = f.input.get(); if (v !== undefined) { values[f.field.name] = v; } });
+            return values;
+        }
+        function sumsOf() {
+            var sums = {};
+            details.forEach(function (d) {
+                var table = d.block.table;
+                sums[table] = {};
+                d.rows.forEach(function (row) {
+                    var values = readValues(row.fields);
+                    Object.keys(values).forEach(function (k) {
+                        var n = parseFloat(String(values[k]).replace(/,/g, ''));
+                        if (!isNaN(n)) { sums[table][k] = (sums[table][k] || 0) + n; }
+                    });
+                });
+            });
+            return sums;
+        }
+        // calculations and conditions, after any change
+        function refresh() {
+            details.forEach(function (d) {
+                d.rows.forEach(function (row) {
+                    var values = readValues(row.fields);
+                    row.fields.forEach(function (f) {
+                        if (f.field.formula) { var r = calculate(f.field.formula, values, {}); f.input.set(r); values[f.field.name] = r; }
+                    });
+                });
+            });
+            var sums = sumsOf();
+            var values = readValues(fields);
+            fields.forEach(function (f) {
+                if (f.field.formula) { var r = calculate(f.field.formula, values, sums); f.input.set(r); values[f.field.name] = r; }
+            });
+            fields.forEach(function (f) {
+                var conditions = f.field.visible_if && f.field.visible_if.all;
+                if (conditions) { f.node.hidden = !conditions.every(function (c) { return holds(c, values); }); }
+            });
+        }
+
+        s.blocks.forEach(function (block) {
+            if (block.type === 'default') {
+                block.rows.forEach(function (row) {
+                    var grid = el('div', { className: 'grid' });
+                    grid.style.gridTemplateColumns = row.columns.map(function (c) { return 'minmax(0, ' + c.width + 'fr)'; }).join(' ');
+                    row.columns.forEach(function (column) {
+                        var cell = el('div', {});
+                        column.items.forEach(function (item) {
+                            if (item.kind === 'field') {
+                                var f = fieldBox(item, value[item.name], refresh);
+                                fields.push(f);
+                                cell.appendChild(f.node);
+                            } else if (item.kind === 'header') { cell.appendChild(el('div', { className: 'header-item', text: item.text })); }
+                            else if (item.kind === 'text' || item.kind === 'html') {
+                                // html is shown as its text: the app does not run what an administrator wrote
+                                var tmp = document.createElement('div');
+                                tmp.innerHTML = item.kind === 'html' ? item.html : '';
+                                cell.appendChild(el('p', { className: 'text-item', text: item.kind === 'html' ? tmp.textContent : item.text }));
+                            }
+                            else if (item.kind === 'image' && item.url) { cell.appendChild(el('img', { className: 'image-item', src: item.url, alt: '' })); }
+                            else if (item.kind === 'line') { cell.appendChild(el('hr', { className: 'line-item' })); }
+                        });
+                        grid.appendChild(cell);
+                    });
+                    form.appendChild(grid);
+                });
+            } else if (block.type === 'one_to_many') {
+                var detail = { block: block, rows: [], removed: [] };
+                details.push(detail);
+                var items = itemsOf(block).filter(function (i) { return i.kind === 'field'; });
+                var rowsBox = el('div', {});
+                var addRow = function (rowData) {
+                    var row = { id: rowData ? rowData.id : null, fields: [] };
+                    var remove = el('button', { type: 'button', className: 'remove', text: t.remove_row });
+                    var box = el('div', { className: 'detail-row' }, [remove]);
+                    items.forEach(function (item) {
+                        var f = fieldBox(item, rowData && rowData.value ? rowData.value[item.name] : null, refresh);
+                        row.fields.push(f);
+                        box.appendChild(f.node);
+                    });
+                    remove.addEventListener('click', function () {
+                        if (row.id) { detail.removed.push(row.id); }
+                        detail.rows.splice(detail.rows.indexOf(row), 1);
+                        box.remove();
+                        refresh();
+                    });
+                    detail.rows.push(row);
+                    rowsBox.appendChild(box);
+                };
+                (children[block.table] || []).forEach(addRow);
+                var add = el('button', { type: 'button', className: 'btn small', text: '+ ' + t.add_row });
+                add.addEventListener('click', function () { addRow(null); refresh(); });
+                form.appendChild(el('div', { className: 'detail' }, [el('h2', { text: block.label || block.table }), rowsBox, add]));
+            }
+        });
+        main.appendChild(form);
+
+        var save = el('button', { type: 'button', className: 'btn primary', text: t.save, disabled: !(data ? s.permissions.edit : s.permissions.create) });
+        var cancel = el('a', { className: 'btn', href: '#s/' + encodeURIComponent(id), text: t.cancel });
+        main.appendChild(el('div', { className: 'actions' }, [cancel, save]));
+        refresh();
+
+        function showErrors(error) {
+            var messages = [];
+            var body = error && error.data;
+            var collect = function (v) {
+                if (typeof v === 'string') { messages.push(v); }
+                else if (Array.isArray(v)) { v.forEach(collect); }
+                else if (v && typeof v === 'object') { Object.keys(v).forEach(function (k) { collect(v[k]); }); }
+            };
+            collect(body && (body.errors || body.message) ? (body.errors || body.message) : t.failed);
+            errorsBox.innerHTML = '';
+            errorsBox.appendChild(el('ul', {}, messages.map(function (m) { return el('li', { text: m }); })));
+            errorsBox.hidden = false;
+            window.scrollTo(0, 0);
+        }
+
+        save.addEventListener('click', function () {
+            refresh();
+            save.disabled = true;
+            save.textContent = t.saving;
+            var table = s.table.name;
+            var request = data
+                ? api('PUT', '/data/' + encodeURIComponent(table) + '/' + encodeURIComponent(data.id), { value: readValues(fields) })
+                : api('POST', '/data/' + encodeURIComponent(table), { value: readValues(fields) });
+            request.then(function (saved) {
+                var parentId = data ? data.id : (saved && (saved.id || (saved.data && saved.data.id)));
+                // the rows of the details, one after another
+                var jobs = [];
+                details.forEach(function (d) {
+                    var child = encodeURIComponent(d.block.table);
+                    d.removed.forEach(function (rowId) { jobs.push(function () { return api('DELETE', '/data/' + child + '/' + encodeURIComponent(rowId)); }); });
+                    d.rows.forEach(function (row) {
+                        var body = { value: readValues(row.fields) };
+                        if (row.id) { jobs.push(function () { return api('PUT', '/data/' + child + '/' + encodeURIComponent(row.id), body); }); }
+                        else {
+                            body.parent_id = parentId;
+                            body.parent_type = table;
+                            jobs.push(function () { return api('POST', '/data/' + child, body); });
+                        }
+                    });
+                });
+                return jobs.reduce(function (p, job) { return p.then(job); }, Promise.resolve());
+            }).then(function () {
+                toast(t.saved);
+                location.hash = 's/' + encodeURIComponent(id);
+            }).catch(function (error) {
+                save.disabled = false;
+                save.textContent = t.save;
+                showErrors(error);
+            });
+        });
+    }
+
+    route();
+})();
+</script>
+</body>
+</html>

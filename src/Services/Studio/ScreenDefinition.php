@@ -51,6 +51,7 @@ use Exceedone\Exment\Model\CustomTable;
  *      "required": bool, "multiple": bool, "help": string|null, "default": mixed|null,
  *      "choices": [{"value": "...", "label": "..."}],   // select, select_valtext and yesno only
  *      "reference": {"table": "<table name>"},          // select_table, user and organization only
+ *      "formula": "${value:quantity} * ${value:price}",  // a calculated item only: ${value:<column>}, ${sum:<child table>.<column>}
  *      "visible_if": {"all": [{"column": "<column name>", "operator": "eq" | "ne" | "empty" | "not_empty",
  *                              "value": "..." | null}]}}  // shown only while all hold (ScreenCondition); absent: always shown
  *     {"kind": "system", "name": "id" | "created_at" | ...}   // shown when a data is opened, not entered
@@ -247,6 +248,11 @@ class ScreenDefinition
         if (ColumnType::isSelectTable($type)) {
             $target = $column->select_target_table;
             $field['reference'] = ['table' => isset($target) ? strval($target->table_name) : null];
+        }
+        // a calculated item: the formula as Exment keeps it (${value:column}, ${sum:child table.column}), for the app to calculate
+        $formula = $column->getOption('calc_formula');
+        if (is_string($formula) && $formula !== '' && $formula !== 'null') {
+            $field['formula'] = $formula;
         }
         $conditions = ScreenCondition::conditionsOf(array_get($formOptions, 'visible_if'));
         if ($conditions !== null) {
