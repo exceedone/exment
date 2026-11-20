@@ -20,6 +20,8 @@ namespace Exceedone\Exment\Model;
  * @property \Carbon\Carbon|null $revoked_at
  * @property int|null $revoked_user_id
  * @property \Carbon\Carbon|null $last_accessed_at
+ * @property int $received_count
+ * @property int $received_bytes
  * @property int|null $created_user_id
  * @property \Carbon\Carbon|null $created_at
  * @property FileNode|null $node
@@ -39,6 +41,8 @@ class FileShareLink extends ModelBase
         'allow_download' => 'boolean',
         'max_access' => 'integer',
         'access_count' => 'integer',
+        'received_count' => 'integer',
+        'received_bytes' => 'integer',
         'expires_at' => 'datetime',
         'revoked_at' => 'datetime',
         'last_accessed_at' => 'datetime',

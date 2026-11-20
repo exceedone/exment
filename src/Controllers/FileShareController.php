@@ -31,13 +31,15 @@ class FileShareController extends \App\Http\Controllers\Controller
         if (!ShareLinks::isUnlocked($link)) {
             return $this->page('password', $link, ['error' => session('file_share_error')]);
         }
-        ShareLinks::countAccess($link);
+        if (!ShareLinks::countAccess($link)) {
+            return $this->gone();
+        }
 
         if ($link->kind === FileShareLink::KIND_REQUEST) {
             return $this->page('request', $link, [
                 'folder' => $link->node,
                 'upload_url' => $this->url($link, 'upload'),
-                'max_file_size' => \Exceedone\Exment\Services\FileServer\Uploader::maxFileSize(),
+                'max_file_size' => ShareLinks::requestMaxFileSize(),
             ]);
         }
 
@@ -47,8 +49,8 @@ class FileShareController extends \App\Http\Controllers\Controller
         }
         $data = ['item' => $item, 'breadcrumbs' => $this->breadcrumbs($link, $item)];
         if ($item->isFolder()) {
-            $children = FileNode::query()->where('parent_id', $item->id)->whereNull('trashed_at')
-                ->orderByRaw("CASE WHEN node_type = 'folder' THEN 0 ELSE 1 END")->orderBy('name')->get();
+            // not what has its own permissions (ISS00410)
+            $children = ShareLinks::childrenInLink($item);
             $data['children'] = $children->map(function (FileNode $child) use ($link) {
                 return [
                     'name' => $child->name,
@@ -93,7 +95,8 @@ class FileShareController extends \App\Http\Controllers\Controller
             return $this->gone();
         }
         if (!ShareLinks::unlock($link, strval($request->input('password')))) {
-            return redirect($this->url($link))->with('file_share_error', exmtrans('file_server.share_password_wrong'));
+            $message = ShareLinks::isLocked($link) ? exmtrans('file_server.share_password_locked', ['minutes' => ShareLinks::PASSWORD_LOCK_MINUTES]) : exmtrans('file_server.share_password_wrong');
+            return redirect($this->url($link))->with('file_share_error', $message);
         }
         return redirect($this->url($link));
     }
@@ -111,7 +114,7 @@ class FileShareController extends \App\Http\Controllers\Controller
         if (!isset($item)) {
             abort(404);
         }
-        $library = ShareLinks::systemLibrary();
+        $library = ShareLinks::linkLibrary();
         if ($item->isFolder()) {
             $workspace = $link->workspace;
             if (!isset($workspace)) {
@@ -167,7 +170,7 @@ class FileShareController extends \App\Http\Controllers\Controller
     public function upload(Request $request, string $token)
     {
         $link = ShareLinks::resolve($token);
-        if (!isset($link) || !ShareLinks::isUnlocked($link)) {
+        if (!isset($link) || !ShareLinks::isUnlocked($link) || !ShareLinks::countAccess($link)) {
             return response()->json(['result' => false, 'message' => exmtrans('file_server.share_gone')], 404);
         }
         if ($link->kind !== FileShareLink::KIND_REQUEST) {
@@ -197,7 +200,8 @@ class FileShareController extends \App\Http\Controllers\Controller
     protected function openLink(string $token): FileShareLink
     {
         $link = ShareLinks::resolve($token);
-        if (!isset($link) || !ShareLinks::isUnlocked($link)) {
+        // a download counts as an open too (ISS00410)
+        if (!isset($link) || !ShareLinks::isUnlocked($link) || !ShareLinks::countAccess($link)) {
             abort(404);
         }
         return $link;

@@ -285,4 +285,147 @@ class FileShareTest extends FeatureTestBase
         $this->post($base . '/links/' . $link->id . '/revoke', [], $headers)->assertOk();
         $this->assertNotNull($link->refresh()->revoked_at);
     }
+
+    // ================================================================ ISS00410
+
+    public function testALinkDoesNotGiveWhatHasItsOwnPermissions(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $lib = $this->admin();
+        $hr = $lib->createFolder($ws, $folder, 'HR');
+        $salary = $lib->storeFile($ws, $hr, 'salary.txt', $this->local('salary'));
+        $deeper = $lib->createFolder($ws, $hr, 'Deeper');
+        $deep = $lib->storeFile($ws, $deeper, 'deep.txt', $this->local('deep'));
+        $own = $lib->storeFile($ws, $folder, 'own.txt', $this->local('own'));
+        foreach ([$hr, $own] as $node) {
+            $lib->breakInheritance($ws, $node);
+            $lib->setPermissions($ws, $node, [['target_type' => 'user', 'target_id' => $this->userId(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'level' => Level::MANAGE]]);
+        }
+        // made by one who edits the folder, but cannot see HR
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::EDIT);
+        $link = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1))->create($ws, $folder, FileShareLink::KIND_SHARE);
+
+        $this->get($this->shareUrl($link))->assertOk()->assertSee('hello.txt')->assertDontSee('HR')->assertDontSee('own.txt');
+        foreach ([$hr, $salary, $deeper, $deep, $own] as $node) {
+            $this->get($this->shareUrl($link, 'item/' . $node->id))->assertStatus(404);
+            $this->get($this->shareUrl($link, 'download') . '?node=' . $node->id)->assertStatus(404);
+            $this->get($this->shareUrl($link, 'content') . '?node=' . $node->id)->assertStatus(404);
+        }
+
+        // the zip of the folder leaves them out
+        $zipResponse = $this->get($this->shareUrl($link, 'download'));
+        $zipResponse->assertOk();
+        $zipPath = $zipResponse->baseResponse->getFile()->getPathname();
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($zipPath) === true);
+        $names = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $names[] = $zip->getNameIndex($i);
+        }
+        $zip->close();
+        $this->assertContains('Out/hello.txt', $names);
+        foreach ($names as $name) {
+            $this->assertStringNotContainsString('HR', strval($name));
+            $this->assertStringNotContainsString('own.txt', strval($name));
+        }
+
+        // its own permissions given later close it too
+        $inner = $lib->createFolder($ws, $folder, 'Later');
+        $this->get($this->shareUrl($link, 'item/' . $inner->id))->assertOk();
+        $lib->breakInheritance($ws, $inner);
+        $this->get($this->shareUrl($link, 'item/' . $inner->id))->assertStatus(404);
+    }
+
+    public function testTheCountOfALink(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $links = $this->links($this->admin());
+
+        // max 1: the one who opened it can still download it
+        $once = $links->create($ws, $file, FileShareLink::KIND_SHARE, ['max_access' => 1]);
+        $this->get($this->shareUrl($once))->assertOk();
+        $this->assertSame('hello outside', $this->get($this->shareUrl($once, 'download'))->streamedContent());
+        $this->assertSame(1, $once->refresh()->access_count);
+        $this->flushSession();
+        $this->get($this->shareUrl($once))->assertStatus(404);
+        $this->get($this->shareUrl($once, 'download'))->assertStatus(404);
+
+        // a download without the page counts too
+        $direct = $links->create($ws, $file, FileShareLink::KIND_SHARE, ['max_access' => 1]);
+        $this->flushSession();
+        $this->get($this->shareUrl($direct, 'download'))->assertOk();
+        $this->assertSame(1, $direct->refresh()->access_count);
+        $this->flushSession();
+        $this->get($this->shareUrl($direct, 'download'))->assertStatus(404);
+        $this->assertSame(1, $direct->refresh()->access_count);
+    }
+
+    public function testThePasswordStopsAfterTooManyTries(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['password' => 'right-1']);
+        \Illuminate\Support\Facades\Cache::forget('exment_file_share_fail_' . $link->id);
+        for ($i = 0; $i < ShareLinks::PASSWORD_TRIES; $i++) {
+            $this->assertFalse(ShareLinks::unlock($link, 'wrong'));
+        }
+        // the right one does not open it while it is stopped
+        $this->assertTrue(ShareLinks::isLocked($link));
+        $this->assertFalse(ShareLinks::unlock($link, 'right-1'));
+        \Illuminate\Support\Facades\Cache::forget('exment_file_share_fail_' . $link->id);
+        $this->assertTrue(ShareLinks::unlock($link, 'right-1'));
+    }
+
+    public function testTheLimitsOfARequestLink(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_REQUEST);
+        $json = ['Accept' => 'application/json'];
+
+        // a type it does not take
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('run.exe', 'MZ')]], $json)->assertStatus(415);
+
+        // the count and the bytes of the link
+        config(['exment.file_server_request_max_files' => 2, 'exment.file_server_request_max_bytes' => 10]);
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('a.txt', '12345')]], $json)->assertOk();
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('big.txt', '1234567')]], $json)->assertStatus(413);
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('b.txt', '12345')]], $json)->assertOk();
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('c.txt', '1')]], $json)->assertStatus(413);
+        $link->refresh();
+        $this->assertSame(2, $link->received_count);
+        $this->assertSame(10, $link->received_bytes);
+
+        // the size of one file
+        config(['exment.file_server_request_max_files' => 0, 'exment.file_server_request_max_bytes' => 0, 'exment.file_server_request_max_file_size' => 3]);
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('d.txt', '1234')]], $json)->assertStatus(413);
+
+        // the preview of a file from outside waits until someone inside opens it
+        $received = FileNode::query()->where('parent_id', $folder->id)->where('name', 'a.txt')->firstOrFail();
+        $this->assertSame(\Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD, $received->current_version->rendition_status);
+        \Exceedone\Exment\Model\System::clearRequestSession();
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $received->id), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+        $this->assertNotSame(\Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD, $received->refresh()->current_version->rendition_status);
+    }
+
+    public function testAZipHasALimit(): void
+    {
+        [$ws, $folder] = $this->sample();
+        config(['exment.file_server_zip_max_bytes' => 5]);
+        try {
+            $this->admin()->zip($ws, [$folder]);
+            $this->fail('a zip past the limit');
+        } catch (FileServerException $e) {
+            $this->assertSame(413, $e->status());
+        }
+
+        $old = Library::tempPath('old_');
+        file_put_contents($old, 'x');
+        touch($old, time() - 2 * 86400);
+        $new = Library::tempPath('new_');
+        file_put_contents($new, 'x');
+        $this->locals[] = $new;
+        Library::removeOldTempFiles();
+        $this->assertFileDoesNotExist($old);
+        $this->assertFileExists($new);
+    }
 }

@@ -27,7 +27,8 @@ class FileServerPurgeCommand extends Command
     {
         $trash = Library::purgeExpired();
         $uploads = Uploader::removeExpired();
-        $this->info("trash: {$trash}, uploads: {$uploads}");
+        $temp = Library::removeOldTempFiles();
+        $this->info("trash: {$trash}, uploads: {$uploads}, temp: {$temp}");
         return 0;
     }
 }

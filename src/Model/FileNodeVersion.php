@@ -25,6 +25,8 @@ class FileNodeVersion extends ModelBase
     public const RENDITION_DONE = 'done';
     public const RENDITION_NONE = 'none';
     public const RENDITION_FAILED = 'failed';
+    // a file from people outside: made when someone inside opens it (ISS00410)
+    public const RENDITION_HELD = 'held';
 
     protected $casts = [
         'id' => 'integer',

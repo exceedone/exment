@@ -1473,6 +1473,14 @@ return [
     'file_server_external_share' => env('EXMENT_FILE_SERVER_EXTERNAL_SHARE', true),
     'file_server_share_max_days' => env('EXMENT_FILE_SERVER_SHARE_MAX_DAYS', 0),
     'file_server_share_path' => env('EXMENT_FILE_SERVER_SHARE_PATH', 'share'),
+    // the limits of each request link (0: none), and the types it does not take (ISS00410)
+    'file_server_request_max_files' => env('EXMENT_FILE_SERVER_REQUEST_MAX_FILES', 100),
+    'file_server_request_max_bytes' => env('EXMENT_FILE_SERVER_REQUEST_MAX_BYTES', 1073741824),
+    'file_server_request_max_file_size' => env('EXMENT_FILE_SERVER_REQUEST_MAX_FILE_SIZE', 104857600),
+    'file_server_request_deny_extensions' => env('EXMENT_FILE_SERVER_REQUEST_DENY_EXTENSIONS', 'exe,com,bat,cmd,scr,pif,msi,msp,dll,cpl,js,jse,vbs,vbe,wsf,wsh,ps1,psm1,hta,jar,lnk,reg,sh,php,phtml,phar'),
+    // the largest folder downloaded as a zip, in bytes (0: no limit); the largest image a thumbnail is made of, in pixels
+    'file_server_zip_max_bytes' => env('EXMENT_FILE_SERVER_ZIP_MAX_BYTES', 2147483648),
+    'file_server_preview_max_pixels' => env('EXMENT_FILE_SERVER_PREVIEW_MAX_PIXELS', 40000000),
     // the search (phase 4): the text of the files. PDF needs pdftotext (poppler-utils; found in /usr/bin when empty);
     // OCR of images and scanned PDF needs tesseract (only when its path is set) and its languages
     'file_server_text_max_chars' => env('EXMENT_FILE_SERVER_TEXT_MAX_CHARS', 1000000),
