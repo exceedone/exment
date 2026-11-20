@@ -220,10 +220,11 @@ class ChildRowParentPermissionTest extends ApiTestBase
             [static::USER_ADMIN, $own],
         ];
         foreach ($cases as $index => list($user, $record)) {
-            $this->actAs(static::USER_ADMIN);
+            // the user's own comment: another user's comment is changed only by an
+            // administrator (CommentAuthorOnlyTest)
+            $this->actAs($user);
             $comment = $this->comment($record, "body $index");
 
-            $this->actAs($user);
             $path = $this->dataPath(SystemTableName::COMMENT, $comment);
 
             $this->getApi($path)
@@ -243,9 +244,10 @@ class ChildRowParentPermissionTest extends ApiTestBase
 
     public function testACommentWithoutARecordIsStillReadUpdatedAndDeleted(): void
     {
+        // the user's own comment (CommentAuthorOnlyTest: another user's is not changed)
+        $this->actAs(static::USER_NO_ROLE);
         $comment = $this->comment(null, 'parentless');
 
-        $this->actAs(static::USER_NO_ROLE);
         $path = $this->dataPath(SystemTableName::COMMENT, $comment);
 
         $this->getApi($path)
@@ -286,7 +288,11 @@ class ChildRowParentPermissionTest extends ApiTestBase
     public function testTheRecordChecksOfACommentFollowTheRecordItHangsOff(): void
     {
         $open = $this->record(static::TABLE_ALL, 'parent open');
+        // written by user2, so user2 (and an administrator) may change it
+        $this->actAs(static::USER_USER2);
         $onOpen = $this->comment($open, 'on open');
+        // written by the user without a role, who checks them below
+        $this->actAs(static::USER_NO_ROLE);
         $parentless = $this->comment(null, 'parentless');
         $orphan = $this->attach(SystemTableName::COMMENT, static::TABLE_ALL, $this->missingId(static::TABLE_ALL), ['comment_detail' => 'orphan']);
 
