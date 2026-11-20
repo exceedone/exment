@@ -133,7 +133,8 @@ class ParentItem implements ItemInterface
             return null;
         // get text column
         } elseif ($this->isPublicForm()) {
-            return $v->getLabel();
+            // shown as HTML: the label is text
+            return esc_html($v->getLabel());
         } else {
             return $v->getUrl(true);
         }
