@@ -119,6 +119,7 @@ class StudioController extends AdminControllerBase
             'sheet_max_rows' => SheetReader::MAX_ROWS,
             'layout_presets' => ScreenLayout::PRESETS,
             'max_children' => ScreenChildren::MAX_CHILDREN,
+            'reference_tables' => BlankFormBuilder::referenceTables(),
             'old_children' => $hasOld && is_string(array_get($old, 'children')) ? (json_decode($old['children'], true) ?: []) : [],
         ]));
         return $content;

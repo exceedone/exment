@@ -33,13 +33,25 @@ use Exceedone\Exment\Model\System;
 class BlankFormBuilder
 {
     /**
-     * The item types of the palette: column type => [icon, needs choices].
+     * A calculated number: a decimal column with a formula (the option calc_formula).
+     */
+    public const CALC = 'calc';
+
+    /**
+     * The format of the number an auto number column gives: the date and the id ("20261121-0012").
+     */
+    public const AUTO_NUMBER_FORMAT = '${ymd}-${id:4}';
+
+    /**
+     * The item types of the palette: column type => [icon, needs choices, needs a table, needs a formula].
      */
     public const FIELD_TYPES = [
         ColumnType::TEXT => ['icon' => 'fa-font', 'choices' => false],
         ColumnType::TEXTAREA => ['icon' => 'fa-align-left', 'choices' => false],
         ColumnType::INTEGER => ['icon' => 'fa-sort-numeric-asc', 'choices' => false],
         ColumnType::DECIMAL => ['icon' => 'fa-percent', 'choices' => false],
+        ColumnType::CURRENCY => ['icon' => 'fa-jpy', 'choices' => false],
+        self::CALC => ['icon' => 'fa-calculator', 'choices' => false, 'formula' => true],
         ColumnType::DATE => ['icon' => 'fa-calendar', 'choices' => false],
         ColumnType::DATETIME => ['icon' => 'fa-clock-o', 'choices' => false],
         ColumnType::TIME => ['icon' => 'fa-hourglass-half', 'choices' => false],
@@ -47,10 +59,18 @@ class BlankFormBuilder
         ColumnType::YESNO => ['icon' => 'fa-toggle-on', 'choices' => false],
         ColumnType::EMAIL => ['icon' => 'fa-envelope-o', 'choices' => false],
         ColumnType::URL => ['icon' => 'fa-link', 'choices' => false],
+        ColumnType::SELECT_TABLE => ['icon' => 'fa-table', 'choices' => false, 'target' => true],
         ColumnType::USER => ['icon' => 'fa-user', 'choices' => false],
+        ColumnType::ORGANIZATION => ['icon' => 'fa-users', 'choices' => false],
+        ColumnType::AUTO_NUMBER => ['icon' => 'fa-barcode', 'choices' => false],
         ColumnType::FILE => ['icon' => 'fa-paperclip', 'choices' => false],
         ColumnType::IMAGE => ['icon' => 'fa-picture-o', 'choices' => false],
     ];
+
+    /**
+     * The parts a formula can use: numbers.
+     */
+    public const NUMBER_TYPES = [ColumnType::INTEGER, ColumnType::DECIMAL, ColumnType::CURRENCY, self::CALC];
 
     public const MAX_FIELDS = 100;
     public const MAX_NAME_LENGTH = 30;
@@ -69,7 +89,7 @@ class BlankFormBuilder
     /**
      * The palette for the page: type, label and icon of each item type.
      *
-     * @return array<int, array{type: string, label: string, icon: string, choices: bool}>
+     * @return array<int, array{type: string, label: string, icon: string, choices: bool, target: bool, formula: bool, number: bool}>
      */
     public static function palette(): array
     {
@@ -77,12 +97,67 @@ class BlankFormBuilder
         foreach (static::FIELD_TYPES as $type => $define) {
             $result[] = [
                 'type' => $type,
-                'label' => exmtrans('custom_column.column_type_options.' . $type),
+                'label' => $type === static::CALC ? exmtrans('studio.part_calc') : exmtrans('custom_column.column_type_options.' . $type),
                 'icon' => $define['icon'],
                 'choices' => $define['choices'],
+                'target' => boolval($define['target'] ?? false),
+                'formula' => boolval($define['formula'] ?? false),
+                'number' => in_array($type, static::NUMBER_TYPES, true),
             ];
         }
         return $result;
+    }
+
+    /**
+     * The tables a "select from a table" item can point at.
+     *
+     * @return array<int, array{id: int, name: string}>
+     */
+    public static function referenceTables(): array
+    {
+        return CustomTable::where('showlist_flg', true)->orderBy('order')->orderBy('id')->get()->map(function ($table) {
+            return ['id' => intval($table->id), 'name' => strval($table->table_view_name)];
+        })->all();
+    }
+
+    /**
+     * The formula of a calculated item, written with the names of the items in
+     * brackets ("[quantity] * [price]"), as Exment keeps it ("${value:quantity} * ${value:price}").
+     *
+     * @param array<int, array{label: string, column_name: string, type: string}> $fields the items of the screen
+     * @return array{0: ?string, 1: ?string} the formula, or the key of the mistake
+     */
+    public static function calcFormula(string $formula, int $self, array $fields): array
+    {
+        $formula = trim($formula);
+        if ($formula === '') {
+            return [null, 'formula_empty'];
+        }
+        $byLabel = [];
+        foreach ($fields as $index => $field) {
+            $byLabel[$field['label']][] = $index;
+        }
+        $mistake = null;
+        $converted = preg_replace_callback('/\[([^\[\]]+)\]/u', function ($m) use ($byLabel, $self, $fields, &$mistake) {
+            $indexes = $byLabel[trim($m[1])] ?? [];
+            if (count($indexes) !== 1 || $indexes[0] === $self) {
+                $mistake = $mistake ?? 'formula_item';
+                return '0';
+            }
+            if (!in_array($fields[$indexes[0]]['type'], static::NUMBER_TYPES, true)) {
+                $mistake = $mistake ?? 'formula_number';
+                return '0';
+            }
+            return '${value:' . $fields[$indexes[0]]['column_name'] . '}';
+        }, $formula) ?? '';
+        if ($mistake !== null) {
+            return [null, $mistake];
+        }
+        // what is left besides the items: numbers and + - * / ( )
+        if (preg_match('/^[0-9\s\.\+\-\*\/\(\)]*$/', preg_replace('/\$\{value:[^}]+\}/', '', $converted) ?? 'x') !== 1) {
+            return [null, 'formula_symbol'];
+        }
+        return [$converted, null];
     }
 
     /**
@@ -126,7 +201,15 @@ class BlankFormBuilder
                 'choices' => trim(str_replace(["\r\n", "\r"], "\n", strval(array_get($field, 'choices', '')))),
                 // the column of the read sheet the item came from (SheetReader), to take its data in
                 'source' => is_numeric(array_get($field, 'source')) ? intval($field['source']) : null,
+                'target_table' => is_numeric(array_get($field, 'target_table')) ? intval($field['target_table']) : null,
+                'formula' => trim(strval(array_get($field, 'formula', ''))),
             ];
+        }
+        // a formula names the other items: read once all the items have their column names
+        foreach ($result as $index => $field) {
+            [$calc, $mistake] = $field['type'] === static::CALC ? static::calcFormula($field['formula'], $index, $result) : [null, null];
+            $result[$index]['calc_formula'] = $calc;
+            $result[$index]['formula_error'] = $mistake;
         }
 
         $parent = array_get($input, 'menu_parent_id');
@@ -199,6 +282,13 @@ class BlankFormBuilder
             if (array_get(static::FIELD_TYPES, $field['type'] . '.choices') && $field['choices'] === '') {
                 $errors["{$key}.choices"] = exmtrans('studio.error.no_choice');
             }
+            if (array_get(static::FIELD_TYPES, $field['type'] . '.target')
+                && (!isset($field['target_table']) || !CustomTable::where('id', $field['target_table'])->where('showlist_flg', true)->exists())) {
+                $errors["{$key}.target_table"] = exmtrans('studio.error.target_table');
+            }
+            if (isset($field['formula_error'])) {
+                $errors["{$key}.formula"] = exmtrans('studio.error.' . $field['formula_error']);
+            }
         }
         if (isset($screen['layout'])) {
             $errors += ScreenLayout::validate($screen['layout']);
@@ -248,7 +338,8 @@ class BlankFormBuilder
                 $column->custom_table_id = $table->id;
                 $column->column_name = $field['column_name'];
                 $column->column_view_name = $field['label'];
-                $column->column_type = $field['type'];
+                // a calculated item is a decimal with a formula
+                $column->column_type = $field['type'] === static::CALC ? ColumnType::DECIMAL : $field['type'];
                 $column->order = $index + 1;
                 $options = [
                     'required' => $field['required'] ? '1' : '0',
@@ -260,6 +351,21 @@ class BlankFormBuilder
                 }
                 if ($field['type'] === ColumnType::FILE) {
                     $options['multiple_enabled'] = '0';
+                }
+                if ($field['type'] === ColumnType::SELECT_TABLE) {
+                    $options['select_target_table'] = strval($field['target_table'] ?? '');
+                }
+                if ($field['type'] === ColumnType::CURRENCY) {
+                    $options['currency_symbol'] = 'JPY1';
+                    $options['decimal_digit'] = '0';
+                }
+                if ($field['type'] === static::CALC) {
+                    $options['calc_formula'] = strval($field['calc_formula'] ?? '');
+                    $options['decimal_digit'] = '2';
+                }
+                if ($field['type'] === ColumnType::AUTO_NUMBER) {
+                    $options['auto_number_type'] = 'format';
+                    $options['auto_number_format'] = static::AUTO_NUMBER_FORMAT;
                 }
                 $column->setOption($options);
                 $column->save();
