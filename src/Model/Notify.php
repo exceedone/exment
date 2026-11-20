@@ -555,8 +555,12 @@ class Notify extends ModelBase
         $custom_table = $custom_value->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
-        $attach_files = collect($attachments)->filter()->map(function ($uuid) {
-            return File::where('uuid', $uuid)->first();
+        // only the files of this record (the dialog offers them)
+        $attach_files = collect($attachments)->filter()->map(function ($uuid) use ($custom_value) {
+            return File::where('uuid', $uuid)
+                ->where('parent_type', $custom_value->custom_table->table_name)
+                ->where('parent_id', $custom_value->id)
+                ->first();
         })->filter();
 
         // loop action setting
