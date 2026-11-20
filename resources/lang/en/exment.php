@@ -2065,6 +2065,10 @@ return [
     ],
 
     'custom_form' => [
+        'missing_required_title' => 'Some required columns are not placed',
+        'missing_required' => 'The required columns %s are not on this form. Data entered with this form is saved with them empty (the required rule is checked only on the columns of the form).',
+        'name_quote' => '"%s"',
+        'name_separator' => ', ',
         'default_form_name' => 'Form',
         'header' => 'Custom Form Setting',
         'description' => 'Define the form display that the user can enter. The content set on this page will be reflected on the data form page.',

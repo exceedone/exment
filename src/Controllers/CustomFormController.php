@@ -8,6 +8,7 @@ use ExmentAdminCore\Admin\Grid;
 use ExmentAdminCore\Admin\Grid\Linker;
 use ExmentAdminCore\Admin\Form;
 use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Alert;
 use ExmentAdminCore\Admin\Widgets\Box;
 use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomForm;
@@ -490,6 +491,17 @@ class CustomFormController extends AdminControllerTableBase
         });
 
 
+        // the required columns this form does not have are saved empty from it (ISS00374)
+        if (isset($id) && $form->exists) {
+            $missing = $this->missingRequiredColumns($form);
+            if (count($missing) > 0) {
+                $names = implode(exmtrans('custom_form.name_separator'), array_map(function ($name) {
+                    return sprintf(exmtrans('custom_form.name_quote'), esc_html($name));
+                }, $missing));
+                $content->row(new Alert(sprintf(exmtrans('custom_form.missing_required'), $names), exmtrans('custom_form.missing_required_title'), 'warning'));
+            }
+        }
+
         // create endpoint
         $formroot = admin_url("form/{$this->custom_table->table_name}");
         $endpoint = $formroot.(isset($id) ? "/{$id}" : "");
@@ -501,6 +513,33 @@ class CustomFormController extends AdminControllerTableBase
             'headerBox' => $this->getHeaderBox($form, $formroot),
             'after_save' => old('after-save', request()->get('after-save')),
         ]));
+    }
+
+    /**
+     * The required columns of the table that the form does not have.
+     *
+     * The required rule is checked only on the columns of the form, so data
+     * entered with this form is saved with these empty. The form is still
+     * saved as it is: a form of a part of the columns can be made on purpose.
+     *
+     * @return array<int, string> the names of the columns
+     */
+    protected function missingRequiredColumns(CustomForm $form): array
+    {
+        $block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
+        $placed = isset($block)
+            ? $block->custom_form_columns()->where('form_column_type', FormColumnType::COLUMN)->pluck('form_column_target_id')->map(function ($id) {
+                return intval($id);
+            })->all()
+            : [];
+
+        $missing = [];
+        foreach ($this->custom_table->custom_columns as $column) {
+            if (boolval($column->getOption('required')) && !in_array(intval($column->id), $placed, true)) {
+                $missing[] = strval($column->column_view_name);
+            }
+        }
+        return $missing;
     }
 
     /**
