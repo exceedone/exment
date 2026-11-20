@@ -120,6 +120,7 @@ class ExmentServiceProvider extends ServiceProvider
     // @phpstan-ignore-next-line
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
+        'admin.security-headers' => \Exceedone\Exment\Middleware\SecurityHeaders::class,
         'log.exec.time' => \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
         'check.logging.enabled' => \Exceedone\Exment\Middleware\CheckLoggingEnabled::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
@@ -159,6 +160,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middlewareGroups = [
         // Exment web page default
         'admin' => [
+            'admin.security-headers',
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
@@ -177,6 +179,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment not login web page. (Ex. login, forget password)
         'admin_anonymous' => [
+            'admin.security-headers',
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',

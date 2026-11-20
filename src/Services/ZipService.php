@@ -71,7 +71,8 @@ class ZipService
 
         $output = [];
         $dir7zip = path_join(config('exment.7zip_dir'), '7z.exe');
-        exec('"' . $dir7zip . '" a -p' . $password . ' "' . $zipFullPath . '" "' . $tmpFolderPath . '/*"', $output);
+        // every part is quoted for the shell, as on Linux (7-Zip expands the "*" itself)
+        exec(escapeshellarg($dir7zip) . ' a ' . escapeshellarg('-p' . $password) . ' ' . escapeshellarg($zipFullPath) . ' ' . escapeshellarg($tmpFolderPath . '/*'), $output);
     }
 
     /**

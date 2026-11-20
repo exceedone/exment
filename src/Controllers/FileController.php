@@ -298,6 +298,19 @@ class FileController extends AdminControllerBase
             abort(403);
         }
 
+        // A file with no record (an avatar, a system image, a file uploaded but
+        // not saved yet) has no record permission to ask: only the user who
+        // uploaded it, or an administrator, deletes it.
+        if (is_nullorempty($data->parent_id) || is_nullorempty($data->parent_type)) {
+            $login_user = \Exment::user();
+            if (!$login_user || (!$login_user->isAdministrator() && !isMatchString($data->created_user_id, \Exment::getUserId()))) {
+                if ($options['asApi']) {
+                    return abortJson(403, ErrorCode::PERMISSION_DENY());
+                }
+                abort(403);
+            }
+        }
+
         // if has parent_id, check permission
         $checkParentPermission = static::checkParentPermission($data, $options);
         if ($checkParentPermission !== true) {
