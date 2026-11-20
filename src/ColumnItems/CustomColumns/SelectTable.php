@@ -183,6 +183,9 @@ class SelectTable extends CustomItem
         // get text column
         } elseif ($html && !$this->isPublicForm()) {
             return $model->getUrl(true);
+        } elseif ($html) {
+            // a public form shows the label without a link; it is still text
+            return esc_html($model->getLabel());
         } else {
             return $model->getLabel();
         }
