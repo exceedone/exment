@@ -55,6 +55,9 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
 .actions { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 8px; justify-content: flex-end; padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line); }
 .toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); background: #1f2933; color: #fff; padding: 10px 16px; border-radius: 20px; font-size: .9rem; }
 .notice { color: var(--sub); font-size: .85rem; }
+.previews { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.previews img { width: 88px; height: 88px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+.field input[type=file] { padding: 8px; }
 </style>
 </head>
 <body>
@@ -83,7 +86,9 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
         'page' => exmtrans('studio.app_page'),
         'loading' => exmtrans('studio.app_loading'),
         'failed' => exmtrans('studio.app_failed'),
-        'file_on_pc' => exmtrans('studio.app_file_on_pc'),
+        'file_saved' => exmtrans('studio.app_file_saved'),
+        'file_too_large' => exmtrans('studio.app_file_too_large'),
+        'file_unreadable' => exmtrans('studio.app_file_unreadable'),
         'auto_number' => exmtrans('studio.auto_number_preview'),
         'choose' => exmtrans('studio.app_choose'),
         'yes' => exmtrans('common.yes'),
@@ -209,7 +214,8 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
         loading();
         screen(id).then(function (s) {
             setTitle(s.table.label, '');
-            var fields = itemsOf(s.blocks[0] || { rows: [] }).filter(function (i) { return i.kind === 'field'; });
+            // the values shown under the title: not a file (its value is a URL)
+            var fields = itemsOf(s.blocks[0] || { rows: [] }).filter(function (i) { return i.kind === 'field' && i.type !== 'file' && i.type !== 'image'; });
             // the newest first
             return api('GET', '/data/' + encodeURIComponent(s.table.name) + '?label=1&valuetype=text&count=20&orderby=' + encodeURIComponent('id desc') + '&page=' + page).then(function (result) {
                 main.innerHTML = '';
@@ -277,9 +283,41 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
             get = function () { return box.value === '' ? null : box.value; };
             set = function (v) { box.value = v === null || v === undefined ? '' : String(v); };
         } else if (type === 'file' || type === 'image') {
-            box = el('p', { className: 'notice', text: t.file_on_pc });
-            get = function () { return undefined; };
-            set = function () {};
+            // the files chosen, read as {name, base64} as the data API takes them;
+            // nothing chosen: the key is not sent and the saved files stay
+            var chosen = null;
+            var picker = el('input', { type: 'file', multiple: field.multiple, accept: type === 'image' ? 'image/*' : null });
+            var saved = el('div', { className: 'help' });
+            var previews = el('div', { className: 'previews' });
+            box = el('div', {}, [saved, picker, previews]);
+            picker.addEventListener('change', function () {
+                var files = Array.prototype.slice.call(picker.files || []);
+                previews.innerHTML = '';
+                if (files.length === 0) { chosen = null; return; }
+                var reading = Promise.all(files.map(function (file) {
+                    return readFile(file, type === 'image').then(function (read) {
+                        if (read.preview) { previews.appendChild(el('img', { src: read.preview, alt: '' })); }
+                        else { previews.appendChild(el('div', { className: 'help', text: read.name })); }
+                        return { name: read.name, base64: read.base64 };
+                    });
+                })).then(function (list) { chosen = list; }).catch(function (error) {
+                    // a file that cannot be read is not sent: say so under the item
+                    chosen = null;
+                    picker.value = '';
+                    previews.innerHTML = '';
+                    previews.appendChild(el('div', { className: 'errors', text: error && error.message ? error.message : t.failed }));
+                });
+                pendingReads.push(reading);
+            });
+            get = function () {
+                if (chosen === null) { return undefined; }
+                return field.multiple ? chosen : chosen[0];
+            };
+            set = function (v) {
+                // the server keeps the files under its own names: tell how many there are
+                var count = (Array.isArray(v) ? v : [v]).filter(function (x) { return x !== null && x !== undefined && x !== ''; }).length;
+                saved.textContent = count > 0 ? t.file_saved.replace('%s', count) : '';
+            };
         } else if (type === 'auto_number') {
             box = el('input', { type: 'text', readOnly: true, placeholder: t.auto_number });
             get = function () { return undefined; };
@@ -313,6 +351,37 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
         var label = el('label', { className: 'name' }, [field.label, field.required ? el('span', { className: 'req', text: '*' }) : null]);
         var box = el('div', { className: 'field' }, [label, input.node, field.help ? el('div', { className: 'help', text: field.help }) : null]);
         return { field: field, node: box, input: input };
+    }
+
+    // the files being read: saving waits for them
+    var pendingReads = [];
+    var MAX_PHOTO = 1600;
+    var MAX_FILE_MB = 10;
+    function readFile(file, isImage) {
+        return new Promise(function (resolve, reject) {
+            if (!isImage || !/^image\//.test(file.type) || /gif|svg/.test(file.type)) {
+                if (file.size > MAX_FILE_MB * 1024 * 1024) { reject(new Error(t.file_too_large.replace('%s', MAX_FILE_MB))); return; }
+                var reader = new FileReader();
+                reader.onload = function () { resolve({ name: file.name, base64: String(reader.result).split(',')[1] || '', preview: null }); };
+                reader.onerror = function () { reject(reader.error); };
+                reader.readAsDataURL(file);
+                return;
+            }
+            var url = URL.createObjectURL(file);
+            var img = new Image();
+            img.onload = function () {
+                var scale = Math.min(1, MAX_PHOTO / Math.max(img.width, img.height));
+                var canvas = document.createElement('canvas');
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                URL.revokeObjectURL(url);
+                var data = canvas.toDataURL('image/jpeg', 0.85);
+                resolve({ name: file.name.replace(/\.[^.]+$/, '') + '.jpg', base64: data.split(',')[1] || '', preview: data });
+            };
+            img.onerror = function () { URL.revokeObjectURL(url); reject(new Error(t.file_unreadable)); };
+            img.src = url;
+        });
     }
 
     // a formula of Exment: ${value:column} and ${sum:child table.column}
@@ -355,6 +424,7 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
     }
 
     function drawForm(id, s, data) {
+        pendingReads = [];
         setTitle(s.table.label, 's/' + encodeURIComponent(id));
         main.innerHTML = '';
         var value = (data && data.value) || {};
@@ -487,9 +557,9 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
             save.disabled = true;
             save.textContent = t.saving;
             var table = s.table.name;
-            var request = data
+            var request = Promise.all(pendingReads).then(function () { return data
                 ? api('PUT', '/data/' + encodeURIComponent(table) + '/' + encodeURIComponent(data.id), { value: readValues(fields) })
-                : api('POST', '/data/' + encodeURIComponent(table), { value: readValues(fields) });
+                : api('POST', '/data/' + encodeURIComponent(table), { value: readValues(fields) }); });
             request.then(function (saved) {
                 var parentId = data ? data.id : (saved && (saved.id || (saved.data && saved.data.id)));
                 // the rows of the details, one after another
@@ -514,7 +584,7 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
             }).catch(function (error) {
                 save.disabled = false;
                 save.textContent = t.save;
-                showErrors(error);
+                showErrors(error && !error.data && error.message && error.message !== 'api' ? { data: { message: error.message } } : error);
             });
         });
     }
