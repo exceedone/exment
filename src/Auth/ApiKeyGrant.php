@@ -64,7 +64,7 @@ class ApiKeyGrant extends AbstractGrant
             throw OAuthServerException::invalidRequest('api_key');
         }
 
-        $login_user = $this->getUserEntityByUserCredentials($api_key);
+        $login_user = $this->getUserEntityByUserCredentials($api_key, $client);
 
         if ($login_user instanceof UserEntityInterface === false) {
             $this->getEmitter()->emit(new RequestEvent(RequestEvent::USER_AUTHENTICATION_FAILED, $request));
@@ -88,12 +88,17 @@ class ApiKeyGrant extends AbstractGrant
      * @param string $api_key
      * @return UserEntityInterface|null
      */
-    public function getUserEntityByUserCredentials($api_key)
+    public function getUserEntityByUserCredentials($api_key, ?ClientEntityInterface $client = null)
     {
         /** @var ApiKey $api_key */
         $api_key = ApiKey::where('key', $api_key)->first();
         // @phpstan-ignore-next-line
         if (is_null($api_key) || is_null($api_key->client)) {
+            throw OAuthServerException::invalidCredentials();
+        }
+        // the key is of the client that asks for the token (its id and secret
+        // were checked); a key of another client is not taken
+        if (isset($client) && !isMatchString($api_key->client_id, $client->getIdentifier())) {
             throw OAuthServerException::invalidCredentials();
         }
 
