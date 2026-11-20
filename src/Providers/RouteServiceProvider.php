@@ -583,6 +583,10 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post("data/{tableKey}/{id}/comments", 'ApiDataController@createComment')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                     $router->delete("data/{tableKey}/{id}/comments/{suuid}", 'ApiDataController@deleteComment')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
 
+                    // studio: the screens as JSON for the phone app (ISS00231) ------
+                    $router->get("studio/screens", 'ApiStudioController@screens')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                    $router->get("studio/screens/{id}", 'ApiStudioController@screen')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+
                     // viewdata ----------------------------------------------------
                     $router->get("viewdata/{tableKey}/{viewid}", 'ApiDataController@viewDataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     $router->get("viewdata/{tableKey}/{viewid}/{id}", 'ApiDataController@viewDataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
