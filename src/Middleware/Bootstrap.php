@@ -60,10 +60,10 @@ class Bootstrap
                 $navbar->left(new \Exceedone\Exment\Form\Navbar\DemoModeNav());
             }
         });
-        Ad::js(asset('lib/js/jquery-ui.min.js'));
-        Ad::css(asset('lib/css/jquery-ui.min.css'));
+        static::setCssJsList(['lib/js/jquery-ui.min.js'], false);
+        static::setCssJsList(['lib/css/jquery-ui.min.css'], true);
 
-        Ad::js(asset('lib/js/bignumber.min.js'));
+        static::setCssJsList(['lib/js/bignumber.min.js'], false);
 
         static::setCssJsList([
             // iCheck is not decoration here. Grid\Displayers\RowSelector
@@ -107,7 +107,7 @@ class Bootstrap
         static::setCssJsList([
             // see the note on the stylesheet above
             'vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js',
-            'vendor/exment/validation/jquery.validate.js',
+            'vendor/exment/validation/jquery.validate.min.js',
             'vendor/exment/chartjs/chart.min.js',
             'vendor/exment/codemirror/codemirror.js',
             'vendor/exment/codemirror/mode/htmlmixed/htmlmixed.js',
@@ -130,7 +130,6 @@ class Bootstrap
             'vendor/exment/js/dashboard.js',
             'vendor/exment/js/file-required.js',
             'vendor/exment/js/scroll-restore.js',
-            'vendor/exment/js/file-required.js',
             'vendor/exment/js/search.js',
             'vendor/exment/js/calc.js',
             'vendor/exment/js/notify_navbar.js',
