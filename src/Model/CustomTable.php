@@ -639,6 +639,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
+            // the name becomes a table name in SQL; a template or an import
+            // saves without the screen's check, so a new or changed name is checked here
+            if ($model->isDirty('table_name') && !preg_match('/^[a-zA-Z0-9_-]+$/', (string)$model->table_name)) {
+                throw new \InvalidArgumentException('Invalid table name: ' . json_encode((string)$model->table_name));
+            }
             $model->prepareJson('options');
         });
 

@@ -383,6 +383,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
+            // The name goes into SQL (JSON paths, generated index columns). The
+            // screens check it; a template or an import saves without them, so
+            // a new or changed name is checked here too.
+            if ($model->isDirty('column_name') && !preg_match('/^[a-zA-Z0-9_-]+$/', (string)$model->column_name)) {
+                throw new \InvalidArgumentException('Invalid column name: ' . json_encode((string)$model->column_name));
+            }
             $model->prepareJson('options');
         });
 
