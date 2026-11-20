@@ -58,12 +58,21 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
 .previews { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .previews img { width: 88px; height: 88px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
 .field input[type=file] { padding: 8px; }
+header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: middle; }
+.with-scan { display: flex; gap: 6px; }
+.with-scan input { flex: 1; min-width: 0; }
+.scan-btn { flex: 0 0 44px; border: 1px solid #c9ced6; border-radius: 6px; background: #fff; color: var(--text); }
+.scanner { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; background: #000; color: #fff; }
+.scanner-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; padding-top: calc(12px + env(safe-area-inset-top)); font-size: .9rem; }
+.scanner video { flex: 1; min-height: 0; width: 100%; object-fit: cover; }
+.scanner-frame { position: absolute; left: 12%; right: 12%; top: 38%; height: 24%; border: 3px solid rgba(255,255,255,.85); border-radius: 12px; pointer-events: none; }
 </style>
 </head>
 <body>
 <header>
     <button type="button" id="back" aria-label="{{ exmtrans('studio.app_back') }}" hidden>&#8249;</button>
     <h1 id="title">{{ $title }}</h1>
+    <button type="button" id="scan" class="scan" aria-label="{{ exmtrans('studio.app_scan') }}" title="{{ exmtrans('studio.app_scan') }}" hidden></button>
     <a href="{{ $pc_url }}">{{ exmtrans('studio.app_pc') }}</a>
 </header>
 <main id="main" aria-live="polite"></main>
@@ -91,6 +100,14 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
         'file_unreadable' => exmtrans('studio.app_file_unreadable'),
         'auto_number' => exmtrans('studio.auto_number_preview'),
         'choose' => exmtrans('studio.app_choose'),
+        'scan' => exmtrans('studio.app_scan'),
+        'scan_hint' => exmtrans('studio.app_scan_hint'),
+        'scan_close' => exmtrans('studio.app_scan_close'),
+        'scan_no_camera' => exmtrans('studio.app_scan_no_camera'),
+        'scan_not_found' => exmtrans('studio.app_scan_not_found'),
+        'scan_no_screen' => exmtrans('studio.app_scan_no_screen'),
+        'scan_found' => exmtrans('studio.app_scan_found'),
+        'scan_not_number' => exmtrans('studio.app_scan_not_number'),
         'yes' => exmtrans('common.yes'),
         'no' => exmtrans('common.no'),
     ];
@@ -104,6 +121,9 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
     var main = document.getElementById('main');
     var titleBox = document.getElementById('title');
     var back = document.getElementById('back');
+    var scanButton = document.getElementById('scan');
+    var codeUrl = @json($code_url);
+    var zxingUrl = @json($zxing_url);
     var screensCache = {};
     var optionsCache = {};
 
@@ -131,10 +151,11 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
     }
 
     // the data API of the web session -------------------------------------------------
-    function api(method, path, body) {
+    function api(method, path, body) { return call(method, webapi + path, body); }
+    function call(method, url, body) {
         var options = { method: method, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf } };
         if (body !== undefined) { options.headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(body); }
-        return fetch(webapi + path, options).then(function (r) {
+        return fetch(url, options).then(function (r) {
             if (r.status === 401 || r.status === 419) { location.href = loginUrl; throw new Error('login'); }
             return r.text().then(function (text) {
                 var data = null;
@@ -143,6 +164,11 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
                 return data;
             });
         });
+    }
+    var screensList = null;
+    function allScreens() {
+        if (screensList) { return Promise.resolve(screensList); }
+        return api('GET', '/studio/screens').then(function (result) { screensList = (result && result.data) || []; return screensList; });
     }
     function screen(id) {
         if (screensCache[id]) { return Promise.resolve(screensCache[id]); }
@@ -160,11 +186,16 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
     }
 
     // pages -------------------------------------------------------------------------
-    function setTitle(text, backTo) {
+    function setTitle(text, backTo, scanIn) {
         titleBox.textContent = text;
         document.title = text;
         back.hidden = backTo === null;
-        back.onclick = function () { location.hash = backTo || ''; };
+        back.onclick = function () {
+            // the page of found data has no address of its own: draw the one under it again
+            if (location.hash.replace(/^#/, '') === (backTo || '')) { route(); } else { location.hash = backTo || ''; }
+        };
+        scanContext = scanIn || null;
+        scanButton.hidden = !canScan || !scanIn;
     }
     function loading() { main.innerHTML = ''; main.appendChild(el('p', { className: 'empty', text: t.loading })); }
     function failed(error) {
@@ -184,11 +215,11 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
 
     // the screens, by table
     function screensPage() {
-        setTitle(t.title, null);
+        setTitle(t.title, null, {});
         loading();
-        api('GET', '/studio/screens').then(function (result) {
+        screensList = null;
+        allScreens().then(function (screens) {
             main.innerHTML = '';
-            var screens = (result && result.data) || [];
             if (screens.length === 0) { main.appendChild(el('p', { className: 'empty', text: t.no_screens })); return; }
             var groups = {};
             var order = [];
@@ -213,7 +244,7 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
     function listPage(id, page) {
         loading();
         screen(id).then(function (s) {
-            setTitle(s.table.label, '');
+            setTitle(s.table.label, '', { screen: id, table: s.table.name });
             // the values shown under the title: not a file (its value is a URL)
             var fields = itemsOf(s.blocks[0] || { rows: [] }).filter(function (i) { return i.kind === 'field' && i.type !== 'file' && i.type !== 'image'; });
             // the newest first
@@ -249,6 +280,88 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
             });
         }).catch(failed);
     }
+
+    // reading a QR / bar code with the camera ---------------------------------------
+    // zxing.js of Exment, loaded when first needed (the camera works on https and on localhost)
+    var canScan = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    var scanContext = null;
+    var zxingLoading = null;
+    var SCAN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V4h3M18 4h3v3M21 17v3h-3M6 20H3v-3"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8"/></svg>';
+    scanButton.innerHTML = SCAN_ICON;
+    function loadZxing() {
+        if (window.ZXing) { return Promise.resolve(); }
+        if (!zxingLoading) {
+            zxingLoading = new Promise(function (resolve, reject) {
+                var script = document.createElement('script');
+                script.src = zxingUrl;
+                script.onload = resolve;
+                script.onerror = function () { zxingLoading = null; reject(new Error('zxing')); };
+                document.head.appendChild(script);
+            });
+        }
+        return zxingLoading;
+    }
+    // the text of the code read, null when closed
+    function scanCode() {
+        return new Promise(function (resolve) {
+            var video = el('video', { playsinline: 'true', muted: 'muted' });
+            var close = el('button', { type: 'button', className: 'btn small', text: t.scan_close });
+            var overlay = el('div', { className: 'scanner', role: 'dialog', 'aria-label': t.scan }, [
+                el('div', { className: 'scanner-bar' }, [el('span', { text: t.scan_hint }), close]), video, el('div', { className: 'scanner-frame' }),
+            ]);
+            document.body.appendChild(overlay);
+            var reader = null;
+            var done = false;
+            function finish(text) {
+                if (done) { return; }
+                done = true;
+                if (reader) { try { reader.reset(); } catch (e) { /* the camera is already off */ } }
+                overlay.remove();
+                resolve(text);
+            }
+            close.addEventListener('click', function () { finish(null); });
+            loadZxing().then(function () {
+                if (done) { return; }
+                reader = new ZXing.BrowserMultiFormatReader();
+                return reader.decodeFromConstraints({ video: { facingMode: 'environment' } }, video, function (result) {
+                    if (result) { finish(String(result.getText())); }
+                }).then(function () { if (done) { reader.reset(); } });
+            }).catch(function () { finish(null); toast(t.scan_no_camera); });
+        });
+    }
+    // the screen to open a data of a table with: the one on the page, else the main one of the table
+    function screenFor(screens, table) {
+        var list = screens.filter(function (s) { return s.table === table; });
+        var here = scanContext && scanContext.screen ? list.filter(function (s) { return String(s.id) === String(scanContext.screen); })[0] : null;
+        return here || list.filter(function (s) { return s.default; })[0] || list[0] || null;
+    }
+    scanButton.addEventListener('click', function () {
+        var context = scanContext || {};
+        var backTo = location.hash.replace(/^#/, '');
+        scanCode().then(function (value) {
+            if (value === null) { return; }
+            var url = codeUrl + '?value=' + encodeURIComponent(value) + (context.table ? '&table=' + encodeURIComponent(context.table) : '');
+            return Promise.all([call('GET', url), allScreens()]).then(function (got) {
+                var found = ((got[0] && got[0].found) || []).map(function (f) { return { data: f, screen: screenFor(got[1], f.table) }; });
+                if (found.length === 0) { toast(t.scan_not_found.replace('%s', value)); return; }
+                var openable = found.filter(function (x) { return x.screen; });
+                if (openable.length === 0) { toast(t.scan_no_screen); return; }
+                var hrefOf = function (x) { return '#s/' + encodeURIComponent(x.screen.id) + '/edit/' + encodeURIComponent(x.data.id); };
+                if (openable.length === 1) { location.hash = hrefOf(openable[0]).slice(1); return; }
+                // more than one: choose
+                setTitle(t.scan_found, backTo, null);
+                main.innerHTML = '';
+                main.appendChild(el('div', { className: 'group', text: value }));
+                var list = el('ul', { className: 'list' });
+                openable.forEach(function (x) {
+                    list.appendChild(el('li', {}, [el('a', { href: hrefOf(x) }, [
+                        x.data.label || ('#' + x.data.id), el('span', { className: 'sub', text: x.screen.table_label }),
+                    ])]));
+                });
+                main.appendChild(el('div', { className: 'card' }, [list]));
+            });
+        }).catch(function () { toast(t.failed); });
+    });
 
     // a form ------------------------------------------------------------------------
     function itemsOf(block) {
@@ -349,7 +462,22 @@ main { max-width: 900px; margin: 0 auto; padding: 12px; padding-bottom: 96px; }
     function fieldBox(field, value, onChange) {
         var input = inputOf(field, value, onChange);
         var label = el('label', { className: 'name' }, [field.label, field.required ? el('span', { className: 'req', text: '*' }) : null]);
-        var box = el('div', { className: 'field' }, [label, input.node, field.help ? el('div', { className: 'help', text: field.help }) : null]);
+        var control = input.node;
+        // a code (a product code, a JAN...) can be read into a text or a number item
+        if (canScan && (field.type === 'text' || field.type === 'integer') && !field.formula && !field.choices) {
+            var read = el('button', { type: 'button', className: 'scan-btn', 'aria-label': t.scan + ': ' + field.label, title: t.scan });
+            read.innerHTML = SCAN_ICON;
+            read.addEventListener('click', function () {
+                scanCode().then(function (code) {
+                    if (code === null) { return; }
+                    if (field.type === 'integer' && !/^-?\d+$/.test(code)) { toast(t.scan_not_number.replace('%s', code)); return; }
+                    input.set(code);
+                    onChange();
+                });
+            });
+            control = el('div', { className: 'with-scan' }, [input.node, read]);
+        }
+        var box = el('div', { className: 'field' }, [label, control, field.help ? el('div', { className: 'help', text: field.help }) : null]);
         return { field: field, node: box, input: input };
     }
 

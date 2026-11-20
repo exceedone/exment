@@ -2,8 +2,12 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Studio, phase 6: the phone app, as a web app (PWA) in Exment itself (ISS00116).
@@ -16,6 +20,7 @@ use Illuminate\Routing\Controller;
  * GET app                       the app
  * GET app/manifest.webmanifest  the manifest (name, icons, start page)
  * GET app/sw.js                 the service worker: keeps the page itself for a weak connection
+ * GET app/code                  the data a QR / JAN code read by the camera points to
  */
 class StudioAppController extends Controller
 {
@@ -34,7 +39,147 @@ class StudioAppController extends Controller
             'service_worker' => admin_url('app/sw.js'),
             'scope' => admin_url('app'),
             'pc_url' => admin_url(''),
+            'code_url' => admin_url('app/code'),
+            // the reader of QR / bar codes Exment already has (loaded only when the camera is used)
+            'zxing_url' => asset('vendor/exment/js/zxing.js'),
         ]);
+    }
+
+    /**
+     * The data a code read by the camera points to (QR or JAN / bar code).
+     *
+     * GET app/code?value=...&table=...
+     *  - a link of this site: the QR code of Exment (qr-code/{table}/{id}) or the page of a data (data/{table}/{id})
+     *  - with table (the page of a table): the data of that table that has the code as the value of a text,
+     *    number or auto number column (a product code, a slip number...)
+     *  - otherwise a JAN code given to a data (jan_codes)
+     * Only the data the user may see. {value, found: [{table, id, label}]}
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function code(Request $request)
+    {
+        $value = trim(strval($request->get('value')));
+        if ($value === '' || mb_strlen($value) > 2000) {
+            return response()->json(['value' => $value, 'found' => []]);
+        }
+
+        // a link points to one data; on the page of a table, its own data come before a JAN code given elsewhere
+        $hit = $this->fromLink($value);
+        $found = isset($hit) ? [$hit] : $this->searchTable($request->get('table'), $value);
+        if (empty($found)) {
+            $jan = $this->fromJanCode($value);
+            $found = isset($jan) ? [$jan] : [];
+        }
+
+        $list = [];
+        foreach ($found as $custom_value) {
+            $list[] = [
+                'table' => $custom_value->custom_table->table_name,
+                'id' => $custom_value->id,
+                'label' => strval($custom_value->getLabel()),
+            ];
+        }
+        return response()->json(['value' => $value, 'found' => $list]);
+    }
+
+    /**
+     * the most rows a search by code gives back
+     */
+    public const CODE_MAX_FOUND = 20;
+
+    /**
+     * The column types a code is looked for in.
+     */
+    protected const CODE_COLUMN_TYPES = [ColumnType::TEXT, ColumnType::INTEGER, ColumnType::URL, ColumnType::EMAIL, ColumnType::AUTO_NUMBER];
+
+    /**
+     * A link of this site to one data: qr-code/{table}/{id} or data/{table}/{id}(/edit).
+     *
+     * @return CustomValue|null
+     */
+    protected function fromLink(string $value)
+    {
+        foreach (['qr-code', 'data'] as $prefix) {
+            $base = admin_url($prefix) . '/';
+            if (strpos($value, $base) !== 0) {
+                continue;
+            }
+            if (!preg_match('#^([^/?\#]+)/(\d+)(?:/edit)?/?(?:[?\#].*)?$#u', substr($value, strlen($base)), $m)) {
+                return null;
+            }
+            return $this->visibleValue(CustomTable::getEloquent(rawurldecode($m[1])), $m[2]);
+        }
+        return null;
+    }
+
+    /**
+     * A JAN code given to a data.
+     *
+     * @return CustomValue|null
+     */
+    protected function fromJanCode(string $value)
+    {
+        if (!preg_match('/^\d{8,14}$/', $value) || !\Schema::hasTable('jan_codes')) {
+            return null;
+        }
+        $jan = DB::table('jan_codes')->where('jan_code', $value)->whereNotNull('table_id')->first();
+        if (!$jan) {
+            return null;
+        }
+        return $this->visibleValue(CustomTable::getEloquent($jan->table_id), $jan->target_id);
+    }
+
+    /**
+     * The data of a table with the code as the value of one of its columns.
+     *
+     * @param mixed $table_name the table of the page, if any
+     * @return CustomValue[]
+     */
+    protected function searchTable($table_name, string $value): array
+    {
+        $custom_table = is_string($table_name) && $table_name !== '' ? CustomTable::getEloquent($table_name) : null;
+        if (!$custom_table || $custom_table->enableAccess() !== true) {
+            return [];
+        }
+        $columns = $custom_table->custom_columns_cache->filter(function ($column) use ($value) {
+            if (!in_array($column->column_type, static::CODE_COLUMN_TYPES, true)) {
+                return false;
+            }
+            // a number column only for a number
+            return $column->column_type !== ColumnType::INTEGER || preg_match('/^-?\d+$/', $value);
+        });
+        if ($columns->isEmpty()) {
+            return [];
+        }
+
+        // the query of the data model keeps to the data the user may see
+        /** @var CustomValue[] $found */
+        $found = $custom_table->getValueQuery()
+            ->where(function ($query) use ($columns, $value) {
+                foreach ($columns as $column) {
+                    $query->orWhere($column->getQueryKey(), $value);
+                }
+            })
+            ->orderBy('id', 'desc')
+            ->take(static::CODE_MAX_FOUND)
+            ->get()
+            ->all();
+        return $found;
+    }
+
+    /**
+     * @param CustomTable|null $custom_table
+     * @param mixed $id
+     * @return CustomValue|null
+     */
+    protected function visibleValue($custom_table, $id)
+    {
+        if (!$custom_table || $custom_table->enableAccess() !== true || $custom_table->hasPermissionData($id) !== true) {
+            return null;
+        }
+        $custom_value = $custom_table->getValueModel($id);
+        return $custom_value instanceof CustomValue ? $custom_value : null;
     }
 
     /**
