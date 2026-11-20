@@ -937,6 +937,14 @@ class TemplateImporter
     protected function getModelPath($tablename)
     {
         if (is_string($tablename)) {
+            // "admin_menu" is the table of the model Menu. Without this, no model is found and the
+            // menus of the language file are laid over the menus of the template by their POSITION,
+            // menu_type and menu_name included: one more or one less line in lang.json renames
+            // every menu after it. With the model, a menu is looked up by its keys
+            // (Menu::$templateItems "langs": menu_type and menu_name) and only its title is taken.
+            if ($tablename === 'admin_menu') {
+                return \Exceedone\Exment\Model\Menu::class;
+            }
             $classname = Str::studly(Str::singular($tablename));
             $fillpath = namespace_join("Exceedone", "Exment", "Model", $classname);
             if (class_exists($fillpath)) {
