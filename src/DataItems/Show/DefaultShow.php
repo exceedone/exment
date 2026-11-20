@@ -818,6 +818,16 @@ EOT;
     // @phpstan-ignore-next-line
     public function fileupload($httpfiles)
     {
+        // the page offers the upload to those who may edit the record, and only
+        // when the table keeps attachments (useFileUpload); the request is checked the same
+        if (!$this->custom_value || $this->custom_value->enableEdit(false, false) !== true
+            || !boolval($this->custom_table->getOption('attachment_flg') ?? true)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'message' => trans('admin.deny'),
+            ]);
+        }
+
         if (is_nullorempty($httpfiles)) {
             return getAjaxResponse([
                 'result'  => false,
