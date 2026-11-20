@@ -173,6 +173,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('studio', 'StudioController@index');
             $router->get('studio/create', 'StudioController@create');
             $router->post('studio', 'StudioController@store');
+            $router->post('studio/sheet', 'StudioController@readSheet');
 
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');

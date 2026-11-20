@@ -113,7 +113,15 @@ class StudioBlankFormTest extends FeatureTestBase
             $columns->pluck('id')->map($toInt)->all(),
             $block->custom_form_columns()->orderBy('order')->pluck('form_column_target_id')->map($toInt)->all()
         );
-        $this->assertTrue(CustomView::where('custom_table_id', $table->id)->exists());
+        // the list shows the columns in the order they were placed, between the ID and the dates
+        $view = CustomView::where('custom_table_id', $table->id)->firstOrFail();
+        $shown = $view->custom_view_columns()->orderBy('order')->get();
+        $this->assertSame(
+            $columns->pluck('id')->map($toInt)->all(),
+            $shown->where('view_column_type', \Exceedone\Exment\Enums\ConditionType::COLUMN)->pluck('view_column_target_id')->map($toInt)->values()->all()
+        );
+        $this->assertSame(\Exceedone\Exment\Enums\ConditionType::SYSTEM, strval($shown->first()->view_column_type));
+        $this->assertSame(\Exceedone\Exment\Enums\ConditionType::SYSTEM, strval($shown->last()->view_column_type));
 
         $this->assertTrue(Menu::where('parent_id', $parent->id)->where('menu_type', MenuType::TABLE)->where('menu_target', $table->id)->exists());
 

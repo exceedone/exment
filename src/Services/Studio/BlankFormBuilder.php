@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Studio;
 
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -10,6 +11,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
@@ -86,7 +88,7 @@ class BlankFormBuilder
      * Read the posted screen into a clean shape. Names left empty are made here.
      *
      * @param array<string, mixed> $input table_view_name, table_name, menu_parent_id, fields (JSON string or array)
-     * @return array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string}>}
+     * @return array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int}>}
      */
     public static function normalize(array $input): array
     {
@@ -119,6 +121,8 @@ class BlankFormBuilder
                 'type' => strval(array_get($field, 'type', '')),
                 'required' => boolval(array_get($field, 'required', false)),
                 'choices' => trim(str_replace(["\r\n", "\r"], "\n", strval(array_get($field, 'choices', '')))),
+                // the column of the read sheet the item came from (SheetReader), to take its data in
+                'source' => is_numeric(array_get($field, 'source')) ? intval($field['source']) : null,
             ];
         }
 
@@ -274,9 +278,45 @@ class BlankFormBuilder
         System::clearRequestSession();
         $table = CustomTable::getEloquent($table->id);
         CustomForm::getDefault($table);
-        CustomView::getDefault($table, false);
+        static::addColumnsToView(CustomView::getDefault($table, false), $table);
 
         return $table;
+    }
+
+    /**
+     * Show the columns in the list (the view made for all data).
+     *
+     * A new view shows only the system columns (ID, dates): the column setting
+     * page adds each column to it when asked ("add to the view"). The builder
+     * does the same for all the columns, in the order they were placed, and
+     * keeps the dates of the footer after them.
+     */
+    protected static function addColumnsToView(CustomView $view, CustomTable $table): void
+    {
+        if ($view->custom_view_columns()->where('view_column_type', ConditionType::COLUMN)->exists()) {
+            return;
+        }
+
+        $order = 10;
+        foreach ($table->custom_columns()->get() as $column) {
+            $viewColumn = new CustomViewColumn();
+            $viewColumn->custom_view_id = $view->id;
+            $viewColumn->view_column_type = ConditionType::COLUMN;
+            $viewColumn->view_column_table_id = $table->id;
+            $viewColumn->view_column_target_id = $column->id;
+            $viewColumn->order = $order++;
+            $viewColumn->save();
+        }
+
+        $footers = $view->custom_view_columns()
+            ->where('view_column_type', ConditionType::SYSTEM)
+            ->where('order', '>', 50)
+            ->orderBy('order')
+            ->get();
+        foreach ($footers as $footer) {
+            $footer->order = $order++;
+            $footer->save();
+        }
     }
 
     /**
