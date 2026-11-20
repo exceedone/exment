@@ -1108,6 +1108,7 @@ return [
         'password_reset_throttled' => 'A password reset link was sent recently. Please wait before retrying.',
         'back_login_page' => 'Back to Login Page',
         'sso_provider_error' => 'Failed to acquire login information from provider. If you fail many times, please contact your administrator.',
+        'sso_email_unverified' => 'The e-mail address is not confirmed at the service you logged in with. Please confirm it and log in again.',
         'noexists_user' => 'User did not exist in Exment. Please contact your administrator to add users first.',
         'throttle' => 'There are too many login attempts. Please try again after %s minutes.',
         'not_accept_domain' => 'Login in domain :domain is not allowed.',
