@@ -117,7 +117,11 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
                 $title = $column->column_view_name;
                 $value = $base_user->getValue($column->column_name, true);
             }
-            $headers[] = exmtrans('common.format_keyvalue', $title, $value);
+            if (is_array($value)) {
+                $value = implode(exmtrans('common.separate_word'), $value);
+            }
+            // the header prints this as HTML; the names and values are text a user may write
+            $headers[] = exmtrans('common.format_keyvalue', esc_html($title), esc_html($value));
         }
         return implode('<br />', $headers);
     }
