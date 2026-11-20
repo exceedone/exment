@@ -49,6 +49,9 @@
             </form>
         </div>
     </div>
+    @if (isset($fields_url))
+        @include('exment::file_server._fields_editor')
+    @endif
 </div>
 <script>
 (function () {

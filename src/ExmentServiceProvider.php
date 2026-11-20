@@ -100,6 +100,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\CheckConnectionCommand::class,
         \Exceedone\Exment\Console\TotalUpdateCommand::class,
         \Exceedone\Exment\Console\FileServerPurgeCommand::class,
+        \Exceedone\Exment\Console\FileServerIndexCommand::class,
         \Exceedone\Exment\Console\FileColumnImportCommand::class,
         \Exceedone\Exment\Console\DocumentImportCommand::class,
         \Exceedone\Exment\Console\WorkflowClearCommand::class,

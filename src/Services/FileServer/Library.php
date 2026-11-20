@@ -3,8 +3,10 @@
 namespace Exceedone\Exment\Services\FileServer;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\FileDataLink;
 use Exceedone\Exment\Model\FileFavorite;
 use Exceedone\Exment\Model\FileNode;
+use Exceedone\Exment\Model\FileNodeText;
 use Exceedone\Exment\Model\FileNodeVersion;
 use Exceedone\Exment\Model\FilePermission;
 use Exceedone\Exment\Model\FileWorkspace;
@@ -425,6 +427,7 @@ class Library
                 'name' => $name,
             ]);
             $node->save();
+            Metadata::applyDefaults($workspace, $node);
             $this->writeVersion($workspace, $node, $localPath, $comment);
             return $node->refresh();
         });
@@ -451,6 +454,7 @@ class Library
                 'name' => $name,
             ]);
             $node->save();
+            Metadata::applyDefaults($workspace, $node);
             $this->writeVersion($workspace, $node, $localPath, $comment);
             return $node->refresh();
         });
@@ -517,11 +521,12 @@ class Library
         $node->save();
 
         if ($this->forLink) {
-            // a file from people outside: no conversion until someone inside opens it (ISS00410)
+            // a file from people outside: no conversion and no text until someone inside opens it (ISS00410)
             $version->rendition_status = FileNodeVersion::RENDITION_HELD;
             $version->save();
         } else {
             Preview::queueRenditions($version);
+            FileSearch::queueText($version);
         }
         return $version;
     }
@@ -572,6 +577,7 @@ class Library
         }
         $node->name = $name;
         $node->save();
+        FileSearch::sync([$node->id]);
         return $node;
     }
 
@@ -630,6 +636,7 @@ class Library
                     'node_type' => FileNode::TYPE_FILE,
                     'name' => $name,
                 ]);
+                $copy->metadata = $node->metadata;
                 $copy->save();
                 $this->writeVersion($workspace, $copy, $local, null);
                 return $copy->refresh();
@@ -644,6 +651,7 @@ class Library
             'node_type' => FileNode::TYPE_FOLDER,
             'name' => $name,
         ]);
+        $copy->metadata = $node->metadata;
         $copy->save();
         foreach (FileNode::query()->where('parent_id', $node->id)->whereNull('trashed_at')->get() as $child) {
             if (!$this->access->can($workspace, $child, Level::VIEW)) {
@@ -676,6 +684,7 @@ class Library
                 'trash_root_id' => $node->id,
             ]);
         });
+        FileSearch::sync(array_merge([$node->id], $ids));
     }
 
     /**
@@ -709,6 +718,7 @@ class Library
             $parent = null;
         }
         $name = $this->freeName($workspace, $parent, $node->name);
+        $ids = FileNode::query()->where('trash_root_id', $node->id)->pluck('id')->map('intval')->all();
 
         DB::transaction(function () use ($node, $parent, $name) {
             FileNode::query()->where('trash_root_id', $node->id)->update([
@@ -720,6 +730,7 @@ class Library
             $node->save();
         });
         $this->access->flush();
+        FileSearch::sync($ids);
         return $node;
     }
 
@@ -743,8 +754,11 @@ class Library
             FileNodeVersion::query()->whereIn('node_id', $ids)->delete();
             FilePermission::query()->whereIn('node_id', $ids)->delete();
             FileFavorite::query()->whereIn('node_id', $ids)->delete();
+            FileNodeText::query()->whereIn('node_id', $ids)->delete();
+            FileDataLink::query()->whereIn('node_id', $ids)->delete();
             FileNode::query()->whereIn('id', $ids)->delete();
         });
+        FileSearch::sync(array_map('intval', $ids));
         foreach ($nodes as $removed) {
             if ($removed->isFile()) {
                 static::disk()->deleteDirectory(static::STORAGE_DIR . '/' . $workspace->id . '/' . $removed->suuid);

@@ -138,9 +138,14 @@
                         <dt>{{ exmtrans('file_server.created_at') }}</dt><dd>{{ optional($node->created_at)->format('Y/m/d H:i') }} {{ $created_user }}</dd>
                         <dt>{{ exmtrans('file_server.updated_at') }}</dt><dd>{{ optional($node->updated_at)->format('Y/m/d H:i') }} {{ $updated_user }}</dd>
                         <dt>{{ exmtrans('file_server.your_level') }}</dt><dd>{{ $level_label }}</dd>
+                        @if (isset($text_status))
+                            <dt>{{ exmtrans('file_server.text_status') }}</dt><dd class="exm-fs-muted">{{ exmtrans('file_server.text_status_' . $text_status) }}</dd>
+                        @endif
                     </dl>
                 </div>
             </div>
+
+            @include('exment::file_server._metadata_box')
 
             <div class="exm-fs-section box card">
                 <div class="box-header"><h4><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h4></div>

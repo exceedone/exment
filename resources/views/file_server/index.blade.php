@@ -1,6 +1,12 @@
 {{-- File server: the workspaces of the user, favorites, recent files, shared with me. --}}
 @include('exment::file_server._assets')
 <div class="exm-fs">
+    <form class="exm-fs-filters" method="get" action="{{ admin_urls('file_server', 'search') }}" role="search">
+        <div class="input-group input-group-sm" style="flex:1;max-width:520px">
+            <input type="search" name="q" class="form-control" placeholder="{{ exmtrans('file_server.search_placeholder') }}" aria-label="{{ exmtrans('file_server.search') }}">
+            <span class="input-group-btn"><button class="btn btn-default" type="submit"><i class="fa fa-search" aria-hidden="true"></i> {{ exmtrans('file_server.search') }}</button></span>
+        </div>
+    </form>
     <div class="exm-fs-toolbar">
         <h4 style="margin:0">{{ exmtrans('file_server.workspaces') }}</h4>
         <span class="exm-fs-spacer"></span>

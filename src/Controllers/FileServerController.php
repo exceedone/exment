@@ -3,14 +3,19 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\FileMetadataField;
 use Exceedone\Exment\Model\FileNode;
+use Exceedone\Exment\Model\FileNodeText;
 use Exceedone\Exment\Model\FileNodeVersion;
 use Exceedone\Exment\Model\FilePermission;
 use Exceedone\Exment\Model\FileWorkspace;
 use Exceedone\Exment\Services\FileServer\Access;
+use Exceedone\Exment\Services\FileServer\DataLinks;
+use Exceedone\Exment\Services\FileServer\FileSearch;
 use Exceedone\Exment\Services\FileServer\FileServerException;
 use Exceedone\Exment\Services\FileServer\Level;
 use Exceedone\Exment\Services\FileServer\Library;
+use Exceedone\Exment\Services\FileServer\Metadata;
 use Exceedone\Exment\Services\FileServer\Preview;
 use Exceedone\Exment\Services\FileServer\ShareLinks;
 use Exceedone\Exment\Model\FileShareLink;
@@ -93,6 +98,8 @@ class FileServerController extends AdminControllerBase
             'back_url' => admin_url('file_server'),
             'delete_url' => null,
             'used_bytes' => 0,
+            'fields' => [],
+            'fields_url' => null,
         ] + $this->pickerData()));
         return $content;
     }
@@ -135,6 +142,29 @@ class FileServerController extends AdminControllerBase
             return $this->deny($e);
         }
 
+        // the columns of the workspace: narrow, sort and group by them (ISS00378)
+        $fields = Metadata::fields($ws);
+        $filters = array_filter((array)$request->get('meta', []), function ($value) {
+            return is_scalar($value) && strval($value) !== '';
+        });
+        $children = Metadata::filter($children, $fields, $filters);
+        if (str_starts_with($sort, 'meta:')) {
+            $sortField = $fields->firstWhere('name', substr($sort, 5));
+            if (isset($sortField)) {
+                $children = Metadata::sort($children, $sortField, $direction);
+            }
+        }
+        $groupField = $fields->first(function (FileMetadataField $field) use ($request) {
+            return $field->name === strval($request->get('group', ''))
+                && ($field->hasChoices() || $field->field_type === FileMetadataField::TYPE_BOOLEAN);
+        });
+        $groups = null;
+        if (isset($groupField)) {
+            $groups = array_map(function ($group) use ($ws, $fields) {
+                return ['label' => $group['label'], 'items' => $this->nodeRows($group['nodes'], $ws, $fields)];
+            }, Metadata::group($children, $groupField));
+        }
+
         $access = $library->access();
         $level = $access->level($ws, $folder);
         $this->setPageInfo(exmtrans('file_server.header'), $ws->name, $ws->description ?: ' ', 'fa-folder-open');
@@ -143,7 +173,13 @@ class FileServerController extends AdminControllerBase
             'workspace' => $ws,
             'folder' => $folder,
             'breadcrumbs' => $this->breadcrumbs($ws, $folder),
-            'items' => $this->nodeRows($children, $ws),
+            'items' => $this->nodeRows($children, $ws, $fields),
+            'groups' => $groups,
+            'group' => isset($groupField) ? $groupField->name : null,
+            'fields' => $this->fieldRows($fields),
+            'filters' => $filters,
+            'query' => array_filter(['meta' => $filters, 'group' => isset($groupField) ? $groupField->name : null]),
+            'search_url' => admin_urls('file_server', 'search'),
             'can_upload' => $level >= Level::UPLOAD,
             'can_edit' => $level >= Level::EDIT,
             'can_manage_workspace' => $access->can($ws, null, Level::MANAGE),
@@ -184,6 +220,7 @@ class FileServerController extends AdminControllerBase
             $version->rendition_status = null;
             $version->save();
             Preview::queueRenditions($version);
+            FileSearch::queueText($version);
         }
 
         $text = null;
@@ -239,6 +276,13 @@ class FileServerController extends AdminControllerBase
             'links' => $this->linkRows($ws, $item),
             'can_share' => ShareLinks::enabled() && $level >= Level::EDIT,
             'can_request' => ShareLinks::enabled() && $item->isFolder() && $level >= Level::UPLOAD,
+            'fields' => $this->fieldRows(Metadata::fields($ws), (array)($item->metadata ?? [])),
+            'data_links' => DataLinks::dataOf($item),
+            'data_tables' => $level >= Level::EDIT ? DataLinks::tables()->map(function ($table) {
+                return ['name' => $table->table_name, 'label' => $table->table_view_name];
+            })->all() : [],
+            'data_lookup_url' => admin_urls('file_server', 'data_lookup'),
+            'text_status' => $item->isFile() ? FileNodeText::query()->where('node_id', $item->id)->value('status') : null,
         ] + $this->pickerData()));
         return $content;
     }
@@ -298,6 +342,8 @@ class FileServerController extends AdminControllerBase
             'back_url' => $this->url($ws),
             'delete_url' => $this->url($ws),
             'used_bytes' => $ws->usedBytes(),
+            'fields' => $this->fieldRows(Metadata::fields($ws)),
+            'fields_url' => $this->url($ws, 'metadata_fields'),
         ] + $this->pickerData()));
         return $content;
     }
@@ -1007,9 +1053,10 @@ class FileServerController extends AdminControllerBase
 
     /**
      * @param iterable<FileNode> $nodes
+     * @param \Illuminate\Support\Collection<int, FileMetadataField>|null $fields
      * @return array<int, array<string, mixed>>
      */
-    protected function nodeRows(iterable $nodes, ?FileWorkspace $ws = null): array
+    protected function nodeRows(iterable $nodes, ?FileWorkspace $ws = null, ?\Illuminate\Support\Collection $fields = null): array
     {
         $rows = [];
         foreach ($nodes as $node) {
@@ -1035,9 +1082,37 @@ class FileServerController extends AdminControllerBase
                 'checked_out' => isset($node->checked_out_user_id),
                 'unique_permissions' => $node->has_unique_permissions,
                 'version_no' => isset($version) ? $version->version_no : null,
+                'meta' => isset($fields) ? FileSearch::listValues($node, $fields) : [],
             ];
         }
         return $rows;
+    }
+
+    /**
+     * The columns of a workspace for the views (with the values of a node).
+     *
+     * @param \Illuminate\Support\Collection<int, FileMetadataField> $fields
+     * @param array<string, mixed>|null $values
+     * @return array<int, array<string, mixed>>
+     */
+    protected function fieldRows(\Illuminate\Support\Collection $fields, ?array $values = null): array
+    {
+        return $fields->map(function (FileMetadataField $field) use ($values) {
+            $value = isset($values) ? array_get($values, $field->name) : null;
+            return [
+                'name' => $field->name,
+                'label' => $field->label,
+                'field_type' => $field->field_type,
+                'options' => strval($field->options),
+                'choices' => $field->choices(),
+                'required' => $field->required,
+                'default_value' => $field->default_value,
+                'show_in_list' => $field->show_in_list,
+                'groupable' => $field->hasChoices() || $field->field_type === FileMetadataField::TYPE_BOOLEAN,
+                'value' => $value,
+                'display' => Metadata::display($field, $value),
+            ];
+        })->all();
     }
 
     protected function icon(FileNode $node): string

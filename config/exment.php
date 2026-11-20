@@ -1486,4 +1486,16 @@ return [
     'file_server_preview_max_pixels' => env('EXMENT_FILE_SERVER_PREVIEW_MAX_PIXELS', 20000000),
     // the largest file made into a preview by Imagick or LibreOffice, in bytes (0: no limit)
     'file_server_preview_max_bytes' => env('EXMENT_FILE_SERVER_PREVIEW_MAX_BYTES', 104857600),
+    // the search (phase 4): the text of the files. PDF needs pdftotext (poppler-utils; found in /usr/bin when empty);
+    // OCR of images and scanned PDF needs tesseract (only when its path is set) and its languages
+    'file_server_text_max_chars' => env('EXMENT_FILE_SERVER_TEXT_MAX_CHARS', 1000000),
+    'file_server_text_timeout' => env('EXMENT_FILE_SERVER_TEXT_TIMEOUT', 120),
+    'file_server_pdftotext_path' => env('EXMENT_FILE_SERVER_PDFTOTEXT_PATH'),
+    'file_server_ocr_path' => env('EXMENT_FILE_SERVER_OCR_PATH'),
+    'file_server_ocr_lang' => env('EXMENT_FILE_SERVER_OCR_LANG', 'jpn+eng'),
+    'file_server_ocr_max_pages' => env('EXMENT_FILE_SERVER_OCR_MAX_PAGES', 10),
+    // true: search in Meilisearch (the host of config/meilisearch.php); the database when it cannot be reached.
+    // After it is turned on: php artisan exment:file-server-index
+    'file_server_meili' => env('EXMENT_FILE_SERVER_MEILI', false),
+    'file_server_meili_index' => env('EXMENT_FILE_SERVER_MEILI_INDEX', 'exment_files'),
 ];
