@@ -1461,6 +1461,14 @@
             "menu_target_name": "plugin"
         },
         {
+            "order": "10",
+            "menu_type": "system",
+            "menu_name": "studio",
+            "title": "Studio",
+            "parent_name": "admin",
+            "menu_target_name": "studio"
+        },
+        {
             "order": "11",
             "menu_type": "table",
             "menu_name": "mail_template",
