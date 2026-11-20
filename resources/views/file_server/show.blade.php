@@ -1,0 +1,237 @@
+{{-- File server: a file (preview, versions, check out, permissions) or a folder (permissions). Data from FileServerController::showNode. --}}
+@include('exment::file_server._assets')
+@php
+    $canEdit = $level >= \Exceedone\Exment\Services\FileServer\Level::EDIT;
+    $canManage = $level >= \Exceedone\Exment\Services\FileServer\Level::MANAGE;
+    $lockedByOther = $checked_out_by !== null && !$checked_out_by_me;
+@endphp
+<div class="exm-fs" id="exm-fs-node" data-url="{{ $node_url }}" data-parent-url="{{ $parent_url }}">
+    <div class="exm-fs-breadcrumb">
+        <a href="{{ admin_url('file_server') }}"><i class="fa fa-home" aria-hidden="true"></i> {{ exmtrans('file_server.header') }}</a>
+        @foreach ($breadcrumbs as $i => $crumb)
+            @if ($i === count($breadcrumbs) - 1)
+                <span>{{ $crumb['name'] }}</span>
+            @else
+                <a href="{{ $crumb['url'] }}">{{ $crumb['name'] }}</a>
+            @endif
+        @endforeach
+    </div>
+
+    <div class="exm-fs-toolbar">
+        @if ($node->isFolder())
+            <a class="btn btn-sm btn-default" href="{{ $base_url }}/folder/{{ $node->id }}"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.open') }}</a>
+        @endif
+        <a class="btn btn-sm btn-primary" href="{{ $node_url }}/download"><i class="fa fa-download" aria-hidden="true"></i> {{ exmtrans('file_server.download') }}</a>
+        @foreach ($openers as $opener)
+            <a class="btn btn-sm btn-default" href="{{ $opener['url'] }}"><i class="fa {{ $opener['icon'] ?? 'fa-external-link' }}" aria-hidden="true"></i> {{ $opener['label'] }}</a>
+        @endforeach
+        <button type="button" class="btn btn-sm btn-default" data-fs-action="favorite"><i class="fa {{ $favorite ? 'fa-star' : 'fa-star-o' }}" aria-hidden="true"></i> {{ exmtrans('file_server.favorite') }}</button>
+        @if ($node->isFile() && $canEdit)
+            @if ($checked_out_by === null)
+                <button type="button" class="btn btn-sm btn-default" data-fs-action="checkout"><i class="fa fa-lock" aria-hidden="true"></i> {{ exmtrans('file_server.checkout') }}</button>
+            @elseif ($checked_out_by_me)
+                <button type="button" class="btn btn-sm btn-default" data-fs-action="checkin"><i class="fa fa-unlock" aria-hidden="true"></i> {{ exmtrans('file_server.checkin') }}</button>
+            @elseif ($canManage)
+                <button type="button" class="btn btn-sm btn-warning" data-fs-action="discard_checkout"><i class="fa fa-unlock" aria-hidden="true"></i> {{ exmtrans('file_server.discard_checkout') }}</button>
+            @endif
+        @endif
+        @if ($canEdit && !$lockedByOther)
+            <button type="button" class="btn btn-sm btn-default" data-fs-action="rename"><i class="fa fa-pencil" aria-hidden="true"></i> {{ exmtrans('file_server.rename') }}</button>
+            <button type="button" class="btn btn-sm btn-danger" data-fs-action="trash"><i class="fa fa-trash" aria-hidden="true"></i> {{ exmtrans('file_server.delete') }}</button>
+        @endif
+    </div>
+
+    @if ($checked_out_by !== null)
+        <div class="alert alert-warning" style="padding:8px 12px"><i class="fa fa-lock" aria-hidden="true"></i>
+            {{ exmtrans('file_server.checked_out_by', ['user' => $checked_out_by, 'at' => optional($node->checked_out_at)->format('Y/m/d H:i')]) }}</div>
+    @endif
+
+    <div class="row">
+        <div class="col-md-8">
+            @if ($node->isFile())
+                <div class="exm-fs-section">
+                    <div class="exm-fs-preview">
+                        @switch($kind)
+                            @case('image')
+                                <img src="{{ $node_url }}/content" alt="{{ $node->name }}">
+                                @break
+                            @case('video')
+                                <video src="{{ $node_url }}/content" controls preload="metadata"></video>
+                                @break
+                            @case('audio')
+                                <audio src="{{ $node_url }}/content" controls preload="metadata"></audio>
+                                @break
+                            @case('pdf')
+                                <iframe src="{{ $node_url }}/content" title="{{ $node->name }}"></iframe>
+                                @break
+                            @case('text')
+                                @if ($text !== null)
+                                    <pre>{{ $text }}</pre>
+                                @else
+                                    <p class="exm-fs-muted">{{ exmtrans('file_server.preview_too_large') }}</p>
+                                @endif
+                                @break
+                            @case('office')
+                                @if ($has_pdf_preview)
+                                    <iframe src="{{ $node_url }}/content?rendition=pdf" title="{{ $node->name }}"></iframe>
+                                @elseif ($rendition_status === null)
+                                    <p class="exm-fs-muted">{{ exmtrans('file_server.preview_making') }}</p>
+                                @else
+                                    <p class="exm-fs-muted">{{ exmtrans('file_server.preview_office_none') }}</p>
+                                @endif
+                                @break
+                            @default
+                                <p class="exm-fs-muted">{{ exmtrans('file_server.preview_none') }}</p>
+                        @endswitch
+                    </div>
+                </div>
+
+                <div class="exm-fs-section box card">
+                    <div class="box-header"><h4><i class="fa fa-history" aria-hidden="true"></i> {{ exmtrans('file_server.versions') }}</h4></div>
+                    <div class="box-body">
+                        @if ($canEdit && !$lockedByOther)
+                            <form data-fs-version-form class="form-inline" style="margin-bottom:10px">
+                                <input type="file" name="file" required class="form-control input-sm" aria-label="{{ exmtrans('file_server.upload_version') }}">
+                                <input type="text" name="comment" class="form-control input-sm" placeholder="{{ exmtrans('file_server.version_comment') }}" maxlength="1000">
+                                @if ($checked_out_by_me)
+                                    <label style="font-weight:normal"><input type="checkbox" name="checkin" value="1" checked> {{ exmtrans('file_server.checkin_after') }}</label>
+                                @endif
+                                <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-upload" aria-hidden="true"></i> {{ exmtrans('file_server.upload_version') }}</button>
+                            </form>
+                        @endif
+                        <div class="table-responsive">
+                            <table class="table table-condensed exm-fs-table">
+                                <thead><tr><th>{{ exmtrans('file_server.version') }}</th><th>{{ exmtrans('file_server.updated_at') }}</th><th>{{ exmtrans('file_server.size') }}</th><th>{{ exmtrans('file_server.version_comment') }}</th><th></th></tr></thead>
+                                <tbody>
+                                    @foreach ($versions as $v)
+                                        <tr>
+                                            <td>v{{ $v['no'] }} @if ($v['current'])<span class="exm-fs-badge">{{ exmtrans('file_server.current') }}</span>@endif</td>
+                                            <td class="exm-fs-muted">{{ optional($v['created_at'])->format('Y/m/d H:i') }} {{ $v['user'] }}</td>
+                                            <td class="exm-fs-muted"><span data-fs-size="{{ $v['size'] }}"></span></td>
+                                            <td style="overflow-wrap:anywhere">{{ $v['comment'] }}</td>
+                                            <td class="exm-fs-actions">
+                                                <a class="btn btn-xs btn-default" href="{{ $v['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                                @if (!$v['current'] && $canEdit && !$lockedByOther)
+                                                    <button type="button" class="btn btn-xs btn-default" data-fs-restore="{{ $v['restore_url'] }}" title="{{ exmtrans('file_server.restore_version') }}"><i class="fa fa-undo" aria-hidden="true"></i></button>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        <div class="col-md-4">
+            <div class="exm-fs-section box card">
+                <div class="box-body">
+                    <dl style="margin:0">
+                        <dt>{{ exmtrans('file_server.name') }}</dt><dd style="overflow-wrap:anywhere">{{ $node->name }}</dd>
+                        @if ($node->isFile())
+                            <dt>{{ exmtrans('file_server.size') }}</dt><dd><span data-fs-size="{{ $node->size }}"></span></dd>
+                            <dt>{{ exmtrans('file_server.mime_type') }}</dt><dd class="exm-fs-muted">{{ $node->mime_type }}</dd>
+                        @endif
+                        <dt>{{ exmtrans('file_server.created_at') }}</dt><dd>{{ optional($node->created_at)->format('Y/m/d H:i') }} {{ $created_user }}</dd>
+                        <dt>{{ exmtrans('file_server.updated_at') }}</dt><dd>{{ optional($node->updated_at)->format('Y/m/d H:i') }} {{ $updated_user }}</dd>
+                        <dt>{{ exmtrans('file_server.your_level') }}</dt><dd>{{ $level_label }}</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="exm-fs-section box card">
+                <div class="box-header"><h4><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h4></div>
+                <div class="box-body">
+                    <p class="exm-fs-muted">{{ $node->has_unique_permissions ? exmtrans('file_server.permissions_unique') : exmtrans('file_server.permissions_inherited') }}</p>
+                    @if ($canManage && $node->has_unique_permissions)
+                        @include('exment::file_server._permissions_editor', ['editor_id' => 'exm-fs-node-perms', 'entries' => $permissions])
+                        <div style="margin-top:8px">
+                            <button type="button" class="btn btn-sm btn-primary" data-fs-action="save_permissions">{{ exmtrans('common.save') }}</button>
+                            <button type="button" class="btn btn-sm btn-default" data-fs-action="inherit">{{ exmtrans('file_server.inherit_permissions') }}</button>
+                        </div>
+                    @else
+                        <ul style="padding-left:18px;margin:0 0 8px">
+                            @foreach ($permissions as $p)
+                                <li>{{ $p['name'] }} <span class="exm-fs-muted">({{ $p['level_label'] }})</span></li>
+                            @endforeach
+                        </ul>
+                        @if ($canManage)
+                            <button type="button" class="btn btn-sm btn-default" data-fs-action="break">{{ exmtrans('file_server.break_permissions') }}</button>
+                        @endif
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var root = document.getElementById('exm-fs-node');
+    if (!root || root.dataset.ready) { return; }
+    root.dataset.ready = '1';
+    var Fs = window.ExmFs;
+    var url = root.dataset.url;
+    var t = {!! json_encode([
+        'new_name' => exmtrans('file_server.prompt_new_name'),
+        'confirm_trash' => exmtrans('file_server.confirm_trash'),
+        'confirm_restore' => exmtrans('file_server.confirm_restore_version'),
+        'confirm_break' => exmtrans('file_server.confirm_break_permissions'),
+        'confirm_inherit' => exmtrans('file_server.confirm_inherit_permissions'),
+    ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!};
+    var name = @json($node->name);
+
+    root.querySelectorAll('[data-fs-size]').forEach(function (el) { el.textContent = Fs.size(el.getAttribute('data-fs-size')); });
+
+    root.addEventListener('click', function (e) {
+        var restore = e.target.closest('[data-fs-restore]');
+        if (restore) {
+            if (confirm(t.confirm_restore)) { Fs.post(restore.getAttribute('data-fs-restore'), {}).then(Fs.done, Fs.fail); }
+            return;
+        }
+        var btn = e.target.closest('[data-fs-action]');
+        if (!btn) { return; }
+        var action = btn.getAttribute('data-fs-action');
+        switch (action) {
+            case 'favorite':
+            case 'checkout':
+            case 'checkin':
+            case 'discard_checkout':
+                Fs.post(url + '/' + action, {}).then(Fs.done, Fs.fail);
+                break;
+            case 'rename':
+                var n = prompt(t.new_name, name);
+                if (n && n !== name) { Fs.post(url + '/rename', { name: n }).then(Fs.done, Fs.fail); }
+                break;
+            case 'trash':
+                if (confirm(t.confirm_trash)) {
+                    Fs.post(url + '/trash', {}).then(function (json) { Fs.notify(json.message); location.href = root.dataset.parentUrl; }, Fs.fail);
+                }
+                break;
+            case 'break':
+                if (confirm(t.confirm_break)) { Fs.post(url + '/permissions', { mode: 'break' }).then(Fs.done, Fs.fail); }
+                break;
+            case 'inherit':
+                if (confirm(t.confirm_inherit)) { Fs.post(url + '/permissions', { mode: 'inherit' }).then(Fs.done, Fs.fail); }
+                break;
+            case 'save_permissions':
+                var fd = new FormData();
+                fd.append('mode', 'set');
+                document.getElementById('exm-fs-node-perms').fsAppendTo(fd);
+                Fs.post(url + '/permissions', fd, true).then(Fs.done, Fs.fail);
+                break;
+        }
+    });
+
+    var form = root.querySelector('[data-fs-version-form]');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var fd = new FormData(form);
+            Fs.post(url + '/version', fd, true).then(Fs.done, Fs.fail);
+        });
+    }
+})();
+</script>

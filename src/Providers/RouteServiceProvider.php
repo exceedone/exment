@@ -169,6 +169,47 @@ class RouteServiceProvider extends ServiceProvider
             // screens offer, managed as one list.
             $this->setResouce($router, 'cell_style_preset', 'CellStylePresetSettingController');
 
+            // File server: workspaces, folders and files (ISS00293)
+            $router->get('file_server', 'FileServerController@index');
+            $router->get('file_server/create', 'FileServerController@create');
+            $router->post('file_server', 'FileServerController@store');
+            $router->group(['prefix' => 'file_server/{workspace}', 'where' => ['workspace' => '[0-9]+']], function (Router $router) {
+                $router->get('/', 'FileServerController@folder');
+                $router->get('folder/{node}', 'FileServerController@folder')->where('node', '[0-9]+');
+                $router->get('settings', 'FileServerController@settings');
+                $router->post('settings', 'FileServerController@updateSettings');
+                $router->delete('/', 'FileServerController@destroyWorkspace');
+                $router->get('trash', 'FileServerController@trash');
+                $router->post('folders', 'FileServerController@createFolder');
+                $router->post('upload', 'FileServerController@upload');
+                $router->post('upload/init', 'FileServerController@uploadInit');
+                $router->get('upload/{session}', 'FileServerController@uploadStatus');
+                $router->post('upload/{session}/chunk', 'FileServerController@uploadChunk');
+                $router->post('upload/{session}/complete', 'FileServerController@uploadComplete');
+                $router->delete('upload/{session}', 'FileServerController@uploadCancel');
+                $router->post('download', 'FileServerController@downloadZip');
+                $router->get('folders.json', 'FileServerController@folderTree');
+                $router->group(['prefix' => 'nodes/{node}', 'where' => ['node' => '[0-9]+']], function (Router $router) {
+                    $router->get('/', 'FileServerController@showNode');
+                    $router->get('download', 'FileServerController@download');
+                    $router->get('content', 'FileServerController@content');
+                    $router->get('thumbnail', 'FileServerController@thumbnail');
+                    $router->post('rename', 'FileServerController@rename');
+                    $router->post('move', 'FileServerController@move');
+                    $router->post('copy', 'FileServerController@copy');
+                    $router->post('trash', 'FileServerController@trashNode');
+                    $router->post('restore', 'FileServerController@restore');
+                    $router->post('purge', 'FileServerController@purge');
+                    $router->post('favorite', 'FileServerController@favorite');
+                    $router->post('version', 'FileServerController@uploadVersion');
+                    $router->post('versions/{version}/restore', 'FileServerController@restoreVersion')->where('version', '[0-9]+');
+                    $router->post('checkout', 'FileServerController@checkout');
+                    $router->post('checkin', 'FileServerController@checkin');
+                    $router->post('discard_checkout', 'FileServerController@discardCheckout');
+                    $router->post('permissions', 'FileServerController@updatePermissions');
+                });
+            });
+
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
