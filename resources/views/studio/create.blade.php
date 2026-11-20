@@ -174,6 +174,9 @@
 .exm-builder-preview { pointer-events: none; }
 .exm-builder-preview .form-control { background: #f9fafb; }
 .exm-builder-choices { grid-column: 1 / -1; }
+.exm-builder-condition { grid-column: 1 / -1; }
+.exm-builder-condition-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.exm-builder-condition-row .form-control { width: auto; min-width: 0; flex: 1 1 120px; }
 .exm-builder-row { border: 1px solid #e3e6ea; border-radius: 4px; padding: 8px; margin-bottom: 10px; background: #fafbfc; }
 .exm-builder-row-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; font-size: .8rem; }
 .exm-builder-row-head .exm-builder-row-name { font-weight: 600; opacity: .75; }
@@ -230,6 +233,16 @@
         'source' => exmtrans('studio.sheet_source'),
         'name_quote' => exmtrans('studio.name_quote'),
         'row' => exmtrans('studio.row'),
+        'condition' => exmtrans('studio.condition'),
+        'condition_always' => exmtrans('studio.condition_always'),
+        'condition_value' => exmtrans('studio.condition_value'),
+        'condition_required' => exmtrans('studio.error.condition_required'),
+        'operators' => [
+            'eq' => exmtrans('studio.condition_operators.eq'),
+            'ne' => exmtrans('studio.condition_operators.ne'),
+            'empty' => exmtrans('studio.condition_operators.empty'),
+            'not_empty' => exmtrans('studio.condition_operators.not_empty'),
+        ],
         'row_layout' => exmtrans('studio.row_layout'),
         'row_up' => exmtrans('studio.row_up'),
         'row_down' => exmtrans('studio.row_down'),
@@ -257,6 +270,7 @@
     var sheetUrl = @json($sheet_url);
     var presets = @json($layout_presets);
     var initialLayout = @json($screen ? ($screen['layout'] ?? null) : null);
+    var initialConditions = @json($screen ? (object) ($screen['conditions'] ?? []) : (object) []);
 
     var form = document.getElementById('exm-builder');
     var canvas = document.getElementById('exm-builder-canvas');
@@ -299,6 +313,13 @@
         item.col = place && rows[item.row][place.column] !== undefined ? place.column : 0;
         item.error = i;
         return item;
+    });
+    // a condition points at its item itself: moving or removing items does not break it
+    Object.keys(initialConditions).forEach(function (index) {
+        var c = initialConditions[index];
+        if (fields[index] && fields[c.target]) {
+            fields[index].cond = { target: fields[c.target], operator: c.operator, value: c.value };
+        }
     });
     var active = { row: 0, col: 0 }; // the cell the parts are added to
     var dragFrom = null; // index of an item being moved, or null for a new part
@@ -368,6 +389,72 @@
         return el('span', { className: 'exm-builder-tools' }, [up, down, remove]);
     }
 
+    function labelOf(field) {
+        if (mode === 'existing') { var c = columnOf(field.column_id); return c ? c.column_view_name : '#' + field.column_id; }
+        return field.label || (types[field.type] || {}).label || '';
+    }
+    function choicesOf(field) {
+        if (mode !== 'existing' && field.type === 'select') { return field.choices.split('\n').map(function (c) { return c.trim(); }).filter(function (c) { return c !== ''; }); }
+        return [];
+    }
+    function isYesNo(field) {
+        return mode === 'existing' ? (columnOf(field.column_id) || {}).type === 'yesno' : field.type === 'yesno';
+    }
+
+    // "show this item only when <item> <is / is not / is empty / is not empty> <value>"
+    function conditionBox(field) {
+        if (field.cond && fields.indexOf(field.cond.target) === -1) { field.cond = null; }
+        var cond = field.cond;
+        var target = el('select', { className: 'form-control input-sm', 'aria-label': t.condition });
+        target.appendChild(el('option', { value: '', text: t.condition_always }));
+        fields.forEach(function (other, i) {
+            if (other === field) { return; }
+            var option = el('option', { value: String(i), text: labelOf(other) });
+            if (cond && cond.target === other) { option.selected = true; }
+            target.appendChild(option);
+        });
+        var box = el('div', { className: 'exm-builder-condition' }, [el('label', { text: t.condition }), el('div', { className: 'exm-builder-condition-row' }, [target])]);
+        if (cond) {
+            var operator = el('select', { className: 'form-control input-sm' });
+            Object.keys(t.operators).forEach(function (op) {
+                var option = el('option', { value: op, text: t.operators[op] });
+                if (cond.operator === op) { option.selected = true; }
+                operator.appendChild(option);
+            });
+            operator.addEventListener('change', function () { cond.operator = operator.value; render(); });
+            var row = box.lastChild;
+            if (cond.operator === 'eq' || cond.operator === 'ne') {
+                var value;
+                if (isYesNo(cond.target)) {
+                    value = el('select', { className: 'form-control input-sm' }, [
+                        el('option', { value: '1', text: t.yes }), el('option', { value: '0', text: t.no }),
+                    ]);
+                    if (cond.value !== '0') { cond.value = '1'; }
+                    value.value = cond.value;
+                } else {
+                    var listId = 'exm-builder-choices-' + fields.indexOf(field);
+                    value = el('input', { type: 'text', className: 'form-control input-sm', placeholder: t.condition_value, list: listId });
+                    value.value = cond.value || '';
+                    var list = el('datalist', { id: listId });
+                    choicesOf(cond.target).forEach(function (c) { list.appendChild(el('option', { value: c })); });
+                    box.appendChild(list);
+                }
+                value.addEventListener('input', function () { cond.value = value.value; });
+                value.addEventListener('change', function () { cond.value = value.value; });
+                row.appendChild(value);
+            }
+            row.appendChild(operator);
+        }
+        target.addEventListener('change', function () {
+            var other = target.value === '' ? null : fields[parseInt(target.value, 10)];
+            field.cond = other ? { target: other, operator: 'eq', value: '' } : null;
+            render();
+        });
+        var error = errorOf(field, 'visible_if');
+        if (error) { box.appendChild(error); }
+        return box;
+    }
+
     function newItem(field, index) {
         var part = types[field.type] || { label: field.type, icon: 'fa-question', choices: false };
         var li = el('li', { className: 'exm-builder-field', draggable: 'true' });
@@ -412,6 +499,7 @@
             });
             body.appendChild(el('div', { className: 'exm-builder-choices' }, [el('label', { text: t.choices }), choices, errorOf(field, 'choices')]));
         }
+        body.appendChild(conditionBox(field));
         li.appendChild(body);
         return li;
     }
@@ -429,6 +517,7 @@
         if (error) { li.appendChild(error); }
         li.appendChild(el('div', { className: 'exm-builder-field-body' }, [
             el('div', {}, [el('label', { text: t.preview }), preview(column.type, '')]),
+            conditionBox(field),
         ]));
         return li;
     }
@@ -721,6 +810,9 @@
                 : { type: f.type, label: f.label, column_name: f.column_name, required: f.required, choices: f.choices, source: f.source };
             item.row = f.row;
             item.column = f.col;
+            if (f.cond && fields.indexOf(f.cond.target) !== -1) {
+                item.visible_if = { target: fields.indexOf(f.cond.target), operator: f.cond.operator, value: f.cond.value || '' };
+            }
             return item;
         }));
         document.getElementById('exm-builder-layout').value = JSON.stringify(rows.map(function (w) { return { widths: w }; }));

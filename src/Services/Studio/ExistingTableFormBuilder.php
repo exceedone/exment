@@ -108,11 +108,12 @@ class ExistingTableFormBuilder
             'table_id' => is_numeric($tableId) ? intval($tableId) : null,
             'fields' => $result,
             'layout' => ScreenLayout::normalize(array_get($input, 'layout'), $kept),
+            'conditions' => ScreenCondition::normalize($kept),
         ];
     }
 
     /**
-     * @param array{table_view_name: string, table_id: ?int, fields: array<int, array{column_id: int}>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}} $screen
+     * @param array{table_view_name: string, table_id: ?int, fields: array<int, array{column_id: int}>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions?: array<int, array{target: int, operator: string, value: string}>} $screen
      * @return array<string, string>
      */
     public static function validate(array $screen): array
@@ -146,13 +147,19 @@ class ExistingTableFormBuilder
         if (isset($screen['layout'])) {
             $errors += ScreenLayout::validate($screen['layout']);
         }
+        if (isset($screen['conditions'])) {
+            $requiredOf = array_column($table['columns'], 'required', 'id');
+            $errors += ScreenCondition::validate($screen['conditions'], array_map(function ($field) use ($requiredOf) {
+                return boolval($requiredOf[$field['column_id']] ?? false);
+            }, $screen['fields']));
+        }
         return $errors;
     }
 
     /**
      * Make the form: one block of the table, the columns in the order they were placed.
      *
-     * @param array{table_view_name: string, table_id: ?int, fields: array<int, array{column_id: int}>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}} $screen a screen validate() found no mistake in
+     * @param array{table_view_name: string, table_id: ?int, fields: array<int, array{column_id: int}>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions?: array<int, array{target: int, operator: string, value: string}>} $screen a screen validate() found no mistake in
      */
     public static function build(array $screen): CustomForm
     {
@@ -183,6 +190,9 @@ class ExistingTableFormBuilder
             }
             if (isset($screen['layout'])) {
                 ScreenLayout::apply($block, array_column($screen['fields'], 'column_id'), ScreenLayout::withoutEmptyRows($screen['layout']));
+            }
+            if (isset($screen['conditions'])) {
+                ScreenCondition::apply($block, array_column($screen['fields'], 'column_id'), $screen['conditions']);
             }
             return $form;
         });

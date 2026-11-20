@@ -2475,6 +2475,15 @@ return [
             '3' => '3 列',
             '4' => '4 列',
         ],
+        'condition' => '表示の条件',
+        'condition_always' => 'いつも表示する',
+        'condition_value' => '値',
+        'condition_operators' => [
+            'eq' => 'と同じとき',
+            'ne' => 'と違うとき',
+            'empty' => 'が空のとき',
+            'not_empty' => 'が空でないとき',
+        ],
         'error' => [
             'check_input' => '入力に誤りがあります。赤い文字の所を直してください。',
             'required' => '入力してください。',
@@ -2497,6 +2506,10 @@ return [
             'sheet_expired' => '読み込んだファイルが見つかりません。もう一度読み込んでください。',
             'layout' => '行と列の並びが正しくありません。画面を読み込み直してください。',
             'too_many_rows' => '行は %s 個までです。',
+            'condition_target' => '条件の項目を選び直してください。',
+            'condition_operator' => '条件の種類が正しくありません。',
+            'condition_value' => '条件の値を入力してください。',
+            'condition_required' => '必須の項目には表示の条件を付けられません（隠れると入力できず、保存できなくなるため）。',
         ],
     ],
 

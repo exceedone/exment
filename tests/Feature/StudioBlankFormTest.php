@@ -192,6 +192,80 @@ class StudioBlankFormTest extends FeatureTestBase
         $form->delete();
     }
 
+    public function testAnItemIsShownOnTheConditionOfAnother(): void
+    {
+        $this->made[] = 'studio_test_condition';
+        $response = $this->postScreen([
+            ['type' => ColumnType::SELECT, 'label' => 'status', 'choices' => "取引中\n休止"],
+            ['type' => ColumnType::TEXTAREA, 'label' => 'reason', 'visible_if' => ['target' => 0, 'operator' => 'eq', 'value' => '休止']],
+            ['type' => ColumnType::TEXT, 'label' => 'note', 'visible_if' => ['target' => 1, 'operator' => 'not_empty', 'value' => '']],
+        ], ['table_name' => 'studio_test_condition']);
+        $response->assertRedirect(admin_urls('data', 'studio_test_condition', 'create'));
+
+        System::clearRequestSession();
+        $table = CustomTable::getEloquent('studio_test_condition');
+        $this->assertNotNull($table);
+        $form = CustomForm::where('custom_table_id', $table->id)->firstOrFail();
+        $block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->firstOrFail();
+        $conditions = $block->custom_form_columns()->orderBy('order')->get()->map(function ($formColumn) {
+            return array_get($formColumn->options ?? [], 'visible_if');
+        })->all();
+        // the JSON column of the database keeps the keys in its own order: compare without it
+        $this->assertEquals([
+            null,
+            ['all' => [['column' => 'status', 'operator' => 'eq', 'value' => '休止']]],
+            ['all' => [['column' => 'reason', 'operator' => 'not_empty', 'value' => null]]],
+        ], $conditions);
+
+        // the data page hides them while the condition does not hold
+        $page = $this->get(admin_urls('data', 'studio_test_condition', 'create'));
+        $page->assertOk();
+        $page->assertSee('exmVisibleIf', false);
+        $page->assertSee('{"name":"reason","all":[{"column":"status","operator":"eq","value":', false);
+    }
+
+    public function testARequiredItemCannotHaveACondition(): void
+    {
+        $this->made[] = 'studio_test_condition_required';
+        $this->from(admin_url('studio/create'))->postScreen([
+            ['type' => ColumnType::TEXT, 'label' => 'a'],
+            ['type' => ColumnType::TEXT, 'label' => 'b', 'required' => true, 'visible_if' => ['target' => 0, 'operator' => 'not_empty', 'value' => '']],
+        ], ['table_name' => 'studio_test_condition_required'])->assertRedirect(admin_url('studio/create'));
+
+        $this->assertSame(exmtrans('studio.error.condition_required'), session('studio_errors')['fields.1.visible_if'] ?? null);
+        $this->assertFalse(CustomTable::where('table_name', 'studio_test_condition_required')->exists());
+    }
+
+    public function testAScreenOfATableThatExistsTakesConditionsToo(): void
+    {
+        $this->made[] = 'studio_test_condition_base';
+        $base = BlankFormBuilder::build(BlankFormBuilder::normalize([
+            'table_view_name' => 'condition base',
+            'table_name' => 'studio_test_condition_base',
+            'fields' => [
+                ['type' => ColumnType::YESNO, 'label' => 'active'],
+                ['type' => ColumnType::TEXT, 'label' => 'since'],
+            ],
+        ]));
+        $columns = $base->custom_columns()->get();
+
+        System::clearRequestSession();
+        $this->post(admin_url('studio'), [
+            'mode' => 'existing',
+            'table_view_name' => '条件つきの画面',
+            'table_id' => $base->id,
+            'fields' => json_encode([
+                ['column_id' => intval($columns[0]->id)],
+                ['column_id' => intval($columns[1]->id), 'visible_if' => ['target' => 0, 'operator' => 'eq', 'value' => '1']],
+            ]),
+        ])->assertRedirect();
+
+        $form = CustomForm::where('custom_table_id', $base->id)->where('form_view_name', '条件つきの画面')->firstOrFail();
+        $block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->firstOrFail();
+        $since = $block->custom_form_columns()->where('form_column_target_id', $columns[1]->id)->firstOrFail();
+        $this->assertEquals(['all' => [['column' => 'active', 'operator' => 'eq', 'value' => '1']]], array_get($since->options, 'visible_if'));
+    }
+
     public function testALayoutThatIsNotOfferedIsAMistake(): void
     {
         // deleted after the test if it were made by mistake

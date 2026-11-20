@@ -195,6 +195,9 @@ EOT;
             Admin::script($script);
         }
 
+        // the conditions items are shown on (Studio, ScreenCondition)
+        $this->setVisibleIfScript();
+
         // ignore select_parent
         $form->ignore('select_parent');
 
@@ -277,6 +280,62 @@ EOT;
             'html' => (string) $hasmany->render(),
             'scripts' => array_values(array_slice(\ExmentAdminCore\Admin\Admin::$script, $scriptCount)),
         ];
+    }
+
+    /**
+     * Hide an item of the default block while the condition it is shown on does
+     * not hold (Studio: "show the memo when the status is paused"). The value of
+     * a hidden item is kept as it is.
+     */
+    protected function setVisibleIfScript(): void
+    {
+        $rules = [];
+        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            if (intval($custom_form_block->form_block_type) !== FormBlockType::DEFAULT) {
+                continue;
+            }
+            $rules = array_merge($rules, \Exceedone\Exment\Services\Studio\ScreenCondition::rulesOf($custom_form_block));
+        }
+        if (count($rules) === 0) {
+            return;
+        }
+        $json = json_encode($rules, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        $script = <<<EOT
+(function (rules) {
+    function inputs(name) {
+        return $('[name="value[' + name + ']"], [name="value[' + name + '][]"]');
+    }
+    function valuesOf(name) {
+        var values = [];
+        inputs(name).each(function () {
+            if ((this.type === 'checkbox' || this.type === 'radio') && !this.checked) { return; }
+            var v = $(this).val();
+            (Array.isArray(v) ? v : [v]).forEach(function (x) { if (x !== null && x !== undefined && String(x) !== '') { values.push(String(x)); } });
+        });
+        return values;
+    }
+    function holds(c) {
+        var values = valuesOf(c.column);
+        switch (c.operator) {
+            case 'eq': return values.indexOf(String(c.value)) !== -1;
+            case 'ne': return values.indexOf(String(c.value)) === -1;
+            case 'empty': return values.length === 0;
+            case 'not_empty': return values.length > 0;
+        }
+        return true;
+    }
+    function apply() {
+        rules.forEach(function (rule) {
+            var show = rule.all.every(holds);
+            inputs(rule.name).first().closest('.form-group').toggle(show);
+        });
+    }
+    $(document).off('change.exmVisibleIf input.exmVisibleIf switchChange.bootstrapSwitch.exmVisibleIf')
+        .on('change.exmVisibleIf input.exmVisibleIf switchChange.bootstrapSwitch.exmVisibleIf', ':input', apply);
+    apply();
+})($json);
+EOT;
+        Admin::script($script);
     }
 
     /**
