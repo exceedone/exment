@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\FileServer;
 use Exceedone\Exment\Model\FileNode;
 use Exceedone\Exment\Model\FileShareLink;
 use Exceedone\Exment\Model\FileWorkspace;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -26,6 +27,11 @@ class ShareLinks
 {
     public const TOKEN_LENGTH = 40;
     public const SESSION_KEY = 'exment_file_share_unlocked';
+    public const COUNTED_KEY = 'exment_file_share_unlocked_counted';
+
+    /** The wrong passwords of a link before it is stopped for a while (ISS00410). */
+    public const PASSWORD_TRIES = 10;
+    public const PASSWORD_LOCK_MINUTES = 15;
 
     protected Library $library;
 
@@ -170,7 +176,11 @@ class ShareLinks
             return null;
         }
         $link = FileShareLink::query()->where('token', $token)->first();
-        if (!isset($link) || !$link->isActive()) {
+        if (!isset($link) || isset($link->revoked_at) || $link->isExpired()) {
+            return null;
+        }
+        // used up: only for the sessions that did not open it yet (ISS00410)
+        if ($link->isUsedUp() && !static::isCounted($link)) {
             return null;
         }
         $node = $link->node;
@@ -189,36 +199,75 @@ class ShareLinks
         return in_array($link->token, (array)session(static::SESSION_KEY, []), true);
     }
 
+    /**
+     * Whether the link takes no password now: too many wrong ones were sent
+     * to it lately, from any place (ISS00410).
+     */
+    public static function isLocked(FileShareLink $link): bool
+    {
+        return intval(Cache::get(static::lockKey($link), 0)) >= static::PASSWORD_TRIES;
+    }
+
+    protected static function lockKey(FileShareLink $link): string
+    {
+        return 'exment_file_share_fail_' . $link->id;
+    }
+
     public static function unlock(FileShareLink $link, string $password): bool
     {
         if (!$link->hasPassword()) {
             return true;
         }
-        if (!Hash::check($password, strval($link->password_hash))) {
+        if (static::isLocked($link)) {
             return false;
         }
+        if (!Hash::check($password, strval($link->password_hash))) {
+            $key = static::lockKey($link);
+            Cache::add($key, 0, now()->addMinutes(static::PASSWORD_LOCK_MINUTES));
+            Cache::increment($key);
+            return false;
+        }
+        Cache::forget(static::lockKey($link));
         $list = (array)session(static::SESSION_KEY, []);
         $list[] = $link->token;
         session([static::SESSION_KEY => array_values(array_unique($list))]);
         return true;
     }
 
-    /**
-     * Count an open of the link (once in a session).
-     */
-    public static function countAccess(FileShareLink $link): void
+    public static function isCounted(FileShareLink $link): bool
     {
-        $key = static::SESSION_KEY . '_counted';
-        $counted = (array)session($key, []);
-        if (in_array($link->token, $counted, true)) {
-            return;
+        return in_array($link->token, (array)session(static::COUNTED_KEY, []), true);
+    }
+
+    /**
+     * Count a use of the link: the first time a session opens, downloads or
+     * uploads with it. The count is taken in one UPDATE that also checks the
+     * limit, so two at the same time cannot both take the last one; a session
+     * that was counted goes on using the link (ISS00410).
+     *
+     * @return bool false: the link is used up
+     */
+    public static function countAccess(FileShareLink $link): bool
+    {
+        if (static::isCounted($link)) {
+            return true;
+        }
+        $query = FileShareLink::query()->where('id', $link->id);
+        if (isset($link->max_access)) {
+            $query->whereColumn('access_count', '<', 'max_access');
+        }
+        $updated = $query->update([
+            'access_count' => \DB::raw('access_count + 1'),
+            'last_accessed_at' => now(),
+        ]);
+        if ($updated === 0) {
+            return false;
         }
         $link->access_count = $link->access_count + 1;
-        $link->last_accessed_at = now();
-        $link->saving_users = false;
-        $link->save();
+        $counted = (array)session(static::COUNTED_KEY, []);
         $counted[] = $link->token;
-        session([$key => $counted]);
+        session([static::COUNTED_KEY => array_values(array_unique($counted))]);
+        return true;
     }
 
     /**
@@ -241,15 +290,32 @@ class ShareLinks
         if (!isset($node)) {
             return null;
         }
-        foreach ($node->ancestorsAndSelf() as $ancestor) {
+        // from the node up to the node of the link: none in the trash, and none
+        // with its own permissions (those the maker of the link may not give,
+        // and that may be closed later: ISS00410)
+        $chain = array_reverse($node->ancestorsAndSelf());
+        foreach ($chain as $ancestor) {
             if ($ancestor->id === $root->id) {
                 return $node;
             }
-            if ($ancestor->isTrashed()) {
+            if ($ancestor->isTrashed() || $ancestor->has_unique_permissions) {
                 return null;
             }
         }
         return null;
+    }
+
+    /**
+     * The folders and files in a folder of a "share" link that the people
+     * outside may see: not in the trash, without their own permissions.
+     *
+     * @return \Illuminate\Support\Collection<int, FileNode>
+     */
+    public static function childrenInLink(FileNode $folder)
+    {
+        return FileNode::query()->where('parent_id', $folder->id)->whereNull('trashed_at')
+            ->where('has_unique_permissions', false)
+            ->orderByRaw("CASE WHEN node_type = 'folder' THEN 0 ELSE 1 END")->orderBy('name')->get();
     }
 
     /**
@@ -259,6 +325,55 @@ class ShareLinks
     public static function systemLibrary(): Library
     {
         return new Library(new Access(null, true, []));
+    }
+
+    /**
+     * The library of a link: it may do all, but it leaves out the folders and
+     * files with their own permissions (in a zip), and holds the previews of
+     * what it takes in until someone inside opens it (ISS00410).
+     */
+    public static function linkLibrary(): Library
+    {
+        $library = static::systemLibrary();
+        $library->forLink();
+        return $library;
+    }
+
+    // ---------------------------------------------------------------- the limits of the request links (ISS00410)
+
+    public static function requestMaxFiles(): int
+    {
+        return max(0, intval(config('exment.file_server_request_max_files', 100)));
+    }
+
+    public static function requestMaxBytes(): int
+    {
+        return max(0, intval(config('exment.file_server_request_max_bytes', 1073741824)));
+    }
+
+    /**
+     * The largest file from a request link: the smaller of its own limit and that of the site.
+     */
+    public static function requestMaxFileSize(): int
+    {
+        $own = max(0, intval(config('exment.file_server_request_max_file_size', 104857600)));
+        $site = Uploader::maxFileSize();
+        if ($own === 0) {
+            return $site;
+        }
+        return $site > 0 ? min($own, $site) : $own;
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function requestDeniedExtensions(): array
+    {
+        $value = config('exment.file_server_request_deny_extensions', 'exe,com,bat,cmd,scr,pif,msi,msp,dll,cpl,js,jse,vbs,vbe,wsf,wsh,ps1,psm1,hta,jar,lnk,reg,sh,php,phtml,phar');
+        $list = is_array($value) ? $value : explode(',', strval($value));
+        return array_values(array_filter(array_map(function ($ext) {
+            return strtolower(trim(strval($ext), " .\t"));
+        }, $list)));
     }
 
     /**
@@ -275,12 +390,47 @@ class ShareLinks
         if (!isset($workspace) || !isset($folder) || !$folder->isFolder()) {
             throw FileServerException::notFound();
         }
-        $library = static::systemLibrary();
-        $max = Uploader::maxFileSize();
-        if ($max > 0 && intval(filesize($localPath)) > $max) {
+        $library = static::linkLibrary();
+        $size = intval(filesize($localPath));
+        $max = static::requestMaxFileSize();
+        if ($max > 0 && $size > $max) {
             throw new FileServerException(exmtrans('file_server.error_too_large'), 413);
         }
-        $name = $library->freeName($workspace, $folder, $library->validName($name));
-        return $library->storeFile($workspace, $folder, $name, $localPath, exmtrans('file_server.received_comment'));
+        $name = $library->validName($name);
+        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        if ($ext !== '' && in_array($ext, static::requestDeniedExtensions(), true)) {
+            throw new FileServerException(exmtrans('file_server.error_request_type', ['ext' => $ext]), 415);
+        }
+
+        // take a place in the limits of the link in one UPDATE (two at the same time cannot pass it)
+        $query = FileShareLink::query()->where('id', $link->id);
+        $maxFiles = static::requestMaxFiles();
+        if ($maxFiles > 0) {
+            $query->where('received_count', '<', $maxFiles);
+        }
+        $maxBytes = static::requestMaxBytes();
+        if ($maxBytes > 0) {
+            $query->where('received_bytes', '<=', $maxBytes - $size);
+        }
+        $updated = $query->update([
+            'received_count' => \DB::raw('received_count + 1'),
+            'received_bytes' => \DB::raw('received_bytes + ' . $size),
+        ]);
+        if ($updated === 0) {
+            throw new FileServerException(exmtrans('file_server.error_request_full'), 413);
+        }
+
+        try {
+            // a new file each time: never a new version of a file that is there
+            // (the name is taken again right before it is kept)
+            $name = $library->freeName($workspace, $folder, $name);
+            return $library->storeNewFile($workspace, $folder, $name, $localPath, exmtrans('file_server.received_comment'));
+        } catch (\Throwable $e) {
+            FileShareLink::query()->where('id', $link->id)->update([
+                'received_count' => \DB::raw('CASE WHEN received_count > 0 THEN received_count - 1 ELSE 0 END'),
+                'received_bytes' => \DB::raw('CASE WHEN received_bytes >= ' . $size . ' THEN received_bytes - ' . $size . ' ELSE 0 END'),
+            ]);
+            throw $e;
+        }
     }
 }

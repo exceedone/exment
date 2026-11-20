@@ -229,9 +229,19 @@ class Preview
     /**
      * A thumbnail (JPEG, or PNG when GD cannot write JPEG) of an image (a local temporary file), with GD.
      */
+    public static function maxPixels(): int
+    {
+        return max(1, intval(config('exment.file_server_preview_max_pixels', 40000000)));
+    }
+
     public static function imageThumbnail(string $local): ?string
     {
         if (!function_exists('imagecreatefromstring')) {
+            return null;
+        }
+        // a huge image would use up the memory (ISS00410)
+        $info = @getimagesize($local);
+        if ($info === false || intval($info[0]) * intval($info[1]) > static::maxPixels()) {
             return null;
         }
         $bytes = file_get_contents($local);

@@ -27,9 +27,28 @@ class Library
 
     protected Access $access;
 
+    /** Acting for a link of people outside (ISS00410): see forLink(). */
+    protected bool $forLink = false;
+
     public function __construct(?Access $access = null)
     {
         $this->access = $access ?? Access::current();
+    }
+
+    /**
+     * Act for a share or request link: the folders and files with their own
+     * permissions are left out of a zip, and the previews of the files it
+     * takes in wait until someone inside opens them (ISS00410).
+     */
+    public function forLink(): self
+    {
+        $this->forLink = true;
+        return $this;
+    }
+
+    public static function zipMaxBytes(): int
+    {
+        return max(0, intval(config('exment.file_server_zip_max_bytes', 2147483648)));
     }
 
     public function access(): Access
@@ -412,6 +431,32 @@ class Library
     }
 
     /**
+     * Put a new file into a folder (never a new version of one that is there:
+     * a file with the same name stops it). For the request links.
+     */
+    public function storeNewFile(FileWorkspace $workspace, FileNode $parent, string $name, string $localPath, ?string $comment = null): FileNode
+    {
+        $this->assertFolder($workspace, $parent);
+        $this->access->authorize($workspace, $parent, Level::UPLOAD);
+        $name = $this->validName($name);
+        $this->assertQuota($workspace, intval(filesize($localPath)));
+        return DB::transaction(function () use ($workspace, $parent, $name, $localPath, $comment) {
+            if ($this->sibling($workspace, $parent, $name) !== null) {
+                throw new FileServerException(exmtrans('file_server.error_name_exists', ['name' => $name]));
+            }
+            $node = new FileNode([
+                'workspace_id' => $workspace->id,
+                'parent_id' => $parent->id,
+                'node_type' => FileNode::TYPE_FILE,
+                'name' => $name,
+            ]);
+            $node->save();
+            $this->writeVersion($workspace, $node, $localPath, $comment);
+            return $node->refresh();
+        });
+    }
+
+    /**
      * Add a new version to a file (an upload over it, a check in, a restore).
      */
     public function addVersion(FileWorkspace $workspace, FileNode $node, string $localPath, ?string $comment = null): FileNode
@@ -471,7 +516,13 @@ class Library
         $node->updated_at = now();
         $node->save();
 
-        Preview::queueRenditions($version);
+        if ($this->forLink) {
+            // a file from people outside: no conversion until someone inside opens it (ISS00410)
+            $version->rendition_status = FileNodeVersion::RENDITION_HELD;
+            $version->save();
+        } else {
+            Preview::queueRenditions($version);
+        }
         return $version;
     }
 
@@ -828,6 +879,18 @@ class Library
         if ($zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
             throw new FileServerException(exmtrans('file_server.error_zip'));
         }
+        $max = static::zipMaxBytes();
+        if ($max > 0) {
+            $total = 0;
+            foreach ($nodes as $node) {
+                $total += $this->treeSize($node);
+            }
+            if ($total > $max) {
+                $zip->close();
+                @unlink($path);
+                throw new FileServerException(exmtrans('file_server.error_zip_too_large', ['size' => bytesToHuman($max)]), 413);
+            }
+        }
         $locals = [];
         try {
             foreach ($nodes as $node) {
@@ -849,6 +912,10 @@ class Library
     protected function addToZip(FileWorkspace $workspace, \ZipArchive $zip, FileNode $node, string $prefix, array &$locals): void
     {
         if (!$this->access->can($workspace, $node, Level::VIEW)) {
+            return;
+        }
+        // a link gives what is under it, but not what has its own permissions (ISS00410)
+        if ($this->forLink && $prefix !== '' && $node->has_unique_permissions) {
             return;
         }
         $name = $prefix . $node->name;
@@ -976,6 +1043,31 @@ class Library
     /**
      * A new local temporary file (its path).
      */
+    /**
+     * Remove the temporary files older than the hours given (a zip that was
+     * not sent, a download that stopped). Run from the daily purge.
+     */
+    public static function removeOldTempFiles(int $hours = 24): int
+    {
+        $dir = storage_path('app/file_server_tmp');
+        if (!is_dir($dir)) {
+            return 0;
+        }
+        $limit = time() - $hours * 3600;
+        $count = 0;
+        foreach (scandir($dir) ?: [] as $entry) {
+            $path = $dir . DIRECTORY_SEPARATOR . $entry;
+            if ($entry === '.' || $entry === '..' || !is_file($path)) {
+                continue;
+            }
+            $time = @filemtime($path);
+            if ($time !== false && $time < $limit && @unlink($path)) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
     public static function tempPath(string $prefix): string
     {
         $dir = storage_path('app/file_server_tmp');

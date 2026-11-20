@@ -75,8 +75,15 @@ window.ExmFs = window.ExmFs || (function () {
         });
     }
 
+    function escape(text) {
+        return String(text === undefined || text === null ? '' : text).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    // toastr shows HTML: the names of the files in the messages are made text (ISS00410)
     function notify(message, ok) {
-        if (window.toastr) { (ok === false ? toastr.error : toastr.success)(message); } else { alert(message); }
+        if (window.toastr) { (ok === false ? toastr.error : toastr.success)(escape(message)); } else { alert(message); }
     }
 
     function done(json) {
@@ -94,6 +101,6 @@ window.ExmFs = window.ExmFs || (function () {
         return (i === 0 ? bytes : bytes.toFixed(1)) + ' ' + units[i];
     }
 
-    return { post: post, send: send, notify: notify, done: done, fail: fail, size: size, token: token };
+    return { post: post, send: send, notify: notify, done: done, fail: fail, size: size, token: token, escape: escape };
 })();
 </script>

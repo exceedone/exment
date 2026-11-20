@@ -2529,6 +2529,10 @@ return [
         'share_state_expired' => '期限切れ',
         'share_state_revoked' => '取り消し済み',
         'share_state_used_up' => '回数の上限',
+        'error_request_type' => 'この種類のファイル（.:ext）は送れません。',
+        'error_request_full' => 'このリンクで送れるファイルの数か大きさの上限に達しました。送った人に知らせてください。',
+        'share_password_locked' => 'パスワードを何度も間違えたため、このリンクは :minutes 分のあいだ使えません。',
+        'error_zip_too_large' => '大きすぎるため、まとめてダウンロードできません（:size まで）。分けてダウンロードしてください。',
         'error_zip' => 'ZIP を作れませんでした（サーバーに zip の機能がありません）。',
     ],
 

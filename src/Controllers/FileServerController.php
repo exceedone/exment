@@ -179,6 +179,12 @@ class FileServerController extends AdminControllerBase
         $level = $access->level($ws, $item);
         $version = $item->isFile() ? $item->current_version : null;
         $kind = isset($version) ? Preview::kind($version->mime_type, $item->name) : Preview::KIND_NONE;
+        // a file from a request link: its preview is made now that someone inside opens it (ISS00410)
+        if (isset($version) && $version->rendition_status === FileNodeVersion::RENDITION_HELD) {
+            $version->rendition_status = null;
+            $version->save();
+            Preview::queueRenditions($version);
+        }
 
         $text = null;
         if ($kind === Preview::KIND_TEXT && isset($version) && $version->size <= Preview::TEXT_PREVIEW_BYTES) {
