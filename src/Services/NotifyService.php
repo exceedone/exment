@@ -247,6 +247,17 @@ class NotifyService
         $errors = [];
 
         if (isset($title) && isset($message)) {
+            // The subject and the body are typed by the user and are filled with
+            // values when they are sent. Only the ${...} words of the mail template
+            // are filled; a word the user adds (${system:...}, ${notify:...}, ...)
+            // stays as it was typed.
+            $mail_template = $this->notify->getMailTemplate();
+            $allowed = static::getReplaceWords(isset($mail_template)
+                ? (array_get($mail_template->value, 'mail_subject') . "\n" . $mail_template->getJoinedBody())
+                : '');
+            $title = static::keepOnlyReplaceWords((string)$title, $allowed);
+            $message = static::keepOnlyReplaceWords((string)$message, $allowed);
+
             try {
                 $this->notify->notifyButtonClick($this->custom_value, $target_user_keys, $title, $message, $attachments);
             } catch (TransportExceptionInterface $ex) {
@@ -718,6 +729,33 @@ class NotifyService
     /**
      * replace subject or body words.
      */
+    /**
+     * The ${...} words in a text.
+     *
+     * @return array<string>
+     */
+    protected static function getReplaceWords(?string $text): array
+    {
+        if (is_nullorempty($text)) {
+            return [];
+        }
+        preg_match_all('/\$\{(.*?)\}/u', $text, $matches);
+        return array_values(array_unique($matches[0]));
+    }
+
+    /**
+     * Break the ${...} words of the text that are not in $allowed, so they are
+     * sent as typed and not filled with values.
+     *
+     * @param array<string> $allowed
+     */
+    protected static function keepOnlyReplaceWords(string $text, array $allowed): string
+    {
+        return preg_replace_callback('/\$\{(.*?)\}/u', function ($m) use ($allowed) {
+            return in_array($m[0], $allowed, true) ? $m[0] : '$ {' . $m[1] . '}';
+        }, $text) ?? $text;
+    }
+
     // @phpstan-ignore-next-line
     public static function replaceWord($target, $custom_value = null, $prms = null, $replaceOptions = [])
     {
