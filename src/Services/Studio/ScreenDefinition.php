@@ -50,7 +50,9 @@ use Exceedone\Exment\Model\CustomTable;
  *     {"kind": "field", "name": "<column name>", "label": "...", "type": "<column type>",
  *      "required": bool, "multiple": bool, "help": string|null, "default": mixed|null,
  *      "choices": [{"value": "...", "label": "..."}],   // select, select_valtext and yesno only
- *      "reference": {"table": "<table name>"}}          // select_table, user and organization only
+ *      "reference": {"table": "<table name>"},          // select_table, user and organization only
+ *      "visible_if": {"all": [{"column": "<column name>", "operator": "eq" | "ne" | "empty" | "not_empty",
+ *                              "value": "..." | null}]}}  // shown only while all hold (ScreenCondition); absent: always shown
  *     {"kind": "system", "name": "id" | "created_at" | ...}   // shown when a data is opened, not entered
  *     {"kind": "header", "text": "..."}
  *     {"kind": "text", "text": "..."}                         // an explanation
@@ -245,6 +247,10 @@ class ScreenDefinition
         if (ColumnType::isSelectTable($type)) {
             $target = $column->select_target_table;
             $field['reference'] = ['table' => isset($target) ? strval($target->table_name) : null];
+        }
+        $conditions = ScreenCondition::conditionsOf(array_get($formOptions, 'visible_if'));
+        if ($conditions !== null) {
+            $field['visible_if'] = ['all' => $conditions];
         }
         return $field;
     }

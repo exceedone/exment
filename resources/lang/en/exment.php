@@ -2474,6 +2474,15 @@ return [
             '3' => '3 columns',
             '4' => '4 columns',
         ],
+        'condition' => 'Shown when',
+        'condition_always' => 'Always shown',
+        'condition_value' => 'Value',
+        'condition_operators' => [
+            'eq' => 'is',
+            'ne' => 'is not',
+            'empty' => 'is empty',
+            'not_empty' => 'is not empty',
+        ],
         'error' => [
             'check_input' => 'Some input is wrong. Please fix the places in red.',
             'required' => 'Please enter it.',
@@ -2496,6 +2505,10 @@ return [
             'sheet_expired' => 'The read file was not found. Please read it again.',
             'layout' => 'The rows and columns are not right. Please reload the page.',
             'too_many_rows' => 'Up to %s rows.',
+            'condition_target' => 'Please choose the item of the condition again.',
+            'condition_operator' => 'The kind of the condition is not right.',
+            'condition_value' => 'Please enter the value of the condition.',
+            'condition_required' => 'A required item cannot have a condition (hidden, it could not be filled in and the data could not be saved).',
         ],
     ],
 

@@ -74,7 +74,7 @@ class ApiStudioScreenTest extends ApiTestBase
                 ['type' => ColumnType::TEXT, 'label' => 'company', 'required' => true, 'row' => 0, 'column' => 0],
                 ['type' => ColumnType::SELECT, 'label' => 'rank', 'choices' => "A\nB", 'row' => 0, 'column' => 1],
                 ['type' => ColumnType::YESNO, 'label' => 'active', 'row' => 0, 'column' => 1],
-                ['type' => ColumnType::USER, 'label' => 'owner', 'row' => 1, 'column' => 0],
+                ['type' => ColumnType::USER, 'label' => 'owner', 'row' => 1, 'column' => 0, 'visible_if' => ['target' => 2, 'operator' => 'eq', 'value' => '1']],
             ],
             'layout' => [['widths' => [3, 1]], ['widths' => [4]]],
         ]));
@@ -116,6 +116,9 @@ class ApiStudioScreenTest extends ApiTestBase
         $this->assertSame(['1', '0'], array_column($active['choices'], 'value'));
         $owner = $block['rows'][1]['columns'][0]['items'][0];
         $this->assertSame(['table' => 'user'], $owner['reference']);
+        // shown only while "active" is yes; an item without a condition has no key
+        $this->assertSame(['all' => [['column' => 'active', 'operator' => 'eq', 'value' => '1']]], $owner['visible_if']);
+        $this->assertArrayNotHasKey('visible_if', $company);
     }
 
     public function testAnUnknownScreenIsNotFound(): void

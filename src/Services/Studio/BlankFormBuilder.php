@@ -136,13 +136,14 @@ class BlankFormBuilder
             'menu_parent_id' => is_numeric($parent) ? intval($parent) : null,
             'fields' => $result,
             'layout' => ScreenLayout::normalize(array_get($input, 'layout'), $kept),
+            'conditions' => ScreenCondition::normalize($kept),
         ];
     }
 
     /**
      * The mistakes of a screen, by field key ("table_view_name", "fields.2.label"...).
      *
-     * @param array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array<string, mixed>>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}} $screen
+     * @param array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array<string, mixed>>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions?: array<int, array{target: int, operator: string, value: string}>} $screen
      * @return array<string, string>
      */
     public static function validate(array $screen): array
@@ -202,13 +203,18 @@ class BlankFormBuilder
         if (isset($screen['layout'])) {
             $errors += ScreenLayout::validate($screen['layout']);
         }
+        if (isset($screen['conditions'])) {
+            $errors += ScreenCondition::validate($screen['conditions'], array_map(function ($field) {
+                return boolval($field['required'] ?? false);
+            }, $screen['fields']));
+        }
         return $errors;
     }
 
     /**
      * Make the table, its columns, the default form and view, and the menu item.
      *
-     * @param array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array<string, mixed>>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}} $screen a screen validate() found no mistake in
+     * @param array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array<string, mixed>>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions?: array<int, array{target: int, operator: string, value: string}>} $screen a screen validate() found no mistake in
      */
     public static function build(array $screen): CustomTable
     {
@@ -286,10 +292,14 @@ class BlankFormBuilder
         $table = CustomTable::getEloquent($table->id);
         $form = CustomForm::getDefault($table);
         $block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
+        $columnIds = $table->custom_columns()->pluck('id')->map(function ($id) {
+            return intval($id);
+        })->all();
         if (isset($block) && isset($screen['layout'])) {
-            ScreenLayout::apply($block, $table->custom_columns()->pluck('id')->map(function ($id) {
-                return intval($id);
-            })->all(), ScreenLayout::withoutEmptyRows($screen['layout']));
+            ScreenLayout::apply($block, $columnIds, ScreenLayout::withoutEmptyRows($screen['layout']));
+        }
+        if (isset($block) && isset($screen['conditions'])) {
+            ScreenCondition::apply($block, $columnIds, $screen['conditions']);
         }
         static::addColumnsToView(CustomView::getDefault($table, false), $table);
 
