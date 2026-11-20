@@ -81,6 +81,25 @@ class PluginUploadPermissionTest extends FeatureTestBase
         $this->post(admin_url('plugin'), ['fileUpload' => $file], static::AJAX)->assertStatus(403);
     }
 
+    public function testAUserWhoMaySetOnePluginDoesNotWriteItsCode(): void
+    {
+        $this->actAsPluginSetter();
+        $plugin = Plugin::first();
+
+        System::clearRequestSession();
+        $this->post(admin_urls('plugin', 'edit_code', $plugin->id), [
+            'nodeid' => '/config.json',
+            'original_file' => 'config.json',
+            'edit_file' => '{}',
+        ], static::AJAX)->assertStatus(403);
+
+        System::clearRequestSession();
+        $this->post(admin_urls('plugin', 'edit_code', $plugin->id, 'fileupload'), [
+            'nodeid' => '/',
+            'fileUpload' => UploadedFile::fake()->create('evil.php', 1, 'text/plain'),
+        ], static::AJAX)->assertStatus(403);
+    }
+
     public function testTheAdministratorStillReachesTheUpload(): void
     {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));

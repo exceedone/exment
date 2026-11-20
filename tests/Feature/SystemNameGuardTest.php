@@ -34,6 +34,19 @@ class SystemNameGuardTest extends FeatureTestBase
         $column->save();
     }
 
+    public function testAColumnNameWithATrailingNewlineIsRefused(): void
+    {
+        $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        $column = new CustomColumn();
+        $column->custom_table_id = $table->id;
+        $column->column_name = "name\n";
+        $column->column_view_name = 'bad';
+        $column->column_type = 'text';
+
+        $this->expectException(\InvalidArgumentException::class);
+        $column->save();
+    }
+
     public function testATableNameWithAQuoteIsRefused(): void
     {
         $table = new CustomTable();

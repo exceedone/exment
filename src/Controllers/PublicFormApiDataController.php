@@ -91,6 +91,36 @@ class PublicFormApiDataController extends AdminControllerTableBase
         if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
         }
+
+        // The view that narrows the choices is the one of the form's select
+        // column (its "select_target_view"), not one the visitor sends.
+        $columns = collect();
+        foreach ($this->eachFormColumn() as $custom_form_column) {
+            $custom_column = $custom_form_column->custom_column_cache;
+            if ($custom_column && $custom_column->select_target_table && $custom_column->select_target_table->id == $this->custom_table->id) {
+                $columns->push($custom_column);
+            }
+        }
+        $expand = (array)$request->get('expand', []);
+        $column_id = array_get($expand, 'column_id') ?? $request->get('column_id');
+        $column = $columns->first(function ($c) use ($column_id) {
+            return isMatchString($c->id, $column_id);
+        });
+        if ($column) {
+            $views = collect([$column->getOption('select_target_view')]);
+        } else {
+            $views = $columns->map(function ($c) {
+                return $c->getOption('select_target_view');
+            })->unique()->values();
+        }
+        if ($views->count() != 1) {
+            // several columns with different views, and none named: not decided by the visitor
+            return abortJson(403, ErrorCode::NOT_CONTAINS_CUSTOM_FORM());
+        }
+        $expand['target_view_id'] = $views->first();
+        $request->merge(['expand' => $expand]);
+        $request->query->set('expand', $expand);
+
         return $this->_dataSelect($request);
     }
 
@@ -174,6 +204,31 @@ class PublicFormApiDataController extends AdminControllerTableBase
             $changedata_column = CustomColumn::getEloquent(array_get($custom_form_column->options, 'changedata_column_id'));
             if ($changedata_column && $changedata_column->custom_table_id == $this->custom_table->id) {
                 $names[] = $changedata_column->column_name;
+            }
+        }
+
+        // and the columns a calculation of the form reads from a selected record
+        // or from the parent (calc.js: model['value'][formula_column])
+        foreach ($this->public_form->custom_form->custom_form_blocks as $custom_form_block) {
+            if (!$custom_form_block->available) {
+                continue;
+            }
+            foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
+                $custom_column = $custom_form_column->custom_column_cache;
+                $formula = $custom_column ? array_get($custom_column, 'options.calc_formula') : null;
+                if (!is_string($formula) || is_nullorempty($formula) || $formula == 'null') {
+                    continue;
+                }
+                $params = \Exceedone\Exment\Services\Calc\CalcService::getCalcParamsFromString($formula, $custom_column->custom_table_cache, $custom_form_block);
+                foreach ($params as $param) {
+                    if (!in_array(array_get($param, 'type'), ['select_table', 'parent'], true)) {
+                        continue;
+                    }
+                    $formula_column = array_get($param, 'custom_column');
+                    if ($formula_column && $formula_column->custom_table_id == $this->custom_table->id) {
+                        $names[] = $formula_column->column_name;
+                    }
+                }
             }
         }
         return array_values(array_unique($names));

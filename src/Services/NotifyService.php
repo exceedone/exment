@@ -256,8 +256,8 @@ class NotifyService
             $allowed = static::getReplaceWords(isset($mail_template)
                 ? (array_get($mail_template->value, 'mail_subject') . "\n" . $mail_template->getJoinedBody())
                 : '');
-            $title = static::keepOnlyReplaceWords((string)$title, $allowed);
-            $message = static::keepOnlyReplaceWords((string)$message, $allowed);
+            $title = static::keepOnlyReplaceWords(str_replace("\x00", '', (string)$title), $allowed);
+            $message = static::keepOnlyReplaceWords(str_replace("\x00", '', (string)$message), $allowed);
 
             try {
                 $this->notify->notifyButtonClick($this->custom_value, $target_user_keys, $title, $message, $attachments);
@@ -893,7 +893,7 @@ class NotifyService
         if (is_nullorempty($text)) {
             return [];
         }
-        preg_match_all('/\$\{(.*?)\}/u', $text, $matches);
+        preg_match_all('/\$\{([^{}]*?)\}/', $text, $matches);
         return array_values(array_unique($matches[0]));
     }
 
@@ -905,9 +905,16 @@ class NotifyService
      */
     protected static function keepOnlyReplaceWords(string $text, array $allowed): string
     {
-        return preg_replace_callback('/\$\{(.*?)\}/u', function ($m) use ($allowed) {
-            return in_array($m[0], $allowed, true) ? $m[0] : '$ {' . $m[1] . '}';
-        }, $text) ?? $text;
+        // The allowed words are put aside, every other "${" is broken (also one
+        // inside another, as "${${system:...}"), then the allowed words come back.
+        $marks = [];
+        foreach (array_values($allowed) as $index => $word) {
+            $mark = "\x00EXMWORD{$index}\x00";
+            $marks[$mark] = $word;
+            $text = str_replace($word, $mark, $text);
+        }
+        $text = str_replace('${', '$ {', $text);
+        return strtr($text, $marks);
     }
 
     // @phpstan-ignore-next-line

@@ -162,9 +162,11 @@ class PublicFormController extends Controller
 
             $custom_value = $form->getModelByInputs();
 
-            // set session
+            // set session (with the form it belongs to: another form's confirm
+            // page does not stand for this form's reCAPTCHA)
             $inputs = $this->removeUploadedFile($request->all());
             $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT, $inputs);
+            $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT . '_form', $this->public_form->uuid);
 
             $show = $this->public_form->getShow($request, $custom_value, $inputs);
 
@@ -196,8 +198,11 @@ class PublicFormController extends Controller
             ;
         }
         // get data by session or result
-        $fromConfirm = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT);
-        $data = $fromConfirm ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
+        $confirmedForm = $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT . '_form');
+        $fromConfirm = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT)
+            && isMatchString($confirmedForm, $this->public_form->uuid);
+        $sessionData = $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT);
+        $data = $fromConfirm ? $sessionData : $request->all();
         try {
             // reCAPTCHA was checked on the confirm page; a request that did not
             // come through it (no confirm page, or posted here directly) is checked here

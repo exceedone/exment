@@ -31,6 +31,16 @@ class WebhookUrlGuard
         }
 
         $host = trim($parts['host'], '[]');
+
+        // hosts the administrator allows (EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS,
+        // comma separated), e.g. a chat server on this server itself
+        $allowHosts = array_filter(array_map(function ($h) {
+            return strtolower(trim($h));
+        }, explode(',', (string)config('exment.notify_webhook_allow_hosts', ''))));
+        if (in_array(strtolower($host), $allowHosts, true)) {
+            return true;
+        }
+
         $ips = static::resolve($host);
         if (empty($ips)) {
             return false;
@@ -82,7 +92,8 @@ class WebhookUrlGuard
         if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE)) {
             return false;
         }
-        foreach (['0.0.0.0/8', '100.64.0.0/10', '169.254.0.0/16', '127.0.0.0/8', 'fe80::/10', '::1/128'] as $cidr) {
+        // fd00:ec2::/32: AWS instance metadata over IPv6; 168.63.129.16: Azure host
+        foreach (['0.0.0.0/8', '100.64.0.0/10', '169.254.0.0/16', '127.0.0.0/8', 'fe80::/10', '::1/128', 'fd00:ec2::/32', '168.63.129.16/32'] as $cidr) {
             if (static::inCidr($ip, $cidr)) {
                 return false;
             }

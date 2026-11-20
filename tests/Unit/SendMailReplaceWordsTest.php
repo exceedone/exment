@@ -49,4 +49,23 @@ class SendMailReplaceWordsTest extends UnitTestBase
         $this->assertStringNotContainsString('${notify:', $sent);
         $this->assertStringContainsString('$ {system:smtp_password}', $sent);
     }
+
+    public function testAWordInsideAnotherIsNotFilled(): void
+    {
+        $allowed = $this->words('Hello ${value:user_name}');
+        $sent = $this->keep('${${system:site_name}} ${$${notify:x}}', $allowed);
+
+        $this->assertStringNotContainsString('${system:', $sent);
+        $this->assertStringNotContainsString('${notify:', $sent);
+        $this->assertSame(0, preg_match('/\$\{/', $sent));
+    }
+
+    public function testAnInvalidByteDoesNotLetAWordThrough(): void
+    {
+        $allowed = $this->words('Hello ${value:user_name}');
+        $sent = $this->keep("\xff \${system:smtp_password} \${value:user_name}", $allowed);
+
+        $this->assertStringNotContainsString('${system:smtp_password}', $sent);
+        $this->assertStringContainsString('${value:user_name}', $sent);
+    }
 }
