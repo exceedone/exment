@@ -1303,6 +1303,18 @@ return [
     |
     */
     'notify_webhook_deny_private' => env('EXMENT_NOTIFY_WEBHOOK_DENY_PRIVATE', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | X-Frame-Options of the admin pages
+    |--------------------------------------------------------------------------
+    |
+    | SAMEORIGIN: other sites may not show the admin pages in a frame.
+    | DENY: no frame at all. Empty: the header is not sent.
+    | (Public forms do not get it, so they can be embedded.)
+    |
+    */
+    'x_frame_options' => env('EXMENT_X_FRAME_OPTIONS', 'SAMEORIGIN'),
     /*
     |--------------------------------------------------------------------------
     | Unavailable user view ( for tables )
