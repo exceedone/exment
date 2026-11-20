@@ -55,6 +55,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Chart of a list view: max rows
+    |--------------------------------------------------------------------------
+    |
+    | A chart of a list view draws one point per row. It reads at most this many
+    | rows (0 = no limit). To chart a large table, use a summary view.
+    |
+    */
+    'chart_list_max_rows' => env('EXMENT_CHART_LIST_MAX_ROWS', 1000),
+
+    /*
+    |--------------------------------------------------------------------------
     | Directory
     |--------------------------------------------------------------------------
     |

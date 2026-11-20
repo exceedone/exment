@@ -88,6 +88,13 @@ class ChartItem implements ItemInterface
     /** @var string|null|false highlightColumn() memo (false = not resolved yet) */
     protected $highlight_column = false;
 
+    /**
+     * Rows left out of a chart of a list view (more than exment.chart_list_max_rows), 0 when none.
+     *
+     * @var int
+     */
+    protected $list_rows_left_out = 0;
+
     /** @var bool|null canEditColors() memo */
     protected $can_edit_colors;
 
@@ -232,7 +239,11 @@ class ChartItem implements ItemInterface
             }
         }
 
-        return $this->toolbarHtml($fields) . $chart->render();
+        $note = '';
+        if ($this->list_rows_left_out > 0) {
+            $note = '<p class="small text-muted chart-rows-left-out">' . esc_html(exmtrans('dashboard.message.chart_list_rows_left_out', ['count' => intval(config('exment.chart_list_max_rows', 1000))])) . '</p>';
+        }
+        return $this->toolbarHtml($fields) . $note . $chart->render();
     }
 
     protected function isAggregateView(): bool
@@ -505,8 +516,19 @@ class ChartItem implements ItemInterface
         // in the order the view lists its rows (a view without a sort keeps the database's)
         $this->viewForQuery()->filterModel($model, ['sort' => true]);
 
-        // get data
+        // get data: a chart of a list view draws one point per row, so it reads at most
+        // chart_list_max_rows rows (a large table ran out of memory or time; ISS00413).
+        // A summary view is the way to chart a large table.
+        $max = intval(config('exment.chart_list_max_rows', 1000));
+        if ($max > 0) {
+            $model->limit($max + 1);
+        }
         $items = $model->get();
+        $this->list_rows_left_out = 0;
+        if ($max > 0 && $items->count() > $max) {
+            $items = $items->slice(0, $max)->values();
+            $this->list_rows_left_out = 1;
+        }
 
         $item_x = $view_column_x == Define::CHARTITEM_LABEL ? null : $this->listColumnItem($view_column_x);
         $chart_label = $items->map(function ($val) use ($item_x) {

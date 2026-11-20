@@ -235,6 +235,59 @@ class ClassBuilder
 
     // static method --------------------------------------------------
 
+    /** @var bool */
+    protected static $autoloaderRegistered = false;
+
+    /**
+     * Build the class of a custom table (Exceedone\Exment\Model\Class_{suuid}) when PHP first
+     * needs it, instead of building every table's class on every request (Morph middleware).
+     * Each class is eval'd, so OPcache cannot keep it: building them all costs about 0.4 ms
+     * per table on each request (ISS00413).
+     *
+     * @return void
+     */
+    public static function registerAutoloader()
+    {
+        if (static::$autoloaderRegistered) {
+            return;
+        }
+        static::$autoloaderRegistered = true;
+
+        spl_autoload_register(function ($class) {
+            static $building = [];
+            $prefix = 'Exceedone\Exment\Model\Class_';
+            if (strpos($class, $prefix) !== 0 || isset($building[$class])) {
+                return;
+            }
+            $suuid = substr($class, strlen($prefix));
+            if (!preg_match('/^[a-z0-9]+$/i', $suuid)) {
+                return;
+            }
+            $building[$class] = true;
+            try {
+                if (!canConnection() || !hasTable(\Exceedone\Exment\Enums\SystemTableName::CUSTOM_TABLE)) {
+                    return;
+                }
+                $table = CustomTable::findBySuuid($suuid);
+                if (is_null($table)) {
+                    return;
+                }
+                $table->createTable();
+                static::createCustomValue('Exceedone\Exment\Model', 'Class_' . $suuid, $class, $table, null);
+            } finally {
+                unset($building[$class]);
+            }
+        });
+    }
+
+    /**
+     * @return bool
+     */
+    public static function autoloaderRegistered(): bool
+    {
+        return static::$autoloaderRegistered;
+    }
+
     /**
      * Create Custom Value Class Definition
      */

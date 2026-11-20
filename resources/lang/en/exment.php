@@ -921,6 +921,7 @@ return [
 
         'message' => [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
+            'chart_list_rows_left_out' => 'There are many rows, so only the first :count are shown. To see all of them, chart a summary view.',
             'need_multiseries' => 'This chart type needs an aggregate view grouped by 2 columns (1st = X axis, 2nd = series) and a summary value.',
             'chart_render_error' => 'Could not render this chart (the data may be unsuitable for this type).',
             'chart_load_error' => 'Could not load the chart library. Please reload the page.',
