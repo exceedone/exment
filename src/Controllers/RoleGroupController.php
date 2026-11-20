@@ -820,8 +820,7 @@ class RoleGroupController extends AdminControllerBase
     }
     protected function hasPermission_Import(): bool
     {
-        return boolval(config('exment.role_group_import_export', false))
-            && \Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL);
+        return \Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL);
     }
 
     // @phpstan-ignore-next-line

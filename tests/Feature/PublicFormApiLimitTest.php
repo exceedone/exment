@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\PublicForm;
@@ -46,6 +47,40 @@ class PublicFormApiLimitTest extends FeatureTestBase
         $this->assertArrayNotHasKey('index_text', $json['value'] ?? []);
         $this->assertArrayNotHasKey('text', $json['value'] ?? []);
         $this->assertArrayNotHasKey('created_user_id', $json);
+    }
+
+    public function testTheColumnTheFormCopiesComesWithTheRecord(): void
+    {
+        [$formKey, $tableKey] = $this->publicFormAndTable();
+        $select_table = CustomTable::getEloquent($tableKey);
+
+        // a form column copies "text" of the selected custom_value_edit record
+        $custom_form = CustomForm::getDefault(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST));
+        $select_column = null;
+        $copy_to = null;
+        foreach ($custom_form->custom_form_blocks as $block) {
+            foreach ($block->custom_form_columns as $form_column) {
+                $column = $form_column->custom_column_cache;
+                if (!$column) {
+                    continue;
+                }
+                if (!$select_column && $column->select_target_table && $column->select_target_table->id == $select_table->id) {
+                    $select_column = $column;
+                } elseif (!$copy_to && $column->column_type == 'text') {
+                    $copy_to = $form_column;
+                }
+            }
+        }
+        $this->assertNotNull($select_column, 'the form has a column that selects from ' . $tableKey);
+        $this->assertNotNull($copy_to, 'the form has a text column');
+        $copy_to->setOption('changedata_target_column_id', $select_column->id);
+        $copy_to->setOption('changedata_column_id', CustomColumn::getEloquent('text', $select_table)->id);
+        $copy_to->save();
+
+        $json = $this->get("publicformapi/{$formKey}/data/{$tableKey}/5")->assertStatus(200)->json();
+        $this->assertArrayHasKey('text', $json['value']);
+        $this->assertSame(CustomTable::getEloquent($tableKey)->getValueModel(5)->getValue('text'), $json['value']['text']);
+        $this->assertArrayNotHasKey('index_text', $json['value']);
     }
 
     public function testARecordComesWithoutItsRelatedRecords(): void
