@@ -528,12 +528,60 @@ class FileServerController extends AdminControllerBase
             if (!$file instanceof \Illuminate\Http\UploadedFile || !$file->isValid()) {
                 throw new FileServerException(exmtrans('file_server.error_upload'));
             }
+            // an editor sends the version it started from: refuse when someone saved after it
+            $base = $request->input('base_version');
+            if ($base !== null && $base !== '' && intval($base) !== intval($item->current_version_id)) {
+                throw new FileServerException(exmtrans('file_server.error_version_conflict'), 409);
+            }
             if ($request->boolean('checkin')) {
                 $this->library()->checkin($ws, $item, strval($file->getRealPath()), $request->input('comment'));
             } else {
                 $this->library()->addVersion($ws, $item, strval($file->getRealPath()), $request->input('comment'));
             }
-            return ['message' => exmtrans('file_server.version_added')];
+            $item->refresh();
+            return ['message' => exmtrans('file_server.version_added'), 'version' => $item->current_version_id, 'version_no' => optional($item->current_version)->version_no];
+        });
+    }
+
+    /**
+     * What an editor needs to know of a file (the Office of the Groupware, ISS00233):
+     * its name, the current version, what the user may do and the addresses to use.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function info(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) {
+            if (!$item->isFile()) {
+                throw FileServerException::notFound();
+            }
+            $access = $this->library()->access();
+            $level = $access->level($ws, $item);
+            $lockedByOther = isset($item->checked_out_user_id) && intval($item->checked_out_user_id) !== $access->userId();
+            $version = $item->current_version;
+            return [
+                'id' => $item->id,
+                'workspace_id' => $ws->id,
+                'workspace' => $ws->name,
+                'name' => $item->name,
+                'extension' => $item->extension(),
+                'size' => $item->size,
+                'version' => $item->current_version_id,
+                'version_no' => isset($version) ? $version->version_no : null,
+                'level' => $level,
+                'can_edit' => $level >= Level::EDIT && !$lockedByOther,
+                'checked_out_by' => isset($item->checked_out_user_id) ? $this->userName($item->checked_out_user_id) : null,
+                'checked_out_by_me' => isset($item->checked_out_user_id) && !$lockedByOther,
+                'urls' => [
+                    'page' => $this->nodeUrl($ws, $item),
+                    'folder' => isset($item->parent_id) ? $this->url($ws, 'folder', $item->parent_id) : $this->url($ws),
+                    'download' => $this->nodeUrl($ws, $item, 'download'),
+                    'version' => $this->nodeUrl($ws, $item, 'version'),
+                    'checkout' => $this->nodeUrl($ws, $item, 'checkout'),
+                    'checkin' => $this->nodeUrl($ws, $item, 'checkin'),
+                    'rename' => $this->nodeUrl($ws, $item, 'rename'),
+                ],
+            ];
         });
     }
 

@@ -191,6 +191,7 @@ class RouteServiceProvider extends ServiceProvider
                 $router->get('folders.json', 'FileServerController@folderTree');
                 $router->group(['prefix' => 'nodes/{node}', 'where' => ['node' => '[0-9]+']], function (Router $router) {
                     $router->get('/', 'FileServerController@showNode');
+                    $router->get('info', 'FileServerController@info');
                     $router->get('download', 'FileServerController@download');
                     $router->get('content', 'FileServerController@content');
                     $router->get('thumbnail', 'FileServerController@thumbnail');

@@ -505,6 +505,37 @@ class FileServerTest extends FeatureTestBase
         $this->assertSame(['Sub', 'one.txt'], $this->admin()->children($ws, $folder)->pluck('name')->all());
     }
 
+    public function testWhatAnEditorUsesInfoAndASaveFromAnOldVersion(): void
+    {
+        $ws = $this->workspace();
+        $file = $this->admin()->storeFile($ws, null, 'report.docx', $this->local('v1'));
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::EDIT);
+        System::clearRequestSession();
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $headers = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+        $base = admin_urls('file_server', $ws->id, 'nodes', $file->id);
+
+        $info = $this->get($base . '/info', $headers)->assertOk()->json();
+        $this->assertSame('report.docx', $info['name']);
+        $this->assertSame('docx', $info['extension']);
+        $this->assertTrue($info['can_edit']);
+        $this->assertSame($file->current_version_id, $info['version']);
+
+        // a save from the version that is current: a new version
+        $saved = $this->post($base . '/version', [
+            'file' => UploadedFile::fake()->createWithContent('report.docx', 'v2'),
+            'base_version' => $info['version'],
+        ], $headers)->assertOk()->json();
+        $this->assertSame(2, $saved['version_no']);
+
+        // a save from the old version: refused, nothing lost
+        $this->post($base . '/version', [
+            'file' => UploadedFile::fake()->createWithContent('report.docx', 'v2 by another'),
+            'base_version' => $info['version'],
+        ], $headers)->assertStatus(409);
+        $this->assertSame('v2', Library::disk()->get($file->refresh()->current_version->path));
+    }
+
     public function testTheMenuAndThePageOfAUserWithNoWorkspace(): void
     {
         System::clearRequestSession();

@@ -2489,6 +2489,7 @@ return [
         'error_upload' => 'The upload failed.',
         'error_upload_offset' => 'The upload is out of step. It goes on from where it stopped.',
         'error_upload_incomplete' => 'Not all of the file has come yet.',
+        'error_version_conflict' => 'Someone saved a newer version first. Open the file again, then save.',
         'error_zip' => 'The zip could not be made (the server has no zip).',
     ],
 

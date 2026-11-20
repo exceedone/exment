@@ -2490,6 +2490,7 @@ return [
         'error_upload' => 'アップロードできませんでした。',
         'error_upload_offset' => 'アップロードの続きの位置がずれています。続きから送り直します。',
         'error_upload_incomplete' => 'まだすべて届いていません。',
+        'error_version_conflict' => 'ほかの人が先に新しい版を保存しました。開き直してから保存してください。',
         'error_zip' => 'ZIP を作れませんでした（サーバーに zip の機能がありません）。',
     ],
 
