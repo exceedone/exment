@@ -2521,8 +2521,10 @@ return [
         'app_page' => 'Page %1$s / %2$s',
         'app_loading' => 'Loading...',
         'app_failed' => 'Could not load. Please check the connection.',
-        'app_file_on_pc' => 'Please add files and images on the PC screens.',
         'app_choose' => 'Choose',
+        'app_file_saved' => '%s saved. Choosing again replaces them.',
+        'app_file_too_large' => 'A file can be up to %s MB.',
+        'app_file_unreadable' => 'This image could not be read.',
         'error' => [
             'check_input' => 'Some input is wrong. Please fix the places in red.',
             'required' => 'Please enter it.',

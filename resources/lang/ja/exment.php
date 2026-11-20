@@ -2522,8 +2522,10 @@ return [
         'app_page' => '%1$s / %2$s ページ',
         'app_loading' => '読み込んでいます…',
         'app_failed' => '読み込めませんでした。通信を確かめてください。',
-        'app_file_on_pc' => 'ファイル・画像は、PC 版の画面で登録してください。',
         'app_choose' => '選んでください',
+        'app_file_saved' => '登録済み（%s 件）。選び直すと置き換わります。',
+        'app_file_too_large' => 'ファイルは %s MB までです。',
+        'app_file_unreadable' => 'この画像は読み込めませんでした。',
         'error' => [
             'check_input' => '入力に誤りがあります。赤い文字の所を直してください。',
             'required' => '入力してください。',
