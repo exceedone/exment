@@ -105,7 +105,18 @@ class PublicFormShow extends DefaultShow
     protected function getRelationModels(array $relationInputs)
     {
         $relations = [];
+        // The keys come from the visitor's request. Only the relations of the
+        // form's blocks are called, never another method of the model whose
+        // name was put in the request (all, save, push, ...).
+        $relationNames = $this->custom_form->custom_form_blocks_cache->map(function ($custom_form_block) {
+            return $custom_form_block->getRelationInfo()[1] ?? null;
+        })->filter()->map(function ($name) {
+            return (string)$name;
+        })->all();
         foreach ($relationInputs as $column => $value) {
+            if (!in_array((string)$column, $relationNames, true)) {
+                continue;
+            }
             if (!method_exists($this->custom_value, $column)) {
                 continue;
             }
