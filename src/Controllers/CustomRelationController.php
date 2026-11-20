@@ -206,4 +206,14 @@ class CustomRelationController extends AdminControllerTableBase
         });
         return $form;
     }
+
+    /**
+     * The rows update() and destroy() check to be of this table.
+     *
+     * @return array<mixed>
+     */
+    protected function resourceRowRule(): array
+    {
+        return [\Exceedone\Exment\Model\CustomRelation::class, \Exceedone\Exment\Enums\Permission::CUSTOM_TABLE];
+    }
 }

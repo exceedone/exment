@@ -608,4 +608,14 @@ class CustomColumnController extends AdminControllerTableBase
             'column_type' => $column_type,
         ]));
     }
+
+    /**
+     * The rows update() and destroy() check to be of this table.
+     *
+     * @return array<mixed>
+     */
+    protected function resourceRowRule(): array
+    {
+        return [\Exceedone\Exment\Model\CustomColumn::class, \Exceedone\Exment\Enums\Permission::CUSTOM_TABLE];
+    }
 }
