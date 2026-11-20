@@ -1208,6 +1208,10 @@ return [
     */
     'notify_webhook_deny_private' => env('EXMENT_NOTIFY_WEBHOOK_DENY_PRIVATE', false),
 
+    // hosts webhooks may be sent to although the address is refused above
+    // (comma separated), e.g. "localhost,chat.internal"
+    'notify_webhook_allow_hosts' => env('EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS', ''),
+
     /*
     |--------------------------------------------------------------------------
     | X-Frame-Options of the admin pages

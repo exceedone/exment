@@ -155,7 +155,7 @@ class CalcService
      * ]
      */
     // @phpstan-ignore-next-line
-    protected static function getCalcParamsFromString($value, CustomTable $custom_table, ?CustomFormBlock $custom_form_block = null): array
+    public static function getCalcParamsFromString($value, CustomTable $custom_table, ?CustomFormBlock $custom_form_block = null): array
     {
         if (is_nullorempty($value)) {
             return [];
