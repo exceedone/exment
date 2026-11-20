@@ -378,7 +378,7 @@ class WorkflowAction extends ModelBase
         // The users of the next step come from the request only where the next
         // step lets the user pick them (ACTION_SELECT), and only as users or
         // organizations that exist. Otherwise the workflow's own setting decides.
-        if (is_array($data) && array_key_exists('next_work_users', $data)) {
+        if (array_key_exists('next_work_users', $data)) {
             $data['next_work_users'] = ($next === true)
                 ? $this->filterSelectedNextWorkUsers($status_to, $data['next_work_users'])
                 : [];
