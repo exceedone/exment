@@ -1456,4 +1456,17 @@ return [
         'feed_url'   => env('EXMENT_SAFETY_CHECK_FEED_URL', 'https://api.p2pquake.net/v2/history'),
         'feed_limit' => env('EXMENT_SAFETY_CHECK_FEED_LIMIT', 10),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | File server (ISS00293)
+    |--------------------------------------------------------------------------
+    | file_server_workspace_create: who may make a workspace. "all" or "admin" (system permission).
+    | file_server_max_file_size: the largest file, in bytes (0: no limit but the space of the workspace).
+    | file_server_soffice_path: LibreOffice (soffice) to make the PDF preview of Office files. Empty: no preview.
+    */
+    'file_server_workspace_create' => env('EXMENT_FILE_SERVER_WORKSPACE_CREATE', 'all'),
+    'file_server_max_file_size' => env('EXMENT_FILE_SERVER_MAX_FILE_SIZE', 0),
+    'file_server_soffice_path' => env('EXMENT_FILE_SERVER_SOFFICE_PATH'),
+    'file_server_soffice_timeout' => env('EXMENT_FILE_SERVER_SOFFICE_TIMEOUT', 120),
 ];

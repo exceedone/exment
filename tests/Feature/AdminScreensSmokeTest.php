@@ -126,6 +126,8 @@ class AdminScreensSmokeTest extends FeatureTestBase
             'admin/data/{tableKey}/{id}/restoreClick' => ['data/custom_value_edit_all/1/restoreClick'],
             'admin/data/{tableKey}/{id}/shareClick' => ['data/custom_value_edit_all/1/shareClick'],
             'admin/favicon' => ['favicon'],
+            'admin/file_server' => ['file_server'],
+            'admin/file_server/create' => ['file_server/create'],
             'admin/form/{tableKey}' => ['form/custom_value_edit_all'],
             'admin/form/{tableKey}/create' => ['form/custom_value_edit_all/create'],
             'admin/form/{tableKey}/preview' => ['form/custom_value_edit_all/preview'],

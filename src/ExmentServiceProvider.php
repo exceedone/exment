@@ -98,6 +98,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\ResetPasswordCommand::class,
         \Exceedone\Exment\Console\CheckConnectionCommand::class,
         \Exceedone\Exment\Console\TotalUpdateCommand::class,
+        \Exceedone\Exment\Console\FileServerPurgeCommand::class,
         \Exceedone\Exment\Console\FileColumnImportCommand::class,
         \Exceedone\Exment\Console\DocumentImportCommand::class,
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
@@ -520,6 +521,8 @@ class ExmentServiceProvider extends ServiceProvider
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
             $schedule->command('exment:safetywatch')->everyMinute()->withoutOverlapping(10);
+            // file server: empty the trash past the days of each workspace (ISS00293)
+            $schedule->command('exment:file-server-purge')->dailyAt('03:30')->withoutOverlapping(60);
 
             // Daily index repair (fix drift accumulated from missed/failed sync
             // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
