@@ -144,10 +144,12 @@ class StudioController extends AdminControllerBase
         }
 
         $screen = BlankFormBuilder::normalize($request->only(['table_view_name', 'table_name', 'menu_parent_id', 'fields', 'layout']));
-        $errors = BlankFormBuilder::validate($screen);
-
-        // the details: child tables entered as tables under the items (ScreenChildren)
+        // the details: child tables entered as tables under the items (ScreenChildren).
+        // A formula of the parent may sum an item of a detail: read it again with them.
         $children = ScreenChildren::normalize($request->input('children'), $screen['table_name']);
+        $screen['fields'] = BlankFormBuilder::resolveFormulas($screen['fields'], $children);
+
+        $errors = BlankFormBuilder::validate($screen);
         $errors += ScreenChildren::validate($children);
 
         // the read sheet whose rows are taken in, when asked

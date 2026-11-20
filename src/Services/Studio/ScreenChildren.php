@@ -31,7 +31,7 @@ class ScreenChildren
      * A detail is named after its parent: "<parent>_d1", "<parent>_d2"...
      *
      * @param mixed $children JSON string or array of {label, fields}
-     * @return array<int, array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions: array<int, array{target: int, operator: string, value: string}>}>
+     * @return array<int, array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int, target_table: ?int, formula: string, calc_formula: ?string, formula_error: ?string}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions: array<int, array{target: int, operator: string, value: string}>}>
      */
     public static function normalize($children, string $parentTableName): array
     {
@@ -55,7 +55,7 @@ class ScreenChildren
     /**
      * The mistakes of the details, by "children.N.<key of the screen>".
      *
-     * @param array<int, array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions: array<int, array{target: int, operator: string, value: string}>}> $children
+     * @param array<int, array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int, target_table: ?int, formula: string, calc_formula: ?string, formula_error: ?string}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions: array<int, array{target: int, operator: string, value: string}>}> $children
      * @return array<string, string>
      */
     public static function validate(array $children): array
@@ -77,7 +77,7 @@ class ScreenChildren
      * in the form of the parent. When one fails, the child tables made so far
      * are deleted and the error goes on (the caller deletes the parent).
      *
-     * @param array<int, array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions: array<int, array{target: int, operator: string, value: string}>}> $children
+     * @param array<int, array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int, target_table: ?int, formula: string, calc_formula: ?string, formula_error: ?string}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions: array<int, array{target: int, operator: string, value: string}>}> $children
      * @return array<int, CustomTable> the child tables made
      */
     public static function build(CustomTable $parent, array $children): array
