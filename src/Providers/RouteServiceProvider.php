@@ -169,6 +169,9 @@ class RouteServiceProvider extends ServiceProvider
             // screens offer, managed as one list.
             $this->setResouce($router, 'cell_style_preset', 'CellStylePresetSettingController');
 
+            // Studio: the screens of the site on one page (ISS00231 phase 1)
+            $router->get('studio', 'StudioController@index');
+
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
