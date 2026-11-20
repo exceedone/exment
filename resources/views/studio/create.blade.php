@@ -149,6 +149,9 @@
 .exm-builder-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 24px; }
 .exm-builder-notice { margin: 0 auto 0 0; font-size: .9rem; }
 .exm-builder-notice i { color: #3c8dbc; margin-right: 4px; }
+.exm-builder-warning { display: block; color: #a94442; margin-top: 4px; }
+.exm-builder-warning i { color: #e08e0b; }
+.exm-builder-required-mark { margin-left: 6px; font-size: .7rem; padding: 0 5px; border-radius: 8px; border: 1px solid #dd4b39; color: #dd4b39; }
 </style>
 
 @php
@@ -172,6 +175,9 @@
         'notice_existing_none' => exmtrans('studio.notice_existing_none'),
         'confirm_clear' => exmtrans('studio.confirm_clear'),
         'no_column' => exmtrans('studio.no_column'),
+        'missing_required' => exmtrans('studio.missing_required'),
+        'name_quote' => exmtrans('studio.name_quote'),
+        'name_separator' => exmtrans('studio.name_separator'),
     ];
 @endphp
 <script>
@@ -379,6 +385,9 @@
         table.columns.forEach(function (column) {
             var button = el('button', { type: 'button', className: 'btn btn-default exm-builder-part', draggable: 'true', title: column.column_view_name },
                 [el('i', { className: 'fa ' + column.icon, 'aria-hidden': 'true' }), document.createTextNode(' ' + column.column_view_name)]);
+            if (column.required) {
+                button.appendChild(el('span', { className: 'exm-builder-required-mark', text: t.required }));
+            }
             button.disabled = !!placed[column.id];
             button.addEventListener('click', function () { addColumn(column.id); });
             button.addEventListener('dragstart', function (e) {
@@ -403,6 +412,20 @@
         }
         notice.appendChild(el('i', { className: 'fa fa-info-circle', 'aria-hidden': 'true' }));
         notice.appendChild(document.createTextNode(text));
+
+        // the required columns left out are saved empty from this screen: say so
+        if (mode === 'existing' && currentTable()) {
+            var placed = {};
+            fields.forEach(function (f) { placed[f.column_id] = true; });
+            var missing = currentTable().columns.filter(function (c) { return c.required && !placed[c.id]; })
+                .map(function (c) { return t.name_quote.replace('%s', c.column_view_name); });
+            if (missing.length > 0) {
+                notice.appendChild(el('span', { className: 'exm-builder-warning' }, [
+                    el('i', { className: 'fa fa-exclamation-triangle', 'aria-hidden': 'true' }),
+                    document.createTextNode(t.missing_required.replace('%s', missing.join(t.name_separator))),
+                ]));
+            }
+        }
     }
 
     function showMode() {

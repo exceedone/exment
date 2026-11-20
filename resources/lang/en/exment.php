@@ -2443,6 +2443,9 @@ return [
         'confirm_clear' => 'The placed items will be removed. Continue?',
         'no_column' => 'This table has no column.',
         'created_form' => '"%s" was made as an input screen of the table "%s".',
+        'missing_required' => 'The required columns %s are not placed. Data entered with this screen is saved with them empty.',
+        'name_quote' => '"%s"',
+        'name_separator' => ', ',
         'error' => [
             'check_input' => 'Some input is wrong. Please fix the places in red.',
             'required' => 'Please enter it.',

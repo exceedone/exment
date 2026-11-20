@@ -25,7 +25,7 @@ class ExistingTableFormBuilder
     /**
      * The tables the login user may make a form of, with their columns.
      *
-     * @return array<int, array{id: int, table_view_name: string, columns: array<int, array{id: int, column_view_name: string, type: string, type_label: string, icon: string}>}>
+     * @return array<int, array{id: int, table_view_name: string, columns: array<int, array{id: int, column_view_name: string, type: string, type_label: string, icon: string, required: bool}>}>
      */
     public static function tables(): array
     {
@@ -38,7 +38,7 @@ class ExistingTableFormBuilder
     }
 
     /**
-     * @return array<int, array{id: int, table_view_name: string, columns: array<int, array{id: int, column_view_name: string, type: string, type_label: string, icon: string}>}>
+     * @return array<int, array{id: int, table_view_name: string, columns: array<int, array{id: int, column_view_name: string, type: string, type_label: string, icon: string, required: bool}>}>
      */
     protected static function readTables(): array
     {
@@ -65,6 +65,9 @@ class ExistingTableFormBuilder
                     'type' => $type,
                     'type_label' => exmtrans('custom_column.column_type_options.' . $type),
                     'icon' => array_get(BlankFormBuilder::FIELD_TYPES, $type . '.icon', 'fa-circle-o'),
+                    // a screen without a required column saves the data with it empty: the
+                    // required rule is checked only on the columns of the form
+                    'required' => boolval($column->getOption('required')),
                 ];
             }
             $result[] = [

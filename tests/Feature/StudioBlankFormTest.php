@@ -227,6 +227,32 @@ class StudioBlankFormTest extends FeatureTestBase
         $this->assertSame($forms, CustomForm::count());
     }
 
+    public function testTheRequiredColumnsOfATableAreMarked(): void
+    {
+        // a screen of a table saves the data with a left-out required column empty,
+        // so the builder marks the required columns and warns when one is not placed
+        $this->made[] = 'studio_test_required';
+        BlankFormBuilder::build(BlankFormBuilder::normalize([
+            'table_view_name' => 'required test',
+            'table_name' => 'studio_test_required',
+            'fields' => [
+                ['type' => ColumnType::TEXT, 'label' => 'title', 'required' => true],
+                ['type' => ColumnType::TEXT, 'label' => 'memo'],
+            ],
+        ]));
+
+        System::clearRequestSession();
+        $table = collect(ExistingTableFormBuilder::tables())->firstWhere('table_view_name', 'required test');
+        $this->assertNotNull($table);
+        $required = array_column($table['columns'], 'required', 'column_view_name');
+        $this->assertSame(['title' => true, 'memo' => false], $required);
+
+        $response = $this->get(admin_url('studio/create'));
+        // the warning text is in the JSON of the page script (\u escaped), so look for its key
+        $response->assertSee('"missing_required":', false);
+        $response->assertSee('"required":true', false);
+    }
+
     public function testTheBuilderTellsWhatSavingMakes(): void
     {
         $response = $this->get(admin_url('studio/create'));

@@ -2444,6 +2444,9 @@ return [
         'confirm_clear' => '並べた項目は消えます。よろしいですか？',
         'no_column' => 'このテーブルには列がありません。',
         'created_form' => '「%s」を、テーブル「%s」の入力の画面として作りました。',
+        'missing_required' => '必須の列%sが並んでいません。この画面から登録すると、空のまま保存されます。',
+        'name_quote' => '「%s」',
+        'name_separator' => '',
         'error' => [
             'check_input' => '入力に誤りがあります。赤い文字の所を直してください。',
             'required' => '入力してください。',
