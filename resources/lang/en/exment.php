@@ -2458,6 +2458,8 @@ return [
         'preview_making' => 'The preview is being made. Open the page again later.',
         'preview_office_text' => 'The server has no LibreOffice, so no layout preview can be made. Below is only the text in the file. To see it as it looks, use "Open in Office" or download it.',
         'preview_office_open' => '"Open in Office" opens it in the Office of the browser (a browser with WebGPU, as Chrome or Edge).',
+        'preview_tab_pdf' => 'PDF preview (LibreOffice)',
+        'preview_tab_embed' => 'read only',
         'preview_office_none' => 'The preview of Office files needs LibreOffice on the server (EXMENT_FILE_SERVER_SOFFICE_PATH). Download it to open it.',
         'permissions' => 'Permissions',
         'permissions_inherited' => 'It takes the permissions of its folder (or the workspace).',
