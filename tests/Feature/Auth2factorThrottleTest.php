@@ -52,6 +52,10 @@ class Auth2factorThrottleTest extends FeatureTestBase
         parent::tearDown();
     }
 
+    /**
+     * @param array<string, mixed> $more
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
     protected function tryCode(string $code, array $more = [])
     {
         System::clearRequestSession();

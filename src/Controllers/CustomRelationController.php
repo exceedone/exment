@@ -212,7 +212,7 @@ class CustomRelationController extends AdminControllerTableBase
      *
      * @return array<mixed>
      */
-    protected function resourceRowRule(): array
+    protected function resourceRowRule(): ?array
     {
         return [\Exceedone\Exment\Model\CustomRelation::class, \Exceedone\Exment\Enums\Permission::CUSTOM_TABLE];
     }
