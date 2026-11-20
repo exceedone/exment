@@ -23,6 +23,8 @@ class WorkflowNextUsersTest extends FeatureTestBase
     }
 
     /**
+     * @param mixed $status_to
+     * @param mixed $selected
      * @return array<string>
      */
     protected function filter(WorkflowAction $action, $status_to, $selected): array

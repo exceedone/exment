@@ -1639,13 +1639,6 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
-     * Delete a comment of this data. Only the user who wrote it, or a system administrator, can.
-     * The screen and the API both come here.
-     *
-     * @param string $suuid suuid of the comment
-     * @return true|ErrorCode true: deleted, DATA_NOT_FOUND: this data has no such comment, PERMISSION_DENY: written by another user
-     */
-    /**
      * A comment is changed and deleted only by the user who wrote it, or by an
      * administrator (as deleteComment()). The comment table is editable by
      * everyone who may edit the record, so the data API would let any of them
@@ -1663,6 +1656,13 @@ abstract class CustomValue extends ModelBase
         return !isMatchString($this->created_user_id, \Exment::getUserId());
     }
 
+    /**
+     * Delete a comment of this data. Only the user who wrote it, or a system administrator, can.
+     * The screen and the API both come here.
+     *
+     * @param string $suuid suuid of the comment
+     * @return true|ErrorCode true: deleted, DATA_NOT_FOUND: this data has no such comment, PERMISSION_DENY: written by another user
+     */
     public function deleteComment($suuid)
     {
         if (is_nullorempty($suuid)) {

@@ -34,7 +34,8 @@ class OAuthTokenGuardTest extends ApiTestBase
     {
         // another API key client, with its own key
         $other = (new ApiClientRepository())->createApiKey(1, 'oauth guard other', 'http://localhost');
-        $other = ApiClient::withoutGlobalScope('only_self')->find($other->id);
+        /** @var ApiClient $other */
+        $other = ApiClient::withoutGlobalScope('only_self')->findOrFail($other->id);
         $this->assertNotNull($other->client_api_key);
 
         [$client_id, $client_secret] = $this->getClientIdAndSecretAndKey();
