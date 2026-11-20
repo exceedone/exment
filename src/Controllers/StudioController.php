@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Studio\BlankFormBuilder;
 use Exceedone\Exment\Services\Studio\ExistingTableFormBuilder;
 use Exceedone\Exment\Services\Studio\RelationDiagram;
+use Exceedone\Exment\Services\Studio\ScreenChildren;
 use Exceedone\Exment\Services\Studio\ScreenLayout;
 use Exceedone\Exment\Services\Studio\ScreenList;
 use Exceedone\Exment\Services\Studio\SheetImporter;
@@ -117,6 +118,8 @@ class StudioController extends AdminControllerBase
             'sheet_url' => admin_urls('studio', 'sheet'),
             'sheet_max_rows' => SheetReader::MAX_ROWS,
             'layout_presets' => ScreenLayout::PRESETS,
+            'max_children' => ScreenChildren::MAX_CHILDREN,
+            'old_children' => $hasOld && is_string(array_get($old, 'children')) ? (json_decode($old['children'], true) ?: []) : [],
         ]));
         return $content;
     }
@@ -142,6 +145,10 @@ class StudioController extends AdminControllerBase
         $screen = BlankFormBuilder::normalize($request->only(['table_view_name', 'table_name', 'menu_parent_id', 'fields', 'layout']));
         $errors = BlankFormBuilder::validate($screen);
 
+        // the details: child tables entered as tables under the items (ScreenChildren)
+        $children = ScreenChildren::normalize($request->input('children'), $screen['table_name']);
+        $errors += ScreenChildren::validate($children);
+
         // the read sheet whose rows are taken in, when asked
         $sheet = null;
         if ($request->boolean('import_data')) {
@@ -156,6 +163,15 @@ class StudioController extends AdminControllerBase
         }
 
         $table = BlankFormBuilder::build($screen);
+        if (count($children) > 0) {
+            try {
+                ScreenChildren::build($table, $children);
+            } catch (\Throwable $e) {
+                // the details deleted what they made; the parent is not left half made either
+                $table->delete();
+                throw $e;
+            }
+        }
 
         if ($sheet !== null) {
             try {
