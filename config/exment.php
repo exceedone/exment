@@ -43,6 +43,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Tuning: server-wide buttons
+    |--------------------------------------------------------------------------
+    |
+    | Whether the tuning page (Admin Setting > Tuning) may change a setting of the
+    | whole server from its buttons (make or remove the config cache).
+    | Set false where several sites share the code (a multi-tenant server).
+    |
+    */
+    'tuning_server_actions' => env('EXMENT_TUNING_SERVER_ACTIONS', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Directory
     |--------------------------------------------------------------------------
     |

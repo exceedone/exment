@@ -48,6 +48,25 @@ class SystemRequireList
     ];
 
 
+    /**
+     * The tuning advice (ISS00414). Shown on the tuning page, on the install screen
+     * and by exment:checkrequire, apart from the requirements: it never blocks the install.
+     *
+     * @var array<class-string>
+     */
+    protected static $tuningClasses = [
+        Tuning\OpcacheTuning::class,
+        Tuning\PhpVersionTuning::class,
+        Tuning\AppDebugTuning::class,
+        Tuning\ConfigCacheTuning::class,
+        Tuning\ComposerAutoloadTuning::class,
+        Tuning\ExmentCacheTuning::class,
+        Tuning\CacheDriverTuning::class,
+        Tuning\QueueTuning::class,
+        Tuning\DebugLogTuning::class,
+        Tuning\SearchIndexTuning::class,
+    ];
+
     // @phpstan-ignore-next-line
     protected static function getRequireClasses(string $systemRequireCalledType)
     {
@@ -58,6 +77,8 @@ class SystemRequireList
                 return static::$requireClassesInstallWeb;
             case SystemRequireCalledType::WEB:
                 return static::$requireClassesWeb;
+            case SystemRequireCalledType::TUNING:
+                return static::$tuningClasses;
         }
 
         return static::$requireClassesCommand;

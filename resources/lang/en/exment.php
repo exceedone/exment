@@ -671,6 +671,78 @@ return [
         ],
     ],
 
+    'tuning' => [
+        'header' => 'Tuning',
+        'description' => 'Check the settings that make this site faster.',
+        'explain' => 'Settings that make Exment faster. For the items marked "Recommended", set what is written below. The items with a button can be changed from this page.',
+        'install_header' => 'To make it faster (optional)',
+        'install_explain' => 'This does not affect the install. After the install, see "Tuning" in Admin Setting.',
+        'command_header' => '== Tuning (optional) ==',
+        'result_ok' => 'Set',
+        'result_recommended' => 'Recommended',
+        'action_confirm' => 'Are you sure you want to run it?',
+        'action_done' => 'Done.',
+        'action_failed' => 'It could not be done. Please check the log.',
+        'server_actions_off' => 'On this server it cannot be changed from the screen (the server administrator sets it).',
+        'action' => [
+            'config_cache' => 'Make the config cache',
+            'config_clear' => 'Remove the config cache',
+            'logging_off' => 'Turn off the system performance log',
+        ],
+        'item' => [
+            'opcache' => [
+                'label' => 'OPcache',
+                'explain' => 'Keeps compiled PHP in memory. Exment has many files, so the memory and the number of files must be large enough.',
+                'warning' => 'OPcache is off, or its memory or number of files is too small. Set php.ini as below and restart PHP (PHP-FPM, the web server).',
+            ],
+            'php_version' => [
+                'label' => 'PHP version',
+                'explain' => 'Newer PHP runs faster. PHP 8.2 gets security fixes only until 2026-12-31. (Recommended: 8.3 or later)',
+                'warning' => 'Upgrading to PHP 8.3 or later is recommended.',
+            ],
+            'app_debug' => [
+                'label' => 'Debug mode (APP_DEBUG)',
+                'explain' => 'In debug mode every request collects details and errors are shown on the screen. Turn it off in production.',
+                'warning' => 'Debug mode is on. Set .env as below.',
+            ],
+            'config_cache' => [
+                'label' => 'Config cache (config:cache)',
+                'explain' => 'Puts the config files into one file, read once per request. When Exment writes .env (install, restore), it removes the cache itself. The route cache (route:cache) is not used: the pages of plugins would not open.',
+                'warning' => 'There is no config cache. Make it with the button below or with this command. After changing .env by hand, make it again.',
+            ],
+            'composer_autoload' => [
+                'label' => 'Optimized class loading (composer)',
+                'explain' => 'With a list of the classes made by composer, PHP finds the file of a class faster.',
+                'warning' => 'The class list is not optimized. Run this command.',
+            ],
+            'exment_cache' => [
+                'label' => 'Exment cache (EXMENT_USE_CACHE)',
+                'explain' => 'Keeps the definitions (tables, columns, settings) in the cache instead of reading them from the database on every request.',
+                'warning' => 'The Exment cache is off. Set .env as below.',
+            ],
+            'cache_driver' => [
+                'label' => 'Where the cache and sessions are kept',
+                'explain' => 'Redis and the like are faster than files, and needed when several web servers serve the site. (Result: cache / session)',
+                'warning' => 'The cache is kept in files or similar. If Redis is available, set .env as below (optional).',
+            ],
+            'queue' => [
+                'label' => 'Queue (mails and other background work)',
+                'explain' => 'With the sync queue, mails are sent inside the request and the screen waits until they are sent.',
+                'warning' => 'The queue is sync. Set .env as below and keep a queue worker running.',
+            ],
+            'debug_log' => [
+                'label' => 'Logs for investigation',
+                'explain' => 'The system performance log and the debug modes of .env (EXMENT_DEBUG_MODE_*) write a log on every request. Turn them off after the investigation.',
+                'warning' => 'A log for investigation is on.',
+            ],
+            'search_index' => [
+                'label' => 'Search index',
+                'explain' => 'In a table with more than 10,000 rows, a "search index" on the columns often used to filter and sort makes lists, searches and summaries faster.',
+                'warning' => 'There are large tables without any search index column. In the column settings, add "Search index" to the columns often used.',
+            ],
+        ],
+    ],
+
     'system_require' => [
         'explain' => 'Check the server settings required to run Exment.',
         'item_header' => '■:label ： :text ： :result',
@@ -3233,6 +3305,7 @@ return [
             'plugin' => 'Plugin',
             'custom_table' => 'Custom Table',
             'studio' => 'Studio',
+            'tuning' => 'Tuning',
             'role_group' => 'Role group',
             'menu' => 'Menu',
             'template' => 'Template',
