@@ -50,7 +50,7 @@ class AuthenticateWebApi extends \Encore\Admin\Middleware\Authenticate
     /**
      * Whether the user has to change the password before going on.
      */
-    protected static function isWaitingPasswordChange($request): bool
+    protected static function isWaitingPasswordChange(\Illuminate\Http\Request $request): bool
     {
         if (!$request->hasSession()) {
             return false;

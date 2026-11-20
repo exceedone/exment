@@ -38,11 +38,22 @@ trait HasResourceTableActions
      */
     protected function validateResourceRows($id): bool
     {
-        if (!method_exists($this, 'resourceRowRule')) {
+        $rule = $this->resourceRowRule();
+        if ($rule === null) {
             return true;
         }
-        $rule = $this->resourceRowRule();
         return $this->validateRowsOfTable($rule[0], $id, $rule[1], $rule[2] ?? null);
+    }
+
+    /**
+     * [model class, permission on the table, optional check of each row], or
+     * null when the controller checks its rows itself (CustomValueController).
+     *
+     * @return array<mixed>|null
+     */
+    protected function resourceRowRule(): ?array
+    {
+        return null;
     }
 
     /**

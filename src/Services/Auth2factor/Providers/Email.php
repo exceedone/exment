@@ -98,7 +98,7 @@ class Email
      * not a value of the request: a value the client sends could be changed
      * on every try, and then the limit would never be reached.
      */
-    protected function throttleKey(\Illuminate\Http\Request $request)
+    protected function throttleKey(\Illuminate\Http\Request $request): string
     {
         $loginuser = \Admin::user();
         return '2factor|' . ($loginuser ? $loginuser->id : $request->ip());

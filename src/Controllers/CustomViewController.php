@@ -503,7 +503,7 @@ class CustomViewController extends AdminControllerTableBase
      *
      * @return array<mixed>
      */
-    protected function resourceRowRule(): array
+    protected function resourceRowRule(): ?array
     {
         return [\Exceedone\Exment\Model\CustomView::class, \Exceedone\Exment\Enums\Permission::AVAILABLE_VIEW_CUSTOM_VALUE, function ($view) {
             return $view->hasEditPermission();
