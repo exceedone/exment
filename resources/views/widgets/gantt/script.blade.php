@@ -122,11 +122,25 @@
             var todayAt = x(D.today);
             var todayX = todayAt === null ? null : todayAt + 4;
             var todayEnd = todayX === null ? null : todayX + labelW(L.today);
+            // Month labels are 11px bold, a little wider than labelW()'s 10px
+            // estimate. A label that would run into the next one is left out:
+            // the first column often starts late in a month, and its label
+            // would be printed over the next month's ("2026/12026/11").
+            var monEnd = -Infinity;
             for (var i2 = 0; i2 < days; i2++) {
                 var d2 = addDays(min, i2);
                 var px2 = i2 * dw;
                 if (d2.getDate() === 1 || i2 === 0) {
-                    h += '<div class="gt-mon" style="left:' + (px2 + 3) + 'px">' + d2.getFullYear() + '/' + (d2.getMonth() + 1) + '</div>';
+                    var monText = d2.getFullYear() + '/' + (d2.getMonth() + 1);
+                    var monX = px2 + 3;
+                    var monW = Math.ceil(labelW(monText) * 1.2);
+                    var nextMon = new Date(d2.getFullYear(), d2.getMonth() + 1, 1);
+                    var nextX = Math.round((nextMon - d2) / 86400000) * dw + monX;
+                    var roomToNext = d2.getDate() === 1 || nextX >= days * dw || monX + monW + 4 <= nextX;
+                    if (roomToNext && monX >= monEnd + 4) {
+                        h += '<div class="gt-mon" style="left:' + monX + 'px">' + monText + '</div>';
+                        monEnd = monX + monW;
+                    }
                 }
                 if (d2.getDay() === 1) {
                     if (!everyOther || (wk % 2 === 0)) {
