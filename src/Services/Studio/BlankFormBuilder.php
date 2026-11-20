@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Studio;
 
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -88,7 +89,7 @@ class BlankFormBuilder
      * Read the posted screen into a clean shape. Names left empty are made here.
      *
      * @param array<string, mixed> $input table_view_name, table_name, menu_parent_id, fields (JSON string or array)
-     * @return array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int}>}
+     * @return array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}}
      */
     public static function normalize(array $input): array
     {
@@ -105,10 +106,12 @@ class BlankFormBuilder
 
         $result = [];
         $used = [];
+        $kept = [];
         foreach ($fields as $index => $field) {
             if (!is_array($field)) {
                 continue;
             }
+            $kept[] = $field;
             $label = trim(strval(array_get($field, 'label', '')));
             $columnName = trim(strval(array_get($field, 'column_name', '')));
             if ($columnName === '') {
@@ -132,13 +135,14 @@ class BlankFormBuilder
             'table_name' => $tableName,
             'menu_parent_id' => is_numeric($parent) ? intval($parent) : null,
             'fields' => $result,
+            'layout' => ScreenLayout::normalize(array_get($input, 'layout'), $kept),
         ];
     }
 
     /**
      * The mistakes of a screen, by field key ("table_view_name", "fields.2.label"...).
      *
-     * @param array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array<string, mixed>>} $screen
+     * @param array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array<string, mixed>>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}} $screen
      * @return array<string, string>
      */
     public static function validate(array $screen): array
@@ -195,13 +199,16 @@ class BlankFormBuilder
                 $errors["{$key}.choices"] = exmtrans('studio.error.no_choice');
             }
         }
+        if (isset($screen['layout'])) {
+            $errors += ScreenLayout::validate($screen['layout']);
+        }
         return $errors;
     }
 
     /**
      * Make the table, its columns, the default form and view, and the menu item.
      *
-     * @param array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array<string, mixed>>} $screen a screen validate() found no mistake in
+     * @param array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array<string, mixed>>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}} $screen a screen validate() found no mistake in
      */
     public static function build(array $screen): CustomTable
     {
@@ -277,7 +284,13 @@ class BlankFormBuilder
         // the default form lists the columns in the order they were placed, the view all of them
         System::clearRequestSession();
         $table = CustomTable::getEloquent($table->id);
-        CustomForm::getDefault($table);
+        $form = CustomForm::getDefault($table);
+        $block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
+        if (isset($block) && isset($screen['layout'])) {
+            ScreenLayout::apply($block, $table->custom_columns()->pluck('id')->map(function ($id) {
+                return intval($id);
+            })->all(), ScreenLayout::withoutEmptyRows($screen['layout']));
+        }
         static::addColumnsToView(CustomView::getDefault($table, false), $table);
 
         return $table;
