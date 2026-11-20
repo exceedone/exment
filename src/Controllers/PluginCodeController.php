@@ -454,10 +454,10 @@ class PluginCodeController extends AdminControllerBase
     /**
      * The code editor reads and writes the PHP of a plugin, which the server
      * runs: it needs the permission of all plugins (as uploading a plugin),
-     * not the setting permission of one plugin. Not in the demo mode.
+     * not the setting permission of one plugin.
      */
     protected static function canEditCode(): bool
     {
-        return \Exment::user()->hasPermission(Permission::PLUGIN_ALL) && !\Exceedone\Exment\Services\DemoMode::enabled();
+        return \Exment::user()->hasPermission(Permission::PLUGIN_ALL);
     }
 }
