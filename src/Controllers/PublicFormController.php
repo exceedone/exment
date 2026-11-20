@@ -196,9 +196,12 @@ class PublicFormController extends Controller
             ;
         }
         // get data by session or result
-        $data = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
+        $fromConfirm = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT);
+        $data = $fromConfirm ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
         try {
-            $form = $this->public_form->getForm($request, null, ['setRecaptcha' => false]);
+            // reCAPTCHA was checked on the confirm page; a request that did not
+            // come through it (no confirm page, or posted here directly) is checked here
+            $form = $this->public_form->getForm($request, null, ['setRecaptcha' => !$fromConfirm]);
             $public_form = $this->public_form;
             $custom_table = $this->custom_table;
 
