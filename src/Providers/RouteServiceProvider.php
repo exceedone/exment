@@ -171,6 +171,8 @@ class RouteServiceProvider extends ServiceProvider
 
             // Studio: the screens of the site on one page (ISS00231 phase 1)
             $router->get('studio', 'StudioController@index');
+            $router->get('studio/create', 'StudioController@create');
+            $router->post('studio', 'StudioController@store');
 
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
