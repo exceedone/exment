@@ -169,6 +169,12 @@ class RouteServiceProvider extends ServiceProvider
             // screens offer, managed as one list.
             $this->setResouce($router, 'cell_style_preset', 'CellStylePresetSettingController');
 
+            // Studio: the screens of the site on one page (ISS00231 phase 1)
+            $router->get('studio', 'StudioController@index');
+            $router->get('studio/create', 'StudioController@create');
+            $router->post('studio', 'StudioController@store');
+            $router->post('studio/sheet', 'StudioController@readSheet');
+
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
@@ -576,6 +582,10 @@ class RouteServiceProvider extends ServiceProvider
                     $router->get("data/{tableKey}/{id}/comments", 'ApiDataController@getComments')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     $router->post("data/{tableKey}/{id}/comments", 'ApiDataController@createComment')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                     $router->delete("data/{tableKey}/{id}/comments/{suuid}", 'ApiDataController@deleteComment')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+
+                    // studio: the screens as JSON for the phone app (ISS00231) ------
+                    $router->get("studio/screens", 'ApiStudioController@screens')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                    $router->get("studio/screens/{id}", 'ApiStudioController@screen')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
 
                     // viewdata ----------------------------------------------------
                     $router->get("viewdata/{tableKey}/{viewid}", 'ApiDataController@viewDataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));

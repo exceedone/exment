@@ -311,6 +311,10 @@ class Define
             'uri' => 'table',
             'icon' => 'fa-table',
         ],
+        'studio' => [
+            'uri' => 'studio',
+            'icon' => 'fa-th-large',
+        ],
         'role_group' => [
             'uri' => 'role_group',
             'icon' => 'fa-user-secret',

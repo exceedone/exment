@@ -1,0 +1,901 @@
+{{-- Studio, phase 2: make an input screen, for a new table or for a table that exists. Saved by StudioController@store. --}}
+<form method="post" action="{{ $action }}" class="exm-builder" id="exm-builder">
+    {{ csrf_field() }}
+    <input type="hidden" name="fields" id="exm-builder-fields" value="">
+    <input type="hidden" name="layout" id="exm-builder-layout" value="">
+
+    <div class="box card exm-builder-head">
+        <div class="box-body">
+            @if ($can_new && count($existing_tables) > 0)
+                <fieldset class="exm-builder-modes">
+                    <legend class="sr-only">{{ exmtrans('studio.mode') }}</legend>
+                    <label class="exm-builder-mode">
+                        <input type="radio" name="mode" value="new" @if ($mode === 'new') checked @endif>
+                        <span><strong>{{ exmtrans('studio.mode_new') }}</strong><small>{{ exmtrans('studio.mode_new_help') }}</small></span>
+                    </label>
+                    <label class="exm-builder-mode">
+                        <input type="radio" name="mode" value="existing" @if ($mode === 'existing') checked @endif>
+                        <span><strong>{{ exmtrans('studio.mode_existing') }}</strong><small>{{ exmtrans('studio.mode_existing_help') }}</small></span>
+                    </label>
+                </fieldset>
+            @else
+                <input type="hidden" name="mode" value="{{ $mode }}">
+            @endif
+
+            <div class="exm-builder-name">
+                <label for="exm-builder-view-name">{{ exmtrans('studio.screen_view_name') }} <span class="exm-builder-required">*</span></label>
+                <input type="text" id="exm-builder-view-name" name="table_view_name" class="form-control" maxlength="40" required
+                    value="{{ $screen['table_view_name'] ?? '' }}" placeholder="{{ exmtrans('studio.screen_view_name_placeholder') }}">
+                @if (isset($errors_by_key['table_view_name']))<p class="exm-builder-error">{{ $errors_by_key['table_view_name'] }}</p>@endif
+            </div>
+
+            <div class="exm-builder-table" data-mode-only="existing">
+                <label for="exm-builder-table-id">{{ exmtrans('studio.target_table') }} <span class="exm-builder-required">*</span></label>
+                <select id="exm-builder-table-id" name="table_id" class="form-control">
+                    <option value="">{{ exmtrans('studio.target_table_placeholder') }}</option>
+                    @foreach ($existing_tables as $table)
+                        <option value="{{ $table['id'] }}" @if (($screen['table_id'] ?? null) == $table['id']) selected @endif>{{ $table['table_view_name'] }}</option>
+                    @endforeach
+                </select>
+                @if (isset($errors_by_key['table_id']))<p class="exm-builder-error">{{ $errors_by_key['table_id'] }}</p>@endif
+            </div>
+
+            <div class="exm-builder-sheet" data-mode-only="new">
+                <div class="exm-builder-sheet-title"><i class="fa fa-file-excel-o" aria-hidden="true"></i> {{ exmtrans('studio.sheet_title') }}</div>
+                <div class="exm-builder-sheet-row">
+                    <input type="file" id="exm-builder-sheet-file" accept=".xlsx,.csv" aria-label="{{ exmtrans('studio.sheet_title') }}">
+                    <button type="button" class="btn btn-default btn-sm" id="exm-builder-sheet-read">{{ exmtrans('studio.sheet_button') }}</button>
+                </div>
+                <p class="exm-builder-hint">{{ sprintf(exmtrans('studio.sheet_help'), $sheet_max_rows) }}</p>
+                <p class="exm-builder-sheet-result" id="exm-builder-sheet-result" aria-live="polite"></p>
+                <label class="exm-builder-import" id="exm-builder-import" hidden>
+                    <input type="checkbox" name="import_data" value="1" id="exm-builder-import-data" @if (old('import_data')) checked @endif>
+                    <span id="exm-builder-import-label"></span>
+                </label>
+                <input type="hidden" name="sheet_token" id="exm-builder-sheet-token" value="{{ old('sheet_token') }}">
+                <input type="hidden" name="sheet_rows" id="exm-builder-sheet-rows" value="{{ old('sheet_rows') }}">
+                <input type="hidden" name="sheet_file_name" id="exm-builder-sheet-name" value="{{ old('sheet_file_name') }}">
+                @if (isset($errors_by_key['sheet']))<p class="exm-builder-error">{{ $errors_by_key['sheet'] }}</p>@endif
+            </div>
+
+            <details class="exm-builder-detail" data-mode-only="new" @if (isset($errors_by_key['table_name']) || isset($errors_by_key['menu_parent_id'])) open @endif>
+                <summary>{{ exmtrans('studio.detail_setting') }}</summary>
+                <div class="exm-builder-detail-body">
+                    <div>
+                        <label for="exm-builder-table-name">{{ exmtrans('studio.table_name') }}</label>
+                        <input type="text" id="exm-builder-table-name" name="table_name" class="form-control" maxlength="30"
+                            value="{{ $screen['table_name'] ?? '' }}" placeholder="{{ exmtrans('studio.auto_name') }}">
+                        <p class="exm-builder-hint">{{ exmtrans('studio.table_name_help') }}</p>
+                        @if (isset($errors_by_key['table_name']))<p class="exm-builder-error">{{ $errors_by_key['table_name'] }}</p>@endif
+                    </div>
+                    <div>
+                        <label for="exm-builder-menu">{{ exmtrans('studio.menu_parent') }}</label>
+                        <select id="exm-builder-menu" name="menu_parent_id" class="form-control">
+                            <option value="">{{ exmtrans('studio.menu_none') }}</option>
+                            @foreach ($menu_parents as $menu)
+                                <option value="{{ $menu['id'] }}" @if (isset($screen['menu_parent_id']) && $screen['menu_parent_id'] == $menu['id']) selected @endif>{{ $menu['title'] }}</option>
+                            @endforeach
+                        </select>
+                        @if (isset($errors_by_key['menu_parent_id']))<p class="exm-builder-error">{{ $errors_by_key['menu_parent_id'] }}</p>@endif
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div class="exm-builder-main">
+        <div class="box card exm-builder-palette">
+            <div class="box-header with-border">{{ exmtrans('studio.palette') }}</div>
+            <div class="box-body">
+                <p class="exm-builder-hint" data-mode-only="new">{{ exmtrans('studio.palette_help') }}</p>
+                <p class="exm-builder-hint" data-mode-only="existing">{{ exmtrans('studio.palette_existing_help') }}</p>
+                <div class="exm-builder-parts" data-mode-only="new">
+                    @foreach ($palette as $part)
+                        <button type="button" class="btn btn-default exm-builder-part" draggable="true" data-type="{{ $part['type'] }}">
+                            <i class="fa {{ $part['icon'] }}" aria-hidden="true"></i> {{ $part['label'] }}
+                        </button>
+                    @endforeach
+                </div>
+                <div class="exm-builder-parts" id="exm-builder-columns" data-mode-only="existing"></div>
+            </div>
+        </div>
+
+        <div class="box card exm-builder-canvas-box">
+            <div class="box-header with-border">{{ exmtrans('studio.canvas') }}</div>
+            <div class="box-body">
+                @if (isset($errors_by_key['fields']))<p class="exm-builder-error">{{ $errors_by_key['fields'] }}</p>@endif
+                @if (isset($errors_by_key['layout']))<p class="exm-builder-error">{{ $errors_by_key['layout'] }}</p>@endif
+                <p class="exm-builder-hint">{{ exmtrans('studio.layout_help') }}</p>
+                <div class="exm-builder-canvas" id="exm-builder-canvas" aria-label="{{ exmtrans('studio.canvas') }}"></div>
+                <button type="button" class="btn btn-default btn-sm exm-builder-add-row" id="exm-builder-add-row"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.add_row') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="exm-builder-actions">
+        <p class="exm-builder-notice" id="exm-builder-notice" aria-live="polite"></p>
+        <a href="{{ $back_url }}" class="btn btn-default">{{ trans('admin.back') }}</a>
+        <button type="submit" class="btn btn-primary">{{ exmtrans('studio.create_submit') }}</button>
+    </div>
+</form>
+
+<style>
+.exm-builder [hidden] { display: none !important; }
+.exm-builder-head { margin-bottom: 12px; }
+.exm-builder-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; border: 0; padding: 0; margin: 0 0 12px; }
+.exm-builder-mode { display: flex; gap: 10px; align-items: flex-start; border: 1px solid #d2d6de; border-radius: 4px; padding: 10px 12px; cursor: pointer; font-weight: normal; margin: 0; }
+.exm-builder-mode:has(input:checked) { border-color: #3c8dbc; box-shadow: 0 0 0 1px #3c8dbc; }
+.exm-builder-mode input { margin-top: 4px; }
+.exm-builder-mode span { display: flex; flex-direction: column; gap: 2px; }
+.exm-builder-mode small { opacity: .75; }
+.exm-builder-name label, .exm-builder-detail label, .exm-builder-table label { font-weight: 600; }
+.exm-builder-name input { font-size: 1.1rem; }
+.exm-builder-table { margin-top: 10px; }
+.exm-builder-required { color: #dd4b39; }
+.exm-builder-detail { margin-top: 10px; }
+.exm-builder-sheet { margin-top: 12px; padding: 10px 12px; border: 1px dashed #d2d6de; border-radius: 4px; }
+.exm-builder-sheet-title { font-weight: 600; margin-bottom: 6px; }
+.exm-builder-sheet-title i { color: #1d6f42; }
+.exm-builder-sheet-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.exm-builder-sheet-row input[type=file] { max-width: 100%; }
+.exm-builder-sheet-result { margin: 6px 0 0; font-size: .9rem; }
+.exm-builder-sheet-result.is-error { color: #dd4b39; }
+.exm-builder-import { display: block; margin: 6px 0 0; font-weight: normal; }
+.exm-builder-source { font-size: .75rem; opacity: .65; white-space: nowrap; }
+.exm-builder-detail summary { cursor: pointer; font-size: .9rem; opacity: .8; }
+.exm-builder-detail-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 8px; }
+.exm-builder-hint { font-size: .8rem; opacity: .7; margin: 4px 0 0; }
+.exm-builder-error { color: #dd4b39; font-size: .85rem; margin: 4px 0 0; }
+.exm-builder-main { display: grid; grid-template-columns: 240px 1fr; gap: 12px; align-items: start; }
+@media (max-width: 767px) { .exm-builder-main { grid-template-columns: 1fr; } }
+.exm-builder-palette, .exm-builder-canvas-box { margin: 0; }
+.exm-builder-palette { position: sticky; top: 60px; }
+.exm-builder-parts { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 8px; }
+@media (max-width: 767px) { .exm-builder-parts { grid-template-columns: repeat(2, 1fr); } .exm-builder-palette { position: static; } }
+.exm-builder-part { text-align: left; cursor: grab; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exm-builder-part i { width: 18px; text-align: center; opacity: .75; }
+.exm-builder-part:disabled { cursor: default; opacity: .45; }
+.exm-builder-canvas { list-style: none; padding: 0; margin: 0; }
+.exm-builder-field { border: 1px solid #d2d6de; border-radius: 4px; padding: 10px 12px; margin-bottom: 8px; background: #fff; }
+.exm-builder-field.is-dragging { opacity: .4; }
+.exm-builder-field.is-over { border-top: 3px solid #3c8dbc; }
+.exm-builder-field-head { display: flex; align-items: center; gap: 8px; }
+.exm-builder-grip { cursor: grab; opacity: .5; }
+.exm-builder-type { font-size: .75rem; opacity: .7; white-space: nowrap; }
+.exm-builder-label { flex: 1; min-width: 0; }
+.exm-builder-label-text { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.exm-builder-tools { display: flex; gap: 2px; }
+.exm-builder-tools button { border: 0; background: none; padding: 2px 6px; opacity: .6; }
+.exm-builder-tools button:hover { opacity: 1; }
+.exm-builder-tools button:disabled { opacity: .2; }
+.exm-builder-field-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 12px; margin-top: 8px; }
+@media (max-width: 767px) { .exm-builder-field-body { grid-template-columns: 1fr; } }
+.exm-builder-field-body label { font-size: .8rem; font-weight: normal; opacity: .8; margin-bottom: 2px; }
+.exm-builder-preview { pointer-events: none; }
+.exm-builder-preview .form-control { background: #f9fafb; }
+.exm-builder-choices { grid-column: 1 / -1; }
+.exm-builder-condition { grid-column: 1 / -1; }
+.exm-builder-condition-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.exm-builder-condition-row .form-control { width: auto; min-width: 0; flex: 1 1 120px; }
+.exm-builder-row { border: 1px solid #e3e6ea; border-radius: 4px; padding: 8px; margin-bottom: 10px; background: #fafbfc; }
+.exm-builder-row-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; font-size: .8rem; }
+.exm-builder-row-head .exm-builder-row-name { font-weight: 600; opacity: .75; }
+.exm-builder-row-head select { width: auto; height: 26px; padding: 0 6px; font-size: .8rem; }
+.exm-builder-row-head .exm-builder-tools { margin-left: auto; }
+.exm-builder-cells { display: grid; gap: 8px; }
+@media (max-width: 767px) { .exm-builder-cells { grid-template-columns: 1fr !important; } }
+.exm-builder-cell { min-width: 0; border: 1px dashed #c9ced6; border-radius: 4px; padding: 6px; background: #fff; cursor: pointer; }
+.exm-builder-cell.is-active { border: 2px solid #3c8dbc; padding: 5px; }
+.exm-builder-cell.is-over { background: #eef6fb; }
+.exm-builder-cell ol { list-style: none; padding: 0; margin: 0; }
+.exm-builder-cell .exm-builder-field { cursor: default; }
+.exm-builder-cell-drop { text-align: center; font-size: .8rem; opacity: .6; padding: 8px 4px; }
+.exm-builder-field-head { flex-wrap: wrap; }
+.exm-builder-add-row { margin-top: 2px; }
+.exm-builder-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 24px; }
+.exm-builder-notice { margin: 0 auto 0 0; font-size: .9rem; }
+.exm-builder-notice i { color: #3c8dbc; margin-right: 4px; }
+.exm-builder-warning { display: block; color: #a94442; margin-top: 4px; }
+.exm-builder-warning i { color: #e08e0b; }
+.exm-builder-required-mark { margin-left: 6px; font-size: .7rem; padding: 0 5px; border-radius: 8px; border: 1px solid #dd4b39; color: #dd4b39; }
+</style>
+
+@php
+    $texts = [
+        'label' => exmtrans('studio.field_label'),
+        'column_name' => exmtrans('studio.column_name'),
+        'required' => exmtrans('studio.required'),
+        'choices' => exmtrans('studio.choices'),
+        'choices_help' => exmtrans('studio.choices_help'),
+        'auto' => exmtrans('studio.auto_name'),
+        'up' => exmtrans('studio.move_up'),
+        'down' => exmtrans('studio.move_down'),
+        'remove' => exmtrans('studio.remove'),
+        'preview' => exmtrans('studio.preview'),
+        'yes' => exmtrans('common.yes'),
+        'no' => exmtrans('common.no'),
+        'too_many' => sprintf(exmtrans('studio.error.too_many_fields'), $max_fields),
+        'notice_new' => exmtrans('studio.notice_new'),
+        'notice_new_unnamed' => exmtrans('studio.notice_new_unnamed'),
+        'notice_existing' => exmtrans('studio.notice_existing'),
+        'notice_existing_none' => exmtrans('studio.notice_existing_none'),
+        'confirm_clear' => exmtrans('studio.confirm_clear'),
+        'no_column' => exmtrans('studio.no_column'),
+        'missing_required' => exmtrans('studio.missing_required'),
+        'sheet_loaded' => exmtrans('studio.sheet_loaded'),
+        'sheet_truncated' => exmtrans('studio.sheet_truncated'),
+        'sheet_reading' => exmtrans('studio.sheet_reading'),
+        'sheet_choose' => exmtrans('studio.error.sheet_file'),
+        'sheet_failed' => exmtrans('studio.error.sheet_read'),
+        'sheet_replace' => exmtrans('studio.sheet_replace'),
+        'import_data' => exmtrans('studio.import_data'),
+        'notice_import' => exmtrans('studio.notice_import'),
+        'source' => exmtrans('studio.sheet_source'),
+        'name_quote' => exmtrans('studio.name_quote'),
+        'row' => exmtrans('studio.row'),
+        'condition' => exmtrans('studio.condition'),
+        'condition_always' => exmtrans('studio.condition_always'),
+        'condition_value' => exmtrans('studio.condition_value'),
+        'condition_required' => exmtrans('studio.error.condition_required'),
+        'operators' => [
+            'eq' => exmtrans('studio.condition_operators.eq'),
+            'ne' => exmtrans('studio.condition_operators.ne'),
+            'empty' => exmtrans('studio.condition_operators.empty'),
+            'not_empty' => exmtrans('studio.condition_operators.not_empty'),
+        ],
+        'row_layout' => exmtrans('studio.row_layout'),
+        'row_up' => exmtrans('studio.row_up'),
+        'row_down' => exmtrans('studio.row_down'),
+        'row_remove' => exmtrans('studio.row_remove'),
+        'cell_drop' => exmtrans('studio.cell_drop'),
+        'presets' => [
+            exmtrans('studio.layout_presets.1'),
+            exmtrans('studio.layout_presets.2'),
+            exmtrans('studio.layout_presets.2_left'),
+            exmtrans('studio.layout_presets.2_right'),
+            exmtrans('studio.layout_presets.3'),
+            exmtrans('studio.layout_presets.4'),
+        ],
+        'name_separator' => exmtrans('studio.name_separator'),
+    ];
+@endphp
+<script>
+(function () {
+    var palette = @json($palette);
+    var tables = @json($existing_tables);
+    var initial = @json($screen ? $screen['fields'] : []);
+    var errors = @json((object) $errors_by_key);
+    var maxFields = {{ intval($max_fields) }};
+    var t = @json($texts);
+    var sheetUrl = @json($sheet_url);
+    var presets = @json($layout_presets);
+    var initialLayout = @json($screen ? ($screen['layout'] ?? null) : null);
+    var initialConditions = @json($screen ? (object) ($screen['conditions'] ?? []) : (object) []);
+
+    var form = document.getElementById('exm-builder');
+    var canvas = document.getElementById('exm-builder-canvas');
+    var columnsBox = document.getElementById('exm-builder-columns');
+    var tableSelect = document.getElementById('exm-builder-table-id');
+    var nameInput = document.getElementById('exm-builder-view-name');
+    var notice = document.getElementById('exm-builder-notice');
+
+    var types = {};
+    palette.forEach(function (p) { types[p.type] = p; });
+
+    function currentMode() {
+        var checked = form.querySelector('input[name="mode"]:checked') || form.querySelector('input[name="mode"]');
+        return checked ? checked.value : 'new';
+    }
+    function currentTable() {
+        var id = parseInt(tableSelect.value, 10);
+        for (var i = 0; i < tables.length; i++) { if (tables[i].id === id) { return tables[i]; } }
+        return null;
+    }
+    function columnOf(id) {
+        var table = currentTable();
+        if (!table) { return null; }
+        for (var i = 0; i < table.columns.length; i++) { if (table.columns[i].id === id) { return table.columns[i]; } }
+        return null;
+    }
+
+    var mode = currentMode();
+    // the rows of the screen: the widths of the columns of each (ScreenLayout::PRESETS)
+    var rows = initialLayout && initialLayout.rows && initialLayout.rows.length ? initialLayout.rows.map(function (w) { return w.slice(); }) : [[4]];
+    // an item: {type, label, column_name, required, choices} for a new table, {column_id} for a table that exists,
+    // with the row and the column it is in. The list is kept in reading order: row by row,
+    // in a row column by column, top to bottom.
+    var fields = (initial || []).map(function (f, i) {
+        var item = mode === 'existing'
+            ? { column_id: f.column_id }
+            : { type: f.type, label: f.label, column_name: f.column_name, required: !!f.required, choices: f.choices || '', source: f.source === undefined ? null : f.source };
+        var place = initialLayout && initialLayout.places ? initialLayout.places[i] : null;
+        item.row = place && rows[place.row] ? place.row : 0;
+        item.col = place && rows[item.row][place.column] !== undefined ? place.column : 0;
+        item.error = i;
+        return item;
+    });
+    // a condition points at its item itself: moving or removing items does not break it
+    Object.keys(initialConditions).forEach(function (index) {
+        var c = initialConditions[index];
+        if (fields[index] && fields[c.target]) {
+            fields[index].cond = { target: fields[c.target], operator: c.operator, value: c.value };
+        }
+    });
+    var active = { row: 0, col: 0 }; // the cell the parts are added to
+    var dragFrom = null; // index of an item being moved, or null for a new part
+
+    function sortFields() {
+        fields = fields.map(function (f, i) { return { f: f, i: i }; })
+            .sort(function (a, b) { return (a.f.row - b.f.row) || (a.f.col - b.f.col) || (a.i - b.i); })
+            .map(function (x) { return x.f; });
+    }
+    function sameCell(a, b) { return a.row === b.row && a.col === b.col; }
+    function presetIndex(widths) {
+        for (var i = 0; i < presets.length; i++) { if (presets[i].join() === widths.join()) { return i; } }
+        return 0;
+    }
+
+    function el(tag, attrs, children) {
+        var node = document.createElement(tag);
+        Object.keys(attrs || {}).forEach(function (k) {
+            if (k === 'text') { node.textContent = attrs[k]; }
+            else if (k === 'className') { node.className = attrs[k]; }
+            else { node.setAttribute(k, attrs[k]); }
+        });
+        (children || []).forEach(function (c) { if (c) { node.appendChild(c); } });
+        return node;
+    }
+
+    function errorOf(field, name) {
+        if (field.error === null || field.error === undefined) { return null; }
+        var message = errors['fields.' + field.error + '.' + name];
+        return message ? el('p', { className: 'exm-builder-error', text: message }) : null;
+    }
+
+    function preview(type, choices) {
+        var box = el('div', { className: 'exm-builder-preview', 'aria-hidden': 'true' });
+        var input;
+        switch (type) {
+            case 'textarea': case 'editor': input = el('textarea', { className: 'form-control', rows: '2', tabindex: '-1' }); break;
+            case 'select':
+                input = el('select', { className: 'form-control', tabindex: '-1' });
+                (choices || '').split('\n').filter(function (c) { return c.trim() !== ''; }).forEach(function (c) {
+                    input.appendChild(el('option', { text: c.trim() }));
+                });
+                break;
+            case 'yesno': case 'boolean':
+                input = el('div', {}, [el('label', { text: '◉ ' + t.yes + '　' }), el('label', { text: '○ ' + t.no })]);
+                break;
+            case 'user': case 'organization': case 'select_table': case 'select_valtext':
+                input = el('select', { className: 'form-control', tabindex: '-1' }); break;
+            case 'file': case 'image': input = el('input', { type: 'file', className: 'form-control', tabindex: '-1' }); break;
+            default:
+                var kinds = { integer: 'number', decimal: 'number', currency: 'number', date: 'date', datetime: 'datetime-local', time: 'time', email: 'email', url: 'url' };
+                input = el('input', { type: kinds[type] || 'text', className: 'form-control', tabindex: '-1' });
+        }
+        box.appendChild(input);
+        return box;
+    }
+
+    function tools(index) {
+        var up = el('button', { type: 'button', title: t.up, 'aria-label': t.up }, [el('i', { className: 'fa fa-arrow-up' })]);
+        var down = el('button', { type: 'button', title: t.down, 'aria-label': t.down }, [el('i', { className: 'fa fa-arrow-down' })]);
+        var remove = el('button', { type: 'button', title: t.remove, 'aria-label': t.remove }, [el('i', { className: 'fa fa-trash' })]);
+        up.disabled = index === 0 || !sameCell(fields[index - 1], fields[index]);
+        down.disabled = index === fields.length - 1 || !sameCell(fields[index + 1], fields[index]);
+        up.addEventListener('click', function () { move(index, index - 1); });
+        down.addEventListener('click', function () { move(index, index + 2); });
+        remove.addEventListener('click', function () { fields.splice(index, 1); render(); });
+        return el('span', { className: 'exm-builder-tools' }, [up, down, remove]);
+    }
+
+    function labelOf(field) {
+        if (mode === 'existing') { var c = columnOf(field.column_id); return c ? c.column_view_name : '#' + field.column_id; }
+        return field.label || (types[field.type] || {}).label || '';
+    }
+    function choicesOf(field) {
+        if (mode !== 'existing' && field.type === 'select') { return field.choices.split('\n').map(function (c) { return c.trim(); }).filter(function (c) { return c !== ''; }); }
+        return [];
+    }
+    function isYesNo(field) {
+        return mode === 'existing' ? (columnOf(field.column_id) || {}).type === 'yesno' : field.type === 'yesno';
+    }
+
+    // "show this item only when <item> <is / is not / is empty / is not empty> <value>"
+    function conditionBox(field) {
+        if (field.cond && fields.indexOf(field.cond.target) === -1) { field.cond = null; }
+        var cond = field.cond;
+        var target = el('select', { className: 'form-control input-sm', 'aria-label': t.condition });
+        target.appendChild(el('option', { value: '', text: t.condition_always }));
+        fields.forEach(function (other, i) {
+            if (other === field) { return; }
+            var option = el('option', { value: String(i), text: labelOf(other) });
+            if (cond && cond.target === other) { option.selected = true; }
+            target.appendChild(option);
+        });
+        var box = el('div', { className: 'exm-builder-condition' }, [el('label', { text: t.condition }), el('div', { className: 'exm-builder-condition-row' }, [target])]);
+        if (cond) {
+            var operator = el('select', { className: 'form-control input-sm' });
+            Object.keys(t.operators).forEach(function (op) {
+                var option = el('option', { value: op, text: t.operators[op] });
+                if (cond.operator === op) { option.selected = true; }
+                operator.appendChild(option);
+            });
+            operator.addEventListener('change', function () { cond.operator = operator.value; render(); });
+            var row = box.lastChild;
+            if (cond.operator === 'eq' || cond.operator === 'ne') {
+                var value;
+                if (isYesNo(cond.target)) {
+                    value = el('select', { className: 'form-control input-sm' }, [
+                        el('option', { value: '1', text: t.yes }), el('option', { value: '0', text: t.no }),
+                    ]);
+                    if (cond.value !== '0') { cond.value = '1'; }
+                    value.value = cond.value;
+                } else {
+                    var listId = 'exm-builder-choices-' + fields.indexOf(field);
+                    value = el('input', { type: 'text', className: 'form-control input-sm', placeholder: t.condition_value, list: listId });
+                    value.value = cond.value || '';
+                    var list = el('datalist', { id: listId });
+                    choicesOf(cond.target).forEach(function (c) { list.appendChild(el('option', { value: c })); });
+                    box.appendChild(list);
+                }
+                value.addEventListener('input', function () { cond.value = value.value; });
+                value.addEventListener('change', function () { cond.value = value.value; });
+                row.appendChild(value);
+            }
+            row.appendChild(operator);
+        }
+        target.addEventListener('change', function () {
+            var other = target.value === '' ? null : fields[parseInt(target.value, 10)];
+            field.cond = other ? { target: other, operator: 'eq', value: '' } : null;
+            render();
+        });
+        var error = errorOf(field, 'visible_if');
+        if (error) { box.appendChild(error); }
+        return box;
+    }
+
+    function newItem(field, index) {
+        var part = types[field.type] || { label: field.type, icon: 'fa-question', choices: false };
+        var li = el('li', { className: 'exm-builder-field', draggable: 'true' });
+
+        var label = el('input', { type: 'text', className: 'form-control exm-builder-label', maxlength: '40', placeholder: t.label, 'aria-label': t.label });
+        label.value = field.label;
+        label.addEventListener('input', function () { field.label = label.value; });
+
+        li.appendChild(el('div', { className: 'exm-builder-field-head' }, [
+            el('i', { className: 'fa fa-bars exm-builder-grip', 'aria-hidden': 'true' }),
+            el('span', { className: 'exm-builder-type' }, [el('i', { className: 'fa ' + part.icon, 'aria-hidden': 'true' }), document.createTextNode(' ' + part.label)]),
+            label,
+            field.source !== null && field.source !== undefined ? el('span', { className: 'exm-builder-source', text: t.source.replace('%s', columnLetter(field.source)) }) : null,
+            tools(index),
+        ]));
+        var labelError = errorOf(field, 'label') || errorOf(field, 'type');
+        if (labelError) { li.appendChild(labelError); }
+
+        var name = el('input', { type: 'text', className: 'form-control input-sm', maxlength: '30', placeholder: t.auto });
+        name.value = field.column_name;
+        name.addEventListener('input', function () { field.column_name = name.value; });
+        var required = el('input', { type: 'checkbox' });
+        required.checked = field.required;
+        required.addEventListener('change', function () { field.required = required.checked; });
+
+        var previewBox = el('div', {}, [el('label', { text: t.preview }), preview(field.type, field.choices)]);
+        var body = el('div', { className: 'exm-builder-field-body' }, [
+            previewBox,
+            el('div', {}, [
+                el('label', { text: t.column_name }), name, errorOf(field, 'column_name'),
+                el('label', {}, [required, document.createTextNode(' ' + t.required)]),
+            ]),
+        ]);
+        if (part.choices) {
+            var choices = el('textarea', { className: 'form-control', rows: '3', placeholder: t.choices_help });
+            choices.value = field.choices;
+            // only this item's preview is drawn again: drawing the whole list would
+            // swallow the click that took the focus away from here
+            choices.addEventListener('input', function () {
+                field.choices = choices.value;
+                previewBox.replaceChild(preview(field.type, field.choices), previewBox.lastChild);
+            });
+            body.appendChild(el('div', { className: 'exm-builder-choices' }, [el('label', { text: t.choices }), choices, errorOf(field, 'choices')]));
+        }
+        body.appendChild(conditionBox(field));
+        li.appendChild(body);
+        return li;
+    }
+
+    function existingItem(field, index) {
+        var column = columnOf(field.column_id) || { column_view_name: '#' + field.column_id, type: '', type_label: '', icon: 'fa-question' };
+        var li = el('li', { className: 'exm-builder-field', draggable: 'true' });
+        li.appendChild(el('div', { className: 'exm-builder-field-head' }, [
+            el('i', { className: 'fa fa-bars exm-builder-grip', 'aria-hidden': 'true' }),
+            el('span', { className: 'exm-builder-type' }, [el('i', { className: 'fa ' + column.icon, 'aria-hidden': 'true' }), document.createTextNode(' ' + column.type_label)]),
+            el('span', { className: 'exm-builder-label-text', text: column.column_view_name }),
+            tools(index),
+        ]));
+        var error = errorOf(field, 'column_id');
+        if (error) { li.appendChild(error); }
+        li.appendChild(el('div', { className: 'exm-builder-field-body' }, [
+            el('div', {}, [el('label', { text: t.preview }), preview(column.type, '')]),
+            conditionBox(field),
+        ]));
+        return li;
+    }
+
+    function rowHead(r) {
+        var select = el('select', { className: 'form-control', 'aria-label': t.row_layout });
+        presets.forEach(function (widths, i) {
+            var option = el('option', { value: String(i), text: t.presets[i] });
+            select.appendChild(option);
+        });
+        select.value = String(presetIndex(rows[r]));
+        select.addEventListener('change', function () { setLayout(r, presets[parseInt(select.value, 10)]); });
+
+        var up = el('button', { type: 'button', title: t.row_up, 'aria-label': t.row_up }, [el('i', { className: 'fa fa-arrow-up' })]);
+        var down = el('button', { type: 'button', title: t.row_down, 'aria-label': t.row_down }, [el('i', { className: 'fa fa-arrow-down' })]);
+        var remove = el('button', { type: 'button', title: t.row_remove, 'aria-label': t.row_remove }, [el('i', { className: 'fa fa-trash' })]);
+        up.disabled = r === 0;
+        down.disabled = r === rows.length - 1;
+        remove.disabled = rows.length === 1;
+        up.addEventListener('click', function () { swapRows(r, r - 1); });
+        down.addEventListener('click', function () { swapRows(r, r + 1); });
+        remove.addEventListener('click', function () { removeRow(r); });
+        return el('div', { className: 'exm-builder-row-head' }, [
+            el('span', { className: 'exm-builder-row-name', text: t.row.replace('%s', r + 1) }),
+            select,
+            el('span', { className: 'exm-builder-tools' }, [up, down, remove]),
+        ]);
+    }
+
+    function render() {
+        canvas.innerHTML = '';
+        var lists = [];
+        rows.forEach(function (widths, r) {
+            var cells = el('div', { className: 'exm-builder-cells' });
+            cells.style.gridTemplateColumns = widths.map(function (w) { return 'minmax(0, ' + w + 'fr)'; }).join(' ');
+            lists[r] = [];
+            widths.forEach(function (w, c) {
+                var list = el('ol', {});
+                var cell = el('div', { className: 'exm-builder-cell' + (active.row === r && active.col === c ? ' is-active' : '') }, [
+                    list, el('div', { className: 'exm-builder-cell-drop', text: t.cell_drop }),
+                ]);
+                cell.addEventListener('click', function (e) {
+                    if (e.target.closest('input, textarea, select, button')) { return; }
+                    active = { row: r, col: c };
+                    canvas.querySelectorAll('.exm-builder-cell.is-active').forEach(function (n) { n.classList.remove('is-active'); });
+                    cell.classList.add('is-active');
+                });
+                cell.addEventListener('dragover', function (e) { e.preventDefault(); cell.classList.add('is-over'); });
+                cell.addEventListener('dragleave', function () { cell.classList.remove('is-over'); });
+                cell.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    cell.classList.remove('is-over');
+                    dropInto(e, r, c);
+                });
+                lists[r][c] = list;
+                cells.appendChild(cell);
+            });
+            canvas.appendChild(el('div', { className: 'exm-builder-row' }, [rowHead(r), cells]));
+        });
+
+        fields.forEach(function (field, index) {
+            var li = mode === 'existing' ? existingItem(field, index) : newItem(field, index);
+            li.addEventListener('dragstart', function (e) {
+                if (e.target !== li) { return; }
+                dragFrom = index;
+                li.classList.add('is-dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', 'item');
+            });
+            li.addEventListener('dragend', function () { li.classList.remove('is-dragging'); });
+            li.addEventListener('dragover', function (e) { e.preventDefault(); li.classList.add('is-over'); });
+            li.addEventListener('dragleave', function () { li.classList.remove('is-over'); });
+            li.addEventListener('drop', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                li.classList.remove('is-over');
+                dropAt(e, index);
+            });
+            lists[field.row][field.col].appendChild(li);
+        });
+        renderColumns();
+        renderNotice();
+    }
+
+    // the columns of the chosen table, as parts; a column already placed is greyed out
+    function renderColumns() {
+        columnsBox.innerHTML = '';
+        if (mode !== 'existing') { return; }
+        var table = currentTable();
+        if (!table) { return; }
+        if (table.columns.length === 0) {
+            columnsBox.appendChild(el('p', { className: 'exm-builder-hint', text: t.no_column }));
+            return;
+        }
+        var placed = {};
+        fields.forEach(function (f) { placed[f.column_id] = true; });
+        table.columns.forEach(function (column) {
+            var button = el('button', { type: 'button', className: 'btn btn-default exm-builder-part', draggable: 'true', title: column.column_view_name },
+                [el('i', { className: 'fa ' + column.icon, 'aria-hidden': 'true' }), document.createTextNode(' ' + column.column_view_name)]);
+            if (column.required) {
+                button.appendChild(el('span', { className: 'exm-builder-required-mark', text: t.required }));
+            }
+            button.disabled = !!placed[column.id];
+            button.addEventListener('click', function () { addColumn(column.id); });
+            button.addEventListener('dragstart', function (e) {
+                dragFrom = null;
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('application/x-exm-column', String(column.id));
+            });
+            columnsBox.appendChild(button);
+        });
+    }
+
+    // what saving will make: a new table, or a new screen of the chosen table
+    function renderNotice() {
+        notice.innerHTML = '';
+        var text;
+        if (mode === 'existing') {
+            var table = currentTable();
+            text = table ? t.notice_existing.replace('%s', table.table_view_name) : t.notice_existing_none;
+        } else {
+            var name = nameInput.value.trim();
+            text = name ? t.notice_new.replace('%s', name) : t.notice_new_unnamed;
+            if (importBox.checked && tokenInput.value) {
+                text += t.notice_import.replace('%s', rowsInput.value);
+            }
+        }
+        notice.appendChild(el('i', { className: 'fa fa-info-circle', 'aria-hidden': 'true' }));
+        notice.appendChild(document.createTextNode(text));
+
+        // the required columns left out are saved empty from this screen: say so
+        if (mode === 'existing' && currentTable()) {
+            var placed = {};
+            fields.forEach(function (f) { placed[f.column_id] = true; });
+            var missing = currentTable().columns.filter(function (c) { return c.required && !placed[c.id]; })
+                .map(function (c) { return t.name_quote.replace('%s', c.column_view_name); });
+            if (missing.length > 0) {
+                notice.appendChild(el('span', { className: 'exm-builder-warning' }, [
+                    el('i', { className: 'fa fa-exclamation-triangle', 'aria-hidden': 'true' }),
+                    document.createTextNode(t.missing_required.replace('%s', missing.join(t.name_separator))),
+                ]));
+            }
+        }
+    }
+
+    function showMode() {
+        form.querySelectorAll('[data-mode-only]').forEach(function (node) {
+            node.hidden = node.getAttribute('data-mode-only') !== mode;
+        });
+    }
+
+    // move an item before the item at "to". A drag ("takeCell") also moves it into that item's
+    // cell; the up and down buttons keep it in its own cell.
+    function move(from, to, takeCell) {
+        var item = fields[from];
+        var target = fields[to];
+        if (takeCell && target && target !== item) { item.row = target.row; item.col = target.col; }
+        fields.splice(from, 1);
+        if (to > from) { to--; }
+        fields.splice(Math.max(0, Math.min(to, fields.length)), 0, item);
+        sortFields();
+        render();
+    }
+
+    // put a new item before the item at "at", or at the end of a cell
+    function insert(item, at, cell) {
+        if (fields.length >= maxFields) { alert(t.too_many); return false; }
+        var place = cell || (at !== undefined && fields[at] ? { row: fields[at].row, col: fields[at].col } : active);
+        item.row = place.row;
+        item.col = place.col;
+        fields.splice(at === undefined ? fields.length : at, 0, item);
+        sortFields();
+        render();
+        return true;
+    }
+
+    function add(type, at, cell) {
+        var item = { type: type, label: types[type].label, column_name: '', required: false, choices: '', source: null, error: null };
+        if (!insert(item, at, cell)) { return; }
+        var target = canvas.querySelectorAll('.exm-builder-label')[fields.indexOf(item)];
+        if (target) { target.focus(); target.select(); }
+    }
+
+    function addColumn(id, at, cell) {
+        for (var i = 0; i < fields.length; i++) { if (fields[i].column_id === id) { return; } }
+        insert({ column_id: id, error: null }, at, cell);
+    }
+
+    function dropAt(e, at) {
+        var type = e.dataTransfer.getData('application/x-exm-part');
+        var column = e.dataTransfer.getData('application/x-exm-column');
+        if (mode === 'new' && type && types[type]) { add(type, at); }
+        else if (mode === 'existing' && column) { addColumn(parseInt(column, 10), at); }
+        else if (dragFrom !== null) { move(dragFrom, at, true); }
+        dragFrom = null;
+    }
+
+    // a drop on a cell, not on an item: to the end of the cell
+    function dropInto(e, r, c) {
+        var cell = { row: r, col: c };
+        var type = e.dataTransfer.getData('application/x-exm-part');
+        var column = e.dataTransfer.getData('application/x-exm-column');
+        if (mode === 'new' && type && types[type]) { add(type, undefined, cell); }
+        else if (mode === 'existing' && column) { addColumn(parseInt(column, 10), undefined, cell); }
+        else if (dragFrom !== null) {
+            var item = fields[dragFrom];
+            item.row = r;
+            item.col = c;
+            fields.splice(dragFrom, 1);
+            fields.push(item);
+            sortFields();
+            render();
+        }
+        dragFrom = null;
+    }
+
+    // rows -----------------------------------------------------------------------
+    function setLayout(r, widths) {
+        rows[r] = widths.slice();
+        // the items of a column that is gone go to the last column
+        fields.forEach(function (f) { if (f.row === r && f.col >= widths.length) { f.col = widths.length - 1; } });
+        if (active.row === r && active.col >= widths.length) { active.col = widths.length - 1; }
+        sortFields();
+        render();
+    }
+    function swapRows(a, b) {
+        var w = rows[a]; rows[a] = rows[b]; rows[b] = w;
+        fields.forEach(function (f) { if (f.row === a) { f.row = b; } else if (f.row === b) { f.row = a; } });
+        if (active.row === a) { active.row = b; } else if (active.row === b) { active.row = a; }
+        sortFields();
+        render();
+    }
+    function removeRow(r) {
+        // the items of the row go to the first column of the row above (or below)
+        var to = r > 0 ? r - 1 : 0;
+        fields.forEach(function (f) {
+            if (f.row === r) { f.row = to; f.col = 0; }
+            else if (f.row > r) { f.row--; }
+        });
+        rows.splice(r, 1);
+        active = { row: Math.min(active.row, rows.length - 1), col: 0 };
+        sortFields();
+        render();
+    }
+    document.getElementById('exm-builder-add-row').addEventListener('click', function () {
+        rows.push([4]);
+        active = { row: rows.length - 1, col: 0 };
+        render();
+    });
+
+    // switching the way or the table starts the screen again, after asking when items are placed
+    function restart(apply, undo) {
+        if (fields.length > 0 && !confirm(t.confirm_clear)) { undo(); return; }
+        apply();
+        fields = [];
+        rows = [[4]];
+        active = { row: 0, col: 0 };
+        errors = {};
+        forgetSheet();
+        showMode();
+        render();
+    }
+    form.querySelectorAll('input[name="mode"][type="radio"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            var before = mode;
+            restart(function () { mode = radio.value; }, function () {
+                form.querySelector('input[name="mode"][value="' + before + '"]').checked = true;
+            });
+        });
+    });
+    var tableBefore = tableSelect.value;
+    tableSelect.addEventListener('change', function () {
+        restart(function () { tableBefore = tableSelect.value; }, function () { tableSelect.value = tableBefore; });
+    });
+    nameInput.addEventListener('input', renderNotice);
+
+    document.querySelectorAll('.exm-builder-part[data-type]').forEach(function (button) {
+        button.addEventListener('click', function () { add(button.dataset.type); });
+        button.addEventListener('dragstart', function (e) {
+            dragFrom = null;
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('application/x-exm-part', button.dataset.type);
+        });
+    });
+
+    form.addEventListener('submit', function () {
+        document.getElementById('exm-builder-fields').value = JSON.stringify(fields.map(function (f) {
+            var item = mode === 'existing'
+                ? { column_id: f.column_id }
+                : { type: f.type, label: f.label, column_name: f.column_name, required: f.required, choices: f.choices, source: f.source };
+            item.row = f.row;
+            item.column = f.col;
+            if (f.cond && fields.indexOf(f.cond.target) !== -1) {
+                item.visible_if = { target: fields.indexOf(f.cond.target), operator: f.cond.operator, value: f.cond.value || '' };
+            }
+            return item;
+        }));
+        document.getElementById('exm-builder-layout').value = JSON.stringify(rows.map(function (w) { return { widths: w }; }));
+    });
+
+    // Excel or CSV -------------------------------------------------------------
+    var fileInput = document.getElementById('exm-builder-sheet-file');
+    var readButton = document.getElementById('exm-builder-sheet-read');
+    var resultLine = document.getElementById('exm-builder-sheet-result');
+    var importWrap = document.getElementById('exm-builder-import');
+    var importBox = document.getElementById('exm-builder-import-data');
+    var importLabel = document.getElementById('exm-builder-import-label');
+    var tokenInput = document.getElementById('exm-builder-sheet-token');
+    var rowsInput = document.getElementById('exm-builder-sheet-rows');
+    var sheetNameInput = document.getElementById('exm-builder-sheet-name');
+
+    function columnLetter(index) {
+        var n = index + 1, letters = '';
+        while (n > 0) { var m = (n - 1) % 26; letters = String.fromCharCode(65 + m) + letters; n = Math.floor((n - 1) / 26); }
+        return letters;
+    }
+
+    function showSheet(message, isError) {
+        resultLine.textContent = message || '';
+        resultLine.classList.toggle('is-error', !!isError);
+        var hasRows = !!tokenInput.value && parseInt(rowsInput.value || '0', 10) > 0;
+        importWrap.hidden = !hasRows;
+        importLabel.textContent = t.import_data.replace('%s', rowsInput.value || '0');
+        renderNotice();
+    }
+
+    function forgetSheet() {
+        tokenInput.value = '';
+        rowsInput.value = '';
+        sheetNameInput.value = '';
+        importBox.checked = false;
+        showSheet('', false);
+    }
+
+    readButton.addEventListener('click', function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) { showSheet(t.sheet_choose, true); return; }
+        if (fields.length > 0 && !confirm(t.sheet_replace)) { return; }
+        var body = new FormData();
+        body.append('sheet', file);
+        body.append('_token', form.querySelector('input[name="_token"]').value);
+        readButton.disabled = true;
+        showSheet(t.sheet_reading, false);
+        fetch(sheetUrl, { method: 'POST', body: body, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                readButton.disabled = false;
+                if (!data || data.result !== true) {
+                    // only the messages of the reader itself are shown; a server error is not
+                    forgetSheet();
+                    showSheet(data && data.result === false && data.message ? data.message : t.sheet_failed, true);
+                    return;
+                }
+                rows = [[4]];
+                active = { row: 0, col: 0 };
+                fields = data.fields.map(function (f) {
+                    return { type: f.type, label: f.label, column_name: '', required: false, choices: f.choices || '', source: f.source, row: 0, col: 0, error: null };
+                });
+                errors = {};
+                tokenInput.value = data.token;
+                rowsInput.value = String(data.row_count);
+                sheetNameInput.value = data.file_name;
+                importBox.checked = data.row_count > 0;
+                if (!nameInput.value.trim()) { nameInput.value = data.file_name.replace(/\.[^.]+$/, '').slice(0, 40); }
+                var message = t.sheet_loaded.replace('%1$s', data.file_name).replace('%2$s', data.column_count).replace('%3$s', data.row_count);
+                if (data.truncated) { message += t.sheet_truncated.replace('%s', data.row_count); }
+                render();
+                showSheet(message, false);
+            })
+            .catch(function () { readButton.disabled = false; showSheet(t.sheet_failed, true); });
+    });
+    importBox.addEventListener('change', renderNotice);
+
+    showMode();
+    render();
+    // after a mistake the page comes back with the sheet still read
+    if (tokenInput.value) {
+        showSheet(t.sheet_loaded.replace('%1$s', sheetNameInput.value).replace('%2$s', fields.length).replace('%3$s', rowsInput.value), false);
+    }
+})();
+</script>

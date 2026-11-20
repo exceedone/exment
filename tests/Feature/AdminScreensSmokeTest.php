@@ -207,6 +207,7 @@ class AdminScreensSmokeTest extends FeatureTestBase
             'admin/search/list' => ['search/list'],
             'admin/search/lists' => ['search/lists'],
             'admin/search/saved/{id}/apply' => ['search/saved/1/apply'],
+            'admin/studio' => ['studio'],
             'admin/system' => ['system'],
             'admin/table' => ['table'],
             'admin/table/create' => ['table/create'],
