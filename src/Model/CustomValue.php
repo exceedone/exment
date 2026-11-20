@@ -1645,6 +1645,24 @@ abstract class CustomValue extends ModelBase
      * @param string $suuid suuid of the comment
      * @return true|ErrorCode true: deleted, DATA_NOT_FOUND: this data has no such comment, PERMISSION_DENY: written by another user
      */
+    /**
+     * A comment is changed and deleted only by the user who wrote it, or by an
+     * administrator (as deleteComment()). The comment table is editable by
+     * everyone who may edit the record, so the data API would let any of them
+     * rewrite or delete another user's comment without this.
+     */
+    protected function isCommentOfAnotherUser(): bool
+    {
+        if ($this->custom_table->table_name != SystemTableName::COMMENT || !$this->exists) {
+            return false;
+        }
+        $login_user = \Exment::user();
+        if (!isset($login_user) || $login_user->isAdministrator()) {
+            return false;
+        }
+        return !isMatchString($this->created_user_id, \Exment::getUserId());
+    }
+
     public function deleteComment($suuid)
     {
         if (is_nullorempty($suuid)) {
@@ -2149,6 +2167,10 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::PERMISSION_DENY();
         }
 
+        if ($this->isCommentOfAnotherUser()) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
         // if ($this->custom_table->isOneRecord()) {
         //     return ErrorCode::PERMISSION_DENY();
         // }
@@ -2195,6 +2217,10 @@ abstract class CustomValue extends ModelBase
     public function enableDelete($checkFormAction = false)
     {
         if (!$this->custom_table->hasPermissionEditData($this)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        if ($this->isCommentOfAnotherUser()) {
             return ErrorCode::PERMISSION_DENY();
         }
 
