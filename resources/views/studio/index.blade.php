@@ -4,7 +4,12 @@
         <input type="search" class="form-control exm-studio-filter" placeholder="{{ exmtrans('studio.filter_placeholder') }}" aria-label="{{ exmtrans('studio.filter_placeholder') }}">
     </div>
 
-    <h4 class="exm-studio-heading">{{ exmtrans('studio.tables') }}</h4>
+    <div class="exm-studio-heading-row">
+        <h4 class="exm-studio-heading">{{ exmtrans('studio.tables') }}</h4>
+        @if ($create_url)
+            <a href="{{ $create_url }}" class="btn btn-sm btn-primary"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.create_button') }}</a>
+        @endif
+    </div>
     @if (count($tables) === 0)
         <p class="exm-studio-empty">{{ exmtrans('studio.no_tables') }}</p>
     @else
@@ -170,7 +175,8 @@
 
 <style>
 .exm-studio [hidden] { display: none !important; }
-.exm-studio-heading { font-size: 1.05rem; margin: 0 0 .5rem; }
+.exm-studio-heading-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: .5rem; }
+.exm-studio-heading { font-size: 1.05rem; margin: 0; }
 .exm-studio-table { margin: 0; }
 .exm-studio-table > thead th { white-space: nowrap; }
 .exm-studio-table > tbody + tbody { border-top: 2px solid #d2d6de; }
