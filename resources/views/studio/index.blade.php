@@ -6,9 +6,12 @@
 
     <div class="exm-studio-heading-row">
         <h4 class="exm-studio-heading">{{ exmtrans('studio.tables') }}</h4>
-        @if ($create_url)
-            <a href="{{ $create_url }}" class="btn btn-sm btn-primary"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.create_button') }}</a>
-        @endif
+        <span class="exm-studio-heading-tools">
+            <a href="{{ $app_url }}" class="btn btn-sm btn-default" target="_blank" rel="noopener" title="{{ exmtrans('studio.app_link_help') }}"><i class="fa fa-mobile" aria-hidden="true"></i> {{ exmtrans('studio.app_link') }}</a>
+            @if ($create_url)
+                <a href="{{ $create_url }}" class="btn btn-sm btn-primary"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.create_button') }}</a>
+            @endif
+        </span>
     </div>
     @if (count($tables) === 0)
         <p class="exm-studio-empty">{{ exmtrans('studio.no_tables') }}</p>

@@ -174,6 +174,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('studio/create', 'StudioController@create');
             $router->post('studio', 'StudioController@store');
             $router->post('studio/sheet', 'StudioController@readSheet');
+            // the phone app of the Studio (PWA)
+            $router->get('app', 'StudioAppController@index');
+            $router->get('app/manifest.webmanifest', 'StudioAppController@manifest');
+            $router->get('app/sw.js', 'StudioAppController@serviceWorker');
 
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');

@@ -301,6 +301,9 @@ class Permission
                     return array_keys_exists(PermissionEnum::AVAILABLE_ACCESS_ROLE_GROUP, $this->permission_details);
                 }
                 return false;
+            case "app":
+                // the phone app: every user; each screen and data checks its own permission
+                return true;
             case "studio":
                 // the screens of the tables the user may set; the page lists only those tables
                 return array_keys_exists(\Exceedone\Exment\Services\Studio\ScreenList::TABLE_PERMISSIONS, $this->permission_details);
