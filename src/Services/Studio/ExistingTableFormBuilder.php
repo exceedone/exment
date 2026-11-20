@@ -95,9 +95,11 @@ class ExistingTableFormBuilder
             $fields = json_decode($fields, true);
         }
         $result = [];
+        $kept = [];
         foreach (is_array($fields) ? $fields : [] as $field) {
             if (is_array($field) && is_numeric(array_get($field, 'column_id'))) {
                 $result[] = ['column_id' => intval($field['column_id'])];
+                $kept[] = $field;
             }
         }
         $tableId = array_get($input, 'table_id');
@@ -105,11 +107,12 @@ class ExistingTableFormBuilder
             'table_view_name' => trim(strval(array_get($input, 'table_view_name', ''))),
             'table_id' => is_numeric($tableId) ? intval($tableId) : null,
             'fields' => $result,
+            'layout' => ScreenLayout::normalize(array_get($input, 'layout'), $kept),
         ];
     }
 
     /**
-     * @param array{table_view_name: string, table_id: ?int, fields: array<int, array{column_id: int}>} $screen
+     * @param array{table_view_name: string, table_id: ?int, fields: array<int, array{column_id: int}>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}} $screen
      * @return array<string, string>
      */
     public static function validate(array $screen): array
@@ -140,13 +143,16 @@ class ExistingTableFormBuilder
             }
             $seen[$field['column_id']] = true;
         }
+        if (isset($screen['layout'])) {
+            $errors += ScreenLayout::validate($screen['layout']);
+        }
         return $errors;
     }
 
     /**
      * Make the form: one block of the table, the columns in the order they were placed.
      *
-     * @param array{table_view_name: string, table_id: ?int, fields: array<int, array{column_id: int}>} $screen a screen validate() found no mistake in
+     * @param array{table_view_name: string, table_id: ?int, fields: array<int, array{column_id: int}>, layout?: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}} $screen a screen validate() found no mistake in
      */
     public static function build(array $screen): CustomForm
     {
@@ -174,6 +180,9 @@ class ExistingTableFormBuilder
                 $column->column_no = 1;
                 $column->width = 2;
                 $column->save();
+            }
+            if (isset($screen['layout'])) {
+                ScreenLayout::apply($block, array_column($screen['fields'], 'column_id'), ScreenLayout::withoutEmptyRows($screen['layout']));
             }
             return $form;
         });

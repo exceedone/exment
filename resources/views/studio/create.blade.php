@@ -2,6 +2,7 @@
 <form method="post" action="{{ $action }}" class="exm-builder" id="exm-builder">
     {{ csrf_field() }}
     <input type="hidden" name="fields" id="exm-builder-fields" value="">
+    <input type="hidden" name="layout" id="exm-builder-layout" value="">
 
     <div class="box card exm-builder-head">
         <div class="box-body">
@@ -103,8 +104,10 @@
             <div class="box-header with-border">{{ exmtrans('studio.canvas') }}</div>
             <div class="box-body">
                 @if (isset($errors_by_key['fields']))<p class="exm-builder-error">{{ $errors_by_key['fields'] }}</p>@endif
-                <ol class="exm-builder-canvas" id="exm-builder-canvas" aria-label="{{ exmtrans('studio.canvas') }}"></ol>
-                <div class="exm-builder-drop" id="exm-builder-drop">{{ exmtrans('studio.drop_here') }}</div>
+                @if (isset($errors_by_key['layout']))<p class="exm-builder-error">{{ $errors_by_key['layout'] }}</p>@endif
+                <p class="exm-builder-hint">{{ exmtrans('studio.layout_help') }}</p>
+                <div class="exm-builder-canvas" id="exm-builder-canvas" aria-label="{{ exmtrans('studio.canvas') }}"></div>
+                <button type="button" class="btn btn-default btn-sm exm-builder-add-row" id="exm-builder-add-row"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.add_row') }}</button>
             </div>
         </div>
     </div>
@@ -171,8 +174,21 @@
 .exm-builder-preview { pointer-events: none; }
 .exm-builder-preview .form-control { background: #f9fafb; }
 .exm-builder-choices { grid-column: 1 / -1; }
-.exm-builder-drop { border: 2px dashed #d2d6de; border-radius: 4px; padding: 18px; text-align: center; opacity: .7; }
-.exm-builder-drop.is-over { border-color: #3c8dbc; opacity: 1; }
+.exm-builder-row { border: 1px solid #e3e6ea; border-radius: 4px; padding: 8px; margin-bottom: 10px; background: #fafbfc; }
+.exm-builder-row-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; font-size: .8rem; }
+.exm-builder-row-head .exm-builder-row-name { font-weight: 600; opacity: .75; }
+.exm-builder-row-head select { width: auto; height: 26px; padding: 0 6px; font-size: .8rem; }
+.exm-builder-row-head .exm-builder-tools { margin-left: auto; }
+.exm-builder-cells { display: grid; gap: 8px; }
+@media (max-width: 767px) { .exm-builder-cells { grid-template-columns: 1fr !important; } }
+.exm-builder-cell { min-width: 0; border: 1px dashed #c9ced6; border-radius: 4px; padding: 6px; background: #fff; cursor: pointer; }
+.exm-builder-cell.is-active { border: 2px solid #3c8dbc; padding: 5px; }
+.exm-builder-cell.is-over { background: #eef6fb; }
+.exm-builder-cell ol { list-style: none; padding: 0; margin: 0; }
+.exm-builder-cell .exm-builder-field { cursor: default; }
+.exm-builder-cell-drop { text-align: center; font-size: .8rem; opacity: .6; padding: 8px 4px; }
+.exm-builder-field-head { flex-wrap: wrap; }
+.exm-builder-add-row { margin-top: 2px; }
 .exm-builder-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 24px; }
 .exm-builder-notice { margin: 0 auto 0 0; font-size: .9rem; }
 .exm-builder-notice i { color: #3c8dbc; margin-right: 4px; }
@@ -213,6 +229,20 @@
         'notice_import' => exmtrans('studio.notice_import'),
         'source' => exmtrans('studio.sheet_source'),
         'name_quote' => exmtrans('studio.name_quote'),
+        'row' => exmtrans('studio.row'),
+        'row_layout' => exmtrans('studio.row_layout'),
+        'row_up' => exmtrans('studio.row_up'),
+        'row_down' => exmtrans('studio.row_down'),
+        'row_remove' => exmtrans('studio.row_remove'),
+        'cell_drop' => exmtrans('studio.cell_drop'),
+        'presets' => [
+            exmtrans('studio.layout_presets.1'),
+            exmtrans('studio.layout_presets.2'),
+            exmtrans('studio.layout_presets.2_left'),
+            exmtrans('studio.layout_presets.2_right'),
+            exmtrans('studio.layout_presets.3'),
+            exmtrans('studio.layout_presets.4'),
+        ],
         'name_separator' => exmtrans('studio.name_separator'),
     ];
 @endphp
@@ -225,10 +255,11 @@
     var maxFields = {{ intval($max_fields) }};
     var t = @json($texts);
     var sheetUrl = @json($sheet_url);
+    var presets = @json($layout_presets);
+    var initialLayout = @json($screen ? ($screen['layout'] ?? null) : null);
 
     var form = document.getElementById('exm-builder');
     var canvas = document.getElementById('exm-builder-canvas');
-    var drop = document.getElementById('exm-builder-drop');
     var columnsBox = document.getElementById('exm-builder-columns');
     var tableSelect = document.getElementById('exm-builder-table-id');
     var nameInput = document.getElementById('exm-builder-view-name');
@@ -254,15 +285,34 @@
     }
 
     var mode = currentMode();
-    // an item: {type, label, column_name, required, choices} for a new table, {column_id} for a table that exists
+    // the rows of the screen: the widths of the columns of each (ScreenLayout::PRESETS)
+    var rows = initialLayout && initialLayout.rows && initialLayout.rows.length ? initialLayout.rows.map(function (w) { return w.slice(); }) : [[4]];
+    // an item: {type, label, column_name, required, choices} for a new table, {column_id} for a table that exists,
+    // with the row and the column it is in. The list is kept in reading order: row by row,
+    // in a row column by column, top to bottom.
     var fields = (initial || []).map(function (f, i) {
         var item = mode === 'existing'
             ? { column_id: f.column_id }
             : { type: f.type, label: f.label, column_name: f.column_name, required: !!f.required, choices: f.choices || '', source: f.source === undefined ? null : f.source };
+        var place = initialLayout && initialLayout.places ? initialLayout.places[i] : null;
+        item.row = place && rows[place.row] ? place.row : 0;
+        item.col = place && rows[item.row][place.column] !== undefined ? place.column : 0;
         item.error = i;
         return item;
     });
+    var active = { row: 0, col: 0 }; // the cell the parts are added to
     var dragFrom = null; // index of an item being moved, or null for a new part
+
+    function sortFields() {
+        fields = fields.map(function (f, i) { return { f: f, i: i }; })
+            .sort(function (a, b) { return (a.f.row - b.f.row) || (a.f.col - b.f.col) || (a.i - b.i); })
+            .map(function (x) { return x.f; });
+    }
+    function sameCell(a, b) { return a.row === b.row && a.col === b.col; }
+    function presetIndex(widths) {
+        for (var i = 0; i < presets.length; i++) { if (presets[i].join() === widths.join()) { return i; } }
+        return 0;
+    }
 
     function el(tag, attrs, children) {
         var node = document.createElement(tag);
@@ -310,8 +360,8 @@
         var up = el('button', { type: 'button', title: t.up, 'aria-label': t.up }, [el('i', { className: 'fa fa-arrow-up' })]);
         var down = el('button', { type: 'button', title: t.down, 'aria-label': t.down }, [el('i', { className: 'fa fa-arrow-down' })]);
         var remove = el('button', { type: 'button', title: t.remove, 'aria-label': t.remove }, [el('i', { className: 'fa fa-trash' })]);
-        up.disabled = index === 0;
-        down.disabled = index === fields.length - 1;
+        up.disabled = index === 0 || !sameCell(fields[index - 1], fields[index]);
+        down.disabled = index === fields.length - 1 || !sameCell(fields[index + 1], fields[index]);
         up.addEventListener('click', function () { move(index, index - 1); });
         down.addEventListener('click', function () { move(index, index + 2); });
         remove.addEventListener('click', function () { fields.splice(index, 1); render(); });
@@ -383,8 +433,62 @@
         return li;
     }
 
+    function rowHead(r) {
+        var select = el('select', { className: 'form-control', 'aria-label': t.row_layout });
+        presets.forEach(function (widths, i) {
+            var option = el('option', { value: String(i), text: t.presets[i] });
+            select.appendChild(option);
+        });
+        select.value = String(presetIndex(rows[r]));
+        select.addEventListener('change', function () { setLayout(r, presets[parseInt(select.value, 10)]); });
+
+        var up = el('button', { type: 'button', title: t.row_up, 'aria-label': t.row_up }, [el('i', { className: 'fa fa-arrow-up' })]);
+        var down = el('button', { type: 'button', title: t.row_down, 'aria-label': t.row_down }, [el('i', { className: 'fa fa-arrow-down' })]);
+        var remove = el('button', { type: 'button', title: t.row_remove, 'aria-label': t.row_remove }, [el('i', { className: 'fa fa-trash' })]);
+        up.disabled = r === 0;
+        down.disabled = r === rows.length - 1;
+        remove.disabled = rows.length === 1;
+        up.addEventListener('click', function () { swapRows(r, r - 1); });
+        down.addEventListener('click', function () { swapRows(r, r + 1); });
+        remove.addEventListener('click', function () { removeRow(r); });
+        return el('div', { className: 'exm-builder-row-head' }, [
+            el('span', { className: 'exm-builder-row-name', text: t.row.replace('%s', r + 1) }),
+            select,
+            el('span', { className: 'exm-builder-tools' }, [up, down, remove]),
+        ]);
+    }
+
     function render() {
         canvas.innerHTML = '';
+        var lists = [];
+        rows.forEach(function (widths, r) {
+            var cells = el('div', { className: 'exm-builder-cells' });
+            cells.style.gridTemplateColumns = widths.map(function (w) { return 'minmax(0, ' + w + 'fr)'; }).join(' ');
+            lists[r] = [];
+            widths.forEach(function (w, c) {
+                var list = el('ol', {});
+                var cell = el('div', { className: 'exm-builder-cell' + (active.row === r && active.col === c ? ' is-active' : '') }, [
+                    list, el('div', { className: 'exm-builder-cell-drop', text: t.cell_drop }),
+                ]);
+                cell.addEventListener('click', function (e) {
+                    if (e.target.closest('input, textarea, select, button')) { return; }
+                    active = { row: r, col: c };
+                    canvas.querySelectorAll('.exm-builder-cell.is-active').forEach(function (n) { n.classList.remove('is-active'); });
+                    cell.classList.add('is-active');
+                });
+                cell.addEventListener('dragover', function (e) { e.preventDefault(); cell.classList.add('is-over'); });
+                cell.addEventListener('dragleave', function () { cell.classList.remove('is-over'); });
+                cell.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    cell.classList.remove('is-over');
+                    dropInto(e, r, c);
+                });
+                lists[r][c] = list;
+                cells.appendChild(cell);
+            });
+            canvas.appendChild(el('div', { className: 'exm-builder-row' }, [rowHead(r), cells]));
+        });
+
         fields.forEach(function (field, index) {
             var li = mode === 'existing' ? existingItem(field, index) : newItem(field, index);
             li.addEventListener('dragstart', function (e) {
@@ -399,10 +503,11 @@
             li.addEventListener('dragleave', function () { li.classList.remove('is-over'); });
             li.addEventListener('drop', function (e) {
                 e.preventDefault();
+                e.stopPropagation();
                 li.classList.remove('is-over');
                 dropAt(e, index);
             });
-            canvas.appendChild(li);
+            lists[field.row][field.col].appendChild(li);
         });
         renderColumns();
         renderNotice();
@@ -475,30 +580,41 @@
         });
     }
 
-    function move(from, to) {
-        var item = fields.splice(from, 1)[0];
+    // move an item before the item at "to". A drag ("takeCell") also moves it into that item's
+    // cell; the up and down buttons keep it in its own cell.
+    function move(from, to, takeCell) {
+        var item = fields[from];
+        var target = fields[to];
+        if (takeCell && target && target !== item) { item.row = target.row; item.col = target.col; }
+        fields.splice(from, 1);
         if (to > from) { to--; }
         fields.splice(Math.max(0, Math.min(to, fields.length)), 0, item);
+        sortFields();
         render();
     }
 
-    function insert(item, at) {
+    // put a new item before the item at "at", or at the end of a cell
+    function insert(item, at, cell) {
         if (fields.length >= maxFields) { alert(t.too_many); return false; }
+        var place = cell || (at !== undefined && fields[at] ? { row: fields[at].row, col: fields[at].col } : active);
+        item.row = place.row;
+        item.col = place.col;
         fields.splice(at === undefined ? fields.length : at, 0, item);
+        sortFields();
         render();
         return true;
     }
 
-    function add(type, at) {
-        if (!insert({ type: type, label: types[type].label, column_name: '', required: false, choices: '', source: null, error: null }, at)) { return; }
-        var inputs = canvas.querySelectorAll('.exm-builder-label');
-        var target = inputs[at === undefined ? fields.length - 1 : at];
+    function add(type, at, cell) {
+        var item = { type: type, label: types[type].label, column_name: '', required: false, choices: '', source: null, error: null };
+        if (!insert(item, at, cell)) { return; }
+        var target = canvas.querySelectorAll('.exm-builder-label')[fields.indexOf(item)];
         if (target) { target.focus(); target.select(); }
     }
 
-    function addColumn(id, at) {
+    function addColumn(id, at, cell) {
         for (var i = 0; i < fields.length; i++) { if (fields[i].column_id === id) { return; } }
-        insert({ column_id: id, error: null }, at);
+        insert({ column_id: id, error: null }, at, cell);
     }
 
     function dropAt(e, at) {
@@ -506,15 +622,70 @@
         var column = e.dataTransfer.getData('application/x-exm-column');
         if (mode === 'new' && type && types[type]) { add(type, at); }
         else if (mode === 'existing' && column) { addColumn(parseInt(column, 10), at); }
-        else if (dragFrom !== null) { move(dragFrom, at); }
+        else if (dragFrom !== null) { move(dragFrom, at, true); }
         dragFrom = null;
     }
+
+    // a drop on a cell, not on an item: to the end of the cell
+    function dropInto(e, r, c) {
+        var cell = { row: r, col: c };
+        var type = e.dataTransfer.getData('application/x-exm-part');
+        var column = e.dataTransfer.getData('application/x-exm-column');
+        if (mode === 'new' && type && types[type]) { add(type, undefined, cell); }
+        else if (mode === 'existing' && column) { addColumn(parseInt(column, 10), undefined, cell); }
+        else if (dragFrom !== null) {
+            var item = fields[dragFrom];
+            item.row = r;
+            item.col = c;
+            fields.splice(dragFrom, 1);
+            fields.push(item);
+            sortFields();
+            render();
+        }
+        dragFrom = null;
+    }
+
+    // rows -----------------------------------------------------------------------
+    function setLayout(r, widths) {
+        rows[r] = widths.slice();
+        // the items of a column that is gone go to the last column
+        fields.forEach(function (f) { if (f.row === r && f.col >= widths.length) { f.col = widths.length - 1; } });
+        if (active.row === r && active.col >= widths.length) { active.col = widths.length - 1; }
+        sortFields();
+        render();
+    }
+    function swapRows(a, b) {
+        var w = rows[a]; rows[a] = rows[b]; rows[b] = w;
+        fields.forEach(function (f) { if (f.row === a) { f.row = b; } else if (f.row === b) { f.row = a; } });
+        if (active.row === a) { active.row = b; } else if (active.row === b) { active.row = a; }
+        sortFields();
+        render();
+    }
+    function removeRow(r) {
+        // the items of the row go to the first column of the row above (or below)
+        var to = r > 0 ? r - 1 : 0;
+        fields.forEach(function (f) {
+            if (f.row === r) { f.row = to; f.col = 0; }
+            else if (f.row > r) { f.row--; }
+        });
+        rows.splice(r, 1);
+        active = { row: Math.min(active.row, rows.length - 1), col: 0 };
+        sortFields();
+        render();
+    }
+    document.getElementById('exm-builder-add-row').addEventListener('click', function () {
+        rows.push([4]);
+        active = { row: rows.length - 1, col: 0 };
+        render();
+    });
 
     // switching the way or the table starts the screen again, after asking when items are placed
     function restart(apply, undo) {
         if (fields.length > 0 && !confirm(t.confirm_clear)) { undo(); return; }
         apply();
         fields = [];
+        rows = [[4]];
+        active = { row: 0, col: 0 };
         errors = {};
         forgetSheet();
         showMode();
@@ -542,16 +713,17 @@
             e.dataTransfer.setData('application/x-exm-part', button.dataset.type);
         });
     });
-    drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.classList.add('is-over'); });
-    drop.addEventListener('dragleave', function () { drop.classList.remove('is-over'); });
-    drop.addEventListener('drop', function (e) { e.preventDefault(); drop.classList.remove('is-over'); dropAt(e, fields.length); });
 
     form.addEventListener('submit', function () {
         document.getElementById('exm-builder-fields').value = JSON.stringify(fields.map(function (f) {
-            return mode === 'existing'
+            var item = mode === 'existing'
                 ? { column_id: f.column_id }
                 : { type: f.type, label: f.label, column_name: f.column_name, required: f.required, choices: f.choices, source: f.source };
+            item.row = f.row;
+            item.column = f.col;
+            return item;
         }));
+        document.getElementById('exm-builder-layout').value = JSON.stringify(rows.map(function (w) { return { widths: w }; }));
     });
 
     // Excel or CSV -------------------------------------------------------------
@@ -607,8 +779,10 @@
                     showSheet(data && data.result === false && data.message ? data.message : t.sheet_failed, true);
                     return;
                 }
+                rows = [[4]];
+                active = { row: 0, col: 0 };
                 fields = data.fields.map(function (f) {
-                    return { type: f.type, label: f.label, column_name: '', required: false, choices: f.choices || '', source: f.source, error: null };
+                    return { type: f.type, label: f.label, column_name: '', required: false, choices: f.choices || '', source: f.source, row: 0, col: 0, error: null };
                 });
                 errors = {};
                 tokenInput.value = data.token;

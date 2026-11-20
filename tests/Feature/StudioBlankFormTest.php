@@ -129,6 +129,81 @@ class StudioBlankFormTest extends FeatureTestBase
         $this->get(admin_urls('data', 'studio_test_screen', 'create'))->assertOk();
     }
 
+    /**
+     * @return array<int, array{row: int, column: int, width: int}> the place of each item of the default block, in order
+     */
+    protected function placesOf(CustomForm $form): array
+    {
+        $block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->firstOrFail();
+        return $block->custom_form_columns()->orderBy('order')->get()->map(function ($column) {
+            return ['row' => intval($column->row_no), 'column' => intval($column->column_no), 'width' => intval($column->width)];
+        })->all();
+    }
+
+    public function testTheItemsArePutInTheRowsAndColumnsOfTheLayout(): void
+    {
+        $this->made[] = 'studio_test_layout';
+        // row 1: two columns (a | b, c); row 2: empty, dropped; row 3: one column (d)
+        $response = $this->postScreen([
+            ['type' => ColumnType::TEXT, 'label' => 'a', 'row' => 0, 'column' => 0],
+            ['type' => ColumnType::TEXT, 'label' => 'b', 'row' => 0, 'column' => 1],
+            ['type' => ColumnType::DATE, 'label' => 'c', 'row' => 0, 'column' => 1],
+            ['type' => ColumnType::TEXTAREA, 'label' => 'd', 'row' => 2, 'column' => 0],
+        ], ['table_name' => 'studio_test_layout', 'layout' => json_encode([['widths' => [2, 2]], ['widths' => [1, 3]], ['widths' => [4]]])]);
+        $response->assertRedirect(admin_urls('data', 'studio_test_layout', 'create'));
+
+        System::clearRequestSession();
+        $table = CustomTable::getEloquent('studio_test_layout');
+        $this->assertNotNull($table);
+        $this->assertSame([
+            ['row' => 1, 'column' => 1, 'width' => 2],
+            ['row' => 1, 'column' => 2, 'width' => 2],
+            ['row' => 1, 'column' => 2, 'width' => 2],
+            ['row' => 2, 'column' => 1, 'width' => 4],
+        ], $this->placesOf(CustomForm::where('custom_table_id', $table->id)->firstOrFail()));
+
+        // the data page shows the two columns side by side
+        $this->get(admin_urls('data', 'studio_test_layout', 'create'))->assertOk()->assertSee('col-md-6', false);
+    }
+
+    public function testAScreenOfATableThatExistsTakesTheLayoutToo(): void
+    {
+        $table = CustomTable::getEloquent('parent_table');
+        $this->assertNotNull($table);
+        $columns = $table->custom_columns()->get();
+
+        System::clearRequestSession();
+        $this->post(admin_url('studio'), [
+            'mode' => 'existing',
+            'table_view_name' => 'スタジオの 2 列の画面',
+            'table_id' => $table->id,
+            'fields' => json_encode([
+                ['column_id' => intval($columns[0]->id), 'row' => 0, 'column' => 0],
+                ['column_id' => intval($columns[1]->id), 'row' => 0, 'column' => 1],
+            ]),
+            'layout' => json_encode([['widths' => [3, 1]]]),
+        ])->assertRedirect();
+
+        $form = CustomForm::where('custom_table_id', $table->id)->where('form_view_name', 'スタジオの 2 列の画面')->firstOrFail();
+        $this->assertSame([
+            ['row' => 1, 'column' => 1, 'width' => 3],
+            ['row' => 1, 'column' => 2, 'width' => 1],
+        ], $this->placesOf($form));
+        $form->delete();
+    }
+
+    public function testALayoutThatIsNotOfferedIsAMistake(): void
+    {
+        // deleted after the test if it were made by mistake
+        $this->made[] = 'studio_test_bad_layout';
+        $this->from(admin_url('studio/create'))->postScreen([
+            ['type' => ColumnType::TEXT, 'label' => 'a', 'row' => 0, 'column' => 0],
+        ], ['table_name' => 'studio_test_bad_layout', 'layout' => json_encode([['widths' => [3, 3]]])])
+            ->assertRedirect(admin_url('studio/create'));
+        $this->assertArrayHasKey('layout', session('studio_errors'));
+        $this->assertFalse(CustomTable::where('table_name', 'studio_test_bad_layout')->exists());
+    }
+
     public function testMistakesAreShownAndNothingIsMade(): void
     {
         $response = $this->from(admin_url('studio/create'))->postScreen([

@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Studio\BlankFormBuilder;
 use Exceedone\Exment\Services\Studio\ExistingTableFormBuilder;
 use Exceedone\Exment\Services\Studio\RelationDiagram;
+use Exceedone\Exment\Services\Studio\ScreenLayout;
 use Exceedone\Exment\Services\Studio\ScreenList;
 use Exceedone\Exment\Services\Studio\SheetImporter;
 use Exceedone\Exment\Services\Studio\SheetReader;
@@ -115,6 +116,7 @@ class StudioController extends AdminControllerBase
             'max_fields' => BlankFormBuilder::MAX_FIELDS,
             'sheet_url' => admin_urls('studio', 'sheet'),
             'sheet_max_rows' => SheetReader::MAX_ROWS,
+            'layout_presets' => ScreenLayout::PRESETS,
         ]));
         return $content;
     }
@@ -137,7 +139,7 @@ class StudioController extends AdminControllerBase
             return response('');
         }
 
-        $screen = BlankFormBuilder::normalize($request->only(['table_view_name', 'table_name', 'menu_parent_id', 'fields']));
+        $screen = BlankFormBuilder::normalize($request->only(['table_view_name', 'table_name', 'menu_parent_id', 'fields', 'layout']));
         $errors = BlankFormBuilder::validate($screen);
 
         // the read sheet whose rows are taken in, when asked
@@ -270,7 +272,7 @@ class StudioController extends AdminControllerBase
             return response('');
         }
 
-        $screen = ExistingTableFormBuilder::normalize($request->only(['table_view_name', 'table_id', 'fields']));
+        $screen = ExistingTableFormBuilder::normalize($request->only(['table_view_name', 'table_id', 'fields', 'layout']));
         $errors = ExistingTableFormBuilder::validate($screen);
         if (count($errors) > 0) {
             admin_toastr(exmtrans('studio.error.check_input'), 'error');
