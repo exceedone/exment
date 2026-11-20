@@ -404,4 +404,19 @@ class FileMetadataTest extends FeatureTestBase
             ->assertOk()->assertJson(['result' => true]);
         $this->assertSame('新しい社', FileNode::find($file->id)->metadata['customer']);
     }
+
+    public function testAnOfficeFileWithoutLibreOfficeShowsItsText(): void
+    {
+        config(['exment.file_server_soffice_path' => null]);
+        $lib = $this->admin();
+        $ws = $lib->createWorkspace(['name' => 'Office']);
+        $file = $this->withText($lib->storeFile($ws, null, 'plan.docx', $this->docx('来期の計画書の本文')));
+
+        System::clearRequestSession();
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $html = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->getContent();
+        // the viewer of a plugin (read only), or the text of the file
+        $this->assertTrue(str_contains(strval($html), '?view=1') || str_contains(strval($html), '来期の計画書の本文'));
+        $this->assertStringNotContainsString(exmtrans('file_server.preview_office_none'), strval($html));
+    }
 }

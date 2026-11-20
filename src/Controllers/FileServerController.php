@@ -283,6 +283,9 @@ class FileServerController extends AdminControllerBase
             })->all() : [],
             'data_lookup_url' => admin_urls('file_server', 'data_lookup'),
             'text_status' => $item->isFile() ? FileNodeText::query()->where('node_id', $item->id)->value('status') : null,
+            // an Office file without a PDF preview: its text at least (ISS00378)
+            'office_text' => $kind === Preview::KIND_OFFICE && !(isset($version) && isset($version->preview_path))
+                ? mb_substr(strval(FileNodeText::query()->where('node_id', $item->id)->value('content')), 0, 20000) : null,
         ] + $this->pickerData()));
         return $content;
     }
