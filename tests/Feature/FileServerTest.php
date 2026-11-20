@@ -442,8 +442,9 @@ class FileServerTest extends FeatureTestBase
         $ws = $this->workspace();
         $doc = $lib->storeFile($ws, null, 'a.docx', $this->local('d'));
         $txt = $lib->storeFile($ws, null, 'a.txt', $this->local('t'));
-        $this->assertSame('Edit', Preview::openers($doc)[0]['label']);
-        $this->assertSame([], Preview::openers($txt));
+        // other openers (an installed plugin) may be there too
+        $this->assertContains('Edit', array_column(Preview::openers($doc), 'label'));
+        $this->assertNotContains('Edit', array_column(Preview::openers($txt), 'label'));
     }
 
     // ================================================================ the pages

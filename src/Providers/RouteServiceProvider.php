@@ -173,6 +173,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('file_server', 'FileServerController@index');
             $router->get('file_server/create', 'FileServerController@create');
             $router->post('file_server', 'FileServerController@store');
+            $router->get('file_server/search', 'FileServerMetaController@search');
+            $router->get('file_server/data_lookup', 'FileServerMetaController@dataLookup');
             $router->group(['prefix' => 'file_server/{workspace}', 'where' => ['workspace' => '[0-9]+']], function (Router $router) {
                 $router->get('/', 'FileServerController@folder');
                 $router->get('folder/{node}', 'FileServerController@folder')->where('node', '[0-9]+');
@@ -189,6 +191,7 @@ class RouteServiceProvider extends ServiceProvider
                 $router->delete('upload/{session}', 'FileServerController@uploadCancel');
                 $router->post('download', 'FileServerController@downloadZip');
                 $router->get('folders.json', 'FileServerController@folderTree');
+                $router->post('metadata_fields', 'FileServerMetaController@saveFields');
                 $router->group(['prefix' => 'nodes/{node}', 'where' => ['node' => '[0-9]+']], function (Router $router) {
                     $router->get('/', 'FileServerController@showNode');
                     $router->get('info', 'FileServerController@info');
@@ -208,6 +211,11 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('checkin', 'FileServerController@checkin');
                     $router->post('discard_checkout', 'FileServerController@discardCheckout');
                     $router->post('permissions', 'FileServerController@updatePermissions');
+                    $router->post('links', 'FileServerController@createLink');
+                    $router->post('links/{link}/revoke', 'FileServerController@revokeLink')->where('link', '[0-9]+');
+                    $router->post('metadata', 'FileServerMetaController@saveValues');
+                    $router->post('data_links', 'FileServerMetaController@addDataLink');
+                    $router->post('data_links/{link}/remove', 'FileServerMetaController@removeDataLink')->where('link', '[0-9]+');
                 });
             });
 

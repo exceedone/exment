@@ -82,11 +82,12 @@ class Access
      */
     public function level(FileWorkspace $workspace, ?FileNode $node = null): int
     {
-        if (!isset($this->userId)) {
-            return Level::NONE;
-        }
+        // the system itself (no user: the trash emptied on the schedule, the files from a request link)
         if ($this->isSystemAdmin) {
             return Level::MANAGE;
+        }
+        if (!isset($this->userId)) {
+            return Level::NONE;
         }
 
         // the node whose permissions count: itself, or the nearest parent with its own
