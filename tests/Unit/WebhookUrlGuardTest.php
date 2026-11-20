@@ -34,6 +34,8 @@ class WebhookUrlGuardTest extends UnitTestBase
             'http://[::ffff:127.0.0.1]/',
             'http://[fe80::1]/',
             'http://100.64.0.1/',
+            'http://[fd00:ec2::254]/',
+            'http://168.63.129.16/',
         ] as $url) {
             $this->assertFalse(WebhookUrlGuard::isAllowed($url), $url);
         }
@@ -57,5 +59,13 @@ class WebhookUrlGuardTest extends UnitTestBase
         $this->assertFalse(WebhookUrlGuard::isAllowed('http://192.168.1.10/hook'));
         $this->assertFalse(WebhookUrlGuard::isAllowed('http://172.16.0.1/hook'));
         $this->assertTrue(WebhookUrlGuard::isAllowed('https://8.8.8.8/hook'));
+    }
+
+    public function testAHostTheAdministratorAllowsIsTaken(): void
+    {
+        $this->assertFalse(WebhookUrlGuard::isAllowed('http://127.0.0.1:8065/hooks/x'));
+        config(['exment.notify_webhook_allow_hosts' => 'chat.example, 127.0.0.1']);
+        $this->assertTrue(WebhookUrlGuard::isAllowed('http://127.0.0.1:8065/hooks/x'));
+        config(['exment.notify_webhook_allow_hosts' => '']);
     }
 }

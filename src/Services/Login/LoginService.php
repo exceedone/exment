@@ -570,6 +570,7 @@ class LoginService
                     'http_errors' => false,
                     'timeout' => 10,
                     'allow_redirects' => false,
+                    'stream' => true,
                 ]);
                 $contents = $response->getStatusCode() == 200 ? $response->getBody()->read(5 * 1024 * 1024 + 1) : '';
                 if ($contents !== '' && strlen($contents) <= 5 * 1024 * 1024 && @getimagesizefromstring($contents) !== false) {

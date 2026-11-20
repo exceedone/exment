@@ -122,6 +122,21 @@ class TableSettingRowPermissionTest extends FeatureTestBase
         $this->assertNull(CustomView::find($view->id));
     }
 
+    public function testAPublicFormOfAnotherTableIsNotSwitchedThroughThisTable(): void
+    {
+        $other = \Exceedone\Exment\Model\PublicForm::where('custom_form_id', \Exceedone\Exment\Model\CustomForm::getDefault(
+            CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
+        )->id)->first();
+        $this->assertNotNull($other);
+        $this->assertTrue(boolval($other->active_flg));
+
+        // the administrator, through the URL of another table
+        $this->actAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->post(admin_urls('formpublic', TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, $other->id, 'deactivate'), [], static::AJAX);
+
+        $this->assertTrue(boolval(\Exceedone\Exment\Model\PublicForm::find($other->id)->active_flg));
+    }
+
     public function testANotifyOfAnotherTableIsNotDeletedThroughATableTheUserManages(): void
     {
         // user2 manages custom_value_edit_all (the table setting permission) and nothing else

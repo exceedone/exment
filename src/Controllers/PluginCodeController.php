@@ -47,7 +47,7 @@ class PluginCodeController extends AdminControllerBase
 
         $this->plugin = Plugin::getEloquent($id);
 
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -97,7 +97,7 @@ class PluginCodeController extends AdminControllerBase
     public function getTreeData(Request $request, $id)
     {
         $this->plugin = Plugin::getEloquent($id);
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -138,7 +138,7 @@ class PluginCodeController extends AdminControllerBase
     {
         $this->plugin = Plugin::getEloquent($id);
 
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -334,7 +334,7 @@ class PluginCodeController extends AdminControllerBase
     public function delete(Request $request, $id)
     {
         $this->plugin = Plugin::getEloquent($id);
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -384,7 +384,7 @@ class PluginCodeController extends AdminControllerBase
     public function store(Request $request, $id)
     {
         $this->plugin = Plugin::getEloquent($id);
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -449,5 +449,15 @@ class PluginCodeController extends AdminControllerBase
     protected function getFilePaths($folder)
     {
         return $this->plugin->getPluginFilePaths($folder, false);
+    }
+
+    /**
+     * The code editor reads and writes the PHP of a plugin, which the server
+     * runs: it needs the permission of all plugins (as uploading a plugin),
+     * not the setting permission of one plugin. Not in the demo mode.
+     */
+    protected static function canEditCode(): bool
+    {
+        return \Exment::user()->hasPermission(Permission::PLUGIN_ALL) && !\Exceedone\Exment\Services\DemoMode::enabled();
     }
 }
