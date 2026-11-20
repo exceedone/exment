@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Smoke test for the regression checklist (D:/tmp/v7_checklist/PLAN.md): GET every admin
@@ -37,9 +38,7 @@ class AdminScreensSmokeTest extends FeatureTestBase
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
     }
 
-    /**
-     * @dataProvider adminScreenUriProvider
-     */
+    #[DataProvider('adminScreenUriProvider')]
     public function testAdminScreenDoesNotReturnServerError(string $path): void
     {
         $response = $this->get(admin_url($path), ['X-Requested-With' => 'XMLHttpRequest']);

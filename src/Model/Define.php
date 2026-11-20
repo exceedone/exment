@@ -42,6 +42,9 @@ class Define
 
     public const API_FEATURE_TEST = 'API_FEATURE_TEST';
     public const API_FEATURE_TEST_APIKEY = 'API_FEATURE_TEST_APIKEY';
+    // Client secret of the API clients made by exment:inittest (test data only). Passport 13 stores
+    // secrets hashed, so the tests cannot read the plain value back from the database.
+    public const API_FEATURE_TEST_SECRET = 'exment-api-feature-test-secret-0123456789';
 
     public const MAX_SIZE_NUMBER = 1000000000000;
     public const MAX_FLOAT_PRECISION = 14;
@@ -455,7 +458,7 @@ class Define
      * min must match "php" in composer.json.
      */
     public const PHP_VERSION = [
-        '8.2.0',
+        '8.3.0',
         '8.5.0',
     ];
 

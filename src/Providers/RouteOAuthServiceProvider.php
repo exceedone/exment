@@ -39,6 +39,14 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     protected function forAuthorization()
     {
+        // Passport 13 no longer registers its "passport" view namespace nor renders the consent
+        // screen by itself: register Exment's view (the published copy wins) and tell Passport to use it.
+        \Illuminate\Support\Facades\View::addNamespace('passport', [
+            resource_path('views/vendor/passport'),
+            __DIR__ . '/../../resources/views/vendor/passport',
+        ]);
+        Passport::authorizationView('passport::authorize');
+
         Route::group($this->getOauthWebOptions(), function ($router) {
             $router->get('/authorize', [
                 'uses' => 'AuthorizationController@authorize',
@@ -187,13 +195,11 @@ class RouteOAuthServiceProvider extends ServiceProvider
         if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
             app(AuthorizationServer::class)->enableGrantType(
                 $this->makeApiKeyGrant(),
-                // @phpstan-ignore-next-line
                 Passport::tokensExpireIn()
             );
 
             app(AuthorizationServer::class)->enableGrantType(
                 $this->makePasswordGrant(),
-                // @phpstan-ignore-next-line
                 Passport::tokensExpireIn()
             );
         }
@@ -208,7 +214,6 @@ class RouteOAuthServiceProvider extends ServiceProvider
             $this->app->make(RefreshTokenRepository::class)
         );
 
-        // @phpstan-ignore-next-line
         $grant->setRefreshTokenTTL(Passport::refreshTokensExpireIn());
 
         return $grant;
@@ -224,7 +229,6 @@ class RouteOAuthServiceProvider extends ServiceProvider
             $this->app->make(Bridge\RefreshTokenRepository::class)
         );
 
-        // @phpstan-ignore-next-line
         $grant->setRefreshTokenTTL(Passport::refreshTokensExpireIn());
 
         return $grant;

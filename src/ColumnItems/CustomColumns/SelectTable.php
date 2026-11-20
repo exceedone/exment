@@ -771,7 +771,7 @@ class SelectTable extends CustomItem
 
 
     // @phpstan-ignore-next-line
-    protected function setCustomColumnOptionFormSelectTable(&$form, string $user_org = null)
+    protected function setCustomColumnOptionFormSelectTable(&$form, ?string $user_org = null)
     {
         $id = request()->route('id');
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;

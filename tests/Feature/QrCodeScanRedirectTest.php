@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * GET admin/qr-code/{tableName}/{id} (QrCodeController::scanRedirect) is the URL a scanned QR
@@ -54,9 +55,7 @@ class QrCodeScanRedirectTest extends FeatureTestBase
         ];
     }
 
-    /**
-     * @dataProvider provideActionAfterRead
-     */
+    #[DataProvider('provideActionAfterRead')]
     public function testKnownTableRedirectsToTheEditPage(string $actionAfterRead, string $suffix): void
     {
         $tableKey = TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL;

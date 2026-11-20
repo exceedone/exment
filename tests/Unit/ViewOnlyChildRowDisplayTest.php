@@ -11,6 +11,7 @@ use Exceedone\Exment\Form\Field\ViewOnly;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomTable;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * View-only (表示専用) column in a saved row of a child table (has-many table block).
@@ -134,9 +135,9 @@ class ViewOnlyChildRowDisplayTest extends TestCase
     }
 
     /**
-     * @dataProvider decimalProvider
      * @param array<string, mixed> $options
      */
+    #[DataProvider('decimalProvider')]
     public function test_decimal_view_only_child_row_matches_main_form(array $options, string $value): void
     {
         $this->bootAdmin();

@@ -70,7 +70,7 @@ class UpdateService
      *
      * @return void
      */
-    public static function updateExment(ScriptEvent $event = null)
+    public static function updateExment(?ScriptEvent $event = null)
     {
         if (!$event) {
             $composer = new Composer();

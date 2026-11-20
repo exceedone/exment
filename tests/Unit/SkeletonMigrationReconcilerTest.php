@@ -267,7 +267,7 @@ class SkeletonMigrationReconcilerTest extends UnitTestBase
 
         $command->initDatabase();
 
-        $this->assertSame(['cache:clear', 'config:clear', 'route:clear', 'view:clear', 'prepareSkeletonMigrations', 'migrate'], $command->calls);
+        $this->assertSame(['cache:clear', 'config:clear', 'route:clear', 'view:clear', 'prepareSkeletonMigrations', 'migrate', 'passport:hash'], $command->calls);
     }
 
     protected function reconciler(): SkeletonMigrationReconciler

@@ -39,7 +39,12 @@ class PasswordGrant extends PasswordGrantBase
     {
         $login_type = $this->getRequestParameter('login_type', $request);
         if (is_null($login_type)) {
-            return parent::validateUser($request, $client);
+            try {
+                return parent::validateUser($request, $client);
+            } catch (OAuthServerException $ex) {
+                // league/oauth2-server 9 answers wrong credentials with 400; keep v7's 401
+                throw $ex->getCode() === 6 ? static::invalidCredentials() : $ex;
+            }
         }
 
         $username = $this->getRequestParameter('username', $request);
@@ -81,13 +86,24 @@ class PasswordGrant extends PasswordGrantBase
             if ($user instanceof UserEntityInterface === false) {
                 $this->getEmitter()->emit(new RequestEvent(RequestEvent::USER_AUTHENTICATION_FAILED, $request));
 
-                throw OAuthServerException::invalidCredentials();
+                throw static::invalidCredentials();
             }
 
             return $user;
         } catch (SsoLoginErrorException $ex) {
             throw new OAuthServerException($ex->getSsoErrorMessage(), 3, 'invalid_request', 400);
         }
+    }
+
+    /**
+     * Wrong user credentials. league/oauth2-server 9 made this a 400; Exment v7 (league 8)
+     * answered 401 and API clients may rely on it, so Exment keeps 401.
+     *
+     * @return OAuthServerException
+     */
+    protected static function invalidCredentials(): OAuthServerException
+    {
+        return new OAuthServerException('The user credentials were incorrect.', 6, 'invalid_grant', 401);
     }
 
 

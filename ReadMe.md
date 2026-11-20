@@ -39,9 +39,9 @@ And more and more and more functions....
 
 ## Operating environment
 ### Server
-- PHP 8.2.0 or upper
+- PHP 8.3.0 or upper (PHP 8.4 recommended)
 - MySQL 8.0 or upper, or MariaDB 10.3 or upper
-- Laravel 12.X
+- Laravel 13.X
 
 ### Support Browser
 - Google Chrome
@@ -71,7 +71,7 @@ And more and more and more functions....
 - Create Laravel project using composer. ("exment" is project name.)
 
 ~~~
-composer create-project "laravel/laravel=12.*" exment
+composer create-project "laravel/laravel=13.*" exment
 cd exment
 ~~~
 
@@ -103,7 +103,7 @@ APP_TIMEZONE=America/Santiago
 APP_LOCALE=en
 ~~~
 
-- (Recommend) Add error page. Laravel 12 has no `app/Exceptions/Handler.php`; exception handling is configured in `bootstrap/app.php`. Modify the `withExceptions` block.
+- (Recommend) Add error page. Laravel 13 has no `app/Exceptions/Handler.php`; exception handling is configured in `bootstrap/app.php`. Modify the `withExceptions` block.
 
 ~~~ php
 use Illuminate\Foundation\Configuration\Exceptions;

@@ -446,7 +446,7 @@ class BackupController extends AdminControllerBase
             return getAjaxResponse([
                 'result'  => false,
                 'swal' => exmtrans('common.error'),
-                'swaltext' => array_first(array_flatten($validator->getMessages())),
+                'swaltext' => \Illuminate\Support\Arr::first(array_flatten($validator->getMessages())),
             ]);
         }
 

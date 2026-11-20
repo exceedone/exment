@@ -141,7 +141,7 @@ class GanttGrid extends GridBase
             $group_key = '';
             if (isset($group_column)) {
                 $raw = array_get($record->value, $group_column->column_name);
-                $raw = is_array($raw) ? array_first($raw) : $raw;
+                $raw = is_array($raw) ? \Illuminate\Support\Arr::first($raw) : $raw;
                 $group_key = is_nullorempty($raw) ? '' : strval($raw);
                 if ($group_key !== '' && $group_column->column_type == ColumnType::SELECT_TABLE) {
                     $group_ids[] = $group_key;
@@ -151,14 +151,14 @@ class GanttGrid extends GridBase
             $parent = null;
             if (isset($parent_column)) {
                 $raw = array_get($record->value, $parent_column->column_name);
-                $raw = is_array($raw) ? array_first($raw) : $raw;
+                $raw = is_array($raw) ? \Illuminate\Support\Arr::first($raw) : $raw;
                 $parent = is_nullorempty($raw) ? null : strval($raw);
             }
 
             $assignee = null;
             if (isset($assignee_column)) {
                 $raw = array_get($record->value, $assignee_column->column_name);
-                $raw = is_array($raw) ? array_first($raw) : $raw;
+                $raw = is_array($raw) ? \Illuminate\Support\Arr::first($raw) : $raw;
                 if (!is_nullorempty($raw)) {
                     $assignee = strval($raw);
                     $assignee_ids[] = $assignee;
@@ -176,7 +176,7 @@ class GanttGrid extends GridBase
             $color_key = '';
             if (isset($color_column)) {
                 $raw = array_get($record->value, $color_column->column_name);
-                $raw = is_array($raw) ? array_first($raw) : $raw;
+                $raw = is_array($raw) ? \Illuminate\Support\Arr::first($raw) : $raw;
                 $color_key = is_nullorempty($raw) ? '' : strval($raw);
             }
 

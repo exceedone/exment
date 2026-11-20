@@ -21,14 +21,14 @@ class InstallPhpVersionTest extends TestCase
 
     public function testSupportedVersionsAreAllowed(): void
     {
-        foreach (['8.2.0', '8.2.12', '8.3.14', '8.4.0', '8.4.27'] as $version) {
+        foreach (['8.3.0', '8.3.14', '8.4.0', '8.4.27'] as $version) {
             $this->assertTrue($this->isAllowed($version), "PHP {$version} should be allowed");
         }
     }
 
     public function testUnsupportedVersionsAreRejected(): void
     {
-        foreach (['8.0.30', '8.1.34', '8.5.0'] as $version) {
+        foreach (['8.0.30', '8.1.34', '8.2.12', '8.5.0'] as $version) {
             $this->assertFalse($this->isAllowed($version), "PHP {$version} should be rejected");
         }
     }

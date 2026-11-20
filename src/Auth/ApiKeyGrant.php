@@ -28,6 +28,22 @@ class ApiKeyGrant extends AbstractGrant
     }
 
     /**
+     * Passport 13 lets a client use only the grant types derived from its columns, and "api_key"
+     * (Exment's own grant) is never one of them. Allow it for API key clients only.
+     *
+     * @param ClientEntityInterface $client
+     * @param string $grantType
+     * @return bool
+     */
+    protected function supportsGrantType(ClientEntityInterface $client, string $grantType): bool
+    {
+        if ($grantType === $this->getIdentifier()) {
+            return ApiKey::where('client_id', $client->getIdentifier())->exists();
+        }
+        return parent::supportsGrantType($client, $grantType);
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function respondToAccessTokenRequest(

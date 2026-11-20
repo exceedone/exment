@@ -3460,6 +3460,8 @@ return [
         'help' =>[
             'redirect' => 'Enter the URL to redirect after authentication.',
             'client_secret' => 'Click the icon on the left if you want to display the key.',
+            'client_secret_once' => 'The client secret is shown only now, right after creation. Copy it: it cannot be shown again once you leave this page.',
+            'client_secret_hidden' => 'The client secret is stored hashed and cannot be shown. If it is lost, create a new client.',
             'api_key' => 'API key used for authentication.',
             'executed_user' => 'The API runs as this user.',
         ],

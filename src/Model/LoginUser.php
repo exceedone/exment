@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Hash;
  * @property mixed $updated_at
  * @method static \Illuminate\Database\Query\Builder whereNull($columns, $boolean = 'and', $not = false)
  */
-class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenticatable, \Illuminate\Contracts\Auth\CanResetPassword
+class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenticatable, \Illuminate\Contracts\Auth\CanResetPassword, \Laravel\Passport\Contracts\OAuthenticatable
 {
     use AdminBuilder;
     use HasPermissions;
@@ -156,16 +156,32 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     }
 
 
-    // @phpstan-ignore-next-line
-    public function findForPassport($username, ?array $credentials = [])
+    /**
+     * The user provider of the passport guards ("exment-auth", see Middleware\Initialize).
+     * Passport 13's HasApiTokens::tokens() looks it up among "eloquent" providers only and
+     * throws for Exment's custom driver.
+     *
+     * @return string
+     */
+    public function getProviderName(): string
     {
+        return 'exment-auth';
+    }
+
+    // @phpstan-ignore-next-line
+    public function findForPassport($username, $credentials = [])
+    {
+        // Passport 13 passes the OAuth client entity as the second argument;
+        // Exment's own LDAP password grant passes an array of credentials.
+        $credentials = is_array($credentials) ? $credentials : [];
         return LoginUserProvider::RetrieveByCredential(array_merge(['username' => $username], $credentials));
     }
 
 
     // @phpstan-ignore-next-line
-    public function validateForPassportPasswordGrant($password, ?array $credentials = [])
+    public function validateForPassportPasswordGrant($password, $credentials = [])
     {
+        $credentials = is_array($credentials) ? $credentials : [];
         return LoginUserProvider::ValidateCredential($this, array_merge(['password' => $password], $credentials));
     }
 

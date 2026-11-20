@@ -30,7 +30,7 @@ class Plugin extends PluginExportBase
 
         foreach ($data as $fields) {
             // @phpstan-ignore-next-line
-            fputcsv($fp, $fields);
+            fputcsv($fp, $fields, escape: '\\');
         }
 
         // @phpstan-ignore-next-line

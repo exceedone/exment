@@ -309,7 +309,7 @@ class CustomOperation extends ModelBase
             if ($ex instanceof ValidationException) {
 
                 // @phpstan-ignore-next-line
-                return array_first(array_flatten($ex->validator->getMessages()));
+                return \Illuminate\Support\Arr::first(array_flatten($ex->validator->getMessages()));
             }
             throw $ex;
         }

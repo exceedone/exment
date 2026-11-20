@@ -4,20 +4,20 @@ How to test.
 ## Browser, Unit, Feature Test
 
 ### Install (Only first)
+- Tests require PHP 8.3 or upper (PHP 8.4 recommended).
 - Please execute this command.
 
 ```
-composer require symfony/css-selector=^7.0
+composer require "symfony/css-selector=^7.0|^8.0"
 composer require laravel/browser-kit-testing=^7.2
-composer require dms/phpunit-arraysubset-asserts=~0.5.0
 ```
 
 ### Change PHPUnit version (Only first)
-- Exment uses version 11.X for PHPUnit.  
+- Exment uses version 12.X for PHPUnit.  
 If there is a description about "phpunit / phpunit" in require-dev of composer.json in the root folder, please modify it as follows.
 
 ```
-"phpunit/phpunit": "^11.5",
+"phpunit/phpunit": "^12.5",
 ```
 
 And execute this command.
@@ -53,7 +53,7 @@ After that, if the following description is included, comment it out.
 ```
 
 - The test does API, but in some cases it seems to get 429 errors (Too Many Requests).  
-Laravel 12 has no `app/Http/Kernel.php`; middleware is configured in `bootstrap/app.php`. Open it and modify the `withMiddleware` block.
+Laravel 13 has no `app/Http/Kernel.php`; middleware is configured in `bootstrap/app.php`. Open it and modify the `withMiddleware` block.
 
 ``` php
     ->withMiddleware(function (Middleware $middleware) {

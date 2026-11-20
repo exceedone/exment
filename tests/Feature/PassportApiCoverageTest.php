@@ -57,7 +57,7 @@ class PassportApiCoverageTest extends ApiTestBase
             ->assertOk()
             ->assertJsonFragment(['id' => $seeded->id, 'name' => Define::API_FEATURE_TEST]);
 
-        // a new model answers 201; Passport shows the secret, as client secrets are not hashed
+        // a new model answers 201; Passport 13 stores the secret hashed and shows the plain one once
         $created = $this->withHeaders($headers)->post(admin_urls('oauth', 'clients'), [
             'name' => 'Claude coverage passport client',
             'redirect' => 'http://localhost/claude-passport',
@@ -69,7 +69,7 @@ class PassportApiCoverageTest extends ApiTestBase
             ]);
         $clientId = $created->json('id');
         $this->assertIsString($clientId);
-        $this->assertSame(40, strlen((string) $created->json('secret')));
+        $this->assertSame(40, strlen((string) $created->json('plain_secret')));
         $this->assertDatabaseHas('oauth_clients', [
             'id' => $clientId,
             'user_id' => $adminId,
@@ -109,16 +109,15 @@ class PassportApiCoverageTest extends ApiTestBase
 
         // Passport issues personal access tokens through a personal access client, which the
         // operator creates once ("php artisan passport:client --personal"); the test data has none
-        $this->clientWithLoadableId(fn () => app(ClientRepository::class)->createPersonalAccessClient($adminId, 'Claude coverage personal access client', 'http://localhost'));
+        $this->clientWithLoadableId(fn () => app(ClientRepository::class)->createPersonalAccessGrantClient('Claude coverage personal access client'));
 
         $created = $this->withHeaders($headers)->post(admin_urls('oauth', 'personal-access-tokens'), [
             'name' => 'Claude coverage token',
             'scopes' => [ApiScope::ME],
         ])->assertOk()
-            ->assertJsonPath('token.name', 'Claude coverage token')
-            ->assertJsonPath('token.scopes', [ApiScope::ME])
-            ->assertJsonPath('token.revoked', false);
-        $tokenId = $created->json('token.id');
+            ->assertJsonPath('tokenType', 'Bearer');
+        // Passport 13 answers {accessTokenId, accessToken, tokenType, expiresIn} (no "token" model)
+        $tokenId = $created->json('accessTokenId');
         $this->assertIsString($tokenId);
         $this->assertSame($tokenId, $this->tokenId((string) $created->json('accessToken')));
         $this->assertDatabaseHas('oauth_access_tokens', [
@@ -153,25 +152,27 @@ class PassportApiCoverageTest extends ApiTestBase
         $apiKeyTokenId = $this->tokenId($this->issueToken([
             'grant_type' => 'api_key',
             'client_id' => $client->getKey(),
-            'client_secret' => $client->secret,
+            'client_secret' => $client->plainSecret,
             'api_key' => ApiKey::where('client_id', $client->getKey())->value('key'),
             'scope' => implode(' ', ApiScope::arrays()),
         ]));
         $this->assertDatabaseHas('oauth_refresh_tokens', ['access_token_id' => $apiKeyTokenId, 'revoked' => 0]);
 
-        // the bearer's password-grant token is first party and is not listed
+        // Passport 13 lists the tokens of every client that is not first party (no owner). Exment's
+        // clients always have an owner (user_id), so the bearer's password-grant token is listed too.
         $this->forgetTheOtherTokensOf($adminId, [$this->tokenId($bearer), $apiKeyTokenId]);
-        $this->withHeaders($headers)->get(admin_urls('oauth', 'tokens'))
+        $listed = $this->withHeaders($headers)->get(admin_urls('oauth', 'tokens'))
             ->assertOk()
-            ->assertJsonCount(1)
-            ->assertJsonPath('0.id', $apiKeyTokenId);
+            ->assertJsonCount(2);
+        $this->assertContains($apiKeyTokenId, array_column($listed->json(), 'id'));
 
         $this->withHeaders($headers)->delete(admin_urls('oauth', 'tokens', $apiKeyTokenId))->assertNoContent();
         $this->assertDatabaseHas('oauth_access_tokens', ['id' => $apiKeyTokenId, 'revoked' => 1]);
         $this->assertDatabaseHas('oauth_refresh_tokens', ['access_token_id' => $apiKeyTokenId, 'revoked' => 1]);
         $this->assertDatabaseMissing('oauth_refresh_tokens', ['access_token_id' => $apiKeyTokenId, 'revoked' => 0]);
 
-        $this->withHeaders($headers)->get(admin_urls('oauth', 'tokens'))->assertOk()->assertExactJson([]);
+        $after = $this->withHeaders($headers)->get(admin_urls('oauth', 'tokens'))->assertOk()->json();
+        $this->assertNotContains($apiKeyTokenId, array_column($after, 'id'));
     }
 
     // authorize is the consent screen of the authorization-code flow. Passport's
@@ -191,7 +192,10 @@ class PassportApiCoverageTest extends ApiTestBase
             'redirect_uri' => 'http://localhost/claude-passport',
         ]));
 
-        $this->assertSame('invalid_client', $this->oauthErrorType($response->exception));
+        // Laravel 12 / Passport 12: exment's error page holds the exception. Passport 13 answers
+        // the OAuth error itself (401 JSON), so read the error type from the body then.
+        $type = $this->oauthErrorType($response->baseResponse->exception ?? null) ?? $response->json('error');
+        $this->assertSame('invalid_client', $type);
         $response->assertSessionMissing('authRequest');
     }
 
@@ -243,12 +247,12 @@ class PassportApiCoverageTest extends ApiTestBase
      */
     private function adminTokenOfANewPasswordClient(): string
     {
-        $client = $this->clientWithLoadableId(fn () => (new ApiClientRepository())->createPasswordGrantClient($this->admin()->getAuthIdentifier(), 'Claude coverage password client', 'http://localhost'));
+        $client = $this->clientWithLoadableId(fn () => (new ApiClientRepository())->createPasswordClient($this->admin()->getAuthIdentifier(), 'Claude coverage password client', 'http://localhost'));
 
         return $this->issueToken([
             'grant_type' => 'password',
             'client_id' => $client->getKey(),
-            'client_secret' => $client->secret,
+            'client_secret' => $client->plainSecret,
             'username' => 'admin',
             'password' => 'adminadmin',
             'scope' => implode(' ', ApiScope::arrays()),

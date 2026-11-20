@@ -538,7 +538,7 @@ class PublicForm extends ModelBase
 
 
     // @phpstan-ignore-next-line
-    public function getNotifyParams(?CustomValue $custom_value = null, array $relationInputs = null, ?array $data = null)
+    public function getNotifyParams(?CustomValue $custom_value = null, ?array $relationInputs = null, ?array $data = null)
     {
         return [
             'publicform:public_form_view_name' => $this->public_form_view_name,
@@ -556,7 +556,7 @@ class PublicForm extends ModelBase
      */
 
     // @phpstan-ignore-next-line
-    protected function getInputValueText(?CustomValue $custom_value = null, array $relationInputs = null, ?array $data = null)
+    protected function getInputValueText(?CustomValue $custom_value = null, ?array $relationInputs = null, ?array $data = null)
     {
         try {
             $form = null;

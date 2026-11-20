@@ -35,7 +35,8 @@ abstract class ApiTestBase extends FeatureTestBase
         // get client id and secret token
         $client = ApiClient::withoutGlobalScope('only_self')->where('name', Define::API_FEATURE_TEST)->first();
 
-        return [$client->id, $client->secret];
+        // the secret is stored hashed (Passport 13): use the seeded plain value
+        return [$client->id, Define::API_FEATURE_TEST_SECRET];
     }
 
     /**
@@ -48,7 +49,7 @@ abstract class ApiTestBase extends FeatureTestBase
         // get client id and secret token
         $client = ApiClient::withoutGlobalScope('only_self')->where('name', Define::API_FEATURE_TEST_APIKEY)->first();
 
-        return [$client->id, $client->secret, $client->client_api_key->key];
+        return [$client->id, Define::API_FEATURE_TEST_SECRET, $client->client_api_key->key];
     }
 
     /**

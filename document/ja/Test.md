@@ -4,20 +4,20 @@
 ## ブラウザ・単体・結合テスト
 
 ### インストール(初回のみ) 
+- テストの実行にはPHP 8.3以上が必要です（PHP 8.4推奨）。
 - 以下のコマンドを実行してください。  
 
 ```
-composer require symfony/css-selector=^7.0
+composer require "symfony/css-selector=^7.0|^8.0"
 composer require laravel/browser-kit-testing=^7.2
-composer require dms/phpunit-arraysubset-asserts=~0.5.0
 ```
 
 ### PHPUnitバージョン変更(初回のみ)
-- Exmentでは、PHPUnitにバージョン11.Xを採用しています。  
+- Exmentでは、PHPUnitにバージョン12.Xを採用しています。  
 ルートフォルダのcomposer.jsonの、require-devに、"phpunit/phpunit"に関する記述があれば、以下のように修正してください。
 
 ```
-"phpunit/phpunit": "^11.5",
+"phpunit/phpunit": "^12.5",
 ```
 
 その後、以下のコマンドを実行してください。
@@ -53,7 +53,7 @@ composer update
 ```
 
 - テストではAPIを施しますが、場合により、429エラー(Too Many Requests)が発生するようです。  
-Laravel 12では`app/Http/Kernel.php`が存在せず、ミドルウェアは`bootstrap/app.php`で設定します。ファイルを開き、`withMiddleware`のブロックを修正してください。
+Laravel 13では`app/Http/Kernel.php`が存在せず、ミドルウェアは`bootstrap/app.php`で設定します。ファイルを開き、`withMiddleware`のブロックを修正してください。
 
 ``` php
     ->withMiddleware(function (Middleware $middleware) {

@@ -43,7 +43,6 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      */
     public function getSchemaBuilder()
     {
-        // @phpstan-ignore-next-line
         if (is_null($this->schemaGrammar)) {
             $this->useDefaultSchemaGrammar();
         }
@@ -235,7 +234,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     {
         // create tsv file
         $file = new \SplFileObject(path_join($tempDir, $table . '.tsv'), 'w');
-        $file->setCsvControl("\t");
+        $file->setCsvControl("\t", escape: '\\');
 
         // get column definition
         $columns = \Schema::getColumnDefinitions($table);

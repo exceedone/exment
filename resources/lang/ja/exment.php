@@ -3459,6 +3459,8 @@ return [
         'help' =>[
             'redirect' => '認証後にリダイレクトするURLを入力してください。',
             'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
+            'client_secret_once' => 'Client Secretは作成直後のこの画面でのみ表示されます。必ず控えてください。画面を離れると再表示できません。',
+            'client_secret_hidden' => 'Client Secretは暗号化して保存されているため、表示できません。紛失した場合は、新しいクライアントを作成してください。',
             'api_key' => '認証に使用するAPIのキーです。',
             'executed_user' => 'APIは、このユーザーとして実行されます。',
         ],

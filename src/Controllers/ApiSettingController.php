@@ -113,9 +113,19 @@ class ApiSettingController extends AdminControllerBase
 
         if (isset($id)) {
             $form->text('id', exmtrans('api.client_id'))->attribute(['copyScript' => 1])->readonly();
-            $form->password('secret', exmtrans('api.client_secret'))->readonly()->toggleShowEvent()
-                ->attribute(['copyScript' => 1])
-                ->help(exmtrans('api.help.client_secret'));
+            // Passport 13 always stores the secret hashed: the plain value exists only right
+            // after the client is created (flashed by saveData()), so show it that one time.
+            $plainSecret = session(static::plainSecretSessionKey($id));
+            if (!is_nullorempty($plainSecret)) {
+                $form->password('plain_secret', exmtrans('api.client_secret'))->readonly()->toggleShowEvent()
+                    ->default($plainSecret)
+                    ->attribute(['copyScript' => 1])
+                    ->help(exmtrans('api.help.client_secret_once'));
+            } else {
+                $form->display('plain_secret', exmtrans('api.client_secret'))
+                    ->default('********')
+                    ->help(exmtrans('api.help.client_secret_hidden'));
+            }
 
             // @phpstan-ignore-next-line
             if ($client->client_type == ApiClientType::API_KEY) {
@@ -195,8 +205,7 @@ class ApiSettingController extends AdminControllerBase
 
                 // create for CLIENT_CREDENTIALS
                 if ($client_type == ApiClientType::CLIENT_CREDENTIALS) {
-                    $client = $clientRepository->create(
-                        // @phpstan-ignore-next-line
+                    $client = $clientRepository->createClientCredentials(
                         $user_id,
                         $name,
                         $request->get('redirect')
@@ -204,8 +213,7 @@ class ApiSettingController extends AdminControllerBase
                 }
                 // create for password
                 elseif ($client_type == ApiClientType::PASSWORD_GRANT) {
-                    $client = $clientRepository->createPasswordGrantClient(
-                        // @phpstan-ignore-next-line
+                    $client = $clientRepository->createPasswordClient(
                         $user_id,
                         $name,
                         'http://localhost'
@@ -234,6 +242,11 @@ class ApiSettingController extends AdminControllerBase
             }
             DB::commit();
 
+            // show the plain secret once on the edit page (it is stored hashed)
+            if (!isset($id) && isset($client) && !is_nullorempty($client->plainSecret ?? null)) {
+                session()->flash(static::plainSecretSessionKey($client->id), $client->plainSecret);
+            }
+
             admin_toastr(trans('admin.update_succeeded'));
             // @phpstan-ignore-next-line
             $url = admin_urls('api_setting', $client->id, 'edit');
@@ -242,5 +255,16 @@ class ApiSettingController extends AdminControllerBase
             DB::rollback();
             throw $ex;
         }
+    }
+
+    /**
+     * Session key holding a newly created client's plain secret for one request.
+     *
+     * @param string|int $id client id
+     * @return string
+     */
+    protected static function plainSecretSessionKey($id): string
+    {
+        return 'exment_api_plain_secret.' . $id;
     }
 }

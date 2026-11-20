@@ -908,7 +908,7 @@ class TemplateImporter
      * @return array|void
      */
     // @phpstan-ignore-next-line
-    public function getMergeJson(string $jsonString = null, array $options = [])
+    public function getMergeJson(?string $jsonString = null, array $options = [])
     {
         $options = array_merge(
             [

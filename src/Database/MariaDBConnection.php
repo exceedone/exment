@@ -19,7 +19,6 @@ class MariaDBConnection extends MySqlConnection
      */
     public function getSchemaBuilder()
     {
-        // @phpstan-ignore-next-line
         if (is_null($this->schemaGrammar)) {
             $this->useDefaultSchemaGrammar();
         }

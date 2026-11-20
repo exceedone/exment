@@ -6,6 +6,7 @@ This page explains how to set up developing Exment engine.
 - This page is beta version. If you cannot set up, please write issue.
 - The following applications must be installed in advance.
     - Visual Studio Code
+    - PHP 8.3 or upper (PHP 8.4 recommended)
     - git
     - composer
     - node.js(npm)
@@ -21,7 +22,7 @@ This page explains how to set up developing Exment engine.
 - Please execute this command on any path.
 
 ~~~
-composer create-project "laravel/laravel=12.*" (project name)
+composer create-project "laravel/laravel=13.*" (project name)
 cd (project name)
 ~~~
 
@@ -64,11 +65,11 @@ git clone https://github.com/hirossyi73/exment-admin-core.git
 
 ~~~
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "guzzlehttp/guzzle": "^7.10",
-        "laravel/framework": "^12.0",
-        "laravel/sanctum": "^4.2",
-        "laravel/tinker": "^2.10",
+        "laravel/framework": "^13.0",
+        "laravel/sanctum": "^4.3.1",
+        "laravel/tinker": "^3.0",
         "psr/simple-cache": "2.0.0",
         // Add this line
         "exceedone/exment": "dev-master"

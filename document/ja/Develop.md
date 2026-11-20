@@ -6,6 +6,7 @@
 - このページは作成中です。もしセットアップがうまくいかない場合、issueに記載してください。
 - 事前に、以下のアプリケーションがインストールされている必要があります。
     - Visual Studio Code
+    - PHP 8.3以上（PHP 8.4推奨）
     - git
     - composer
     - node.js(npm)
@@ -22,7 +23,7 @@
 - Laravelのプロジェクトを作成します。
 
 ~~~
-composer create-project "laravel/laravel=12.*" (プロジェクト名)
+composer create-project "laravel/laravel=13.*" (プロジェクト名)
 cd (プロジェクト名)
 ~~~
 
@@ -65,11 +66,11 @@ git clone https://github.com/hirossyi73/exment-admin-core.git
 
 ~~~
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "guzzlehttp/guzzle": "^7.10",
-        "laravel/framework": "^12.0",
-        "laravel/sanctum": "^4.2",
-        "laravel/tinker": "^2.10",
+        "laravel/framework": "^13.0",
+        "laravel/sanctum": "^4.3.1",
+        "laravel/tinker": "^3.0",
         "psr/simple-cache": "2.0.0",
         // 行追加
         "exceedone/exment": "dev-master"

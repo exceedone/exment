@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Feature;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Testing\PendingCommand;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * The 29 exment:* / passport:clientlist commands that had no test at all.
@@ -155,9 +156,7 @@ class ConsoleCommandsTest extends FeatureTestBase
         ];
     }
 
-    /**
-     * @dataProvider provideRegistrationOnlyCommands
-     */
+    #[DataProvider('provideRegistrationOnlyCommands')]
     public function testCommandIsRegistered(string $command): void
     {
         $this->assertArrayHasKey($command, Artisan::all(), "Command $command is not registered.");

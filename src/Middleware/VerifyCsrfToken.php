@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Contracts\Encryption\Encrypter;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as BaseVerifier;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery as BaseVerifier;
 
 class VerifyCsrfToken extends BaseVerifier
 {

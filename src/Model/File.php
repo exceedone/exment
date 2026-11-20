@@ -325,7 +325,7 @@ class File extends ModelBase
      * @param \Closure|null $authCallback
      * @return string|null
      */
-    public static function getFile($uuid, \Closure $authCallback = null)
+    public static function getFile($uuid, ?\Closure $authCallback = null)
     {
         $data = static::getData($uuid);
         if (!$data) {

@@ -80,6 +80,11 @@ class UpdateCommand extends Command
 
         $this->call('migrate');
 
+        // Passport 13 checks client secrets with Hash::check(), so the plain secrets stored by
+        // Exment v7 or earlier must be hashed once, or those API clients get a 500 on /oauth/token.
+        // passport:hash skips secrets that are already hashed, so running it on every update is safe.
+        $this->call('passport:hash', ['--force' => true]);
+
         // Remove template import if update
         // $importer = new TemplateImporter;
         // $importer->importSystemTemplate(true);

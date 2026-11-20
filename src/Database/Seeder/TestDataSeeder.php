@@ -1861,16 +1861,18 @@ class TestDataSeeder extends Seeder
     {
         // init api
         $clientRepository = new ApiClientRepository();
-        $client = $clientRepository->createPasswordGrantClient(
+        $clientRepository->createPasswordClient(
             1,
             Define::API_FEATURE_TEST,
-            'http://localhost'
+            'http://localhost',
+            Define::API_FEATURE_TEST_SECRET
         );
 
         $clientRepository->createApiKey(
             1,
             Define::API_FEATURE_TEST_APIKEY,
-            'http://localhost'
+            'http://localhost',
+            Define::API_FEATURE_TEST_SECRET
         );
     }
 

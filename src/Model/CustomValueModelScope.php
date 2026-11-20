@@ -11,6 +11,9 @@ use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
+/**
+ * @implements Scope<\Illuminate\Database\Eloquent\Model>
+ */
 class CustomValueModelScope implements Scope
 {
     /**

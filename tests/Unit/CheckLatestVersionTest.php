@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Unit;
 use Tests\TestCase;
 use Exceedone\Exment\Exment;
 use Exceedone\Exment\Enums\SystemVersion;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Guard tests for the version-comparison logic in Exment::checkLatestVersion().
@@ -70,10 +71,10 @@ class CheckLatestVersionTest extends TestCase
     }
 
     /**
-     * @dataProvider devCurrentProvider
      *
      * @return void
      */
+    #[DataProvider('devCurrentProvider')]
     public function testDevAndBranchAliasCurrentsAreDev(string $current)
     {
         $this->assertSame(SystemVersion::DEV, $this->exment()->classifyVersion('6.2.10', $current));
@@ -97,10 +98,10 @@ class CheckLatestVersionTest extends TestCase
      * null / empty must classify as ERROR and must NOT emit a deprecation
      * (regression: trim(null, 'v') deprecates on PHP 8.1+ when outside_api is off / offline).
      *
-     * @dataProvider emptyVersionProvider
      *
      * @return void
      */
+    #[DataProvider('emptyVersionProvider')]
     public function testNullOrEmptyIsErrorWithoutDeprecation(?string $latest, ?string $current)
     {
         set_error_handler(function ($no, $str) {

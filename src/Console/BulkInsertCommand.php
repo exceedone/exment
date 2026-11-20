@@ -165,7 +165,7 @@ class BulkInsertCommand extends Command
         // create output file as tsv
         $outputpath = path_join($tempdir, $tsvname);
         $output = new \SplFileObject($outputpath, 'w');
-        $output->setCsvControl("\t");
+        $output->setCsvControl("\t", escape: '\\');
 
         $i = 0;
         $header = [];

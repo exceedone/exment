@@ -389,6 +389,7 @@ class ExmentServiceProvider extends ServiceProvider
         // bootstrap/app.php calls throttleApi(), so add it here unless the app already throttles the group.
         $apiGroup = $kernel->getMiddlewareGroups()['api'] ?? null;
         if (is_array($apiGroup) && !collect($apiGroup)->contains(function ($m) {
+            // @phpstan-ignore function.alreadyNarrowedType (typed string on Laravel 13; kept as a runtime guard)
             return is_string($m) && (str_starts_with($m, 'throttle') || str_starts_with($m, ThrottleRequests::class));
         })) {
             $kernel->prependMiddlewareToGroup('api', 'throttle:api');
@@ -430,9 +431,13 @@ class ExmentServiceProvider extends ServiceProvider
         });
 
         // guard provider
-        Auth::extend('publicformtoken', function ($app, $name, array $config) {
-            return tap($this->makeGuard($config), function ($guard) {
-                $this->app->refresh('request', $guard, 'setRequest');
+        // Laravel 13 binds the custom-creator closure's $this to the AuthManager (not this
+        // provider), so $this->makeGuard() would be proxied to the default guard and fail.
+        // Capture the provider explicitly and use the $app argument instead of $this.
+        $provider = $this;
+        Auth::extend('publicformtoken', function ($app, $name, array $config) use ($provider) {
+            return tap($provider->makeGuard($config), function ($guard) use ($app) {
+                $app->refresh('request', $guard, 'setRequest');
             });
         });
 
@@ -694,7 +699,7 @@ class ExmentServiceProvider extends ServiceProvider
      * @return \Illuminate\Auth\RequestGuard
      */
     // @phpstan-ignore-next-line
-    protected function makeGuard(array $config)
+    public function makeGuard(array $config)
     {
         return new RequestGuard(function ($request) use ($config) {
             return (new PublicFormGuard(
