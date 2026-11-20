@@ -178,6 +178,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('app', 'StudioAppController@index');
             $router->get('app/manifest.webmanifest', 'StudioAppController@manifest');
             $router->get('app/sw.js', 'StudioAppController@serviceWorker');
+            $router->get('app/code', 'StudioAppController@code');
 
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
