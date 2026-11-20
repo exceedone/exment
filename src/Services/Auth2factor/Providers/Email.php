@@ -95,6 +95,17 @@ class Email
     }
 
     /**
+     * The key of the failed attempts. It is the user who passed the password,
+     * not a value of the request: a value the client sends could be changed
+     * on every try, and then the limit would never be reached.
+     */
+    protected function throttleKey(\Illuminate\Http\Request $request)
+    {
+        $loginuser = \Admin::user();
+        return '2factor|' . ($loginuser ? $loginuser->id : $request->ip());
+    }
+
+    /**
      * Get the login username to be used by the controller.
      *
      * @return string
