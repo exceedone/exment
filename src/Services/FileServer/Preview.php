@@ -156,6 +156,12 @@ class Preview
         $library = new Library(new Access(null, true, []));
         $local = null;
         $status = FileNodeVersion::RENDITION_NONE;
+        if (static::maxBytes() > 0 && intval($version->size) > static::maxBytes()) {
+            // too large to convert (ISS00410): the file is still there to download
+            $version->rendition_status = $status;
+            $version->save();
+            return;
+        }
         try {
             $local = $library->downloadToLocal($version);
             $dir = dirname($version->path);
@@ -229,9 +235,20 @@ class Preview
     /**
      * A thumbnail (JPEG, or PNG when GD cannot write JPEG) of an image (a local temporary file), with GD.
      */
+    /**
+     * The largest image a thumbnail is made of (0: no limit).
+     */
     public static function maxPixels(): int
     {
-        return max(1, intval(config('exment.file_server_preview_max_pixels', 40000000)));
+        return max(0, intval(config('exment.file_server_preview_max_pixels', 20000000)));
+    }
+
+    /**
+     * The largest file made into a preview by Imagick or LibreOffice (0: no limit).
+     */
+    public static function maxBytes(): int
+    {
+        return max(0, intval(config('exment.file_server_preview_max_bytes', 104857600)));
     }
 
     public static function imageThumbnail(string $local): ?string
@@ -241,7 +258,7 @@ class Preview
         }
         // a huge image would use up the memory (ISS00410)
         $info = @getimagesize($local);
-        if ($info === false || intval($info[0]) * intval($info[1]) > static::maxPixels()) {
+        if ($info === false || (static::maxPixels() > 0 && intval($info[0]) * intval($info[1]) > static::maxPixels())) {
             return null;
         }
         $bytes = file_get_contents($local);

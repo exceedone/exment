@@ -428,4 +428,94 @@ class FileShareTest extends FeatureTestBase
         $this->assertFileDoesNotExist($old);
         $this->assertFileExists($new);
     }
+
+    public function testTheTypesARequestLinkTakes(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_REQUEST);
+        $json = ['Accept' => 'application/json'];
+
+        // a dot or a space at the end is still the type (Windows drops them)
+        foreach (['run.exe.', "run.exe\u{3000}", "shell.php. . ", "run.exe\u{00A0}", 'page.html', 'img.svg', 'm.xlsm', 'disk.iso'] as $name) {
+            $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent($name, 'x')]], $json)
+                ->assertStatus(415);
+        }
+        $this->assertSame(['hello.txt'], $this->admin()->children($ws, $folder)->pluck('name')->all());
+
+        // only the types the site allows
+        config(['exment.file_server_request_allow_extensions' => 'pdf, .jpg']);
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('a.txt', 'x')]], $json)->assertStatus(415);
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('noext', 'x')]], $json)->assertStatus(415);
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('a.PDF', '%PDF')]], $json)->assertOk();
+    }
+
+    public function testALinkClosesWhenItsFolderIsClosed(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $lib = $this->admin();
+        $inner = $lib->createFolder($ws, $folder, 'Inner');
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::EDIT);
+        $links = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $onFolder = $links->create($ws, $folder, FileShareLink::KIND_SHARE);
+        $onInner = $links->create($ws, $inner, FileShareLink::KIND_SHARE);
+        $this->assertSame($this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), $onFolder->created_user_id);
+        $this->get($this->shareUrl($onFolder))->assertOk();
+        $this->get($this->shareUrl($onInner))->assertOk();
+
+        // the folder of the links gets its own permissions without the maker
+        $lib->breakInheritance($ws, $folder);
+        $lib->setPermissions($ws, $folder, [['target_type' => 'user', 'target_id' => $this->userId(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'level' => Level::MANAGE]]);
+        $this->flushSession();
+        $this->get($this->shareUrl($onFolder))->assertStatus(404);
+        // and the link of a folder in it
+        $this->get($this->shareUrl($onInner))->assertStatus(404);
+
+        // a link of the admin stays
+        $mine = $this->links($lib)->create($ws, $folder, FileShareLink::KIND_SHARE);
+        $this->get($this->shareUrl($mine))->assertOk();
+    }
+
+    public function testOneZipAtATime(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_SHARE);
+        $lock = \Illuminate\Support\Facades\Cache::lock('exment_file_server_zip_link_' . $ws->id, 60);
+        $this->assertTrue($lock->get());
+        try {
+            $this->get($this->shareUrl($link, 'download'))->assertStatus(429);
+        } finally {
+            $lock->release();
+        }
+        $this->get($this->shareUrl($link, 'download'))->assertOk();
+
+        // a failed zip leaves nothing
+        $before = glob(storage_path('app/file_server_tmp/zip_*')) ?: [];
+        config(['exment.file_server_zip_max_bytes' => 0]);
+        Storage::disk(Define::DISKNAME_ADMIN)->delete(FileNode::query()->where('name', 'hello.txt')->firstOrFail()->current_version->path);
+        try {
+            $this->admin()->zip($ws, [$folder]);
+        } catch (\Throwable $e) {
+            // the bytes of the file are not there
+        }
+        $this->assertSame(count($before), count(glob(storage_path('app/file_server_tmp/zip_*')) ?: []));
+    }
+
+    public function testThePixelsOfAThumbnail(): void
+    {
+        if (!function_exists('imagecreatetruecolor') || !function_exists('imagepng')) {
+            $this->markTestSkipped('no GD');
+        }
+        $path = Library::tempPath('px_') . '.png';
+        $im = imagecreatetruecolor(200, 100);
+        imagepng($im, $path);
+        imagedestroy($im);
+        $this->locals[] = $path;
+
+        config(['exment.file_server_preview_max_pixels' => 19999]);
+        $this->assertNull(\Exceedone\Exment\Services\FileServer\Preview::imageThumbnail($path));
+        config(['exment.file_server_preview_max_pixels' => 0]);
+        $thumb = \Exceedone\Exment\Services\FileServer\Preview::imageThumbnail($path);
+        $this->assertNotNull($thumb);
+        $this->locals[] = strval($thumb);
+    }
 }

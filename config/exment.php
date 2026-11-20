@@ -1477,8 +1477,13 @@ return [
     'file_server_request_max_files' => env('EXMENT_FILE_SERVER_REQUEST_MAX_FILES', 100),
     'file_server_request_max_bytes' => env('EXMENT_FILE_SERVER_REQUEST_MAX_BYTES', 1073741824),
     'file_server_request_max_file_size' => env('EXMENT_FILE_SERVER_REQUEST_MAX_FILE_SIZE', 104857600),
-    'file_server_request_deny_extensions' => env('EXMENT_FILE_SERVER_REQUEST_DENY_EXTENSIONS', 'exe,com,bat,cmd,scr,pif,msi,msp,dll,cpl,js,jse,vbs,vbe,wsf,wsh,ps1,psm1,hta,jar,lnk,reg,sh,php,phtml,phar'),
+    // empty: the list of ShareLinks::DEFAULT_DENIED_EXTENSIONS. allow: only these types (empty: all but the denied)
+    'file_server_request_deny_extensions' => env('EXMENT_FILE_SERVER_REQUEST_DENY_EXTENSIONS', ''),
+    'file_server_request_allow_extensions' => env('EXMENT_FILE_SERVER_REQUEST_ALLOW_EXTENSIONS', ''),
     // the largest folder downloaded as a zip, in bytes (0: no limit); the largest image a thumbnail is made of, in pixels
     'file_server_zip_max_bytes' => env('EXMENT_FILE_SERVER_ZIP_MAX_BYTES', 2147483648),
-    'file_server_preview_max_pixels' => env('EXMENT_FILE_SERVER_PREVIEW_MAX_PIXELS', 40000000),
+    // 0: no limit. About 4 bytes a pixel are used, so the default fits a memory_limit of 128M
+    'file_server_preview_max_pixels' => env('EXMENT_FILE_SERVER_PREVIEW_MAX_PIXELS', 20000000),
+    // the largest file made into a preview by Imagick or LibreOffice, in bytes (0: no limit)
+    'file_server_preview_max_bytes' => env('EXMENT_FILE_SERVER_PREVIEW_MAX_BYTES', 104857600),
 ];

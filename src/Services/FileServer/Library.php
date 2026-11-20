@@ -874,36 +874,68 @@ class Library
         if (!class_exists(\ZipArchive::class)) {
             throw new FileServerException(exmtrans('file_server.error_zip'));
         }
-        $path = static::tempPath('zip_');
-        $zip = new \ZipArchive();
-        if ($zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-            throw new FileServerException(exmtrans('file_server.error_zip'));
+        foreach ($nodes as $node) {
+            $this->access->authorize($workspace, $node, Level::VIEW);
         }
         $max = static::zipMaxBytes();
         if ($max > 0) {
             $total = 0;
             foreach ($nodes as $node) {
-                $total += $this->treeSize($node);
+                $total += $this->zipSize($workspace, $node, true);
             }
             if ($total > $max) {
-                $zip->close();
-                @unlink($path);
                 throw new FileServerException(exmtrans('file_server.error_zip_too_large', ['size' => bytesToHuman($max)]), 413);
             }
         }
+
+        // one zip at a time for each user (for the links: each workspace), so
+        // that many at the same time do not fill the disk (ISS00410)
+        $lock = \Illuminate\Support\Facades\Cache::lock('exment_file_server_zip_' . ($this->forLink ? 'link_' . $workspace->id : 'user_' . intval($this->access->userId())), 900);
+        if (!$lock->get()) {
+            throw new FileServerException(exmtrans('file_server.error_zip_busy'), 429);
+        }
+        $path = static::tempPath('zip_');
         $locals = [];
+        $done = false;
         try {
+            $zip = new \ZipArchive();
+            if ($zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                throw new FileServerException(exmtrans('file_server.error_zip'));
+            }
             foreach ($nodes as $node) {
-                $this->access->authorize($workspace, $node, Level::VIEW);
                 $this->addToZip($workspace, $zip, $node, '', $locals);
             }
             $zip->close();
+            $done = true;
         } finally {
             foreach ($locals as $local) {
                 @unlink($local);
             }
+            if (!$done) {
+                @unlink($path);
+            }
+            $lock->release();
         }
         return $path;
+    }
+
+    /**
+     * The bytes of what goes into a zip: what the user may see (for a link:
+     * not what has its own permissions, so a refusal tells nothing of it).
+     */
+    protected function zipSize(FileWorkspace $workspace, FileNode $node, bool $root): int
+    {
+        if (!$this->access->can($workspace, $node, Level::VIEW) || ($this->forLink && !$root && $node->has_unique_permissions)) {
+            return 0;
+        }
+        if ($node->isFile()) {
+            return intval($node->size);
+        }
+        $total = 0;
+        foreach (FileNode::query()->where('parent_id', $node->id)->whereNull('trashed_at')->get() as $child) {
+            $total += $this->zipSize($workspace, $child, false);
+        }
+        return $total;
     }
 
     /**
