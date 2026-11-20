@@ -40,12 +40,6 @@
   @if($modern_ui)
   <link rel="stylesheet" href="{{ admin_asset("vendor/exment/css/modern.css") }}">
   @endif
-  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-  <!--[if lt IE 9]>
-  <script src="//oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-  <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-  <![endif]-->
   <style>
   .login-page{
     @if(isset($background_color) && !$modern_ui_default_bg)
