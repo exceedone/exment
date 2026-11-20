@@ -1,5 +1,12 @@
 {{-- File server: a folder (or the top) of a workspace. Data from FileServerController::folder. --}}
 @include('exment::file_server._assets')
+@php
+    $list_fields = array_values(array_filter($fields, function ($f) { return $f['show_in_list']; }));
+    $columns = ['name' => exmtrans('file_server.name')];
+    foreach ($list_fields as $f) { $columns['meta:' . $f['name']] = $f['label']; }
+    $columns['updated_at'] = exmtrans('file_server.updated_at');
+    $columns['size'] = exmtrans('file_server.size');
+@endphp
 <div class="exm-fs" id="exm-fs-folder"
      data-base="{{ $base_url }}" data-parent="{{ $parent_id }}" data-chunk="{{ $chunk_size }}" data-max="{{ $max_file_size }}">
     <div class="exm-fs-breadcrumb">
@@ -44,6 +51,61 @@
         @endif
     </div>
 
+    <form class="exm-fs-filters" method="get" action="{{ $search_url }}" role="search">
+        <input type="hidden" name="workspace" value="{{ $workspace->id }}">
+        <div class="input-group input-group-sm" style="max-width:420px">
+            <input type="search" name="q" class="form-control" placeholder="{{ exmtrans('file_server.search_placeholder') }}" aria-label="{{ exmtrans('file_server.search') }}">
+            <span class="input-group-btn"><button class="btn btn-default" type="submit"><i class="fa fa-search" aria-hidden="true"></i> {{ exmtrans('file_server.search') }}</button></span>
+        </div>
+    </form>
+
+    @if (count($fields) > 0)
+        <form class="exm-fs-filters" method="get" action="{{ $folder_url }}" data-fs="filters">
+            <input type="hidden" name="sort" value="{{ $sort }}">
+            <input type="hidden" name="direction" value="{{ $direction }}">
+            @foreach ($fields as $field)
+                <label class="exm-fs-filter">
+                    <span>{{ $field['label'] }}</span>
+                    @if ($field['groupable'])
+                        <select name="meta[{{ $field['name'] }}]" class="form-control input-sm">
+                            <option value=""></option>
+                            @if ($field['field_type'] === 'boolean')
+                                <option value="1" @selected(strval(array_get($filters, $field['name'])) === '1')>{{ exmtrans('file_server.yes') }}</option>
+                                <option value="0" @selected(strval(array_get($filters, $field['name'])) === '0')>{{ exmtrans('file_server.no') }}</option>
+                            @else
+                                @foreach ($field['choices'] as $choice)
+                                    <option value="{{ $choice }}" @selected(strval(array_get($filters, $field['name'])) === $choice)>{{ $choice }}</option>
+                                @endforeach
+                            @endif
+                            <option value="__none__" @selected(strval(array_get($filters, $field['name'])) === '__none__')>{{ exmtrans('file_server.no_value') }}</option>
+                        </select>
+                    @else
+                        <input type="{{ $field['field_type'] === 'date' ? 'date' : 'text' }}" name="meta[{{ $field['name'] }}]" class="form-control input-sm" value="{{ array_get($filters, $field['name']) }}">
+                    @endif
+                </label>
+            @endforeach
+            @if (collect($fields)->contains('groupable', true))
+                <label class="exm-fs-filter">
+                    <span>{{ exmtrans('file_server.group_by') }}</span>
+                    <select name="group" class="form-control input-sm">
+                        <option value=""></option>
+                        @foreach ($fields as $field)
+                            @if ($field['groupable'])
+                                <option value="{{ $field['name'] }}" @selected($group === $field['name'])>{{ $field['label'] }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                </label>
+            @endif
+            <span class="exm-fs-filter-buttons">
+                <button type="submit" class="btn btn-sm btn-default"><i class="fa fa-filter" aria-hidden="true"></i> {{ exmtrans('file_server.apply_filter') }}</button>
+                @if (count($filters) > 0 || isset($group))
+                    <a href="{{ $folder_url }}" class="btn btn-sm btn-link">{{ exmtrans('file_server.clear_filter') }}</a>
+                @endif
+            </span>
+        </form>
+    @endif
+
     @if ($can_upload)
         <div class="exm-fs-drop" data-fs="drop">{{ exmtrans('file_server.drop_here') }}</div>
         <div class="exm-fs-progress" data-fs="progress"></div>
@@ -55,9 +117,9 @@
                 <thead>
                     <tr>
                         <th class="exm-fs-check"><input type="checkbox" data-fs="check-all" aria-label="{{ exmtrans('file_server.select_all') }}"></th>
-                        @foreach (['name' => 'name', 'updated_at' => 'updated_at', 'size' => 'size'] as $key => $label)
+                        @foreach ($columns as $key => $label)
                             @php $next = ($sort === $key && $direction === 'asc') ? 'desc' : 'asc'; @endphp
-                            <th><a href="{{ $folder_url }}?sort={{ $key }}&direction={{ $next }}" style="color:inherit">{{ exmtrans('file_server.' . $label) }}
+                            <th><a href="{{ $folder_url }}?{{ http_build_query($query + ['sort' => $key, 'direction' => $next]) }}" style="color:inherit">{{ $label }}
                                 @if ($sort === $key)<i class="fa fa-sort-{{ $direction === 'asc' ? 'asc' : 'desc' }}" aria-hidden="true"></i>@endif</a></th>
                         @endforeach
                         <th></th>
@@ -65,33 +127,20 @@
                 </thead>
                 <tbody>
                     @if (count($items) === 0)
-                        <tr><td colspan="5" class="exm-fs-muted">{{ exmtrans('file_server.empty_folder') }}</td></tr>
+                        <tr><td colspan="{{ 5 + count($list_fields) }}" class="exm-fs-muted">{{ count($filters) > 0 ? exmtrans('file_server.no_match') : exmtrans('file_server.empty_folder') }}</td></tr>
                     @endif
-                    @foreach ($items as $item)
-                        <tr data-id="{{ $item['id'] }}" data-name="{{ $item['name'] }}">
-                            <td class="exm-fs-check"><input type="checkbox" data-fs="check" value="{{ $item['id'] }}" aria-label="{{ $item['name'] }}"></td>
-                            <td class="exm-fs-name">
-                                <a href="{{ $item['url'] }}">
-                                    @if ($item['thumbnail_url'])
-                                        <img class="exm-fs-thumb" src="{{ $item['thumbnail_url'] }}" alt="" loading="lazy">
-                                    @else
-                                        <i class="fa {{ $item['icon'] }}" aria-hidden="true"></i>
-                                    @endif{{ $item['name'] }}</a>
-                                @if ($item['checked_out'])<span class="exm-fs-badge" title="{{ exmtrans('file_server.checked_out_badge') }}"><i class="fa fa-lock" aria-hidden="true"></i> {{ exmtrans('file_server.checked_out_badge') }}</span>@endif
-                                @if ($item['unique_permissions'])<span class="exm-fs-badge" title="{{ exmtrans('file_server.unique_permissions') }}"><i class="fa fa-key" aria-hidden="true"></i></span>@endif
-                                @if ($item['version_no'] && $item['version_no'] > 1)<span class="exm-fs-badge">v{{ $item['version_no'] }}</span>@endif
-                            </td>
-                            <td class="exm-fs-muted">{{ optional($item['updated_at'])->format('Y/m/d H:i') }} {{ $item['updated_user'] }}</td>
-                            <td class="exm-fs-muted">@if (!$item['is_folder'])<span data-fs-size="{{ $item['size'] }}"></span>@endif</td>
-                            <td class="exm-fs-actions">
-                                <a class="btn btn-xs btn-default" href="{{ $item['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
-                                @if ($can_edit)
-                                    <button type="button" class="btn btn-xs btn-default" data-fs="rename" title="{{ exmtrans('file_server.rename') }}"><i class="fa fa-pencil" aria-hidden="true"></i></button>
-                                @endif
-                                <a class="btn btn-xs btn-default" href="{{ $item['detail_url'] }}" title="{{ exmtrans('file_server.detail') }}"><i class="fa fa-info-circle" aria-hidden="true"></i></a>
-                            </td>
-                        </tr>
-                    @endforeach
+                    @if (isset($groups))
+                        @foreach ($groups as $group)
+                            <tr class="exm-fs-group"><th colspan="{{ 5 + count($list_fields) }}">{{ $group['label'] }} <span class="exm-fs-muted">({{ count($group['items']) }})</span></th></tr>
+                            @foreach ($group['items'] as $item)
+                                @include('exment::file_server._row', ['item' => $item, 'list_fields' => $list_fields, 'can_edit' => $can_edit])
+                            @endforeach
+                        @endforeach
+                    @else
+                        @foreach ($items as $item)
+                            @include('exment::file_server._row', ['item' => $item, 'list_fields' => $list_fields, 'can_edit' => $can_edit])
+                        @endforeach
+                    @endif
                 </tbody>
             </table>
         </div>

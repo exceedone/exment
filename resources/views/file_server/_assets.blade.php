@@ -36,6 +36,15 @@
 .exm-fs-quota { font-size: .85rem; opacity: .8; }
 .exm-fs-perm-row { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
 .exm-fs-perm-row select { max-width: 260px; }
+.exm-fs-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-bottom: 10px; }
+.exm-fs-filter { display: flex; flex-direction: column; gap: 2px; margin: 0; font-weight: normal; font-size: .85rem; min-width: 140px; }
+.exm-fs-filter span { opacity: .75; }
+.exm-fs-group th { background: rgba(0,0,0,.04); font-weight: 600; }
+.exm-fs-meta { overflow-wrap: anywhere; max-width: 240px; }
+.exm-fs-meta-table th { width: 30%; font-weight: 600; }
+.exm-fs-snippet { font-size: .85rem; opacity: .85; margin-top: 2px; overflow-wrap: anywhere; }
+.exm-fs-field-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1.4fr 1fr auto auto auto; gap: 6px; align-items: start; margin-bottom: 6px; }
+@media (max-width: 900px) { .exm-fs-field-row { grid-template-columns: 1fr 1fr; } }
 </style>
 <script>
 window.ExmFs = window.ExmFs || (function () {

@@ -75,6 +75,8 @@ class DefaultShow extends ShowBase
 
         $this->setDocumentBox($row);
 
+        $this->setFileServerBox($row);
+
         $this->setRevisionBox($row);
 
         $this->setCommentBox($row);
@@ -689,6 +691,30 @@ EOT;
             Admin::script($script);
         }
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
+    }
+
+    /**
+     * The folders and files of the file server linked to this data (ISS00378),
+     * those the user may see. Nothing when there are none.
+     */
+    // @phpstan-ignore-next-line
+    protected function setFileServerBox($row)
+    {
+        if ($this->modal || !isset($this->custom_value) || !isset($this->custom_value->id)) {
+            return;
+        }
+        try {
+            $library = new \Exceedone\Exment\Services\FileServer\Library(\Exceedone\Exment\Services\FileServer\Access::current());
+            $nodes = (new \Exceedone\Exment\Services\FileServer\DataLinks($library))->nodesOf($this->custom_table->table_name, intval($this->custom_value->id));
+        } catch (\Throwable $e) {
+            // the tables of the file server are not there yet (before the update)
+            return;
+        }
+        if (count($nodes) === 0) {
+            return;
+        }
+        $html = view('exment::file_server._data_files', ['nodes' => $nodes])->render();
+        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('file_server.data_files'), $html))->style('info'));
     }
 
     /**

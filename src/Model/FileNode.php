@@ -20,6 +20,7 @@ namespace Exceedone\Exment\Model;
  * @property \Carbon\Carbon|null $trashed_at
  * @property int|null $trashed_user_id
  * @property int|null $trash_root_id
+ * @property array<string, mixed>|null $metadata
  * @property int|null $created_user_id
  * @property int|null $updated_user_id
  * @property \Carbon\Carbon|null $updated_at
@@ -48,7 +49,21 @@ class FileNode extends ModelBase
         'size' => 'integer',
         'checked_out_at' => 'datetime',
         'trashed_at' => 'datetime',
+        'metadata' => 'array',
     ];
+
+    /**
+     * The values of the columns are kept as they are written (not escaped), so
+     * that the search in the database finds the words of them.
+     *
+     * @param mixed $value
+     * @param int $flags
+     * @return string|false
+     */
+    protected function asJson($value, $flags = 0)
+    {
+        return json_encode($value, $flags | JSON_UNESCAPED_UNICODE);
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<FileWorkspace, $this>
