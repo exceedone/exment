@@ -105,7 +105,7 @@ class CustomFormPriorityController extends AdminControllerTableBase
      *
      * @return array<mixed>
      */
-    protected function resourceRowRule(): array
+    protected function resourceRowRule(): ?array
     {
         return [\Exceedone\Exment\Model\CustomFormPriority::class, \Exceedone\Exment\Enums\Permission::EDIT_CUSTOM_FORM];
     }

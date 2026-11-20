@@ -614,7 +614,7 @@ class CustomColumnController extends AdminControllerTableBase
      *
      * @return array<mixed>
      */
-    protected function resourceRowRule(): array
+    protected function resourceRowRule(): ?array
     {
         return [\Exceedone\Exment\Model\CustomColumn::class, \Exceedone\Exment\Enums\Permission::CUSTOM_TABLE];
     }

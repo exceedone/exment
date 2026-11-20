@@ -351,7 +351,7 @@ class CustomOperationController extends AdminControllerTableBase
      *
      * @return array<mixed>
      */
-    protected function resourceRowRule(): array
+    protected function resourceRowRule(): ?array
     {
         return [\Exceedone\Exment\Model\CustomOperation::class, \Exceedone\Exment\Enums\Permission::AVAILABLE_VIEW_CUSTOM_VALUE];
     }

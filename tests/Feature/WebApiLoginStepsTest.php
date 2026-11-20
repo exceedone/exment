@@ -44,6 +44,9 @@ class WebApiLoginStepsTest extends FeatureTestBase
         System::clearCache();
     }
 
+    /**
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
     protected function webapiData()
     {
         System::clearRequestSession();
