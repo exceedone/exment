@@ -77,11 +77,13 @@ class NotifyNavbar
             if (is_null($parent_type) || is_null($custom_table = CustomTable::getEloquent($parent_type))) {
                 $body[] = null;
             } else {
-                $body[] =  $custom_table->table_view_name;
+                $body[] =  esc_html($custom_table->table_view_name);
             }
 
-            $body[] =  array_get($item, 'notify_subject');
-            $body[] =  array_get($item, 'created_at');
+            // the table widget prints the cells as HTML; the subject is a text
+            // anyone who sends a notification writes
+            $body[] =  esc_html(array_get($item, 'notify_subject'));
+            $body[] =  esc_html(array_get($item, 'created_at'));
 
 
             // reference target data
