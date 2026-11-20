@@ -375,6 +375,15 @@ class WorkflowAction extends ModelBase
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
 
+        // The users of the next step come from the request only where the next
+        // step lets the user pick them (ACTION_SELECT), and only as users or
+        // organizations that exist. Otherwise the workflow's own setting decides.
+        if (is_array($data) && array_key_exists('next_work_users', $data)) {
+            $data['next_work_users'] = ($next === true)
+                ? $this->filterSelectedNextWorkUsers($status_to, $data['next_work_users'])
+                : [];
+        }
+
         // capture the other members of the assigned organization(s)
         // BEFORE forwarding (ACTION_SELECT authorities are read from the current workflow value).
         $sameOrgUserIds = ($next === true)
@@ -1082,5 +1091,36 @@ class WorkflowAction extends ModelBase
             // @phpstan-ignore-next-line
             $query->whereColumn(SystemTableName::WORKFLOW_ACTION . '.status_from', SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
         }
+    }
+
+    /**
+     * The users and organizations picked for the next step, kept only when the
+     * next step is picked at the action (ACTION_SELECT).
+     *
+     * @param mixed $status_to
+     * @param mixed $selected "user_{id}" / "organization_{id}"
+     * @return array<string>
+     */
+    protected function filterSelectedNextWorkUsers($status_to, $selected): array
+    {
+        $nextActions = WorkflowStatus::getActionsByFrom($status_to, $this->workflow);
+        $select = $nextActions->contains(function ($nextAction) {
+            return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
+        });
+        if (!$select) {
+            return [];
+        }
+
+        $result = [];
+        foreach (collect(toArray($selected))->filter() as $user_organization) {
+            if (!is_string($user_organization) || !preg_match('/^(user|organization)_(\d+)$/', $user_organization, $m)) {
+                continue;
+            }
+            $table = CustomTable::getEloquent($m[1] == 'user' ? SystemTableName::USER : SystemTableName::ORGANIZATION);
+            if ($table && $table->getValueModel()->query()->withoutGlobalScopes()->where('id', $m[2])->exists()) {
+                $result[] = $user_organization;
+            }
+        }
+        return $result;
     }
 }
