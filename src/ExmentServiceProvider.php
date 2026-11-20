@@ -60,6 +60,7 @@ class ExmentServiceProvider extends ServiceProvider
         ExmentProviders\RouteOAuthServiceProvider::class,
         ExmentProviders\PasswordResetServiceProvider::class,
         ExmentProviders\RoutePublicFormServiceProvider::class,
+        ExmentProviders\RouteFileShareServiceProvider::class,
         ExmentProviders\PluginServiceProvider::class,
     ];
 

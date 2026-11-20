@@ -1469,4 +1469,8 @@ return [
     'file_server_max_file_size' => env('EXMENT_FILE_SERVER_MAX_FILE_SIZE', 0),
     'file_server_soffice_path' => env('EXMENT_FILE_SERVER_SOFFICE_PATH'),
     'file_server_soffice_timeout' => env('EXMENT_FILE_SERVER_SOFFICE_TIMEOUT', 120),
+    // share links for people outside (phase 3): false stops them; max_days > 0 makes an end date needed
+    'file_server_external_share' => env('EXMENT_FILE_SERVER_EXTERNAL_SHARE', true),
+    'file_server_share_max_days' => env('EXMENT_FILE_SERVER_SHARE_MAX_DAYS', 0),
+    'file_server_share_path' => env('EXMENT_FILE_SERVER_SHARE_PATH', 'share'),
 ];

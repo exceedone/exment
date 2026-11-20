@@ -208,6 +208,8 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('checkin', 'FileServerController@checkin');
                     $router->post('discard_checkout', 'FileServerController@discardCheckout');
                     $router->post('permissions', 'FileServerController@updatePermissions');
+                    $router->post('links', 'FileServerController@createLink');
+                    $router->post('links/{link}/revoke', 'FileServerController@revokeLink')->where('link', '[0-9]+');
                 });
             });
 
