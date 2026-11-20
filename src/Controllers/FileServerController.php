@@ -12,6 +12,8 @@ use Exceedone\Exment\Services\FileServer\FileServerException;
 use Exceedone\Exment\Services\FileServer\Level;
 use Exceedone\Exment\Services\FileServer\Library;
 use Exceedone\Exment\Services\FileServer\Preview;
+use Exceedone\Exment\Services\FileServer\ShareLinks;
+use Exceedone\Exment\Model\FileShareLink;
 use Exceedone\Exment\Services\FileServer\Uploader;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
@@ -226,6 +228,11 @@ class FileServerController extends AdminControllerBase
             'chunk_size' => Uploader::CHUNK_SIZE,
             'created_user' => $this->userName($item->created_user_id),
             'updated_user' => $this->userName($item->updated_user_id),
+            'share_enabled' => ShareLinks::enabled(),
+            'share_max_days' => ShareLinks::maxDays(),
+            'links' => $this->linkRows($ws, $item),
+            'can_share' => ShareLinks::enabled() && $level >= Level::EDIT,
+            'can_request' => ShareLinks::enabled() && $item->isFolder() && $level >= Level::UPLOAD,
         ] + $this->pickerData()));
         return $content;
     }
@@ -655,6 +662,68 @@ class FileServerController extends AdminControllerBase
             }
             return ['message' => exmtrans('common.message.success_execute')];
         });
+    }
+
+    /**
+     * Make a share link (kind=share) or a request link (kind=request, folders).
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function createLink(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) use ($request) {
+            $link = (new ShareLinks($this->library()))->create($ws, $item, strval($request->input('kind', FileShareLink::KIND_SHARE)), [
+                'expires_at' => $request->input('expires_at'),
+                'password' => $request->input('password'),
+                'allow_download' => $request->boolean('allow_download'),
+                'max_access' => $request->input('max_access'),
+                'message' => $request->input('message'),
+            ]);
+            return ['message' => exmtrans('file_server.share_created'), 'url' => $link->url()];
+        });
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function revokeLink(Request $request, string $workspace, string $node, string $link)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) use ($link) {
+            $row = FileShareLink::query()->where('node_id', $item->id)->find(intval($link));
+            if (!isset($row)) {
+                throw FileServerException::notFound();
+            }
+            (new ShareLinks($this->library()))->revoke($ws, $row);
+            return ['message' => exmtrans('file_server.share_revoked')];
+        });
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function linkRows(FileWorkspace $ws, FileNode $item): array
+    {
+        if (!ShareLinks::enabled()) {
+            return [];
+        }
+        return (new ShareLinks($this->library()))->linksOf($ws, $item)->map(function (FileShareLink $link) use ($ws, $item) {
+            return [
+                'id' => $link->id,
+                'kind' => $link->kind,
+                'url' => $link->url(),
+                'active' => $link->isActive(),
+                'state' => isset($link->revoked_at) ? exmtrans('file_server.share_state_revoked')
+                    : ($link->isExpired() ? exmtrans('file_server.share_state_expired')
+                    : ($link->isUsedUp() ? exmtrans('file_server.share_state_used_up') : exmtrans('file_server.share_state_active'))),
+                'expires_at' => $link->expires_at,
+                'password' => $link->hasPassword(),
+                'allow_download' => $link->allow_download,
+                'access' => $link->access_count . (isset($link->max_access) ? ' / ' . $link->max_access : ''),
+                'user' => $this->userName($link->created_user_id),
+                'created_at' => $link->created_at,
+                'revoke_url' => $this->nodeUrl($ws, $item, 'links/' . $link->id . '/revoke'),
+            ];
+        })->all();
     }
 
     /**

@@ -25,6 +25,7 @@
         @foreach ($openers as $opener)
             <a class="btn btn-sm btn-default" href="{{ $opener['url'] }}" target="_blank" rel="noopener"><i class="fa {{ $opener['icon'] ?? 'fa-external-link' }}" aria-hidden="true"></i> {{ $opener['label'] }}</a>
         @endforeach
+        <button type="button" class="btn btn-sm btn-default" data-fs-copy="{{ $node_url }}" title="{{ exmtrans('file_server.copy_internal_link_help') }}"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.copy_internal_link') }}</button>
         <button type="button" class="btn btn-sm btn-default" data-fs-action="favorite"><i class="fa {{ $favorite ? 'fa-star' : 'fa-star-o' }}" aria-hidden="true"></i> {{ exmtrans('file_server.favorite') }}</button>
         @if ($node->isFile() && $canEdit)
             @if ($checked_out_by === null)
@@ -163,6 +164,66 @@
                     @endif
                 </div>
             </div>
+
+            @if ($can_share || $can_request || count($links) > 0)
+            <div class="exm-fs-section box card">
+                <div class="box-header"><h4><i class="fa fa-share-alt" aria-hidden="true"></i> {{ exmtrans('file_server.share_links') }}</h4></div>
+                <div class="box-body">
+                    @foreach ($links as $l)
+                        <div style="border-bottom:1px solid rgba(0,0,0,.08);padding:6px 0;{{ $l['active'] ? '' : 'opacity:.55' }}">
+                            <div><strong>{{ $l['kind'] === 'request' ? exmtrans('file_server.share_kind_request') : exmtrans('file_server.share_kind_share') }}</strong>
+                                <span class="exm-fs-badge">{{ $l['state'] }}</span>
+                                @if ($l['password'])<span class="exm-fs-badge"><i class="fa fa-lock" aria-hidden="true"></i></span>@endif
+                                @if ($l['kind'] === 'share' && !$l['allow_download'])<span class="exm-fs-badge">{{ exmtrans('file_server.share_preview_only') }}</span>@endif
+                            </div>
+                            @if ($l['active'])
+                                <div style="display:flex;gap:4px;margin:4px 0">
+                                    <input type="text" class="form-control input-sm" readonly value="{{ $l['url'] }}" aria-label="URL">
+                                    <button type="button" class="btn btn-sm btn-default" data-fs-copy="{{ $l['url'] }}" title="{{ exmtrans('file_server.copy') }}"><i class="fa fa-clipboard" aria-hidden="true"></i></button>
+                                </div>
+                            @endif
+                            <div class="exm-fs-muted">
+                                {{ exmtrans('file_server.share_expires') }}: {{ $l['expires_at'] ? $l['expires_at']->format('Y/m/d') : exmtrans('file_server.share_no_expiry') }}
+                                / {{ exmtrans('file_server.share_access') }}: {{ $l['access'] }}
+                                / {{ $l['user'] }} {{ optional($l['created_at'])->format('Y/m/d') }}
+                                @if ($l['active'])
+                                    <button type="button" class="btn btn-xs btn-link" data-fs-revoke="{{ $l['revoke_url'] }}">{{ exmtrans('file_server.share_revoke') }}</button>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+
+                    @if ($can_share || $can_request)
+                        <form data-fs-link-form style="margin-top:10px">
+                            <div class="form-group" style="margin-bottom:6px">
+                                <select name="kind" class="form-control input-sm" aria-label="{{ exmtrans('file_server.share_kind') }}">
+                                    @if ($can_share)<option value="share">{{ exmtrans('file_server.share_kind_share') }}</option>@endif
+                                    @if ($can_request)<option value="request">{{ exmtrans('file_server.share_kind_request') }}</option>@endif
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:6px">
+                                <label style="font-weight:normal;font-size:.85em">{{ exmtrans('file_server.share_expires') }}@if ($share_max_days > 0) ({{ exmtrans('file_server.share_max_days', ['days' => $share_max_days]) }})@endif</label>
+                                <input type="date" name="expires_at" class="form-control input-sm" min="{{ now()->format('Y-m-d') }}"
+                                       @if ($share_max_days > 0) required max="{{ now()->addDays($share_max_days)->format('Y-m-d') }}" value="{{ now()->addDays(min(7, $share_max_days))->format('Y-m-d') }}" @else value="{{ now()->addDays(7)->format('Y-m-d') }}" @endif>
+                            </div>
+                            <div class="form-group" style="margin-bottom:6px">
+                                <input type="password" name="password" class="form-control input-sm" autocomplete="new-password" placeholder="{{ exmtrans('file_server.share_password_placeholder') }}" aria-label="{{ exmtrans('file_server.share_password_placeholder') }}">
+                            </div>
+                            <div class="form-group" style="margin-bottom:6px">
+                                <input type="number" name="max_access" min="1" class="form-control input-sm" placeholder="{{ exmtrans('file_server.share_max_access_placeholder') }}" aria-label="{{ exmtrans('file_server.share_max_access_placeholder') }}">
+                            </div>
+                            <div class="form-group" data-fs-only="share" style="margin-bottom:6px">
+                                <label style="font-weight:normal"><input type="checkbox" name="allow_download" value="1" checked> {{ exmtrans('file_server.share_allow_download') }}</label>
+                            </div>
+                            <div class="form-group" data-fs-only="request" style="margin-bottom:6px" hidden>
+                                <textarea name="message" class="form-control input-sm" rows="2" maxlength="1000" placeholder="{{ exmtrans('file_server.share_message_placeholder') }}"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.share_create') }}</button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
@@ -224,6 +285,39 @@
                 break;
         }
     });
+
+    function copyText(text) {
+        var done = function () { Fs.notify(@json(exmtrans('file_server.copied'))); };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done, function () { prompt('URL', text); });
+        } else {
+            prompt('URL', text);
+        }
+    }
+    root.addEventListener('click', function (e) {
+        var c = e.target.closest('[data-fs-copy]');
+        if (c) { copyText(c.getAttribute('data-fs-copy')); return; }
+        var r = e.target.closest('[data-fs-revoke]');
+        if (r && confirm(@json(exmtrans('file_server.confirm_share_revoke')))) {
+            Fs.post(r.getAttribute('data-fs-revoke'), {}).then(Fs.done, Fs.fail);
+        }
+    });
+    var linkForm = root.querySelector('[data-fs-link-form]');
+    if (linkForm) {
+        var kindSelect = linkForm.querySelector('[name="kind"]');
+        var toggle = function () {
+            linkForm.querySelectorAll('[data-fs-only]').forEach(function (el) { el.hidden = el.getAttribute('data-fs-only') !== kindSelect.value; });
+        };
+        kindSelect.addEventListener('change', toggle);
+        toggle();
+        linkForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            Fs.post(url + '/links', new FormData(linkForm), true).then(function (json) {
+                copyText(json.url);
+                Fs.done(json);
+            }, Fs.fail);
+        });
+    }
 
     var form = root.querySelector('[data-fs-version-form]');
     if (form) {
