@@ -2484,6 +2484,14 @@ return [
             'empty' => 'が空のとき',
             'not_empty' => 'が空でないとき',
         ],
+        'children_title' => '明細（子テーブル）',
+        'children_help' => '注文の中の商品のように、1 件のデータに何行も入力する明細を作れます。明細ごとに子テーブルができ、入力の画面の下に表の形で出ます。%s 個まで作れます。',
+        'add_child' => '明細を足す',
+        'child_name' => '明細の名前',
+        'child_name_placeholder' => '例: 注文明細',
+        'add_child_field' => '項目を足す',
+        'remove_child' => '明細を消す',
+        'notice_children' => '明細の子テーブル%sも作ります。',
         'error' => [
             'check_input' => '入力に誤りがあります。赤い文字の所を直してください。',
             'required' => '入力してください。',
@@ -2510,6 +2518,7 @@ return [
             'condition_operator' => '条件の種類が正しくありません。',
             'condition_value' => '条件の値を入力してください。',
             'condition_required' => '必須の項目には表示の条件を付けられません（隠れると入力できず、保存できなくなるため）。',
+            'too_many_children' => '明細は %s 個までです。',
         ],
     ],
 

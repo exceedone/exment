@@ -2483,6 +2483,14 @@ return [
             'empty' => 'is empty',
             'not_empty' => 'is not empty',
         ],
+        'children_title' => 'Details (child tables)',
+        'children_help' => 'Details are entered in many rows for one data, like the items of an order. Each detail makes a child table, entered as a table under the input screen. Up to %s details.',
+        'add_child' => 'Add a detail',
+        'child_name' => 'Name of the detail',
+        'child_name_placeholder' => 'e.g. Order lines',
+        'add_child_field' => 'Add an item',
+        'remove_child' => 'Remove the detail',
+        'notice_children' => ' The child tables %s are made too.',
         'error' => [
             'check_input' => 'Some input is wrong. Please fix the places in red.',
             'required' => 'Please enter it.',
@@ -2509,6 +2517,7 @@ return [
             'condition_operator' => 'The kind of the condition is not right.',
             'condition_value' => 'Please enter the value of the condition.',
             'condition_required' => 'A required item cannot have a condition (hidden, it could not be filled in and the data could not be saved).',
+            'too_many_children' => 'Up to %s details.',
         ],
     ],
 

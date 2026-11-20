@@ -266,6 +266,75 @@ class StudioBlankFormTest extends FeatureTestBase
         $this->assertEquals(['all' => [['column' => 'active', 'operator' => 'eq', 'value' => '1']]], array_get($since->options, 'visible_if'));
     }
 
+    public function testADetailBecomesAChildTableEnteredAsATable(): void
+    {
+        $this->made[] = 'studio_test_order';
+        $this->made[] = 'studio_test_order_d1';
+        $response = $this->postScreen([
+            ['type' => ColumnType::TEXT, 'label' => 'customer'],
+            ['type' => ColumnType::DATE, 'label' => 'ordered'],
+        ], [
+            'table_name' => 'studio_test_order',
+            'children' => json_encode([[
+                'label' => '注文明細',
+                'fields' => [
+                    ['type' => ColumnType::TEXT, 'label' => 'item', 'required' => true],
+                    ['type' => ColumnType::INTEGER, 'label' => 'quantity'],
+                ],
+            ]]),
+        ]);
+        $response->assertRedirect(admin_urls('data', 'studio_test_order', 'create'));
+
+        System::clearRequestSession();
+        $parent = CustomTable::getEloquent('studio_test_order');
+        $child = CustomTable::getEloquent('studio_test_order_d1');
+        $this->assertNotNull($parent);
+        $this->assertNotNull($child);
+        $this->assertSame('注文明細', $child->table_view_name);
+        $this->assertSame(['item', 'quantity'], $child->custom_columns()->pluck('column_name')->all());
+
+        $relation = \Exceedone\Exment\Model\CustomRelation::where('parent_custom_table_id', $parent->id)->where('child_custom_table_id', $child->id)->first();
+        $this->assertNotNull($relation);
+        $this->assertSame(\Exceedone\Exment\Enums\RelationType::ONE_TO_MANY, intval($relation->relation_type));
+
+        // the form of the parent enters the rows of the child as a table
+        $form = CustomForm::where('custom_table_id', $parent->id)->firstOrFail();
+        $block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::ONE_TO_MANY)->firstOrFail();
+        $this->assertSame(intval($child->id), intval($block->form_block_target_table_id));
+        $this->assertSame('1', strval($block->getOption('hasmany_type')));
+        $this->assertSame(
+            $child->custom_columns()->pluck('id')->map(function ($id) {
+                return intval($id);
+            })->all(),
+            $block->custom_form_columns()->orderBy('order')->pluck('form_column_target_id')->map(function ($id) {
+                return intval($id);
+            })->all()
+        );
+
+        // the data page shows the detail
+        $this->get(admin_urls('data', 'studio_test_order', 'create'))->assertOk()->assertSee('注文明細');
+    }
+
+    public function testMistakesOfADetail(): void
+    {
+        $this->made[] = 'studio_test_order_bad';
+        $this->from(admin_url('studio/create'))->postScreen([
+            ['type' => ColumnType::TEXT, 'label' => 'customer'],
+        ], [
+            'table_name' => 'studio_test_order_bad',
+            'children' => json_encode([['label' => '', 'fields' => []]]),
+        ])->assertRedirect(admin_url('studio/create'));
+        $errors = session('studio_errors');
+        $this->assertArrayHasKey('children.0.table_view_name', $errors);
+        $this->assertArrayHasKey('children.0.fields', $errors);
+        $this->assertFalse(CustomTable::where('table_name', 'studio_test_order_bad')->exists());
+
+        // too many details
+        $many = array_fill(0, \Exceedone\Exment\Services\Studio\ScreenChildren::MAX_CHILDREN + 1, ['label' => 'd', 'fields' => [['type' => ColumnType::TEXT, 'label' => 'a']]]);
+        $this->postScreen([['type' => ColumnType::TEXT, 'label' => 'customer']], ['table_name' => 'studio_test_order_bad', 'children' => json_encode($many)]);
+        $this->assertArrayHasKey('children', session('studio_errors'));
+    }
+
     public function testALayoutThatIsNotOfferedIsAMistake(): void
     {
         // deleted after the test if it were made by mistake

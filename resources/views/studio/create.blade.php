@@ -3,6 +3,7 @@
     {{ csrf_field() }}
     <input type="hidden" name="fields" id="exm-builder-fields" value="">
     <input type="hidden" name="layout" id="exm-builder-layout" value="">
+    <input type="hidden" name="children" id="exm-builder-children-input" value="">
 
     <div class="box card exm-builder-head">
         <div class="box-body">
@@ -108,6 +109,14 @@
                 <p class="exm-builder-hint">{{ exmtrans('studio.layout_help') }}</p>
                 <div class="exm-builder-canvas" id="exm-builder-canvas" aria-label="{{ exmtrans('studio.canvas') }}"></div>
                 <button type="button" class="btn btn-default btn-sm exm-builder-add-row" id="exm-builder-add-row"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.add_row') }}</button>
+
+                <div class="exm-builder-children" data-mode-only="new">
+                    <div class="exm-builder-children-title"><i class="fa fa-table" aria-hidden="true"></i> {{ exmtrans('studio.children_title') }}</div>
+                    <p class="exm-builder-hint">{{ sprintf(exmtrans('studio.children_help'), $max_children) }}</p>
+                    @if (isset($errors_by_key['children']))<p class="exm-builder-error">{{ $errors_by_key['children'] }}</p>@endif
+                    <div id="exm-builder-children"></div>
+                    <button type="button" class="btn btn-default btn-sm" id="exm-builder-add-child"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.add_child') }}</button>
+                </div>
             </div>
         </div>
     </div>
@@ -192,6 +201,18 @@
 .exm-builder-cell-drop { text-align: center; font-size: .8rem; opacity: .6; padding: 8px 4px; }
 .exm-builder-field-head { flex-wrap: wrap; }
 .exm-builder-add-row { margin-top: 2px; }
+.exm-builder-children { margin-top: 18px; padding-top: 12px; border-top: 1px solid #e3e6ea; }
+.exm-builder-children-title { font-weight: 600; }
+.exm-builder-child { border: 1px solid #d2d6de; border-radius: 4px; padding: 10px 12px; margin: 8px 0; background: #fff; }
+.exm-builder-child-head { display: flex; align-items: center; gap: 8px; }
+.exm-builder-child-head input { flex: 1; min-width: 0; }
+.exm-builder-child-fields { list-style: none; padding: 0; margin: 8px 0 0; }
+.exm-builder-child-field { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px dashed #eef0f2; }
+.exm-builder-child-field .exm-builder-type { min-width: 110px; }
+.exm-builder-child-field input[type=text] { flex: 1 1 140px; min-width: 0; }
+.exm-builder-child-field .exm-builder-child-choices { flex: 1 1 100%; }
+.exm-builder-child-add { display: flex; gap: 6px; margin-top: 6px; }
+.exm-builder-child-add select { width: auto; }
 .exm-builder-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 24px; }
 .exm-builder-notice { margin: 0 auto 0 0; font-size: .9rem; }
 .exm-builder-notice i { color: #3c8dbc; margin-right: 4px; }
@@ -233,6 +254,12 @@
         'source' => exmtrans('studio.sheet_source'),
         'name_quote' => exmtrans('studio.name_quote'),
         'row' => exmtrans('studio.row'),
+        'child_name' => exmtrans('studio.child_name'),
+        'child_name_placeholder' => exmtrans('studio.child_name_placeholder'),
+        'add_child_field' => exmtrans('studio.add_child_field'),
+        'remove_child' => exmtrans('studio.remove_child'),
+        'notice_children' => exmtrans('studio.notice_children'),
+        'too_many_children' => sprintf(exmtrans('studio.error.too_many_children'), $max_children),
         'condition' => exmtrans('studio.condition'),
         'condition_always' => exmtrans('studio.condition_always'),
         'condition_value' => exmtrans('studio.condition_value'),
@@ -271,6 +298,13 @@
     var presets = @json($layout_presets);
     var initialLayout = @json($screen ? ($screen['layout'] ?? null) : null);
     var initialConditions = @json($screen ? (object) ($screen['conditions'] ?? []) : (object) []);
+    var maxChildren = {{ intval($max_children) }};
+    // the details of the screen: [{label, fields: [{type, label, required, choices}]}]
+    var children = (@json($old_children) || []).map(function (c) {
+        return { label: c.label || '', fields: (c.fields || []).map(function (f) {
+            return { type: f.type, label: f.label || '', required: !!f.required, choices: f.choices || '' };
+        }) };
+    });
 
     var form = document.getElementById('exm-builder');
     var canvas = document.getElementById('exm-builder-canvas');
@@ -602,6 +636,77 @@
         renderNotice();
     }
 
+    // details (child tables) ---------------------------------------------------------
+    var childrenBox = document.getElementById('exm-builder-children');
+    function childError(key) {
+        var message = errors['children.' + key];
+        return message ? el('p', { className: 'exm-builder-error', text: message }) : null;
+    }
+    function renderChildren() {
+        childrenBox.innerHTML = '';
+        children.forEach(function (child, ci) {
+            var name = el('input', { type: 'text', className: 'form-control input-sm', maxlength: '40', placeholder: t.child_name_placeholder, 'aria-label': t.child_name });
+            name.value = child.label;
+            name.addEventListener('input', function () { child.label = name.value; renderNotice(); });
+            var remove = el('button', { type: 'button', className: 'btn btn-default btn-sm', title: t.remove_child, 'aria-label': t.remove_child }, [el('i', { className: 'fa fa-trash' })]);
+            remove.addEventListener('click', function () { children.splice(ci, 1); renderChildren(); renderNotice(); });
+
+            var list = el('ol', { className: 'exm-builder-child-fields' });
+            child.fields.forEach(function (field, fi) {
+                var part = types[field.type] || { label: field.type, icon: 'fa-question', choices: false };
+                var label = el('input', { type: 'text', className: 'form-control input-sm', maxlength: '40', placeholder: t.label, 'aria-label': t.label });
+                label.value = field.label;
+                label.addEventListener('input', function () { field.label = label.value; });
+                var required = el('input', { type: 'checkbox' });
+                required.checked = field.required;
+                required.addEventListener('change', function () { field.required = required.checked; });
+                var del = el('button', { type: 'button', className: 'btn btn-link btn-sm', title: t.remove, 'aria-label': t.remove }, [el('i', { className: 'fa fa-trash' })]);
+                del.addEventListener('click', function () { child.fields.splice(fi, 1); renderChildren(); });
+                var li = el('li', { className: 'exm-builder-child-field' }, [
+                    el('span', { className: 'exm-builder-type' }, [el('i', { className: 'fa ' + part.icon, 'aria-hidden': 'true' }), document.createTextNode(' ' + part.label)]),
+                    label,
+                    el('label', {}, [required, document.createTextNode(' ' + t.required)]),
+                    del,
+                ]);
+                if (part.choices) {
+                    var choices = el('textarea', { className: 'form-control input-sm exm-builder-child-choices', rows: '2', placeholder: t.choices_help, 'aria-label': t.choices });
+                    choices.value = field.choices;
+                    choices.addEventListener('input', function () { field.choices = choices.value; });
+                    li.appendChild(choices);
+                }
+                ['label', 'column_name', 'choices', 'type'].forEach(function (k) {
+                    var e = childError(ci + '.fields.' + fi + '.' + k);
+                    if (e) { li.appendChild(e); }
+                });
+                list.appendChild(li);
+            });
+
+            var typeSelect = el('select', { className: 'form-control input-sm', 'aria-label': t.add_child_field });
+            palette.forEach(function (p) { typeSelect.appendChild(el('option', { value: p.type, text: p.label })); });
+            var add = el('button', { type: 'button', className: 'btn btn-default btn-sm' }, [el('i', { className: 'fa fa-plus', 'aria-hidden': 'true' }), document.createTextNode(' ' + t.add_child_field)]);
+            add.addEventListener('click', function () {
+                child.fields.push({ type: typeSelect.value, label: types[typeSelect.value].label, required: false, choices: '' });
+                renderChildren();
+                var inputs = childrenBox.querySelectorAll('.exm-builder-child')[ci].querySelectorAll('.exm-builder-child-field input[type=text]');
+                if (inputs.length) { inputs[inputs.length - 1].focus(); inputs[inputs.length - 1].select(); }
+            });
+
+            childrenBox.appendChild(el('div', { className: 'exm-builder-child' }, [
+                el('div', { className: 'exm-builder-child-head' }, [el('i', { className: 'fa fa-table', 'aria-hidden': 'true' }), name, remove]),
+                childError(ci + '.table_view_name'), childError(ci + '.table_name'), childError(ci + '.fields'),
+                list,
+                el('div', { className: 'exm-builder-child-add' }, [typeSelect, add]),
+            ]));
+        });
+    }
+    document.getElementById('exm-builder-add-child').addEventListener('click', function () {
+        if (children.length >= maxChildren) { alert(t.too_many_children); return; }
+        children.push({ label: '', fields: [] });
+        renderChildren();
+        var names = childrenBox.querySelectorAll('.exm-builder-child-head input');
+        if (names.length) { names[names.length - 1].focus(); }
+    });
+
     // the columns of the chosen table, as parts; a column already placed is greyed out
     function renderColumns() {
         columnsBox.innerHTML = '';
@@ -643,6 +748,10 @@
             text = name ? t.notice_new.replace('%s', name) : t.notice_new_unnamed;
             if (importBox.checked && tokenInput.value) {
                 text += t.notice_import.replace('%s', rowsInput.value);
+            }
+            var childNames = children.map(function (c) { return c.label.trim(); }).filter(function (n) { return n !== ''; });
+            if (childNames.length > 0) {
+                text += t.notice_children.replace('%s', childNames.map(function (n) { return t.name_quote.replace('%s', n); }).join(t.name_separator));
             }
         }
         notice.appendChild(el('i', { className: 'fa fa-info-circle', 'aria-hidden': 'true' }));
@@ -775,6 +884,8 @@
         fields = [];
         rows = [[4]];
         active = { row: 0, col: 0 };
+        children = [];
+        renderChildren();
         errors = {};
         forgetSheet();
         showMode();
@@ -816,6 +927,7 @@
             return item;
         }));
         document.getElementById('exm-builder-layout').value = JSON.stringify(rows.map(function (w) { return { widths: w }; }));
+        document.getElementById('exm-builder-children-input').value = mode === 'existing' ? '[]' : JSON.stringify(children);
     });
 
     // Excel or CSV -------------------------------------------------------------
@@ -892,6 +1004,7 @@
     importBox.addEventListener('change', renderNotice);
 
     showMode();
+    renderChildren();
     render();
     // after a mistake the page comes back with the sheet still read
     if (tokenInput.value) {

@@ -89,7 +89,7 @@ class BlankFormBuilder
      * Read the posted screen into a clean shape. Names left empty are made here.
      *
      * @param array<string, mixed> $input table_view_name, table_name, menu_parent_id, fields (JSON string or array)
-     * @return array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}}
+     * @return array{table_view_name: string, table_name: string, menu_parent_id: ?int, fields: array<int, array{label: string, column_name: string, type: string, required: bool, choices: string, source: ?int}>, layout: array{rows: array<int, array<int, int>>, places: array<int, array{row: int, column: int}>}, conditions: array<int, array{target: int, operator: string, value: string}>}
      */
     public static function normalize(array $input): array
     {
