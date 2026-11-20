@@ -21,6 +21,12 @@ namespace Exceedone\Exment\Model;
  * @property int|null $trashed_user_id
  * @property int|null $trash_root_id
  * @property array<string, mixed>|null $metadata
+ * @property bool $legal_hold
+ * @property bool $requires_approval
+ * @property string|null $approval_status draft, approved, rejected
+ * @property int|null $approval_user_id
+ * @property \Carbon\Carbon|null $approval_at
+ * @property string|null $approval_comment
  * @property int|null $created_user_id
  * @property int|null $updated_user_id
  * @property \Carbon\Carbon|null $updated_at
@@ -50,7 +56,24 @@ class FileNode extends ModelBase
         'checked_out_at' => 'datetime',
         'trashed_at' => 'datetime',
         'metadata' => 'array',
+        'legal_hold' => 'boolean',
+        'requires_approval' => 'boolean',
+        'approval_user_id' => 'integer',
+        'approval_at' => 'datetime',
     ];
+
+    public const APPROVAL_DRAFT = 'draft';
+    public const APPROVAL_APPROVED = 'approved';
+    public const APPROVAL_REJECTED = 'rejected';
+
+    /**
+     * A file that waits for its approval (or was rejected): only its maker and
+     * the managers see it.
+     */
+    public function isDraft(): bool
+    {
+        return $this->isFile() && in_array($this->approval_status, [static::APPROVAL_DRAFT, static::APPROVAL_REJECTED], true);
+    }
 
     /**
      * The values of the columns are kept as they are written (not escaped), so

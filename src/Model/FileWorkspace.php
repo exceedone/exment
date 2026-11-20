@@ -15,6 +15,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $quota_bytes
  * @property int $trash_days
  * @property int $version_limit
+ * @property int|null $retention_days
+ * @property string $retention_action keep, delete
+ * @property bool $legal_hold
+ * @property bool $watermark
+ * @property int $download_level
  * @property int|null $created_user_id
  * @property \Carbon\Carbon|null $updated_at
  */
@@ -29,6 +34,10 @@ class FileWorkspace extends ModelBase
         'quota_bytes' => 'integer',
         'trash_days' => 'integer',
         'version_limit' => 'integer',
+        'retention_days' => 'integer',
+        'legal_hold' => 'boolean',
+        'watermark' => 'boolean',
+        'download_level' => 'integer',
     ];
 
     /**
