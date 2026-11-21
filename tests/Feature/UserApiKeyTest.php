@@ -535,4 +535,37 @@ class UserApiKeyTest extends ApiTestBase
         $this->assertSame(UserApiKeys::maxDays(), UserApiKeys::maxDays(false));
         $this->assertSame(30, UserApiKeys::maxDays(true));
     }
+
+    /**
+     * Every login is a password of Exment or counts as SSO (none is neither).
+     */
+    public function testEveryLoginIsPasswordOrSso(): void
+    {
+        $login = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->assertFalse(UserApiKeys::isSsoLogin($login));
+        foreach ([['login_type' => 'ldap', 'login_provider' => null], ['login_type' => 'oauth', 'login_provider' => null], ['login_type' => 'pure', 'login_provider' => 'x']] as $values) {
+            \DB::table('login_users')->where('id', $login->id)->update($values);
+            $this->assertTrue(UserApiKeys::isSsoLogin(LoginUser::findOrFail($login->id)), json_encode($values) ?: '');
+        }
+    }
+
+    /**
+     * Unknown keys are logged, but at most once a minute an address; the limits are of the site.
+     */
+    public function testUnknownKeysAreLoggedSampled(): void
+    {
+        \Illuminate\Support\Facades\RateLimiter::clear('apikey-log:' . UserApiKeys::siteHash() . ':127.0.0.1');
+        \Log::spy();
+        for ($i = 0; $i < 3; $i++) {
+            $this->assertRefused($this->getWithKey(UserApiKeys::PREFIX . bin2hex(random_bytes(24)), ['me']), 'unknown');
+        }
+        \Log::shouldHaveReceived('info')->withArgs(function ($message) {
+            return str_contains((string)$message, 'unknown API key');
+        })->once();
+
+        config(['exment.site_id' => 'site-a']);
+        $a = UserApiKeys::siteHash();
+        config(['exment.site_id' => 'site-b']);
+        $this->assertNotSame($a, UserApiKeys::siteHash());
+    }
 }

@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\UserApiKey;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
@@ -209,7 +210,20 @@ class UserApiKeys
      */
     public static function isSsoLogin(LoginUser $login_user): bool
     {
-        return !is_nullorempty($login_user->login_provider);
+        // anything but a password of Exment (login_type pure, without a provider) counts as SSO:
+        // every login is one or the other, so none skips both checks of the key page
+        return !is_nullorempty($login_user->login_provider)
+            || strval($login_user->login_type ?? \Exceedone\Exment\Enums\LoginType::PURE) !== \Exceedone\Exment\Enums\LoginType::PURE;
+    }
+
+    /**
+     * A short hash of this site, for the names of the limits in a cache that sites may share.
+     */
+    public static function siteHash(): string
+    {
+        $site = \Exceedone\Exment\Services\PluginDistribution\SiteId::get()
+            ?? strval(config('database.connections.' . config('database.default') . '.database'));
+        return substr(hash('sha256', $site), 0, 16);
     }
 
     /**
@@ -324,6 +338,10 @@ class UserApiKeys
         /** @var UserApiKey|null $key */
         $key = UserApiKey::where('key_hash', static::hash($plain))->first();
         if (!isset($key)) {
+            // logged, but at most once a minute an address (random keys are not a line each)
+            RateLimiter::attempt('apikey-log:' . static::siteHash() . ':' . $request->ip(), 1, function () use ($request) {
+                \Log::info('[Exment] an unknown API key was refused (from ' . $request->ip() . ')');
+            }, 60);
             return $refuse('unknown');
         }
         if (isset($key->revoked_at)) {

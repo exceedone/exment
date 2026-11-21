@@ -36,7 +36,7 @@ class RouteServiceProvider extends ServiceProvider
             if (\Exceedone\Exment\Services\UserApiKeys::looksLikeKey($bearer)) {
                 // by the IP (a new random key each time, or many keys, do not get more) and by the key
                 return [
-                    Limit::perMinute($rate_limit)->by('apikey-ip:' . $request->ip()),
+                    Limit::perMinute($rate_limit)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
                     Limit::perMinute($rate_limit)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
                 ];
             }
