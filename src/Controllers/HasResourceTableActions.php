@@ -23,6 +23,8 @@ trait HasResourceTableActions
     public function update($tableKey, $id)
     {
         if (!$this->validateResourceRows($id)) {
+            // the error response has already been sent
+            // @phpstan-ignore-next-line
             return;
         }
         return $this->form($id)->update($id);

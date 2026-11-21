@@ -582,6 +582,8 @@ class ZipEntryTraversalFixedTest extends SecurityRegressionTestCase
 
         $this->assertStringContainsString('$dir7zip', $body);
         $this->assertStringNotContainsString('escapeshellarg', $body);
+        // that choice is safe only while the password is checked to be letters and digits
+        $this->assertStringContainsString("preg_match('/\A[A-Za-z0-9]+\z/'", $body);
     }
 
     public function test_the_exception_keeps_its_own_fallback_response(): void

@@ -61,6 +61,7 @@ class CommentAuthorOnlyTest extends FeatureTestBase
 
     protected function stored(CustomValue $comment): ?CustomValue
     {
+        /** @var CustomValue|null */
         return CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel()->query()
             ->withoutGlobalScopes()->where('id', $comment->id)->first();
     }

@@ -310,6 +310,7 @@ class CustomViewController extends AdminControllerTableBase
             // permission of system views on this table.
             $form->input('custom_table_id', $this->custom_table->id);
             if (!$this->custom_table->hasSystemViewPermission()) {
+                // @phpstan-ignore-next-line laravel-admin 4 documents the value as null
                 $form->input('view_type', Enums\ViewType::USER);
             }
 

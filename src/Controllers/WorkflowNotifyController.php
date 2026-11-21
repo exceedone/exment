@@ -96,12 +96,11 @@ class WorkflowNotifyController extends Controller
 
         $this->setBasicGrid($grid);
 
-        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
-            return collect($val)->map(function ($v) {
-                $enum = NotifyAction::getEnum(array_get($v, 'notify_action'));
-                return isset($enum) ? $enum->transKey('notify.notify_action_options') : null;
-            })->filter()->unique()->implode(exmtrans('common.separate_word'));
-        });
+        // the display closure is bound to the row, so the controller is passed in
+        $controller = static::class;
+        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->display(function ($val) use ($controller) {
+            return $controller::notifyActionsText($val);
+        })->escape(false);
 
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->sortable()->display(function ($val) {
             return \Exment::getTrueMark($val);

@@ -15,7 +15,6 @@ use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * The buttons of a record send requests of their own; each request is checked as the button is:
@@ -53,7 +52,7 @@ class DataActionPermissionTest extends FeatureTestBase
      * @param array<mixed> $files
      * @param array<mixed> $server
      * @param string|null $content
-     * @return TestResponse<Response>
+     * @return TestResponse
      */
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {
@@ -74,7 +73,7 @@ class DataActionPermissionTest extends FeatureTestBase
     protected function record(): CustomValue
     {
         $record = CustomTable::getEloquent(static::TABLE_VIEW)->getValueModel()->query()->first();
-        $this->assertNotNull($record);
+        $this->assertInstanceOf(CustomValue::class, $record);
         return $record;
     }
 

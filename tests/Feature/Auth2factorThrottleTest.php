@@ -54,7 +54,7 @@ class Auth2factorThrottleTest extends FeatureTestBase
 
     /**
      * @param array<string, mixed> $more
-     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
+     * @return \Illuminate\Testing\TestResponse
      */
     protected function tryCode(string $code, array $more = [])
     {

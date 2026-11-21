@@ -45,7 +45,7 @@ class WebApiLoginStepsTest extends FeatureTestBase
     }
 
     /**
-     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
+     * @return \Illuminate\Testing\TestResponse
      */
     protected function webapiData()
     {
