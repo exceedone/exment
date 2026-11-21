@@ -435,6 +435,11 @@
             "title": "HOME"
         },
         {
+            "menu_type": "system",
+            "menu_name": "file_server",
+            "title": "ファイルサーバー"
+        },
+        {
             "menu_type": "parent_node",
             "menu_name": "master",
             "title": "マスター管理"

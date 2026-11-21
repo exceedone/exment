@@ -1560,4 +1560,59 @@ return [
         'feed_url'   => env('EXMENT_SAFETY_CHECK_FEED_URL', 'https://api.p2pquake.net/v2/history'),
         'feed_limit' => env('EXMENT_SAFETY_CHECK_FEED_LIMIT', 10),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | File server (ISS00293)
+    |--------------------------------------------------------------------------
+    | file_server_workspace_create: who may make a workspace. "admin" (system permission; the default) or "all".
+    |   A new feature is not open to all users until an administrator says so.
+    | file_server_max_file_size: the largest file, in bytes (0: no limit but the space of the workspace).
+    | file_server_soffice_path: LibreOffice (soffice) to make the PDF preview of Office files. Empty: no preview.
+    */
+    'file_server_workspace_create' => env('EXMENT_FILE_SERVER_WORKSPACE_CREATE', 'admin'),
+    'file_server_max_file_size' => env('EXMENT_FILE_SERVER_MAX_FILE_SIZE', 0),
+    'file_server_soffice_path' => env('EXMENT_FILE_SERVER_SOFFICE_PATH'),
+    'file_server_soffice_timeout' => env('EXMENT_FILE_SERVER_SOFFICE_TIMEOUT', 120),
+    // share links for people outside (phase 3): false stops them; max_days > 0 makes an end date needed
+    'file_server_external_share' => env('EXMENT_FILE_SERVER_EXTERNAL_SHARE', true),
+    'file_server_share_max_days' => env('EXMENT_FILE_SERVER_SHARE_MAX_DAYS', 0),
+    'file_server_share_path' => env('EXMENT_FILE_SERVER_SHARE_PATH', 'share'),
+    // the limits of each request link (0: none), and the types it does not take (ISS00410)
+    'file_server_request_max_files' => env('EXMENT_FILE_SERVER_REQUEST_MAX_FILES', 100),
+    'file_server_request_max_bytes' => env('EXMENT_FILE_SERVER_REQUEST_MAX_BYTES', 1073741824),
+    'file_server_request_max_file_size' => env('EXMENT_FILE_SERVER_REQUEST_MAX_FILE_SIZE', 104857600),
+    // empty: the list of ShareLinks::DEFAULT_DENIED_EXTENSIONS. allow: only these types (empty: all but the denied)
+    'file_server_request_deny_extensions' => env('EXMENT_FILE_SERVER_REQUEST_DENY_EXTENSIONS', ''),
+    'file_server_request_allow_extensions' => env('EXMENT_FILE_SERVER_REQUEST_ALLOW_EXTENSIONS', ''),
+    // the largest folder downloaded as a zip, in bytes (0: no limit); the largest image a thumbnail is made of, in pixels
+    'file_server_zip_max_bytes' => env('EXMENT_FILE_SERVER_ZIP_MAX_BYTES', 2147483648),
+    // 0: no limit. About 4 bytes a pixel are used, so the default fits a memory_limit of 128M
+    'file_server_preview_max_pixels' => env('EXMENT_FILE_SERVER_PREVIEW_MAX_PIXELS', 20000000),
+    // the largest file made into a preview by Imagick or LibreOffice, in bytes (0: no limit)
+    'file_server_preview_max_bytes' => env('EXMENT_FILE_SERVER_PREVIEW_MAX_BYTES', 104857600),
+    // the search (phase 4): the text of the files. PDF needs pdftotext (poppler-utils; found in /usr/bin when empty);
+    // OCR of images and scanned PDF needs tesseract (only when its path is set) and its languages
+    'file_server_text_max_chars' => env('EXMENT_FILE_SERVER_TEXT_MAX_CHARS', 1000000),
+    'file_server_text_timeout' => env('EXMENT_FILE_SERVER_TEXT_TIMEOUT', 120),
+    'file_server_pdftotext_path' => env('EXMENT_FILE_SERVER_PDFTOTEXT_PATH'),
+    'file_server_ocr_path' => env('EXMENT_FILE_SERVER_OCR_PATH'),
+    'file_server_ocr_lang' => env('EXMENT_FILE_SERVER_OCR_LANG', 'jpn+eng'),
+    'file_server_ocr_max_pages' => env('EXMENT_FILE_SERVER_OCR_MAX_PAGES', 10),
+    // true: search in Meilisearch (the host of config/meilisearch.php); the database when it cannot be reached.
+    // After it is turned on: php artisan exment:file-server-index
+    'file_server_meili' => env('EXMENT_FILE_SERVER_MEILI', false),
+    'file_server_meili_index' => env('EXMENT_FILE_SERVER_MEILI_INDEX', 'exment_files'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | File server, phase 5 (ISS00379)
+    |--------------------------------------------------------------------------
+    | audit: write who did what. audit_days: remove the older lines (0: keep all).
+    | notify: tell the followers (the bell); notify_mail: and send mails.
+    */
+    'file_server_audit' => env('EXMENT_FILE_SERVER_AUDIT', true),
+    'file_server_audit_days' => env('EXMENT_FILE_SERVER_AUDIT_DAYS', 0),
+    'file_server_notify' => env('EXMENT_FILE_SERVER_NOTIFY', true),
+    'file_server_notify_mail' => env('EXMENT_FILE_SERVER_NOTIFY_MAIL', true),
 ];

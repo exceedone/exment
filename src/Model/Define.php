@@ -313,6 +313,10 @@ class Define
             'uri' => 'meili-dictionary',
             'icon' => 'fa-language',
         ],
+        'file_server' => [
+            'uri' => 'file_server',
+            'icon' => 'fa-folder-open',
+        ],
         'custom_table' => [
             'uri' => 'table',
             'icon' => 'fa-table',
