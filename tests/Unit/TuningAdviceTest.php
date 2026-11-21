@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Enums\SystemRequireResult;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\EnvService;
+use Exceedone\Exment\Services\Features;
 use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
 use Exceedone\Exment\Services\SystemRequire\Tuning;
 
@@ -134,6 +135,57 @@ class TuningAdviceTest extends UnitTestBase
         $this->assertSame($expected, $check->getAction());
         $this->assertTrue($check->isServerWide());
         $this->assertStringNotContainsString('route:cache', (string) $check->getFixText());
+    }
+
+    /**
+     * Tuning is a feature of Feature management that is on until it is turned off, and a
+     * server keeps it from the administrators of its sites with EXMENT_FEATURES_LOCKED=tuning
+     * (a SaaS: the advice is about php.ini and .env, which the tenants cannot change; ISS00428).
+     * Kept from them, its page answers "not found" and its menu is hidden.
+     *
+     * @return void
+     */
+    public function testTuningIsAFeatureOnUntilTurnedOff()
+    {
+        $before = System::features();
+        try {
+            $settings = json_decode(strval(json_encode($before ?? [])), true) ?: [];
+            unset($settings[Features::TUNING]);
+            System::features($settings);
+
+            $this->assertArrayHasKey(Features::TUNING, Features::definitions());
+            $this->assertTrue(Features::enabled(Features::TUNING), 'on until it is turned off');
+            $this->assertSame(Features::TUNING, Features::forRequest(\Illuminate\Http\Request::create(admin_url('tuning'))));
+            $this->assertSame(Features::TUNING, Features::forRequest(\Illuminate\Http\Request::create(admin_url('tuning/action'), 'POST')));
+
+            config(['exment.features_locked' => 'file_server,tuning']);
+            $this->assertFalse(Features::enabled(Features::TUNING), 'kept off by the server');
+            $this->assertFalse(Features::allowed(Features::TUNING));
+
+            config(['exment.features_locked' => '']);
+            Features::save([Features::TUNING => ['enabled' => false]]);
+            $this->assertFalse(Features::enabled(Features::TUNING), 'turned off on the site');
+        } finally {
+            config(['exment.features_locked' => '']);
+            System::features($before);
+        }
+    }
+
+    /**
+     * The page says that the server settings are for the server administrator, the advice is
+     * not drawn as an error, and a form is not put in a p (the browser closes the p before it).
+     *
+     * @return void
+     */
+    public function testThePageMarkup()
+    {
+        $view = (string) file_get_contents(dirname(__DIR__, 2) . '/resources/views/tuning/index.blade.php');
+        $this->assertStringContainsString("exmtrans('tuning.server_admin')", $view);
+        $this->assertStringNotContainsString('class="red"', $view);
+        $this->assertDoesNotMatchRegularExpression('/<p[^>]*>\s*@if\(\$canRun\)/', $view);
+
+        $this->assertStringNotContainsString('tuning.', exmtrans('tuning.server_admin'));
+        $this->assertNotSame(exmtrans('tuning.result_ok'), exmtrans('tuning.result_recommended'));
     }
 
     /**

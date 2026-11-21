@@ -2,6 +2,7 @@
 <div class="box box-default">
     <div class="box-body">
         <p>{{ exmtrans('tuning.explain') }}</p>
+        <p class="text-muted">{{ exmtrans('tuning.server_admin') }}</p>
         <div class="container-fluid">
             <div class="row row-eq-height">
                 @foreach($checkResult->getItems() as $check)
@@ -19,13 +20,14 @@
                     <p>{{ exmtrans('common.result') }} : <span class="bold">{{ $check->getResultText() }}</span></p>
 
                     @if($check->checkResult() != 'ok')
-                        <p class="red">{{ $check->getMessage() }}</p>
+                        <p class="text-warning">{{ $check->getMessage() }}</p>
                         @if(!is_null($fix = $check->getFixText()))
                         <pre class="tuning_fix" style="white-space: pre-wrap;">{{ $fix }}</pre>
                         @endif
                     @endif
 
-                    <p>
+                    {{-- a div, not a p: a form may not be in a p (the browser would close the p before it) --}}
+                    <div class="tuning_buttons">
                         @if($canRun)
                         <form method="post" action="{{ $actionUrl }}" style="display:inline" onsubmit="return window.confirm('{{ exmtrans('tuning.action_confirm') }}');">
                             <input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -38,7 +40,7 @@
                         <a href="{{ $check->getSettingUrl() }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-default">
                             {{ exmtrans('system_require.check_setting') }}
                         </a>
-                    </p>
+                    </div>
                 </div>
                 @endforeach
             </div>

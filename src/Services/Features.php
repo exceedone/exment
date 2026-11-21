@@ -45,6 +45,7 @@ class Features
 
     public const FILE_SERVER = 'file_server';
     public const STUDIO = 'studio';
+    public const TUNING = 'tuning';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -104,6 +105,18 @@ class Features
             'api' => ['studio'],
             'menu' => 'studio',
         ]);
+        // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
+        // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
+        $core[static::TUNING] = static::definition([
+            'label' => strval(exmtrans('feature.features.tuning')),
+            'description' => strval(exmtrans('feature.features.tuning_help')),
+            'endpoints' => ['tuning'],
+            'menu' => 'tuning',
+            // for the system administrators only, whoever else is chosen
+            'who' => false,
+            // it was there before Feature management: on until it is turned off
+            'default' => true,
+        ]);
         return $core;
     }
 
@@ -122,6 +135,7 @@ class Features
      *   - api: the same, of the API (after "api/")
      *   - menu: a system menu name (rare for a plugin)
      *   - existing: the plugin had it before (default false)
+     *   - default: on until an administrator turns it off (default false)
      *   - who: whether "who may use it" is asked here (default true; false: all who may use the plugin)
      *   - requires: the key of another feature it needs (off when that one is)
      *   - plugin: the uri or the name of the plugin (default: the key before the first ".")
@@ -156,6 +170,7 @@ class Features
             'menu' => array_get($definition, 'menu'),
             'plugin' => array_get($definition, 'plugin'),
             'existing' => boolval(array_get($definition, 'existing', false)),
+            'default' => boolval(array_get($definition, 'default', false)),
             'who' => boolval(array_get($definition, 'who', true)),
             'requires' => is_string($requires) && $requires !== '' ? $requires : null,
         ];
@@ -284,6 +299,10 @@ class Features
     protected static function enabledByDefault(string $key, array $settings): bool
     {
         $definition = static::definitions()[$key] ?? null;
+        if (is_array($definition) && $definition['default']) {
+            // a feature that is on until it is turned off (as Tuning)
+            return true;
+        }
         if (!is_array($definition) || !$definition['existing']) {
             return false;
         }
