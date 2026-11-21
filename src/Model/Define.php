@@ -317,6 +317,10 @@ class Define
             'uri' => 'studio',
             'icon' => 'fa-th-large',
         ],
+        'tuning' => [
+            'uri' => 'tuning',
+            'icon' => 'fa-tachometer',
+        ],
         'role_group' => [
             'uri' => 'role_group',
             'icon' => 'fa-user-secret',
@@ -560,6 +564,7 @@ class Define
         ['uri'=> 'system', 'help_uri'=> 'system_setting'],
         ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
+        ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
 

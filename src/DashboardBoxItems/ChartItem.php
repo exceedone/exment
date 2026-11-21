@@ -21,6 +21,7 @@ use Exceedone\Exment\Services\Dashboard\ChartSort;
 use Exceedone\Exment\Services\Dashboard\ChartSorter;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Exceedone\Exment\Services\Dashboard\FilterValue;
+use Exceedone\Exment\Services\Dashboard\SummaryCache;
 
 /**
  * Chart box. On top of the configured chart, the box renders a toolbar (runtime chart-type
@@ -87,6 +88,13 @@ class ChartItem implements ItemInterface
 
     /** @var string|null|false highlightColumn() memo (false = not resolved yet) */
     protected $highlight_column = false;
+
+    /**
+     * Rows left out of a chart of a list view (more than exment.chart_list_max_rows), 0 when none.
+     *
+     * @var int
+     */
+    protected $list_rows_left_out = 0;
 
     /** @var bool|null canEditColors() memo */
     protected $can_edit_colors;
@@ -232,7 +240,11 @@ class ChartItem implements ItemInterface
             }
         }
 
-        return $this->toolbarHtml($fields) . $chart->render();
+        $note = '';
+        if ($this->list_rows_left_out > 0) {
+            $note = '<p class="small text-muted chart-rows-left-out">' . esc_html(exmtrans('dashboard.message.chart_list_rows_left_out', ['count' => intval(config('exment.chart_list_max_rows', 1000))])) . '</p>';
+        }
+        return $this->toolbarHtml($fields) . $note . $chart->render();
     }
 
     protected function isAggregateView(): bool
@@ -505,10 +517,24 @@ class ChartItem implements ItemInterface
         // in the order the view lists its rows (a view without a sort keeps the database's)
         $this->viewForQuery()->filterModel($model, ['sort' => true]);
 
-        // get data
+        // get data: a chart of a list view draws one point per row, so it reads at most
+        // chart_list_max_rows rows (a large table ran out of memory or time; ISS00413).
+        // A summary view is the way to chart a large table.
+        $max = intval(config('exment.chart_list_max_rows', 1000));
+        if ($max > 0) {
+            $model->limit($max + 1);
+        }
         $items = $model->get();
+        $this->list_rows_left_out = 0;
+        if ($max > 0 && $items->count() > $max) {
+            $items = $items->slice(0, $max)->values();
+            $this->list_rows_left_out = 1;
+        }
 
         $item_x = $view_column_x == Define::CHARTITEM_LABEL ? null : $this->listColumnItem($view_column_x);
+        if ($item_x !== null) {
+            $this->prefetchReferences($items, [$view_column_x]);
+        }
         $chart_label = $items->map(function ($val) use ($item_x) {
             // if get as CHARTITEM_LABEL, return label.
             if ($item_x === null) {
@@ -575,6 +601,7 @@ class ChartItem implements ItemInterface
 
         // get data
         $datalist = $this->summaryRows();
+        $this->prefetchSummaryTargets($datalist, $item_x_list);
         // the texts per group column, read once per row and column — a select_table column
         // resolves its label with a query per row, so a second pass would double them — are what
         // a sort by one X column (ChartSort x{i}) orders on, and joined they label the point
@@ -663,9 +690,52 @@ class ChartItem implements ItemInterface
      */
     protected function summaryRows()
     {
-        $query = $this->custom_table->getValueQuery();
-        $this->applyFilters($query);
-        return $this->viewForQuery()->getQuery($query)->get();
+        $read = function () {
+            $query = $this->custom_table->getValueQuery();
+            $this->applyFilters($query);
+            return $this->viewForQuery()->getQuery($query)->get();
+        };
+        if (!SummaryCache::enabled()) {
+            return $read();
+        }
+
+        // what the rows are made of: the box, the dashboard (its filter bar), the view and
+        // its columns, summaries, filters and sorts, and the filters asked for
+        $view = $this->custom_view;
+        $settings = function ($items): array {
+            $result = [];
+            foreach ($items ?? [] as $item) {
+                $result[] = $item->getAttributes();
+            }
+            return $result;
+        };
+        $parts = [
+            'box' => [$this->dashboard_box->suuid, $this->dashboard_box->options],
+            'dashboard' => [$this->dashboard_box->dashboard_id, array_get($this->dashboard_box->dashboard, 'options')],
+            'view' => [
+                $view->getAttributes(),
+                $settings($view->custom_view_columns_cache),
+                $settings($view->custom_view_summaries_cache),
+                $settings($view->custom_view_filters_cache),
+                $settings($view->custom_view_sorts_cache),
+            ],
+            'request' => array_except(request()->all(), ['_token', '_pjax', '_']),
+        ];
+        $tables = collect([$this->custom_table->id])
+            ->merge(collect([$view->custom_view_columns_cache, $view->custom_view_summaries_cache, $view->custom_view_filters_cache, $view->custom_view_sorts_cache])
+                ->flatten(1)->pluck('view_column_table_id'))
+            ->filter()->unique()->values();
+
+        return SummaryCache::rows($parts, $tables, $read, function (array $kept) {
+            // the query is built, not run: building it names the items as the rows were read
+            // (the summary condition in the label of the Y axis)
+            $this->viewForQuery()->getQuery($this->custom_table->getValueQuery());
+
+            $model = $this->custom_table->getValueModel();
+            return $model->newCollection(array_map(function ($attributes) use ($model) {
+                return $model->newFromBuilder($attributes);
+            }, $kept));
+        });
     }
 
     /**
@@ -795,7 +865,9 @@ class ChartItem implements ItemInterface
         $series_key = $item_series->uniqueName();
         $y_key = $item_y->uniqueName();
         $rows = [];
-        foreach ($this->summaryRows() as $val) {
+        $summary_rows = $this->summaryRows();
+        $this->prefetchSummaryTargets($summary_rows, [$item_x, $item_series]);
+        foreach ($summary_rows as $val) {
             $rows[] = [
                 'x' => data_get($val, $x_key),
                 'x_text' => $item_x->setCustomValue($val)->text(),

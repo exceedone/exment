@@ -257,27 +257,10 @@ class Exment
 
             if ((empty($latest) || empty($current))) {
                 // get current version from composer.lock
-                $composer_lock = base_path('composer.lock');
-                if (!\File::exists($composer_lock)) {
+                $current = $this->getVersionFromComposerLock();
+                if (is_null($current)) {
                     return [null, null];
                 }
-
-                $contents = \File::get($composer_lock);
-                $json = json_decode_ex($contents, true);
-                if (!$json) {
-                    return [null, null];
-                }
-
-                // get exment info
-                // @phpstan-ignore-next-line
-                $packages = array_get($json, 'packages');
-                $exment = collect($packages)->filter(function ($package) {
-                    return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
-                })->first();
-                if (!isset($exment)) {
-                    return [null, null];
-                }
-                $current = array_get($exment, 'version');
 
                 // if outside api is not permitted, return only current
                 if (!System::outside_api() || !$getFromComposer) {
@@ -383,6 +366,55 @@ class Exment
     public function isModernUi(): bool
     {
         return $this->getUiDesign() === 'modern';
+    }
+
+    /** @var array<string, string|null> composer.lock path + mtime => the version of Exment in it */
+    protected static $composerLockVersions = [];
+
+    /**
+     * The version of Exment written in composer.lock.
+     * Read once per process, and kept in the cache while composer.lock is unchanged: the file is
+     * large, and a page asked for it several times on each request (ISS00413).
+     *
+     * @return string|null
+     */
+    public function getVersionFromComposerLock(): ?string
+    {
+        $composer_lock = base_path('composer.lock');
+        if (!\File::exists($composer_lock)) {
+            return null;
+        }
+        $key = $composer_lock . ':' . @filemtime($composer_lock);
+        if (array_key_exists($key, static::$composerLockVersions)) {
+            return static::$composerLockVersions[$key];
+        }
+
+        $cacheKey = 'exment_composer_lock_version_' . md5($key);
+        try {
+            $cached = Cache::get($cacheKey);
+            if (is_string($cached) && $cached !== '') {
+                return static::$composerLockVersions[$key] = $cached;
+            }
+        } catch (\Exception $e) {
+        }
+
+        $version = null;
+        $json = json_decode_ex(\File::get($composer_lock), true);
+        if (is_array($json)) {
+            // @phpstan-ignore-next-line
+            $exment = collect(array_get($json, 'packages'))->first(function ($package) {
+                return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
+            });
+            $version = isset($exment) ? array_get($exment, 'version') : null;
+        }
+
+        if (is_string($version) && $version !== '') {
+            try {
+                Cache::forever($cacheKey, $version);
+            } catch (\Exception $e) {
+            }
+        }
+        return static::$composerLockVersions[$key] = $version;
     }
 
     /**
