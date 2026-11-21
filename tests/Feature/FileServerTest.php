@@ -88,6 +88,8 @@ class FileServerTest extends FeatureTestBase
 
     public function testTheUserWhoMakesAWorkspaceManagesItAndOthersDoNotSeeIt(): void
     {
+        // a user who is not a system administrator makes it (the site lets all users)
+        config(['exment.file_server_workspace_create' => 'all']);
         $owner = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $ws = $this->workspace($owner);
 
