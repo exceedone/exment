@@ -24,6 +24,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Carbon\Carbon|null $revoked_at
  * @property int|null $revoked_user_id
  * @property int|null $created_user_id
+ * @property int|null $login_user_id
+ * @property \Carbon\Carbon|null $last_refused_at
+ * @property string|null $last_refused_reason
  * @property \Carbon\Carbon|null $created_at
  */
 class UserApiKey extends Model
@@ -32,7 +35,7 @@ class UserApiKey extends Model
 
     protected $fillable = [
         'user_id', 'name', 'key_prefix', 'key_hash', 'scopes', 'tables', 'allowed_ips',
-        'client_cert_fingerprint', 'expires_at', 'created_user_id',
+        'client_cert_fingerprint', 'expires_at', 'created_user_id', 'login_user_id',
     ];
 
     /** never in an answer or a log, even as a hash */
@@ -45,6 +48,8 @@ class UserApiKey extends Model
         'expires_at' => 'datetime',
         'last_used_at' => 'datetime',
         'revoked_at' => 'datetime',
+        'last_refused_at' => 'datetime',
+        'login_user_id' => 'integer',
         'use_count' => 'integer',
         'revoked_user_id' => 'integer',
         'created_user_id' => 'integer',
