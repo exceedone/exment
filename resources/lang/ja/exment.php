@@ -3421,6 +3421,11 @@ return [
 
     'custom_value' => [
         'description' => 'このテーブルのデータ一覧を表示します。',
+        'document_replace' => '差し替え',
+        'document_replace_help' => '新しいファイルに差し替えます。今のファイルは前の版として残ります。',
+        'document_version_no' => '版 :no',
+        'document_versions' => '前の版',
+        'document_versions_empty' => '前の版はありません。',
         'back_to_list' => '一覧に戻る',
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',

@@ -3422,6 +3422,11 @@ return [
 
     'custom_value' => [
         'back_to_list' => 'Back to the list',
+        'document_replace' => 'Replace',
+        'document_replace_help' => 'Replace with a new file. The current file is kept as an older version.',
+        'document_version_no' => 'Version :no',
+        'document_versions' => 'Older versions',
+        'document_versions_empty' => 'No older versions.',
         'description' => 'Display the data list of this table.',
         'template' => 'Export Template',
         'import_export' => 'Import/Export',
