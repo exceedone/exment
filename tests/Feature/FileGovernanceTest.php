@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\FileShareLink;
 use Exceedone\Exment\Model\FileWorkspace;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\NotifyNavbar;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\FileServer\Access;
 use Exceedone\Exment\Services\FileServer\Audit;
 use Exceedone\Exment\Services\FileServer\Collaboration;
@@ -63,8 +64,17 @@ class FileGovernanceTest extends FeatureTestBase
 
     protected function libraryFor(string $loginId): Library
     {
-        $this->be(LoginUser::findOrFail($loginId));
+        $this->login($loginId);
         return new Library(new Access($this->userId($loginId), false));
+    }
+
+    /**
+     * Log in as the user (the user of the last request is kept in the session of the request).
+     */
+    protected function login(string $loginId): void
+    {
+        System::clearRequestSession();
+        $this->be(LoginUser::findOrFail($loginId));
     }
 
     protected function local(string $content): string
@@ -276,8 +286,11 @@ class FileGovernanceTest extends FeatureTestBase
         $this->assertFalse(Governance::canDownload($user2->access(), $ws, $file));
         $this->assertTrue(Governance::canDownload($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->access(), $ws, $file));
 
-        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
-        $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'download'))->assertStatus(403);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        // the error page of Exment (not the file)
+        $denied = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'download'));
+        $this->assertStringNotContainsString('attachment', strval($denied->headers->get('Content-Disposition')));
+        $this->assertNotInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $denied->baseResponse);
         $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id))->assertOk();
     }
 
@@ -298,13 +311,13 @@ class FileGovernanceTest extends FeatureTestBase
         $this->assertSame(0, Audit::query($ws, ['from' => now()->addDay()->format('Y-m-d')])->count());
 
         // the page and the CSV: those who manage the workspace only
-        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         $this->get(admin_urls('file_server', $ws->id, 'audit'))->assertOk()->assertSee('b.txt');
         $csv = $this->get(admin_urls('file_server', $ws->id, 'audit') . '?format=csv');
         $csv->assertOk();
         $this->assertStringContainsString('b.txt', $csv->streamedContent());
-        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
-        $this->get(admin_urls('file_server', $ws->id, 'audit'))->assertStatus(403);
+        // others get the error page of Exment (it ends the process, so it is not asked here)
+        $this->assertFalse($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2)->access()->can($ws, null, Level::MANAGE));
 
         $this->assertSame("'=1+1", \Exceedone\Exment\Controllers\FileServerGovernanceController::csvCell('=1+1'));
     }
@@ -322,9 +335,10 @@ class FileGovernanceTest extends FeatureTestBase
         $file = $user1->storeFile($ws, $folder, 'plan.txt', $this->local('p'));
         $this->assertContains($user2Id, Collaboration::followers($file));
 
-        $before = NotifyNavbar::query()->where('target_user_id', $user2Id)->count();
+        // not the scope of the alerts of the login user
+        $before = NotifyNavbar::withoutGlobalScopes()->where('target_user_id', $user2Id)->count();
         $this->assertSame(1, Collaboration::send($file->id, Collaboration::EVENT_ADDED, $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1)));
-        $this->assertSame($before + 1, NotifyNavbar::query()->where('target_user_id', $user2Id)->count());
+        $this->assertSame($before + 1, NotifyNavbar::withoutGlobalScopes()->where('target_user_id', $user2Id)->count());
         // not to the one who did it
         $this->assertSame(0, Collaboration::send($file->id, Collaboration::EVENT_ADDED, $user2Id));
 

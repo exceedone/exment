@@ -281,7 +281,8 @@ class Library
         }
 
         return $query->get()->filter(function (FileNode $node) use ($workspace) {
-            return !$node->has_unique_permissions || $this->access->can($workspace, $node, Level::VIEW);
+            // a draft (ISS00379) or one with its own permissions: ask its level
+            return (!$node->has_unique_permissions && !$node->isDraft()) || $this->access->can($workspace, $node, Level::VIEW);
         })->values();
     }
 

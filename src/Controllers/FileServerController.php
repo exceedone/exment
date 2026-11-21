@@ -45,7 +45,14 @@ class FileServerController extends AdminControllerBase
 
     protected function library(): Library
     {
-        return $this->library ??= new Library(Access::current());
+        // the controller may be kept for the next request (the route keeps it):
+        // a library of another user is not used again
+        $userId = \Exment::getUserId();
+        $userId = isset($userId) ? intval($userId) : null;
+        if (!isset($this->library) || $this->library->access()->userId() !== $userId) {
+            $this->library = new Library(Access::current());
+        }
+        return $this->library;
     }
 
     // ================================================================ pages

@@ -275,7 +275,7 @@ class Collaboration
                     'notify_id' => 0,
                     'target_user_id' => $userId,
                     'notify_subject' => mb_substr($subject, 0, 200),
-                    'notify_body' => $body,
+                    'notify_body' => mb_substr($body, 0, 2000),
                     'trigger_user_id' => $actorId,
                 ]);
                 $navbar->save();
