@@ -26,6 +26,7 @@ use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\Dashboard\SummaryCache;
 
 /**
  * @property-read string $display_avatar
@@ -602,6 +603,9 @@ abstract class CustomValue extends ModelBase
             $model->savedEvent(false);
         });
         static::saved(function ($model) {
+            // the kept dashboard aggregations of the table are aggregated again
+            SummaryCache::touch($model->custom_table);
+
             // The mention notifier is not always reached: savedEvent() bails out
             // when disable_saved_event is set, and a save with nothing dirty
             // never fires updated at all. A snapshot left behind would become
@@ -640,6 +644,9 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleted(function ($model) {
+            // a hard delete does not save the row first
+            SummaryCache::touch($model->custom_table);
+
             // call deleted event plugins
             Plugin::pluginExecuteEvent(PluginEventType::DELETED, $model->custom_table, [
                 'custom_table' => $model->custom_table,
