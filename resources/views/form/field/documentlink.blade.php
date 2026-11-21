@@ -25,5 +25,6 @@
 @endif
 
 @if(!empty($versions_url))
-<span class="exment-document-versions d-block ms-3" style="display:none"></span>
+{{-- shown by the script: no "d-block" here, its display:block !important would keep it open --}}
+<span class="exment-document-versions ms-3" style="display:none"></span>
 @endif

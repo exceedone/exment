@@ -1017,9 +1017,10 @@ EOT;
         $(document).off('click.exmdocverlist').on('click.exmdocverlist', '[data-exment-document-versions]', function (e) {
             e.preventDefault();
             var box = $(this).closest('p').find('.exment-document-versions');
-            if (box.is(':visible')) { box.slideUp(100); return; }
+            // open or closed is kept on the element (its visibility depends on the theme's classes)
+            if (box.data('open')) { box.data('open', false).hide(); return; }
             $.get($(this).data('url')).done(function (res) {
-                if (res && res.result) { box.html(res.html).slideDown(100); return; }
+                if (res && res.result) { box.html(res.html).css('display', 'block').data('open', true); return; }
                 toastr.error((res && res.message) || {$failed});
             }).fail(function () { toastr.error({$failed}); });
         });
