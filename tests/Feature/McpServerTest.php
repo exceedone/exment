@@ -342,4 +342,16 @@ class McpServerTest extends ApiTestBase
         $this->assertSame(-32603, $answer['error']['code'] ?? null);
         $this->assertStringNotContainsString('secret detail', (string)json_encode($answer));
     }
+
+    /**
+     * An error before the server (here: the name of the limit, from a setting that is not text) is
+     * also a JSON-RPC error, not a page of Exment.
+     */
+    public function testAnErrorOfTheController(): void
+    {
+        $key = $this->key();
+        config(['exment.site_id' => ['not text']]);
+        $response = $this->mcp($key, ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']);
+        $response->assertStatus(500)->assertJsonPath('error.code', -32603)->assertJsonPath('error.message', 'Internal error.');
+    }
 }

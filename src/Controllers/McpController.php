@@ -18,6 +18,21 @@ class McpController extends AdminControllerBase
      */
     public function handle(Request $request)
     {
+        // an error of Exment anywhere here (as the name of the limit, from the settings): a
+        // JSON-RPC error without its details (they go to the log)
+        try {
+            return $this->answer($request);
+        } catch (\Throwable $e) {
+            \Log::error('[Exment] MCP: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(McpServer::error(null, -32603, 'Internal error.'), 500);
+        }
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function answer(Request $request)
+    {
         $user = \Exment::user();
         if (!isset($user)) {
             return response()->json(McpServer::error(null, -32001, 'Not signed in.'), 401);
