@@ -24,7 +24,7 @@
     </td>
     <td>
         @if (!$f['who'])
-            <span class="exm-feature-help">{{ exmtrans('feature.who_plugin') }}</span>
+            <span class="exm-feature-help">{{ $f['who_text'] ?? exmtrans('feature.who_plugin') }}</span>
             <input type="hidden" name="features[{{ $key }}][all]" value="1">
         @else
             <label style="font-weight:normal;display:block"><input type="radio" name="features[{{ $key }}][all]" value="1" data-feature-all data-feature-label="{{ $f['label'] }}" @checked($all) @disabled($disabled)> {{ exmtrans('feature.who_all') }}</label>

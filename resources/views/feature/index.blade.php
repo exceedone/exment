@@ -41,6 +41,8 @@
         </div>
     </div>
 
+    @include('exment::feature._bundled')
+
     <div class="box card">
         <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('feature.plugin_header') }}</h3></div>
         <div class="box-body table-responsive">
@@ -108,6 +110,12 @@
     });
     // before saving: what stops (a feature turned off, a role group taken off)
     form.addEventListener('submit', function (e) {
+        // a button of a bundled plugin: its own question only
+        var button = e.submitter;
+        if (button && button.getAttribute('data-feature-confirm')) {
+            if (!confirm(button.getAttribute('data-feature-confirm'))) { e.preventDefault(); }
+            return;
+        }
         var stops = [];
         form.querySelectorAll('[data-feature-stop]').forEach(function (el) {
             if (el.defaultChecked && !el.checked) { stops.push(el.getAttribute('data-feature-stop')); }
