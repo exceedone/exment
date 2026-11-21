@@ -267,7 +267,11 @@ class McpTools
     protected function attachments(CustomValue $value): array
     {
         $rows = [];
-        foreach ($value->getDocuments() as $document) {
+        $documents = $value->getDocuments();
+        foreach (is_iterable($documents) ? $documents : [] as $document) {
+            if (!($document instanceof CustomValue)) {
+                continue;
+            }
             $rows[] = [
                 'id' => $document->id,
                 'name' => $document->getValue('document_name'),
