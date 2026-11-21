@@ -13,6 +13,9 @@ on:
 env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+  # the versions that passed on master before v7.2.0. Newer versions report more; update them with their fixes.
+  PHPSTAN_VERSION: 2.2.7
+  LARASTAN_VERSION: 3.10.0
 
 jobs:
   phpstan:
@@ -61,6 +64,7 @@ jobs:
       - name: setup phpstan
         working-directory: docker-exment
         run: |
+          docker compose -f docker-compose.yml exec -T php composer require --dev --no-interaction --with-all-dependencies "phpstan/phpstan:${{ env.PHPSTAN_VERSION }}" "larastan/larastan:${{ env.LARASTAN_VERSION }}"
           docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan.neon.dist .
           docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan-baseline.neon .
 
