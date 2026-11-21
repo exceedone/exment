@@ -4066,6 +4066,12 @@ return [
     ],
 
     'plugin_distribution' => [
+        'confirm_update_by_hand' => '「:name」は手で入れた版（:installed）です。:version に置き換えます（設定・メニュー・権限は残ります。今の版は残らないので、戻せません）。よろしいですか？',
+        'by_hand_help' => '手で入れた版です。置き換えると、その版には戻せません。',
+        'confirm_rollback_unsafe' => '「:name」を :version に戻すと、安全のための直しがなくなります。本当に戻しますか？',
+        'rollback_unsafe_help' => ':version には、安全のための直しが入っていません。',
+        'updates_off' => '版の切り替えは、このサイトの運営者が行います。',
+        'error_updates_off' => 'このサイトでは、版の切り替えはできません（運営者が行います）。',
         'notice_security' => ':name :version が使えます。安全のための直しを含みます。機能の管理で、この版にしてください。',
         'notice_features_subject' => '新しい機能があります',
         'notice_features' => '新しい機能があります: :names（今は「使わない」です）。機能の管理で、使うかどうかを決めてください。',

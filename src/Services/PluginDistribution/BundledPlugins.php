@@ -23,6 +23,13 @@ use Illuminate\Support\Facades\Storage;
  * installed or updated by itself: a newer bundled version is only shown, and
  * the version before an update is kept, to go back to it.
  *
+ * The package follows the minor versions of Exment: Exment 7.2 requires
+ * exceedone/exment-official-plugins ~7.2.0 (its releases fit 7.2).
+ *
+ * A site run by its provider (a SaaS) may keep the versions to itself:
+ * EXMENT_BUNDLED_PLUGINS_UPDATES=false hides "use this version" and "back to
+ * the version before" (installing stays).
+ *
  * A plugin installed by hand before (the same uuid) is the same plugin: its
  * settings, menus and permissions stay, and it is updated in place when the
  * administrator chooses so. A plugin of the same name and another uuid is
@@ -119,6 +126,7 @@ class BundledPlugins
             // a fix for the safety the site should take (signed: security_min, ISS00421 "5")
             $securityMin = $record['security_min'] ?? (!empty($record['security']) ? $record['version'] : null);
             $security = isset($installed) && is_string($securityMin) && $securityMin !== '' && static::newer($securityMin, $installed);
+            $previous = isset($installed) ? static::previousVersion($uuid, $installed) : null;
             $rows[] = [
                 'uuid' => $uuid,
                 'security' => $security,
@@ -130,7 +138,11 @@ class BundledPlugins
                 'installed_version' => $installed,
                 'active' => isset($plugin) && boolval($plugin->active_flg),
                 'status' => $status,
-                'previous' => isset($installed) ? static::previousVersion($uuid, $installed) : null,
+                'previous' => $previous,
+                // the version before is older than the first safe one: going back takes the fix away
+                'previous_unsafe' => isset($previous) && is_string($securityMin) && $securityMin !== '' && static::newer($securityMin, $previous),
+                // installed by hand (not from the bundle): an update replaces what was put in by hand
+                'by_hand' => isset($installed) && !static::disk()->exists(static::PREVIOUS_DIR . '/' . $uuid . '/' . $installed . '.json'),
                 'plugin_id' => isset($plugin) ? $plugin->id : null,
             ];
         }
@@ -146,6 +158,15 @@ class BundledPlugins
     public static function installed(string $uuid): ?Plugin
     {
         return Plugin::query()->where('uuid', $uuid)->first();
+    }
+
+    /**
+     * Whether "use this version" and "back to the version before" are shown
+     * (a SaaS may keep the versions to itself: EXMENT_BUNDLED_PLUGINS_UPDATES=false).
+     */
+    public static function updatesAllowed(): bool
+    {
+        return boolval(config('exment.bundled_plugins_updates', true));
     }
 
     protected static function newer(string $a, string $b): bool
@@ -259,6 +280,9 @@ class BundledPlugins
             $plugin->active_flg = true;
             $plugin->save();
         }
+        if (!isset($before)) {
+            static::turnOnItsFeatures($plugin);
+        }
 
         // keep this version, to go back to it after a later update
         $disk = static::disk();
@@ -268,6 +292,40 @@ class BundledPlugins
             $disk->put($base . '.json', strval(json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)));
         }
         return $plugin;
+    }
+
+    /**
+     * "Use" of a plugin: its main features (registered with "existing") are
+     * turned on too, so that one press starts it. Those an administrator has
+     * decided on already stay as they are.
+     */
+    protected static function turnOnItsFeatures(Plugin $plugin): void
+    {
+        try {
+            // the plugin registers its features when its class is made
+            foreach (\Exceedone\Exment\Enums\PluginType::PLUGIN_TYPE_PUBLIC_CLASS() as $type) {
+                if ($plugin->matchPluginType($type)) {
+                    $plugin->getClass($type, ['throw_ex' => false]);
+                }
+            }
+            $values = [];
+            foreach (\Exceedone\Exment\Services\Features::definitions() as $key => $definition) {
+                $key = strval($key);
+                if (!$definition['existing'] || !\Exceedone\Exment\Services\Features::isNew($key)) {
+                    continue;
+                }
+                $owner = \Exceedone\Exment\Services\Features::pluginOf($key);
+                if (isset($owner) && $owner->id === $plugin->id) {
+                    $values[$key] = ['enabled' => true, 'role_groups' => null, 'menu' => true];
+                }
+            }
+            if (count($values) > 0) {
+                \Exceedone\Exment\Services\Features::save($values);
+                \Exceedone\Exment\Model\System::clearCache();
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the features of the plugin ' . $plugin->plugin_name . ': ' . $e->getMessage());
+        }
     }
 
     protected static function tempCopy(string $zip): string

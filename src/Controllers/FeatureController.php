@@ -75,6 +75,7 @@ class FeatureController extends AdminControllerBase
             // the free official plugins bundled with Exment (ISS00419)
             'bundled' => $this->bundledRows(),
             'bundled_url' => admin_url('feature/bundled'),
+            'bundled_updates' => BundledPlugins::updatesAllowed(),
         ]));
         return $content;
     }
@@ -104,6 +105,11 @@ class FeatureController extends AdminControllerBase
     {
         if (DemoMode::enabled()) {
             admin_toastr(DemoMode::message(), 'error');
+            return redirect(admin_url('feature'));
+        }
+        // a site run by its provider keeps the versions to itself (only the first install)
+        if (!BundledPlugins::updatesAllowed() && ($action === 'rollback' || BundledPlugins::installed($uuid) !== null)) {
+            admin_toastr(exmtrans('plugin_distribution.error_updates_off'), 'error');
             return redirect(admin_url('feature'));
         }
         try {

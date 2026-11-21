@@ -594,6 +594,8 @@ return [
     |
     */
     'bundled_plugins_path' => env('EXMENT_BUNDLED_PLUGINS_PATH'),
+    // false: no "use this version" / "back to the version before" (a SaaS keeps the versions to itself)
+    'bundled_plugins_updates' => env('EXMENT_BUNDLED_PLUGINS_UPDATES', true),
     'site_id' => env('EXMENT_SITE_ID'),
 
     /*

@@ -4067,6 +4067,12 @@ return [
     ],
 
     'plugin_distribution' => [
+        'confirm_update_by_hand' => '":name" is a version installed by hand (:installed). Replace it with :version? (Settings, menus and permissions stay. The current version is not kept, so you cannot go back.)',
+        'by_hand_help' => 'Installed by hand. Once replaced, you cannot go back to it.',
+        'confirm_rollback_unsafe' => 'Putting ":name" back to :version takes the fix for safety away. Really go back?',
+        'rollback_unsafe_help' => ':version does not have the fix for safety.',
+        'updates_off' => 'The versions are changed by the provider of this site.',
+        'error_updates_off' => 'The versions cannot be changed on this site (the provider does it).',
         'notice_security' => ':name :version is available. It includes a fix for safety. Please update to this version in Feature management.',
         'notice_features_subject' => 'New features are available',
         'notice_features' => 'New features are available: :names (off for now). Please decide in Feature management whether to use them.',

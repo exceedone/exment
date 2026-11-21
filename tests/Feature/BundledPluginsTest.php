@@ -397,6 +397,64 @@ class BundledPluginsTest extends FeatureTestBase
         \Exceedone\Exment\Services\Features::reset();
     }
 
+    public function testGoingBackBelowTheFirstSafeVersionIsMarked(): void
+    {
+        $this->makeRelease('1.0.0');
+        BundledPlugins::install(static::SAMPLE_UUID);
+        File::cleanDirectory($this->dir);
+        $this->makeRelease('1.0.1', static::SAMPLE_UUID, 'ExmentSignSample', null, ['security' => true, 'security_min' => '1.0.1']);
+        BundledPlugins::install(static::SAMPLE_UUID);
+        $row = BundledPlugins::rows()[0];
+        $this->assertSame('1.0.0', $row['previous']);
+        $this->assertTrue($row['previous_unsafe'], 'going back takes the fix away');
+        $this->assertFalse($row['by_hand']);
+    }
+
+    public function testAVersionInstalledByHand(): void
+    {
+        // put in as an uploaded plugin, not from the bundle
+        [, $zip] = $this->makeRelease('1.0.0');
+        session()->forget('errorMess');
+        \Exceedone\Exment\Services\Plugin\PluginInstaller::uploadPlugin(new \Illuminate\Http\UploadedFile($zip, basename($zip), 'application/zip', null, true));
+        File::cleanDirectory($this->dir);
+        $this->makeRelease('1.1.0');
+        $row = BundledPlugins::rows()[0];
+        $this->assertSame(BundledPlugins::STATUS_UPDATE, $row['status']);
+        $this->assertTrue($row['by_hand']);
+    }
+
+    public function testASiteThatKeepsTheVersionsToItsProvider(): void
+    {
+        config(['exment.bundled_plugins_updates' => false]);
+        $this->makeRelease('1.0.0');
+        System::clearRequestSession();
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        // installing stays
+        $this->post(admin_url('feature/bundled/' . static::SAMPLE_UUID . '/install'))->assertRedirect(admin_url('feature'));
+        $this->assertSame('1.0.0', BundledPlugins::installed(static::SAMPLE_UUID)->version ?? null);
+        // a newer one: not by this page
+        File::cleanDirectory($this->dir);
+        $this->makeRelease('1.1.0');
+        $this->post(admin_url('feature/bundled/' . static::SAMPLE_UUID . '/install'))->assertRedirect(admin_url('feature'));
+        $this->assertSame('1.0.0', BundledPlugins::installed(static::SAMPLE_UUID)->version ?? null);
+        $this->get(admin_url('feature'), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
+            ->assertSee(exmtrans('plugin_distribution.updates_off'))->assertDontSee(exmtrans('plugin_distribution.update'));
+    }
+
+    public function testUseTurnsOnTheMainFeaturesOfThePlugin(): void
+    {
+        \Exceedone\Exment\Services\Features::reset();
+        \Exceedone\Exment\Services\Features::register('exment_sign_sample.main', ['label' => 'Main', 'existing' => true]);
+        \Exceedone\Exment\Services\Features::register('exment_sign_sample.extra', ['label' => 'Extra']);
+        $this->makeRelease('1.0.0');
+        BundledPlugins::install(static::SAMPLE_UUID);
+        System::clearRequestSession();
+        $this->assertFalse(\Exceedone\Exment\Services\Features::isNew('exment_sign_sample.main'));
+        $this->assertTrue(\Exceedone\Exment\Services\Features::setting('exment_sign_sample.main')['enabled']);
+        $this->assertTrue(\Exceedone\Exment\Services\Features::isNew('exment_sign_sample.extra'), 'not the others');
+        \Exceedone\Exment\Services\Features::reset();
+    }
+
     public function testTheIdOfTheSite(): void
     {
         $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_24_000000_add_site_id.php');

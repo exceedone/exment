@@ -34,8 +34,11 @@
                                         @break
                                     @case('update')
                                         <p>{{ exmtrans('plugin_distribution.status_update', ['version' => $b['version']]) }}</p>
-                                        @if (!$read_only)
-                                            <button type="submit" class="btn btn-sm btn-default" formaction="{{ $bundled_url }}/{{ $b['uuid'] }}/install" data-feature-confirm="{{ exmtrans('plugin_distribution.confirm_update', ['name' => $b['label'], 'version' => $b['version']]) }}">{{ exmtrans('plugin_distribution.update') }}</button>
+                                        @if (!$read_only && $bundled_updates)
+                                            <button type="submit" class="btn btn-sm btn-default" formaction="{{ $bundled_url }}/{{ $b['uuid'] }}/install" data-feature-confirm="{{ $b['by_hand'] ? exmtrans('plugin_distribution.confirm_update_by_hand', ['name' => $b['label'], 'version' => $b['version'], 'installed' => $b['installed_version']]) : exmtrans('plugin_distribution.confirm_update', ['name' => $b['label'], 'version' => $b['version']]) }}">{{ exmtrans('plugin_distribution.update') }}</button>
+                                            @if ($b['by_hand'])<p class="exm-feature-help">{{ exmtrans('plugin_distribution.by_hand_help') }}</p>@endif
+                                        @elseif (!$bundled_updates)
+                                            <p class="exm-feature-help">{{ exmtrans('plugin_distribution.updates_off') }}</p>
                                         @endif
                                         @break
                                     @case('newer')
@@ -44,8 +47,9 @@
                                     @default
                                         <p class="exm-feature-help">{{ $b['active'] ? exmtrans('plugin_distribution.status_installed') : exmtrans('feature.state_plugin_off') }}</p>
                                 @endswitch
-                                @if (!empty($b['previous']) && !$read_only)
-                                    <button type="submit" class="btn btn-sm btn-link" formaction="{{ $bundled_url }}/{{ $b['uuid'] }}/rollback" data-feature-confirm="{{ exmtrans('plugin_distribution.confirm_rollback', ['name' => $b['label'], 'version' => $b['previous']]) }}">{{ exmtrans('plugin_distribution.rollback', ['version' => $b['previous']]) }}</button>
+                                @if (!empty($b['previous']) && !$read_only && $bundled_updates)
+                                    <button type="submit" class="btn btn-sm btn-link {{ $b['previous_unsafe'] ? 'text-danger' : '' }}" formaction="{{ $bundled_url }}/{{ $b['uuid'] }}/rollback" data-feature-confirm="{{ $b['previous_unsafe'] ? exmtrans('plugin_distribution.confirm_rollback_unsafe', ['name' => $b['label'], 'version' => $b['previous']]) : exmtrans('plugin_distribution.confirm_rollback', ['name' => $b['label'], 'version' => $b['previous']]) }}">{{ exmtrans('plugin_distribution.rollback', ['version' => $b['previous']]) }}</button>
+                                    @if ($b['previous_unsafe'])<p class="text-danger" style="margin:2px 0 0">{{ exmtrans('plugin_distribution.rollback_unsafe_help', ['version' => $b['previous']]) }}</p>@endif
                                 @endif
                                 @if (!empty($b['edit_url']))
                                     <p class="exm-feature-help"><a href="{{ $b['edit_url'] }}">{{ exmtrans('feature.plugin_setting_link') }}</a></p>
