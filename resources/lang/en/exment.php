@@ -730,6 +730,11 @@ return [
                 'explain' => 'With the sync queue, mails are sent inside the request and the screen waits until they are sent.',
                 'warning' => 'The queue is sync. Set .env as below and keep a queue worker running.',
             ],
+            'dashboard_cache' => [
+                'label' => 'Dashboard aggregation cache (EXMENT_DASHBOARD_CACHE_SECONDS)',
+                'explain' => 'A chart of a summary view aggregates its table every time the dashboard is opened. This keeps the result for each viewer for the given seconds. Saving or deleting data aggregates again; a change of a share or a membership shows once the time has passed.',
+                'warning' => 'There are charts of summary views, and the aggregation cache is off. Set .env as below.',
+            ],
             'debug_log' => [
                 'label' => 'Logs for investigation',
                 'explain' => 'The system performance log and the debug modes of .env (EXMENT_DEBUG_MODE_*) write a log on every request. Turn them off after the investigation.',

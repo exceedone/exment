@@ -65,6 +65,7 @@ class SystemRequireList
         Tuning\QueueTuning::class,
         Tuning\DebugLogTuning::class,
         Tuning\SearchIndexTuning::class,
+        Tuning\DashboardCacheTuning::class,
     ];
 
     // @phpstan-ignore-next-line
