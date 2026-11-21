@@ -469,7 +469,8 @@ class Features
      */
     public static function forRequest(Request $request): ?string
     {
-        $path = trim($request->path(), '/');
+        // the routes match the decoded path (/admin/%73tudio is /admin/studio)
+        $path = trim(rawurldecode($request->decodedPath()), '/');
         $prefix = trim(strval(config('admin.route.prefix')), '/');
         if ($prefix !== '') {
             if ($path !== $prefix && !str_starts_with($path, $prefix . '/')) {
@@ -501,10 +502,21 @@ class Features
         if ($path === '') {
             return null;
         }
+        $found = $api ? static::match($path, 'api') : null;
+        // a path of the API that no "api" has: the pages ("endpoints"; a plugin
+        // may have given only them, and its API is under the same path)
+        return $found ?? static::match($path, 'endpoints');
+    }
+
+    /**
+     * The feature whose endpoints (of the kind) the path is in; the longest one wins.
+     */
+    protected static function match(string $path, string $kind): ?string
+    {
         $found = null;
         $length = -1;
         foreach (static::definitions() as $key => $definition) {
-            $endpoints = $api ? (array)$definition['api'] : (array)$definition['endpoints'];
+            $endpoints = (array)$definition[$kind];
             foreach ($endpoints as $endpoint) {
                 if (($path === $endpoint || str_starts_with($path, $endpoint . '/') || str_starts_with($path, $endpoint . '.')) && strlen($endpoint) > $length) {
                     $found = strval($key);

@@ -85,6 +85,11 @@ class FeatureController extends AdminControllerBase
             return redirect(admin_url('feature'));
         }
 
+        // the last field of the form: without it, the form was cut (max_input_vars) and is not saved
+        if (strval($request->input('complete')) !== '1') {
+            admin_toastr(exmtrans('feature.message_incomplete'), 'error');
+            return redirect(admin_url('feature'));
+        }
         $input = (array)$request->input('features', []);
         $values = [];
         $definitions = Features::definitions();
@@ -116,6 +121,8 @@ class FeatureController extends AdminControllerBase
                 }
             }
             Features::save($values);
+            // the cache of the settings, once they are in the database
+            \Exceedone\Exment\Model\System::clearCacheAfterCommit();
 
             // a feature turned on with its menu: its menu again when the row was removed
             foreach ($values as $key => $value) {

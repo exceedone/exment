@@ -1469,7 +1469,7 @@
             "menu_target_name": "studio"
         },
         {
-            "order": "10",
+            "order": "15",
             "menu_type": "system",
             "menu_name": "feature",
             "title": "Feature Management",

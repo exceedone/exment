@@ -45,6 +45,7 @@ return new class extends Migration
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            \Exceedone\Exment\Model\System::clearCache();
             return;
         }
 
@@ -63,6 +64,8 @@ return new class extends Migration
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        // the settings are cached (EXMENT_USE_CACHE): not the empty ones
+        \Exceedone\Exment\Model\System::clearCache();
 
         $this->addMenu($menuTable);
     }
@@ -79,7 +82,7 @@ return new class extends Migration
         $prefix = trim(strval(config('admin.route.prefix')), '/');
         $prefix = $prefix === '' ? '' : $prefix . '/';
         return DB::table($table)->where(function ($query) use ($prefix) {
-            foreach (['studio', 'app'] as $path) {
+            foreach (['studio', 'app', 'api/studio', 'webapi/studio'] as $path) {
                 $query->orWhere('path', $prefix . $path)->orWhere('path', 'like', $prefix . $path . '/%');
             }
         })->exists();

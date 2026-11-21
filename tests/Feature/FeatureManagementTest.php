@@ -136,7 +136,7 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertSame('locked', Features::reason(Features::STUDIO));
         // the page does not change it
         $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
-        $this->post(admin_url('feature'), ['features' => ['studio' => ['present' => '1', 'all' => '1', 'menu' => '1']]])->assertRedirect();
+        $this->post(admin_url('feature'), ['features' => ['studio' => ['present' => '1', 'all' => '1', 'menu' => '1']], 'complete' => '1'])->assertRedirect();
         System::clearRequestSession();
         $this->assertTrue(Features::setting(Features::STUDIO)['enabled']);
         config(['exment.features_locked' => '']);
@@ -169,6 +169,16 @@ class FeatureManagementTest extends FeatureTestBase
         });
         $this->assertSame(404, $thrown->getStatusCode());
         $this->get(admin_url('app/sw.js'))->assertNotFound();
+        // encoded URLs are the same pages
+        $this->get(admin_url('%73tudio'), $headers)->assertNotFound();
+        $this->get(admin_url('%61pp'))->assertNotFound();
+        // the API (its sign-in comes first): the guard with an encoded path
+        $prefix = trim(strval(config('admin.route.prefix')), '/');
+        $api = \Illuminate\Http\Request::create('/' . trim($prefix . '/api/%73tudio/screens', '/'), 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/json']);
+        $answer = (new \Exceedone\Exment\Middleware\FeatureGuard())->handle($api, function () {
+            return response('passed', 200);
+        });
+        $this->assertSame(404, $answer->getStatusCode());
         // pages of other names are not touched
         $this->assertNotSame(404, $this->get(admin_url('dashboard'), $headers)->getStatusCode());
 
@@ -192,6 +202,10 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertNull(Features::forRequest($make('application')));
         $this->assertNull(Features::forRequest($make('data/information')));
         $this->assertNull(Features::forRequest($make('api/data/information')));
+        // encoded: the routes match the decoded path
+        $this->assertSame(Features::STUDIO, Features::forRequest($make('%73tudio')));
+        $this->assertSame(Features::STUDIO, Features::forRequest($make('api/%73tudio/screens')));
+        $this->assertSame(Features::STUDIO, Features::forRequest($make('%61pp/sw.js')));
 
         // the features of a plugin: off until turned on; the longest endpoint wins
         Features::register('exment_test.desk', ['label' => 'Desk', 'endpoints' => ['plugins/exment_test']]);
@@ -201,6 +215,9 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertSame('exment_test.mail', Features::forRequest($make('plugins/exment_test/mail/inbox')));
         $this->assertSame('exment_test.mail', Features::forRequest($make('api/plugins/exment_test/mail/send')));
         $this->assertSame('exment_test.desk', Features::forRequest($make('plugins/exment_test/other')));
+        $this->assertSame('exment_test.mail', Features::forRequest($make('plugins/exment_test/%6dail/1')));
+        // the API of a plugin that gave only its pages
+        $this->assertSame('exment_test.desk', Features::forRequest($make('api/plugins/exment_test/other')));
         $this->assertNull(Features::forRequest($make('plugins/exment_other')));
         // the menus go with the pages (a plugin's menu, or a custom menu to the URL)
         $this->assertTrue(Features::hidesMenuUri('plugins/exment_test/mail'));
@@ -269,8 +286,13 @@ class FeatureManagementTest extends FeatureTestBase
 
         // turned on with its menu on the page: the menu is made again when it was removed
         DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'studio')->delete();
-        $this->post(admin_url('feature'), ['features' => ['studio' => ['present' => '1', 'enabled' => '1', 'all' => '1', 'menu' => '1']]])->assertRedirect();
+        $this->post(admin_url('feature'), ['features' => ['studio' => ['present' => '1', 'enabled' => '1', 'all' => '1', 'menu' => '1']], 'complete' => '1'])->assertRedirect();
         $this->assertTrue(DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'studio')->exists());
+
+        // a form cut on the way (no "complete"): nothing is saved
+        $this->post(admin_url('feature'), ['features' => ['studio' => ['present' => '1', 'all' => '1', 'menu' => '1']]])->assertRedirect();
+        System::clearRequestSession();
+        $this->assertTrue(Features::setting(Features::STUDIO)['enabled'], 'not turned off by a cut form');
     }
 
     public function testThePageKeepsThePluginsAsTheyAre(): void
@@ -285,9 +307,9 @@ class FeatureManagementTest extends FeatureTestBase
         foreach ($plugins as $name => $row) {
             unset($plugins[$name]['menu']);
         }
-        $this->post(admin_url('feature'), ['plugins' => $this->pluginInput()])->assertRedirect();
+        $this->post(admin_url('feature'), ['plugins' => $this->pluginInput(), 'complete' => '1'])->assertRedirect();
         $this->assertSame($before, $this->pluginState());
-        $this->post(admin_url('feature'), ['plugins' => $plugins])->assertRedirect();
+        $this->post(admin_url('feature'), ['plugins' => $plugins, 'complete' => '1'])->assertRedirect();
         $this->assertSame($before['plugins'], $this->pluginState()['plugins'], 'menus off do not make plugins inactive');
 
         // a group checked on the page gets plugin_access; a change made
@@ -310,7 +332,7 @@ class FeatureManagementTest extends FeatureTestBase
         // meanwhile, on the page of the role groups: free[1] gets it
         RoleGroupPermission::create(['role_group_id' => $free[1], 'role_group_permission_type' => RoleType::PLUGIN, 'role_group_target_id' => $plugin->id, 'permissions' => ['plugin_access']]);
         $input[$plugin->plugin_name]['role_groups'] = array_merge($shown, [$free[0]]);
-        $this->post(admin_url('feature'), ['plugins' => $input])->assertRedirect();
+        $this->post(admin_url('feature'), ['plugins' => $input, 'complete' => '1'])->assertRedirect();
         $now = $this->pluginAccess($plugin);
         $this->assertContains($free[0], $now);
         $this->assertContains($free[1], $now, 'not taken off: it was not on the page');

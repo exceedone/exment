@@ -82,6 +82,8 @@
     @if (!$read_only)
         <button type="submit" class="btn btn-primary">{{ exmtrans('common.save') }}</button>
     @endif
+    {{-- the last field: a form cut on the way (max_input_vars) is not saved --}}
+    <input type="hidden" name="complete" value="1">
 </form>
 <script>
 (function () {

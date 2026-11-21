@@ -4019,6 +4019,7 @@ return [
         'plugin_everyone_type' => 'この種類のプラグインは、だれでも使えます。',
         'plugin_everyone_option' => 'プラグインの設定で「すべてのユーザーが使える」になっています。',
         'message_not_used' => 'この機能は、このサイトでは使っていません。',
+        'message_incomplete' => 'フォームが途中で切れたので、保存しませんでした（送れる項目の数の上限 max_input_vars）。',
         'message_not_allowed' => 'この機能を使う権限がありません。管理者に聞いてください。',
         'back_home' => 'ホームへ戻る',
         'status' => '状態',

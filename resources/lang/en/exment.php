@@ -4020,6 +4020,7 @@ return [
         'plugin_everyone_type' => 'Everyone can use a plugin of this type.',
         'plugin_everyone_option' => 'The plugin is set to "all users can use it".',
         'message_not_used' => 'This feature is not used on this site.',
+        'message_incomplete' => 'The form was cut on the way, so nothing was saved (the limit of the fields that can be sent, max_input_vars).',
         'message_not_allowed' => 'You do not have permission to use this feature. Please ask your administrator.',
         'back_home' => 'Back to home',
         'status' => 'Status',

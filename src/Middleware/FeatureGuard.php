@@ -22,7 +22,7 @@ class FeatureGuard
         // a page of a plugin: make its class first, so that the features it
         // registers (in its constructor) are known, also on the routes that
         // skip admin.bootstrap (as its API)
-        if (str_contains('/' . trim($request->path(), '/') . '/', '/plugins/')) {
+        if (str_contains('/' . trim(rawurldecode($request->decodedPath()), '/') . '/', '/plugins/')) {
             try {
                 Plugin::getPluginPageModel();
             } catch (\Throwable $e) {
