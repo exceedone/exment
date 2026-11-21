@@ -1,0 +1,13 @@
+{
+    "format": "exment-plugin-release/1",
+    "uuid": "2f3c8d0e-6a51-4b7e-9c2d-5e8f1a0b3c47",
+    "name": "ExmentSignSample",
+    "version": "1.0.0",
+    "exment_requires": ">=6.2 <8.0",
+    "php_requires": ">=8.1",
+    "sha256": "79a1767fba65406c753d1ae49f922a3ea6a82ff8ba387a98a70d65e03d139e04",
+    "size": 512,
+    "released_at": "2026-11-21T07:00:00Z",
+    "key_id": "test-release-1",
+    "signature": "vYYDpdbLIBUNGI1C50PMIWTly/PFNU+GK6uFKis7ar5xzs1MkzO73IKG+qV/8jYC2DkPbkLWAWUZrwsW6FeoAg=="
+}

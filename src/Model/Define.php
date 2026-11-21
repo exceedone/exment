@@ -96,6 +96,10 @@ class Define
         'publicform_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
         // the features an administrator turns on (Services\Features; Admin setting → Feature management)
         'features' => ['type' => 'json', 'default' => []],
+        // the id of the site (a UUID made once; the market and the licenses of the plugins know the site by it)
+        'site_id' => ['type' => 'string', 'default' => null],
+        // the notices told to the system administrators (Services\PluginDistribution\AdminNotices)
+        'admin_notices_sent' => ['type' => 'json', 'default' => []],
         'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],
         'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
         'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],

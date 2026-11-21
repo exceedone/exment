@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\Features;
+use Exceedone\Exment\Services\PluginDistribution\BundledPlugins;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -71,8 +72,57 @@ class FeatureController extends AdminControllerBase
             'system_url' => admin_url('system'),
             'menu_url' => admin_url('auth/menu'),
             'read_only' => DemoMode::enabled(),
+            // the free official plugins bundled with Exment (ISS00419)
+            'bundled' => $this->bundledRows(),
+            'bundled_url' => admin_url('feature/bundled'),
+            'bundled_updates' => BundledPlugins::updatesAllowed(),
         ]));
         return $content;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function bundledRows(): array
+    {
+        try {
+            return array_map(function ($row) {
+                return $row + ['edit_url' => isset($row['plugin_id']) ? admin_urls('plugin', $row['plugin_id'], 'edit') : null];
+            }, BundledPlugins::rows());
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the bundled plugins: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * A bundled plugin: install it, update it to the bundled version, or go
+     * back to the version before (the administrator chose it).
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function bundled(Request $request, string $uuid, string $action)
+    {
+        if (DemoMode::enabled()) {
+            admin_toastr(DemoMode::message(), 'error');
+            return redirect(admin_url('feature'));
+        }
+        // a site run by its provider keeps the versions to itself (only the first install)
+        if (!BundledPlugins::updatesAllowed() && ($action === 'rollback' || BundledPlugins::installed($uuid) !== null)) {
+            admin_toastr(exmtrans('plugin_distribution.error_updates_off'), 'error');
+            return redirect(admin_url('feature'));
+        }
+        try {
+            $plugin = $action === 'rollback' ? BundledPlugins::rollback($uuid) : BundledPlugins::install($uuid);
+            admin_toastr(exmtrans($action === 'rollback' ? 'plugin_distribution.rolled_back' : 'plugin_distribution.installed', [
+                'name' => $plugin->plugin_view_name,
+                'version' => $plugin->version,
+            ]));
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the bundled plugin ' . $uuid . ': ' . $e->getMessage());
+            admin_toastr($e->getMessage(), 'error');
+        }
+        return redirect(admin_url('feature'));
     }
 
     /**

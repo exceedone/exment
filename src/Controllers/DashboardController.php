@@ -169,6 +169,8 @@ class DashboardController extends AdminControllerBase
         }
         // if system admin, check version
         $this->showVersionUpdate();
+        // the system administrators only: the fixes for the safety of the bundled plugins, the new features
+        $this->showAdminNotices();
 
         $this->setDashboardInfo($request);
 
@@ -629,6 +631,31 @@ class DashboardController extends AdminControllerBase
         }
 
         return $height;
+    }
+
+    /**
+     * For the system administrators only (the others see nothing of it).
+     */
+    protected function showAdminNotices(): void
+    {
+        if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+            return;
+        }
+        try {
+            $link = '<a href="' . e(admin_url('feature')) . '">' . e(exmtrans('plugin_distribution.open_feature')) . '</a>';
+            foreach (\Exceedone\Exment\Services\PluginDistribution\AdminNotices::security() as $item) {
+                admin_error(
+                    exmtrans('plugin_distribution.notice_security', ['name' => $item['label'], 'version' => $item['version']]),
+                    ($item['note'] !== '' ? e($item['note']) . '<br>' : '') . $link
+                );
+            }
+            $features = \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures();
+            if (count($features) > 0) {
+                admin_info(exmtrans('plugin_distribution.notice_features_subject'), e(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])) . '<br>' . $link);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
+        }
     }
 
     // @phpstan-ignore-next-line
