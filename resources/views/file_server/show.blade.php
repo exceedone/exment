@@ -11,6 +11,8 @@
         @foreach ($breadcrumbs as $i => $crumb)
             @if ($i === count($breadcrumbs) - 1)
                 <span>{{ $crumb['name'] }}</span>
+            @elseif (!isset($crumb['url']))
+                <span class="exm-fs-muted">{{ $crumb['name'] }}</span>
             @else
                 <a href="{{ $crumb['url'] }}">{{ $crumb['name'] }}</a>
             @endif
@@ -89,6 +91,15 @@
                                     </div>
                                 @elseif ($has_pdf_preview)
                                     <iframe src="{{ $node_url }}/content?rendition=pdf" title="{{ $node->name }}"></iframe>
+                                @elseif ($rendition_status === \Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD)
+                                    {{-- a file from people outside: made when a manager asks (ISS00433) --}}
+                                    <div style="width:100%;padding:12px">
+                                        <p>{{ exmtrans('file_server.preview_held') }}</p>
+                                        @if ($canManage)
+                                            <p class="exm-fs-muted">{{ exmtrans('file_server.preview_held_manage') }}</p>
+                                            <button type="button" class="btn btn-sm btn-default" data-fs-action="preview"><i class="fa fa-eye" aria-hidden="true"></i> {{ exmtrans('file_server.make_preview') }}</button>
+                                        @endif
+                                    </div>
                                 @elseif ($rendition_status === null)
                                     <p class="exm-fs-muted">{{ exmtrans('file_server.preview_making') }}</p>
                                 @else
@@ -199,11 +210,16 @@
                             <button type="button" class="btn btn-sm btn-default" data-fs-action="inherit">{{ exmtrans('file_server.inherit_permissions') }}</button>
                         </div>
                     @else
-                        <ul style="padding-left:18px;margin:0 0 8px">
-                            @foreach ($permissions as $p)
-                                <li>{{ $p['name'] }} <span class="exm-fs-muted">({{ $p['level_label'] }})</span></li>
-                            @endforeach
-                        </ul>
+                        @if ($canManage)
+                            <ul style="padding-left:18px;margin:0 0 8px">
+                                @foreach ($permissions as $p)
+                                    <li>{{ $p['name'] }} <span class="exm-fs-muted">({{ $p['level_label'] }})</span></li>
+                                @endforeach
+                            </ul>
+                        @else
+                            {{-- who else may see it: for those who manage it (ISS00433) --}}
+                            <p>{{ exmtrans('file_server.permissions_your_level', ['level' => \Exceedone\Exment\Services\FileServer\Level::label($level)]) }}</p>
+                        @endif
                         @if ($canManage)
                             <button type="button" class="btn btn-sm btn-default" data-fs-action="break">{{ exmtrans('file_server.break_permissions') }}</button>
                         @endif
@@ -306,6 +322,7 @@
             case 'checkout':
             case 'checkin':
             case 'discard_checkout':
+            case 'preview':
                 Fs.post(url + '/' + action, {}).then(Fs.done, Fs.fail);
                 break;
             case 'rename':

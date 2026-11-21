@@ -14,6 +14,8 @@
         @foreach ($breadcrumbs as $i => $crumb)
             @if ($i === count($breadcrumbs) - 1)
                 <span>{{ $crumb['name'] }}</span>
+            @elseif (!isset($crumb['url']))
+                <span class="exm-fs-muted">{{ $crumb['name'] }}</span>
             @else
                 <a href="{{ $crumb['url'] }}">{{ $crumb['name'] }}</a>
             @endif

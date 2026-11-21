@@ -34,6 +34,18 @@ class Library
     /** Acting for a link of people outside (ISS00410): see forLink(). */
     protected bool $forLink = false;
 
+    /** The link a zip is made for (its own lock). */
+    protected ?string $zipLinkKey = null;
+
+    /** The zips made for the links at the same time (all of them). */
+    public const LINK_ZIP_SLOTS = 3;
+
+    public function zipForLink(int $linkId): self
+    {
+        $this->zipLinkKey = strval($linkId);
+        return $this;
+    }
+
     public function __construct(?Access $access = null)
     {
         $this->access = $access ?? Access::current();
@@ -129,7 +141,44 @@ class Library
         if ($workspace->legal_hold || FileNode::query()->where('workspace_id', $workspace->id)->where('legal_hold', true)->exists()) {
             throw new FileServerException(exmtrans('file_server.error_legal_hold'), 423);
         }
-        $workspace->delete();
+        // nor what must still be kept
+        $limit = intval($workspace->retention_days);
+        if ($limit > 0 && FileNode::query()->where('workspace_id', $workspace->id)->where('node_type', FileNode::TYPE_FILE)
+            ->where('created_at', '>', now()->subDays($limit))->exists()) {
+            throw new FileServerException(exmtrans('file_server.error_retention_inner', ['days' => $limit]), 423);
+        }
+        // everything in it goes, the bytes on the disk too (ISS00433). The audit log stays.
+        $ids = FileNode::query()->where('workspace_id', $workspace->id)->pluck('id')->map(function ($id) {
+            return intval($id);
+        })->all();
+        foreach (array_chunk($ids, 500) as $chunk) {
+            foreach (FileNodeVersion::query()->whereIn('node_id', $chunk)->get() as $version) {
+                $this->deleteVersionObjects($version);
+            }
+        }
+        Uploader::removeForWorkspace(intval($workspace->id));
+        DB::transaction(function () use ($workspace, $ids) {
+            foreach (array_chunk($ids, 500) as $chunk) {
+                FileNodeVersion::query()->whereIn('node_id', $chunk)->delete();
+                FileFavorite::query()->whereIn('node_id', $chunk)->delete();
+                FileNodeText::query()->whereIn('node_id', $chunk)->delete();
+            }
+            FilePermission::query()->where('workspace_id', $workspace->id)->delete();
+            FileDataLink::query()->where('workspace_id', $workspace->id)->delete();
+            FileFollow::query()->where('workspace_id', $workspace->id)->delete();
+            FileComment::query()->where('workspace_id', $workspace->id)->delete();
+            \Exceedone\Exment\Model\FileShareLink::query()->where('workspace_id', $workspace->id)->delete();
+            \Exceedone\Exment\Model\FileMetadataField::query()->where('workspace_id', $workspace->id)->delete();
+            FileNode::query()->where('workspace_id', $workspace->id)->delete();
+            $workspace->delete();
+        });
+        Audit::log(Audit::PURGE, null, null, $this->access->userId(), ['workspace' => intval($workspace->id), 'name' => $workspace->name, 'count' => count($ids)]);
+        FileSearch::sync($ids);
+        try {
+            static::disk()->deleteDirectory(static::STORAGE_DIR . '/' . $workspace->id);
+        } catch (\Throwable $e) {
+            \Log::warning('[FileServer] could not remove the files of workspace ' . $workspace->id . ': ' . $e->getMessage());
+        }
     }
 
     /**
@@ -884,17 +933,31 @@ class Library
             $parent = null;
         }
         $name = $this->freeName($workspace, $parent, $node->name);
+        // back at the top as its folder is gone: it keeps who could see it, not
+        // those of the top (they may be more, ISS00433)
+        $keep = null;
+        if (isset($node->parent_id) && !isset($parent) && !$node->has_unique_permissions) {
+            $keep = $this->effectivePermissions($workspace, $node)->map(function (FilePermission $p) {
+                return ['target_type' => $p->target_type, 'target_id' => $p->target_id, 'level' => $p->level];
+            })->all();
+        }
         $ids = FileNode::query()->where('trash_root_id', $node->id)->pluck('id')->map(function ($id) {
                 return intval($id);
             })->all();
 
-        DB::transaction(function () use ($node, $parent, $name) {
+        DB::transaction(function () use ($workspace, $node, $parent, $name, $keep) {
             FileNode::query()->where('trash_root_id', $node->id)->update([
                 'trashed_at' => null, 'trashed_user_id' => null, 'trash_root_id' => null,
             ]);
             $node->refresh();
             $node->parent_id = isset($parent) ? $parent->id : null;
             $node->name = $name;
+            if (isset($keep)) {
+                foreach ($this->normalizePermissions($keep) as $row) {
+                    FilePermission::create($row + ['workspace_id' => $workspace->id, 'node_id' => $node->id]);
+                }
+                $node->has_unique_permissions = true;
+            }
             $node->save();
         });
         $this->access->flush();
@@ -1102,9 +1165,24 @@ class Library
 
         // one zip at a time for each user (for the links: each workspace), so
         // that many at the same time do not fill the disk (ISS00410)
-        $lock = \Illuminate\Support\Facades\Cache::lock('exment_file_server_zip_' . ($this->forLink ? 'link_' . $workspace->id : 'user_' . intval($this->access->userId())), 900);
+        // (for the links: one for each link, and a few for all the links, ISS00433)
+        $lock = \Illuminate\Support\Facades\Cache::lock('exment_file_server_zip_' . ($this->forLink ? 'link_' . strval($this->zipLinkKey ?? $workspace->id) : 'user_' . intval($this->access->userId())), 900);
         if (!$lock->get()) {
             throw new FileServerException(exmtrans('file_server.error_zip_busy'), 429);
+        }
+        $slot = null;
+        if ($this->forLink) {
+            for ($i = 0; $i < static::LINK_ZIP_SLOTS; $i++) {
+                $try = \Illuminate\Support\Facades\Cache::lock('exment_file_server_zip_links_' . $i, 900);
+                if ($try->get()) {
+                    $slot = $try;
+                    break;
+                }
+            }
+            if (!isset($slot)) {
+                $lock->release();
+                throw new FileServerException(exmtrans('file_server.error_zip_busy'), 429);
+            }
         }
         $path = static::tempPath('zip_');
         $locals = [];
@@ -1127,6 +1205,9 @@ class Library
                 @unlink($path);
             }
             $lock->release();
+            if (isset($slot)) {
+                $slot->release();
+            }
         }
         return $path;
     }

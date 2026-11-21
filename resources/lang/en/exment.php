@@ -3051,6 +3051,14 @@ return [
         'share_drop_here' => 'Drag and drop files here',
         'share_upload_sent' => 'Sent',
         'share_upload_failed' => 'Failed',
+        'error_upload_sessions_many' => 'Too many uploads are not finished. Wait for them, or cancel them, then send it again.',
+        'error_share_password_short' => 'The password must be at least :min characters.',
+        'preview_held' => 'This file came from someone outside. For safety, its preview and its text are not made yet.',
+        'preview_held_manage' => 'When you may check its contents, press "Make the preview".',
+        'make_preview' => 'Make the preview',
+        'preview_requested' => 'The preview is being made. Open the page again in a moment.',
+        'permissions_your_level' => 'Your permission: :level',
+        'path_hidden' => '…',
     ],
 
     'cell_style_preset' => [

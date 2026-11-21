@@ -229,6 +229,7 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('favorite', 'FileServerController@favorite');
                     $router->post('version', 'FileServerController@uploadVersion');
                     $router->post('versions/{version}/restore', 'FileServerController@restoreVersion')->where('version', '[0-9]+');
+                    $router->post('preview', 'FileServerController@makePreview');
                     $router->post('checkout', 'FileServerController@checkout');
                     $router->post('checkin', 'FileServerController@checkin');
                     $router->post('discard_checkout', 'FileServerController@discardCheckout');
