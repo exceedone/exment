@@ -680,7 +680,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @param Request $request
      * @param $tableKey
      * @param string|int|null $id If already saved model, set id
-     * @return PublicContent
+     * @return PublicContent|void nothing when the form is not of this table (the error is shown)
      * @throws PublicFormNotFoundException
      */
     // @phpstan-ignore-next-line
@@ -845,7 +845,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @param Request $request
      * @param $tableKey
      * @param $id
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|void nothing when the form is not of this table (the error is shown)
      */
     // @phpstan-ignore-next-line
     public function export(Request $request, $tableKey, $id)
