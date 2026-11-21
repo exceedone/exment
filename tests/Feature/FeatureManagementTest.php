@@ -160,6 +160,8 @@ class FeatureManagementTest extends FeatureTestBase
         $page->assertNotFound();
         $page->assertSee(exmtrans('feature.message_not_used'));
         $page->assertSee(admin_url('feature'), false);
+        // the same answer from a plugin's own page
+        $this->assertSame(404, Features::deny(Features::STUDIO)->getStatusCode());
         $this->get(admin_url('app/sw.js'))->assertNotFound();
         // pages of other names are not touched
         $this->assertNotSame(404, $this->get(admin_url('dashboard'), $headers)->getStatusCode());
@@ -409,11 +411,32 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertFalse(Features::enabled(Features::STUDIO));
         $this->assertSame(1, DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->count());
 
-        // a new site (no menus yet): all is new, and plugins' features are off
-        DB::table('systems')->where('system_name', 'features')->delete();
+        // a new site: the migration writes "_since" there too; every plugin comes after it
+        $this->setFeatures(['_since' => now()->subDay()->toIso8601String()]);
+        Plugin::query()->whereKey($plugin->id)->update(['created_at' => now()]);
         System::clearRequestSession();
-        Features::reset();
         $register();
         $this->assertFalse(Features::enabled($uri . '.old'));
+        $this->assertFalse(Features::enabled($uri . '.new'));
+
+        // no "_since" (written by hand, restored from a backup): the safe side, what plugins had stays on
+        $this->setFeatures(['studio' => ['enabled' => true, 'role_groups' => null, 'menu' => true]]);
+        $register();
+        $this->assertTrue(Features::enabled($uri . '.old'));
+        $this->assertFalse(Features::enabled($uri . '.new'));
+
+        // the migration of a new site (no menus yet) writes "_since" only
+        DB::table('systems')->where('system_name', 'features')->delete();
+        $menus = DB::table('admin_menu')->get()->map(function ($row) {
+            return (array)$row;
+        })->all();
+        DB::table('admin_menu')->delete();
+        $migration->up();
+        DB::table('admin_menu')->insert($menus);
+        System::clearRequestSession();
+        Features::reset();
+        $settings = Features::settings();
+        $this->assertSame(['_since'], array_keys($settings));
+        $this->assertFalse(Features::enabled(Features::STUDIO));
     }
 }

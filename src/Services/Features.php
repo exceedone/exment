@@ -269,7 +269,12 @@ class Features
 
     /**
      * A feature not set yet: on only when a plugin had it before (existing)
-     * and the plugin was there before the site got Feature management.
+     * and the plugin was there before the site got Feature management
+     * ("_since", written by the migration on every site, new ones too: on a
+     * new site every plugin comes after it). Without "_since" (the setting
+     * written by hand, or restored from an old backup) the site is taken as
+     * one that had its plugins before: their features stay on, so that
+     * nothing a site used stops by itself.
      *
      * @param array<string, mixed> $settings
      */
@@ -281,8 +286,8 @@ class Features
         }
         $since = array_get($settings, static::SINCE);
         if (!is_string($since) || $since === '') {
-            // a new site: all is new
-            return false;
+            // not known: the safe side (what the plugin had stays on)
+            return true;
         }
         $plugin = static::pluginOf($key);
         if (!isset($plugin) || !isset($plugin->created_at)) {
@@ -404,6 +409,34 @@ class Features
             return 'requires';
         }
         return null;
+    }
+
+    /**
+     * The answer to a request of a feature the user may not use: 404 when
+     * it is not used on the site (a system administrator gets the link to
+     * Feature management), 403 when the user may not use it; JSON for the
+     * ajax and API requests. The middleware answers so; a plugin may answer
+     * the same from its own pages: return Features::deny('exment_x.mail');
+     * (abort(404) in an admin page answers 200 with the error page).
+     */
+    public static function deny(string $key, ?Request $request = null): \Symfony\Component\HttpFoundation\Response
+    {
+        $request = $request ?? request();
+        $used = static::enabled($key);
+        $status = $used ? 403 : 404;
+        $message = strval(exmtrans($used ? 'feature.message_not_allowed' : 'feature.message_not_used'));
+        if ($request->expectsJson() || $request->ajax() || $request->is(trim(strval(config('admin.route.prefix')) . '/api', '/') . '/*')) {
+            return response()->json(['result' => false, 'message' => $message, 'toastr' => $message], $status);
+        }
+
+        $user = \Exment::user();
+        $link = !$used && isset($user) && $user->hasPermission(Permission::SYSTEM)
+            ? '<p><a href="' . e(admin_url('feature')) . '">' . e(exmtrans('feature.header')) . '</a></p>' : '';
+        $html = '<!doctype html><html lang="' . e(app()->getLocale()) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+            . '<title>' . e($message) . '</title><style>body{font-family:sans-serif;margin:48px auto;max-width:640px;padding:0 16px;color:#333}a{color:#3c8dbc}</style></head><body>'
+            . '<h1 style="font-size:1.3rem">' . e($message) . '</h1>' . $link
+            . '<p><a href="' . e(admin_url('')) . '">' . e(exmtrans('feature.back_home')) . '</a></p></body></html>';
+        return response($html, $status, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
 
     /**

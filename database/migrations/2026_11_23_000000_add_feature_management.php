@@ -31,27 +31,38 @@ return new class extends Migration
         if (!Schema::hasTable($menuTable) || !Schema::hasTable('systems')) {
             return;
         }
-        // a new site: nothing to keep (the template makes the menu); all is new
-        if (!DB::table($menuTable)->exists()) {
+        if (DB::table('systems')->where('system_name', 'features')->exists()) {
+            $this->addMenu($menuTable);
             return;
         }
 
-        if (!DB::table('systems')->where('system_name', 'features')->exists()) {
-            $settings = ['_since' => now()->toIso8601String()];
-            $on = ['enabled' => true, 'role_groups' => null, 'menu' => true];
-            if (Schema::hasTable('file_workspaces') && DB::table('file_workspaces')->exists()) {
-                $settings['file_server'] = $on;
-            }
-            if ($this->studioUsed()) {
-                $settings['studio'] = $on;
-            }
+        // a new site: nothing to keep, all is new (the plugins installed later
+        // come after "_since"; the template makes the menu)
+        if (!DB::table($menuTable)->exists()) {
             DB::table('systems')->insert([
                 'system_name' => 'features',
-                'system_value' => json_encode($settings),
+                'system_value' => json_encode(['_since' => now()->toIso8601String()]),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            return;
         }
+
+        // a site updated: what it used stays on
+        $settings = ['_since' => now()->toIso8601String()];
+        $on = ['enabled' => true, 'role_groups' => null, 'menu' => true];
+        if (Schema::hasTable('file_workspaces') && DB::table('file_workspaces')->exists()) {
+            $settings['file_server'] = $on;
+        }
+        if ($this->studioUsed()) {
+            $settings['studio'] = $on;
+        }
+        DB::table('systems')->insert([
+            'system_name' => 'features',
+            'system_value' => json_encode($settings),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $this->addMenu($menuTable);
     }
