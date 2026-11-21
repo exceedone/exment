@@ -73,7 +73,7 @@ class UserApiKeyPageTest extends FeatureTestBase
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $this->get(admin_url('auth/api_keys'))->assertOk()->assertSee(exmtrans('api_key.my_keys'));
 
-        $page = $this->post(admin_url('auth/api_keys'), ['name' => 'my tool', 'scope_type' => 'read_only', 'table_type' => 'all', 'days' => '30']);
+        $page = $this->post(admin_url('auth/api_keys'), ['name' => 'my tool', 'scope_type' => 'read_only', 'table_type' => 'all', 'days' => '30', 'current_password' => 'user1user1']);
         $page->assertOk()->assertSee(exmtrans('api_key.new_key'));
         $this->assertSame(1, preg_match('/exk_[0-9a-f]{48}/', (string)$page->getContent(), $m));
         $plain = strval($m[0] ?? '');
@@ -88,17 +88,67 @@ class UserApiKeyPageTest extends FeatureTestBase
         $again = $this->get(admin_url('auth/api_keys'));
         $again->assertOk()->assertSee('my tool')->assertSee($key->key_prefix);
         $again->assertDontSee($plain);
+        // it signs in as the login that made it
+        $this->assertSame((int)TestDefine::TESTDATA_USER_LOGINID_USER1, $key->login_user_id);
+    }
+
+    public function testThePasswordIsAsked(): void
+    {
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get(admin_url('auth/api_keys'))->assertSee('name="current_password"', false);
+        foreach ([[], ['current_password' => 'wrong'], ['current_password' => ['user1user1']]] as $password) {
+            $this->post(admin_url('auth/api_keys'), ['name' => 'x'] + $password)
+                ->assertOk()->assertSee(exmtrans('validation.current_password'));
+        }
+        $this->assertSame(0, UserApiKey::count());
+    }
+
+    /**
+     * Fields that are not text (name[]=x) are an error on the page, not a 500.
+     */
+    public function testFieldsThatAreNotText(): void
+    {
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->post(admin_url('auth/api_keys'), ['name' => ['x'], 'allowed_ips' => ['a'], 'days' => ['1'], 'scope_type' => ['custom'],
+            'client_cert_fingerprint' => ['x'], 'current_password' => 'user1user1'])
+            ->assertOk()->assertSee(exmtrans('api_key.errors.name'));
+        $this->post(admin_url('auth/api_keys'), ['name' => 'x', 'scope_type' => 'custom', 'scopes' => [['me']], 'current_password' => 'user1user1'])
+            ->assertOk()->assertSee(exmtrans('api_key.errors.scopes'));
+        $this->assertSame(0, UserApiKey::count());
+    }
+
+    public function testTheRefusalIsShown(): void
+    {
+        [$key] = UserApiKeys::create($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'refused key', UserApiKeys::readOnlyScopes());
+        \DB::table('user_api_keys')->where('id', $key->id)->update(['last_refused_at' => now(), 'last_refused_reason' => 'ip']);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get(admin_url('auth/api_keys'))->assertOk()->assertSee(exmtrans('api_key.refusals.ip'));
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->get(admin_url('api_keys'))->assertOk()->assertSee(exmtrans('api_key.refusals.ip'));
+    }
+
+    public function testTheAdminListShowsTheActiveKeysFirst(): void
+    {
+        [$active] = UserApiKeys::create($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'still active', UserApiKeys::readOnlyScopes());
+        [$stopped] = UserApiKeys::create($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'already stopped', UserApiKeys::readOnlyScopes());
+        UserApiKeys::revoke($stopped);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->get(admin_url('api_keys'))->assertOk()->assertSee('still active')->assertDontSee('already stopped');
+        $this->get(admin_url('api_keys') . '?status=inactive')->assertOk()->assertSee('already stopped')->assertDontSee('still active');
+        $this->get(admin_url('api_keys') . '?status=all')->assertOk()->assertSee('still active')->assertSee('already stopped');
+        // a status that is not one: the active keys
+        $this->get(admin_url('api_keys') . '?status[]=all')->assertOk()->assertDontSee('already stopped');
     }
 
     public function testWrongValuesAreRefusedOnThePage(): void
     {
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        $this->post(admin_url('auth/api_keys'), ['name' => 'x', 'scope_type' => 'custom', 'scopes' => ['not_a_scope']])
+        $this->post(admin_url('auth/api_keys'), ['name' => 'x', 'scope_type' => 'custom', 'scopes' => ['not_a_scope'], 'current_password' => 'user1user1'])
             ->assertOk()->assertSee(exmtrans('api_key.errors.scopes'));
-        $this->post(admin_url('auth/api_keys'), ['name' => 'x', 'allowed_ips' => 'not an ip'])
+        $this->post(admin_url('auth/api_keys'), ['name' => 'x', 'allowed_ips' => 'not an ip', 'current_password' => 'user1user1'])
             ->assertOk()->assertSee(exmtrans('api_key.errors.allowed_ips'));
         // a table the user may not see, sent by hand
-        $this->post(admin_url('auth/api_keys'), ['name' => 'x', 'table_type' => 'some', 'tables' => ['not_a_table']])
+        $this->post(admin_url('auth/api_keys'), ['name' => 'x', 'table_type' => 'some', 'tables' => ['not_a_table'], 'current_password' => 'user1user1'])
             ->assertOk()->assertSee(exmtrans('api_key.errors.tables'));
         $this->assertSame(0, UserApiKey::count());
     }

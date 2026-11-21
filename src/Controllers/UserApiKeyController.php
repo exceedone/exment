@@ -3,8 +3,10 @@
 namespace Exceedone\Exment\Controllers;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\UserApiKey;
 use Exceedone\Exment\Services\DemoMode;
@@ -50,12 +52,24 @@ class UserApiKeyController extends AdminControllerBase
             'keys' => $this->rows(UserApiKey::where('user_id', $user->base_user_id)->orderByDesc('id')->get()),
             'new_key' => $newKey,
             'error' => $error,
-            'old' => $request->all(),
+            // what was sent, as text only (never the password)
+            'old' => [
+                'name' => static::text($request, 'name'),
+                'scope_type' => static::text($request, 'scope_type'),
+                'scopes' => static::texts($request, 'scopes'),
+                'table_type' => static::text($request, 'table_type'),
+                'tables' => static::texts($request, 'tables'),
+                'allowed_ips' => static::text($request, 'allowed_ips'),
+                'days' => static::text($request, 'days'),
+                'client_cert_fingerprint' => static::text($request, 'client_cert_fingerprint'),
+            ],
             'scopes' => UserApiKeys::availableScopes(),
             'read_only_scopes' => UserApiKeys::readOnlyScopes(),
             'tables' => $tables,
-            'days' => static::DAYS,
-            'default_days' => UserApiKeys::DEFAULT_DAYS,
+            'days' => static::days(),
+            'default_days' => min(UserApiKeys::DEFAULT_DAYS, UserApiKeys::maxDays()),
+            'max_keys' => UserApiKeys::maxActiveKeys(),
+            'ask_password' => $this->asksPassword(),
             'action' => admin_url('auth/api_keys'),
             'read_only' => DemoMode::enabled(),
         ]));
@@ -76,11 +90,16 @@ class UserApiKeyController extends AdminControllerBase
         }
         $user = \Exment::user();
 
-        $scopes = strval($request->input('scope_type')) === 'custom'
-            ? array_map('strval', (array)$request->input('scopes', []))
+        // a user who signs in with a password says it again (a key acts as the user)
+        if ($this->asksPassword() && !LoginUserProvider::ValidateCredential($user, ['password' => static::text($request, 'current_password')])) {
+            return $this->index($request, $content, null, exmtrans('validation.current_password'));
+        }
+
+        $scopes = static::text($request, 'scope_type') === 'custom'
+            ? static::texts($request, 'scopes')
             : UserApiKeys::readOnlyScopes();
-        $tables = strval($request->input('table_type')) === 'some'
-            ? array_map('strval', (array)$request->input('tables', []))
+        $tables = static::text($request, 'table_type') === 'some'
+            ? static::texts($request, 'tables')
             : null;
         // only the tables the user may see (a name sent by hand is not taken)
         if (isset($tables)) {
@@ -89,21 +108,23 @@ class UserApiKeyController extends AdminControllerBase
                 return $this->index($request, $content, null, exmtrans('api_key.errors.tables'));
             }
         }
-        $days = intval($request->input('days', UserApiKeys::DEFAULT_DAYS));
-        if (!in_array($days, static::DAYS, true)) {
-            $days = UserApiKeys::DEFAULT_DAYS;
+        $days = intval(static::text($request, 'days'));
+        if (!in_array($days, static::days(), true)) {
+            $days = min(UserApiKeys::DEFAULT_DAYS, UserApiKeys::maxDays());
         }
 
         try {
             [, $plain] = UserApiKeys::create(
                 (int)$user->base_user_id,
-                strval($request->input('name')),
+                static::text($request, 'name'),
                 $scopes,
                 $tables,
-                strval($request->input('allowed_ips')),
+                static::text($request, 'allowed_ips'),
                 Carbon::now()->addDays($days),
-                strval($request->input('client_cert_fingerprint')),
-                (int)$user->base_user_id
+                static::text($request, 'client_cert_fingerprint'),
+                (int)$user->base_user_id,
+                // the login that makes it (any provider, as SSO)
+                (int)$user->id
             );
         } catch (\InvalidArgumentException $e) {
             return $this->index($request, $content, null, exmtrans('api_key.errors.' . $e->getMessage()));
@@ -137,13 +158,31 @@ class UserApiKeyController extends AdminControllerBase
      */
     public function adminIndex(Request $request, Content $content)
     {
-        $users = getModelName(SystemTableName::USER)::query()->get()->mapWithKeys(function ($user) {
+        // the active keys by default; all, or the stopped and expired ones, when asked
+        $status = static::text($request, 'status');
+        if (!in_array($status, ['active', 'inactive', 'all'], true)) {
+            $status = 'active';
+        }
+        $query = UserApiKey::query()->orderByDesc('id');
+        if ($status === 'active') {
+            $query->whereNull('revoked_at')->where('expires_at', '>', Carbon::now());
+        } elseif ($status === 'inactive') {
+            $query->where(function ($q) {
+                $q->whereNotNull('revoked_at')->orWhere('expires_at', '<=', Carbon::now());
+            });
+        }
+        $paginator = $query->paginate(50)->appends(['status' => $status]);
+
+        $userIds = collect($paginator->items())->pluck('user_id')->unique()->all();
+        $users = getModelName(SystemTableName::USER)::query()->whereIn('id', $userIds)->get()->mapWithKeys(function ($user) {
             return [intval($user->id) => strval($user->getValue('user_name'))];
         })->all();
 
         $this->AdminContent($content);
         $content->row(view('exment::api_key.admin', [
-            'keys' => $this->rows(UserApiKey::query()->orderByDesc('id')->get(), $users),
+            'keys' => $this->rows($paginator->items(), $users),
+            'paginator' => $paginator,
+            'status' => $status,
             'action' => admin_url('api_keys'),
             'feature_url' => admin_url('feature'),
             'enabled' => Features::enabled(Features::API_KEYS),
@@ -178,6 +217,49 @@ class UserApiKeyController extends AdminControllerBase
         $count = UserApiKeys::revokeAllOfUser(intval($userId), (int)\Exment::user()->base_user_id);
         admin_toastr(exmtrans('api_key.message_revoked_user', $count));
         return redirect(admin_url('api_keys'));
+    }
+
+    /**
+     * A field of the form as text ('' when it is not text, as name[]=x).
+     */
+    protected static function text(Request $request, string $name): string
+    {
+        $value = $request->input($name);
+        return is_string($value) || is_numeric($value) ? strval($value) : '';
+    }
+
+    /**
+     * A field of the form as a list of texts (what is not text is left out).
+     *
+     * @return array<int, string>
+     */
+    protected static function texts(Request $request, string $name): array
+    {
+        $value = $request->input($name);
+        return array_values(array_map('strval', array_filter(is_array($value) ? $value : [], 'is_string')));
+    }
+
+    /**
+     * The end dates offered (days), within the most days of the site.
+     *
+     * @return array<int, int>
+     */
+    protected static function days(): array
+    {
+        $max = UserApiKeys::maxDays();
+        $days = array_values(array_filter(static::DAYS, function ($d) use ($max) {
+            return $d <= $max;
+        }));
+        return count($days) > 0 ? $days : [$max];
+    }
+
+    /**
+     * Whether the login user signs in with a password (then it is asked when making a key).
+     */
+    protected function asksPassword(): bool
+    {
+        $user = \Exment::user();
+        return isset($user) && $user->login_type == LoginType::PURE && !DemoMode::enabled();
     }
 
     protected function abortUnlessAllowed(): void
@@ -216,6 +298,9 @@ class UserApiKeyController extends AdminControllerBase
                 'use_count' => $key->use_count,
                 'created_at' => $key->created_at?->format('Y-m-d H:i'),
                 'status' => $status,
+                // the last refusal and why (the log is not for every administrator)
+                'last_refused_at' => $key->last_refused_at?->format('Y-m-d H:i'),
+                'last_refused_reason' => isset($key->last_refused_reason) ? exmtrans('api_key.refusals.' . $key->last_refused_reason) : null,
             ];
         }
         return $rows;

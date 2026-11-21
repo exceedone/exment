@@ -34,7 +34,11 @@
                 {{ exmtrans('api_key.client_cert') }}: {{ $k['cert'] ? exmtrans('api_key.needed') : '-' }}
             </small></td>
             <td>{{ $k['expires_at'] }}</td>
-            <td><small>{{ $k['last_used_at'] ?? '-' }}<br>{{ $k['last_used_ip'] }} ({{ $k['use_count'] }})</small></td>
+            <td><small>{{ $k['last_used_at'] ?? '-' }}<br>{{ $k['last_used_ip'] }} ({{ $k['use_count'] }})
+                @if (isset($k['last_refused_at']))
+                    <br><span class="text-danger">{{ exmtrans('api_key.last_refused') }}: {{ $k['last_refused_at'] }} {{ $k['last_refused_reason'] }}</span>
+                @endif
+            </small></td>
             <td>{{ exmtrans('api_key.statuses.' . $k['status']) }}</td>
             <td>
                 @if ($k['status'] === 'active' && !$read_only)

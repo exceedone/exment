@@ -81,6 +81,19 @@
                         <span class="help-block">{{ exmtrans('api_key.client_cert_help') }}</span>
                     </div>
                 </div>
+                @if ($ask_password)
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">{{ exmtrans('user.current_password') }}</label>
+                    <div class="col-sm-8">
+                        <input type="password" name="current_password" class="form-control" required autocomplete="current-password">
+                        <span class="help-block">{{ exmtrans('api_key.current_password_help') }}</span>
+                    </div>
+                </div>
+                @endif
+                <div class="form-group">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-8"><span class="help-block">{{ exmtrans('api_key.max_keys_help', $max_keys) }}</span></div>
+                </div>
             </div>
             <div class="box-footer">
                 <div class="col-sm-2"></div>
