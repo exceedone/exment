@@ -142,6 +142,58 @@ abstract class AdminControllerTableBase extends Controller
     }
 
     /**
+     * Check the rows of a setting of this table before they are changed or
+     * deleted: the user has the permission on this table, and every row is a
+     * row of this table (not of another table, whose id was put in the URL).
+     * edit() checks the same for the screen; update() and destroy() are called
+     * by a request of their own, so they check again.
+     *
+     * @param string $className the model of the rows
+     * @param mixed $ids an id, or ids joined with ","
+     * @param mixed $permission the permission on this table
+     * @param callable|null $canEdit more to check for each row (row => bool)
+     * @return bool
+     */
+    protected function validateRowsOfTable(string $className, $ids, $permission, ?callable $canEdit = null): bool
+    {
+        if (!$this->validateTable($this->custom_table, $permission)) {
+            return false;
+        }
+        foreach (collect(explode(',', (string)$ids))->filter() as $id) {
+            $row = $className::find($id);
+            if (!$row || $this->tableIdOfRow($row) != $this->custom_table->id
+                || ($canEdit && !$canEdit($row))) {
+                Checker::error();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * The id of the table a setting row belongs to.
+     *
+     * @param mixed $row
+     * @return mixed
+     */
+    protected function tableIdOfRow($row)
+    {
+        if ($row instanceof \Exceedone\Exment\Model\CustomRelation) {
+            return $row->parent_custom_table_id;
+        }
+        if ($row instanceof \Exceedone\Exment\Model\CustomCopy) {
+            return $row->from_custom_table_id;
+        }
+        if ($row instanceof \Exceedone\Exment\Model\CustomFormPriority || $row instanceof \Exceedone\Exment\Model\PublicForm) {
+            return $row->custom_form ? $row->custom_form->custom_table_id : null;
+        }
+        if ($row instanceof \Exceedone\Exment\Model\Notify) {
+            return $row->target_id;
+        }
+        return $row->custom_table_id;
+    }
+
+    /**
      * Index interface.
      *
      * @return Content

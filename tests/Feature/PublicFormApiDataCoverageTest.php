@@ -65,13 +65,13 @@ class PublicFormApiDataCoverageTest extends FeatureTestBase
             ->assertStatus(400);
     }
 
-    public function testColumnData(): void
+    public function testColumnDataIsOnlyForColumnsOnTheForm(): void
     {
         [$formKey, $tableKey] = $this->publicFormAndTable();
 
-        $response = $this->get("publicformapi/{$formKey}/data/{$tableKey}/column/index_text?query=index_001_002")
-            ->assertStatus(200);
-        $this->assertContains('index_001_002', $response->json());
+        // index_text of custom_value_edit is not on the form; its values are not for a visitor
+        $this->get("publicformapi/{$formKey}/data/{$tableKey}/column/index_text?query=index_001_002")
+            ->assertStatus(403);
     }
 
     public function testRelatedLinkageWithoutRequiredParamsReturnsEmptyArray(): void

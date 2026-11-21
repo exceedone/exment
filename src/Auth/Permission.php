@@ -262,6 +262,7 @@ class Permission
             case "database":
             case "auth/menu":
             case "auth/logs":
+            case "tuning":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
                 }

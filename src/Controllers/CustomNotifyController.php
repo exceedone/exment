@@ -357,4 +357,14 @@ class CustomNotifyController extends AdminControllerTableBase
             $keyName => $mail_template->id
         ];
     }
+
+    /**
+     * The rows update() and destroy() check to be of this table.
+     *
+     * @return array<mixed>
+     */
+    protected function resourceRowRule(): ?array
+    {
+        return [\Exceedone\Exment\Model\Notify::class, \Exceedone\Exment\Enums\Permission::CUSTOM_TABLE];
+    }
 }

@@ -17,7 +17,9 @@ class SystemRequireForm
     public function index()
     {
         $checkResult = SystemRequireList::make(SystemRequireCalledType::INSTALL_WEB);
-        return view('exment::install.system_require', ['checkResult' => $checkResult, 'login_box_classname' => 'login-box-wide']);
+        // the tuning advice (ISS00414) is shown apart: it never blocks the install
+        $tuningResult = SystemRequireList::make(SystemRequireCalledType::TUNING);
+        return view('exment::install.system_require', ['checkResult' => $checkResult, 'tuningResult' => $tuningResult, 'login_box_classname' => 'login-box-wide']);
     }
 
     // @phpstan-ignore-next-line

@@ -26,6 +26,7 @@ use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\Dashboard\SummaryCache;
 
 /**
  * @property-read string $display_avatar
@@ -602,6 +603,9 @@ abstract class CustomValue extends ModelBase
             $model->savedEvent(false);
         });
         static::saved(function ($model) {
+            // the kept dashboard aggregations of the table are aggregated again
+            SummaryCache::touch($model->custom_table);
+
             // The mention notifier is not always reached: savedEvent() bails out
             // when disable_saved_event is set, and a save with nothing dirty
             // never fires updated at all. A snapshot left behind would become
@@ -640,6 +644,9 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleted(function ($model) {
+            // a hard delete does not save the row first
+            SummaryCache::touch($model->custom_table);
+
             // call deleted event plugins
             Plugin::pluginExecuteEvent(PluginEventType::DELETED, $model->custom_table, [
                 'custom_table' => $model->custom_table,
@@ -1639,6 +1646,24 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * A comment is changed and deleted only by the user who wrote it, or by an
+     * administrator (as deleteComment()). The comment table is editable by
+     * everyone who may edit the record, so the data API would let any of them
+     * rewrite or delete another user's comment without this.
+     */
+    protected function isCommentOfAnotherUser(): bool
+    {
+        if ($this->custom_table->table_name != SystemTableName::COMMENT || !$this->exists) {
+            return false;
+        }
+        $login_user = \Exment::user();
+        if (!isset($login_user) || $login_user->isAdministrator()) {
+            return false;
+        }
+        return !isMatchString($this->created_user_id, \Exment::getUserId());
+    }
+
+    /**
      * Delete a comment of this data. Only the user who wrote it, or a system administrator, can.
      * The screen and the API both come here.
      *
@@ -2149,6 +2174,10 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::PERMISSION_DENY();
         }
 
+        if ($this->isCommentOfAnotherUser()) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
         // if ($this->custom_table->isOneRecord()) {
         //     return ErrorCode::PERMISSION_DENY();
         // }
@@ -2195,6 +2224,10 @@ abstract class CustomValue extends ModelBase
     public function enableDelete($checkFormAction = false)
     {
         if (!$this->custom_table->hasPermissionEditData($this)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        if ($this->isCommentOfAnotherUser()) {
             return ErrorCode::PERMISSION_DENY();
         }
 

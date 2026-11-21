@@ -43,6 +43,42 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Tuning: server-wide buttons
+    |--------------------------------------------------------------------------
+    |
+    | Whether the tuning page (Admin Setting > Tuning) may change a setting of the
+    | whole server from its buttons (make or remove the config cache).
+    | Set false where several sites share the code (a multi-tenant server).
+    |
+    */
+    'tuning_server_actions' => env('EXMENT_TUNING_SERVER_ACTIONS', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chart of a list view: max rows
+    |--------------------------------------------------------------------------
+    |
+    | A chart of a list view draws one point per row. It reads at most this many
+    | rows (0 = no limit). To chart a large table, use a summary view.
+    |
+    */
+    'chart_list_max_rows' => env('EXMENT_CHART_LIST_MAX_ROWS', 1000),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard aggregation cache
+    |--------------------------------------------------------------------------
+    |
+    | Keep the rows a chart of a summary view aggregates for this many seconds
+    | (0 = off: aggregate on every load). Each viewer has their own. Saving or
+    | deleting a row aggregates again; a change the models do not see (a share,
+    | a membership, a direct SQL) shows when the rows expire.
+    |
+    */
+    'dashboard_cache_seconds' => env('EXMENT_DASHBOARD_CACHE_SECONDS', 0),
+
+    /*
+    |--------------------------------------------------------------------------
     | Directory
     |--------------------------------------------------------------------------
     |
@@ -1291,6 +1327,34 @@ return [
     |
     */
     'role_group_import_export' => env('ROLE_GROUP_IMPORT_EXPORT', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notify webhook: deny private networks
+    |--------------------------------------------------------------------------
+    |
+    | Slack / Teams webhooks are never sent to the server itself or to the
+    | link-local range. With true, private networks (10/8, 172.16/12,
+    | 192.168/16, fc00::/7) are refused too, as on a shared service.
+    |
+    */
+    'notify_webhook_deny_private' => env('EXMENT_NOTIFY_WEBHOOK_DENY_PRIVATE', false),
+
+    // hosts webhooks may be sent to although the address is refused above
+    // (comma separated), e.g. "localhost,chat.internal"
+    'notify_webhook_allow_hosts' => env('EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | X-Frame-Options of the admin pages
+    |--------------------------------------------------------------------------
+    |
+    | SAMEORIGIN: other sites may not show the admin pages in a frame.
+    | DENY: no frame at all. Empty: the header is not sent.
+    | (Public forms do not get it, so they can be embedded.)
+    |
+    */
+    'x_frame_options' => env('EXMENT_X_FRAME_OPTIONS', 'SAMEORIGIN'),
     /*
     |--------------------------------------------------------------------------
     | Unavailable user view ( for tables )

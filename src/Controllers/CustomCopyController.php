@@ -304,4 +304,14 @@ class CustomCopyController extends AdminControllerTableBase
         // add button unreachable statement
 //        return $form->render()->render();
     }
+
+    /**
+     * The rows update() and destroy() check to be of this table.
+     *
+     * @return array<mixed>
+     */
+    protected function resourceRowRule(): ?array
+    {
+        return [\Exceedone\Exment\Model\CustomCopy::class, \Exceedone\Exment\Enums\Permission::CUSTOM_TABLE];
+    }
 }

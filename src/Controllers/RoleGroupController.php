@@ -487,6 +487,11 @@ class RoleGroupController extends AdminControllerBase
      */
     public function store()
     {
+        // a new role group: the list shows the create button only with ROLE_GROUP_ALL
+        if (!\Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL)) {
+            Checker::error();
+            return false;
+        }
         return $this->saveRolePermission();
     }
 
@@ -787,6 +792,10 @@ class RoleGroupController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected function widgetDestroy($id)
     {
+        // deleting role groups: the list offers it only with ROLE_GROUP_ALL
+        if (!\Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL)) {
+            return false;
+        }
         try {
             collect(explode(',', $id))->filter()->each(function ($id) {
                 $model = RoleGroup::findOrFail($id);
@@ -820,6 +829,11 @@ class RoleGroupController extends AdminControllerBase
     {
         return \Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_PERMISSION]);
     }
+    protected function hasPermission_Import(): bool
+    {
+        return \Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL);
+    }
+
     // @phpstan-ignore-next-line
     protected function hasPermission_UserOrganization()
     {
@@ -832,6 +846,10 @@ class RoleGroupController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function importModal(Request $request)
     {
+        if (!$this->hasPermission_Import()) {
+            Checker::error();
+            return false;
+        }
         $service = $this->getImportExportService();
         return $service->getImportModal();
     }
@@ -842,6 +860,14 @@ class RoleGroupController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function import(Request $request)
     {
+        // An import sets the permissions and the members of role groups at
+        // once, so it needs the permission of all role groups (as the list,
+        // which shows the import button only then).
+        if (!$this->hasPermission_Import()) {
+            Checker::error();
+            return false;
+        }
+
         // create exporter
         $service = $this->getImportExportService()
             ->format($request->file('custom_table_file'));

@@ -528,6 +528,11 @@
             "menu_type": "system",
             "menu_name": "api_setting",
             "title": "APIアプリ設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "tuning",
+            "title": "チューニング"
         }
     ]
 }
