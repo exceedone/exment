@@ -178,7 +178,7 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
         \Exceedone\Exment\Services\Features::reset();
         $this->be(\Exceedone\Exment\Model\LoginUser::findOrFail(\Exceedone\Exment\Tests\TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         try {
-            $names = function ($nodes) {
+            $names = function (array $nodes): array {
                 return collect($nodes)->where('menu_type', 'system')->pluck('menu_name')->map('strval')->all();
             };
             // not in the menu of the pages

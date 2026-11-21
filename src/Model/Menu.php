@@ -129,7 +129,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      */
     public static function siteLocale(): string
     {
-        $locale = config('exment.locale', env('APP_LOCALE'));
+        // exment.locale is APP_LOCALE (config/exment.php)
+        $locale = config('exment.locale');
         return is_string($locale) && $locale !== '' ? $locale : strval(app()->getLocale());
     }
 

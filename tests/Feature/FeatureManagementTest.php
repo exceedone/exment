@@ -242,12 +242,9 @@ class FeatureManagementTest extends FeatureTestBase
 
     public function testWithTheRoutesCachedThePluginsAreNotMadeEachTime(): void
     {
-        // the routes cached (php artisan route:cache): a file there
-        $routes = tempnam(sys_get_temp_dir(), 'routes');
-        $before = [$_SERVER['APP_ROUTES_CACHE'] ?? null, $_ENV['APP_ROUTES_CACHE'] ?? null];
-        $_SERVER['APP_ROUTES_CACHE'] = $_ENV['APP_ROUTES_CACHE'] = $routes;
+        // the routes cached (php artisan route:cache)
+        Features::routesCachedForTests(true);
         try {
-            $this->assertTrue(app()->routesAreCached());
             $key = Features::pluginsCacheKey();
             // what the plugins registered is taken from the cache (no class made)
             $kept = ['exment_test.kept' => ['label' => 'Kept', 'description' => '', 'endpoints' => ['plugins/exment_test'], 'api' => [],
@@ -269,20 +266,9 @@ class FeatureManagementTest extends FeatureTestBase
             $this->assertIsArray(\Cache::get(Features::pluginsCacheKey()), 'what the plugins registered is kept');
         } finally {
             \Cache::forget($key ?? '');
-            @unlink($routes);
-            if ($before[0] === null) {
-                unset($_SERVER['APP_ROUTES_CACHE']);
-            } else {
-                $_SERVER['APP_ROUTES_CACHE'] = $before[0];
-            }
-            if ($before[1] === null) {
-                unset($_ENV['APP_ROUTES_CACHE']);
-            } else {
-                $_ENV['APP_ROUTES_CACHE'] = $before[1];
-            }
+            Features::routesCachedForTests(null);
             Features::reset();
         }
-        $this->assertFalse(app()->routesAreCached());
     }
 
     public function testRequiresAndWho(): void

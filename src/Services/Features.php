@@ -101,6 +101,8 @@ class Features
 
     public const PLUGINS_CACHE_SECONDS = 86400;
 
+    protected static ?bool $routesCachedForTests = null;
+
     /**
      * The features of Exment itself (the file server when Exment has it).
      *
@@ -229,7 +231,7 @@ class Features
         }
         static::$pluginsBooted = true;
         try {
-            if (!app()->routesAreCached() || !canConnection() || !hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
+            if (!static::routesAreCached() || !canConnection() || !hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
                 return;
             }
             $cacheKey = static::pluginsCacheKey();
@@ -246,6 +248,23 @@ class Features
         } catch (\Throwable $e) {
             \Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Whether the routes are cached (php artisan route:cache); a test may say.
+     */
+    protected static function routesAreCached(): bool
+    {
+        return static::$routesCachedForTests ?? app()->routesAreCached();
+    }
+
+    /**
+     * For the tests: as if the routes were cached (true), or not (false),
+     * or as they are (null).
+     */
+    public static function routesCachedForTests(?bool $cached): void
+    {
+        static::$routesCachedForTests = $cached;
     }
 
     /**
