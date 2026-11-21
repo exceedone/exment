@@ -492,13 +492,23 @@ class Features
         }
 
         $user = \Exment::user();
-        $link = !$used && isset($user) && $user->hasPermission(Permission::SYSTEM)
-            ? '<p><a href="' . e(admin_url('feature')) . '">' . e(exmtrans('feature.header')) . '</a></p>' : '';
-        $html = '<!doctype html><html lang="' . e(app()->getLocale()) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
-            . '<title>' . e($message) . '</title><style>body{font-family:sans-serif;margin:48px auto;max-width:640px;padding:0 16px;color:#333}a{color:#3c8dbc}</style></head><body>'
-            . '<h1 style="font-size:1.3rem">' . e($message) . '</h1>' . $link
-            . '<p><a href="' . e(admin_url('')) . '">' . e(exmtrans('feature.back_home')) . '</a></p></body></html>';
-        return response($html, $status, ['Content-Type' => 'text/html; charset=UTF-8', static::DENIED_HEADER => $key]);
+        $admin = isset($user) && $user->hasPermission(Permission::SYSTEM);
+        $data = [
+            'message' => $message,
+            // the others: whom to ask; a system administrator: where to turn it on
+            'note' => $admin ? null : strval(exmtrans('feature.message_not_used_user')),
+            'feature_url' => !$used && $admin ? admin_url('feature') : null,
+            'home_url' => admin_url(''),
+        ];
+        // in the page of the admin settings (its menu, its header), as the other errors
+        try {
+            $content = new \ExmentAdminCore\Admin\Layout\Content();
+            $content->header(static::label($key))->row(view('exment::feature.denied', $data)->render());
+            return response($content->render(), $status, [static::DENIED_HEADER => $key]);
+        } catch (\Throwable $e) {
+            // without the admin page (as out of a request of a page): the view alone
+            return response(view('exment::feature.denied', $data)->render(), $status, ['Content-Type' => 'text/html; charset=UTF-8', static::DENIED_HEADER => $key]);
+        }
     }
 
     /**

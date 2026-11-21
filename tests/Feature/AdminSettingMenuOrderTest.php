@@ -75,7 +75,7 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
             'uri' => 'data/information', 'menu_type' => 'custom', 'menu_name' => 'my_page', 'menu_target' => null,
             'created_at' => now(), 'updated_at' => now(),
         ]);
-        $this->arrange(['system', 'custom_table', 'menu', 'template', 'backup', 'loginuser', 'role_group', 'workflow', 'plugin', 'studio', 'my_page', 'mail_template', 'login_setting', 'api_setting', 'feature', 'tuning']);
+        $this->arrange(['system', 'custom_table', 'menu', 'template', 'backup', 'loginuser', 'role_group', 'workflow', 'plugin', 'studio', 'mail_template', 'login_setting', 'api_setting', 'feature', 'tuning', 'my_page']);
         $this->migration()->up();
         $names = $this->names();
         $known = array_values(array_filter($names, function ($name) {
@@ -94,6 +94,39 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
         // a second run changes nothing
         $this->migration()->up();
         $this->assertSame($names, $this->names());
+    }
+
+    public function testAMenuOfTheSiteAmongTheSystemOnesKeepsTheOrder(): void
+    {
+        DB::table('admin_menu')->insert([
+            'parent_id' => $this->adminId(), 'order' => 99, 'title' => 'My page', 'icon' => 'fa-star',
+            'uri' => 'data/information', 'menu_type' => 'custom', 'menu_name' => 'my_page', 'menu_target' => null,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        // the menu of the site between "menu" and "template"
+        $this->arrange(['system', 'custom_table', 'menu', 'my_page', 'template', 'backup', 'loginuser', 'role_group', 'workflow', 'plugin', 'mail_template']);
+        $before = $this->names();
+        $this->migration()->up();
+        $this->assertSame($before, $this->names());
+    }
+
+    public function testMovedMenusOf71KeepTheOrder(): void
+    {
+        // login_setting moved to the top by an administrator
+        $this->arrange(['login_setting', 'system', 'custom_table', 'menu', 'template', 'backup', 'loginuser', 'role_group', 'workflow', 'plugin', 'mail_template', 'api_setting', 'studio']);
+        $before = $this->names();
+        $this->migration()->up();
+        $this->assertSame($before, $this->names());
+    }
+
+    public function testANewSiteOf712TakesTheNewOrder(): void
+    {
+        $this->arrange(['system', 'custom_table', 'menu', 'template', 'backup', 'loginuser', 'role_group', 'workflow', 'plugin', 'studio', 'mail_template', 'login_setting', 'api_setting', 'feature', 'tuning']);
+        $this->migration()->up();
+        $names = $this->names();
+        $this->assertSame(['system', 'login_setting', 'api_setting', 'custom_table', 'studio'], array_slice(array_values(array_filter($names, function ($name) {
+            return in_array($name, ['system', 'login_setting', 'api_setting', 'custom_table', 'studio'], true);
+        })), 0, 5));
     }
 
     public function testAnOrderAnAdministratorMadeStays(): void

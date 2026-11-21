@@ -17,7 +17,10 @@
 
     <div class="exm-fs-section">
         @if (count($workspaces) === 0)
-            <p class="exm-fs-muted">{{ exmtrans('file_server.no_workspaces') }}</p>
+            <div class="callout callout-info" style="margin:0">
+                <p>{{ $create_url ? exmtrans('file_server.no_workspaces_admin') : exmtrans('file_server.no_workspaces') }}</p>
+                @if ($create_url)<p><a href="{{ $create_url }}" class="btn btn-sm btn-primary"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('file_server.create_workspace') }}</a></p>@endif
+            </div>
         @else
             <div class="exm-fs-grid">
                 @foreach ($workspaces as $ws)

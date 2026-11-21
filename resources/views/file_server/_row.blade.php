@@ -12,7 +12,7 @@
         @if (!empty($item['approval_status']) && $item['approval_status'] !== 'approved')<span class="exm-fs-badge">{{ exmtrans('file_server.approval_' . $item['approval_status']) }}</span>@endif
         @if (!empty($item['legal_hold']))<span class="exm-fs-badge" title="{{ exmtrans('file_server.legal_hold') }}"><i class="fa fa-lock" aria-hidden="true"></i></span>@endif
         @if ($item['unique_permissions'])<span class="exm-fs-badge" title="{{ exmtrans('file_server.unique_permissions') }}"><i class="fa fa-key" aria-hidden="true"></i></span>@endif
-        @if ($item['version_no'] && $item['version_no'] > 1)<span class="exm-fs-badge">v{{ $item['version_no'] }}</span>@endif
+        @if ($item['version_no'] && $item['version_no'] > 1)<span class="exm-fs-badge">{{ exmtrans('file_server.version_no', ['no' => $item['version_no']]) }}</span>@endif
     </td>
     @foreach ($list_fields as $field)
         <td class="exm-fs-muted exm-fs-meta">{{ array_get($item['meta'], $field['name']) }}</td>

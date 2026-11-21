@@ -79,6 +79,11 @@ return new class extends Migration
         if (!Schema::hasTable($table) || !Schema::hasColumn($table, 'path')) {
             return false;
         }
+        // no log to tell (it is not written, or it was removed): taken as used,
+        // so that a site does not lose what it used (the safe side)
+        if (!DB::table($table)->exists()) {
+            return true;
+        }
         $prefix = trim(strval(config('admin.route.prefix')), '/');
         $prefix = $prefix === '' ? '' : $prefix . '/';
         return DB::table($table)->where(function ($query) use ($prefix) {
