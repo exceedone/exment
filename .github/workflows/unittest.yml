@@ -69,8 +69,9 @@ jobs:
       - name: Update exceedone/laravel-admin
         working-directory: docker-exment
         run: |
-          docker compose -f docker-compose.yml exec -T php composer update exceedone/laravel-admin --no-interaction
-          docker compose -f docker-compose.yml exec -T php composer show exceedone/laravel-admin | grep versions
+          # composer update cannot resolve the path repository of exment here, so the package is replaced by the tag
+          docker compose -f docker-compose.yml exec -T php sh -c 'rm -rf vendor/exceedone/laravel-admin && git clone -q --depth 1 -b v4.2.3 https://github.com/exceedone/laravel-admin.git vendor/exceedone/laravel-admin && composer dump-autoload -q'
+          docker compose -f docker-compose.yml exec -T php grep -c '@json' vendor/exceedone/laravel-admin/resources/views/partials/toastr.blade.php
 
       - name: PHPUnit Test
         working-directory: docker-exment
