@@ -795,7 +795,8 @@ class NotifyService
         $sender = $className::make($webhook_url, $slack_subject, $slack_body, $options);
         // the URL is checked when it is posted to, too (its name may point elsewhere by now)
         if (!WebhookUrlGuard::isAllowed($webhook_url)) {
-            \Log::warning('Exment notify: the webhook URL is not allowed and nothing was sent: ' . parse_url((string)$webhook_url, PHP_URL_HOST));
+            \Log::warning('Exment notify: the webhook URL is not allowed and nothing was sent: ' . parse_url((string)$webhook_url, PHP_URL_HOST)
+                . ' (the server itself and internal addresses are refused; to post to this host, add it to EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS in .env)');
             return $sender;
         }
         $sender->send();
