@@ -11,7 +11,9 @@ use Exceedone\Exment\Model\FileNodeVersion;
  *
  * - image, video, audio, PDF, text: shown as they are
  * - Office (Word, Excel, PowerPoint...): converted to PDF by LibreOffice when
- *   the site has it (config exment.file_server_soffice_path); otherwise download only
+ *   the site has it: a converter of its own on the inner network (Gotenberg,
+ *   config exment.file_server_soffice_url, ISS01704), or LibreOffice in the
+ *   same server (config exment.file_server_soffice_path); otherwise download only
  * - the thumbnail of an image is made with GD; of a PDF with Imagick when it is there
  *
  * An editor (as the Office of the Groupware, ISS00233) can be added as an
@@ -126,6 +128,27 @@ class Preview
     }
 
     /**
+     * The converter on the inner network (a Gotenberg with LibreOffice), set
+     * on the server only: http(s) and nothing else.
+     */
+    public static function sofficeUrl(): ?string
+    {
+        $url = config('exment.file_server_soffice_url');
+        if (!is_string($url) || preg_match('#^https?://[^\s/?\#]+(:[0-9]+)?/?$#i', trim($url)) !== 1) {
+            return null;
+        }
+        return rtrim(trim($url), '/');
+    }
+
+    /**
+     * Whether the site can make the PDF of an Office file (a converter or LibreOffice).
+     */
+    public static function canConvertOffice(): bool
+    {
+        return static::sofficeUrl() !== null || static::sofficePath() !== null;
+    }
+
+    /**
      * Make the thumbnail and the PDF of a version later (on the queue).
      */
     public static function queueRenditions(FileNodeVersion $version): void
@@ -134,7 +157,7 @@ class Preview
         $kind = static::kind($version->mime_type, isset($node) ? $node->name : '');
         $needs = $kind === static::KIND_IMAGE
             || ($kind === static::KIND_PDF && extension_loaded('imagick'))
-            || ($kind === static::KIND_OFFICE && static::sofficePath() !== null);
+            || ($kind === static::KIND_OFFICE && static::canConvertOffice());
         if (!$needs) {
             $version->rendition_status = FileNodeVersion::RENDITION_NONE;
             $version->save();
@@ -170,7 +193,7 @@ class Preview
             $local = $library->downloadToLocal($version);
             $dir = dirname($version->path);
 
-            if ($kind === static::KIND_OFFICE && static::sofficePath() !== null) {
+            if ($kind === static::KIND_OFFICE && static::canConvertOffice()) {
                 $pdf = static::convertToPdf($local, $node->extension());
                 if (isset($pdf)) {
                     $path = $dir . '/preview_' . $version->version_no . '.pdf';
@@ -324,6 +347,9 @@ class Preview
      */
     public static function convertToPdf(string $local, string $ext): ?string
     {
+        if (static::sofficeUrl() !== null) {
+            return static::convertByConverter($local, $ext);
+        }
         $soffice = static::sofficePath();
         if (!isset($soffice)) {
             return null;
@@ -347,6 +373,64 @@ class Preview
         }
         \File::deleteDirectory($work);
         return $result;
+    }
+
+    /**
+     * Convert an Office file to PDF with the converter on the inner network
+     * (Gotenberg: POST /forms/libreoffice/convert). Only the file is sent, with
+     * a plain name; the converter keeps nothing. While it is busy (its queue
+     * full: 429, or starting: 503) it is asked again a few times, within the
+     * time limit. Returns the local path of the PDF, or null.
+     */
+    protected static function convertByConverter(string $local, string $ext): ?string
+    {
+        $url = static::sofficeUrl();
+        if (!isset($url)) {
+            return null;
+        }
+        $ext = preg_replace('/[^a-z0-9]/', '', strtolower($ext)) ?: 'bin';
+        $timeout = max(5, intval(config('exment.file_server_soffice_timeout', 120)));
+        $until = microtime(true) + $timeout;
+        $wait = 2;
+        while (true) {
+            $left = (int) ceil($until - microtime(true));
+            if ($left <= 0) {
+                return null;
+            }
+            $stream = fopen($local, 'rb');
+            if ($stream === false) {
+                return null;
+            }
+            try {
+                $response = \Illuminate\Support\Facades\Http::timeout($left)
+                    ->connectTimeout(min(10, $left))
+                    ->accept('application/pdf')
+                    ->attach('files', $stream, 'input.' . $ext)
+                    ->post($url . '/forms/libreoffice/convert');
+            } catch (\Throwable $e) {
+                \Log::warning('[FileServer] the converter could not be reached: ' . $e->getMessage());
+                return null;
+            } finally {
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+            }
+            $status = $response->status();
+            if (($status === 429 || $status === 503) && microtime(true) + $wait < $until) {
+                // busy: asked again after a while
+                sleep($wait);
+                $wait = min($wait * 2, 16);
+                continue;
+            }
+            $body = $response->body();
+            if ($status !== 200 || !str_starts_with($body, '%PDF-')) {
+                \Log::warning('[FileServer] the converter answered ' . $status . ' for a .' . $ext . ' file');
+                return null;
+            }
+            $result = Library::tempPath('pdf_');
+            file_put_contents($result, $body);
+            return $result;
+        }
     }
 
     // ---------------------------------------------------------------- openers

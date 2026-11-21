@@ -2833,7 +2833,7 @@ return [
         'preview_office_open' => 'Press "Open in Office" to open it in the browser (a recent Chrome or Edge).',
         'preview_tab_pdf' => 'PDF preview (LibreOffice)',
         'preview_tab_embed' => 'read only',
-        'preview_office_none' => 'The preview of Office files needs LibreOffice on the server (EXMENT_FILE_SERVER_SOFFICE_PATH). Download it to open it.',
+        'preview_office_none' => 'The preview of Office files needs a LibreOffice converter (EXMENT_FILE_SERVER_SOFFICE_URL) or LibreOffice on the server (EXMENT_FILE_SERVER_SOFFICE_PATH). Download it to open it.',
         'permissions' => 'Permissions',
         'permissions_inherited' => 'It takes the permissions of its folder (or the workspace).',
         'permissions_unique' => 'It has its own permissions.',

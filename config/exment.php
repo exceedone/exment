@@ -1625,10 +1625,13 @@ return [
     |   A new feature is not open to all users until an administrator says so.
     | file_server_max_file_size: the largest file, in bytes (0: no limit but the space of the workspace).
     | file_server_soffice_path: LibreOffice (soffice) to make the PDF preview of Office files. Empty: no preview.
+    | file_server_soffice_url: a converter of its own on the inner network instead (Gotenberg with LibreOffice,
+    |   e.g. http://office:3000; docker-exment's docker-compose.office.yml). Used before soffice_path (ISS01704).
     */
     'file_server_workspace_create' => env('EXMENT_FILE_SERVER_WORKSPACE_CREATE', 'admin'),
     'file_server_max_file_size' => env('EXMENT_FILE_SERVER_MAX_FILE_SIZE', 0),
     'file_server_soffice_path' => env('EXMENT_FILE_SERVER_SOFFICE_PATH'),
+    'file_server_soffice_url' => env('EXMENT_FILE_SERVER_SOFFICE_URL'),
     'file_server_soffice_timeout' => env('EXMENT_FILE_SERVER_SOFFICE_TIMEOUT', 120),
     // share links for people outside (phase 3): false stops them; max_days > 0 makes an end date needed
     'file_server_external_share' => env('EXMENT_FILE_SERVER_EXTERNAL_SHARE', true),

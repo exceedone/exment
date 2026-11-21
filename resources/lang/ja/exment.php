@@ -2834,7 +2834,7 @@ return [
         'preview_office_open' => '「Office で開く」を押すと、ブラウザーで開けます（Chrome・Edge の新しい版）。',
         'preview_tab_pdf' => 'PDF のプレビュー（LibreOffice）',
         'preview_tab_embed' => '読み取り専用',
-        'preview_office_none' => 'Office のファイルのプレビューには、サーバーに LibreOffice が要ります（設定 EXMENT_FILE_SERVER_SOFFICE_PATH）。ダウンロードして開いてください。',
+        'preview_office_none' => 'Office のファイルのプレビューには、LibreOffice の変換のコンテナ（設定 EXMENT_FILE_SERVER_SOFFICE_URL）か、サーバーの LibreOffice（設定 EXMENT_FILE_SERVER_SOFFICE_PATH）が要ります。ダウンロードして開いてください。',
         'permissions' => '権限',
         'permissions_inherited' => '親フォルダー（またはワークスペース）の権限を引き継いでいます。',
         'permissions_unique' => 'このフォルダー・ファイルだけの権限です。',
