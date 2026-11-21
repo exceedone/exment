@@ -242,7 +242,7 @@ class ChartItem implements ItemInterface
 
         $note = '';
         if ($this->list_rows_left_out > 0) {
-            $note = '<p class="small text-muted chart-rows-left-out">' . esc_html(exmtrans('dashboard.message.chart_list_rows_left_out', ['count' => intval(config('exment.chart_list_max_rows', 1000))])) . '</p>';
+            $note = '<p class="small text-muted chart-rows-left-out">' . esc_html(exmtrans('dashboard.message.chart_list_rows_left_out', ['count' => intval(config('exment.chart_list_max_rows', 0))])) . '</p>';
         }
         return $this->toolbarHtml($fields) . $note . $chart->render();
     }
@@ -517,10 +517,10 @@ class ChartItem implements ItemInterface
         // in the order the view lists its rows (a view without a sort keeps the database's)
         $this->viewForQuery()->filterModel($model, ['sort' => true]);
 
-        // get data: a chart of a list view draws one point per row, so it reads at most
-        // chart_list_max_rows rows (a large table ran out of memory or time; ISS00413).
-        // A summary view is the way to chart a large table.
-        $max = intval(config('exment.chart_list_max_rows', 1000));
+        // get data: a chart of a list view draws one point per row. A site may limit it to
+        // chart_list_max_rows rows (a large table ran out of memory or time; ISS00413); by
+        // default it reads every row, as before. A summary view is the way to chart a large table.
+        $max = intval(config('exment.chart_list_max_rows', 0));
         if ($max > 0) {
             $model->limit($max + 1);
         }
