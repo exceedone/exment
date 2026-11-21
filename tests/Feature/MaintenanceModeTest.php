@@ -480,7 +480,8 @@ class MaintenanceModeTest extends FeatureTestBase
 
     public function testAFailedCheckIsClosedWhenAFileIsThere(): void
     {
-        $this->assertNull(MaintenanceMode::failedResponse());
+        $none = MaintenanceMode::failedResponse();
+        $this->assertNull($none);
         file_put_contents($this->operatorFile, '{}');
         $response = MaintenanceMode::failedResponse();
         $this->assertNotNull($response);
