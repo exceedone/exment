@@ -191,11 +191,14 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
             $page->assertOk();
             $page->assertSee(exmtrans('menu.feature_hidden'));
 
+            /** @var array<string, mixed> $config */
             $config = [];
             $method = new \ReflectionMethod(\Exceedone\Exment\Services\TemplateImportExport\TemplateExporter::class, 'setTemplateMenu');
             $method->setAccessible(true);
             $method->invokeArgs(null, [&$config, [], false]);
-            $this->assertContains('studio', collect($config['admin_menu'])->pluck('menu_name')->map('strval')->all());
+            /** @var array<int, array<string, mixed>> $exported */
+            $exported = $config['admin_menu'] ?? [];
+            $this->assertContains('studio', array_map('strval', array_column($exported, 'menu_name')));
         } finally {
             \Exceedone\Exment\Services\Features::reset();
         }
