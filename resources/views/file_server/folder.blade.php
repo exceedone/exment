@@ -23,14 +23,16 @@
     <div class="exm-fs-toolbar">
         @if ($can_upload)
             <button type="button" class="btn btn-sm btn-default" data-fs="new-folder"><i class="fa fa-folder" aria-hidden="true"></i> {{ exmtrans('file_server.new_folder') }}</button>
-            <div class="btn-group">
-                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-file-text-o" aria-hidden="true"></i> {{ exmtrans('file_server.new_file') }} <span class="caret"></span></button>
-                <ul class="dropdown-menu">
-                    @foreach (\Exceedone\Exment\Services\FileServer\TextFiles::TYPES as $type)
-                        <li><a href="#" class="dropdown-item" data-fs="new-text" data-type="{{ $type }}">{{ exmtrans('file_server.new_text_' . $type) }}</a></li>
-                    @endforeach
-                </ul>
-            </div>
+            @if ($can_edit)
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-file-text-o" aria-hidden="true"></i> {{ exmtrans('file_server.new_file') }} <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        @foreach (\Exceedone\Exment\Services\FileServer\TextFiles::TYPES as $type)
+                            <li><a href="#" class="dropdown-item" data-fs="new-text" data-type="{{ $type }}">{{ exmtrans('file_server.new_text_' . $type) }}</a></li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <label class="btn btn-sm btn-primary" style="margin:0"><i class="fa fa-upload" aria-hidden="true"></i> {{ exmtrans('file_server.upload_files') }}
                 <input type="file" multiple hidden data-fs="file-input"></label>
             <label class="btn btn-sm btn-default" style="margin:0"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.upload_folder') }}

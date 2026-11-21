@@ -231,7 +231,8 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('version', 'FileServerController@uploadVersion');
                     $router->get('edit', 'FileServerController@editText');
                     $router->post('text', 'FileServerController@saveText');
-                    $router->post('markdown', 'FileServerController@markdownPreview');
+                    // the preview is asked while typing: limited for each user
+                    $router->post('markdown', 'FileServerController@markdownPreview')->middleware(\Illuminate\Routing\Middleware\ThrottleRequests::class . ':120,1');
                     $router->post('versions/{version}/restore', 'FileServerController@restoreVersion')->where('version', '[0-9]+');
                     $router->post('checkout', 'FileServerController@checkout');
                     $router->post('checkin', 'FileServerController@checkin');
