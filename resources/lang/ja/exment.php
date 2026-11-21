@@ -3052,6 +3052,14 @@ return [
         'share_drop_here' => 'ここにファイルをドラッグ＆ドロップ',
         'share_upload_sent' => '送りました',
         'share_upload_failed' => '送れませんでした',
+        'error_upload_sessions_many' => '途中のアップロードが多すぎます。終わるのを待つか、取り消してから、もう一度送ってください。',
+        'error_share_password_short' => 'パスワードは :min 文字以上にしてください。',
+        'preview_held' => '外の人から受け取ったファイルです。安全のため、プレビューと中の文字の読み取りはまだしていません。',
+        'preview_held_manage' => '中身を確かめてよければ、「プレビューを作る」を押してください。',
+        'make_preview' => 'プレビューを作る',
+        'preview_requested' => 'プレビューを作り始めました。少したってから開き直してください。',
+        'permissions_your_level' => 'あなたの権限：:level',
+        'path_hidden' => '…',
     ],
 
     'cell_style_preset' => [

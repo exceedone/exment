@@ -302,7 +302,8 @@ class Preview
             $class = 'Imagick';
             $im = new $class();
             $im->setResolution(72, 72);
-            $im->readImage($local . '[0]');
+            // read as a PDF only (not as what its bytes say: MVG, SVG, ...)
+            $im->readImage('pdf:' . $local . '[0]');
             $im->setImageFormat('jpeg');
             $im->thumbnailImage(static::THUMBNAIL_SIZE, static::THUMBNAIL_SIZE, true);
             $out = Library::tempPath('thumb_');
@@ -331,6 +332,11 @@ class Preview
         // a list (no shell between): nothing of the names can be run
         $command = [$soffice, '--headless', '--norestore', '--convert-to', 'pdf', '--outdir', $work, $input,
             '-env:UserInstallation=file://' . str_replace('\\', '/', $work) . '/profile'];
+        // run without the network, when the site gives a command for it (config file_server_soffice_prefix)
+        $prefix = trim(strval(config('exment.file_server_soffice_prefix', '')));
+        if ($prefix !== '') {
+            $command = array_merge(preg_split('/\s+/', $prefix) ?: [], $command);
+        }
         $timeout = intval(config('exment.file_server_soffice_timeout', 120));
         $process = new \Symfony\Component\Process\Process($command, $work, ['HOME' => $work]);
         $process->setTimeout($timeout);

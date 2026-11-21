@@ -182,7 +182,7 @@ class FileServerController extends AdminControllerBase
         $content->row(view('exment::file_server.folder', [
             'workspace' => $ws,
             'folder' => $folder,
-            'breadcrumbs' => $this->breadcrumbs($ws, $folder),
+            'breadcrumbs' => $this->breadcrumbs($ws, $folder, $this->library()->access()),
             'items' => $this->nodeRows($children, $ws, $fields),
             'groups' => $groups,
             'group' => isset($groupField) ? $groupField->name : null,
@@ -237,13 +237,7 @@ class FileServerController extends AdminControllerBase
         }
         $collaboration = new Collaboration($library);
         $kind = isset($version) ? Preview::kind($version->mime_type, $item->name) : Preview::KIND_NONE;
-        // a file from a request link: its preview is made now that someone inside opens it (ISS00410)
-        if (isset($version) && $version->rendition_status === FileNodeVersion::RENDITION_HELD) {
-            $version->rendition_status = null;
-            $version->save();
-            Preview::queueRenditions($version);
-            FileSearch::queueText($version);
-        }
+        // a file from a request link: its preview and text are made when a manager asks (ISS00410, ISS00433)
 
         $text = null;
         if ($kind === Preview::KIND_TEXT && isset($version) && $version->size <= Preview::TEXT_PREVIEW_BYTES) {
@@ -262,7 +256,7 @@ class FileServerController extends AdminControllerBase
         $content->row(view('exment::file_server.show', [
             'workspace' => $ws,
             'node' => $item,
-            'breadcrumbs' => $this->breadcrumbs($ws, $item),
+            'breadcrumbs' => $this->breadcrumbs($ws, $item, $access),
             'base_url' => $this->url($ws),
             'node_url' => $this->nodeUrl($ws, $item),
             'parent_url' => isset($item->parent_id) ? $this->url($ws, 'folder', $item->parent_id) : $this->url($ws),
@@ -289,7 +283,8 @@ class FileServerController extends AdminControllerBase
             'checked_out_by_me' => isset($item->checked_out_user_id) && intval($item->checked_out_user_id) === $access->userId(),
             'favorite' => $library->isFavorite($item),
             'openers' => $item->isFile() ? Preview::openers($item) : [],
-            'permissions' => $this->permissionRows($library->effectivePermissions($ws, $item)),
+            // who else may see it: for those who manage it (ISS00433)
+            'permissions' => $level >= Level::MANAGE ? $this->permissionRows($library->effectivePermissions($ws, $item)) : [],
             'chunk_size' => Uploader::CHUNK_SIZE,
             'created_user' => $this->userName($item->created_user_id),
             'updated_user' => $this->userName($item->updated_user_id),
@@ -333,7 +328,7 @@ class FileServerController extends AdminControllerBase
             'rules_url' => $this->nodeUrl($ws, $item, 'rules'),
             'held' => Governance::isHeld($ws, $item),
             'retained_until' => $item->isFile() ? Governance::retainedUntil($ws, $item) : null,
-        ] + $this->pickerData()));
+        ] + ($level >= Level::MANAGE ? $this->pickerData() : ['picker_users' => [], 'picker_orgs' => [], 'levels' => Level::options()])));
         return $content;
     }
 
@@ -714,6 +709,24 @@ class FileServerController extends AdminControllerBase
             }
             $this->library()->restoreVersion($ws, $item, $v);
             return ['message' => exmtrans('file_server.version_restored', ['no' => $v->version_no])];
+        });
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function makePreview(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) {
+            $this->library()->access()->authorize($ws, $item, Level::MANAGE);
+            $version = $item->isFile() ? $item->current_version : null;
+            if (isset($version) && $version->rendition_status === FileNodeVersion::RENDITION_HELD) {
+                $version->rendition_status = null;
+                $version->save();
+                Preview::queueRenditions($version);
+                FileSearch::queueText($version);
+            }
+            return ['message' => exmtrans('file_server.preview_requested')];
         });
     }
 
@@ -1110,13 +1123,18 @@ class FileServerController extends AdminControllerBase
     /**
      * @return array<int, array{name: string, url: string}>
      */
-    protected function breadcrumbs(FileWorkspace $ws, ?FileNode $node): array
+    protected function breadcrumbs(FileWorkspace $ws, ?FileNode $node, ?\Exceedone\Exment\Services\FileServer\Access $access = null): array
     {
         $list = [['name' => $ws->name, 'url' => $this->url($ws)]];
         if (!isset($node)) {
             return $list;
         }
         foreach ($node->ancestorsAndSelf() as $item) {
+            // a folder above that the user may not see: not its name (ISS00433)
+            if (isset($access) && !$access->can($ws, $item, Level::VIEW)) {
+                $list[] = ['name' => strval(exmtrans('file_server.path_hidden')), 'url' => null];
+                continue;
+            }
             $list[] = ['name' => $item->name, 'url' => $item->isFolder() ? $this->url($ws, 'folder', $item->id) : $this->nodeUrl($ws, $item)];
         }
         return $list;
