@@ -23,7 +23,8 @@ class FeatureGuard
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['result' => false, 'message' => exmtrans('feature.message_not_used')], 404);
             }
-            abort(404);
+            // a plain "not found" (the error page of the admin pages answers 200)
+            return response(e(exmtrans('feature.message_not_used')), 404, ['Content-Type' => 'text/plain; charset=UTF-8']);
         }
         return $next($request);
     }

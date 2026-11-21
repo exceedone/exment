@@ -123,9 +123,12 @@ class FeatureController extends AdminControllerBase
 
     protected function pluginAccessFiltered(Plugin $plugin): bool
     {
-        return collect($plugin->plugin_types)->contains(function ($type) {
-            return in_array($type, PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE());
-        });
+        foreach ((array)$plugin->plugin_types as $type) {
+            if (in_array($type, PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

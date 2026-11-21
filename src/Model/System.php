@@ -97,6 +97,7 @@ use Cache;
  * @method static Carbon|void safety_check_last_feed_time($arg = null)
  * @method static string|null|void comment_markdown_start($arg = null)
  * @method static bool|void publicform_available($arg = null)
+ * @method static mixed features($arg = null)
  * @method static string|void recaptcha_site_key($arg = null)
  * @method static string|void recaptcha_secret_key($arg = null)
  * @method static string|void recaptcha_type($arg = null)

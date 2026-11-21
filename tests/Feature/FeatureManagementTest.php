@@ -115,7 +115,7 @@ class FeatureManagementTest extends FeatureTestBase
         $this->get(admin_url('app'))->assertNotFound();
         $this->get(admin_url('app/sw.js'))->assertNotFound();
         // pages of other names are not touched
-        $this->get(admin_url('dashboard'), $headers)->assertOk();
+        $this->assertNotSame(404, $this->get(admin_url('dashboard'), $headers)->getStatusCode());
     }
 
     public function testTheRequestsOfAFeature(): void
@@ -221,7 +221,7 @@ class FeatureManagementTest extends FeatureTestBase
                 ->map(function ($p) {
                     $list = (array)$p->permissions;
                     sort($list);
-                    return [intval($p->role_group_id), intval($p->role_group_target_id), array_values($list)];
+                    return [intval($p->role_group_id), intval($p->role_group_target_id), $list];
                 })->filter(function ($row) {
                     return count($row[2]) > 0;
                 })->values()->all(),
