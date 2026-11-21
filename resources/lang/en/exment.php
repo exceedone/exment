@@ -4442,6 +4442,8 @@ return [
             'studio_help' => 'The list of screens, making screens, and the phone app (/app).',
             'tuning' => 'Tuning',
             'tuning_help' => 'The check of the settings that make the site faster ("Tuning" in Admin Setting). For the system administrators only. What it asks to change are the server settings, as php.ini and .env.',
+            'safety_check' => 'Safety check',
+            'safety_check_help' => 'Asks whether the users are safe, as after an earthquake (the page to send it, the answer page, the automatic sending from earthquake reports, the answers by LINE). Turning it off does not remove what was sent and answered.',
         ],
         'message_not_used_user' => 'If you need it, please contact your administrator.',
         'open_feature' => 'Open Feature Management',

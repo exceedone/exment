@@ -48,6 +48,7 @@ class Features
     public const FILE_SERVER = 'file_server';
     public const STUDIO = 'studio';
     public const TUNING = 'tuning';
+    public const SAFETY_CHECK = 'safety_check';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -136,6 +137,15 @@ class Features
             'who' => false,
             // it was there before Feature management: on until it is turned off
             'default' => true,
+        ]);
+        // the safety check: its page, the answer page (SafetyCheckAnswerController),
+        // the automatic sending (exment:safetywatch) and its LINE answers. A site
+        // that used it keeps it on (the migration add_safety_check_feature).
+        // The LINE link itself stays: the notifications use LINE too.
+        $core[static::SAFETY_CHECK] = static::definition([
+            'label' => 'exment::exment.feature.features.safety_check',
+            'description' => 'exment::exment.feature.features.safety_check_help',
+            'endpoints' => ['safety_check'],
         ]);
         return $core;
     }
