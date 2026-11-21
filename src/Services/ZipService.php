@@ -69,10 +69,15 @@ class ZipService
             throw new \Exception();
         }
 
+        // the password goes into the command line as it is, so only letters and digits
+        // (make_password(16, ['mark' => false]) makes such a password)
+        if (!preg_match('/\A[A-Za-z0-9]+\z/', (string)$password)) {
+            throw new \Exception('The password of a zip file has only letters and digits.');
+        }
+
         $output = [];
         $dir7zip = path_join(config('exment.7zip_dir'), '7z.exe');
-        // every part is quoted for the shell, as on Linux (7-Zip expands the "*" itself)
-        exec(escapeshellarg($dir7zip) . ' a ' . escapeshellarg('-p' . $password) . ' ' . escapeshellarg($zipFullPath) . ' ' . escapeshellarg($tmpFolderPath . '/*'), $output);
+        exec('"' . $dir7zip . '" a -p' . $password . ' "' . $zipFullPath . '" "' . $tmpFolderPath . '/*"', $output);
     }
 
     /**
