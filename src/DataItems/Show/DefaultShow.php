@@ -638,7 +638,11 @@ EOT;
             $allow_delete = config('exment.allow_delete_attachment', false);
             // replacing keeps the older file as a version; the numbers come in one query
             $useVersions = DocumentVersionService::available();
-            $versionNos = $useVersions ? DocumentVersionService::currentNumbers(collect($documents)->pluck('id')->all()) : [];
+            $documentIds = [];
+            foreach ($documents as $d) {
+                $documentIds[] = $d->id;
+            }
+            $versionNos = $useVersions ? DocumentVersionService::currentNumbers($documentIds) : [];
             foreach ($documents as $index => $d) {
                 $html[] = "<p>" . view('exment::form.field.documentlink', [
                     'document' => $d,

@@ -316,6 +316,7 @@ class File extends ModelBase
 
         // the older versions of the attachment (replaced files) go with it
         if (\Exceedone\Exment\Services\DocumentVersionService::available()) {
+            // @phpstan-ignore-next-line the query of the document model
             \Exceedone\Exment\Services\DocumentVersionService::deleteFor((clone $query)->pluck('id')->all());
         }
 
