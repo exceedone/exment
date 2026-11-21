@@ -2590,7 +2590,7 @@ return [
         'remove_child' => 'Remove the detail',
         'notice_children' => ' The child tables %s are made too.',
         'buttons_title' => 'Buttons',
-        'buttons_help' => 'Buttons are shown on a record's page. Pressed, a button sets an item (for example "Done" sets the status to "done"), and it is not shown on a record that has the value already. Up to %s buttons. They can be changed later in the data operations of the table.',
+        'buttons_help' => 'Buttons are shown on a record\'s page. Pressed, a button sets an item (for example "Done" sets the status to "done"), and it is not shown on a record that has the value already. Up to %s buttons. They can be changed later in the data operations of the table.',
         'add_button' => 'Add a button',
         'button_label' => 'Name of the button',
         'button_label_placeholder' => 'For example: Done',
