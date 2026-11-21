@@ -59,6 +59,11 @@ class Bootstrap
             if (DemoMode::enabled()) {
                 $navbar->left(new \Exceedone\Exment\Form\Navbar\DemoModeNav());
             }
+            // maintenance mode: in it, or planned
+            $maintenance = \Exceedone\Exment\Form\Navbar\MaintenanceNav::make();
+            if (isset($maintenance)) {
+                $navbar->left($maintenance);
+            }
         });
         static::setCssJsList(['lib/js/jquery-ui.min.js'], false);
         static::setCssJsList(['lib/css/jquery-ui.min.css'], true);

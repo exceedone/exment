@@ -168,6 +168,10 @@ class RouteServiceProvider extends ServiceProvider
             // Tuning: what would make the site faster (ISS00414)
             $router->get('tuning', 'TuningController@index');
             $router->post('tuning/action', 'TuningController@action');
+            $router->get('maintenance', 'MaintenanceController@index');
+            $router->post('maintenance', 'MaintenanceController@store');
+            $router->post('maintenance/start', 'MaintenanceController@start');
+            $router->post('maintenance/end', 'MaintenanceController@end');
 
             // The preset library: what the pickers on the column and view
             // screens offer, managed as one list.
