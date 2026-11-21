@@ -39,6 +39,8 @@ class InitializeFormErrorTest extends FeatureTestBase
             ->andThrow(new \RuntimeException('SQLSTATE[HY000] [2054] The server requested authentication method unknown to the client'));
         // rollback may or may not be called depending on fix location; allow it to be called
         DB::shouldReceive('rollback')->zeroOrMoreTimes()->andReturn(null);
+        // the end of the test (Laravel 12.7x) closes the connections it has: none here
+        DB::shouldReceive('getConnections')->zeroOrMoreTimes()->andReturn([]);
 
         // Bind a fake POST request (same data as the initialize form)
         $request = \Illuminate\Http\Request::create('/admin/initialize', 'POST', [
