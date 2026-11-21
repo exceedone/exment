@@ -3793,7 +3793,7 @@ return [
     'custom_value' => [
         'description' => 'このテーブルのデータ一覧を表示します。',
         'document_replace' => '差し替え',
-        'document_replaced' => '差し替えました。前のファイルは「版 :no」から開けます。',
+        'document_replaced' => '差し替えました。前のファイルは「版 :no」を押すと出る一覧から開けます。',
         'document_replace_help' => '新しいファイルに差し替えます。今のファイルは前の版として残ります。',
         'document_version_no' => '版 :no',
         'document_versions' => '前の版',

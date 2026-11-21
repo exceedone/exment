@@ -3794,7 +3794,7 @@ return [
     'custom_value' => [
         'back_to_list' => 'Back to the list',
         'document_replace' => 'Replace',
-        'document_replaced' => 'Replaced. The earlier file is under "Version :no".',
+        'document_replaced' => 'Replaced. Press "Version :no" to see the earlier files.',
         'document_replace_help' => 'Replace with a new file. The current file is kept as an older version.',
         'document_version_no' => 'Version :no',
         'document_versions' => 'Older versions',
