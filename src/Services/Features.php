@@ -137,6 +137,14 @@ class Features
             // it was there before Feature management: on until it is turned off
             'default' => true,
         ]);
+        // maintenance mode (Services\MaintenanceMode): the system administrators only
+        $core[MaintenanceMode::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.maintenance_mode',
+            'description' => 'exment::exment.feature.features.maintenance_mode_help',
+            'endpoints' => ['maintenance'],
+            'menu' => 'maintenance',
+            'who' => false,
+        ]);
         return $core;
     }
 

@@ -586,6 +586,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | maintenance mode: the operator's file
+    |--------------------------------------------------------------------------
+    |
+    | The file of the operator's maintenance (`php artisan exment:maintenance
+    | on --operator`). The screens of the site cannot change it. Empty:
+    | storage/framework/exment-maintenance.json.
+    |
+    */
+    'maintenance_operator_file' => env('EXMENT_MAINTENANCE_OPERATOR_FILE', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | the plugins bundled with Exment, the id of the site
     |--------------------------------------------------------------------------
     |

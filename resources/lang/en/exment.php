@@ -4442,9 +4442,17 @@ return [
             'studio_help' => 'The list of screens, making screens, and the phone app (/app).',
             'tuning' => 'Tuning',
             'tuning_help' => 'The check of the settings that make the site faster ("Tuning" in Admin Setting). For the system administrators only. What it asks to change are the server settings, as php.ini and .env.',
+            'maintenance_mode' => 'Maintenance mode',
+            'maintenance_mode_help' => 'While you move data or install plugins, only the system administrators get in. The others see the "Under maintenance" page. Only the system administrators turn it on and off.',
         ],
         'message_not_used_user' => 'If you need it, please contact your administrator.',
         'open_feature' => 'Open Feature Management',
+    ],
+
+    'maintenance' => [
+        'title' => 'Under maintenance',
+        'default_message' => 'The site is under maintenance. Please wait until it ends.',
+        'end_at' => 'Planned end: :end_at',
     ],
 
     'plugin_distribution' => [
