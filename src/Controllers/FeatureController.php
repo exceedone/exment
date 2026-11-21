@@ -152,6 +152,9 @@ class FeatureController extends AdminControllerBase
             'locked' => Features::locked($key),
             'reason' => Features::reason($key),
             'who' => $definition['who'],
+            // who is not asked: for a plugin, those who may use the plugin; for Exment's own
+            // (as Tuning), the system administrators (its page is an admin setting)
+            'who_text' => $definition['who'] ? null : exmtrans(isset($definition['plugin']) ? 'feature.who_plugin' : 'feature.who_system_admin'),
             'requires' => isset($requires) && Features::exists($requires) ? Features::label($requires) : null,
             'has_menu' => isset($definition['menu']),
             'menu_exists' => isset($definition['menu']) && $this->systemMenuExists(strval($definition['menu'])),

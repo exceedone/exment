@@ -154,6 +154,7 @@ class TuningAdviceTest extends UnitTestBase
             System::features($settings);
 
             $this->assertArrayHasKey(Features::TUNING, Features::definitions());
+            $this->assertSame(exmtrans('feature.features.tuning'), Features::label(Features::TUNING), 'translated when shown');
             $this->assertTrue(Features::enabled(Features::TUNING), 'on until it is turned off');
             $this->assertSame(Features::TUNING, Features::forRequest(\Illuminate\Http\Request::create(admin_url('tuning'))));
             $this->assertSame(Features::TUNING, Features::forRequest(\Illuminate\Http\Request::create(admin_url('tuning/action'), 'POST')));
@@ -165,10 +166,33 @@ class TuningAdviceTest extends UnitTestBase
             config(['exment.features_locked' => '']);
             Features::save([Features::TUNING => ['enabled' => false]]);
             $this->assertFalse(Features::enabled(Features::TUNING), 'turned off on the site');
+
+            // on from the start is for Exment's own pages: a plugin asking for it starts off
+            Features::register('exment_test_tuning.x', ['label' => 'x', 'endpoints' => ['plugins/exment_test_tuning'], 'default' => true]);
+            $this->assertTrue(Features::exists('exment_test_tuning.x'));
+            $this->assertFalse(Features::enabled('exment_test_tuning.x'));
         } finally {
             config(['exment.features_locked' => '']);
             System::features($before);
+            Features::reset();
         }
+    }
+
+    /**
+     * Feature management does not ask who may use Tuning: its row says the system administrators
+     * (not "those who may use the plugin").
+     *
+     * @return void
+     */
+    public function testTheFeatureRowSaysTheSystemAdministrators()
+    {
+        $controller = new \Exceedone\Exment\Controllers\FeatureController();
+        $method = new \ReflectionMethod($controller, 'featureRow');
+        $method->setAccessible(true);
+        $row = $method->invoke($controller, Features::TUNING, Features::definitions()[Features::TUNING]);
+        $this->assertFalse($row['who']);
+        $this->assertSame(exmtrans('feature.who_system_admin'), $row['who_text']);
+        $this->assertNotSame(exmtrans('feature.who_plugin'), $row['who_text']);
     }
 
     /**

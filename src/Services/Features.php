@@ -23,7 +23,9 @@ use Illuminate\Http\Request;
  * 2. the site: the feature is used or not ("features" below). When it is not,
  *    its pages and its API answer "not found", even when the URL is opened
  *    directly, and its menus are hidden. Its data stays: turning it on again
- *    brings everything back.
+ *    brings everything back. A new feature is off until it is turned on; only
+ *    Exment's own pages for the system administrators (as Tuning) may be on
+ *    from the start ("default"). A plugin cannot ask for it: it has "existing".
  * 3. who: all users, or the users of some role groups (none chosen: the
  *    system administrators only, who always may)
  * 4. the settings of the feature itself (as the permissions of the tables
@@ -108,11 +110,12 @@ class Features
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
         $core[static::TUNING] = static::definition([
-            'label' => strval(exmtrans('feature.features.tuning')),
-            'description' => strval(exmtrans('feature.features.tuning_help')),
+            // keys, translated when shown (Features::label / description)
+            'label' => 'exment::exment.feature.features.tuning',
+            'description' => 'exment::exment.feature.features.tuning_help',
             'endpoints' => ['tuning'],
             'menu' => 'tuning',
-            // for the system administrators only, whoever else is chosen
+            // who is not asked here: Auth\Permission keeps the page to the system administrators
             'who' => false,
             // it was there before Feature management: on until it is turned off
             'default' => true,
@@ -135,7 +138,7 @@ class Features
      *   - api: the same, of the API (after "api/")
      *   - menu: a system menu name (rare for a plugin)
      *   - existing: the plugin had it before (default false)
-     *   - default: on until an administrator turns it off (default false)
+     *   - (not "default": a feature of a plugin starts off, or as it was with "existing")
      *   - who: whether "who may use it" is asked here (default true; false: all who may use the plugin)
      *   - requires: the key of another feature it needs (off when that one is)
      *   - plugin: the uri or the name of the plugin (default: the key before the first ".")
@@ -147,6 +150,8 @@ class Features
             return;
         }
         $definition['plugin'] = array_get($definition, 'plugin') ?? strtok($key, '.');
+        // on from the start is for Exment's own pages only: a new feature of a plugin starts off
+        unset($definition['default']);
         static::$registered[$key] = static::definition($definition);
     }
 

@@ -4088,6 +4088,7 @@ return [
         'state_requires' => 'It cannot be used because a feature it needs is off.',
         'requires' => 'Only while ":name" is used.',
         'who_plugin' => 'Those who may use the plugin (all)',
+        'who_system_admin' => 'System administrators only (an admin setting page)',
         'who_none_help' => 'With none chosen, only the system administrators can use it.',
         'who_child_help' => 'Of those who may use the plugin, the users chosen here. System administrators can always use it.',
         'menu_missing' => 'There is no menu row. Saving makes it.',
