@@ -1271,12 +1271,21 @@ return [
     |
     | The header in which the front server (nginx, ALB) gives the client certificate it checked:
     | its sha256 fingerprint, or the certificate (PEM, URL-encoded, as X-Amzn-Mtls-Clientcert).
-    | It is read only from a trusted proxy (ADMIN_TRUST_PROXY_IPS).
+    | It is read only from a trusted proxy (ADMIN_TRUST_PROXY_IPS). The front server MUST always
+    | set (overwrite) this header, empty when it did not check a certificate: Exment cannot tell a
+    | header the proxy wrote from one the client sent through it. With ADMIN_TRUST_PROXY_IPS=*
+    | every request counts as from the proxy, so only use it when nothing reaches Exment directly.
     | ADMIN_API_KEY_REQUIRE_CLIENT_CERT=true: no API key works without a client certificate.
     | *Not copied by a backup restore: the keys are ADMIN_.*
     */
     'api_client_cert_header' => env('ADMIN_API_CLIENT_CERT_HEADER', null),
     'api_key_require_client_cert' => env('ADMIN_API_KEY_REQUIRE_CLIENT_CERT', false),
+
+    /*
+    | The API keys of the users: the most days of a key (at most 365), and the keys a user has at once.
+    */
+    'api_key_max_days' => env('EXMENT_API_KEY_MAX_DAYS', 365),
+    'api_key_max_per_user' => env('EXMENT_API_KEY_MAX_PER_USER', 10),
 
     /*
     |--------------------------------------------------------------------------

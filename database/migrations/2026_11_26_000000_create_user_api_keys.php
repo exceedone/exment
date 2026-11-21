@@ -17,6 +17,8 @@ return new class extends Migration
                 $table->bigIncrements('id');
                 // the id of the user (custom value of the table "user"), whose permissions the key has
                 $table->unsignedBigInteger('user_id')->index();
+                // the login it signs in as (the one that made it: any provider, as SSO)
+                $table->unsignedBigInteger('login_user_id')->nullable();
                 $table->string('name', 256);
                 // the first characters of the key, to tell the keys apart on the page
                 $table->string('key_prefix', 32);
@@ -33,6 +35,9 @@ return new class extends Migration
                 $table->dateTime('last_used_at')->nullable();
                 $table->string('last_used_ip', 64)->nullable();
                 $table->unsignedBigInteger('use_count')->default(0);
+                // the last refusal of the key and why (for its pages: the log is not for every administrator)
+                $table->dateTime('last_refused_at')->nullable();
+                $table->string('last_refused_reason', 32)->nullable();
                 $table->dateTime('revoked_at')->nullable();
                 $table->unsignedBigInteger('revoked_user_id')->nullable();
                 $table->timestamps();

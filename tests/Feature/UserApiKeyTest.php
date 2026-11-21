@@ -80,7 +80,9 @@ class UserApiKeyTest extends ApiTestBase
             $options['tables'] ?? null,
             $options['allowed_ips'] ?? null,
             $options['expires_at'] ?? null,
-            $options['client_cert_fingerprint'] ?? null
+            $options['client_cert_fingerprint'] ?? null,
+            null,
+            $options['login_user_id'] ?? null
         );
     }
 
@@ -92,6 +94,8 @@ class UserApiKeyTest extends ApiTestBase
      */
     protected function getWithKey(string $plain, array $path, array $headers = [], array $server = []): \Illuminate\Testing\TestResponse
     {
+        // each request signs in again, as on a real server (the test app keeps the guards)
+        \Auth::forgetGuards();
         return $this->withServerVariables($server)
             ->withHeaders(['Authorization' => "Bearer $plain"] + $headers)
             ->get(admin_urls('api', ...$path));
@@ -102,7 +106,8 @@ class UserApiKeyTest extends ApiTestBase
      */
     protected function assertRefused(\Illuminate\Testing\TestResponse $response, string $why): void
     {
-        $response->assertStatus(401);
+        // a good key where it is not for: 403; else 401
+        $response->assertStatus(UserApiKeys::isForbiddenReason($why) ? 403 : 401);
         $this->assertSame($why, UserApiKeys::$lastRefusal);
         // the client is not told why
         $this->assertStringNotContainsString($why, (string)$response->getContent());
@@ -224,6 +229,146 @@ class UserApiKeyTest extends ApiTestBase
         $this->assertRefused($this->getWithKey($plain, ['data', 'custom_value_edit_all']), 'table');
         // the list of all the tables, and the files without a table, are not for it
         $this->assertRefused($this->getWithKey($plain, ['table']), 'table');
+    }
+
+    /**
+     * What reads other tables than the one of the URL is not for a key limited to some tables.
+     */
+    public function testALimitedKeyDoesNotReachOtherTables(): void
+    {
+        [, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['tables' => ['custom_value_edit']]);
+        $id = \DB::table(getDBTableName('custom_value_edit'))->whereNull('deleted_at')->value('id');
+
+        $this->assertRefused($this->getWithKey($plain, ['data', 'custom_value_edit', $id . '?children=1']), 'table');
+        $this->assertRefused($this->getWithKey($plain, ['data', 'custom_value_edit?parents=1']), 'table');
+        $this->assertRefused($this->getWithKey($plain, ['data', 'custom_value_edit', 'relatedLinkage']), 'table');
+        $this->assertRefused($this->getWithKey($plain, ['data', 'custom_value_edit', 'select']), 'table');
+        $this->assertRefused($this->getWithKey($plain, ['data', 'custom_value_edit', 'column', 'text']), 'table');
+        $this->assertRefused($this->getWithKey($plain, ['viewdata', 'custom_value_edit', '1']), 'table');
+        // without the limit, the same requests are not refused by the key
+        [, $all] = $this->makeKey();
+        $this->assertNotSame(403, $this->getWithKey($all, ['data', 'custom_value_edit', $id . '?children=1'])->getStatusCode());
+    }
+
+    /**
+     * A file is checked by the table it belongs to, not by the table in the URL.
+     */
+    public function testFilesOfAnotherTable(): void
+    {
+        $file = function (string $table): string {
+            $uuid = make_uuid();
+            \DB::table('files')->insert(['uuid' => $uuid, 'local_dirname' => $table, 'local_filename' => "$uuid.txt", 'filename' => 'a.txt',
+                'parent_type' => $table, 'parent_id' => 1, 'created_at' => now(), 'updated_at' => now()]);
+            return $uuid;
+        };
+        $other = $file('custom_value_edit_all');
+        $mine = $file('custom_value_edit');
+        [, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, [
+            'tables' => ['custom_value_edit'], 'scopes' => [ApiScope::VALUE_READ, ApiScope::VALUE_WRITE],
+        ]);
+
+        // the URL names the table of the key; the file is of another table
+        $this->assertRefused($this->getWithKey($plain, ['files', 'custom_value_edit', $other]), 'table');
+        $this->assertRefused($this->getWithKey($plain, ['files', $other]), 'table');
+        \Auth::forgetGuards();
+        $this->withHeaders(['Authorization' => "Bearer $plain"])->delete(admin_urls('api', 'files', 'custom_value_edit', $other))->assertStatus(403);
+        $this->assertSame(1, \DB::table('files')->where('uuid', $other)->count());
+        // a file of its own table passes the key (what the file API answers then is its own matter)
+        $this->getWithKey($plain, ['files', 'custom_value_edit', $mine]);
+        $this->assertNull(UserApiKeys::$lastRefusal);
+    }
+
+    /**
+     * A key is for the API only: not for the OAuth pages under the same middleware, where it could
+     * make a token that outlives it.
+     */
+    public function testNotForTheOAuthRoutes(): void
+    {
+        [, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['scopes' => UserApiKeys::availableScopes()]);
+        foreach ([['get', 'tokens'], ['get', 'clients'], ['get', 'personal-access-tokens'], ['post', 'personal-access-tokens'], ['get', 'scopes']] as [$method, $path]) {
+            \Auth::forgetGuards();
+            $response = $this->withHeaders(['Authorization' => "Bearer $plain", 'Accept' => 'application/json'])
+                ->$method(admin_urls('oauth', $path), $method === 'post' ? ['name' => 'x', 'scopes' => []] : []);
+            $this->assertContains($response->getStatusCode(), [401, 403], "$method oauth/$path");
+            $this->assertNotSame(200, $response->getStatusCode());
+        }
+        $this->assertSame(0, \DB::table('oauth_access_tokens')->where('name', 'x')->count());
+    }
+
+    /**
+     * The rate limiter of the API runs before the login: it must not touch the OAuth guard for a
+     * key (Passport empties the Authorization header of a bearer that is not its token).
+     */
+    public function testTheRateLimiterLeavesTheKey(): void
+    {
+        $this->withMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        [, $plain] = $this->makeKey();
+        $this->getWithKey($plain, ['me'])->assertStatus(200);
+        $this->getWithKey($plain, ['data', 'custom_value_edit'])->assertStatus(200);
+    }
+
+    /**
+     * A user who signs in only by SSO: the key signs in as the login that made it.
+     */
+    public function testAUserOfSso(): void
+    {
+        $login = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        \DB::table('login_users')->where('id', $login->id)->update(['login_provider' => 'test_sso']);
+
+        // without its login: no password login to find
+        [, $plain] = $this->makeKey();
+        $this->assertRefused($this->getWithKey($plain, ['me']), 'user');
+
+        [$key, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['login_user_id' => (int)$login->id]);
+        $this->getWithKey($plain, ['me'])->assertStatus(200);
+        $this->assertSame((int)$login->id, $key->login_user_id);
+
+        // the login of another user is not taken
+        $this->expectException(\InvalidArgumentException::class);
+        $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['login_user_id' => (int)TestDefine::TESTDATA_USER_LOGINID_USER2]);
+    }
+
+    public function testTheRefusalIsKeptOnTheKey(): void
+    {
+        [$key, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['allowed_ips' => '10.0.0.1']);
+        $this->assertRefused($this->getWithKey($plain, ['me']), 'ip');
+        $key->refresh();
+        $this->assertSame('ip', $key->last_refused_reason);
+        $this->assertNotNull($key->last_refused_at);
+        $this->assertSame(0, $key->use_count);
+    }
+
+    /**
+     * With ADMIN_TRUST_PROXY_IPS=* every request counts as from the proxy: the header of the
+     * certificate is taken from any client (the front server must always overwrite it).
+     */
+    public function testEveryProxyTrusted(): void
+    {
+        $fingerprint = hash('sha256', 'a certificate');
+        [, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['client_cert_fingerprint' => $fingerprint]);
+        config(['exment.api_client_cert_header' => static::CERT_HEADER, 'exment.trust_proxy_ips' => '*']);
+        $this->getWithKey($plain, ['me'], [static::CERT_HEADER => $fingerprint])->assertStatus(200);
+        $this->assertRefused($this->getWithKey($plain, ['me'], [static::CERT_HEADER => '']), 'cert_missing');
+    }
+
+    public function testLimitsOfTheKeys(): void
+    {
+        config(['exment.api_key_max_per_user' => 2, 'exment.api_key_max_days' => 30]);
+        $this->makeKey();
+        [$second] = $this->makeKey();
+        try {
+            $this->makeKey();
+            $this->fail('a third key was made');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertSame('too_many', $e->getMessage());
+        }
+        // a stopped key does not count
+        UserApiKeys::revoke($second);
+        $this->makeKey();
+
+        UserApiKeys::revokeAllOfUser((int)LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1)->base_user_id);
+        $this->expectExceptionMessage('expires_at');
+        $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['expires_at' => Carbon::now()->addDays(31)]);
     }
 
     public function testClientCertificate(): void
