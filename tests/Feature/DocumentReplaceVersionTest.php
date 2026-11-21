@@ -111,6 +111,25 @@ class DocumentReplaceVersionTest extends FeatureTestBase
         $this->assertSame([$document->id => 4], DocumentVersionService::currentNumbers([$document->id]));
     }
 
+    public function testAPluginCanKeepAFileItStoredAsAnOlderVersion(): void
+    {
+        [$custom_value, $document] = $this->attach('docver-plugin.txt', 'saved');
+        $uuid = strval($document->getValue('file_uuid', true));
+        // an editor stores what the file was, then writes the new content into the same file
+        $older = ExmentFile::storeAs(\Exceedone\Exment\Enums\FileType::CUSTOM_VALUE_DOCUMENT, 'what it was', static::TABLE, 'docver-plugin.txt');
+        $older->parent_id = $custom_value->id;
+        $older->parent_type = static::TABLE;
+        $older->save();
+
+        $version = DocumentVersionService::addOlderVersion($document, $older, 5);
+
+        $this->assertSame(1, $version->version_no);
+        $this->assertSame(5, $version->created_user_id);
+        // the attachment is unchanged
+        $this->assertSame($uuid, strval($this->reloadDocument($document)->getValue('file_uuid', true)));
+        $this->assertSame([$document->id => 2], DocumentVersionService::currentNumbers([$document->id]));
+    }
+
     public function testDeletingTheAttachmentDeletesItsVersions(): void
     {
         [$custom_value, $document] = $this->attach('docver-del-1.txt', 'a');

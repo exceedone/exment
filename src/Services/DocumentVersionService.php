@@ -81,6 +81,31 @@ class DocumentVersionService
     }
 
     /**
+     * Keep a file already stored as the newest older version of the attachment,
+     * without changing the attachment (for a plugin that saves the new content
+     * into the same file, as an editor does, and stores what it was itself).
+     * The file should have the record as its parent, as attachments do.
+     *
+     * @param int|null $created_user_id who made that content (default: the uploader of the file)
+     */
+    public static function addOlderVersion(CustomValue $document, ExmentFile $older, ?int $created_user_id = null): DocumentVersion
+    {
+        $version = DB::transaction(function () use ($document, $older, $created_user_id) {
+            $version = new DocumentVersion([
+                'document_id' => $document->id,
+                'version_no' => static::olderCount($document->id) + 1,
+                'file_uuid' => $older->uuid,
+                'document_name' => strval($older->filename ?? $document->getValue('document_name')),
+                'created_user_id' => $created_user_id ?? $older->created_user_id,
+            ]);
+            $version->save();
+            return $version;
+        });
+        static::prune($document->id);
+        return $version;
+    }
+
+    /**
      * The older versions of an attachment, the newest first.
      *
      * @return \Illuminate\Support\Collection<int, DocumentVersion>
