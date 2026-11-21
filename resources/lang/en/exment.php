@@ -17,7 +17,7 @@ return [
         'basic_setting' => 'Basic Setting',
         'detail_setting' => 'Detail Setting',
         'section_nav' => 'Sections on this page (click to jump)',
-        'section_nav_back' => '▲ Back to top',
+        'section_nav_back' => '▲ Top',
         'result' => 'Result',
         'execute_result' => 'Execute Result',
         'no_setting' => 'No Setting',
