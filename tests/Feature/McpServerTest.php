@@ -79,6 +79,8 @@ class McpServerTest extends ApiTestBase
      */
     protected function mcp(string $bearer, $message, array $headers = []): \Illuminate\Testing\TestResponse
     {
+        // each request signs in again, as on a real server (the test app keeps the guards)
+        \Auth::forgetGuards();
         return $this->call('POST', admin_urls('api', 'mcp'), [], [], [], $this->transformHeadersToServerVars([
             'Authorization' => "Bearer $bearer",
             'Content-Type' => 'application/json',
@@ -167,7 +169,6 @@ class McpServerTest extends ApiTestBase
 
         $tables = array_column($this->data($this->tool($key, 'list_tables')), 'table');
         $this->assertContains('custom_value_edit', $tables);
-        $this->assertNotContains('no_permission', $tables);
 
         $columns = $this->data($this->tool($key, 'get_table', ['table' => 'custom_value_edit']));
         $this->assertContains('text', array_column($columns['columns'], 'column'));
@@ -184,8 +185,8 @@ class McpServerTest extends ApiTestBase
         $this->assertArrayHasKey('attachments', $this->data($this->tool($key, 'list_attachments', ['table' => 'custom_value_edit', 'id' => $id])));
         $this->assertArrayHasKey('workflow', $this->data($this->tool($key, 'get_workflow_status', ['table' => 'custom_value_edit', 'id' => $id])));
 
-        // a table without permission, and one that is not there: the same answer
-        foreach (['no_permission', 'not_a_table'] as $table) {
+        // a table that is not there
+        foreach (['not_a_table'] as $table) {
             $denied = $this->tool($key, 'search_data', ['table' => $table]);
             $this->assertTrue($denied['isError'], $table);
             $this->assertStringContainsString('No such table, or no permission', $denied['content'][0]['text']);
@@ -209,6 +210,13 @@ class McpServerTest extends ApiTestBase
         \Auth::logout();
 
         $key = $this->key(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        // a table user2 may not see (as Api2Test::testDenyGetTableUser): not listed, and the same answer as no table
+        $this->assertNotContains('no_permission', array_column($this->data($this->tool($key, 'list_tables')), 'table'));
+        $denied = $this->tool($key, 'search_data', ['table' => 'no_permission']);
+        $this->assertTrue($denied['isError']);
+        $this->assertStringContainsString('No such table, or no permission', $denied['content'][0]['text']);
+        $this->assertTrue($this->tool($key, 'get_table', ['table' => 'no_permission'])['isError']);
+
         $this->assertTrue($this->tool($key, 'get_data', ['table' => 'custom_value_edit', 'id' => $hidden[0]])['isError']);
         $found = $this->data($this->tool($key, 'search_data', ['table' => 'custom_value_edit', 'limit' => 50]));
         $this->assertEmpty(array_intersect(array_column($found['rows'], 'id'), $hidden));
