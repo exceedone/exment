@@ -40,7 +40,11 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * The operator's maintenance is checked first for every request
  * (MaintenanceOperatorGuard: files and IP addresses only), the site's after
- * the login (MaintenanceGuard). The skipped exment:schedule runs once after.
+ * the login (MaintenanceGuard). A skipped exment:schedule runs once after it
+ * (the hours are in the log); what is set to a fixed hour in a skipped hour
+ * (the automatic backup, the clean of the operation log) waits for its next
+ * time, and the other scheduled commands are not run after. The health check
+ * of a load balancer is not stopped (config "exment.maintenance_exempt_paths").
  *
  * The allowed IP addresses are the address Laravel sees (TrustProxies): a
  * proxy that is trusted may set it with X-Forwarded-For. Where other code
@@ -275,13 +279,13 @@ class MaintenanceMode
     /**
      * @return array<string, mixed>
      */
-    protected static function readSetting(): array
+    protected static function readSetting(bool $fresh = false): array
     {
         try {
             if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
                 return [];
             }
-            if (app()->runningInConsole()) {
+            if ($fresh || app()->runningInConsole()) {
                 // a queue worker and the scheduler run long: not the cache of the request.
                 // (A web request reads it through System, whose cache a change clears; the
                 // commands change it through System too, so both see the same.)
@@ -308,13 +312,22 @@ class MaintenanceMode
      */
     public static function current(): ?array
     {
-        if (static::$looked && !app()->runningInConsole()) {
-            return static::$current;
+        if (static::$looked) {
+            // a request looks once; a queue worker or the scheduler again after a few seconds
+            if (!app()->runningInConsole() || (microtime(true) - static::$lookedAt) < static::CONSOLE_LOOK_SECONDS) {
+                return static::$current;
+            }
         }
         static::$looked = true;
+        static::$lookedAt = microtime(true);
         static::$current = static::look();
         return static::$current;
     }
+
+    /** How long a command (a queue worker, the scheduler) keeps what it looked at. */
+    public const CONSOLE_LOOK_SECONDS = 10;
+
+    protected static float $lookedAt = 0.0;
 
     /**
      * @return array<string, mixed>|null
@@ -375,9 +388,25 @@ class MaintenanceMode
      */
     public static function sync(): array
     {
+        // nothing is due (as almost always): no lock, no write, the caches kept
+        $settings = static::settings();
+        if (!static::transitionDue($settings)) {
+            return $settings;
+        }
         return static::locked(function () {
             return static::syncLocked();
         });
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    protected static function transitionDue(array $settings): bool
+    {
+        if ($settings['active']) {
+            return static::passed($settings['end_at']);
+        }
+        return isset($settings['start_at']) && static::passed($settings['start_at']);
     }
 
     /**
@@ -385,9 +414,11 @@ class MaintenanceMode
      */
     protected static function syncLocked(): array
     {
-        // read again under the lock: another process may have done it already (no second log)
-        static::reset();
-        $settings = static::settings();
+        // read again from the database under the lock: another process may have done it already (no second log)
+        $settings = static::normalize(static::readSetting(true));
+        if (!static::transitionDue($settings)) {
+            return $settings;
+        }
         if ($settings['active']) {
             if (static::passed($settings['end_at'])) {
                 return static::end(null, 'auto_end');
@@ -401,7 +432,7 @@ class MaintenanceMode
                 static::log('schedule_passed', null);
                 return static::settings();
             }
-            static::save(['active' => true, 'started_by' => null, 'started_at' => $settings['start_at']]);
+            static::save(['active' => true, 'start_at' => null, 'started_by' => null, 'started_at' => $settings['start_at']]);
             static::log('scheduled_start', null);
             return static::settings();
         }
@@ -609,8 +640,13 @@ class MaintenanceMode
         if (!static::stopsSchedule()) {
             return false;
         }
-        if (str_contains($command, 'exment:schedule') && !boolval(static::systemValue('maintenance_missed_schedule'))) {
-            static::systemValue('maintenance_missed_schedule', true);
+        if (str_contains($command, 'exment:schedule')) {
+            $hours = static::missedHours();
+            $hour = Carbon::now()->format('Y-m-d H:00');
+            if (!in_array($hour, $hours, true)) {
+                $hours[] = $hour;
+                static::systemValue('maintenance_missed_schedule', json_encode(array_slice($hours, -48)));
+            }
         }
         return true;
     }
@@ -620,13 +656,29 @@ class MaintenanceMode
      */
     public static function runMissedSchedule(): bool
     {
-        if (static::isActive() || !boolval(static::systemValue('maintenance_missed_schedule'))) {
+        $hours = static::missedHours();
+        if (count($hours) === 0 || static::isActive()) {
             return false;
         }
-        static::systemValue('maintenance_missed_schedule', false);
-        static::log('missed_schedule', null);
+        static::systemValue('maintenance_missed_schedule', null);
+        // once, now: what is set to a fixed hour (the automatic backup, the clean of the
+        // operation log) in a skipped hour waits for its next time; the other scheduled
+        // commands (file-server-purge, the repair of the search) are not run after
+        static::log('missed_schedule', null, ['hours' => $hours]);
         \Illuminate\Support\Facades\Artisan::call('exment:schedule');
         return true;
+    }
+
+    /**
+     * The hours whose exment:schedule a maintenance skipped.
+     *
+     * @return string[]
+     */
+    public static function missedHours(): array
+    {
+        $value = static::systemValue('maintenance_missed_schedule');
+        $hours = is_string($value) ? json_decode($value, true) : null;
+        return is_array($hours) ? array_values(array_filter($hours, 'is_string')) : [];
     }
 
     /**
@@ -672,6 +724,10 @@ class MaintenanceMode
      */
     public static function earlyResponse(Request $request): ?Response
     {
+        // the health check of a load balancer: kept, or every server would be taken out
+        if (static::exempt($request)) {
+            return null;
+        }
         $state = static::operator();
         if (!isset($state)) {
             return null;
@@ -685,6 +741,46 @@ class MaintenanceMode
         $rest = $prefix === '/' ? $path : (str_starts_with($path, $prefix) ? substr($path, strlen($prefix)) : $path);
         $api = preg_match('#\A/(api|webapi|oauth)(/|\z)#', $rest) === 1;
         return static::response($state, $request, $api ? static::KIND_API : static::KIND_WEB);
+    }
+
+    /**
+     * The paths (exact) that a maintenance does not stop: the health check of
+     * a load balancer (config "exment.maintenance_exempt_paths", a comma list;
+     * by default "/" that only sends on to the login, and Laravel's "/up").
+     */
+    public static function exempt(Request $request): bool
+    {
+        if (!in_array($request->method(), ['GET', 'HEAD'], true)) {
+            return false;
+        }
+        $value = config('exment.maintenance_exempt_paths', '/,/up');
+        $paths = array_values(array_filter(array_map(function ($p) {
+            return '/' . trim(trim($p), '/');
+        }, explode(',', strval($value))), function ($p) {
+            return $p !== '';
+        }));
+        return in_array('/' . trim($request->path(), '/'), $paths, true);
+    }
+
+    /**
+     * When the check itself failed: closed if a file of the operator is there
+     * (a plain 503), else open (nothing says there is a maintenance).
+     */
+    public static function failedResponse(): ?Response
+    {
+        try {
+            foreach (static::operatorFiles() as $path) {
+                if (@is_file($path)) {
+                    return new \Symfony\Component\HttpFoundation\Response('Service Unavailable (maintenance)', 503, [
+                        'Content-Type' => 'text/plain; charset=utf-8',
+                        'Retry-After' => strval(static::RETRY_AFTER_DEFAULT),
+                        static::HEADER => '1',
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+        }
+        return null;
     }
 
     /**
@@ -797,6 +893,7 @@ class MaintenanceMode
     public static function reset(): void
     {
         static::$looked = false;
+        static::$lookedAt = 0.0;
         static::$current = null;
         System::clearRequestSession();
     }

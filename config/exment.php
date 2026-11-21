@@ -599,6 +599,10 @@ return [
     */
     'maintenance_operator_file' => env('EXMENT_MAINTENANCE_OPERATOR_FILE', ''),
 
+    // the paths (exact, GET and HEAD) a maintenance does not stop: the health
+    // check of a load balancer. "/" only sends on to the login.
+    'maintenance_exempt_paths' => env('EXMENT_MAINTENANCE_EXEMPT_PATHS', '/,/up'),
+
     /*
     |--------------------------------------------------------------------------
     | the plugins bundled with Exment, the id of the site

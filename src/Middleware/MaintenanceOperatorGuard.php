@@ -23,7 +23,8 @@ class MaintenanceOperatorGuard
         try {
             $response = MaintenanceMode::earlyResponse($request);
         } catch (\Throwable $e) {
-            $response = null;
+            // closed when a file of the operator is there
+            $response = MaintenanceMode::failedResponse();
         }
         return $response ?? $next($request);
     }
