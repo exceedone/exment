@@ -98,6 +98,18 @@ class FileShareTest extends FeatureTestBase
         return new ShareLinks($library);
     }
 
+    public function testARequestLinkClosesWhenItsMakerMayOnlyUpload(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
+        $link = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2))->create($ws, $folder, FileShareLink::KIND_REQUEST);
+        $this->assertNotNull(ShareLinks::resolve($link->token));
+        // the maker may only upload now (as a link made before 7.2.1 by who could upload)
+        FilePermission::query()->where('workspace_id', $ws->id)->whereNull('node_id')
+            ->where('target_id', $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2))->update(['level' => Level::UPLOAD]);
+        $this->assertNull(ShareLinks::resolve($link->token));
+    }
+
     public function testWhoMayMakeALink(): void
     {
         [$ws, $folder, $file] = $this->sample();

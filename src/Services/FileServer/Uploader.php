@@ -24,6 +24,9 @@ class Uploader
     public const MAX_CHUNK_SIZE = 20 * 1024 * 1024;
     // an upload not finished in this many hours is removed
     public const EXPIRE_HOURS = 24;
+    // an upload no part came to in this many minutes: no longer counted (the
+    // uploads, the space), and removed when its user starts another one
+    public const IDLE_MINUTES = 60;
 
     protected Library $library;
 
@@ -47,6 +50,15 @@ class Uploader
         return max(1, intval(config('exment.file_server_max_uploads', 20)));
     }
 
+    /**
+     * The bytes the uploads not finished of a user may say they will send,
+     * all together (0: no limit but the space of the workspace).
+     */
+    public static function maxOpenBytes(): int
+    {
+        return max(0, intval(config('exment.file_server_max_upload_bytes', 10737418240)));
+    }
+
     public function init(FileWorkspace $workspace, ?FileNode $parent, string $name, int $size, ?string $relativeDir = null, ?string $comment = null): FileUploadSession
     {
         $access = $this->library->access();
@@ -58,18 +70,36 @@ class Uploader
         if ($size < 0 || (static::maxFileSize() > 0 && $size > static::maxFileSize())) {
             throw new FileServerException(exmtrans('file_server.error_too_large'), 413);
         }
-        if (FileUploadSession::query()->where('user_id', $access->userId())->count() >= static::maxOpenSessions()) {
-            throw new FileServerException(exmtrans('file_server.error_upload_sessions_many'), 429);
+        // the uploads of the user nothing came to for a while: removed
+        $idleSince = now()->subMinutes(static::IDLE_MINUTES);
+        foreach (FileUploadSession::query()->where('user_id', $access->userId())->where('updated_at', '<', $idleSince)->get() as $idle) {
+            static::remove($idle);
         }
-        // the uploads not finished take their space too
-        $pending = intval(FileUploadSession::query()->where('workspace_id', $workspace->id)->sum('total_size'));
-        $this->library->assertQuota($workspace, $size + $pending);
 
+        return DB::transaction(function () use ($workspace, $parent, $name, $size, $relativeDir, $comment, $access, $idleSince) {
+            // one start at a time in a workspace: the counts and the space are checked together
+            FileWorkspace::query()->where('id', $workspace->id)->lockForUpdate()->first();
+            $mine = FileUploadSession::query()->where('user_id', $access->userId())->where('updated_at', '>=', $idleSince);
+            if ((clone $mine)->count() >= static::maxOpenSessions()) {
+                throw new FileServerException(exmtrans('file_server.error_upload_sessions_many'), 429);
+            }
+            if (static::maxOpenBytes() > 0 && intval((clone $mine)->sum('total_size')) + $size > static::maxOpenBytes()) {
+                throw new FileServerException(exmtrans('file_server.error_upload_sessions_many'), 429);
+            }
+            // the uploads not finished take their space too (the ones going on)
+            $pending = intval(FileUploadSession::query()->where('workspace_id', $workspace->id)->where('updated_at', '>=', $idleSince)->sum('total_size'));
+            $this->library->assertQuota($workspace, $size + $pending);
+            return $this->start($workspace, $parent, $name, $size, $relativeDir, $comment, $access->userId());
+        });
+    }
+
+    protected function start(FileWorkspace $workspace, ?FileNode $parent, string $name, int $size, ?string $relativeDir, ?string $comment, int $userId): FileUploadSession
+    {
         $session = new FileUploadSession([
             'id' => Str::uuid()->toString(),
             'workspace_id' => $workspace->id,
             'parent_id' => isset($parent) ? $parent->id : null,
-            'user_id' => $access->userId(),
+            'user_id' => $userId,
             'name' => $name,
             'relative_path' => isset($relativeDir) && trim($relativeDir) !== '' ? mb_substr($relativeDir, 0, 1024) : null,
             'total_size' => $size,

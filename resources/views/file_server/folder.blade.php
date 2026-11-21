@@ -376,7 +376,11 @@
                     throw err;
                 });
             }
-            return sendFrom(0, 0);
+            // not finished: removed, so that it does not keep its space and its place
+            return sendFrom(0, 0).catch(function (err) {
+                Fs.send('DELETE', base + '/upload/' + session).catch(function () {});
+                throw err;
+            });
         });
     }
 })();

@@ -182,7 +182,7 @@ class ShareLinks
         $level = $access->level($workspace, $node);
         return FileShareLink::query()->where('node_id', $node->id)->orderByDesc('id')->get()
             ->filter(function (FileShareLink $link) use ($level) {
-                return $link->kind === FileShareLink::KIND_REQUEST ? $level >= Level::UPLOAD : $level >= Level::EDIT;
+                return $level >= Level::EDIT;
             })->values();
     }
 
@@ -259,8 +259,9 @@ class ShareLinks
         } catch (\Throwable $e) {
             $isAdmin = false;
         }
-        $level = $link->kind === FileShareLink::KIND_REQUEST ? Level::UPLOAD : Level::EDIT;
-        return (new Access(intval($makerId), $isAdmin))->can($workspace, $node, $level);
+        // a request link as a share link: its maker must still edit the folder
+        // (a link made before by who may only upload closes too, ISS00433)
+        return (new Access(intval($makerId), $isAdmin))->can($workspace, $node, Level::EDIT);
     }
 
     public static function isUnlocked(FileShareLink $link): bool
