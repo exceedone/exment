@@ -452,13 +452,14 @@
         return { label: b.label || '', target: fields[b.target] || null, value: b.value || '' };
     });
     // the parts of the app made with it: each on or off, and the item it is made from.
-    // A new app gets them all when it has the items they need; after a mistake, what was posted.
+    // A new app gets them all when it has the items they need, but the dashboard only when asked:
+    // made by an administrator it is shown to everyone. After a mistake, what was posted.
     var bundle = {};
     ['kanban', 'calendar', 'chart'].forEach(function (part) {
         var index = initialBundle ? initialBundle[part] : null;
         bundle[part] = { on: initialBundle ? index !== null && index !== undefined : true, target: index !== null && index !== undefined ? (fields[index] || null) : null };
     });
-    bundle.dashboard = { on: canDashboard && (initialBundle ? !!initialBundle.dashboard : true) };
+    bundle.dashboard = { on: canDashboard && !!(initialBundle && initialBundle.dashboard) };
     var active = { row: 0, col: 0 }; // the cell the parts are added to
     var dragFrom = null; // index of an item being moved, or null for a new part
 
@@ -1249,7 +1250,7 @@
         children = [];
         buttons = [];
         ['kanban', 'calendar', 'chart'].forEach(function (part) { bundle[part] = { on: true, target: null }; });
-        bundle.dashboard = { on: canDashboard };
+        bundle.dashboard = { on: false };
         renderChildren();
         errors = {};
         forgetSheet();
