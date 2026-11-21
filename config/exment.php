@@ -1057,6 +1057,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Older versions kept of an attachment
+    |--------------------------------------------------------------------------
+    |
+    | When an attachment is replaced, the file it had is kept as an older
+    | version. At most this many older versions are kept per attachment (the
+    | oldest are deleted, files too). 0 keeps none.
+    |
+    */
+    'document_version_limit' => env('EXMENT_DOCUMENT_VERSION_LIMIT', 10),
+
+    /*
+    |--------------------------------------------------------------------------
     | Disabled show datalist table button for all user
     |--------------------------------------------------------------------------
     |

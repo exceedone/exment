@@ -65,6 +65,10 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
 .scanner { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; background: #000; color: #fff; }
 .scanner-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; padding-top: calc(12px + env(safe-area-inset-top)); font-size: .9rem; }
 .scanner video { flex: 1; min-height: 0; width: 100%; object-fit: cover; }
+.notice-bar { display: block; background: #fff8e1; border: 1px solid #f3d27a; color: #6b4e00; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; font-size: .9rem; text-decoration: none; }
+a.notice-bar { color: #6b4e00; }
+.draft-actions { display: flex; gap: 8px; padding: 0 14px 12px; }
+.draft-error { color: var(--danger); font-size: .82rem; padding: 0 14px 8px; }
 .scanner-frame { position: absolute; left: 12%; right: 12%; top: 38%; height: 24%; border: 3px solid rgba(255,255,255,.85); border-radius: 12px; pointer-events: none; }
 </style>
 </head>
@@ -108,6 +112,18 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
         'scan_no_screen' => exmtrans('studio.app_scan_no_screen'),
         'scan_found' => exmtrans('studio.app_scan_found'),
         'scan_not_number' => exmtrans('studio.app_scan_not_number'),
+        'offline' => exmtrans('studio.app_offline'),
+        'draft_saved' => exmtrans('studio.app_draft_saved'),
+        'drafts' => exmtrans('studio.app_drafts'),
+        'drafts_count' => exmtrans('studio.app_drafts_count'),
+        'drafts_sent' => exmtrans('studio.app_drafts_sent'),
+        'drafts_none' => exmtrans('studio.app_drafts_none'),
+        'draft_send' => exmtrans('studio.app_draft_send'),
+        'draft_open' => exmtrans('studio.app_draft_open'),
+        'draft_delete' => exmtrans('studio.app_draft_delete'),
+        'draft_delete_confirm' => exmtrans('studio.app_draft_delete_confirm'),
+        'draft_edit' => exmtrans('studio.app_draft_edit'),
+        'draft_failed' => exmtrans('studio.app_draft_failed'),
         'yes' => exmtrans('common.yes'),
         'no' => exmtrans('common.no'),
     ];
@@ -124,6 +140,7 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
     var scanButton = document.getElementById('scan');
     var codeUrl = @json($code_url);
     var zxingUrl = @json($zxing_url);
+    var userKey = @json($user_key);
     var screensCache = {};
     var optionsCache = {};
 
@@ -155,7 +172,11 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
     function call(method, url, body) {
         var options = { method: method, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf } };
         if (body !== undefined) { options.headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(body); }
-        return fetch(url, options).then(function (r) {
+        return fetch(url, options).catch(function () {
+            var offline = new Error('offline');
+            offline.offline = true;
+            throw offline;
+        }).then(function (r) {
             if (r.status === 401 || r.status === 419) { location.href = loginUrl; throw new Error('login'); }
             return r.text().then(function (text) {
                 var data = null;
@@ -165,20 +186,66 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
             });
         });
     }
+    // the phone's own store (IndexedDB): the screens it opened, and the drafts not sent yet.
+    // Both are kept per user: another user of the same phone neither sees nor sends them.
+    var dbOpening = null;
+    function db() {
+        if (!dbOpening) {
+            dbOpening = new Promise(function (resolve, reject) {
+                if (!window.indexedDB) { reject(new Error('indexedDB')); return; }
+                var request = indexedDB.open('exment-app', 1);
+                request.onupgradeneeded = function () {
+                    request.result.createObjectStore('drafts', { keyPath: 'id', autoIncrement: true });
+                    request.result.createObjectStore('cache');
+                };
+                request.onsuccess = function () { resolve(request.result); };
+                request.onerror = function () { reject(request.error); };
+            });
+        }
+        return dbOpening;
+    }
+    function store(name, mode, work) {
+        return db().then(function (d) {
+            return new Promise(function (resolve, reject) {
+                var tx = d.transaction(name, mode);
+                var request = work(tx.objectStore(name));
+                tx.oncomplete = function () { resolve(request ? request.result : undefined); };
+                tx.onerror = tx.onabort = function () { reject(tx.error); };
+            });
+        });
+    }
+    function cacheGet(key) { return store('cache', 'readonly', function (o) { return o.get(userKey + ':' + key); }).catch(function () { return undefined; }); }
+    function cachePut(key, value) { return store('cache', 'readwrite', function (o) { return o.put(value, userKey + ':' + key); }).catch(function () {}); }
+    // from the server, kept for later; the kept one when the phone is offline
+    function kept(key, load) {
+        return load().then(function (value) { cachePut(key, value); return value; }).catch(function (error) {
+            if (!error || !error.offline) { throw error; }
+            return cacheGet(key).then(function (value) { if (value === undefined) { throw error; } return value; });
+        });
+    }
+    function draftsAll() {
+        return store('drafts', 'readonly', function (o) { return o.getAll(); })
+            .then(function (list) { return (list || []).filter(function (d) { return d.user === userKey; }); })
+            .catch(function () { return []; });
+    }
+    function draftGet(id) { return store('drafts', 'readonly', function (o) { return o.get(id); }).then(function (d) { return d && d.user === userKey ? d : null; }); }
+    function draftPut(draft) { return store('drafts', 'readwrite', function (o) { return o.put(draft); }); }
+    function draftDelete(id) { return store('drafts', 'readwrite', function (o) { return o.delete(id); }); }
+
     var screensList = null;
     function allScreens() {
         if (screensList) { return Promise.resolve(screensList); }
-        return api('GET', '/studio/screens').then(function (result) { screensList = (result && result.data) || []; return screensList; });
+        return kept('screens', function () { return api('GET', '/studio/screens'); }).then(function (result) { screensList = (result && result.data) || []; return screensList; });
     }
     function screen(id) {
         if (screensCache[id]) { return Promise.resolve(screensCache[id]); }
-        return api('GET', '/studio/screens/' + encodeURIComponent(id)).then(function (s) { screensCache[id] = s; return s; });
+        return kept('screen:' + id, function () { return api('GET', '/studio/screens/' + encodeURIComponent(id)); }).then(function (s) { screensCache[id] = s; return s; });
     }
     // the rows a "select from a table" (or a user, an organization) item chooses from
     function optionsOf(table) {
         if (!table) { return Promise.resolve([]); }
         if (optionsCache[table]) { return Promise.resolve(optionsCache[table]); }
-        return api('GET', '/data/' + encodeURIComponent(table) + '?label=1&count=200').then(function (page) {
+        return kept('options:' + table, function () { return api('GET', '/data/' + encodeURIComponent(table) + '?label=1&count=200'); }).then(function (page) {
             var list = (page && page.data ? page.data : []).map(function (row) { return { id: String(row.id), label: row.label || ('#' + row.id) }; });
             optionsCache[table] = list;
             return list;
@@ -209,6 +276,8 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
         if (parts[0] === 's' && parts[1] && parts[2] === 'new') { return formPage(parts[1], null); }
         if (parts[0] === 's' && parts[1] && parts[2] === 'edit' && parts[3]) { return formPage(parts[1], parts[3]); }
         if (parts[0] === 's' && parts[1]) { return listPage(parts[1], parseInt(parts[3] || '1', 10)); }
+        if (parts[0] === 'drafts') { return draftsPage(); }
+        if (parts[0] === 'd' && parts[1]) { return draftPage(parseInt(parts[1], 10)); }
         return screensPage();
     }
     window.addEventListener('hashchange', route);
@@ -220,6 +289,7 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
         screensList = null;
         allScreens().then(function (screens) {
             main.innerHTML = '';
+            notices();
             if (screens.length === 0) { main.appendChild(el('p', { className: 'empty', text: t.no_screens })); return; }
             var groups = {};
             var order = [];
@@ -248,10 +318,15 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
             // the values shown under the title: not a file (its value is a URL)
             var fields = itemsOf(s.blocks[0] || { rows: [] }).filter(function (i) { return i.kind === 'field' && i.type !== 'file' && i.type !== 'image'; });
             // the newest first
-            return api('GET', '/data/' + encodeURIComponent(s.table.name) + '?label=1&valuetype=text&count=20&orderby=' + encodeURIComponent('id desc') + '&page=' + page).then(function (result) {
+            return api('GET', '/data/' + encodeURIComponent(s.table.name) + '?label=1&valuetype=text&count=20&orderby=' + encodeURIComponent('id desc') + '&page=' + page).catch(function (error) {
+                if (error && error.offline) { return null; }
+                throw error;
+            }).then(function (result) {
                 main.innerHTML = '';
+                notices(result === null);
                 var rows = (result && result.data) || [];
-                if (rows.length === 0) { main.appendChild(el('p', { className: 'empty', text: t.no_data })); }
+                if (result === null) { /* offline: the notice says so */ }
+                else if (rows.length === 0) { main.appendChild(el('p', { className: 'empty', text: t.no_data })); }
                 else {
                     var list = el('ul', { className: 'list' });
                     rows.forEach(function (row) {
@@ -280,6 +355,138 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
             });
         }).catch(failed);
     }
+
+    // drafts: what was filled in while offline ---------------------------------------
+    // the notices at the top of a page: offline, drafts not sent
+    function notices(offline) {
+        var box = el('div', {});
+        main.insertBefore(box, main.firstChild);
+        if (offline || !navigator.onLine) { box.appendChild(el('div', { className: 'notice-bar', role: 'status', text: t.offline })); }
+        draftsAll().then(function (list) {
+            if (list.length > 0) { box.appendChild(el('a', { className: 'notice-bar', href: '#drafts', text: t.drafts_count.replace('%s', list.length) })); }
+        });
+    }
+    // a time as the phone shows it
+    function timeOf(iso) {
+        try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
+    }
+    function draftsPage() {
+        setTitle(t.drafts, '', null);
+        loading();
+        draftsAll().then(function (list) {
+            main.innerHTML = '';
+            if (list.length === 0) { main.appendChild(el('p', { className: 'empty', text: t.drafts_none })); return; }
+            var ul = el('ul', { className: 'list' });
+            list.forEach(function (d) {
+                var values = Object.keys(d.value || {}).map(function (k) { var v = d.value[k]; return v === null || typeof v === 'object' ? null : String(v); })
+                    .filter(function (v) { return v !== null && v !== ''; }).slice(0, 3).join(' / ');
+                var send = el('button', { type: 'button', className: 'btn small primary', text: t.draft_send });
+                var remove = el('button', { type: 'button', className: 'btn small', text: t.draft_delete });
+                send.addEventListener('click', function () {
+                    send.disabled = true;
+                    sendDrafts([d]).then(function () { route(); });
+                });
+                remove.addEventListener('click', function () {
+                    if (!window.confirm(t.draft_delete_confirm)) { return; }
+                    draftDelete(d.id).then(function () { route(); });
+                });
+                ul.appendChild(el('li', {}, [
+                    el('a', { href: '#d/' + d.id }, [
+                        d.label + ' (' + (d.created ? t.new : t.draft_edit) + ')',
+                        el('span', { className: 'sub', text: timeOf(d.saved_at) + (values ? ' / ' + values : '') }),
+                    ]),
+                    d.error ? el('div', { className: 'draft-error', text: t.draft_failed.replace('%s', d.error) }) : null,
+                    el('div', { className: 'draft-actions' }, [send, remove]),
+                ]));
+            });
+            main.appendChild(el('div', { className: 'card' }, [ul]));
+        });
+    }
+    // a draft, opened in its form to look at or fix
+    function draftPage(draftId) {
+        loading();
+        draftGet(draftId).then(function (d) {
+            if (!d) { location.hash = 'drafts'; return; }
+            return screen(d.screen).then(function (s) {
+                var children = {};
+                (d.details || []).forEach(function (detail) { children[detail.table] = detail.rows; });
+                drawForm(d.screen, s, { id: d.dataId, value: d.value, children: children }, d);
+            });
+        }).catch(failed);
+    }
+
+    // saving: the parent, then the rows of its details, one after another. The plan
+    // keeps what is done (the new id, the rows saved), so sending it again goes on from there.
+    function submit(plan) {
+        var table = encodeURIComponent(plan.table);
+        var first = plan.dataId
+            ? api('PUT', '/data/' + table + '/' + encodeURIComponent(plan.dataId), { value: plan.value })
+            : api('POST', '/data/' + table, { value: plan.value }).then(function (saved) { plan.dataId = saved && (saved.id || (saved.data && saved.data.id)); });
+        return (plan.details || []).reduce(function (p, d) {
+            var child = encodeURIComponent(d.table);
+            p = d.removed.slice().reduce(function (q, rowId) {
+                return q.then(function () { return api('DELETE', '/data/' + child + '/' + encodeURIComponent(rowId)); })
+                    .then(function () { d.removed.splice(d.removed.indexOf(rowId), 1); });
+            }, p);
+            return d.rows.reduce(function (q, row) {
+                return q.then(function () {
+                    if (row.id) { return api('PUT', '/data/' + child + '/' + encodeURIComponent(row.id), { value: row.value }); }
+                    return api('POST', '/data/' + child, { value: row.value, parent_id: plan.dataId, parent_type: plan.table })
+                        .then(function (saved) { row.id = saved && (saved.id || (saved.data && saved.data.id)); });
+                });
+            }, p);
+        }, first);
+    }
+    // the messages of an error of the server, as one line
+    function messagesOf(error) {
+        var messages = [];
+        var body = error && error.data;
+        var collect = function (v) {
+            if (typeof v === 'string') { messages.push(v); }
+            else if (Array.isArray(v)) { v.forEach(collect); }
+            else if (v && typeof v === 'object') { Object.keys(v).forEach(function (k) { collect(v[k]); }); }
+        };
+        collect(body && (body.errors || body.message) ? (body.errors || body.message) : (error && error.message && error.message !== 'api' ? error.message : t.failed));
+        return messages;
+    }
+    // send the drafts (all of them when none given); stops when the phone is offline again
+    var sending = null;
+    function sendDrafts(only) {
+        if (sending) { return sending; }
+        sending = (only ? Promise.resolve(only) : draftsAll()).then(function (list) {
+            var sent = 0;
+            return list.reduce(function (p, d) {
+                return p.then(function (stop) {
+                    if (stop) { return true; }
+                    return submit(d).then(function () {
+                        sent++;
+                        return draftDelete(d.id).then(function () { return false; });
+                    }).catch(function (error) {
+                        // keep what was done; offline: try again later, otherwise the user fixes it
+                        d.error = error && error.offline ? null : messagesOf(error).join(' ');
+                        return draftPut(d).then(function () { return !!(error && error.offline); });
+                    });
+                });
+            }, Promise.resolve(false)).then(function () { return sent; });
+        }).then(function (sent) {
+            sending = null;
+            if (sent > 0) { toast(t.drafts_sent.replace('%s', sent)); }
+            return sent;
+        }, function () { sending = null; return 0; });
+        return sending;
+    }
+    function sendWhenOnline() {
+        if (!navigator.onLine) { return; }
+        draftsAll().then(function (list) {
+            if (list.filter(function (d) { return !d.error; }).length === 0) { return; }
+            sendDrafts(list.filter(function (d) { return !d.error; })).then(function (sent) {
+                // the page may show the drafts: draw it again
+                var here = location.hash.replace(/^#/, '');
+                if (sent > 0 && (here === '' || here === 'drafts' || /^s\/[^/]+(\/p\/\d+)?$/.test(here))) { route(); }
+            });
+        });
+    }
+    window.addEventListener('online', sendWhenOnline);
 
     // reading a QR / bar code with the camera ---------------------------------------
     // zxing.js of Exment, loaded when first needed (the camera works on https and on localhost)
@@ -427,9 +634,19 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
                 return field.multiple ? chosen : chosen[0];
             };
             set = function (v) {
+                var list = (Array.isArray(v) ? v : [v]).filter(function (x) { return x !== null && x !== undefined && x !== ''; });
+                // a draft: the files read before, not sent yet
+                var pending = list.filter(function (x) { return typeof x === 'object' && x.base64; });
+                if (pending.length > 0) {
+                    chosen = pending;
+                    previews.innerHTML = '';
+                    pending.forEach(function (f) {
+                        previews.appendChild(/\.jpe?g$/i.test(f.name) ? el('img', { src: 'data:image/jpeg;base64,' + f.base64, alt: '' }) : el('div', { className: 'help', text: f.name }));
+                    });
+                    return;
+                }
                 // the server keeps the files under its own names: tell how many there are
-                var count = (Array.isArray(v) ? v : [v]).filter(function (x) { return x !== null && x !== undefined && x !== ''; }).length;
-                saved.textContent = count > 0 ? t.file_saved.replace('%s', count) : '';
+                saved.textContent = list.length > 0 ? t.file_saved.replace('%s', list.length) : '';
             };
         } else if (type === 'auto_number') {
             box = el('input', { type: 'text', readOnly: true, placeholder: t.auto_number });
@@ -551,9 +768,9 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
         }).catch(failed);
     }
 
-    function drawForm(id, s, data) {
+    function drawForm(id, s, data, draft) {
         pendingReads = [];
-        setTitle(s.table.label, 's/' + encodeURIComponent(id));
+        setTitle(s.table.label, draft ? 'drafts' : 's/' + encodeURIComponent(id));
         main.innerHTML = '';
         var value = (data && data.value) || {};
         var children = (data && data.children) || {};
@@ -630,7 +847,8 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
                     form.appendChild(grid);
                 });
             } else if (block.type === 'one_to_many') {
-                var detail = { block: block, rows: [], removed: [] };
+                var removedBefore = draft ? ((draft.details || []).filter(function (x) { return x.table === block.table; })[0] || { removed: [] }).removed : [];
+                var detail = { block: block, rows: [], removed: removedBefore.slice() };
                 details.push(detail);
                 var items = itemsOf(block).filter(function (i) { return i.kind === 'field'; });
                 var rowsBox = el('div', {});
@@ -660,22 +878,18 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
         });
         main.appendChild(form);
 
-        var save = el('button', { type: 'button', className: 'btn primary', text: t.save, disabled: !(data ? s.permissions.edit : s.permissions.create) });
-        var cancel = el('a', { className: 'btn', href: '#s/' + encodeURIComponent(id), text: t.cancel });
+        var save = el('button', { type: 'button', className: 'btn primary', text: t.save, disabled: !(data && data.id ? s.permissions.edit : s.permissions.create) });
+        var cancel = el('a', { className: 'btn', href: draft ? '#drafts' : '#s/' + encodeURIComponent(id), text: t.cancel });
+        if (draft && draft.error) {
+            errorsBox.appendChild(el('ul', {}, [el('li', { text: draft.error })]));
+            errorsBox.hidden = false;
+        }
         main.appendChild(el('div', { className: 'actions' }, [cancel, save]));
         refresh();
 
         function showErrors(error) {
-            var messages = [];
-            var body = error && error.data;
-            var collect = function (v) {
-                if (typeof v === 'string') { messages.push(v); }
-                else if (Array.isArray(v)) { v.forEach(collect); }
-                else if (v && typeof v === 'object') { Object.keys(v).forEach(function (k) { collect(v[k]); }); }
-            };
-            collect(body && (body.errors || body.message) ? (body.errors || body.message) : t.failed);
             errorsBox.innerHTML = '';
-            errorsBox.appendChild(el('ul', {}, messages.map(function (m) { return el('li', { text: m }); })));
+            errorsBox.appendChild(el('ul', {}, messagesOf(error).map(function (m) { return el('li', { text: m }); })));
             errorsBox.hidden = false;
             window.scrollTo(0, 0);
         }
@@ -684,40 +898,59 @@ header .scan svg, .scan-btn svg { width: 22px; height: 22px; vertical-align: mid
             refresh();
             save.disabled = true;
             save.textContent = t.saving;
-            var table = s.table.name;
-            var request = Promise.all(pendingReads).then(function () { return data
-                ? api('PUT', '/data/' + encodeURIComponent(table) + '/' + encodeURIComponent(data.id), { value: readValues(fields) })
-                : api('POST', '/data/' + encodeURIComponent(table), { value: readValues(fields) }); });
-            request.then(function (saved) {
-                var parentId = data ? data.id : (saved && (saved.id || (saved.data && saved.data.id)));
-                // the rows of the details, one after another
-                var jobs = [];
-                details.forEach(function (d) {
-                    var child = encodeURIComponent(d.block.table);
-                    d.removed.forEach(function (rowId) { jobs.push(function () { return api('DELETE', '/data/' + child + '/' + encodeURIComponent(rowId)); }); });
-                    d.rows.forEach(function (row) {
-                        var body = { value: readValues(row.fields) };
-                        if (row.id) { jobs.push(function () { return api('PUT', '/data/' + child + '/' + encodeURIComponent(row.id), body); }); }
-                        else {
-                            body.parent_id = parentId;
-                            body.parent_type = table;
-                            jobs.push(function () { return api('POST', '/data/' + child, body); });
-                        }
-                    });
-                });
-                return jobs.reduce(function (p, job) { return p.then(job); }, Promise.resolve());
+            var plan = null;
+            Promise.all(pendingReads).then(function () {
+                plan = {
+                    user: userKey,
+                    screen: id,
+                    label: s.table.label,
+                    table: s.table.name,
+                    dataId: data && data.id ? data.id : null,
+                    // a new data (still said so when its first part is already saved)
+                    created: draft ? !!draft.created : !(data && data.id),
+                    value: readValues(fields),
+                    details: details.map(function (d) {
+                        return { table: d.block.table, removed: d.removed.slice(), rows: d.rows.map(function (row) { return { id: row.id, value: readValues(row.fields) }; }) };
+                    }),
+                    saved_at: new Date().toISOString(),
+                };
+                if (draft) { plan.id = draft.id; }
+                return submit(plan);
+            }).then(function () {
+                return draft ? draftDelete(draft.id) : null;
             }).then(function () {
                 toast(t.saved);
                 location.hash = 's/' + encodeURIComponent(id);
+                // the connection is there: send what was kept before
+                sendWhenOnline();
             }).catch(function (error) {
+                if (error && error.offline && plan) {
+                    // no connection: keep it on the phone, with what was already saved
+                    plan.error = null;
+                    return draftPut(plan).then(function () {
+                        toast(t.draft_saved);
+                        location.hash = 's/' + encodeURIComponent(id);
+                    }, function () { showErrors(error); save.disabled = false; save.textContent = t.save; });
+                }
+                // what was saved before the error is not saved twice when the user saves again
+                if (plan && plan.dataId) {
+                    data = data || {};
+                    data.id = plan.dataId;
+                    details.forEach(function (d, i) {
+                        d.removed = plan.details[i].removed.slice();
+                        d.rows.forEach(function (row, k) { row.id = plan.details[i].rows[k].id; });
+                    });
+                }
                 save.disabled = false;
                 save.textContent = t.save;
-                showErrors(error && !error.data && error.message && error.message !== 'api' ? { data: { message: error.message } } : error);
+                showErrors(error);
             });
         });
     }
 
     route();
+    // drafts kept while offline go out when the app opens online
+    sendWhenOnline();
 })();
 </script>
 </body>

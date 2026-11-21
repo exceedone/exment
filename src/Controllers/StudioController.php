@@ -17,6 +17,7 @@ use Exceedone\Exment\Services\Studio\BlankFormBuilder;
 use Exceedone\Exment\Services\Studio\ExistingTableFormBuilder;
 use Exceedone\Exment\Services\Studio\RelationDiagram;
 use Exceedone\Exment\Services\Studio\ScreenAction;
+use Exceedone\Exment\Services\Studio\ScreenBundle;
 use Exceedone\Exment\Services\Studio\ScreenChildren;
 use Exceedone\Exment\Services\Studio\ScreenEditor;
 use Exceedone\Exment\Services\Studio\ScreenLayout;
@@ -147,6 +148,9 @@ class StudioController extends AdminControllerBase
             'reference_tables' => BlankFormBuilder::referenceTables(),
             'old_children' => $hasOld && is_string(array_get($old, 'children')) ? (json_decode($old['children'], true) ?: []) : [],
             'old_actions' => $hasOld ? ScreenAction::normalize(array_get($old, 'actions')) : [],
+            'old_bundle' => $hasOld ? ScreenBundle::normalize(array_get($old, 'bundle')) : null,
+            'bundle_sources' => ScreenBundle::SOURCES,
+            'can_dashboard' => ScreenBundle::dashboardType() !== null,
             'max_actions' => ScreenAction::MAX_ACTIONS,
             'action_types' => ScreenAction::TARGET_TYPES,
         ];
@@ -271,6 +275,9 @@ class StudioController extends AdminControllerBase
                 })) : null,
             ];
         }, $screen['fields']));
+        // the app made with it (ScreenBundle): a kanban, a calendar, a chart, a dashboard
+        $bundle = ScreenBundle::normalize($request->input('bundle'));
+        $errors += ScreenBundle::validate($bundle, $screen['fields']);
 
         // the read sheet whose rows are taken in, when asked
         $sheet = null;
@@ -295,12 +302,12 @@ class StudioController extends AdminControllerBase
                 throw $e;
             }
         }
+        // the columns were made one per item, in the posted order
+        $columnIds = $table->custom_columns()->orderBy('id')->pluck('id')->map(function ($id) {
+            return intval($id);
+        })->all();
         if (count($actions) > 0) {
             try {
-                // the columns were made one per item, in the posted order
-                $columnIds = $table->custom_columns()->orderBy('id')->pluck('id')->map(function ($id) {
-                    return intval($id);
-                })->all();
                 ScreenAction::build($table, $columnIds, $actions);
             } catch (\Throwable $e) {
                 // deleting the table deletes its buttons too
@@ -308,6 +315,21 @@ class StudioController extends AdminControllerBase
                 throw $e;
             }
         }
+        $made = [];
+        if (ScreenBundle::any($bundle)) {
+            try {
+                $made = ScreenBundle::build($table, $columnIds, $bundle);
+            } catch (\Throwable $e) {
+                // deleting the table deletes its views too (the dashboard deletes itself)
+                $table->delete();
+                throw $e;
+            }
+        }
+        $madeMessage = count($made) > 0
+            ? sprintf(exmtrans('studio.bundle_made'), implode(exmtrans('studio.name_separator'), array_map(function ($name) {
+                return sprintf(exmtrans('studio.name_quote'), $name);
+            }, $made)))
+            : '';
 
         if ($sheet !== null) {
             try {
@@ -320,7 +342,7 @@ class StudioController extends AdminControllerBase
             }
             $this->forgetSheet();
 
-            $message = sprintf(exmtrans('studio.created_with_data'), $table->table_view_name, $result['saved']);
+            $message = sprintf(exmtrans('studio.created_with_data'), $table->table_view_name, $result['saved']) . $madeMessage;
             if ($result['cleared'] > 0) {
                 $message .= sprintf(exmtrans('studio.created_cleared'), $result['cleared']);
             }
@@ -328,7 +350,7 @@ class StudioController extends AdminControllerBase
             return redirect()->to(admin_urls('data', $table->table_name));
         }
 
-        admin_toastr(sprintf(exmtrans('studio.created'), $table->table_view_name));
+        admin_toastr(sprintf(exmtrans('studio.created'), $table->table_view_name) . $madeMessage);
         return redirect()->to(admin_urls('data', $table->table_name, 'create'));
     }
 

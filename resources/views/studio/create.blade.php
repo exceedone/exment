@@ -5,6 +5,7 @@
     <input type="hidden" name="layout" id="exm-builder-layout" value="">
     <input type="hidden" name="children" id="exm-builder-children-input" value="">
     <input type="hidden" name="actions" id="exm-builder-actions-input" value="">
+    <input type="hidden" name="bundle" id="exm-builder-bundle-input" value="">
 
     <div class="box card exm-builder-head">
         <div class="box-body">
@@ -142,6 +143,16 @@
                     <div id="exm-builder-buttons"></div>
                     <button type="button" class="btn btn-default btn-sm" id="exm-builder-add-button"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.add_button') }}</button>
                 </div>
+
+                {{-- the app made in one go (ScreenBundle): a kanban, a calendar, a chart, a dashboard --}}
+                <div class="exm-builder-buttons" id="exm-builder-bundle-box" data-mode-only="new">
+                    <div class="exm-builder-children-title"><i class="fa fa-th-large" aria-hidden="true"></i> {{ exmtrans('studio.bundle_title') }}</div>
+                    <p class="exm-builder-hint">{{ exmtrans('studio.bundle_help') }}</p>
+                    @foreach (['kanban', 'calendar', 'chart', 'dashboard'] as $part)
+                        @if (isset($errors_by_key['bundle.' . $part]))<p class="exm-builder-error">{{ $errors_by_key['bundle.' . $part] }}</p>@endif
+                    @endforeach
+                    <div id="exm-builder-bundle"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -249,6 +260,10 @@
 .exm-builder select.form-control.input-sm { height: auto; }
 .exm-builder-button .exm-builder-button-word { font-size: .85rem; opacity: .8; white-space: nowrap; }
 .exm-builder-button .exm-builder-error { flex: 1 1 100%; }
+.exm-builder-bundle-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 6px 0; border-bottom: 1px dashed #eef0f2; }
+.exm-builder-bundle-row > label { font-weight: 600; margin: 0; min-width: 150px; }
+.exm-builder-bundle-row select.form-control { width: auto; min-width: 160px; flex: 0 1 260px; }
+.exm-builder-bundle-row .exm-builder-hint { margin: 0; }
 .exm-builder-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 24px; }
 .exm-builder-notice { margin: 0 auto 0 0; font-size: .9rem; }
 .exm-builder-notice i { color: #3c8dbc; margin-right: 4px; }
@@ -338,6 +353,14 @@
         'notice_buttons' => exmtrans('studio.notice_buttons'),
         'too_many_buttons' => sprintf(exmtrans('studio.error.too_many_actions'), $max_actions),
         'kept_help' => exmtrans('studio.kept_help'),
+        'bundle' => [
+            'kanban' => [exmtrans('studio.bundle_kanban'), exmtrans('studio.bundle_kanban_by')],
+            'calendar' => [exmtrans('studio.bundle_calendar'), exmtrans('studio.bundle_calendar_by')],
+            'chart' => [exmtrans('studio.bundle_chart'), exmtrans('studio.bundle_chart_by')],
+            'dashboard' => [exmtrans('studio.bundle_dashboard'), ''],
+        ],
+        'bundle_no_item' => exmtrans('studio.bundle_no_item'),
+        'notice_bundle' => exmtrans('studio.notice_bundle'),
         'notice_edit' => exmtrans('studio.notice_edit'),
         'notice_new_columns' => exmtrans('studio.notice_new_columns'),
     ];
@@ -360,6 +383,9 @@
     var buttonTypes = @json($action_types);
     var initialButtons = @json($old_actions);
     var editing = @json($edit);
+    var bundleSources = @json($bundle_sources);
+    var canDashboard = @json($can_dashboard);
+    var initialBundle = @json($old_bundle);
     // the details of the screen: [{label, fields: [{type, label, required, choices}]}]
     var children = (@json($old_children) || []).map(function (c) {
         return { label: c.label || '', fields: (c.fields || []).map(function (f) {
@@ -425,6 +451,14 @@
     var buttons = (initialButtons || []).map(function (b) {
         return { label: b.label || '', target: fields[b.target] || null, value: b.value || '' };
     });
+    // the parts of the app made with it: each on or off, and the item it is made from.
+    // A new app gets them all when it has the items they need; after a mistake, what was posted.
+    var bundle = {};
+    ['kanban', 'calendar', 'chart'].forEach(function (part) {
+        var index = initialBundle ? initialBundle[part] : null;
+        bundle[part] = { on: initialBundle ? index !== null && index !== undefined : true, target: index !== null && index !== undefined ? (fields[index] || null) : null };
+    });
+    bundle.dashboard = { on: canDashboard && (initialBundle ? !!initialBundle.dashboard : true) };
     var active = { row: 0, col: 0 }; // the cell the parts are added to
     var dragFrom = null; // index of an item being moved, or null for a new part
 
@@ -774,7 +808,58 @@
         });
         renderColumns();
         renderButtons();
+        renderBundle();
         renderNotice();
+    }
+
+    // the app ----------------------------------------------------------------------
+    var bundleBox = document.getElementById('exm-builder-bundle');
+    function bundleTargets(part) {
+        return fields.filter(function (f) { return !isColumn(f) && !isKept(f) && bundleSources[part].indexOf(f.type) !== -1; });
+    }
+    // the parts that will be made: on, and with their item
+    function bundleMade() {
+        var made = [];
+        ['kanban', 'calendar', 'chart'].forEach(function (part) {
+            if (bundle[part].on && bundle[part].target && fields.indexOf(bundle[part].target) !== -1) { made.push(part); }
+        });
+        if (canDashboard && bundle.dashboard.on) { made.push('dashboard'); }
+        return made;
+    }
+    function renderBundle() {
+        bundleBox.innerHTML = '';
+        if (mode !== 'new') { return; }
+        ['kanban', 'calendar', 'chart', 'dashboard'].forEach(function (part) {
+            if (part === 'dashboard' && !canDashboard) { return; }
+            var state = bundle[part];
+            var id = 'exm-builder-bundle-' + part;
+            var check = el('input', { type: 'checkbox', id: id });
+            check.checked = state.on;
+            check.addEventListener('change', function () { state.on = check.checked; renderBundle(); renderNotice(); });
+            var row = el('div', { className: 'exm-builder-bundle-row' }, [
+                el('label', { 'for': id }, [check, document.createTextNode(' ' + t.bundle[part][0])]),
+            ]);
+            if (part !== 'dashboard') {
+                var targets = bundleTargets(part);
+                if (!state.target || targets.indexOf(state.target) === -1) { state.target = targets[0] || null; }
+                if (targets.length === 0) {
+                    check.disabled = true;
+                    row.appendChild(el('p', { className: 'exm-builder-hint', text: t.bundle_no_item }));
+                } else {
+                    var select = el('select', { className: 'form-control input-sm', 'aria-label': t.bundle[part][1], title: t.bundle[part][1] });
+                    targets.forEach(function (f) {
+                        var option = el('option', { value: String(fields.indexOf(f)), text: labelOf(f) });
+                        if (state.target === f) { option.selected = true; }
+                        select.appendChild(option);
+                    });
+                    select.disabled = !state.on;
+                    select.addEventListener('change', function () { state.target = fields[parseInt(select.value, 10)]; });
+                    row.appendChild(el('span', { className: 'exm-builder-button-word', text: t.bundle[part][1] }));
+                    row.appendChild(select);
+                }
+            }
+            bundleBox.appendChild(row);
+        });
     }
 
     // buttons ------------------------------------------------------------------------
@@ -862,7 +947,7 @@
     });
     // a name or the choices of an item changed: the buttons show them
     canvas.addEventListener('change', function (e) {
-        if (e.target.closest('.exm-builder-field')) { renderButtons(); }
+        if (e.target.closest('.exm-builder-field')) { renderButtons(); renderBundle(); renderNotice(); }
     });
 
     // details (child tables) ---------------------------------------------------------
@@ -1023,6 +1108,10 @@
                 text += t.notice_children.replace('%s', childNames.map(function (n) { return t.name_quote.replace('%s', n); }).join(t.name_separator));
             }
         }
+        var bundleNames = mode === 'new' ? bundleMade().map(function (part) { return t.name_quote.replace('%s', t.bundle[part][0].replace(/[（(].*$/, '').trim()); }) : [];
+        if (bundleNames.length > 0) {
+            text += t.notice_bundle.replace('%s', bundleNames.join(t.name_separator));
+        }
         var buttonNames = canButton() ? buttons.map(function (b) { return b.label.trim(); }).filter(function (n) { return n !== ''; }) : [];
         if (buttonNames.length > 0) {
             text += t.notice_buttons.replace('%s', buttonNames.map(function (n) { return t.name_quote.replace('%s', n); }).join(t.name_separator));
@@ -1159,6 +1248,8 @@
         active = { row: 0, col: 0 };
         children = [];
         buttons = [];
+        ['kanban', 'calendar', 'chart'].forEach(function (part) { bundle[part] = { on: true, target: null }; });
+        bundle.dashboard = { on: canDashboard };
         renderChildren();
         errors = {};
         forgetSheet();
@@ -1204,6 +1295,12 @@
         }));
         document.getElementById('exm-builder-layout').value = JSON.stringify(rows.map(function (w) { return { widths: w }; }));
         document.getElementById('exm-builder-children-input').value = mode !== 'new' ? '[]' : JSON.stringify(children);
+        var made = mode === 'new' ? bundleMade() : [];
+        var posted = { kanban: null, calendar: null, chart: null, dashboard: made.indexOf('dashboard') !== -1 };
+        ['kanban', 'calendar', 'chart'].forEach(function (part) {
+            if (made.indexOf(part) !== -1) { posted[part] = fields.indexOf(bundle[part].target); }
+        });
+        document.getElementById('exm-builder-bundle-input').value = JSON.stringify(posted);
         document.getElementById('exm-builder-actions-input').value = !canButton() ? '[]' : JSON.stringify(buttons.map(function (b) {
             return { label: b.label, target: b.target ? fields.indexOf(b.target) : null, value: b.value };
         }));
