@@ -146,11 +146,12 @@ class DocumentVersionService
     protected static function prune(int $document_id): void
     {
         $limit = max(0, intval(config('exment.document_version_limit', 10)));
+        // the versions beyond the limit (an offset without a limit is not portable SQL)
         $old = DocumentVersion::query()
             ->where('document_id', $document_id)
             ->orderByDesc('version_no')
-            ->skip($limit)
-            ->get();
+            ->get()
+            ->slice($limit);
         foreach ($old as $version) {
             static::deleteVersion($version);
         }
