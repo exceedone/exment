@@ -40,6 +40,10 @@ class DocumentReplaceVersionTest extends FeatureTestBase
 
     protected function tearDown(): void
     {
+        // the files of this test, older versions too (the rows go back with the transaction, the files do not)
+        foreach (ExmentFile::where('filename', 'like', 'docver-%')->get() as $file) {
+            $this->storedPaths[] = $file->path;
+        }
         foreach ($this->storedPaths as $path) {
             Storage::disk(config('admin.upload.disk'))->delete($path);
         }
