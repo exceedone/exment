@@ -87,7 +87,8 @@ class MenuController extends AdminControllerBase
      */
     protected function treeView()
     {
-        return Menu::tree(function (Tree $tree) {
+        // with the menus of the features not used, to move or remove them
+        return new Tree((new Menu())->withHidden(), function (Tree $tree) {
             $tree->disableCreate();
 
             $tree->branch(function ($branch) {
@@ -117,6 +118,9 @@ class MenuController extends AdminControllerBase
                 // escape html
                 $branch['title'] = esc_html($branch['title']);
                 $payload = "<i class='fa {$icon}'></i>&nbsp;<strong>{$branch['title']}</strong>";
+                if (boolval($branch['feature_hidden'] ?? false)) {
+                    $payload .= '&nbsp;<span class="label label-default">' . esc_html(exmtrans('menu.feature_hidden')) . '</span>';
+                }
 
                 if (!isset($branch['children'])) {
                     if (!admin_is_valid_url($uri)) {

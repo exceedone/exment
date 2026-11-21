@@ -96,6 +96,13 @@ class Features
     /** Whether the classes of the plugin pages were made here (the routes cached). */
     protected static bool $pluginsBooted = false;
 
+    /** The cache of what the plugins registered (the routes cached). */
+    public const PLUGINS_CACHE_KEY = 'exment_features_plugins_';
+
+    public const PLUGINS_CACHE_SECONDS = 86400;
+
+    protected static ?bool $routesCachedForTests = null;
+
     /**
      * The features of Exment itself (the file server when Exment has it).
      *
@@ -213,8 +220,9 @@ class Features
     /**
      * The plugins register their features when their classes are made: when
      * the routes are made (PluginServiceProvider::map). With the routes cached
-     * (php artisan route:cache) they are not made there, so they are made
-     * here, once, when the features are first asked for.
+     * (php artisan route:cache) they are not made there, so what they register
+     * is kept in the cache, for the plugins as they are (their versions and
+     * when they were changed): the classes are made once, not on each request.
      */
     protected static function bootPlugins(): void
     {
@@ -223,12 +231,54 @@ class Features
         }
         static::$pluginsBooted = true;
         try {
-            if (app()->routesAreCached() && canConnection() && hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
-                Plugin::getPluginPages();
+            if (!static::routesAreCached() || !canConnection() || !hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
+                return;
             }
+            $cacheKey = static::pluginsCacheKey();
+            $kept = \Cache::get($cacheKey);
+            if (is_array($kept)) {
+                // what the plugins registered (not what is registered already, as in a test)
+                static::$registered += $kept;
+                static::$definitions = null;
+                return;
+            }
+            $before = array_keys(static::$registered);
+            Plugin::getPluginPages();
+            \Cache::put($cacheKey, array_diff_key(static::$registered, array_flip($before)), static::PLUGINS_CACHE_SECONDS);
         } catch (\Throwable $e) {
             \Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Whether the routes are cached (php artisan route:cache); a test may say.
+     */
+    protected static function routesAreCached(): bool
+    {
+        return static::$routesCachedForTests ?? app()->routesAreCached();
+    }
+
+    /**
+     * For the tests: as if the routes were cached (true), or not (false),
+     * or as they are (null).
+     */
+    public static function routesCachedForTests(?bool $cached): void
+    {
+        static::$routesCachedForTests = $cached;
+    }
+
+    /**
+     * The key of the cache of what the plugins registered: it changes when a
+     * plugin is added, removed, turned on or off, or changed.
+     */
+    public static function pluginsCacheKey(): string
+    {
+        $sign = Plugin::query()->orderBy('id')->get()->map(function ($plugin) {
+            $row = $plugin->getAttributes();
+            return [$row['id'] ?? null, $row['plugin_name'] ?? null, $row['plugin_types'] ?? $row['plugin_type'] ?? null,
+                $row['version'] ?? null, $row['active_flg'] ?? null, strval($row['updated_at'] ?? '')];
+        })->toJson();
+        return static::PLUGINS_CACHE_KEY . md5($sign);
     }
 
     /**

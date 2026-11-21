@@ -240,6 +240,37 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertSame('a::b c', Features::label('exment_test.plain'));
     }
 
+    public function testWithTheRoutesCachedThePluginsAreNotMadeEachTime(): void
+    {
+        // the routes cached (php artisan route:cache)
+        Features::routesCachedForTests(true);
+        try {
+            $key = Features::pluginsCacheKey();
+            // what the plugins registered is taken from the cache (no class made)
+            $kept = ['exment_test.kept' => ['label' => 'Kept', 'description' => '', 'endpoints' => ['plugins/exment_test'], 'api' => [],
+                'menu' => null, 'plugin' => 'exment_test', 'existing' => false, 'default' => false, 'who' => true, 'requires' => null]];
+            \Cache::put($key, $kept, 60);
+            Features::reset();
+            $this->assertArrayHasKey('exment_test.kept', Features::definitions());
+            $this->assertSame('exment_test.kept', Features::forRequest(Request::create(admin_url('plugins/exment_test'))));
+
+            // a plugin changed: another key, the classes are made again and kept
+            $plugin = Plugin::query()->orderBy('id')->first();
+            if ($plugin !== null) {
+                DB::table('plugins')->where('id', $plugin->id)->update(['updated_at' => now()->addMinute()]);
+                $this->assertNotSame($key, Features::pluginsCacheKey());
+            }
+            \Cache::forget(Features::pluginsCacheKey());
+            Features::reset();
+            $this->assertArrayNotHasKey('exment_test.kept', Features::definitions());
+            $this->assertIsArray(\Cache::get(Features::pluginsCacheKey()), 'what the plugins registered is kept');
+        } finally {
+            \Cache::forget($key ?? '');
+            Features::routesCachedForTests(null);
+            Features::reset();
+        }
+    }
+
     public function testRequiresAndWho(): void
     {
         Features::register('exment_test.desk', ['label' => 'Desk', 'endpoints' => ['plugins/exment_test']]);

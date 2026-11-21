@@ -74,7 +74,7 @@ return new class extends Migration
             DB::table($menuTable)->insert([
                 'parent_id' => $admin->id,
                 'order' => $order,
-                'title' => exmtrans('menu.system_definitions.' . $name),
+                'title' => \Exceedone\Exment\Model\Menu::systemTitle($name),
                 'icon' => $icon,
                 'uri' => $name,
                 'menu_type' => 'system',
@@ -113,7 +113,7 @@ return new class extends Migration
             'updated_at' => now(),
         ];
         if ($menu->title === $wrongTitle) {
-            $values['title'] = exmtrans('menu.system_definitions.' . $name);
+            $values['title'] = \Exceedone\Exment\Model\Menu::systemTitle($name);
         }
         DB::table($menuTable)->where('id', $menu->id)->update($values);
     }
