@@ -1,13 +1,13 @@
 {{-- Feature management: the free official plugins bundled with Exment (ISS00419). Data from FeatureController::bundledRows. Inside the form of the page: each button posts to its own action. --}}
 @if (count($bundled) > 0)
     <div class="box card">
-        <div class="box-header"><h4>{{ exmtrans('plugin_distribution.header') }}</h4></div>
+        <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('plugin_distribution.header') }}</h3></div>
         <div class="box-body table-responsive">
-            <p class="exm-feature-help">{{ exmtrans('plugin_distribution.help') }}</p>
+            <p class="help-block">{{ exmtrans('plugin_distribution.help') }}</p>
             <table class="table table-condensed">
                 <thead><tr>
-                    <th>{{ exmtrans('feature.name') }}</th><th style="width:170px">{{ exmtrans('plugin_distribution.version') }}</th>
-                    <th style="width:260px">{{ exmtrans('feature.status') }}</th>
+                    <th>{{ exmtrans('feature.name') }}</th><th class="exm-feature-col" style="width:170px">{{ exmtrans('plugin_distribution.version') }}</th>
+                    <th class="exm-feature-col" style="width:260px">{{ exmtrans('feature.status') }}</th>
                 </tr></thead>
                 <tbody>
                     @foreach ($bundled as $b)
