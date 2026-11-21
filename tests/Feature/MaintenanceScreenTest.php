@@ -138,6 +138,25 @@ class MaintenanceScreenTest extends FeatureTestBase
         $page->assertSee('2026-12-01 22:00');
     }
 
+    public function testSavingInAPlannedMaintenance(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-12-01 09:00:00'));
+        MaintenanceMode::save(['start_at' => '2026-12-01 10:00:00', 'end_at' => '2026-12-01 12:00:00']);
+        Carbon::setTestNow(Carbon::parse('2026-12-01 10:30:00'));
+        MaintenanceMode::sync();
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        // the form sends back what it showed (an old start, too): saving works
+        $this->post(admin_url('maintenance'), [
+            'start_at' => '2026-12-01T10:00',
+            'end_at' => '2026-12-01T13:00',
+            'api' => 'admin',
+        ])->assertSessionHasNoErrors()->assertRedirect(admin_url('maintenance'));
+        $settings = MaintenanceMode::settings();
+        $this->assertTrue($settings['active']);
+        $this->assertSame(Carbon::parse('2026-12-01 13:00', config('app.timezone'))->toIso8601String(), $settings['end_at']);
+        $this->assertNull($settings['start_at']);
+    }
+
     public function testTheFormIsChecked(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-12-01 09:00:00'));

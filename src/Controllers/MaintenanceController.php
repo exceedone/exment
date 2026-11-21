@@ -132,6 +132,10 @@ class MaintenanceController extends AdminControllerBase
             return [[], exmtrans('maintenance.error.end_passed')];
         }
         // a start that has come: "Start the maintenance now" is the button for it
+        // (in a maintenance the start is not asked: it has started)
+        if (MaintenanceMode::settings()['active']) {
+            $start = null;
+        }
         if (isset($start) && $start->lte(Carbon::now())) {
             return [[], exmtrans('maintenance.error.start_passed')];
         }
