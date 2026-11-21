@@ -394,17 +394,22 @@ class MaintenanceModeTest extends FeatureTestBase
     {
         MaintenanceMode::start();
         MaintenanceMode::reset();
+        Carbon::setTestNow(Carbon::parse('2026-12-01 02:55:00'));
         $this->assertTrue(MaintenanceMode::skipsScheduled("'/usr/bin/php' 'artisan' exment:schedule"));
-        $this->assertTrue(boolval(System::maintenance_missed_schedule()));
+        Carbon::setTestNow(Carbon::parse('2026-12-01 03:00:00'));
+        $this->assertTrue(MaintenanceMode::skipsScheduled("'/usr/bin/php' 'artisan' exment:schedule"));
+        $this->assertTrue(MaintenanceMode::skipsScheduled("'/usr/bin/php' 'artisan' exment:schedule"));
+        $this->assertSame(['2026-12-01 02:00', '2026-12-01 03:00'], MaintenanceMode::missedHours());
+        Carbon::setTestNow();
         // not while it goes on
         $this->assertFalse(MaintenanceMode::runMissedSchedule());
         MaintenanceMode::end();
         MaintenanceMode::reset();
         $this->assertFalse(MaintenanceMode::skipsScheduled('exment:schedule'));
         Artisan::call('exment:maintenance', ['action' => 'tick']);
-        System::clearRequestSession();
-        $this->assertFalse(boolval(System::query()->where('system_name', 'maintenance_missed_schedule')->value('system_value')));
+        $this->assertSame([], MaintenanceMode::missedHours());
         $this->assertTrue($this->logged('missed_schedule'));
+        $this->assertStringContainsString('2026-12-01 03:00', strval(OperationLog::query()->where('path', 'maintenance/missed_schedule')->value('input')));
     }
 
     public function testTurningTheFeatureOffEndsIt(): void
@@ -437,6 +442,50 @@ class MaintenanceModeTest extends FeatureTestBase
         MaintenanceMode::reset();
         MaintenanceMode::current();
         $this->assertSame(1, OperationLog::query()->where('path', 'maintenance/auto_end')->count());
+    }
+
+    public function testNothingDueTakesNoLockAndKeepsTheCaches(): void
+    {
+        MaintenanceMode::start();
+        $settings = MaintenanceMode::settings();
+        System::setRequestSession('maintenance-test-key', 'kept');
+        MaintenanceMode::sync();
+        $this->assertSame('kept', System::requestSession('maintenance-test-key'), 'no reset when nothing is due');
+        $this->assertSame($settings, MaintenanceMode::settings());
+    }
+
+    public function testAPlannedStartClearsTheStartOfThePlan(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-12-01 09:00:00'));
+        MaintenanceMode::save(['start_at' => '2026-12-01 10:00:00', 'end_at' => '2026-12-01 11:00:00']);
+        Carbon::setTestNow(Carbon::parse('2026-12-01 10:00:00'));
+        MaintenanceMode::sync();
+        $settings = MaintenanceMode::settings();
+        $this->assertTrue($settings['active']);
+        $this->assertNull($settings['start_at']);
+        $this->assertNotNull($settings['started_at']);
+        $this->assertNotNull($settings['end_at']);
+    }
+
+    public function testTheHealthCheckIsKept(): void
+    {
+        MaintenanceMode::startOperator([]);
+        $this->assertNotSame(503, $this->get('/')->getStatusCode());
+        $this->assertNotSame(503, $this->get('/up')->getStatusCode());
+        $this->post('/')->assertStatus(503);
+        $this->get(admin_url(''))->assertStatus(503);
+        config(['exment.maintenance_exempt_paths' => '/health']);
+        $this->get('/')->assertStatus(503);
+    }
+
+    public function testAFailedCheckIsClosedWhenAFileIsThere(): void
+    {
+        $this->assertNull(MaintenanceMode::failedResponse());
+        file_put_contents($this->operatorFile, '{}');
+        $response = MaintenanceMode::failedResponse();
+        $this->assertNotNull($response);
+        $this->assertSame(503, $response->getStatusCode());
+        $this->assertSame(strval(MaintenanceMode::RETRY_AFTER_DEFAULT), $response->headers->get('Retry-After'));
     }
 
     public function testTheCommand(): void
