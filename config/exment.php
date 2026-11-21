@@ -1266,6 +1266,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Client certificates of the API keys of the users
+    |--------------------------------------------------------------------------
+    |
+    | The header in which the front server (nginx, ALB) gives the client certificate it checked:
+    | its sha256 fingerprint, or the certificate (PEM, URL-encoded, as X-Amzn-Mtls-Clientcert).
+    | It is read only from a trusted proxy (ADMIN_TRUST_PROXY_IPS).
+    | ADMIN_API_KEY_REQUIRE_CLIENT_CERT=true: no API key works without a client certificate.
+    | *Not copied by a backup restore: the keys are ADMIN_.*
+    */
+    'api_client_cert_header' => env('ADMIN_API_CLIENT_CERT_HEADER', null),
+    'api_key_require_client_cert' => env('ADMIN_API_KEY_REQUIRE_CLIENT_CERT', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Show Select field with group option
     |--------------------------------------------------------------------------
     |
