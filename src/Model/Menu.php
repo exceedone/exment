@@ -124,6 +124,25 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     }
 
     /**
+     * The language of the site (APP_LOCALE), also when an update runs from
+     * the command line (where the locale of Laravel may be another one).
+     */
+    public static function siteLocale(): string
+    {
+        $locale = config('exment.locale', env('APP_LOCALE'));
+        return is_string($locale) && $locale !== '' ? $locale : strval(app()->getLocale());
+    }
+
+    /**
+     * The title of a system menu in the language of the site, for a menu an
+     * update adds.
+     */
+    public static function systemTitle(string $menuName): string
+    {
+        return strval(trans('exment::exment.menu.system_definitions.' . $menuName, [], static::siteLocale()));
+    }
+
+    /**
      * Whether the menus of the features not used are given too (marked
      * "feature_hidden"): for editing the menus and exporting a template,
      * not for the menu of the pages.

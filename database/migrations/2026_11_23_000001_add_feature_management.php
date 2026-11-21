@@ -110,7 +110,7 @@ return new class extends Migration
         DB::table($menuTable)->insert([
             'parent_id' => $admin->id,
             'order' => $order,
-            'title' => exmtrans('menu.system_definitions.feature'),
+            'title' => \Exceedone\Exment\Model\Menu::systemTitle('feature'),
             'icon' => 'fa-toggle-on',
             'uri' => 'feature',
             'menu_type' => 'system',

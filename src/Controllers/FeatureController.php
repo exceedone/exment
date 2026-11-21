@@ -325,7 +325,7 @@ class FeatureController extends AdminControllerBase
         DB::table($table)->insert([
             'parent_id' => $parentId,
             'order' => $order,
-            'title' => exmtrans('menu.system_definitions.' . $menuName),
+            'title' => \Exceedone\Exment\Model\Menu::systemTitle($menuName),
             'icon' => array_get($define, 'icon'),
             'uri' => array_get($define, 'uri'),
             'menu_type' => 'system',

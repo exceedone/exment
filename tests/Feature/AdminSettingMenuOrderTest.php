@@ -200,4 +200,30 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
             \Exceedone\Exment\Services\Features::reset();
         }
     }
+
+    public function testTheMenusAreNamedInTheLanguageOfTheSite(): void
+    {
+        $locale = app()->getLocale();
+        $before = config('exment.locale');
+        try {
+            // the site in Japanese, the update from the command line in English
+            config(['exment.locale' => 'ja']);
+            app()->setLocale('en');
+            $ja = strval(trans('exment::exment.menu.system_definitions.feature', [], 'ja'));
+            $en = strval(trans('exment::exment.menu.system_definitions.feature', [], 'en'));
+            $this->assertNotSame($ja, $en);
+            $this->assertSame($ja, \Exceedone\Exment\Model\Menu::systemTitle('feature'));
+
+            // named in English by the update: in Japanese; a name of the site stays
+            DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->update(['title' => $en]);
+            DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'tuning')->update(['title' => 'Speed']);
+            $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_26_000001_menu_titles_in_the_site_language.php');
+            $migration->up();
+            $this->assertSame($ja, DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->value('title'));
+            $this->assertSame('Speed', DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'tuning')->value('title'));
+        } finally {
+            config(['exment.locale' => $before]);
+            app()->setLocale($locale);
+        }
+    }
 }
