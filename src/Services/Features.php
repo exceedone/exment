@@ -125,6 +125,15 @@ class Features
             'api' => ['studio'],
             'menu' => 'studio',
         ]);
+        // the safety check: its page, the answer page (SafetyCheckAnswerController),
+        // the automatic sending (exment:safetywatch) and its LINE answers. Every
+        // site it was on before keeps it on (the migration keep_safety_check_feature);
+        // a new site starts with it off. The LINE link stays: the notifications use LINE too.
+        $core[static::SAFETY_CHECK] = static::definition([
+            'label' => 'exment::exment.feature.features.safety_check',
+            'description' => 'exment::exment.feature.features.safety_check_help',
+            'endpoints' => ['safety_check'],
+        ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
         $core[static::TUNING] = static::definition([
@@ -137,15 +146,6 @@ class Features
             'who' => false,
             // it was there before Feature management: on until it is turned off
             'default' => true,
-        ]);
-        // the safety check: its page, the answer page (SafetyCheckAnswerController),
-        // the automatic sending (exment:safetywatch) and its LINE answers. A site
-        // that used it keeps it on (the migration add_safety_check_feature).
-        // The LINE link itself stays: the notifications use LINE too.
-        $core[static::SAFETY_CHECK] = static::definition([
-            'label' => 'exment::exment.feature.features.safety_check',
-            'description' => 'exment::exment.feature.features.safety_check_help',
-            'endpoints' => ['safety_check'],
         ]);
         return $core;
     }

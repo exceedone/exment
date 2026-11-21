@@ -1,10 +1,8 @@
 <?php
 
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Features;
-use Exceedone\Exment\Services\SafetyCheck\SafetyCheckDefine;
 use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
@@ -12,10 +10,10 @@ return new class extends Migration
     /**
      * The safety check is a feature of Feature management from 7.2.x.
      *
-     * A site that used it keeps it on: the automatic sending is on, or a
-     * safety check was sent. The others (and a new site, where this runs
-     * before the safety check tables are made) start with it off, as every
-     * new feature; an administrator turns it on in Feature management.
+     * Every site that is there keeps it on (it was on, for everyone): updating
+     * does not stop it. Only a new site starts with it off, as every new
+     * feature: it is not initialized yet when the install runs this. When
+     * that cannot be told, it is kept on (the safe side).
      *
      * @return void
      */
@@ -28,20 +26,20 @@ return new class extends Migration
             // decided already
             return;
         }
-        if (!static::used()) {
+        if (static::newSite()) {
             return;
         }
         Features::save([Features::SAFETY_CHECK => ['enabled' => true, 'role_groups' => null, 'menu' => true]]);
     }
 
-    protected static function used(): bool
+    /**
+     * The install (exment:install) runs the migrations before the site is
+     * initialized (the first administrator is made after).
+     */
+    protected static function newSite(): bool
     {
         try {
-            if (boolval(System::safety_check_auto_enabled())) {
-                return true;
-            }
-            $table = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
-            return isset($table) && $table->getValueModel()->newQueryWithoutScopes()->exists();
+            return !boolval(System::initialized());
         } catch (\Throwable $e) {
             return false;
         }

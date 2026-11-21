@@ -104,8 +104,11 @@ class LineWebhookController extends Controller
                 if ($replyToken) {
                     $client->reply($replyToken, [LineMessagingClient::text($msg)]);
                 }
-            } elseif (($data['act'] ?? null) === 'safety' && $safetyUsed) {
-                $msg = \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::handle($data, $userId);
+            } elseif (($data['act'] ?? null) === 'safety') {
+                // not used (Feature management): say so, not a silence
+                $msg = $safetyUsed
+                    ? \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::handle($data, $userId)
+                    : exmtrans('safety.not_in_use');
                 if ($replyToken) {
                     $client->reply($replyToken, [LineMessagingClient::text($msg)]);
                 }

@@ -98,29 +98,49 @@ class SafetyCheckFeatureTest extends FeatureTestBase
         $this->assertNotNull($this->freshEvent($event->id));
     }
 
-    public function testASiteThatUsedItKeepsIt(): void
+    public function testEverySiteThatIsThereKeepsIt(): void
     {
-        // not used: stays new (off)
+        // a site that is there (initialized), even one that never sent one: on
         $this->setFeature(null);
+        System::initialized(true);
         System::safety_check_auto_enabled(false);
+        $this->migrate();
+        $this->assertTrue(Features::enabled(Features::SAFETY_CHECK));
+
+        // a new site (the install runs the migrations before it is initialized): off
+        $this->setFeature(null);
+        System::initialized(false);
         $this->migrate();
         $this->assertFalse(array_key_exists(Features::SAFETY_CHECK, Features::settings()));
-
-        // the automatic sending is on
-        System::safety_check_auto_enabled(true);
-        $this->migrate();
-        $this->assertTrue(Features::enabled(Features::SAFETY_CHECK));
-
-        // a safety check was sent
-        $this->setFeature(null);
-        System::safety_check_auto_enabled(false);
-        $this->createEvent();
-        $this->migrate();
-        $this->assertTrue(Features::enabled(Features::SAFETY_CHECK));
+        System::initialized(true);
 
         // decided already: kept
         $this->setFeature(false);
         $this->migrate();
         $this->assertFalse(Features::enabled(Features::SAFETY_CHECK));
+    }
+
+    public function testLineSaysItIsNotInUse(): void
+    {
+        $this->setFeature(false);
+        $this->setUpLineWebhookMock();
+        $this->postWebhook(['events' => [[
+            'type' => 'postback',
+            'replyToken' => 'reply-1',
+            'source' => ['userId' => 'U-not-in-use'],
+            'postback' => ['data' => 'act=safety&e=1&st=safe'],
+            'webhookEventId' => 'ev-not-in-use',
+        ]]]);
+        $this->assertSame(exmtrans('safety.not_in_use'), $this->lastReplyText());
+    }
+
+    public function testTheSettingsSayItIsOff(): void
+    {
+        $this->setFeature(false);
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $this->get(admin_url('system') . '?advanced=1')->assertSee(exmtrans('safety.feature_off'));
+        $this->setFeature(true);
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $this->get(admin_url('system') . '?advanced=1')->assertDontSee(exmtrans('safety.feature_off'));
     }
 }

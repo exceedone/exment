@@ -4337,6 +4337,8 @@ return [
     ],
 
     'safety' => [
+        'not_in_use'             => 'The safety check is not in use now.',
+        'feature_off'            => 'The safety check is off in Feature management. The automatic sending does not run.',
         'menu_title'             => 'Safety Check',
         'description'            => 'Send, resend and close safety check events.',
         'event_table_view_name'  => 'Safety Check Events',
@@ -4440,10 +4442,10 @@ return [
             'file_server_help' => 'Workspaces, folders, versions and share links. Turning it off does not remove the files. After turning it on, create a workspace on the File server page and add members (system administrators create workspaces).',
             'studio' => 'Studio',
             'studio_help' => 'The list of screens, making screens, and the phone app (/app).',
-            'tuning' => 'Tuning',
-            'tuning_help' => 'The check of the settings that make the site faster ("Tuning" in Admin Setting). For the system administrators only. What it asks to change are the server settings, as php.ini and .env.',
             'safety_check' => 'Safety check',
             'safety_check_help' => 'Asks whether the users are safe, as after an earthquake (the page to send it, the answer page, the automatic sending from earthquake reports, the answers by LINE). Turning it off does not remove what was sent and answered.',
+            'tuning' => 'Tuning',
+            'tuning_help' => 'The check of the settings that make the site faster ("Tuning" in Admin Setting). For the system administrators only. What it asks to change are the server settings, as php.ini and .env.',
         ],
         'message_not_used_user' => 'If you need it, please contact your administrator.',
         'open_feature' => 'Open Feature Management',
