@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Storage\Disk;
 
+use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Model\Define;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,7 +26,11 @@ class PluginDiskService extends DiskServiceBase
         $this->plugin = $plugin;
         $path = isset($plugin) ? $plugin->getPath() : null;
 
-        $this->diskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_SYNC), $path, $path);
+        // the plugin disk is made only when it is used: a request that finds the local copy up to
+        // date never reads it, and a cloud disk is made with its client (ISS00413)
+        $this->diskItem = new DiskServiceItem(function () {
+            return Storage::disk(Define::DISKNAME_PLUGIN_SYNC);
+        }, $path, $path);
         $this->tmpDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_ADMIN_TMP), $path, $this->now);
         $this->localSyncDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_LOCAL), $path, $path);
     }
@@ -41,7 +46,11 @@ class PluginDiskService extends DiskServiceBase
             return $this->isNeedDownload;
         }
 
-        if ($this->diskItem()->isDriverLocal()) {
+        // a plugin on the local disk is read where it is. Told by the setting, not by the disk:
+        // making a cloud disk to learn its kind cost a client and a request per plugin (ISS00413).
+        // Another setting checks the local copy below; a disk that turns out local is then copied
+        // once, as a cloud one is.
+        if (static::isLocalDriverSetting()) {
             return false;
         }
 
@@ -68,6 +77,15 @@ class PluginDiskService extends DiskServiceBase
         }
 
         return false;
+    }
+
+    /**
+     * Whether the plugins are set to be kept on the local disk (EXMENT_DRIVER_PLUGIN, local by default).
+     * Another setting is a cloud disk, whose files are copied to the local disk.
+     */
+    protected static function isLocalDriverSetting(): bool
+    {
+        return config('exment.driver.plugin', Driver::LOCAL) === Driver::LOCAL;
     }
 
     // @phpstan-ignore-next-line

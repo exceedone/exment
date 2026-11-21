@@ -931,6 +931,32 @@ EOT);
     }
 
     /**
+     * Replace the file of an attachment (the file it had becomes an older version).
+     */
+    // @phpstan-ignore-next-line
+    public function documentReplace(Request $request, $tableKey, $id, $documentId)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->documentReplace($request->file('file_data'), $documentId);
+    }
+
+    /**
+     * The older versions of an attachment.
+     */
+    // @phpstan-ignore-next-line
+    public function documentVersions(Request $request, $tableKey, $id, $documentId)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->documentVersions($documentId);
+    }
+
+    /**
      * file delete custom column.
      */
     // @phpstan-ignore-next-line
