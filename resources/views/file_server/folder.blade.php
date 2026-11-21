@@ -166,7 +166,7 @@
             <select class="form-control" data-fs="target-select"></select>
             <div style="margin-top:12px;text-align:right">
                 <button value="cancel" class="btn btn-default btn-sm">{{ exmtrans('file_server.cancel') }}</button>
-                <button value="ok" class="btn btn-primary btn-sm">OK</button>
+                <button value="ok" class="btn btn-primary btn-sm">{{ trans('admin.submit') }}</button>
             </div>
         </form>
     </dialog>

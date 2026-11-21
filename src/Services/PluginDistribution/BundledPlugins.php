@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -88,7 +89,7 @@ class BundledPlugins
                 continue;
             }
             try {
-                ReleaseVerifier::verify($record, $zip);
+                static::verifyOnce($record, $zip, $json);
             } catch (\Throwable $e) {
                 \Log::warning('[Exment] a bundled plugin is not used: ' . basename($json) . ': ' . $e->getMessage());
                 continue;
@@ -102,11 +103,47 @@ class BundledPlugins
     }
 
     /**
+     * Check a bundled release (the sha256 of its zip is the slow part), again
+     * only when its files change: the result is kept by the time and size of
+     * the zip, the record and the versions of Exment and PHP. Installing
+     * checks it again in any case (installRelease).
+     *
+     * @param array<string, mixed> $record
+     * @throws ReleaseException
+     */
+    protected static function verifyOnce(array $record, string $zip, string $json): void
+    {
+        clearstatcache(true, $zip);
+        $key = 'exment_bundled_release_ok_' . md5(implode('|', [
+            $json,
+            md5(strval(json_encode($record))),
+            strval(@filemtime($zip)),
+            strval(@filesize($zip)),
+            strval(\Exment::version(false)),
+            PHP_VERSION,
+        ]));
+        try {
+            if (Cache::get($key) === true) {
+                return;
+            }
+        } catch (\Throwable $e) {
+            // no cache: checked
+        }
+        ReleaseVerifier::verify($record, $zip);
+        try {
+            Cache::put($key, true, now()->addDay());
+        } catch (\Throwable $e) {
+            // not kept: checked again next time
+        }
+    }
+
+    /**
      * The rows of Feature management: each bundled plugin, and what the site has of it.
      *
+     * @param bool $withPrevious the versions kept to go back to (listed on the disk; not needed for the notices)
      * @return array<int, array<string, mixed>>
      */
-    public static function rows(): array
+    public static function rows(bool $withPrevious = true): array
     {
         $rows = [];
         foreach (static::releases() as $uuid => $release) {
@@ -126,7 +163,7 @@ class BundledPlugins
             // a fix for the safety the site should take (signed: security_min, ISS00421 "5")
             $securityMin = $record['security_min'] ?? (!empty($record['security']) ? $record['version'] : null);
             $security = isset($installed) && is_string($securityMin) && $securityMin !== '' && static::newer($securityMin, $installed);
-            $previous = isset($installed) ? static::previousVersion($uuid, $installed) : null;
+            $previous = $withPrevious && isset($installed) ? static::previousVersion($uuid, $installed) : null;
             $rows[] = [
                 'uuid' => $uuid,
                 'security' => $security,

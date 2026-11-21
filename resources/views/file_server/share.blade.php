@@ -63,7 +63,7 @@ a { color: var(--accent); }
         @if (!empty($link->message))<p style="white-space:pre-wrap">{{ $link->message }}</p>@endif
         <p class="muted">{{ exmtrans('file_server.share_request_note') }}</p>
         @if ($link->expires_at)<p class="muted">{{ exmtrans('file_server.share_expires') }}: {{ $link->expires_at->format('Y/m/d') }}</p>@endif
-        <div class="drop" data-drop>{{ exmtrans('file_server.drop_here') }}<br><br>
+        <div class="drop" data-drop>{{ exmtrans('file_server.share_drop_here') }}<br><br>
             <label class="btn sub">{{ exmtrans('file_server.upload_files') }}<input type="file" multiple hidden data-input></label>
         </div>
         <ul class="list" data-result></ul>
@@ -75,6 +75,7 @@ a { color: var(--accent); }
         var max = Number(box.dataset.max) || 0;
         var list = box.querySelector('[data-result]');
         var tooLarge = @json(exmtrans('file_server.error_too_large'));
+        var sent = @json(exmtrans('file_server.share_upload_sent')), failed = @json(exmtrans('file_server.share_upload_failed'));
         function line(text, isError) {
             var li = document.createElement('li');
             li.textContent = text;
@@ -90,7 +91,7 @@ a { color: var(--accent); }
                     fd.append('files[]', file, file.name);
                     return fetch(box.dataset.upload, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' } })
                         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j._ok = r.ok; return j; }); })
-                        .then(function (j) { line(file.name + ': ' + (j.message || (j._ok ? 'OK' : 'NG')), !j._ok || j.result === false); })
+                        .then(function (j) { line(file.name + ': ' + (j.message || (j._ok ? sent : failed)), !j._ok || j.result === false); })
                         .catch(function (e) { line(file.name + ': ' + e.message, true); });
                 });
             });
@@ -147,9 +148,9 @@ a { color: var(--accent); }
                         @if ($text !== null)<pre>{{ $text }}</pre>@else<p class="muted">{{ exmtrans('file_server.preview_too_large') }}</p>@endif
                         @break
                     @case('office')
-                        @if ($pdf_url)<iframe src="{{ $pdf_url }}" title="{{ $item->name }}"></iframe>@else<p class="muted">{{ exmtrans('file_server.preview_none') }}</p>@endif
+                        @if ($pdf_url)<iframe src="{{ $pdf_url }}" title="{{ $item->name }}"></iframe>@else<p class="muted">{{ $download_url ? exmtrans('file_server.preview_none') : exmtrans('file_server.preview_none_no_download') . ' ' . exmtrans('file_server.share_ask_sender') }}</p>@endif
                         @break
-                    @default <p class="muted">{{ exmtrans('file_server.preview_none') }}</p>
+                    @default <p class="muted">{{ $download_url ? exmtrans('file_server.preview_none') : exmtrans('file_server.preview_none_no_download') . ' ' . exmtrans('file_server.share_ask_sender') }}</p>
                 @endswitch
             </div>
             @if (!$download_url)<p class="muted">{{ exmtrans('file_server.share_preview_only_note') }}</p>@endif

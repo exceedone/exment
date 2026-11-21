@@ -44,7 +44,7 @@ class DocumentVersionService
     /**
      * Put a new file in the place of the attachment's file. The file it had becomes an older version.
      */
-    public static function replace(CustomValue $custom_value, CustomValue $document, UploadedFile $httpfile): CustomValue
+    public static function replace(CustomValue $custom_value, CustomValue $document, UploadedFile $httpfile, bool $prune = true): CustomValue
     {
         $custom_table = $custom_value->custom_table;
         $filename = strval($httpfile->getClientOriginalName());
@@ -75,7 +75,11 @@ class DocumentVersionService
             $document->save();
         });
 
-        static::prune($document->id);
+        // the older versions beyond the limit go only when the user could delete the attachment
+        // (else replacing would be a way to delete the first file)
+        if ($prune) {
+            static::prune($document->id);
+        }
 
         return $document;
     }
@@ -158,6 +162,18 @@ class DocumentVersionService
         foreach ($versions as $version) {
             static::deleteVersion($version);
         }
+    }
+
+    /**
+     * Forget the older version of a file deleted by itself (from the list of
+     * the older versions, or by the API): its row would point at nothing.
+     */
+    public static function forgetFile(string $file_uuid): void
+    {
+        if ($file_uuid === '' || !static::available()) {
+            return;
+        }
+        DocumentVersion::query()->where('file_uuid', $file_uuid)->delete();
     }
 
     protected static function olderCount(int $document_id): int

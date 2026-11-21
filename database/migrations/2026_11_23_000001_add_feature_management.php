@@ -41,7 +41,11 @@ return new class extends Migration
         if (!DB::table($menuTable)->exists()) {
             DB::table('systems')->insert([
                 'system_name' => 'features',
-                'system_value' => json_encode(['_since' => now()->toIso8601String()]),
+                // the features of this version are not "new" to a new site (AdminNotices::newFeatures)
+                'system_value' => json_encode([
+                    '_since' => now()->toIso8601String(),
+                    '_known' => array_keys(\Exceedone\Exment\Services\Features::core()),
+                ]),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -78,6 +82,11 @@ return new class extends Migration
         $table = config('admin.database.operation_log_table', 'admin_operation_log');
         if (!Schema::hasTable($table) || !Schema::hasColumn($table, 'path')) {
             return false;
+        }
+        // no log to tell (it is not written, or it was removed): taken as used,
+        // so that a site does not lose what it used (the safe side)
+        if (!DB::table($table)->exists()) {
+            return true;
         }
         $prefix = trim(strval(config('admin.route.prefix')), '/');
         $prefix = $prefix === '' ? '' : $prefix . '/';

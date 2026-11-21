@@ -38,6 +38,9 @@ return new class extends Migration
     /** Added at the end of "Admin Setting" by the migrations of the updates (or by the template of 7.1). */
     public const ADDED = ['login_setting', 'api_setting', 'studio', 'feature', 'tuning'];
 
+    /** The order of a new site of 7.1.2 (its template), without the menus 7.2 added. */
+    public const NEW_712 = ['system', 'custom_table', 'menu', 'template', 'backup', 'loginuser', 'role_group', 'workflow', 'plugin', 'studio', 'mail_template', 'login_setting', 'api_setting'];
+
     /**
      * Put the menus of the admin settings in the order of a new site, only
      * when the site still has them in an order an Exment made (a new site of
@@ -66,36 +69,35 @@ return new class extends Migration
         }
         $known = [];
         $others = [];
-        foreach ($children as $row) {
+        // the position of each child, and the last one of the old templates
+        $names = [];
+        $lastBefore = -1;
+        $firstOther = null;
+        foreach ($children as $i => $row) {
             $key = $row->menu_type . ':' . $row->menu_name;
             if (array_key_exists($key, $index) && !isset($known[$key])) {
                 $known[$key] = $row;
+                $names[] = strval($row->menu_name);
+                if (in_array($row->menu_name, static::BEFORE, true)) {
+                    $lastBefore = $i;
+                }
             } else {
                 $others[] = $row;
+                $firstOther = $firstOther ?? $i;
             }
         }
         if (count($known) === 0) {
             return;
         }
-
-        // the order an Exment made: the menus of the old templates in their order (the added ones anywhere)
-        $kept = [];
-        foreach ($known as $row) {
-            if (!in_array($row->menu_name, static::ADDED, true)) {
-                $kept[] = $row->menu_name;
-            }
+        // a menu the site put among the menus of the system (a plugin, a URL,
+        // a table, the logs...): an administrator made that order
+        if (isset($firstOther) && $firstOther < $lastBefore) {
+            return;
         }
-        $expected = array_values(array_filter(static::BEFORE, function ($name) use ($kept) {
-            return in_array($name, $kept, true);
-        }));
-        $new = array_map(function ($pair) {
-            return $pair[1];
-        }, static::ORDER);
-        $expectedNew = array_values(array_filter($new, function ($name) use ($kept) {
-            return in_array($name, $kept, true);
-        }));
-        if ($kept !== $expected && $kept !== $expectedNew) {
-            // an administrator has put them in an order: it stays
+        // the known ones must be in an order an Exment made: a new site of
+        // 7.1.2, or a site updated from 7.0 (the added menus at the end), or
+        // the order of 7.2 already. Otherwise an administrator moved them
+        if (!$this->madeByExment($names)) {
             return;
         }
 
@@ -109,6 +111,33 @@ return new class extends Migration
             }
             $order++;
         }
+    }
+
+    /**
+     * Whether the names (the known menus, in their order) are an order an
+     * Exment made: one of the orders below (with the menus the site has),
+     * then only menus the updates added at the end.
+     *
+     * @param string[] $names
+     */
+    protected function madeByExment(array $names): bool
+    {
+        $new = array_map(function ($pair) {
+            return $pair[1];
+        }, static::ORDER);
+        foreach ([static::NEW_712, static::BEFORE, $new] as $start) {
+            $prefix = array_values(array_filter($start, function ($name) use ($names) {
+                return in_array($name, $names, true);
+            }));
+            if (array_slice($names, 0, count($prefix)) !== $prefix) {
+                continue;
+            }
+            $rest = array_slice($names, count($prefix));
+            if (count(array_diff($rest, static::ADDED)) === 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

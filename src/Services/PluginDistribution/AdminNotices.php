@@ -35,7 +35,8 @@ class AdminNotices
     {
         $list = [];
         try {
-            $rows = BundledPlugins::rows();
+            // without the versions kept to go back to (a listing of the disk: S3 on a SaaS)
+            $rows = BundledPlugins::rows(false);
         } catch (\Throwable $e) {
             return [];
         }
@@ -56,8 +57,12 @@ class AdminNotices
     }
 
     /**
-     * The features the site has not decided on yet, after an update (a new
-     * site has decided nothing: it is not told of them).
+     * The features the site has not decided on yet, that came with an update.
+     * Not told of:
+     * - the features a new site had when it was installed ("_known")
+     * - the features of a plugin installed after the site got Feature
+     *   management ("_since"): the administrator installed it, and its
+     *   features are on the same page
      *
      * @return string[] the names of the features
      */
@@ -67,16 +72,27 @@ class AdminNotices
         if (!isset($settings[Features::SINCE])) {
             return [];
         }
+        $known = is_array($settings[Features::KNOWN] ?? null) ? array_map('strval', $settings[Features::KNOWN]) : [];
+        try {
+            $since = \Carbon\Carbon::parse(strval($settings[Features::SINCE]));
+        } catch (\Throwable $e) {
+            $since = null;
+        }
         $names = [];
         foreach (Features::definitions() as $key => $definition) {
             $key = strval($key);
             // a feature that is on from the start (as Tuning: "default") is not new to tell of
-            if (!empty($definition['default'])) {
+            if (!empty($definition['default']) || in_array($key, $known, true)) {
                 continue;
             }
-            if (Features::isNew($key) && !Features::locked($key)) {
-                $names[] = Features::label($key);
+            if (!Features::isNew($key) || Features::locked($key)) {
+                continue;
             }
+            $plugin = Features::pluginOf($key);
+            if (isset($plugin, $plugin->created_at, $since) && !\Carbon\Carbon::parse(strval($plugin->created_at))->lt($since)) {
+                continue;
+            }
+            $names[] = Features::label($key);
         }
         return $names;
     }
@@ -84,7 +100,7 @@ class AdminNotices
     /**
      * The keys of what is to be told now.
      *
-     * @return array<string, array{subject: string, body: string}>
+     * @return array<string, array{subject: string, body: string, mail: bool}>
      */
     public static function pending(): array
     {
@@ -92,8 +108,11 @@ class AdminNotices
         foreach (static::security() as $item) {
             $text = strval(exmtrans('plugin_distribution.notice_security', ['name' => $item['label'], 'version' => $item['version']]));
             $notices[$item['key']] = [
-                'subject' => $text,
+                // a short subject (the bell and the mail), the sentence in the body
+                'subject' => strval(exmtrans('plugin_distribution.notice_security_subject', ['name' => $item['label']])),
                 'body' => $text . ($item['note'] !== '' ? "\n\n" . $item['note'] : '') . "\n\n" . admin_url('feature'),
+                // a security fix is also mailed
+                'mail' => true,
             ];
         }
         $features = static::newFeatures();
@@ -103,6 +122,8 @@ class AdminNotices
             $notices['features:' . md5(implode("\n", $features))] = [
                 'subject' => strval(exmtrans('plugin_distribution.notice_features_subject')),
                 'body' => $text . "\n\n" . admin_url('feature'),
+                // the bell and the home only: a mail for each new feature would be too many
+                'mail' => false,
             ];
         }
         $sent = static::sent();
@@ -164,6 +185,9 @@ class AdminNotices
                     $navbar->save();
                 } catch (\Throwable $e) {
                     \Log::warning('[Exment] the notice to the administrators: ' . $e->getMessage());
+                }
+                if (!$notice['mail']) {
+                    continue;
                 }
                 try {
                     if (!is_null(\Exceedone\Exment\Services\NotifyService::getAddress($user))) {

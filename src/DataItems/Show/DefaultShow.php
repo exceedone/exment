@@ -977,16 +977,20 @@ EOT;
             return response()->json(['result' => false, 'message' => exmtrans('common.message.error_execute')], 400);
         }
 
-        DocumentVersionService::replace($this->custom_value, $document, $httpfile);
+        // replacing needs the right to edit; dropping the older versions beyond the limit, the right to delete
+        $canDelete = $this->custom_value->enableDelete(!config('exment.allow_delete_attachment', false)) === true;
+        DocumentVersionService::replace($this->custom_value, $document, $httpfile, $canDelete);
 
         $this->custom_value->notify(false);
         foreach ($this->custom_table->notifies as $notify) {
             $notify->notifyCreateUpdateUser($this->custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $httpfile->getClientOriginalName()]);
         }
 
+        // the earlier file is opened from the "Version n" link of the row, n being this number
+        $no = DocumentVersionService::currentNumbers([$document->id])[intval($document->id)] ?? 2;
         return getAjaxResponse([
             'result' => true,
-            'message' => trans('admin.update_succeeded'),
+            'message' => exmtrans('custom_value.document_replaced', ['no' => $no]),
         ]);
     }
 
@@ -1038,7 +1042,12 @@ EOT;
             data.append('_token', LA.token);
             $.ajax({ url: $(this).data('url'), type: 'POST', data: data, processData: false, contentType: false })
                 .done(function (res) {
-                    if (res && res.result) { $.pjax.reload('#pjax-container'); return; }
+                    if (res && res.result) {
+                        // the toast is outside the pjax container: it stays while the page is read again
+                        if (res.message) { toastr.success(res.message); }
+                        $.pjax.reload('#pjax-container');
+                        return;
+                    }
                     toastr.error((res && res.message) || {$failed});
                 })
                 .fail(function (xhr) { toastr.error((xhr.responseJSON && xhr.responseJSON.message) || {$failed}); });

@@ -185,7 +185,7 @@ class FeatureManagementTest extends FeatureTestBase
         // used, but not for this user: forbidden
         $this->setFeatures(['studio' => ['enabled' => true, 'role_groups' => [$this->groupOfUser1Only()], 'menu' => true]]);
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
-        $this->get(admin_url('app'))->assertForbidden()->assertSee(exmtrans('feature.message_not_allowed'))->assertDontSee(admin_url('feature'), false);
+        $this->get(admin_url('app'))->assertForbidden()->assertSee(exmtrans('feature.message_not_allowed'))->assertSee(exmtrans('feature.message_not_used_user'))->assertDontSee(exmtrans('feature.open_feature'));
     }
 
     public function testTheRequestsOfAFeature(): void
@@ -399,8 +399,13 @@ class FeatureManagementTest extends FeatureTestBase
             Features::reset();
         };
 
+        // no log at all (not written, or removed): taken as used (the safe side)
+        DB::table($logTable)->delete();
+        $run();
+        $this->assertTrue(Features::enabled(Features::STUDIO));
+
         // a menu alone (an update adds it) does not make Studio on
-        DB::table($logTable)->where('path', 'like', '%studio%')->orWhere('path', 'like', '%/app%')->delete();
+        DB::table($logTable)->insert(['user_id' => 1, 'path' => trim($prefix . '/dashboard', '/'), 'method' => 'GET', 'ip' => '127.0.0.1', 'input' => '{}', 'created_at' => now(), 'updated_at' => now()]);
         $run();
         $this->assertFalse(Features::enabled(Features::STUDIO));
         $this->assertTrue(DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->exists());
@@ -453,7 +458,7 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertTrue(Features::enabled($uri . '.old'));
         $this->assertFalse(Features::enabled($uri . '.new'));
 
-        // the migration of a new site (no menus yet) writes "_since" only
+        // the migration of a new site (no menus yet) writes "_since" and the features it has ("_known": not new to it)
         DB::table('systems')->where('system_name', 'features')->delete();
         $menus = DB::table('admin_menu')->get()->map(function ($row) {
             return (array)$row;
@@ -464,7 +469,9 @@ class FeatureManagementTest extends FeatureTestBase
         System::clearRequestSession();
         Features::reset();
         $settings = Features::settings();
-        $this->assertSame(['_since'], array_keys($settings));
+        $this->assertSame(['_since', '_known'], array_keys($settings));
+        $this->assertSame(array_keys(Features::core()), $settings['_known']);
+        $this->assertSame([], \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures());
         $this->assertFalse(Features::enabled(Features::STUDIO));
     }
 }
