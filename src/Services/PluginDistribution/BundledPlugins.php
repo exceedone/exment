@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 /**
  * The free official plugins bundled with Exment (ISS00419): ExmentPM, IT
  * Support, Groupware. They come with the package
- * exceedone/exment-official-plugins (also in the zip of Exment for the sites
+ * exceedone/exment-plugins-release (also in the zip of Exment for the sites
  * that are not on the internet), as signed releases:
  *
  *   releases/<name>-<version>.zip and releases/<name>-<version>.json (ReleaseVerifier)
@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Storage;
  * the version before an update is kept, to go back to it.
  *
  * The package follows the minor versions of Exment: Exment 7.2 requires
- * exceedone/exment-official-plugins ~7.2.0 (its releases fit 7.2).
+ * exceedone/exment-plugins-release ~7.2.0 (its releases fit 7.2).
  *
  * A site run by its provider (a SaaS) may keep the versions to itself:
  * EXMENT_BUNDLED_PLUGINS_UPDATES=false hides "use this version" and "back to
@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class BundledPlugins
 {
-    public const PACKAGE = 'exceedone/exment-official-plugins';
+    public const PACKAGE = 'exceedone/exment-plugins-release';
 
     /** The versions kept to go back to (on the admin disk). */
     public const PREVIOUS_DIR = 'plugin_distribution/previous';

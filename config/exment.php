@@ -588,7 +588,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | bundled_plugins_path: the folder of the signed releases of the free
-    | official plugins (default: "releases" of exceedone/exment-official-plugins).
+    | official plugins (default: "releases" of exceedone/exment-plugins-release).
     | site_id: the id of the site, when it is given from outside (a SaaS: the
     | uuid of the tenant). Without it, the one made once by Exment is used.
     |
