@@ -89,6 +89,9 @@ class LineWebhookController extends Controller
                     $msg = exmtrans('line.link_invalid_code');
                 } elseif ($alreadyLinked && $safetyUsed && \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::attachComment($userId, $text)) {
                     $msg = exmtrans('safety.comment_added');
+                } elseif ($alreadyLinked && !$safetyUsed) {
+                    // a free text is a comment of the safety check: say it is not in use
+                    $msg = exmtrans('safety.not_in_use');
                 } elseif ($alreadyLinked) {
                     $msg = exmtrans('line.invalid_command');
                 } else {

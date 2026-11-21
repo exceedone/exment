@@ -134,6 +134,21 @@ class SafetyCheckFeatureTest extends FeatureTestBase
         $this->assertSame(exmtrans('safety.not_in_use'), $this->lastReplyText());
     }
 
+    public function testALineCommentSaysItIsNotInUse(): void
+    {
+        $this->setFeature(false);
+        $this->setUpLineWebhookMock();
+        $lineUserId = $this->linkUser((int) TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->postWebhook(['events' => [[
+            'type' => 'message',
+            'replyToken' => 'reply-2',
+            'source' => ['userId' => $lineUserId],
+            'message' => ['type' => 'text', 'text' => 'I am at home.'],
+            'webhookEventId' => 'ev-comment-not-in-use',
+        ]]]);
+        $this->assertSame(exmtrans('safety.not_in_use'), $this->lastReplyText());
+    }
+
     public function testTheSettingsSayItIsOff(): void
     {
         $this->setFeature(false);
