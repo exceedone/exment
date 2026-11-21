@@ -548,6 +548,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | the plugins bundled with Exment, the id of the site
+    |--------------------------------------------------------------------------
+    |
+    | bundled_plugins_path: the folder of the signed releases of the free
+    | official plugins (default: "releases" of exceedone/exment-official-plugins).
+    | site_id: the id of the site, when it is given from outside (a SaaS: the
+    | uuid of the tenant). Without it, the one made once by Exment is used.
+    |
+    */
+    'bundled_plugins_path' => env('EXMENT_BUNDLED_PLUGINS_PATH'),
+    'site_id' => env('EXMENT_SITE_ID'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Login throttle
     |--------------------------------------------------------------------------
     |
