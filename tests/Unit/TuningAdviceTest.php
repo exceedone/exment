@@ -14,6 +14,9 @@ use Exceedone\Exment\Services\SystemRequire\Tuning;
  */
 class TuningAdviceTest extends UnitTestBase
 {
+    /**
+     * @return void
+     */
     protected function init()
     {
         $this->initAllTest();
