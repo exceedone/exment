@@ -410,7 +410,7 @@ class ExmentServiceProvider extends ServiceProvider
         );
 
         // maintenance mode: the queue workers wait (a listener of Looping that answers false)
-        $this->app['events']->listen(\Illuminate\Queue\Events\Looping::class, function () {
+        $this->app->make('events')->listen(\Illuminate\Queue\Events\Looping::class, function () {
             return \Exceedone\Exment\Services\MaintenanceMode::stopsQueue() ? false : null;
         });
 
