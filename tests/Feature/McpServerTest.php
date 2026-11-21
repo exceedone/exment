@@ -344,14 +344,15 @@ class McpServerTest extends ApiTestBase
     }
 
     /**
-     * An error before the server (here: the name of the limit, from a setting that is not text) is
-     * also a JSON-RPC error, not a page of Exment.
+     * An error before the server (here: the limit of the calls) is also a JSON-RPC error without
+     * its details, not a page of Exment.
      */
     public function testAnErrorOfTheController(): void
     {
         $key = $this->key();
-        config(['exment.site_id' => ['not text']]);
+        RateLimiter::shouldReceive('tooManyAttempts')->andThrow(new \RuntimeException('secret detail'));
         $response = $this->mcp($key, ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']);
         $response->assertStatus(500)->assertJsonPath('error.code', -32603)->assertJsonPath('error.message', 'Internal error.');
+        $this->assertStringNotContainsString('secret detail', (string)$response->getContent());
     }
 }
