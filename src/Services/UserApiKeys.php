@@ -144,7 +144,7 @@ class UserApiKeys
         $ips = static::parseIps($allowedIps);
 
         $now = Carbon::now();
-        $expiresAt = isset($expiresAt) ? Carbon::instance($expiresAt) : $now->copy()->addDays(static::DEFAULT_DAYS);
+        $expiresAt = isset($expiresAt) ? Carbon::instance($expiresAt) : $now->copy()->addDays(min(static::DEFAULT_DAYS, static::maxDays()));
         if (!$expiresAt->isFuture() || $expiresAt->greaterThan($now->copy()->addDays(static::maxDays()))) {
             throw new \InvalidArgumentException('expires_at');
         }
