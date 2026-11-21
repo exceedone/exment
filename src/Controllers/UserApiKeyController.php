@@ -308,7 +308,8 @@ class UserApiKeyController extends AdminControllerBase
     protected function asksPassword(): bool
     {
         $user = \Exment::user();
-        return isset($user) && $user->login_type == LoginType::PURE && !DemoMode::enabled();
+        // (the login of SSO has a provider: it signs in again instead, see store())
+        return isset($user) && $user->login_type == LoginType::PURE && !UserApiKeys::isSsoLogin($user) && !DemoMode::enabled();
     }
 
     /**
