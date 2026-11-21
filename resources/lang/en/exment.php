@@ -4459,7 +4459,7 @@ return [
         'open_feature' => 'Open Feature Management',
         'confirm_update_by_hand' => '":name" is a version installed manually (:installed). Replace it with :version? (Settings, menus and permissions stay. The current version is not kept, so you cannot go back.)',
         'by_hand_help' => 'Installed manually. Once replaced, you cannot go back to it.',
-        'confirm_rollback_unsafe' => 'Going back to :version removes the security fix. Really go back?',
+        'confirm_rollback_unsafe' => 'Going back to :version removes the security fix from ":name". Really go back?',
         'rollback_unsafe_help' => ':version does not include the security fix.',
         'updates_off' => 'The versions are changed by the provider of this site.',
         'error_updates_off' => 'The versions cannot be changed on this site (the provider does it).',

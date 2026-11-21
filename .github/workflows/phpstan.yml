@@ -13,6 +13,11 @@ on:
 env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+  # the versions that passed on master before v7.2.0 (exment-boilerplate#5 raised them in composer.dev.lock). Newer versions report more; update them with their fixes.
+  PHPSTAN_VERSION: 2.2.7
+  LARASTAN_VERSION: 3.10.0
+  # the types of meilisearch-php 1.17 add 3 errors in MeiliSearchService.php
+  MEILISEARCH_VERSION: 1.10.0
 
 jobs:
   phpstan:
@@ -61,6 +66,10 @@ jobs:
       - name: setup phpstan
         working-directory: docker-exment
         run: |
+          # composer reads the versions of the path packages (./exment, ./exment-admin-core) from their git branches
+          git -C exment-boilerplate/exment checkout -B master
+          docker compose -f docker-compose.yml exec -T php git config --global --add safe.directory '*'
+          docker compose -f docker-compose.yml exec -T php composer require --dev --no-interaction --with-all-dependencies "phpstan/phpstan:${{ env.PHPSTAN_VERSION }}" "larastan/larastan:${{ env.LARASTAN_VERSION }}" "meilisearch/meilisearch-php:${{ env.MEILISEARCH_VERSION }}"
           docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan.neon.dist .
           docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan-baseline.neon .
 
