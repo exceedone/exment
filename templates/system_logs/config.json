@@ -311,7 +311,6 @@
     "custom_copies": [],
     "admin_menu": [
         {
-            "order": "12",
             "title": "System Performance Log",
             "icon": "fa-brands fa-blogger",
             "uri": "system_logs",
