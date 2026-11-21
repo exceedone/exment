@@ -53,6 +53,8 @@
 </div>
 <script>
 (function () {
+// CodeMirror comes with the scripts at the end of the page: on a full load, start after them
+function start() {
     var root = document.getElementById('exm-fs-edit');
     if (!root) { return; }
     var Fs = window.ExmFs;
@@ -102,7 +104,12 @@
         var comment = root.querySelector('[data-fs-edit="comment"]');
         saveButton.disabled = true;
         status.textContent = t.saving;
-        Fs.post(url + '/text', { text: text, base_version: version, comment: comment ? comment.value : '' }).then(function (json) {
+        // the text as a file part: its line breaks and its last line break are kept as they are
+        var body = new FormData();
+        body.append('text', new Blob([text], { type: 'text/plain' }), 'text.txt');
+        body.append('base_version', version);
+        body.append('comment', comment ? comment.value : '');
+        Fs.post(url + '/text', body, true).then(function (json) {
             version = String(json.version);
             saved = text;
             status.dataset.no = json.version_no;
@@ -124,5 +131,7 @@
     window.addEventListener('beforeunload', function (e) {
         if (document.body.contains(root) && !readOnly && dirty()) { e.preventDefault(); e.returnValue = ''; }
     });
+}
+if (window.CodeMirror || document.readyState === 'complete') { start(); } else { window.addEventListener('load', start); }
 })();
 </script>

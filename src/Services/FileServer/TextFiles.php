@@ -98,6 +98,8 @@ class TextFiles
     public function save(FileWorkspace $workspace, FileNode $node, string $text, ?int $baseVersion, ?string $comment = null): FileNode
     {
         $this->assertEditable($node);
+        // the permission first: one who may not edit learns nothing of the versions
+        $this->library->access()->authorize($workspace, $node, Level::EDIT);
         if (!mb_check_encoding($text, 'UTF-8')) {
             throw new FileServerException(exmtrans('file_server.error_text_encoding'), 422);
         }

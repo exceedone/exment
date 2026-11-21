@@ -736,9 +736,29 @@ class FileServerController extends AdminControllerBase
             if ($base === null || $base === '') {
                 throw new FileServerException(exmtrans('file_server.error_version_conflict'), 409);
             }
-            $item = (new TextFiles($this->library()))->save($ws, $item, strval($request->input('text', '')), intval($base), $request->input('comment'));
+            $item = (new TextFiles($this->library()))->save($ws, $item, $this->postedText($request), intval($base), $request->input('comment'));
             return ['message' => exmtrans('file_server.version_added'), 'version' => $item->current_version_id, 'version_no' => optional($item->current_version)->version_no];
         });
+    }
+
+    /**
+     * The text the editor sends. It comes as a file part, so that its bytes are
+     * kept as they are: a form field would have its line breaks made CRLF by
+     * the browser and its last line break trimmed by the server.
+     */
+    protected function postedText(Request $request): string
+    {
+        $file = $request->file('text');
+        if ($file instanceof \Illuminate\Http\UploadedFile) {
+            if (!$file->isValid()) {
+                throw new FileServerException(exmtrans('file_server.error_upload'));
+            }
+            if (intval($file->getSize()) > TextFiles::TEXT_EDIT_BYTES) {
+                throw new FileServerException(exmtrans('file_server.error_text_too_large', ['size' => round(TextFiles::TEXT_EDIT_BYTES / 1048576, 1)]), 413);
+            }
+            return strval(file_get_contents(strval($file->getRealPath())));
+        }
+        return strval($request->input('text', ''));
     }
 
     /**

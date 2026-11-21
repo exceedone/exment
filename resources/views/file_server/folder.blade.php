@@ -24,10 +24,10 @@
         @if ($can_upload)
             <button type="button" class="btn btn-sm btn-default" data-fs="new-folder"><i class="fa fa-folder" aria-hidden="true"></i> {{ exmtrans('file_server.new_folder') }}</button>
             <div class="btn-group">
-                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-file-text-o" aria-hidden="true"></i> {{ exmtrans('file_server.new_file') }} <span class="caret"></span></button>
+                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-file-text-o" aria-hidden="true"></i> {{ exmtrans('file_server.new_file') }} <span class="caret"></span></button>
                 <ul class="dropdown-menu">
                     @foreach (\Exceedone\Exment\Services\FileServer\TextFiles::TYPES as $type)
-                        <li><a href="#" data-fs="new-text" data-type="{{ $type }}">{{ exmtrans('file_server.new_text_' . $type) }}</a></li>
+                        <li><a href="#" class="dropdown-item" data-fs="new-text" data-type="{{ $type }}">{{ exmtrans('file_server.new_text_' . $type) }}</a></li>
                     @endforeach
                 </ul>
             </div>

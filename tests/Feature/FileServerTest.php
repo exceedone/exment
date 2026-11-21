@@ -636,6 +636,13 @@ class FileServerTest extends FeatureTestBase
         $this->post($base . '/text', ['text' => str_repeat('a', TextFiles::TEXT_EDIT_BYTES + 1), 'base_version' => $saved['version']], $this->ajax)->assertStatus(413);
         $this->post($base . '/text', ['text' => "\xFF\xFE", 'base_version' => $saved['version']], $this->ajax)->assertStatus(422);
         $this->assertSame(2, $file->refresh()->current_version->version_no);
+
+        // the editor sends the text as a file part: its line breaks and its last line break are kept
+        $this->post($base . '/text', [
+            'text' => UploadedFile::fake()->createWithContent('text.txt', "a\r\nb\n\n"),
+            'base_version' => $saved['version'],
+        ], $this->ajax)->assertOk();
+        $this->assertSame("a\r\nb\n\n", $this->bytes($file));
     }
 
     public function testTheCsvKeepsItsBomAndAFileInAnotherEncodingIsNotEdited(): void
@@ -673,6 +680,8 @@ class FileServerTest extends FeatureTestBase
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $this->get($base . '/edit')->assertOk()->assertSee(exmtrans('file_server.text_read_only'))->assertDontSee('data-fs-edit="save"><i', false);
         $this->post($base . '/text', ['text' => 'x', 'base_version' => $version], $this->ajax)->assertStatus(403);
+        // the permission is checked before the version (not 409)
+        $this->post($base . '/text', ['text' => 'x', 'base_version' => intval($version) + 1000], $this->ajax)->assertStatus(403);
 
         // checked out by the administrator: the editor reads it only, and cannot save
         $this->admin()->checkout($ws, $file->refresh());
