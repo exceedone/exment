@@ -358,4 +358,49 @@ class UserApiKeyPageTest extends FeatureTestBase
             System::clearRequestSession();
         }
     }
+
+    /**
+     * The link of the mail is on the URL of the site, not the host of the request; a name with
+     * ${...} is not replaced in the mail.
+     */
+    public function testTheMailLinkAndName(): void
+    {
+        config(['app.url' => 'https://exment.example.invalid']);
+        \Illuminate\Http\Request::setTrustedProxies(['*'], \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST);
+        try {
+            $this->withHeaders(['X-Forwarded-Host' => 'evil.example.invalid'])->get(admin_url('auth/setting'));
+            [$key] = UserApiKeys::create($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'name ${system.site_name} x', UserApiKeys::readOnlyScopes());
+            $sender = UserApiKeys::mailCreated($key, '192.0.2.1');
+            $this->assertNotNull($sender);
+            $body = (string)$sender->getBody();
+            $this->assertStringContainsString('https://exment.example.invalid/', $body);
+            $this->assertStringNotContainsString('evil.example.invalid', $body);
+            $this->assertStringContainsString('$ {system.site_name}', $body);
+            $this->assertStringStartsWith('https://exment.example.invalid/', UserApiKeys::keysPageUrl());
+        } finally {
+            \Illuminate\Http\Request::setTrustedProxies([], \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR);
+        }
+    }
+
+    /**
+     * A sign-in to the pages (the login form; the OAuth and SAML pages sign in through the same
+     * guard, SessionGuard::attempt) remembers when, for the users of SSO.
+     */
+    public function testASignInIsRemembered(): void
+    {
+        app('auth')->forgetGuards();
+        $this->flushSession();
+        $this->post(admin_url('auth/login'), ['username' => 'user1', 'password' => 'user1user1'])->assertRedirect();
+        $this->assertIsInt(session(UserApiKeys::SESSION_SIGNED_IN_AT));
+        $this->assertTrue(UserApiKeys::signedInRecently());
+
+        // the guard of the pages directly (what the SSO controllers call in the end)
+        $this->flushSession();
+        \Auth::guard('admin')->login(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $this->assertTrue(UserApiKeys::signedInRecently());
+        // not the API
+        $this->flushSession();
+        \Auth::guard('adminapi')->setUser(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $this->assertFalse(UserApiKeys::signedInRecently());
+    }
 }

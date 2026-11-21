@@ -546,10 +546,11 @@ class UserApiKeys
     public static function mailCreated(UserApiKey $key, ?string $ip)
     {
         return static::mail($key->user_id, exmtrans('api_key.mail.created_subject'), exmtrans('api_key.mail.created_body', [
-            'name' => $key->name,
+            // the mail replaces ${...} in its body: not from the name a user wrote
+            'name' => str_replace('${', '$ {', $key->name),
             'expires_at' => $key->expires_at->format('Y-m-d H:i'),
             'ip' => $ip ?? '-',
-            'url' => admin_url('auth/api_keys'),
+            'url' => static::keysPageUrl(),
         ]));
     }
 
@@ -565,8 +566,21 @@ class UserApiKeys
         }
         return static::mail($userId, exmtrans('api_key.mail.revoked_subject'), exmtrans('api_key.mail.revoked_body', [
             'count' => $count,
-            'url' => admin_url('auth/api_keys'),
+            'url' => static::keysPageUrl(),
         ]));
+    }
+
+    /**
+     * The page of the keys, on the URL of the site (APP_URL), not the host of the request (a
+     * proxy trusted for all may let a client write it).
+     */
+    public static function keysPageUrl(): string
+    {
+        $base = rtrim(strval(config('app.url')), '/');
+        if ($base === '') {
+            return admin_url('auth/api_keys');
+        }
+        return url_join($base, trim(strval(config('admin.route.prefix')), '/'), 'auth/api_keys');
     }
 
     /**
