@@ -176,21 +176,27 @@ function start() {
                 try { document.execCommand('copy'); done(); } catch (ex) { prompt('', text); }
             }
         } else if (action === 'reload') {
-            if (dirty() && !confirm(t.leave)) { return; }
-            saved = value();
-            location.reload();
+            // the dialogs of the file server when there are (Fs.confirm, Fs.ask), else those of the browser
+            var sure = !dirty() ? Promise.resolve(true) : (Fs.confirm ? Fs.confirm(t.leave) : Promise.resolve(confirm(t.leave)));
+            sure.then(function (ok) {
+                if (!ok) { return; }
+                saved = value();
+                location.reload();
+            });
         } else if (action === 'save-as') {
             var name = root.dataset.name;
             var dot = name.lastIndexOf('.');
             var type = dot > 0 ? name.substring(dot + 1).toLowerCase() : 'txt';
-            var newName = prompt(t.save_as_prompt, (dot > 0 ? name.substring(0, dot) : name) + ' (2)');
-            if (!newName) { return; }
+            var suggested = (dot > 0 ? name.substring(0, dot) : name) + ' (2)';
             var text2 = value();
-            Fs.post(root.dataset.newUrl, { parent_id: root.dataset.parent || '', name: newName, type: type }).then(function (json) {
-                var nodeUrl = json.redirect.replace(/\/edit$/, '');
-                return postText(nodeUrl, text2, json.version, '').then(function () {
-                    saved = value();
-                    location.href = json.redirect;
+            (Fs.ask ? Fs.ask(t.save_as_prompt, suggested) : Promise.resolve(prompt(t.save_as_prompt, suggested))).then(function (newName) {
+                if (!newName) { return; }
+                return Fs.post(root.dataset.newUrl, { parent_id: root.dataset.parent || '', name: newName, type: type }).then(function (json) {
+                    var nodeUrl = json.redirect.replace(/\/edit$/, '');
+                    return postText(nodeUrl, text2, json.version, '').then(function () {
+                        saved = value();
+                        location.href = json.redirect;
+                    });
                 });
             }).catch(Fs.fail);
         }
