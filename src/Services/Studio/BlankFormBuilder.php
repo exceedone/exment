@@ -306,39 +306,9 @@ class BlankFormBuilder
             $errors['fields'] = sprintf(exmtrans('studio.error.too_many_fields'), static::MAX_FIELDS);
         }
 
-        $reserved = array_map('strtolower', SystemColumn::arrays());
         $seen = [];
         foreach ($screen['fields'] as $index => $field) {
-            $key = "fields.{$index}";
-            if (!array_key_exists($field['type'], static::FIELD_TYPES)) {
-                $errors["{$key}.type"] = exmtrans('studio.error.field_type');
-            }
-            if ($field['label'] === '') {
-                $errors["{$key}.label"] = exmtrans('studio.error.required');
-            } elseif (mb_strlen($field['label']) > static::MAX_VIEW_NAME_LENGTH) {
-                $errors["{$key}.label"] = sprintf(exmtrans('common.help.max_length'), static::MAX_VIEW_NAME_LENGTH);
-            }
-
-            $name = $field['column_name'];
-            if (!preg_match($regex, $name) || strlen($name) > static::MAX_NAME_LENGTH) {
-                $errors["{$key}.column_name"] = exmtrans('studio.error.name_format');
-            } elseif (in_array(strtolower($name), $reserved, true)) {
-                $errors["{$key}.column_name"] = exmtrans('studio.error.column_name_reserved');
-            } elseif (isset($seen[strtolower($name)])) {
-                $errors["{$key}.column_name"] = exmtrans('studio.error.column_name_used');
-            }
-            $seen[strtolower($name)] = true;
-
-            if (array_get(static::FIELD_TYPES, $field['type'] . '.choices') && $field['choices'] === '') {
-                $errors["{$key}.choices"] = exmtrans('studio.error.no_choice');
-            }
-            if (array_get(static::FIELD_TYPES, $field['type'] . '.target')
-                && (!isset($field['target_table']) || !CustomTable::where('id', $field['target_table'])->where('showlist_flg', true)->exists())) {
-                $errors["{$key}.target_table"] = exmtrans('studio.error.target_table');
-            }
-            if (isset($field['formula_error'])) {
-                $errors["{$key}.formula"] = exmtrans('studio.error.' . $field['formula_error']);
-            }
+            $errors += static::validateField($field, "fields.{$index}", $seen);
         }
         if (isset($screen['layout'])) {
             $errors += ScreenLayout::validate($screen['layout']);
@@ -349,6 +319,96 @@ class BlankFormBuilder
             }, $screen['fields']));
         }
         return $errors;
+    }
+
+    /**
+     * The mistakes of one new item, by "<key>.label" and so on.
+     *
+     * @param array<string, mixed> $field a normalized item
+     * @param array<string, bool> $seen the column names (lower case) taken already; this one is added
+     * @return array<string, string>
+     */
+    public static function validateField(array $field, string $key, array &$seen): array
+    {
+        $errors = [];
+        $regex = '/' . Define::RULES_REGEX_SYSTEM_NAME . '/';
+        $reserved = array_map('strtolower', SystemColumn::arrays());
+
+        if (!array_key_exists($field['type'], static::FIELD_TYPES)) {
+            $errors["{$key}.type"] = exmtrans('studio.error.field_type');
+        }
+        if ($field['label'] === '') {
+            $errors["{$key}.label"] = exmtrans('studio.error.required');
+        } elseif (mb_strlen($field['label']) > static::MAX_VIEW_NAME_LENGTH) {
+            $errors["{$key}.label"] = sprintf(exmtrans('common.help.max_length'), static::MAX_VIEW_NAME_LENGTH);
+        }
+
+        $name = strval($field['column_name']);
+        if (!preg_match($regex, $name) || strlen($name) > static::MAX_NAME_LENGTH) {
+            $errors["{$key}.column_name"] = exmtrans('studio.error.name_format');
+        } elseif (in_array(strtolower($name), $reserved, true)) {
+            $errors["{$key}.column_name"] = exmtrans('studio.error.column_name_reserved');
+        } elseif (isset($seen[strtolower($name)])) {
+            $errors["{$key}.column_name"] = exmtrans('studio.error.column_name_used');
+        }
+        $seen[strtolower($name)] = true;
+
+        if (array_get(static::FIELD_TYPES, $field['type'] . '.choices') && $field['choices'] === '') {
+            $errors["{$key}.choices"] = exmtrans('studio.error.no_choice');
+        }
+        if (array_get(static::FIELD_TYPES, $field['type'] . '.target')
+            && (!isset($field['target_table']) || !CustomTable::where('id', $field['target_table'])->where('showlist_flg', true)->exists())) {
+            $errors["{$key}.target_table"] = exmtrans('studio.error.target_table');
+        }
+        if (isset($field['formula_error'])) {
+            $errors["{$key}.formula"] = exmtrans('studio.error.' . $field['formula_error']);
+        }
+        return $errors;
+    }
+
+    /**
+     * Make the column of one new item.
+     *
+     * @param array<string, mixed> $field a normalized item validate() found no mistake in
+     * @param bool $isLabel whether the column names the data in lists and links
+     */
+    public static function makeColumn(CustomTable $table, array $field, int $order, bool $isLabel): CustomColumn
+    {
+        $column = new CustomColumn();
+        $column->custom_table_id = $table->id;
+        $column->column_name = $field['column_name'];
+        $column->column_view_name = $field['label'];
+        // a calculated item is a decimal with a formula
+        $column->column_type = $field['type'] === static::CALC ? ColumnType::DECIMAL : $field['type'];
+        $column->order = $order;
+        $options = [
+            'required' => $field['required'] ? '1' : '0',
+            'use_label_flg' => $isLabel ? '1' : '0',
+        ];
+        if ($field['type'] === ColumnType::SELECT) {
+            $options['select_item'] = $field['choices'];
+        }
+        if ($field['type'] === ColumnType::FILE) {
+            $options['multiple_enabled'] = '0';
+        }
+        if ($field['type'] === ColumnType::SELECT_TABLE) {
+            $options['select_target_table'] = strval($field['target_table'] ?? '');
+        }
+        if ($field['type'] === ColumnType::CURRENCY) {
+            $options['currency_symbol'] = 'JPY1';
+            $options['decimal_digit'] = '0';
+        }
+        if ($field['type'] === static::CALC) {
+            $options['calc_formula'] = strval($field['calc_formula'] ?? '');
+            $options['decimal_digit'] = '2';
+        }
+        if ($field['type'] === ColumnType::AUTO_NUMBER) {
+            $options['auto_number_type'] = 'format';
+            $options['auto_number_format'] = static::AUTO_NUMBER_FORMAT;
+        }
+        $column->setOption($options);
+        $column->save();
+        return $column;
     }
 
     /**
@@ -384,41 +444,8 @@ class BlankFormBuilder
             $table->createTable();
 
             foreach ($screen['fields'] as $index => $field) {
-                $column = new CustomColumn();
-                $column->custom_table_id = $table->id;
-                $column->column_name = $field['column_name'];
-                $column->column_view_name = $field['label'];
-                // a calculated item is a decimal with a formula
-                $column->column_type = $field['type'] === static::CALC ? ColumnType::DECIMAL : $field['type'];
-                $column->order = $index + 1;
-                $options = [
-                    'required' => $field['required'] ? '1' : '0',
-                    // the first item names the data in lists and links, like the title of a kintone record
-                    'use_label_flg' => $index === 0 ? '1' : '0',
-                ];
-                if ($field['type'] === ColumnType::SELECT) {
-                    $options['select_item'] = $field['choices'];
-                }
-                if ($field['type'] === ColumnType::FILE) {
-                    $options['multiple_enabled'] = '0';
-                }
-                if ($field['type'] === ColumnType::SELECT_TABLE) {
-                    $options['select_target_table'] = strval($field['target_table'] ?? '');
-                }
-                if ($field['type'] === ColumnType::CURRENCY) {
-                    $options['currency_symbol'] = 'JPY1';
-                    $options['decimal_digit'] = '0';
-                }
-                if ($field['type'] === static::CALC) {
-                    $options['calc_formula'] = strval($field['calc_formula'] ?? '');
-                    $options['decimal_digit'] = '2';
-                }
-                if ($field['type'] === ColumnType::AUTO_NUMBER) {
-                    $options['auto_number_type'] = 'format';
-                    $options['auto_number_format'] = static::AUTO_NUMBER_FORMAT;
-                }
-                $column->setOption($options);
-                $column->save();
+                // the first item names the data in lists and links, like the title of a kintone record
+                static::makeColumn($table, $field, $index + 1, $index === 0);
             }
 
             if (isset($screen['menu_parent_id'])) {
@@ -516,7 +543,7 @@ class BlankFormBuilder
      *
      * @param array<string, bool> $used
      */
-    protected static function columnNameFrom(string $label, int $no, array $used): string
+    public static function columnNameFrom(string $label, int $no, array $used): string
     {
         $slug = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '_', $label) ?? '', '_'));
         $name = preg_match('/^[a-z][a-z0-9_]{0,29}$/', $slug) ? $slug : "field_{$no}";

@@ -31,10 +31,10 @@
                     @php
                         $screens = [];
                         foreach ($table['forms'] ?? [] as $form) {
-                            $screens[] = ['name' => $form['name'], 'type' => exmtrans('studio.type_form'), 'icon' => 'fa-pencil-square-o', 'default' => $form['default'], 'edit_url' => $form['edit_url'], 'open_url' => null, 'copy_url' => $form['copy_url']];
+                            $screens[] = ['name' => $form['name'], 'type' => exmtrans('studio.type_form'), 'icon' => 'fa-pencil-square-o', 'default' => $form['default'], 'edit_url' => $form['edit_url'], 'setting_url' => $form['setting_url'] ?? null, 'open_url' => null, 'copy_url' => $form['copy_url']];
                         }
                         foreach ($table['views'] ?? [] as $view) {
-                            $screens[] = ['name' => $view['name'], 'type' => $view['kind'], 'icon' => 'fa-th-list', 'default' => $view['default'], 'edit_url' => $view['edit_url'], 'open_url' => $view['open_url'], 'copy_url' => $view['copy_url']];
+                            $screens[] = ['name' => $view['name'], 'type' => $view['kind'], 'icon' => 'fa-th-list', 'default' => $view['default'], 'edit_url' => $view['edit_url'], 'setting_url' => null, 'open_url' => $view['open_url'], 'copy_url' => $view['copy_url']];
                         }
                         $search = mb_strtolower($table['table_view_name'] . ' ' . $table['table_name'] . ' ' . implode(' ', array_column($screens, 'name')));
                         $span = max(1, count($screens));
@@ -80,6 +80,9 @@
                                             <a href="{{ $screen['open_url'] }}" title="{{ exmtrans('studio.open') }}"><i class="fa fa-external-link" aria-hidden="true"></i><span class="sr-only">{{ exmtrans('studio.open') }}</span></a>
                                         @endif
                                         <a href="{{ $screen['edit_url'] }}" title="{{ exmtrans('studio.edit') }}"><i class="fa fa-pencil" aria-hidden="true"></i><span class="sr-only">{{ exmtrans('studio.edit') }}</span></a>
+                                        @if ($screen['setting_url'])
+                                            <a href="{{ $screen['setting_url'] }}" title="{{ exmtrans('studio.form_setting') }}"><i class="fa fa-cog" aria-hidden="true"></i><span class="sr-only">{{ exmtrans('studio.form_setting') }}</span></a>
+                                        @endif
                                         @if ($screen['copy_url'])
                                             <a href="{{ $screen['copy_url'] }}" title="{{ exmtrans('studio.copy') }}"><i class="fa fa-copy" aria-hidden="true"></i><span class="sr-only">{{ exmtrans('studio.copy') }}</span></a>
                                         @endif

@@ -5,10 +5,12 @@ namespace Exceedone\Exment\Controllers;
 use ExmentAdminCore\Admin\Auth\Permission as Checker;
 use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Studio\BlankFormBuilder;
@@ -16,6 +18,7 @@ use Exceedone\Exment\Services\Studio\ExistingTableFormBuilder;
 use Exceedone\Exment\Services\Studio\RelationDiagram;
 use Exceedone\Exment\Services\Studio\ScreenAction;
 use Exceedone\Exment\Services\Studio\ScreenChildren;
+use Exceedone\Exment\Services\Studio\ScreenEditor;
 use Exceedone\Exment\Services\Studio\ScreenLayout;
 use Exceedone\Exment\Services\Studio\ScreenList;
 use Exceedone\Exment\Services\Studio\SheetImporter;
@@ -37,6 +40,7 @@ class StudioController extends AdminControllerBase
 {
     public const MODE_NEW = 'new';
     public const MODE_EXISTING = 'existing';
+    public const MODE_EDIT = 'edit';
 
     /** The session key of the Excel or CSV file read for the builder. */
     public const SHEET_SESSION_KEY = 'studio_sheet';
@@ -109,15 +113,31 @@ class StudioController extends AdminControllerBase
 
         $this->setPageInfo(exmtrans('studio.header'), exmtrans('studio.create_header'), exmtrans('studio.create_description'), 'fa-th-large');
         $this->AdminContent($content);
-        $content->row(view('exment::studio.create', [
+        $content->row(view('exment::studio.create', $this->builderData($request, [
             'mode' => $mode,
             'can_new' => $canNew,
+            'action' => admin_urls('studio'),
+            'screen' => $screen,
+        ])));
+        return $content;
+    }
+
+    /**
+     * What the builder page is drawn with; $data gives the way (mode), the screen and where it is saved.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    protected function builderData(Request $request, array $data): array
+    {
+        $old = $request->old();
+        $hasOld = is_array($old) && array_key_exists('fields', $old);
+        return $data + [
+            'edit' => null,
             'existing_tables' => ExistingTableFormBuilder::tables(),
             'palette' => BlankFormBuilder::palette(),
             'menu_parents' => Menu::where('menu_type', MenuType::PARENT_NODE)->orderBy('order')->get(['id', 'title'])->toArray(),
-            'action' => admin_urls('studio'),
             'back_url' => admin_url('studio'),
-            'screen' => $screen,
             'errors_by_key' => session('studio_errors', []),
             'max_fields' => BlankFormBuilder::MAX_FIELDS,
             'sheet_url' => admin_urls('studio', 'sheet'),
@@ -129,8 +149,90 @@ class StudioController extends AdminControllerBase
             'old_actions' => $hasOld ? ScreenAction::normalize(array_get($old, 'actions')) : [],
             'max_actions' => ScreenAction::MAX_ACTIONS,
             'action_types' => ScreenAction::TARGET_TYPES,
-        ]));
+        ];
+    }
+
+    /**
+     * The form of a screen, when the login user may change it in the builder.
+     */
+    protected function editableForm(string $id): ?CustomForm
+    {
+        $form = CustomForm::find($id);
+        return $form instanceof CustomForm && ScreenEditor::available($form) ? $form : null;
+    }
+
+    /**
+     * Change a screen in the builder it was made in (ScreenEditor).
+     *
+     * @param string|int $id the id of the form
+     * @return Content|\Symfony\Component\HttpFoundation\Response
+     */
+    public function edit(Request $request, Content $content, $id)
+    {
+        $form = $this->editableForm(strval($id));
+        if ($form === null) {
+            Checker::error();
+            return response('');
+        }
+        $table = $form->custom_table;
+        $old = $request->old();
+        $screen = is_array($old) && array_key_exists('fields', $old) ? ScreenEditor::normalize($form, $old) : ScreenEditor::load($form);
+        $screen['table_id'] = intval($table->id);
+
+        $this->setPageInfo(exmtrans('studio.header'), exmtrans('studio.edit_header'), sprintf(exmtrans('studio.edit_description'), $table->table_view_name), 'fa-th-large');
+        $this->AdminContent($content);
+        $content->row(view('exment::studio.create', $this->builderData($request, [
+            'mode' => static::MODE_EDIT,
+            'can_new' => false,
+            'action' => admin_urls('studio', 'screens', $form->id),
+            'screen' => $screen,
+            'edit' => [
+                'table_view_name' => strval($table->table_view_name),
+                'can_add_columns' => ScreenEditor::canAddColumns($form),
+                'new_types' => ScreenEditor::newTypes(),
+                'adjusted' => $screen['adjusted'],
+                'form_url' => admin_urls('form', $table->table_name, $form->id, 'edit'),
+                'data_url' => admin_urls('data', $table->table_name, 'create?formid=' . $form->suuid),
+                'has_details' => $form->custom_form_blocks()->where('form_block_type', '<>', FormBlockType::DEFAULT)->where('available', true)->exists(),
+            ],
+        ])));
         return $content;
+    }
+
+    /**
+     * Save a screen changed in the builder.
+     *
+     * @param string|int $id the id of the form
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function update(Request $request, $id)
+    {
+        $form = $this->editableForm(strval($id));
+        if ($form === null) {
+            Checker::error();
+            return response('');
+        }
+        $screen = ScreenEditor::normalize($form, $request->only(['table_view_name', 'fields', 'layout']));
+        $errors = ScreenEditor::validate($form, $screen);
+        $actions = ScreenAction::normalize($request->input('actions'));
+        if (count($actions) > 0) {
+            if (!ScreenEditor::canAddColumns($form)) {
+                $errors['actions'] = exmtrans('studio.error.action_permission');
+            } else {
+                $errors += ScreenAction::validate($actions, ScreenEditor::targetsOf($screen['fields']));
+            }
+        }
+        if (count($errors) > 0) {
+            admin_toastr(exmtrans('studio.error.check_input'), 'error');
+            return back()->withInput()->with('studio_errors', $errors);
+        }
+
+        $columnIds = ScreenEditor::save($form, $screen);
+        if (count($actions) > 0) {
+            ScreenAction::build($form->custom_table, $columnIds, $actions);
+        }
+        admin_toastr(sprintf(exmtrans('studio.saved_form'), $screen['table_view_name']));
+        return redirect()->to(admin_urls('studio', 'screens', $form->id, 'edit'));
     }
 
     /**
