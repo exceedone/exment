@@ -83,8 +83,14 @@ class MaintenanceMode
      */
     public static function operator(): ?array
     {
-        $path = static::operatorFile();
-        if ($path === '' || !is_file($path)) {
+        $path = null;
+        foreach (static::operatorFiles() as $file) {
+            if (is_file($file)) {
+                $path = $file;
+                break;
+            }
+        }
+        if (!isset($path)) {
             return null;
         }
         $raw = json_decode(strval(@file_get_contents($path)), true);
@@ -92,6 +98,7 @@ class MaintenanceMode
         $raw = is_array($raw) ? $raw : [];
         $value = static::normalize(['active' => true] + $raw);
         $value['allow_admins'] = boolval(array_get($raw, 'allow_admins', false));
+        $value['file'] = $path;
         // the operator's stops everything but the allowed IP addresses
         $value['api'] = static::API_STOP;
         $value['stop_public'] = true;
@@ -100,13 +107,26 @@ class MaintenanceMode
         return $value;
     }
 
+    /**
+     * The files of the operator's maintenance, the first that is there counts
+     * (config "exment.maintenance_operator_file": a comma list, as one file
+     * of the site and one of all the sites of a server).
+     *
+     * @return string[]
+     */
+    public static function operatorFiles(): array
+    {
+        $value = config('exment.maintenance_operator_file');
+        $files = is_string($value) ? array_values(array_filter(array_map('trim', explode(',', $value)))) : [];
+        return count($files) > 0 ? $files : [storage_path('framework/exment-maintenance.json')];
+    }
+
+    /**
+     * The file the command writes and removes (the first one).
+     */
     public static function operatorFile(): string
     {
-        $path = config('exment.maintenance_operator_file');
-        if (is_string($path) && $path !== '') {
-            return $path;
-        }
-        return storage_path('framework/exment-maintenance.json');
+        return static::operatorFiles()[0];
     }
 
     /**

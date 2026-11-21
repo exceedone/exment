@@ -301,6 +301,32 @@ class MaintenanceModeTest extends FeatureTestBase
         $this->assertTrue($this->logged('operator_end'));
     }
 
+    public function testAFileOfAllTheSites(): void
+    {
+        $all = storage_path('framework/exment-maintenance-all-' . getmypid() . '.json');
+        config(['exment.maintenance_operator_file' => $this->operatorFile . ',' . $all]);
+        try {
+            $this->assertNull(MaintenanceMode::current());
+            file_put_contents($all, json_encode(['messages' => ['en' => 'All sites']]));
+            $state = $this->state();
+            $this->assertSame(MaintenanceMode::SOURCE_OPERATOR, $state['source']);
+            $this->assertSame($all, $state['file']);
+            $this->assertSame('All sites', MaintenanceMode::message($state));
+            // the site's own file first
+            file_put_contents($this->operatorFile, json_encode(['messages' => ['en' => 'This site']]));
+            $this->assertSame('This site', MaintenanceMode::message($this->state()));
+            // a file that cannot be read is still a maintenance (the safe side)
+            file_put_contents($this->operatorFile, '{not json');
+            $this->assertSame(MaintenanceMode::SOURCE_OPERATOR, $this->state()['source']);
+            // the command removes only the first
+            Artisan::call('exment:maintenance', ['action' => 'off', '--operator' => true]);
+            $this->assertFileDoesNotExist($this->operatorFile);
+            $this->assertSame($all, $this->state()['file']);
+        } finally {
+            @unlink($all);
+        }
+    }
+
     public function testTheCommand(): void
     {
         $this->useFeature(false);

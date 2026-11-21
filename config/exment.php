@@ -591,7 +591,10 @@ return [
     |
     | The file of the operator's maintenance (`php artisan exment:maintenance
     | on --operator`). The screens of the site cannot change it. Empty:
-    | storage/framework/exment-maintenance.json.
+    | storage/framework/exment-maintenance.json. A comma list is read in
+    | order (as a file of the site, then one of all the sites of the server);
+    | the command writes the first. Keep them where only the server's
+    | operator may write.
     |
     */
     'maintenance_operator_file' => env('EXMENT_MAINTENANCE_OPERATOR_FILE', ''),
