@@ -13,7 +13,9 @@ class DiskServiceItem
     /**
      * Construct
      *
-     * @param Filesystem $disk
+     * @param Filesystem|\Closure(): Filesystem $disk  a closure makes the disk when it is first used
+     *        (a cloud disk is made with its client and credentials, which a check of the local copy
+     *        does not need)
      * @param string|null $fileName
      * @param string|null $dirName
      */
@@ -41,10 +43,23 @@ class DiskServiceItem
     /**
      * Storage disk
      *
-     * @var Filesystem disk
+     * @var Filesystem|\Closure(): Filesystem disk, or what makes it
      *
      */
     protected $disk;
+
+    /**
+     * The disk, made now if it was given as a closure.
+     *
+     * @return Filesystem
+     */
+    protected function resolvedDisk()
+    {
+        if ($this->disk instanceof \Closure) {
+            $this->disk = ($this->disk)();
+        }
+        return $this->disk;
+    }
 
 
     // @phpstan-ignore-next-line
@@ -64,8 +79,9 @@ class DiskServiceItem
      */
     protected function initializeDirectory()
     {
-        if (!is_null($this->dirName) && !$this->disk->exists($this->dirName)) {
-            \Exment::makeDirectoryDisk($this->disk, $this->dirName);
+        $disk = $this->resolvedDisk();
+        if (!is_null($this->dirName) && !$disk->exists($this->dirName)) {
+            \Exment::makeDirectoryDisk($disk, $this->dirName);
         }
     }
 
@@ -77,7 +93,7 @@ class DiskServiceItem
     public function disk()
     {
         $this->initializeDirectory();
-        return $this->disk;
+        return $this->resolvedDisk();
     }
 
     /**
@@ -87,7 +103,10 @@ class DiskServiceItem
      */
     public function isDriverLocal()
     {
-        $disk = $this->disk();
+        // the disk itself, not disk(): the kind of a driver needs no directory, and making sure of
+        // one asks a cloud disk (S3) over the network. Every request asked so for each plugin
+        // (PluginDiskService::isNeedDownload), 30-80 ms each on Exment SaaS (ISS00413).
+        $disk = $this->resolvedDisk();
         if (!method_exists($disk, 'getAdapter')) {
             return false;
         }
