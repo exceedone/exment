@@ -31,6 +31,17 @@
                 @if (isset($errors_by_key['table_view_name']))<p class="exm-builder-error">{{ $errors_by_key['table_view_name'] }}</p>@endif
             </div>
 
+            @if ($edit)
+                <div class="exm-builder-edit-info">
+                    <span><i class="fa fa-table" aria-hidden="true"></i> {{ exmtrans('studio.edit_table') }}: <strong>{{ $edit['table_view_name'] }}</strong></span>
+                    <a href="{{ $edit['data_url'] }}" target="_blank" rel="noopener"><i class="fa fa-external-link" aria-hidden="true"></i> {{ exmtrans('studio.edit_open_data') }}</a>
+                    <a href="{{ $edit['form_url'] }}"><i class="fa fa-cog" aria-hidden="true"></i> {{ exmtrans('studio.form_setting') }}</a>
+                </div>
+                <p class="exm-builder-hint">{{ exmtrans('studio.edit_help') }}</p>
+                @if ($edit['adjusted'])<p class="exm-builder-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> {{ exmtrans('studio.edit_adjusted') }}</p>@endif
+                @if ($edit['has_details'])<p class="exm-builder-hint"><i class="fa fa-table" aria-hidden="true"></i> {{ exmtrans('studio.edit_details_kept') }}</p>@endif
+            @endif
+
             <div class="exm-builder-table" data-mode-only="existing">
                 <label for="exm-builder-table-id">{{ exmtrans('studio.target_table') }} <span class="exm-builder-required">*</span></label>
                 <select id="exm-builder-table-id" name="table_id" class="form-control">
@@ -90,15 +101,19 @@
             <div class="box-header with-border">{{ exmtrans('studio.palette') }}</div>
             <div class="box-body">
                 <p class="exm-builder-hint" data-mode-only="new">{{ exmtrans('studio.palette_help') }}</p>
-                <p class="exm-builder-hint" data-mode-only="existing">{{ exmtrans('studio.palette_existing_help') }}</p>
-                <div class="exm-builder-parts" data-mode-only="new">
+                <p class="exm-builder-hint" data-mode-only="existing" data-in-edit>{{ exmtrans('studio.palette_existing_help') }}</p>
+                <div class="exm-builder-parts" id="exm-builder-columns" data-mode-only="existing" data-in-edit></div>
+                @if ($edit && $edit['can_add_columns'])
+                    <p class="exm-builder-hint exm-builder-new-parts-title" data-mode-only="new" data-in-edit>{{ exmtrans('studio.edit_new_parts') }}</p>
+                @endif
+                <div class="exm-builder-parts" data-mode-only="new" @if ($edit && $edit['can_add_columns']) data-in-edit @endif>
                     @foreach ($palette as $part)
+                        @if ($edit && !in_array($part['type'], $edit['new_types'], true)) @continue @endif
                         <button type="button" class="btn btn-default exm-builder-part" draggable="true" data-type="{{ $part['type'] }}">
                             <i class="fa {{ $part['icon'] }}" aria-hidden="true"></i> {{ $part['label'] }}
                         </button>
                     @endforeach
                 </div>
-                <div class="exm-builder-parts" id="exm-builder-columns" data-mode-only="existing"></div>
             </div>
         </div>
 
@@ -120,7 +135,7 @@
                 </div>
 
                 {{-- the buttons of the screen (phase 4, ScreenAction): "Done" sets the status to "done" --}}
-                <div class="exm-builder-buttons" id="exm-builder-buttons-box">
+                <div class="exm-builder-buttons" id="exm-builder-buttons-box" data-in-edit>
                     <div class="exm-builder-children-title"><i class="fa fa-hand-pointer-o" aria-hidden="true"></i> {{ exmtrans('studio.buttons_title') }}</div>
                     <p class="exm-builder-hint">{{ sprintf(exmtrans('studio.buttons_help'), $max_actions) }}</p>
                     @if (isset($errors_by_key['actions']))<p class="exm-builder-error">{{ $errors_by_key['actions'] }}</p>@endif
@@ -134,7 +149,7 @@
     <div class="exm-builder-actions">
         <p class="exm-builder-notice" id="exm-builder-notice" aria-live="polite"></p>
         <a href="{{ $back_url }}" class="btn btn-default">{{ trans('admin.back') }}</a>
-        <button type="submit" class="btn btn-primary">{{ exmtrans('studio.create_submit') }}</button>
+        <button type="submit" class="btn btn-primary">{{ $edit ? exmtrans('studio.save_submit') : exmtrans('studio.create_submit') }}</button>
     </div>
 </form>
 
@@ -150,6 +165,10 @@
 .exm-builder-name label, .exm-builder-detail label, .exm-builder-table label { font-weight: 600; }
 .exm-builder-name input { font-size: 1.1rem; }
 .exm-builder-table { margin-top: 10px; }
+.exm-builder-edit-info { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 10px; }
+.exm-builder-new-parts-title { margin-top: 12px; font-weight: 600; opacity: .8; }
+.exm-builder-kept { background: #f7f8fa; }
+.exm-builder-kept .exm-builder-label-text { font-weight: normal; opacity: .85; }
 .exm-builder-required { color: #dd4b39; }
 .exm-builder-detail { margin-top: 10px; }
 .exm-builder-sheet { margin-top: 12px; padding: 10px 12px; border: 1px dashed #d2d6de; border-radius: 4px; }
@@ -227,7 +246,7 @@
 .exm-builder-buttons { margin-top: 18px; padding-top: 12px; border-top: 1px solid #e3e6ea; }
 .exm-builder-button { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border: 1px solid #d2d6de; border-radius: 4px; padding: 8px 10px; margin: 8px 0; background: #fff; }
 .exm-builder-button .form-control { width: auto; min-width: 0; flex: 1 1 140px; }
-.exm-builder-button select.form-control { height: auto; }
+.exm-builder select.form-control.input-sm { height: auto; }
 .exm-builder-button .exm-builder-button-word { font-size: .85rem; opacity: .8; white-space: nowrap; }
 .exm-builder-button .exm-builder-error { flex: 1 1 100%; }
 .exm-builder-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 24px; }
@@ -318,6 +337,9 @@
         'no_button_target' => exmtrans('studio.no_button_target'),
         'notice_buttons' => exmtrans('studio.notice_buttons'),
         'too_many_buttons' => sprintf(exmtrans('studio.error.too_many_actions'), $max_actions),
+        'kept_help' => exmtrans('studio.kept_help'),
+        'notice_edit' => exmtrans('studio.notice_edit'),
+        'notice_new_columns' => exmtrans('studio.notice_new_columns'),
     ];
 @endphp
 <script>
@@ -337,6 +359,7 @@
     var maxButtons = {{ intval($max_actions) }};
     var buttonTypes = @json($action_types);
     var initialButtons = @json($old_actions);
+    var editing = @json($edit);
     // the details of the screen: [{label, fields: [{type, label, required, choices}]}]
     var children = (@json($old_children) || []).map(function (c) {
         return { label: c.label || '', fields: (c.fields || []).map(function (f) {
@@ -376,11 +399,15 @@
     // an item: {type, label, column_name, required, choices} for a new table, {column_id} for a table that exists,
     // with the row and the column it is in. The list is kept in reading order: row by row,
     // in a row column by column, top to bottom.
+    // A changed screen has the three kinds side by side: a column of the table ({column_id}), a new
+    // part ({type, label...}) and an item kept as it is ({form_column_id, text, icon}: a heading...).
     var fields = (initial || []).map(function (f, i) {
-        var item = mode === 'existing'
+        var item = f.column_id !== undefined && f.column_id !== null
             ? { column_id: f.column_id }
-            : { type: f.type, label: f.label, column_name: f.column_name, required: !!f.required, choices: f.choices || '', source: f.source === undefined ? null : f.source,
-                target_table: f.target_table || null, formula: f.formula || '' };
+            : (f.form_column_id !== undefined && f.form_column_id !== null
+                ? { form_column_id: f.form_column_id, text: f.text || '', icon: f.icon || 'fa-square-o' }
+                : { type: f.type, label: f.label, column_name: f.column_name, required: !!f.required, choices: f.choices || '', source: f.source === undefined ? null : f.source,
+                    target_table: f.target_table || null, formula: f.formula || '' });
         var place = initialLayout && initialLayout.places ? initialLayout.places[i] : null;
         item.row = place && rows[place.row] ? place.row : 0;
         item.col = place && rows[item.row][place.column] !== undefined ? place.column : 0;
@@ -468,16 +495,20 @@
         return el('span', { className: 'exm-builder-tools' }, [up, down, remove]);
     }
 
+    function isColumn(field) { return field.column_id !== undefined; }
+    function isKept(field) { return field.form_column_id !== undefined; }
     function labelOf(field) {
-        if (mode === 'existing') { var c = columnOf(field.column_id); return c ? c.column_view_name : '#' + field.column_id; }
+        if (isColumn(field)) { var c = columnOf(field.column_id); return c ? c.column_view_name : '#' + field.column_id; }
+        if (isKept(field)) { return field.text; }
         return field.label || (types[field.type] || {}).label || '';
     }
     function choicesOf(field) {
-        if (mode !== 'existing' && field.type === 'select') { return field.choices.split('\n').map(function (c) { return c.trim(); }).filter(function (c) { return c !== ''; }); }
+        if (isColumn(field)) { return (columnOf(field.column_id) || {}).choices || []; }
+        if (field.type === 'select') { return field.choices.split('\n').map(function (c) { return c.trim(); }).filter(function (c) { return c !== ''; }); }
         return [];
     }
     function isYesNo(field) {
-        return mode === 'existing' ? (columnOf(field.column_id) || {}).type === 'yesno' : field.type === 'yesno';
+        return isColumn(field) ? (columnOf(field.column_id) || {}).type === 'yesno' : field.type === 'yesno';
     }
 
     // "show this item only when <item> <is / is not / is empty / is not empty> <value>"
@@ -487,7 +518,7 @@
         var target = el('select', { className: 'form-control input-sm', 'aria-label': t.condition });
         target.appendChild(el('option', { value: '', text: t.condition_always }));
         fields.forEach(function (other, i) {
-            if (other === field) { return; }
+            if (other === field || isKept(other)) { return; }
             var option = el('option', { value: String(i), text: labelOf(other) });
             if (cond && cond.target === other) { option.selected = true; }
             target.appendChild(option);
@@ -540,7 +571,7 @@
 
         var label = el('input', { type: 'text', className: 'form-control exm-builder-label', maxlength: '40', placeholder: t.label, 'aria-label': t.label });
         label.value = field.label;
-        label.addEventListener('input', function () { field.label = label.value; });
+        label.addEventListener('input', function () { field.label = label.value; if (mode === 'edit') { renderNotice(); } });
 
         li.appendChild(el('div', { className: 'exm-builder-field-head' }, [
             el('i', { className: 'fa fa-bars exm-builder-grip', 'aria-hidden': 'true' }),
@@ -633,6 +664,20 @@
         return li;
     }
 
+    // an item the builder does not make (a heading, HTML...): moved or taken off, changed on the form setting page
+    function keptItem(field, index) {
+        var li = el('li', { className: 'exm-builder-field exm-builder-kept', draggable: 'true', title: t.kept_help });
+        li.appendChild(el('div', { className: 'exm-builder-field-head' }, [
+            el('i', { className: 'fa fa-bars exm-builder-grip', 'aria-hidden': 'true' }),
+            el('span', { className: 'exm-builder-type' }, [el('i', { className: 'fa ' + field.icon, 'aria-hidden': 'true' })]),
+            el('span', { className: 'exm-builder-label-text', text: field.text }),
+            tools(index),
+        ]));
+        var error = errorOf(field, 'form_column_id');
+        if (error) { li.appendChild(error); }
+        return li;
+    }
+
     function existingItem(field, index) {
         var column = columnOf(field.column_id) || { column_view_name: '#' + field.column_id, type: '', type_label: '', icon: 'fa-question' };
         var li = el('li', { className: 'exm-builder-field', draggable: 'true' });
@@ -708,7 +753,7 @@
         });
 
         fields.forEach(function (field, index) {
-            var li = mode === 'existing' ? existingItem(field, index) : newItem(field, index);
+            var li = isKept(field) ? keptItem(field, index) : (isColumn(field) ? existingItem(field, index) : newItem(field, index));
             li.addEventListener('dragstart', function (e) {
                 if (e.target !== li) { return; }
                 dragFrom = index;
@@ -736,12 +781,13 @@
     var buttonsBox = document.getElementById('exm-builder-buttons');
     var buttonsWrap = document.getElementById('exm-builder-buttons-box');
     function typeOf(field) {
-        return mode === 'existing' ? (columnOf(field.column_id) || {}).type : field.type;
+        if (isKept(field)) { return ''; }
+        return isColumn(field) ? (columnOf(field.column_id) || {}).type : field.type;
     }
     // the values a button may set the item to: null for a value typed in
     function valuesOf(field) {
         if (isYesNo(field)) { return [{ value: '1', text: t.yes }, { value: '0', text: t.no }]; }
-        var list = mode === 'existing' ? ((columnOf(field.column_id) || {}).choices || null) : (field.type === 'select' ? choicesOf(field) : null);
+        var list = isColumn(field) ? ((columnOf(field.column_id) || {}).choices || null) : (field.type === 'select' ? choicesOf(field) : null);
         return list ? list.map(function (c) { return { value: c, text: c }; }) : null;
     }
     function buttonError(bi, name) {
@@ -749,6 +795,7 @@
         return message ? el('p', { className: 'exm-builder-error', text: message }) : null;
     }
     function canButton() {
+        if (mode === 'edit') { return !!editing.can_add_columns; }
         if (mode !== 'existing') { return true; }
         var table = currentTable();
         return !!(table && table.can_button);
@@ -926,7 +973,7 @@
     // the columns of the chosen table, as parts; a column already placed is greyed out
     function renderColumns() {
         columnsBox.innerHTML = '';
-        if (mode !== 'existing') { return; }
+        if (mode !== 'existing' && mode !== 'edit') { return; }
         var table = currentTable();
         if (!table) { return; }
         if (table.columns.length === 0) {
@@ -956,7 +1003,13 @@
     function renderNotice() {
         notice.innerHTML = '';
         var text;
-        if (mode === 'existing') {
+        if (mode === 'edit') {
+            text = t.notice_edit;
+            var newNames = fields.filter(function (f) { return !isColumn(f) && !isKept(f); }).map(function (f) { return t.name_quote.replace('%s', labelOf(f)); });
+            if (newNames.length > 0) {
+                text += t.notice_new_columns.replace('%1$s', editing.table_view_name).replace('%2$s', newNames.join(t.name_separator));
+            }
+        } else if (mode === 'existing') {
             var table = currentTable();
             text = table ? t.notice_existing.replace('%s', table.table_view_name) : t.notice_existing_none;
         } else {
@@ -978,7 +1031,7 @@
         notice.appendChild(document.createTextNode(text));
 
         // the required columns left out are saved empty from this screen: say so
-        if (mode === 'existing' && currentTable()) {
+        if (mode !== 'new' && currentTable()) {
             var placed = {};
             fields.forEach(function (f) { placed[f.column_id] = true; });
             var missing = currentTable().columns.filter(function (c) { return c.required && !placed[c.id]; })
@@ -994,7 +1047,7 @@
 
     function showMode() {
         form.querySelectorAll('[data-mode-only]').forEach(function (node) {
-            node.hidden = node.getAttribute('data-mode-only') !== mode;
+            node.hidden = mode === 'edit' ? !node.hasAttribute('data-in-edit') : node.getAttribute('data-mode-only') !== mode;
         });
     }
 
@@ -1038,8 +1091,8 @@
     function dropAt(e, at) {
         var type = e.dataTransfer.getData('application/x-exm-part');
         var column = e.dataTransfer.getData('application/x-exm-column');
-        if (mode === 'new' && type && types[type]) { add(type, at); }
-        else if (mode === 'existing' && column) { addColumn(parseInt(column, 10), at); }
+        if (mode !== 'existing' && type && types[type]) { add(type, at); }
+        else if (mode !== 'new' && column) { addColumn(parseInt(column, 10), at); }
         else if (dragFrom !== null) { move(dragFrom, at, true); }
         dragFrom = null;
     }
@@ -1049,8 +1102,8 @@
         var cell = { row: r, col: c };
         var type = e.dataTransfer.getData('application/x-exm-part');
         var column = e.dataTransfer.getData('application/x-exm-column');
-        if (mode === 'new' && type && types[type]) { add(type, undefined, cell); }
-        else if (mode === 'existing' && column) { addColumn(parseInt(column, 10), undefined, cell); }
+        if (mode !== 'existing' && type && types[type]) { add(type, undefined, cell); }
+        else if (mode !== 'new' && column) { addColumn(parseInt(column, 10), undefined, cell); }
         else if (dragFrom !== null) {
             var item = fields[dragFrom];
             item.row = r;
@@ -1137,10 +1190,11 @@
 
     form.addEventListener('submit', function () {
         document.getElementById('exm-builder-fields').value = JSON.stringify(fields.map(function (f) {
-            var item = mode === 'existing'
+            var item = isColumn(f)
                 ? { column_id: f.column_id }
-                : { type: f.type, label: f.label, column_name: f.column_name, required: f.required, choices: f.choices, source: f.source,
-                    target_table: f.target_table, formula: f.formula };
+                : (isKept(f) ? { form_column_id: f.form_column_id }
+                    : { type: f.type, label: f.label, column_name: f.column_name, required: f.required, choices: f.choices, source: f.source,
+                        target_table: f.target_table, formula: f.formula });
             item.row = f.row;
             item.column = f.col;
             if (f.cond && fields.indexOf(f.cond.target) !== -1) {
@@ -1149,7 +1203,7 @@
             return item;
         }));
         document.getElementById('exm-builder-layout').value = JSON.stringify(rows.map(function (w) { return { widths: w }; }));
-        document.getElementById('exm-builder-children-input').value = mode === 'existing' ? '[]' : JSON.stringify(children);
+        document.getElementById('exm-builder-children-input').value = mode !== 'new' ? '[]' : JSON.stringify(children);
         document.getElementById('exm-builder-actions-input').value = !canButton() ? '[]' : JSON.stringify(buttons.map(function (b) {
             return { label: b.label, target: b.target ? fields.indexOf(b.target) : null, value: b.value };
         }));
