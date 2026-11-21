@@ -207,8 +207,15 @@ class BundledPluginsTest extends FeatureTestBase
         // a test key is not trusted when it was not given (and never out of the tests)
         ReleaseVerifier::resetTestKeys();
         $this->assertNull(ReleaseVerifier::publicKey(static::TEST_KEY_ID));
-        ReleaseVerifier::trustForTests('release-2026-1', static::TEST_PUBLIC_KEY);
-        $this->assertNull(ReleaseVerifier::publicKey('release-2026-1'), 'a real key name is not taken from the tests');
+        ReleaseVerifier::trustForTests('release-2099-9', static::TEST_PUBLIC_KEY);
+        $this->assertNull(ReleaseVerifier::publicKey('release-2099-9'), 'a real key name is not taken from the tests');
+        // the keys of the releases (ISS00430): two, each a public key of Ed25519
+        foreach (['release-2026-1', 'release-2026-2'] as $keyId) {
+            $key = ReleaseVerifier::publicKey($keyId);
+            $this->assertNotNull($key, $keyId);
+            $this->assertSame(SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES, strlen(strval(base64_decode(strval($key), true))), $keyId);
+            $this->assertNotSame(static::TEST_PUBLIC_KEY, $key, 'not the key of the tests');
+        }
     }
 
     public function testNothingIsInstalledUntilChosen(): void

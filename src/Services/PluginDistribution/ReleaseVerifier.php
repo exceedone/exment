@@ -40,7 +40,10 @@ class ReleaseVerifier
      * @var array<string, string>
      */
     public const TRUSTED_KEYS = [
-        // 'release-2026-1' => '<base64>', (made and kept by snoro; the secret key only in the secrets of the CI)
+        // the secret keys are only on the computer of the person who signs (ISS00419, ISS00430)
+        'release-2026-1' => '1139S0QrS0q0a5azJfCqysobCHwWPWuADLhLdVJj49c=',
+        // the spare: when the first one is lost, the releases are signed with it, without a new Exment
+        'release-2026-2' => '8I+81EvIf3v/pNNFZFoUe65qOzociOpPgSPlDrgEIo4=',
     ];
 
     /**
