@@ -46,6 +46,8 @@ class FileGovernanceTest extends FeatureTestBase
             'exment.file_server_meili' => false,
             'exment.file_server_audit' => true,
             'exment.file_server_notify_mail' => false,
+            // the managers of the tests are not system administrators
+            'exment.file_server_workspace_create' => 'all',
         ]);
     }
 
@@ -112,6 +114,18 @@ class FileGovernanceTest extends FeatureTestBase
     protected function childIds(Library $library, FileWorkspace $ws, ?FileNode $folder): array
     {
         return $library->children($ws, $folder)->pluck('id')->map('intval')->all();
+    }
+
+    public function testWhoMayMakeAWorkspace(): void
+    {
+        $user = new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), false);
+        config(['exment.file_server_workspace_create' => null]);
+        $this->assertFalse($user->canCreateWorkspace(), 'by default, the system administrators only');
+        config(['exment.file_server_workspace_create' => 'admin']);
+        $this->assertFalse($user->canCreateWorkspace());
+        config(['exment.file_server_workspace_create' => 'all']);
+        $this->assertTrue($user->canCreateWorkspace());
+        $this->assertTrue((new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_ADMIN), true))->canCreateWorkspace());
     }
 
     public function testDraftsAreSeenByTheMakerAndTheManagersUntilApproved(): void

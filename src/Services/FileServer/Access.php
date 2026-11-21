@@ -237,7 +237,8 @@ class Access
         if ($this->isSystemAdmin) {
             return true;
         }
-        return config('exment.file_server_workspace_create', 'all') !== 'admin';
+        // the system administrators only, unless the site says "all"
+        return config('exment.file_server_workspace_create', 'admin') === 'all';
     }
 
     /**
