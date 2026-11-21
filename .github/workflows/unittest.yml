@@ -44,6 +44,16 @@ jobs:
           repository: exceedone/exment-admin-core
           path: ./docker-exment/exment-boilerplate/exment-admin-core
 
+      # the free official plugins as released (exceedone/exment-plugins-release):
+      # OfficialReleasesTest checks their signatures and zips. (The lock of
+      # exment-boilerplate does not have the package yet: composer install
+      # leaves it out, so it is checked out here.)
+      - uses: actions/checkout@v4
+        with:
+          repository: exceedone/exment-plugins-release
+          ref: '7.2.0'
+          path: ./docker-exment/exment-boilerplate/exment-plugins-release
+
       - name: Docker Compose Version
         run: docker compose --version
 
@@ -66,4 +76,4 @@ jobs:
       - name: PHPUnit Test
         working-directory: docker-exment
         run: |
-          docker compose -f docker-compose.yml exec -T php composer run exment:test:${{ matrix.test }}
+          docker compose -f docker-compose.yml exec -T -e EXMENT_TEST_OFFICIAL_RELEASES=/var/www/exment/exment-plugins-release/releases php composer run exment:test:${{ matrix.test }}
