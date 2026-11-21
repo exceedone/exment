@@ -754,10 +754,10 @@ class MaintenanceMode
             return false;
         }
         $value = config('exment.maintenance_exempt_paths', '/,/up');
-        $paths = array_values(array_filter(array_map(function ($p) {
+        $paths = array_map(function ($p) {
             return '/' . trim(trim($p), '/');
-        }, explode(',', strval($value))), function ($p) {
-            return $p !== '';
+        }, array_filter(explode(',', strval($value)), function ($p) {
+            return trim($p) !== '';
         }));
         return in_array('/' . trim($request->path(), '/'), $paths, true);
     }
