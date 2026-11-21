@@ -77,6 +77,16 @@ class Features
     protected static ?array $plugins = null;
 
     /**
+     * The definitions (core() + the plugins'), kept until one more is registered.
+     *
+     * @var array<string, array<string, mixed>>|null
+     */
+    protected static ?array $definitions = null;
+
+    /** Whether the classes of the plugin pages were made here (the routes cached). */
+    protected static bool $pluginsBooted = false;
+
+    /**
      * The features of Exment itself (the file server when Exment has it).
      *
      * - endpoints: the first part of the URL after the prefix of the admin
@@ -90,15 +100,15 @@ class Features
         $core = [];
         if (class_exists('\Exceedone\Exment\Services\FileServer\Library')) {
             $core[static::FILE_SERVER] = static::definition([
-                'label' => strval(exmtrans('feature.features.file_server')),
-                'description' => strval(exmtrans('feature.features.file_server_help')),
+                'label' => 'exment::exment.feature.features.file_server',
+                'description' => 'exment::exment.feature.features.file_server_help',
                 'endpoints' => ['file_server'],
                 'menu' => 'file_server',
             ]);
         }
         $core[static::STUDIO] = static::definition([
-            'label' => strval(exmtrans('feature.features.studio')),
-            'description' => strval(exmtrans('feature.features.studio_help')),
+            'label' => 'exment::exment.feature.features.studio',
+            'description' => 'exment::exment.feature.features.studio_help',
             // the phone app (/app, its manifest, service worker and code) is a part of Studio
             'endpoints' => ['studio', 'app'],
             'api' => ['studio'],
@@ -134,6 +144,7 @@ class Features
         }
         $definition['plugin'] = array_get($definition, 'plugin') ?? strtok($key, '.');
         static::$registered[$key] = static::definition($definition);
+        static::$definitions = null;
     }
 
     /**
@@ -168,7 +179,29 @@ class Features
      */
     public static function definitions(): array
     {
-        return static::core() + static::$registered;
+        static::bootPlugins();
+        return static::$definitions ??= static::core() + static::$registered;
+    }
+
+    /**
+     * The plugins register their features when their classes are made: when
+     * the routes are made (PluginServiceProvider::map). With the routes cached
+     * (php artisan route:cache) they are not made there, so they are made
+     * here, once, when the features are first asked for.
+     */
+    protected static function bootPlugins(): void
+    {
+        if (static::$pluginsBooted) {
+            return;
+        }
+        static::$pluginsBooted = true;
+        try {
+            if (app()->routesAreCached() && canConnection() && hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
+                Plugin::getPluginPages();
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -591,5 +624,7 @@ class Features
         static::$registered = [];
         static::$userRoleGroups = [];
         static::$plugins = null;
+        static::$definitions = null;
+        static::$pluginsBooted = false;
     }
 }

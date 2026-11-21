@@ -388,7 +388,7 @@ class FeatureManagementTest extends FeatureTestBase
 
     public function testTheUpdateKeepsWhatTheSiteHad(): void
     {
-        $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_23_000000_add_feature_management.php');
+        $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_23_000001_add_feature_management.php');
         $plugins = $this->pluginState();
         $logTable = config('admin.database.operation_log_table', 'admin_operation_log');
         $prefix = trim(strval(config('admin.route.prefix')), '/');
