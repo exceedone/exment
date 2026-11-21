@@ -334,6 +334,11 @@ class BundledPluginsTest extends FeatureTestBase
             return NotifyNavbar::withoutGlobalScopes()->whereIn('target_user_id', $admins)->count();
         };
         $before = $count();
+        // a short subject (the bell, the mail); the sentence in the body
+        $notice = AdminNotices::pending()['security:' . static::SAMPLE_UUID . ':1.0.1'] ?? null;
+        $this->assertNotNull($notice);
+        $this->assertSame(strval(exmtrans('plugin_distribution.notice_security_subject', ['name' => 'Exment Sign Sample'])), $notice['subject']);
+        $this->assertStringContainsString(strval(exmtrans('plugin_distribution.notice_security', ['name' => 'Exment Sign Sample', 'version' => '1.0.1'])), $notice['body']);
         $this->assertGreaterThanOrEqual(1, AdminNotices::deliver());
         $this->assertGreaterThan($before, $count());
         // once: not told again
@@ -377,7 +382,14 @@ class BundledPluginsTest extends FeatureTestBase
 
         System::clearRequestSession();
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        $this->followingRedirects()->get(admin_url(''))->assertSee($text);
+        $home = $this->followingRedirects()->get(admin_url(''));
+        $home->assertSee($text);
+        // a warning with a short title, not a red error box with the whole sentence as its title
+        $subject = strval(exmtrans('plugin_distribution.notice_security_subject', ['name' => 'Exment Sign Sample']));
+        $home->assertSee($subject);
+        $html = strval($home->getContent());
+        $this->assertMatchesRegularExpression('/alert-warning.{0,400}' . preg_quote(e($subject), '/') . '/s', $html);
+        $this->assertDoesNotMatchRegularExpression('/alert-danger.{0,400}' . preg_quote(e($subject), '/') . '/s', $html);
 
         System::clearRequestSession();
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
@@ -393,10 +405,25 @@ class BundledPluginsTest extends FeatureTestBase
         \Exceedone\Exment\Services\Features::reset();
         \Exceedone\Exment\Services\Features::register('exment_test.new', ['label' => 'Brand New']);
         $this->assertContains('Brand New', AdminNotices::newFeatures());
-        $keys = array_keys(AdminNotices::pending());
-        $this->assertNotEmpty(array_filter($keys, function ($key) {
+        $pending = AdminNotices::pending();
+        $features = array_filter($pending, function ($key) {
             return str_starts_with($key, 'features:');
-        }));
+        }, ARRAY_FILTER_USE_KEY);
+        $this->assertNotEmpty($features);
+        // the bell and the home only, no mail (a mail is for a security fix)
+        foreach ($features as $notice) {
+            $this->assertFalse($notice['mail']);
+        }
+
+        // a site installed with Feature management: the features it had then are not new to it
+        System::features(['_since' => now()->subDay()->toIso8601String(), '_known' => ['exment_test.new']]);
+        System::clearRequestSession();
+        $this->assertNotContains('Brand New', AdminNotices::newFeatures());
+        // a feature that came with a later update is
+        \Exceedone\Exment\Services\Features::reset();
+        \Exceedone\Exment\Services\Features::register('exment_test.new', ['label' => 'Brand New']);
+        \Exceedone\Exment\Services\Features::register('exment_test.later', ['label' => 'Came Later']);
+        $this->assertContains('Came Later', AdminNotices::newFeatures());
         // a new site (no "_since"): not told
         System::features(['studio' => ['enabled' => true, 'role_groups' => null, 'menu' => true]]);
         System::clearRequestSession();

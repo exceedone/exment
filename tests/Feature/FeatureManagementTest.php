@@ -453,7 +453,7 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertTrue(Features::enabled($uri . '.old'));
         $this->assertFalse(Features::enabled($uri . '.new'));
 
-        // the migration of a new site (no menus yet) writes "_since" only
+        // the migration of a new site (no menus yet) writes "_since" and the features it has ("_known": not new to it)
         DB::table('systems')->where('system_name', 'features')->delete();
         $menus = DB::table('admin_menu')->get()->map(function ($row) {
             return (array)$row;
@@ -464,7 +464,9 @@ class FeatureManagementTest extends FeatureTestBase
         System::clearRequestSession();
         Features::reset();
         $settings = Features::settings();
-        $this->assertSame(['_since'], array_keys($settings));
+        $this->assertSame(['_since', '_known'], array_keys($settings));
+        $this->assertSame(array_keys(Features::core()), $settings['_known']);
+        $this->assertSame([], \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures());
         $this->assertFalse(Features::enabled(Features::STUDIO));
     }
 }

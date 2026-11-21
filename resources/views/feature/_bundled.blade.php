@@ -15,7 +15,7 @@
                             <td><strong>{{ $b['label'] }}</strong> <span class="exm-feature-help">{{ $b['name'] }}</span>
                                 @if (!empty($b['security']))
                                     <span class="label label-danger" style="margin-left:4px">{{ exmtrans('plugin_distribution.security_badge') }}</span>
-                                    <p class="text-danger" style="margin:4px 0 0">{{ exmtrans('plugin_distribution.notice_security', ['name' => $b['label'], 'version' => $b['version']]) }}@if (!empty($b['security_note'])) {{ $b['security_note'] }}@endif</p>
+                                    <p class="text-danger" style="margin:4px 0 0">{{ exmtrans('plugin_distribution.notice_security_row') }}@if (!empty($b['security_note'])) {{ $b['security_note'] }}@endif</p>
                                 @endif
                                 @if ($b['description'] !== '')<p class="exm-feature-help">{{ $b['description'] }}</p>@endif
                             </td>
