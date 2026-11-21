@@ -191,6 +191,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                         break;
                     }
                     $row['uri'] = $plugin->getRouteUri();
+                    // its menu turned off (Admin setting → Feature management)
+                    if (\Exceedone\Exment\Services\Features::hidesPluginMenu($plugin->plugin_name)) {
+                        $result = false;
+                    }
                     break;
                 case MenuType::TABLE:
                     if (!isset($row['table_name'])) {
@@ -222,6 +226,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     $row['uri'] = array_get($defines, "uri");
                     // demo mode: the menu of a refused page
                     if (\Exceedone\Exment\Services\DemoMode::hidesMenuUri($row['uri'])) {
+                        $result = false;
+                    }
+                    // a feature not used, or that the user may not use (Admin setting → Feature management)
+                    if (\Exceedone\Exment\Services\Features::hidesSystemMenu(strval($row['menu_target']))) {
                         $result = false;
                     }
                     break;

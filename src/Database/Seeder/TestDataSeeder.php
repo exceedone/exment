@@ -97,6 +97,11 @@ class TestDataSeeder extends Seeder
             'system_admin_users' => [1],
             'api_available' => true,
             'publicform_available' => true,
+            // the test site uses the features that are off on a new site (Services\Features)
+            'features' => [
+                'studio' => ['enabled' => true, 'role_groups' => null, 'menu' => true],
+                'file_server' => ['enabled' => true, 'role_groups' => null, 'menu' => true],
+            ],
         ];
         foreach ($systems as $key => $value) {
             System::{$key}($value);

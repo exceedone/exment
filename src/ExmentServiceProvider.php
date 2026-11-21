@@ -161,6 +161,7 @@ class ExmentServiceProvider extends ServiceProvider
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
         'admin.demo-mode' => \Exceedone\Exment\Middleware\DemoModeGuard::class,
+        'admin.feature' => \Exceedone\Exment\Middleware\FeatureGuard::class,
     ];
 
     /**
@@ -189,6 +190,8 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.permission',
             'admin.session',
             'admin.demo-mode',
+            // the features not used (Admin setting → Feature management)
+            'admin.feature',
         ],
         // Exment not login web page. (Ex. login, forget password)
         'admin_anonymous' => [
@@ -245,6 +248,7 @@ class ExmentServiceProvider extends ServiceProvider
             //　↓
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             'admin.demo-mode',
+            'admin.feature',
         ],
         // Exment Plugin API
         'pluginapi' => [

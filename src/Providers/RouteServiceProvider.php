@@ -170,6 +170,8 @@ class RouteServiceProvider extends ServiceProvider
             $this->setResouce($router, 'cell_style_preset', 'CellStylePresetSettingController');
 
             // Studio: the screens of the site on one page (ISS00231 phase 1)
+            $router->get('feature', 'FeatureController@index');
+            $router->post('feature', 'FeatureController@store');
             $router->get('studio', 'StudioController@index');
             $router->get('studio/create', 'StudioController@create');
             $router->post('studio', 'StudioController@store');
