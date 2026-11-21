@@ -250,6 +250,9 @@ class Permission
                 return true;
             case "assign-jan-code":
                 return true;
+            case "file_server":
+                // every user; the workspaces, folders and files have their own permissions (Services\FileServer\Access)
+                return true;
             case "notify_navbar":
             case "workflow_task":
             case "tmpfiles":
