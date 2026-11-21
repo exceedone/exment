@@ -32,7 +32,8 @@ trait NotifyTrait
     public static function notifyActionsText($val): string
     {
         $blocked = false;
-        $text = collect($val)->map(function ($v) use (&$blocked) {
+        $items = is_array($val) ? $val : [];
+        $text = collect($items)->map(function ($v) use (&$blocked) {
             $url = array_get($v, 'webhook_url');
             if (!is_nullorempty($url) && !WebhookUrlGuard::isAllowed($url)) {
                 $blocked = true;
