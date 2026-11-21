@@ -68,8 +68,12 @@ class AdminNotices
             return [];
         }
         $names = [];
-        foreach (array_keys(Features::definitions()) as $key) {
+        foreach (Features::definitions() as $key => $definition) {
             $key = strval($key);
+            // a feature that is on from the start (as Tuning: "default") is not new to tell of
+            if (!empty($definition['default'])) {
+                continue;
+            }
             if (Features::isNew($key) && !Features::locked($key)) {
                 $names[] = Features::label($key);
             }
