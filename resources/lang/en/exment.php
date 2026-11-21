@@ -3037,6 +3037,10 @@ return [
         'audit_hold' => 'Change legal hold',
         'audit_settings' => 'Change settings',
         'audit_retention_delete' => 'Moved to trash by retention',
+        'error_version_needs_approval' => 'Files in this folder need an approval. Upload it as a new file, not as a new version.',
+        'error_draft_copy_move' => 'A file that waits for its approval cannot be moved or copied until it is approved.',
+        'error_move_held' => 'It is on legal hold, so it cannot be moved.',
+        'error_trash_inner_forbidden_hidden' => 'There is a folder or file in it that you cannot delete.',
     ],
 
     'cell_style_preset' => [

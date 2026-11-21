@@ -227,6 +227,16 @@ class Collaboration
     }
 
     /**
+     * A text a user wrote, for the alerts and the mails (both shown as HTML;
+     * the mails also replace "${...}" with values of the site): escaped, with
+     * no "${".
+     */
+    public static function safeText(string $text): string
+    {
+        return str_replace(['${', '$'], ['&#36;{', '&#36;'], e($text));
+    }
+
+    /**
      * Send the news (the job).
      *
      * @param array<string, mixed> $extra
@@ -249,17 +259,20 @@ class Collaboration
         }
         $url = admin_urls('file_server', $workspace->id, $node->isFolder() ? 'folder' : 'nodes', $node->id);
         $actor = isset($actorId) ? getModelName(SystemTableName::USER)::find($actorId) : null;
+        // the names and the comment are written by users: escaped for the alert
+        // (shown as HTML) and the mail (HTML, and "${...}" is replaced there)
         $prms = [
-            'name' => $node->name,
-            'workspace' => $workspace->name,
-            'user' => isset($actor) ? strval($actor->getLabel()) : exmtrans('file_server.someone'),
+            'name' => static::safeText($node->name),
+            'workspace' => static::safeText($workspace->name),
+            'user' => static::safeText(isset($actor) ? strval($actor->getLabel()) : strval(exmtrans('file_server.someone'))),
         ];
-        $subject = exmtrans('file_server.notify_subject_' . $event, $prms);
-        $body = exmtrans('file_server.notify_body_' . $event, $prms);
+        $subject = strval(exmtrans('file_server.notify_subject_' . $event, $prms));
+        $body = strval(exmtrans('file_server.notify_body_' . $event, $prms));
         if (isset($extra['comment'])) {
-            $body .= "\n\n" . strval($extra['comment']);
+            $body .= "\n\n" . static::safeText(strval($extra['comment']));
         }
-        $body .= "\n\n" . $url;
+        $body .= "\n\n" . e($url);
+        $body = nl2br($body, false);
 
         $count = 0;
         foreach ($users as $userId) {

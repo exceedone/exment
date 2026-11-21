@@ -328,10 +328,11 @@ class Preview
         @mkdir($work, 0777, true);
         $input = $work . DIRECTORY_SEPARATOR . 'input.' . preg_replace('/[^a-z0-9]/', '', $ext);
         copy($local, $input);
-        $cmd = escapeshellarg($soffice) . ' --headless --norestore --convert-to pdf --outdir ' . escapeshellarg($work) . ' ' . escapeshellarg($input)
-            . ' -env:UserInstallation=file://' . str_replace('\\', '/', $work) . '/profile';
+        // a list (no shell between): nothing of the names can be run
+        $command = [$soffice, '--headless', '--norestore', '--convert-to', 'pdf', '--outdir', $work, $input,
+            '-env:UserInstallation=file://' . str_replace('\\', '/', $work) . '/profile'];
         $timeout = intval(config('exment.file_server_soffice_timeout', 120));
-        $process = \Symfony\Component\Process\Process::fromShellCommandline($cmd, $work, ['HOME' => $work]);
+        $process = new \Symfony\Component\Process\Process($command, $work, ['HOME' => $work]);
         $process->setTimeout($timeout);
         $process->run();
         $pdf = $work . DIRECTORY_SEPARATOR . 'input.pdf';

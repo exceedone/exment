@@ -37,7 +37,8 @@ class ShareLinks
     public const DEFAULT_DENIED_EXTENSIONS = 'exe,com,bat,cmd,scr,pif,msi,msp,msix,msixbundle,appx,appxbundle,dll,cpl,sys,drv,ocx,'
         . 'js,jse,mjs,vbs,vbe,wsf,wsh,ps1,psm1,psd1,hta,jar,lnk,url,scf,reg,inf,sh,bash,py,pyw,pl,rb,'
         . 'php,phtml,phar,asp,aspx,jsp,cgi,html,htm,xhtml,shtml,svg,svgz,xml,'
-        . 'iso,img,vhd,vhdx,dmg,docm,dotm,xlsm,xltm,xlam,pptm,potm,ppam,ppsm';
+        . 'iso,img,vhd,vhdx,dmg,docm,dotm,xlsm,xltm,xlam,pptm,potm,ppam,ppsm,'
+        . 'mht,mhtml,chm,hlp,iqy,slk,xll,settingcontent-ms,library-ms,search-ms,application,gadget,msc,cab,appref-ms,website,xbap';
 
     protected Library $library;
 

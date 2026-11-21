@@ -3038,6 +3038,10 @@ return [
         'audit_hold' => '保全の変更',
         'audit_settings' => '設定の変更',
         'audit_retention_delete' => '保持期間でゴミ箱へ',
+        'error_version_needs_approval' => 'このフォルダーに入れるファイルは承認が要ります。新しい版ではなく、新しいファイルとしてアップロードしてください。',
+        'error_draft_copy_move' => '承認を待っているファイルは、承認されるまで、移動もコピーもできません。',
+        'error_move_held' => '保全されているので、移動できません。',
+        'error_trash_inner_forbidden_hidden' => 'この中に、あなたが削除できないフォルダーやファイルがあります。',
     ],
 
     'cell_style_preset' => [

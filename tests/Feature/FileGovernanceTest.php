@@ -148,6 +148,166 @@ class FileGovernanceTest extends FeatureTestBase
         $this->assertNotNull(ShareLinks::resolve($link->token));
     }
 
+    /**
+     * @param \Closure(): mixed $call
+     */
+    protected function assertRefused(\Closure $call, int $status, string $what): void
+    {
+        try {
+            $call();
+            $this->fail($what);
+        } catch (FileServerException $e) {
+            $this->assertSame($status, $e->status(), $what);
+        }
+    }
+
+    public function testCopyMoveAndVersionsDoNotSkipTheApproval(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $approval = $manager->createFolder($ws, null, 'Approval');
+        Governance::setRules($manager, $ws, $approval, ['requires_approval' => true]);
+        $free = $manager->createFolder($ws, null, 'Free');
+        $approved = $manager->storeFile($ws, $free, 'approved.txt', $this->local('a'));
+
+        $user1 = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $draft = $user1->storeFile($ws, $approval->refresh(), 'draft.txt', $this->local('d'));
+        $this->assertTrue($draft->isDraft());
+
+        // a draft is neither copied nor moved by its maker
+        $this->assertRefused(function () use ($user1, $ws, $draft, $approval) {
+            $user1->copy($ws, $draft, $approval);
+        }, 403, 'a draft was copied');
+        $this->assertRefused(function () use ($user1, $ws, $draft, $free) {
+            $user1->move($ws, $draft, $free);
+        }, 403, 'a draft was moved out');
+
+        // a copy into the folder that needs an approval waits for it
+        $copy = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->copy($ws, $approved, $approval);
+        $this->assertSame(FileNode::APPROVAL_DRAFT, $copy->refresh()->approval_status);
+        $user2 = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->assertNotContains($copy->id, $this->childIds($user2, $ws, $approval->refresh()));
+
+        // moved in by a user who does not manage it: it waits too
+        FilePermission::query()->where('workspace_id', $ws->id)->whereNull('node_id')->where('target_id', $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1))->update(['level' => Level::EDIT]);
+        $user1 = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $other = $manager->storeFile($ws, $free, 'other.txt', $this->local('o'));
+        $user1->move($ws, $other->refresh(), $approval->refresh());
+        $this->assertSame(FileNode::APPROVAL_DRAFT, $other->refresh()->approval_status);
+
+        // a new version of an approved file in the folder: not by a user who does not manage it
+        $inFolder = $manager->storeFile($ws, $approval->refresh(), 'by-manager.txt', $this->local('m'));
+        $this->assertNull($inFolder->approval_status);
+        $this->assertRefused(function () use ($user1, $ws, $inFolder) {
+            $user1->addVersion($ws, $inFolder->refresh(), $this->local('m2'));
+        }, 403, 'a new version skipped the approval');
+        // the maker of a draft still sends its new versions
+        $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->addVersion($ws, $draft->refresh(), $this->local('d2'));
+        // the manager does
+        $manager->addVersion($ws, $inFolder->refresh(), $this->local('m3'));
+    }
+
+    public function testACopyIsADownload(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        // a zip (not a type shown in the page)
+        $zipPath = $this->local('');
+        $zip = new \ZipArchive();
+        $zip->open($zipPath, \ZipArchive::OVERWRITE);
+        $zip->addFromString('a.txt', 'secret');
+        $zip->close();
+        $file = $manager->storeFile($ws, null, 'secret.zip', $zipPath);
+        Governance::setWorkspaceRules($manager, $ws, ['download_level' => Level::EDIT]);
+        $ws->refresh();
+        // user1 may upload, not download: no copy either
+        $user1 = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->assertRefused(function () use ($user1, $ws, $file) {
+            $user1->copy($ws, $file, null);
+        }, 403, 'a copy of a file that may not be downloaded');
+
+        // and the bytes of a file that is not shown in the page are a download too
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $answer = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'content'));
+        // the error of the admin pages (not the file)
+        $this->assertNotInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $answer->baseResponse);
+        $this->assertStringNotContainsString('attachment', strval($answer->headers->get('Content-Disposition')));
+        // who may download gets it, and it is in the audit log
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'content'))->assertOk();
+        $this->assertTrue(FileAuditLog::query()->where('node_id', $file->id)->where('action', Audit::DOWNLOAD)->exists());
+    }
+
+    public function testMoveTrimAndPurgeKeepTheHolds(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $case = $manager->createFolder($ws, null, 'Case');
+        $inner = $manager->createFolder($ws, $case, 'Inner');
+        $file = $manager->storeFile($ws, $inner, 'evidence.txt', $this->local('v1'));
+        Governance::setRules($manager, $ws, $case, ['legal_hold' => true]);
+        // out of the held folder: no
+        $this->assertRefused(function () use ($manager, $ws, $file) {
+            $manager->move($ws, $file->refresh(), null);
+        }, 423, 'a held file was moved out');
+
+        // the versions are kept while the file must be kept
+        Governance::setRules($manager, $ws, $case->refresh(), ['legal_hold' => false]);
+        Governance::setWorkspaceRules($manager, $ws, ['retention_days' => 30]);
+        $ws->refresh();
+        $ws->version_limit = 1;
+        $ws->save();
+        $manager->addVersion($ws, $file->refresh(), $this->local('v2'));
+        $manager->addVersion($ws, $file->refresh(), $this->local('v3'));
+        $this->assertSame(3, FileNodeVersion::query()->where('node_id', $file->id)->count());
+
+        // a hold set on a folder above, after the file went to the trash
+        Governance::setWorkspaceRules($manager, $ws, ['retention_days' => null]);
+        $ws->refresh();
+        $manager->trash($ws, $file->refresh());
+        Governance::setRules($manager, $ws, $case->refresh(), ['legal_hold' => true]);
+        $this->assertRefused(function () use ($manager, $ws, $file) {
+            $manager->purge($ws, $file->refresh());
+        }, 423, 'a file under a held folder was removed for good');
+    }
+
+    public function testTheMakerOfADraftTakenOutOfTheWorkspace(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $folder = $manager->createFolder($ws, null, 'Approval');
+        Governance::setRules($manager, $ws, $folder, ['requires_approval' => true]);
+        $draft = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->storeFile($ws, $folder->refresh(), 'mine.txt', $this->local('m'));
+        $this->assertSame(Level::EDIT, (new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), false))->level($ws, $draft));
+        // taken out of the workspace: nothing, not even their draft
+        FilePermission::query()->where('workspace_id', $ws->id)->where('target_id', $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1))->delete();
+        $this->assertSame(Level::NONE, (new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), false))->level($ws, $draft->refresh()));
+    }
+
+    public function testTheNewsEscapesWhatUsersWrote(): void
+    {
+        $this->assertSame('&lt;b&gt;x&lt;/b&gt; &#36;{system:mail_host} &#36;5', Collaboration::safeText('<b>x</b> ${system:mail_host} $5'));
+        $ws = $this->workspace();
+        $folder = $this->manager()->createFolder($ws, null, 'Team');
+        $user2 = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        (new Collaboration($user2))->toggleFollow($ws, $folder);
+        $file = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->storeFile($ws, $folder, 'a&b.txt', $this->local('x'));
+        Collaboration::send($file->id, Collaboration::EVENT_COMMENT, $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), ['comment' => '<script>x</script> ${system:site_id}']);
+        $alert = NotifyNavbar::withoutGlobalScopes()->where('target_user_id', $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2))->orderByDesc('id')->first();
+        $this->assertNotNull($alert);
+        $body = strval($alert->notify_body);
+        $this->assertStringNotContainsString('<script>', $body);
+        $this->assertStringContainsString('a&amp;b.txt', $body);
+        $this->assertStringNotContainsString('${', $body);
+        $this->assertStringContainsString('&lt;script&gt;', $body);
+    }
+
+    public function testANameDoesNotTurnTheDirection(): void
+    {
+        $name = $this->manager()->validName("report\u{202E}txt.exe");
+        $this->assertSame('reporttxt.exe', $name);
+    }
+
     public function testWhoMayMakeAWorkspace(): void
     {
         $user = new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), false);
