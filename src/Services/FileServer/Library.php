@@ -476,7 +476,9 @@ class Library
         }
         $ids = $node->isFolder() ? $node->descendantIds() : [];
         $drafts = FileNode::query()->whereIn('id', array_merge([$node->id], $ids))->whereNull('trashed_at')
-            ->whereIn('approval_status', [FileNode::APPROVAL_DRAFT, FileNode::APPROVAL_REJECTED])->exists();
+            ->whereIn('approval_status', [FileNode::APPROVAL_DRAFT, FileNode::APPROVAL_REJECTED])
+            // the drafts the user sees: their own (the others' are not told of)
+            ->where('created_user_id', $this->access->userId())->exists();
         if ($drafts) {
             throw new FileServerException(exmtrans('file_server.error_draft_copy_move'), 403);
         }
@@ -725,8 +727,9 @@ class Library
         if (isset($target) && ($target->id === $node->id || in_array($target->id, $node->descendantIds(), true))) {
             throw new FileServerException(exmtrans('file_server.error_move_into_itself'));
         }
-        // held (itself, a folder above it, or in it): out of the hold it could be removed
-        if (Governance::isHeld($workspace, $node)) {
+        // held (itself, a folder above it, or in it): out of the hold it could be
+        // removed. A hold of the whole workspace goes everywhere with it: moves are fine
+        if (Governance::isHeld($workspace, $node, false)) {
             throw new FileServerException(exmtrans('file_server.error_move_held'), 423);
         }
         $this->assertNoDraftToMoveOrCopy($workspace, $node);
@@ -735,11 +738,15 @@ class Library
             throw new FileServerException(exmtrans('file_server.error_name_exists', ['name' => $node->name]));
         }
         $from = $node->parent_id;
+        $fromFolder = isset($from) ? FileNode::find($from) : null;
         $node->parent_id = isset($target) ? $target->id : null;
         $node->save();
         $this->access->flush();
-        // into a folder that needs an approval, by a user who does not manage it: the files wait for it
-        $this->draftsIn($workspace, $node, $target);
+        // into a folder that needs an approval, from one that does not, by a user
+        // who does not manage it: the files wait for it
+        if (!Governance::needsApproval($fromFolder)) {
+            $this->draftsIn($workspace, $node, $target);
+        }
         Audit::log(Audit::MOVE, $workspace, $node, $this->access->userId(), ['from' => $from, 'to' => $node->parent_id]);
         return $node;
     }
@@ -805,7 +812,11 @@ class Library
         $copy->metadata = $node->metadata;
         $copy->save();
         foreach (FileNode::query()->where('parent_id', $node->id)->whereNull('trashed_at')->get() as $child) {
-            if (!$this->access->can($workspace, $child, Level::VIEW)) {
+            if (!$this->access->can($workspace, $child, Level::VIEW)
+                // with their own permissions, below the level to download
+                || !Governance::canDownload($this->access, $workspace, $child)
+                // the drafts of others are not copied (they are not seen)
+                || $child->isDraft()) {
                 continue;
             }
             $this->copyTree($workspace, $child, $copy, $child->name);
@@ -888,6 +899,9 @@ class Library
         });
         $this->access->flush();
         FileSearch::sync($ids);
+        // back into a folder that needs an approval (it may have been moved there
+        // meanwhile), by a user who does not manage it: the files wait for it
+        $this->draftsIn($workspace, $node->refresh(), $parent);
         Audit::log(Audit::RESTORE, $workspace, $node, $this->access->userId());
         return $node;
     }
@@ -907,6 +921,12 @@ class Library
         if ($workspace->legal_hold || FileNode::query()->where('trash_root_id', $node->id)->where('legal_hold', true)->exists()
             || Governance::isHeld($workspace, $node)) {
             throw new FileServerException(exmtrans('file_server.error_legal_hold'), 423);
+        }
+        // and what must still be kept (a retention set after it went to the trash)
+        $limit = intval($workspace->retention_days);
+        if ($limit > 0 && FileNode::query()->where('trash_root_id', $node->id)->where('node_type', FileNode::TYPE_FILE)
+            ->where('created_at', '>', now()->subDays($limit))->exists()) {
+            throw new FileServerException(exmtrans('file_server.error_retention_inner', ['days' => $limit]), 423);
         }
         $nodes = FileNode::query()->where('trash_root_id', $node->id)->get();
         $ids = $nodes->pluck('id')->all();
@@ -967,6 +987,11 @@ class Library
         $this->assertFile($node);
         $this->access->authorize($workspace, $node, Level::EDIT);
         $this->assertNotCheckedOutByOther($node);
+        // it could not be checked in with a new version (a folder that needs an approval): told now
+        $parent = isset($node->parent_id) ? FileNode::find($node->parent_id) : null;
+        if (!$node->isDraft() && Governance::needsApproval($parent) && !$this->access->can($workspace, $node, Level::MANAGE)) {
+            throw new FileServerException(exmtrans('file_server.error_version_needs_approval'), 403);
+        }
         $node->checked_out_user_id = $this->access->userId();
         $node->checked_out_at = now();
         $node->save();
@@ -1162,7 +1187,7 @@ class Library
     public function validName(string $name): string
     {
         // the control characters, and those that turn the direction of the text ("txt.exe" shown as "exe.txt")
-        $name = trim(preg_replace('/[\x00-\x1F\x7F\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', '', $name) ?? '');
+        $name = trim(preg_replace('/[\x00-\x1F\x7F\x{061C}\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', '', $name) ?? '');
         if ($name === '' || $name === '.' || $name === '..' || mb_strlen($name) > static::MAX_NAME_LENGTH
             || preg_match('#[\\\\/:*?"<>|]#', $name) === 1) {
             throw new FileServerException(exmtrans('file_server.error_name', ['name' => $name]));

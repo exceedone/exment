@@ -473,6 +473,8 @@ class ShareLinks
         // (of any kind) at the end (ISS00410)
         $name = preg_replace('/[\s\p{Z}\x{FEFF}.]+\z/u', '', $name) ?? '';
         $name = $library->validName($name);
+        // again: "run.exe.\u{202E}" is "run.exe." once the character that does not show is taken away
+        $name = $library->validName(preg_replace('/[\s\p{Z}\x{FEFF}.]+\z/u', '', $name) ?? '');
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $allowed = static::requestAllowedExtensions();
         if (count($allowed) > 0 ? !in_array($ext, $allowed, true) : ($ext !== '' && in_array($ext, static::requestDeniedExtensions(), true))) {

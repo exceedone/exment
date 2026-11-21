@@ -207,6 +207,44 @@ class FileGovernanceTest extends FeatureTestBase
         $manager->addVersion($ws, $inFolder->refresh(), $this->local('m3'));
     }
 
+    public function testFoldersAndTheTrashDoNotSkipTheApproval(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $approval = $manager->createFolder($ws, null, 'Approval');
+        Governance::setRules($manager, $ws, $approval, ['requires_approval' => true]);
+        $free = $manager->createFolder($ws, null, 'Free');
+        $inner = $manager->createFolder($ws, $free, 'F');
+        $manager->storeFile($ws, $inner, 'a.txt', $this->local('a'));
+        $manager->storeFile($ws, $inner, 'b.txt', $this->local('b'));
+        $moved = $manager->createFolder($ws, $free, 'G');
+        $x = $manager->storeFile($ws, $moved, 'x.txt', $this->local('x'));
+        $y = $manager->storeFile($ws, $moved, 'y.txt', $this->local('y'));
+        FilePermission::query()->where('workspace_id', $ws->id)->whereNull('node_id')->where('target_id', $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1))->update(['level' => Level::EDIT]);
+
+        // a folder copied in: its files wait
+        $copy = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->copy($ws, $inner, $approval->refresh());
+        $copied = FileNode::query()->where('parent_id', $copy->id)->get();
+        $this->assertCount(2, $copied);
+        foreach ($copied as $file) {
+            $this->assertSame(FileNode::APPROVAL_DRAFT, $file->approval_status);
+        }
+
+        // x in the trash, its folder moved in, x back: it waits too
+        $user1 = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $user1->trash($ws, $x->refresh());
+        $user1->move($ws, $moved->refresh(), $approval->refresh());
+        $this->assertSame(FileNode::APPROVAL_DRAFT, $y->refresh()->approval_status);
+        $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->restore($ws, $x->refresh());
+        $this->assertSame(FileNode::APPROVAL_DRAFT, $x->refresh()->approval_status);
+
+        // between two folders that need an approval: an approved file stays approved
+        $other = $manager->createFolder($ws, $approval, 'B');
+        $approved = $manager->storeFile($ws, $approval->refresh(), 'ok.txt', $this->local('ok'));
+        $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->move($ws, $approved->refresh(), $other->refresh());
+        $this->assertNull($approved->refresh()->approval_status);
+    }
+
     public function testACopyIsADownload(): void
     {
         $ws = $this->workspace();
@@ -291,15 +329,34 @@ class FileGovernanceTest extends FeatureTestBase
         $folder = $this->manager()->createFolder($ws, null, 'Team');
         $user2 = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2);
         (new Collaboration($user2))->toggleFollow($ws, $folder);
-        $file = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->storeFile($ws, $folder, 'a&b.txt', $this->local('x'));
+        $file = $this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1)->storeFile($ws, $folder, "Q&A O'Brien \${x}.txt", $this->local('x'));
         Collaboration::send($file->id, Collaboration::EVENT_COMMENT, $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), ['comment' => '<script>x</script> ${system:site_id}']);
         $alert = NotifyNavbar::withoutGlobalScopes()->where('target_user_id', $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2))->orderByDesc('id')->first();
         $this->assertNotNull($alert);
+        // the subject is plain text (escaped once where it is shown): as the name is, without "${"
+        $subject = strval($alert->notify_subject);
+        $this->assertStringContainsString("Q&A O'Brien", $subject);
+        $this->assertStringNotContainsString('&amp;', $subject);
+        $this->assertStringNotContainsString('${', $subject);
+        // the body is shown as HTML: escaped, and no line breaks of its own (the alert makes them)
         $body = strval($alert->notify_body);
         $this->assertStringNotContainsString('<script>', $body);
-        $this->assertStringContainsString('a&amp;b.txt', $body);
+        $this->assertStringContainsString('Q&amp;A O&#039;Brien', $body);
         $this->assertStringNotContainsString('${', $body);
         $this->assertStringContainsString('&lt;script&gt;', $body);
+        $this->assertStringNotContainsString('<br', $body);
+        $this->assertSame('a $ {x}', Collaboration::plainText('a ${x}'));
+        $this->assertSame('ab', Collaboration::cutHtml('ab&amp;c', 4));
+    }
+
+    public function testARequestLinkSeesThroughWhatDoesNotShow(): void
+    {
+        $ws = $this->workspace();
+        $folder = $this->manager()->createFolder($ws, null, 'In');
+        $link = (new ShareLinks($this->manager()))->create($ws, $folder, FileShareLink::KIND_REQUEST, ['expires_at' => now()->addDays(3)->format('Y-m-d')]);
+        $this->assertRefused(function () use ($link) {
+            ShareLinks::receive($link, "run.exe.\u{202E}", $this->local('MZ'));
+        }, 415, 'an exe with a dot and a character that does not show was taken');
     }
 
     public function testANameDoesNotTurnTheDirection(): void
