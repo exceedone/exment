@@ -25,6 +25,11 @@
     </div>
     @if ($read_only)
         <div class="alert alert-warning">{{ exmtrans('feature.read_only') }}</div>
+    @else
+        {{-- a save button at the top too: the page is long, and the one at the bottom may not stay in sight --}}
+        <div class="text-right" style="margin-bottom:10px">
+            <button type="submit" class="btn btn-primary">{{ exmtrans('common.save') }}</button>
+        </div>
     @endif
 
     <div class="box card">

@@ -505,6 +505,20 @@ class FileGovernanceTest extends FeatureTestBase
         $found = $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user&q=' . rawurlencode($code));
         $found->assertOk();
         $this->assertContains($user1, array_column($found->json('results'), 'id'));
+        // not by the e-mail (who could find out whether an address is a user)
+        $email = strval(getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($user1)->getValue('email'));
+        if ($email !== '') {
+            $byMail = $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user&q=' . rawurlencode($email));
+            $byMail->assertOk();
+            $this->assertNotContains($user1, array_column($byMail->json('results'), 'id'), 'found by the e-mail');
+        }
+        // a list as q: no error
+        $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user&q[]=x')->assertOk();
+        // in the order of the ids
+        $ids = array_column($page->json('results'), 'id');
+        $sorted = $ids;
+        sort($sorted);
+        $this->assertSame($sorted, $ids);
 
         // who only sees the workspace, or names none: not
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);

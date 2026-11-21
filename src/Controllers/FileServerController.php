@@ -103,7 +103,14 @@ class FileServerController extends AdminControllerBase
         $this->AdminContent($content);
         $content->row(view('exment::file_server.settings', [
             'workspace' => null,
-            'members' => [],
+            // the user who makes it manages it (store keeps it so): shown, with the name
+            'members' => [[
+                'target_type' => FilePermission::TARGET_USER,
+                'target_id' => $this->library()->access()->userId(),
+                'name' => $this->userName($this->library()->access()->userId()),
+                'level' => Level::MANAGE,
+                'level_label' => Level::label(Level::MANAGE),
+            ]],
             'action' => admin_url('file_server'),
             'back_url' => admin_url('file_server'),
             'delete_url' => null,
@@ -123,8 +130,12 @@ class FileServerController extends AdminControllerBase
             $workspace = $this->library()->createWorkspace($this->workspaceInput($request));
             $members = $this->permissionInput($request);
             if (count($members) > 0) {
-                // the user who makes it stays a manager
-                $members[] = ['target_type' => FilePermission::TARGET_USER, 'target_id' => $this->library()->access()->userId(), 'level' => Level::MANAGE];
+                // the user who makes it stays a manager (once, at MANAGE)
+                $me = $this->library()->access()->userId();
+                $members = array_values(array_filter($members, function ($m) use ($me) {
+                    return !($m['target_type'] === FilePermission::TARGET_USER && intval($m['target_id']) === $me);
+                }));
+                $members[] = ['target_type' => FilePermission::TARGET_USER, 'target_id' => $me, 'level' => Level::MANAGE];
                 $this->library()->setPermissions($workspace, null, $members);
             }
             return ['message' => exmtrans('common.message.success_execute'), 'redirect' => $this->url($workspace)];
@@ -1298,6 +1309,12 @@ class FileServerController extends AdminControllerBase
     /** The users or organizations of one page of the picker. */
     public const PICKER_PAGE = 20;
 
+    /** The columns the picker searches: the names and codes (ISS00433). */
+    public const PICKER_COLUMNS = [
+        SystemTableName::USER => ['user_name', 'user_code'],
+        SystemTableName::ORGANIZATION => ['organization_name', 'organization_code'],
+    ];
+
     /**
      * The users or organizations for the editor of the permissions (select2):
      * ?type=user|organization&q=words&page=n. For who may make a workspace,
@@ -1322,17 +1339,27 @@ class FileServerController extends AdminControllerBase
             return response()->json(['results' => [], 'pagination' => ['more' => false]]);
         }
         $tableName = $organization ? SystemTableName::ORGANIZATION : SystemTableName::USER;
-        $words = trim(strval($request->query('q', '')));
-        $page = max(1, intval($request->query('page', 1)));
-        if ($words === '') {
-            // the users the user may see (the permissions of the table), as the list was
-            $paginator = getModelName($tableName)::query()->orderBy('id')->paginate(static::PICKER_PAGE, ['*'], 'page', $page);
-        } else {
-            $paginator = \Exceedone\Exment\Model\CustomTable::getEloquent($tableName)->searchValue($words, ['paginate' => true, 'maxCount' => static::PICKER_PAGE]);
+        $q = $request->query('q', '');
+        $words = is_string($q) ? trim($q) : '';
+        $page = max(1, intval(is_string($request->query('page')) ? $request->query('page') : 1));
+        $modelName = getModelName($tableName);
+        // the users the user may see (the permissions of the table), as the list was
+        $query = $modelName::query();
+        if ($words !== '') {
+            // by the names and codes only (not by the e-mail or the other columns)
+            $columns = [];
+            foreach (static::PICKER_COLUMNS[$tableName] as $columnName) {
+                $column = \Exceedone\Exment\Model\CustomColumn::getEloquent($columnName, $tableName);
+                if (isset($column)) {
+                    $columns[] = $column;
+                }
+            }
+            if (count($columns) === 0) {
+                return response()->json(['results' => [], 'pagination' => ['more' => false]]);
+            }
+            (new $modelName())->setSearchQueryOrWhere($query, $words, ['searchColumns' => $columns, 'isLike' => true]);
         }
-        if (!($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator)) {
-            return response()->json(['results' => [], 'pagination' => ['more' => false]]);
-        }
+        $paginator = $query->orderBy('id')->paginate(static::PICKER_PAGE, ['*'], 'page', $page);
         $results = [];
         foreach ($paginator->items() as $value) {
             $results[] = ['id' => intval($value->id), 'text' => strval($value->getLabel())];

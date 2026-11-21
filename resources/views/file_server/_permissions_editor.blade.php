@@ -65,6 +65,7 @@
             window.jQuery(target).select2({
                 width: '100%',
                 allowClear: false,
+                minimumInputLength: 1,
                 ajax: {
                     url: pickerUrl,
                     dataType: 'json',
