@@ -1282,9 +1282,11 @@ return [
     'api_key_require_client_cert' => env('ADMIN_API_KEY_REQUIRE_CLIENT_CERT', false),
 
     /*
-    | The API keys of the users: the most days of a key (at most 365), and the keys a user has at once.
+    | The API keys of the users: the most days of a key (at most 365), of a key made by a login of
+    | SSO (shorter: Exment does not hear when the IdP stops the user), and the keys a user has at once.
     */
     'api_key_max_days' => env('EXMENT_API_KEY_MAX_DAYS', 365),
+    'api_key_max_days_sso' => env('EXMENT_API_KEY_MAX_DAYS_SSO', 30),
     'api_key_max_per_user' => env('EXMENT_API_KEY_MAX_PER_USER', 10),
 
     /*

@@ -63,6 +63,15 @@ class UserApiKeys
     }
 
     /**
+     * The name of the rate limit of a key in the cache: not its hash in the database (an HMAC
+     * with the key of the application).
+     */
+    public static function limiterKey(string $plain): string
+    {
+        return 'apikey:' . hash_hmac('sha256', $plain, 'exment-api-key-limiter|' . strval(config('app.key')));
+    }
+
+    /**
      * The scopes a key may have.
      *
      * @return array<int, string>
@@ -110,12 +119,6 @@ class UserApiKeys
             }
         }
 
-        // the keys a user has at once
-        $active = UserApiKey::where('user_id', $userId)->whereNull('revoked_at')->where('expires_at', '>', Carbon::now())->count();
-        if ($active >= static::maxActiveKeys()) {
-            throw new \InvalidArgumentException('too_many');
-        }
-
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 256) {
             throw new \InvalidArgumentException('name');
@@ -144,8 +147,10 @@ class UserApiKeys
         $ips = static::parseIps($allowedIps);
 
         $now = Carbon::now();
-        $expiresAt = isset($expiresAt) ? Carbon::instance($expiresAt) : $now->copy()->addDays(min(static::DEFAULT_DAYS, static::maxDays()));
-        if (!$expiresAt->isFuture() || $expiresAt->greaterThan($now->copy()->addDays(static::maxDays()))) {
+        // a login of SSO: a shorter end date (Exment does not hear when the IdP stops the user)
+        $maxDays = static::maxDays(isset($login_user) && static::isSsoLogin($login_user));
+        $expiresAt = isset($expiresAt) ? Carbon::instance($expiresAt) : $now->copy()->addDays(min(static::DEFAULT_DAYS, $maxDays));
+        if (!$expiresAt->isFuture() || $expiresAt->greaterThan($now->copy()->addDays($maxDays))) {
             throw new \InvalidArgumentException('expires_at');
         }
 
@@ -158,7 +163,7 @@ class UserApiKeys
         }
 
         $plain = static::PREFIX . bin2hex(random_bytes(24));
-        $key = UserApiKey::create([
+        $values = [
             'user_id' => $userId,
             'name' => $name,
             'key_prefix' => substr($plain, 0, 12),
@@ -170,7 +175,18 @@ class UserApiKeys
             'expires_at' => $expiresAt,
             'created_user_id' => $createdUserId,
             'login_user_id' => $loginUserId,
-        ]);
+        ];
+
+        // the keys a user has at once: counted and made in one transaction, with the row of the user
+        // locked, so requests at the same time cannot all pass the count
+        $key = \DB::transaction(function () use ($userId, $values) {
+            getModelName(SystemTableName::USER)::query()->where('id', $userId)->lockForUpdate()->first();
+            $active = UserApiKey::where('user_id', $userId)->whereNull('revoked_at')->where('expires_at', '>', Carbon::now())->count();
+            if ($active >= static::maxActiveKeys()) {
+                throw new \InvalidArgumentException('too_many');
+            }
+            return UserApiKey::create($values);
+        });
 
         return [$key, $plain];
     }
@@ -178,9 +194,22 @@ class UserApiKeys
     /**
      * The most days a key may have (EXMENT_API_KEY_MAX_DAYS, never more than a year).
      */
-    public static function maxDays(): int
+    public static function maxDays(bool $sso = false): int
     {
-        return max(1, min(static::MAX_DAYS, intval(config('exment.api_key_max_days', static::MAX_DAYS))));
+        $max = max(1, min(static::MAX_DAYS, intval(config('exment.api_key_max_days', static::MAX_DAYS))));
+        if ($sso) {
+            // EXMENT_API_KEY_MAX_DAYS_SSO (30 by default), never longer than the others
+            $max = min($max, max(1, intval(config('exment.api_key_max_days_sso', 30))));
+        }
+        return $max;
+    }
+
+    /**
+     * Whether the login is of SSO (SAML, OAuth, LDAP): not a password of Exment.
+     */
+    public static function isSsoLogin(LoginUser $login_user): bool
+    {
+        return !is_nullorempty($login_user->login_provider);
     }
 
     /**
@@ -269,10 +298,18 @@ class UserApiKeys
         static::$lastRefusal = null;
         $refuse = function (string $why, ?UserApiKey $key = null) {
             static::$lastRefusal = $why;
-            \Log::info('[Exment] an API key was refused: ' . $why . (isset($key) ? " (key {$key->id})" : ''));
-            // on the key, for its pages (the administrators of a SaaS cannot read the log)
+            // on the key, for its pages (the administrators of a SaaS cannot read the log): at most
+            // once a minute a key, so a leaked or stopped key sent again and again writes little
             if (isset($key)) {
-                UserApiKey::where('id', $key->id)->update(['last_refused_at' => Carbon::now(), 'last_refused_reason' => $why]);
+                $now = Carbon::now();
+                $written = UserApiKey::where('id', $key->id)
+                    ->where(function ($query) use ($now) {
+                        $query->whereNull('last_refused_at')->orWhere('last_refused_at', '<', $now->copy()->subMinute());
+                    })
+                    ->update(['last_refused_at' => $now, 'last_refused_reason' => $why]);
+                if ($written > 0) {
+                    \Log::info('[Exment] an API key was refused: ' . $why . " (key {$key->id})");
+                }
             }
             return null;
         };
@@ -422,7 +459,8 @@ class UserApiKeys
         if (!isset($tableKey)) {
             return $is(static::ROUTES_WITHOUT_TABLE);
         }
-        if ($is(static::ROUTES_READING_OTHER_TABLES) || boolval($request->query('children')) || boolval($request->query('parents'))) {
+        // (input(): the query and the body, as the API reads them)
+        if ($is(static::ROUTES_READING_OTHER_TABLES) || boolval($request->input('children')) || boolval($request->input('parents'))) {
             return false;
         }
         $custom_table = CustomTable::getEloquent($tableKey);
