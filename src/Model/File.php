@@ -312,10 +312,15 @@ class File extends ModelBase
         }
 
         $column_name = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getIndexColumnName('file_uuid');
+        $query = getModelName(SystemTableName::DOCUMENT)::where($column_name, $file->uuid);
+
+        // the older versions of the attachment (replaced files) go with it
+        if (\Exceedone\Exment\Services\DocumentVersionService::available()) {
+            \Exceedone\Exment\Services\DocumentVersionService::deleteFor((clone $query)->pluck('id')->all());
+        }
 
         // delete document info
-        getModelName(SystemTableName::DOCUMENT)::where($column_name, $file->uuid)
-            ->delete();
+        $query->delete();
     }
 
     /**
