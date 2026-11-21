@@ -396,6 +396,31 @@ class FileGovernanceTest extends FeatureTestBase
         $this->assertSame(2147483648, \Exceedone\Exment\Services\FileServer\Uploader::maxFileSize());
     }
 
+    public function testUploadsLeftAloneDoNotKeepTheirPlace(): void
+    {
+        $ws = $this->workspace();
+        $ws->quota_bytes = 100;
+        $ws->save();
+        $uploader = new \Exceedone\Exment\Services\FileServer\Uploader($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $left = $uploader->init($ws, null, 'left.bin', 90);
+        // nothing came to it for a while: not counted, and removed when the user starts another one
+        \Exceedone\Exment\Model\FileUploadSession::query()->where('id', $left->id)
+            ->update(['updated_at' => now()->subMinutes(\Exceedone\Exment\Services\FileServer\Uploader::IDLE_MINUTES + 1)]);
+        $next = $uploader->init($ws->refresh(), null, 'next.bin', 90);
+        $this->assertNotNull($next->id);
+        $this->assertNull(\Exceedone\Exment\Model\FileUploadSession::find($left->id), 'the upload left alone stayed');
+
+        // the bytes the uploads of a user say, all together
+        $ws->quota_bytes = null;
+        $ws->save();
+        config(['exment.file_server_max_upload_bytes' => 100]);
+        $this->assertRefused(function () use ($uploader, $ws) {
+            $uploader->init($ws->refresh(), null, 'more.bin', 20);
+        }, 429, 'more than the bytes a user may reserve');
+        config(['exment.file_server_max_upload_bytes' => 0]);
+        $this->assertNotNull($uploader->init($ws->refresh(), null, 'more.bin', 20)->id);
+    }
+
     public function testRemovingAWorkspaceRemovesWhatIsInIt(): void
     {
         $ws = $this->workspace();

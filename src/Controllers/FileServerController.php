@@ -292,7 +292,8 @@ class FileServerController extends AdminControllerBase
             'share_max_days' => ShareLinks::maxDays(),
             'links' => $this->linkRows($ws, $item),
             'can_share' => ShareLinks::enabled() && $level >= Level::EDIT,
-            'can_request' => ShareLinks::enabled() && $item->isFolder() && $level >= Level::UPLOAD,
+            // as ShareLinks::create: a request link needs EDIT
+            'can_request' => ShareLinks::enabled() && $item->isFolder() && $level >= Level::EDIT,
             'fields' => $this->fieldRows(Metadata::fields($ws), (array)($item->metadata ?? [])),
             'data_links' => DataLinks::dataOf($item),
             'data_tables' => $level >= Level::EDIT ? DataLinks::tables()->map(function ($table) {

@@ -148,14 +148,17 @@ class Library
             throw new FileServerException(exmtrans('file_server.error_retention_inner', ['days' => $limit]), 423);
         }
         // everything in it goes, the bytes on the disk too (ISS00433). The audit log stays.
+        // The rows first (all or none), then the bytes: a failure leaves no row without its bytes.
         $ids = FileNode::query()->where('workspace_id', $workspace->id)->pluck('id')->map(function ($id) {
             return intval($id);
         })->all();
+        $versions = [];
         foreach (array_chunk($ids, 500) as $chunk) {
             foreach (FileNodeVersion::query()->whereIn('node_id', $chunk)->get() as $version) {
-                $this->deleteVersionObjects($version);
+                $versions[] = $version;
             }
         }
+        // the uploads not finished (rows of the workspace; their parts are not files yet)
         Uploader::removeForWorkspace(intval($workspace->id));
         DB::transaction(function () use ($workspace, $ids) {
             foreach (array_chunk($ids, 500) as $chunk) {
@@ -172,6 +175,13 @@ class Library
             FileNode::query()->where('workspace_id', $workspace->id)->delete();
             $workspace->delete();
         });
+        foreach ($versions as $version) {
+            try {
+                $this->deleteVersionObjects($version);
+            } catch (\Throwable $e) {
+                \Log::warning('[FileServer] could not remove a file of workspace ' . $workspace->id . ': ' . $e->getMessage());
+            }
+        }
         Audit::log(Audit::PURGE, null, null, $this->access->userId(), ['workspace' => intval($workspace->id), 'name' => $workspace->name, 'count' => count($ids)]);
         FileSearch::sync($ids);
         try {
