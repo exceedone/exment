@@ -73,10 +73,15 @@ class BundledPluginsTest extends FeatureTestBase
         return json_decode(strval(file_get_contents($this->sample('ExmentSignSample-1.0.0.json'))), true);
     }
 
+    /**
+     * @return non-empty-string
+     */
     protected function testSecretKey(): string
     {
         $pair = sodium_crypto_sign_seed_keypair(hash('sha256', 'exment test release key 1 - do not trust', true));
-        return sodium_crypto_sign_secretkey($pair);
+        $secret = sodium_crypto_sign_secretkey($pair);
+        assert($secret !== '');
+        return $secret;
     }
 
     /**
