@@ -9,22 +9,28 @@
 .exm-feature .exm-feature-new { color: #00a65a; opacity: 1; }
 .exm-feature .exm-feature-child td:first-child { padding-left: 28px; }
 .exm-feature .exm-feature-muted { opacity: .5; }
+.exm-feature .help-block { margin: 2px 0 0; }
+@media (max-width: 767px) {
+    .exm-feature .exm-feature-col { width: auto !important; }
+}
 </style>
 <form method="post" action="{{ $action }}" class="exm-feature" id="exm-feature-form">
     {{ csrf_field() }}
-    <p>{{ exmtrans('feature.help') }}</p>
-    <p class="exm-feature-help">{{ exmtrans('feature.other_settings') }} <a href="{{ $system_url }}">{{ exmtrans('feature.system_link') }}</a></p>
+    <div class="callout callout-info">
+        <p>{{ exmtrans('feature.help') }}</p>
+        <p>{{ exmtrans('feature.other_settings') }} <a href="{{ $system_url }}">{{ exmtrans('feature.system_link') }}</a></p>
+    </div>
     @if ($read_only)
         <div class="alert alert-warning">{{ exmtrans('feature.read_only') }}</div>
     @endif
 
     <div class="box card">
-        <div class="box-header"><h4>{{ exmtrans('feature.core_header') }}</h4></div>
+        <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('feature.core_header') }}</h3></div>
         <div class="box-body table-responsive">
             <table class="table table-condensed">
                 <thead><tr>
-                    <th>{{ exmtrans('feature.name') }}</th><th style="width:130px">{{ exmtrans('feature.status') }}</th>
-                    <th style="width:300px">{{ exmtrans('feature.who') }}</th><th style="width:150px">{{ exmtrans('feature.menu') }}</th>
+                    <th>{{ exmtrans('feature.name') }}</th><th class="exm-feature-col" style="width:130px">{{ exmtrans('feature.status') }}</th>
+                    <th class="exm-feature-col" style="width:300px">{{ exmtrans('feature.who') }}</th><th class="exm-feature-col" style="width:150px">{{ exmtrans('feature.menu') }}</th>
                 </tr></thead>
                 <tbody>
                     @foreach ($features as $f)
@@ -36,13 +42,13 @@
     </div>
 
     <div class="box card">
-        <div class="box-header"><h4>{{ exmtrans('feature.plugin_header') }}</h4></div>
+        <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('feature.plugin_header') }}</h3></div>
         <div class="box-body table-responsive">
-            <p class="exm-feature-help">{{ exmtrans('feature.plugin_help') }} <a href="{{ $role_group_url }}">{{ exmtrans('feature.role_group_link') }}</a></p>
+            <p class="help-block">{{ exmtrans('feature.plugin_help') }} <a href="{{ $role_group_url }}">{{ exmtrans('feature.role_group_link') }}</a></p>
             <table class="table table-condensed">
                 <thead><tr>
-                    <th>{{ exmtrans('feature.name') }}</th><th style="width:130px">{{ exmtrans('feature.status') }}</th>
-                    <th style="width:300px">{{ exmtrans('feature.who') }}</th><th style="width:150px">{{ exmtrans('feature.menu') }}</th>
+                    <th>{{ exmtrans('feature.name') }}</th><th class="exm-feature-col" style="width:130px">{{ exmtrans('feature.status') }}</th>
+                    <th class="exm-feature-col" style="width:300px">{{ exmtrans('feature.who') }}</th><th class="exm-feature-col" style="width:150px">{{ exmtrans('feature.menu') }}</th>
                 </tr></thead>
                 <tbody>
                     @forelse ($plugins as $p)
@@ -80,7 +86,11 @@
     </div>
 
     @if (!$read_only)
-        <button type="submit" class="btn btn-primary">{{ exmtrans('common.save') }}</button>
+        <div class="box card">
+            <div class="box-footer">
+                <button type="submit" class="btn btn-primary pull-right">{{ exmtrans('common.save') }}</button>
+            </div>
+        </div>
     @endif
     {{-- the last field: a form cut on the way (max_input_vars) is not saved --}}
     <input type="hidden" name="complete" value="1">

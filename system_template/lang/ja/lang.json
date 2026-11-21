@@ -520,6 +520,11 @@
             "title": "スタジオ"
         },
         {
+            "menu_type": "system",
+            "menu_name": "feature",
+            "title": "機能の管理"
+        },
+        {
             "menu_type": "table",
             "menu_name": "mail_template",
             "title": "通知テンプレート"
