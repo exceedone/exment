@@ -19,7 +19,6 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\TestResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * The settings of a table (columns, relations, copies, operations, forms, public forms, notifies,
@@ -60,7 +59,7 @@ class TableSettingRowPermissionTest extends FeatureTestBase
      * @param array<mixed> $files
      * @param array<mixed> $server
      * @param string|null $content
-     * @return TestResponse<Response>
+     * @return TestResponse
      */
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {
@@ -134,7 +133,7 @@ class TableSettingRowPermissionTest extends FeatureTestBase
         $this->actAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         $this->post(admin_urls('formpublic', TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, $other->id, 'deactivate'), [], static::AJAX);
 
-        $this->assertTrue(boolval(\Exceedone\Exment\Model\PublicForm::find($other->id)->active_flg));
+        $this->assertTrue(boolval(\Exceedone\Exment\Model\PublicForm::query()->whereKey($other->id)->value('active_flg')));
     }
 
     public function testANotifyOfAnotherTableIsNotDeletedThroughATableTheUserManages(): void

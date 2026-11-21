@@ -59,6 +59,14 @@ jobs:
         run: |
           make mysql-init
 
+      # composer.dev.lock of that boilerplate commit has exceedone/laravel-admin v4.0.0;
+      # Exment 6.2 needs ^4.2.3 (the security fixes of v6.2.17)
+      - name: Update exceedone/laravel-admin
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php composer update exceedone/laravel-admin --no-interaction
+          docker compose -f docker-compose.yml exec -T php composer show exceedone/laravel-admin | grep versions
+
       - name: setup phpstan
         working-directory: docker-exment
         run: |

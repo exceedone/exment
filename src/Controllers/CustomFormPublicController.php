@@ -682,6 +682,8 @@ class CustomFormPublicController extends AdminControllerTableBase
     public function preview(Request $request, $tableKey, $id = null)
     {
         if (isset($id) && !$this->validateRowsOfTable(PublicForm::class, $id, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
+            // Checker::error() has already ended the request
+            // @phpstan-ignore-next-line
             return;
         }
         $original_public_form = PublicForm::find($id);
@@ -846,6 +848,8 @@ class CustomFormPublicController extends AdminControllerTableBase
     public function export(Request $request, $tableKey, $id)
     {
         if (!$this->validateRowsOfTable(PublicForm::class, $id, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
+            // Checker::error() has already ended the request
+            // @phpstan-ignore-next-line
             return;
         }
         $public_form = PublicForm::find($id);
