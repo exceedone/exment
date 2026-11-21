@@ -50,6 +50,19 @@ class Library
         return $this;
     }
 
+    /**
+     * Whether the file server is used on the site (Admin setting → Feature
+     * management). When it is not, nobody may do anything (Access::current()),
+     * the links of the people outside are gone, and nothing is removed by the
+     * schedule: the data stays for when it is turned on again. Without
+     * Feature management (an older Exment), it is used.
+     */
+    public static function featureEnabled(): bool
+    {
+        $features = '\Exceedone\Exment\Services\Features';
+        return !class_exists($features) || boolval($features::enabled('file_server'));
+    }
+
     public static function zipMaxBytes(): int
     {
         return max(0, intval(config('exment.file_server_zip_max_bytes', 2147483648)));
@@ -789,7 +802,9 @@ class Library
             $parent = null;
         }
         $name = $this->freeName($workspace, $parent, $node->name);
-        $ids = FileNode::query()->where('trash_root_id', $node->id)->pluck('id')->map('intval')->all();
+        $ids = FileNode::query()->where('trash_root_id', $node->id)->pluck('id')->map(function ($id) {
+                return intval($id);
+            })->all();
 
         DB::transaction(function () use ($node, $parent, $name) {
             FileNode::query()->where('trash_root_id', $node->id)->update([

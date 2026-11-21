@@ -186,7 +186,9 @@ class Collaboration
         return FileFollow::query()->where('workspace_id', $node->workspace_id)
             ->where(function ($query) use ($ids) {
                 $query->whereNull('node_id')->orWhereIn('node_id', $ids);
-            })->distinct()->pluck('user_id')->map('intval')->all();
+            })->distinct()->pluck('user_id')->map(function ($id) {
+                return intval($id);
+            })->all();
     }
 
     /**

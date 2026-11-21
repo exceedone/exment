@@ -24,6 +24,10 @@ class FileServerIndexCommand extends Command
 
     public function handle(): int
     {
+        if (!\Exceedone\Exment\Services\FileServer\Library::featureEnabled()) {
+            $this->info('the file server is not used (Feature management)');
+            return 0;
+        }
         $result = FileSearch::rebuild(!boolval($this->option('no-text')), function (int $count) {
             $this->line("... {$count}");
         });

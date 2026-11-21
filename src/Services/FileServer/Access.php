@@ -44,7 +44,8 @@ class Access
     public static function current(): self
     {
         $user = \Exment::user();
-        if (!isset($user)) {
+        // the file server not used (Feature management): no one may do anything
+        if (!isset($user) || !Library::featureEnabled()) {
             return new self(null, false, []);
         }
         $userId = \Exment::getUserId();

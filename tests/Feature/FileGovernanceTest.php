@@ -113,7 +113,39 @@ class FileGovernanceTest extends FeatureTestBase
      */
     protected function childIds(Library $library, FileWorkspace $ws, ?FileNode $folder): array
     {
-        return $library->children($ws, $folder)->pluck('id')->map('intval')->all();
+        return $library->children($ws, $folder)->pluck('id')->map(function ($id) {
+                return intval($id);
+            })->all();
+    }
+
+    public function testTheFileServerTurnedOff(): void
+    {
+        $features = '\Exceedone\Exment\Services\Features';
+        if (!class_exists($features)) {
+            $this->markTestSkipped('Feature management is not in this Exment yet');
+        }
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $folder = $manager->createFolder($ws, null, 'Out');
+        $link = (new ShareLinks($manager))->create($ws, $folder, FileShareLink::KIND_SHARE, ['expires_at' => now()->addDays(3)->format('Y-m-d')]);
+        $this->assertNotNull(ShareLinks::resolve($link->token));
+
+        $features::save(['file_server' => ['enabled' => false]]);
+        System::clearRequestSession();
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        $this->assertFalse(Library::featureEnabled());
+        $this->assertSame(Level::NONE, Access::current()->level($ws, null), 'no one may do anything');
+        $this->assertNull(ShareLinks::resolve($link->token), 'the links are gone');
+        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:file-server-purge'));
+        // the data stays
+        $this->assertTrue(FileNode::query()->whereKey($folder->id)->exists());
+        $this->assertTrue(FileWorkspace::query()->whereKey($ws->id)->exists());
+
+        $features::save(['file_server' => ['enabled' => true]]);
+        System::clearRequestSession();
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        $this->assertSame(Level::MANAGE, Access::current()->level($ws, null), 'all comes back');
+        $this->assertNotNull(ShareLinks::resolve($link->token));
     }
 
     public function testWhoMayMakeAWorkspace(): void

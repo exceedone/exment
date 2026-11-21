@@ -188,6 +188,10 @@ class ShareLinks
      */
     public static function resolve(string $token): ?FileShareLink
     {
+        // the file server not used (Feature management): no link opens
+        if (!Library::featureEnabled()) {
+            return null;
+        }
         if (!static::enabled() || strlen($token) !== static::TOKEN_LENGTH || preg_match('/\A[A-Za-z0-9]+\z/', $token) !== 1) {
             return null;
         }

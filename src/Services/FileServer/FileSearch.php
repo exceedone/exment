@@ -214,7 +214,9 @@ class FileSearch
         $access = $this->library->access();
         $workspaces = $access->workspaces()->keyBy('id');
         $sharedWorkspaceIds = $access->sharedNodes()->pluck('workspace_id')->all();
-        $ids = array_values(array_unique(array_merge($workspaces->keys()->map('intval')->all(), array_map('intval', $sharedWorkspaceIds))));
+        $ids = array_values(array_unique(array_merge($workspaces->keys()->map(function ($id) {
+                return intval($id);
+            })->all(), array_map('intval', $sharedWorkspaceIds))));
         if (isset($workspaceId)) {
             $ids = in_array($workspaceId, $ids, true) ? [$workspaceId] : [];
         }
@@ -366,7 +368,9 @@ class FileSearch
                     }
                 }
             }
-            static::sync($nodes->pluck('id')->map('intval')->all());
+            static::sync($nodes->pluck('id')->map(function ($id) {
+                return intval($id);
+            })->all());
             $indexed += count($nodes);
             if (isset($progress)) {
                 $progress($indexed);

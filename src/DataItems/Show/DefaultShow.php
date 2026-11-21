@@ -703,6 +703,10 @@ EOT;
         if ($this->modal || !isset($this->custom_value) || !isset($this->custom_value->id)) {
             return;
         }
+        // the file server not used (Feature management): no box
+        if (!\Exceedone\Exment\Services\FileServer\Library::featureEnabled()) {
+            return;
+        }
         try {
             $library = new \Exceedone\Exment\Services\FileServer\Library(\Exceedone\Exment\Services\FileServer\Access::current());
             $nodes = (new \Exceedone\Exment\Services\FileServer\DataLinks($library))->nodesOf($this->custom_table->table_name, intval($this->custom_value->id));

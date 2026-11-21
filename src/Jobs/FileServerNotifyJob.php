@@ -41,6 +41,10 @@ class FileServerNotifyJob implements ShouldQueue
 
     public function handle(): void
     {
+        // the file server not used (Feature management): no news
+        if (!\Exceedone\Exment\Services\FileServer\Library::featureEnabled()) {
+            return;
+        }
         Collaboration::send($this->nodeId, $this->event, $this->actorId, $this->extra, $this->targets);
     }
 }

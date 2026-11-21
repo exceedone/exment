@@ -25,6 +25,12 @@ class FileServerPurgeCommand extends Command
 
     public function handle(): int
     {
+        // the file server not used (Feature management): its data stays as it is
+        if (!Library::featureEnabled()) {
+            $temp = Library::removeOldTempFiles();
+            $this->info("the file server is not used: nothing removed (temp: {$temp})");
+            return 0;
+        }
         // the files past the days of their workspaces go to the trash first (ISS00379)
         $retention = \Exceedone\Exment\Services\FileServer\Governance::applyRetention();
         $trash = Library::purgeExpired();
