@@ -83,11 +83,12 @@ class DocumentReplaceVersionTest extends FeatureTestBase
         // the list shows "version 2"; the versions open from it
         $this->assertSame([$document->id => 2], DocumentVersionService::currentNumbers([$document->id]));
         System::clearRequestSession();
-        $this->get($this->url($custom_value->id, 'documents', $document->id, 'versions'))
+        $html = strval($this->get($this->url($custom_value->id, 'documents', $document->id, 'versions'))
             ->assertOk()
             ->assertJson(['result' => true])
-            ->assertSee('docver-v1.txt', false)
-            ->assertSee(admin_urls('files', $first_uuid), false);
+            ->json('html'));
+        $this->assertStringContainsString('docver-v1.txt', $html);
+        $this->assertStringContainsString(admin_urls('files', $first_uuid), $html);
     }
 
     public function testOnlyTheLimitOfOlderVersionsIsKept(): void
