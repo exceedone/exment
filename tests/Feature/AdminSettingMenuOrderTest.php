@@ -22,7 +22,7 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
         $this->initAllTest();
     }
 
-    protected function migration(): object
+    protected function migration(): mixed
     {
         return require base_path('vendor/exceedone/exment/database/migrations/2026_11_25_000000_reorder_admin_setting_menus.php');
     }
