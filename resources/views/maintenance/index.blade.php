@@ -27,7 +27,7 @@
                 <br>{{ exmtrans('maintenance.end_at', ['end_at' => $local($settings['end_at'], 'Y-m-d H:i')]) }}
                 @endif
             </p>
-            <form method="post" action="{{ $endUrl }}" style="display:inline" onsubmit="return window.confirm('{{ exmtrans('maintenance.confirm_end') }}');">
+            <form method="post" action="{{ $endUrl }}" style="display:inline" onsubmit="return window.confirm({{ json_encode(exmtrans('maintenance.confirm_end'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }});">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-success">{{ exmtrans('maintenance.end_now') }}</button>
             </form>
@@ -70,7 +70,7 @@
             <label class="col-sm-2 control-label" for="maintenance-ips">{{ exmtrans('maintenance.allow_ips') }}</label>
             <div class="col-sm-10">
                 <textarea class="form-control" rows="3" id="maintenance-ips" name="allow_ips" placeholder="192.168.0.0/24">{{ $old('allow_ips', implode("\n", $settings['allow_ips'])) }}</textarea>
-                <span class="help-block">{{ exmtrans('maintenance.allow_ips_help') }}</span>
+                <span class="help-block">{{ exmtrans('maintenance.allow_ips_help') }} {{ exmtrans('maintenance.your_ip', ['ip' => $yourIp]) }}</span>
             </div>
         </div>
 
@@ -103,7 +103,7 @@
         <div class="col-sm-offset-2">
             <button type="submit" class="btn btn-primary">{{ exmtrans('maintenance.save') }}</button>
             @if(!isset($current))
-            <button type="submit" class="btn btn-warning" formaction="{{ $startUrl }}" onclick="return window.confirm('{{ exmtrans('maintenance.confirm_start') }}');">{{ exmtrans('maintenance.start_now') }}</button>
+            <button type="submit" class="btn btn-warning" formaction="{{ $startUrl }}" onclick="return window.confirm({{ json_encode(exmtrans('maintenance.confirm_start'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }});">{{ exmtrans('maintenance.start_now') }}</button>
             @endif
         </div>
     </div>

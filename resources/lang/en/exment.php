@@ -4479,6 +4479,7 @@ return [
         'message_label' => 'Message (:locale)',
         'allow_ips' => 'IP addresses that get in',
         'allow_ips_help' => 'One a line. A range (as 192.168.0.0/24) too.',
+        'your_ip' => 'Your IP address as the server sees it: :ip',
         'api' => 'API (OAuth, API keys)',
         'api_options' => [
             'admin' => 'System administrators only',
@@ -4499,6 +4500,7 @@ return [
         'error' => [
             'date' => 'The date and time is not right.',
             'end_passed' => 'The end has passed.',
+            'start_passed' => 'The start has passed. To start it now, press "Start the maintenance now".',
             'end_before_start' => 'The end must be after the start.',
             'ip' => 'Not an IP address: :ip',
         ],

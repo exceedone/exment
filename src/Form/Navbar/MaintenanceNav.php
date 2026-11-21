@@ -54,8 +54,15 @@ class MaintenanceNav
         return <<<HTML
 
 <li class="exment-maintenance {$class}" role="presentation">
-    <style>.content-wrapper { padding-top: 28px; }</style>
-    <div class="exment-maintenance-banner" role="status" style="position: fixed; left: 0; right: 0; top: 50px; z-index: 1029; padding: 4px 16px; {$style} font-size: 13px; line-height: 1.5; text-align: center; pointer-events: none;">
+    <style>
+        .content-wrapper { padding-top: 28px; }
+        .exment-maintenance-banner { position: fixed; left: 0; right: 0; top: 50px; z-index: 1029; padding: 4px 16px; font-size: 13px; line-height: 1.5; text-align: center; pointer-events: none; }
+        @media (max-width: 767px) {
+            .exment-maintenance-banner { top: 100px; font-size: 12px; }
+            .content-wrapper { padding-top: 40px; }
+        }
+    </style>
+    <div class="exment-maintenance-banner" role="status" style="{$style}">
         <i class="fa fa-wrench"></i> {$text}
     </div>
 </li>

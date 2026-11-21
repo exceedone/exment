@@ -26,6 +26,7 @@ class MaintenanceController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
+        static::onlyAdministrators();
         $this->AdminContent($content);
         MaintenanceMode::reset();
         $current = MaintenanceMode::current();
@@ -41,6 +42,7 @@ class MaintenanceController extends AdminControllerBase
             'local' => function (?string $at): string {
                 return static::toLocal($at);
             },
+            'yourIp' => $request->ip(),
             'saveUrl' => admin_url('maintenance'),
             'startUrl' => admin_urls('maintenance', 'start'),
             'endUrl' => admin_urls('maintenance', 'end'),
@@ -55,6 +57,7 @@ class MaintenanceController extends AdminControllerBase
      */
     public function store(Request $request)
     {
+        static::onlyAdministrators();
         list($values, $error) = $this->values($request, false);
         if (isset($error)) {
             return back()->withInput()->withErrors(['maintenance' => $error]);
@@ -72,6 +75,7 @@ class MaintenanceController extends AdminControllerBase
      */
     public function start(Request $request)
     {
+        static::onlyAdministrators();
         list($values, $error) = $this->values($request, true);
         if (isset($error)) {
             return back()->withInput()->withErrors(['maintenance' => $error]);
@@ -88,6 +92,7 @@ class MaintenanceController extends AdminControllerBase
      */
     public function end(Request $request)
     {
+        static::onlyAdministrators();
         MaintenanceMode::end(\Exment::user());
         MaintenanceMode::reset();
         $current = MaintenanceMode::current();
@@ -97,6 +102,18 @@ class MaintenanceController extends AdminControllerBase
             admin_toastr(exmtrans('maintenance.message.ended'));
         }
         return redirect(admin_url('maintenance'));
+    }
+
+    /**
+     * The system administrators only: also on a site where the roles are not
+     * used (Auth\Permission lets everyone in then).
+     */
+    protected static function onlyAdministrators(): void
+    {
+        $user = \Exment::user();
+        if (!isset($user) || !$user->isAdministrator()) {
+            abort(403);
+        }
     }
 
     /**
@@ -113,6 +130,10 @@ class MaintenanceController extends AdminControllerBase
         }
         if (isset($end) && $end->lte(Carbon::now())) {
             return [[], exmtrans('maintenance.error.end_passed')];
+        }
+        // a start that has come: "Start the maintenance now" is the button for it
+        if (isset($start) && $start->lte(Carbon::now())) {
+            return [[], exmtrans('maintenance.error.start_passed')];
         }
         if (isset($start, $end) && $end->lte($start)) {
             return [[], exmtrans('maintenance.error.end_before_start')];

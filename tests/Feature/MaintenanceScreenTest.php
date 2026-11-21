@@ -147,11 +147,33 @@ class MaintenanceScreenTest extends FeatureTestBase
             ['end_at' => '2026-11-30T11:00'],
             ['start_at' => 'not a date'],
             ['allow_ips' => '999.1.1.1'],
+            ['allow_ips' => '0.0.0.0/0'],
+            // a start that has come: the button "start now" is for it
+            ['start_at' => '2026-12-01T09:00'],
+            ['start_at' => '2026-12-01T08:00', 'end_at' => '2026-12-01T10:00'],
         ];
         foreach ($cases as $case) {
             $this->post(admin_url('maintenance'), $case)->assertSessionHasErrors('maintenance');
         }
         $this->assertNull(MaintenanceMode::settings()['start_at'], 'nothing saved');
+    }
+
+    public function testOnlyTheAdministratorsAlsoWithoutRoles(): void
+    {
+        // the roles not used: Auth\Permission lets everyone in, the page still does not
+        System::permission_available(false);
+        System::clearRequestSession();
+        $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get(admin_url('maintenance'), $ajax)->assertForbidden();
+        $this->post(admin_urls('maintenance', 'start'), [], $ajax)->assertForbidden();
+        $this->assertFalse(MaintenanceMode::settings()['active']);
+    }
+
+    public function testTheIpTheServerSees(): void
+    {
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->get(admin_url('maintenance'))->assertOk()->assertSee(exmtrans('maintenance.your_ip', ['ip' => '127.0.0.1']));
     }
 
     public function testTheOperatorsCannotBeEndedHere(): void
