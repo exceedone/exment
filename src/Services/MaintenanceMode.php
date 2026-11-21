@@ -483,8 +483,9 @@ class MaintenanceMode
             if (method_exists($user, 'isAdministrator')) {
                 return boolval($user->isAdministrator());
             }
-            if (isset($user->base_user) && method_exists($user->base_user, 'isAdministrator')) {
-                return boolval($user->base_user->isAdministrator());
+            $base = $user->base_user ?? null;
+            if (is_object($base) && method_exists($base, 'isAdministrator')) {
+                return boolval($base->isAdministrator());
             }
         } catch (\Throwable $e) {
             return false;
@@ -541,7 +542,7 @@ class MaintenanceMode
     {
         if (!empty($state['end_at'])) {
             try {
-                return max(60, Carbon::now()->diffInSeconds(Carbon::parse(strval($state['end_at'])), false));
+                return max(60, intval(ceil(Carbon::now()->diffInSeconds(Carbon::parse(strval($state['end_at'])), false))));
             } catch (\Throwable $e) {
             }
         }
