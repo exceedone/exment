@@ -35,12 +35,11 @@
     root.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-fs-decide]');
         if (!btn) { return; }
-        var comment = '';
-        if (btn.getAttribute('data-fs-ask')) {
-            comment = prompt(@json(exmtrans('file_server.approval_comment')), '');
+        var asked = btn.getAttribute('data-fs-ask') ? Fs.ask(@json(exmtrans('file_server.approval_comment')), '') : Promise.resolve('');
+        asked.then(function (comment) {
             if (comment === null) { return; }
-        }
-        Fs.post(btn.getAttribute('data-fs-decide'), { comment: comment }).then(Fs.done, Fs.fail);
+            Fs.post(btn.getAttribute('data-fs-decide'), { comment: comment }).then(Fs.done, Fs.fail);
+        });
     });
 })();
 </script>

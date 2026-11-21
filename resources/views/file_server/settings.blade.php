@@ -104,8 +104,9 @@
     var del = root.querySelector('[data-fs-delete-workspace]');
     if (del) {
         del.addEventListener('click', function () {
-            if (!confirm(@json(exmtrans('file_server.confirm_delete_workspace')))) { return; }
-            Fs.send('DELETE', root.dataset.delete).then(Fs.done, Fs.fail);
+            Fs.confirm(@json(exmtrans('file_server.confirm_delete_workspace'))).then(function (ok) {
+                if (ok) { Fs.send('DELETE', root.dataset.delete).then(Fs.done, Fs.fail); }
+            });
         });
     }
 })();

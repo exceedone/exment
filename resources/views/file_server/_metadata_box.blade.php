@@ -121,8 +121,10 @@
 
     root.addEventListener('click', function (e) {
         var b = e.target.closest('[data-fs-unlink]');
-        if (b && confirm(@json(exmtrans('file_server.confirm_data_link_remove')))) {
-            Fs.post(b.getAttribute('data-fs-unlink'), {}).then(Fs.done, Fs.fail);
+        if (b) {
+            Fs.confirm(@json(exmtrans('file_server.confirm_data_link_remove'))).then(function (ok) {
+                if (ok) { Fs.post(b.getAttribute('data-fs-unlink'), {}).then(Fs.done, Fs.fail); }
+            });
         }
     });
 

@@ -311,7 +311,7 @@
     root.addEventListener('click', function (e) {
         var restore = e.target.closest('[data-fs-restore]');
         if (restore) {
-            if (confirm(t.confirm_restore)) { Fs.post(restore.getAttribute('data-fs-restore'), {}).then(Fs.done, Fs.fail); }
+            Fs.confirm(t.confirm_restore).then(function (ok) { if (ok) { Fs.post(restore.getAttribute('data-fs-restore'), {}).then(Fs.done, Fs.fail); } });
             return;
         }
         var btn = e.target.closest('[data-fs-action]');
@@ -326,19 +326,20 @@
                 Fs.post(url + '/' + action, {}).then(Fs.done, Fs.fail);
                 break;
             case 'rename':
-                var n = prompt(t.new_name, name);
-                if (n && n !== name) { Fs.post(url + '/rename', { name: n }).then(Fs.done, Fs.fail); }
+                Fs.ask(t.new_name, name).then(function (n) {
+                    if (n && n !== name) { Fs.post(url + '/rename', { name: n }).then(Fs.done, Fs.fail); }
+                });
                 break;
             case 'trash':
-                if (confirm(t.confirm_trash)) {
-                    Fs.post(url + '/trash', {}).then(function (json) { Fs.notify(json.message); location.href = root.dataset.parentUrl; }, Fs.fail);
-                }
+                Fs.confirm(t.confirm_trash).then(function (ok) {
+                    if (ok) { Fs.post(url + '/trash', {}).then(function (json) { Fs.notify(json.message); location.href = root.dataset.parentUrl; }, Fs.fail); }
+                });
                 break;
             case 'break':
-                if (confirm(t.confirm_break)) { Fs.post(url + '/permissions', { mode: 'break' }).then(Fs.done, Fs.fail); }
+                Fs.confirm(t.confirm_break).then(function (ok) { if (ok) { Fs.post(url + '/permissions', { mode: 'break' }).then(Fs.done, Fs.fail); } });
                 break;
             case 'inherit':
-                if (confirm(t.confirm_inherit)) { Fs.post(url + '/permissions', { mode: 'inherit' }).then(Fs.done, Fs.fail); }
+                Fs.confirm(t.confirm_inherit).then(function (ok) { if (ok) { Fs.post(url + '/permissions', { mode: 'inherit' }).then(Fs.done, Fs.fail); } });
                 break;
             case 'save_permissions':
                 var fd = new FormData();
@@ -352,17 +353,19 @@
     function copyText(text) {
         var done = function () { Fs.notify(@json(exmtrans('file_server.copied'))); };
         if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(done, function () { prompt('URL', text); });
+            navigator.clipboard.writeText(text).then(done, function () { Fs.show('URL', text); });
         } else {
-            prompt('URL', text);
+            Fs.show('URL', text);
         }
     }
     root.addEventListener('click', function (e) {
         var c = e.target.closest('[data-fs-copy]');
         if (c) { copyText(c.getAttribute('data-fs-copy')); return; }
         var r = e.target.closest('[data-fs-revoke]');
-        if (r && confirm(@json(exmtrans('file_server.confirm_share_revoke')))) {
-            Fs.post(r.getAttribute('data-fs-revoke'), {}).then(Fs.done, Fs.fail);
+        if (r) {
+            Fs.confirm(@json(exmtrans('file_server.confirm_share_revoke'))).then(function (ok) {
+                if (ok) { Fs.post(r.getAttribute('data-fs-revoke'), {}).then(Fs.done, Fs.fail); }
+            });
         }
     });
     var linkForm = root.querySelector('[data-fs-link-form]');

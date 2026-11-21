@@ -101,8 +101,10 @@
             return;
         }
         var del = e.target.closest('[data-fs-comment-delete]');
-        if (del && confirm(@json(exmtrans('file_server.confirm_comment_delete')))) {
-            Fs.post(del.getAttribute('data-fs-comment-delete'), {}).then(Fs.done, Fs.fail);
+        if (del) {
+            Fs.confirm(@json(exmtrans('file_server.confirm_comment_delete'))).then(function (ok) {
+                if (ok) { Fs.post(del.getAttribute('data-fs-comment-delete'), {}).then(Fs.done, Fs.fail); }
+            });
         }
     });
     var rules = root.querySelector('[data-fs-rules-form]');

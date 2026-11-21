@@ -192,6 +192,7 @@
         'copy_to' => exmtrans('file_server.copy_to'),
         'too_large' => exmtrans('file_server.error_too_large'),
         'uploading' => exmtrans('file_server.uploading'),
+        'upload_failed_some' => exmtrans('file_server.upload_failed_some'),
     ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!};
 
     root.querySelectorAll('[data-fs-size]').forEach(function (el) { el.textContent = Fs.size(el.getAttribute('data-fs-size')); });
@@ -222,14 +223,18 @@
         var action = btn.getAttribute('data-fs');
         var row = btn.closest('tr[data-id]');
         if (action === 'new-folder') {
-            var name = prompt(t.folder_name);
-            if (name) { Fs.post(base + '/folders', { parent_id: parentId, name: name }).then(Fs.done, Fs.fail); }
+            Fs.ask(t.folder_name, '').then(function (name) {
+                if (name) { Fs.post(base + '/folders', { parent_id: parentId, name: name }).then(Fs.done, Fs.fail); }
+            });
         } else if (action === 'rename' && row) {
-            var newName = prompt(t.new_name, row.dataset.name);
-            if (newName && newName !== row.dataset.name) { Fs.post(base + '/nodes/' + row.dataset.id + '/rename', { name: newName }).then(Fs.done, Fs.fail); }
+            Fs.ask(t.new_name, row.dataset.name).then(function (newName) {
+                if (newName && newName !== row.dataset.name) { Fs.post(base + '/nodes/' + row.dataset.id + '/rename', { name: newName }).then(Fs.done, Fs.fail); }
+            });
         } else if (action === 'trash') {
-            if (!confirm(t.confirm_trash)) { return; }
-            sequence(selected(), function (id) { return Fs.post(base + '/nodes/' + id + '/trash', {}); });
+            var ids = selected();
+            Fs.confirm(t.confirm_trash).then(function (ok) {
+                if (ok) { sequence(ids, function (id) { return Fs.post(base + '/nodes/' + id + '/trash', {}); }); }
+            });
         } else if (action === 'zip') {
             var form = document.createElement('form');
             form.method = 'POST';
@@ -327,17 +332,25 @@
 
     function uploadAll(list) {
         if (!list.length) { return; }
-        var failed = 0;
+        // the files that could not be sent, told together at the end; the list is read
+        // again when some were sent (the ones sent are there)
+        var failed = [];
+        var sent = 0;
         var p = Promise.resolve();
         list.forEach(function (item) {
             p = p.then(function () {
-                var row = progressRow((item.dir ? item.dir + '/' : '') + item.file.name);
-                if (maxSize > 0 && item.file.size > maxSize) { row.error(t.too_large); failed++; return; }
+                var name = (item.dir ? item.dir + '/' : '') + item.file.name;
+                var row = progressRow(name);
+                if (maxSize > 0 && item.file.size > maxSize) { row.error(t.too_large); failed.push(name + ': ' + t.too_large); return; }
                 var job = item.file.size > chunkSize ? uploadChunked(item, row) : uploadSmall(item, row);
-                return job.then(function () { row.set(1); }, function (err) { failed++; row.error(err.message); });
+                return job.then(function () { row.set(1); sent++; }, function (err) { failed.push(name + ': ' + err.message); row.error(err.message); });
             });
         });
-        p.then(function () { if (failed === 0) { location.reload(); } });
+        p.then(function () {
+            if (failed.length === 0) { location.reload(); return; }
+            var title = t.upload_failed_some.replace(':failed', String(failed.length)).replace(':done', String(sent));
+            Fs.report(title, failed).then(function () { if (sent > 0) { location.reload(); } });
+        });
     }
 
     function uploadSmall(item, row) {
