@@ -292,7 +292,8 @@ class FileShareTest extends FeatureTestBase
     {
         [$ws, $folder] = $this->sample();
         $lib = $this->admin();
-        $hr = $lib->createFolder($ws, $folder, 'HR');
+        // a name a random token never has ("HR" alone may be in the token of the link)
+        $hr = $lib->createFolder($ws, $folder, 'HR department');
         $salary = $lib->storeFile($ws, $hr, 'salary.txt', $this->local('salary'));
         $deeper = $lib->createFolder($ws, $hr, 'Deeper');
         $deep = $lib->storeFile($ws, $deeper, 'deep.txt', $this->local('deep'));
@@ -305,7 +306,7 @@ class FileShareTest extends FeatureTestBase
         $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::EDIT);
         $link = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1))->create($ws, $folder, FileShareLink::KIND_SHARE);
 
-        $this->get($this->shareUrl($link))->assertOk()->assertSee('hello.txt')->assertDontSee('HR')->assertDontSee('own.txt');
+        $this->get($this->shareUrl($link))->assertOk()->assertSee('hello.txt')->assertDontSee('HR department')->assertDontSee('own.txt');
         foreach ([$hr, $salary, $deeper, $deep, $own] as $node) {
             $this->get($this->shareUrl($link, 'item/' . $node->id))->assertStatus(404);
             $this->get($this->shareUrl($link, 'download') . '?node=' . $node->id)->assertStatus(404);
