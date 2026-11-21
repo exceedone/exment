@@ -8,15 +8,20 @@ return new class extends Migration
 {
     /**
      * Feature management (Admin setting): a new feature is off until a system
-     * administrator turns it on (Services\Features).
+     * administrator turns it on (Services\Features). Updating does not change
+     * what the users of a site see:
      *
+     * - a feature the site has used stays on. That is decided by its data,
+     *   not by its menu (an update adds menus; a menu may be removed while its
+     *   pages are still used): the file server when the site has a workspace,
+     *   Studio when someone has opened its pages or the phone app (the
+     *   operation log)
+     * - the features the plugins had before stay on (Features::register()
+     *   with "existing"): the time of this update is kept ("_since"), and a
+     *   plugin installed before it keeps them
+     * - the plugins keep their active flag and permissions as they are
      * - the menu of the page, at the end of "Admin Setting" (a new site gets it
      *   from the system template)
-     * - a site that had a feature in its menu before this update keeps it on,
-     *   so that updating does not change what the users see. A menu added by
-     *   a migration of this same update (a site updated from an older version)
-     *   does not count: that feature stays off.
-     * - the plugins keep their active flag and permissions as they are
      *
      * @return void
      */
@@ -26,35 +31,47 @@ return new class extends Migration
         if (!Schema::hasTable($menuTable) || !Schema::hasTable('systems')) {
             return;
         }
-        // a new site: nothing to keep (the template makes the menu)
+        // a new site: nothing to keep (the template makes the menu); all is new
         if (!DB::table($menuTable)->exists()) {
             return;
         }
 
         if (!DB::table('systems')->where('system_name', 'features')->exists()) {
-            $settings = [];
-            // a menu made more than this before the update was there before it
-            $before = now()->subMinutes(30);
-            foreach (['file_server', 'studio'] as $feature) {
-                $menu = DB::table($menuTable)->where('menu_type', 'system')->where('menu_name', $feature)->first();
-                if (!isset($menu)) {
-                    continue;
-                }
-                $made = isset($menu->created_at) ? \Carbon\Carbon::parse($menu->created_at) : null;
-                if (isset($made) && $made->gt($before)) {
-                    continue;
-                }
-                $settings[$feature] = ['enabled' => true, 'role_groups' => null, 'menu' => true];
+            $settings = ['_since' => now()->toIso8601String()];
+            $on = ['enabled' => true, 'role_groups' => null, 'menu' => true];
+            if (Schema::hasTable('file_workspaces') && DB::table('file_workspaces')->exists()) {
+                $settings['file_server'] = $on;
+            }
+            if ($this->studioUsed()) {
+                $settings['studio'] = $on;
             }
             DB::table('systems')->insert([
                 'system_name' => 'features',
-                'system_value' => json_encode($settings, JSON_FORCE_OBJECT),
+                'system_value' => json_encode($settings),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
 
         $this->addMenu($menuTable);
+    }
+
+    /**
+     * Whether someone has opened the pages of Studio or the phone app.
+     */
+    protected function studioUsed(): bool
+    {
+        $table = config('admin.database.operation_log_table', 'admin_operation_log');
+        if (!Schema::hasTable($table) || !Schema::hasColumn($table, 'path')) {
+            return false;
+        }
+        $prefix = trim(strval(config('admin.route.prefix')), '/');
+        $prefix = $prefix === '' ? '' : $prefix . '/';
+        return DB::table($table)->where(function ($query) use ($prefix) {
+            foreach (['studio', 'app'] as $path) {
+                $query->orWhere('path', $prefix . $path)->orWhere('path', 'like', $prefix . $path . '/%');
+            }
+        })->exists();
     }
 
     protected function addMenu(string $menuTable): void

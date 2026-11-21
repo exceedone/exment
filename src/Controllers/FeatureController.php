@@ -5,22 +5,27 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\Features;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Admin setting → Feature management: the features of Exment and the plugins
- * on one page. For each: whether it is used, who may use it, and whether its
- * menu is shown. The system administrators only (Auth\Permission, "feature").
+ * Admin setting → Feature management: the features of Exment and of the
+ * plugins on one page. For each: whether it is used, who may use it, and
+ * whether its menu is shown. The system administrators only (Auth\Permission,
+ * "feature"). See Services\Features for the rules.
  *
- * The plugins keep what they had: "used" is their active flag and "who" is
- * the plugin_access permission of the role groups (the same rows as the page
- * of the role groups); only their menu flag is kept in the setting.
+ * The plugins keep what they had: whether one is active is shown here and
+ * changed on the page of the plugin (it checks what a plugin needs to be
+ * active); who may use it is the plugin_access permission of the role groups
+ * (the same rows as the page of the role groups); only its menu flag is kept
+ * in the setting.
  */
 class FeatureController extends AdminControllerBase
 {
@@ -39,23 +44,33 @@ class FeatureController extends AdminControllerBase
                 return ['id' => intval($group->id), 'name' => strval($group->role_group_view_name)];
             })->all();
 
-        $features = [];
+        $core = [];
+        $byPlugin = [];
         foreach (Features::definitions() as $key => $definition) {
-            $features[] = ['key' => $key, 'definition' => $definition, 'setting' => Features::setting($key)];
+            $row = $this->featureRow(strval($key), $definition);
+            if (isset($definition['plugin'])) {
+                $plugin = Features::pluginOf(strval($key));
+                $byPlugin[isset($plugin) ? $plugin->plugin_name : ''][] = $row;
+                continue;
+            }
+            $core[] = $row;
         }
 
         $plugins = [];
         foreach (Plugin::query()->orderBy('plugin_view_name')->get() as $plugin) {
-            $plugins[] = $this->pluginRow($plugin);
+            $plugins[] = $this->pluginRow($plugin) + ['features' => $byPlugin[$plugin->plugin_name] ?? []];
         }
 
         $this->AdminContent($content);
         $content->row(view('exment::feature.index', [
-            'features' => $features,
+            'features' => $core,
             'plugins' => $plugins,
             'role_groups' => $roleGroups,
             'action' => admin_url('feature'),
             'role_group_url' => admin_url('role_group'),
+            'system_url' => admin_url('system'),
+            'menu_url' => admin_url('auth/menu'),
+            'read_only' => DemoMode::enabled(),
         ]));
         return $content;
     }
@@ -65,40 +80,76 @@ class FeatureController extends AdminControllerBase
      */
     public function store(Request $request)
     {
+        if (DemoMode::enabled()) {
+            admin_toastr(DemoMode::message(), 'error');
+            return redirect(admin_url('feature'));
+        }
+
         $input = (array)$request->input('features', []);
         $values = [];
-        foreach (array_keys(Features::definitions()) as $key) {
-            $row = (array)array_get($input, $key, []);
+        $definitions = Features::definitions();
+        foreach ($definitions as $key => $definition) {
+            if (Features::locked(strval($key)) || !array_key_exists($key, $input)) {
+                continue;
+            }
+            $row = (array)$input[$key];
             $values[$key] = [
                 'enabled' => boolval(array_get($row, 'enabled', false)),
-                'role_groups' => array_get($row, 'all', '1') === '1' ? [] : (array)array_get($row, 'role_groups', []),
+                // "all": null; chosen groups: the list (none: the system administrators only)
+                'role_groups' => strval(array_get($row, 'all', '1')) === '1' || !$definition['who'] ? null : (array)array_get($row, 'role_groups', []),
                 'menu' => boolval(array_get($row, 'menu', false)),
             ];
         }
 
         $pluginInput = (array)$request->input('plugins', []);
-        DB::transaction(function () use ($values, $pluginInput) {
+        DB::transaction(function () use (&$values, $pluginInput, $definitions) {
             foreach (Plugin::query()->get() as $plugin) {
                 if (!array_key_exists($plugin->plugin_name, $pluginInput)) {
                     continue;
                 }
                 $row = (array)$pluginInput[$plugin->plugin_name];
                 $values[Features::PLUGIN_PREFIX . $plugin->plugin_name] = ['menu' => boolval(array_get($row, 'menu', false))];
-
-                $active = boolval(array_get($row, 'enabled', false));
-                if (boolval($plugin->active_flg) !== $active) {
-                    $plugin->active_flg = $active;
-                    $plugin->save();
-                }
                 if ($this->pluginAccessFiltered($plugin) && !boolval($plugin->getOption('all_user_enabled'))) {
-                    $this->savePluginAccess($plugin, array_map('intval', (array)array_get($row, 'role_groups', [])));
+                    // only what was changed on this page (what was changed meanwhile on the page of the role groups stays)
+                    $shown = array_map('intval', (array)json_decode(strval(array_get($row, 'shown', '[]')), true));
+                    $this->savePluginAccess($plugin, $shown, array_map('intval', (array)array_get($row, 'role_groups', [])));
                 }
             }
             Features::save($values);
+
+            // a feature turned on with its menu: its menu again when the row was removed
+            foreach ($values as $key => $value) {
+                if (array_key_exists($key, $definitions) && boolval($value['enabled'] ?? false) && $value['menu'] && isset($definitions[$key]['menu'])) {
+                    $this->ensureSystemMenu(strval($definitions[$key]['menu']));
+                }
+            }
         });
 
         admin_toastr(exmtrans('common.message.success_execute'));
         return redirect(admin_url('feature'));
+    }
+
+    /**
+     * @param array<string, mixed> $definition
+     * @return array<string, mixed>
+     */
+    protected function featureRow(string $key, array $definition): array
+    {
+        $requires = $definition['requires'];
+        return [
+            'key' => $key,
+            'label' => Features::label($key),
+            'description' => Features::description($key),
+            'setting' => Features::setting($key),
+            'new' => Features::isNew($key),
+            'locked' => Features::locked($key),
+            'reason' => Features::reason($key),
+            'who' => $definition['who'],
+            'requires' => isset($requires) && Features::exists($requires) ? Features::label($requires) : null,
+            'has_menu' => isset($definition['menu']),
+            'menu_exists' => isset($definition['menu']) && $this->systemMenuExists(strval($definition['menu'])),
+            'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : null,
+        ];
     }
 
     /**
@@ -113,6 +164,7 @@ class FeatureController extends AdminControllerBase
             'label' => $plugin->plugin_view_name,
             'version' => $plugin->version,
             'enabled' => boolval($plugin->active_flg),
+            'edit_url' => admin_urls('plugin', $plugin->id, 'edit'),
             // who may use it: "all" when it does not ask (its type, or its option)
             'everyone' => !$filtered || $allUsers,
             'everyone_reason' => !$filtered ? exmtrans('feature.plugin_everyone_type') : ($allUsers ? exmtrans('feature.plugin_everyone_option') : null),
@@ -142,32 +194,85 @@ class FeatureController extends AdminControllerBase
             ->where('role_group_target_id', $plugin->id)->get()
             ->filter(function (RoleGroupPermission $permission) {
                 return in_array(Permission::PLUGIN_ACCESS, (array)$permission->permissions, true);
-            })->pluck('role_group_id')->map('intval')->values()->all();
+            })->pluck('role_group_id')->map(function ($id) {
+                return intval($id);
+            })->values()->all();
     }
 
     /**
-     * Give "plugin_access" to the role groups chosen, and take it from the
-     * others (their other permissions of the plugin, as plugin_setting, stay).
+     * Give "plugin_access" to the role groups checked on the page that were
+     * not checked when it was shown, and take it from those unchecked. The
+     * other groups, and the other permissions of the plugin (as
+     * plugin_setting), stay.
      *
-     * @param int[] $groupIds
+     * @param int[] $shown the groups checked when the page was shown
+     * @param int[] $checked the groups checked now
      */
-    protected function savePluginAccess(Plugin $plugin, array $groupIds): void
+    protected function savePluginAccess(Plugin $plugin, array $shown, array $checked): void
     {
-        foreach (RoleGroup::query()->get(['id']) as $group) {
+        $add = array_diff($checked, $shown);
+        $remove = array_diff($shown, $checked);
+        foreach (array_merge($add, $remove) as $groupId) {
+            if (!RoleGroup::query()->whereKey($groupId)->exists()) {
+                continue;
+            }
             $permission = RoleGroupPermission::firstOrNew([
-                'role_group_id' => $group->id,
+                'role_group_id' => $groupId,
                 'role_group_permission_type' => RoleType::PLUGIN,
                 'role_group_target_id' => $plugin->id,
             ]);
             $list = array_values(array_filter((array)($permission->permissions ?? [])));
-            $has = in_array(Permission::PLUGIN_ACCESS, $list, true);
-            $want = in_array(intval($group->id), $groupIds, true);
-            if ($has === $want) {
+            $want = in_array($groupId, $add, true);
+            if (in_array(Permission::PLUGIN_ACCESS, $list, true) === $want) {
                 continue;
             }
-            $list = $want ? array_merge($list, [Permission::PLUGIN_ACCESS]) : array_values(array_diff($list, [Permission::PLUGIN_ACCESS]));
-            $permission->permissions = $list;
+            $permission->permissions = $want ? array_merge($list, [Permission::PLUGIN_ACCESS]) : array_values(array_diff($list, [Permission::PLUGIN_ACCESS]));
             $permission->save();
         }
+    }
+
+    protected function systemMenuExists(string $menuName): bool
+    {
+        return DB::table(config('admin.database.menu_table', 'admin_menu'))->where('menu_type', 'system')->where('menu_name', $menuName)->exists();
+    }
+
+    /**
+     * Make the system menu of a feature when the site has none (it was
+     * removed to hide the feature): after the home for the file server, at
+     * the end of "Admin Setting" for the others.
+     */
+    protected function ensureSystemMenu(string $menuName): void
+    {
+        $table = config('admin.database.menu_table', 'admin_menu');
+        if ($this->systemMenuExists($menuName)) {
+            return;
+        }
+        $define = array_get(Define::MENU_SYSTEM_DEFINITION, $menuName);
+        if (!is_array($define)) {
+            return;
+        }
+        $parentId = 0;
+        $order = 1;
+        $home = DB::table($table)->where('menu_type', 'system')->where('menu_name', 'home')->first();
+        $admin = DB::table($table)->where('menu_name', 'admin')->where('menu_type', 'parent_node')->first();
+        if ($menuName !== 'file_server' && isset($admin)) {
+            $parentId = intval($admin->id);
+            $order = intval(DB::table($table)->where('parent_id', $parentId)->max('order')) + 1;
+        } elseif (isset($home)) {
+            $parentId = intval($home->parent_id);
+            $order = intval($home->order) + 1;
+        }
+        DB::table($table)->insert([
+            'parent_id' => $parentId,
+            'order' => $order,
+            'title' => exmtrans('menu.system_definitions.' . $menuName),
+            'icon' => array_get($define, 'icon'),
+            'uri' => array_get($define, 'uri'),
+            'menu_type' => 'system',
+            'menu_name' => $menuName,
+            'menu_target' => $menuName,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }

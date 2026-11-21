@@ -536,6 +536,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | features locked
+    |--------------------------------------------------------------------------
+    |
+    | The features the server keeps off, whatever the administrators of the
+    | site choose in Admin setting → Feature management (a comma list of
+    | keys, as "file_server,studio"). For a SaaS that does not offer them.
+    |
+    */
+    'features_locked' => env('EXMENT_FEATURES_LOCKED', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Login throttle
     |--------------------------------------------------------------------------
     |
