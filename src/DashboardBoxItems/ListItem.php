@@ -191,5 +191,7 @@ class ListItem implements ItemInterface
 
         // get data
         $this->paginate = $query->paginate($pager_count);
+
+        $this->prefetchReferences($this->paginate->getCollection(), $this->custom_view->custom_view_columns_cache);
     }
 }

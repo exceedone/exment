@@ -66,6 +66,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Dashboard aggregation cache
+    |--------------------------------------------------------------------------
+    |
+    | Keep the rows a chart of a summary view aggregates for this many seconds
+    | (0 = off: aggregate on every load). Each viewer has their own. Saving or
+    | deleting a row aggregates again; a change the models do not see (a share,
+    | a membership, a direct SQL) shows when the rows expire.
+    |
+    */
+    'dashboard_cache_seconds' => env('EXMENT_DASHBOARD_CACHE_SECONDS', 0),
+
+    /*
+    |--------------------------------------------------------------------------
     | Directory
     |--------------------------------------------------------------------------
     |

@@ -459,6 +459,12 @@ class File extends ModelBase
             return static::where('uuid', $pathOrUuid)->first();
         };
         $funcPath = function ($pathOrUuid) {
+            // read together beforehand by prefetch() (false: not in the database)
+            $key = static::prefetchKey($pathOrUuid);
+            if (System::hasRequestSession($key)) {
+                return System::requestSession($key) ?: null;
+            }
+
             // get by $dirname, $filename
             list($dirname, $filename) = static::getDirAndFileName($pathOrUuid);
             $file = static::where('local_dirname', $dirname)
@@ -507,6 +513,70 @@ class File extends ModelBase
 
         $ext = file_ext($filename);
         return make_uuid() . (!is_nullorempty($ext) ? '.'.$ext : '');
+    }
+
+    /**
+     * Read together the files of these paths ("dirname/filename", as a file column stores
+     * them), for getData() to answer from the request: a page of rows with file columns
+     * asked once per row and column, twice for a link (ISS00413).
+     *
+     * @param iterable<mixed> $paths
+     * @return void
+     */
+    public static function prefetch($paths)
+    {
+        $wanted = [];
+        foreach ($paths as $path) {
+            foreach (is_null($path) ? [] : (array) toArray($path) as $p) {
+                if (!is_string($p) || strpos($p, '/') === false || System::hasRequestSession(static::prefetchKey($p))) {
+                    continue;
+                }
+                list($dirname, $filename) = static::getDirAndFileName($p);
+                $wanted[$p] = [$dirname, $filename];
+            }
+        }
+        if (empty($wanted)) {
+            return;
+        }
+
+        $found = [];
+        foreach (array_chunk(array_unique(array_column($wanted, 1)), 500) as $filenames) {
+            foreach (static::whereIn('local_filename', $filenames)->get() as $file) {
+                $found[$file->local_dirname . '/' . $file->local_filename] = $file;
+            }
+        }
+        foreach ($wanted as $p => list($dirname, $filename)) {
+            System::requestSession(static::prefetchKey($p), $found[$dirname . '/' . $filename] ?? false);
+        }
+    }
+
+    /**
+     * The request session key of a prefetched path (hashed: a path has dots, which the
+     * request session reads as nesting).
+     */
+    protected static function prefetchKey(string $path): string
+    {
+        return 'file_prefetch_' . md5($path);
+    }
+
+    /**
+     * (booted, not boot: boot is the Uuids trait's, which gives the file its uuid)
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        // a saved or deleted file is read again, not from what prefetch() kept
+        $forget = function ($file) {
+            // the path it has, and the one it had (a moved file)
+            foreach ([[$file->local_dirname, $file->local_filename], [$file->getOriginal('local_dirname'), $file->getOriginal('local_filename')]] as list($dirname, $filename)) {
+                if (isset($dirname, $filename)) {
+                    System::clearRequestSession(static::prefetchKey($dirname . '/' . $filename));
+                }
+            }
+        };
+        static::saved($forget);
+        static::deleted($forget);
     }
 
     /**
