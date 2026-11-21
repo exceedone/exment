@@ -7,6 +7,7 @@ use Exceedone\Exment\Auth\UserApiKeyToken;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\UserApiKey;
 use Illuminate\Http\Request;
@@ -38,6 +39,15 @@ class UserApiKeys
 
     /** The routes a key limited to some tables may still use (they read no table). */
     protected const ROUTES_WITHOUT_TABLE = ['ApiController@me', 'ApiController@avatar', 'ApiController@version'];
+
+    /** The routes of the files (checked by the table the file belongs to). */
+    protected const FILE_ROUTES = ['FileController@downloadApi', 'FileController@downloadTableApi', 'FileController@deleteApi', 'FileController@deleteTableApi'];
+
+    /** The routes of a table that read other tables too (not for a key limited to some tables). */
+    protected const ROUTES_READING_OTHER_TABLES = [
+        'ApiDataController@relatedLinkage', 'ApiDataController@dataSelect', 'ApiDataController@columnData',
+        'ApiDataController@viewDataList', 'ApiDataController@viewDataFind',
+    ];
 
     /** Why the last authenticate() refused (for the log and the tests; never sent to the client). */
     public static ?string $lastRefusal = null;
@@ -89,8 +99,23 @@ class UserApiKeys
         ?string $allowedIps = null,
         ?\DateTimeInterface $expiresAt = null,
         ?string $clientCertFingerprint = null,
-        ?int $createdUserId = null
+        ?int $createdUserId = null,
+        ?int $loginUserId = null
     ): array {
+        // the login the key signs in as: the one that made it (a user of SSO has no password login)
+        if (isset($loginUserId)) {
+            $login_user = LoginUser::find($loginUserId);
+            if (!isset($login_user) || intval($login_user->base_user_id) !== $userId) {
+                throw new \InvalidArgumentException('user');
+            }
+        }
+
+        // the keys a user has at once
+        $active = UserApiKey::where('user_id', $userId)->whereNull('revoked_at')->where('expires_at', '>', Carbon::now())->count();
+        if ($active >= static::maxActiveKeys()) {
+            throw new \InvalidArgumentException('too_many');
+        }
+
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 256) {
             throw new \InvalidArgumentException('name');
@@ -120,7 +145,7 @@ class UserApiKeys
 
         $now = Carbon::now();
         $expiresAt = isset($expiresAt) ? Carbon::instance($expiresAt) : $now->copy()->addDays(static::DEFAULT_DAYS);
-        if (!$expiresAt->isFuture() || $expiresAt->greaterThan($now->copy()->addDays(static::MAX_DAYS))) {
+        if (!$expiresAt->isFuture() || $expiresAt->greaterThan($now->copy()->addDays(static::maxDays()))) {
             throw new \InvalidArgumentException('expires_at');
         }
 
@@ -144,9 +169,26 @@ class UserApiKeys
             'client_cert_fingerprint' => $fingerprint,
             'expires_at' => $expiresAt,
             'created_user_id' => $createdUserId,
+            'login_user_id' => $loginUserId,
         ]);
 
         return [$key, $plain];
+    }
+
+    /**
+     * The most days a key may have (EXMENT_API_KEY_MAX_DAYS, never more than a year).
+     */
+    public static function maxDays(): int
+    {
+        return max(1, min(static::MAX_DAYS, intval(config('exment.api_key_max_days', static::MAX_DAYS))));
+    }
+
+    /**
+     * The keys a user may have at once (EXMENT_API_KEY_MAX_PER_USER).
+     */
+    public static function maxActiveKeys(): int
+    {
+        return max(1, intval(config('exment.api_key_max_per_user', 10)));
     }
 
     /**
@@ -228,6 +270,10 @@ class UserApiKeys
         $refuse = function (string $why, ?UserApiKey $key = null) {
             static::$lastRefusal = $why;
             \Log::info('[Exment] an API key was refused: ' . $why . (isset($key) ? " (key {$key->id})" : ''));
+            // on the key, for its pages (the administrators of a SaaS cannot read the log)
+            if (isset($key)) {
+                UserApiKey::where('id', $key->id)->update(['last_refused_at' => Carbon::now(), 'last_refused_reason' => $why]);
+            }
             return null;
         };
 
@@ -250,9 +296,14 @@ class UserApiKeys
             return $refuse('expired', $key);
         }
 
+        // only the API (not the OAuth pages under the same middleware, as oauth/personal-access-tokens:
+        // a key must not make a token that outlives it or has more scopes)
+        if (!static::isApiRoute($request)) {
+            return $refuse('route', $key);
+        }
+
         $user = getModelName(SystemTableName::USER)::find($key->user_id);
-        /** @var LoginUser|null $login_user */
-        $login_user = $user->login_user ?? null;
+        $login_user = static::loginUserOf($key, $user);
         if (!isset($user) || !isset($login_user)) {
             return $refuse('user', $key);
         }
@@ -290,8 +341,54 @@ class UserApiKeys
     }
 
     /**
+     * Whether the reason of a refusal means "the key is good, but not for this" (403), not "who
+     * are you" (401).
+     */
+    public static function isForbiddenReason(?string $why): bool
+    {
+        return in_array($why, ['table', 'route'], true);
+    }
+
+    /**
+     * Whether the request is to the API ({admin}/api/...).
+     */
+    public static function isApiRoute(Request $request): bool
+    {
+        $route = $request->route();
+        if (!($route instanceof \Illuminate\Routing\Route)) {
+            return false;
+        }
+        $prefix = trim(url_join(strval(config('admin.route.prefix')), 'api'), '/');
+        return str_starts_with(trim($route->uri(), '/') . '/', $prefix . '/');
+    }
+
+    /**
+     * The login of the key: the one that made it (any provider, as SSO), still of the same user;
+     * for a key without it, the password login of the user.
+     *
+     * @param mixed $user
+     */
+    protected static function loginUserOf(UserApiKey $key, $user): ?LoginUser
+    {
+        if (!isset($user)) {
+            return null;
+        }
+        if (isset($key->login_user_id)) {
+            /** @var LoginUser|null $login_user */
+            $login_user = LoginUser::find($key->login_user_id);
+            return isset($login_user) && intval($login_user->base_user_id) === intval($user->id) ? $login_user : null;
+        }
+        /** @var LoginUser|null $login_user */
+        $login_user = $user->login_user ?? null;
+        return $login_user;
+    }
+
+    /**
      * Whether a key limited to some tables may use the route of the request: the route names
-     * one of its tables, or it reads no table (me, avatar, version).
+     * one of its tables, or it reads no table (me, avatar, version). What reads other tables
+     * than the one of the route is refused for it: the related records (?children, ?parents),
+     * the choices and linkage of columns, and the views (their columns may come from other
+     * tables). A file is checked by the table it really belongs to, not by the URL.
      */
     public static function allowsRoute(UserApiKey $key, Request $request): bool
     {
@@ -302,14 +399,30 @@ class UserApiKeys
         if (!($route instanceof \Illuminate\Routing\Route)) {
             return false;
         }
-        $tableKey = $route->parameter('tableKey');
-        if (!isset($tableKey)) {
-            $action = $route->getActionName();
-            foreach (static::ROUTES_WITHOUT_TABLE as $allowed) {
-                if (str_ends_with($action, '\\' . $allowed)) {
+        $action = $route->getActionName();
+        $is = function (array $actions) use ($action): bool {
+            foreach ($actions as $one) {
+                if (str_ends_with($action, '\\' . $one)) {
                     return true;
                 }
             }
+            return false;
+        };
+
+        // the files: by the table of the record the file belongs to
+        if ($is(static::FILE_ROUTES)) {
+            $uuid = $route->parameter('uuid');
+            $tableKey = $route->parameter('tableKey');
+            $file = is_string($uuid) ? File::getData(isset($tableKey) ? [url_join($tableKey, $uuid), $uuid] : $uuid) : null;
+            $parent = isset($file) ? CustomTable::getEloquent($file->parent_type) : null;
+            return isset($parent) && in_array($parent->table_name, (array)$key->tables, true);
+        }
+
+        $tableKey = $route->parameter('tableKey');
+        if (!isset($tableKey)) {
+            return $is(static::ROUTES_WITHOUT_TABLE);
+        }
+        if ($is(static::ROUTES_READING_OTHER_TABLES) || boolval($request->query('children')) || boolval($request->query('parents'))) {
             return false;
         }
         $custom_table = CustomTable::getEloquent($tableKey);

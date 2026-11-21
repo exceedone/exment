@@ -24,6 +24,10 @@ class AuthenticateApi extends \ExmentAdminCore\Admin\Middleware\Authenticate
         if (UserApiKeys::looksLikeKey($bearer)) {
             $login_user = UserApiKeys::authenticate($request, (string)$bearer);
             if (!isset($login_user)) {
+                // a good key on a route or table it is not for: forbidden; else: who are you
+                if (UserApiKeys::isForbiddenReason(UserApiKeys::$lastRefusal)) {
+                    return abortJson(403, ErrorCode::WRONG_SCOPE());
+                }
                 return abortJson(401, ErrorCode::ACCESS_DENIED());
             }
             \Auth::guard(Define::AUTHENTICATE_KEY_API)->setUser($login_user);
