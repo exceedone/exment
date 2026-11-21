@@ -363,7 +363,7 @@ class UserApiKeyController extends AdminControllerBase
                 'status' => $status,
                 // the last refusal and why (the log is not for every administrator), when it came
                 // after the last use: a refusal the key got past is not shown any more
-                'last_refused_at' => $refusedShown ? $key->last_refused_at?->format('Y-m-d H:i') : null,
+                'last_refused_at' => $refusedShown && isset($key->last_refused_at) ? $key->last_refused_at->format('Y-m-d H:i') : null,
                 'last_refused_reason' => $refusedShown && isset($key->last_refused_reason) ? exmtrans('api_key.refusals.' . $key->last_refused_reason) : null,
             ];
         }
