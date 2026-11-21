@@ -33,6 +33,20 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Not the same as `php artisan down` (the update from the screen and the
  * restore use it): that one stops everything for everyone and is not changed.
+ *
+ * From outside, as the public forms ("stop_public", always in the operator's):
+ * the public forms, the share links of the file server, the LINE webhook and
+ * the answer page of the safety check (a link in a mail).
+ *
+ * The operator's maintenance is checked first for every request
+ * (MaintenanceOperatorGuard: files and IP addresses only), the site's after
+ * the login (MaintenanceGuard). The skipped exment:schedule runs once after.
+ *
+ * The allowed IP addresses are the address Laravel sees (TrustProxies): a
+ * proxy that is trusted may set it with X-Forwarded-For. Where other code
+ * runs on the same server (a tenant of a SaaS), it can call the site from
+ * the server itself with any X-Forwarded-For, so do not allow the server's
+ * own address or a range of the trusted proxies.
  */
 class MaintenanceMode
 {
@@ -83,20 +97,31 @@ class MaintenanceMode
      */
     public static function operator(): ?array
     {
-        $path = null;
-        foreach (static::operatorFiles() as $file) {
-            if (is_file($file)) {
-                $path = $file;
-                break;
+        foreach (static::operatorFiles() as $path) {
+            // a directory or anything else is not a file of the maintenance
+            if (!is_file($path)) {
+                continue;
             }
+            $raw = json_decode(strval(@file_get_contents($path)), true);
+            // a file that cannot be read is still the operator's maintenance (the safe side)
+            $raw = is_array($raw) ? $raw : [];
+            $value = static::normalize(['active' => true] + $raw);
+            // past its end: as if it were not there (the next file may still count)
+            if (static::passed($value['end_at'])) {
+                continue;
+            }
+            return static::operatorState($value, $raw, $path);
         }
-        if (!isset($path)) {
-            return null;
-        }
-        $raw = json_decode(strval(@file_get_contents($path)), true);
-        // a file that cannot be read is still the operator's maintenance (the safe side)
-        $raw = is_array($raw) ? $raw : [];
-        $value = static::normalize(['active' => true] + $raw);
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $value
+     * @param array<string, mixed> $raw
+     * @return array<string, mixed>
+     */
+    protected static function operatorState(array $value, array $raw, string $path): array
+    {
         $value['allow_admins'] = boolval(array_get($raw, 'allow_admins', false));
         $value['file'] = $path;
         // the operator's stops everything but the allowed IP addresses
@@ -136,9 +161,46 @@ class MaintenanceMode
      */
     public static function save(array $values): void
     {
-        $settings = array_merge(static::settings(), $values);
-        System::maintenance(static::normalize($settings));
-        static::reset();
+        static::locked(function () use ($values) {
+            $settings = array_merge(static::settings(), $values);
+            System::maintenance(static::normalize($settings));
+            static::reset();
+        });
+    }
+
+    protected static bool $inLock = false;
+
+    /**
+     * Run a read-modify-write of the setting under a lock (a request and the
+     * tick may change it at the same moment). Reentrant in one process; when
+     * the cache has no locks, it runs without one.
+     *
+     * @template T
+     * @param \Closure(): T $callback
+     * @return T
+     */
+    protected static function locked(\Closure $callback)
+    {
+        if (static::$inLock) {
+            return $callback();
+        }
+        $lock = null;
+        try {
+            $lock = \Illuminate\Support\Facades\Cache::lock('exment:maintenance', 10);
+            $lock->block(5);
+        } catch (\Throwable $e) {
+            $lock = null;
+        }
+        static::$inLock = true;
+        try {
+            return $callback();
+        } finally {
+            static::$inLock = false;
+            try {
+                optional($lock)->release();
+            } catch (\Throwable $e) {
+            }
+        }
     }
 
     /**
@@ -204,7 +266,8 @@ class MaintenanceMode
         }
         if (count($address) === 2) {
             $max = str_contains($address[0], ':') ? 128 : 32;
-            return ctype_digit($address[1]) && intval($address[1]) <= $max;
+            // "/0" lets every address in: not an allow list
+            return ctype_digit($address[1]) && intval($address[1]) >= 1 && intval($address[1]) <= $max;
         }
         return true;
     }
@@ -219,7 +282,9 @@ class MaintenanceMode
                 return [];
             }
             if (app()->runningInConsole()) {
-                // a queue worker and the scheduler run long: not the cache of the request
+                // a queue worker and the scheduler run long: not the cache of the request.
+                // (A web request reads it through System, whose cache a change clears; the
+                // commands change it through System too, so both see the same.)
                 $raw = System::query()->where('system_name', 'maintenance')->value('system_value');
                 $value = is_string($raw) ? json_decode($raw, true) : null;
             } else {
@@ -257,7 +322,7 @@ class MaintenanceMode
     protected static function look(): ?array
     {
         $operator = static::operator();
-        if (isset($operator) && !static::passed($operator['end_at'])) {
+        if (isset($operator)) {
             return ['source' => static::SOURCE_OPERATOR] + $operator;
         }
         if (!static::featureUsed()) {
@@ -310,6 +375,18 @@ class MaintenanceMode
      */
     public static function sync(): array
     {
+        return static::locked(function () {
+            return static::syncLocked();
+        });
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected static function syncLocked(): array
+    {
+        // read again under the lock: another process may have done it already (no second log)
+        static::reset();
         $settings = static::settings();
         if ($settings['active']) {
             if (static::passed($settings['end_at'])) {
@@ -520,6 +597,94 @@ class MaintenanceMode
     {
         $state = static::current();
         return isset($state) && boolval($state['stop_schedule']);
+    }
+
+    /**
+     * The skip of a scheduled event: in maintenance it is skipped, and a
+     * skipped exment:schedule (the hourly one) is run once after it
+     * (exment:maintenance tick).
+     */
+    public static function skipsScheduled(string $command): bool
+    {
+        if (!static::stopsSchedule()) {
+            return false;
+        }
+        if (str_contains($command, 'exment:schedule') && !boolval(static::systemValue('maintenance_missed_schedule'))) {
+            static::systemValue('maintenance_missed_schedule', true);
+        }
+        return true;
+    }
+
+    /**
+     * Run the exment:schedule skipped in the maintenance, once, after it.
+     */
+    public static function runMissedSchedule(): bool
+    {
+        if (static::isActive() || !boolval(static::systemValue('maintenance_missed_schedule'))) {
+            return false;
+        }
+        static::systemValue('maintenance_missed_schedule', false);
+        static::log('missed_schedule', null);
+        \Illuminate\Support\Facades\Artisan::call('exment:schedule');
+        return true;
+    }
+
+    /**
+     * @param mixed $value
+     * @return mixed
+     */
+    protected static function systemValue(string $name, $value = null)
+    {
+        try {
+            if (func_num_args() > 1) {
+                System::{$name}($value);
+                System::clearRequestSession();
+                return null;
+            }
+            if (app()->runningInConsole()) {
+                return System::query()->where('system_name', $name)->value('system_value');
+            }
+            return System::{$name}();
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * The feature was turned off: a maintenance of the site (or its plan) ends
+     * now, with a log. It does not come back when the feature is turned on.
+     *
+     * @param mixed $user
+     */
+    public static function featureTurnedOff($user = null): void
+    {
+        $settings = static::settings();
+        if ($settings['active'] || isset($settings['start_at'])) {
+            static::end($user, 'feature_off');
+        }
+    }
+
+    /**
+     * The operator's maintenance, checked before anything else (no database,
+     * no login: a version switch may have them broken). Null: go on (not in
+     * the operator's maintenance, an allowed IP address, or the administrators
+     * may come in and the guards of the pages decide).
+     */
+    public static function earlyResponse(Request $request): ?Response
+    {
+        $state = static::operator();
+        if (!isset($state)) {
+            return null;
+        }
+        $state = ['source' => static::SOURCE_OPERATOR] + $state;
+        if (static::ipAllowed($state, $request) || boolval($state['allow_admins'])) {
+            return null;
+        }
+        $path = '/' . ltrim($request->path(), '/');
+        $prefix = '/' . trim(strval(config('admin.route.prefix')), '/');
+        $rest = $prefix === '/' ? $path : (str_starts_with($path, $prefix) ? substr($path, strlen($prefix)) : $path);
+        $api = preg_match('#\A/(api|webapi|oauth)(/|\z)#', $rest) === 1;
+        return static::response($state, $request, $api ? static::KIND_API : static::KIND_WEB);
     }
 
     /**

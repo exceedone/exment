@@ -61,6 +61,8 @@ class MaintenanceCommand extends Command
                     return $this->off();
                 case 'tick':
                     MaintenanceMode::sync();
+                    MaintenanceMode::reset();
+                    MaintenanceMode::runMissedSchedule();
                     return 0;
             }
         } catch (\Throwable $e) {

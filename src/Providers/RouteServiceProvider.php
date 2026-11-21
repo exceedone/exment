@@ -60,6 +60,8 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'    => config('admin.route.prefix'),
             'namespace' => $this->namespace,
+            // maintenance mode: from outside, as the public forms
+            'middleware' => ['exment.maintenance:public'],
         ], function (Router $router) {
             $router->post('line/webhook', 'LineWebhookController@handle')->name('exment.line_webhook');
         });
@@ -108,6 +110,8 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'  => $this->namespace,
             'middleware' => [
                 'adminweb',
+                // maintenance mode: from outside (a link in a mail), as the public forms
+                'exment.maintenance:public',
                 'admin.browser',
                 'admin.initialize',
                 'admin.login',

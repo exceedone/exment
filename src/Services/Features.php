@@ -401,6 +401,12 @@ class Features
         }
         System::features($settings);
         static::$userRoleGroups = [];
+
+        // maintenance mode turned off: a maintenance of the site ends now (and does not come back)
+        $maintenance = $values[MaintenanceMode::FEATURE] ?? null;
+        if (is_array($maintenance) && !boolval(array_get($maintenance, 'enabled', false))) {
+            MaintenanceMode::featureTurnedOff(\Exment::user());
+        }
     }
 
     // ---------------------------------------------------------------- the checks

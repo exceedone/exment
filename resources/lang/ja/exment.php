@@ -4452,6 +4452,8 @@ return [
         'title' => 'メンテナンス中',
         'default_message' => 'ただいまメンテナンス中です。終わるまで、しばらくお待ちください。',
         'end_at' => '終わりの予定：:end_at',
+        'login_admins_only' => 'メンテナンス中は、システム管理者だけがログインできます。',
+        'login_planned' => 'メンテナンスの予定：:start_at から :end_at まで。そのあいだは使えません。',
     ],
 
     'plugin_distribution' => [
