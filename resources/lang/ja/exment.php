@@ -4066,6 +4066,7 @@ return [
     ],
 
     'plugin_distribution' => [
+        'open_feature' => '機能の管理を開く',
         'confirm_update_by_hand' => '「:name」は手で入れた版（:installed）です。:version に置き換えます（設定・メニュー・権限は残ります。今の版は残らないので、戻せません）。よろしいですか？',
         'by_hand_help' => '手で入れた版です。置き換えると、その版には戻せません。',
         'confirm_rollback_unsafe' => '「:name」を :version に戻すと、安全のための直しがなくなります。本当に戻しますか？',
@@ -4074,7 +4075,7 @@ return [
         'error_updates_off' => 'このサイトでは、版の切り替えはできません（運営者が行います）。',
         'notice_security' => ':name :version が使えます。安全のための直しを含みます。機能の管理で、この版にしてください。',
         'notice_features_subject' => '新しい機能があります',
-        'notice_features' => '新しい機能があります: :names（今は「使わない」です）。機能の管理で、使うかどうかを決めてください。',
+        'notice_features' => '新しい機能があります（:names）。はじめは「使わない」になっています。使うときは、管理者設定の「機能の管理」で「使う」にしてください。',
         'security_badge' => '安全のための直し',
         'header' => '無料の公式プラグイン（Exment に同梱）',
         'help' => 'Exment と一緒に届いている公式プラグインです。「使う」を押すまでは、インストールも読み込みもしません（テーブルも作りません）。新しい版があるときは、お知らせだけします（自動では入れません）。',

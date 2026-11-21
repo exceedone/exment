@@ -57,6 +57,16 @@ class UpdateCommand extends Command
 
         $this->initDatabase();
 
+        // the features the site has not decided on yet (they are off): told at the end
+        try {
+            $features = \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures();
+            if (count($features) > 0) {
+                $this->warn(strval(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])));
+            }
+        } catch (\Throwable $e) {
+            // not told
+        }
+
         return 0;
     }
 

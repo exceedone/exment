@@ -642,7 +642,7 @@ class DashboardController extends AdminControllerBase
             return;
         }
         try {
-            $link = '<a href="' . e(admin_url('feature')) . '">' . e(exmtrans('feature.header')) . '</a>';
+            $link = '<a href="' . e(admin_url('feature')) . '">' . e(exmtrans('plugin_distribution.open_feature')) . '</a>';
             foreach (\Exceedone\Exment\Services\PluginDistribution\AdminNotices::security() as $item) {
                 admin_error(
                     exmtrans('plugin_distribution.notice_security', ['name' => $item['label'], 'version' => $item['version']]),

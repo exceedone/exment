@@ -4067,6 +4067,7 @@ return [
     ],
 
     'plugin_distribution' => [
+        'open_feature' => 'Open Feature Management',
         'confirm_update_by_hand' => '":name" is a version installed by hand (:installed). Replace it with :version? (Settings, menus and permissions stay. The current version is not kept, so you cannot go back.)',
         'by_hand_help' => 'Installed by hand. Once replaced, you cannot go back to it.',
         'confirm_rollback_unsafe' => 'Putting ":name" back to :version takes the fix for safety away. Really go back?',
@@ -4075,7 +4076,7 @@ return [
         'error_updates_off' => 'The versions cannot be changed on this site (the provider does it).',
         'notice_security' => ':name :version is available. It includes a fix for safety. Please update to this version in Feature management.',
         'notice_features_subject' => 'New features are available',
-        'notice_features' => 'New features are available: :names (off for now). Please decide in Feature management whether to use them.',
+        'notice_features' => 'There are new features (:names). They are off at first. To use one, turn it on in Admin Setting > Feature Management.',
         'security_badge' => 'Safety fix',
         'header' => 'Free official plugins (bundled with Exment)',
         'help' => 'The official plugins that come with Exment. Nothing is installed or loaded (no tables are made) until you press "Use". When a newer version is there, it is only shown (never installed by itself).',
