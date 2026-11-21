@@ -192,6 +192,9 @@ class RouteServiceProvider extends ServiceProvider
                 $router->post('download', 'FileServerController@downloadZip');
                 $router->get('folders.json', 'FileServerController@folderTree');
                 $router->post('metadata_fields', 'FileServerMetaController@saveFields');
+                $router->get('audit', 'FileServerGovernanceController@audit');
+                $router->get('approvals', 'FileServerGovernanceController@approvals');
+                $router->post('follow', 'FileServerGovernanceController@follow');
                 $router->group(['prefix' => 'nodes/{node}', 'where' => ['node' => '[0-9]+']], function (Router $router) {
                     $router->get('/', 'FileServerController@showNode');
                     $router->get('info', 'FileServerController@info');
@@ -216,6 +219,12 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('metadata', 'FileServerMetaController@saveValues');
                     $router->post('data_links', 'FileServerMetaController@addDataLink');
                     $router->post('data_links/{link}/remove', 'FileServerMetaController@removeDataLink')->where('link', '[0-9]+');
+                    $router->post('approve', 'FileServerGovernanceController@approve');
+                    $router->post('reject', 'FileServerGovernanceController@reject');
+                    $router->post('rules', 'FileServerGovernanceController@rules');
+                    $router->post('follow', 'FileServerGovernanceController@follow');
+                    $router->post('comments', 'FileServerGovernanceController@addComment');
+                    $router->post('comments/{comment}/delete', 'FileServerGovernanceController@deleteComment')->where('comment', '[0-9]+');
                 });
             });
 

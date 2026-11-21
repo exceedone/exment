@@ -1498,4 +1498,16 @@ return [
     // After it is turned on: php artisan exment:file-server-index
     'file_server_meili' => env('EXMENT_FILE_SERVER_MEILI', false),
     'file_server_meili_index' => env('EXMENT_FILE_SERVER_MEILI_INDEX', 'exment_files'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | File server, phase 5 (ISS00379)
+    |--------------------------------------------------------------------------
+    | audit: write who did what. audit_days: remove the older lines (0: keep all).
+    | notify: tell the followers (the bell); notify_mail: and send mails.
+    */
+    'file_server_audit' => env('EXMENT_FILE_SERVER_AUDIT', true),
+    'file_server_audit_days' => env('EXMENT_FILE_SERVER_AUDIT_DAYS', 0),
+    'file_server_notify' => env('EXMENT_FILE_SERVER_NOTIFY', true),
+    'file_server_notify_mail' => env('EXMENT_FILE_SERVER_NOTIFY_MAIL', true),
 ];

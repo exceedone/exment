@@ -27,7 +27,9 @@
 .exm-fs-card { display: block; padding: 12px; border: 1px solid rgba(0,0,0,.12); border-radius: 6px; color: inherit; }
 .exm-fs-card:hover { border-color: #3c8dbc; text-decoration: none; }
 .exm-fs-card h5 { margin: 0 0 4px; font-weight: 600; }
-.exm-fs-preview { min-height: 200px; background: rgba(0,0,0,.03); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: auto; }
+.exm-fs-preview { min-height: 200px; background: rgba(0,0,0,.03); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: auto; position: relative; }
+.exm-fs-watermark { position: absolute; inset: 0; pointer-events: none; z-index: 2; display: flex; flex-wrap: wrap; align-content: space-around; justify-content: space-around; overflow: hidden; }
+.exm-fs-watermark span { transform: rotate(-24deg); color: rgba(128,128,128,.28); font-size: 1.1rem; white-space: nowrap; padding: 24px; user-select: none; }
 .exm-fs-preview img, .exm-fs-preview video { max-width: 100%; max-height: 75vh; }
 .exm-fs-preview iframe { width: 100%; height: 75vh; border: 0; background: #fff; }
 .exm-fs-preview pre { width: 100%; max-height: 75vh; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }

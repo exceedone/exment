@@ -9,6 +9,8 @@
                 <i class="fa {{ $item['icon'] }}" aria-hidden="true"></i>
             @endif{{ $item['name'] }}</a>
         @if ($item['checked_out'])<span class="exm-fs-badge" title="{{ exmtrans('file_server.checked_out_badge') }}"><i class="fa fa-lock" aria-hidden="true"></i> {{ exmtrans('file_server.checked_out_badge') }}</span>@endif
+        @if (!empty($item['approval_status']) && $item['approval_status'] !== 'approved')<span class="exm-fs-badge">{{ exmtrans('file_server.approval_' . $item['approval_status']) }}</span>@endif
+        @if (!empty($item['legal_hold']))<span class="exm-fs-badge" title="{{ exmtrans('file_server.legal_hold') }}"><i class="fa fa-lock" aria-hidden="true"></i></span>@endif
         @if ($item['unique_permissions'])<span class="exm-fs-badge" title="{{ exmtrans('file_server.unique_permissions') }}"><i class="fa fa-key" aria-hidden="true"></i></span>@endif
         @if ($item['version_no'] && $item['version_no'] > 1)<span class="exm-fs-badge">v{{ $item['version_no'] }}</span>@endif
     </td>

@@ -45,11 +45,25 @@
         @if (isset($folder))
             <a href="{{ $base_url }}/nodes/{{ $folder->id }}" class="btn btn-sm btn-default"><i class="fa fa-info-circle" aria-hidden="true"></i> {{ exmtrans('file_server.folder_detail') }}</a>
         @endif
+        <button type="button" class="btn btn-sm btn-default" data-fs-follow="{{ $follow_url }}" aria-pressed="{{ $following ? 'true' : 'false' }}"><i class="fa {{ $following ? 'fa-bell' : 'fa-bell-o' }}" aria-hidden="true"></i> {{ $following ? exmtrans('file_server.following') : exmtrans('file_server.follow') }}</button>
+        @if ($waiting_count > 0)
+            <a href="{{ $approvals_url }}" class="btn btn-sm btn-warning"><i class="fa fa-check-square-o" aria-hidden="true"></i> {{ exmtrans('file_server.approvals') }} ({{ $waiting_count }})</a>
+        @endif
         <a href="{{ $base_url }}/trash" class="btn btn-sm btn-default"><i class="fa fa-trash-o" aria-hidden="true"></i> {{ exmtrans('file_server.trash') }}</a>
+        @if ($audit_url)
+            <a href="{{ $audit_url }}" class="btn btn-sm btn-default"><i class="fa fa-history" aria-hidden="true"></i> {{ exmtrans('file_server.audit') }}</a>
+        @endif
         @if ($can_manage_workspace)
             <a href="{{ $base_url }}/settings" class="btn btn-sm btn-default"><i class="fa fa-cog" aria-hidden="true"></i> {{ exmtrans('file_server.workspace_settings') }}</a>
         @endif
     </div>
+
+    @if ($held)
+        <div class="alert alert-info" style="padding:8px 12px"><i class="fa fa-lock" aria-hidden="true"></i> {{ exmtrans('file_server.held_help') }}</div>
+    @endif
+    @if ($needs_approval)
+        <div class="alert alert-info" style="padding:8px 12px"><i class="fa fa-check-square-o" aria-hidden="true"></i> {{ exmtrans('file_server.needs_approval_help') }}</div>
+    @endif
 
     <form class="exm-fs-filters" method="get" action="{{ $search_url }}" role="search">
         <input type="hidden" name="workspace" value="{{ $workspace->id }}">
@@ -363,5 +377,15 @@
             return sendFrom(0, 0);
         });
     }
+})();
+</script>
+<script>
+(function () {
+    var btn = document.querySelector('#exm-fs-folder [data-fs-follow]');
+    if (!btn || btn.dataset.ready) { return; }
+    btn.dataset.ready = '1';
+    btn.addEventListener('click', function () {
+        window.ExmFs.post(btn.getAttribute('data-fs-follow'), {}).then(window.ExmFs.done, window.ExmFs.fail);
+    });
 })();
 </script>

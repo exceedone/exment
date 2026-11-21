@@ -10,6 +10,9 @@ use Exceedone\Exment\Model\FileNodeVersion;
 use Exceedone\Exment\Model\FilePermission;
 use Exceedone\Exment\Model\FileWorkspace;
 use Exceedone\Exment\Services\FileServer\Access;
+use Exceedone\Exment\Services\FileServer\Audit;
+use Exceedone\Exment\Services\FileServer\Collaboration;
+use Exceedone\Exment\Services\FileServer\Governance;
 use Exceedone\Exment\Services\FileServer\DataLinks;
 use Exceedone\Exment\Services\FileServer\FileSearch;
 use Exceedone\Exment\Services\FileServer\FileServerException;
@@ -183,6 +186,14 @@ class FileServerController extends AdminControllerBase
             'can_upload' => $level >= Level::UPLOAD,
             'can_edit' => $level >= Level::EDIT,
             'can_manage_workspace' => $access->can($ws, null, Level::MANAGE),
+            // phase 5 (ISS00379)
+            'following' => (new Collaboration($library))->isFollowing($ws, $folder),
+            'follow_url' => isset($folder) ? $this->nodeUrl($ws, $folder, 'follow') : $this->url($ws, 'follow'),
+            'audit_url' => $access->can($ws, null, Level::MANAGE) ? $this->url($ws, 'audit') : null,
+            'approvals_url' => $this->url($ws, 'approvals'),
+            'waiting_count' => Governance::waiting($library, $ws)->count(),
+            'needs_approval' => Governance::needsApproval($folder),
+            'held' => $ws->legal_hold || (isset($folder) && Governance::isHeld($ws, $folder)),
             'sort' => $sort,
             'direction' => $direction,
             'base_url' => $this->url($ws),
@@ -214,6 +225,10 @@ class FileServerController extends AdminControllerBase
         $access = $library->access();
         $level = $access->level($ws, $item);
         $version = $item->isFile() ? $item->current_version : null;
+        if ($item->isFile()) {
+            Audit::log(Audit::VIEW, $ws, $item, $access->userId());
+        }
+        $collaboration = new Collaboration($library);
         $kind = isset($version) ? Preview::kind($version->mime_type, $item->name) : Preview::KIND_NONE;
         // a file from a request link: its preview is made now that someone inside opens it (ISS00410)
         if (isset($version) && $version->rendition_status === FileNodeVersion::RENDITION_HELD) {
@@ -283,6 +298,31 @@ class FileServerController extends AdminControllerBase
             })->all() : [],
             'data_lookup_url' => admin_urls('file_server', 'data_lookup'),
             'text_status' => $item->isFile() ? FileNodeText::query()->where('node_id', $item->id)->value('status') : null,
+            // phase 5 (ISS00379)
+            'can_download' => Governance::canDownload($access, $ws, $item),
+            'watermark' => $ws->watermark ? trim($this->userName($access->userId()) . ' ' . now()->format('Y/m/d H:i')) : null,
+            'following' => $collaboration->isFollowing($ws, $item),
+            'follow_url' => $this->nodeUrl($ws, $item, 'follow'),
+            'comments' => $collaboration->comments($ws, $item)->map(function (\Exceedone\Exment\Model\FileComment $comment) use ($ws, $item, $access, $level) {
+                return [
+                    'body' => $comment->body,
+                    'user' => $this->userName($comment->created_user_id),
+                    'created_at' => $comment->created_at,
+                    'delete_url' => (intval($comment->created_user_id) === $access->userId() || $level >= Level::MANAGE)
+                        ? $this->nodeUrl($ws, $item, 'comments/' . $comment->id . '/delete') : null,
+                ];
+            })->all(),
+            'comment_url' => $this->nodeUrl($ws, $item, 'comments'),
+            'approval_status' => $item->approval_status,
+            'approval_user' => $this->userName($item->approval_user_id),
+            'approval_at' => $item->approval_at,
+            'approval_comment' => $item->approval_comment,
+            'can_approve' => $item->approval_status === FileNode::APPROVAL_DRAFT && $level >= Level::MANAGE,
+            'approve_url' => $this->nodeUrl($ws, $item, 'approve'),
+            'reject_url' => $this->nodeUrl($ws, $item, 'reject'),
+            'rules_url' => $this->nodeUrl($ws, $item, 'rules'),
+            'held' => Governance::isHeld($ws, $item),
+            'retained_until' => $item->isFile() ? Governance::retainedUntil($ws, $item) : null,
         ] + $this->pickerData()));
         return $content;
     }
@@ -344,6 +384,7 @@ class FileServerController extends AdminControllerBase
             'used_bytes' => $ws->usedBytes(),
             'fields' => $this->fieldRows(Metadata::fields($ws)),
             'fields_url' => $this->url($ws, 'metadata_fields'),
+            'audit_url' => $this->url($ws, 'audit'),
         ] + $this->pickerData()));
         return $content;
     }
@@ -359,6 +400,13 @@ class FileServerController extends AdminControllerBase
             $ws = $this->workspace($workspace);
             $library = $this->library();
             $library->updateWorkspace($ws, $this->workspaceInput($request));
+            Governance::setWorkspaceRules($library, $ws, [
+                'retention_days' => $request->input('retention_days'),
+                'retention_action' => $request->input('retention_action'),
+                'legal_hold' => $request->boolean('legal_hold'),
+                'watermark' => $request->boolean('watermark'),
+                'download_level' => $request->input('download_level', Level::VIEW),
+            ]);
             $library->setPermissions($ws, null, $this->permissionInput($request));
             return ['message' => exmtrans('common.message.success_execute'), 'redirect' => $this->url($ws)];
         });
@@ -824,6 +872,7 @@ class FileServerController extends AdminControllerBase
         try {
             $ws = $this->workspace($workspace);
             $item = $this->library()->findNode($ws, intval($node));
+            Governance::assertDownload($this->library()->access(), $ws, $item);
             if ($item->isFolder()) {
                 return $this->zipResponse($ws, [$item], $item->name . '.zip');
             }
@@ -832,6 +881,7 @@ class FileServerController extends AdminControllerBase
         } catch (FileServerException $e) {
             abort($e->status(), $e->getMessage());
         }
+        Audit::log(Audit::DOWNLOAD, $ws, $item, $this->library()->access()->userId(), ['version' => $version->version_no]);
         $name = $item->name;
         if ($version->id !== $item->current_version_id) {
             $ext = pathinfo($name, PATHINFO_EXTENSION);
@@ -899,7 +949,9 @@ class FileServerController extends AdminControllerBase
             $ids = array_map('intval', (array)$request->input('ids', []));
             $nodes = [];
             foreach ($ids as $id) {
-                $nodes[] = $this->library()->findNode($ws, $id);
+                $node = $this->library()->findNode($ws, $id);
+                Governance::assertDownload($this->library()->access(), $ws, $node);
+                $nodes[] = $node;
             }
             if (count($nodes) === 0) {
                 throw FileServerException::notFound();
@@ -920,6 +972,9 @@ class FileServerController extends AdminControllerBase
             $path = $this->library()->zip($ws, $nodes);
         } catch (FileServerException $e) {
             abort($e->status(), $e->getMessage());
+        }
+        foreach ($nodes as $node) {
+            Audit::log(Audit::ZIP, $ws, $node, $this->library()->access()->userId());
         }
         return response()->download($path, $name, ['Content-Type' => 'application/zip'])->deleteFileAfterSend(true);
     }
@@ -1081,6 +1136,8 @@ class FileServerController extends AdminControllerBase
                 'thumbnail_url' => isset($version) && isset($version->thumbnail_path) ? $this->nodeUrl($workspace, $node, 'thumbnail') . '?v=' . $version->id : null,
                 'checked_out' => isset($node->checked_out_user_id),
                 'unique_permissions' => $node->has_unique_permissions,
+                'approval_status' => $node->approval_status,
+                'legal_hold' => $node->legal_hold,
                 'version_no' => isset($version) ? $version->version_no : null,
                 'meta' => isset($fields) ? FileSearch::listValues($node, $fields) : [],
             ];

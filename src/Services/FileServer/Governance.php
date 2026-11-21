@@ -117,6 +117,116 @@ class Governance
     }
 
     /**
+     * Approve a file that waits (those who manage it). Its followers are told
+     * of it now, and its maker.
+     */
+    public static function approve(Library $library, FileWorkspace $workspace, FileNode $node, ?string $comment = null): FileNode
+    {
+        return static::decide($library, $workspace, $node, FileNode::APPROVAL_APPROVED, $comment);
+    }
+
+    /**
+     * Send a file back to its maker (those who manage it). The maker sees it
+     * still, and may send a new version: it waits again.
+     */
+    public static function reject(Library $library, FileWorkspace $workspace, FileNode $node, ?string $comment = null): FileNode
+    {
+        return static::decide($library, $workspace, $node, FileNode::APPROVAL_REJECTED, $comment);
+    }
+
+    protected static function decide(Library $library, FileWorkspace $workspace, FileNode $node, string $status, ?string $comment): FileNode
+    {
+        $access = $library->access();
+        if ($node->workspace_id !== $workspace->id || $node->isTrashed() || $node->approval_status !== FileNode::APPROVAL_DRAFT) {
+            throw new FileServerException(exmtrans('file_server.error_not_waiting'));
+        }
+        $access->authorize($workspace, $node, Level::MANAGE);
+        $comment = trim(strval($comment));
+        $node->approval_status = $status;
+        $node->approval_user_id = $access->userId();
+        $node->approval_at = now();
+        $node->approval_comment = $comment !== '' ? mb_substr($comment, 0, 1000) : null;
+        $node->save();
+
+        $approved = $status === FileNode::APPROVAL_APPROVED;
+        Audit::log($approved ? Audit::APPROVE : Audit::REJECT, $workspace, $node, $access->userId(), $comment !== '' ? ['comment' => mb_substr($comment, 0, 200)] : []);
+        $extra = $comment !== '' ? ['comment' => mb_substr($comment, 0, 200)] : [];
+        if (isset($node->created_user_id)) {
+            Collaboration::notify($node, $approved ? Collaboration::EVENT_APPROVED : Collaboration::EVENT_REJECTED, $access->userId(), $extra, [intval($node->created_user_id)]);
+        }
+        if ($approved) {
+            Collaboration::notify($node, Collaboration::EVENT_ADDED, $node->created_user_id);
+        }
+        return $node;
+    }
+
+    /**
+     * The files that wait for an approval the user may give.
+     *
+     * @return \Illuminate\Support\Collection<int, FileNode>
+     */
+    public static function waiting(Library $library, FileWorkspace $workspace)
+    {
+        $access = $library->access();
+        return FileNode::query()->where('workspace_id', $workspace->id)->whereNull('trashed_at')
+            ->where('approval_status', FileNode::APPROVAL_DRAFT)->orderBy('created_at')->limit(500)->get()
+            ->filter(function (FileNode $node) use ($access, $workspace) {
+                return $access->can($workspace, $node, Level::MANAGE);
+            })->values();
+    }
+
+    /**
+     * The rules of a folder or file (those who manage it): the legal hold, and
+     * (a folder) whether the files put in it need an approval.
+     *
+     * @param array<string, mixed> $input legal_hold, requires_approval
+     */
+    public static function setRules(Library $library, FileWorkspace $workspace, FileNode $node, array $input): FileNode
+    {
+        $access = $library->access();
+        if ($node->workspace_id !== $workspace->id || $node->isTrashed()) {
+            throw FileServerException::notFound();
+        }
+        $access->authorize($workspace, $node, Level::MANAGE);
+        if (array_key_exists('legal_hold', $input)) {
+            $hold = boolval($input['legal_hold']);
+            if ($hold !== $node->legal_hold) {
+                $node->legal_hold = $hold;
+                Audit::log(Audit::HOLD, $workspace, $node, $access->userId(), ['hold' => $hold]);
+            }
+        }
+        if (array_key_exists('requires_approval', $input) && $node->isFolder()) {
+            $node->requires_approval = boolval($input['requires_approval']);
+        }
+        $node->save();
+        return $node;
+    }
+
+    /**
+     * The rules of a workspace (those who manage it).
+     *
+     * @param array<string, mixed> $input retention_days, retention_action, legal_hold, watermark, download_level
+     */
+    public static function setWorkspaceRules(Library $library, FileWorkspace $workspace, array $input): FileWorkspace
+    {
+        $access = $library->access();
+        $access->authorize($workspace, null, Level::MANAGE);
+        $days = array_get($input, 'retention_days');
+        $workspace->retention_days = ($days === null || $days === '' || intval($days) <= 0) ? null : min(36500, intval($days));
+        $workspace->retention_action = array_get($input, 'retention_action') === static::RETENTION_DELETE ? static::RETENTION_DELETE : static::RETENTION_KEEP;
+        $hold = boolval(array_get($input, 'legal_hold', false));
+        if ($hold !== $workspace->legal_hold) {
+            Audit::log(Audit::HOLD, $workspace, null, $access->userId(), ['hold' => $hold]);
+        }
+        $workspace->legal_hold = $hold;
+        $workspace->watermark = boolval(array_get($input, 'watermark', false));
+        $level = intval(array_get($input, 'download_level', Level::VIEW));
+        $workspace->download_level = in_array($level, [Level::VIEW, Level::UPLOAD, Level::EDIT, Level::MANAGE], true) ? $level : Level::VIEW;
+        $workspace->save();
+        return $workspace;
+    }
+
+    /**
      * Put the files past the days of their workspaces into the trash (the
      * workspaces with "delete"). Not those that are held. Run every day.
      */

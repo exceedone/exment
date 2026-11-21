@@ -21,7 +21,9 @@
         @if ($node->isFolder())
             <a class="btn btn-sm btn-default" href="{{ $base_url }}/folder/{{ $node->id }}"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.open') }}</a>
         @endif
-        <a class="btn btn-sm btn-primary" href="{{ $node_url }}/download"><i class="fa fa-download" aria-hidden="true"></i> {{ exmtrans('file_server.download') }}</a>
+        @if ($can_download)
+            <a class="btn btn-sm btn-primary" href="{{ $node_url }}/download"><i class="fa fa-download" aria-hidden="true"></i> {{ exmtrans('file_server.download') }}</a>
+        @endif
         @foreach ($openers as $opener)
             <a class="btn btn-sm btn-default" href="{{ $opener['url'] }}" target="_blank" rel="noopener"><i class="fa {{ $opener['icon'] ?? 'fa-external-link' }}" aria-hidden="true"></i> {{ $opener['label'] }}</a>
         @endforeach
@@ -52,6 +54,7 @@
             @if ($node->isFile())
                 <div class="exm-fs-section">
                     <div class="exm-fs-preview">
+                        @include('exment::file_server._watermark')
                         @switch($kind)
                             @case('image')
                                 <img src="{{ $node_url }}/content" alt="{{ $node->name }}">
@@ -111,7 +114,9 @@
                                             <td class="exm-fs-muted"><span data-fs-size="{{ $v['size'] }}"></span></td>
                                             <td style="overflow-wrap:anywhere">{{ $v['comment'] }}</td>
                                             <td class="exm-fs-actions">
-                                                <a class="btn btn-xs btn-default" href="{{ $v['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                                @if ($can_download)
+                                                    <a class="btn btn-xs btn-default" href="{{ $v['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                                @endif
                                                 @if (!$v['current'] && $canEdit && !$lockedByOther)
                                                     <button type="button" class="btn btn-xs btn-default" data-fs-restore="{{ $v['restore_url'] }}" title="{{ exmtrans('file_server.restore_version') }}"><i class="fa fa-undo" aria-hidden="true"></i></button>
                                                 @endif
@@ -146,6 +151,8 @@
             </div>
 
             @include('exment::file_server._metadata_box')
+
+            @include('exment::file_server._governance_box')
 
             <div class="exm-fs-section box card">
                 <div class="box-header"><h4><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h4></div>

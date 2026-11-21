@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Services\FileServer;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\FileDataLink;
 use Exceedone\Exment\Model\FileFavorite;
+use Exceedone\Exment\Model\FileComment;
+use Exceedone\Exment\Model\FileFollow;
 use Exceedone\Exment\Model\FileNode;
 use Exceedone\Exment\Model\FileNodeText;
 use Exceedone\Exment\Model\FileNodeVersion;
@@ -103,12 +105,17 @@ class Library
         $this->access->authorize($workspace, null, Level::MANAGE);
         $workspace->fill($this->workspaceAttributes($attributes));
         $workspace->save();
+        Audit::log(Audit::SETTINGS, $workspace, null, $this->access->userId());
         return $workspace;
     }
 
     public function deleteWorkspace(FileWorkspace $workspace): void
     {
         $this->access->authorize($workspace, null, Level::MANAGE);
+        // nothing held may be removed (ISS00379)
+        if ($workspace->legal_hold || FileNode::query()->where('workspace_id', $workspace->id)->where('legal_hold', true)->exists()) {
+            throw new FileServerException(exmtrans('file_server.error_legal_hold'), 423);
+        }
         $workspace->delete();
     }
 
@@ -160,6 +167,7 @@ class Library
             }
         });
         $this->access->flush();
+        Audit::log(Audit::PERMISSIONS, $workspace, $node, $this->access->userId(), ['count' => count($rows)]);
     }
 
     /**
@@ -205,6 +213,7 @@ class Library
             $node->save();
         });
         $this->access->flush();
+        Audit::log(Audit::PERMISSIONS, $workspace, $node, $this->access->userId(), ['inherit' => true]);
     }
 
     /**
@@ -419,18 +428,54 @@ class Library
         $size = intval(filesize($localPath));
         $this->assertQuota($workspace, $size);
 
-        return DB::transaction(function () use ($workspace, $parent, $name, $localPath, $comment) {
+        $node = DB::transaction(function () use ($workspace, $parent, $name, $localPath, $comment) {
             $node = new FileNode([
                 'workspace_id' => $workspace->id,
                 'parent_id' => isset($parent) ? $parent->id : null,
                 'node_type' => FileNode::TYPE_FILE,
                 'name' => $name,
             ]);
+            $this->markDraft($parent, $node);
             $node->save();
             Metadata::applyDefaults($workspace, $node);
             $this->writeVersion($workspace, $node, $localPath, $comment);
             return $node->refresh();
         });
+        $this->afterNewFile($workspace, $node);
+        return $node;
+    }
+
+    /**
+     * A new file in a folder that needs an approval waits as a draft, unless
+     * the user manages the folder (ISS00379). The files from the people
+     * outside always wait.
+     */
+    protected function markDraft(?FileNode $parent, FileNode $node): void
+    {
+        if (!Governance::needsApproval($parent)) {
+            return;
+        }
+        $workspace = isset($parent) ? $parent->workspace : null;
+        if (!$this->forLink && isset($workspace) && $this->access->can($workspace, $parent, Level::MANAGE)) {
+            return;
+        }
+        $node->approval_status = FileNode::APPROVAL_DRAFT;
+    }
+
+    /**
+     * The log and the news of a new file: to the followers, or (a draft) to
+     * those who approve it.
+     */
+    protected function afterNewFile(FileWorkspace $workspace, FileNode $node): void
+    {
+        if (!$this->forLink) {
+            Audit::log(Audit::UPLOAD, $workspace, $node, $this->access->userId(), ['size' => intval($node->size)]);
+        }
+        if ($node->approval_status === FileNode::APPROVAL_DRAFT) {
+            Collaboration::notify($node, Collaboration::EVENT_APPROVAL_REQUEST, $this->access->userId(), [], Collaboration::managers($workspace, $node));
+            return;
+        }
+        Collaboration::notify($node, Collaboration::EVENT_ADDED, $this->access->userId());
     }
 
     /**
@@ -443,7 +488,7 @@ class Library
         $this->access->authorize($workspace, $parent, Level::UPLOAD);
         $name = $this->validName($name);
         $this->assertQuota($workspace, intval(filesize($localPath)));
-        return DB::transaction(function () use ($workspace, $parent, $name, $localPath, $comment) {
+        $node = DB::transaction(function () use ($workspace, $parent, $name, $localPath, $comment) {
             if ($this->sibling($workspace, $parent, $name) !== null) {
                 throw new FileServerException(exmtrans('file_server.error_name_exists', ['name' => $name]));
             }
@@ -453,11 +498,14 @@ class Library
                 'node_type' => FileNode::TYPE_FILE,
                 'name' => $name,
             ]);
+            $this->markDraft($parent, $node);
             $node->save();
             Metadata::applyDefaults($workspace, $node);
             $this->writeVersion($workspace, $node, $localPath, $comment);
             return $node->refresh();
         });
+        $this->afterNewFile($workspace, $node);
+        return $node;
     }
 
     /**
@@ -474,7 +522,17 @@ class Library
             $this->writeVersion($workspace, $node, $localPath, $comment);
         });
         $this->trimVersions($workspace, $node);
-        return $node->refresh();
+        $node->refresh();
+        Audit::log(Audit::VERSION, $workspace, $node, $this->access->userId(), ['version' => intval(optional($node->current_version)->version_no)]);
+        // a rejected file sent again waits for the approval again
+        if ($node->approval_status === FileNode::APPROVAL_REJECTED) {
+            $node->approval_status = FileNode::APPROVAL_DRAFT;
+            $node->save();
+            Collaboration::notify($node, Collaboration::EVENT_APPROVAL_REQUEST, $this->access->userId(), [], Collaboration::managers($workspace, $node));
+        } elseif (!$node->isDraft()) {
+            Collaboration::notify($node, Collaboration::EVENT_UPDATED, $this->access->userId());
+        }
+        return $node;
     }
 
     /**
@@ -536,6 +594,10 @@ class Library
      */
     protected function trimVersions(FileWorkspace $workspace, FileNode $node): void
     {
+        // a held file keeps all its versions (ISS00379)
+        if (Governance::isHeld($workspace, $node)) {
+            return;
+        }
         $limit = max(1, intval($workspace->version_limit));
         $old = FileNodeVersion::query()->where('node_id', $node->id)->orderByDesc('version_no')->skip($limit)->take(PHP_INT_MAX)->get();
         foreach ($old as $version) {
@@ -575,9 +637,11 @@ class Library
         if (isset($other) && $other->id !== $node->id) {
             throw new FileServerException(exmtrans('file_server.error_name_exists', ['name' => $name]));
         }
+        $old = $node->name;
         $node->name = $name;
         $node->save();
         FileSearch::sync([$node->id]);
+        Audit::log(Audit::RENAME, $workspace, $node, $this->access->userId(), ['from' => $old]);
         return $node;
     }
 
@@ -597,9 +661,11 @@ class Library
         if (isset($other) && $other->id !== $node->id) {
             throw new FileServerException(exmtrans('file_server.error_name_exists', ['name' => $node->name]));
         }
+        $from = $node->parent_id;
         $node->parent_id = isset($target) ? $target->id : null;
         $node->save();
         $this->access->flush();
+        Audit::log(Audit::MOVE, $workspace, $node, $this->access->userId(), ['from' => $from, 'to' => $node->parent_id]);
         return $node;
     }
 
@@ -618,7 +684,9 @@ class Library
         }
         $this->assertQuota($workspace, $this->treeSize($node));
         $name = $this->freeName($workspace, $target, $node->name);
-        return $this->copyTree($workspace, $node, $target, $name);
+        $copy = $this->copyTree($workspace, $node, $target, $name);
+        Audit::log(Audit::COPY, $workspace, $copy, $this->access->userId(), ['from' => $node->id]);
+        return $copy;
     }
 
     protected function copyTree(FileWorkspace $workspace, FileNode $node, ?FileNode $target, string $name): FileNode
@@ -669,6 +737,7 @@ class Library
     {
         $this->access->authorize($workspace, $node, Level::EDIT);
         $this->assertNotCheckedOutByOther($node);
+        Governance::assertRemovable($workspace, $node);
         $ids = $node->descendantIds();
         foreach (FileNode::query()->whereIn('id', $ids)->get() as $child) {
             if (!$this->access->can($workspace, $child, Level::EDIT)) {
@@ -685,6 +754,7 @@ class Library
             ]);
         });
         FileSearch::sync(array_merge([$node->id], $ids));
+        Audit::log(Audit::TRASH, $workspace, $node, $this->access->userId(), ['count' => count($ids) + 1]);
     }
 
     /**
@@ -731,6 +801,7 @@ class Library
         });
         $this->access->flush();
         FileSearch::sync($ids);
+        Audit::log(Audit::RESTORE, $workspace, $node, $this->access->userId());
         return $node;
     }
 
@@ -745,6 +816,10 @@ class Library
         if ($checkPermission) {
             $this->access->authorize($workspace, $node, Level::MANAGE);
         }
+        // a hold set after it went to the trash keeps it (ISS00379)
+        if ($workspace->legal_hold || FileNode::query()->where('trash_root_id', $node->id)->where('legal_hold', true)->exists()) {
+            throw new FileServerException(exmtrans('file_server.error_legal_hold'), 423);
+        }
         $nodes = FileNode::query()->where('trash_root_id', $node->id)->get();
         $ids = $nodes->pluck('id')->all();
         foreach (FileNodeVersion::query()->whereIn('node_id', $ids)->get() as $version) {
@@ -756,8 +831,11 @@ class Library
             FileFavorite::query()->whereIn('node_id', $ids)->delete();
             FileNodeText::query()->whereIn('node_id', $ids)->delete();
             FileDataLink::query()->whereIn('node_id', $ids)->delete();
+            FileFollow::query()->whereIn('node_id', $ids)->delete();
+            FileComment::query()->whereIn('node_id', $ids)->delete();
             FileNode::query()->whereIn('id', $ids)->delete();
         });
+        Audit::log(Audit::PURGE, $workspace, $node, $checkPermission ? $this->access->userId() : null, ['count' => count($ids)]);
         FileSearch::sync(array_map('intval', $ids));
         foreach ($nodes as $removed) {
             if ($removed->isFile()) {
@@ -779,8 +857,13 @@ class Library
             $roots = FileNode::query()->where('workspace_id', $workspace->id)->whereNotNull('trashed_at')
                 ->whereColumn('trash_root_id', 'id')->where('trashed_at', '<', $limit)->get();
             foreach ($roots as $root) {
-                $library->purge($workspace, $root, false);
-                $count++;
+                try {
+                    $library->purge($workspace, $root, false);
+                    $count++;
+                } catch (FileServerException $e) {
+                    // held
+                    continue;
+                }
             }
         }
         return $count;
@@ -799,6 +882,7 @@ class Library
         $node->checked_out_user_id = $this->access->userId();
         $node->checked_out_at = now();
         $node->save();
+        Audit::log(Audit::CHECKOUT, $workspace, $node, $this->access->userId());
         return $node;
     }
 
@@ -819,6 +903,7 @@ class Library
         $node->checked_out_user_id = null;
         $node->checked_out_at = null;
         $node->save();
+        Audit::log(Audit::CHECKIN, $workspace, $node, $this->access->userId());
         return $node;
     }
 
@@ -961,7 +1046,7 @@ class Library
             return;
         }
         // a link gives what is under it, but not what has its own permissions (ISS00410)
-        if ($this->forLink && $prefix !== '' && $node->has_unique_permissions) {
+        if ($this->forLink && $prefix !== '' && ($node->has_unique_permissions || $node->isDraft())) {
             return;
         }
         $name = $prefix . $node->name;

@@ -25,10 +25,13 @@ class FileServerPurgeCommand extends Command
 
     public function handle(): int
     {
+        // the files past the days of their workspaces go to the trash first (ISS00379)
+        $retention = \Exceedone\Exment\Services\FileServer\Governance::applyRetention();
         $trash = Library::purgeExpired();
         $uploads = Uploader::removeExpired();
         $temp = Library::removeOldTempFiles();
-        $this->info("trash: {$trash}, uploads: {$uploads}, temp: {$temp}");
+        $audit = \Exceedone\Exment\Services\FileServer\Audit::removeOld();
+        $this->info("retention: {$retention}, trash: {$trash}, uploads: {$uploads}, temp: {$temp}, audit: {$audit}");
         return 0;
     }
 }

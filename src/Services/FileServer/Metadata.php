@@ -134,6 +134,7 @@ class Metadata
         $node->metadata = count($values) > 0 ? $values : null;
         $node->save();
         FileSearch::sync([$node->id]);
+        Audit::log(Audit::METADATA, $workspace, $node, $this->library->access()->userId());
         return $node;
     }
 

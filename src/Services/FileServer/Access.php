@@ -82,6 +82,23 @@ class Access
      */
     public function level(FileWorkspace $workspace, ?FileNode $node = null): int
     {
+        $level = $this->baseLevel($workspace, $node);
+        // a file that waits for its approval (or was rejected): its maker (who
+        // may change it or take it back) and those who manage it (ISS00379)
+        if (isset($node) && $level < Level::MANAGE && $node->isDraft()) {
+            if (!isset($this->userId) || intval($node->created_user_id) !== $this->userId) {
+                return Level::NONE;
+            }
+            return max($level, Level::EDIT);
+        }
+        return $level;
+    }
+
+    /**
+     * The level from the permissions (the drafts aside).
+     */
+    protected function baseLevel(FileWorkspace $workspace, ?FileNode $node = null): int
+    {
         // the system itself (no user: the trash emptied on the schedule, the files from a request link)
         if ($this->isSystemAdmin) {
             return Level::MANAGE;

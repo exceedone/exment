@@ -83,6 +83,13 @@ class ShareLinks
             $access->authorize($workspace, $node, Level::UPLOAD);
         } elseif ($kind === FileShareLink::KIND_SHARE) {
             $access->authorize($workspace, $node, Level::EDIT);
+            if ($node->isDraft()) {
+                throw new FileServerException(exmtrans('file_server.error_share_draft'));
+            }
+            // who may not download may not give a link to download (ISS00379)
+            if (boolval(array_get($options, 'allow_download', true)) && !Governance::canDownload($access, $workspace, $node)) {
+                throw new FileServerException(exmtrans('file_server.error_download_not_allowed'), 403);
+            }
         } else {
             throw new FileServerException(exmtrans('file_server.error_upload'));
         }
@@ -106,6 +113,7 @@ class ShareLinks
             'message' => $message !== '' ? mb_substr($message, 0, 1000) : null,
         ]);
         $link->save();
+        Audit::log(Audit::SHARE_CREATE, $workspace, $node, $access->userId(), ['kind' => $kind, 'expires_at' => isset($expires) ? $expires->format('Y-m-d') : null, 'password' => $password !== '', 'download' => $link->allow_download], $link->id);
         return $link;
     }
 
@@ -169,6 +177,7 @@ class ShareLinks
         $link->revoked_at = now();
         $link->revoked_user_id = $access->userId();
         $link->save();
+        Audit::log(Audit::SHARE_REVOKE, $workspace, $node, $access->userId(), [], $link->id);
     }
 
     // ---------------------------------------------------------------- the side of the people outside
@@ -324,7 +333,7 @@ class ShareLinks
             return null;
         }
         $node = FileNode::query()->where('workspace_id', $link->workspace_id)->whereNull('trashed_at')->find($nodeId);
-        if (!isset($node)) {
+        if (!isset($node) || $node->isDraft()) {
             return null;
         }
         // from the node up to the node of the link: none in the trash, and none
@@ -352,6 +361,10 @@ class ShareLinks
     {
         return FileNode::query()->where('parent_id', $folder->id)->whereNull('trashed_at')
             ->where('has_unique_permissions', false)
+            ->where(function ($query) {
+                // not the files that wait for their approval (ISS00379)
+                $query->whereNull('approval_status')->orWhere('approval_status', FileNode::APPROVAL_APPROVED);
+            })
             ->orderByRaw("CASE WHEN node_type = 'folder' THEN 0 ELSE 1 END")->orderBy('name')->get();
     }
 
@@ -483,7 +496,9 @@ class ShareLinks
             // a new file each time: never a new version of a file that is there
             // (the name is taken again right before it is kept)
             $name = $library->freeName($workspace, $folder, $name);
-            return $library->storeNewFile($workspace, $folder, $name, $localPath, exmtrans('file_server.received_comment'));
+            $node = $library->storeNewFile($workspace, $folder, $name, $localPath, exmtrans('file_server.received_comment'));
+            Audit::log(Audit::LINK_UPLOAD, $workspace, $node, null, ['size' => $size], $link->id);
+            return $node;
         } catch (\Throwable $e) {
             FileShareLink::query()->where('id', $link->id)->update([
                 'received_count' => \DB::raw('CASE WHEN received_count > 0 THEN received_count - 1 ELSE 0 END'),
