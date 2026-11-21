@@ -30,6 +30,9 @@ class Preview
     public const KIND_NONE = 'none';
 
     public const THUMBNAIL_SIZE = 320;
+
+    /** The answer of makeOnView() while the PDF is being made (not kept in the table). */
+    public const STATUS_CONVERTING = 'converting';
     public const TEXT_PREVIEW_BYTES = 1048576;
 
     /** @var array<string, string> */
@@ -187,11 +190,63 @@ class Preview
             $version->save();
             return;
         }
+        // with a converter of its own, an Office file is converted the first time its
+        // preview is opened (makeOnView), not while it is uploaded (ISS01704)
+        if (static::convertsOnView($kind)) {
+            return;
+        }
         try {
             FileServerRenditionJob::dispatch($version->id);
         } catch (\Throwable $e) {
             \Log::warning('[FileServer] could not queue the preview of version ' . $version->id . ': ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Whether the PDF of the kind is made when the preview is first opened:
+     * an Office file with a converter of its own (EXMENT_FILE_SERVER_SOFFICE_URL).
+     * When the site has a queue worker (ISS01236), this can go to the queue.
+     */
+    public static function convertsOnView(string $kind): bool
+    {
+        return $kind === static::KIND_OFFICE && static::sofficeUrl() !== null;
+    }
+
+    /**
+     * The preview of a version opened: makes its PDF now when it is not made
+     * yet and none is being made. One request converts; the others (another
+     * viewer, the same page asking again) are told it is being made, by a lock
+     * of the version that ends by itself after the time limit.
+     *
+     * @return string the status: done, failed, none, held, or "converting"
+     */
+    public static function makeOnView(FileNodeVersion $version): string
+    {
+        $node = $version->node;
+        if (!isset($node) || !static::convertsOnView(static::kind($version->mime_type, $node->name))) {
+            return strval($version->rendition_status ?? static::STATUS_CONVERTING);
+        }
+        if ($version->rendition_status !== null) {
+            return strval($version->rendition_status);
+        }
+        $timeout = max(5, intval(config('exment.file_server_soffice_timeout', 120)));
+        $lock = \Illuminate\Support\Facades\Cache::lock('exment_file_server_convert_' . $version->id, $timeout + 60);
+        if (!$lock->get()) {
+            return static::STATUS_CONVERTING;
+        }
+        try {
+            $version->refresh();
+            if ($version->rendition_status === null) {
+                // the viewer may leave the page: the conversion still ends and is kept
+                ignore_user_abort(true);
+                @set_time_limit($timeout + 30);
+                static::makeRenditions($version);
+                $version->refresh();
+            }
+        } finally {
+            $lock->release();
+        }
+        return strval($version->rendition_status ?? static::STATUS_CONVERTING);
     }
 
     /**

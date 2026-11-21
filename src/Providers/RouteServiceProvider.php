@@ -246,6 +246,7 @@ class RouteServiceProvider extends ServiceProvider
                     $router->get('download', 'FileServerController@download');
                     $router->get('content', 'FileServerController@content');
                     $router->get('thumbnail', 'FileServerController@thumbnail');
+                    $router->post('preview', 'FileServerController@previewNow');
                     $router->post('rename', 'FileServerController@rename');
                     $router->post('move', 'FileServerController@move');
                     $router->post('copy', 'FileServerController@copy');

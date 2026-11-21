@@ -2830,6 +2830,8 @@ return [
         'preview_none' => 'このファイルはプレビューできません。ダウンロードして開いてください。',
         'preview_too_large' => 'ファイルが大きいためプレビューできません。',
         'preview_making' => 'プレビューを作っています。しばらくしてから開き直してください。',
+        'preview_converting' => 'PDF に変換しています。できあがると、ここに出ます。',
+        'preview_convert_failed' => 'プレビューを作れませんでした。ダウンロードして開いてください。',
         'preview_office_text' => 'サーバーに LibreOffice がないので、レイアウトのプレビューは出せません。下はファイルの中の文字だけです。見た目どおりに見るには「Office で開く」かダウンロードしてください。',
         'preview_office_open' => '「Office で開く」を押すと、ブラウザーで開けます（Chrome・Edge の新しい版）。',
         'preview_tab_pdf' => 'PDF のプレビュー（LibreOffice）',

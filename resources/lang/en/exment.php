@@ -2829,6 +2829,8 @@ return [
         'preview_none' => 'This file cannot be previewed. Download it to open it.',
         'preview_too_large' => 'The file is too large to preview.',
         'preview_making' => 'The preview is being made. Open the page again later.',
+        'preview_converting' => 'Converting to PDF. It is shown here when it is ready.',
+        'preview_convert_failed' => 'The preview could not be made. Download it to open it.',
         'preview_office_text' => 'The server has no LibreOffice, so no layout preview can be made. Below is only the text in the file. To see it as it looks, use "Open in Office" or download it.',
         'preview_office_open' => 'Press "Open in Office" to open it in the browser (a recent Chrome or Edge).',
         'preview_tab_pdf' => 'PDF preview (LibreOffice)',

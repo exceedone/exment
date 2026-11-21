@@ -140,6 +140,60 @@ class FileOfficeConverterTest extends FeatureTestBase
         $this->assertSame('http://office:3000', Preview::sofficeUrl());
     }
 
+    public function testTheUploadDoesNotConvertTheFirstViewDoesOnce(): void
+    {
+        Http::fake([static::URL . '/*' => Http::response(static::PDF, 200)]);
+        $library = $this->admin();
+        $ws = $library->createWorkspace(['name' => 'Lazy']);
+        /** @var FileNode $node */
+        $node = $library->storeFile($ws, null, 'plan.docx', $this->local('office bytes'));
+        /** @var FileNodeVersion $version */
+        $version = $node->refresh()->current_version;
+
+        // the upload: nothing sent, the PDF not made yet
+        $this->assertNull($version->rendition_status);
+        Http::assertNothingSent();
+
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $base = admin_urls('file_server', $ws->id, 'nodes', $node->id);
+        $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+        // the page waits for it, and asks
+        $this->get($base, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertSee('data-fs-preview-wait="' . $base . '/preview"', false);
+        // the first ask converts
+        $this->post($base . '/preview', [], $ajax)->assertOk()->assertJson(['status' => 'done', 'pdf_url' => $base . '/content?rendition=pdf']);
+        Http::assertSentCount(1);
+        $this->assertSame(FileNodeVersion::RENDITION_DONE, $version->refresh()->rendition_status);
+        // asked again: kept, not sent again
+        $this->post($base . '/preview', [], $ajax)->assertOk()->assertJson(['status' => 'done']);
+        Http::assertSentCount(1);
+    }
+
+    public function testWhileOneViewerConvertsTheOthersWait(): void
+    {
+        Http::fake([static::URL . '/*' => Http::response(static::PDF, 200)]);
+        $library = $this->admin();
+        $ws = $library->createWorkspace(['name' => 'Two']);
+        /** @var FileNode $node */
+        $node = $library->storeFile($ws, null, 'plan.docx', $this->local('office bytes'));
+        /** @var FileNodeVersion $version */
+        $version = $node->refresh()->current_version;
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $url = admin_urls('file_server', $ws->id, 'nodes', $node->id, 'preview');
+        $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+
+        // another viewer is converting it (holds the lock)
+        $lock = \Illuminate\Support\Facades\Cache::lock('exment_file_server_convert_' . $version->id, 60);
+        $this->assertTrue((bool) $lock->get());
+        $this->post($url, [], $ajax)->assertOk()->assertJson(['status' => 'converting', 'pdf_url' => null]);
+        Http::assertNothingSent();
+        $this->assertNull($version->refresh()->rendition_status);
+
+        // done there: the next ask converts once
+        $lock->release();
+        $this->post($url, [], $ajax)->assertOk()->assertJson(['status' => 'done']);
+        Http::assertSentCount(1);
+    }
+
     public function testTheUserAndPasswordAreSentAsBasicAuthNotInTheAddress(): void
     {
         Http::fake([static::URL . '/*' => Http::response(static::PDF, 200)]);
