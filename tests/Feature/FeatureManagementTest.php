@@ -160,8 +160,14 @@ class FeatureManagementTest extends FeatureTestBase
         $page->assertNotFound();
         $page->assertSee(exmtrans('feature.message_not_used'));
         $page->assertSee(admin_url('feature'), false);
-        // the same answer from a plugin's own page
+        // the same answer from a plugin's own page, returned or thrown
         $this->assertSame(404, Features::deny(Features::STUDIO)->getStatusCode());
+        // the callback of the handler (its docblock says a response)
+        // @phpstan-ignore-next-line
+        $thrown = app(\Exceedone\Exment\Exment::class)->error(request(), new \Illuminate\Http\Exceptions\HttpResponseException(Features::deny(Features::STUDIO)), function () {
+            return response('callback', 500);
+        });
+        $this->assertSame(404, $thrown->getStatusCode());
         $this->get(admin_url('app/sw.js'))->assertNotFound();
         // pages of other names are not touched
         $this->assertNotSame(404, $this->get(admin_url('dashboard'), $headers)->getStatusCode());

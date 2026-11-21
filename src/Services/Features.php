@@ -49,6 +49,9 @@ class Features
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
 
+    /** The header of the answers of deny() (Exment::error gives them as they are when they are thrown). */
+    public const DENIED_HEADER = 'X-Exment-Feature-Denied';
+
     /** When the site got Feature management (the plugins installed before it keep their features). */
     public const SINCE = '_since';
 
@@ -417,7 +420,9 @@ class Features
      * Feature management), 403 when the user may not use it; JSON for the
      * ajax and API requests. The middleware answers so; a plugin may answer
      * the same from its own pages: return Features::deny('exment_x.mail');
-     * (abort(404) in an admin page answers 200 with the error page).
+     * It may also be thrown (throw new HttpResponseException(Features::deny(...))):
+     * Exment::error gives it as it is. (abort(404) in an admin page answers
+     * 200 with the error page.)
      */
     public static function deny(string $key, ?Request $request = null): \Symfony\Component\HttpFoundation\Response
     {
@@ -426,7 +431,7 @@ class Features
         $status = $used ? 403 : 404;
         $message = strval(exmtrans($used ? 'feature.message_not_allowed' : 'feature.message_not_used'));
         if ($request->expectsJson() || $request->ajax() || $request->is(trim(strval(config('admin.route.prefix')) . '/api', '/') . '/*')) {
-            return response()->json(['result' => false, 'message' => $message, 'toastr' => $message], $status);
+            return response()->json(['result' => false, 'message' => $message, 'toastr' => $message], $status, [static::DENIED_HEADER => $key]);
         }
 
         $user = \Exment::user();
@@ -436,7 +441,7 @@ class Features
             . '<title>' . e($message) . '</title><style>body{font-family:sans-serif;margin:48px auto;max-width:640px;padding:0 16px;color:#333}a{color:#3c8dbc}</style></head><body>'
             . '<h1 style="font-size:1.3rem">' . e($message) . '</h1>' . $link
             . '<p><a href="' . e(admin_url('')) . '">' . e(exmtrans('feature.back_home')) . '</a></p></body></html>';
-        return response($html, $status, ['Content-Type' => 'text/html; charset=UTF-8']);
+        return response($html, $status, ['Content-Type' => 'text/html; charset=UTF-8', static::DENIED_HEADER => $key]);
     }
 
     /**

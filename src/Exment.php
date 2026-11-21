@@ -93,6 +93,11 @@ class Exment
      */
     public function error($request, $exception, $callback)
     {
+        // the answer of a feature not used, or not allowed (Services\Features::deny()), thrown: as it is
+        if ($exception instanceof \Illuminate\Http\Exceptions\HttpResponseException
+            && $exception->getResponse()->headers->has(\Exceedone\Exment\Services\Features::DENIED_HEADER)) {
+            return $exception->getResponse();
+        }
         try {
             // Api is default callback
             if ($this->isApiEndpoint()) {
