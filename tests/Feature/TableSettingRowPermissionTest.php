@@ -134,7 +134,7 @@ class TableSettingRowPermissionTest extends FeatureTestBase
         $this->actAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         $this->post(admin_urls('formpublic', TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, $other->id, 'deactivate'), [], static::AJAX);
 
-        $this->assertTrue(boolval(\Exceedone\Exment\Model\PublicForm::find($other->id)->active_flg));
+        $this->assertTrue(boolval(\Exceedone\Exment\Model\PublicForm::query()->whereKey($other->id)->value('active_flg')));
     }
 
     public function testANotifyOfAnotherTableIsNotDeletedThroughATableTheUserManages(): void

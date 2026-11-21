@@ -3701,6 +3701,7 @@ return [
 
         'message' => [
             'webhook_url_not_allowed' => 'Notifications cannot be sent to this URL (the server itself and internal addresses are not allowed).',
+            'webhook_url_not_sent' => 'Notifications are not sent to this URL (it is the server itself or an internal address). To send them, add the host name to EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS in .env.',
             'no_action_target' => 'There was no notification target.',
             'notify_moved' => 'Notification settings have moved. Please delete it from the menu.',
         ],

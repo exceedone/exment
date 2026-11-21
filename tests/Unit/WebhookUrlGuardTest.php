@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
+use Exceedone\Exment\Controllers\CustomNotifyController;
 use Exceedone\Exment\Services\WebhookUrlGuard;
 
 /**
@@ -66,6 +67,24 @@ class WebhookUrlGuardTest extends UnitTestBase
         $this->assertFalse(WebhookUrlGuard::isAllowed('http://127.0.0.1:8065/hooks/x'));
         config(['exment.notify_webhook_allow_hosts' => 'chat.example, 127.0.0.1']);
         $this->assertTrue(WebhookUrlGuard::isAllowed('http://127.0.0.1:8065/hooks/x'));
+        config(['exment.notify_webhook_allow_hosts' => '']);
+    }
+
+    public function testTheNotifyListMarksAWebhookThatIsNotSent(): void
+    {
+        $blocked = [['notify_action' => '3', 'webhook_url' => 'http://127.0.0.1/hook']];
+        $sent = [['notify_action' => '3', 'webhook_url' => 'https://8.8.8.8/hook']];
+
+        $html = CustomNotifyController::notifyActionsText($blocked);
+        $this->assertStringContainsString('fa-exclamation-triangle', $html);
+        $this->assertStringContainsString('EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS', $html);
+
+        $this->assertStringNotContainsString('fa-exclamation-triangle', CustomNotifyController::notifyActionsText($sent));
+        $this->assertStringNotContainsString('fa-exclamation-triangle', CustomNotifyController::notifyActionsText([['notify_action' => '1']]));
+
+        // the host the administrator allows is not marked
+        config(['exment.notify_webhook_allow_hosts' => '127.0.0.1']);
+        $this->assertStringNotContainsString('fa-exclamation-triangle', CustomNotifyController::notifyActionsText($blocked));
         config(['exment.notify_webhook_allow_hosts' => '']);
     }
 }
