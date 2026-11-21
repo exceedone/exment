@@ -93,7 +93,7 @@ class Features
      * constructor). The key should start with the name of the plugin, as
      * "exment_groupware.mail". It is off until an administrator turns it on.
      *
-     * @param array<string, mixed> $definition label, description, endpoints (of the admin pages, as "plugins/exment_groupware/mail"), menu
+     * @param array<string, mixed> $definition label, description, endpoints (of the admin pages, as "plugins/exment_groupware/mail"), api (the same, of the API), menu
      */
     public static function register(string $key, array $definition): void
     {
@@ -107,7 +107,10 @@ class Features
             'endpoints' => array_values(array_filter(array_map(function ($endpoint) {
                 return trim(strval($endpoint), '/');
             }, (array)array_get($definition, 'endpoints', [])))),
-            'api' => [],
+            // the API of the plugin (after "api/", as "plugins/exment_groupware/mail")
+            'api' => array_values(array_filter(array_map(function ($endpoint) {
+                return trim(strval($endpoint), '/');
+            }, (array)array_get($definition, 'api', [])))),
             'menu' => array_get($definition, 'menu'),
             'plugin' => array_get($definition, 'plugin'),
         ];
@@ -260,6 +263,21 @@ class Features
                 break;
             }
         }
+        return static::forPath($path, $api);
+    }
+
+    /**
+     * The feature of a path after the prefix of the admin pages (null: none).
+     *
+     * @param bool $api the path of the API (after "api/" or "webapi/")
+     */
+    public static function forPath(string $path, bool $api = false): ?string
+    {
+        // a menu may have a query (data/x?view=...)
+        $path = trim(strval(strtok($path, '?')), '/');
+        if ($path === '') {
+            return null;
+        }
         foreach (static::definitions() as $key => $definition) {
             $endpoints = $api ? (array)$definition['api'] : (array)$definition['endpoints'];
             foreach ($endpoints as $endpoint) {
@@ -269,6 +287,20 @@ class Features
             }
         }
         return null;
+    }
+
+    /**
+     * Whether a menu of this URI (of any kind: system, plugin, custom) is
+     * hidden, because the URI is a page of a feature the user may not use.
+     * The menu then goes as its pages do (they answer "not found").
+     */
+    public static function hidesMenuUri(?string $uri): bool
+    {
+        if (!isset($uri) || $uri === '' || preg_match('#\A[a-z]+://#i', $uri) === 1) {
+            return false;
+        }
+        $feature = static::forPath($uri);
+        return $feature !== null && !static::allowed($feature);
     }
 
     /**

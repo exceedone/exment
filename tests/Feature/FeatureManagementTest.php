@@ -135,11 +135,21 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertNull(Features::forRequest($make('api/data/information')));
 
         // a feature of a plugin: off until turned on
-        Features::register('exment_test.mail', ['label' => 'Mail', 'endpoints' => ['plugins/exment_test/mail']]);
+        Features::register('exment_test.mail', ['label' => 'Mail', 'endpoints' => ['plugins/exment_test/mail'], 'api' => ['plugins/exment_test/mail']]);
         $this->assertTrue(Features::exists('exment_test.mail'));
+        $this->assertSame('exment_test.mail', Features::forRequest($make('api/plugins/exment_test/mail/send')));
         $this->assertFalse(Features::allowed('exment_test.mail'));
         $this->assertSame('exment_test.mail', Features::forRequest($make('plugins/exment_test/mail/inbox')));
         $this->assertNull(Features::forRequest($make('plugins/exment_test/other')));
+        // its menu goes with its pages (a plugin's menu, or a custom menu to its URL)
+        $this->assertTrue(Features::hidesMenuUri('plugins/exment_test/mail'));
+        $this->assertTrue(Features::hidesMenuUri('plugins/exment_test/mail/inbox?x=1'));
+        $this->assertFalse(Features::hidesMenuUri('plugins/exment_test/other'));
+        $this->assertFalse(Features::hidesMenuUri('https://example.com/plugins/exment_test/mail'));
+        $this->assertFalse(Features::hidesMenuUri(null));
+        $this->setFeatures(['exment_test.mail' => ['enabled' => true, 'role_groups' => null, 'menu' => true]]);
+        Features::register('exment_test.mail', ['label' => 'Mail', 'endpoints' => ['plugins/exment_test/mail']]);
+        $this->assertFalse(Features::hidesMenuUri('plugins/exment_test/mail'));
         // the names of Exment's features and the plugin menu keys are not taken
         Features::register('studio', ['label' => 'x']);
         Features::register('plugin:x', ['label' => 'x']);

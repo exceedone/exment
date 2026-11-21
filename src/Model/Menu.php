@@ -242,6 +242,11 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     // database-row has icon column, set icon
             }
 
+            // a page of a feature the user may not use: its menu goes too, of
+            // any kind (a plugin's own feature, a custom menu to its URL)
+            if ($result && \Exceedone\Exment\Services\Features::hidesMenuUri(isset($row['uri']) ? strval($row['uri']) : null)) {
+                $result = false;
+            }
             if (!$result) {
                 continue;
             }
