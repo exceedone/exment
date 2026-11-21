@@ -41,7 +41,11 @@ return new class extends Migration
         if (!DB::table($menuTable)->exists()) {
             DB::table('systems')->insert([
                 'system_name' => 'features',
-                'system_value' => json_encode(['_since' => now()->toIso8601String()]),
+                // the features of this version are not "new" to a new site (AdminNotices::newFeatures)
+                'system_value' => json_encode([
+                    '_since' => now()->toIso8601String(),
+                    '_known' => array_keys(\Exceedone\Exment\Services\Features::core()),
+                ]),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

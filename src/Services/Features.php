@@ -59,6 +59,13 @@ class Features
     public const SINCE = '_since';
 
     /**
+     * The features a new site had when it was installed (written by the
+     * migration on a new site only): they are not new to it, nothing is told
+     * of them. A feature added by a later update is not in it.
+     */
+    public const KNOWN = '_known';
+
+    /**
      * The features of plugins (Features::register()).
      *
      * @var array<string, array<string, mixed>>

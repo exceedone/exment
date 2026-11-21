@@ -644,9 +644,11 @@ class DashboardController extends AdminControllerBase
         try {
             $link = '<a href="' . e(admin_url('feature')) . '">' . e(exmtrans('plugin_distribution.open_feature')) . '</a>';
             foreach (\Exceedone\Exment\Services\PluginDistribution\AdminNotices::security() as $item) {
-                admin_error(
-                    exmtrans('plugin_distribution.notice_security', ['name' => $item['label'], 'version' => $item['version']]),
-                    ($item['note'] !== '' ? e($item['note']) . '<br>' : '') . $link
+                // a notice (a warning), not an error: nothing is broken, an update is waiting
+                admin_warning(
+                    exmtrans('plugin_distribution.notice_security_subject', ['name' => $item['label']]),
+                    e(exmtrans('plugin_distribution.notice_security', ['name' => $item['label'], 'version' => $item['version']]))
+                        . ($item['note'] !== '' ? '<br>' . e($item['note']) : '') . '<br>' . $link
                 );
             }
             $features = \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures();

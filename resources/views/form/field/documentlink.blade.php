@@ -12,8 +12,8 @@
 @endif
 
 @if(!empty($canreplace) && !empty($replace_url) && (!boolval(config('exment.file_delete_useronly', false)) || $document->created_user_id == \Exment::getUserId()))
-<a href="javascript:void(0);" data-exment-document-replace data-bs-toggle='tooltip' title="{{ exmtrans('custom_value.document_replace_help') }}">
-    <i class="fa fa-upload"></i>
+<a href="javascript:void(0);" class="small" data-exment-document-replace data-bs-toggle='tooltip' title="{{ exmtrans('custom_value.document_replace_help') }}">
+    <i class="fa fa-upload"></i>&nbsp;{{ exmtrans('custom_value.document_replace') }}
 </a>
 <input type="file" class="exment-document-replace-file d-none" style="display:none" data-url="{{ $replace_url }}">
 @endif

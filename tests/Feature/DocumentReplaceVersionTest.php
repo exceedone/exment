@@ -56,8 +56,9 @@ class DocumentReplaceVersionTest extends FeatureTestBase
         [$custom_value, $document] = $this->attach('docver-v1.txt', 'body one');
         $first_uuid = strval($document->getValue('file_uuid', true));
 
+        // the toast tells where the earlier file is: the "Version 2" link of the row
         $this->replace($custom_value, $document, 'docver-v2.txt', 'body two')
-            ->assertOk()->assertJson(['result' => true]);
+            ->assertOk()->assertJson(['result' => true, 'message' => exmtrans('custom_value.document_replaced', ['no' => 2])]);
 
         $document = $this->reloadDocument($document);
         $this->assertSame('docver-v2.txt', $document->getValue('document_name'));
@@ -145,6 +146,42 @@ class DocumentReplaceVersionTest extends FeatureTestBase
         $this->assertSame(0, DocumentVersion::where('document_id', $document->id)->count());
         $this->assertNull(ExmentFile::getData($first_uuid));
         $this->assertSame(0, $this->documentCount($custom_value));
+    }
+
+    public function testDeletingAnOlderVersionByItselfForgetsItsRow(): void
+    {
+        [$custom_value, $document] = $this->attach('docver-old-1.txt', 'a');
+        $first_uuid = strval($document->getValue('file_uuid', true));
+        $this->replace($custom_value, $document, 'docver-old-2.txt', 'b')->assertOk();
+        $document = $this->reloadDocument($document);
+        $this->rememberFile(strval($document->getValue('file_uuid', true)));
+        $this->assertSame(1, DocumentVersion::where('document_id', $document->id)->count());
+
+        // the file of version 1, deleted by its own url
+        System::clearRequestSession();
+        $this->delete(admin_urls('files', $first_uuid))->assertOk();
+
+        $this->assertNull(ExmentFile::getData($first_uuid));
+        $this->assertSame(0, DocumentVersion::where('document_id', $document->id)->count(), 'the row of the deleted version is left');
+        // the attachment itself stays
+        $this->assertSame(1, $this->documentCount($custom_value));
+    }
+
+    public function testReplacingWithoutTheRightToDeleteKeepsTheFirstFile(): void
+    {
+        // replacing is editing: who may not delete must not lose the first file by replacing again and again
+        config(['exment.document_version_limit' => 1]);
+        [$custom_value, $document] = $this->attach('docver-keep-1.txt', '1');
+        $first_uuid = strval($document->getValue('file_uuid', true));
+        foreach ([2, 3, 4] as $n) {
+            $file = UploadedFile::fake()->createWithContent("docver-keep-{$n}.txt", strval($n));
+            DocumentVersionService::replace($custom_value, $document, $file, false);
+            $document = $this->reloadDocument($document);
+        }
+        $this->rememberFile(strval($document->getValue('file_uuid', true)));
+
+        $this->assertSame([3, 2, 1], DocumentVersionService::versions($document->id)->pluck('version_no')->all());
+        $this->assertNotNull(ExmentFile::getData($first_uuid));
     }
 
     public function testAUserWhoMayOnlyViewCannotReplace(): void
