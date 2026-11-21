@@ -39,6 +39,9 @@ class UserApiKeys
     /** The routes a key limited to some tables may still use (they read no table). */
     protected const ROUTES_WITHOUT_TABLE = ['ApiController@me', 'ApiController@avatar', 'ApiController@version'];
 
+    /** The routes that check the tables of a key themselves (allowsTable()), as the MCP server. */
+    protected const ROUTES_CHECKING_TABLES = ['McpController@handle'];
+
     /** Why the last authenticate() refused (for the log and the tests; never sent to the client). */
     public static ?string $lastRefusal = null;
 
@@ -305,7 +308,7 @@ class UserApiKeys
         $tableKey = $route->parameter('tableKey');
         if (!isset($tableKey)) {
             $action = $route->getActionName();
-            foreach (static::ROUTES_WITHOUT_TABLE as $allowed) {
+            foreach (array_merge(static::ROUTES_WITHOUT_TABLE, static::ROUTES_CHECKING_TABLES) as $allowed) {
                 if (str_ends_with($action, '\\' . $allowed)) {
                     return true;
                 }
@@ -314,6 +317,20 @@ class UserApiKeys
         }
         $custom_table = CustomTable::getEloquent($tableKey);
         return isset($custom_table) && in_array($custom_table->table_name, (array)$key->tables, true);
+    }
+
+    /**
+     * Whether the login user of the request may use the table with its token: always with an
+     * OAuth token; with an API key, when the key has no tables or has this one.
+     */
+    public static function allowsTable(LoginUser $user, string $tableName): bool
+    {
+        $token = $user->token();
+        if (!($token instanceof UserApiKeyToken)) {
+            return true;
+        }
+        $tables = $token->key()->tables;
+        return !isset($tables) || in_array($tableName, (array)$tables, true);
     }
 
     /**

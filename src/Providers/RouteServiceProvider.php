@@ -694,6 +694,13 @@ class RouteServiceProvider extends ServiceProvider
                     // System --------------------------------------------------
                     $router->get("version", 'ApiController@version');
 
+                    // MCP (ISS00439): the tools check their scopes, the API only (not webapi)
+                    if ($route['type'] === 'api') {
+                        $router->post('mcp', 'McpController@handle');
+                        $router->get('mcp', 'McpController@notAllowed');
+                        $router->delete('mcp', 'McpController@notAllowed');
+                    }
+
                     $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
                     // workflow data - tables, record labels, statuses - so the scopes of the wf/ read endpoints
                     $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));

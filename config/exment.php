@@ -1280,6 +1280,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | MCP server (api/mcp)
+    |--------------------------------------------------------------------------
+    |
+    | The most records one tool call returns (at most 100), and the calls a user makes per minute.
+    */
+    'mcp_max_rows' => env('EXMENT_MCP_MAX_ROWS', 50),
+    'mcp_calls_per_minute' => env('EXMENT_MCP_CALLS_PER_MINUTE', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Show Select field with group option
     |--------------------------------------------------------------------------
     |

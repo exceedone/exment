@@ -49,6 +49,7 @@ class Features
     public const STUDIO = 'studio';
     public const TUNING = 'tuning';
     public const API_KEYS = 'api_keys';
+    public const MCP = 'mcp';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -131,6 +132,13 @@ class Features
             'label' => 'exment::exment.feature.features.api_keys',
             'description' => 'exment::exment.feature.features.api_keys_help',
             'endpoints' => ['auth/api_keys'],
+        ]);
+        // the MCP server (api/mcp, ISS00439): off until an administrator turns it on and
+        // chooses the role groups whose users may use it from an AI
+        $core[static::MCP] = static::definition([
+            'label' => 'exment::exment.feature.features.mcp',
+            'description' => 'exment::exment.feature.features.mcp_help',
+            'api' => ['mcp'],
         ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
