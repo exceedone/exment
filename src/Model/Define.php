@@ -98,6 +98,8 @@ class Define
         'features' => ['type' => 'json', 'default' => []],
         // maintenance mode of the site (Services\MaintenanceMode)
         'maintenance' => ['type' => 'json', 'default' => []],
+        // an exment:schedule skipped in a maintenance, to run after it
+        'maintenance_missed_schedule' => ['type' => 'boolean', 'default' => '0'],
         // the id of the site (a UUID made once; the market and the licenses of the plugins know the site by it)
         'site_id' => ['type' => 'string', 'default' => null],
         // the notices told to the system administrators (Services\PluginDistribution\AdminNotices)

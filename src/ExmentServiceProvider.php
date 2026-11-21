@@ -123,6 +123,8 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middleware = [
         \Exceedone\Exment\Middleware\TrustProxies::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
+        // the operator's maintenance, before the database and the login (MaintenanceMode::earlyResponse)
+        \Exceedone\Exment\Middleware\MaintenanceOperatorGuard::class,
     ];
 
 
@@ -407,6 +409,11 @@ class ExmentServiceProvider extends ServiceProvider
             'meilisearch'
         );
 
+        // maintenance mode: the queue workers wait (a listener of Looping that answers false)
+        $this->app['events']->listen(\Illuminate\Queue\Events\Looping::class, function () {
+            return \Exceedone\Exment\Services\MaintenanceMode::stopsQueue() ? false : null;
+        });
+
         // register global middleware.
         $kernel = $this->app->make(Kernel::class);
         foreach ($this->middleware as $middleware) {
@@ -577,8 +584,9 @@ class ExmentServiceProvider extends ServiceProvider
 
             // maintenance mode: the planned start and end; in maintenance the others are skipped
             foreach ($schedule->events() as $event) {
-                $event->skip(function () {
-                    return \Exceedone\Exment\Services\MaintenanceMode::stopsSchedule();
+                $command = strval($event->command);
+                $event->skip(function () use ($command) {
+                    return \Exceedone\Exment\Services\MaintenanceMode::skipsScheduled($command);
                 });
             }
             $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);

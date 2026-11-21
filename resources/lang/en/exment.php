@@ -4454,6 +4454,8 @@ return [
         'title' => 'Under maintenance',
         'default_message' => 'The site is under maintenance. Please wait until it ends.',
         'end_at' => 'Planned end: :end_at',
+        'login_admins_only' => 'During the maintenance, only the system administrators can log in.',
+        'login_planned' => 'A maintenance is planned: from :start_at to :end_at. The site cannot be used then.',
         'header' => 'Maintenance Mode',
         'description' => 'While you move data or install plugins, only the system administrators get in.',
         'now' => 'Now',

@@ -327,6 +327,118 @@ class MaintenanceModeTest extends FeatureTestBase
         }
     }
 
+    public function testAnExpiredFileDoesNotHideTheNextOne(): void
+    {
+        $all = storage_path('framework/exment-maintenance-all2-' . getmypid() . '.json');
+        config(['exment.maintenance_operator_file' => $this->operatorFile . ',' . $all]);
+        try {
+            Carbon::setTestNow(Carbon::parse('2026-12-01 10:00:00'));
+            file_put_contents($this->operatorFile, json_encode(['end_at' => '2026-12-01 09:00:00', 'messages' => ['en' => 'Old']]));
+            file_put_contents($all, json_encode(['end_at' => '2026-12-01 11:00:00', 'messages' => ['en' => 'All sites']]));
+            $state = $this->state();
+            $this->assertSame($all, $state['file']);
+            $this->assertSame('All sites', MaintenanceMode::message($state));
+            // a directory in the place of a file is not a maintenance
+            @unlink($this->operatorFile);
+            @mkdir($this->operatorFile);
+            $this->assertSame($all, $this->state()['file']);
+            @rmdir($this->operatorFile);
+        } finally {
+            @unlink($all);
+        }
+    }
+
+    public function testTheQueueWaits(): void
+    {
+        $looping = new \Illuminate\Queue\Events\Looping('sync', 'default');
+        $this->assertNotFalse(app('events')->until($looping));
+        MaintenanceMode::start();
+        MaintenanceMode::reset();
+        $this->assertFalse(app('events')->until($looping), 'a worker waits');
+        MaintenanceMode::save(['stop_queue' => false]);
+        MaintenanceMode::reset();
+        $this->assertNotFalse(app('events')->until($looping));
+    }
+
+    public function testTheOperatorsIsCheckedBeforeTheLogin(): void
+    {
+        MaintenanceMode::startOperator([]);
+        // not logged in: the maintenance page, not the redirect to the login
+        $this->get(admin_url(''))->assertStatus(503);
+        $this->get(admin_urls('auth', 'login'))->assertStatus(503);
+        // the API without a token: 503, not 401
+        $this->getJson(admin_urls('api', 'table'))->assertStatus(503)->assertJson(['code' => 'maintenance']);
+        // from outside
+        $this->postJson(admin_urls('line', 'webhook'), [])->assertStatus(503);
+        $this->get(admin_urls('safety', 'answer'))->assertStatus(503);
+        // an allowed IP address goes on
+        MaintenanceMode::startOperator(['allow_ips' => ['127.0.0.1']]);
+        $this->assertNotSame(503, $this->get(admin_urls('auth', 'login'))->getStatusCode());
+    }
+
+    public function testTheLoginPageTellsIt(): void
+    {
+        MaintenanceMode::start(['messages' => ['en' => 'Moving the data.', 'ja' => 'Moving the data.'], 'end_at' => Carbon::now()->addHour()->toIso8601String()]);
+        $page = $this->get(admin_urls('auth', 'login'));
+        $page->assertOk();
+        $page->assertSee('Moving the data.');
+        $page->assertSee(exmtrans('maintenance.login_admins_only'));
+
+        MaintenanceMode::end();
+        MaintenanceMode::save(['start_at' => Carbon::now()->addDay()->toIso8601String()]);
+        MaintenanceMode::reset();
+        $this->get(admin_urls('auth', 'login'))->assertOk()->assertSee('exment-maintenance-login', false);
+    }
+
+    public function testASkippedScheduleRunsAfter(): void
+    {
+        MaintenanceMode::start();
+        MaintenanceMode::reset();
+        $this->assertTrue(MaintenanceMode::skipsScheduled("'/usr/bin/php' 'artisan' exment:schedule"));
+        $this->assertTrue(boolval(System::maintenance_missed_schedule()));
+        // not while it goes on
+        $this->assertFalse(MaintenanceMode::runMissedSchedule());
+        MaintenanceMode::end();
+        MaintenanceMode::reset();
+        $this->assertFalse(MaintenanceMode::skipsScheduled('exment:schedule'));
+        Artisan::call('exment:maintenance', ['action' => 'tick']);
+        System::clearRequestSession();
+        $this->assertFalse(boolval(System::query()->where('system_name', 'maintenance_missed_schedule')->value('system_value')));
+        $this->assertTrue($this->logged('missed_schedule'));
+    }
+
+    public function testTurningTheFeatureOffEndsIt(): void
+    {
+        MaintenanceMode::start();
+        Features::save([MaintenanceMode::FEATURE => ['enabled' => false]]);
+        $this->assertFalse(MaintenanceMode::settings()['active']);
+        $this->assertTrue($this->logged('feature_off'));
+        // turned on again: it does not come back
+        Features::save([MaintenanceMode::FEATURE => ['enabled' => true]]);
+        MaintenanceMode::reset();
+        $this->assertNull(MaintenanceMode::current());
+    }
+
+    public function testEveryAddressIsNotAnAllowList(): void
+    {
+        $this->assertFalse(MaintenanceMode::validIp('0.0.0.0/0'));
+        $this->assertFalse(MaintenanceMode::validIp('::/0'));
+        $this->assertTrue(MaintenanceMode::validIp('10.0.0.0/8'));
+        $this->assertSame(1, Artisan::call('exment:maintenance', ['action' => 'on', '--operator' => true, '--allow-ip' => ['0.0.0.0/0']]));
+    }
+
+    public function testAnEndIsLoggedOnce(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-12-01 10:00:00'));
+        MaintenanceMode::start(['end_at' => '2026-12-01 10:30:00']);
+        Carbon::setTestNow(Carbon::parse('2026-12-01 11:00:00'));
+        MaintenanceMode::sync();
+        MaintenanceMode::sync();
+        MaintenanceMode::reset();
+        MaintenanceMode::current();
+        $this->assertSame(1, OperationLog::query()->where('path', 'maintenance/auto_end')->count());
+    }
+
     public function testTheCommand(): void
     {
         $this->useFeature(false);
