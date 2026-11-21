@@ -33,6 +33,8 @@ class StudioAppController extends Controller
         return view('exment::studio.app', [
             'title' => exmtrans('studio.app_title'),
             'user_name' => isset($user) ? strval($user->base_user->getValue('user_name')) : '',
+            // the drafts and the screens kept on the phone are kept per user
+            'user_key' => isset($user) ? strval($user->getUserId()) : '',
             'base' => admin_url(''),
             'webapi' => admin_url('webapi'),
             'manifest' => admin_url('app/manifest.webmanifest'),

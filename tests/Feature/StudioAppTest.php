@@ -67,6 +67,20 @@ class StudioAppTest extends FeatureTestBase
         $page->assertSee(strval(json_encode(admin_url('app/code'))), false);
     }
 
+    public function testTheDraftsOnThePhoneAreKeptPerUser(): void
+    {
+        foreach ([TestDefine::TESTDATA_USER_LOGINID_ADMIN, TestDefine::TESTDATA_USER_LOGINID_USER2] as $id) {
+            $user = LoginUser::findOrFail($id);
+            $this->be($user);
+            $page = $this->get(admin_url('app'));
+            // the drafts and the kept screens are in the store of the phone, under the user
+            $page->assertSee("indexedDB.open('exment-app'", false);
+            $page->assertSee('var userKey = ' . json_encode(strval($user->getUserId())) . ';', false);
+            // (the texts are in the script as JSON)
+            $page->assertSee(trim(strval(json_encode(exmtrans('studio.app_draft_saved'))), '"'), false);
+        }
+    }
+
     public function testACodeWithTheLinkOfADataOpensIt(): void
     {
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));

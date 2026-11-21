@@ -35,6 +35,7 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\CommentMarkdown;
+use Exceedone\Exment\Services\DocumentVersionService;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ShowGridType;
@@ -635,11 +636,25 @@ EOT;
         if (count($documents) > 0) {
             $html = [];
             $allow_delete = config('exment.allow_delete_attachment', false);
+            // replacing keeps the older file as a version; the numbers come in one query
+            $useVersions = DocumentVersionService::available();
+            $documentIds = [];
+            foreach ($documents as $d) {
+                $documentIds[] = $d->id;
+            }
+            $versionNos = $useVersions ? DocumentVersionService::currentNumbers($documentIds) : [];
             foreach ($documents as $index => $d) {
                 $html[] = "<p>" . view('exment::form.field.documentlink', [
                     'document' => $d,
                     'candelete' => $this->custom_value->enableDelete(!$allow_delete) === true,
+                    'canreplace' => $useVersions && $useFileUpload,
+                    'version_no' => $versionNos[intval($d->id)] ?? 1,
+                    'replace_url' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'documents', $d->id, 'replace'),
+                    'versions_url' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'documents', $d->id, 'versions'),
                 ])->render() . "</p>";
+            }
+            if ($useVersions) {
+                Admin::script(static::documentVersionScript());
             }
             // loop and add as link
             $form->html(implode("", $html))
@@ -902,6 +917,113 @@ EOT;
             'result'  => true,
             'message' => trans('admin.update_succeeded'),
         ]);
+    }
+
+    /**
+     * Replace the file of an attachment: the file it had becomes an older version.
+     * Who may: as for adding an attachment (useFileUpload), and, when only the
+     * uploader may delete a file (file_delete_useronly), the uploader of the attachment.
+     *
+     * @param \Illuminate\Http\UploadedFile|array<mixed>|null $httpfile
+     * @param int|string $document_id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function documentReplace($httpfile, $document_id)
+    {
+        if (!DocumentVersionService::available() || !$this->custom_value || !$this->useFileUpload()) {
+            return response()->json(['result' => false, 'message' => trans('admin.deny')], 403);
+        }
+        $document = DocumentVersionService::findDocument($this->custom_value, $document_id);
+        if (!$document) {
+            return response()->json(['result' => false, 'message' => exmtrans('common.message.notfound')], 404);
+        }
+        if (boolval(config('exment.file_delete_useronly', false)) && !isMatchString($document->created_user_id, \Exment::getUserId())) {
+            return response()->json(['result' => false, 'message' => trans('admin.deny')], 403);
+        }
+        if (is_array($httpfile)) {
+            $httpfile = count($httpfile) === 1 ? reset($httpfile) : null;
+        }
+        if (!($httpfile instanceof \Illuminate\Http\UploadedFile) || !$httpfile->isValid()) {
+            return response()->json(['result' => false, 'message' => exmtrans('common.message.error_execute')], 400);
+        }
+
+        DocumentVersionService::replace($this->custom_value, $document, $httpfile);
+
+        $this->custom_value->notify(false);
+        foreach ($this->custom_table->notifies as $notify) {
+            $notify->notifyCreateUpdateUser($this->custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $httpfile->getClientOriginalName()]);
+        }
+
+        return getAjaxResponse([
+            'result' => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+
+    /**
+     * The older versions of an attachment, as html (opened from the list of attachments).
+     *
+     * @param int|string $document_id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function documentVersions($document_id)
+    {
+        $document = DocumentVersionService::available() && $this->custom_value
+            ? DocumentVersionService::findDocument($this->custom_value, $document_id) : null;
+        if (!$document) {
+            return response()->json(['result' => false, 'message' => exmtrans('common.message.notfound')], 404);
+        }
+        $versions = DocumentVersionService::versions(intval($document->id))->map(function ($version) {
+            $user = isset($version->created_user_id) ? getModelName(SystemTableName::USER)::find($version->created_user_id) : null;
+            return [
+                'version_no' => $version->version_no,
+                'name' => strval($version->document_name),
+                'url' => admin_urls('files', $version->file_uuid),
+                'created_at' => strval($version->created_at),
+                'created_user' => $user ? strval($user->getLabel()) : '',
+            ];
+        });
+
+        return getAjaxResponse([
+            'result' => true,
+            'html' => view('exment::form.field.documentversions', ['versions' => $versions])->render(),
+        ]);
+    }
+
+    /**
+     * The script of the list of attachments: replace a file, open the older versions.
+     */
+    protected static function documentVersionScript(): string
+    {
+        $failed = json_encode(exmtrans('common.message.error_execute'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+        return <<<EOT
+        $(document).off('click.exmdocver').on('click.exmdocver', '[data-exment-document-replace]', function (e) {
+            e.preventDefault();
+            $(this).siblings('input[type=file].exment-document-replace-file').trigger('click');
+        });
+        $(document).off('change.exmdocver').on('change.exmdocver', 'input[type=file].exment-document-replace-file', function () {
+            if (!this.files || this.files.length !== 1) { return; }
+            var data = new FormData();
+            data.append('file_data', this.files[0]);
+            data.append('_token', LA.token);
+            $.ajax({ url: $(this).data('url'), type: 'POST', data: data, processData: false, contentType: false })
+                .done(function (res) {
+                    if (res && res.result) { $.pjax.reload('#pjax-container'); return; }
+                    toastr.error((res && res.message) || {$failed});
+                })
+                .fail(function (xhr) { toastr.error((xhr.responseJSON && xhr.responseJSON.message) || {$failed}); });
+            this.value = '';
+        });
+        $(document).off('click.exmdocverlist').on('click.exmdocverlist', '[data-exment-document-versions]', function (e) {
+            e.preventDefault();
+            var box = $(this).closest('p').find('.exment-document-versions');
+            if (box.is(':visible')) { box.slideUp(100); return; }
+            $.get($(this).data('url')).done(function (res) {
+                if (res && res.result) { box.html(res.html).slideDown(100); return; }
+                toastr.error((res && res.message) || {$failed});
+            }).fail(function () { toastr.error({$failed}); });
+        });
+EOT;
     }
 
     /**
