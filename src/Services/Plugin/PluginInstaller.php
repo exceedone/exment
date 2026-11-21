@@ -332,6 +332,8 @@ class PluginInstaller
                     //Rename folder with plugin name
                     // @phpstan-ignore-next-line
                     static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
+                    // the files are there now (the row was saved before them)
+                    \Exceedone\Exment\Services\Features::forgetPluginsCache();
                     if (false === static::migrationInstall($plugin)) {
                         return back()->with('errorMess', exmtrans('plugin.error.migration_error'));
                     }
@@ -343,6 +345,8 @@ class PluginInstaller
                     $plugin->save();
                     // @phpstan-ignore-next-line
                     static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
+                    // the files are there now (the row was saved before them)
+                    \Exceedone\Exment\Services\Features::forgetPluginsCache();
                     if (false === static::migrationInstall($plugin)) {
                         return back()->with('errorMess', exmtrans('plugin.error.migration_error'));
                     }

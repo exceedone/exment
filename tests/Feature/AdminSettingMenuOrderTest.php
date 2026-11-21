@@ -204,6 +204,58 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
         }
     }
 
+    public function testAMenuOfTheSiteToThePageIsNotMadeAgain(): void
+    {
+        // no "Admin Setting"; the site made its own menu to Feature management (a custom menu to the URL)
+        $admin = $this->adminId();
+        DB::table('admin_menu')->where('parent_id', $admin)->update(['parent_id' => 0]);
+        DB::table('admin_menu')->where('id', $admin)->delete();
+        DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->delete();
+        DB::table('admin_menu')->insert([
+            'parent_id' => 0, 'order' => 99, 'title' => 'Features', 'icon' => 'fa-star',
+            'uri' => 'feature', 'menu_type' => 'custom', 'menu_name' => 'my_features', 'menu_target' => null,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        // and the two wrong rows of a new Japanese site of 7.1.0, out of "Admin Setting"
+        DB::table('admin_menu')->where('menu_type', 'system')->whereIn('menu_name', ['login_setting', 'api_setting'])->delete();
+        DB::table('admin_menu')->insert([
+            'parent_id' => 0, 'order' => 100, 'title' => 'ログイン設定', 'icon' => 'fa-sign-in',
+            'uri' => 'login_setting', 'menu_type' => 'system', 'menu_name' => 'login_setting', 'menu_target' => 'api_setting',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('admin_menu')->insert([
+            'parent_id' => 0, 'order' => 101, 'title' => 'メール送信履歴', 'icon' => 'fa-table',
+            'uri' => null, 'menu_type' => 'table', 'menu_name' => 'mail_send_log', 'menu_target' => null,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_26_000000_add_admin_setting_menus_without_admin_parent.php');
+        $migration->up();
+        $this->assertFalse(DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->exists(), 'made again next to the menu of the site');
+        foreach (['login_setting', 'api_setting'] as $name) {
+            $rows = DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', $name)->get();
+            $this->assertCount(1, $rows, $name);
+            $this->assertSame($name, $rows->first()->menu_target);
+        }
+        $this->assertFalse(DB::table('admin_menu')->where('menu_type', 'table')->where('menu_name', 'mail_send_log')->whereNull('menu_target')->exists());
+    }
+
+    public function testAMenuWithoutANameInTheLanguageGetsAName(): void
+    {
+        // a menu without a name in any language: its own name, not the key
+        $this->assertSame('no_such_menu', \Exceedone\Exment\Model\Menu::systemTitle('no_such_menu'));
+        // a site in a language without the names
+        $before = config('exment.locale');
+        try {
+            config(['exment.locale' => 'xx']);
+            $title = \Exceedone\Exment\Model\Menu::systemTitle('feature');
+            $this->assertStringStartsNotWith('exment::', $title);
+            $this->assertNotSame('', $title);
+        } finally {
+            config(['exment.locale' => $before]);
+        }
+    }
+
     public function testTheMenusAreNamedInTheLanguageOfTheSite(): void
     {
         $locale = app()->getLocale();

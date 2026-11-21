@@ -140,7 +140,15 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      */
     public static function systemTitle(string $menuName): string
     {
-        return strval(trans('exment::exment.menu.system_definitions.' . $menuName, [], static::siteLocale()));
+        // a language without the name: the one of Laravel, then English, then the name of the menu
+        $key = 'exment::exment.menu.system_definitions.' . $menuName;
+        foreach (array_unique([static::siteLocale(), strval(app()->getLocale()), 'en']) as $locale) {
+            $title = trans($key, [], $locale);
+            if (is_string($title) && $title !== '' && !str_starts_with($title, 'exment::')) {
+                return $title;
+            }
+        }
+        return $menuName;
     }
 
     /**

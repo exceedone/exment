@@ -30,6 +30,11 @@ return new class extends Migration
         $site = Menu::siteLocale();
         foreach (static::MENUS as $name) {
             $title = Menu::systemTitle($name);
+            // the site's language has no name for it: nothing is changed
+            $siteTitle = trans('exment::exment.menu.system_definitions.' . $name, [], $site);
+            if (!is_string($siteTitle) || $siteTitle !== $title) {
+                continue;
+            }
             $others = [];
             foreach (static::LOCALES as $locale) {
                 if ($locale === $site) {

@@ -40,10 +40,12 @@ return new class extends Migration
             return;
         }
 
+        $this->repairLoginApiSetting($menuTable);
+
         $system = DB::table($menuTable)->where('menu_type', 'system')->where('menu_name', 'system')->first();
         $parentId = isset($system) ? intval($system->parent_id) : 0;
         foreach (static::MENUS as $name => $icon) {
-            if (DB::table($menuTable)->where('menu_type', 'system')->where('menu_name', $name)->exists()) {
+            if ($this->hasMenu($menuTable, $name)) {
                 continue;
             }
             $order = intval(DB::table($menuTable)->where('parent_id', $parentId)->max('order')) + 1;
@@ -59,6 +61,46 @@ return new class extends Migration
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+        }
+    }
+
+    /**
+     * The site has the menu: a system menu of it (by its name, its target or
+     * its URI), or a menu the site made to its page.
+     */
+    protected function hasMenu(string $menuTable, string $name): bool
+    {
+        return DB::table($menuTable)->where(function ($query) use ($name) {
+            $query->where(function ($system) use ($name) {
+                $system->where('menu_type', 'system')->where(function ($q) use ($name) {
+                    $q->where('menu_name', $name)->orWhere('menu_target', $name)->orWhere('uri', $name);
+                });
+            })->orWhere('uri', $name)->orWhere('uri', '/' . $name);
+        })->exists();
+    }
+
+    /**
+     * The two rows a new Japanese site of 7.1.0 got wrong (see
+     * 2026_11_22_000000_repair_login_api_setting_menus_of_japanese_install,
+     * which repairs them under "Admin Setting" only): repaired wherever they are.
+     */
+    protected function repairLoginApiSetting(string $menuTable): void
+    {
+        $wrongApi = DB::table($menuTable)->where('menu_type', 'system')->where('menu_name', 'login_setting')->where('menu_target', 'api_setting')->first();
+        $wrongLogin = DB::table($menuTable)->where('menu_type', 'table')->where('menu_name', 'mail_send_log')->whereNull('menu_target')->first();
+        $rows = [['api_setting', 'fa-code-fork', 'ログイン設定', $wrongApi], ['login_setting', 'fa-sign-in', 'メール送信履歴', $wrongLogin]];
+        foreach ($rows as [$name, $icon, $wrongTitle, $row]) {
+            if (!isset($row)) {
+                continue;
+            }
+            if (DB::table($menuTable)->where('menu_type', 'system')->where('menu_name', $name)->where('id', '<>', $row->id)->exists()) {
+                continue;
+            }
+            $values = ['menu_type' => 'system', 'menu_name' => $name, 'menu_target' => $name, 'uri' => $name, 'icon' => $icon, 'updated_at' => now()];
+            if ($row->title === $wrongTitle) {
+                $values['title'] = \Exceedone\Exment\Model\Menu::systemTitle($name);
+            }
+            DB::table($menuTable)->where('id', $row->id)->update($values);
         }
     }
 
