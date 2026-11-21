@@ -165,6 +165,10 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post('system/call_update', 'SystemController@callUpdate');
 
+            // Tuning: what would make the site faster (ISS00414)
+            $router->get('tuning', 'TuningController@index');
+            $router->post('tuning/action', 'TuningController@action');
+
             // The preset library: what the pickers on the column and view
             // screens offer, managed as one list.
             $this->setResouce($router, 'cell_style_preset', 'CellStylePresetSettingController');

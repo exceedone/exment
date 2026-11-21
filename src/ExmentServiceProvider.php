@@ -376,6 +376,9 @@ class ExmentServiceProvider extends ServiceProvider
         parent::register();
         require_once(__DIR__ . '/Services/Helpers.php');
 
+        // the class of a custom table is built when it is first used (ISS00413)
+        Services\ClassBuilder::registerAutoloader();
+
         $this->mergeConfigFrom(
             __DIR__ . '/../config/exment.php',
             'exment'

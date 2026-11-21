@@ -43,6 +43,42 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Tuning: server-wide buttons
+    |--------------------------------------------------------------------------
+    |
+    | Whether the tuning page (Admin Setting > Tuning) may change a setting of the
+    | whole server from its buttons (make or remove the config cache).
+    | Set false where several sites share the code (a multi-tenant server).
+    |
+    */
+    'tuning_server_actions' => env('EXMENT_TUNING_SERVER_ACTIONS', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chart of a list view: max rows
+    |--------------------------------------------------------------------------
+    |
+    | A chart of a list view draws one point per row. It reads at most this many
+    | rows (0 = no limit). To chart a large table, use a summary view.
+    |
+    */
+    'chart_list_max_rows' => env('EXMENT_CHART_LIST_MAX_ROWS', 1000),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard aggregation cache
+    |--------------------------------------------------------------------------
+    |
+    | Keep the rows a chart of a summary view aggregates for this many seconds
+    | (0 = off: aggregate on every load). Each viewer has their own. Saving or
+    | deleting a row aggregates again; a change the models do not see (a share,
+    | a membership, a direct SQL) shows when the rows expire.
+    |
+    */
+    'dashboard_cache_seconds' => env('EXMENT_DASHBOARD_CACHE_SECONDS', 0),
+
+    /*
+    |--------------------------------------------------------------------------
     | Directory
     |--------------------------------------------------------------------------
     |

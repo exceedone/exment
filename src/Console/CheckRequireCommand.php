@@ -58,6 +58,20 @@ class CheckRequireCommand extends Command
 
             $this->line('---------------------------');
         }
+
+        // the tuning advice (ISS00414): optional, so it is shown as a comment, never as an error
+        $this->line(exmtrans('tuning.command_header'));
+        foreach (SystemRequireList::make(SystemRequireCalledType::TUNING)->getItems() as $check) {
+            $result = $check->checkResult();
+            $this->line(exmtrans('system_require.item_header', ['label' => $check->getLabel(), 'text' => $check->getResultText(), 'result' => strtoupper($result)]));
+            if ($result != SystemRequireResult::OK) {
+                $this->comment((string) $check->getMessage());
+                if (!is_null($fix = $check->getFixText())) {
+                    $this->line($fix);
+                }
+            }
+            $this->line('---------------------------');
+        }
         return 0;
     }
 

@@ -12,6 +12,10 @@
     </div>
 
     @include('exment::widgets.system-require')
+
+    @isset($tuningResult)
+    @include('exment::widgets.tuning-advice')
+    @endisset
     
     <div class="container-fluid">
         <div class="row" style="margin-top:2em;">

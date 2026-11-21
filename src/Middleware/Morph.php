@@ -26,7 +26,10 @@ class Morph
         // Routes that touch only the table named in their URL can skip this
         // middleware entirely instead - getValueModel() builds that one class
         // JIT - which is what the plugin route middleware_except option is for.
-        static::defineMorphMap();
+        // The class of a custom table is built when PHP first needs it
+        // (ClassBuilder::registerAutoloader), so only the alias => class-name map
+        // is set here: building every class cost about 0.4 ms per table (ISS00413).
+        static::defineMorphMap(\Exceedone\Exment\Services\ClassBuilder::autoloaderRegistered());
         return $next($request);
     }
 
