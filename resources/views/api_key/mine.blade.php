@@ -8,7 +8,9 @@
         </div>
     @endif
     @if (isset($error))
-        <div class="alert alert-danger">{{ $error }}</div>
+        <div class="alert alert-danger">{{ $error }}
+            @if (isset($error_link)) <a href="{{ $error_link }}">{{ exmtrans('api_key.sign_in_again_link') }}</a>@endif
+        </div>
     @endif
 
     <div class="callout callout-info"><p>{{ exmtrans('api_key.help') }}</p></div>

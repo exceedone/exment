@@ -2,8 +2,12 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
+use Exceedone\Exment\Controllers\UserApiKeyController;
+use Exceedone\Exment\Jobs\MailSendJob;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Exceedone\Exment\Model\UserApiKey;
 use Exceedone\Exment\Services\Features;
 use Exceedone\Exment\Services\UserApiKeys;
@@ -207,5 +211,151 @@ class UserApiKeyPageTest extends FeatureTestBase
         $this->setFeatures([Features::API_KEYS => ['enabled' => false]]);
         $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         $this->get(admin_url('api_keys'))->assertOk()->assertSee(exmtrans('api_key.feature_off'));
+    }
+
+    /**
+     * The password on the form has its own limit of tries (it does not count toward the lockout
+     * of the login page).
+     */
+    public function testThePasswordHasALimitOfTries(): void
+    {
+        $user = $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        RateLimiter::clear(UserApiKeyController::passwordLimiterKey((int)$user->id));
+        for ($i = 0; $i < UserApiKeyController::PASSWORD_TRIES; $i++) {
+            $this->post(admin_url('auth/api_keys'), ['name' => 'x', 'current_password' => 'wrong'])->assertSee(exmtrans('validation.current_password'));
+        }
+        // now even the right password waits
+        $this->post(admin_url('auth/api_keys'), ['name' => 'x', 'current_password' => 'user1user1'])
+            ->assertOk()->assertSee(exmtrans('api_key.errors.password_tries', 15));
+        $this->assertSame(0, UserApiKey::count());
+        RateLimiter::clear(UserApiKeyController::passwordLimiterKey((int)$user->id));
+    }
+
+    /**
+     * A user of SSO makes a key only soon after signing in, and the key is shorter.
+     */
+    public function testAUserOfSsoSignsInAgain(): void
+    {
+        \DB::table('login_users')->where('id', TestDefine::TESTDATA_USER_LOGINID_USER1)->update(['login_provider' => 'test_sso']);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        config(['exment.api_key_max_days_sso' => 30]);
+
+        // not signed in recently: sent to sign in again
+        $this->post(admin_url('auth/api_keys'), ['name' => 'sso key'])
+            ->assertOk()->assertSee(exmtrans('api_key.errors.sign_in_again', 15))->assertSee(admin_url('auth/logout'), false);
+        $this->withSession([UserApiKeys::SESSION_SIGNED_IN_AT => time() - 20 * 60])
+            ->post(admin_url('auth/api_keys'), ['name' => 'sso key'])->assertSee(exmtrans('api_key.errors.sign_in_again', 15));
+        $this->assertSame(0, UserApiKey::count());
+
+        // the Login event of the pages remembers when
+        UserApiKeys::rememberSignIn('admin');
+        $this->assertTrue(UserApiKeys::signedInRecently());
+        UserApiKeys::rememberSignIn('adminapi');
+
+        $page = $this->withSession([UserApiKeys::SESSION_SIGNED_IN_AT => time()])
+            ->post(admin_url('auth/api_keys'), ['name' => 'sso key', 'days' => '365']);
+        $page->assertOk()->assertSee(exmtrans('api_key.new_key'));
+        /** @var UserApiKey $key */
+        $key = UserApiKey::firstOrFail();
+        // 365 is not offered to SSO: the default within 30 days
+        $this->assertLessThanOrEqual(now()->addDays(30)->getTimestamp() + 60, $key->expires_at->getTimestamp());
+    }
+
+    /**
+     * The user is told by mail when a key is made and when an administrator stops keys; the mail
+     * has no key.
+     */
+    public function testTheMails(): void
+    {
+        Notification::fake();
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $page = $this->post(admin_url('auth/api_keys'), ['name' => 'mailed key', 'current_password' => 'user1user1']);
+        $page->assertOk()->assertSee(exmtrans('api_key.new_key'));
+        Notification::assertSentTimes(MailSendJob::class, 1);
+
+        /** @var UserApiKey $key */
+        $key = UserApiKey::firstOrFail();
+        $sender = UserApiKeys::mailCreated($key, '192.0.2.1');
+        $this->assertNotNull($sender);
+        $body = (string)$sender->getBody();
+        $this->assertStringContainsString('mailed key', $body);
+        $this->assertStringContainsString('192.0.2.1', $body);
+        $this->assertStringContainsString(admin_url('auth/api_keys'), $body);
+        $this->assertStringNotContainsString(UserApiKeys::PREFIX, $body);
+
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->post(admin_url('api_keys/user/' . $key->user_id . '/revoke'))->assertRedirect();
+        Notification::assertSentTimes(MailSendJob::class, 3);
+        // nothing stopped: no mail
+        $this->post(admin_url('api_keys/user/' . $key->user_id . '/revoke'))->assertRedirect();
+        Notification::assertSentTimes(MailSendJob::class, 3);
+    }
+
+    /**
+     * A refusal the key got past (it was used after) is not shown any more.
+     */
+    public function testAnOldRefusalIsNotShown(): void
+    {
+        [$key] = UserApiKeys::create($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'used again', UserApiKeys::readOnlyScopes());
+        \DB::table('user_api_keys')->where('id', $key->id)->update([
+            'last_refused_at' => now()->subHour(), 'last_refused_reason' => 'ip', 'last_used_at' => now(),
+        ]);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get(admin_url('auth/api_keys'))->assertOk()->assertSee('used again')->assertDontSee(exmtrans('api_key.refusals.ip'));
+    }
+
+    public function testThePageExplainsTheAddresses(): void
+    {
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get(admin_url('auth/api_keys'))->assertOk()->assertSee('ADMIN_TRUST_PROXY_IPS')->assertSee('CloudFront');
+    }
+
+    /**
+     * The forms of the keys are in the web group, with the CSRF check.
+     */
+    public function testTheFormsCheckCsrf(): void
+    {
+        $router = app('router');
+        foreach (['auth/api_keys', 'auth/api_keys/1/revoke', 'api_keys/1/revoke', 'api_keys/user/1/revoke'] as $path) {
+            $route = $router->getRoutes()->match(\Illuminate\Http\Request::create(admin_url($path), 'POST'));
+            $this->assertContains(\Exceedone\Exment\Middleware\VerifyCsrfToken::class, $router->gatherRouteMiddleware($route), $path);
+        }
+        // and the check refuses a POST without its token
+        $request = \Illuminate\Http\Request::create(admin_url('auth/api_keys'), 'POST', ['name' => 'x']);
+        $request->setLaravelSession(app('session')->driver());
+        $middleware = new class (app(), app('encrypter')) extends \Exceedone\Exment\Middleware\VerifyCsrfToken {
+            protected function runningUnitTests()
+            {
+                return false;
+            }
+        };
+        $this->expectException(\Illuminate\Session\TokenMismatchException::class);
+        $middleware->handle($request, function () {
+            return response('passed');
+        });
+    }
+
+    /**
+     * Without the role groups (every user may use the admin pages), the keys of everyone are still
+     * for the system administrators only.
+     */
+    public function testWithoutRoleGroups(): void
+    {
+        [$key] = UserApiKeys::create($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER2), 'key of user2', UserApiKeys::readOnlyScopes());
+        System::permission_available(false);
+        System::clearRequestSession();
+        try {
+            $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+            $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+            $this->get(admin_url('api_keys'), $ajax)->assertForbidden();
+            $this->post(admin_url("api_keys/{$key->id}/revoke"), [], $ajax)->assertForbidden();
+            $this->assertNull($key->refresh()->revoked_at);
+
+            $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+            $this->get(admin_url('api_keys'))->assertOk()->assertSee('key of user2');
+        } finally {
+            System::permission_available(true);
+            System::clearRequestSession();
+        }
     }
 }

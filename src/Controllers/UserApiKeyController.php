@@ -14,6 +14,7 @@ use Exceedone\Exment\Services\Features;
 use Exceedone\Exment\Services\UserApiKeys;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 /**
  * The API keys of the users (Services\UserApiKeys, ISS00437):
@@ -25,7 +26,11 @@ use Illuminate\Http\Request;
 class UserApiKeyController extends AdminControllerBase
 {
     /** The end dates offered on the form (days). */
-    public const DAYS = [30, 90, 180, 365];
+    public const DAYS = [7, 30, 90, 180, 365];
+
+    /** Tries of the password when making keys, in PASSWORD_DECAY_SECONDS. */
+    public const PASSWORD_TRIES = 5;
+    public const PASSWORD_DECAY_SECONDS = 15 * 60;
 
     public function __construct()
     {
@@ -37,7 +42,7 @@ class UserApiKeyController extends AdminControllerBase
      *
      * @return Content
      */
-    public function index(Request $request, Content $content, ?string $newKey = null, ?string $error = null)
+    public function index(Request $request, Content $content, ?string $newKey = null, ?string $error = null, ?string $errorLink = null)
     {
         $this->abortUnlessAllowed();
         $user = \Exment::user();
@@ -52,6 +57,8 @@ class UserApiKeyController extends AdminControllerBase
             'keys' => $this->rows(UserApiKey::where('user_id', $user->base_user_id)->orderByDesc('id')->get()),
             'new_key' => $newKey,
             'error' => $error,
+            'error_link' => $errorLink,
+            'sso' => UserApiKeys::isSsoLogin($user),
             // what was sent, as text only (never the password)
             'old' => [
                 'name' => static::text($request, 'name'),
@@ -67,7 +74,7 @@ class UserApiKeyController extends AdminControllerBase
             'read_only_scopes' => UserApiKeys::readOnlyScopes(),
             'tables' => $tables,
             'days' => static::days(),
-            'default_days' => min(UserApiKeys::DEFAULT_DAYS, UserApiKeys::maxDays()),
+            'default_days' => min(UserApiKeys::DEFAULT_DAYS, static::maxDaysOfLogin()),
             'max_keys' => UserApiKeys::maxActiveKeys(),
             'ask_password' => $this->asksPassword(),
             'action' => admin_url('auth/api_keys'),
@@ -90,9 +97,21 @@ class UserApiKeyController extends AdminControllerBase
         }
         $user = \Exment::user();
 
-        // a user who signs in with a password says it again (a key acts as the user)
-        if ($this->asksPassword() && !LoginUserProvider::ValidateCredential($user, ['password' => static::text($request, 'current_password')])) {
-            return $this->index($request, $content, null, exmtrans('validation.current_password'));
+        // a user who signs in with a password says it again (a key acts as the user). The check does
+        // not count toward the lockout of the login page, so it has its own limit of tries.
+        if ($this->asksPassword()) {
+            $limiter = static::passwordLimiterKey((int)$user->id);
+            if (RateLimiter::tooManyAttempts($limiter, static::PASSWORD_TRIES)) {
+                return $this->index($request, $content, null, exmtrans('api_key.errors.password_tries', ceil(RateLimiter::availableIn($limiter) / 60)));
+            }
+            if (!LoginUserProvider::ValidateCredential($user, ['password' => static::text($request, 'current_password')])) {
+                RateLimiter::hit($limiter, static::PASSWORD_DECAY_SECONDS);
+                return $this->index($request, $content, null, exmtrans('validation.current_password'));
+            }
+            RateLimiter::clear($limiter);
+        } elseif (UserApiKeys::isSsoLogin($user) && !UserApiKeys::signedInRecently()) {
+            // a user of SSO signs in again first (the IdP says the user is still there)
+            return $this->index($request, $content, null, exmtrans('api_key.errors.sign_in_again', 15), admin_url('auth/logout'));
         }
 
         $scopes = static::text($request, 'scope_type') === 'custom'
@@ -110,11 +129,11 @@ class UserApiKeyController extends AdminControllerBase
         }
         $days = intval(static::text($request, 'days'));
         if (!in_array($days, static::days(), true)) {
-            $days = min(UserApiKeys::DEFAULT_DAYS, UserApiKeys::maxDays());
+            $days = min(UserApiKeys::DEFAULT_DAYS, static::maxDaysOfLogin());
         }
 
         try {
-            [, $plain] = UserApiKeys::create(
+            [$key, $plain] = UserApiKeys::create(
                 (int)$user->base_user_id,
                 static::text($request, 'name'),
                 $scopes,
@@ -129,6 +148,9 @@ class UserApiKeyController extends AdminControllerBase
         } catch (\InvalidArgumentException $e) {
             return $this->index($request, $content, null, exmtrans('api_key.errors.' . $e->getMessage()));
         }
+
+        // the user is told by mail (not the key: its name, end date and the address of the request)
+        UserApiKeys::mailCreated($key, $request->ip());
 
         // an empty form: the values of the key are not kept in the fields
         return $this->index(new Request(), $content, $plain);
@@ -158,6 +180,7 @@ class UserApiKeyController extends AdminControllerBase
      */
     public function adminIndex(Request $request, Content $content)
     {
+        $this->abortUnlessAdministrator();
         // the active keys by default; all, or the stopped and expired ones, when asked
         $status = static::text($request, 'status');
         if (!in_array($status, ['active', 'inactive', 'all'], true)) {
@@ -198,11 +221,16 @@ class UserApiKeyController extends AdminControllerBase
      */
     public function adminRevoke(Request $request, string $id)
     {
+        $this->abortUnlessAdministrator();
         $key = UserApiKey::find($id);
         if (!isset($key)) {
             abort(404);
         }
+        $wasActive = $key->isActive();
         UserApiKeys::revoke($key, (int)\Exment::user()->base_user_id);
+        if ($wasActive) {
+            UserApiKeys::mailRevokedByAdmin($key->user_id, 1);
+        }
         admin_toastr(exmtrans('api_key.message_revoked'));
         return redirect(admin_url('api_keys'));
     }
@@ -214,7 +242,9 @@ class UserApiKeyController extends AdminControllerBase
      */
     public function adminRevokeUser(Request $request, string $userId)
     {
-        $count = UserApiKeys::revokeAllOfUser(intval($userId), (int)\Exment::user()->base_user_id);
+        $this->abortUnlessAdministrator();
+        $count =UserApiKeys::revokeAllOfUser(intval($userId), (int)\Exment::user()->base_user_id);
+        UserApiKeys::mailRevokedByAdmin(intval($userId), $count);
         admin_toastr(exmtrans('api_key.message_revoked_user', $count));
         return redirect(admin_url('api_keys'));
     }
@@ -246,11 +276,30 @@ class UserApiKeyController extends AdminControllerBase
      */
     protected static function days(): array
     {
-        $max = UserApiKeys::maxDays();
+        $max = static::maxDaysOfLogin();
         $days = array_values(array_filter(static::DAYS, function ($d) use ($max) {
             return $d <= $max;
         }));
         return count($days) > 0 ? $days : [$max];
+    }
+
+    /**
+     * The most days of a key of the login user (shorter for a login of SSO).
+     */
+    protected static function maxDaysOfLogin(): int
+    {
+        $user = \Exment::user();
+        return UserApiKeys::maxDays(isset($user) && UserApiKeys::isSsoLogin($user));
+    }
+
+    /**
+     * The name of the tries of the password of a login user, of this site.
+     */
+    public static function passwordLimiterKey(int $loginUserId): string
+    {
+        $site = \Exceedone\Exment\Services\PluginDistribution\SiteId::get()
+            ?? strval(config('database.connections.' . config('database.default') . '.database'));
+        return 'exment-apikey-password:' . substr(hash('sha256', $site), 0, 16) . ':' . $loginUserId;
     }
 
     /**
@@ -260,6 +309,18 @@ class UserApiKeyController extends AdminControllerBase
     {
         $user = \Exment::user();
         return isset($user) && $user->login_type == LoginType::PURE && !DemoMode::enabled();
+    }
+
+    /**
+     * The keys of everyone: the system administrators only, also when the site does not use the
+     * role groups (then Exment lets every user into the admin pages; not into these).
+     */
+    protected function abortUnlessAdministrator(): void
+    {
+        $user = \Exment::user();
+        if (!isset($user) || !$user->isAdministrator()) {
+            abort(403);
+        }
     }
 
     protected function abortUnlessAllowed(): void
@@ -282,6 +343,7 @@ class UserApiKeyController extends AdminControllerBase
         $rows = [];
         foreach ($keys as $key) {
             $status = isset($key->revoked_at) ? 'revoked' : ($key->expires_at->isFuture() ? 'active' : 'expired');
+            $refusedShown = isset($key->last_refused_at) && (!isset($key->last_used_at) || $key->last_refused_at->greaterThan($key->last_used_at));
             $rows[] = [
                 'id' => $key->id,
                 'user_id' => $key->user_id,
@@ -298,9 +360,10 @@ class UserApiKeyController extends AdminControllerBase
                 'use_count' => $key->use_count,
                 'created_at' => $key->created_at?->format('Y-m-d H:i'),
                 'status' => $status,
-                // the last refusal and why (the log is not for every administrator)
-                'last_refused_at' => $key->last_refused_at?->format('Y-m-d H:i'),
-                'last_refused_reason' => isset($key->last_refused_reason) ? exmtrans('api_key.refusals.' . $key->last_refused_reason) : null,
+                // the last refusal and why (the log is not for every administrator), when it came
+                // after the last use: a refusal the key got past is not shown any more
+                'last_refused_at' => $refusedShown ? $key->last_refused_at?->format('Y-m-d H:i') : null,
+                'last_refused_reason' => $refusedShown && isset($key->last_refused_reason) ? exmtrans('api_key.refusals.' . $key->last_refused_reason) : null,
             ];
         }
         return $rows;

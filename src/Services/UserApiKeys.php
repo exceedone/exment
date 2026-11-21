@@ -488,4 +488,87 @@ class UserApiKeys
         return UserApiKey::where('user_id', $userId)->whereNull('revoked_at')
             ->update(['revoked_at' => Carbon::now(), 'revoked_user_id' => $byUserId]);
     }
+
+    /** The session key of when the user signed in to the pages. */
+    public const SESSION_SIGNED_IN_AT = 'exment_api_key_signed_in_at';
+
+    /** How soon after signing in a user of SSO may make a key (seconds). */
+    public const SSO_RECENT_SECONDS = 15 * 60;
+
+    /**
+     * Remember when the user signed in to the pages (the Login event of the guard).
+     */
+    public static function rememberSignIn(?string $guard): void
+    {
+        if ($guard !== \Exceedone\Exment\Model\Define::AUTHENTICATE_KEY_WEB || !app()->bound('session')) {
+            return;
+        }
+        try {
+            session()->put(static::SESSION_SIGNED_IN_AT, time());
+        } catch (\Throwable $e) {
+            // no session (a console): nothing to remember
+        }
+    }
+
+    /**
+     * Whether the login user signed in to the pages within SSO_RECENT_SECONDS.
+     */
+    public static function signedInRecently(): bool
+    {
+        $at = session(static::SESSION_SIGNED_IN_AT);
+        return is_int($at) && time() - $at >= 0 && time() - $at <= static::SSO_RECENT_SECONDS;
+    }
+
+    /**
+     * Tell the user a key of theirs was made: its name, end date, the address of the request and a
+     * link to the page of the keys. Never the key.
+     *
+     * @return mixed the sender, or null when no mail was sent
+     */
+    public static function mailCreated(UserApiKey $key, ?string $ip)
+    {
+        return static::mail($key->user_id, exmtrans('api_key.mail.created_subject'), exmtrans('api_key.mail.created_body', [
+            'name' => $key->name,
+            'expires_at' => $key->expires_at->format('Y-m-d H:i'),
+            'ip' => $ip ?? '-',
+            'url' => admin_url('auth/api_keys'),
+        ]));
+    }
+
+    /**
+     * Tell the user an administrator stopped keys of theirs.
+     *
+     * @return mixed the sender, or null when no mail was sent
+     */
+    public static function mailRevokedByAdmin(int $userId, int $count)
+    {
+        if ($count < 1) {
+            return null;
+        }
+        return static::mail($userId, exmtrans('api_key.mail.revoked_subject'), exmtrans('api_key.mail.revoked_body', [
+            'count' => $count,
+            'url' => admin_url('auth/api_keys'),
+        ]));
+    }
+
+    /**
+     * A mail through the mail of Exment; a failure does not stop the action (it is logged).
+     *
+     * @return mixed the sender, or null
+     */
+    protected static function mail(int $userId, string $subject, string $body)
+    {
+        $user = getModelName(SystemTableName::USER)::find($userId);
+        if (!isset($user) || is_nullorempty($user->getValue('email'))) {
+            return null;
+        }
+        try {
+            $sender = \Exceedone\Exment\Notifications\MailSender::make(null, $user)->subject($subject)->body($body);
+            $sender->send();
+            return $sender;
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the mail of an API key was not sent: ' . $e->getMessage());
+            return null;
+        }
+    }
 }
