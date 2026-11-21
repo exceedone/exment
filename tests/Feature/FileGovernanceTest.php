@@ -464,6 +464,32 @@ class FileGovernanceTest extends FeatureTestBase
         $this->assertSame(Level::MANAGE, (new Access($managerId, false))->level($ws, $file->refresh()));
     }
 
+    public function testThePickerSearchesTheUsersForWhoMayChoose(): void
+    {
+        $ws = $this->workspace();
+        config(['exment.file_server_workspace_create' => null]);
+        $user1 = $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $code = strval(getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($user1)->getValue('user_code'));
+
+        // the manager of the workspace: a page of the users, and the ones searched
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        $page = $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user');
+        $page->assertOk();
+        $this->assertNotEmpty($page->json('results'));
+        $this->assertLessThanOrEqual(\Exceedone\Exment\Controllers\FileServerController::PICKER_PAGE, count($page->json('results')));
+        $found = $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user&q=' . rawurlencode($code));
+        $found->assertOk();
+        $this->assertContains($user1, array_column($found->json('results'), 'id'));
+
+        // who only sees the workspace, or names none: not
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user')->assertStatus(403);
+        $this->getJson(admin_url('file_server/picker') . '?type=user')->assertStatus(403);
+        // who may make a workspace: yes
+        config(['exment.file_server_workspace_create' => 'all']);
+        $this->getJson(admin_url('file_server/picker') . '?type=user')->assertOk();
+    }
+
     public function testWhoMayMakeAWorkspace(): void
     {
         $user = new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), false);

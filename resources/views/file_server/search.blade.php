@@ -20,7 +20,7 @@
 
     @if ($q !== '')
         <div class="box card">
-            <div class="box-header"><span class="exm-fs-muted">{{ exmtrans('file_server.search_count', ['count' => count($rows)]) }}</span></div>
+            <div class="box-header with-border"><span class="exm-fs-muted">{{ exmtrans('file_server.search_count', ['count' => count($rows)]) }}</span></div>
             <div class="box-body table-responsive p-0">
                 <table class="table table-hover exm-fs-table">
                     <tbody>

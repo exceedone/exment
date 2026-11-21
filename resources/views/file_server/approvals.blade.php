@@ -1,10 +1,14 @@
 {{-- File server, phase 5 (ISS00379): the files that wait for an approval. Data from FileServerGovernanceController::approvals. --}}
 @include('exment::file_server._assets')
 <div class="exm-fs" id="exm-fs-approvals">
-    <div class="exm-fs-toolbar">
-        <a class="btn btn-sm btn-default" href="{{ $back_url }}"><i class="fa fa-arrow-left" aria-hidden="true"></i> {{ $workspace->name }}</a>
+    {{-- the way back, as on the other pages of a workspace (the trash) --}}
+    <div class="exm-fs-breadcrumb">
+        <a href="{{ admin_url('file_server') }}"><i class="fa fa-home" aria-hidden="true"></i> {{ exmtrans('file_server.header') }}</a>
+        <a href="{{ $back_url }}">{{ $workspace->name }}</a>
+        <span>{{ exmtrans('file_server.approvals') }}</span>
     </div>
-    <div class="table-responsive">
+    <div class="box card">
+    <div class="box-body table-responsive p-0">
         <table class="table table-condensed exm-fs-table">
             <thead><tr><th>{{ exmtrans('file_server.name') }}</th><th>{{ exmtrans('file_server.created_at') }}</th><th>{{ exmtrans('file_server.size') }}</th><th></th></tr></thead>
             <tbody>
@@ -23,6 +27,7 @@
                 @endforelse
             </tbody>
         </table>
+    </div>
     </div>
 </div>
 <script>

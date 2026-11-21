@@ -17,7 +17,7 @@
         @if ($disabled)
             {{ exmtrans('feature.state_locked') }}
         @else
-            <label style="font-weight:normal"><input type="checkbox" name="features[{{ $key }}][enabled]" value="1" data-feature-stop="{{ $f['label'] }}" @checked($s['enabled'])> {{ exmtrans('feature.use') }}</label>
+            <label style="font-weight:normal"><input type="checkbox" name="features[{{ $key }}][enabled]" value="1" data-feature-stop="{{ $f['label'] }}" data-feature-switch @checked($s['enabled'])> <span data-feature-use-text>{{ exmtrans('feature.use') }}</span></label>
             @if ($f['reason'] === 'requires')<p class="exm-feature-help">{{ exmtrans('feature.state_requires') }}</p>@endif
             @if ($muted)<p class="exm-feature-help">{{ exmtrans('feature.state_plugin_off') }}</p>@endif
         @endif

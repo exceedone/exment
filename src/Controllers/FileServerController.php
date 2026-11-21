@@ -328,7 +328,7 @@ class FileServerController extends AdminControllerBase
             'rules_url' => $this->nodeUrl($ws, $item, 'rules'),
             'held' => Governance::isHeld($ws, $item),
             'retained_until' => $item->isFile() ? Governance::retainedUntil($ws, $item) : null,
-        ] + ($level >= Level::MANAGE ? $this->pickerData() : ['picker_users' => [], 'picker_orgs' => [], 'levels' => Level::options()])));
+        ] + ($level >= Level::MANAGE ? $this->pickerData($ws, $item) : ['picker_url' => null, 'picker_orgs' => false, 'levels' => Level::options()])));
         return $content;
     }
 
@@ -390,7 +390,7 @@ class FileServerController extends AdminControllerBase
             'fields' => $this->fieldRows(Metadata::fields($ws)),
             'fields_url' => $this->url($ws, 'metadata_fields'),
             'audit_url' => $this->url($ws, 'audit'),
-        ] + $this->pickerData()));
+        ] + $this->pickerData($ws)));
         return $content;
     }
 
@@ -1278,22 +1278,65 @@ class FileServerController extends AdminControllerBase
     }
 
     /**
-     * The users and organizations to choose from, and the levels.
+     * Where the editor of the permissions finds the users and organizations
+     * (searched, a page at a time: a site may have more than can be listed),
+     * and the levels.
      *
      * @return array<string, mixed>
      */
-    protected function pickerData(): array
+    protected function pickerData(?FileWorkspace $ws = null, ?FileNode $node = null): array
     {
-        $users = getModelName(SystemTableName::USER)::query()->limit(2000)->get()->map(function ($user) {
-            return ['id' => intval($user->id), 'name' => strval($user->getLabel())];
-        })->sortBy('name')->values()->all();
-        $orgs = [];
-        if (\Exceedone\Exment\Model\System::organization_available()) {
-            $orgs = getModelName(SystemTableName::ORGANIZATION)::query()->limit(2000)->get()->map(function ($org) {
-                return ['id' => intval($org->id), 'name' => strval($org->getLabel())];
-            })->sortBy('name')->values()->all();
+        $query = array_filter(['workspace' => optional($ws)->id, 'node' => optional($node)->id]);
+        return [
+            'picker_url' => admin_url('file_server/picker') . (count($query) > 0 ? '?' . http_build_query($query) : ''),
+            'picker_orgs' => boolval(\Exceedone\Exment\Model\System::organization_available()),
+            'levels' => Level::options(),
+        ];
+    }
+
+    /** The users or organizations of one page of the picker. */
+    public const PICKER_PAGE = 20;
+
+    /**
+     * The users or organizations for the editor of the permissions (select2):
+     * ?type=user|organization&q=words&page=n. For who may make a workspace,
+     * or manage the workspace (or the node) given.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function picker(Request $request)
+    {
+        $access = $this->library()->access();
+        $allowed = $access->canCreateWorkspace();
+        if (!$allowed && $request->filled('workspace')) {
+            $ws = FileWorkspace::find(intval($request->query('workspace')));
+            $node = $request->filled('node') ? FileNode::query()->where('workspace_id', optional($ws)->id)->find(intval($request->query('node'))) : null;
+            $allowed = isset($ws) && (!$request->filled('node') || isset($node)) && $access->level($ws, $node) >= Level::MANAGE;
         }
-        return ['picker_users' => $users, 'picker_orgs' => $orgs, 'levels' => Level::options()];
+        if (!$allowed) {
+            return response()->json(['results' => [], 'pagination' => ['more' => false]], 403);
+        }
+        $organization = $request->query('type') === FilePermission::TARGET_ORGANIZATION;
+        if ($organization && !\Exceedone\Exment\Model\System::organization_available()) {
+            return response()->json(['results' => [], 'pagination' => ['more' => false]]);
+        }
+        $tableName = $organization ? SystemTableName::ORGANIZATION : SystemTableName::USER;
+        $words = trim(strval($request->query('q', '')));
+        $page = max(1, intval($request->query('page', 1)));
+        if ($words === '') {
+            // the users the user may see (the permissions of the table), as the list was
+            $paginator = getModelName($tableName)::query()->orderBy('id')->paginate(static::PICKER_PAGE, ['*'], 'page', $page);
+        } else {
+            $paginator = \Exceedone\Exment\Model\CustomTable::getEloquent($tableName)->searchValue($words, ['paginate' => true, 'maxCount' => static::PICKER_PAGE]);
+        }
+        if (!($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator)) {
+            return response()->json(['results' => [], 'pagination' => ['more' => false]]);
+        }
+        $results = [];
+        foreach ($paginator->items() as $value) {
+            $results[] = ['id' => intval($value->id), 'text' => strval($value->getLabel())];
+        }
+        return response()->json(['results' => $results, 'pagination' => ['more' => $paginator->hasMorePages()]]);
     }
 
     /**

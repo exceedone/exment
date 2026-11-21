@@ -136,7 +136,7 @@
                 </div>
 
                 <div class="exm-fs-section box card">
-                    <div class="box-header"><h4><i class="fa fa-history" aria-hidden="true"></i> {{ exmtrans('file_server.versions') }}</h4></div>
+                    <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-history" aria-hidden="true"></i> {{ exmtrans('file_server.versions') }}</h3></div>
                     <div class="box-body">
                         @if ($canEdit && !$lockedByOther)
                             <form data-fs-version-form class="form-inline" style="margin-bottom:10px">
@@ -200,7 +200,7 @@
             @include('exment::file_server._governance_box')
 
             <div class="exm-fs-section box card">
-                <div class="box-header"><h4><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h4></div>
+                <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h3></div>
                 <div class="box-body">
                     <p class="exm-fs-muted">{{ $node->has_unique_permissions ? exmtrans('file_server.permissions_unique') : exmtrans('file_server.permissions_inherited') }}</p>
                     @if ($canManage && $node->has_unique_permissions)
@@ -229,7 +229,7 @@
 
             @if ($can_share || $can_request || count($links) > 0)
             <div class="exm-fs-section box card">
-                <div class="box-header"><h4><i class="fa fa-share-alt" aria-hidden="true"></i> {{ exmtrans('file_server.share_links') }}</h4></div>
+                <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-share-alt" aria-hidden="true"></i> {{ exmtrans('file_server.share_links') }}</h3></div>
                 <div class="box-body">
                     @foreach ($links as $l)
                         <div style="border-bottom:1px solid rgba(0,0,0,.08);padding:6px 0;{{ $l['active'] ? '' : 'opacity:.55' }}">
