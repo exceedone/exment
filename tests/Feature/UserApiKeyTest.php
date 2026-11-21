@@ -436,4 +436,103 @@ class UserApiKeyTest extends ApiTestBase
             ->get(admin_urls('api', 'me'))
             ->assertStatus(401);
     }
+
+    /**
+     * The API reads ?children also from the body: a POST with it is refused as well.
+     */
+    public function testRelatedDataAskedInTheBody(): void
+    {
+        [, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['tables' => ['custom_value_edit']]);
+        $id = \DB::table(getDBTableName('custom_value_edit'))->whereNull('deleted_at')->value('id');
+        foreach (['children', 'parents'] as $param) {
+            \Auth::forgetGuards();
+            $response = $this->withHeaders(['Authorization' => "Bearer $plain"])
+                ->post(admin_urls('api', 'data', 'custom_value_edit', $id), [$param => '1']);
+            $this->assertRefused($response, 'table');
+        }
+        // without it, the POST (read one record) passes
+        \Auth::forgetGuards();
+        $this->withHeaders(['Authorization' => "Bearer $plain"])->post(admin_urls('api', 'data', 'custom_value_edit', $id))->assertStatus(200);
+    }
+
+    /**
+     * New random keys from one address do not each get a fresh limit; the name of the limit is not
+     * the hash of the key.
+     */
+    public function testTheRateLimitOfKeysIsAlsoByAddress(): void
+    {
+        $this->withMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        $rate = intval(config('exment.api_max_rate_limit', 60));
+        $statuses = [];
+        for ($i = 0; $i <= $rate; $i++) {
+            \Auth::forgetGuards();
+            $statuses[] = $this->withHeaders(['Authorization' => 'Bearer ' . UserApiKeys::PREFIX . bin2hex(random_bytes(24))])
+                ->get(admin_urls('api', 'me'))->getStatusCode();
+        }
+        $this->assertSame(401, $statuses[0]);
+        $this->assertSame(429, end($statuses));
+
+        $plain = UserApiKeys::PREFIX . str_repeat('a', 48);
+        $this->assertStringNotContainsString(UserApiKeys::hash($plain), UserApiKeys::limiterKey($plain));
+    }
+
+    /**
+     * A key refused again and again writes its row at most once a minute.
+     */
+    public function testRefusalsWriteLittle(): void
+    {
+        [$key, $plain] = $this->makeKey();
+        UserApiKeys::revoke($key);
+        Carbon::setTestNow(Carbon::parse('2026-12-01 10:00:00'));
+        try {
+            $this->assertRefused($this->getWithKey($plain, ['me']), 'revoked');
+            $first = $key->refresh()->last_refused_at;
+            Carbon::setTestNow(Carbon::parse('2026-12-01 10:00:30'));
+            $this->assertRefused($this->getWithKey($plain, ['me']), 'revoked');
+            $this->assertEquals($first, $key->refresh()->last_refused_at, 'not written again within the minute');
+            Carbon::setTestNow(Carbon::parse('2026-12-01 10:01:31'));
+            $this->assertRefused($this->getWithKey($plain, ['me']), 'revoked');
+            $this->assertNotEquals($first, $key->refresh()->last_refused_at, 'written again after a minute');
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    /**
+     * The keys are counted and made with the row of the user locked (requests at the same time).
+     */
+    public function testTheCountOfKeysIsLocked(): void
+    {
+        $queries = [];
+        \DB::listen(function ($query) use (&$queries) {
+            $queries[] = strtolower($query->sql);
+        });
+        $this->makeKey();
+        $locks = array_filter($queries, function ($sql) {
+            return str_contains($sql, 'for update');
+        });
+        $this->assertNotEmpty($locks, 'the row of the user is locked');
+    }
+
+    /**
+     * A key made by a login of SSO has a shorter end date.
+     */
+    public function testTheEndDateOfAKeyOfSso(): void
+    {
+        $login = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        \DB::table('login_users')->where('id', $login->id)->update(['login_provider' => 'test_sso']);
+        config(['exment.api_key_max_days_sso' => 30]);
+
+        [$key] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['login_user_id' => (int)$login->id]);
+        $this->assertEqualsWithDelta(Carbon::now()->addDays(30)->getTimestamp(), $key->expires_at->getTimestamp(), 60);
+        try {
+            $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['login_user_id' => (int)$login->id, 'expires_at' => Carbon::now()->addDays(31)]);
+            $this->fail('31 days were taken for SSO');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertSame('expires_at', $e->getMessage());
+        }
+        // a password login keeps the longer end date
+        $this->assertSame(UserApiKeys::maxDays(), UserApiKeys::maxDays(false));
+        $this->assertSame(30, UserApiKeys::maxDays(true));
+    }
 }

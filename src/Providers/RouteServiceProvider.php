@@ -34,7 +34,11 @@ class RouteServiceProvider extends ServiceProvider
             // header of a bearer that is not its token, and the key would never sign in after it)
             $bearer = $request->bearerToken();
             if (\Exceedone\Exment\Services\UserApiKeys::looksLikeKey($bearer)) {
-                return Limit::perMinute($rate_limit)->by('key:' . \Exceedone\Exment\Services\UserApiKeys::hash((string)$bearer));
+                // by the IP (a new random key each time, or many keys, do not get more) and by the key
+                return [
+                    Limit::perMinute($rate_limit)->by('apikey-ip:' . $request->ip()),
+                    Limit::perMinute($rate_limit)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
+                ];
             }
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
             return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
