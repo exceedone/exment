@@ -48,6 +48,7 @@ class Features
     public const FILE_SERVER = 'file_server';
     public const STUDIO = 'studio';
     public const TUNING = 'tuning';
+    public const API_KEYS = 'api_keys';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -123,6 +124,13 @@ class Features
             'endpoints' => ['studio', 'app'],
             'api' => ['studio'],
             'menu' => 'studio',
+        ]);
+        // the API keys of the users (Services\UserApiKeys, ISS00437): off until an administrator
+        // turns it on and chooses the role groups whose users may make keys
+        $core[static::API_KEYS] = static::definition([
+            'label' => 'exment::exment.feature.features.api_keys',
+            'description' => 'exment::exment.feature.features.api_keys_help',
+            'endpoints' => ['auth/api_keys'],
         ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
