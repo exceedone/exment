@@ -76,12 +76,42 @@
                                 @endif
                                 @break
                             @case('office')
-                                @if ($has_pdf_preview)
+                                @php $embed = collect($openers)->first(function ($o) { return !empty($o['embed_url']); }); @endphp
+                                @if ($has_pdf_preview && isset($embed))
+                                    {{-- both: the PDF of LibreOffice, and the viewer of a plugin (made when its tab is opened) --}}
+                                    <div style="width:100%" data-fs-preview-tabs>
+                                        <div class="btn-group btn-group-sm" role="tablist" style="margin:6px">
+                                            <button type="button" class="btn btn-primary" role="tab" aria-selected="true" data-fs-tab="pdf">{{ exmtrans('file_server.preview_tab_pdf') }}</button>
+                                            <button type="button" class="btn btn-default" role="tab" aria-selected="false" data-fs-tab="embed">{{ $embed['label'] }}（{{ exmtrans('file_server.preview_tab_embed') }}）</button>
+                                        </div>
+                                        <iframe src="{{ $node_url }}/content?rendition=pdf" title="{{ $node->name }}" data-fs-pane="pdf"></iframe>
+                                        <iframe data-src="{{ $embed['embed_url'] }}" title="{{ $node->name }}" data-fs-pane="embed" hidden allow="clipboard-read; clipboard-write"></iframe>
+                                    </div>
+                                @elseif ($has_pdf_preview)
                                     <iframe src="{{ $node_url }}/content?rendition=pdf" title="{{ $node->name }}"></iframe>
                                 @elseif ($rendition_status === null)
                                     <p class="exm-fs-muted">{{ exmtrans('file_server.preview_making') }}</p>
                                 @else
-                                    <p class="exm-fs-muted">{{ exmtrans('file_server.preview_office_none') }}</p>
+                                    @if (isset($embed))
+                                        {{-- the viewer of a plugin (read only), as the server makes no PDF --}}
+                                        <iframe src="{{ $embed['embed_url'] }}" title="{{ $node->name }}" allow="clipboard-read; clipboard-write"></iframe>
+                                    @else
+                                        <div style="width:100%;padding:12px">
+                                            @if (count($openers) > 0)
+                                                <p>
+                                                    @foreach ($openers as $opener)
+                                                        <a class="btn btn-primary" href="{{ $opener['url'] }}" target="_blank" rel="noopener"><i class="fa {{ $opener['icon'] ?? 'fa-external-link' }}" aria-hidden="true"></i> {{ $opener['label'] }}</a>
+                                                    @endforeach
+                                                </p>
+                                            @endif
+                                            @if (isset($office_text) && $office_text !== '')
+                                                <p class="exm-fs-muted" style="margin-bottom:4px">{{ exmtrans('file_server.preview_office_text') }}</p>
+                                                <pre style="max-height:60vh">{{ $office_text }}</pre>
+                                            @else
+                                                <p class="exm-fs-muted">{{ count($openers) > 0 ? exmtrans('file_server.preview_office_open') : exmtrans('file_server.preview_office_none') }}</p>
+                                            @endif
+                                        </div>
+                                    @endif
                                 @endif
                                 @break
                             @default
@@ -328,6 +358,26 @@
                 copyText(json.url);
                 Fs.done(json);
             }, Fs.fail);
+        });
+    }
+
+    var tabs = root.querySelector('[data-fs-preview-tabs]');
+    if (tabs) {
+        tabs.addEventListener('click', function (e) {
+            var b = e.target.closest('[data-fs-tab]');
+            if (!b) { return; }
+            var key = b.getAttribute('data-fs-tab');
+            tabs.querySelectorAll('[data-fs-tab]').forEach(function (x) {
+                var on = x === b;
+                x.classList.toggle('btn-primary', on);
+                x.classList.toggle('btn-default', !on);
+                x.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            tabs.querySelectorAll('[data-fs-pane]').forEach(function (pane) {
+                var on = pane.getAttribute('data-fs-pane') === key;
+                if (on && !pane.getAttribute('src') && pane.getAttribute('data-src')) { pane.setAttribute('src', pane.getAttribute('data-src')); }
+                pane.hidden = !on;
+            });
         });
     }
 

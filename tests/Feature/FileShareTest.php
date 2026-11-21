@@ -315,7 +315,9 @@ class FileShareTest extends FeatureTestBase
         // the zip of the folder leaves them out
         $zipResponse = $this->get($this->shareUrl($link, 'download'));
         $zipResponse->assertOk();
-        $zipPath = $zipResponse->baseResponse->getFile()->getPathname();
+        $base = $zipResponse->baseResponse;
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\BinaryFileResponse::class, $base);
+        $zipPath = $base->getFile()->getPathname();
         $zip = new \ZipArchive();
         $this->assertTrue($zip->open($zipPath) === true);
         $names = [];
@@ -514,8 +516,9 @@ class FileShareTest extends FeatureTestBase
         config(['exment.file_server_preview_max_pixels' => 19999]);
         $this->assertNull(\Exceedone\Exment\Services\FileServer\Preview::imageThumbnail($path));
         config(['exment.file_server_preview_max_pixels' => 0]);
+        /** @var string|null $thumb (null without GD) */
         $thumb = \Exceedone\Exment\Services\FileServer\Preview::imageThumbnail($path);
-        $this->assertNotNull($thumb);
+        $this->assertTrue(is_string($thumb) && is_file($thumb));
         $this->locals[] = strval($thumb);
     }
 }

@@ -358,7 +358,11 @@ class Preview
     }
 
     /**
-     * @return array<int, array{label: string, url: string, icon?: string}>
+     * The buttons that open a file in another viewer or editor (a plugin adds
+     * them). An opener may give "embed_url": a page to show in the preview of
+     * the file (read only), when the server cannot make a PDF of it.
+     *
+     * @return array<int, array{label: string, url: string, icon?: string, embed_url?: string|null}>
      */
     public static function openers(\Exceedone\Exment\Model\FileNode $node): array
     {
@@ -370,7 +374,12 @@ class Preview
                 $opener = null;
             }
             if (is_array($opener) && is_string($opener['label'] ?? null) && is_string($opener['url'] ?? null)) {
-                $list[] = ['label' => $opener['label'], 'url' => $opener['url'], 'icon' => is_string($opener['icon'] ?? null) ? $opener['icon'] : 'fa-external-link'];
+                $list[] = [
+                    'label' => $opener['label'],
+                    'url' => $opener['url'],
+                    'icon' => is_string($opener['icon'] ?? null) ? $opener['icon'] : 'fa-external-link',
+                    'embed_url' => is_string($opener['embed_url'] ?? null) ? $opener['embed_url'] : null,
+                ];
             }
         }
         return $list;
