@@ -129,15 +129,39 @@ class Preview
 
     /**
      * The converter on the inner network (a Gotenberg with LibreOffice), set
-     * on the server only: http(s) and nothing else.
+     * on the server only: http(s), a host and a port, nothing else. Its user
+     * and password (when the converter asks for them: Basic) are not in it.
      */
     public static function sofficeUrl(): ?string
     {
+        $parts = static::converterParts();
+        return isset($parts) ? $parts['url'] : null;
+    }
+
+    /**
+     * The address of the converter and its user and password, from
+     * "http(s)://[user:password@]host[:port][/]".
+     *
+     * @return array{url: string, user: ?string, password: ?string}|null
+     */
+    protected static function converterParts(): ?array
+    {
         $url = config('exment.file_server_soffice_url');
-        if (!is_string($url) || preg_match('#^https?://[^\s/?\#]+(:[0-9]+)?/?$#i', trim($url)) !== 1) {
+        if (!is_string($url) || trim($url) === '' || preg_match('/\s/', trim($url)) === 1) {
             return null;
         }
-        return rtrim(trim($url), '/');
+        $parts = parse_url(trim($url));
+        if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])
+            || !in_array(strtolower($parts['scheme']), ['http', 'https'], true)
+            || isset($parts['query']) || isset($parts['fragment'])
+            || (isset($parts['path']) && $parts['path'] !== '/')) {
+            return null;
+        }
+        return [
+            'url' => strtolower($parts['scheme']) . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : ''),
+            'user' => isset($parts['user']) ? rawurldecode($parts['user']) : null,
+            'password' => isset($parts['pass']) ? rawurldecode($parts['pass']) : null,
+        ];
     }
 
     /**
@@ -380,14 +404,18 @@ class Preview
      * (Gotenberg: POST /forms/libreoffice/convert). Only the file is sent, with
      * a plain name; the converter keeps nothing. While it is busy (its queue
      * full: 429, or starting: 503) it is asked again a few times, within the
-     * time limit. Returns the local path of the PDF, or null.
+     * time limit. It is not followed to another address (no redirect), and
+     * its answer is written to a file as it comes, up to a limit. Returns the
+     * local path of the PDF, or null.
      */
     protected static function convertByConverter(string $local, string $ext): ?string
     {
-        $url = static::sofficeUrl();
-        if (!isset($url)) {
+        $parts = static::converterParts();
+        if (!isset($parts)) {
             return null;
         }
+        $url = $parts['url'];
+        $maxPdf = max(1048576, intval(config('exment.file_server_soffice_max_pdf_bytes', 209715200)));
         $ext = preg_replace('/[^a-z0-9]/', '', strtolower($ext)) ?: 'bin';
         $timeout = max(5, intval(config('exment.file_server_soffice_timeout', 120)));
         $until = microtime(true) + $timeout;
@@ -402,10 +430,15 @@ class Preview
                 return null;
             }
             try {
-                $response = \Illuminate\Support\Facades\Http::timeout($left)
+                $request = \Illuminate\Support\Facades\Http::timeout($left)
                     ->connectTimeout(min(10, $left))
-                    ->accept('application/pdf')
-                    ->attach('files', $stream, 'input.' . $ext)
+                    // not to another address; the answer read as it comes
+                    ->withOptions(['allow_redirects' => false, 'stream' => true])
+                    ->accept('application/pdf');
+                if (isset($parts['user'])) {
+                    $request = $request->withBasicAuth($parts['user'], strval($parts['password']));
+                }
+                $response = $request->attach('files', $stream, 'input.' . $ext)
                     ->post($url . '/forms/libreoffice/convert');
             } catch (\Throwable $e) {
                 \Log::warning('[FileServer] the converter could not be reached: ' . $e->getMessage());
@@ -422,15 +455,55 @@ class Preview
                 $wait = min($wait * 2, 16);
                 continue;
             }
-            $body = $response->body();
-            if ($status !== 200 || !str_starts_with($body, '%PDF-')) {
+            if ($status !== 200 || intval($response->header('Content-Length') ?: 0) > $maxPdf) {
                 \Log::warning('[FileServer] the converter answered ' . $status . ' for a .' . $ext . ' file');
                 return null;
             }
-            $result = Library::tempPath('pdf_');
-            file_put_contents($result, $body);
-            return $result;
+            return static::receivePdf($response->toPsrResponse()->getBody(), $maxPdf, $ext);
         }
+    }
+
+    /**
+     * Write the answer of the converter to a local file as it comes; stop past
+     * the limit, or when it is not a PDF. Returns the path, or null.
+     */
+    protected static function receivePdf(\Psr\Http\Message\StreamInterface $body, int $max, string $ext): ?string
+    {
+        $result = Library::tempPath('pdf_');
+        $out = fopen($result, 'wb');
+        if ($out === false) {
+            return null;
+        }
+        $written = 0;
+        $ok = true;
+        try {
+            while (!$body->eof()) {
+                $chunk = $body->read(65536);
+                if ($chunk === '') {
+                    break;
+                }
+                $written += strlen($chunk);
+                if ($written > $max) {
+                    $ok = false;
+                    break;
+                }
+                fwrite($out, $chunk);
+            }
+        } catch (\Throwable $e) {
+            $ok = false;
+        } finally {
+            fclose($out);
+            $body->close();
+        }
+        if ($ok && strval(file_get_contents($result, false, null, 0, 5)) !== '%PDF-') {
+            $ok = false;
+        }
+        if (!$ok) {
+            \Log::warning('[FileServer] the answer of the converter for a .' . $ext . ' file was not a PDF in ' . $max . ' bytes');
+            @unlink($result);
+            return null;
+        }
+        return $result;
     }
 
     // ---------------------------------------------------------------- openers

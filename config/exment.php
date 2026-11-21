@@ -1627,11 +1627,17 @@ return [
     | file_server_soffice_path: LibreOffice (soffice) to make the PDF preview of Office files. Empty: no preview.
     | file_server_soffice_url: a converter of its own on the inner network instead (Gotenberg with LibreOffice,
     |   e.g. http://office:3000; docker-exment's docker-compose.office.yml). Used before soffice_path (ISS01704).
+    |   Put the converter on a network that cannot go out (an Office file may fetch linked pictures or objects):
+    |   no port to the outside, no Internet, no cloud metadata, no database; and start Gotenberg with
+    |   --libreoffice-deny-private-ips --libreoffice-deny-public-ips --api-disable-download-from --webhook-disable.
+    |   With Basic auth on Gotenberg: http://user:password@office:3000 (sent as a header, not in the address).
+    |   Not followed to another address (no redirect). file_server_soffice_max_pdf_bytes: the largest PDF taken.
     */
     'file_server_workspace_create' => env('EXMENT_FILE_SERVER_WORKSPACE_CREATE', 'admin'),
     'file_server_max_file_size' => env('EXMENT_FILE_SERVER_MAX_FILE_SIZE', 0),
     'file_server_soffice_path' => env('EXMENT_FILE_SERVER_SOFFICE_PATH'),
     'file_server_soffice_url' => env('EXMENT_FILE_SERVER_SOFFICE_URL'),
+    'file_server_soffice_max_pdf_bytes' => env('EXMENT_FILE_SERVER_SOFFICE_MAX_PDF_BYTES', 209715200),
     'file_server_soffice_timeout' => env('EXMENT_FILE_SERVER_SOFFICE_TIMEOUT', 120),
     // share links for people outside (phase 3): false stops them; max_days > 0 makes an end date needed
     'file_server_external_share' => env('EXMENT_FILE_SERVER_EXTERNAL_SHARE', true),

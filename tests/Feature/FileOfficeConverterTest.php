@@ -139,4 +139,38 @@ class FileOfficeConverterTest extends FeatureTestBase
         config(['exment.file_server_soffice_url' => 'http://office:3000/']);
         $this->assertSame('http://office:3000', Preview::sofficeUrl());
     }
+
+    public function testTheUserAndPasswordAreSentAsBasicAuthNotInTheAddress(): void
+    {
+        Http::fake([static::URL . '/*' => Http::response(static::PDF, 200)]);
+        config(['exment.file_server_soffice_url' => 'http://exment:p%40ss@office:3000']);
+        $this->assertSame(static::URL, Preview::sofficeUrl());
+
+        $this->assertSame(FileNodeVersion::RENDITION_DONE, $this->upload()->rendition_status);
+        Http::assertSent(function (Request $request) {
+            return $request->url() === static::URL . '/forms/libreoffice/convert'
+                && $request->hasHeader('Authorization', 'Basic ' . base64_encode('exment:p@ss'));
+        });
+    }
+
+    public function testARedirectIsNotFollowed(): void
+    {
+        Http::fake([
+            static::URL . '/*' => Http::response('', 302, ['Location' => 'http://169.254.169.254/latest/meta-data/']),
+            '169.254.169.254/*' => Http::response(static::PDF, 200),
+        ]);
+
+        $this->assertSame(FileNodeVersion::RENDITION_FAILED, $this->upload()->rendition_status);
+        Http::assertNotSent(function (Request $request) {
+            return str_contains($request->url(), '169.254.169.254');
+        });
+    }
+
+    public function testAnAnswerPastTheLimitIsNotTaken(): void
+    {
+        config(['exment.file_server_soffice_max_pdf_bytes' => 1048576]);
+        Http::fake([static::URL . '/*' => Http::response(static::PDF . str_repeat('x', 1048576), 200)]);
+
+        $this->assertSame(FileNodeVersion::RENDITION_FAILED, $this->upload()->rendition_status);
+    }
 }
