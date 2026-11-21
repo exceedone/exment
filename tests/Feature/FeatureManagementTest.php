@@ -303,9 +303,10 @@ class FeatureManagementTest extends FeatureTestBase
             Features::routesCachedForTests(true);
             Features::register('exment_test.before', ['label' => 'Before', 'endpoints' => ['plugins/exment_test']]);
             Features::definitions();
-            $kept = \Cache::get(Features::pluginsCacheKey());
-            $this->assertIsArray($kept);
-            $this->assertArrayHasKey('exment_test.before', $kept);
+            /** @var mixed $kept */
+            $kept = \Cache::store()->get(Features::pluginsCacheKey());
+            $this->assertTrue(is_array($kept), 'the features were not kept');
+            $this->assertArrayHasKey('exment_test.before', (array)$kept);
 
             // the cache cannot be read: the features are made as without it
             $cache = app('cache');
