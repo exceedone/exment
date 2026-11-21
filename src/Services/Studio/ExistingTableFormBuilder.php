@@ -25,7 +25,7 @@ class ExistingTableFormBuilder
     /**
      * The tables the login user may make a form of, with their columns.
      *
-     * @return array<int, array{id: int, table_view_name: string, columns: array<int, array{id: int, column_view_name: string, type: string, type_label: string, icon: string, required: bool}>}>
+     * @return array<int, array{id: int, table_view_name: string, columns: array<int, array{id: int, column_view_name: string, type: string, type_label: string, icon: string, required: bool, choices: array<int, string>|null}>, can_button: bool}>
      */
     public static function tables(): array
     {
@@ -38,7 +38,7 @@ class ExistingTableFormBuilder
     }
 
     /**
-     * @return array<int, array{id: int, table_view_name: string, columns: array<int, array{id: int, column_view_name: string, type: string, type_label: string, icon: string, required: bool}>}>
+     * @return array<int, array{id: int, table_view_name: string, columns: array<int, array{id: int, column_view_name: string, type: string, type_label: string, icon: string, required: bool, choices: array<int, string>|null}>, can_button: bool}>
      */
     protected static function readTables(): array
     {
@@ -68,12 +68,16 @@ class ExistingTableFormBuilder
                     // a screen without a required column saves the data with it empty: the
                     // required rule is checked only on the columns of the form
                     'required' => boolval($column->getOption('required')),
+                    // the values a button may set (ScreenAction)
+                    'choices' => ScreenAction::choicesOf($column),
                 ];
             }
             $result[] = [
                 'id' => intval($table->id),
                 'table_view_name' => strval($table->table_view_name),
                 'columns' => $columns,
+                // a button is a data operation of the table (ScreenAction)
+                'can_button' => $table->hasPermission(Permission::CUSTOM_TABLE),
             ];
         }
         return $result;

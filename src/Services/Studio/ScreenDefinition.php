@@ -29,6 +29,10 @@ use Exceedone\Exment\Model\CustomTable;
  *       "screen": {"id": "<form suuid>", "name": "...", "default": true},
  *       "table": {"name": "customers", "label": "顧客"},
  *       "permissions": {"create": true, "edit": true},
+ *       "actions": [                      // the buttons of a data (ScreenAction); absent from an older Exment: none
+ *         {"id": "<operation suuid>", "label": "完了にする", "kind": "update",
+ *          "set": [{"column": "<column name>", "value": "完了"}]}   // or {"column", "value": null, "system": "login_user" ...}
+ *       ],
  *       "blocks": [
  *         {
  *           "type": "default" | "one_to_many" | "many_to_many",
@@ -132,6 +136,7 @@ class ScreenDefinition
                 'create' => $table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE),
                 'edit' => $table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE),
             ],
+            'actions' => ScreenAction::actionsOf($table),
             'blocks' => $blocks,
         ];
     }
