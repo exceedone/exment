@@ -24,6 +24,19 @@ class McpTools
     /** The most rows one call returns, whatever the setting says. */
     public const HARD_MAX_ROWS = 100;
 
+    /** The longest search words. */
+    public const MAX_QUERY_LENGTH = 200;
+
+    /**
+     * The names of the tools (only these are run and logged).
+     *
+     * @return array<int, string>
+     */
+    public static function names(): array
+    {
+        return array_column(static::definitions(), 'name');
+    }
+
     public function __construct(protected LoginUser $user)
     {
     }
@@ -101,22 +114,22 @@ class McpTools
             switch ($name) {
                 case 'list_tables':
                     $this->needScope(ApiScope::TABLE_READ);
-                    return $this->answer($this->listTables(), false);
+                    return $this->answer($this->listTables());
                 case 'get_table':
                     $this->needScope(ApiScope::TABLE_READ);
-                    return $this->answer($this->getTable($this->table($args)), false);
+                    return $this->answer($this->getTable($this->table($args)));
                 case 'search_data':
                     $this->needScope(ApiScope::VALUE_READ);
-                    return $this->answer($this->searchData($this->table($args), $args), true);
+                    return $this->answer($this->searchData($this->table($args), $args));
                 case 'get_data':
                     $this->needScope(ApiScope::VALUE_READ);
-                    return $this->answer($this->row($this->record($args)), true);
+                    return $this->answer($this->row($this->record($args)));
                 case 'list_attachments':
                     $this->needScope(ApiScope::VALUE_READ);
-                    return $this->answer($this->attachments($this->record($args)), true);
+                    return $this->answer($this->attachments($this->record($args)));
                 case 'get_workflow_status':
                     $this->needScope(ApiScope::WORKFLOW_READ);
-                    return $this->answer($this->workflowStatus($this->record($args)), false);
+                    return $this->answer($this->workflowStatus($this->record($args)));
             }
         } catch (ToolError $e) {
             return ['content' => [['type' => 'text', 'text' => $e->getMessage()]], 'isError' => true];
@@ -125,13 +138,17 @@ class McpTools
     }
 
     /**
+     * Every answer is data people wrote (records, but also the names, descriptions and choices of
+     * tables): the note first, then one JSON object whose only key says so. The text of the data
+     * is JSON-encoded, so it cannot end the object or write a note of its own outside it.
+     *
      * @param mixed $data
      * @return array<string, mixed>
      */
-    protected function answer($data, bool $people): array
+    protected function answer($data): array
     {
-        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_INVALID_UTF8_SUBSTITUTE) ?: '{}';
-        return ['content' => [['type' => 'text', 'text' => ($people ? static::DATA_NOTE . "\n" : '') . $json]], 'isError' => false];
+        $json = json_encode(['untrusted_data' => $data], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_INVALID_UTF8_SUBSTITUTE) ?: '{}';
+        return ['content' => [['type' => 'text', 'text' => static::DATA_NOTE . "\n" . $json]], 'isError' => false];
     }
 
     protected function needScope(string $scope): void
@@ -211,9 +228,11 @@ class McpTools
             if (is_string($select) && $select !== '') {
                 $row['choices'] = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $select) ?: [])));
             }
+            // the table a column selects from: only when the user and the key may see it
             $target = $column->getOption('select_target_table');
-            if (isset($target)) {
-                $row['target_table'] = CustomTable::getEloquent($target)?->table_name;
+            $target_table = isset($target) ? CustomTable::getEloquent($target) : null;
+            if (isset($target_table) && $target_table->enableAccess() === true && UserApiKeys::allowsTable($this->user, $target_table->table_name)) {
+                $row['target_table'] = $target_table->table_name;
             }
             $columns[] = $row;
         }
@@ -227,7 +246,14 @@ class McpTools
     protected function searchData(CustomTable $custom_table, array $args): array
     {
         $limit = max(1, min(static::maxRows(), intval($args['limit'] ?? 20)));
-        $q = trim(strval($args['q'] ?? ''));
+        $q = $args['q'] ?? '';
+        if (!is_string($q)) {
+            throw new ToolError('"q" must be text.');
+        }
+        $q = trim($q);
+        if (mb_strlen($q) > static::MAX_QUERY_LENGTH) {
+            throw new ToolError('"q" is too long (at most ' . static::MAX_QUERY_LENGTH . ' characters).');
+        }
         if ($q !== '') {
             $found = $custom_table->searchValue($q, ['maxCount' => $limit, 'isApi' => true]) ?? collect();
         } else {
@@ -267,8 +293,10 @@ class McpTools
     protected function attachments(CustomValue $value): array
     {
         $rows = [];
-        $documents = $value->getDocuments();
-        foreach (is_iterable($documents) ? $documents : [] as $document) {
+        // at most maxRows(), in the query (a record may have many)
+        $documents = getModelName(\Exceedone\Exment\Enums\SystemTableName::DOCUMENT)::where('parent_id', $value->id)
+            ->where('parent_type', $value->custom_table_name)->orderByDesc('id')->limit(static::maxRows())->get();
+        foreach ($documents as $document) {
             if (!($document instanceof CustomValue)) {
                 continue;
             }

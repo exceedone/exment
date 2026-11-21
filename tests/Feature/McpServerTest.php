@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
+use Exceedone\Exment\Controllers\McpController;
 use Exceedone\Exment\Enums\ApiScope;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
@@ -34,7 +36,7 @@ class McpServerTest extends ApiTestBase
             Features::API_KEYS => ['enabled' => true, 'role_groups' => null],
         ]);
         foreach ([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2] as $id) {
-            RateLimiter::clear('exment-mcp:' . $id);
+            RateLimiter::clear(McpController::limiterKey((int)$id));
         }
     }
 
@@ -109,10 +111,12 @@ class McpServerTest extends ApiTestBase
     {
         $this->assertFalse($result['isError'], (string)($result['content'][0]['text'] ?? ''));
         $text = (string)$result['content'][0]['text'];
-        if (str_starts_with($text, McpTools::DATA_NOTE)) {
-            $text = substr($text, strlen(McpTools::DATA_NOTE));
-        }
-        return json_decode($text, true);
+        // every answer: the note, then one object whose only key says the data is untrusted
+        $this->assertStringStartsWith(McpTools::DATA_NOTE . "\n", $text);
+        $json = json_decode(substr($text, strlen(McpTools::DATA_NOTE)), true);
+        $this->assertIsArray($json);
+        $this->assertSame(['untrusted_data'], array_keys($json));
+        return $json['untrusted_data'];
     }
 
     public function testInitializeAndList(): void
@@ -252,10 +256,90 @@ class McpServerTest extends ApiTestBase
         $this->assertSame(0, OperationLog::where('path', 'like', '%api/mcp%')->count());
 
         config(['exment.mcp_calls_per_minute' => 2]);
-        RateLimiter::clear('exment-mcp:' . TestDefine::TESTDATA_USER_LOGINID_USER1);
+        RateLimiter::clear(McpController::limiterKey((int)TestDefine::TESTDATA_USER_LOGINID_USER1));
         $ping = ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping'];
         $this->mcp($key, $ping)->assertOk();
         $this->mcp($key, $ping)->assertOk();
         $this->mcp($key, $ping)->assertStatus(429)->assertHeader('Retry-After');
+    }
+
+    /**
+     * The calls of a user are counted per site (the sites of a SaaS may share a cache).
+     */
+    public function testTheLimitIsOfTheSite(): void
+    {
+        config(['exment.site_id' => 'site-a']);
+        $a = McpController::limiterKey(2);
+        config(['exment.site_id' => 'site-b']);
+        $this->assertNotSame($a, McpController::limiterKey(2));
+        $this->assertNotSame(McpController::limiterKey(2), McpController::limiterKey(3));
+    }
+
+    public function testTheAttachmentsAreLimited(): void
+    {
+        $key = $this->key();
+        $id = (int)\DB::table(getDBTableName('custom_value_edit'))->whereNull('deleted_at')->value('id');
+        $documentModel = getModelName(SystemTableName::DOCUMENT);
+        for ($i = 0; $i < 5; $i++) {
+            $document = new $documentModel();
+            $document->parent_id = $id;
+            $document->parent_type = 'custom_value_edit';
+            $document->setValue(['document_name' => "doc $i", 'file_uuid' => make_uuid()]);
+            $document->save();
+        }
+        config(['exment.mcp_max_rows' => 3]);
+        $this->assertCount(3, $this->data($this->tool($key, 'list_attachments', ['table' => 'custom_value_edit', 'id' => $id]))['attachments']);
+    }
+
+    /**
+     * A key limited to some tables is not told the names of the other tables, as the target of a column.
+     */
+    public function testOtherTablesAreNotNamed(): void
+    {
+        $key = $this->key(TestDefine::TESTDATA_USER_LOGINID_USER1, ['custom_value_edit']);
+        $columns = $this->data($this->tool($key, 'get_table', ['table' => 'custom_value_edit']))['columns'];
+        foreach ($columns as $column) {
+            if (isset($column['target_table'])) {
+                $this->assertSame('custom_value_edit', $column['target_table'], $column['column']);
+            }
+        }
+        // without the limit, the targets are named (when the user may see them)
+        $all = $this->data($this->tool($this->key(), 'get_table', ['table' => 'custom_value_edit']))['columns'];
+        $this->assertGreaterThanOrEqual(count(array_filter(array_column($columns, 'target_table'))), count(array_filter(array_column($all, 'target_table'))));
+    }
+
+    public function testWhatIsNotRunOrLogged(): void
+    {
+        $key = $this->key();
+        // too long words
+        $long = $this->tool($key, 'search_data', ['table' => 'custom_value_edit', 'q' => str_repeat('a', McpTools::MAX_QUERY_LENGTH + 1)]);
+        $this->assertTrue($long['isError']);
+        $this->assertTrue($this->tool($key, 'search_data', ['table' => 'custom_value_edit', 'q' => ['a']])['isError']);
+
+        // a tool that is not there: not logged
+        $this->mcp($key, ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'delete_everything', 'arguments' => []]])
+            ->assertJsonPath('error.code', -32602);
+        $this->assertSame(0, OperationLog::where('method', 'MCP')->where('path', 'mcp/delete_everything')->count());
+
+        // the logged arguments are cut
+        $this->tool($key, 'list_tables', ['padding' => str_repeat('x', 10000)]);
+        $log = OperationLog::where('method', 'MCP')->where('path', 'mcp/list_tables')->orderByDesc('id')->firstOrFail();
+        $this->assertLessThan(McpServer::MAX_LOG_INPUT + 200, strlen((string)$log->input));
+    }
+
+    /**
+     * An error of Exment is a JSON-RPC error without its details.
+     */
+    public function testAnInternalError(): void
+    {
+        $server = new class (LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1)) extends McpServer {
+            protected function dispatch(string $method, array $params)
+            {
+                throw new \RuntimeException('secret detail');
+            }
+        };
+        $answer = $server->handle(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']);
+        $this->assertSame(-32603, $answer['error']['code'] ?? null);
+        $this->assertStringNotContainsString('secret detail', (string)json_encode($answer));
     }
 }

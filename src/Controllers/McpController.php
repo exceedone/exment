@@ -31,7 +31,7 @@ class McpController extends AdminControllerBase
 
         // calls per minute of a user
         $perMinute = max(1, intval(config('exment.mcp_calls_per_minute', 60)));
-        $limiterKey = 'exment-mcp:' . $user->id;
+        $limiterKey = static::limiterKey(intval($user->id));
         if (RateLimiter::tooManyAttempts($limiterKey, $perMinute)) {
             return response()->json(McpServer::error(null, -32000, 'Too many calls: try again later.'), 429)
                 ->header('Retry-After', strval(RateLimiter::availableIn($limiterKey)));
@@ -49,6 +49,17 @@ class McpController extends AdminControllerBase
             return response('', 202);
         }
         return response()->json($answer, 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
+     * The key of the calls of a user: of this site (the sites of a SaaS may share one cache, and
+     * their login users have the same ids).
+     */
+    public static function limiterKey(int $loginUserId): string
+    {
+        $site = \Exceedone\Exment\Services\PluginDistribution\SiteId::get()
+            ?? strval(config('database.connections.' . config('database.default') . '.database'));
+        return 'exment-mcp:' . substr(hash('sha256', $site), 0, 16) . ':' . $loginUserId;
     }
 
     /**

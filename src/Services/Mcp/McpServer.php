@@ -14,6 +14,9 @@ class McpServer
 {
     public const NAME = 'exment';
 
+    /** The most bytes of the arguments kept in the operation log. */
+    public const MAX_LOG_INPUT = 2000;
+
     /** The protocol versions it speaks, the newest first. */
     public const PROTOCOL_VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26'];
 
@@ -60,6 +63,10 @@ class McpServer
             return ['jsonrpc' => '2.0', 'id' => $id, 'result' => $this->dispatch($method, $params)];
         } catch (McpError $e) {
             return static::error($id, $e->rpcCode, $e->getMessage());
+        } catch (\Throwable $e) {
+            // an error of Exment: a JSON-RPC error without its details (they go to the log)
+            \Log::error('[Exment] MCP: ' . $e->getMessage(), ['exception' => $e]);
+            return static::error($id, -32603, 'Internal error.');
         }
     }
 
@@ -88,6 +95,10 @@ class McpServer
                 if (!is_string($name) || !is_array($args)) {
                     throw new McpError(-32602, 'Invalid params: name and arguments.');
                 }
+                // only the tools there are are run and logged
+                if (!in_array($name, McpTools::names(), true)) {
+                    throw new McpError(-32602, 'Unknown tool.');
+                }
                 $this->log($name, $args);
                 return (new McpTools($this->user))->call($name, $args);
         }
@@ -102,12 +113,16 @@ class McpServer
     protected function log(string $tool, array $args): void
     {
         try {
+            $input = json_encode(\Exceedone\Exment\Middleware\LogOperation::maskInputArray($args, 'mcp'), JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) ?: '{}';
+            if (strlen($input) > static::MAX_LOG_INPUT) {
+                $input = json_encode(['_cut' => mb_strcut($input, 0, static::MAX_LOG_INPUT)], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) ?: '{}';
+            }
             OperationLogModel::create([
                 'user_id' => $this->user->id,
-                'path' => substr('mcp/' . preg_replace('/[^A-Za-z0-9_\-]/', '', $tool), 0, 255),
+                'path' => 'mcp/' . $tool,
                 'method' => 'MCP',
                 'ip' => $this->ip,
-                'input' => json_encode(\Exceedone\Exment\Middleware\LogOperation::maskInputArray($args, 'mcp'), JSON_UNESCAPED_UNICODE) ?: '{}',
+                'input' => $input,
             ]);
         } catch (\Exception $e) {
             // as the operation log of the pages: not stopping the call
