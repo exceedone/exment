@@ -3705,6 +3705,7 @@ return [
     'menu' => [
         'menu_type' => 'メニュー種類',
         'description' => '左メニューの項目を定義します。ブラウザの更新後、変更内容が反映されます。',
+        'feature_hidden' => '機能の管理で隠れています',
         'menu_target' => '対象',
         'menu_target_view' => '表示ビュー',
         'menu_name' => 'メニュー名(英数字)',

@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Middleware;
 
-use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Features;
 use Illuminate\Http\Request;
 
@@ -19,16 +18,9 @@ class FeatureGuard
      */
     public function handle(Request $request, \Closure $next)
     {
-        // a page of a plugin: make its class first, so that the features it
-        // registers (in its constructor) are known, also on the routes that
-        // skip admin.bootstrap (as its API)
-        if (str_contains('/' . trim(rawurldecode($request->decodedPath()), '/') . '/', '/plugins/')) {
-            try {
-                Plugin::getPluginPageModel();
-            } catch (\Throwable $e) {
-                // the plugin answers for itself
-            }
-        }
+        // the features of the plugins are known before: their classes are
+        // made when the routes are made, or kept in the cache when the routes
+        // are cached (Features::bootPlugins)
         $feature = Features::forRequest($request);
         if ($feature === null || Features::allowed($feature)) {
             return $next($request);
