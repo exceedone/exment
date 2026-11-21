@@ -407,7 +407,7 @@ class FileGovernanceTest extends FeatureTestBase
         \Exceedone\Exment\Model\FileUploadSession::query()->where('id', $left->id)
             ->update(['updated_at' => now()->subMinutes(\Exceedone\Exment\Services\FileServer\Uploader::IDLE_MINUTES + 1)]);
         $next = $uploader->init($ws->refresh(), null, 'next.bin', 90);
-        $this->assertNotNull($next->id);
+        $this->assertTrue(\Exceedone\Exment\Model\FileUploadSession::query()->where('id', $next->id)->exists());
         $this->assertNull(\Exceedone\Exment\Model\FileUploadSession::find($left->id), 'the upload left alone stayed');
 
         // the bytes the uploads of a user say, all together
@@ -418,7 +418,8 @@ class FileGovernanceTest extends FeatureTestBase
             $uploader->init($ws->refresh(), null, 'more.bin', 20);
         }, 429, 'more than the bytes a user may reserve');
         config(['exment.file_server_max_upload_bytes' => 0]);
-        $this->assertNotNull($uploader->init($ws->refresh(), null, 'more.bin', 20)->id);
+        $more = $uploader->init($ws->refresh(), null, 'more.bin', 20);
+        $this->assertTrue(\Exceedone\Exment\Model\FileUploadSession::query()->where('id', $more->id)->exists());
     }
 
     public function testRemovingAWorkspaceRemovesWhatIsInIt(): void
