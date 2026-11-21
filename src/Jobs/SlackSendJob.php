@@ -52,7 +52,9 @@ class SlackSendJob extends Notification implements ShouldQueue
     {
         return (new SlackMessage())
                 ->from($this->name, $this->icon)
-                ->content($this->content);
+                ->content($this->content)
+                // the URL was checked (WebhookUrlGuard); a redirect is not followed elsewhere
+                ->http(['allow_redirects' => false, 'timeout' => 30]);
     }
 
     /**

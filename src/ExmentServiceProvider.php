@@ -130,6 +130,7 @@ class ExmentServiceProvider extends ServiceProvider
     // @phpstan-ignore-next-line
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
+        'admin.security-headers' => \Exceedone\Exment\Middleware\SecurityHeaders::class,
         'log.exec.time' => \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
         'check.logging.enabled' => \Exceedone\Exment\Middleware\CheckLoggingEnabled::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
@@ -160,6 +161,7 @@ class ExmentServiceProvider extends ServiceProvider
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
         'admin.demo-mode' => \Exceedone\Exment\Middleware\DemoModeGuard::class,
+        'admin.feature' => \Exceedone\Exment\Middleware\FeatureGuard::class,
     ];
 
     /**
@@ -171,6 +173,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middlewareGroups = [
         // Exment web page default
         'admin' => [
+            'admin.security-headers',
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
@@ -187,9 +190,12 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.permission',
             'admin.session',
             'admin.demo-mode',
+            // the features not used (Admin setting → Feature management)
+            'admin.feature',
         ],
         // Exment not login web page. (Ex. login, forget password)
         'admin_anonymous' => [
+            'admin.security-headers',
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
@@ -242,6 +248,7 @@ class ExmentServiceProvider extends ServiceProvider
             //　↓
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             'admin.demo-mode',
+            'admin.feature',
         ],
         // Exment Plugin API
         'pluginapi' => [
@@ -372,6 +379,9 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::register();
         require_once(__DIR__ . '/Services/Helpers.php');
+
+        // the class of a custom table is built when it is first used (ISS00413)
+        Services\ClassBuilder::registerAutoloader();
 
         $this->mergeConfigFrom(
             __DIR__ . '/../config/exment.php',

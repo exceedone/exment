@@ -126,7 +126,9 @@ class ScreenList
             return [
                 'name' => $form->form_view_name,
                 'default' => boolval($form->default_flg),
-                'edit_url' => admin_urls('form', $name, $form->id, 'edit'),
+                // changed in the builder of the Studio, like the form of a kintone app (ScreenEditor)
+                'edit_url' => admin_urls('studio', 'screens', $form->id, 'edit'),
+                'setting_url' => admin_urls('form', $name, $form->id, 'edit'),
                 'copy_url' => admin_urls('form', $name, 'create?copy_id=' . $form->id),
             ];
         })->values()->all();

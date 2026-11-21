@@ -165,15 +165,23 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post('system/call_update', 'SystemController@callUpdate');
 
+            // Tuning: what would make the site faster (ISS00414)
+            $router->get('tuning', 'TuningController@index');
+            $router->post('tuning/action', 'TuningController@action');
+
             // The preset library: what the pickers on the column and view
             // screens offer, managed as one list.
             $this->setResouce($router, 'cell_style_preset', 'CellStylePresetSettingController');
 
             // Studio: the screens of the site on one page (ISS00231 phase 1)
+            $router->get('feature', 'FeatureController@index');
+            $router->post('feature', 'FeatureController@store');
             $router->get('studio', 'StudioController@index');
             $router->get('studio/create', 'StudioController@create');
             $router->post('studio', 'StudioController@store');
             $router->post('studio/sheet', 'StudioController@readSheet');
+            $router->get('studio/screens/{id}/edit', 'StudioController@edit');
+            $router->post('studio/screens/{id}', 'StudioController@update');
             // the phone app of the Studio (PWA)
             $router->get('app', 'StudioAppController@index');
             $router->get('app/manifest.webmanifest', 'StudioAppController@manifest');
