@@ -14,6 +14,7 @@ use Exceedone\Exment\Services\FileServer\FileServerException;
 use Exceedone\Exment\Services\FileServer\Level;
 use Exceedone\Exment\Services\FileServer\Library;
 use Exceedone\Exment\Services\FileServer\Preview;
+use Exceedone\Exment\Services\FileServer\TextFiles;
 use Exceedone\Exment\Services\FileServer\Uploader;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
@@ -548,5 +549,168 @@ class FileServerTest extends FeatureTestBase
         // a user who cannot make one: whom to ask
         $this->get(admin_url('file_server'), ['X-Requested-With' => 'XMLHttpRequest'])
             ->assertOk()->assertSee(exmtrans('file_server.no_workspaces'))->assertDontSee(exmtrans('file_server.no_workspaces_admin'));
+    }
+
+    // ================================================================ new text files (ISS00434)
+
+    /** @var array<string, string> */
+    protected array $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+
+    protected function loginAs(string $loginId): void
+    {
+        System::clearRequestSession();
+        $this->be(LoginUser::findOrFail($loginId));
+    }
+
+    protected function node(mixed $id): FileNode
+    {
+        /** @var FileNode $node */
+        $node = FileNode::query()->findOrFail(intval($id));
+        return $node;
+    }
+
+    protected function bytes(FileNode $node): string
+    {
+        return strval(Library::disk()->get($node->refresh()->current_version->path));
+    }
+
+    public function testNewMakesAnEmptyFileOfTheKindWithTheSamePermissionAsAnUpload(): void
+    {
+        $ws = $this->workspace();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::UPLOAD);
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::VIEW);
+        $url = admin_urls('file_server', $ws->id, 'text_files');
+
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $json = $this->post($url, ['name' => 'memo', 'type' => 'md'], $this->ajax)->assertOk()->assertJson(['result' => true])->json();
+        $memo = $this->node($json['id']);
+        $this->assertSame('memo.md', $memo->name);
+        $this->assertSame(admin_urls('file_server', $ws->id, 'nodes', $memo->id, 'edit'), $json['redirect']);
+        $this->assertSame('', $this->bytes($memo));
+        $this->assertSame(1, $memo->current_version->version_no);
+        $this->assertSame(Preview::KIND_TEXT, Preview::kind($memo->mime_type, $memo->name));
+
+        // a CSV starts with the BOM, so that Excel reads it as UTF-8; a name with the extension keeps it
+        $csv = $this->node($this->post($url, ['name' => 'list.CSV', 'type' => 'csv'], $this->ajax)->assertOk()->json('id'));
+        $this->assertSame('list.CSV', $csv->name);
+        $this->assertSame("\xEF\xBB\xBF", $this->bytes($csv));
+        // another extension: the one of the kind is added
+        $txt = $this->node($this->post($url, ['name' => 'run.sh', 'type' => 'txt'], $this->ajax)->assertOk()->json('id'));
+        $this->assertSame('run.sh.txt', $txt->name);
+
+        // never over a file that is there, another kind, a name that cannot be used
+        $this->post($url, ['name' => 'MEMO.md', 'type' => 'md'], $this->ajax)->assertStatus(422)->assertJson(['result' => false]);
+        $this->post($url, ['name' => 'page', 'type' => 'html'], $this->ajax)->assertJson(['result' => false]);
+        $this->post($url, ['name' => '../x', 'type' => 'txt'], $this->ajax)->assertJson(['result' => false]);
+        $this->assertSame(1, FileNode::query()->where('workspace_id', $ws->id)->where('name', 'memo.md')->count());
+
+        // a viewer cannot make one
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->post($url, ['name' => 'viewer', 'type' => 'txt'], $this->ajax)->assertStatus(403);
+        $this->assertSame(0, FileNode::query()->where('workspace_id', $ws->id)->where('name', 'viewer.txt')->count());
+    }
+
+    public function testASaveIsANewVersionAndAnOldBaseIsRefused(): void
+    {
+        $ws = $this->workspace();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::EDIT);
+        $file = (new TextFiles($this->admin()))->create($ws, null, 'notes', 'txt');
+        $base = admin_urls('file_server', $ws->id, 'nodes', $file->id);
+        $first = intval($file->current_version_id);
+
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get($base . '/edit')->assertOk()->assertSee('data-version="' . $first . '"', false);
+        $this->get($base)->assertOk()->assertSee(exmtrans('file_server.text_edit'));
+
+        $saved = $this->post($base . '/text', ['text' => "一行目\n二行目", 'base_version' => $first, 'comment' => 'first'], $this->ajax)->assertOk()->json();
+        $this->assertSame(2, $saved['version_no']);
+        $this->assertSame("一行目\n二行目", $this->bytes($file));
+        $this->assertSame('first', $file->current_version->comment);
+
+        // a save from the version before: refused, nothing lost; and with no base
+        $this->post($base . '/text', ['text' => 'lost', 'base_version' => $first], $this->ajax)->assertStatus(409);
+        $this->post($base . '/text', ['text' => 'lost'], $this->ajax)->assertStatus(409);
+        $this->assertSame("一行目\n二行目", $this->bytes($file));
+
+        // too large; not UTF-8
+        $this->post($base . '/text', ['text' => str_repeat('a', TextFiles::TEXT_EDIT_BYTES + 1), 'base_version' => $saved['version']], $this->ajax)->assertStatus(413);
+        $this->post($base . '/text', ['text' => "\xFF\xFE", 'base_version' => $saved['version']], $this->ajax)->assertStatus(422);
+        $this->assertSame(2, $file->refresh()->current_version->version_no);
+
+        // the editor sends the text as a file part: its line breaks and its last line break are kept
+        $this->post($base . '/text', [
+            'text' => UploadedFile::fake()->createWithContent('text.txt', "a\r\nb\n\n"),
+            'base_version' => $saved['version'],
+        ], $this->ajax)->assertOk();
+        $this->assertSame("a\r\nb\n\n", $this->bytes($file));
+    }
+
+    public function testTheCsvKeepsItsBomAndAFileInAnotherEncodingIsNotEdited(): void
+    {
+        $ws = $this->workspace();
+        $files = new TextFiles($this->admin());
+        $csv = $files->create($ws, null, 'list', 'csv');
+        $read = $files->read($ws, $csv);
+        $this->assertSame('', $read['text']);
+        $this->assertTrue($read['bom']);
+        $files->save($ws, $csv, "名前,数\nりんご,3\n", $read['version']);
+        $this->assertSame("\xEF\xBB\xBF名前,数\nりんご,3\n", $this->bytes($csv));
+
+        // a CSV of Shift_JIS uploaded: saved again as UTF-8 it would change, so it is only downloaded
+        $sjis = $this->admin()->storeFile($ws, null, 'old.csv', $this->local(strval(mb_convert_encoding("名前,数\n", 'SJIS-win', 'UTF-8'))));
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $sjis->id, 'edit'))->assertRedirect(admin_urls('file_server', $ws->id, 'nodes', $sjis->id));
+        // another kind of file is not edited here
+        $html = $this->admin()->storeFile($ws, null, 'page.html', $this->local('<p>x</p>'));
+        $this->post(admin_urls('file_server', $ws->id, 'nodes', $html->id, 'text'), ['text' => '<script>alert(1)</script>', 'base_version' => $html->current_version_id], $this->ajax)->assertJson(['result' => false]);
+        $this->assertSame('<p>x</p>', $this->bytes($html));
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $html->id))->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
+    }
+
+    public function testOnlyThoseWhoMayEditSaveAndACheckOutOfAnotherUserStopsIt(): void
+    {
+        $ws = $this->workspace();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::UPLOAD);
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
+        $file = (new TextFiles($this->admin()))->create($ws, null, 'shared', 'md');
+        $base = admin_urls('file_server', $ws->id, 'nodes', $file->id);
+        $version = $file->current_version_id;
+
+        // an uploader (not an editor) reads it only
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get($base . '/edit')->assertOk()->assertSee(exmtrans('file_server.text_read_only'))->assertDontSee('data-fs-edit="save"><i', false);
+        $this->post($base . '/text', ['text' => 'x', 'base_version' => $version], $this->ajax)->assertStatus(403);
+        // the permission is checked before the version (not 409)
+        $this->post($base . '/text', ['text' => 'x', 'base_version' => intval($version) + 1000], $this->ajax)->assertStatus(403);
+
+        // checked out by the administrator: the editor reads it only, and cannot save
+        $this->admin()->checkout($ws, $file->refresh());
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->get($base . '/edit')->assertOk()->assertSee(exmtrans('file_server.text_locked', ['user' => '']), false);
+        $this->post($base . '/text', ['text' => 'x', 'base_version' => $version], $this->ajax)->assertJson(['result' => false]);
+        $this->assertSame('', $this->bytes($file));
+
+        // someone who may not see the workspace: not found
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        foreach (['text' => ['text' => 'x', 'base_version' => $version], 'markdown' => ['text' => '# x']] as $action => $data) {
+            $response = $this->post($base . '/' . $action, $data, $this->ajax)->assertJson(['result' => false]);
+            $this->assertContains($response->status(), [403, 404]);
+        }
+        $this->assertSame('', $this->bytes($file));
+    }
+
+    public function testThePreviewOfMarkdownShowsNoScript(): void
+    {
+        $ws = $this->workspace();
+        $file = (new TextFiles($this->admin()))->create($ws, null, 'readme', 'md');
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $html = strval($this->post(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'markdown'), [
+            'text' => "# Title\n\n- one\n\n<script>alert(1)</script>\n\n[link](javascript:alert(2)) <img src=x onerror=alert(3)>",
+        ], $this->ajax)->assertOk()->json('html'));
+        $this->assertStringContainsString('<h1>Title</h1>', $html);
+        $this->assertStringContainsString('<li>one</li>', $html);
+        $this->assertStringNotContainsString('<script', $html);
+        $this->assertStringNotContainsString('javascript:', $html);
+        $this->assertStringNotContainsString('<img', $html);
     }
 }

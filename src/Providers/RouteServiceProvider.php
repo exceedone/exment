@@ -202,6 +202,7 @@ class RouteServiceProvider extends ServiceProvider
                 $router->delete('/', 'FileServerController@destroyWorkspace');
                 $router->get('trash', 'FileServerController@trash');
                 $router->post('folders', 'FileServerController@createFolder');
+                $router->post('text_files', 'FileServerController@createTextFile');
                 $router->post('upload', 'FileServerController@upload');
                 $router->post('upload/init', 'FileServerController@uploadInit');
                 $router->get('upload/{session}', 'FileServerController@uploadStatus');
@@ -228,6 +229,9 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('purge', 'FileServerController@purge');
                     $router->post('favorite', 'FileServerController@favorite');
                     $router->post('version', 'FileServerController@uploadVersion');
+                    $router->get('edit', 'FileServerController@editText');
+                    $router->post('text', 'FileServerController@saveText');
+                    $router->post('markdown', 'FileServerController@markdownPreview');
                     $router->post('versions/{version}/restore', 'FileServerController@restoreVersion')->where('version', '[0-9]+');
                     $router->post('checkout', 'FileServerController@checkout');
                     $router->post('checkin', 'FileServerController@checkin');

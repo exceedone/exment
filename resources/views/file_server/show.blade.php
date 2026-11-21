@@ -24,6 +24,9 @@
         @if ($can_download)
             <a class="btn btn-sm btn-primary" href="{{ $node_url }}/download"><i class="fa fa-download" aria-hidden="true"></i> {{ exmtrans('file_server.download') }}</a>
         @endif
+        @if ($can_edit_text && !$lockedByOther)
+            <a class="btn btn-sm btn-primary" href="{{ $node_url }}/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> {{ exmtrans('file_server.text_edit') }}</a>
+        @endif
         @foreach ($openers as $opener)
             <a class="btn btn-sm btn-default" href="{{ $opener['url'] }}" target="_blank" rel="noopener"><i class="fa {{ $opener['icon'] ?? 'fa-external-link' }}" aria-hidden="true"></i> {{ $opener['label'] }}</a>
         @endforeach

@@ -542,9 +542,10 @@ class Library
 
     /**
      * Put a new file into a folder (never a new version of one that is there:
-     * a file with the same name stops it). For the request links.
+     * a file with the same name stops it). For the request links, and the
+     * files made with "New" (TextFiles).
      */
-    public function storeNewFile(FileWorkspace $workspace, FileNode $parent, string $name, string $localPath, ?string $comment = null): FileNode
+    public function storeNewFile(FileWorkspace $workspace, ?FileNode $parent, string $name, string $localPath, ?string $comment = null): FileNode
     {
         $this->assertFolder($workspace, $parent);
         $this->access->authorize($workspace, $parent, Level::UPLOAD);
@@ -556,7 +557,7 @@ class Library
             }
             $node = new FileNode([
                 'workspace_id' => $workspace->id,
-                'parent_id' => $parent->id,
+                'parent_id' => isset($parent) ? $parent->id : null,
                 'node_type' => FileNode::TYPE_FILE,
                 'name' => $name,
             ]);

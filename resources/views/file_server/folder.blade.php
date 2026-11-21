@@ -23,6 +23,14 @@
     <div class="exm-fs-toolbar">
         @if ($can_upload)
             <button type="button" class="btn btn-sm btn-default" data-fs="new-folder"><i class="fa fa-folder" aria-hidden="true"></i> {{ exmtrans('file_server.new_folder') }}</button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-file-text-o" aria-hidden="true"></i> {{ exmtrans('file_server.new_file') }} <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                    @foreach (\Exceedone\Exment\Services\FileServer\TextFiles::TYPES as $type)
+                        <li><a href="#" class="dropdown-item" data-fs="new-text" data-type="{{ $type }}">{{ exmtrans('file_server.new_text_' . $type) }}</a></li>
+                    @endforeach
+                </ul>
+            </div>
             <label class="btn btn-sm btn-primary" style="margin:0"><i class="fa fa-upload" aria-hidden="true"></i> {{ exmtrans('file_server.upload_files') }}
                 <input type="file" multiple hidden data-fs="file-input"></label>
             <label class="btn btn-sm btn-default" style="margin:0"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.upload_folder') }}
@@ -184,6 +192,7 @@
     var maxSize = Number(root.dataset.max) || 0;
     var t = {!! json_encode([
         'folder_name' => exmtrans('file_server.prompt_folder_name'),
+        'file_name' => exmtrans('file_server.prompt_file_name'),
         'new_name' => exmtrans('file_server.prompt_new_name'),
         'confirm_trash' => exmtrans('file_server.confirm_trash'),
         'move_to' => exmtrans('file_server.move_to'),
@@ -222,6 +231,10 @@
         if (action === 'new-folder') {
             var name = prompt(t.folder_name);
             if (name) { Fs.post(base + '/folders', { parent_id: parentId, name: name }).then(Fs.done, Fs.fail); }
+        } else if (action === 'new-text') {
+            e.preventDefault();
+            var fileName = prompt(t.file_name);
+            if (fileName) { Fs.post(base + '/text_files', { parent_id: parentId, name: fileName, type: btn.dataset.type }).then(Fs.done, Fs.fail); }
         } else if (action === 'rename' && row) {
             var newName = prompt(t.new_name, row.dataset.name);
             if (newName && newName !== row.dataset.name) { Fs.post(base + '/nodes/' + row.dataset.id + '/rename', { name: newName }).then(Fs.done, Fs.fail); }
