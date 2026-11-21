@@ -4,6 +4,7 @@
     <input type="hidden" name="fields" id="exm-builder-fields" value="">
     <input type="hidden" name="layout" id="exm-builder-layout" value="">
     <input type="hidden" name="children" id="exm-builder-children-input" value="">
+    <input type="hidden" name="actions" id="exm-builder-actions-input" value="">
 
     <div class="box card exm-builder-head">
         <div class="box-body">
@@ -117,6 +118,15 @@
                     <div id="exm-builder-children"></div>
                     <button type="button" class="btn btn-default btn-sm" id="exm-builder-add-child"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.add_child') }}</button>
                 </div>
+
+                {{-- the buttons of the screen (phase 4, ScreenAction): "Done" sets the status to "done" --}}
+                <div class="exm-builder-buttons" id="exm-builder-buttons-box">
+                    <div class="exm-builder-children-title"><i class="fa fa-hand-pointer-o" aria-hidden="true"></i> {{ exmtrans('studio.buttons_title') }}</div>
+                    <p class="exm-builder-hint">{{ sprintf(exmtrans('studio.buttons_help'), $max_actions) }}</p>
+                    @if (isset($errors_by_key['actions']))<p class="exm-builder-error">{{ $errors_by_key['actions'] }}</p>@endif
+                    <div id="exm-builder-buttons"></div>
+                    <button type="button" class="btn btn-default btn-sm" id="exm-builder-add-button"><i class="fa fa-plus" aria-hidden="true"></i> {{ exmtrans('studio.add_button') }}</button>
+                </div>
             </div>
         </div>
     </div>
@@ -214,6 +224,12 @@
 .exm-builder-child-field .exm-builder-child-choices { flex: 1 1 100%; }
 .exm-builder-child-add { display: flex; gap: 6px; margin-top: 6px; }
 .exm-builder-child-add select { width: auto; }
+.exm-builder-buttons { margin-top: 18px; padding-top: 12px; border-top: 1px solid #e3e6ea; }
+.exm-builder-button { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border: 1px solid #d2d6de; border-radius: 4px; padding: 8px 10px; margin: 8px 0; background: #fff; }
+.exm-builder-button .form-control { width: auto; min-width: 0; flex: 1 1 140px; }
+.exm-builder-button select.form-control { height: auto; }
+.exm-builder-button .exm-builder-button-word { font-size: .85rem; opacity: .8; white-space: nowrap; }
+.exm-builder-button .exm-builder-error { flex: 1 1 100%; }
 .exm-builder-actions { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 24px; }
 .exm-builder-notice { margin: 0 auto 0 0; font-size: .9rem; }
 .exm-builder-notice i { color: #3c8dbc; margin-right: 4px; }
@@ -291,6 +307,17 @@
             exmtrans('studio.layout_presets.4'),
         ],
         'name_separator' => exmtrans('studio.name_separator'),
+        'button_label' => exmtrans('studio.button_label'),
+        'button_label_placeholder' => exmtrans('studio.button_label_placeholder'),
+        'button_target' => exmtrans('studio.button_target'),
+        'button_target_placeholder' => exmtrans('studio.button_target_placeholder'),
+        'button_value' => exmtrans('studio.button_value'),
+        'button_to' => exmtrans('studio.button_to'),
+        'button_set' => exmtrans('studio.button_set'),
+        'remove_button' => exmtrans('studio.remove_button'),
+        'no_button_target' => exmtrans('studio.no_button_target'),
+        'notice_buttons' => exmtrans('studio.notice_buttons'),
+        'too_many_buttons' => sprintf(exmtrans('studio.error.too_many_actions'), $max_actions),
     ];
 @endphp
 <script>
@@ -307,6 +334,9 @@
     var initialLayout = @json($screen ? ($screen['layout'] ?? null) : null);
     var initialConditions = @json($screen ? (object) ($screen['conditions'] ?? []) : (object) []);
     var maxChildren = {{ intval($max_children) }};
+    var maxButtons = {{ intval($max_actions) }};
+    var buttonTypes = @json($action_types);
+    var initialButtons = @json($old_actions);
     // the details of the screen: [{label, fields: [{type, label, required, choices}]}]
     var children = (@json($old_children) || []).map(function (c) {
         return { label: c.label || '', fields: (c.fields || []).map(function (f) {
@@ -363,6 +393,10 @@
         if (fields[index] && fields[c.target]) {
             fields[index].cond = { target: fields[c.target], operator: c.operator, value: c.value };
         }
+    });
+    // the buttons of the screen: {label, target (an item), value}. A button points at its item itself.
+    var buttons = (initialButtons || []).map(function (b) {
+        return { label: b.label || '', target: fields[b.target] || null, value: b.value || '' };
     });
     var active = { row: 0, col: 0 }; // the cell the parts are added to
     var dragFrom = null; // index of an item being moved, or null for a new part
@@ -694,8 +728,95 @@
             lists[field.row][field.col].appendChild(li);
         });
         renderColumns();
+        renderButtons();
         renderNotice();
     }
+
+    // buttons ------------------------------------------------------------------------
+    var buttonsBox = document.getElementById('exm-builder-buttons');
+    var buttonsWrap = document.getElementById('exm-builder-buttons-box');
+    function typeOf(field) {
+        return mode === 'existing' ? (columnOf(field.column_id) || {}).type : field.type;
+    }
+    // the values a button may set the item to: null for a value typed in
+    function valuesOf(field) {
+        if (isYesNo(field)) { return [{ value: '1', text: t.yes }, { value: '0', text: t.no }]; }
+        var list = mode === 'existing' ? ((columnOf(field.column_id) || {}).choices || null) : (field.type === 'select' ? choicesOf(field) : null);
+        return list ? list.map(function (c) { return { value: c, text: c }; }) : null;
+    }
+    function buttonError(bi, name) {
+        var message = errors['actions.' + bi + '.' + name];
+        return message ? el('p', { className: 'exm-builder-error', text: message }) : null;
+    }
+    function canButton() {
+        if (mode !== 'existing') { return true; }
+        var table = currentTable();
+        return !!(table && table.can_button);
+    }
+    function renderButtons() {
+        buttonsWrap.hidden = !canButton();
+        buttonsBox.innerHTML = '';
+        var targets = fields.filter(function (f) { return buttonTypes.indexOf(typeOf(f)) !== -1; });
+        buttons.forEach(function (button, bi) {
+            if (button.target && fields.indexOf(button.target) === -1) { button.target = null; }
+            var label = el('input', { type: 'text', className: 'form-control input-sm', maxlength: '40', placeholder: t.button_label_placeholder, 'aria-label': t.button_label });
+            label.value = button.label;
+            label.addEventListener('input', function () { button.label = label.value; renderNotice(); });
+
+            var target = el('select', { className: 'form-control input-sm', 'aria-label': t.button_target });
+            target.appendChild(el('option', { value: '', text: targets.length ? t.button_target_placeholder : t.no_button_target }));
+            targets.forEach(function (f) {
+                var option = el('option', { value: String(fields.indexOf(f)), text: labelOf(f) });
+                if (button.target === f) { option.selected = true; }
+                target.appendChild(option);
+            });
+            target.addEventListener('change', function () {
+                button.target = target.value === '' ? null : fields[parseInt(target.value, 10)];
+                button.value = '';
+                renderButtons();
+            });
+
+            var value;
+            var values = button.target ? valuesOf(button.target) : null;
+            if (values) {
+                value = el('select', { className: 'form-control input-sm', 'aria-label': t.button_value });
+                value.appendChild(el('option', { value: '', text: t.button_value }));
+                values.forEach(function (v) {
+                    var option = el('option', { value: v.value, text: v.text });
+                    if (button.value === v.value) { option.selected = true; }
+                    value.appendChild(option);
+                });
+            } else {
+                value = el('input', { type: typeOf(button.target || {}) === 'integer' ? 'number' : 'text', className: 'form-control input-sm', placeholder: t.button_value, 'aria-label': t.button_value });
+                value.value = button.value;
+                value.disabled = !button.target;
+            }
+            value.addEventListener('input', function () { button.value = value.value; });
+            value.addEventListener('change', function () { button.value = value.value; });
+
+            var remove = el('button', { type: 'button', className: 'btn btn-default btn-sm', title: t.remove_button, 'aria-label': t.remove_button }, [el('i', { className: 'fa fa-trash', 'aria-hidden': 'true' })]);
+            remove.addEventListener('click', function () { buttons.splice(bi, 1); renderButtons(); renderNotice(); });
+
+            buttonsBox.appendChild(el('div', { className: 'exm-builder-button' }, [
+                el('i', { className: 'fa fa-hand-pointer-o', 'aria-hidden': 'true' }), label,
+                el('span', { className: 'exm-builder-button-word', text: t.button_to }), target,
+                el('span', { className: 'exm-builder-button-word', text: t.button_set }), value,
+                remove,
+                buttonError(bi, 'label'), buttonError(bi, 'target'), buttonError(bi, 'value'),
+            ]));
+        });
+    }
+    document.getElementById('exm-builder-add-button').addEventListener('click', function () {
+        if (buttons.length >= maxButtons) { alert(t.too_many_buttons); return; }
+        buttons.push({ label: '', target: null, value: '' });
+        renderButtons();
+        var names = buttonsBox.querySelectorAll('.exm-builder-button input[type=text]');
+        if (names.length) { names[names.length - 1].focus(); }
+    });
+    // a name or the choices of an item changed: the buttons show them
+    canvas.addEventListener('change', function (e) {
+        if (e.target.closest('.exm-builder-field')) { renderButtons(); }
+    });
 
     // details (child tables) ---------------------------------------------------------
     var childrenBox = document.getElementById('exm-builder-children');
@@ -849,6 +970,10 @@
                 text += t.notice_children.replace('%s', childNames.map(function (n) { return t.name_quote.replace('%s', n); }).join(t.name_separator));
             }
         }
+        var buttonNames = canButton() ? buttons.map(function (b) { return b.label.trim(); }).filter(function (n) { return n !== ''; }) : [];
+        if (buttonNames.length > 0) {
+            text += t.notice_buttons.replace('%s', buttonNames.map(function (n) { return t.name_quote.replace('%s', n); }).join(t.name_separator));
+        }
         notice.appendChild(el('i', { className: 'fa fa-info-circle', 'aria-hidden': 'true' }));
         notice.appendChild(document.createTextNode(text));
 
@@ -980,6 +1105,7 @@
         rows = [[4]];
         active = { row: 0, col: 0 };
         children = [];
+        buttons = [];
         renderChildren();
         errors = {};
         forgetSheet();
@@ -1024,6 +1150,9 @@
         }));
         document.getElementById('exm-builder-layout').value = JSON.stringify(rows.map(function (w) { return { widths: w }; }));
         document.getElementById('exm-builder-children-input').value = mode === 'existing' ? '[]' : JSON.stringify(children);
+        document.getElementById('exm-builder-actions-input').value = !canButton() ? '[]' : JSON.stringify(buttons.map(function (b) {
+            return { label: b.label, target: b.target ? fields.indexOf(b.target) : null, value: b.value };
+        }));
     });
 
     // Excel or CSV -------------------------------------------------------------

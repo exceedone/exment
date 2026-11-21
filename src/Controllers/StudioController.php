@@ -4,13 +4,17 @@ namespace Exceedone\Exment\Controllers;
 
 use ExmentAdminCore\Admin\Auth\Permission as Checker;
 use ExmentAdminCore\Admin\Layout\Content;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\MenuType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Studio\BlankFormBuilder;
 use Exceedone\Exment\Services\Studio\ExistingTableFormBuilder;
 use Exceedone\Exment\Services\Studio\RelationDiagram;
+use Exceedone\Exment\Services\Studio\ScreenAction;
 use Exceedone\Exment\Services\Studio\ScreenChildren;
 use Exceedone\Exment\Services\Studio\ScreenLayout;
 use Exceedone\Exment\Services\Studio\ScreenList;
@@ -122,6 +126,9 @@ class StudioController extends AdminControllerBase
             'max_children' => ScreenChildren::MAX_CHILDREN,
             'reference_tables' => BlankFormBuilder::referenceTables(),
             'old_children' => $hasOld && is_string(array_get($old, 'children')) ? (json_decode($old['children'], true) ?: []) : [],
+            'old_actions' => $hasOld ? ScreenAction::normalize(array_get($old, 'actions')) : [],
+            'max_actions' => ScreenAction::MAX_ACTIONS,
+            'action_types' => ScreenAction::TARGET_TYPES,
         ]));
         return $content;
     }
@@ -152,6 +159,16 @@ class StudioController extends AdminControllerBase
 
         $errors = BlankFormBuilder::validate($screen);
         $errors += ScreenChildren::validate($children);
+        // the buttons of the screen (ScreenAction): they set an item placed on it
+        $actions = ScreenAction::normalize($request->input('actions'));
+        $errors += ScreenAction::validate($actions, array_map(function ($field) {
+            return [
+                'type' => $field['type'],
+                'choices' => $field['type'] === ColumnType::SELECT ? array_values(array_filter(array_map('trim', explode("\n", $field['choices'])), function ($choice) {
+                    return $choice !== '';
+                })) : null,
+            ];
+        }, $screen['fields']));
 
         // the read sheet whose rows are taken in, when asked
         $sheet = null;
@@ -172,6 +189,19 @@ class StudioController extends AdminControllerBase
                 ScreenChildren::build($table, $children);
             } catch (\Throwable $e) {
                 // the details deleted what they made; the parent is not left half made either
+                $table->delete();
+                throw $e;
+            }
+        }
+        if (count($actions) > 0) {
+            try {
+                // the columns were made one per item, in the posted order
+                $columnIds = $table->custom_columns()->orderBy('id')->pluck('id')->map(function ($id) {
+                    return intval($id);
+                })->all();
+                ScreenAction::build($table, $columnIds, $actions);
+            } catch (\Throwable $e) {
+                // deleting the table deletes its buttons too
                 $table->delete();
                 throw $e;
             }
@@ -294,12 +324,34 @@ class StudioController extends AdminControllerBase
 
         $screen = ExistingTableFormBuilder::normalize($request->only(['table_view_name', 'table_id', 'fields', 'layout']));
         $errors = ExistingTableFormBuilder::validate($screen);
+        // a button is a data operation of the table: made by those who may set up the table
+        $actions = ScreenAction::normalize($request->input('actions'));
+        if (count($actions) > 0) {
+            $target = CustomTable::getEloquent($screen['table_id']);
+            if (!isset($target) || !$target->hasPermission(Permission::CUSTOM_TABLE)) {
+                $errors['actions'] = exmtrans('studio.error.action_permission');
+            } else {
+                $errors += ScreenAction::validate($actions, array_map(function ($field) {
+                    $column = CustomColumn::getEloquent($field['column_id']);
+                    return isset($column)
+                        ? ['type' => strval($column->column_type), 'choices' => ScreenAction::choicesOf($column)]
+                        : ['type' => '', 'choices' => null];
+                }, $screen['fields']));
+            }
+        }
         if (count($errors) > 0) {
             admin_toastr(exmtrans('studio.error.check_input'), 'error');
             return back()->withInput()->with('studio_errors', $errors);
         }
 
-        $form = ExistingTableFormBuilder::build($screen);
+        // the form and its buttons, or nothing
+        $form = \DB::transaction(function () use ($screen, $actions) {
+            $form = ExistingTableFormBuilder::build($screen);
+            if (count($actions) > 0) {
+                ScreenAction::build(CustomTable::getEloquent($form->custom_table_id), array_column($screen['fields'], 'column_id'), $actions);
+            }
+            return $form;
+        });
         $table = CustomTable::getEloquent($form->custom_table_id);
 
         admin_toastr(sprintf(exmtrans('studio.created_form'), $form->form_view_name, $table->table_view_name));
