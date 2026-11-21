@@ -227,8 +227,8 @@ class Access
     }
 
     /**
-     * Who may make a workspace. "all" (the default): every user; "admin": the
-     * users with the system permission.
+     * Who may make a workspace. "admin" (the default): the users with the
+     * system permission; "all": every user.
      */
     public function canCreateWorkspace(): bool
     {

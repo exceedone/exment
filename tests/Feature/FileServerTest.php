@@ -541,9 +541,12 @@ class FileServerTest extends FeatureTestBase
 
     public function testTheMenuAndThePageOfAUserWithNoWorkspace(): void
     {
+        // the default: the system administrators make the workspaces
+        config(['exment.file_server_workspace_create' => 'admin']);
         System::clearRequestSession();
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        // a user who cannot make one: whom to ask
         $this->get(admin_url('file_server'), ['X-Requested-With' => 'XMLHttpRequest'])
-            ->assertOk()->assertSee(exmtrans('file_server.no_workspaces'));
+            ->assertOk()->assertSee(exmtrans('file_server.no_workspaces'))->assertDontSee(exmtrans('file_server.no_workspaces_admin'));
     }
 }

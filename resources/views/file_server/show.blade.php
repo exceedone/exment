@@ -104,18 +104,22 @@
                                                     @endforeach
                                                 </p>
                                             @endif
+                                            @php $fsAdmin = \Exment::user()->hasPermission(\Exceedone\Exment\Enums\Permission::SYSTEM); @endphp
                                             @if (isset($office_text) && $office_text !== '')
-                                                <p class="exm-fs-muted" style="margin-bottom:4px">{{ exmtrans('file_server.preview_office_text') }}</p>
+                                                {{-- the words of the server (LibreOffice) for the system administrators only --}}
+                                                <p class="exm-fs-muted" style="margin-bottom:4px">{{ $fsAdmin ? exmtrans('file_server.preview_office_text') : exmtrans('file_server.preview_office_text_user') }}</p>
                                                 <pre style="max-height:60vh">{{ $office_text }}</pre>
+                                            @elseif (count($openers) > 0)
+                                                <p class="exm-fs-muted">{{ exmtrans('file_server.preview_office_open') }}</p>
                                             @else
-                                                <p class="exm-fs-muted">{{ count($openers) > 0 ? exmtrans('file_server.preview_office_open') : exmtrans('file_server.preview_office_none') }}</p>
+                                                <p class="exm-fs-muted">{{ $fsAdmin ? exmtrans('file_server.preview_office_none') : ($can_download ? exmtrans('file_server.preview_office_user') : exmtrans('file_server.preview_office_user_no_download')) }}</p>
                                             @endif
                                         </div>
                                     @endif
                                 @endif
                                 @break
                             @default
-                                <p class="exm-fs-muted">{{ exmtrans('file_server.preview_none') }}</p>
+                                <p class="exm-fs-muted">{{ $can_download ? exmtrans('file_server.preview_none') : exmtrans('file_server.preview_none_no_download') }}</p>
                         @endswitch
                     </div>
                 </div>
@@ -139,7 +143,7 @@
                                 <tbody>
                                     @foreach ($versions as $v)
                                         <tr>
-                                            <td>v{{ $v['no'] }} @if ($v['current'])<span class="exm-fs-badge">{{ exmtrans('file_server.current') }}</span>@endif</td>
+                                            <td>{{ exmtrans('file_server.version_no', ['no' => $v['no']]) }} @if ($v['current'])<span class="exm-fs-badge">{{ exmtrans('file_server.current') }}</span>@endif</td>
                                             <td class="exm-fs-muted">{{ optional($v['created_at'])->format('Y/m/d H:i') }} {{ $v['user'] }}</td>
                                             <td class="exm-fs-muted"><span data-fs-size="{{ $v['size'] }}"></span></td>
                                             <td style="overflow-wrap:anywhere">{{ $v['comment'] }}</td>
