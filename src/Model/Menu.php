@@ -191,6 +191,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                         break;
                     }
                     $row['uri'] = $plugin->getRouteUri();
+                    // its menu turned off (Admin setting → Feature management)
+                    if (\Exceedone\Exment\Services\Features::hidesPluginMenu($plugin->plugin_name)) {
+                        $result = false;
+                    }
                     break;
                 case MenuType::TABLE:
                     if (!isset($row['table_name'])) {
@@ -224,6 +228,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     if (\Exceedone\Exment\Services\DemoMode::hidesMenuUri($row['uri'])) {
                         $result = false;
                     }
+                    // a feature not used, or that the user may not use (Admin setting → Feature management)
+                    if (\Exceedone\Exment\Services\Features::hidesSystemMenu(strval($row['menu_target']))) {
+                        $result = false;
+                    }
                     break;
                 case MenuType::PARENT_NODE:
                     $row['uri'] = null;
@@ -234,6 +242,11 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     // database-row has icon column, set icon
             }
 
+            // a page of a feature the user may not use: its menu goes too, of
+            // any kind (a plugin's own feature, a custom menu to its URL)
+            if ($result && \Exceedone\Exment\Services\Features::hidesMenuUri(isset($row['uri']) ? strval($row['uri']) : null)) {
+                $result = false;
+            }
             if (!$result) {
                 continue;
             }

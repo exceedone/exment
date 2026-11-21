@@ -94,6 +94,8 @@ class Define
 
         // public form ----------------------------------------------------
         'publicform_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
+        // the features an administrator turns on (Services\Features; Admin setting → Feature management)
+        'features' => ['type' => 'json', 'default' => []],
         'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],
         'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
         'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],
@@ -322,6 +324,10 @@ class Define
         'role_group' => [
             'uri' => 'role_group',
             'icon' => 'fa-user-secret',
+        ],
+        'feature' => [
+            'uri' => 'feature',
+            'icon' => 'fa-toggle-on',
         ],
         'menu' => [
             'uri' => 'auth/menu',
