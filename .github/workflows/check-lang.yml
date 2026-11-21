@@ -1,4 +1,5 @@
 name: check lang
+# CI run for the 7.2.0 freeze check (not to merge)
 
 on:
   pull_request:

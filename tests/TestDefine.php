@@ -1,5 +1,7 @@
 <?php
 
+// CI run for the 7.2.0 freeze check (not to merge)
+
 namespace Exceedone\Exment\Tests;
 
 class TestDefine
