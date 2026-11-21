@@ -12,14 +12,14 @@ class ClassLoader
     /**
      * Check target dirs
      *
-     * @var array<int, array<string, string>>
+     * @var array<string, array<string, string>>
      */
     protected $dirs = [];
 
     /**
-     * Already called class
+     * Already called class, as the keys
      *
-     * @var array<int, string>
+     * @var array<string, true>
      */
     protected $called = [];
 
@@ -38,7 +38,9 @@ class ClassLoader
      */
     public function registerDir(string $dir, string $baseNamespace)
     {
-        $this->dirs[] = [
+        // a plugin is required several times in a request: a directory is looked in once (ISS00413)
+        $this->dirs[$dir . "
+" . $baseNamespace] = [
             'dir' => $dir,
             'baseNamespace' => $baseNamespace,
         ];
@@ -53,7 +55,7 @@ class ClassLoader
     public function loadClass($class)
     {
         // if already has called, exit,
-        if (in_array($class, $this->called)) {
+        if (isset($this->called[$class])) {
             return;
         }
         // if namespace is "Exceedone\Exment\Model\Class_", not file, return
@@ -61,7 +63,7 @@ class ClassLoader
             return;
         }
 
-        $this->called[] = $class;
+        $this->called[$class] = true;
 
         foreach ($this->dirs as $dir) {
             // get filepath

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\DataItems\Show;
 
+use Exceedone\Exment\Services\ReferencePrefetcher;
 use Illuminate\Http\Request;
 use ExmentAdminCore\Admin\Facades\Admin;
 use ExmentAdminCore\Admin\Form;
@@ -435,6 +436,17 @@ class DefaultShow extends ShowBase
                 $custom_view = CustomView::getAllData($target_table);
                 $custom_view->setGrid($grid);
                 $custom_view->setValueSort($grid->model());
+
+                // the records and files the rows point at, read together as in the list (ISS00413)
+                // (the callbacks are kept for every grid of the request: only for this one)
+                $grid->getDataCallback(function ($target) use ($grid, $target_table, $custom_view) {
+                    if ($target !== $grid) {
+                        return;
+                    }
+                    $customValueCollection = $target->getOriginalCollection();
+                    $target_table->setSelectTableValues($customValueCollection);
+                    ReferencePrefetcher::prefetch($target_table, $customValueCollection, $custom_view->custom_view_columns_cache, false);
+                });
 
                 $grid->disableFilter();
                 $grid->disableCreateButton();
