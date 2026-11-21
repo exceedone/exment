@@ -37,7 +37,8 @@ class ShareLinks
     public const DEFAULT_DENIED_EXTENSIONS = 'exe,com,bat,cmd,scr,pif,msi,msp,msix,msixbundle,appx,appxbundle,dll,cpl,sys,drv,ocx,'
         . 'js,jse,mjs,vbs,vbe,wsf,wsh,ps1,psm1,psd1,hta,jar,lnk,url,scf,reg,inf,sh,bash,py,pyw,pl,rb,'
         . 'php,phtml,phar,asp,aspx,jsp,cgi,html,htm,xhtml,shtml,svg,svgz,xml,'
-        . 'iso,img,vhd,vhdx,dmg,docm,dotm,xlsm,xltm,xlam,pptm,potm,ppam,ppsm';
+        . 'iso,img,vhd,vhdx,dmg,docm,dotm,xlsm,xltm,xlam,pptm,potm,ppam,ppsm,'
+        . 'mht,mhtml,chm,hlp,iqy,slk,xll,settingcontent-ms,library-ms,search-ms,application,gadget,msc,cab,appref-ms,website,xbap';
 
     protected Library $library;
 
@@ -472,6 +473,8 @@ class ShareLinks
         // (of any kind) at the end (ISS00410)
         $name = preg_replace('/[\s\p{Z}\x{FEFF}.]+\z/u', '', $name) ?? '';
         $name = $library->validName($name);
+        // again: "run.exe.\u{202E}" is "run.exe." once the character that does not show is taken away
+        $name = $library->validName(preg_replace('/[\s\p{Z}\x{FEFF}.]+\z/u', '', $name) ?? '');
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $allowed = static::requestAllowedExtensions();
         if (count($allowed) > 0 ? !in_array($ext, $allowed, true) : ($ext !== '' && in_array($ext, static::requestDeniedExtensions(), true))) {

@@ -924,7 +924,13 @@ class FileServerController extends AdminControllerBase
             return $this->stream($version->preview_path, pathinfo($item->name, PATHINFO_FILENAME) . '.pdf', 'application/pdf', true);
         }
         if (!Preview::isInlineSafe($version->mime_type)) {
-            // html, svg and the others are only downloaded: they could run scripts in the site
+            // html, svg and the others are only downloaded: they could run scripts
+            // in the site. A download: those who may download only, and written
+            // in the audit log (as the download page)
+            if (!Governance::canDownload($this->library()->access(), $ws, $item)) {
+                abort(403);
+            }
+            Audit::log(Audit::DOWNLOAD, $ws, $item, $this->library()->access()->userId(), ['version' => $version->version_no, 'content' => true]);
             return $this->stream($version->path, $item->name, 'application/octet-stream', false);
         }
         return $this->stream($version->path, $item->name, strval($version->mime_type), true);

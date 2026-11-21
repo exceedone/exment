@@ -26,9 +26,9 @@ class Governance
      * Whether a folder or file is held: the workspace, the node, a folder
      * above it, or (for a folder) something in it.
      */
-    public static function isHeld(FileWorkspace $workspace, FileNode $node): bool
+    public static function isHeld(FileWorkspace $workspace, FileNode $node, bool $withWorkspace = true): bool
     {
-        if ($workspace->legal_hold) {
+        if ($withWorkspace && $workspace->legal_hold) {
             return true;
         }
         foreach ($node->ancestorsAndSelf() as $item) {

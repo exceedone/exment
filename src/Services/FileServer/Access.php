@@ -90,7 +90,8 @@ class Access
             if (!isset($this->userId) || intval($node->created_user_id) !== $this->userId) {
                 return Level::NONE;
             }
-            return max($level, Level::EDIT);
+            // only while the user may still see it (taken out of the workspace: nothing)
+            return $level >= Level::VIEW ? max($level, Level::EDIT) : Level::NONE;
         }
         return $level;
     }

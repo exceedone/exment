@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\FileNode;
 use Exceedone\Exment\Model\FilePermission;
 use Exceedone\Exment\Model\FileWorkspace;
 use Exceedone\Exment\Model\NotifyNavbar;
+use Exceedone\Exment\Model\System;
 
 /**
  * File server, phase 5 (ISS00379): follows, comments with @, and the news of
@@ -227,6 +228,36 @@ class Collaboration
     }
 
     /**
+     * A text a user wrote, for the alerts and the mails (both shown as HTML;
+     * the mails also replace "${...}" with values of the site): escaped, with
+     * no "${".
+     */
+    public static function safeText(string $text): string
+    {
+        return str_replace(['${', '$'], ['&#36;{', '&#36;'], e($text));
+    }
+
+    /**
+     * A text a user wrote, for a plain text (the subjects, the plain mails):
+     * as it is, but no "${" (a space is put between).
+     */
+    public static function plainText(string $text): string
+    {
+        return str_replace('${', '$ {', $text);
+    }
+
+    /**
+     * Cut an escaped text, not in the middle of an entity.
+     */
+    public static function cutHtml(string $html, int $length): string
+    {
+        if (mb_strlen($html) <= $length) {
+            return $html;
+        }
+        return preg_replace('/&[#a-zA-Z0-9]*\z/', '', mb_substr($html, 0, $length)) ?? '';
+    }
+
+    /**
      * Send the news (the job).
      *
      * @param array<string, mixed> $extra
@@ -249,17 +280,25 @@ class Collaboration
         }
         $url = admin_urls('file_server', $workspace->id, $node->isFolder() ? 'folder' : 'nodes', $node->id);
         $actor = isset($actorId) ? getModelName(SystemTableName::USER)::find($actorId) : null;
-        $prms = [
-            'name' => $node->name,
-            'workspace' => $workspace->name,
-            'user' => isset($actor) ? strval($actor->getLabel()) : exmtrans('file_server.someone'),
+        // the names and the comment are written by users. The subject is plain
+        // text everywhere (the mail, the alert): only "${...}" (replaced in the
+        // mails with values of the site) is taken away. The body is shown as
+        // HTML in the alerts and in the HTML mails: escaped there; plain in the
+        // plain mails. The line breaks are made by the mail and the alert.
+        $raw = [
+            'name' => strval($node->name),
+            'workspace' => strval($workspace->name),
+            'user' => isset($actor) ? strval($actor->getLabel()) : strval(exmtrans('file_server.someone')),
         ];
-        $subject = exmtrans('file_server.notify_subject_' . $event, $prms);
-        $body = exmtrans('file_server.notify_body_' . $event, $prms);
-        if (isset($extra['comment'])) {
-            $body .= "\n\n" . strval($extra['comment']);
-        }
-        $body .= "\n\n" . $url;
+        $comment = isset($extra['comment']) ? mb_substr(strval($extra['comment']), 0, 1000) : null;
+        $plain = array_map([static::class, 'plainText'], $raw);
+        $html = array_map([static::class, 'safeText'], $raw);
+        $subject = mb_substr(strval(exmtrans('file_server.notify_subject_' . $event, $plain)), 0, 200);
+        $bodyPlain = strval(exmtrans('file_server.notify_body_' . $event, $plain))
+            . (isset($comment) ? "\n\n" . static::plainText($comment) : '') . "\n\n" . $url;
+        $body = strval(exmtrans('file_server.notify_body_' . $event, $html))
+            . (isset($comment) ? "\n\n" . static::safeText($comment) : '') . "\n\n" . e($url);
+        $mailBody = System::system_mail_body_type() === 'plain' ? $bodyPlain : $body;
 
         $count = 0;
         foreach ($users as $userId) {
@@ -276,8 +315,8 @@ class Collaboration
                 $navbar->fill([
                     'notify_id' => 0,
                     'target_user_id' => $userId,
-                    'notify_subject' => mb_substr($subject, 0, 200),
-                    'notify_body' => mb_substr($body, 0, 2000),
+                    'notify_subject' => $subject,
+                    'notify_body' => static::cutHtml($body, 2000),
                     'trigger_user_id' => $actorId,
                 ]);
                 $navbar->save();
@@ -291,7 +330,7 @@ class Collaboration
                         \Exceedone\Exment\Services\NotifyService::notifyMail([
                             'to' => $user,
                             'subject' => $subject,
-                            'body' => $body,
+                            'body' => $mailBody,
                         ]);
                     }
                 } catch (\Throwable $e) {
