@@ -233,10 +233,6 @@
         if (action === 'new-folder') {
             var name = prompt(t.folder_name);
             if (name) { Fs.post(base + '/folders', { parent_id: parentId, name: name }).then(Fs.done, Fs.fail); }
-        } else if (action === 'new-text') {
-            e.preventDefault();
-            var fileName = prompt(t.file_name);
-            if (fileName) { Fs.post(base + '/text_files', { parent_id: parentId, name: fileName, type: btn.dataset.type }).then(Fs.done, Fs.fail); }
         } else if (action === 'rename' && row) {
             var newName = prompt(t.new_name, row.dataset.name);
             if (newName && newName !== row.dataset.name) { Fs.post(base + '/nodes/' + row.dataset.id + '/rename', { name: newName }).then(Fs.done, Fs.fail); }
@@ -257,6 +253,17 @@
                 sequence(selected(), function (id) { return Fs.post(base + '/nodes/' + id + '/' + action, { target_id: target }); });
             });
         }
+    });
+
+    // "New": an empty text, Markdown or CSV file, opened in the editor (ISS00434)
+    root.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-fs="new-text"]');
+        if (!btn) { return; }
+        e.preventDefault();
+        var asked = Fs.ask ? Fs.ask(t.file_name, '') : Promise.resolve(prompt(t.file_name));
+        asked.then(function (fileName) {
+            if (fileName) { Fs.post(base + '/text_files', { parent_id: parentId, name: fileName, type: btn.dataset.type }).then(Fs.done, Fs.fail); }
+        });
     });
 
     function sequence(ids, fn) {
