@@ -296,6 +296,9 @@ class Permission
                     return array_keys_exists(PermissionEnum::WORKFLOW, $this->permission_details);
                 }
                 return false;
+            case "feature":
+                // Feature management: the system administrators only (they passed above)
+                return false;
             case "role":
             case "role_group":
                 if ($this->role_type == RoleType::SYSTEM) {
