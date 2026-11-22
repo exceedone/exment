@@ -977,7 +977,7 @@
     ],
     "admin_menu": [
         {
-            "order": "4",
+            "order": "10",
             "title": "申請・承認",
             "icon": "fa-check-square-o",
             "uri": "#",
