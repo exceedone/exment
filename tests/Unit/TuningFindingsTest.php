@@ -39,7 +39,7 @@ class TuningFindingsTest extends UnitTestBase
         $this->assertDoesNotMatchRegularExpression('/<link (?![^>]*rel=)[^>]*href=/', $view);
         preg_match_all('/admin_asset\s*\(\s*"\/?([^"]+)"\s*\)\s*}}"\s*integrity="(sha384-[^"]+)"/', $view, $m, PREG_SET_ORDER);
         foreach ($m as list(, $path, $integrity)) {
-            $hash = 'sha384-' . base64_encode(hash_file('sha384', public_path($path), true));
+            $hash = 'sha384-' . base64_encode(strval(hash_file('sha384', public_path($path), true)));
             $this->assertSame($integrity, $hash, 'the integrity of ' . $path);
         }
     }

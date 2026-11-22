@@ -52,6 +52,6 @@ class ComposerAutoloadTuning extends TuningBase
             return null;
         }
         $info = @posix_getpwuid($uid);
-        return is_array($info) && isset($info['name']) ? strval($info['name']) : strval($uid);
+        return is_array($info) ? strval($info['name']) : strval($uid);
     }
 }
