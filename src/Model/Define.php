@@ -605,6 +605,7 @@ class Define
         ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
+        ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
 

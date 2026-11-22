@@ -124,6 +124,7 @@ class Features
                 'description' => 'exment::exment.feature.features.file_server_help',
                 'endpoints' => ['file_server'],
                 'menu' => 'file_server',
+                'manual' => 'file_server',
             ]);
         }
         $core[static::STUDIO] = static::definition([
@@ -133,6 +134,7 @@ class Features
             'endpoints' => ['studio', 'app'],
             'api' => ['studio'],
             'menu' => 'studio',
+            'manual' => 'studio',
         ]);
         // the API keys of the users (Services\UserApiKeys, ISS00437): off until an administrator
         // turns it on and chooses the role groups whose users may make keys
@@ -156,6 +158,7 @@ class Features
             'label' => 'exment::exment.feature.features.safety_check',
             'description' => 'exment::exment.feature.features.safety_check_help',
             'endpoints' => ['safety_check'],
+            'manual' => 'safety_check',
         ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
@@ -165,6 +168,7 @@ class Features
             'description' => 'exment::exment.feature.features.tuning_help',
             'endpoints' => ['tuning'],
             'menu' => 'tuning',
+            'manual' => 'tuning',
             // who is not asked here: Auth\Permission keeps the page to the system administrators
             'who' => false,
             // it was there before Feature management: on until it is turned off
@@ -200,6 +204,9 @@ class Features
      *   - who: whether "who may use it" is asked here (default true; false: all who may use the plugin)
      *   - requires: the key of another feature it needs (off when that one is)
      *   - plugin: the uri or the name of the plugin (default: the key before the first ".")
+     *   - manual: its manual, a page of the Exment manual ("file_server", "file_server?id=share")
+     *     or a full https:// URL (the plugin's own). The help button of its pages and the
+     *     row of Feature management open it.
      */
     public static function register(string $key, array $definition): void
     {
@@ -237,7 +244,61 @@ class Features
             'default' => boolval(array_get($definition, 'default', false)),
             'who' => boolval(array_get($definition, 'who', true)),
             'requires' => is_string($requires) && $requires !== '' ? $requires : null,
+            'manual' => static::manualOf(array_get($definition, 'manual')),
         ];
+    }
+
+    /**
+     * A manual of a definition as it may be kept: a page of the Exment manual (letters,
+     * numbers, "_", "-", "/", a query and an anchor), or an http(s) URL. Anything else
+     * (as "javascript:") is dropped.
+     */
+    protected static function manualOf(mixed $manual): ?string
+    {
+        if (!is_string($manual)) {
+            return null;
+        }
+        $manual = trim($manual);
+        if (preg_match('#\Ahttps?://[^\s"\'<>]+\z#i', $manual) === 1) {
+            return $manual;
+        }
+        if (preg_match('#\A[A-Za-z0-9_\-]+(/[A-Za-z0-9_\-]+)*(\?[A-Za-z0-9_\-=&%]*)?(\#[A-Za-z0-9_\-%]*)?\z#', $manual) === 1) {
+            return $manual;
+        }
+        return null;
+    }
+
+    /**
+     * The URL of the manual of a feature (null: it has none).
+     */
+    public static function manualUrl(string $key): ?string
+    {
+        $manual = static::attribute($key, 'manual');
+        if (!is_string($manual) || $manual === '') {
+            return null;
+        }
+        return preg_match('#\Ahttps?://#i', $manual) === 1 ? $manual : getManualUrl($manual);
+    }
+
+    /**
+     * The entries of the help button (as Define::HELP_URLS) for the pages of the features
+     * that have a manual. They come before Define::HELP_URLS: the first that matches is used.
+     *
+     * @return array<int, array{uri: string, help_uri: string}>
+     */
+    public static function helpUrls(): array
+    {
+        $urls = [];
+        foreach (static::definitions() as $definition) {
+            $manual = $definition['manual'] ?? null;
+            if (!is_string($manual) || $manual === '') {
+                continue;
+            }
+            foreach ($definition['endpoints'] as $endpoint) {
+                $urls[] = ['uri' => $endpoint, 'help_uri' => $manual];
+            }
+        }
+        return $urls;
     }
 
     /**
