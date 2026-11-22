@@ -88,6 +88,7 @@ class GroupAdminSettingMenusTest extends FeatureTestBase
             return strval($name);
         })->all();
         $at = array_search('admin', $roots, true);
+        $this->assertIsInt($at);
         $this->assertSame(['admin_data', 'admin_user', 'admin'], array_slice($roots, $at - 2, 3));
 
         $site = Menu::siteLocale();
