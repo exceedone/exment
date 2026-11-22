@@ -17,6 +17,7 @@ class RepairLoginApiSettingMenusTest extends FeatureTestBase
 {
     use TestTrait;
     use DatabaseTransactions;
+    use OldAdminMenuTrait;
 
     protected const MIGRATION = '2026_11_22_000000_repair_login_api_setting_menus_of_japanese_install';
 
@@ -24,6 +25,8 @@ class RepairLoginApiSettingMenusTest extends FeatureTestBase
     {
         parent::setUp();
         $this->initAllTest();
+        // these migrations are for the sites made before the menu was put in groups
+        $this->makeOldAdminMenu();
     }
 
     public function testMenusOfAJapaneseInstallOfV710AreRepaired(): void
