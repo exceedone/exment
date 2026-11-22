@@ -412,7 +412,21 @@ class TuningServerChecksTest extends UnitTestBase
         $label = $table->table_view_name . ' / ' . $indexed->column_view_name;
 
         $check = new Tuning\IndexMissingTuning();
+        // one read of the indexes per table, no "does the table exist" for each column
+        $queries = [];
+        \DB::listen(function ($query) use (&$queries) {
+            $queries[] = $query->sql;
+        });
         $this->assertNotContains($label, $check->missing());
+        $tables = \Exceedone\Exment\Model\CustomColumn::indexEnabled()->get()->map(function ($column) {
+            return $column->custom_table_id;
+        })->unique()->count();
+        $this->assertSame(0, count(array_filter($queries, function ($sql) {
+            return stripos($sql, 'information_schema.tables') !== false;
+        })));
+        $this->assertLessThanOrEqual($tables + 1, count(array_filter($queries, function ($sql) {
+            return stripos($sql, 'index') !== false && stripos($sql, 'custom_columns') === false;
+        })));
         $this->assertFalse($check->isServerWide());
 
         // a column that says "search index" but has no index (inserted bare, as after a failed change)
