@@ -75,6 +75,10 @@ class ApiSettingController extends AdminControllerBase
         }
         $grid->tools(function (Grid\Tools $tools) {
             $tools->prepend(new Tools\SystemChangePageMenu());
+            // the API keys the users made (ISS00437): the system administrators
+            if (\Exment::user()->hasPermission(\Exceedone\Exment\Enums\Permission::SYSTEM)) {
+                $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('api_keys')) . '"><i class="fa fa-key"></i> ' . esc_html(exmtrans('api_key.admin_header')) . '</a>');
+            }
         });
         return $grid;
     }

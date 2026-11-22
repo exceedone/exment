@@ -42,6 +42,10 @@ class SafetyWatchCommand extends Command
      */
     public function handle()
     {
+        // not used (Admin setting > Feature management)
+        if (!\Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::SAFETY_CHECK)) {
+            return 0;
+        }
         if (!boolval(System::safety_check_auto_enabled())) {
             return 0;
         }

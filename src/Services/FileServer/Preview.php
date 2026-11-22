@@ -73,6 +73,10 @@ class Preview
                 finfo_close($finfo);
             }
         }
+        // an empty file (a new text file) is known by its extension
+        if ($mime === 'application/x-empty' || $mime === 'inode/x-empty') {
+            $mime = null;
+        }
         if (!isset($mime) || $mime === 'application/octet-stream' || $mime === 'text/plain') {
             $byExt = \Symfony\Component\Mime\MimeTypes::getDefault()->getMimeTypes($ext);
             if (count($byExt) > 0 && ($mime === null || $mime === 'application/octet-stream' || in_array($ext, static::TEXT_EXTENSIONS, true))) {

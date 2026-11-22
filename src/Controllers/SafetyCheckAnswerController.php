@@ -13,10 +13,28 @@ use Illuminate\Support\Facades\URL;
 class SafetyCheckAnswerController extends Controller
 {
     /**
+     * The answer page is not behind admin.feature (who answers need not be
+     * in the role groups of the feature): only whether the site uses it.
+     */
+    protected function notUsed(): ?\Symfony\Component\HttpFoundation\Response
+    {
+        if (\Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::SAFETY_CHECK)) {
+            return null;
+        }
+        // as a link that is not right (the page of this controller, 404)
+        return $this->withSafetyHeaders(response()->view('exment::safety.answer', [
+            'mode' => 'error', 'message' => exmtrans('safety.answer_invalid_link'),
+        ], 404));
+    }
+
+    /**
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function form(Request $request)
     {
+        if ($off = $this->notUsed()) {
+            return $off;
+        }
         return $this->resolve($request, function ($eventValue, $userId, $answerRow) use ($request) {
             return response()->view('exment::safety.answer', [
                 'mode'      => 'form',
@@ -32,6 +50,9 @@ class SafetyCheckAnswerController extends Controller
      */
     public function submit(Request $request)
     {
+        if ($off = $this->notUsed()) {
+            return $off;
+        }
         return $this->resolve($request, function ($eventValue, $userId, $answerRow) use ($request) {
             $status = $request->get('st');
             if (!in_array($status, SafetyCheckDefine::ANSWER_STATUSES, true)) {

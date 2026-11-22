@@ -30,6 +30,16 @@ class RouteServiceProvider extends ServiceProvider
         /** @var int $rate_limit */
         $rate_limit = config('exment.api_max_rate_limit', 60);
         RateLimiter::for('api', function (Request $request) use ($rate_limit) {
+            // an API key of a user: not through the OAuth guard (Passport empties the Authorization
+            // header of a bearer that is not its token, and the key would never sign in after it)
+            $bearer = $request->bearerToken();
+            if (\Exceedone\Exment\Services\UserApiKeys::looksLikeKey($bearer)) {
+                // by the IP (a new random key each time, or many keys, do not get more) and by the key
+                return [
+                    Limit::perMinute($rate_limit)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
+                    Limit::perMinute($rate_limit)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
+                ];
+            }
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
             return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
         });
@@ -60,6 +70,8 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'    => config('admin.route.prefix'),
             'namespace' => $this->namespace,
+            // maintenance mode: from outside, as the public forms
+            'middleware' => ['exment.maintenance:public'],
         ], function (Router $router) {
             $router->post('line/webhook', 'LineWebhookController@handle')->name('exment.line_webhook');
         });
@@ -108,6 +120,8 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'  => $this->namespace,
             'middleware' => [
                 'adminweb',
+                // maintenance mode: from outside (a link in a mail), as the public forms
+                'exment.maintenance:public',
                 'admin.browser',
                 'admin.initialize',
                 'admin.login',
@@ -157,6 +171,13 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
+            // the API keys of the users (ISS00437): of the login user, and of the site
+            $router->get('auth/api_keys', 'UserApiKeyController@index');
+            $router->post('auth/api_keys', 'UserApiKeyController@store');
+            $router->post('auth/api_keys/{id}/revoke', 'UserApiKeyController@revoke')->where('id', '[0-9]+');
+            $router->get('api_keys', 'UserApiKeyController@adminIndex');
+            $router->post('api_keys/{id}/revoke', 'UserApiKeyController@adminRevoke')->where('id', '[0-9]+');
+            $router->post('api_keys/user/{userId}/revoke', 'UserApiKeyController@adminRevokeUser')->where('userId', '[0-9]+');
 
             $router->get('system', 'SystemController@index');
             $router->post('system', 'SystemController@post');
@@ -168,6 +189,10 @@ class RouteServiceProvider extends ServiceProvider
             // Tuning: what would make the site faster (ISS00414)
             $router->get('tuning', 'TuningController@index');
             $router->post('tuning/action', 'TuningController@action');
+            $router->get('maintenance', 'MaintenanceController@index');
+            $router->post('maintenance', 'MaintenanceController@store');
+            $router->post('maintenance/start', 'MaintenanceController@start');
+            $router->post('maintenance/end', 'MaintenanceController@end');
 
             // The preset library: what the pickers on the column and view
             // screens offer, managed as one list.
@@ -203,6 +228,7 @@ class RouteServiceProvider extends ServiceProvider
                 $router->delete('/', 'FileServerController@destroyWorkspace');
                 $router->get('trash', 'FileServerController@trash');
                 $router->post('folders', 'FileServerController@createFolder');
+                $router->post('text_files', 'FileServerController@createTextFile');
                 $router->post('upload', 'FileServerController@upload');
                 $router->post('upload/init', 'FileServerController@uploadInit');
                 $router->get('upload/{session}', 'FileServerController@uploadStatus');
@@ -229,6 +255,10 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('purge', 'FileServerController@purge');
                     $router->post('favorite', 'FileServerController@favorite');
                     $router->post('version', 'FileServerController@uploadVersion');
+                    $router->get('edit', 'FileServerController@editText');
+                    $router->post('text', 'FileServerController@saveText');
+                    // the preview is asked while typing: limited for each user
+                    $router->post('markdown', 'FileServerController@markdownPreview')->middleware(\Illuminate\Routing\Middleware\ThrottleRequests::class . ':120,1');
                     $router->post('versions/{version}/restore', 'FileServerController@restoreVersion')->where('version', '[0-9]+');
                     $router->post('preview', 'FileServerController@makePreview');
                     $router->post('checkout', 'FileServerController@checkout');
@@ -695,6 +725,13 @@ class RouteServiceProvider extends ServiceProvider
 
                     // System --------------------------------------------------
                     $router->get("version", 'ApiController@version');
+
+                    // MCP (ISS00439): the tools check their scopes, the API only (not webapi)
+                    if ($route['type'] === 'api') {
+                        $router->post('mcp', 'McpController@handle');
+                        $router->get('mcp', 'McpController@notAllowed');
+                        $router->delete('mcp', 'McpController@notAllowed');
+                    }
 
                     $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
                     // workflow data - tables, record labels, statuses - so the scopes of the wf/ read endpoints

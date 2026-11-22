@@ -25,6 +25,16 @@
     <div class="exm-fs-toolbar">
         @if ($can_upload)
             <button type="button" class="btn btn-sm btn-default" data-fs="new-folder"><i class="fa fa-folder" aria-hidden="true"></i> {{ exmtrans('file_server.new_folder') }}</button>
+            @if ($can_edit)
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-file-text-o" aria-hidden="true"></i> {{ exmtrans('file_server.new_file') }} <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        @foreach (\Exceedone\Exment\Services\FileServer\TextFiles::TYPES as $type)
+                            <li><a href="#" class="dropdown-item" data-fs="new-text" data-type="{{ $type }}">{{ exmtrans('file_server.new_text_' . $type) }}</a></li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <label class="btn btn-sm btn-primary" style="margin:0"><i class="fa fa-upload" aria-hidden="true"></i> {{ exmtrans('file_server.upload_files') }}
                 <input type="file" multiple hidden data-fs="file-input"></label>
             <label class="btn btn-sm btn-default" style="margin:0"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.upload_folder') }}
@@ -186,6 +196,7 @@
     var maxSize = Number(root.dataset.max) || 0;
     var t = {!! json_encode([
         'folder_name' => exmtrans('file_server.prompt_folder_name'),
+        'file_name' => exmtrans('file_server.prompt_file_name'),
         'new_name' => exmtrans('file_server.prompt_new_name'),
         'confirm_trash' => exmtrans('file_server.confirm_trash'),
         'move_to' => exmtrans('file_server.move_to'),
@@ -249,6 +260,17 @@
                 sequence(selected(), function (id) { return Fs.post(base + '/nodes/' + id + '/' + action, { target_id: target }); });
             });
         }
+    });
+
+    // "New": an empty text, Markdown or CSV file, opened in the editor (ISS00434)
+    root.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-fs="new-text"]');
+        if (!btn) { return; }
+        e.preventDefault();
+        var asked = Fs.ask ? Fs.ask(t.file_name, '') : Promise.resolve(prompt(t.file_name));
+        asked.then(function (fileName) {
+            if (fileName) { Fs.post(base + '/text_files', { parent_id: parentId, name: fileName, type: btn.dataset.type }).then(Fs.done, Fs.fail); }
+        });
     });
 
     function sequence(ids, fn) {
