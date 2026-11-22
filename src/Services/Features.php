@@ -207,6 +207,10 @@ class Features
      *   - manual: its manual, a page of the Exment manual ("file_server", "file_server?id=share")
      *     or a full https:// URL (the plugin's own). The help button of its pages and the
      *     row of Feature management open it.
+     *   - action: a button in its row of Feature management, ['label' => ..., 'url' => ...]: what
+     *     the feature needs done before it can work (as "install the editor"). The URL is an
+     *     http(s) URL or a path of the site; anything else drops the button. A plugin registers
+     *     on every request, so it gives the button only while there is something to do.
      */
     public static function register(string $key, array $definition): void
     {
@@ -245,7 +249,44 @@ class Features
             'who' => boolval(array_get($definition, 'who', true)),
             'requires' => is_string($requires) && $requires !== '' ? $requires : null,
             'manual' => static::manualOf(array_get($definition, 'manual')),
+            'action' => static::actionOf(array_get($definition, 'action')),
         ];
+    }
+
+    /**
+     * An action of a definition as it may be kept: a label and an http(s) URL or a path of
+     * the site (no "javascript:", no quotes). Null otherwise.
+     *
+     * @return array{label: string, url: string}|null
+     */
+    protected static function actionOf(mixed $action): ?array
+    {
+        if (!is_array($action)) {
+            return null;
+        }
+        $label = trim(strval($action['label'] ?? ''));
+        $url = trim(strval($action['url'] ?? ''));
+        if ($label === '' || $url === '' || mb_strlen($label) > 100) {
+            return null;
+        }
+        if (preg_match('#\Ahttps?://[^\s"\'<>]+\z#i', $url) !== 1 && preg_match('#\A/(?!/)[^\s"\'<>]*\z#', $url) !== 1) {
+            return null;
+        }
+        return ['label' => $label, 'url' => $url];
+    }
+
+    /**
+     * The button of a feature in Feature management, its label translated (null: none).
+     *
+     * @return array{label: string, url: string}|null
+     */
+    public static function action(string $key): ?array
+    {
+        $action = static::attribute($key, 'action');
+        if (!is_array($action)) {
+            return null;
+        }
+        return ['label' => static::translated(strval($action['label'])), 'url' => strval($action['url'])];
     }
 
     /**
