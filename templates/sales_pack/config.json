@@ -1,0 +1,1718 @@
+{
+    "template_name": "sales_pack",
+    "template_view_name": "営業パック",
+    "description": "顧客（担当者）・案件・見積（明細）・契約と、営業の役割グループ、「営業・顧客」のメニューのセットです。",
+    "custom_tables": [
+        {
+            "table_name": "sales_customer",
+            "table_view_name": "顧客",
+            "description": "取引先・見込み客の台帳です。担当者は明細に入れます。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-building",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "customer_name",
+                    "column_view_name": "顧客名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "customer_type",
+                    "column_view_name": "区分",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "prospect,見込み\ncustomer,取引中\nformer,取引終了",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "郵便番号",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "string_length": "16",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "address",
+                    "column_view_name": "住所",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "電話",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "string_length": "32",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "メール",
+                    "column_type": "email",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "url",
+                    "column_view_name": "Web サイト",
+                    "column_type": "url",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "7",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "担当者",
+                    "column_type": "user",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "8",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "9",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "a10105a9f0889799a302",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "sales_customer",
+                        "table_label_column_name": "customer_name"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "sales_customer_contact",
+            "table_view_name": "顧客の担当者",
+            "description": "顧客の会社の担当者です。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-user",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "contact_name",
+                    "column_view_name": "氏名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "部署",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "string_length": "128",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "title",
+                    "column_view_name": "役職",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "string_length": "128",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "電話",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "string_length": "32",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "メール",
+                    "column_type": "email",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "74087ad6a7f69c8ad016",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "sales_customer_contact",
+                        "table_label_column_name": "contact_name"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "sales_deal",
+            "table_view_name": "案件",
+            "description": "商談の状態と見込みを追います。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-handshake-o",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "deal_name",
+                    "column_view_name": "案件名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "顧客",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "sales_customer",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "stage",
+                    "column_view_name": "状態",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "lead,問い合わせ\nproposal,提案\nquote,見積\nwon,受注\nlost,失注",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "expected_amount",
+                    "column_view_name": "見込み金額",
+                    "column_type": "currency",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "number_format": "1",
+                        "currency_symbol": "JPY1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "expected_date",
+                    "column_view_name": "受注予定日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "probability",
+                    "column_view_name": "確度",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "a,A（ほぼ確実）\nb,B（五分五分）\nc,C（低い）",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "担当者",
+                    "column_type": "user",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "7",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "内容",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "8",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "185e3e24510eee28b506",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "sales_deal",
+                        "table_label_column_name": "deal_name"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote",
+            "table_view_name": "見積",
+            "description": "見積と明細です。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-file-text-o",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "quote_title",
+                    "column_view_name": "件名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "顧客",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "sales_customer",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "案件",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "sales_deal",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "quote_date",
+                    "column_view_name": "見積日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "valid_until",
+                    "column_view_name": "有効期限",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "合計",
+                    "column_type": "currency",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "currency_symbol": "JPY1",
+                        "number_format": "1",
+                        "calc_formula": "${sum:sales_quote_detail.amount}"
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "7",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "9a6193fcbb53a192fac9",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "sales_quote",
+                        "table_label_column_name": "quote_title"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote_detail",
+            "table_view_name": "見積明細",
+            "description": "見積の明細です。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-list",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "item_name",
+                    "column_view_name": "品名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "quantity",
+                    "column_view_name": "数量",
+                    "column_type": "decimal",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "decimal_digit": "2",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "unit",
+                    "column_view_name": "単位",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "string_length": "16",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "unit_price",
+                    "column_view_name": "単価",
+                    "column_type": "currency",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "number_format": "1",
+                        "currency_symbol": "JPY1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "金額",
+                    "column_type": "currency",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "currency_symbol": "JPY1",
+                        "number_format": "1",
+                        "calc_formula": "${value:quantity} * ${value:unit_price}"
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "string_length": "256",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": []
+        },
+        {
+            "table_name": "sales_contract",
+            "table_view_name": "契約",
+            "description": "契約と期限を管理します。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-file-text",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "contract_name",
+                    "column_view_name": "契約名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "顧客",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "sales_customer",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "案件",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_target_table_name": "sales_deal",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "契約日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "開始日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "終了日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "auto_renewal",
+                    "column_view_name": "自動更新",
+                    "column_type": "yesno",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "7",
+                    "options": {
+                        "default": "0",
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "金額",
+                    "column_type": "currency",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "8",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "number_format": "1",
+                        "currency_symbol": "JPY1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "document",
+                    "column_view_name": "契約書",
+                    "column_type": "file",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "9",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "multiple_enabled": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "10",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "353bf794257879619c6e",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "sales_contract",
+                        "table_label_column_name": "contract_name"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        }
+    ],
+    "custom_relations": [
+        {
+            "relation_type": "1",
+            "options": {
+                "parent_import_table_name": null,
+                "parent_import_column_name": null,
+                "parent_export_table_name": null,
+                "parent_export_column_name": null
+            },
+            "parent_custom_table_name": "sales_customer",
+            "child_custom_table_name": "sales_customer_contact"
+        },
+        {
+            "relation_type": "1",
+            "options": {
+                "parent_import_table_name": null,
+                "parent_import_column_name": null,
+                "parent_export_table_name": null,
+                "parent_export_column_name": null
+            },
+            "parent_custom_table_name": "sales_quote",
+            "child_custom_table_name": "sales_quote_detail"
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0858ef1666946ae5f31e",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "options": null,
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "suuid": "054cf1a508af018e01ab",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "422",
+                            "form_column_target_name": "customer_name"
+                        },
+                        {
+                            "suuid": "58c1dc6db8723ede0d51",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "434",
+                            "form_column_target_name": "customer_type"
+                        },
+                        {
+                            "suuid": "8b4a991dfd40d87eaca7",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "446",
+                            "form_column_target_name": "postal_code"
+                        },
+                        {
+                            "suuid": "16bc66d3d21ab771db98",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "458",
+                            "form_column_target_name": "address"
+                        },
+                        {
+                            "suuid": "2e6455af62f34b2d839a",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "470",
+                            "form_column_target_name": "tel"
+                        },
+                        {
+                            "suuid": "83b09b2d80eca545ed8a",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "482",
+                            "form_column_target_name": "email"
+                        },
+                        {
+                            "suuid": "b9db34a43bfe8ddbd81d",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "495",
+                            "form_column_target_name": "url"
+                        },
+                        {
+                            "suuid": "442a639df9c7fdad0552",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "502",
+                            "form_column_target_name": "owner"
+                        },
+                        {
+                            "suuid": "08b805e375aa461673ff",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "509",
+                            "form_column_target_name": "note"
+                        }
+                    ],
+                    "form_block_target_table_name": "sales_customer"
+                },
+                {
+                    "form_block_view_name": "顧客の担当者",
+                    "form_block_type": "1",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "suuid": "d671f45f4fb01209fa6c",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "1",
+                            "form_column_target_name": "contact_name"
+                        },
+                        {
+                            "suuid": "94fbb4b85a65bd2b1c5d",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "2",
+                            "form_column_target_name": "department"
+                        },
+                        {
+                            "suuid": "bbce6b1ae31bae055629",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "3",
+                            "form_column_target_name": "title"
+                        },
+                        {
+                            "suuid": "51a07e8f815759a20bd9",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "4",
+                            "form_column_target_name": "tel"
+                        },
+                        {
+                            "suuid": "19d8ea64b83ef4053fee",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "5",
+                            "form_column_target_name": "email"
+                        }
+                    ],
+                    "form_block_target_table_name": "sales_customer_contact"
+                }
+            ],
+            "table_name": "sales_customer"
+        },
+        {
+            "suuid": "1e9cf01d6433f6d1e818",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "options": null,
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "suuid": "407f2542d1e732d9008f",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "425",
+                            "form_column_target_name": "quote_title"
+                        },
+                        {
+                            "suuid": "7e8229e243c3d42e6c94",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "426",
+                            "form_column_target_name": "customer"
+                        },
+                        {
+                            "suuid": "a646b8c4deedd5e5960e",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "427",
+                            "form_column_target_name": "deal"
+                        },
+                        {
+                            "suuid": "0d54b718ed0eacbab44d",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "428",
+                            "form_column_target_name": "quote_date"
+                        },
+                        {
+                            "suuid": "96232e6904dbd8175af1",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "429",
+                            "form_column_target_name": "valid_until"
+                        },
+                        {
+                            "suuid": "d7230e8cd4eaba0d7d1d",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "430",
+                            "form_column_target_name": "total"
+                        },
+                        {
+                            "suuid": "a191f24da0f6b74ed426",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "431",
+                            "form_column_target_name": "note"
+                        }
+                    ],
+                    "form_block_target_table_name": "sales_quote"
+                },
+                {
+                    "form_block_view_name": "見積明細",
+                    "form_block_type": "1",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "suuid": "c98af71e31cfd4c672e7",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "1",
+                            "form_column_target_name": "item_name"
+                        },
+                        {
+                            "suuid": "340cbeed7cebf2b91df5",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "2",
+                            "form_column_target_name": "quantity"
+                        },
+                        {
+                            "suuid": "1f104cdce34b24e5c1c0",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "3",
+                            "form_column_target_name": "unit"
+                        },
+                        {
+                            "suuid": "a6f09423041ead32a5dd",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "4",
+                            "form_column_target_name": "unit_price"
+                        },
+                        {
+                            "suuid": "bde01d2c96ca7ebbb6b4",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "5",
+                            "form_column_target_name": "amount"
+                        },
+                        {
+                            "suuid": "11387f327b589beb20f5",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "6",
+                            "form_column_target_name": "note"
+                        }
+                    ],
+                    "form_block_target_table_name": "sales_quote_detail"
+                }
+            ],
+            "table_name": "sales_quote"
+        }
+    ],
+    "admin_menu": [
+        {
+            "order": "20",
+            "title": "営業・顧客",
+            "icon": "fa-briefcase",
+            "uri": "#",
+            "options": {
+                "visible_role_group_names": [
+                    "sales_member_group"
+                ]
+            },
+            "menu_type": "parent_node",
+            "menu_name": "sales",
+            "parent_name": null,
+            "menu_target_name": null
+        },
+        {
+            "order": "1",
+            "title": "顧客",
+            "icon": "fa-building",
+            "uri": "sales_customer",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "sales_customer",
+            "parent_name": "sales",
+            "menu_target_name": "sales_customer"
+        },
+        {
+            "order": "2",
+            "title": "案件",
+            "icon": "fa-handshake-o",
+            "uri": "sales_deal",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "sales_deal",
+            "parent_name": "sales",
+            "menu_target_name": "sales_deal"
+        },
+        {
+            "order": "3",
+            "title": "見積",
+            "icon": "fa-file-text-o",
+            "uri": "sales_quote",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "sales_quote",
+            "parent_name": "sales",
+            "menu_target_name": "sales_quote"
+        },
+        {
+            "order": "4",
+            "title": "契約",
+            "icon": "fa-file-text",
+            "uri": "sales_contract",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "sales_contract",
+            "parent_name": "sales",
+            "menu_target_name": "sales_contract"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "sales_member_group",
+            "role_group_view_name": "営業",
+            "role_group_order": "0",
+            "description": "顧客・案件・見積・契約を見て、作り、直す人。",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "sales_customer"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "sales_customer_contact"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "sales_deal"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "sales_quote"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "sales_quote_detail"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "sales_contract"
+                }
+            ]
+        }
+    ],
+    "thumbnail": "thumbnail.png"
+}
