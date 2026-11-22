@@ -158,13 +158,13 @@ class FileOfficeConverterTest extends FeatureTestBase
         $base = admin_urls('file_server', $ws->id, 'nodes', $node->id);
         $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
         // the page waits for it, and asks
-        $this->get($base, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertSee('data-fs-preview-wait="' . $base . '/preview"', false);
+        $this->get($base, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->assertSee('data-fs-preview-wait="' . $base . '/rendition"', false);
         // the first ask converts
-        $this->post($base . '/preview', [], $ajax)->assertOk()->assertJson(['status' => 'done', 'pdf_url' => $base . '/content?rendition=pdf']);
+        $this->post($base . '/rendition', [], $ajax)->assertOk()->assertJson(['status' => 'done', 'pdf_url' => $base . '/content?rendition=pdf']);
         Http::assertSentCount(1);
         $this->assertSame(FileNodeVersion::RENDITION_DONE, $version->refresh()->rendition_status);
         // asked again: kept, not sent again
-        $this->post($base . '/preview', [], $ajax)->assertOk()->assertJson(['status' => 'done']);
+        $this->post($base . '/rendition', [], $ajax)->assertOk()->assertJson(['status' => 'done']);
         Http::assertSentCount(1);
     }
 
@@ -178,7 +178,7 @@ class FileOfficeConverterTest extends FeatureTestBase
         /** @var FileNodeVersion $version */
         $version = $node->refresh()->current_version;
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        $url = admin_urls('file_server', $ws->id, 'nodes', $node->id, 'preview');
+        $url = admin_urls('file_server', $ws->id, 'nodes', $node->id, 'rendition');
         $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
 
         // another viewer is converting it (holds the lock)

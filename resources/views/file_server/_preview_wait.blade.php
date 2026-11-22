@@ -1,5 +1,5 @@
 {{-- File server: the PDF of an Office file is made when the preview is first opened (ISS01704). Asks until it is there. --}}
-<div class="exm-fs-preview-wait" style="width:100%;padding:12px" data-fs-preview-wait="{{ $node_url }}/preview" data-title="{{ $node->name }}">
+<div class="exm-fs-preview-wait" style="width:100%;padding:12px" data-fs-preview-wait="{{ $node_url }}/rendition" data-title="{{ $node->name }}">
     <p class="exm-fs-muted"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i> <span data-fs-wait-text>{{ exmtrans('file_server.preview_converting') }}</span></p>
 </div>
 <script>
