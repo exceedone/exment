@@ -41,6 +41,8 @@ class TuningController extends AdminControllerBase
         $this->AdminContent($content);
         $content->row(view('exment::tuning.index', [
             'checkResult' => SystemRequireList::make(SystemRequireCalledType::TUNING),
+            // the system requirements (PHP's limits, the permissions...), moved here from the system setting (ISS02828)
+            'requireResult' => SystemRequireList::make(SystemRequireCalledType::WEB),
             'serverActions' => static::serverActionsAllowed(),
             'actionUrl' => admin_urls('tuning', 'action'),
         ]));
