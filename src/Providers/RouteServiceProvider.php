@@ -60,6 +60,25 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
+        $this->mapLegacyAdminRedirect();
+    }
+
+    /**
+     * A site without the admin prefix: the old "/admin/..." links go to the
+     * same page without "/admin" (GET only). Registered last, so every route
+     * of the site comes first.
+     *
+     * @return void
+     */
+    public function mapLegacyAdminRedirect()
+    {
+        if (!\Exceedone\Exment\Services\LegacyAdminRedirect::enabled()) {
+            return;
+        }
+        Route::get(\Exceedone\Exment\Services\LegacyAdminRedirect::SEGMENT . '/{legacy_admin_path?}', \Exceedone\Exment\Controllers\LegacyAdminRedirectController::class)
+            ->where('legacy_admin_path', '.*')
+            ->middleware('web')
+            ->name('exment.legacy_admin_redirect');
     }
 
     /**
