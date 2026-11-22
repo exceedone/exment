@@ -205,6 +205,7 @@ class RouteServiceProvider extends ServiceProvider
             // Studio: the screens of the site on one page (ISS00231 phase 1)
             $router->get('feature', 'FeatureController@index');
             $router->post('feature', 'FeatureController@store');
+            $router->post('feature/notices_known', 'FeatureController@noticesKnown');
             $router->post('feature/bundled/{uuid}/{action}', 'FeatureController@bundled')->where('action', 'install|rollback');
             $router->get('studio', 'StudioController@index');
             $router->get('studio/create', 'StudioController@create');
