@@ -124,4 +124,17 @@ class RequestPackTemplateTest extends UnitTestBase
         };
         $this->assertSame($values($ja), $values($config));
     }
+
+    public function testTheExpenseClaimAddsUpItsLines(): void
+    {
+        $formula = null;
+        foreach ($this->config()['custom_tables'] as $table) {
+            foreach ($table['custom_columns'] as $column) {
+                if ($table['table_name'] === 'request_expense' && $column['column_name'] === 'total') {
+                    $formula = $column['options']['calc_formula'] ?? null;
+                }
+            }
+        }
+        $this->assertSame('${sum:request_expense_detail.amount}', $formula);
+    }
 }
