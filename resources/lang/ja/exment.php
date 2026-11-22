@@ -3,6 +3,7 @@
 return [
     'label' => '日本語',
     'common' => [
+        'notice_admin_only' => 'このお知らせは、システム管理者にだけ出ています（ほかのユーザーには出ません）。',
         'home' => 'HOME',
         'success' => '成功',
         'error' => 'エラー',

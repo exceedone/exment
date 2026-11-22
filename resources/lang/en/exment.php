@@ -3,6 +3,7 @@
 return [
     'label' => 'English',
     'common' => [
+        'notice_admin_only' => 'Only the system administrators see this notice (the other users do not).',
         'home' => 'HOME',
         'success' => 'Success',
         'error' => 'Error',
