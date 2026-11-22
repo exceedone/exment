@@ -3809,6 +3809,7 @@ return [
             'groupware' => 'Groupware',
             'request' => 'Requests & approvals',
             'sales' => 'Sales & customers',
+            'asset' => 'Assets',
             'project' => 'Projects',
             'it_support' => 'IT support',
             'hr' => 'HR & general affairs',
