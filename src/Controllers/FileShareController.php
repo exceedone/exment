@@ -51,20 +51,22 @@ class FileShareController extends \App\Http\Controllers\Controller
             \Exceedone\Exment\Services\FileServer\Audit::log(\Exceedone\Exment\Services\FileServer\Audit::LINK_OPEN, $link->workspace, $item, null, [], $link->id);
         }
         $data = ['item' => $item, 'breadcrumbs' => $this->breadcrumbs($link, $item)];
+        // the links to take away, while its maker may still download (ShareLinks::downloadAllowed)
+        $canDownload = ShareLinks::downloadAllowed($link, $item);
         if ($item->isFolder()) {
             // not what has its own permissions (ISS00410)
             $children = ShareLinks::childrenInLink($item);
-            $data['children'] = $children->map(function (FileNode $child) use ($link) {
+            $data['children'] = $children->map(function (FileNode $child) use ($link, $canDownload) {
                 return [
                     'name' => $child->name,
                     'is_folder' => $child->isFolder(),
                     'size' => $child->size,
                     'updated_at' => $child->updated_at,
                     'url' => $this->url($link, 'item/' . $child->id),
-                    'download_url' => $link->allow_download ? $this->url($link, 'download') . '?node=' . $child->id : null,
+                    'download_url' => $canDownload ? $this->url($link, 'download') . '?node=' . $child->id : null,
                 ];
             })->all();
-            $data['zip_url'] = $link->allow_download ? $this->url($link, 'download') . '?node=' . $item->id : null;
+            $data['zip_url'] = $canDownload ? $this->url($link, 'download') . '?node=' . $item->id : null;
         } else {
             $version = $item->current_version;
             $kind = isset($version) ? Preview::kind($version->mime_type, $item->name) : Preview::KIND_NONE;
@@ -80,7 +82,7 @@ class FileShareController extends \App\Http\Controllers\Controller
                 'text' => $text,
                 'content_url' => $this->url($link, 'content') . '?node=' . $item->id,
                 'pdf_url' => isset($version) && isset($version->preview_path) ? $this->url($link, 'content') . '?node=' . $item->id . '&rendition=pdf' : null,
-                'download_url' => $link->allow_download ? $this->url($link, 'download') . '?node=' . $item->id : null,
+                'download_url' => $canDownload ? $this->url($link, 'download') . '?node=' . $item->id : null,
             ];
         }
         return $this->page('share', $link, $data);
@@ -116,6 +118,9 @@ class FileShareController extends \App\Http\Controllers\Controller
         $item = ShareLinks::nodeInLink($link, $request->filled('node') ? intval($request->get('node')) : null);
         if (!isset($item)) {
             abort(404);
+        }
+        if (!ShareLinks::downloadAllowed($link, $item)) {
+            abort(403);
         }
         \Exceedone\Exment\Services\FileServer\Audit::log(\Exceedone\Exment\Services\FileServer\Audit::LINK_DOWNLOAD, $link->workspace, $item, null, [], $link->id);
         $library = ShareLinks::linkLibrary();

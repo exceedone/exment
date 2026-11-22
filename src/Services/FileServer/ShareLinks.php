@@ -245,23 +245,47 @@ class ShareLinks
 
     protected static function makerMayGive(FileShareLink $link, FileWorkspace $workspace, FileNode $node): bool
     {
+        $access = static::makerAccess($link);
+        // a request link as a share link: its maker must still edit the folder
+        // (a link made before by who may only upload closes too, ISS00433)
+        return isset($access) && $access->can($workspace, $node, Level::EDIT);
+    }
+
+    /**
+     * Whether the link gives the files to take away now: it was made so, and its
+     * maker may still download them under the rule of the workspace today (a rule
+     * made stricter later applies to the links made before).
+     */
+    public static function downloadAllowed(FileShareLink $link, ?FileNode $node = null): bool
+    {
+        if (!$link->allow_download || $link->kind !== FileShareLink::KIND_SHARE) {
+            return false;
+        }
+        $workspace = $link->workspace;
+        $access = static::makerAccess($link);
+        return isset($workspace, $access) && Governance::canDownload($access, $workspace, $node ?? $link->node);
+    }
+
+    /**
+     * The access of the maker of a link (null: no maker, or removed).
+     */
+    protected static function makerAccess(FileShareLink $link): ?Access
+    {
         $makerId = $link->created_user_id;
         if (!isset($makerId)) {
-            return false;
+            return null;
         }
         $isAdmin = false;
         try {
             $login = \Exceedone\Exment\Model\LoginUser::query()->where('base_user_id', $makerId)->first();
             if (!isset($login) && getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($makerId) === null) {
-                return false;
+                return null;
             }
             $isAdmin = isset($login) && boolval($login->hasPermission(\Exceedone\Exment\Enums\Permission::SYSTEM));
         } catch (\Throwable $e) {
             $isAdmin = false;
         }
-        // a request link as a share link: its maker must still edit the folder
-        // (a link made before by who may only upload closes too, ISS00433)
-        return (new Access(intval($makerId), $isAdmin))->can($workspace, $node, Level::EDIT);
+        return new Access(intval($makerId), $isAdmin);
     }
 
     public static function isUnlocked(FileShareLink $link): bool
