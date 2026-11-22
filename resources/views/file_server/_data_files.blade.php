@@ -9,7 +9,7 @@
             <a href="{{ $url }}"><i class="fa {{ $node->isFolder() ? 'fa-folder' : 'fa-file-o' }}" aria-hidden="true"></i> {{ $node->name }}</a>
             <span style="opacity:.65;font-size:.85em">{{ optional($node->workspace)->name }} · {{ optional($node->updated_at)->format('Y/m/d') }}</span>
             @if ($node->isFile())
-                <a href="{{ $base }}/nodes/{{ $node->id }}/download" title="{{ exmtrans('file_server.download') }}" aria-label="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
+                <a data-nopjax download href="{{ $base }}/nodes/{{ $node->id }}/download" title="{{ exmtrans('file_server.download') }}" aria-label="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
             @endif
         </li>
     @endforeach

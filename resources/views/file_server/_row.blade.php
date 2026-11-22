@@ -21,7 +21,7 @@
     <td class="exm-fs-muted">@if (!$item['is_folder'])<span data-fs-size="{{ $item['size'] }}"></span>@endif</td>
     <td class="exm-fs-actions">
         <button type="button" class="btn btn-xs btn-default" data-fs-copy-link="{{ $item['link'] }}" data-fs-copy-name="{{ $item['name'] }}" title="{{ exmtrans('file_server.copy_link_help') }}" aria-label="{{ exmtrans('file_server.copy_link') }}"><i class="fa fa-link" aria-hidden="true"></i></button>
-        <a class="btn btn-xs btn-default" href="{{ $item['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
+        <a data-nopjax download class="btn btn-xs btn-default" href="{{ $item['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
         @if ($can_edit)
             <button type="button" class="btn btn-xs btn-default" data-fs="rename" title="{{ exmtrans('file_server.rename') }}"><i class="fa fa-pencil" aria-hidden="true"></i></button>
         @endif

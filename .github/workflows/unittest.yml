@@ -73,6 +73,13 @@ jobs:
         run: |
           make ${{ matrix.db }}-init
 
+      # the whole unit suite reached PHP's default 512M near its end (2400+ tests);
+      # 1024M, written in M because SystemRequireTest compares the value without "M"
+      - name: Raise the PHP memory limit for the tests
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php sh -c 'echo "memory_limit=1024M" > "$(php -r "echo PHP_CONFIG_FILE_SCAN_DIR;")/zz-ci-memory.ini" && php -r "echo ini_get(\"memory_limit\"), PHP_EOL;"'
+
       - name: PHPUnit Test
         working-directory: docker-exment
         run: |
