@@ -187,15 +187,19 @@ class FileServerController extends AdminControllerBase
         } catch (FileServerException $e) {
             abort(404);
         }
-        // not the path it has now (an old one, another case): to that one
-        $current = array_merge([Paths::segment($ws)], isset($node) ? $paths->names($node) : []);
+        // not the path it has now (an old one, another case): to that one;
+        // no path for it (too long, a name another workspace has too): to the number
+        $url = $paths->url($ws, $node);
         $asked = array_values(array_filter(explode('/', $path), function ($segment) {
             return $segment !== '';
         }));
+        $current = isset($url) ? array_merge([$paths->workspaceSegment($ws)], isset($node) ? $paths->names($node) : []) : null;
         if ($asked !== $current) {
-            // no path for it (too long for an address): the number
-            $url = $paths->url($ws, $node) ?? Paths::numberUrl($ws, $node);
-            return redirect($this->withQuery($url, $request->query()), 302);
+            $query = $request->query();
+            if (!isset($url)) {
+                unset($query['n']);
+            }
+            return redirect($this->withQuery($url ?? Paths::numberUrl($ws, $node), $query), 302);
         }
         if (isset($node) && $node->isFile()) {
             return $this->nodePage($request, $content, $ws, $node);
@@ -205,8 +209,9 @@ class FileServerController extends AdminControllerBase
 
     /**
      * The address with numbers of a page, asked by the browser (not by fetch()):
-     * moved for good (301) to the path, with the number of the item (so it
-     * still opens it once the browser keeps the move and the item is renamed).
+     * to the path, with the number of the item (so it opens it after a rename).
+     * 302, not 301: where it leads changes (the names, what the user may see),
+     * and the address with numbers always opens it.
      *
      * @return \Symfony\Component\HttpFoundation\Response|null
      */
@@ -226,7 +231,7 @@ class FileServerController extends AdminControllerBase
         if (isset($node)) {
             $query = ['n' => $node->id] + array_diff_key($query, ['n' => true]);
         }
-        return redirect($this->withQuery($url, $query), 301);
+        return redirect($this->withQuery($url, $query), 302);
     }
 
     /**
@@ -1449,6 +1454,7 @@ class FileServerController extends AdminControllerBase
                 continue;
             }
             $version = $node->isFile() ? $node->current_version : null;
+            $path = $paths->url($workspace, $node);
             $rows[] = [
                 'id' => $node->id,
                 'name' => $node->name,
@@ -1459,8 +1465,8 @@ class FileServerController extends AdminControllerBase
                 'updated_at' => $node->updated_at,
                 'updated_user' => $this->userName($node->updated_user_id),
                 'workspace' => $workspace->name,
-                'url' => $paths->url($workspace, $node) ?? Paths::numberUrl($workspace, $node),
-                'link' => $paths->link($workspace, $node),
+                'url' => $path ?? Paths::numberUrl($workspace, $node),
+                'link' => $paths->link($workspace, $node, $path),
                 'detail_url' => $this->nodeUrl($workspace, $node),
                 'download_url' => $this->nodeUrl($workspace, $node, 'download'),
                 'thumbnail_url' => isset($version) && isset($version->thumbnail_path) ? $this->nodeUrl($workspace, $node, 'thumbnail') . '?v=' . $version->id : null,

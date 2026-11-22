@@ -12,16 +12,19 @@ use Illuminate\Support\Facades\DB;
  *
  * - The names are encoded in the address (Japanese, spaces, "#", "%"...).
  *   No name has a "/" (Library::validName), so a path names one item.
- * - A workspace whose name cannot be in an address (only digits, "create",
- *   "search"..., a "/") keeps the addresses with numbers, and so does a path
- *   too long for an address (MAX_URL_LENGTH).
+ * - Some keep the addresses with numbers:
+ *   - a workspace whose name cannot be in an address (only digits, the pages
+ *     under file_server/ such as "create" or "search", a "/"), or that another
+ *     workspace also has (the path would not say which one);
+ *   - a name the web servers keep for themselves (".php" at the end, a dot first);
+ *   - a path too long for an address (MAX_URL_LENGTH).
  * - When a folder or a file is renamed or moved, its old path is kept and
  *   leads to it. A new item that takes the old path wins (the old path is
  *   forgotten). ?n=<id> in a link names the item for good.
  * - Nothing is told about what the user may not see: a path to it is the
- *   same as a path to nothing (404). An item under a folder the user may not
- *   see keeps the number for them, and a path through that folder is not
- *   found: the path would tell the name of the folder (ISS00433).
+ *   same as a path to nothing (404). An item in a folder the user may not see
+ *   keeps the number for them, and a path through that folder is not found:
+ *   the path would tell the name of the folder (ISS00433).
  *
  * The API, WebDAV and the operations of the pages keep the numbers.
  */
@@ -36,19 +39,28 @@ class Paths
      */
     public const MAX_URL_LENGTH = 2000;
 
-    /** the first parts of the addresses under file_server/ that are pages, not workspaces */
-    public const RESERVED = ['create', 'search', 'data_lookup'];
+    /** the first parts of the addresses under file_server/ that are pages, not workspaces (with those of the routes) */
+    public const RESERVED = ['create', 'search', 'data_lookup', 'picker'];
 
     protected static ?bool $ready = null;
+
+    /** @var string[]|null */
+    protected static ?array $reserved = null;
 
     /** @var array<int, string[]> the names of the folders, from the top, by their id */
     protected array $folders = [];
 
+    /** @var array<int, int|null> the folder each folder is in, by their id */
+    protected array $parents = [];
+
     /** @var array<int, bool> the folders the user may see, by their id */
     protected array $seen = [];
 
+    /** @var array<string, int>|null how many workspaces have each name (by its key) */
+    protected ?array $names = null;
+
     /**
-     * @param Access|null $access the user the addresses are for: an item under a
+     * @param Access|null $access the user the addresses are for: an item in a
      *        folder they may not see keeps the number (the path would tell its
      *        name, ISS00433). Null: no one in particular (all the paths).
      */
@@ -57,17 +69,51 @@ class Paths
     }
 
     /**
-     * The name of the workspace in the address, or null when it cannot be one.
+     * The name of the workspace as it is in an address, or null when it cannot
+     * be one (whatever the other workspaces are called).
      */
     public static function segment(FileWorkspace $workspace): ?string
     {
         $name = Library::normalizeName(trim(strval($workspace->name)));
-        if ($name === '' || $name === '.' || $name === '..' || preg_match('/^[0-9]+$/', $name) === 1
-            || in_array(mb_strtolower($name), static::RESERVED, true)
-            || preg_match('#[/\\\\\x00-\x1F\x7F]#', $name) === 1) {
+        if (!static::canBeInAddress($name) || preg_match('/^[0-9]+$/', $name) === 1
+            || in_array(mb_strtolower($name), static::reserved(), true)) {
             return null;
         }
         return $name;
+    }
+
+    /**
+     * A name the web servers pass on to Exment: not empty, no "/", "\" or
+     * control character, not ".php" at the end (nginx gives those to PHP-FPM
+     * as scripts), not a dot first (the hidden files are refused, and "." "..").
+     */
+    protected static function canBeInAddress(string $name): bool
+    {
+        return $name !== '' && preg_match('#[/\\\\\x00-\x1F\x7F]#', $name) !== 1
+            && !str_starts_with($name, '.') && preg_match('/\.(php[0-9]*|phtml|phar)$/i', $name) !== 1;
+    }
+
+    /**
+     * The words after file_server/ that are pages (the routes), in lower case.
+     *
+     * @return string[]
+     */
+    protected static function reserved(): array
+    {
+        if (!isset(static::$reserved)) {
+            $words = static::RESERVED;
+            try {
+                foreach (app('router')->getRoutes()->getRoutes() as $route) {
+                    if (preg_match('#(^|/)file_server/([^/{]+)#', $route->uri(), $m) === 1) {
+                        $words[] = mb_strtolower($m[2]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                // the routes are not there (a command): the list above
+            }
+            static::$reserved = array_values(array_unique($words));
+        }
+        return static::$reserved;
     }
 
     /**
@@ -78,6 +124,26 @@ class Paths
     public static function key(array $names): string
     {
         return hash('sha256', mb_strtolower(Library::normalizeName(implode('/', $names))));
+    }
+
+    /**
+     * The name of the workspace in its addresses: null when it cannot be one,
+     * or another workspace has it too.
+     */
+    public function workspaceSegment(FileWorkspace $workspace): ?string
+    {
+        $segment = static::segment($workspace);
+        if (!isset($segment)) {
+            return null;
+        }
+        if (!isset($this->names)) {
+            $this->names = [];
+            foreach (FileWorkspace::query()->pluck('name') as $name) {
+                $key = static::key([trim(strval($name))]);
+                $this->names[$key] = ($this->names[$key] ?? 0) + 1;
+            }
+        }
+        return ($this->names[static::key([$segment])] ?? 0) > 1 ? null : $segment;
     }
 
     /**
@@ -110,6 +176,7 @@ class Paths
             }
             array_unshift($list, strval($folder->name));
             $ids[] = $id;
+            $this->parents[$id] = $folder->parent_id;
             $id = $folder->parent_id;
         }
         // keep each folder on the way (the last one met is the highest)
@@ -122,19 +189,23 @@ class Paths
 
     /**
      * The address of the page of a folder (its list) or a file, or of the top
-     * of the workspace; null when it keeps the address with numbers (the name of
-     * the workspace cannot be in an address, or the path is too long).
+     * of the workspace; null when it keeps the address with numbers.
      */
     public function url(FileWorkspace $workspace, ?FileNode $node = null): ?string
     {
-        $segment = static::segment($workspace);
+        $segment = $this->workspaceSegment($workspace);
         if (!isset($segment)) {
             return null;
         }
-        if (isset($node) && $this->hiddenAbove($workspace, $node)) {
+        if (isset($node) && $this->hidden($workspace, $node)) {
             return null;
         }
         $names = array_merge([$segment], isset($node) ? $this->names($node) : []);
+        foreach ($names as $name) {
+            if (!static::canBeInAddress($name)) {
+                return null;
+            }
+        }
         $url = admin_url('file_server/' . implode('/', array_map('rawurlencode', $names)));
         // with room for "?n=<id>"
         return strlen($url) + 13 <= static::MAX_URL_LENGTH ? $url : null;
@@ -143,10 +214,12 @@ class Paths
     /**
      * The address to give to others ("リンクをコピー"): the path, and the number
      * of the item, which opens it after it is renamed or moved.
+     *
+     * @param string|null $url the path of the item when it is known (url())
      */
-    public function link(FileWorkspace $workspace, ?FileNode $node = null): string
+    public function link(FileWorkspace $workspace, ?FileNode $node = null, ?string $url = null): string
     {
-        $url = $this->url($workspace, $node);
+        $url = $url ?? $this->url($workspace, $node);
         if (!isset($url)) {
             return static::numberUrl($workspace, $node);
         }
@@ -164,63 +237,103 @@ class Paths
         return admin_urls('file_server', $workspace->id, $node->isFolder() ? 'folder' : 'nodes', $node->id);
     }
 
-    // ================================================================ finding
-
     /**
-     * The workspace and the node (null: the top) of a path. A node the user may
-     * not see is not found, the same as one that is not there.
-     *
-     * @return array{0: FileWorkspace, 1: FileNode|null}
+     * The user may not see the node, or a folder it is in (false when no user is given).
      */
-    public function resolve(Access $access, string $path, ?int $id = null): array
-    {
-        $segments = array_values(array_filter(explode('/', $path), function ($segment) {
-            return $segment !== '';
-        }));
-        if (count($segments) === 0) {
-            throw FileServerException::notFound();
-        }
-        $first = array_shift($segments);
-        foreach ($this->workspaces($first) as $workspace) {
-            $node = isset($id) ? $this->byId($workspace, $id) : $this->walk($workspace, $segments);
-            if ($node === false) {
-                continue;
-            }
-            $this->access = $access;
-            if ($access->can($workspace, $node, Level::VIEW) && (!isset($node) || !$this->hiddenAbove($workspace, $node))) {
-                return [$workspace, $node];
-            }
-        }
-        throw FileServerException::notFound();
-    }
-
-    /**
-     * A folder above the node the user may not see (false when no user is given).
-     */
-    public function hiddenAbove(FileWorkspace $workspace, FileNode $node): bool
+    public function hidden(FileWorkspace $workspace, FileNode $node): bool
     {
         if (!isset($this->access)) {
             return false;
+        }
+        if (!$this->access->can($workspace, $node, Level::VIEW)) {
+            return true;
         }
         $id = $node->parent_id;
         $guard = 0;
         while (isset($id) && $guard++ < 1000) {
             if (!array_key_exists($id, $this->seen)) {
                 $folder = FileNode::find($id);
+                $this->parents[$id] = isset($folder) ? $folder->parent_id : null;
                 $this->seen[$id] = isset($folder) && $this->access->can($workspace, $folder, Level::VIEW);
             }
             if (!$this->seen[$id]) {
                 return true;
             }
-            $parent = FileNode::query()->whereKey($id)->value('parent_id');
-            $id = isset($parent) ? intval($parent) : null;
+            if (!array_key_exists($id, $this->parents)) {
+                $parent = FileNode::query()->whereKey($id)->value('parent_id');
+                $this->parents[$id] = isset($parent) ? intval($parent) : null;
+            }
+            $id = $this->parents[$id];
         }
         return false;
     }
 
+    // ================================================================ finding
+
+    /**
+     * The workspace and the node (null: the top) of a path. A node the user may
+     * not see (or in a folder they may not see) is not found, the same as one
+     * that is not there. Two workspaces with the name: the one where the path
+     * is; none when it is in both.
+     *
+     * @return array{0: FileWorkspace, 1: FileNode|null}
+     */
+    public function resolve(Access $access, string $path, ?int $id = null): array
+    {
+        $this->access = $access;
+        $segments = array_values(array_filter(explode('/', $path), function ($segment) {
+            return $segment !== '';
+        }));
+        if (count($segments) === 0) {
+            throw FileServerException::notFound();
+        }
+        $workspaces = $this->workspaces(array_shift($segments));
+
+        // the number names the item for good; gone (in the trash): the path, as without it
+        if (isset($id)) {
+            foreach ($workspaces as $workspace) {
+                $node = FileNode::query()->where('workspace_id', $workspace->id)->whereNull('trashed_at')->find($id);
+                if (isset($node)) {
+                    return $this->visible($workspace, $node);
+                }
+            }
+        }
+        // the paths of now in all the workspaces of the name first, then the old ones
+        foreach ([false, true] as $old) {
+            $found = [];
+            foreach ($workspaces as $workspace) {
+                $node = $this->walk($workspace, $segments, $old);
+                if ($node !== false) {
+                    $found[] = [$workspace, $node];
+                }
+            }
+            if (count($found) === 1) {
+                return $this->visible($found[0][0], $found[0][1]);
+            }
+            if (count($found) > 1) {
+                // the path does not say which: none (nor which ones the user may see)
+                break;
+            }
+        }
+        throw FileServerException::notFound();
+    }
+
+    /**
+     * @return array{0: FileWorkspace, 1: FileNode|null}
+     */
+    protected function visible(FileWorkspace $workspace, ?FileNode $node): array
+    {
+        $visible = isset($node) ? !$this->hidden($workspace, $node)
+            : isset($this->access) && $this->access->can($workspace, null, Level::VIEW);
+        if (!$visible) {
+            throw FileServerException::notFound();
+        }
+        return [$workspace, $node];
+    }
+
     /**
      * The workspaces of the first part of a path: by their name, else by a name
-     * they had. Two workspaces may have the same name: each is tried.
+     * they had.
      *
      * @return FileWorkspace[]
      */
@@ -242,28 +355,24 @@ class Paths
     }
 
     /**
-     * @return FileNode|false
-     */
-    protected function byId(FileWorkspace $workspace, int $id)
-    {
-        $node = FileNode::query()->where('workspace_id', $workspace->id)->whereNull('trashed_at')->find($id);
-        return $node ?? false;
-    }
-
-    /**
-     * Down the path from the top. A name not there now is looked for among the
-     * old paths: as it was written, and under the folder it leads to now.
+     * Down the path from the top. With $old, a name not there now is looked
+     * for among the old paths: as it was written, and under the folder it
+     * leads to now.
      *
      * @param string[] $segments
      * @return FileNode|null|false null: the top, false: not there
      */
-    protected function walk(FileWorkspace $workspace, array $segments)
+    protected function walk(FileWorkspace $workspace, array $segments, bool $old)
     {
+        if (count($segments) === 0) {
+            // the top is in each workspace of the name: once, with the paths of now
+            return $old ? false : null;
+        }
         $node = null;
         $last = count($segments) - 1;
         foreach ($segments as $i => $segment) {
             $child = $this->child($workspace, $node, $segment);
-            if (!isset($child)) {
+            if (!isset($child) && $old) {
                 $keys = array_unique([
                     static::key(array_slice($segments, 0, $i + 1)),
                     static::key(array_merge(isset($node) ? $this->names($node) : [], [$segment])),

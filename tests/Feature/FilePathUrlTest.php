@@ -159,6 +159,7 @@ class FilePathUrlTest extends FeatureTestBase
         $this->get(admin_urls('file_server', $ws->id, 'nodes', $far->id))->assertOk()->assertSee('far away');
     }
 
+    // 302, not 301: where it leads changes (names, permissions); the number always opens it
     public function testTheAddressesWithNumbersMoveToThePaths(): void
     {
         $lib = $this->admin();
@@ -168,20 +169,20 @@ class FilePathUrlTest extends FeatureTestBase
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
 
         $top = $this->get(admin_urls('file_server', $ws->id));
-        $top->assertStatus(301);
+        $top->assertStatus(302);
         $this->assertSame($this->pathUrl($ws), $this->location($top));
 
         $list = $this->get(admin_urls('file_server', $ws->id, 'folder', $folder->id) . '?sort=size');
-        $list->assertStatus(301);
+        $list->assertStatus(302);
         $this->assertSame($this->pathUrl($ws, ['営業部']) . '?n=' . $folder->id . '&sort=size', $this->location($list));
 
         $page = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id));
-        $page->assertStatus(301);
+        $page->assertStatus(302);
         $this->assertSame($this->pathUrl($ws, ['営業部', '見積書.txt']) . '?n=' . $file->id, $this->location($page));
         $this->followingRedirects()->get(admin_urls('file_server', $ws->id, 'nodes', $file->id))->assertOk()->assertSee('見積書.txt');
 
         // pjax follows the move; fetch() of the page (not pjax) is answered there
-        $this->page(admin_urls('file_server', $ws->id, 'nodes', $file->id))->assertStatus(301);
+        $this->page(admin_urls('file_server', $ws->id, 'nodes', $file->id))->assertStatus(302);
         $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
         // the details of a folder stay there (its path is its list)
         $this->get(admin_urls('file_server', $ws->id, 'nodes', $folder->id))->assertOk();
@@ -355,28 +356,95 @@ class FilePathUrlTest extends FeatureTestBase
         $lib = $this->admin();
         $digits = $lib->createWorkspace(['name' => '2026']);
         $reserved = $lib->createWorkspace(['name' => 'search']);
+        // a page of the routes under file_server/ (not in the list)
+        $route = $lib->createWorkspace(['name' => 'Picker']);
         $slash = $lib->createWorkspace(['name' => 'A/B']);
+        $php = $lib->createWorkspace(['name' => 'tools.php']);
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
 
-        foreach ([$digits, $reserved, $slash] as $ws) {
+        foreach ([$digits, $reserved, $route, $slash, $php] as $ws) {
             $this->assertNull(Paths::segment($ws), strval($ws->name));
             $this->assertSame(admin_urls('file_server', $ws->id), (new Paths())->link($ws));
             $this->get(admin_urls('file_server', $ws->id))->assertOk();
         }
     }
 
-    public function testTwoWorkspacesWithOneNameAreEachTried(): void
+    public function testTwoWorkspacesWithOneNameKeepTheNumbersAndAPathInOneOpens(): void
     {
         $lib = $this->admin();
         $name = 'Team ' . uniqid();
         $first = $lib->createWorkspace(['name' => $name]);
         $second = $lib->createWorkspace(['name' => $name]);
-        $lib->storeFile($first, null, 'one.txt', $this->local('in the first'));
+        $one = $lib->storeFile($first, null, 'one.txt', $this->local('in the first'));
         $lib->storeFile($second, null, 'two.txt', $this->local('in the second'));
+        $lib->storeFile($first, null, 'both.txt', $this->local('x'));
+        $lib->storeFile($second, null, 'both.txt', $this->local('y'));
+        // an old name in the first, a name of now in the second: the one of now
+        $old = $lib->storeFile($first, null, 'two.txt', $this->local('old'));
+        $lib->rename($first, $old, 'renamed.txt');
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
 
-        $this->page($this->pathUrl($first, ['one.txt']))->assertOk()->assertSee('in the first');
-        $this->page($this->pathUrl($second, ['two.txt']))->assertOk()->assertSee('in the second');
+        // the links do not say which: the numbers, and no move from them
+        $paths = new Paths();
+        $this->assertNull($paths->url($second));
+        $this->assertNull($paths->url($first, $one));
+        $this->get(admin_urls('file_server', $second->id))->assertOk();
+        // an address of the name, from before the second one: where the path is now
+        $this->page($this->pathUrl($first, ['one.txt']))->assertStatus(302);
+        $this->followingRedirects()->get($this->pathUrl($first, ['one.txt']))->assertOk()->assertSee('in the first');
+        $this->followingRedirects()->get($this->pathUrl($second, ['two.txt']))->assertOk()->assertSee('in the second');
+        // in both, or the top: not told which
+        $this->fetch($this->pathUrl($first, ['both.txt']))->assertNotFound();
+        $this->fetch($this->pathUrl($first))->assertNotFound();
+    }
+
+    public function testNamesTheWebServersKeepStayAtTheNumber(): void
+    {
+        $lib = $this->admin();
+        $ws = $this->workspace();
+        $script = $lib->storeFile($ws, null, 'index.php', $this->local('<?php echo 1;'));
+        $dot = $lib->createFolder($ws, null, '.config');
+        $inDot = $lib->storeFile($ws, $dot, 'a.txt', $this->local('x'));
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+
+        $paths = new Paths();
+        foreach ([$script, $dot, $inDot] as $node) {
+            $this->assertNull($paths->url($ws, $node), strval($node->name));
+        }
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $script->id))->assertOk();
+    }
+
+    public function testANumberOfAnItemInTheTrashLeadsByThePath(): void
+    {
+        $lib = $this->admin();
+        $ws = $this->workspace();
+        $folder = $lib->createFolder($ws, null, 'A');
+        $old = $lib->storeFile($ws, $folder, 'report.txt', $this->local('old'));
+        $link = (new Paths())->link($ws, $old);
+        $lib->trash($ws, $old);
+        $lib->storeFile($ws, $folder, 'report.txt', $this->local('the new report'));
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+
+        $this->page($link)->assertOk()->assertSee('the new report');
+    }
+
+    public function testThePageOfAFileDoesNotTellTheNameOfAFolderItIsIn(): void
+    {
+        $lib = $this->admin();
+        $ws = $this->workspace();
+        $secret = $lib->createFolder($ws, null, '人事');
+        $file = $lib->storeFile($ws, $secret, 'memo.txt', $this->local('given to user1'));
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::VIEW);
+        $lib->breakInheritance($ws, $secret);
+        $lib->setPermissions($ws, $secret, [['target_type' => 'user', 'target_id' => $this->userId(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'level' => Level::MANAGE]]);
+        $lib->breakInheritance($ws, $file);
+        $lib->setPermissions($ws, $file, [['target_type' => 'user', 'target_id' => $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'level' => Level::VIEW]]);
+
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
+            ->assertSee('given to user1')
+            ->assertDontSee(rawurlencode('人事'))
+            ->assertDontSee('人事');
     }
 
     public function testThePathsOfARemovedItemAreForgotten(): void
