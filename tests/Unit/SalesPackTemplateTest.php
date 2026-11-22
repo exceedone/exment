@@ -76,4 +76,16 @@ class SalesPackTemplateTest extends UnitTestBase
             }
         }
     }
+
+    public function testTheQuoteAddsUpItsLines(): void
+    {
+        $columns = [];
+        foreach ($this->config()['custom_tables'] as $table) {
+            foreach ($table['custom_columns'] as $column) {
+                $columns[$table['table_name'] . '.' . $column['column_name']] = $column['options']['calc_formula'] ?? null;
+            }
+        }
+        $this->assertSame('${value:quantity} * ${value:unit_price}', $columns['sales_quote_detail.amount'] ?? null);
+        $this->assertSame('${sum:sales_quote_detail.amount}', $columns['sales_quote.total'] ?? null);
+    }
 }

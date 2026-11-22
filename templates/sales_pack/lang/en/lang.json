@@ -148,6 +148,10 @@
                 {
                     "column_name": "note",
                     "column_view_name": "Note"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "Total"
                 }
             ]
         },
@@ -175,6 +179,10 @@
                 {
                     "column_name": "note",
                     "column_view_name": "Note"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Amount"
                 }
             ]
         },
