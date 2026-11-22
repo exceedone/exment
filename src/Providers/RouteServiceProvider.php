@@ -167,6 +167,10 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->resource('auth/logs', 'LogController', ['except' => ['create', 'edit']]);
             $router->post('auth/logs/setting', 'LogController@postSetting');
+            // a path of its own: exment-admin-core registers "auth/menu/{menu}" first, which would take "arrange" for an id
+            $router->get('auth/menu_arrange', 'MenuController@arrange');
+            $router->post('auth/menu_arrange', 'MenuController@arrangeRun');
+            $router->post('auth/menu_arrange/restore', 'MenuController@arrangeRestore');
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');

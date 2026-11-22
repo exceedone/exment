@@ -266,6 +266,7 @@ class Permission
             case "login_setting":
             case "database":
             case "auth/menu":
+            case "auth/menu_arrange":
             case "auth/logs":
             case "tuning":
             case "api_keys":
