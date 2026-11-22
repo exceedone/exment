@@ -693,7 +693,7 @@ class FileServerTest extends FeatureTestBase
             $node = $this->node($json['id']);
             $this->assertSame($name . '.' . $type, $node->name);
             // the blank document, a zip (Office Open XML) Office opens as an empty file
-            $blank = file_get_contents(exment_package_path('resources/file_server/blank.' . $type));
+            $blank = strval(file_get_contents(exment_package_path('resources/file_server/blank.' . $type)));
             $this->assertSame($blank, $this->bytes($node));
             $this->assertStringStartsWith("PK\x03\x04", $blank);
             $this->assertSame(Preview::KIND_OFFICE, Preview::kind($node->mime_type, $node->name));
