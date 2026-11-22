@@ -41,6 +41,9 @@ class UserApiKeys
     /** The routes a key limited to some tables may still use (they read no table). */
     protected const ROUTES_WITHOUT_TABLE = ['ApiController@me', 'ApiController@avatar', 'ApiController@version'];
 
+    /** The routes that check the tables of a key themselves (allowsTable()), as the MCP server. */
+    protected const ROUTES_CHECKING_TABLES = ['McpController@handle'];
+
     /** The routes of the files (checked by the table the file belongs to). */
     protected const FILE_ROUTES = ['FileController@downloadApi', 'FileController@downloadTableApi', 'FileController@deleteApi', 'FileController@deleteTableApi'];
 
@@ -475,7 +478,7 @@ class UserApiKeys
 
         $tableKey = $route->parameter('tableKey');
         if (!isset($tableKey)) {
-            return $is(static::ROUTES_WITHOUT_TABLE);
+            return $is(array_merge(static::ROUTES_WITHOUT_TABLE, static::ROUTES_CHECKING_TABLES));
         }
         // (input(): the query and the body, as the API reads them)
         if ($is(static::ROUTES_READING_OTHER_TABLES) || boolval($request->input('children')) || boolval($request->input('parents'))) {
@@ -483,6 +486,20 @@ class UserApiKeys
         }
         $custom_table = CustomTable::getEloquent($tableKey);
         return isset($custom_table) && in_array($custom_table->table_name, (array)$key->tables, true);
+    }
+
+    /**
+     * Whether the login user of the request may use the table with its token: always with an
+     * OAuth token; with an API key, when the key has no tables or has this one.
+     */
+    public static function allowsTable(LoginUser $user, string $tableName): bool
+    {
+        $token = $user->token();
+        if (!($token instanceof UserApiKeyToken)) {
+            return true;
+        }
+        $tables = $token->key()->tables;
+        return !isset($tables) || in_array($tableName, (array)$tables, true);
     }
 
     /**

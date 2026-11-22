@@ -4531,6 +4531,8 @@ return [
             'studio_help' => 'The list of screens, making screens, and the phone app (/app).',
             'api_keys' => 'API keys of the users',
             'api_keys_help' => 'With "All users", everyone may make keys of their own. The users of the chosen role groups make API keys of their own. A key can do only what the user may, within what was chosen for the key (read only, some tables). A key has an end date, and may be limited to some IP addresses or to a client certificate. When this is off, no key works (the keys are kept).',
+            'mcp' => 'MCP (connect from an AI)',
+            'mcp_help' => 'An AI such as Claude searches and reads the data of Exment (read only for now). It signs in as the API does (OAuth, or an API key of the user) and sees only what the user may see. Only the users of the chosen role groups. What the AI did is in the operation log as "MCP".',
             'tuning' => 'Tuning',
             'tuning_help' => 'The check of the settings that make the site faster ("Tuning" in Admin Setting). For the system administrators only. What it asks to change are the server settings, as php.ini and .env.',
         ],
