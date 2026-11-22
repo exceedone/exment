@@ -312,6 +312,7 @@ return [
         'help' => [
             'debug' => 'Install Exment in debug mode. In debug mode, the error details are displayed on the screen.',
             'installing' => 'Install initial data. This process takes time.',
+            'installing_timeout' => 'If it takes long and the page shows an error (such as 504), the install may still be running on the server. Wait a few minutes, then open the URL of this site again. The reason is also in storage/logs/laravel.log on the server.',
             'admin_route_prefix' => 'Empty: ":url" is the URL of Exment. With "admin" it is ":url/admin" (the default of older versions). Letters, digits, "-" and "_" only. You can change it later with ADMIN_ROUTE_PREFIX in .env.',
             'install_success' => 'Installation completed!',
         ],
