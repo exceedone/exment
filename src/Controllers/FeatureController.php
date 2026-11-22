@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\Features;
+use Exceedone\Exment\Services\PluginDistribution\AdminNotices;
 use Exceedone\Exment\Services\PluginDistribution\BundledPlugins;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
@@ -40,6 +41,13 @@ class FeatureController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
+        // the new features are on this page: the notice of the dashboard has told its news
+        try {
+            AdminNotices::markKnown(AdminNotices::newFeatureKeys());
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the new features known: ' . $e->getMessage());
+        }
+
         $roleGroups = RoleGroup::query()->orderBy('role_group_order')->orderBy('id')->get(['id', 'role_group_view_name'])
             ->map(function ($group) {
                 return ['id' => intval($group->id), 'name' => strval($group->role_group_view_name)];
@@ -123,6 +131,17 @@ class FeatureController extends AdminControllerBase
             admin_toastr($e->getMessage(), 'error');
         }
         return redirect(admin_url('feature'));
+    }
+
+    /**
+     * The × of the notice of new features (the dashboard): not told of again.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function noticesKnown(Request $request)
+    {
+        AdminNotices::markKnown(AdminNotices::newFeatureKeys());
+        return response()->json(['result' => true]);
     }
 
     /**
