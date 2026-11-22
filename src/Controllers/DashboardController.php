@@ -643,17 +643,18 @@ class DashboardController extends AdminControllerBase
         }
         try {
             $link = '<a href="' . e(admin_url('feature')) . '">' . e(exmtrans('plugin_distribution.open_feature')) . '</a>';
+            $only = static::adminOnlyNote();
             foreach (\Exceedone\Exment\Services\PluginDistribution\AdminNotices::security() as $item) {
                 // a notice (a warning), not an error: nothing is broken, an update is waiting
                 admin_warning(
                     exmtrans('plugin_distribution.notice_security_subject', ['name' => $item['label']]),
                     e(exmtrans('plugin_distribution.notice_security', ['name' => $item['label'], 'version' => $item['version']]))
-                        . ($item['note'] !== '' ? '<br>' . e($item['note']) : '') . '<br>' . $link
+                        . ($item['note'] !== '' ? '<br>' . e($item['note']) : '') . '<br>' . $link . $only
                 );
             }
             $features = \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures();
             if (count($features) > 0) {
-                admin_info(exmtrans('plugin_distribution.notice_features_subject'), e(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])) . '<br>' . $link);
+                admin_info(exmtrans('plugin_distribution.notice_features_subject'), e(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])) . '<br>' . $link . $only);
             }
         } catch (\Throwable $e) {
             \Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
@@ -675,8 +676,17 @@ class DashboardController extends AdminControllerBase
         $versionCheck = \Exment::checkLatestVersion();
         if ($versionCheck === SystemVersion::HAS_NEXT) {
             list($latest, $current) = \Exment::getExmentVersion();
-            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. admin_url('system').'">'.exmtrans("system.update_guide").'</a>');
+            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. admin_url('system').'">'.exmtrans("system.update_guide").'</a>' . static::adminOnlyNote());
         }
+    }
+
+    /**
+     * The line under a notice for the system administrators: the others never see
+     * it, and could not act on it (they cannot update or turn features on).
+     */
+    protected static function adminOnlyNote(): string
+    {
+        return '<br><small>' . e(exmtrans('common.notice_admin_only')) . '</small>';
     }
 
     /**
