@@ -475,6 +475,20 @@ class FileServerTest extends FeatureTestBase
         $this->assertSame('page body', $download->streamedContent());
         $this->assertStringContainsString('attachment', strval($download->headers->get('Content-Disposition')));
 
+        // an older version: its bytes, as an attachment, with the version in the name
+        $first = \Exceedone\Exment\Model\FileNodeVersion::query()->where('node_id', $file->id)->value('id');
+        $lib->addVersion($ws, $file->refresh(), $this->local('second body'));
+        $old = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'download') . '?version=' . $first);
+        $old->assertOk();
+        $this->assertSame('page body', $old->streamedContent());
+        $disposition = strval($old->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('attachment', $disposition);
+        $this->assertStringContainsString('note_v1.txt', $disposition);
+        // the current one keeps its name
+        $now = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'download'));
+        $this->assertSame('second body', $now->streamedContent());
+        $this->assertStringContainsString('note.txt', strval($now->headers->get('Content-Disposition')));
+
         // html is never shown in the page
         $content = $this->get(admin_urls('file_server', $ws->id, 'nodes', $html->id, 'content'));
         $this->assertStringContainsString('attachment', strval($content->headers->get('Content-Disposition')));

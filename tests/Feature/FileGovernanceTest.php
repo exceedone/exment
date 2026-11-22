@@ -309,6 +309,29 @@ class FileGovernanceTest extends FeatureTestBase
         }, 423, 'a file under a held folder was removed for good');
     }
 
+    public function testARetentionSetAfterTheTrashKeepsTheFile(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $folder = $manager->createFolder($ws, null, 'Kept');
+        $file = $manager->storeFile($ws, $folder, 'kept.txt', $this->local('kept'));
+        $manager->trash($ws, $folder->refresh());
+
+        // the days to keep are set after it went to the trash: it is not removed for good
+        Governance::setWorkspaceRules($manager, $ws, ['retention_days' => 30]);
+        $this->assertRefused(function () use ($manager, $ws, $folder) {
+            $manager->purge($ws->refresh(), $folder->refresh());
+        }, 423, 'a folder with a file still to be kept was removed for good');
+        $this->assertTrue(FileNode::query()->where('id', $file->id)->exists());
+        $this->assertTrue(FileNodeVersion::query()->where('node_id', $file->id)->exists());
+
+        // once the file is older than the days, it goes
+        FileNode::query()->where('id', $file->id)->update(['created_at' => now()->subDays(31)]);
+        $manager->purge($ws->refresh(), $folder->refresh());
+        $this->assertFalse(FileNode::query()->where('id', $file->id)->exists());
+        $this->assertFalse(FileNodeVersion::query()->where('node_id', $file->id)->exists());
+    }
+
     public function testTheMakerOfADraftTakenOutOfTheWorkspace(): void
     {
         $ws = $this->workspace();
