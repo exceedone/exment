@@ -4,7 +4,7 @@
     foreach (\Exceedone\Exment\Model\FileMetadataField::TYPES as $type) { $types[$type] = exmtrans('file_server.field_type_' . $type); }
 @endphp
 <div class="box card exm-fs" id="exm-fs-fields" data-url="{{ $fields_url }}">
-    <div class="box-header"><h4 style="margin:0"><i class="fa fa-tags" aria-hidden="true"></i> {{ exmtrans('file_server.metadata_fields') }}</h4></div>
+    <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-tags" aria-hidden="true"></i> {{ exmtrans('file_server.metadata_fields') }}</h3></div>
     <div class="box-body">
         <p class="help-block" style="margin-top:0">{{ exmtrans('file_server.metadata_fields_help') }}</p>
         <div class="exm-fs-field-row exm-fs-muted" aria-hidden="true">

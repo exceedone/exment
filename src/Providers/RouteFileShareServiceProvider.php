@@ -29,7 +29,8 @@ class RouteFileShareServiceProvider extends ServiceProvider
         Route::group([
             'prefix' => url_join(\Exceedone\Exment\Services\FileServer\ShareLinks::basePath(), '{token}'),
             'namespace' => $this->namespace,
-            'middleware' => ['adminweb', 'exment.maintenance:public', 'throttle:120,1'],
+            // the IP filter of the web is for the users inside; a site that wants it for the links too says so (ISS00433)
+            'middleware' => array_merge(['adminweb', 'exment.maintenance:public', 'throttle:120,1'], boolval(config('exment.file_server_share_web_ip_filter', false)) ? ['admin.web-ipfilter'] : []),
             'where' => ['token' => '[A-Za-z0-9]{40}'],
         ], function (Router $router) {
             $router->get('/', 'FileShareController@show');

@@ -50,8 +50,8 @@
     root.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-fs-post]');
         if (!btn) { return; }
-        if (btn.getAttribute('data-fs-confirm') && !confirm(confirmText)) { return; }
-        Fs.post(btn.getAttribute('data-fs-post'), {}).then(Fs.done, Fs.fail);
+        var asked = btn.getAttribute('data-fs-confirm') ? Fs.confirm(confirmText) : Promise.resolve(true);
+        asked.then(function (ok) { if (ok) { Fs.post(btn.getAttribute('data-fs-post'), {}).then(Fs.done, Fs.fail); } });
     });
 })();
 </script>

@@ -47,7 +47,9 @@ class FileShareController extends \App\Http\Controllers\Controller
         if (!isset($item)) {
             return $this->gone();
         }
-        \Exceedone\Exment\Services\FileServer\Audit::log(\Exceedone\Exment\Services\FileServer\Audit::LINK_OPEN, $link->workspace, $item, null, [], $link->id);
+        if (ShareLinks::auditOpen($link, request()->ip())) {
+            \Exceedone\Exment\Services\FileServer\Audit::log(\Exceedone\Exment\Services\FileServer\Audit::LINK_OPEN, $link->workspace, $item, null, [], $link->id);
+        }
         $data = ['item' => $item, 'breadcrumbs' => $this->breadcrumbs($link, $item)];
         if ($item->isFolder()) {
             // not what has its own permissions (ISS00410)
@@ -123,7 +125,7 @@ class FileShareController extends \App\Http\Controllers\Controller
                 abort(404);
             }
             try {
-                $path = $library->zip($workspace, [$item]);
+                $path = $library->zipForLink(intval($link->id))->zip($workspace, [$item]);
             } catch (FileServerException $e) {
                 abort($e->status(), $e->getMessage());
             }

@@ -365,6 +365,171 @@ class FileGovernanceTest extends FeatureTestBase
         $this->assertSame('reporttxt.exe', $name);
     }
 
+    public function testUploadsInPartsTakeTheirSpace(): void
+    {
+        $ws = $this->workspace();
+        $ws->quota_bytes = 100;
+        $ws->save();
+        $uploader = new \Exceedone\Exment\Services\FileServer\Uploader($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $first = $uploader->init($ws, null, 'a.bin', 60);
+        // the upload not finished takes its 60 bytes: another 60 does not fit
+        $this->assertRefused(function () use ($uploader, $ws) {
+            $uploader->init($ws, null, 'b.bin', 60);
+        }, 413, 'the space of an upload not finished was not counted');
+        // the parts: from the bytes that came only
+        $chunk = $this->local(str_repeat('x', 30));
+        $this->assertSame(30, $uploader->append($first, 0, $chunk));
+        $this->assertRefused(function () use ($uploader, $first, $chunk) {
+            $uploader->append($first, 0, $chunk);
+        }, 409, 'a part sent twice was added twice');
+        $this->assertSame(60, $uploader->append($first->refresh(), 30, $chunk));
+
+        // the uploads a user may have not finished
+        config(['exment.file_server_max_uploads' => 2]);
+        $ws->quota_bytes = null;
+        $ws->save();
+        $uploader->init($ws->refresh(), null, 'c.bin', 1);
+        $this->assertRefused(function () use ($uploader, $ws) {
+            $uploader->init($ws, null, 'd.bin', 1);
+        }, 429, 'too many uploads not finished');
+        // the largest file, unless the site says
+        $this->assertSame(2147483648, \Exceedone\Exment\Services\FileServer\Uploader::maxFileSize());
+    }
+
+    public function testUploadsLeftAloneDoNotKeepTheirPlace(): void
+    {
+        $ws = $this->workspace();
+        $ws->quota_bytes = 100;
+        $ws->save();
+        $uploader = new \Exceedone\Exment\Services\FileServer\Uploader($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $left = $uploader->init($ws, null, 'left.bin', 90);
+        // nothing came to it for a while: not counted, and removed when the user starts another one
+        \Exceedone\Exment\Model\FileUploadSession::query()->where('id', $left->id)
+            ->update(['updated_at' => now()->subMinutes(\Exceedone\Exment\Services\FileServer\Uploader::IDLE_MINUTES + 1)]);
+        $next = $uploader->init($ws->refresh(), null, 'next.bin', 90);
+        $this->assertTrue(\Exceedone\Exment\Model\FileUploadSession::query()->where('id', $next->id)->exists());
+        $this->assertNull(\Exceedone\Exment\Model\FileUploadSession::find($left->id), 'the upload left alone stayed');
+
+        // the bytes the uploads of a user say, all together
+        $ws->quota_bytes = null;
+        $ws->save();
+        config(['exment.file_server_max_upload_bytes' => 100]);
+        $this->assertRefused(function () use ($uploader, $ws) {
+            $uploader->init($ws->refresh(), null, 'more.bin', 20);
+        }, 429, 'more than the bytes a user may reserve');
+        config(['exment.file_server_max_upload_bytes' => 0]);
+        $more = $uploader->init($ws->refresh(), null, 'more.bin', 20);
+        $this->assertTrue(\Exceedone\Exment\Model\FileUploadSession::query()->where('id', $more->id)->exists());
+    }
+
+    public function testRemovingAWorkspaceRemovesWhatIsInIt(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $folder = $manager->createFolder($ws, null, 'Docs');
+        $file = $manager->storeFile($ws, $folder, 'a.txt', $this->local('bytes'));
+        (new ShareLinks($manager))->create($ws, $file, FileShareLink::KIND_SHARE);
+        $path = strval($file->refresh()->current_version->path);
+        $disk = Storage::disk(Define::DISKNAME_ADMIN);
+        $this->assertTrue($disk->exists($path));
+
+        $manager->deleteWorkspace($ws);
+        $this->assertSame(0, FileNode::query()->where('workspace_id', $ws->id)->count());
+        $this->assertSame(0, FileNodeVersion::query()->where('node_id', $file->id)->count());
+        $this->assertSame(0, FilePermission::query()->where('workspace_id', $ws->id)->count());
+        $this->assertSame(0, FileShareLink::query()->where('workspace_id', $ws->id)->count());
+        $this->assertFalse($disk->exists($path), 'the bytes stayed on the disk');
+        $this->assertNull(FileWorkspace::find($ws->id));
+    }
+
+    public function testAUserOfADeepFolderDoesNotSeeTheNamesAbove(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $user2 = $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $managerId = $this->userId(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        // user2 sees only the deep folder
+        FilePermission::query()->where('workspace_id', $ws->id)->whereNull('node_id')->where('target_id', $user2)->delete();
+        $secret = $manager->createFolder($ws, null, 'Secret' . uniqid());
+        $manager->setPermissions($ws, $secret, [['target_type' => FilePermission::TARGET_USER, 'target_id' => $managerId, 'level' => Level::MANAGE]]);
+        $deep = $manager->createFolder($ws, $secret->refresh(), 'Deep');
+        $manager->setPermissions($ws, $deep, [
+            ['target_type' => FilePermission::TARGET_USER, 'target_id' => $managerId, 'level' => Level::MANAGE],
+            ['target_type' => FilePermission::TARGET_USER, 'target_id' => $user2, 'level' => Level::VIEW],
+        ]);
+        $file = $manager->storeFile($ws, $deep->refresh(), 'in-deep.txt', $this->local('x'));
+
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $page = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id));
+        $page->assertOk();
+        $page->assertSee('in-deep.txt');
+        // not the name of the folder above, and not who else may see it: their own level only
+        $page->assertDontSee($secret->name);
+        $page->assertSee(exmtrans('file_server.permissions_your_level', ['level' => Level::label(Level::VIEW)]));
+    }
+
+    public function testBackFromTheTrashItKeepsWhoCouldSee(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $managerId = $this->userId(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        $folder = $manager->createFolder($ws, null, 'Closed');
+        // the folder: the manager only (user2 sees the top of the workspace, not it)
+        $manager->setPermissions($ws, $folder, [['target_type' => FilePermission::TARGET_USER, 'target_id' => $managerId, 'level' => Level::MANAGE]]);
+        $file = $manager->storeFile($ws, $folder->refresh(), 'closed.txt', $this->local('x'));
+        $level = function () use ($ws, $file) {
+            return (new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2), false))->level($ws, $file->refresh());
+        };
+        $this->assertSame(Level::NONE, $level());
+        $manager->trash($ws, $file->refresh());
+        $manager->trash($ws, $folder->refresh());
+        // the file back at the top (its folder is in the trash): user2 still does not see it
+        $manager->restore($ws, $file->refresh());
+        $this->assertNull($file->refresh()->parent_id);
+        $this->assertSame(Level::NONE, $level());
+        $this->assertSame(Level::MANAGE, (new Access($managerId, false))->level($ws, $file->refresh()));
+    }
+
+    public function testThePickerSearchesTheUsersForWhoMayChoose(): void
+    {
+        $ws = $this->workspace();
+        config(['exment.file_server_workspace_create' => null]);
+        $user1 = $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $code = strval(getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($user1)->getValue('user_code'));
+
+        // the manager of the workspace: a page of the users, and the ones searched
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        $page = $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user');
+        $page->assertOk();
+        $this->assertNotEmpty($page->json('results'));
+        $this->assertLessThanOrEqual(\Exceedone\Exment\Controllers\FileServerController::PICKER_PAGE, count($page->json('results')));
+        $found = $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user&q=' . rawurlencode($code));
+        $found->assertOk();
+        $this->assertContains($user1, array_column($found->json('results'), 'id'));
+        // not by the e-mail (who could find out whether an address is a user)
+        $email = strval(getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($user1)->getValue('email'));
+        if ($email !== '') {
+            $byMail = $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user&q=' . rawurlencode($email));
+            $byMail->assertOk();
+            $this->assertNotContains($user1, array_column($byMail->json('results'), 'id'), 'found by the e-mail');
+        }
+        // a list as q: no error
+        $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user&q[]=x')->assertOk();
+        // in the order of the ids
+        $ids = array_column($page->json('results'), 'id');
+        $sorted = $ids;
+        sort($sorted);
+        $this->assertSame($sorted, $ids);
+
+        // who only sees the workspace, or names none: not
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->getJson(admin_url('file_server/picker') . '?workspace=' . $ws->id . '&type=user')->assertStatus(403);
+        $this->getJson(admin_url('file_server/picker') . '?type=user')->assertStatus(403);
+        // who may make a workspace: yes
+        config(['exment.file_server_workspace_create' => 'all']);
+        $this->getJson(admin_url('file_server/picker') . '?type=user')->assertOk();
+    }
+
     public function testWhoMayMakeAWorkspace(): void
     {
         $user = new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), false);

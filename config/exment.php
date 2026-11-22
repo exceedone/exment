@@ -1623,11 +1623,23 @@ return [
     |--------------------------------------------------------------------------
     | file_server_workspace_create: who may make a workspace. "admin" (system permission; the default) or "all".
     |   A new feature is not open to all users until an administrator says so.
-    | file_server_max_file_size: the largest file, in bytes (0: no limit but the space of the workspace).
+    | file_server_max_file_size: the largest file, in bytes (default 2 GB; 0: no limit but the space of the workspace).
+    | file_server_max_uploads: the uploads in parts a user may have not finished at the same time.
+    | file_server_max_upload_bytes: the bytes those uploads may say they will send, all together (default 10 GB; 0: no limit).
+    | file_server_soffice_prefix: a command put before LibreOffice, to run it without the network
+    |   (e.g. "unshare -rn" or "firejail --net=none --quiet"). Office files may link to the outside:
+    |   run LibreOffice where it cannot reach the network (ISS00433).
     | file_server_soffice_path: LibreOffice (soffice) to make the PDF preview of Office files. Empty: no preview.
     */
     'file_server_workspace_create' => env('EXMENT_FILE_SERVER_WORKSPACE_CREATE', 'admin'),
-    'file_server_max_file_size' => env('EXMENT_FILE_SERVER_MAX_FILE_SIZE', 0),
+    'file_server_max_file_size' => env('EXMENT_FILE_SERVER_MAX_FILE_SIZE', 2147483648),
+    'file_server_max_uploads' => env('EXMENT_FILE_SERVER_MAX_UPLOADS', 20),
+    'file_server_max_upload_bytes' => env('EXMENT_FILE_SERVER_MAX_UPLOAD_BYTES', 10737418240),
+    'file_server_soffice_prefix' => env('EXMENT_FILE_SERVER_SOFFICE_PREFIX'),
+    // the shortest password of a share link; whether /share/{token} takes the IP filter of the web too
+    // (read when the routes are made: run "php artisan route:cache" again after changing it, when the routes are cached)
+    'file_server_share_password_min' => env('EXMENT_FILE_SERVER_SHARE_PASSWORD_MIN', 8),
+    'file_server_share_web_ip_filter' => env('EXMENT_FILE_SERVER_SHARE_WEB_IP_FILTER', false),
     'file_server_soffice_path' => env('EXMENT_FILE_SERVER_SOFFICE_PATH'),
     'file_server_soffice_timeout' => env('EXMENT_FILE_SERVER_SOFFICE_TIMEOUT', 120),
     // share links for people outside (phase 3): false stops them; max_days > 0 makes an end date needed

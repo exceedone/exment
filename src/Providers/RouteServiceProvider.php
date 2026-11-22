@@ -219,6 +219,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('file_server', 'FileServerController@store');
             $router->get('file_server/search', 'FileServerMetaController@search');
             $router->get('file_server/data_lookup', 'FileServerMetaController@dataLookup');
+            $router->get('file_server/picker', 'FileServerController@picker')->middleware('throttle:120,1');
             $router->group(['prefix' => 'file_server/{workspace}', 'where' => ['workspace' => '[0-9]+']], function (Router $router) {
                 $router->get('/', 'FileServerController@folder');
                 $router->get('folder/{node}', 'FileServerController@folder')->where('node', '[0-9]+');
@@ -259,6 +260,7 @@ class RouteServiceProvider extends ServiceProvider
                     // the preview is asked while typing: limited for each user
                     $router->post('markdown', 'FileServerController@markdownPreview')->middleware(\Illuminate\Routing\Middleware\ThrottleRequests::class . ':120,1');
                     $router->post('versions/{version}/restore', 'FileServerController@restoreVersion')->where('version', '[0-9]+');
+                    $router->post('preview', 'FileServerController@makePreview');
                     $router->post('checkout', 'FileServerController@checkout');
                     $router->post('checkin', 'FileServerController@checkin');
                     $router->post('discard_checkout', 'FileServerController@discardCheckout');

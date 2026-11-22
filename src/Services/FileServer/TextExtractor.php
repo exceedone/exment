@@ -26,6 +26,9 @@ class TextExtractor
     protected const TEXT_EXTENSIONS = ['txt', 'csv', 'tsv', 'md', 'markdown', 'log', 'json', 'xml', 'html', 'htm', 'yml', 'yaml', 'ini', 'sql', 'rtf'];
     protected const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tif', 'tiff', 'webp'];
 
+    /** The largest part of an Office file (a zip) read for its text. */
+    public const ZIP_PART_MAX_BYTES = 20 * 1024 * 1024;
+
     public static function maxChars(): int
     {
         return max(1000, intval(config('exment.file_server_text_max_chars', 1000000)));
@@ -195,7 +198,7 @@ class TextExtractor
             foreach ($names as $entry) {
                 $stat = $zip->statName($entry);
                 // a part too large to read (a zip bomb)
-                if ($stat === false || intval($stat['size']) > 200 * 1024 * 1024) {
+                if ($stat === false || intval($stat['size']) > static::ZIP_PART_MAX_BYTES) {
                     continue;
                 }
                 $xml = $zip->getFromName($entry);
