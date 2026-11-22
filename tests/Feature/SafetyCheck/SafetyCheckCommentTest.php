@@ -21,6 +21,8 @@ class SafetyCheckCommentTest extends FeatureTestBase
         parent::setUp();
         $this->initAllTest();
         SafetyCheckInstaller::ensureAll();
+        // the safety check is a feature of Feature management: used in these tests
+        \Exceedone\Exment\Services\Features::save([\Exceedone\Exment\Services\Features::SAFETY_CHECK => ['enabled' => true]]);
         $this->setUpLineWebhookMock();
     }
 
