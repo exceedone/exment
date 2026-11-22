@@ -55,6 +55,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Security check: the address of the site, seen from this server
+    |--------------------------------------------------------------------------
+    |
+    | The security check asks the site for some pages (headers, files that must not be seen).
+    | It uses APP_URL; set this when that address cannot be reached from the server itself
+    | (in a container, for example http://web for docker-exment).
+    */
+    'site_probe_url' => env('EXMENT_SITE_PROBE_URL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Chart of a list view: max rows
     |--------------------------------------------------------------------------
     |

@@ -16,7 +16,9 @@ class SiteProbe
 
     public static function base(): string
     {
-        return rtrim(strval(config('app.url')) ?: url('/'), '/');
+        // EXMENT_SITE_PROBE_URL: where this server reaches the site when APP_URL is not reachable
+        // from inside it (a container: http://web for docker-exment)
+        return rtrim(strval(config('exment.site_probe_url')) ?: (strval(config('app.url')) ?: url('/')), '/');
     }
 
     /**
