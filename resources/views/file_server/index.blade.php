@@ -45,7 +45,8 @@
                         <tbody>
                             @foreach ($rows as $row)
                                 <tr>
-                                    <td class="exm-fs-name"><a href="{{ $row['url'] }}"><i class="fa {{ $row['icon'] }}" aria-hidden="true"></i>{{ $row['name'] }}</a></td>
+                                    <td class="exm-fs-name"><a href="{{ $row['url'] }}"><i class="fa {{ $row['icon'] }}" aria-hidden="true"></i>{{ $row['name'] }}</a>
+                                        <button type="button" class="btn btn-xs btn-link" data-fs-copy-link="{{ $row['link'] }}" data-fs-copy-name="{{ $row['name'] }}" title="{{ exmtrans('file_server.copy_link_help') }}" aria-label="{{ exmtrans('file_server.copy_link') }}"><i class="fa fa-link" aria-hidden="true"></i></button></td>
                                     <td>{{ $row['workspace'] }}</td>
                                     <td class="exm-fs-muted">{{ optional($row['updated_at'])->format('Y/m/d H:i') }} {{ $row['updated_user'] }}</td>
                                 </tr>

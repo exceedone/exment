@@ -54,6 +54,7 @@
         @if (isset($quota))
             <span class="exm-fs-quota">{{ exmtrans('file_server.used') }}: <span data-fs-size="{{ $used_bytes }}"></span> / <span data-fs-size="{{ $quota }}"></span></span>
         @endif
+        <button type="button" class="btn btn-sm btn-default" data-fs-copy-link="{{ $link }}" data-fs-copy-name="{{ $link_name }}" title="{{ exmtrans('file_server.copy_link_help') }}"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.copy_link') }}</button>
         @if (isset($folder))
             <a href="{{ $base_url }}/nodes/{{ $folder->id }}" class="btn btn-sm btn-default"><i class="fa fa-info-circle" aria-hidden="true"></i> {{ exmtrans('file_server.folder_detail') }}</a>
         @endif

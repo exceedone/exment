@@ -1011,6 +1011,8 @@ class Library
             }
             $node->save();
         });
+        // back at a path: the old paths there lead to it (ISS02815)
+        Paths::forgetNode($node->refresh());
         $this->access->flush();
         FileSearch::sync($ids);
         // back into a folder that needs an approval (it may have been moved there
@@ -1055,6 +1057,7 @@ class Library
             FileDataLink::query()->whereIn('node_id', $ids)->delete();
             FileFollow::query()->whereIn('node_id', $ids)->delete();
             FileComment::query()->whereIn('node_id', $ids)->delete();
+            Paths::forgetRemoved($ids);
             FileNode::query()->whereIn('id', $ids)->delete();
         });
         Audit::log(Audit::PURGE, $workspace, $node, $checkPermission ? $this->access->userId() : null, ['count' => count($ids)]);

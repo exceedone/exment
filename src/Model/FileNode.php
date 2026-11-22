@@ -75,6 +75,22 @@ class FileNode extends ModelBase
         return $this->isFile() && in_array($this->approval_status, [static::APPROVAL_DRAFT, static::APPROVAL_REJECTED], true);
     }
 
+    protected static function booted(): void
+    {
+        // the paths of the addresses (ISS02815): an old path leads to the node,
+        // a node at a path takes it from the one that had it
+        static::updating(function (FileNode $node) {
+            if ($node->isDirty(['name', 'parent_id'])) {
+                \Exceedone\Exment\Services\FileServer\Paths::rememberNode($node);
+            }
+        });
+        static::saved(function (FileNode $node) {
+            if ($node->wasRecentlyCreated || $node->wasChanged(['name', 'parent_id'])) {
+                \Exceedone\Exment\Services\FileServer\Paths::forgetNode($node);
+            }
+        });
+    }
+
     /**
      * The values of the columns are kept as they are written (not escaped), so
      * that the search in the database finds the words of them.

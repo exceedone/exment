@@ -43,6 +43,7 @@
                                 </td>
                                 <td class="exm-fs-muted" style="white-space:nowrap">{{ optional($row['updated_at'])->format('Y/m/d H:i') }}<br>{{ $row['updated_user'] }}</td>
                                 <td class="exm-fs-actions">
+                                    <button type="button" class="btn btn-xs btn-default" data-fs-copy-link="{{ $row['link'] }}" data-fs-copy-name="{{ $row['name'] }}" title="{{ exmtrans('file_server.copy_link_help') }}" aria-label="{{ exmtrans('file_server.copy_link') }}"><i class="fa fa-link" aria-hidden="true"></i></button>
                                     @if (!$row['is_folder'])
                                         <a class="btn btn-xs btn-default" href="{{ $row['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
                                     @endif

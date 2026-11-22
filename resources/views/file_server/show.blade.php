@@ -21,7 +21,7 @@
 
     <div class="exm-fs-toolbar">
         @if ($node->isFolder())
-            <a class="btn btn-sm btn-default" href="{{ $base_url }}/folder/{{ $node->id }}"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.open') }}</a>
+            <a class="btn btn-sm btn-default" href="{{ $page_url }}"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.open') }}</a>
         @endif
         @if ($can_download)
             <a class="btn btn-sm btn-primary" href="{{ $node_url }}/download"><i class="fa fa-download" aria-hidden="true"></i> {{ exmtrans('file_server.download') }}</a>
@@ -32,7 +32,7 @@
         @foreach ($openers as $opener)
             <a class="btn btn-sm btn-default" href="{{ $opener['url'] }}" target="_blank" rel="noopener"><i class="fa {{ $opener['icon'] ?? 'fa-external-link' }}" aria-hidden="true"></i> {{ $opener['label'] }}</a>
         @endforeach
-        <button type="button" class="btn btn-sm btn-default" data-fs-copy="{{ $node_url }}" title="{{ exmtrans('file_server.copy_internal_link_help') }}"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.copy_internal_link') }}</button>
+        <button type="button" class="btn btn-sm btn-default" data-fs-copy-link="{{ $link }}" data-fs-copy-name="{{ $node->name }}" title="{{ exmtrans('file_server.copy_link_help') }}"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.copy_link') }}</button>
         <button type="button" class="btn btn-sm btn-default" data-fs-action="favorite"><i class="fa {{ $favorite ? 'fa-star' : 'fa-star-o' }}" aria-hidden="true"></i> {{ exmtrans('file_server.favorite') }}</button>
         @if ($node->isFile() && $canEdit)
             @if ($checked_out_by === null)
