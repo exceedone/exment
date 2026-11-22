@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Providers\RouteServiceProvider;
 use Exceedone\Exment\Services\LegacyAdminRedirect;
+use Exceedone\Exment\Services\Installer\InstallingForm;
+use Illuminate\Support\ViewErrorBag;
 
 /**
  * A new install has no admin prefix (7.2.1). A site that had "/admin" and
@@ -56,5 +58,40 @@ class LegacyAdminRedirectTest extends FeatureTestBase
         } finally {
             config(['admin.route.prefix' => $prefix]);
         }
+    }
+
+    public function testTheSetupPageTakesATypedPrefix(): void
+    {
+        $this->assertSame('', LegacyAdminRedirect::normalizePrefix(''));
+        $this->assertSame('', LegacyAdminRedirect::normalizePrefix(null));
+        $this->assertSame('', LegacyAdminRedirect::normalizePrefix(' / '));
+        $this->assertSame('admin', LegacyAdminRedirect::normalizePrefix('admin'));
+        $this->assertSame('admin', LegacyAdminRedirect::normalizePrefix('/admin/'));
+        $this->assertSame('exment-2_a', LegacyAdminRedirect::normalizePrefix('exment-2_a'));
+        // one path segment of plain characters only
+        $this->assertNull(LegacyAdminRedirect::normalizePrefix('a/b'));
+        $this->assertNull(LegacyAdminRedirect::normalizePrefix('ad min'));
+        $this->assertNull(LegacyAdminRedirect::normalizePrefix('admin#x'));
+        $this->assertNull(LegacyAdminRedirect::normalizePrefix('../admin'));
+        $this->assertNull(LegacyAdminRedirect::normalizePrefix('管理'));
+        $this->assertNull(LegacyAdminRedirect::normalizePrefix(str_repeat('a', 65)));
+    }
+
+    public function testTheSetupPageShowsTheField(): void
+    {
+        $html = view('exment::install.installing')->with('errors', new ViewErrorBag())->render();
+        $this->assertStringContainsString('name="ADMIN_ROUTE_PREFIX"', $html);
+        $this->assertStringContainsString(exmtrans('install.installing.admin_route_prefix'), $html);
+    }
+
+    public function testABadPrefixIsRefusedBeforeAnythingIsWritten(): void
+    {
+        $path = base_path('.env');
+        $before = (string) file_get_contents($path);
+        request()->merge(['ADMIN_ROUTE_PREFIX' => 'a/b']);
+        $response = (new InstallingForm())->post();
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertTrue(session()->has('errors'));
+        $this->assertSame($before, (string) file_get_contents($path), '.env is not touched');
     }
 }
