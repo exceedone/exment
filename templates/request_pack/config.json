@@ -51,7 +51,7 @@
                     "order": "2",
                     "options": {
                         "required": "0",
-                        "index_enabled": "0",
+                        "index_enabled": "1",
                         "number_format": "1",
                         "currency_symbol": "JPY1",
                         "freeword_search": "0",
@@ -70,7 +70,7 @@
                     "order": "3",
                     "options": {
                         "required": "0",
-                        "index_enabled": "0",
+                        "index_enabled": "1",
                         "freeword_search": "0",
                         "select_import_table_name": null,
                         "select_import_column_name": null,
@@ -305,7 +305,7 @@
                     "order": "3",
                     "options": {
                         "required": "0",
-                        "index_enabled": "0",
+                        "index_enabled": "1",
                         "string_length": "256",
                         "freeword_search": "0",
                         "select_import_table_name": null,
@@ -323,7 +323,7 @@
                     "order": "4",
                     "options": {
                         "required": "1",
-                        "index_enabled": "0",
+                        "index_enabled": "1",
                         "number_format": "1",
                         "currency_symbol": "JPY1",
                         "freeword_search": "0",
@@ -435,7 +435,7 @@
                     "order": "4",
                     "options": {
                         "required": "1",
-                        "index_enabled": "0",
+                        "index_enabled": "1",
                         "freeword_search": "0",
                         "select_import_table_name": null,
                         "select_import_column_name": null,
@@ -471,7 +471,7 @@
                     "order": "6",
                     "options": {
                         "required": "0",
-                        "index_enabled": "0",
+                        "index_enabled": "1",
                         "number_format": "1",
                         "currency_symbol": "JPY1",
                         "freeword_search": "0",
@@ -573,7 +573,7 @@
                     "order": "2",
                     "options": {
                         "required": "1",
-                        "index_enabled": "0",
+                        "index_enabled": "1",
                         "number_format": "1",
                         "currency_symbol": "JPY1",
                         "freeword_search": "0",
@@ -726,7 +726,7 @@
                     "order": "3",
                     "options": {
                         "required": "1",
-                        "index_enabled": "0",
+                        "index_enabled": "1",
                         "freeword_search": "0",
                         "select_import_table_name": null,
                         "select_import_column_name": null,
@@ -744,7 +744,7 @@
                     "options": {
                         "required": "0",
                         "decimal_digit": "1",
-                        "index_enabled": "0",
+                        "index_enabled": "1",
                         "freeword_search": "0",
                         "select_import_table_name": null,
                         "select_import_column_name": null,
