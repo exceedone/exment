@@ -353,6 +353,10 @@ class Define
             'uri' => 'tuning',
             'icon' => 'fa-tachometer',
         ],
+        'security_check' => [
+            'uri' => 'security_check',
+            'icon' => 'fa-shield',
+        ],
         'maintenance' => [
             'uri' => 'maintenance',
             'icon' => 'fa-wrench',
@@ -605,6 +609,7 @@ class Define
         ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
+        ['uri'=> 'security_check', 'help_uri'=> 'security_check'],
         ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];

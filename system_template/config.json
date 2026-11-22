@@ -1574,6 +1574,14 @@
         {
             "order": "6",
             "menu_type": "system",
+            "menu_name": "security_check",
+            "title": "Security Check",
+            "parent_name": "admin",
+            "menu_target_name": "security_check"
+        },
+        {
+            "order": "7",
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Maintenance Mode",
             "parent_name": "admin",

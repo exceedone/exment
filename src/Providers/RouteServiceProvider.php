@@ -212,6 +212,9 @@ class RouteServiceProvider extends ServiceProvider
             // Tuning: what would make the site faster (ISS00414)
             $router->get('tuning', 'TuningController@index');
             $router->post('tuning/action', 'TuningController@action');
+            // the security check (ISS02833)
+            $router->get('security_check', 'SecurityCheckController@index');
+            $router->post('security_check/fix', 'SecurityCheckController@fix');
             $router->get('maintenance', 'MaintenanceController@index');
             $router->post('maintenance', 'MaintenanceController@store');
             $router->post('maintenance/start', 'MaintenanceController@start');
