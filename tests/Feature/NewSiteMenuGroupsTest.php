@@ -57,7 +57,7 @@ class NewSiteMenuGroupsTest extends FeatureTestBase
 
     public function testEveryMenuOfTheTemplateIsASystemMenuOrATable(): void
     {
-        $config = json_decode(file_get_contents(exment_package_path('system_template/config.json')), true);
+        $config = json_decode((string) file_get_contents(exment_package_path('system_template/config.json')), true);
         foreach ($config['admin_menu'] as $menu) {
             if ($menu['menu_type'] === 'system') {
                 $this->assertArrayHasKey($menu['menu_name'], Define::MENU_SYSTEM_DEFINITION, $menu['menu_name']);
