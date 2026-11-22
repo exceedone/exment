@@ -710,7 +710,7 @@ class FileServerTest extends FeatureTestBase
 
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $this->get($base . '/edit')->assertOk()->assertSee('data-version="' . $first . '"', false);
-        $this->get($base)->assertOk()->assertSee(exmtrans('file_server.text_edit'));
+        $this->followingRedirects()->get($base)->assertOk()->assertSee(exmtrans('file_server.text_edit'));
 
         $saved = $this->saveAsEditor($base, "一行目\n二行目\n\n", $first, 'first')->assertOk()->assertJson(['changed' => true])->json();
         $this->assertSame(2, $saved['version_no']);
@@ -781,7 +781,7 @@ class FileServerTest extends FeatureTestBase
         $html = $this->admin()->storeFile($ws, null, 'page.html', $this->local('<p>x</p>'));
         $this->saveAsEditor(admin_urls('file_server', $ws->id, 'nodes', $html->id), '<script>alert(1)</script>', $html->current_version_id)->assertJson(['result' => false]);
         $this->assertSame('<p>x</p>', $this->bytes($html));
-        $this->get(admin_urls('file_server', $ws->id, 'nodes', $html->id))->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
+        $this->followingRedirects()->get(admin_urls('file_server', $ws->id, 'nodes', $html->id))->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
     }
 
     public function testOnlyThoseWhoMayEditSaveAndACheckOutOfAnotherUserStopsIt(): void
@@ -804,7 +804,7 @@ class FileServerTest extends FeatureTestBase
         $this->admin()->checkout($ws, $file->refresh());
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
         $this->get($base . '/edit')->assertOk()->assertSee(exmtrans('file_server.text_locked', ['user' => '']), false)->assertDontSee('data-fs-edit="save"><i', false);
-        $this->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
+        $this->followingRedirects()->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
         $this->saveAsEditor($base, 'x', $version)->assertJson(['result' => false]);
         $this->assertSame('', $this->bytes($file));
 
@@ -840,7 +840,7 @@ class FileServerTest extends FeatureTestBase
         $this->assertFalse($approved->isDraft());
         $base = admin_urls('file_server', $ws->id, 'nodes', $approved->id);
         $this->get($base . '/edit')->assertOk()->assertSee(exmtrans('file_server.text_needs_manager'))->assertDontSee('data-fs-edit="save"><i', false);
-        $this->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
+        $this->followingRedirects()->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
         $this->saveAsEditor($base, 'changed', $approved->current_version_id)->assertStatus(403);
     }
 
@@ -854,8 +854,9 @@ class FileServerTest extends FeatureTestBase
 
         // below the download level: the file page (with its watermark), no editor
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        $this->get($base . '/edit')->assertRedirect($base);
-        $this->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
+        // to the page of the file, at its path (ISS02815)
+        $this->get($base . '/edit')->assertRedirect(strval((new \Exceedone\Exment\Services\FileServer\Paths())->url($ws, $file)));
+        $this->followingRedirects()->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
 
         // the one who may download: the editor, with the watermark
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
