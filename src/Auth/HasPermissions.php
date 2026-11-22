@@ -277,6 +277,13 @@ trait HasPermissions
             return false;
         }
 
+        // a parent menu (a group) with nothing in it to show: the menus of the
+        // features turned off are taken out of the tree before this, and a
+        // group a template or a plugin made may have nothing else
+        if (array_get($item, 'menu_type') == MenuType::PARENT_NODE && empty(array_get($item, 'children'))) {
+            return false;
+        }
+
         // if $item has children, get children's visible result.
         // if children have true result, return true;
         if (array_key_exists('children', $item)) {

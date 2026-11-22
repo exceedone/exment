@@ -73,6 +73,15 @@ class NewSiteMenuGroupsTest extends FeatureTestBase
         $this->assertSame(['home', 'groupware', 'project', 'master', 'admin_data', 'admin_user', 'admin'], $known);
     }
 
+    public function testAGroupWithNothingToShowIsHidden(): void
+    {
+        $admin = \Exceedone\Exment\Model\LoginUser::findOrFail(\Exceedone\Exment\Tests\TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        // the menus of a feature turned off are taken out of the tree before the check
+        $this->assertFalse($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'groupware']));
+        $this->assertFalse($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'groupware', 'children' => []]));
+        $this->assertTrue($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'groupware', 'children' => [['menu_type' => 'custom', 'uri' => 'https://example.com/']]]));
+    }
+
     public function testEveryMenuOfTheTemplateIsASystemMenuOrATable(): void
     {
         $config = json_decode((string) file_get_contents(exment_package_path('system_template/config.json')), true);
