@@ -15,11 +15,14 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
 {
     use TestTrait;
     use DatabaseTransactions;
+    use OldAdminMenuTrait;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->initAllTest();
+        // these migrations are for the sites made before the menu was put in groups
+        $this->makeOldAdminMenu();
     }
 
     protected function migration(): mixed

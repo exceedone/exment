@@ -299,8 +299,10 @@ class FeatureController extends AdminControllerBase
 
     /**
      * Make the system menu of a feature when the site has none (it was
-     * removed to hide the feature): after the home for the file server, at
-     * the end of "Admin Setting" for the others.
+     * removed to hide the feature): in its group of a new site's menu when the
+     * site has it (the file server in "Groupware", Studio in "Settings: Data &
+     * Screens"), else after the home for the file server and at the end of
+     * "Admin Setting" for the others.
      */
     protected function ensureSystemMenu(string $menuName): void
     {
@@ -315,9 +317,14 @@ class FeatureController extends AdminControllerBase
         $parentId = 0;
         $order = 1;
         $home = DB::table($table)->where('menu_type', 'system')->where('menu_name', 'home')->first();
-        $admin = DB::table($table)->where('menu_name', 'admin')->where('menu_type', 'parent_node')->first();
-        if ($menuName !== 'file_server' && isset($admin)) {
-            $parentId = intval($admin->id);
+        // the group of a new site's menu (system_template) when the site has it, else "Admin Setting"
+        $group = array_get(['file_server' => 'groupware', 'studio' => 'admin_data'], $menuName);
+        $parent = isset($group) ? DB::table($table)->where('menu_name', $group)->where('menu_type', 'parent_node')->first() : null;
+        if (!isset($parent) && $menuName !== 'file_server') {
+            $parent = DB::table($table)->where('menu_name', 'admin')->where('menu_type', 'parent_node')->first();
+        }
+        if (isset($parent)) {
+            $parentId = intval($parent->id);
             $order = intval(DB::table($table)->where('parent_id', $parentId)->max('order')) + 1;
         } elseif (isset($home)) {
             $parentId = intval($home->parent_id);
