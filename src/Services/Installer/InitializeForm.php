@@ -38,7 +38,7 @@ class InitializeForm
         $form->password('password_confirmation', exmtrans('user.password_confirmation'))->required();
 
         // the tuning Exment can do by itself: chosen here, done after the setup is saved
-        $autoItems = (new AutoTuning())->available();
+        $autoItems = (new AutoTuning(true))->available();
         if (count($autoItems) > 0) {
             $form->exmheader(exmtrans('tuning.install_header'))->hr();
             $form->checkbox('auto_tuning', exmtrans('tuning.auto.header'))
@@ -101,7 +101,7 @@ class InitializeForm
 
             // the tuning chosen on the screen; a failure does not stop the setup (it is logged)
             try {
-                (new AutoTuning())->apply((array) $request->get('auto_tuning', []));
+                (new AutoTuning(true))->apply((array) $request->get('auto_tuning', []));
             } catch (\Throwable $ex) {
                 \Log::error($ex);
             }
