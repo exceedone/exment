@@ -4015,6 +4015,7 @@ return [
         'notify_body' => 'Notify body',
         'target_custom_value' => 'Target data',
         'data_refer' => 'Display data linked to this notification',
+        'show_content' => 'See the notification',
         'all_check' => 'Make it bulk read',
         'read_all' => 'Mark all notifications as read',
         'unread_all' => 'Mark all notifications unread',

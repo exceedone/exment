@@ -578,7 +578,7 @@ class NotifyService
                     ];
                 }
 
-                $detailUrl = $custom_value->getUrl(['tag' => false, 'modal' => false]);
+                $detailUrl = $custom_value->getUrl(['tag' => false, 'modal' => false, 'record_url' => true]);
                 if (is_string($detailUrl) && preg_match('#^https://#i', $detailUrl)) {
                     $buttons[] = [
                         'label' => exmtrans('notify.line_show_detail'),
