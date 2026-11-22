@@ -30,6 +30,22 @@ class TextFiles
     /** The kinds of a new file, and the files that are edited in the browser. */
     public const TYPES = ['txt', 'md', 'csv'];
 
+    /**
+     * The Office kinds of a new file: an empty Word, Excel or PowerPoint file
+     * from a blank under resources/file_server/. Not edited here as text - the
+     * file page previews it, and opens it in an Office editor when one is
+     * there (Preview::registerOpener), or it is downloaded.
+     */
+    public const OFFICE_TYPES = ['docx', 'xlsx', 'pptx'];
+
+    /** Every kind "New" offers, in the order of the menu. */
+    public const NEW_TYPES = ['txt', 'md', 'csv', 'docx', 'xlsx', 'pptx'];
+
+    public static function isOffice(string $type): bool
+    {
+        return in_array($type, static::OFFICE_TYPES, true);
+    }
+
     /** The largest text written in the browser (the same as the preview of a text). */
     public const TEXT_EDIT_BYTES = Preview::TEXT_PREVIEW_BYTES;
 
@@ -56,7 +72,7 @@ class TextFiles
      */
     public function nameOf(string $name, string $type): string
     {
-        if (!in_array($type, static::TYPES, true)) {
+        if (!in_array($type, static::NEW_TYPES, true)) {
             throw new FileServerException(exmtrans('file_server.error_text_type'));
         }
         $name = $this->library->newName($name);
@@ -75,9 +91,25 @@ class TextFiles
         $name = $this->nameOf($name, $type);
         // a file the user could never write is not made
         $this->library->access()->authorize($workspace, $parent, Level::EDIT);
-        return $this->withLocal($type === 'csv' ? static::BOM : '', function (string $local) use ($workspace, $parent, $name) {
+        return $this->withLocal(static::emptyContent($type), function (string $local) use ($workspace, $parent, $name) {
             return $this->library->storeNewFile($workspace, $parent, $name, $local, null, false);
         });
+    }
+
+    /**
+     * What a new file of the kind starts with: nothing; the BOM for a CSV;
+     * the blank document for an Office kind.
+     */
+    protected static function emptyContent(string $type): string
+    {
+        if (static::isOffice($type)) {
+            $blank = @file_get_contents(exment_package_path('resources/file_server/blank.' . $type));
+            if (!is_string($blank) || $blank === '') {
+                throw new FileServerException(exmtrans('file_server.error_text_type'));
+            }
+            return $blank;
+        }
+        return $type === 'csv' ? static::BOM : '';
     }
 
     /**
