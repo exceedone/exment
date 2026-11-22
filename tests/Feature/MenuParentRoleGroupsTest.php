@@ -67,9 +67,9 @@ class MenuParentRoleGroupsTest extends FeatureTestBase
     public function testTheOptionKeepsOnlyIds(): void
     {
         $menu = new Menu();
-        $menu->visible_role_groups = ['3', '', 'x', '3', '7'];
+        $menu->setAttribute('visible_role_groups', ['3', '', 'x', '3', '7']);
         $this->assertSame([3, 7], $menu->visible_role_groups);
-        $menu->visible_role_groups = [];
+        $menu->setAttribute('visible_role_groups', []);
         $this->assertNull($menu->getOption('visible_role_groups'));
     }
 

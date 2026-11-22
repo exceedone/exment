@@ -162,7 +162,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      * Export: the role groups of a parent menu travel by their name, not by
      * their id (on another site the same id is another role group or none).
      *
-     * @param array<string, mixed> $json
+     * @param array<mixed> $json
+     * @param-out array<mixed> $json
      * @return void
      */
     public static function exportReplaceJson(&$json)
@@ -181,7 +182,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      * Import: the names of the role groups back to the ids of this site; a
      * name this site does not have is dropped.
      *
-     * @param array<string, mixed> $json
+     * @param array<mixed> $json
+     * @param-out array<mixed> $json
      * @return void
      */
     protected static function importVisibleRoleGroups(&$json)
