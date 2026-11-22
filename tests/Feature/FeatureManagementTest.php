@@ -327,6 +327,49 @@ class FeatureManagementTest extends FeatureTestBase
         }
     }
 
+    public function testTheManualsOfTheFeatures(): void
+    {
+        try {
+            // Exment's own: a page of the manual
+            $this->assertSame(getManualUrl('studio'), Features::manualUrl(Features::STUDIO));
+            $this->assertSame(getManualUrl('file_server'), Features::manualUrl(Features::FILE_SERVER));
+            $this->assertNull(Features::manualUrl(Features::MCP), 'a feature without a manual');
+
+            // a plugin's: its own URL, or a page; anything else is dropped
+            Features::register('exment_test.own', ['label' => 'Own', 'endpoints' => ['plugins/exment_test/own'], 'manual' => 'https://example.com/manual/own']);
+            Features::register('exment_test.page', ['label' => 'Page', 'endpoints' => ['plugins/exment_test/page'], 'manual' => 'plugin?id=setting']);
+            Features::register('exment_test.script', ['label' => 'Script', 'endpoints' => ['plugins/exment_test/script'], 'manual' => 'javascript:alert(1)']);
+            Features::register('exment_test.quote', ['label' => 'Quote', 'endpoints' => ['plugins/exment_test/quote'], 'manual' => 'https://example.com/"onmouseover="x']);
+            $this->assertSame('https://example.com/manual/own', Features::manualUrl('exment_test.own'));
+            $this->assertSame(getManualUrl('plugin?id=setting'), Features::manualUrl('exment_test.page'));
+            $this->assertNull(Features::manualUrl('exment_test.script'));
+            $this->assertNull(Features::manualUrl('exment_test.quote'));
+
+            // the help button: the pages of the features come first
+            $html = strval(new \Exceedone\Exment\Form\Navbar\HelpNav());
+            $this->assertSame(1, preg_match('/value="([^"]*)" id="help_urls"/', $html, $m));
+            $urls = json_decode(html_entity_decode($m[1], ENT_QUOTES), true);
+            $this->assertTrue(is_array($urls));
+            $uris = array_column($urls, 'help_uri', 'uri');
+            $this->assertSame('https://example.com/manual/own', $uris['plugins/exment_test/own'] ?? null);
+            $this->assertSame('studio', $uris['studio'] ?? null);
+            $this->assertArrayNotHasKey('plugins/exment_test/script', $uris);
+            $first = array_search('studio', array_column($urls, 'uri'), true);
+            $table = array_search('table', array_column($urls, 'uri'), true);
+            $this->assertTrue($first !== false && $table !== false && $first < $table, 'the features are not first');
+            $this->assertSame('feature', $uris['feature'] ?? null);
+
+            // the page of Feature management: a link to the manual of each feature that has one
+            Features::reset();
+            $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+            $this->get(admin_url('feature'), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
+                ->assertSee('href="' . e(getManualUrl('studio')) . '"', false)
+                ->assertSee('data-feature-manual', false);
+        } finally {
+            Features::reset();
+        }
+    }
+
     public function testRequiresAndWho(): void
     {
         Features::register('exment_test.desk', ['label' => 'Desk', 'endpoints' => ['plugins/exment_test']]);
