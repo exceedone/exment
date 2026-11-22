@@ -618,6 +618,9 @@ class ExmentServiceProvider extends ServiceProvider
 
     /**
      * The cron expression of "exment:safetywatch" (config exment.safety_check.watch_interval).
+     * Impure: it reads the config, so two calls may answer differently.
+     *
+     * @phpstan-impure
      */
     public static function safetyWatchCron(): string
     {
