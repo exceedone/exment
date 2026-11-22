@@ -146,3 +146,38 @@ window.ExmFs = window.ExmFs || (function () {
     return { post: post, send: send, notify: notify, done: done, fail: fail, size: size, token: token, escape: escape, confirm: confirmIt, ask: ask, show: show, report: report };
 })();
 </script>
+<script>
+// "リンクをコピー" (ISS02815): the name as a link (HTML: a paste into Teams, OneNote,
+// Outlook or Word is a link with the name) and the address as text, as the copy
+// button of the issues of ExmentPM. Plain text where the browser has no ClipboardItem.
+if (!window.ExmFsCopyLink) {
+    window.ExmFsCopyLink = function (url, name) {
+        var copied = @json(exmtrans('file_server.link_copied'));
+        var ok = function () { window.ExmFs.notify(copied, true); };
+        var plain = function () {
+            if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(ok, function () { prompt('URL', url); });
+            } else {
+                prompt('URL', url);
+            }
+        };
+        var html = '<a href="' + window.ExmFs.escape(url) + '">' + window.ExmFs.escape(name || url) + '</a>';
+        try {
+            if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write && window.isSecureContext) {
+                navigator.clipboard.write([new window.ClipboardItem({
+                    'text/plain': new Blob([url], { type: 'text/plain' }),
+                    'text/html': new Blob([html], { type: 'text/html' })
+                })]).then(ok, plain);
+                return;
+            }
+        } catch (e) { /* plain text below */ }
+        plain();
+    };
+    document.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest ? e.target.closest('[data-fs-copy-link]') : null;
+        if (!b) { return; }
+        e.preventDefault();
+        window.ExmFsCopyLink(b.getAttribute('data-fs-copy-link'), b.getAttribute('data-fs-copy-name'));
+    });
+}
+</script>

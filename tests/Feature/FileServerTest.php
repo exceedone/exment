@@ -475,6 +475,20 @@ class FileServerTest extends FeatureTestBase
         $this->assertSame('page body', $download->streamedContent());
         $this->assertStringContainsString('attachment', strval($download->headers->get('Content-Disposition')));
 
+        // an older version: its bytes, as an attachment, with the version in the name
+        $first = \Exceedone\Exment\Model\FileNodeVersion::query()->where('node_id', $file->id)->value('id');
+        $lib->addVersion($ws, $file->refresh(), $this->local('second body'));
+        $old = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'download') . '?version=' . $first);
+        $old->assertOk();
+        $this->assertSame('page body', $old->streamedContent());
+        $disposition = strval($old->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('attachment', $disposition);
+        $this->assertStringContainsString('note_v1.txt', $disposition);
+        // the current one keeps its name
+        $now = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'download'));
+        $this->assertSame('second body', $now->streamedContent());
+        $this->assertStringContainsString('note.txt', strval($now->headers->get('Content-Disposition')));
+
         // html is never shown in the page
         $content = $this->get(admin_urls('file_server', $ws->id, 'nodes', $html->id, 'content'));
         $this->assertStringContainsString('attachment', strval($content->headers->get('Content-Disposition')));
@@ -629,7 +643,7 @@ class FileServerTest extends FeatureTestBase
         $url = admin_urls('file_server', $ws->id, 'text_files');
 
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        $this->get(admin_urls('file_server', $ws->id))->assertOk()->assertSee('class="dropdown-item" data-fs="new-text"', false);
+        $this->followingRedirects()->get(admin_urls('file_server', $ws->id))->assertOk()->assertSee('class="dropdown-item" data-fs="new-text"', false);
         $json = $this->post($url, ['name' => 'memo', 'type' => 'md'], $this->ajax)->assertOk()->assertJson(['result' => true])->json();
         $memo = $this->node($json['id']);
         $this->assertSame('memo.md', $memo->name);
@@ -657,7 +671,7 @@ class FileServerTest extends FeatureTestBase
 
         // one who may only upload could never write it: no "New", and refused
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
-        $this->get(admin_urls('file_server', $ws->id))->assertOk()->assertDontSee('class="dropdown-item" data-fs="new-text"', false);
+        $this->followingRedirects()->get(admin_urls('file_server', $ws->id))->assertOk()->assertDontSee('class="dropdown-item" data-fs="new-text"', false);
         $this->post($url, ['name' => 'uploader', 'type' => 'txt'], $this->ajax)->assertStatus(403);
         $this->assertSame(0, FileNode::query()->where('workspace_id', $ws->id)->where('name', 'uploader.txt')->count());
     }
@@ -710,7 +724,7 @@ class FileServerTest extends FeatureTestBase
 
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $this->get($base . '/edit')->assertOk()->assertSee('data-version="' . $first . '"', false);
-        $this->get($base)->assertOk()->assertSee(exmtrans('file_server.text_edit'));
+        $this->followingRedirects()->get($base)->assertOk()->assertSee(exmtrans('file_server.text_edit'));
 
         $saved = $this->saveAsEditor($base, "一行目\n二行目\n\n", $first, 'first')->assertOk()->assertJson(['changed' => true])->json();
         $this->assertSame(2, $saved['version_no']);
@@ -781,7 +795,7 @@ class FileServerTest extends FeatureTestBase
         $html = $this->admin()->storeFile($ws, null, 'page.html', $this->local('<p>x</p>'));
         $this->saveAsEditor(admin_urls('file_server', $ws->id, 'nodes', $html->id), '<script>alert(1)</script>', $html->current_version_id)->assertJson(['result' => false]);
         $this->assertSame('<p>x</p>', $this->bytes($html));
-        $this->get(admin_urls('file_server', $ws->id, 'nodes', $html->id))->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
+        $this->followingRedirects()->get(admin_urls('file_server', $ws->id, 'nodes', $html->id))->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
     }
 
     public function testOnlyThoseWhoMayEditSaveAndACheckOutOfAnotherUserStopsIt(): void
@@ -804,7 +818,7 @@ class FileServerTest extends FeatureTestBase
         $this->admin()->checkout($ws, $file->refresh());
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
         $this->get($base . '/edit')->assertOk()->assertSee(exmtrans('file_server.text_locked', ['user' => '']), false)->assertDontSee('data-fs-edit="save"><i', false);
-        $this->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
+        $this->followingRedirects()->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
         $this->saveAsEditor($base, 'x', $version)->assertJson(['result' => false]);
         $this->assertSame('', $this->bytes($file));
 
@@ -840,7 +854,7 @@ class FileServerTest extends FeatureTestBase
         $this->assertFalse($approved->isDraft());
         $base = admin_urls('file_server', $ws->id, 'nodes', $approved->id);
         $this->get($base . '/edit')->assertOk()->assertSee(exmtrans('file_server.text_needs_manager'))->assertDontSee('data-fs-edit="save"><i', false);
-        $this->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
+        $this->followingRedirects()->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
         $this->saveAsEditor($base, 'changed', $approved->current_version_id)->assertStatus(403);
     }
 
@@ -854,8 +868,9 @@ class FileServerTest extends FeatureTestBase
 
         // below the download level: the file page (with its watermark), no editor
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        $this->get($base . '/edit')->assertRedirect($base);
-        $this->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
+        // to the page of the file, at its path (ISS02815)
+        $this->get($base . '/edit')->assertRedirect(strval((new \Exceedone\Exment\Services\FileServer\Paths())->url($ws, $file)));
+        $this->followingRedirects()->get($base)->assertOk()->assertDontSee(exmtrans('file_server.text_edit'));
 
         // the one who may download: the editor, with the watermark
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
