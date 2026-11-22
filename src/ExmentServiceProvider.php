@@ -555,7 +555,7 @@ class ExmentServiceProvider extends ServiceProvider
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
             // only when the safety check watches the feed: otherwise it would start PHP every minute for nothing (ISS02823)
-            $schedule->command('exment:safetywatch')->everyMinute()->withoutOverlapping(10)->when(function () {
+            $schedule->command('exment:safetywatch')->cron(static::safetyWatchCron())->withoutOverlapping(10)->when(function () {
                 return static::safetyWatchUsed();
             });
             // file server: empty the trash past the days of each workspace (ISS00293)
@@ -614,6 +614,20 @@ class ExmentServiceProvider extends ServiceProvider
                 // never stop the scheduler for this
             }
         });
+    }
+
+    /**
+     * The cron expression of "exment:safetywatch" (config exment.safety_check.watch_interval).
+     */
+    public static function safetyWatchCron(): string
+    {
+        // config exment.safety_check.watch_interval: 1, 5, 10 or 15 minutes; anything else is 5
+        $minutes = intval(config('exment.safety_check.watch_interval', 5));
+        if (!in_array($minutes, [1, 5, 10, 15], true)) {
+            $minutes = 5;
+        }
+
+        return $minutes === 1 ? '* * * * *' : '*/' . $minutes . ' * * * *';
     }
 
     /**

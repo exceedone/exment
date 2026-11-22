@@ -1615,6 +1615,9 @@ return [
     'safety_check' => [
         'feed_url'   => env('EXMENT_SAFETY_CHECK_FEED_URL', 'https://api.p2pquake.net/v2/history'),
         'feed_limit' => env('EXMENT_SAFETY_CHECK_FEED_LIMIT', 10),
+        // how often the earthquake feed is watched, in minutes: 1, 5, 10 or 15 (default 5).
+        // 5 is enough for a safety check after a quake, and lets "schedule:run" go every 5 minutes.
+        'watch_interval' => env('EXMENT_SAFETY_CHECK_WATCH_INTERVAL', 5),
     ],
 
     /*
