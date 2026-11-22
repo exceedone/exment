@@ -449,6 +449,49 @@ class FileShareTest extends FeatureTestBase
         $this->assertNotSame(\Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD, $received->refresh()->current_version->rendition_status);
     }
 
+    public function testAFileFromALinkStaysHeldWhenCopiedOrGivenANewVersion(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_REQUEST);
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('held.txt', 'from outside')]], ['Accept' => 'application/json'])->assertOk();
+        $received = FileNode::query()->where('parent_id', $folder->id)->where('name', 'held.txt')->firstOrFail();
+        $held = \Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD;
+        $this->assertSame($held, $received->current_version->rendition_status);
+        $first = $received->current_version;
+
+        $lib = $this->admin();
+        // a copy, a new version, a restore: still held
+        $copy = $lib->copy($ws, $received, null);
+        $this->assertSame($held, $copy->current_version->rendition_status);
+        $lib->addVersion($ws, $received, $this->local('again from inside'));
+        $this->assertSame($held, $received->refresh()->current_version->rendition_status);
+        $lib->restoreVersion($ws, $received, $first);
+        $this->assertSame($held, $received->refresh()->current_version->rendition_status);
+
+        // a file that was never held is not held by a copy or a new version
+        $file = FileNode::query()->where('parent_id', $folder->id)->where('name', 'hello.txt')->firstOrFail();
+        $this->assertNotSame($held, $lib->copy($ws, $file, null)->current_version->rendition_status);
+        $lib->addVersion($ws, $file, $this->local('hello again'));
+        $this->assertNotSame($held, $file->refresh()->current_version->rendition_status);
+    }
+
+    public function testAShareLinkStopsGivingFilesWhenTheRuleOfDownloadIsRaised(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
+        $link = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2))->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => true]);
+        $this->assertTrue(ShareLinks::downloadAllowed($link, $file));
+        $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertOk();
+
+        // the workspace now lets only those who manage it download: the link made before follows
+        $ws->download_level = Level::MANAGE;
+        $ws->save();
+        $link = $link->fresh();
+        $this->assertNotNull(ShareLinks::resolve($link->token), 'the link still opens');
+        $this->assertFalse(ShareLinks::downloadAllowed($link, $file));
+        $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertStatus(403);
+    }
+
     public function testAZipHasALimit(): void
     {
         [$ws, $folder] = $this->sample();
