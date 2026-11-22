@@ -1,7 +1,7 @@
 
 namespace Exment {
     export class NotifyNavbarEvent {
-        private static poller: NavbarPoll = null;
+        private static poller: any = null;
         private static reget_flg;
         private static before_count;
         private static notify_navbar_ids = [];
@@ -34,10 +34,10 @@ namespace Exment {
         private static notifyNavbar(force: boolean = true){
             // one timer, shared by the tabs, quiet while the tab is hidden (navbar_poll.ts, ISS02824)
             if(!NotifyNavbarEvent.poller){
-                NotifyNavbarEvent.poller = new NavbarPoll({
+                NotifyNavbarEvent.poller = new Exment.NavbarPoll({
                     name: 'notify',
                     url: admin_url(URLJoin('webapi', 'notifyPage')),
-                    intervalMs: NavbarPoll.intervalMs('#notify_navbar_interval', 60),
+                    intervalMs: Exment.NavbarPoll.intervalMs('#notify_navbar_interval', 60),
                     userKey: $('#notify_navbar_interval').data('user'),
                     render: NotifyNavbarEvent.render,
                 });
