@@ -109,6 +109,14 @@ class SecurityCheckTest extends UnitTestBase
         $this->assertFalse($exposed->checked());
         $this->assertNotSame(SystemRequireResult::OK, $exposed->checkResult());
         $this->assertNull((new Security\HeadersSecurity())->missing());
+        // unknown, said so: not the wording of a problem, and how to look by hand
+        $this->assertSame(exmtrans('security_check.item.exposed_path.unknown'), $exposed->getMessage());
+        $this->assertNotSame(exmtrans('security_check.item.exposed_path.warning'), $exposed->getMessage());
+        $this->assertStringContainsString('https://example.test/.env', strval($exposed->getFixText()));
+        $headers = new Security\HeadersSecurity();
+        $this->assertSame(exmtrans('security_check.item.headers.unknown'), $headers->getMessage());
+        $this->assertStringContainsString('https://example.test/admin/auth/login', strval($headers->getFixText()));
+        $this->assertFalse($exposed->isHigh());
     }
 
     public function testStorageOpenToEveryone(): void

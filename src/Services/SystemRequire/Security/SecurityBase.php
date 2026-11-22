@@ -50,6 +50,18 @@ abstract class SecurityBase extends SystemRequireBase
         return $this->getMessageWarning();
     }
 
+    /**
+     * Not checked (the site did not answer): say so, and how to look by hand, instead
+     * of the wording of a problem.
+     */
+    public function getMessage(): ?string
+    {
+        if (!$this->checked()) {
+            return exmtrans('security_check.item.' . $this->key() . '.unknown');
+        }
+        return parent::getMessage();
+    }
+
     public function getResultText(): ?string
     {
         return $this->checkResult() == SystemRequireResult::OK
