@@ -101,7 +101,7 @@ class InitializeForm
 
             // the tuning chosen on the screen; a failure does not stop the setup (it is logged)
             try {
-                (new AutoTuning(true))->apply((array) $request->get('auto_tuning', []));
+                (new AutoTuning(true))->apply((array) $request->get('auto_tuning', []), intval($loginuser->id));
             } catch (\Throwable $ex) {
                 \Log::error($ex);
             }
