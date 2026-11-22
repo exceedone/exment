@@ -386,11 +386,19 @@ class FeatureManagementTest extends FeatureTestBase
                 $this->assertNull(Features::action('exment_test.' . $name), $name);
             }
 
-            // the row shows it as a button
+            // its row shows it as a button (the page lists a plugin's features under the plugin,
+            // and there is no plugin exment_test: the row is drawn as the page draws it)
             $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
-            $this->get(admin_url('feature'), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
-                ->assertSee('href="/admin/plugins/exment_test" data-feature-action>Install the editor</a>', false)
-                ->assertDontSee('javascript:alert(1)', false);
+            $controller = app(\Exceedone\Exment\Controllers\FeatureController::class);
+            $method = new \ReflectionMethod($controller, 'featureRow');
+            $method->setAccessible(true);
+            $draw = function (string $key) use ($controller, $method) {
+                $row = $method->invoke($controller, $key, Features::definitions()[$key]);
+                return view('exment::feature._row', ['f' => $row, 'child' => false, 'muted' => false, 'role_groups' => [], 'menu_url' => admin_url('menu')])->render();
+            };
+            $this->assertStringContainsString('href="/admin/plugins/exment_test" data-feature-action>Install the editor</a>', $draw('exment_test.editor'));
+            $this->assertStringNotContainsString('data-feature-action', $draw('exment_test.script'));
+            $this->assertStringNotContainsString('javascript:alert(1)', $draw('exment_test.script'));
         } finally {
             Features::reset();
         }
