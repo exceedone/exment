@@ -21,8 +21,8 @@ class HeaderLogoTest extends FeatureTestBase
 
     public function testWithoutALogoOfItsOwnTheSiteShowsTheExmentLogo(): void
     {
-        System::site_logo(null);
-        System::site_logo_mini(null);
+        $this->storeLogo('site_logo', null);
+        $this->storeLogo('site_logo_mini', null);
         System::clearCache();
         Initialize::initializeConfig();
 
@@ -37,13 +37,19 @@ class HeaderLogoTest extends FeatureTestBase
 
     public function testTheSiteKeepsItsOwnLogo(): void
     {
-        System::site_logo('system/site_logo_test.png');
-        System::site_logo_mini('system/site_logo_mini_test.png');
+        // stored as the setting screen stores an upload (the setter takes an UploadedFile)
+        $this->storeLogo('site_logo', 'system/site_logo_test.png');
+        $this->storeLogo('site_logo_mini', 'system/site_logo_mini_test.png');
         System::clearCache();
         Initialize::initializeConfig();
 
         $this->assertStringContainsString('site_logo_test.png', strval(config('admin.logo')));
         $this->assertStringNotContainsString(Initialize::DEFAULT_LOGO, strval(config('admin.logo')));
         $this->assertStringContainsString('site_logo_mini_test.png', strval(config('admin.logo-mini')));
+    }
+
+    private function storeLogo(string $name, ?string $path): void
+    {
+        \DB::table(System::getTableName())->updateOrInsert(['system_name' => $name], ['system_value' => $path]);
     }
 }
