@@ -135,6 +135,43 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     }
 
     /**
+     * The id of a group of the left menu (Define::MENU_GROUP_DEFINITION), made
+     * at the top level (in the order of the feature map) when the site does not
+     * have it yet. For the bundled templates and the official plugins, which
+     * put their menus under their group:
+     *
+     *   if (method_exists(Menu::class, 'groupParentId')) {
+     *       $parentId = Menu::groupParentId('project');
+     *   }
+     *
+     * A name that is not a group returns null (and makes nothing).
+     */
+    public static function groupParentId(string $name): ?int
+    {
+        $define = array_get(Define::MENU_GROUP_DEFINITION, $name);
+        if (!is_array($define)) {
+            return null;
+        }
+        $table = (new static())->getTable();
+        $id = DB::table($table)->where('menu_type', MenuType::PARENT_NODE)->where('menu_name', $name)->value('id');
+        if (isset($id)) {
+            return intval($id);
+        }
+        return intval(DB::table($table)->insertGetId([
+            'parent_id' => 0,
+            'order' => $define['order'],
+            'title' => static::systemTitle($name),
+            'icon' => $define['icon'],
+            'uri' => null,
+            'menu_type' => MenuType::PARENT_NODE,
+            'menu_name' => $name,
+            'menu_target' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]));
+    }
+
+    /**
      * The title of a system menu in the language of the site, for a menu an
      * update adds.
      */
