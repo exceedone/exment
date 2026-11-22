@@ -90,7 +90,7 @@ class NotifyOpenRecordTest extends FeatureTestBase
 
         $response = $this->get(admin_url("notify_navbar/{$notify->id}"));
         $response->assertOk()->assertSee('claude open body');
-        $this->assertStringNotContainsString('#secret', $response->getContent());
+        $this->assertStringNotContainsString('#secret', strval($response->getContent()));
 
         $this->get(admin_url("notify_navbar/rowdetail/{$notify->id}"))
             ->assertRedirect(admin_url("notify_navbar/{$notify->id}") . '?content=1');

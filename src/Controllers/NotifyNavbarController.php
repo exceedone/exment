@@ -293,7 +293,7 @@ class NotifyNavbarController extends AdminControllerBase
     {
         $model = NotifyNavbar::find($id);
 
-        if (!isset($model)) {
+        if (!$model instanceof NotifyNavbar) {
             abort(404);
         }
 

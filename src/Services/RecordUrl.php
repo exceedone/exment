@@ -38,7 +38,7 @@ class RecordUrl
     /**
      * The hook classes of the page plugins, looked up once per request.
      *
-     * @var array<int, array{0: string, 1: string}>|null class and method
+     * @var array<int, \Closure>|null
      */
     protected static $pluginHooks = null;
 
@@ -105,7 +105,7 @@ class RecordUrl
      * URL must have this site's scheme, host and port. "//host", a backslash,
      * a control character, or a scheme such as javascript: are refused.
      */
-    public static function sameSite($url): ?string
+    public static function sameSite(mixed $url): ?string
     {
         if (!is_string($url)) {
             return null;
@@ -183,7 +183,7 @@ class RecordUrl
      * Plugin classes are not autoloaded until the plugin is required, so each
      * plugin is required before its classes are looked up.
      *
-     * @return array<int, array{0: string, 1: string}>
+     * @return array<int, \Closure>
      */
     protected static function pluginHooks(): array
     {
@@ -207,7 +207,7 @@ class RecordUrl
                 ];
                 foreach ($candidates as [$class, $method]) {
                     if (class_exists($class) && is_callable([$class, $method])) {
-                        $hooks[] = [$class, $method];
+                        $hooks[] = \Closure::fromCallable([$class, $method]);
                         break;
                     }
                 }
