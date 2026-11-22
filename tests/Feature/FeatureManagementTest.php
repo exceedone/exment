@@ -287,7 +287,7 @@ class FeatureManagementTest extends FeatureTestBase
             $broken->uuid = (string)\Illuminate\Support\Str::uuid();
             $broken->plugin_name = 'TestBroken' . uniqid();
             $broken->plugin_view_name = 'Broken';
-            $broken->plugin_types = [\Exceedone\Exment\Enums\PluginType::PAGE];
+            $broken->plugin_types = \Exceedone\Exment\Enums\PluginType::PAGE;
             $broken->active_flg = true;
             $broken->version = '1.0.0';
             $broken->save();
