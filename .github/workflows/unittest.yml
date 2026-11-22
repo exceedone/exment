@@ -73,6 +73,13 @@ jobs:
         run: |
           make ${{ matrix.db }}-init
 
+      # the whole unit suite reached PHP's default 512M near its end (2400+ tests);
+      # 1024M, written in M because SystemRequireTest compares the value without "M" (as master, #1926)
+      - name: Raise the PHP memory limit for the tests
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php sh -c 'echo "memory_limit=1024M" > "$(php -r "echo PHP_CONFIG_FILE_SCAN_DIR;")/zz-ci-memory.ini" && php -r "echo ini_get(\"memory_limit\"), PHP_EOL;"'
+
       # MySQL / MariaDB accept the user of the app a little after the container is up. Without
       # waiting, exment:inittest sometimes fails with "Host '172.18.0.x' is not allowed to connect".
       - name: Wait for the database
