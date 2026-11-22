@@ -237,5 +237,11 @@
         {
             "workflow_view_name": "Requests and approvals (standard)"
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "819e4404298f54104248",
+            "notify_view_name": "Requests (submitted, approved, sent back)"
+        }
     ]
 }

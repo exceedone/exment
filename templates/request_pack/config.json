@@ -1372,5 +1372,26 @@
             ]
         }
     ],
-    "thumbnail": "thumbnail.png"
+    "thumbnail": "thumbnail.png",
+    "notifies": [
+        {
+            "suuid": "819e4404298f54104248",
+            "notify_name": null,
+            "notify_view_name": "申請・承認（申請・承認・差し戻し）",
+            "active_flg": "1",
+            "notify_trigger": "4",
+            "target_name": "申請・承認（標準）",
+            "trigger_settings": [],
+            "action_settings": [
+                {
+                    "notify_action": "2",
+                    "notify_action_target": [
+                        "work_user",
+                        "created_user"
+                    ]
+                }
+            ],
+            "mail_key_name": "workflow_notify"
+        }
+    ]
 }
