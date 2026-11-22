@@ -3814,6 +3814,8 @@ return [
         'menu_target_view' => 'Target View',
         'menu_name' => 'Menu Name',
         'title' => 'Menu View Name',
+        'visible_role_groups' => 'Role groups that see it',
+        'visible_role_groups_help' => 'Show this group of the menu, with the menus in it, only to the members of the chosen role groups. Empty shows it to everyone, as before (the permissions of the menus inside still apply). System administrators always see it.',
         'arrange' => [
             'button' => 'Arrange in the standard order',
             'description' => 'Puts the menus of Exment and of the official plugins in the order of a newly installed site (the groups of the feature map, the three settings). Menus you made, table menus and other menus do not move, and no menu is removed. The titles "HOME", "Manage Master" and "Admin Setting" change only while they are the ones Exment gave. The menu as it was is kept, and "Undo" puts it back.',

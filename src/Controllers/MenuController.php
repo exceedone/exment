@@ -297,6 +297,13 @@ class MenuController extends AdminControllerBase
     }
     $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
     $form->icon('icon', trans('admin.icon'))->required()->default('');
+    // a parent menu (a group): the role groups it is shown to (empty: everyone)
+    $form->multipleSelect('visible_role_groups', exmtrans('menu.visible_role_groups'))
+        ->options(function () {
+            return \Exceedone\Exment\Model\RoleGroup::orderBy('role_group_order')->orderBy('id')->pluck('role_group_view_name', 'id')->toArray();
+        })
+        ->attribute(['data-filter' => json_encode(['key' => 'menu_type', 'value' => [MenuType::PARENT_NODE]])])
+        ->help(exmtrans('menu.visible_role_groups_help'));
     $form->hidden('order');
 
     $tableTypeValue = MenuType::TABLE;
@@ -383,6 +390,10 @@ class MenuController extends AdminControllerBase
 
         if (in_array($form->menu_type, [MenuType::CUSTOM, MenuType::PARENT_NODE])) {
             $form->menu_target = null;
+        }
+        // the role groups are for a parent menu only
+        if ($form->menu_type != MenuType::PARENT_NODE) {
+            $form->visible_role_groups = [];
         }
         // Whether set order
         $isset_order = false;
