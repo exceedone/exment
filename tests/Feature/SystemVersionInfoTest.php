@@ -89,7 +89,8 @@ class SystemVersionInfoTest extends FeatureTestBase
         $this->assertStringContainsString(admin_url('tuning'), $content);
 
         // the system requirements are on the tuning page now
-        $this->assertStringNotContainsString(exmtrans('install.system_require.header'), $content);
+        $this->assertStringNotContainsString('require_item_header', $content);
+        $this->assertStringNotContainsString(exmtrans('system_require.type.memory.label'), $content);
     }
 
     public function testTheTuningPageHasTheSystemRequirements(): void
