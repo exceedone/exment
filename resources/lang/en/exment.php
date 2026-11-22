@@ -3916,6 +3916,7 @@ return [
             'menu' => 'Menu',
             'role_group' => 'Role group',
             'workflow' => 'Workflow',
+            'notify' => 'Notify',
         ]
     ],
 
