@@ -3752,6 +3752,8 @@ return [
         'menu_target_view' => 'Target View',
         'menu_name' => 'Menu Name',
         'title' => 'Menu View Name',
+        'visible_role_groups' => 'Role groups that see it',
+        'visible_role_groups_help' => 'Show this group of the menu, with the menus in it, only to the members of the chosen role groups. Empty shows it to everyone, as before (the permissions of the menus inside still apply). System administrators always see it.',
         'menu_type_options' => [
             'system' => 'System Menu',
             'plugin' => 'Plugin',

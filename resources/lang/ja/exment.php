@@ -3752,6 +3752,8 @@ return [
         'menu_target_view' => '表示ビュー',
         'menu_name' => 'メニュー名(英数字)',
         'title' => 'メニュー表示名',
+        'visible_role_groups' => '見せる役割グループ',
+        'visible_role_groups_help' => 'このメニュー（親階層）と中のメニューを、選んだ役割グループの人だけに出します。空のときは、今までどおり誰にでも出ます（中のメニューの権限は今までどおり）。システム管理者にはいつも出ます。',
         'menu_type_options' => [
             'system' => 'システムメニュー',
             'plugin' => 'プラグイン',
