@@ -96,6 +96,8 @@ class Define
         'publicform_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
         // the features an administrator turns on (Services\Features; Admin setting → Feature management)
         'features' => ['type' => 'json', 'default' => []],
+        // the menu before "Arrange in the standard order" (Services\MenuArranger), for undoing it
+        'menu_arrange_backup' => ['type' => 'json', 'default' => []],
         // maintenance mode of the site (Services\MaintenanceMode)
         'maintenance' => ['type' => 'json', 'default' => []],
         // an exment:schedule skipped in a maintenance, to run after it
