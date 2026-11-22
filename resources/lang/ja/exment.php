@@ -3809,6 +3809,7 @@ return [
             'groupware' => 'グループウェア',
             'request' => '申請・承認',
             'sales' => '営業・顧客',
+            'asset' => '資産管理',
             'project' => 'プロジェクト',
             'it_support' => 'ITサポート',
             'hr' => '人事・総務',

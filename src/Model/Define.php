@@ -313,6 +313,7 @@ class Define
         'groupware' => ['icon' => 'fa-comments', 'order' => 2],
         'request' => ['icon' => 'fa-check-square-o', 'order' => 10],
         'sales' => ['icon' => 'fa-briefcase', 'order' => 20],
+        'asset' => ['icon' => 'fa-archive', 'order' => 25],
         'project' => ['icon' => 'fa-tasks', 'order' => 30],
         'it_support' => ['icon' => 'fa-life-ring', 'order' => 40],
         'hr' => ['icon' => 'fa-users', 'order' => 50],
