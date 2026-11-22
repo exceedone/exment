@@ -1,6 +1,9 @@
 {{-- Admin setting → Feature management. Data from FeatureController::index. --}}
 <style>
-.exm-feature table { width: 100%; }
+.exm-feature table { width: 100%; table-layout: fixed; }
+/* the name column takes what the fixed columns leave, and its long help text wraps
+   instead of pushing the other columns out of sight */
+.exm-feature th, .exm-feature td { white-space: normal !important; overflow-wrap: anywhere; }
 .exm-feature th, .exm-feature td { vertical-align: top !important; }
 .exm-feature .exm-feature-help { font-size: .85em; opacity: .75; margin: 2px 0 0; }
 .exm-feature .exm-feature-groups { max-height: 140px; overflow: auto; margin-top: 4px; }
@@ -14,6 +17,7 @@
 .exm-feature .exm-feature-save { position: sticky; bottom: 0; z-index: 5; margin-bottom: 0; }
 .exm-feature .exm-feature-save .box-footer { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
 @media (max-width: 767px) {
+    .exm-feature table { table-layout: auto; }
     .exm-feature .exm-feature-col { width: auto !important; }
 }
 </style>
