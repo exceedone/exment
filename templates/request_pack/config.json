@@ -197,12 +197,28 @@
                     }
                 },
                 {
+                    "column_name": "total",
+                    "column_view_name": "合計",
+                    "column_type": "currency",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "currency_symbol": "JPY1",
+                        "number_format": "1",
+                        "calc_formula": "${sum:request_expense_detail.amount}"
+                    }
+                },
+                {
                     "column_name": "note",
                     "column_view_name": "備考",
                     "column_type": "textarea",
                     "description": null,
                     "system_flg": "0",
-                    "order": "3",
+                    "order": "4",
                     "options": {
                         "required": "0",
                         "index_enabled": "0",
@@ -854,8 +870,25 @@
                                 "relation_filter_target_table_name": null,
                                 "relation_filter_target_column_name": null
                             },
-                            "order": "435",
+                            "order": "424",
                             "form_column_target_name": "apply_date"
+                        },
+                        {
+                            "suuid": "c391c10f99b4c3cf5047",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "425",
+                            "form_column_target_name": "total"
                         },
                         {
                             "suuid": "bd4732e4f99cc12a045a",
@@ -871,7 +904,7 @@
                                 "relation_filter_target_table_name": null,
                                 "relation_filter_target_column_name": null
                             },
-                            "order": "447",
+                            "order": "426",
                             "form_column_target_name": "note"
                         }
                     ],
