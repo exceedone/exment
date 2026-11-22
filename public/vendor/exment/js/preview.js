@@ -4,13 +4,6 @@ var Exment;
      * Preview showing model
      */
     class Preview {
-        constructor(url, $form, options = {}) {
-            this.url = url;
-            this.$form = $form;
-            this.validateErrorTitle = options['validateErrorTitle'];
-            this.validateErrorText = options['validateErrorText'];
-            this.validateSubmitEvent = options['validateSubmitEvent'];
-        }
         static AddEvent() {
         }
         static AddEventOnce() {
@@ -18,6 +11,13 @@ var Exment;
             $(document).on('pjax:complete', function (event) {
                 Preview.AddEvent();
             });
+        }
+        constructor(url, $form, options = {}) {
+            this.url = url;
+            this.$form = $form;
+            this.validateErrorTitle = options['validateErrorTitle'];
+            this.validateErrorText = options['validateErrorText'];
+            this.validateSubmitEvent = options['validateSubmitEvent'];
         }
         /**
          * Showing preview
