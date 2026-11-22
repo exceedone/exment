@@ -333,6 +333,10 @@ class Define
             'uri' => 'tuning',
             'icon' => 'fa-tachometer',
         ],
+        'maintenance' => [
+            'uri' => 'maintenance',
+            'icon' => 'fa-wrench',
+        ],
         'role_group' => [
             'uri' => 'role_group',
             'icon' => 'fa-user-secret',
