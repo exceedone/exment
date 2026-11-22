@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\DB;
  * - The names are encoded in the address (Japanese, spaces, "#", "%"...).
  *   No name has a "/" (Library::validName), so a path names one item.
  * - A workspace whose name cannot be in an address (only digits, "create",
- *   "search"..., a "/") keeps the addresses with numbers.
+ *   "search"..., a "/") keeps the addresses with numbers, and so does a path
+ *   too long for an address (MAX_URL_LENGTH).
  * - When a folder or a file is renamed or moved, its old path is kept and
  *   leads to it. A new item that takes the old path wins (the old path is
  *   forgotten). ?n=<id> in a link names the item for good.
@@ -25,6 +26,13 @@ use Illuminate\Support\Facades\DB;
 class Paths
 {
     public const TABLE = 'file_path_histories';
+
+    /**
+     * The longest address made with the path. A longer one keeps the number:
+     * the web servers refuse long addresses (nginx: 8 KB, 414), and the mails,
+     * Teams and Office cut them. 2,000 is what all of them take.
+     */
+    public const MAX_URL_LENGTH = 2000;
 
     /** the first parts of the addresses under file_server/ that are pages, not workspaces */
     public const RESERVED = ['create', 'search', 'data_lookup'];
@@ -100,7 +108,8 @@ class Paths
 
     /**
      * The address of the page of a folder (its list) or a file, or of the top
-     * of the workspace; null when the workspace keeps the addresses with numbers.
+     * of the workspace; null when it keeps the address with numbers (the name of
+     * the workspace cannot be in an address, or the path is too long).
      */
     public function url(FileWorkspace $workspace, ?FileNode $node = null): ?string
     {
@@ -109,7 +118,9 @@ class Paths
             return null;
         }
         $names = array_merge([$segment], isset($node) ? $this->names($node) : []);
-        return admin_url('file_server/' . implode('/', array_map('rawurlencode', $names)));
+        $url = admin_url('file_server/' . implode('/', array_map('rawurlencode', $names)));
+        // with room for "?n=<id>"
+        return strlen($url) + 13 <= static::MAX_URL_LENGTH ? $url : null;
     }
 
     /**

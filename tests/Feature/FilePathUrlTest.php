@@ -127,11 +127,11 @@ class FilePathUrlTest extends FeatureTestBase
         $sales = $lib->createFolder($ws, null, '営業部');
         $year = $lib->createFolder($ws, $sales, '2026 年度 #1 & 100%');
         $file = $lib->storeFile($ws, $year, '見積書 (案) +α.txt', $this->local('見積の本文'));
-        // deep, with long names
+        // deep, with long names (an address of about 1,900 characters)
         $deep = $year;
         $names = ['営業部', '2026 年度 #1 & 100%'];
         for ($i = 0; $i < 8; $i++) {
-            $name = str_repeat('長', 120) . $i;
+            $name = str_repeat('長', 20) . $i;
             $deep = $lib->createFolder($ws, $deep, $name);
             $names[] = $name;
         }
@@ -150,6 +150,13 @@ class FilePathUrlTest extends FeatureTestBase
         // the links of the pages are the paths
         $this->page($this->pathUrl($ws, ['営業部']))->assertSee('href="' . e(strval($paths->url($ws, $year))) . '"', false);
         $this->assertSame(strval($paths->url($ws, $last)), $this->pathUrl($ws, array_merge($names, ['last.txt'])));
+
+        // a path too long for an address (the web servers refuse it): the number, not moved
+        $longer = $lib->createFolder($ws, $deep, str_repeat('長', 200));
+        $far = $lib->storeFile($ws, $longer, 'far.txt', $this->local('far away'));
+        $this->assertNull((new Paths())->url($ws, $far));
+        $this->assertSame(admin_urls('file_server', $ws->id, 'nodes', $far->id), (new Paths())->link($ws, $far));
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $far->id))->assertOk()->assertSee('far away');
     }
 
     public function testTheAddressesWithNumbersMoveToThePaths(): void
