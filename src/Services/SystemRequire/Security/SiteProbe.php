@@ -14,11 +14,16 @@ class SiteProbe
     /** @var array<string, array{status: int, headers: array<string, string>}|null> */
     protected static $cache = [];
 
-    public static function base(): string
+    /**
+     * The address of the site: EXMENT_SITE_PROBE_URL, else APP_URL. Null when neither is
+     * set: the probes are then skipped ("could not check").
+     */
+    public static function base(): ?string
     {
         // EXMENT_SITE_PROBE_URL: where this server reaches the site when APP_URL is not reachable
         // from inside it (a container: http://web for docker-exment)
-        return rtrim(strval(config('exment.site_probe_url')) ?: (strval(config('app.url')) ?: url('/')), '/');
+        $base = rtrim(strval(config('exment.site_probe_url')) ?: strval(config('app.url')), '/');
+        return $base === '' ? null : $base;
     }
 
     /**
@@ -26,7 +31,11 @@ class SiteProbe
      */
     public static function get(string $path): ?array
     {
-        $url = static::base() . '/' . ltrim($path, '/');
+        $base = static::base();
+        if (!isset($base)) {
+            return null;
+        }
+        $url = $base . '/' . ltrim($path, '/');
         if (array_key_exists($url, static::$cache)) {
             return static::$cache[$url];
         }
