@@ -66,6 +66,38 @@ class AutoTuningPageTest extends FeatureTestBase
         $this->assertStringNotContainsString('data-auto-tuning="session_driver"', $content, 'not chosen: not done');
     }
 
+    public function testTheConfirmListsTheChoicesAndTheChangesGoToTheOperationLog(): void
+    {
+        $admin = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->be($admin);
+
+        $content = (string) $this->get(admin_url('tuning'), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->getContent();
+        $this->assertStringContainsString('data-confirm="' . e(exmtrans('tuning.auto.confirm')) . '"', $content);
+        $this->assertStringContainsString("c.parentNode.textContent.trim()", $content, 'the confirm lists the checked items');
+
+        $before = \ExmentAdminCore\Admin\Auth\Database\OperationLog::where('path', 'tuning/auto')->count();
+        $this->post(admin_url('tuning/action'), ['action' => 'auto', 'auto_tuning' => ['cache_driver']])->assertRedirect(admin_url('tuning'));
+        $logs = \ExmentAdminCore\Admin\Auth\Database\OperationLog::where('path', 'tuning/auto')->get();
+        $this->assertCount($before + 1, $logs);
+        $input = json_decode(strval($logs->last()->input), true);
+        $this->assertSame($admin->id, $logs->last()->user_id);
+        $this->assertSame([['key' => 'cache_driver', 'status' => AutoTuning::DONE, 'message' => '']], $input['results']);
+        $this->assertFalse($input['setup']);
+    }
+
+    public function testTheServerCanKeepTheButtonsOff(): void
+    {
+        config(['exment.tuning_server_actions' => false]);
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+
+        $content = (string) $this->get(admin_url('tuning'), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->getContent();
+        $this->assertStringNotContainsString('id="tuning-auto-form"', $content);
+        $this->assertSame([], (new AutoTuning(true))->available(), 'nor at the setup');
+
+        $this->post(admin_url('tuning/action'), ['action' => 'auto', 'auto_tuning' => ['cache_driver']])->assertForbidden();
+        $this->assertSame([], $this->commands);
+    }
+
     public function testTheSetupDoesNotOfferTheSession(): void
     {
         $items = (new AutoTuning(true))->available();

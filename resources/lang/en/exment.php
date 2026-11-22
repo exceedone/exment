@@ -706,6 +706,8 @@ return [
             'explain' => 'The checked settings are made from this page. The server settings (OPcache, cron, the queue...) are for the server administrator: see the items below.',
             'button' => 'Make the checked settings',
             'install_help' => 'The checked settings are made at the end of the install. Uncheck the ones you do not want. They can also be made later in Admin Setting > Tuning.',
+            'confirm' => 'These settings will be made. Continue? (They are kept in the operation log.)',
+            'none_checked' => 'Check the settings to make.',
             'nothing' => 'There is nothing to set now.',
             'last' => 'The settings made last (:time)',
             'last_setup' => 'at the setup',

@@ -68,6 +68,10 @@ class TuningController extends AdminControllerBase
 
         // the tuning Exment can do by itself, the chosen items (AutoTuning)
         if ($action === 'auto') {
+            // kept from the sites (SaaS) or the server-wide buttons off: not here
+            if (!AutoTuning::enabled()) {
+                abort(403);
+            }
             $result = (new AutoTuning())->apply((array) $request->get('auto_tuning', []));
             if (count($result['failed']) > 0) {
                 admin_toastr(exmtrans('tuning.action_failed'), 'error');

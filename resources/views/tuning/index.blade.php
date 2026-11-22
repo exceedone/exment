@@ -8,7 +8,9 @@
     <div class="box-body">
         @if(!empty($autoItems))
         <p>{{ exmtrans('tuning.auto.explain') }}</p>
-        <form method="post" action="{{ $actionUrl }}" onsubmit="return window.confirm('{{ exmtrans('tuning.action_confirm') }}');">
+        {{-- the confirm says what will change: the checked items --}}
+        <form method="post" action="{{ $actionUrl }}" id="tuning-auto-form" data-confirm="{{ exmtrans('tuning.auto.confirm') }}" data-none="{{ exmtrans('tuning.auto.none_checked') }}"
+            onsubmit="var f = this, items = Array.prototype.filter.call(f.querySelectorAll('input[name=&quot;auto_tuning[]&quot;]'), function (c) { return c.checked; }).map(function (c) { return '- ' + c.parentNode.textContent.trim(); }); if (!items.length) { window.alert(f.dataset.none); return false; } return window.confirm(f.dataset.confirm + '\n\n' + items.join('\n'));">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="auto">
             @foreach($autoItems as $key => $label)

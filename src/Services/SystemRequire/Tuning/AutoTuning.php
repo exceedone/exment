@@ -67,7 +67,8 @@ class AutoTuning
      */
     public static function enabled(): bool
     {
-        return !Features::locked(Features::TUNING);
+        // a SaaS keeps Tuning from its sites; a server can keep the buttons off (several sites on one code)
+        return !Features::locked(Features::TUNING) && TuningController::serverActionsAllowed();
     }
 
     /**
@@ -95,12 +96,14 @@ class AutoTuning
 
     /**
      * Do the chosen items that are needed. Each one on its own: one that fails is logged
-     * and the others still run. The result is kept for the tuning page.
+     * and the others still run. The result is kept for the tuning page, and what was done
+     * goes to the operation log.
      *
      * @param array<mixed> $keys
+     * @param int|null $userId the login user who asked (the new administrator at the setup); null: the one logged in
      * @return array{done: array<string>, failed: array<string>}
      */
-    public function apply(array $keys): array
+    public function apply(array $keys, ?int $userId = null): array
     {
         $done = [];
         $failed = [];
@@ -129,6 +132,7 @@ class AutoTuning
         }
         if (count($results) > 0) {
             static::save($results, $this->setup);
+            static::log($results, $this->setup, $userId);
         }
         return ['done' => $done, 'failed' => $failed];
     }
@@ -324,6 +328,33 @@ class AutoTuning
             \Illuminate\Container\Container::setInstance($app);
             \Illuminate\Support\Facades\Facade::clearResolvedInstances();
             \Illuminate\Support\Facades\Facade::setFacadeApplication($app);
+        }
+    }
+
+    /**
+     * What was done, in the operation log (Admin setting → operation log) and the log file.
+     *
+     * @param array<int, array{key: string, status: string, message: string}> $results
+     */
+    protected static function log(array $results, bool $setup, ?int $userId): void
+    {
+        $detail = ['setup' => $setup, 'results' => $results];
+        \Log::info('[auto tuning]', $detail);
+        try {
+            if (is_null($userId)) {
+                $user = \Exment::user();
+                $userId = $user ? intval($user->id) : 0;
+            }
+            $request = app()->runningInConsole() ? null : request();
+            \ExmentAdminCore\Admin\Auth\Database\OperationLog::create([
+                'user_id' => $userId,
+                'path' => 'tuning/auto' . ($setup ? '/setup' : ''),
+                'method' => isset($request) ? substr($request->method(), 0, 10) : 'CLI',
+                'ip' => isset($request) ? strval($request->getClientIp()) : '127.0.0.1',
+                'input' => json_encode($detail, JSON_UNESCAPED_UNICODE),
+            ]);
+        } catch (\Throwable $e) {
+            // the log file has it
         }
     }
 
