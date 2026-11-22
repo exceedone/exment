@@ -835,9 +835,8 @@ a.notice-bar { color: #6b4e00; }
                             } else if (item.kind === 'header') { cell.appendChild(el('div', { className: 'header-item', text: item.text })); }
                             else if (item.kind === 'text' || item.kind === 'html') {
                                 // html is shown as its text: the app does not run what an administrator wrote
-                                var tmp = document.createElement('div');
-                                tmp.innerHTML = item.kind === 'html' ? item.html : '';
-                                cell.appendChild(el('p', { className: 'text-item', text: item.kind === 'html' ? tmp.textContent : item.text }));
+                                var text = item.kind === 'html' ? new DOMParser().parseFromString(String(item.html || ''), 'text/html').body.textContent : item.text;
+                                cell.appendChild(el('p', { className: 'text-item', text: text }));
                             }
                             else if (item.kind === 'image' && item.url) { cell.appendChild(el('img', { className: 'image-item', src: item.url, alt: '' })); }
                             else if (item.kind === 'line') { cell.appendChild(el('hr', { className: 'line-item' })); }

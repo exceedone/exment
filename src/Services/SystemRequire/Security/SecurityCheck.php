@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\SystemRequire\Security;
 
+use Exceedone\Exment\Controllers\TuningController;
 use Exceedone\Exment\Enums\SystemRequireResult;
 use Exceedone\Exment\Services\Features;
 
@@ -40,6 +41,10 @@ class SecurityCheck
     public static function serverItemsShown(): bool
     {
         try {
+            // EXMENT_TUNING_SERVER_ACTIONS=false: the server is the operator's too
+            if (!TuningController::serverActionsAllowed()) {
+                return false;
+            }
             return !in_array(Features::TUNING, Features::lockedKeys(), true);
         } catch (\Throwable $e) {
             return true;
@@ -139,6 +144,9 @@ class SecurityCheck
     {
         $item = $this->items[$key] ?? null;
         if (!isset($item) || !$item->canFix()) {
+            return false;
+        }
+        if ($item->scope() !== SecurityBase::SCOPE_SITE && !static::serverItemsShown()) {
             return false;
         }
         $item->fix();
