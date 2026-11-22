@@ -34,7 +34,7 @@ class HttpsSecurity extends SecurityBase
 
     public function getResultText(): ?string
     {
-        return strval(config('app.url')) ?: SiteProbe::base();
+        return strval(config('app.url')) ?: (SiteProbe::base() ?? exmtrans('security_check.not_checked'));
     }
 
     public function getFixText(): ?string

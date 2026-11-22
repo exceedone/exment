@@ -84,8 +84,8 @@ class TuningController extends AdminControllerBase
         try {
             switch ($action) {
                 case ConfigCacheTuning::ACTION_CACHE:
-                    // keeps the application of this request (the message after the redirect)
-                    AutoTuning::artisan('config:cache');
+                    // the same routine as AutoTuning (keeps the application of this request)
+                    AutoTuning::cacheConfig();
                     break;
                 case ConfigCacheTuning::ACTION_CLEAR:
                     \Artisan::call('config:clear');

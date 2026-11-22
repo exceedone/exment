@@ -209,6 +209,15 @@ class AutoTuning
 
     protected function applyConfigCache(): void
     {
+        static::cacheConfig();
+    }
+
+    /**
+     * config:cache, the file readable by the owner and the group only (also the button of
+     * the tuning page).
+     */
+    public static function cacheConfig(): void
+    {
         $umask = umask(027);
         try {
             static::artisan('config:cache');
