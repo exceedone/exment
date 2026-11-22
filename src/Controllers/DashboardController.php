@@ -654,11 +654,27 @@ class DashboardController extends AdminControllerBase
             }
             $features = \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures();
             if (count($features) > 0) {
-                admin_info(exmtrans('plugin_distribution.notice_features_subject'), e(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])) . '<br>' . $link . $only);
+                admin_info(exmtrans('plugin_distribution.notice_features_subject'), e(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])) . '<br>' . $link . $only . static::noticesKnownScript());
             }
         } catch (\Throwable $e) {
             \Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * The × of the notice of new features remembers it (FeatureController::noticesKnown):
+     * the close of the alert alone would bring it back on the next page.
+     */
+    protected static function noticesKnownScript(): string
+    {
+        $url = json_encode(admin_url('feature/notices_known'));
+        return '<span class="exment-features-notice" hidden></span><script>(function(){if(window.exmentFeaturesNotice){return;}window.exmentFeaturesNotice=true;'
+            . 'document.addEventListener("click",function(e){var t=e.target;if(!t||!t.closest){return;}'
+            . 'if(!t.closest("[data-bs-dismiss=alert],[data-dismiss=alert],.close,.btn-close")){return;}'
+            . 'var a=t.closest(".alert");if(!a||!a.querySelector(".exment-features-notice")){return;}'
+            . 'var m=document.querySelector("meta[name=csrf-token]");'
+            . 'fetch(' . $url . ',{method:"POST",credentials:"same-origin",headers:{"X-Requested-With":"XMLHttpRequest","X-CSRF-TOKEN":m?m.content:""}});'
+            . '},true);})();</script>';
     }
 
     // @phpstan-ignore-next-line
