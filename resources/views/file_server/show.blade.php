@@ -24,7 +24,7 @@
             <a class="btn btn-sm btn-default" href="{{ $page_url }}"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.open') }}</a>
         @endif
         @if ($can_download)
-            <a class="btn btn-sm btn-primary" href="{{ $node_url }}/download"><i class="fa fa-download" aria-hidden="true"></i> {{ exmtrans('file_server.download') }}</a>
+            <a data-nopjax download class="btn btn-sm btn-primary" href="{{ $node_url }}/download"><i class="fa fa-download" aria-hidden="true"></i> {{ exmtrans('file_server.download') }}</a>
         @endif
         @if ($can_edit_text && !$lockedByOther)
             <a class="btn btn-sm btn-primary" href="{{ $node_url }}/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> {{ exmtrans('file_server.text_edit') }}</a>
@@ -167,7 +167,7 @@
                                             <td style="overflow-wrap:anywhere">{{ $v['comment'] }}</td>
                                             <td class="exm-fs-actions">
                                                 @if ($can_download)
-                                                    <a class="btn btn-xs btn-default" href="{{ $v['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                                    <a data-nopjax download class="btn btn-xs btn-default" href="{{ $v['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
                                                 @endif
                                                 @if (!$v['current'] && $canEdit && !$lockedByOther)
                                                     <button type="button" class="btn btn-xs btn-default" data-fs-restore="{{ $v['restore_url'] }}" title="{{ exmtrans('file_server.restore_version') }}"><i class="fa fa-undo" aria-hidden="true"></i></button>
