@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Tests\Feature;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * The logo at the top left: the site's own, or the Exment logo when it has none.
@@ -21,8 +23,7 @@ class HeaderLogoTest extends FeatureTestBase
 
     public function testWithoutALogoOfItsOwnTheSiteShowsTheExmentLogo(): void
     {
-        $this->storeLogo('site_logo', null);
-        $this->storeLogo('site_logo_mini', null);
+        \DB::table(System::getTableName())->whereIn('system_name', ['site_logo', 'site_logo_mini'])->delete();
         System::clearCache();
         Initialize::initializeConfig();
 
@@ -37,19 +38,19 @@ class HeaderLogoTest extends FeatureTestBase
 
     public function testTheSiteKeepsItsOwnLogo(): void
     {
-        // stored as the setting screen stores an upload (the setter takes an UploadedFile)
-        $this->storeLogo('site_logo', 'system/site_logo_test.png');
-        $this->storeLogo('site_logo_mini', 'system/site_logo_mini_test.png');
+        // uploaded as on the setting screen (the setter stores the file and keeps its path)
+        Storage::fake(config('admin.upload.disk'));
+        System::site_logo(UploadedFile::fake()->image('site_logo_test.png', 200, 40));
+        System::site_logo_mini(UploadedFile::fake()->image('site_logo_mini_test.png', 40, 40));
         System::clearCache();
+        $logo = strval(System::site_logo());
+        $mini = strval(System::site_logo_mini());
+        $this->assertNotSame('', $logo);
+        $this->assertNotSame('', $mini);
         Initialize::initializeConfig();
 
-        $this->assertStringContainsString('site_logo_test.png', strval(config('admin.logo')));
+        $this->assertStringContainsString($logo, strval(config('admin.logo')));
         $this->assertStringNotContainsString(Initialize::DEFAULT_LOGO, strval(config('admin.logo')));
-        $this->assertStringContainsString('site_logo_mini_test.png', strval(config('admin.logo-mini')));
-    }
-
-    private function storeLogo(string $name, ?string $path): void
-    {
-        \DB::table(System::getTableName())->updateOrInsert(['system_name' => $name], ['system_value' => $path]);
+        $this->assertStringContainsString($mini, strval(config('admin.logo-mini')));
     }
 }
