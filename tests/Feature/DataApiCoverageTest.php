@@ -101,6 +101,56 @@ class DataApiCoverageTest extends ApiTestBase
         $this->assertContains('text', $columns->pluck('view_name')->all());
     }
 
+    /**
+     * The bell answers from a per-user cache that a new or read notification makes fresh at once,
+     * and with an ETag, so that an unchanged answer is a bodiless 304 (ISS02824).
+     */
+    public function testTheNavbarPollsAreCachedAndAnswerNotModified(): void
+    {
+        $user_id = \Exment::getUserId();
+        // a bulk update skips the model events: it says itself that the bell changed
+        NotifyNavbar::where('target_user_id', $user_id)->update(['read_flg' => 1]);
+        NotifyNavbar::navbarCacheForget($user_id);
+
+        $first = $this->webapi('notifyPage')->assertOk()->assertJson(['count' => 0]);
+        $etag = (string) $first->headers->get('ETag');
+        $this->assertNotSame('', $etag);
+        $this->assertStringContainsString('no-cache', (string) $first->headers->get('Cache-Control'));
+        $this->assertStringContainsString('private', (string) $first->headers->get('Cache-Control'));
+
+        // unchanged: 304 without a body
+        System::clearRequestSession();
+        $same = $this->get(admin_url('webapi/notifyPage'), ['X-Requested-With' => 'XMLHttpRequest', 'If-None-Match' => $etag]);
+        $same->assertStatus(304);
+        $this->assertSame('', (string) $same->getContent());
+
+        // a new notification: the very next poll has it, although the answer was cached
+        $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();
+        $this->assertNotNull($notify);
+        $navbar = new NotifyNavbar();
+        $navbar->notify_id = $notify->id;
+        $navbar->target_user_id = $user_id;
+        $navbar->trigger_user_id = $user_id;
+        $navbar->notify_subject = 'poll navbar subject';
+        $navbar->notify_body = 'poll navbar body';
+        $navbar->read_flg = 0;
+        $navbar->save();
+
+        System::clearRequestSession();
+        $changed = $this->get(admin_url('webapi/notifyPage'), ['X-Requested-With' => 'XMLHttpRequest', 'If-None-Match' => $etag]);
+        $changed->assertOk()->assertJson(['count' => 1]);
+        $this->assertSame('poll navbar subject', $changed->json('items.0.label'));
+        $this->assertNotSame($etag, (string) $changed->headers->get('ETag'));
+
+        // read: the next poll has it too
+        $navbar->update(['read_flg' => 1]);
+        $this->webapi('notifyPage')->assertOk()->assertJson(['count' => 0]);
+
+        // the workflow tasks carry an ETag as well
+        $tasks = $this->webapi('workflowTaskPage')->assertOk();
+        $this->assertNotSame('', (string) $tasks->headers->get('ETag'));
+    }
+
     public function testTheNavbarNotificationsAndWorkflowTasks(): void
     {
         $user_id = \Exment::getUserId();

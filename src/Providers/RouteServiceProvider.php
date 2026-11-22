@@ -736,9 +736,14 @@ class RouteServiceProvider extends ServiceProvider
                         $router->delete('mcp', 'McpController@notAllowed');
                     }
 
-                    $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
+                    // the navbar polls (ISS02824): an ETag, so that an unchanged answer is a bodiless 304
+                    // (one middleware() call: with no scope, middleware(null) is a getter)
+                    $navbarCache = \Illuminate\Http\Middleware\SetCacheHeaders::class . ':private;no_cache;etag';
+                    $router->get("notifyPage", 'ApiController@notifyPage')
+                        ->middleware(array_values(array_filter([ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ), $navbarCache])));
                     // workflow data - tables, record labels, statuses - so the scopes of the wf/ read endpoints
-                    $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
+                    $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')
+                        ->middleware(array_values(array_filter([ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE), $navbarCache])));
                     $router->get("notify", 'ApiController@notifyList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ, ApiScope::NOTIFY_WRITE));
                     $router->post("notify", 'ApiController@notifyCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_WRITE));
 
