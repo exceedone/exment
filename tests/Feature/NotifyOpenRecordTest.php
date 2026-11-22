@@ -56,15 +56,15 @@ class NotifyOpenRecordTest extends FeatureTestBase
         $record = $this->record(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL);
         $notify = $this->notification(TestDefine::TESTDATA_USER_LOGINID_ADMIN, $record);
 
+        // the list links to it (unread rows come first on the list)
+        $this->get(admin_url('notify_navbar'))
+            ->assertOk()
+            ->assertSee("notify_navbar/{$notify->id}?content=1", false);
+
         $this->get(admin_url("notify_navbar/{$notify->id}") . '?content=1')
             ->assertOk()
             ->assertSee('claude open body');
         $this->assertDatabaseHas(SystemTableName::NOTIFY_NAVBAR, ['id' => $notify->id, 'read_flg' => 1]);
-
-        // the list and the dashboard box link to it
-        $this->get(admin_url('notify_navbar'))
-            ->assertOk()
-            ->assertSee("notify_navbar/{$notify->id}?content=1", false);
     }
 
     public function testANotificationWithoutARecordShowsItself(): void
@@ -181,7 +181,7 @@ class NotifyOpenRecordTest extends FeatureTestBase
         $this->assertSame($expected, ReplaceFormatService::replaceTextFromFormat('${value_url}', $record));
 
         // the link form too
-        $link = ReplaceFormatService::replaceTextFromFormat('${value_url:link}', $record);
+        $link = ReplaceFormatService::replaceTextFromFormat('${value_url/link=1}', $record);
         $this->assertStringContainsString('href="' . $expected . '"', $link);
 
         // the other links of the record stay Exment's own
