@@ -79,9 +79,14 @@ class PhpFpmTuning extends TuningBase
                 if (!is_array($settings) || !isset($settings['pm']) || $name === 'global') {
                     continue;
                 }
-                $this->pools[(string) $name] = array_map(function ($value) {
-                    return trim((string) $value);
-                }, $settings);
+                // php_admin_value[memory_limit] and the like come as arrays: not used here
+                $values = [];
+                foreach ($settings as $key => $value) {
+                    if (is_scalar($value)) {
+                        $values[(string) $key] = trim((string) $value);
+                    }
+                }
+                $this->pools[(string) $name] = $values;
             }
         }
         return $this->pools;
