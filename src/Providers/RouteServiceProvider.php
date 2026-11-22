@@ -167,6 +167,13 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
+            // the API keys of the users (ISS00437): of the login user, and of the site
+            $router->get('auth/api_keys', 'UserApiKeyController@index');
+            $router->post('auth/api_keys', 'UserApiKeyController@store');
+            $router->post('auth/api_keys/{id}/revoke', 'UserApiKeyController@revoke')->where('id', '[0-9]+');
+            $router->get('api_keys', 'UserApiKeyController@adminIndex');
+            $router->post('api_keys/{id}/revoke', 'UserApiKeyController@adminRevoke')->where('id', '[0-9]+');
+            $router->post('api_keys/user/{userId}/revoke', 'UserApiKeyController@adminRevokeUser')->where('userId', '[0-9]+');
 
             $router->get('system', 'SystemController@index');
             $router->post('system', 'SystemController@post');
