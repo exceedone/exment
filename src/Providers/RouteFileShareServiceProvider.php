@@ -29,7 +29,7 @@ class RouteFileShareServiceProvider extends ServiceProvider
         Route::group([
             'prefix' => url_join(\Exceedone\Exment\Services\FileServer\ShareLinks::basePath(), '{token}'),
             'namespace' => $this->namespace,
-            'middleware' => ['adminweb', 'throttle:120,1'],
+            'middleware' => ['adminweb', 'exment.maintenance:public', 'throttle:120,1'],
             'where' => ['token' => '[A-Za-z0-9]{40}'],
         ], function (Router $router) {
             $router->get('/', 'FileShareController@show');

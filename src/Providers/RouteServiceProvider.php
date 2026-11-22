@@ -60,6 +60,8 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'    => config('admin.route.prefix'),
             'namespace' => $this->namespace,
+            // maintenance mode: from outside, as the public forms
+            'middleware' => ['exment.maintenance:public'],
         ], function (Router $router) {
             $router->post('line/webhook', 'LineWebhookController@handle')->name('exment.line_webhook');
         });
@@ -108,6 +110,8 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'  => $this->namespace,
             'middleware' => [
                 'adminweb',
+                // maintenance mode: from outside (a link in a mail), as the public forms
+                'exment.maintenance:public',
                 'admin.browser',
                 'admin.initialize',
                 'admin.login',
@@ -168,6 +172,10 @@ class RouteServiceProvider extends ServiceProvider
             // Tuning: what would make the site faster (ISS00414)
             $router->get('tuning', 'TuningController@index');
             $router->post('tuning/action', 'TuningController@action');
+            $router->get('maintenance', 'MaintenanceController@index');
+            $router->post('maintenance', 'MaintenanceController@store');
+            $router->post('maintenance/start', 'MaintenanceController@start');
+            $router->post('maintenance/end', 'MaintenanceController@end');
 
             // The preset library: what the pickers on the column and view
             // screens offer, managed as one list.
