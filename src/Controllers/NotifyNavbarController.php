@@ -267,6 +267,8 @@ class NotifyNavbarController extends AdminControllerBase
             }
 
             \DB::commit();
+            // query()->update() and delete() skip the model events (ISS02824)
+            NotifyNavbar::navbarCacheForget(\Exment::getUserId());
 
             return getAjaxResponse([
                 'result'  => true,

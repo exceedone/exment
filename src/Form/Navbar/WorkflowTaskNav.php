@@ -54,10 +54,11 @@ class WorkflowTaskNav implements Renderable
         $list = exmtrans('workflow_task.header');
         $list_url = admin_url('workflow_task');
         $interval = static::interval();
+        $user_key = NotifyNav::userKey();
 
         return <<<EOT
         <input id="workflow_task_navbar_noitem" type="hidden" value="$no_newitem" />
-        <input id="workflow_task_navbar_interval" type="hidden" value="$interval" />
+        <input id="workflow_task_navbar_interval" type="hidden" value="$interval" data-user="$user_key" />
 <li class="navbar-workflow-task dropdown notifications-menu">
     <a href="javascript:void(0);" class="container-workflow-task hidden-xs dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="$list">
       <i class="fa fa-sitemap"></i>

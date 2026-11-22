@@ -90,6 +90,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\InitTestCommand::class,
         \Exceedone\Exment\Console\CheckLangCommand::class,
         \Exceedone\Exment\Console\CheckRequireCommand::class,
+        \Exceedone\Exment\Console\TuningCommand::class,
         \Exceedone\Exment\Console\NotifyTestCommand::class,
         \Exceedone\Exment\Console\RefreshDataCommand::class,
         \Exceedone\Exment\Console\RefreshTableDataCommand::class,
@@ -553,7 +554,10 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
-            $schedule->command('exment:safetywatch')->everyMinute()->withoutOverlapping(10);
+            // only when the safety check watches the feed: otherwise it would start PHP every minute for nothing (ISS02823)
+            $schedule->command('exment:safetywatch')->cron(static::safetyWatchCron())->withoutOverlapping(10)->when(function () {
+                return static::safetyWatchUsed();
+            });
             // file server: empty the trash past the days of each workspace (ISS00293)
             $schedule->command('exment:file-server-purge')->dailyAt('03:30')->withoutOverlapping(60);
 
@@ -598,6 +602,46 @@ class ExmentServiceProvider extends ServiceProvider
             // Log debug
             \Exceedone\Exment\Middleware\ExmentDebug::logSchedule($schedule);
         });
+
+        // what the scheduler did, for the tuning page: whether cron runs it, and how long its tasks take (ISS02823)
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Console\Events\ScheduledTaskFinished::class, function ($event) {
+            try {
+                \Exceedone\Exment\Services\SystemRequire\Tuning\ScheduleStatus::record(
+                    \Exceedone\Exment\Services\SystemRequire\Tuning\ScheduleStatus::taskName($event->task),
+                    floatval($event->runtime)
+                );
+            } catch (\Throwable $ex) {
+                // never stop the scheduler for this
+            }
+        });
+    }
+
+    /**
+     * The cron expression of "exment:safetywatch" (config exment.safety_check.watch_interval).
+     */
+    public static function safetyWatchCron(): string
+    {
+        // config exment.safety_check.watch_interval: 1, 5, 10 or 15 minutes; anything else is 5
+        $minutes = intval(config('exment.safety_check.watch_interval', 5));
+        if (!in_array($minutes, [1, 5, 10, 15], true)) {
+            $minutes = 5;
+        }
+
+        return $minutes === 1 ? '* * * * *' : '*/' . $minutes . ' * * * *';
+    }
+
+    /**
+     * Whether "exment:safetywatch" has anything to do: the safety check is used and watches the earthquake feed.
+     */
+    public static function safetyWatchUsed(): bool
+    {
+        try {
+            return \Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::SAFETY_CHECK)
+                && boolval(\Exceedone\Exment\Model\System::safety_check_auto_enabled());
+        } catch (\Throwable $ex) {
+            // before the install: let the command decide
+            return true;
+        }
     }
 
     // @phpstan-ignore-next-line

@@ -416,6 +416,8 @@ class SameOrganizationWorkflowNotify
             // or over SQL Server's parameter limit
             foreach (array_chunk($rows, self::INSERT_CHUNK_ROWS) as $chunk) {
                 NotifyNavbar::insert($chunk);
+                // insert() skips the model events: the bells of these users answer fresh (ISS02824)
+                NotifyNavbar::navbarCacheForget(array_column($chunk, 'target_user_id'));
             }
         } catch (\Throwable $ex) {
             \Log::error($ex);
