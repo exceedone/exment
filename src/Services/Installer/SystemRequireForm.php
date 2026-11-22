@@ -38,6 +38,7 @@ class SystemRequireForm
             $this->setEnv($inputs);
             InstallService::forgetInputParams();
         } catch (\Exception $ex) {
+            \Log::error('Exment install: cannot write .env: ' . $ex->getMessage());
             return back()->withInput()->withErrors([
                 'install_error' => exmtrans('install.error.cannot_write_env'),
             ]);
