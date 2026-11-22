@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\EnvService;
+use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +36,16 @@ class InitializeForm
         $form->text('email', exmtrans('user.email'))->required()->help(exmtrans('user.help.email'));
         $form->password('password', exmtrans('user.password'))->required()->help(\Exment::get_password_help());
         $form->password('password_confirmation', exmtrans('user.password_confirmation'))->required();
+
+        // the tuning Exment can do by itself: chosen here, done after the setup is saved
+        $autoItems = (new AutoTuning())->available();
+        if (count($autoItems) > 0) {
+            $form->exmheader(exmtrans('tuning.install_header'))->hr();
+            $form->checkbox('auto_tuning', exmtrans('tuning.auto.header'))
+                ->options($autoItems)
+                ->default(array_keys($autoItems))
+                ->help(exmtrans('tuning.auto.install_help'));
+        }
         return view('exment::initialize.content', [
             'content'=> $form->render(),
             'header' => exmtrans('system.initialize_header'),
@@ -87,6 +98,14 @@ class InitializeForm
             }
 
             \DB::commit();
+
+            // the tuning chosen on the screen; a failure does not stop the setup (it is logged)
+            try {
+                (new AutoTuning())->apply((array) $request->get('auto_tuning', []));
+            } catch (\Throwable $ex) {
+                \Log::error($ex);
+            }
+
             admin_toastr(trans('admin.save_succeeded'));
             $this->guard()->login($loginuser);
 

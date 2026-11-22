@@ -179,6 +179,15 @@ class TuningServerChecksTest extends UnitTestBase
         $check->memoryMb = 4000;
         $this->assertTrue($check->tooFewChildren());
         $this->assertSame(SystemRequireResult::WARNING, $check->checkResult());
+
+        // php_admin_value[...] lines (an array in the ini): read the rest, no error (SaaS)
+        $check = new Tuning\PhpFpmTuning();
+        $check->files = [$this->tempFile("[tenant11]\npm = ondemand\npm.max_children = 6\npm.process_idle_timeout = 3600s\nphp_admin_value[memory_limit] = 1024M\nphp_admin_value[post_max_size] = 1088M\n")];
+        $check->memoryMb = 4000;
+        $this->assertSame('ondemand', $check->pools()['tenant11']['pm'] ?? null);
+        $this->assertArrayNotHasKey('php_admin_value', $check->pools()['tenant11']);
+        $this->assertSame(SystemRequireResult::OK, $check->checkResult());
+        $this->assertStringContainsString('tenant11: pm=ondemand, max_children=6', (string) $check->getResultText());
     }
 
     /**
