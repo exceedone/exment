@@ -50,6 +50,12 @@ class FilePermissionSecurity extends SecurityBase
         return $this->storageOpen() ? SystemRequireResult::WARNING : SystemRequireResult::OK;
     }
 
+    /** .env or the config cache readable by others (storage alone is not high) */
+    public function isHigh(): bool
+    {
+        return count($this->files()->openFiles()) > 0;
+    }
+
     public function getResultText(): ?string
     {
         $items = collect($this->files()->openFiles())->map(function ($mode, $file) {

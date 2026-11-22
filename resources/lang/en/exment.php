@@ -698,6 +698,8 @@ return [
         'install_header' => 'Security check',
         'install_explain' => 'After the install, see "Security Check" in Admin Setting; what can be fixed is fixed there.',
         'after_initialize' => 'The security check has :count items to fix.',
+        'after_initialize_high' => 'The security check has :count items to fix at once.',
+        'open' => 'Open the security check',
         'item' => [
             'file_permission' => [
                 'label' => 'Permissions of the important files',

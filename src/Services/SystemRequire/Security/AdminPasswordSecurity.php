@@ -69,6 +69,11 @@ class AdminPasswordSecurity extends SecurityBase
         return count($this->weakAdministrators()) > 0 ? SystemRequireResult::NG : SystemRequireResult::OK;
     }
 
+    public function isHigh(): bool
+    {
+        return $this->checkResult() == SystemRequireResult::NG;
+    }
+
     public function getResultText(): ?string
     {
         $weak = $this->weakAdministrators();

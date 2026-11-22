@@ -21,6 +21,11 @@ class AppDebugSecurity extends SecurityBase
         return boolval(config('app.debug')) ? SystemRequireResult::NG : SystemRequireResult::OK;
     }
 
+    public function isHigh(): bool
+    {
+        return $this->checkResult() == SystemRequireResult::NG;
+    }
+
     public function getFixText(): ?string
     {
         return "# .env\nAPP_DEBUG=false";

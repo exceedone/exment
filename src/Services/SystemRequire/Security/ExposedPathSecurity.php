@@ -44,6 +44,12 @@ class ExposedPathSecurity extends SecurityBase
         return $answered ? $result : null;
     }
 
+    /** .env or .git served */
+    public function isHigh(): bool
+    {
+        return count(array_intersect(['.env', '.git'], $this->exposed() ?? [])) > 0;
+    }
+
     public function checked(): bool
     {
         return $this->exposed() !== null;

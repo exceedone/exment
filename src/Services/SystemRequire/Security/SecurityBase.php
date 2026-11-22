@@ -80,6 +80,15 @@ abstract class SecurityBase extends SystemRequireBase
         throw new \LogicException('no fix for ' . $this->key());
     }
 
+    /**
+     * A high risk now: after the initialize the administrator is taken to the page
+     * (the others are told on the dashboard).
+     */
+    public function isHigh(): bool
+    {
+        return false;
+    }
+
     /** Whether the check could be made (a page of the site that did not answer, say). */
     public function checked(): bool
     {
