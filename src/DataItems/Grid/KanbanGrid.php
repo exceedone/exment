@@ -186,7 +186,8 @@ class KanbanGrid extends GridBase
             // lane that holds 2,000 finished records would eat the budget of
             // the lanes that hold the work.
             $records = collect();
-            foreach ($this->getBoardKeys($group_column, $workflow, $hide_keys) as $key) {
+            $keys = $this->keysWithRecords($group_column, $workflow, $hide_keys, $this->getBoardKeys($group_column, $workflow, $hide_keys));
+            foreach ($keys as $key) {
                 $records = $records->merge(
                     $this->buildColumnQuery($group_column, $workflow, $hide_keys, $key)->take($col_count)->get()
                 );
@@ -1243,6 +1244,58 @@ class KanbanGrid extends GridBase
         }
 
         return $query;
+    }
+
+
+    /**
+     * The board columns that can hold a record, for the query of each column: a board
+     * grouped by a column with many choices (the statuses of every project) has many
+     * columns that hold nothing, and each was a query of its own. One query reads the
+     * values in use. Only for a column of one value; a workflow, or a column of several
+     * values, keeps every board column (its records are found otherwise).
+     *
+     * @param CustomColumn|null $group_column
+     * @param Workflow|null $workflow
+     * @param array<int, string> $hide_keys
+     * @param array<int, string> $keys
+     * @return array<int, string>
+     */
+    protected function keysWithRecords($group_column, $workflow, array $hide_keys, array $keys)
+    {
+        if (isset($workflow) || !isset($group_column) || boolval($group_column->isMultipleEnabled())) {
+            return $keys;
+        }
+        try {
+            $query = $this->custom_table->getValueQuery();
+            $this->custom_view->resetSearchService();
+            $this->custom_view->filterSortModel($query, ['sort' => false]);
+            $this->applyEmbedFilter($query);
+            if (!empty($hide_keys)) {
+                $this->applyBoardKeys($query, $group_column, $workflow, $hide_keys, true);
+            }
+            $base = $query->toBase();
+            $base->orders = null;
+            $base->limit = null;
+            $base->offset = null;
+            $expr = \DB::connection()->getQueryGrammar()->wrap($this->columnKey($group_column));
+            $base->columns = [\DB::raw('distinct ' . $expr . ' as kb_key')];
+            $present = array_map(function ($value) {
+                return is_null($value) ? '' : strval($value);
+            }, $base->pluck('kb_key')->all());
+        } catch (\Throwable $e) {
+            // the board as before: every column asked
+            return $keys;
+        }
+
+        $real = $this->getRealBoardKeys($group_column);
+        // the empty column: no value, or a value that is not one of the choices
+        $hasEmpty = count(array_filter($present, function ($value) use ($real) {
+            return $value === '' || !in_array($value, $real, true);
+        })) > 0;
+
+        return array_values(array_filter($keys, function ($key) use ($present, $hasEmpty) {
+            return $key === static::EMPTY_KEY ? $hasEmpty : in_array(strval($key), $present, true);
+        }));
     }
 
 
