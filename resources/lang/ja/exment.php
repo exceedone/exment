@@ -305,16 +305,20 @@ return [
         'installing' => [
             'header' => 'その他設定・初期データインストール',
             'debug' => 'デバッグモードでインストールする',
+            'admin_route_prefix' => 'URL の頭に付ける値',
             'installing' => 'インストール実行',
         ],
 
         'help' => [
             'debug' => 'Exmentをデバッグモードでインストールします。デバッグモードの場合、エラーの詳細を画面表示します。',
             'installing' => '初期データをインストールします。この処理には時間がかかります。',
+            'installing_timeout' => '時間がかかり、画面がエラー（504 など）になっても、サーバーではインストールが続いていることがあります。数分待ってから、このサイトの URL を開き直してください。原因はサーバーの storage/logs/laravel.log にも残ります。',
             'install_success' => 'インストール完了しました！',
+            'admin_route_prefix' => '空のときは「:url」が Exment の URL になります。「admin」と入れると「:url/admin」です（前の版の標準）。英数字・「-」・「_」だけ。あとから .env の ADMIN_ROUTE_PREFIX で変えられます。',
         ],
 
         'error' => [
+            'admin_route_prefix' => 'URL の頭に付ける値は、英数字・「-」・「_」だけで入力してください（空なら付けません）。',
             'cannot_write_env' => '設定ファイルの書き込みに失敗しました。書き込み権限が設定されているか、ファイルが開かれていないかどうかをご確認ください。',
             'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
             'initialize_error' => 'データの初期化中にエラーが発生しました。データベースの接続設定をご確認ください。',

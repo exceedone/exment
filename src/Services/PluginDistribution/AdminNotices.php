@@ -68,6 +68,18 @@ class AdminNotices
      */
     public static function newFeatures(): array
     {
+        return array_values(array_map(function ($key) {
+            return Features::label($key);
+        }, static::newFeatureKeys()));
+    }
+
+    /**
+     * The keys of newFeatures().
+     *
+     * @return string[]
+     */
+    public static function newFeatureKeys(): array
+    {
         $settings = Features::settings();
         if (!isset($settings[Features::SINCE])) {
             return [];
@@ -88,13 +100,40 @@ class AdminNotices
             if (!Features::isNew($key) || Features::locked($key)) {
                 continue;
             }
+            // already on (a feature a plugin had before, "existing"): nothing to decide,
+            // and the notice would say it starts off
+            if (Features::setting($key)['enabled']) {
+                continue;
+            }
             $plugin = Features::pluginOf($key);
             if (isset($plugin, $plugin->created_at, $since) && !\Carbon\Carbon::parse(strval($plugin->created_at))->lt($since)) {
                 continue;
             }
-            $names[] = Features::label($key);
+            $names[] = $key;
         }
         return $names;
+    }
+
+    /**
+     * The new features told of are known now: the administrator closed the notice, or
+     * opened Feature management. They are not told of again.
+     *
+     * @param string[] $keys
+     */
+    public static function markKnown(array $keys): void
+    {
+        if (count($keys) === 0) {
+            return;
+        }
+        $settings = Features::settings();
+        $known = is_array($settings[Features::KNOWN] ?? null) ? array_map('strval', $settings[Features::KNOWN]) : [];
+        $merged = array_values(array_unique(array_merge($known, array_map('strval', $keys))));
+        if ($merged === $known) {
+            return;
+        }
+        $settings[Features::KNOWN] = $merged;
+        System::features($settings);
+        System::clearCache();
     }
 
     /**

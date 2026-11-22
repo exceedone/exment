@@ -305,16 +305,20 @@ return [
         'installing' => [
             'header' => 'Initial Data Installation',
             'debug' => 'Install as Debug Mode',
+            'admin_route_prefix' => 'Value in front of the URLs',
             'installing' => 'Execute Install',
         ],
 
         'help' => [
             'debug' => 'Install Exment in debug mode. In debug mode, the error details are displayed on the screen.',
             'installing' => 'Install initial data. This process takes time.',
+            'installing_timeout' => 'If it takes long and the page shows an error (such as 504), the install may still be running on the server. Wait a few minutes, then open the URL of this site again. The reason is also in storage/logs/laravel.log on the server.',
+            'admin_route_prefix' => 'Empty: ":url" is the URL of Exment. With "admin" it is ":url/admin" (the default of older versions). Letters, digits, "-" and "_" only. You can change it later with ADMIN_ROUTE_PREFIX in .env.',
             'install_success' => 'Installation completed!',
         ],
 
         'error' => [
+            'admin_route_prefix' => 'Use only letters, digits, "-" and "_" for the value in front of the URLs (leave it empty for none).',
             'cannot_write_env' => 'Failed to write the setting file. Please check if you have write permission or if the file is not open.',
             'database_canconnection' => 'Could not connect to the database. Please check your settings.',
             'initialize_error' => 'An error occurred during data initialization. Please check your database connection settings.',
