@@ -48,6 +48,9 @@ class Features
     public const FILE_SERVER = 'file_server';
     public const STUDIO = 'studio';
     public const TUNING = 'tuning';
+    public const API_KEYS = 'api_keys';
+    public const MCP = 'mcp';
+    public const SAFETY_CHECK = 'safety_check';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -124,6 +127,29 @@ class Features
             'api' => ['studio'],
             'menu' => 'studio',
         ]);
+        // the API keys of the users (Services\UserApiKeys, ISS00437): off until an administrator
+        // turns it on and chooses the role groups whose users may make keys
+        $core[static::API_KEYS] = static::definition([
+            'label' => 'exment::exment.feature.features.api_keys',
+            'description' => 'exment::exment.feature.features.api_keys_help',
+            'endpoints' => ['auth/api_keys'],
+        ]);
+        // the MCP server (api/mcp, ISS00439): off until an administrator turns it on and
+        // chooses the role groups whose users may use it from an AI
+        $core[static::MCP] = static::definition([
+            'label' => 'exment::exment.feature.features.mcp',
+            'description' => 'exment::exment.feature.features.mcp_help',
+            'api' => ['mcp'],
+        ]);
+        // the safety check: its page, the answer page (SafetyCheckAnswerController),
+        // the automatic sending (exment:safetywatch) and its LINE answers. Every
+        // site it was on before keeps it on (the migration keep_safety_check_feature);
+        // a new site starts with it off. The LINE link stays: the notifications use LINE too.
+        $core[static::SAFETY_CHECK] = static::definition([
+            'label' => 'exment::exment.feature.features.safety_check',
+            'description' => 'exment::exment.feature.features.safety_check_help',
+            'endpoints' => ['safety_check'],
+        ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
         $core[static::TUNING] = static::definition([
@@ -136,6 +162,14 @@ class Features
             'who' => false,
             // it was there before Feature management: on until it is turned off
             'default' => true,
+        ]);
+        // maintenance mode (Services\MaintenanceMode): the system administrators only
+        $core[MaintenanceMode::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.maintenance_mode',
+            'description' => 'exment::exment.feature.features.maintenance_mode_help',
+            'endpoints' => ['maintenance'],
+            'menu' => 'maintenance',
+            'who' => false,
         ]);
         return $core;
     }
@@ -393,6 +427,12 @@ class Features
         }
         System::features($settings);
         static::$userRoleGroups = [];
+
+        // maintenance mode turned off: a maintenance of the site ends now (and does not come back)
+        $maintenance = $values[MaintenanceMode::FEATURE] ?? null;
+        if (is_array($maintenance) && !boolval(array_get($maintenance, 'enabled', false))) {
+            MaintenanceMode::featureTurnedOff(\Exment::user());
+        }
     }
 
     // ---------------------------------------------------------------- the checks

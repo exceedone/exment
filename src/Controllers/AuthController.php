@@ -349,6 +349,10 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
             $form->ignore(['password_confirmation', 'current_password', 'login_2factor_provider']);
             $form->tools(function (Form\Tools $tools) {
                 $tools->disableDelete();
+                // the API keys of the user, when the administrators allow it (ISS00437)
+                if (\Exceedone\Exment\Services\Features::allowed(\Exceedone\Exment\Services\Features::API_KEYS)) {
+                    $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('auth/api_keys')) . '"><i class="fa fa-key"></i> ' . esc_html(exmtrans('api_key.header')) . '</a>');
+                }
             });
 
             $form->saving(function (Form $form) {
