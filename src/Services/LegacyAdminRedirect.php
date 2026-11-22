@@ -16,6 +16,21 @@ class LegacyAdminRedirect
     public const SEGMENT = 'admin';
 
     /**
+     * The value typed for the admin prefix (the setup page), as it goes to
+     * ADMIN_ROUTE_PREFIX: slashes and spaces at both ends are taken off; empty
+     * means no prefix. Only letters, digits, "-" and "_" (one path segment), or
+     * null when it has anything else.
+     */
+    public static function normalizePrefix(?string $value): ?string
+    {
+        $value = trim(trim(strval($value)), '/');
+        if ($value === '') {
+            return '';
+        }
+        return preg_match('/^[A-Za-z0-9_-]{1,64}$/', $value) ? $value : null;
+    }
+
+    /**
      * Whether the site has no admin prefix, so the old "/admin" links are redirected.
      */
     public static function enabled(): bool
