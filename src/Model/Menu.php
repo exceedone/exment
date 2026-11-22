@@ -35,7 +35,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      */
     protected $titleColumn = 'title';
 
-    protected $appends = ['menu_target_view'];
+    protected $appends = ['menu_target_view', 'visible_role_groups'];
     protected $casts = ['options' => 'json'];
 
     /**
@@ -55,7 +55,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public static $templateItems = [
         'excepts' => [
             'import' => ['permission'],
-            'export' => ['menu_target', 'permission', 'menu_target_view'],
+            'export' => ['menu_target', 'permission', 'menu_target_view', 'visible_role_groups'],
         ],
         'uniqueKeys' => ['menu_type', 'menu_name'],
         'langs' => [
@@ -114,6 +114,92 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public function setMenuTargetViewAttribute($value)
     {
         return $this->setOption('menu_target_view', $value);
+    }
+
+    /**
+     * The role groups a parent menu (a group of the menu) is shown to; empty
+     * shows it to everyone, as before.
+     *
+     * @return array<int, int>
+     */
+    public function getVisibleRoleGroupsAttribute(): array
+    {
+        return static::roleGroupIds($this->getOption('visible_role_groups', []));
+    }
+
+    /**
+     * @param mixed $value
+     * @return void
+     */
+    public function setVisibleRoleGroupsAttribute($value)
+    {
+        $ids = static::roleGroupIds($value);
+        $this->setOption('visible_role_groups', count($ids) > 0 ? $ids : null);
+    }
+
+    /**
+     * @param mixed $value ids as the form or the options give them
+     * @return array<int, int>
+     */
+    public static function roleGroupIds($value): array
+    {
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+        if (!is_array($value)) {
+            return [];
+        }
+        $ids = [];
+        foreach ($value as $id) {
+            if (is_numeric($id) && intval($id) > 0) {
+                $ids[] = intval($id);
+            }
+        }
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * Export: the role groups of a parent menu travel by their name, not by
+     * their id (on another site the same id is another role group or none).
+     *
+     * @param array<mixed> $json
+     * @param-out array<mixed> $json
+     * @return void
+     */
+    public static function exportReplaceJson(&$json)
+    {
+        $ids = static::roleGroupIds(array_get($json, 'options.visible_role_groups'));
+        array_forget($json, 'options.visible_role_groups');
+        if (count($ids) > 0) {
+            $names = RoleGroup::whereIn('id', $ids)->pluck('role_group_name')->map(function ($name) {
+                return strval($name);
+            })->values()->all();
+            array_set($json, 'options.visible_role_group_names', $names);
+        }
+    }
+
+    /**
+     * Import: the names of the role groups back to the ids of this site; a
+     * name this site does not have is dropped.
+     *
+     * @param array<mixed> $json
+     * @param-out array<mixed> $json
+     * @return void
+     */
+    protected static function importVisibleRoleGroups(&$json)
+    {
+        $names = array_get($json, 'options.visible_role_group_names');
+        array_forget($json, 'options.visible_role_group_names');
+        array_forget($json, 'options.visible_role_groups');
+        if (!is_array($names) || count($names) === 0) {
+            return;
+        }
+        $ids = RoleGroup::whereIn('role_group_name', $names)->pluck('id')->map(function ($id) {
+            return intval($id);
+        })->values()->all();
+        if (count($ids) > 0) {
+            array_set($json, 'options.visible_role_groups', $ids);
+        }
     }
 
 
@@ -347,6 +433,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     // @phpstan-ignore-next-line
     public static function importReplaceJson(&$json, $options = [])
     {
+        static::importVisibleRoleGroups($json);
+
         // Create menu. --------------------------------------------------
         $hasname = array_get($options, 'hasname');
 

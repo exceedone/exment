@@ -277,6 +277,12 @@ trait HasPermissions
             return false;
         }
 
+        // a parent menu (a group of the menu) with role groups: only for the
+        // members of one of them (the system administrators always see it)
+        if (array_get($item, 'menu_type') == MenuType::PARENT_NODE && !$this->canSeeMenuGroup($item)) {
+            return false;
+        }
+
         // a group of the feature map (Define::MENU_GROUP_DEFINITION) with nothing
         // in it to show: the menus of the features turned off are taken out of
         // the tree before this, and a template or a plugin may make the group
@@ -316,6 +322,34 @@ trait HasPermissions
             return false;
         }
         return true;
+    }
+
+    /**
+     * Whether the user may see a parent menu: it has no role groups, or the
+     * user is a system administrator or a member of one of them.
+     *
+     * @param array<string, mixed> $item
+     */
+    protected function canSeeMenuGroup(array $item): bool
+    {
+        $options = array_get($item, 'options');
+        if (is_string($options)) {
+            $options = json_decode_ex($options, true);
+        }
+        $ids = \Exceedone\Exment\Model\Menu::roleGroupIds(array_get($options, 'visible_role_groups'));
+        if (count($ids) === 0 || $this->isAdministrator()) {
+            return true;
+        }
+        $mine = System::requestSession('menu_group_role_group_ids_' . $this->getUserId(), function () {
+            $base = $this->base_user;
+            if (!isset($base)) {
+                return [];
+            }
+            return $base->belong_role_groups_all()->pluck('id')->map(function ($id) {
+                return intval($id);
+            })->all();
+        });
+        return count(array_intersect($ids, (array) $mine)) > 0;
     }
 
     /**
