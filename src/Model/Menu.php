@@ -261,6 +261,27 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      * The title of a system menu in the language of the site, for a menu an
      * update adds.
      */
+    /**
+     * Put a system menu right after another one under the same parent (the security check
+     * after Tuning): the ones after it move down by one. Nothing when either is missing or
+     * they are under different parents (an administrator moved one).
+     */
+    public static function placeSystemMenuAfter(string $menuName, string $afterName): void
+    {
+        $table = config('admin.database.menu_table', 'admin_menu');
+        $menu = \DB::table($table)->where('menu_type', 'system')->where('menu_name', $menuName)->first();
+        $after = \DB::table($table)->where('menu_type', 'system')->where('menu_name', $afterName)->first();
+        if (!isset($menu, $after) || intval($menu->parent_id) !== intval($after->parent_id)) {
+            return;
+        }
+        $order = intval($after->order);
+        if (intval($menu->order) === $order + 1) {
+            return;
+        }
+        \DB::table($table)->where('parent_id', $after->parent_id)->where('id', '<>', $menu->id)->where('order', '>', $order)->increment('order');
+        \DB::table($table)->where('id', $menu->id)->update(['order' => $order + 1]);
+    }
+
     public static function systemTitle(string $menuName): string
     {
         // a language without the name: the one of Laravel, then English, then the name of the menu

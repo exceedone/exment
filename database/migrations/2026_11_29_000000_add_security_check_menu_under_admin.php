@@ -43,6 +43,8 @@ return new class extends Migration
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        // right after Tuning
+        \Exceedone\Exment\Model\Menu::placeSystemMenuAfter('security_check', 'tuning');
     }
 
     /**
