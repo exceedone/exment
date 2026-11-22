@@ -120,6 +120,17 @@ class Initialize
      * @param bool $setDatabase
      * @return void
      */
+    /** The header logo of a site without its own (the logo of 2026-11, public/images). */
+    public const DEFAULT_LOGO = 'images/exment_logo.svg';
+
+    /** The same, for the side menu folded. */
+    public const DEFAULT_LOGO_MINI = 'images/exment_mark.svg';
+
+    protected static function defaultLogoExists(string $path): bool
+    {
+        return is_file(public_path($path));
+    }
+
     public static function initializeConfig($setDatabase = true)
     {
         //// set from env
@@ -366,10 +377,14 @@ class Initialize
                 Config::set('admin.title', $val);
             }
 
-            // Logo
+            // Logo: the site's own; without one, the Exment logo (the site name is still
+            // the page title). The site name as text only when the logo is not there
+            // (public/images not published yet).
             $val = System::site_logo();
             if (!is_nullorempty($val)) {
                 Config::set('admin.logo', html_image($val, 'header logo'));
+            } elseif (static::defaultLogoExists(static::DEFAULT_LOGO)) {
+                Config::set('admin.logo', html_image(static::DEFAULT_LOGO, esc_html(System::site_name() ?: 'Exment')));
             } else {
                 $val = System::site_name();
                 if (!is_nullorempty($val)) {
@@ -377,10 +392,12 @@ class Initialize
                 }
             }
 
-            // Logo(Short)
+            // Logo(Short): the site's own; without one, the Exment mark
             $val = System::site_logo_mini();
             if (!is_nullorempty($val)) {
                 Config::set('admin.logo-mini', html_image($val, 'header logo mini'));
+            } elseif (static::defaultLogoExists(static::DEFAULT_LOGO_MINI)) {
+                Config::set('admin.logo-mini', html_image(static::DEFAULT_LOGO_MINI, esc_html(System::site_name_short() ?: 'Exment')));
             } else {
                 $val = System::site_name_short();
                 if (!is_nullorempty($val)) {
