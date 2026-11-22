@@ -88,8 +88,12 @@ class SecurityCheckTest extends UnitTestBase
         $check = new Security\ExposedPathSecurity();
         $this->assertSame(['.env'], $check->exposed());
         $this->assertSame(SystemRequireResult::NG, $check->checkResult());
+        $this->assertTrue($check->isHigh());
+    }
 
-        Security\SiteProbe::clear();
+    public function testNothingServedWhenRefused(): void
+    {
+        config(['app.url' => 'https://example.test']);
         Http::fake(['https://example.test/*' => Http::response('', 403)]);
         $this->assertSame([], (new Security\ExposedPathSecurity())->exposed());
     }
@@ -167,13 +171,18 @@ class SecurityCheckTest extends UnitTestBase
         $vendor = new Security\ExposedPathSecurity();
         $this->assertSame(['vendor'], $vendor->exposed());
         $this->assertFalse($vendor->isHigh());
+    }
 
-        Security\SiteProbe::clear();
+    public function testAServedGitIsAHighRisk(): void
+    {
+        config(['app.url' => 'https://example.test']);
         Http::fake([
             'https://example.test/.git/*' => Http::response('ref: refs/heads/main', 200),
             'https://example.test/*' => Http::response('', 404),
         ]);
-        $this->assertTrue((new Security\ExposedPathSecurity())->isHigh());
+        $check = new Security\ExposedPathSecurity();
+        $this->assertSame(['.git'], $check->exposed());
+        $this->assertTrue($check->isHigh());
     }
 
     public function testOnlyWhatCanBeFixedIsFixed(): void
