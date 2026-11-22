@@ -696,6 +696,13 @@ class FileServerTest extends FeatureTestBase
             $blank = strval(file_get_contents(exment_package_path('resources/file_server/blank.' . $type)));
             $this->assertSame($blank, $this->bytes($node));
             $this->assertStringStartsWith("PK\x03\x04", $blank);
+            if ($type === 'docx') {
+                // a body with no paragraph leaves an editor nowhere to put the cursor (no typing)
+                $zip = new \ZipArchive();
+                $this->assertTrue($zip->open(exment_package_path('resources/file_server/blank.docx')) === true);
+                $this->assertMatchesRegularExpression('#<w:body>.*<w:p[ />]#s', strval($zip->getFromName('word/document.xml')));
+                $zip->close();
+            }
             $this->assertSame(Preview::KIND_OFFICE, Preview::kind($node->mime_type, $node->name));
             // opened on its page, not in the text editor
             $this->assertStringNotContainsString('/edit', strval($json['redirect']));
