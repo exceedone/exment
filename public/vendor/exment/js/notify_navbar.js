@@ -21,10 +21,10 @@ var Exment;
             });
         }
         /**
-         * toggle right-top help link and color
+         * ask for the notifications (force: also when another tab has just asked)
          */
         static notifyNavbar(force = true) {
-            // one timer, shared by the tabs, quiet while the tab is hidden (navbar_poll.js, ISS02824)
+            // one timer, shared by the tabs, quiet while the tab is hidden (navbar_poll.ts, ISS02824)
             if (!NotifyNavbarEvent.poller) {
                 NotifyNavbarEvent.poller = new Exment.NavbarPoll({
                     name: 'notify',
@@ -55,8 +55,6 @@ var Exment;
                     let d = data.items[i];
                     const isNew = $.inArray(d.id, NotifyNavbarEvent.notify_navbar_ids) === -1;
                     let li = $('<li/>', {
-                        class: '',
-                        style: ';',
                         html: $('<a/>', {
                             href: hasValue(d.href) ? d.href : 'javascript:void(0);',
                             html: [
@@ -64,7 +62,6 @@ var Exment;
                                     html: [
                                         $('<i/>', {
                                             'class': 'fa ' + d.icon,
-                                            //'style': hasValue(d.color) ? 'color:' + d.color : null
                                         }),
                                         $('<span></span>', {
                                             'text': d.table_view_name,
