@@ -3792,6 +3792,7 @@ return [
             'groupware' => 'グループウェア',
             'admin_data' => '設定：データと画面',
             'admin_user' => '設定：ユーザーと権限',
+            'admin_system' => '設定：システム',
         ],
     ],
 

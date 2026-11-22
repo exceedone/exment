@@ -3792,6 +3792,7 @@ return [
             'groupware' => 'Groupware',
             'admin_data' => 'Settings: Data & Screens',
             'admin_user' => 'Settings: Users & Permissions',
+            'admin_system' => 'Settings: System',
         ],
     ],
 
