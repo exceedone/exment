@@ -1356,7 +1356,7 @@
             "menu_target_name": "file_server"
         },
         {
-            "order": "3",
+            "order": "90",
             "menu_type": "parent_node",
             "menu_name": "master",
             "title": "Master",

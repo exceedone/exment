@@ -11,6 +11,7 @@
         @if ($f['description'] !== '')<p class="exm-feature-help">{{ $f['description'] }}</p>@endif
         @if (!empty($f['note']))<p class="exm-feature-help">{{ $f['note'] }}</p>@endif
         @if (!empty($f['requires']))<p class="exm-feature-help">{{ exmtrans('feature.requires', ['name' => $f['requires']]) }}</p>@endif
+        @if (!empty($f['manual_url']))<p class="exm-feature-help"><a href="{{ $f['manual_url'] }}" target="_blank" rel="noopener noreferrer" data-feature-manual><i class="fa fa-book" aria-hidden="true"></i> {{ exmtrans('feature.manual') }}</a></p>@endif
         <input type="hidden" name="features[{{ $key }}][present]" value="1">
     </td>
     <td>

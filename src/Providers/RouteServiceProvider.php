@@ -167,6 +167,10 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->resource('auth/logs', 'LogController', ['except' => ['create', 'edit']]);
             $router->post('auth/logs/setting', 'LogController@postSetting');
+            // a path of its own: exment-admin-core registers "auth/menu/{menu}" first, which would take "arrange" for an id
+            $router->get('auth/menu_arrange', 'MenuController@arrange');
+            $router->post('auth/menu_arrange', 'MenuController@arrangeRun');
+            $router->post('auth/menu_arrange/restore', 'MenuController@arrangeRestore');
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
@@ -279,6 +283,8 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('comments/{comment}/delete', 'FileServerGovernanceController@deleteComment')->where('comment', '[0-9]+');
                 });
             });
+            // the pages of the folders and files at their paths (ISS02815): after all the others
+            $router->get('file_server/{path}', 'FileServerController@path')->where('path', '.+');
 
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
@@ -734,9 +740,14 @@ class RouteServiceProvider extends ServiceProvider
                         $router->delete('mcp', 'McpController@notAllowed');
                     }
 
-                    $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
+                    // the navbar polls (ISS02824): an ETag, so that an unchanged answer is a bodiless 304
+                    // (one middleware() call: with no scope, middleware(null) is a getter)
+                    $navbarCache = \Illuminate\Http\Middleware\SetCacheHeaders::class . ':private;no_cache;etag';
+                    $router->get("notifyPage", 'ApiController@notifyPage')
+                        ->middleware(array_values(array_filter([ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ), $navbarCache])));
                     // workflow data - tables, record labels, statuses - so the scopes of the wf/ read endpoints
-                    $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
+                    $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')
+                        ->middleware(array_values(array_filter([ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE), $navbarCache])));
                     $router->get("notify", 'ApiController@notifyList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ, ApiScope::NOTIFY_WRITE));
                     $router->post("notify", 'ApiController@notifyCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_WRITE));
 

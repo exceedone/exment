@@ -96,6 +96,8 @@ class Define
         'publicform_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
         // the features an administrator turns on (Services\Features; Admin setting → Feature management)
         'features' => ['type' => 'json', 'default' => []],
+        // the menu before "Arrange in the standard order" (Services\MenuArranger), for undoing it
+        'menu_arrange_backup' => ['type' => 'json', 'default' => []],
         // maintenance mode of the site (Services\MaintenanceMode)
         'maintenance' => ['type' => 'json', 'default' => []],
         // an exment:schedule skipped in a maintenance, to run after it
@@ -300,6 +302,24 @@ class Define
     /**
      * MENU SYSTEM DIFINITION
      */
+    /**
+     * The groups of the left menu (parent nodes), in the order of the feature
+     * map (exment.net/feature-map/): the first menu of a new site, the bundled
+     * templates and the official plugins put their menus under them
+     * (Menu::groupParentId()). The settings (admin_data, admin_user, admin)
+     * come at the end, after 90.
+     */
+    public const MENU_GROUP_DEFINITION = [
+        'groupware' => ['icon' => 'fa-comments', 'order' => 2],
+        'request' => ['icon' => 'fa-check-square-o', 'order' => 10],
+        'sales' => ['icon' => 'fa-briefcase', 'order' => 20],
+        'asset' => ['icon' => 'fa-archive', 'order' => 25],
+        'project' => ['icon' => 'fa-tasks', 'order' => 30],
+        'it_support' => ['icon' => 'fa-life-ring', 'order' => 40],
+        'hr' => ['icon' => 'fa-users', 'order' => 50],
+        'master' => ['icon' => 'fa-database', 'order' => 90],
+    ];
+
     public const MENU_SYSTEM_DEFINITION = [
         'home' => [
             'uri' => '/',
@@ -585,6 +605,7 @@ class Define
         ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
+        ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
 

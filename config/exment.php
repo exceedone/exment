@@ -411,6 +411,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Notify navbar interval
+    |--------------------------------------------------------------------------
+    |
+    | How often the bell asks for new notifications, in seconds (at least 30).
+    | The open tabs of one browser share one poll, and a hidden tab does not ask.
+    |
+    */
+    'notify_navbar_interval' => env('EXMENT_NOTIFY_NAVBAR_INTERVAL', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Workflow task navbar
     |--------------------------------------------------------------------------
     |
@@ -1615,6 +1626,9 @@ return [
     'safety_check' => [
         'feed_url'   => env('EXMENT_SAFETY_CHECK_FEED_URL', 'https://api.p2pquake.net/v2/history'),
         'feed_limit' => env('EXMENT_SAFETY_CHECK_FEED_LIMIT', 10),
+        // how often the earthquake feed is watched, in minutes: 1, 5, 10 or 15 (default 5).
+        // 5 is enough for a safety check after a quake, and lets "schedule:run" go every 5 minutes.
+        'watch_interval' => env('EXMENT_SAFETY_CHECK_WATCH_INTERVAL', 5),
     ],
 
     /*

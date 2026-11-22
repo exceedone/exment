@@ -55,6 +55,35 @@ class NewSiteMenuGroupsTest extends FeatureTestBase
         $this->assertSame(['base_info', 'organization', 'user', 'information'], $this->children('master'));
     }
 
+    public function testAGroupIsMadeInTheOrderOfTheFeatureMap(): void
+    {
+        $id = \Exceedone\Exment\Model\Menu::groupParentId('project');
+        $this->assertNotNull($id);
+        $this->assertSame($id, \Exceedone\Exment\Model\Menu::groupParentId('project'), 'the second time finds it');
+        $this->assertNull(\Exceedone\Exment\Model\Menu::groupParentId('no_such_group'));
+        $row = DB::table('admin_menu')->where('id', $id)->first();
+        $this->assertSame(0, intval($row->parent_id));
+        $this->assertSame('parent_node', $row->menu_type);
+        $this->assertSame(\Exceedone\Exment\Model\Menu::systemTitle('project'), $row->title);
+
+        $roots = DB::table('admin_menu')->where('parent_id', 0)->orderBy('order')->orderBy('id')->pluck('menu_name')->map(function ($name) {
+            return strval($name);
+        })->all();
+        $known = array_values(array_intersect($roots, ['home', 'groupware', 'project', 'master', 'admin_data', 'admin_user', 'admin']));
+        $this->assertSame(['home', 'groupware', 'project', 'master', 'admin_data', 'admin_user', 'admin'], $known);
+    }
+
+    public function testAGroupWithNothingToShowIsHidden(): void
+    {
+        $admin = \Exceedone\Exment\Model\LoginUser::findOrFail(\Exceedone\Exment\Tests\TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        // the menus of a feature turned off are taken out of the tree before the check
+        $this->assertFalse($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'groupware']));
+        $this->assertFalse($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'groupware', 'children' => []]));
+        $this->assertTrue($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'groupware', 'children' => [['menu_type' => 'custom', 'uri' => 'https://example.com/']]]));
+        // a parent an administrator made, empty: shown as before (MenuNullUriTest)
+        $this->assertTrue($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'my_folder', 'uri' => null]));
+    }
+
     public function testEveryMenuOfTheTemplateIsASystemMenuOrATable(): void
     {
         $config = json_decode((string) file_get_contents(exment_package_path('system_template/config.json')), true);

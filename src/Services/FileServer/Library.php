@@ -915,7 +915,9 @@ class Library
             if (!$this->access->can($workspace, $child, Level::VIEW)
                 // with their own permissions, below the level to download
                 || !Governance::canDownload($this->access, $workspace, $child)
-                // the drafts of others are not copied (they are not seen)
+                // no draft is copied, the user's own neither: a draft is not approved yet, and a copy
+                // would be a new file that skips the approval (or one more draft that waits for it).
+                // The drafts of others are not seen either. Copy a draft once it is approved.
                 || $child->isDraft()) {
                 continue;
             }
@@ -1011,6 +1013,8 @@ class Library
             }
             $node->save();
         });
+        // back at a path: the old paths there lead to it (ISS02815)
+        Paths::forgetNode($node->refresh());
         $this->access->flush();
         FileSearch::sync($ids);
         // back into a folder that needs an approval (it may have been moved there
@@ -1055,6 +1059,7 @@ class Library
             FileDataLink::query()->whereIn('node_id', $ids)->delete();
             FileFollow::query()->whereIn('node_id', $ids)->delete();
             FileComment::query()->whereIn('node_id', $ids)->delete();
+            Paths::forgetRemoved($ids);
             FileNode::query()->whereIn('id', $ids)->delete();
         });
         Audit::log(Audit::PURGE, $workspace, $node, $checkPermission ? $this->access->userId() : null, ['count' => count($ids)]);

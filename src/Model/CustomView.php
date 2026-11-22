@@ -692,7 +692,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // if all data view is not exists, create view and column
             if (!isset($alldata)) {
                 $alldata = static::createDefaultView($tableObj);
-                $alldata->createDefaultViewColumns();
+                // with the indexed columns, as getAllData does: the list must not depend on which page opened the table first
+                $alldata->createDefaultViewColumns(true);
             }
             $view = $alldata;
         }
