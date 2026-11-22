@@ -47,6 +47,8 @@ class TuningController extends AdminControllerBase
             'serverActions' => static::serverActionsAllowed(),
             'actionUrl' => admin_urls('tuning', 'action'),
             'autoItems' => (new AutoTuning())->available(),
+            // what it did last (at the setup or here)
+            'autoLast' => AutoTuning::last(),
         ]));
         return $content;
     }
@@ -66,6 +68,10 @@ class TuningController extends AdminControllerBase
 
         // the tuning Exment can do by itself, the chosen items (AutoTuning)
         if ($action === 'auto') {
+            // kept from the sites (SaaS) or the server-wide buttons off: not here
+            if (!AutoTuning::enabled()) {
+                abort(403);
+            }
             $result = (new AutoTuning())->apply((array) $request->get('auto_tuning', []));
             if (count($result['failed']) > 0) {
                 admin_toastr(exmtrans('tuning.action_failed'), 'error');
@@ -78,7 +84,8 @@ class TuningController extends AdminControllerBase
         try {
             switch ($action) {
                 case ConfigCacheTuning::ACTION_CACHE:
-                    \Artisan::call('config:cache');
+                    // keeps the application of this request (the message after the redirect)
+                    AutoTuning::artisan('config:cache');
                     break;
                 case ConfigCacheTuning::ACTION_CLEAR:
                     \Artisan::call('config:clear');
