@@ -99,6 +99,13 @@ class Features
     /** Whether the classes of the plugin pages were made here (the routes cached). */
     protected static bool $pluginsBooted = false;
 
+    /** The cache of what the plugins registered (the routes cached). */
+    public const PLUGINS_CACHE_KEY = 'exment_features_plugins_';
+
+    public const PLUGINS_CACHE_SECONDS = 3600;
+
+    protected static ?bool $routesCachedForTests = null;
+
     /**
      * The features of Exment itself (the file server when Exment has it).
      *
@@ -247,8 +254,15 @@ class Features
     /**
      * The plugins register their features when their classes are made: when
      * the routes are made (PluginServiceProvider::map). With the routes cached
-     * (php artisan route:cache) they are not made there, so they are made
-     * here, once, when the features are first asked for.
+     * (php artisan route:cache) they are not made there, so what they register
+     * is kept in the cache, for the plugins as they are: the classes are made
+     * once, not on each request.
+     *
+     * A feature not known is not stopped, so what is kept must be all: it is
+     * kept only when the class of every active page plugin was made, it is
+     * forgotten when a plugin is installed, changed or removed
+     * (forgetPluginsCache), and it is kept for an hour at most. When the cache
+     * cannot be read or written, the classes are made (as without the cache).
      */
     protected static function bootPlugins(): void
     {
@@ -257,12 +271,119 @@ class Features
         }
         static::$pluginsBooted = true;
         try {
-            if (app()->routesAreCached() && canConnection() && hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
-                Plugin::getPluginPages();
+            if (!static::routesAreCached() || !canConnection() || !hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
+                return;
             }
         } catch (\Throwable $e) {
             \Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
+            return;
         }
+
+        $cacheKey = null;
+        try {
+            $cacheKey = static::pluginsCacheKey();
+            $kept = \Cache::get($cacheKey);
+            if (is_array($kept)) {
+                static::$registered += $kept;
+                static::$definitions = null;
+                return;
+            }
+        } catch (\Throwable $e) {
+            // the cache cannot be read: made as without the cache
+            \Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
+            $cacheKey = null;
+        }
+
+        try {
+            $built = Plugin::getPluginPages()->count();
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
+            return;
+        }
+        static::$definitions = null;
+        if ($cacheKey === null || $built < static::activePagePluginCount()) {
+            // a class could not be made (its files not there yet, an error): not kept
+            return;
+        }
+        try {
+            // all that is registered (also what was registered before in this
+            // request, as by the scripts of the plugins in admin.bootstrap)
+            \Cache::put($cacheKey, static::$registered, static::PLUGINS_CACHE_SECONDS);
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * The active plugins that have pages (their classes register the features).
+     */
+    protected static function activePagePluginCount(): int
+    {
+        return Plugin::query()->where('active_flg', true)->get()->filter(function ($plugin) {
+            return $plugin->matchPluginType(\Exceedone\Exment\Enums\PluginType::PLUGIN_TYPE_PLUGIN_PAGE());
+        })->count();
+    }
+
+    /**
+     * Forget what the plugins registered (a plugin was installed, changed,
+     * turned on or off, or removed): the next request makes the classes again.
+     */
+    public static function forgetPluginsCache(): void
+    {
+        try {
+            \Cache::forever(static::pluginsGenerationKey(), uniqid('', true));
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
+        }
+        static::$pluginsBooted = false;
+        static::$definitions = null;
+    }
+
+    /**
+     * Whether the routes are cached (php artisan route:cache); a test may say.
+     */
+    protected static function routesAreCached(): bool
+    {
+        return static::$routesCachedForTests ?? app()->routesAreCached();
+    }
+
+    /**
+     * For the tests: as if the routes were cached (true), or not (false),
+     * or as they are (null).
+     */
+    public static function routesCachedForTests(?bool $cached): void
+    {
+        static::$routesCachedForTests = $cached;
+    }
+
+    /**
+     * The key of the cache of what the plugins registered: it changes when a
+     * plugin is added, removed, turned on or off, or changed, and when the
+     * cache is forgotten (forgetPluginsCache). The database and the URL of the
+     * site are in it, so sites that share a cache store (a SaaS) do not share
+     * the key.
+     */
+    public static function pluginsCacheKey(): string
+    {
+        $sign = Plugin::query()->orderBy('id')->get()->map(function ($plugin) {
+            $row = $plugin->getAttributes();
+            return [$row['id'] ?? null, $row['plugin_name'] ?? null, $row['plugin_types'] ?? $row['plugin_type'] ?? null,
+                $row['version'] ?? null, $row['active_flg'] ?? null, strval($row['updated_at'] ?? '')];
+        })->toJson();
+        $generation = strval(\Cache::get(static::pluginsGenerationKey(), ''));
+        return static::PLUGINS_CACHE_KEY . md5(static::siteSign() . "\n" . $generation . "\n" . $sign);
+    }
+
+    /** The site (its database and URL), for the keys of a cache store shared by sites. */
+    protected static function siteSign(): string
+    {
+        $connection = strval(config('database.default'));
+        return implode('|', [$connection, strval(config('database.connections.' . $connection . '.database')), strval(config('app.url'))]);
+    }
+
+    protected static function pluginsGenerationKey(): string
+    {
+        return static::PLUGINS_CACHE_KEY . 'generation_' . md5(static::siteSign());
     }
 
     /**

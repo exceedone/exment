@@ -124,6 +124,50 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     }
 
     /**
+     * The language of the site (APP_LOCALE), also when an update runs from
+     * the command line (where the locale of Laravel may be another one).
+     */
+    public static function siteLocale(): string
+    {
+        // exment.locale is APP_LOCALE (config/exment.php)
+        $locale = config('exment.locale');
+        return is_string($locale) && $locale !== '' ? $locale : strval(app()->getLocale());
+    }
+
+    /**
+     * The title of a system menu in the language of the site, for a menu an
+     * update adds.
+     */
+    public static function systemTitle(string $menuName): string
+    {
+        // a language without the name: the one of Laravel, then English, then the name of the menu
+        $key = 'exment::exment.menu.system_definitions.' . $menuName;
+        foreach (array_unique([static::siteLocale(), strval(app()->getLocale()), 'en']) as $locale) {
+            $title = trans($key, [], $locale);
+            if (is_string($title) && $title !== '' && !str_starts_with($title, 'exment::')) {
+                return $title;
+            }
+        }
+        return $menuName;
+    }
+
+    /**
+     * Whether the menus of the features not used are given too (marked
+     * "feature_hidden"): for editing the menus and exporting a template,
+     * not for the menu of the pages.
+     */
+    protected bool $withHidden = false;
+
+    /**
+     * @return $this
+     */
+    public function withHidden(bool $withHidden = true)
+    {
+        $this->withHidden = $withHidden;
+        return $this;
+    }
+
+    /**
      * @return array
      */
 
@@ -180,6 +224,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         $results = [];
         foreach ($rows as &$row) {
             $result = true;
+            $hidden = false;
             if (isset($row['options'])) {
                 $row['options'] = json_decode_ex($row['options'], true);
             }
@@ -193,7 +238,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     $row['uri'] = $plugin->getRouteUri();
                     // its menu turned off (Admin setting → Feature management)
                     if (\Exceedone\Exment\Services\Features::hidesPluginMenu($plugin->plugin_name)) {
-                        $result = false;
+                        $hidden = true;
                     }
                     break;
                 case MenuType::TABLE:
@@ -230,7 +275,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     // a feature not used, or that the user may not use (Admin setting → Feature management)
                     if (\Exceedone\Exment\Services\Features::hidesSystemMenu(strval($row['menu_target']))) {
-                        $result = false;
+                        $hidden = true;
                     }
                     break;
                 case MenuType::PARENT_NODE:
@@ -244,8 +289,13 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
             // a page of a feature the user may not use: its menu goes too, of
             // any kind (a plugin's own feature, a custom menu to its URL)
-            if ($result && \Exceedone\Exment\Services\Features::hidesMenuUri(isset($row['uri']) ? strval($row['uri']) : null)) {
-                $result = false;
+            if ($result && !$hidden && \Exceedone\Exment\Services\Features::hidesMenuUri(isset($row['uri']) ? strval($row['uri']) : null)) {
+                $hidden = true;
+            }
+            if ($hidden) {
+                // the menu of a feature not used: kept for editing and the templates
+                $row['feature_hidden'] = true;
+                $result = $result && $this->withHidden;
             }
             if (!$result) {
                 continue;
@@ -370,7 +420,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
             $parent_name = null;
         } else {
             $parent_id = $this['parent_id'];
-            $menulist = (new Menu())->allNodes(); // allNodes:dimensional
+            $menulist = (new Menu())->withHidden()->allNodes(); // allNodes:dimensional
             $parent = collect($menulist)->first(function ($value, $key) use ($parent_id) {
                 return array_get($value, 'id') == $parent_id;
             });

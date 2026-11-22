@@ -240,6 +240,93 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertSame('a::b c', Features::label('exment_test.plain'));
     }
 
+    public function testWithTheRoutesCachedThePluginsAreNotMadeEachTime(): void
+    {
+        // the routes cached (php artisan route:cache)
+        Features::routesCachedForTests(true);
+        try {
+            $key = Features::pluginsCacheKey();
+            // what the plugins registered is taken from the cache (no class made)
+            $kept = ['exment_test.kept' => ['label' => 'Kept', 'description' => '', 'endpoints' => ['plugins/exment_test'], 'api' => [],
+                'menu' => null, 'plugin' => 'exment_test', 'existing' => false, 'default' => false, 'who' => true, 'requires' => null]];
+            \Cache::put($key, $kept, 60);
+            Features::reset();
+            $this->assertArrayHasKey('exment_test.kept', Features::definitions());
+            $this->assertSame('exment_test.kept', Features::forRequest(Request::create(admin_url('plugins/exment_test'))));
+
+            // a plugin changed: another key, the classes are made again and kept
+            $plugin = Plugin::query()->orderBy('id')->first();
+            if ($plugin !== null) {
+                DB::table('plugins')->where('id', $plugin->id)->update(['updated_at' => now()->addMinute()]);
+                $this->assertNotSame($key, Features::pluginsCacheKey());
+            }
+            \Cache::forget(Features::pluginsCacheKey());
+            Features::reset();
+            $this->assertArrayNotHasKey('exment_test.kept', Features::definitions());
+            $this->assertIsArray(\Cache::get(Features::pluginsCacheKey()), 'what the plugins registered is kept');
+        } finally {
+            \Cache::forget($key ?? '');
+            Features::routesCachedForTests(null);
+            Features::reset();
+        }
+    }
+
+    public function testTheCacheOfThePluginsIsKeptOnlyWhenAll(): void
+    {
+        Features::routesCachedForTests(true);
+        $broken = null;
+        $cache = null;
+        try {
+            // a plugin forgotten: the key changes
+            $key = Features::pluginsCacheKey();
+            Features::forgetPluginsCache();
+            $this->assertNotSame($key, Features::pluginsCacheKey());
+
+            // a page plugin whose class cannot be made (its files are not there): not kept
+            $broken = new Plugin();
+            $broken->uuid = (string)\Illuminate\Support\Str::uuid();
+            $broken->plugin_name = 'TestBroken' . uniqid();
+            $broken->plugin_view_name = 'Broken';
+            $broken->plugin_types = \Exceedone\Exment\Enums\PluginType::PAGE;
+            $broken->active_flg = true;
+            $broken->version = '1.0.0';
+            $broken->save();
+            Features::reset();
+            Features::routesCachedForTests(true);
+            Features::definitions();
+            $this->assertNull(\Cache::get(Features::pluginsCacheKey()), 'a set without a plugin was kept');
+
+            // what was registered before in the request is kept too
+            $broken->active_flg = false;
+            $broken->save();
+            Features::reset();
+            Features::routesCachedForTests(true);
+            Features::register('exment_test.before', ['label' => 'Before', 'endpoints' => ['plugins/exment_test']]);
+            Features::definitions();
+            /** @var mixed $kept */
+            $kept = \Cache::store()->get(Features::pluginsCacheKey());
+            $this->assertTrue(is_array($kept), 'the features were not kept');
+            $this->assertArrayHasKey('exment_test.before', (array)$kept);
+
+            // the cache cannot be read: the features are made as without it
+            $cache = app('cache');
+            \Cache::partialMock()->shouldReceive('get')->andThrow(new \RuntimeException('the store is down'));
+            Features::reset();
+            Features::routesCachedForTests(true);
+            Features::register('exment_test.desk', ['label' => 'Desk', 'endpoints' => ['plugins/exment_test']]);
+            $this->assertArrayHasKey('exment_test.desk', Features::definitions());
+        } finally {
+            if (isset($cache)) {
+                \Illuminate\Support\Facades\Cache::swap($cache);
+            }
+            if (isset($broken) && $broken->exists) {
+                $broken->delete();
+            }
+            Features::routesCachedForTests(null);
+            Features::reset();
+        }
+    }
+
     public function testRequiresAndWho(): void
     {
         Features::register('exment_test.desk', ['label' => 'Desk', 'endpoints' => ['plugins/exment_test']]);

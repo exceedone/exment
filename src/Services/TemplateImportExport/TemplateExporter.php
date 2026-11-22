@@ -309,7 +309,8 @@ class TemplateExporter
     protected static function setTemplateMenu(&$config, $target_tables, $is_lang = false)
     {
         // get menu --------------------------------------------------
-        $menuTree = (new Menu())->toTree(); // menutree:hierarchy
+        // with the menus of the features not used (a site that uses them gets them)
+        $menuTree = (new Menu())->withHidden()->toTree(); // menutree:hierarchy
         $menus = [];
 
         // loop for menutree

@@ -3744,6 +3744,7 @@ return [
     'menu' => [
         'menu_type' => 'Menu Type',
         'description' => 'Define about left menu. You can update definition if you reload browser.',
+        'feature_hidden' => 'Hidden by Feature management',
         'menu_target' => 'Target',
         'menu_target_view' => 'Target View',
         'menu_name' => 'Menu Name',
