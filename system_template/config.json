@@ -1405,7 +1405,7 @@
             "menu_target_name": "system"
         },
         {
-            "order": "2",
+            "order": "12",
             "menu_type": "system",
             "menu_name": "login_setting",
             "title": "Login Setting",
@@ -1413,7 +1413,7 @@
             "menu_target_name": "login_setting"
         },
         {
-            "order": "3",
+            "order": "13",
             "menu_type": "system",
             "menu_name": "api_setting",
             "title": "API Setting",
@@ -1421,7 +1421,7 @@
             "menu_target_name": "api_setting"
         },
         {
-            "order": "4",
+            "order": "3",
             "menu_type": "system",
             "menu_name": "custom_table",
             "title": "Custom Table",
@@ -1429,7 +1429,7 @@
             "menu_target_name": "custom_table"
         },
         {
-            "order": "5",
+            "order": "4",
             "menu_type": "system",
             "menu_name": "studio",
             "title": "Studio",
@@ -1437,7 +1437,7 @@
             "menu_target_name": "studio"
         },
         {
-            "order": "6",
+            "order": "5",
             "menu_type": "system",
             "menu_name": "menu",
             "title": "Menu",
@@ -1445,7 +1445,7 @@
             "menu_target_name": "menu"
         },
         {
-            "order": "7",
+            "order": "8",
             "menu_type": "system",
             "menu_name": "workflow",
             "title": "Workflow",
@@ -1453,7 +1453,7 @@
             "menu_target_name": "workflow"
         },
         {
-            "order": "8",
+            "order": "9",
             "menu_type": "table",
             "menu_name": "mail_template",
             "title": "Mail Template",
@@ -1461,7 +1461,7 @@
             "menu_target_name": "mail_template"
         },
         {
-            "order": "9",
+            "order": "6",
             "menu_type": "system",
             "menu_name": "loginuser",
             "title": "LoginUser",
@@ -1469,7 +1469,7 @@
             "menu_target_name": "loginuser"
         },
         {
-            "order": "10",
+            "order": "7",
             "menu_type": "system",
             "menu_name": "role_group",
             "title": "Role Group",
@@ -1477,7 +1477,7 @@
             "menu_target_name": "role_group"
         },
         {
-            "order": "11",
+            "order": "2",
             "menu_type": "system",
             "menu_name": "feature",
             "title": "Feature Management",
@@ -1485,7 +1485,7 @@
             "menu_target_name": "feature"
         },
         {
-            "order": "12",
+            "order": "10",
             "menu_type": "system",
             "menu_name": "plugin",
             "title": "Plugin",
@@ -1493,7 +1493,7 @@
             "menu_target_name": "plugin"
         },
         {
-            "order": "13",
+            "order": "11",
             "menu_type": "system",
             "menu_name": "template",
             "title": "Template",
@@ -1501,7 +1501,7 @@
             "menu_target_name": "template"
         },
         {
-            "order": "14",
+            "order": "15",
             "menu_type": "system",
             "menu_name": "backup",
             "title": "Backup",
@@ -1509,7 +1509,7 @@
             "menu_target_name": "backup"
         },
         {
-            "order": "15",
+            "order": "16",
             "menu_type": "system",
             "menu_name": "tuning",
             "title": "Tuning",
@@ -1517,7 +1517,7 @@
             "menu_target_name": "tuning"
         },
         {
-            "order": "16",
+            "order": "14",
             "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Maintenance Mode",
