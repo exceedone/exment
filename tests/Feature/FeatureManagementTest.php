@@ -348,7 +348,7 @@ class FeatureManagementTest extends FeatureTestBase
             // the help button: the pages of the features come first
             $html = strval(new \Exceedone\Exment\Form\Navbar\HelpNav());
             $this->assertSame(1, preg_match('/value="([^"]*)" id="help_urls"/', $html, $m));
-            $urls = json_decode(html_entity_decode($m[1], ENT_QUOTES), true);
+            $urls = json_decode(html_entity_decode($m[1] ?? "", ENT_QUOTES), true);
             $this->assertTrue(is_array($urls));
             $uris = array_column($urls, 'help_uri', 'uri');
             $this->assertSame('https://example.com/manual/own', $uris['plugins/exment_test/own'] ?? null);
