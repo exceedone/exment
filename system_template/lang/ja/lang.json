@@ -442,7 +442,7 @@
         {
             "menu_type": "system",
             "menu_name": "file_server",
-            "title": "文書管理"
+            "title": "ファイル共有"
         },
         {
             "menu_type": "parent_node",
