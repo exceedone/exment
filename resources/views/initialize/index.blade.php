@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ Admin::title() }}</title>
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="{{ admin_asset("/vendor/open-admin/AdminLTE/boostrap/css/bootstrap.min.css") }}" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    {{-- the same files as the login page (auth/layout.blade.php). AdminLTE 4 has Bootstrap 5 in it. --}}
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/font-awesome.min.css") }}">
+    <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/all.min.css") }}">
+    <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/v4-shims.min.css") }}">
 
-    <!-- AdminLTE Theme style (BS5-compatible) -->
-    <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/dist/css/adminlte.min.css") }}">
+    <!-- AdminLTE 4 (Bootstrap 5) -->
+    <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE4/css/adminlte.min.css") }}">
 
     {!! Admin::css() !!}
     <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/open-admin/open-admin.css") }}">

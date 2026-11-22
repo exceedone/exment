@@ -34,15 +34,27 @@ class SlowQueryLogTuning extends TuningBase
             if (!in_array(\DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
                 return $this->variables = false;
             }
-            $variables = [];
-            foreach (\DB::select("SHOW VARIABLES WHERE Variable_name IN ('slow_query_log', 'long_query_time', 'log_output')") as $row) {
-                $row = (array) $row;
-                $variables[strtolower((string) ($row['Variable_name'] ?? ''))] = (string) ($row['Value'] ?? '');
-            }
-            return $this->variables = $variables;
+            return $this->variables = $this->readRows(\DB::select("SHOW VARIABLES WHERE Variable_name IN ('slow_query_log', 'long_query_time', 'log_output')"));
         } catch (\Throwable $e) {
             return $this->variables = false;
         }
+    }
+
+    /**
+     * The rows of SHOW VARIABLES as name => value. The case of the keys follows PDO::ATTR_CASE
+     * (lower in Exment: variable_name, value), so they are read in any case.
+     *
+     * @param array<mixed> $rows
+     * @return array<string, string>
+     */
+    protected function readRows(array $rows): array
+    {
+        $variables = [];
+        foreach ($rows as $row) {
+            $row = array_change_key_case((array) $row, CASE_LOWER);
+            $variables[strtolower((string) ($row['variable_name'] ?? ''))] = (string) ($row['value'] ?? '');
+        }
+        return $variables;
     }
 
     public function on(): bool
