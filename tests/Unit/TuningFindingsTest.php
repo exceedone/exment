@@ -37,7 +37,11 @@ class TuningFindingsTest extends UnitTestBase
         }
         // a link without rel="stylesheet" is not loaded at all, and a wrong integrity blocks the file
         $this->assertDoesNotMatchRegularExpression('/<link (?![^>]*rel=)[^>]*href=/', $view);
-        $this->assertStringNotContainsString('integrity=', $view);
+        preg_match_all('/admin_asset\s*\(\s*"\/?([^"]+)"\s*\)\s*}}"\s*integrity="(sha384-[^"]+)"/', $view, $m, PREG_SET_ORDER);
+        foreach ($m as list(, $path, $integrity)) {
+            $hash = 'sha384-' . base64_encode(hash_file('sha384', public_path($path), true));
+            $this->assertSame($integrity, $hash, 'the integrity of ' . $path);
+        }
     }
 
     public function testTheSlowQueryLogIsReadInAnyCaseOfTheKeys(): void
