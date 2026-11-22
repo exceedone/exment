@@ -139,6 +139,11 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         if ($avatar) {
             return Storage::disk(config('admin.upload.disk'))->url($avatar);
         }
+        // without one: the initials of the user's name, as ExmentPM draws them
+        $base = $this->base_user;
+        if (isset($base)) {
+            return \Exceedone\Exment\Services\InitialsAvatar::url(strval($base->getLabel()));
+        }
         return asset(Define::USER_IMAGE_LINK);
     }
 
