@@ -981,7 +981,12 @@
             "title": "申請・承認",
             "icon": "fa-check-square-o",
             "uri": "#",
-            "options": null,
+            "options": {
+                "visible_role_group_names": [
+                    "request_applicant_group",
+                    "request_approver_group"
+                ]
+            },
             "menu_type": "parent_node",
             "menu_name": "request",
             "parent_name": null,

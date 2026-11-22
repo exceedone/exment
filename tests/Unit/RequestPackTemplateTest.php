@@ -74,6 +74,9 @@ class RequestPackTemplateTest extends UnitTestBase
             }
         }
         $this->assertContains('workflow_task', array_column($config['admin_menu'], 'menu_name'));
+        // the group is for the applicants and the approvers of the pack (by name: ISS02822)
+        $group = collect($config['admin_menu'])->firstWhere('menu_name', 'request');
+        $this->assertSame(array_column($config['roles'], 'role_group_name'), array_get($group, 'options.visible_role_group_names'));
     }
 
     public function testTheRoleGroupsAreForTheTablesOfThePack(): void
