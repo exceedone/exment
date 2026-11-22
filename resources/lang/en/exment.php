@@ -701,6 +701,17 @@ return [
             'config_clear' => 'Remove the config cache',
             'logging_off' => 'Turn off the system performance log',
         ],
+        'auto' => [
+            'header' => 'Settings Exment can make by itself',
+            'explain' => 'The checked settings are made from this page. The server settings (OPcache, cron, the queue...) are for the server administrator: see the items below.',
+            'button' => 'Make the checked settings',
+            'install_help' => 'The checked settings are made at the end of the install. Uncheck the ones you do not want. They can also be made later in Admin Setting > Tuning.',
+            'item' => [
+                'exment_cache' => 'Use the Exment cache (EXMENT_USE_CACHE=true in .env)',
+                'assets' => 'Put back the missing JS and CSS (exment:publish)',
+                'file_permission' => 'Make .env and the config cache unreadable to others (640)',
+            ],
+        ],
         'item' => [
             'opcache' => [
                 'label' => 'OPcache',

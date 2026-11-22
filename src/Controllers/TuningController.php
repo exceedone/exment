@@ -6,6 +6,7 @@ use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
+use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
 use Exceedone\Exment\Services\SystemRequire\Tuning\ConfigCacheTuning;
 use Exceedone\Exment\Services\SystemRequire\Tuning\DebugLogTuning;
 use Illuminate\Http\Request;
@@ -45,6 +46,7 @@ class TuningController extends AdminControllerBase
             'requireResult' => SystemRequireList::make(SystemRequireCalledType::WEB),
             'serverActions' => static::serverActionsAllowed(),
             'actionUrl' => admin_urls('tuning', 'action'),
+            'autoItems' => (new AutoTuning())->available(),
         ]));
         return $content;
     }
@@ -60,6 +62,17 @@ class TuningController extends AdminControllerBase
         $serverWide = in_array($action, [ConfigCacheTuning::ACTION_CACHE, ConfigCacheTuning::ACTION_CLEAR], true);
         if ($serverWide && !static::serverActionsAllowed()) {
             abort(403);
+        }
+
+        // the tuning Exment can do by itself, the chosen items (AutoTuning)
+        if ($action === 'auto') {
+            $result = (new AutoTuning())->apply((array) $request->get('auto_tuning', []));
+            if (count($result['failed']) > 0) {
+                admin_toastr(exmtrans('tuning.action_failed'), 'error');
+            } else {
+                admin_toastr(exmtrans('tuning.action_done'));
+            }
+            return redirect(admin_url('tuning'));
         }
 
         try {
