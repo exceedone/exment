@@ -122,6 +122,33 @@ class Initialize
     /** The same, for the side menu folded. */
     public const DEFAULT_LOGO_MINI = 'images/exment_mark.svg';
 
+    /** The logo with light letters, for the colored bar of the classic design. */
+    public const DEFAULT_LOGO_DARK = 'images/exment_logo_dark.svg';
+
+    /** The class of the default logo: no plate behind it (modern.css). */
+    public const DEFAULT_LOGO_CLASS = 'exment-default-logo';
+
+    /**
+     * The default logo for the bar it sits on: the light bar of the modern design, or
+     * the white bar of the black skins of the classic one, take the colored letters;
+     * the colored bar of the other skins takes the light ones.
+     */
+    public static function defaultLogo(): string
+    {
+        try {
+            if (\Exment::isModernUi()) {
+                return static::DEFAULT_LOGO;
+            }
+            $skin = strval(System::site_skin() ?: config('admin.skin'));
+        } catch (\Throwable $e) {
+            return static::DEFAULT_LOGO;
+        }
+        if (strpos($skin, 'skin-black') === 0 || !static::defaultLogoExists(static::DEFAULT_LOGO_DARK)) {
+            return static::DEFAULT_LOGO;
+        }
+        return static::DEFAULT_LOGO_DARK;
+    }
+
     protected static function defaultLogoExists(string $path): bool
     {
         return is_file(public_path($path));
@@ -384,7 +411,7 @@ class Initialize
             if (!is_nullorempty($val)) {
                 Config::set('admin.logo', html_image($val, 'header logo'));
             } elseif (static::defaultLogoExists(static::DEFAULT_LOGO)) {
-                Config::set('admin.logo', html_image(static::DEFAULT_LOGO, esc_html(System::site_name() ?: 'Exment')));
+                Config::set('admin.logo', html_image(static::defaultLogo(), esc_html(System::site_name() ?: 'Exment'), ['class' => static::DEFAULT_LOGO_CLASS]));
             } else {
                 $val = System::site_name();
                 if (!is_nullorempty($val)) {
@@ -397,7 +424,7 @@ class Initialize
             if (!is_nullorempty($val)) {
                 Config::set('admin.logo-mini', html_image($val, 'header logo mini'));
             } elseif (static::defaultLogoExists(static::DEFAULT_LOGO_MINI)) {
-                Config::set('admin.logo-mini', html_image(static::DEFAULT_LOGO_MINI, esc_html(System::site_name_short() ?: 'Exment')));
+                Config::set('admin.logo-mini', html_image(static::DEFAULT_LOGO_MINI, esc_html(System::site_name_short() ?: 'Exment'), ['class' => static::DEFAULT_LOGO_CLASS]));
             } else {
                 $val = System::site_name_short();
                 if (!is_nullorempty($val)) {
