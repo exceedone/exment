@@ -61,7 +61,7 @@ class NotifyTemplate
     {
         $trigger = strval($notify->notify_trigger);
         if ($trigger === NotifyTrigger::WORKFLOW) {
-            $workflow = Workflow::find($notify->target_id);
+            $workflow = Workflow::where('id', $notify->target_id)->first();
             if (!$workflow || !in_array($workflow->workflow_view_name, $workflowNames, true)) {
                 return null;
             }
@@ -134,7 +134,7 @@ class NotifyTemplate
             'trigger_settings' => $triggerSettings,
             'action_settings' => $actions,
         ];
-        if (!empty($notify->custom_view_id) && ($view = CustomView::find($notify->custom_view_id))) {
+        if (!empty($notify->custom_view_id) && ($view = CustomView::where('id', $notify->custom_view_id)->first())) {
             $item['custom_view_suuid'] = $view->suuid;
         }
         if (!empty($notify->mail_template_id)) {
