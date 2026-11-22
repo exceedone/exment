@@ -312,6 +312,7 @@ return [
         'help' => [
             'debug' => 'Exmentをデバッグモードでインストールします。デバッグモードの場合、エラーの詳細を画面表示します。',
             'installing' => '初期データをインストールします。この処理には時間がかかります。',
+            'installing_timeout' => '時間がかかり、画面がエラー（504 など）になっても、サーバーではインストールが続いていることがあります。数分待ってから、このサイトの URL を開き直してください。原因はサーバーの storage/logs/laravel.log にも残ります。',
             'install_success' => 'インストール完了しました！',
             'admin_route_prefix' => '空のときは「:url」が Exment の URL になります。「admin」と入れると「:url/admin」です（前の版の標準）。英数字・「-」・「_」だけ。あとから .env の ADMIN_ROUTE_PREFIX で変えられます。',
         ],

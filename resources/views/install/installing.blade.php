@@ -38,7 +38,7 @@
                 </div>
 
                 <!-- /.col -->
-                <p class="col-xs-12 col-sm-10 col-sm-offset-1 ps-5">{{ exmtrans('install.help.installing') }}</p>
+                <p class="col-xs-12 col-sm-10 col-sm-offset-1 ps-5">{{ exmtrans('install.help.installing') }}<br><span class="small">{{ exmtrans('install.help.installing_timeout') }}</span></p>
             </div>
             
             <div class="row">
