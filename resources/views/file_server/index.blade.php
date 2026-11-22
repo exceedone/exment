@@ -38,7 +38,7 @@
         @php $rows = ${$section[0]}; @endphp
         @if (count($rows) > 0)
             <div class="exm-fs-section box card">
-                <div class="box-header"><h4><i class="fa {{ $section[1] }}" aria-hidden="true"></i> {{ exmtrans('file_server.section_' . $section[0]) }}</h4></div>
+                <div class="box-header with-border"><h3 class="box-title"><i class="fa {{ $section[1] }}" aria-hidden="true"></i> {{ exmtrans('file_server.section_' . $section[0]) }}</h3></div>
                 <div class="box-body table-responsive p-0">
                     <table class="table exm-fs-table">
                         <thead><tr><th>{{ exmtrans('file_server.name') }}</th><th>{{ exmtrans('file_server.workspace') }}</th><th>{{ exmtrans('file_server.updated_at') }}</th></tr></thead>

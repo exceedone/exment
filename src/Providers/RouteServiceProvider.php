@@ -219,6 +219,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('file_server', 'FileServerController@store');
             $router->get('file_server/search', 'FileServerMetaController@search');
             $router->get('file_server/data_lookup', 'FileServerMetaController@dataLookup');
+            $router->get('file_server/picker', 'FileServerController@picker')->middleware('throttle:120,1');
             $router->group(['prefix' => 'file_server/{workspace}', 'where' => ['workspace' => '[0-9]+']], function (Router $router) {
                 $router->get('/', 'FileServerController@folder');
                 $router->get('folder/{node}', 'FileServerController@folder')->where('node', '[0-9]+');

@@ -139,7 +139,7 @@
                 </div>
 
                 <div class="exm-fs-section box card">
-                    <div class="box-header"><h4><i class="fa fa-history" aria-hidden="true"></i> {{ exmtrans('file_server.versions') }}</h4></div>
+                    <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-history" aria-hidden="true"></i> {{ exmtrans('file_server.versions') }}</h3></div>
                     <div class="box-body">
                         @if ($canEdit && !$lockedByOther)
                             <form data-fs-version-form class="form-inline" style="margin-bottom:10px">
@@ -203,7 +203,7 @@
             @include('exment::file_server._governance_box')
 
             <div class="exm-fs-section box card">
-                <div class="box-header"><h4><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h4></div>
+                <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h3></div>
                 <div class="box-body">
                     <p class="exm-fs-muted">{{ $node->has_unique_permissions ? exmtrans('file_server.permissions_unique') : exmtrans('file_server.permissions_inherited') }}</p>
                     @if ($canManage && $node->has_unique_permissions)
@@ -232,7 +232,7 @@
 
             @if ($can_share || $can_request || count($links) > 0)
             <div class="exm-fs-section box card">
-                <div class="box-header"><h4><i class="fa fa-share-alt" aria-hidden="true"></i> {{ exmtrans('file_server.share_links') }}</h4></div>
+                <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-share-alt" aria-hidden="true"></i> {{ exmtrans('file_server.share_links') }}</h3></div>
                 <div class="box-body">
                     @foreach ($links as $l)
                         <div style="border-bottom:1px solid rgba(0,0,0,.08);padding:6px 0;{{ $l['active'] ? '' : 'opacity:.55' }}">
@@ -314,7 +314,7 @@
     root.addEventListener('click', function (e) {
         var restore = e.target.closest('[data-fs-restore]');
         if (restore) {
-            if (confirm(t.confirm_restore)) { Fs.post(restore.getAttribute('data-fs-restore'), {}).then(Fs.done, Fs.fail); }
+            Fs.confirm(t.confirm_restore).then(function (ok) { if (ok) { Fs.post(restore.getAttribute('data-fs-restore'), {}).then(Fs.done, Fs.fail); } });
             return;
         }
         var btn = e.target.closest('[data-fs-action]');
@@ -329,19 +329,20 @@
                 Fs.post(url + '/' + action, {}).then(Fs.done, Fs.fail);
                 break;
             case 'rename':
-                var n = prompt(t.new_name, name);
-                if (n && n !== name) { Fs.post(url + '/rename', { name: n }).then(Fs.done, Fs.fail); }
+                Fs.ask(t.new_name, name).then(function (n) {
+                    if (n && n !== name) { Fs.post(url + '/rename', { name: n }).then(Fs.done, Fs.fail); }
+                });
                 break;
             case 'trash':
-                if (confirm(t.confirm_trash)) {
-                    Fs.post(url + '/trash', {}).then(function (json) { Fs.notify(json.message); location.href = root.dataset.parentUrl; }, Fs.fail);
-                }
+                Fs.confirm(t.confirm_trash).then(function (ok) {
+                    if (ok) { Fs.post(url + '/trash', {}).then(function (json) { Fs.notify(json.message); location.href = root.dataset.parentUrl; }, Fs.fail); }
+                });
                 break;
             case 'break':
-                if (confirm(t.confirm_break)) { Fs.post(url + '/permissions', { mode: 'break' }).then(Fs.done, Fs.fail); }
+                Fs.confirm(t.confirm_break).then(function (ok) { if (ok) { Fs.post(url + '/permissions', { mode: 'break' }).then(Fs.done, Fs.fail); } });
                 break;
             case 'inherit':
-                if (confirm(t.confirm_inherit)) { Fs.post(url + '/permissions', { mode: 'inherit' }).then(Fs.done, Fs.fail); }
+                Fs.confirm(t.confirm_inherit).then(function (ok) { if (ok) { Fs.post(url + '/permissions', { mode: 'inherit' }).then(Fs.done, Fs.fail); } });
                 break;
             case 'save_permissions':
                 var fd = new FormData();
@@ -355,17 +356,19 @@
     function copyText(text) {
         var done = function () { Fs.notify(@json(exmtrans('file_server.copied'))); };
         if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(done, function () { prompt('URL', text); });
+            navigator.clipboard.writeText(text).then(done, function () { Fs.show('URL', text); });
         } else {
-            prompt('URL', text);
+            Fs.show('URL', text);
         }
     }
     root.addEventListener('click', function (e) {
         var c = e.target.closest('[data-fs-copy]');
         if (c) { copyText(c.getAttribute('data-fs-copy')); return; }
         var r = e.target.closest('[data-fs-revoke]');
-        if (r && confirm(@json(exmtrans('file_server.confirm_share_revoke')))) {
-            Fs.post(r.getAttribute('data-fs-revoke'), {}).then(Fs.done, Fs.fail);
+        if (r) {
+            Fs.confirm(@json(exmtrans('file_server.confirm_share_revoke'))).then(function (ok) {
+                if (ok) { Fs.post(r.getAttribute('data-fs-revoke'), {}).then(Fs.done, Fs.fail); }
+            });
         }
     });
     var linkForm = root.querySelector('[data-fs-link-form]');

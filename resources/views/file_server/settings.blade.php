@@ -2,8 +2,8 @@
 @include('exment::file_server._assets')
 <div class="exm-fs" id="exm-fs-settings" data-action="{{ $action }}" data-delete="{{ $delete_url }}">
     <div class="box card">
+        <form data-fs-settings-form class="form-horizontal">
         <div class="box-body">
-            <form data-fs-settings-form class="form-horizontal">
                 <div class="form-group">
                     <label class="col-sm-2 control-label" for="exm-fs-name">{{ exmtrans('file_server.workspace_name') }}</label>
                     <div class="col-sm-8"><input id="exm-fs-name" type="text" name="name" class="form-control" required maxlength="256" value="{{ optional($workspace)->name }}"></div>
@@ -71,17 +71,18 @@
                         @include('exment::file_server._permissions_editor', ['editor_id' => 'exm-fs-members', 'entries' => $members])
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="col-sm-offset-2 col-sm-8">
-                        <a href="{{ $back_url }}" class="btn btn-default">{{ exmtrans('file_server.cancel') }}</a>
-                        <button type="submit" class="btn btn-primary">{{ exmtrans('common.save') }}</button>
-                        @if ($delete_url)
-                            <button type="button" class="btn btn-danger pull-right" data-fs-delete-workspace>{{ exmtrans('file_server.delete_workspace') }}</button>
-                        @endif
-                    </div>
-                </div>
-            </form>
         </div>
+        {{-- the buttons in the footer of the box, as the other forms of the admin pages --}}
+        <div class="box-footer">
+            <div class="col-sm-offset-2 col-sm-8">
+                <a href="{{ $back_url }}" class="btn btn-default">{{ exmtrans('file_server.cancel') }}</a>
+                <button type="submit" class="btn btn-primary">{{ exmtrans('common.save') }}</button>
+                @if ($delete_url)
+                    <button type="button" class="btn btn-danger pull-right" data-fs-delete-workspace>{{ exmtrans('file_server.delete_workspace') }}</button>
+                @endif
+            </div>
+        </div>
+        </form>
     </div>
     @if (isset($fields_url))
         @include('exment::file_server._fields_editor')
@@ -104,8 +105,9 @@
     var del = root.querySelector('[data-fs-delete-workspace]');
     if (del) {
         del.addEventListener('click', function () {
-            if (!confirm(@json(exmtrans('file_server.confirm_delete_workspace')))) { return; }
-            Fs.send('DELETE', root.dataset.delete).then(Fs.done, Fs.fail);
+            Fs.confirm(@json(exmtrans('file_server.confirm_delete_workspace'))).then(function (ok) {
+                if (ok) { Fs.send('DELETE', root.dataset.delete).then(Fs.done, Fs.fail); }
+            });
         });
     }
 })();

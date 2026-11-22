@@ -104,6 +104,37 @@ window.ExmFs = window.ExmFs || (function () {
 
     function fail(err) { notify(err.message, false); }
 
+    // the questions of the pages in the dialogs of the admin pages (SweetAlert2 v7;
+    // the title is HTML, so the texts are escaped), with the browser's own when it is not there
+    var buttons = { ok: @json(trans('admin.confirm')), cancel: @json(trans('admin.cancel')) };
+    function confirmIt(text) {
+        if (typeof window.swal !== 'function') { return Promise.resolve(window.confirm(text)); }
+        return window.swal({ title: escape(text), type: 'warning', showCancelButton: true,
+            confirmButtonText: escape(buttons.ok), cancelButtonText: escape(buttons.cancel) })
+            .then(function (r) { return !!(r && r.value); });
+    }
+    // the text typed, or null when cancelled
+    function ask(text, value) {
+        if (typeof window.swal !== 'function') { return Promise.resolve(window.prompt(text, value || '')); }
+        return window.swal({ title: escape(text), input: 'text', inputValue: value || '', showCancelButton: true,
+            confirmButtonText: escape(buttons.ok), cancelButtonText: escape(buttons.cancel) })
+            .then(function (r) { return r && !r.dismiss && r.value !== undefined ? String(r.value) : null; });
+    }
+    // a message with a list (as the files that could not be sent); resolved when closed
+    function report(title, lines) {
+        var text = lines.join('\n');
+        if (typeof window.swal !== 'function') { window.alert(title + '\n\n' + text); return Promise.resolve(); }
+        var html = '<ul style="text-align:left;max-height:40vh;overflow:auto;margin:0;padding-left:1.2em">'
+            + lines.map(function (line) { return '<li style="overflow-wrap:anywhere">' + escape(line) + '</li>'; }).join('') + '</ul>';
+        return window.swal({ title: escape(title), html: html, type: 'error', confirmButtonText: escape(buttons.ok) }).then(function () {});
+    }
+    // a text to copy by hand (the clipboard is not there)
+    function show(title, text) {
+        if (typeof window.swal !== 'function') { window.prompt(title, text); return; }
+        window.swal({ title: escape(title), input: 'text', inputValue: text, confirmButtonText: escape(buttons.ok),
+            onOpen: function () { var i = document.querySelector('.swal2-input'); if (i) { i.select(); } } });
+    }
+
     function size(bytes) {
         bytes = Number(bytes) || 0;
         var units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -112,6 +143,6 @@ window.ExmFs = window.ExmFs || (function () {
         return (i === 0 ? bytes : bytes.toFixed(1)) + ' ' + units[i];
     }
 
-    return { post: post, send: send, notify: notify, done: done, fail: fail, size: size, token: token, escape: escape };
+    return { post: post, send: send, notify: notify, done: done, fail: fail, size: size, token: token, escape: escape, confirm: confirmIt, ask: ask, show: show, report: report };
 })();
 </script>
