@@ -210,6 +210,7 @@ class FeatureController extends AdminControllerBase
             'menu_exists' => isset($definition['menu']) && $this->systemMenuExists(strval($definition['menu'])),
             'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : null,
             'manual_url' => Features::manualUrl($key),
+            'action' => Features::action($key),
         ];
     }
 
