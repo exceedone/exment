@@ -4564,6 +4564,7 @@ return [
         'requires' => 'Only while ":name" is used.',
         'who_plugin' => 'Everyone who may use this plugin can use it',
         'who_system_admin' => 'System administrators only (an admin setting page)',
+        'manual' => 'Manual',
         'who_none_help' => 'With none chosen, only the system administrators can use it.',
         'who_child_help' => 'Of those who may use the plugin, the users chosen here. System administrators can always use it.',
         'menu_missing' => 'Not in the menu. Saving adds it at the end of Admin Setting.',

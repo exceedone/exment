@@ -307,7 +307,8 @@ namespace Exment {
                 }
                 if(isMatch){
                     // set new url
-                    var help_url = URLJoin(manual_base_uri, help.help_uri);
+                    // a full URL (the manual of a plugin) as it is, a page of the manual after its base
+                    var help_url = /^https?:\/\//i.test(help.help_uri) ? help.help_uri : URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);
                     // chenge color
                     //$manual.children('i').addClass('help_personal');
