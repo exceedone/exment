@@ -137,6 +137,45 @@ class SecurityCheckTest extends UnitTestBase
         $this->assertSame(['admin_password', 'two_factor'], array_keys((new Security\SecurityCheck())->items()));
     }
 
+    public function testOnlyAHighRiskOpensThePageAfterTheInitialize(): void
+    {
+        // a fresh site without two-step sign-in: the dashboard, told of it there
+        $low = new Security\SecurityCheck([new SecurityItemRecorder('two_factor', false)]);
+        $this->assertSame(['page' => false, 'high' => 0, 'other' => 1], $low->afterInitialize());
+
+        $high = new Security\SecurityCheck([new SecurityItemRecorder('two_factor', false), new SecurityItemRecorder('app_debug', true, true)]);
+        $this->assertSame(['page' => true, 'high' => 1, 'other' => 1], $high->afterInitialize());
+        $this->assertSame(['app_debug'], array_keys($high->highProblems()));
+    }
+
+    public function testWhatIsAHighRisk(): void
+    {
+        config(['app.debug' => true]);
+        $this->assertTrue((new Security\AppDebugSecurity())->isHigh());
+        config(['app.debug' => false]);
+        $this->assertFalse((new Security\AppDebugSecurity())->isHigh());
+
+        $this->assertFalse((new Security\TwoFactorSecurity())->isHigh());
+        $this->assertFalse((new Security\HeadersSecurity())->isHigh());
+
+        // .env or .git served is high; vendor alone is a problem, not high
+        config(['app.url' => 'https://example.test']);
+        Http::fake([
+            'https://example.test/vendor/*' => Http::response('{}', 200),
+            'https://example.test/*' => Http::response('', 404),
+        ]);
+        $vendor = new Security\ExposedPathSecurity();
+        $this->assertSame(['vendor'], $vendor->exposed());
+        $this->assertFalse($vendor->isHigh());
+
+        Security\SiteProbe::clear();
+        Http::fake([
+            'https://example.test/.git/*' => Http::response('ref: refs/heads/main', 200),
+            'https://example.test/*' => Http::response('', 404),
+        ]);
+        $this->assertTrue((new Security\ExposedPathSecurity())->isHigh());
+    }
+
     public function testOnlyWhatCanBeFixedIsFixed(): void
     {
         $fixable = new SecurityItemRecorder('fixable', true);
@@ -166,10 +205,19 @@ class SecurityItemRecorder extends Security\SecurityBase
     /** @var int */
     public $fixed = 0;
 
-    public function __construct(string $name, bool $fixable)
+    /** @var bool */
+    protected $high;
+
+    public function __construct(string $name, bool $fixable, bool $high = false)
     {
         $this->name = $name;
         $this->fixable = $fixable;
+        $this->high = $high;
+    }
+
+    public function isHigh(): bool
+    {
+        return $this->high;
     }
 
     protected function key(): string

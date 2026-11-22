@@ -698,6 +698,8 @@ return [
         'install_header' => 'セキュリティチェック',
         'install_explain' => 'インストールのあとも、管理者設定の「セキュリティチェック」で確認でき、直せるものは直せます。',
         'after_initialize' => 'セキュリティチェックで、直したほうがよい項目が :count 件あります。',
+        'after_initialize_high' => 'セキュリティチェックで、すぐに直したほうがよい項目が :count 件あります。',
+        'open' => 'セキュリティチェックを開く',
         'item' => [
             'file_permission' => [
                 'label' => '大事なファイルの権限',

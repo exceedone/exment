@@ -113,12 +113,20 @@ class InitializeForm
             // set session for 2factor
             session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
 
-            // the security check (ISS02833): with something to fix, its page (with the fixes) first
+            // the security check (ISS02833): something of a high risk opens its page (with
+            // the fixes); the rest (two-step sign-in...) is told on the dashboard
             try {
-                $problems = count((new SecurityCheck())->problems());
-                if ($problems > 0) {
-                    admin_toastr(exmtrans('security_check.after_initialize', ['count' => $problems]), 'warning');
+                $after = (new SecurityCheck())->afterInitialize();
+                if ($after['page']) {
+                    admin_toastr(exmtrans('security_check.after_initialize_high', ['count' => $after['high']]), 'warning');
                     return redirect(admin_url('security_check'));
+                }
+                if ($after['other'] > 0) {
+                    admin_warning(
+                        exmtrans('security_check.header'),
+                        e(exmtrans('security_check.after_initialize', ['count' => $after['other']]))
+                            . ' <a href="' . e(admin_url('security_check')) . '">' . e(exmtrans('security_check.open')) . '</a>'
+                    );
                 }
             } catch (\Throwable $ex) {
                 \Log::error($ex);

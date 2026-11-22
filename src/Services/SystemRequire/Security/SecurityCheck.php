@@ -83,6 +83,33 @@ class SecurityCheck
         });
     }
 
+    /**
+     * The problems of a high risk (isHigh).
+     *
+     * @return array<string, SecurityBase>
+     */
+    public function highProblems(): array
+    {
+        return array_filter($this->problems(), function (SecurityBase $item) {
+            return $item->isHigh();
+        });
+    }
+
+    /**
+     * Where the initialize ends: the page of the check when something is of a high
+     * risk; else the dashboard, telling how many items are left to look at.
+     *
+     * @return array{page: bool, high: int, other: int}
+     */
+    public function afterInitialize(): array
+    {
+        $problems = $this->problems();
+        $high = count(array_filter($problems, function (SecurityBase $item) {
+            return $item->isHigh();
+        }));
+        return ['page' => $high > 0, 'high' => $high, 'other' => count($problems) - $high];
+    }
+
     /** The items asked on the install screen: the server's, without the database. */
     public const INSTALL_ITEMS = ['file_permission', 'app_debug', 'app_key', 'app_env', 'https', 'headers', 'exposed_path', 'session_cookie'];
 
