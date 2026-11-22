@@ -528,35 +528,50 @@ class Library
      * The log and the news of a new file: to the followers, or (a draft) to
      * those who approve it.
      */
-    protected function afterNewFile(FileWorkspace $workspace, FileNode $node): void
+    protected function afterNewFile(FileWorkspace $workspace, FileNode $node, bool $requestApproval = true): void
     {
         if (!$this->forLink) {
             Audit::log(Audit::UPLOAD, $workspace, $node, $this->access->userId(), ['size' => intval($node->size)]);
         }
         if ($node->approval_status === FileNode::APPROVAL_DRAFT) {
-            Collaboration::notify($node, Collaboration::EVENT_APPROVAL_REQUEST, $this->access->userId(), [], Collaboration::managers($workspace, $node));
+            if ($requestApproval) {
+                $this->requestApproval($workspace, $node);
+            }
             return;
         }
         Collaboration::notify($node, Collaboration::EVENT_ADDED, $this->access->userId());
     }
 
     /**
-     * Put a new file into a folder (never a new version of one that is there:
-     * a file with the same name stops it). For the request links.
+     * Ask those who manage the file to approve it (a new file in a folder that needs an approval).
      */
-    public function storeNewFile(FileWorkspace $workspace, FileNode $parent, string $name, string $localPath, ?string $comment = null): FileNode
+    public function requestApproval(FileWorkspace $workspace, FileNode $node): void
+    {
+        Collaboration::notify($node, Collaboration::EVENT_APPROVAL_REQUEST, $this->access->userId(), [], Collaboration::managers($workspace, $node));
+    }
+
+    /**
+     * Put a new file into a folder (never a new version of one that is there:
+     * a file with the same name stops it). For the request links, and the
+     * files made with "New" (TextFiles).
+     */
+    public function storeNewFile(FileWorkspace $workspace, ?FileNode $parent, string $name, string $localPath, ?string $comment = null, bool $requestApproval = true): FileNode
     {
         $this->assertFolder($workspace, $parent);
         $this->access->authorize($workspace, $parent, Level::UPLOAD);
         $name = $this->validName($name);
         $this->assertQuota($workspace, intval(filesize($localPath)));
         $node = DB::transaction(function () use ($workspace, $parent, $name, $localPath, $comment) {
+            // two requests at once (a double click) make one file: the folder (or the workspace) is locked first
+            isset($parent)
+                ? FileNode::query()->whereKey($parent->id)->lockForUpdate()->first()
+                : FileWorkspace::query()->whereKey($workspace->id)->lockForUpdate()->first();
             if ($this->sibling($workspace, $parent, $name) !== null) {
                 throw new FileServerException(exmtrans('file_server.error_name_exists', ['name' => $name]));
             }
             $node = new FileNode([
                 'workspace_id' => $workspace->id,
-                'parent_id' => $parent->id,
+                'parent_id' => isset($parent) ? $parent->id : null,
                 'node_type' => FileNode::TYPE_FILE,
                 'name' => $name,
             ]);
@@ -566,7 +581,7 @@ class Library
             $this->writeVersion($workspace, $node, $localPath, $comment);
             return $node->refresh();
         });
-        $this->afterNewFile($workspace, $node);
+        $this->afterNewFile($workspace, $node, $requestApproval);
         return $node;
     }
 
@@ -582,8 +597,7 @@ class Library
         // new version of a user who does not manage it would be seen without
         // an approval, so it is sent as a new file (its maker may still send
         // a new version of a draft or of a file sent back)
-        $parent = isset($node->parent_id) ? FileNode::find($node->parent_id) : null;
-        if (!$node->isDraft() && Governance::needsApproval($parent) && !$this->access->can($workspace, $node, Level::MANAGE)) {
+        if ($this->versionNeedsManager($workspace, $node)) {
             throw new FileServerException(exmtrans('file_server.error_version_needs_approval'), 403);
         }
         $this->assertQuota($workspace, intval(filesize($localPath)));
@@ -603,6 +617,33 @@ class Library
             Collaboration::notify($node, Collaboration::EVENT_UPDATED, $this->access->userId());
         }
         return $node;
+    }
+
+    /**
+     * A file approved (or not asked) in a folder that needs an approval: a new
+     * version of a user who does not manage it would be seen without an
+     * approval, so only those who manage it add one (its maker may still send
+     * a new version of a draft or of a file sent back).
+     */
+    public function versionNeedsManager(FileWorkspace $workspace, FileNode $node): bool
+    {
+        $parent = isset($node->parent_id) ? FileNode::find($node->parent_id) : null;
+        return !$node->isDraft() && Governance::needsApproval($parent) && !$this->access->can($workspace, $node, Level::MANAGE);
+    }
+
+    /**
+     * Whether the user may add a new version to the file now: the permission
+     * to edit, no check out of another user, and the rule of the approval.
+     */
+    public function canAddVersion(FileWorkspace $workspace, FileNode $node): bool
+    {
+        if (!$node->isFile() || !$this->access->can($workspace, $node, Level::EDIT)) {
+            return false;
+        }
+        if (isset($node->checked_out_user_id) && intval($node->checked_out_user_id) !== $this->access->userId()) {
+            return false;
+        }
+        return !$this->versionNeedsManager($workspace, $node);
     }
 
     /**
@@ -988,8 +1029,7 @@ class Library
         $this->access->authorize($workspace, $node, Level::EDIT);
         $this->assertNotCheckedOutByOther($node);
         // it could not be checked in with a new version (a folder that needs an approval): told now
-        $parent = isset($node->parent_id) ? FileNode::find($node->parent_id) : null;
-        if (!$node->isDraft() && Governance::needsApproval($parent) && !$this->access->can($workspace, $node, Level::MANAGE)) {
+        if ($this->versionNeedsManager($workspace, $node)) {
             throw new FileServerException(exmtrans('file_server.error_version_needs_approval'), 403);
         }
         $node->checked_out_user_id = $this->access->userId();
@@ -1196,15 +1236,50 @@ class Library
     }
 
     /**
-     * The folder or file with the name in a folder (not in the trash), without regard to the case.
+     * A name given now to a new file (the files made with "New"): stricter
+     * than validName(), which the names already there (moved, copied,
+     * restored, received) still go through as before.
+     * - one form of the characters (NFC: a name typed on a Mac and on Windows is the same name)
+     * - the no-break space is a space; the BOM and the line and paragraph separators are dropped
+     * - the names Windows cannot keep (CON, NUL, COM1..., a last dot or space) are refused
+     */
+    public function newName(string $name): string
+    {
+        $name = static::normalizeName($name);
+        $name = str_replace("\u{00A0}", ' ', $name);
+        $name = preg_replace('/[\x{2028}\x{2029}\x{FEFF}]/u', '', $name) ?? '';
+        $name = $this->validName($name);
+        if (preg_match('/[. ]$/u', $name) === 1 || preg_match('/^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])(\.|$)/i', $name) === 1) {
+            throw new FileServerException(exmtrans('file_server.error_name', ['name' => $name]));
+        }
+        return $name;
+    }
+
+    /**
+     * The name in one form of the characters (NFC), to give and to compare.
+     */
+    public static function normalizeName(string $name): string
+    {
+        if (class_exists(\Normalizer::class)) {
+            $normalized = \Normalizer::normalize($name, \Normalizer::FORM_C);
+            if (is_string($normalized)) {
+                return $normalized;
+            }
+        }
+        return $name;
+    }
+
+    /**
+     * The folder or file with the name in a folder (not in the trash), without
+     * regard to the case or to the form of the characters (NFC and NFD).
      */
     public function sibling(FileWorkspace $workspace, ?FileNode $parent, string $name): ?FileNode
     {
         $query = FileNode::query()->where('workspace_id', $workspace->id)->whereNull('trashed_at');
         isset($parent) ? $query->where('parent_id', $parent->id) : $query->whereNull('parent_id');
-        $lower = mb_strtolower($name);
+        $lower = mb_strtolower(static::normalizeName($name));
         return $query->get()->first(function (FileNode $node) use ($lower) {
-            return mb_strtolower($node->name) === $lower;
+            return mb_strtolower(static::normalizeName(strval($node->name))) === $lower;
         });
     }
 

@@ -234,6 +234,8 @@ class Permission
             case "saml/login":
             case "saml/logout":
             case "auth/setting":
+            // the API keys of the login user: the feature (its role groups) is checked by the page
+            case "auth/api_keys":
             case "auth/reset":
             case "auth/change":
             case "auth/forget":
@@ -266,6 +268,8 @@ class Permission
             case "auth/menu":
             case "auth/logs":
             case "tuning":
+            case "api_keys":
+            case "maintenance":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
                 }
