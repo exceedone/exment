@@ -21,6 +21,7 @@ use Exceedone\Exment\Services\FileServer\Library;
 use Exceedone\Exment\Services\FileServer\Metadata;
 use Exceedone\Exment\Services\FileServer\Preview;
 use Exceedone\Exment\Services\FileServer\ShareLinks;
+use Exceedone\Exment\Services\FileServer\TextFiles;
 use Exceedone\Exment\Model\FileShareLink;
 use Exceedone\Exment\Services\FileServer\Uploader;
 use ExmentAdminCore\Admin\Layout\Content;
@@ -288,6 +289,7 @@ class FileServerController extends AdminControllerBase
             'checked_out_by' => isset($item->checked_out_user_id) ? $this->userName($item->checked_out_user_id) : null,
             'checked_out_by_me' => isset($item->checked_out_user_id) && intval($item->checked_out_user_id) === $access->userId(),
             'favorite' => $library->isFavorite($item),
+            'can_edit_text' => TextFiles::isEditable($item) && $library->canAddVersion($ws, $item) && Governance::canDownload($access, $ws, $item),
             'openers' => $item->isFile() ? Preview::openers($item) : [],
             'permissions' => $this->permissionRows($library->effectivePermissions($ws, $item)),
             'chunk_size' => Uploader::CHUNK_SIZE,
@@ -657,6 +659,154 @@ class FileServerController extends AdminControllerBase
             }
             $item->refresh();
             return ['message' => exmtrans('file_server.version_added'), 'version' => $item->current_version_id, 'version_no' => optional($item->current_version)->version_no];
+        });
+    }
+
+    /**
+     * "New": an empty text, Markdown or CSV file in the folder (ISS00434). It
+     * opens in the editor.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function createTextFile(Request $request, string $workspace)
+    {
+        return $this->run(function () use ($request, $workspace) {
+            $ws = $this->workspace($workspace);
+            $parent = $this->parentFolder($ws, $request->input('parent_id'));
+            $node = (new TextFiles($this->library()))->create($ws, $parent, $this->stringInput($request, 'name'), $this->stringInput($request, 'type'));
+            return ['message' => exmtrans('file_server.text_created', ['name' => $node->name]), 'id' => $node->id, 'version' => $node->current_version_id, 'redirect' => $this->nodeUrl($ws, $node, 'edit')];
+        });
+    }
+
+    /**
+     * The page to write a text, Markdown or CSV file in the browser. Those who
+     * may not add a version now (no permission to edit, checked out by another
+     * user, an approved file in a folder that needs an approval) read it only.
+     * Those who may not download it see it in the file page (its watermark).
+     *
+     * @return Content|\Symfony\Component\HttpFoundation\Response
+     */
+    public function editText(Request $request, Content $content, string $workspace, string $node)
+    {
+        try {
+            $ws = $this->workspace($workspace);
+            $library = $this->library();
+            $item = $library->findNode($ws, intval($node));
+        } catch (FileServerException $e) {
+            return $this->deny($e);
+        }
+        $access = $library->access();
+        if (!Governance::canDownload($access, $ws, $item)) {
+            return redirect($this->nodeUrl($ws, $item));
+        }
+        try {
+            $file = (new TextFiles($library))->read($ws, $item);
+        } catch (FileServerException $e) {
+            // too large, another encoding or another kind: the file page, with the reason
+            admin_error(exmtrans('common.error'), $e->getMessage());
+            return redirect($this->nodeUrl($ws, $item));
+        }
+        $lockedByOther = isset($item->checked_out_user_id) && intval($item->checked_out_user_id) !== $access->userId();
+        $canEdit = $library->canAddVersion($ws, $item);
+        Audit::log(Audit::VIEW, $ws, $item, $access->userId());
+
+        $this->setPageInfo(exmtrans('file_server.header'), $item->name, $ws->name, 'fa-pencil');
+        $this->AdminContent($content);
+        $content->row(view('exment::file_server.edit', [
+            'workspace' => $ws,
+            'node' => $item,
+            'breadcrumbs' => $this->breadcrumbs($ws, $item),
+            'node_url' => $this->nodeUrl($ws, $item),
+            'text' => $file['text'],
+            'version' => $file['version'],
+            'version_no' => optional($item->current_version)->version_no,
+            'markdown' => $item->extension() === 'md',
+            'can_edit' => $canEdit,
+            'checked_out_by' => $lockedByOther ? $this->userName($item->checked_out_user_id) : null,
+            'needs_manager' => !$canEdit && !$lockedByOther && $library->versionNeedsManager($ws, $item),
+            'max_bytes' => TextFiles::TEXT_EDIT_BYTES,
+            'preview_bytes' => TextFiles::PREVIEW_BYTES,
+            'watermark' => $ws->watermark ? trim($this->userName($access->userId()) . ' ' . now()->format('Y/m/d H:i')) : null,
+            'new_file_url' => $this->url($ws, 'text_files'),
+            'parent_id' => $item->parent_id,
+        ]));
+        return $content;
+    }
+
+    /**
+     * Save the text written in the browser as a new version. "base_version"
+     * is the version the editor opened: a save after someone else saved is
+     * refused. The same text adds no version.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function saveText(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) use ($request) {
+            $base = $this->stringInput($request, 'base_version');
+            if (preg_match('/^[0-9]+$/', $base) !== 1) {
+                throw new FileServerException(exmtrans('file_server.error_version_conflict'), 409);
+            }
+            $comment = $this->stringInput($request, 'comment');
+            $result = (new TextFiles($this->library()))->save($ws, $item, $this->postedText($request), intval($base), $comment === '' ? null : $comment);
+            $item = $result['node'];
+            return [
+                'message' => exmtrans($result['changed'] ? 'file_server.version_added' : 'file_server.text_unchanged'),
+                'changed' => $result['changed'],
+                'version' => $item->current_version_id,
+                'version_no' => optional($item->current_version)->version_no,
+            ];
+        });
+    }
+
+    /**
+     * The text the editor sends. It comes as a file part, so that its bytes are
+     * kept as they are: a form field would have its line breaks made CRLF by
+     * the browser and its last line break trimmed by the server.
+     */
+    protected function postedText(Request $request): string
+    {
+        $file = $request->file('text');
+        if ($file instanceof \Illuminate\Http\UploadedFile) {
+            if (!$file->isValid()) {
+                throw new FileServerException(exmtrans('file_server.error_upload'));
+            }
+            if (intval($file->getSize()) > TextFiles::TEXT_EDIT_BYTES) {
+                throw new FileServerException(exmtrans('file_server.error_text_too_large', ['size' => round(TextFiles::TEXT_EDIT_BYTES / 1048576, 1)]), 413);
+            }
+            return strval(file_get_contents(strval($file->getRealPath())));
+        }
+        return $this->stringInput($request, 'text');
+    }
+
+    /**
+     * A text input; anything else (an array) is refused, not a server error.
+     */
+    protected function stringInput(Request $request, string $key): string
+    {
+        $value = $request->input($key);
+        if ($value === null) {
+            return '';
+        }
+        if (!is_string($value) && !is_int($value)) {
+            throw new FileServerException(exmtrans('file_server.error_input'), 422);
+        }
+        return strval($value);
+    }
+
+    /**
+     * The preview of a Markdown text being written (for those who may see the
+     * file; the route limits how often it is asked).
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function markdownPreview(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) use ($request) {
+            if (!TextFiles::isEditable($item) || $item->extension() !== 'md') {
+                throw FileServerException::notFound();
+            }
+            return ['html' => TextFiles::markdownHtml($this->stringInput($request, 'text'))];
         });
     }
 
