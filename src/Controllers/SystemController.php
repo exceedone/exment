@@ -23,10 +23,10 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Update\UpdateService;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\Features;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\SystemInfo;
 use Exceedone\Exment\Services\SystemRequire;
-use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
-use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Enums\SystemRequireResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -91,15 +91,8 @@ class SystemController extends AdminControllerBase
 
         $content->row($box);
 
-        if (System::outside_api()) {
-            // Version infomation
-            $infoBox = $this->getVersionBox();
-            $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
-        }
-
-        // Append system require box
-        $box = $this->getSystemRequireBox();
-        $content->row(new Box(exmtrans("install.system_require.header"), $box->render()));
+        // Version infomation: always (ISS02828). The system requirements are on the tuning page.
+        $content->row(new Box(exmtrans("system.version_header"), $this->getVersionInfo()));
 
         return $content;
     }
@@ -369,6 +362,20 @@ class SystemController extends AdminControllerBase
     }
 
     /**
+     * The versions of Exment, PHP, the web server, the database and the OS, with a copy
+     * button (ISS02828); the latest version when the server may ask outside; a link to tuning.
+     */
+    protected function getVersionInfo(): string
+    {
+        return view('exment::widgets.version-info', [
+            'items' => SystemInfo::items(),
+            'text' => SystemInfo::text(),
+            'latestForm' => System::outside_api() ? $this->getVersionBox()->render() : null,
+            'tuningUrl' => Features::enabled(Features::TUNING) ? admin_url('tuning') : null,
+        ])->render();
+    }
+
+    /**
      * get exment version infoBox.
      *
      * @return WidgetForm
@@ -382,8 +389,6 @@ class SystemController extends AdminControllerBase
         $form = new WidgetForm();
         $form->disableReset()->disableSubmit();
 
-        $form->display('version_current', exmtrans('system.version_current_label'))
-            ->default($current);
         $form->display('version_latest', exmtrans('system.version_latest_label'))
             ->default($latest);
 
@@ -479,20 +484,6 @@ class SystemController extends AdminControllerBase
     //         ->confirm_text(exmtrans('system.call_update_modal_confirm', $latest) . exmtrans('common.message.modal_confirm', 'yes'))
     //         ->confirm_error(exmtrans('custom_table.help.delete_confirm_error'));
     // }
-
-    /**
-     * get system require box.
-     *
-     * @return bool|\Illuminate\Auth\Access\Response|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|mixed
-     */
-    protected function getSystemRequireBox()
-    {
-        $checkResult = SystemRequireList::make(SystemRequireCalledType::WEB);
-        $view = view('exment::widgets.system-require', [
-            'checkResult' => $checkResult,
-        ]);
-        return $view;
-    }
 
     /**
      * Send data

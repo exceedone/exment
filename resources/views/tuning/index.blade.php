@@ -47,3 +47,15 @@
         </div>
     </div>
 </div>
+
+{{-- the system requirements, moved here from the system setting (ISS02828) --}}
+@if(isset($requireResult))
+<div class="box box-default" id="tuning-system-require">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ exmtrans('install.system_require.header') }}</h3>
+    </div>
+    <div class="box-body">
+        @include('exment::widgets.system-require', ['checkResult' => $requireResult])
+    </div>
+</div>
+@endif
