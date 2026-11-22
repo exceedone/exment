@@ -116,10 +116,6 @@ class Initialize
         Config::set('admin.layout', $layout);
     }
 
-    /**
-     * @param bool $setDatabase
-     * @return void
-     */
     /** The header logo of a site without its own (the logo of 2026-11, public/images). */
     public const DEFAULT_LOGO = 'images/exment_logo.svg';
 
@@ -131,6 +127,10 @@ class Initialize
         return is_file(public_path($path));
     }
 
+    /**
+     * @param bool $setDatabase
+     * @return void
+     */
     public static function initializeConfig($setDatabase = true)
     {
         //// set from env
