@@ -19,7 +19,9 @@ use Illuminate\Support\Facades\DB;
  *   leads to it. A new item that takes the old path wins (the old path is
  *   forgotten). ?n=<id> in a link names the item for good.
  * - Nothing is told about what the user may not see: a path to it is the
- *   same as a path to nothing (404).
+ *   same as a path to nothing (404). An item under a folder the user may not
+ *   see keeps the number for them, and a path through that folder is not
+ *   found: the path would tell the name of the folder (ISS00433).
  *
  * The API, WebDAV and the operations of the pages keep the numbers.
  */
@@ -41,6 +43,18 @@ class Paths
 
     /** @var array<int, string[]> the names of the folders, from the top, by their id */
     protected array $folders = [];
+
+    /** @var array<int, bool> the folders the user may see, by their id */
+    protected array $seen = [];
+
+    /**
+     * @param Access|null $access the user the addresses are for: an item under a
+     *        folder they may not see keeps the number (the path would tell its
+     *        name, ISS00433). Null: no one in particular (all the paths).
+     */
+    public function __construct(protected ?Access $access = null)
+    {
+    }
 
     /**
      * The name of the workspace in the address, or null when it cannot be one.
@@ -117,6 +131,9 @@ class Paths
         if (!isset($segment)) {
             return null;
         }
+        if (isset($node) && $this->hiddenAbove($workspace, $node)) {
+            return null;
+        }
         $names = array_merge([$segment], isset($node) ? $this->names($node) : []);
         $url = admin_url('file_server/' . implode('/', array_map('rawurlencode', $names)));
         // with room for "?n=<id>"
@@ -169,11 +186,36 @@ class Paths
             if ($node === false) {
                 continue;
             }
-            if ($access->can($workspace, $node, Level::VIEW)) {
+            $this->access = $access;
+            if ($access->can($workspace, $node, Level::VIEW) && (!isset($node) || !$this->hiddenAbove($workspace, $node))) {
                 return [$workspace, $node];
             }
         }
         throw FileServerException::notFound();
+    }
+
+    /**
+     * A folder above the node the user may not see (false when no user is given).
+     */
+    public function hiddenAbove(FileWorkspace $workspace, FileNode $node): bool
+    {
+        if (!isset($this->access)) {
+            return false;
+        }
+        $id = $node->parent_id;
+        $guard = 0;
+        while (isset($id) && $guard++ < 1000) {
+            if (!array_key_exists($id, $this->seen)) {
+                $folder = FileNode::find($id);
+                $this->seen[$id] = isset($folder) && $this->access->can($workspace, $folder, Level::VIEW);
+            }
+            if (!$this->seen[$id]) {
+                return true;
+            }
+            $parent = FileNode::query()->whereKey($id)->value('parent_id');
+            $id = isset($parent) ? intval($parent) : null;
+        }
+        return false;
     }
 
     /**

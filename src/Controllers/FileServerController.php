@@ -77,7 +77,7 @@ class FileServerController extends AdminControllerBase
                 'level' => Level::label($access->level($workspace)),
                 'updated_at' => $workspace->updated_at,
                 'url' => $this->pageUrl($workspace),
-                'link' => (new Paths())->link($workspace),
+                'link' => (new Paths($this->library()->access()))->link($workspace),
             ];
         });
 
@@ -181,7 +181,7 @@ class FileServerController extends AdminControllerBase
         if ($request->query->has('n') && !isset($id)) {
             abort(404);
         }
-        $paths = new Paths();
+        $paths = new Paths($this->library()->access());
         try {
             [$ws, $node] = $paths->resolve($this->library()->access(), $path, $id);
         } catch (FileServerException $e) {
@@ -193,8 +193,9 @@ class FileServerController extends AdminControllerBase
             return $segment !== '';
         }));
         if ($asked !== $current) {
-            $query = $request->query();
-            return redirect($this->withQuery(strval($paths->url($ws, $node)), $query), 302);
+            // no path for it (too long for an address): the number
+            $url = $paths->url($ws, $node) ?? Paths::numberUrl($ws, $node);
+            return redirect($this->withQuery($url, $request->query()), 302);
         }
         if (isset($node) && $node->isFile()) {
             return $this->nodePage($request, $content, $ws, $node);
@@ -217,7 +218,7 @@ class FileServerController extends AdminControllerBase
         if (!$this->library()->access()->can($ws, $node, Level::VIEW)) {
             return null;
         }
-        $url = (new Paths())->url($ws, $node);
+        $url = (new Paths($this->library()->access()))->url($ws, $node);
         if (!isset($url)) {
             return null;
         }
@@ -304,7 +305,7 @@ class FileServerController extends AdminControllerBase
             'base_url' => $this->url($ws),
             'folder_url' => $this->pageUrl($ws, $folder),
             // "リンクをコピー" (ISS02815)
-            'link' => (new Paths())->link($ws, $folder),
+            'link' => (new Paths($this->library()->access()))->link($ws, $folder),
             'link_name' => isset($folder) ? $folder->name : $ws->name,
             'parent_id' => isset($folder) ? $folder->id : null,
             'chunk_size' => Uploader::CHUNK_SIZE,
@@ -373,7 +374,7 @@ class FileServerController extends AdminControllerBase
             'node_url' => $this->nodeUrl($ws, $item),
             'parent_url' => $this->pageUrl($ws, isset($item->parent_id) ? FileNode::find($item->parent_id) : null),
             'page_url' => $this->pageUrl($ws, $item),
-            'link' => (new Paths())->link($ws, $item),
+            'link' => (new Paths($this->library()->access()))->link($ws, $item),
             'level' => $level,
             'level_label' => Level::label($level),
             'kind' => $kind,
@@ -1403,7 +1404,7 @@ class FileServerController extends AdminControllerBase
      */
     protected function pageUrl(FileWorkspace $ws, ?FileNode $node = null): string
     {
-        return (new Paths())->url($ws, $node) ?? Paths::numberUrl($ws, $node);
+        return (new Paths($this->library()->access()))->url($ws, $node) ?? Paths::numberUrl($ws, $node);
     }
 
     protected function nodeUrl(FileWorkspace $ws, FileNode $node, ?string $action = null): string
@@ -1441,7 +1442,7 @@ class FileServerController extends AdminControllerBase
     protected function nodeRows(iterable $nodes, ?FileWorkspace $ws = null, ?\Illuminate\Support\Collection $fields = null): array
     {
         $rows = [];
-        $paths = new Paths();
+        $paths = new Paths($this->library()->access());
         foreach ($nodes as $node) {
             $workspace = $ws ?? $node->workspace;
             if (!isset($workspace)) {

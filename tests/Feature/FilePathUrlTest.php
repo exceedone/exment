@@ -323,6 +323,33 @@ class FilePathUrlTest extends FeatureTestBase
         }
     }
 
+    public function testUnderAFolderThatMayNotBeSeenTheNumberStays(): void
+    {
+        $lib = $this->admin();
+        $ws = $this->workspace();
+        $secret = $lib->createFolder($ws, null, '人事');
+        $shared = $lib->createFolder($ws, $secret, '共有');
+        $file = $lib->storeFile($ws, $shared, 'memo.txt', $this->local('given to user1'));
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::VIEW);
+        $lib->breakInheritance($ws, $secret);
+        $lib->setPermissions($ws, $secret, [['target_type' => 'user', 'target_id' => $this->userId(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'level' => Level::MANAGE]]);
+        $lib->breakInheritance($ws, $shared);
+        $lib->setPermissions($ws, $shared, [['target_type' => 'user', 'target_id' => $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'level' => Level::VIEW]]);
+
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $user1 = new Paths(new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_USER1), false));
+        // the path would tell the name of the folder above (ISS00433): the number
+        $this->assertNull($user1->url($ws, $file));
+        $this->assertSame(admin_urls('file_server', $ws->id, 'nodes', $file->id), $user1->link($ws, $file));
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id))->assertOk()->assertSee('given to user1')->assertDontSee('人事');
+        $this->fetch($this->pathUrl($ws, ['人事', '共有', 'memo.txt']))->assertNotFound();
+        $this->fetch($this->pathUrl($ws, ['Open']) . '?n=' . $file->id)->assertNotFound();
+
+        // the administrator sees it all: the path
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->page($this->pathUrl($ws, ['人事', '共有', 'memo.txt']))->assertOk()->assertSee('given to user1');
+    }
+
     public function testAWorkspaceWhoseNameCannotBeInAnAddressKeepsTheNumbers(): void
     {
         $lib = $this->admin();
