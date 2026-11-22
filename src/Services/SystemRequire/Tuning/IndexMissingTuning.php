@@ -37,6 +37,10 @@ class IndexMissingTuning extends TuningBase
                     continue;
                 }
                 $dbTable = getDBTableName($table);
+                // the table of the data is made with its first column: none yet, no rows to read
+                if (!hasTable($dbTable)) {
+                    continue;
+                }
                 $dbColumn = $column->getIndexColumnName(false);
                 if (!hasColumn($dbTable, $dbColumn) || !\Schema::hasCustomIndex($dbTable, $dbColumn, "index_{$dbColumn}")) {
                     $this->missing[] = $table->table_view_name . ' / ' . $column->column_view_name;

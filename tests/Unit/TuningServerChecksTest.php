@@ -35,7 +35,7 @@ class TuningServerChecksTest extends UnitTestBase
 
     protected function tempFile(string $contents = ''): string
     {
-        $file = tempnam(sys_get_temp_dir(), 'exment_tuning_');
+        $file = sys_get_temp_dir() . '/exment_tuning_' . uniqid('', true);
         file_put_contents($file, $contents);
         return $this->tempFiles[] = $file;
     }
@@ -382,16 +382,43 @@ class TuningServerChecksTest extends UnitTestBase
     }
 
     /**
-     * The search index columns of the test data have their index.
+     * A search index column made by Exment has its index; one whose index is missing is listed.
      *
      * @return void
      */
     public function testIndexMissing()
     {
+        // a search index column of the test data, made with its index
+        $indexed = \Exceedone\Exment\Model\CustomColumn::indexEnabled()->get()->first(function ($column) {
+            $table = $column->custom_table_cache;
+            if (is_null($table) || !hasTable(getDBTableName($table))) {
+                return false;
+            }
+            $dbColumn = $column->getIndexColumnName(false);
+            return hasColumn(getDBTableName($table), $dbColumn)
+                && \Schema::hasCustomIndex(getDBTableName($table), $dbColumn, "index_{$dbColumn}");
+        });
+        $this->assertNotNull($indexed, 'the test data has a search index column');
+        $table = $indexed->custom_table_cache;
+        $label = $table->table_view_name . ' / ' . $indexed->column_view_name;
+
         $check = new Tuning\IndexMissingTuning();
-        $this->assertSame([], $check->missing());
-        $this->assertSame(SystemRequireResult::OK, $check->checkResult());
+        $this->assertNotContains($label, $check->missing());
         $this->assertFalse($check->isServerWide());
+
+        // a column that says "search index" but has no index (inserted bare, as after a failed change)
+        $columnId = \DB::table('custom_columns')->insertGetId([
+            'suuid' => short_uuid(), 'custom_table_id' => $table->id, 'column_name' => 'tuning_no_index_' . uniqid(),
+            'column_view_name' => 'tuning no index', 'column_type' => 'text', 'options' => '{"index_enabled":"1"}',
+        ]);
+        try {
+            $check = new Tuning\IndexMissingTuning();
+            $this->assertContains($table->table_view_name . ' / tuning no index', $check->missing());
+            $this->assertSame(SystemRequireResult::WARNING, $check->checkResult());
+            $this->assertSame('php artisan exment:patchdata alter_index_all', $check->getFixText());
+        } finally {
+            \DB::table('custom_columns')->where('id', $columnId)->delete();
+        }
     }
 
     /**
