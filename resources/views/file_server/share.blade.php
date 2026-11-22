@@ -131,13 +131,13 @@ a { color: var(--accent); }
                         <tr>
                             <td>{{ $child['is_folder'] ? '📁' : '📄' }} <a href="{{ $child['url'] }}">{{ $child['name'] }}</a></td>
                             <td class="r muted">@if (!$child['is_folder'])<span data-size="{{ $child['size'] }}"></span>@endif</td>
-                            <td class="r">@if ($child['download_url'])<a href="{{ $child['download_url'] }}">{{ exmtrans('file_server.download') }}</a>@endif</td>
+                            <td class="r">@if ($child['download_url'])<a data-nopjax download href="{{ $child['download_url'] }}">{{ exmtrans('file_server.download') }}</a>@endif</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         @else
-            @if ($download_url)<p><a class="btn" href="{{ $download_url }}">{{ exmtrans('file_server.download') }}</a></p>@endif
+            @if ($download_url)<p><a data-nopjax download class="btn" href="{{ $download_url }}">{{ exmtrans('file_server.download') }}</a></p>@endif
             <div class="preview">
                 @switch($kind)
                     @case('image') <img src="{{ $content_url }}" alt="{{ $item->name }}"> @break
