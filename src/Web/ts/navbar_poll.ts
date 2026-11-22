@@ -9,20 +9,27 @@ namespace Exment {
      *   as soon as one tab got it (the "storage" event). So one browser asks about once per interval;
      * - the answer carries an ETag, so the browser asks "changed?" and gets a bodiless 304 when not.
      * Without localStorage (private mode, blocked) every tab asks on its own, as before.
+     *
+     * nextMs (optional) lets an answer ask again sooner (SaaS: every 5 seconds while the knowledge
+     * of the chatbot is being indexed); poll(false, maxAgeMs) asks when the shared answer is older
+     * than maxAgeMs (after moving to another page).
      */
     export class NavbarPoll {
         private timeoutId: any = null;
+        private requesting: boolean = false;
         private name: string;
         private url: string;
         private intervalMs: number;
         private storageKey: string;
         private render: (data: any) => void;
+        private nextMs: (data: any) => number;
 
-        constructor(options: { name: string, url: string, intervalMs: number, userKey: string, render: (data: any) => void }) {
+        constructor(options: { name: string, url: string, intervalMs: number, userKey: string, render: (data: any) => void, nextMs?: (data: any) => number }) {
             this.name = options.name;
             this.url = options.url;
             this.intervalMs = options.intervalMs;
             this.render = options.render;
+            this.nextMs = options.nextMs || null;
             this.storageKey = 'exment.navbar.' + options.name + '.' + options.userKey;
 
             const self = this;
@@ -40,28 +47,36 @@ namespace Exment {
                 const shared = NavbarPoll.parse(event.newValue);
                 if (shared) {
                     self.render(shared.data);
-                    self.schedule(self.intervalMs);
+                    self.schedule(self.nextFor(shared.data));
                 }
             });
         }
 
         /**
          * Ask now (force: also when another tab has just asked, e.g. after reading an item),
-         * or draw what another tab got within the interval.
+         * or draw what another tab got lately (within the interval, or within maxAgeMs).
          */
-        public poll(force: boolean) {
+        public poll(force: boolean, maxAgeMs?: number) {
             this.stop();
             if (!force && document.hidden) {
                 return;
             }
             if (!force) {
                 const shared = this.read();
-                if (shared && Date.now() - shared.time < this.intervalMs - 1000) {
-                    this.render(shared.data);
-                    this.schedule(shared.time + this.intervalMs - Date.now());
-                    return;
+                if (shared) {
+                    const age = Date.now() - shared.time;
+                    const fresh = typeof maxAgeMs === 'number' ? maxAgeMs : this.nextFor(shared.data) - 1000;
+                    if (age < fresh) {
+                        this.render(shared.data);
+                        this.schedule(this.nextFor(shared.data) - age);
+                        return;
+                    }
                 }
             }
+            if (this.requesting) {
+                return;
+            }
+            this.requesting = true;
 
             const self = this;
             $.ajax({
@@ -69,12 +84,14 @@ namespace Exment {
                 dataType: "json",
                 type: "GET",
                 success: function (data) {
+                    self.requesting = false;
                     self.write(data);
                     self.render(data);
-                    self.schedule(self.intervalMs);
+                    self.schedule(self.nextFor(data));
                 },
                 error: function () {
-                    self.schedule(self.intervalMs);
+                    self.requesting = false;
+                    self.schedule(Math.min(self.intervalMs, 30000));
                 },
             });
         }
@@ -84,6 +101,14 @@ namespace Exment {
                 clearTimeout(this.timeoutId);
                 this.timeoutId = null;
             }
+        }
+
+        /**
+         * When to ask after this answer.
+         */
+        private nextFor(data: any): number {
+            const next = this.nextMs ? this.nextMs(data) : this.intervalMs;
+            return typeof next === 'number' && next > 0 ? next : this.intervalMs;
         }
 
         private schedule(ms: number) {
