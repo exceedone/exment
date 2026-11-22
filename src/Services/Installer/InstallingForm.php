@@ -36,9 +36,15 @@ class InstallingForm
                 'ADMIN_ROUTE_PREFIX' => $prefix,
             ]);
             $this->setEnv($merged);
+            // with a config cache (php artisan config:cache), .env is not read: the
+            // database and the URL prefix just written would not apply
+            if (app()->configurationIsCached()) {
+                \Artisan::call('config:clear');
+            }
             InstallService::setSettingTmp();
             InstallService::forgetInputParams();
         } catch (\Exception $ex) {
+            \Log::error('Exment install: cannot write .env: ' . $ex->getMessage());
             return back()->withInput()->withErrors([
                 'install_error' => exmtrans('install.error.cannot_write_env'),
             ]);
