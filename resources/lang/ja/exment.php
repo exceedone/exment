@@ -701,6 +701,17 @@ return [
             'config_clear' => '設定のキャッシュを消す',
             'logging_off' => 'システムパフォーマンスログを OFF にする',
         ],
+        'auto' => [
+            'header' => 'Exment が自分で入れられる設定',
+            'explain' => 'チェックした設定を、この画面から入れます。サーバーの設定（OPcache・cron・キューなど）は、下の項目を見て、サーバーの管理者が設定してください。',
+            'button' => 'チェックした設定を入れる',
+            'install_help' => 'チェックした設定を、インストールの最後に入れます。入れたくないものはチェックを外してください。あとから管理者設定の「チューニング」でも入れられます。',
+            'item' => [
+                'exment_cache' => 'Exment のキャッシュを使う（.env に EXMENT_USE_CACHE=true）',
+                'assets' => '見つからない画面の部品（JS・CSS）を入れ直す（exment:publish）',
+                'file_permission' => '.env と設定のキャッシュを、ほかの人から読めないようにする（640）',
+            ],
+        ],
         'item' => [
             'opcache' => [
                 'label' => 'OPcache',

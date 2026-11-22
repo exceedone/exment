@@ -1,4 +1,25 @@
 {{-- Tuning (ISS00414): the advice of SystemRequireList TUNING, with the buttons of TuningController::action --}}
+{{-- what Exment can set by itself (AutoTuning), each to choose --}}
+@if(!empty($autoItems))
+<div class="box box-default" id="tuning-auto">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ exmtrans('tuning.auto.header') }}</h3>
+    </div>
+    <div class="box-body">
+        <p>{{ exmtrans('tuning.auto.explain') }}</p>
+        <form method="post" action="{{ $actionUrl }}" onsubmit="return window.confirm('{{ exmtrans('tuning.action_confirm') }}');">
+            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="auto">
+            @foreach($autoItems as $key => $label)
+            <div class="checkbox">
+                <label><input type="checkbox" name="auto_tuning[]" value="{{ $key }}" checked> {{ $label }}</label>
+            </div>
+            @endforeach
+            <button type="submit" class="btn btn-sm btn-primary">{{ exmtrans('tuning.auto.button') }}</button>
+        </form>
+    </div>
+</div>
+@endif
 <div class="box box-default">
     <div class="box-body">
         <p>{{ exmtrans('tuning.explain') }}</p>
