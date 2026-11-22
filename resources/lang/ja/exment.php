@@ -3788,6 +3788,10 @@ return [
             'operation_log' => '操作ログ',
             'api_setting' => 'APIアプリ設定',
             'login_setting' => 'ログイン設定',
+            'workflow_task' => '未処理の申請',
+            'groupware' => 'グループウェア',
+            'admin_data' => '設定：データと画面',
+            'admin_user' => '設定：ユーザーと権限',
         ],
     ],
 

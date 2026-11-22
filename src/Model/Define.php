@@ -361,6 +361,10 @@ class Define
             'uri' => 'workflow',
             'icon' => 'fa-share-alt',
         ],
+        'workflow_task' => [
+            'uri' => 'workflow_task',
+            'icon' => 'fa-check-square-o',
+        ],
         'backup' => [
             'uri' => 'backup',
             'icon' => 'fa-database',

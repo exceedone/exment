@@ -432,17 +432,22 @@
         {
             "menu_type": "system",
             "menu_name": "home",
-            "title": "HOME"
+            "title": "ダッシュボード"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "groupware",
+            "title": "グループウェア"
         },
         {
             "menu_type": "system",
             "menu_name": "file_server",
-            "title": "ファイルサーバー"
+            "title": "文書管理"
         },
         {
             "menu_type": "parent_node",
             "menu_name": "master",
-            "title": "マスター管理"
+            "title": "マスタ"
         },
         {
             "menu_type": "table",
@@ -466,13 +471,8 @@
         },
         {
             "menu_type": "parent_node",
-            "menu_name": "admin",
-            "title": "管理者設定"
-        },
-        {
-            "menu_type": "system",
-            "menu_name": "system",
-            "title": "システム設定"
+            "menu_name": "admin_data",
+            "title": "設定：データと画面"
         },
         {
             "menu_type": "system",
@@ -481,8 +481,33 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "studio",
+            "title": "スタジオ"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "menu",
             "title": "メニュー"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "workflow",
+            "title": "ワークフロー"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "mail_template",
+            "title": "通知テンプレート"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "notify",
+            "title": "通知"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "cell_style_preset",
+            "title": "表示プリセット"
         },
         {
             "menu_type": "system",
@@ -490,9 +515,9 @@
             "title": "テンプレート"
         },
         {
-            "menu_type": "system",
-            "menu_name": "backup",
-            "title": "バックアップ"
+            "menu_type": "parent_node",
+            "menu_name": "admin_user",
+            "title": "設定：ユーザーと権限"
         },
         {
             "menu_type": "system",
@@ -506,8 +531,33 @@
         },
         {
             "menu_type": "system",
-            "menu_name": "workflow",
-            "title": "ワークフロー"
+            "menu_name": "login_setting",
+            "title": "ログイン設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "api_setting",
+            "title": "APIアプリ設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "operation_log",
+            "title": "操作ログ"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin",
+            "title": "設定：システム"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "system",
+            "title": "システム設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "feature",
+            "title": "機能の管理"
         },
         {
             "menu_type": "system",
@@ -516,28 +566,8 @@
         },
         {
             "menu_type": "system",
-            "menu_name": "studio",
-            "title": "スタジオ"
-        },
-        {
-            "menu_type": "system",
-            "menu_name": "feature",
-            "title": "機能の管理"
-        },
-        {
-            "menu_type": "table",
-            "menu_name": "mail_template",
-            "title": "通知テンプレート"
-        },
-        {
-            "menu_type": "system",
-            "menu_name": "login_setting",
-            "title": "ログイン設定"
-        },
-        {
-            "menu_type": "system",
-            "menu_name": "api_setting",
-            "title": "APIアプリ設定"
+            "menu_name": "backup",
+            "title": "バックアップ"
         },
         {
             "menu_type": "system",
