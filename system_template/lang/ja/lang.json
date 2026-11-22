@@ -576,6 +576,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "security_check",
+            "title": "セキュリティチェック"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "メンテナンスモード"
         }

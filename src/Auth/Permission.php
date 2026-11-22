@@ -269,6 +269,7 @@ class Permission
             case "auth/menu_arrange":
             case "auth/logs":
             case "tuning":
+            case "security_check":
             case "api_keys":
             case "maintenance":
                 if ($this->role_type == RoleType::SYSTEM) {
