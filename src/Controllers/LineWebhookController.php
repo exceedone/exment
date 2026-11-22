@@ -72,6 +72,8 @@ class LineWebhookController extends Controller
         $type       = $event['type'] ?? null;
         $userId     = $event['source']['userId'] ?? null;
         $replyToken = $event['replyToken'] ?? null;
+        // the safety check answers and comments only while the site uses it (Feature management)
+        $safetyUsed = \Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::SAFETY_CHECK);
 
         if ($type === 'message' && ($event['message']['type'] ?? null) === 'text') {
             $text   = $event['message']['text'] ?? '';
@@ -85,8 +87,11 @@ class LineWebhookController extends Controller
                     $msg = exmtrans('line.link_already_linked');
                 } elseif ($isLinkCommand) {
                     $msg = exmtrans('line.link_invalid_code');
-                } elseif ($alreadyLinked && \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::attachComment($userId, $text)) {
+                } elseif ($alreadyLinked && $safetyUsed && \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::attachComment($userId, $text)) {
                     $msg = exmtrans('safety.comment_added');
+                } elseif ($alreadyLinked && !$safetyUsed) {
+                    // a free text is a comment of the safety check: say it is not in use
+                    $msg = exmtrans('safety.not_in_use');
                 } elseif ($alreadyLinked) {
                     $msg = exmtrans('line.invalid_command');
                 } else {
@@ -103,7 +108,10 @@ class LineWebhookController extends Controller
                     $client->reply($replyToken, [LineMessagingClient::text($msg)]);
                 }
             } elseif (($data['act'] ?? null) === 'safety') {
-                $msg = \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::handle($data, $userId);
+                // not used (Feature management): say so, not a silence
+                $msg = $safetyUsed
+                    ? \Exceedone\Exment\Services\SafetyCheck\SafetyCheckAction::handle($data, $userId)
+                    : exmtrans('safety.not_in_use');
                 if ($replyToken) {
                     $client->reply($replyToken, [LineMessagingClient::text($msg)]);
                 }

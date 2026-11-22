@@ -269,6 +269,7 @@ class Permission
             case "auth/logs":
             case "tuning":
             case "api_keys":
+            case "maintenance":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
                 }

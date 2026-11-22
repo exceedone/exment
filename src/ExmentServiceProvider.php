@@ -108,6 +108,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\LogClearCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
         \Exceedone\Exment\Console\SafetyWatchCommand::class,
+        \Exceedone\Exment\Console\MaintenanceCommand::class,
     ];
 
 
@@ -122,6 +123,8 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middleware = [
         \Exceedone\Exment\Middleware\TrustProxies::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
+        // the operator's maintenance, before the database and the login (MaintenanceMode::earlyResponse)
+        \Exceedone\Exment\Middleware\MaintenanceOperatorGuard::class,
     ];
 
 
@@ -165,6 +168,8 @@ class ExmentServiceProvider extends ServiceProvider
 
         'admin.demo-mode' => \Exceedone\Exment\Middleware\DemoModeGuard::class,
         'admin.feature' => \Exceedone\Exment\Middleware\FeatureGuard::class,
+        // maintenance mode (Services\MaintenanceMode), with the kind of the pages
+        'exment.maintenance' => \Exceedone\Exment\Middleware\MaintenanceGuard::class,
     ];
 
     /**
@@ -181,6 +186,8 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.web-ipfilter',
             'admin.initialize',
             'admin.auth',
+            // maintenance mode: after the login is known
+            'exment.maintenance:web',
             'log.exec.time',
             'check.logging.enabled',
             'admin.auth-2factor',
@@ -202,6 +209,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
+            'exment.maintenance:anonymous',
             'admin.login',
             'admin.morph',
             'admin.bootstrap2',
@@ -244,6 +252,7 @@ class ExmentServiceProvider extends ServiceProvider
         'adminapi' => [
             'admin.api-ipfilter',
             'adminapi.auth',
+            'exment.maintenance:api',
             'admin.morph',
             'admin.log',
             // 'throttle:60,1',
@@ -256,10 +265,12 @@ class ExmentServiceProvider extends ServiceProvider
         // Exment Plugin API
         'pluginapi' => [
             'pluginapi.auth',
+            'exment.maintenance:api',
         ],
         // Exment API not login page. (Ex. get token)
         'adminapi_anonymous' => [
             'admin.api-ipfilter',
+            'exment.maintenance:api_anonymous',
             // 'throttle:60,1',
             'admin.morph',
             'admin.log',
@@ -274,6 +285,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment public form page.
         'publicform' => [
+            'exment.maintenance:public',
             'publicform.auth',
             'admin.browser',
             'admin.initialize',
@@ -400,6 +412,11 @@ class ExmentServiceProvider extends ServiceProvider
             __DIR__.'/../config/meilisearch.php',
             'meilisearch'
         );
+
+        // maintenance mode: the queue workers wait (a listener of Looping that answers false)
+        $this->app->make('events')->listen(\Illuminate\Queue\Events\Looping::class, function () {
+            return \Exceedone\Exment\Services\MaintenanceMode::stopsQueue() ? false : null;
+        });
 
         // register global middleware.
         $kernel = $this->app->make(Kernel::class);
@@ -569,6 +586,15 @@ class ExmentServiceProvider extends ServiceProvider
             } catch (\Exception $ex) {
             }
 
+            // maintenance mode: the planned start and end; in maintenance the others are skipped
+            foreach ($schedule->events() as $event) {
+                $command = strval($event->command);
+                $event->skip(function () use ($command) {
+                    return \Exceedone\Exment\Services\MaintenanceMode::skipsScheduled($command);
+                });
+            }
+            $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);
+
             // Log debug
             \Exceedone\Exment\Middleware\ExmentDebug::logSchedule($schedule);
         });
@@ -700,6 +726,10 @@ class ExmentServiceProvider extends ServiceProvider
             if ($m == 'adminapi.auth') {
                 $m = 'adminwebapi.auth';
             }
+            // the web API of the pages: as the pages
+            if ($m == 'exment.maintenance:api') {
+                $m = 'exment.maintenance:webapi';
+            }
         }
         $middlewareGroups['adminwebapi'] = $middleware;
 
@@ -707,6 +737,9 @@ class ExmentServiceProvider extends ServiceProvider
         foreach ($middleware as &$m) {
             if ($m == 'adminapi.auth') {
                 $m = 'publicformapi.auth';
+            }
+            if ($m == 'exment.maintenance:api') {
+                $m = 'exment.maintenance:public';
             }
         }
         $middlewareGroups['publicformapi'] = $middleware;

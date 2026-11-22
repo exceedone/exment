@@ -70,6 +70,8 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'    => config('admin.route.prefix'),
             'namespace' => $this->namespace,
+            // maintenance mode: from outside, as the public forms
+            'middleware' => ['exment.maintenance:public'],
         ], function (Router $router) {
             $router->post('line/webhook', 'LineWebhookController@handle')->name('exment.line_webhook');
         });
@@ -118,6 +120,8 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'  => $this->namespace,
             'middleware' => [
                 'adminweb',
+                // maintenance mode: from outside (a link in a mail), as the public forms
+                'exment.maintenance:public',
                 'admin.browser',
                 'admin.initialize',
                 'admin.login',
@@ -185,6 +189,10 @@ class RouteServiceProvider extends ServiceProvider
             // Tuning: what would make the site faster (ISS00414)
             $router->get('tuning', 'TuningController@index');
             $router->post('tuning/action', 'TuningController@action');
+            $router->get('maintenance', 'MaintenanceController@index');
+            $router->post('maintenance', 'MaintenanceController@store');
+            $router->post('maintenance/start', 'MaintenanceController@start');
+            $router->post('maintenance/end', 'MaintenanceController@end');
 
             // The preset library: what the pickers on the column and view
             // screens offer, managed as one list.
@@ -219,6 +227,7 @@ class RouteServiceProvider extends ServiceProvider
                 $router->delete('/', 'FileServerController@destroyWorkspace');
                 $router->get('trash', 'FileServerController@trash');
                 $router->post('folders', 'FileServerController@createFolder');
+                $router->post('text_files', 'FileServerController@createTextFile');
                 $router->post('upload', 'FileServerController@upload');
                 $router->post('upload/init', 'FileServerController@uploadInit');
                 $router->get('upload/{session}', 'FileServerController@uploadStatus');
@@ -245,6 +254,10 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('purge', 'FileServerController@purge');
                     $router->post('favorite', 'FileServerController@favorite');
                     $router->post('version', 'FileServerController@uploadVersion');
+                    $router->get('edit', 'FileServerController@editText');
+                    $router->post('text', 'FileServerController@saveText');
+                    // the preview is asked while typing: limited for each user
+                    $router->post('markdown', 'FileServerController@markdownPreview')->middleware(\Illuminate\Routing\Middleware\ThrottleRequests::class . ':120,1');
                     $router->post('versions/{version}/restore', 'FileServerController@restoreVersion')->where('version', '[0-9]+');
                     $router->post('checkout', 'FileServerController@checkout');
                     $router->post('checkin', 'FileServerController@checkin');
