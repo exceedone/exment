@@ -1,0 +1,237 @@
+{
+    "template_view_name": "Request pack",
+    "description": "Approval requests, expense claims, business trip, payment and leave requests, with a submit / approve / send back workflow, applicant and approver role groups and a \"Requests & approvals\" menu.",
+    "custom_tables": [
+        {
+            "table_name": "request_ringi",
+            "table_view_name": "Approval request (ringi)",
+            "description": "Ask for an internal decision (purchases, contracts, hiring and so on).",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Subject"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Amount"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "Desired date"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Details and reason"
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "Attachments"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense",
+            "table_view_name": "Expense claim",
+            "description": "Claim back expenses you paid. Attach receipts to the lines.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Subject"
+                },
+                {
+                    "column_name": "apply_date",
+                    "column_view_name": "Date of claim"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Note"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense_detail",
+            "table_view_name": "Expense line",
+            "description": "A line of an expense claim.",
+            "custom_columns": [
+                {
+                    "column_name": "use_date",
+                    "column_view_name": "Date"
+                },
+                {
+                    "column_name": "account",
+                    "column_view_name": "Account",
+                    "options": {
+                        "select_item_valtext": "travel,Travel\nmeeting,Meetings\nentertainment,Entertainment\nsupplies,Supplies\ncommunication,Communication\nbooks,Books and newspapers\nother,Other"
+                    }
+                },
+                {
+                    "column_name": "payee",
+                    "column_view_name": "Paid to"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Amount"
+                },
+                {
+                    "column_name": "receipt",
+                    "column_view_name": "Receipt"
+                }
+            ]
+        },
+        {
+            "table_name": "request_trip",
+            "table_view_name": "Business trip request",
+            "description": "Ask before a business trip.",
+            "custom_columns": [
+                {
+                    "column_name": "destination",
+                    "column_view_name": "Destination"
+                },
+                {
+                    "column_name": "purpose",
+                    "column_view_name": "Purpose"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Start date"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "End date"
+                },
+                {
+                    "column_name": "transport",
+                    "column_view_name": "Transport",
+                    "options": {
+                        "select_item_valtext": "train,Train\nshinkansen,Shinkansen\nplane,Plane\ncar,Car\nother,Other"
+                    }
+                },
+                {
+                    "column_name": "estimated_cost",
+                    "column_view_name": "Estimated cost"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Note"
+                }
+            ]
+        },
+        {
+            "table_name": "request_payment",
+            "table_view_name": "Payment request",
+            "description": "Ask to pay an invoice.",
+            "custom_columns": [
+                {
+                    "column_name": "payee",
+                    "column_view_name": "Pay to"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Amount"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Due date"
+                },
+                {
+                    "column_name": "invoice",
+                    "column_view_name": "Invoice"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Details"
+                }
+            ]
+        },
+        {
+            "table_name": "request_leave",
+            "table_view_name": "Leave request",
+            "description": "Ask for leave.",
+            "custom_columns": [
+                {
+                    "column_name": "leave_type",
+                    "column_view_name": "Type of leave",
+                    "options": {
+                        "select_item_valtext": "paid,Paid leave\nhalf_am,Half day (morning)\nhalf_pm,Half day (afternoon)\nspecial,Special leave\nsubstitute,Substitute holiday\nabsence,Absence\nother,Other"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Start date"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "End date"
+                },
+                {
+                    "column_name": "days",
+                    "column_view_name": "Days"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "Reason"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "fb49ce9f4362a2c57793",
+            "form_view_name": "Form"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Requests & approvals",
+            "menu_type": "parent_node",
+            "menu_name": "request"
+        },
+        {
+            "title": "Pending tasks",
+            "menu_type": "system",
+            "menu_name": "workflow_task"
+        },
+        {
+            "title": "Approval request (ringi)",
+            "menu_type": "table",
+            "menu_name": "request_ringi"
+        },
+        {
+            "title": "Expense claim",
+            "menu_type": "table",
+            "menu_name": "request_expense"
+        },
+        {
+            "title": "Business trip request",
+            "menu_type": "table",
+            "menu_name": "request_trip"
+        },
+        {
+            "title": "Payment request",
+            "menu_type": "table",
+            "menu_name": "request_payment"
+        },
+        {
+            "title": "Leave request",
+            "menu_type": "table",
+            "menu_name": "request_leave"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "request_applicant_group",
+            "role_group_view_name": "Applicants",
+            "description": "People who make requests and see and edit their own. Put the staff here."
+        },
+        {
+            "role_group_name": "request_approver_group",
+            "role_group_view_name": "Approvers",
+            "description": "People who see every request and approve it or send it back."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "Requests and approvals (standard)"
+        }
+    ]
+}
