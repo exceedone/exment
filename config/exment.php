@@ -411,6 +411,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Notify navbar interval
+    |--------------------------------------------------------------------------
+    |
+    | How often the bell asks for new notifications, in seconds (at least 30).
+    | The open tabs of one browser share one poll, and a hidden tab does not ask.
+    |
+    */
+    'notify_navbar_interval' => env('EXMENT_NOTIFY_NAVBAR_INTERVAL', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Workflow task navbar
     |--------------------------------------------------------------------------
     |

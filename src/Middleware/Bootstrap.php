@@ -137,6 +137,8 @@ class Bootstrap
             'vendor/exment/js/scroll-restore.js',
             'vendor/exment/js/search.js',
             'vendor/exment/js/calc.js',
+            // one shared timer for the navbar polls (ISS02824): before the two that use it
+            'vendor/exment/js/navbar_poll.js',
             'vendor/exment/js/notify_navbar.js',
             'vendor/exment/js/workflow_task_navbar.js',
             'vendor/exment/js/modal.js',
