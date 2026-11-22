@@ -279,6 +279,8 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('comments/{comment}/delete', 'FileServerGovernanceController@deleteComment')->where('comment', '[0-9]+');
                 });
             });
+            // the pages of the folders and files at their paths (ISS02815): after all the others
+            $router->get('file_server/{path}', 'FileServerController@path')->where('path', '.+');
 
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');

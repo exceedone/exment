@@ -63,7 +63,7 @@ class FileServerGovernanceController extends FileServerController
         $this->AdminContent($content);
         $content->row(view('exment::file_server.audit', [
             'workspace' => $ws,
-            'back_url' => $this->url($ws),
+            'back_url' => $this->pageUrl($ws),
             'action' => $base,
             'filters' => $filters,
             'actions' => collect(Audit::ACTIONS)->mapWithKeys(function ($action) {
@@ -94,7 +94,7 @@ class FileServerGovernanceController extends FileServerController
             'action_label' => Audit::label(strval($log->action)),
             'user' => isset($log->user_id) ? $this->userName($log->user_id) : (isset($log->link_id) ? exmtrans('file_server.audit_by_link') : exmtrans('file_server.audit_by_system')),
             'node_name' => $log->node_name,
-            'node_url' => isset($node) && $node->workspace_id === $ws->id ? $this->nodeUrl($ws, $node) : null,
+            'node_url' => isset($node) && $node->workspace_id === $ws->id ? $this->pageUrl($ws, $node) : null,
             'detail' => count($detail) > 0 ? json_encode($detail, JSON_UNESCAPED_UNICODE) : '',
             'ip' => $log->ip,
         ];
@@ -162,11 +162,11 @@ class FileServerGovernanceController extends FileServerController
         $this->AdminContent($content);
         $content->row(view('exment::file_server.approvals', [
             'workspace' => $ws,
-            'back_url' => $this->url($ws),
+            'back_url' => $this->pageUrl($ws),
             'rows' => $nodes->map(function (FileNode $node) use ($ws) {
                 return [
                     'name' => $node->name,
-                    'url' => $this->nodeUrl($ws, $node),
+                    'url' => $this->pageUrl($ws, $node),
                     'user' => $this->userName($node->created_user_id) ?: exmtrans('file_server.audit_by_link'),
                     'created_at' => $node->created_at,
                     'size' => $node->size,

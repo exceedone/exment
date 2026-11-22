@@ -719,7 +719,7 @@ class FileGovernanceTest extends FeatureTestBase
         $denied = $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id, 'download'));
         $this->assertStringNotContainsString('attachment', strval($denied->headers->get('Content-Disposition')));
         $this->assertNotInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $denied->baseResponse);
-        $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id))->assertOk();
+        $this->followingRedirects()->get(admin_urls('file_server', $ws->id, 'nodes', $file->id))->assertOk();
     }
 
     public function testAuditLog(): void

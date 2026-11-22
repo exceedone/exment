@@ -629,7 +629,7 @@ class FileServerTest extends FeatureTestBase
         $url = admin_urls('file_server', $ws->id, 'text_files');
 
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        $this->get(admin_urls('file_server', $ws->id))->assertOk()->assertSee('class="dropdown-item" data-fs="new-text"', false);
+        $this->followingRedirects()->get(admin_urls('file_server', $ws->id))->assertOk()->assertSee('class="dropdown-item" data-fs="new-text"', false);
         $json = $this->post($url, ['name' => 'memo', 'type' => 'md'], $this->ajax)->assertOk()->assertJson(['result' => true])->json();
         $memo = $this->node($json['id']);
         $this->assertSame('memo.md', $memo->name);
@@ -657,7 +657,7 @@ class FileServerTest extends FeatureTestBase
 
         // one who may only upload could never write it: no "New", and refused
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
-        $this->get(admin_urls('file_server', $ws->id))->assertOk()->assertDontSee('class="dropdown-item" data-fs="new-text"', false);
+        $this->followingRedirects()->get(admin_urls('file_server', $ws->id))->assertOk()->assertDontSee('class="dropdown-item" data-fs="new-text"', false);
         $this->post($url, ['name' => 'uploader', 'type' => 'txt'], $this->ajax)->assertStatus(403);
         $this->assertSame(0, FileNode::query()->where('workspace_id', $ws->id)->where('name', 'uploader.txt')->count());
     }

@@ -19,6 +19,7 @@ use Exceedone\Exment\Services\FileServer\FileServerException;
 use Exceedone\Exment\Services\FileServer\Level;
 use Exceedone\Exment\Services\FileServer\Library;
 use Exceedone\Exment\Services\FileServer\Metadata;
+use Exceedone\Exment\Services\FileServer\Paths;
 use Exceedone\Exment\Services\FileServer\Preview;
 use Exceedone\Exment\Services\FileServer\ShareLinks;
 use Exceedone\Exment\Services\FileServer\TextFiles;
@@ -75,7 +76,8 @@ class FileServerController extends AdminControllerBase
                 'description' => $workspace->description,
                 'level' => Level::label($access->level($workspace)),
                 'updated_at' => $workspace->updated_at,
-                'url' => $this->url($workspace),
+                'url' => $this->pageUrl($workspace),
+                'link' => (new Paths())->link($workspace),
             ];
         });
 
@@ -139,7 +141,7 @@ class FileServerController extends AdminControllerBase
                 $members[] = ['target_type' => FilePermission::TARGET_USER, 'target_id' => $me, 'level' => Level::MANAGE];
                 $this->library()->setPermissions($workspace, null, $members);
             }
-            return ['message' => exmtrans('common.message.success_execute'), 'redirect' => $this->url($workspace)];
+            return ['message' => exmtrans('common.message.success_execute'), 'redirect' => $this->pageUrl($workspace)];
         });
     }
 
@@ -157,6 +159,90 @@ class FileServerController extends AdminControllerBase
             if (isset($folder) && !$folder->isFolder()) {
                 return redirect($this->nodeUrl($ws, $folder));
             }
+        } catch (FileServerException $e) {
+            return $this->deny($e);
+        }
+        // the address with numbers: to the path (ISS02815)
+        $redirect = $this->toPath($request, $ws, $folder);
+        return $redirect ?? $this->folderPage($request, $content, $ws, $folder);
+    }
+
+    /**
+     * A folder (or the top) found by its path (ISS02815):
+     * /file_server/<workspace>/<folder>/.../<file>. ?n=<id> names the item for
+     * good. What the user may not see is not there (404, as a wrong path).
+     *
+     * @return Content|\Symfony\Component\HttpFoundation\Response
+     */
+    public function path(Request $request, Content $content, string $path)
+    {
+        $id = $request->query('n');
+        $id = is_scalar($id) && preg_match('/^[1-9][0-9]{0,9}$/', strval($id)) === 1 ? intval($id) : null;
+        if ($request->query->has('n') && !isset($id)) {
+            abort(404);
+        }
+        $paths = new Paths();
+        try {
+            [$ws, $node] = $paths->resolve($this->library()->access(), $path, $id);
+        } catch (FileServerException $e) {
+            abort(404);
+        }
+        // not the path it has now (an old one, another case): to that one
+        $current = array_merge([Paths::segment($ws)], isset($node) ? $paths->names($node) : []);
+        $asked = array_values(array_filter(explode('/', $path), function ($segment) {
+            return $segment !== '';
+        }));
+        if ($asked !== $current) {
+            $query = $request->query();
+            return redirect($this->withQuery(strval($paths->url($ws, $node)), $query), 302);
+        }
+        if (isset($node) && $node->isFile()) {
+            return $this->nodePage($request, $content, $ws, $node);
+        }
+        return $this->folderPage($request, $content, $ws, $node);
+    }
+
+    /**
+     * The address with numbers of a page, asked by the browser (not by fetch()):
+     * moved for good (301) to the path, with the number of the item (so it
+     * still opens it once the browser keeps the move and the item is renamed).
+     *
+     * @return \Symfony\Component\HttpFoundation\Response|null
+     */
+    protected function toPath(Request $request, FileWorkspace $ws, ?FileNode $node)
+    {
+        if (!$request->isMethod('GET') || ($request->ajax() && !$request->pjax())) {
+            return null;
+        }
+        if (!$this->library()->access()->can($ws, $node, Level::VIEW)) {
+            return null;
+        }
+        $url = (new Paths())->url($ws, $node);
+        if (!isset($url)) {
+            return null;
+        }
+        $query = $request->query();
+        if (isset($node)) {
+            $query = ['n' => $node->id] + array_diff_key($query, ['n' => true]);
+        }
+        return redirect($this->withQuery($url, $query), 301);
+    }
+
+    /**
+     * @param array<mixed> $query
+     */
+    protected function withQuery(string $url, array $query): string
+    {
+        return count($query) > 0 ? $url . '?' . http_build_query($query) : $url;
+    }
+
+    /**
+     * @return Content|\Symfony\Component\HttpFoundation\Response
+     */
+    protected function folderPage(Request $request, Content $content, FileWorkspace $ws, ?FileNode $folder)
+    {
+        $library = $this->library();
+        try {
             $sort = strval($request->get('sort', 'name'));
             $direction = strval($request->get('direction', 'asc'));
             $children = $library->children($ws, $folder, $sort, $direction);
@@ -216,7 +302,10 @@ class FileServerController extends AdminControllerBase
             'sort' => $sort,
             'direction' => $direction,
             'base_url' => $this->url($ws),
-            'folder_url' => isset($folder) ? $this->url($ws, 'folder', $folder->id) : $this->url($ws),
+            'folder_url' => $this->pageUrl($ws, $folder),
+            // "リンクをコピー" (ISS02815)
+            'link' => (new Paths())->link($ws, $folder),
+            'link_name' => isset($folder) ? $folder->name : $ws->name,
             'parent_id' => isset($folder) ? $folder->id : null,
             'chunk_size' => Uploader::CHUNK_SIZE,
             'max_file_size' => Uploader::maxFileSize(),
@@ -236,11 +325,22 @@ class FileServerController extends AdminControllerBase
     {
         try {
             $ws = $this->workspace($workspace);
-            $library = $this->library();
-            $item = $library->findNode($ws, intval($node));
+            $item = $this->library()->findNode($ws, intval($node));
         } catch (FileServerException $e) {
             return $this->deny($e);
         }
+        // a file: its page is at its path (ISS02815). A folder: this is the page of
+        // its details and permissions; its path is the list of what is in it
+        $redirect = $item->isFile() ? $this->toPath($request, $ws, $item) : null;
+        return $redirect ?? $this->nodePage($request, $content, $ws, $item);
+    }
+
+    /**
+     * @return Content|\Symfony\Component\HttpFoundation\Response
+     */
+    protected function nodePage(Request $request, Content $content, FileWorkspace $ws, FileNode $item)
+    {
+        $library = $this->library();
         $access = $library->access();
         $level = $access->level($ws, $item);
         $version = $item->isFile() ? $item->current_version : null;
@@ -271,7 +371,9 @@ class FileServerController extends AdminControllerBase
             'breadcrumbs' => $this->breadcrumbs($ws, $item, $access),
             'base_url' => $this->url($ws),
             'node_url' => $this->nodeUrl($ws, $item),
-            'parent_url' => isset($item->parent_id) ? $this->url($ws, 'folder', $item->parent_id) : $this->url($ws),
+            'parent_url' => $this->pageUrl($ws, isset($item->parent_id) ? FileNode::find($item->parent_id) : null),
+            'page_url' => $this->pageUrl($ws, $item),
+            'link' => (new Paths())->link($ws, $item),
             'level' => $level,
             'level_label' => Level::label($level),
             'kind' => $kind,
@@ -704,7 +806,7 @@ class FileServerController extends AdminControllerBase
         }
         $access = $library->access();
         if (!Governance::canDownload($access, $ws, $item)) {
-            return redirect($this->nodeUrl($ws, $item));
+            return redirect($this->pageUrl($ws, $item));
         }
         try {
             $file = (new TextFiles($library))->read($ws, $item);
@@ -1295,6 +1397,15 @@ class FileServerController extends AdminControllerBase
         return admin_urls('file_server', $ws->id, ...$parts);
     }
 
+    /**
+     * The page of a folder (its list), a file or the top: at its path (ISS02815),
+     * or with numbers when the name of the workspace cannot be in an address.
+     */
+    protected function pageUrl(FileWorkspace $ws, ?FileNode $node = null): string
+    {
+        return (new Paths())->url($ws, $node) ?? Paths::numberUrl($ws, $node);
+    }
+
     protected function nodeUrl(FileWorkspace $ws, FileNode $node, ?string $action = null): string
     {
         $url = $this->url($ws, 'nodes', $node->id);
@@ -1306,7 +1417,8 @@ class FileServerController extends AdminControllerBase
      */
     protected function breadcrumbs(FileWorkspace $ws, ?FileNode $node, ?\Exceedone\Exment\Services\FileServer\Access $access = null): array
     {
-        $list = [['name' => $ws->name, 'url' => $this->url($ws)]];
+        $paths = new Paths($access ?? $this->library()->access());
+        $list = [['name' => $ws->name, 'url' => $paths->url($ws) ?? $this->url($ws)]];
         if (!isset($node)) {
             return $list;
         }
@@ -1316,7 +1428,7 @@ class FileServerController extends AdminControllerBase
                 $list[] = ['name' => strval(exmtrans('file_server.path_hidden')), 'url' => null];
                 continue;
             }
-            $list[] = ['name' => $item->name, 'url' => $item->isFolder() ? $this->url($ws, 'folder', $item->id) : $this->nodeUrl($ws, $item)];
+            $list[] = ['name' => $item->name, 'url' => $paths->url($ws, $item) ?? Paths::numberUrl($ws, $item)];
         }
         return $list;
     }
@@ -1329,6 +1441,7 @@ class FileServerController extends AdminControllerBase
     protected function nodeRows(iterable $nodes, ?FileWorkspace $ws = null, ?\Illuminate\Support\Collection $fields = null): array
     {
         $rows = [];
+        $paths = new Paths();
         foreach ($nodes as $node) {
             $workspace = $ws ?? $node->workspace;
             if (!isset($workspace)) {
@@ -1345,7 +1458,8 @@ class FileServerController extends AdminControllerBase
                 'updated_at' => $node->updated_at,
                 'updated_user' => $this->userName($node->updated_user_id),
                 'workspace' => $workspace->name,
-                'url' => $node->isFolder() ? $this->url($workspace, 'folder', $node->id) : $this->nodeUrl($workspace, $node),
+                'url' => $paths->url($workspace, $node) ?? Paths::numberUrl($workspace, $node),
+                'link' => $paths->link($workspace, $node),
                 'detail_url' => $this->nodeUrl($workspace, $node),
                 'download_url' => $this->nodeUrl($workspace, $node, 'download'),
                 'thumbnail_url' => isset($version) && isset($version->thumbnail_path) ? $this->nodeUrl($workspace, $node, 'thumbnail') . '?v=' . $version->id : null,
