@@ -66,6 +66,14 @@ class SystemRequireList
         Tuning\DebugLogTuning::class,
         Tuning\SearchIndexTuning::class,
         Tuning\DashboardCacheTuning::class,
+        // what was found slow on a server (ISS02823)
+        Tuning\ScheduleTuning::class,
+        Tuning\PhpFpmTuning::class,
+        Tuning\RouteCacheTuning::class,
+        Tuning\FilePermissionTuning::class,
+        Tuning\AssetsTuning::class,
+        Tuning\SlowQueryLogTuning::class,
+        Tuning\IndexMissingTuning::class,
     ];
 
     // @phpstan-ignore-next-line
