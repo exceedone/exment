@@ -80,7 +80,7 @@ class AutoTuningPageTest extends FeatureTestBase
         $logs = \ExmentAdminCore\Admin\Auth\Database\OperationLog::where('path', 'tuning/auto')->get();
         $this->assertCount($before + 1, $logs);
         $input = json_decode(strval($logs->last()->input), true);
-        $this->assertSame($admin->id, $logs->last()->user_id);
+        $this->assertEquals($admin->id, $logs->last()->user_id);
         $this->assertSame([['key' => 'cache_driver', 'status' => AutoTuning::DONE, 'message' => '']], $input['results']);
         $this->assertFalse($input['setup']);
     }
@@ -94,7 +94,9 @@ class AutoTuningPageTest extends FeatureTestBase
         $this->assertStringNotContainsString('id="tuning-auto-form"', $content);
         $this->assertSame([], (new AutoTuning(true))->available(), 'nor at the setup');
 
-        $this->post(admin_url('tuning/action'), ['action' => 'auto', 'auto_tuning' => ['cache_driver']])->assertForbidden();
+        $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
+            ->post(admin_url('tuning/action'), ['action' => 'auto', 'auto_tuning' => ['cache_driver']])
+            ->assertForbidden();
         $this->assertSame([], $this->commands);
     }
 
