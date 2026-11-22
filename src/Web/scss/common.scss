@@ -913,16 +913,10 @@ label.checkboxone-label:has(input[readonly][type=checkbox]) {
 }
 
 
-// "Back to the list" on the right of the page title (data show and edit pages).
-// The title is only as wide as its text, so widen it to the row.
-.content-header > h1.exm-has-back-to-list {
-    float: none;
-    width: 100%;
-}
+// "Back to the list" at the left of the page title (data show and edit pages).
 .content-header > h1 .exm-back-to-list {
-    float: right;
-    margin-left: auto; // the title row is a flex box in the modern design
-    margin-top: -2px;
+    margin: -2px 12px 0 0;
+    vertical-align: middle;
     padding: 6px 14px;
     font-size: 14px;
     font-weight: 600;
