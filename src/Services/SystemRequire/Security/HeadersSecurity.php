@@ -38,7 +38,7 @@ class HeadersSecurity extends SecurityBase
                 continue;
             }
             if (!isset($page['headers'][$header]) || trim($page['headers'][$header]) === '') {
-                $missing[] = $header;
+                $missing[] = strval($header);
             }
         }
         return $missing;
