@@ -75,6 +75,13 @@ class ExposedPathSecurity extends SecurityBase
 
     public function getFixText(): ?string
     {
+        if (!$this->checked()) {
+            // by hand: the addresses, from a computer outside the server
+            return implode("
+", array_map(function ($path) {
+                return SiteProbe::base() . '/' . $path;
+            }, array_values(static::PATHS)));
+        }
         if ($this->checkResult() == SystemRequireResult::OK) {
             return null;
         }

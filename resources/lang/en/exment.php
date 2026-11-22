@@ -736,12 +736,14 @@ return [
                 'label' => 'Headers for safety',
                 'explain' => 'Headers that tell the browser not to show the site inside another site, not to guess the type of a file, not to give away too much of the referrer, and to use only https (web server settings).',
                 'warning' => 'Some headers are missing. Add them on the web server.',
+                'unknown' => 'Could not be checked from this server (it does not reach this site). In the developer tools of a browser, look at the response headers of this page: X-Frame-Options, X-Content-Type-Options, Referrer-Policy (and Strict-Transport-Security on https).',
             ],
             'exposed_path' => [
                 'label' => 'What must not be seen from outside',
                 'explain' => '.env, .git, storage and vendor must not open in a browser. The site asks itself for them.',
                 'warning' => 'Something can be opened from outside. Fix the web server at once.',
                 'fix' => 'Set the document root of the web server to :public, and do not serve files whose names begin with a dot.',
+                'unknown' => 'Could not be checked from this server (it does not reach this site). From a computer outside the server, open these addresses in a browser and make sure none opens (403 or 404).',
             ],
             'admin_password' => [
                 'label' => 'Passwords of the system administrators',

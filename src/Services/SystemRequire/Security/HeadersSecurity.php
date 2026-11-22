@@ -66,6 +66,9 @@ class HeadersSecurity extends SecurityBase
 
     public function getFixText(): ?string
     {
+        if (!$this->checked()) {
+            return SiteProbe::base() . '/admin/auth/login';
+        }
         $missing = $this->missing();
         if (empty($missing)) {
             return null;
