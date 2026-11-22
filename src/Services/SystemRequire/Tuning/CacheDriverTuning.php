@@ -70,7 +70,25 @@ class CacheDriverTuning extends TuningBase
         if (!$this->redisExtension()) {
             $lines[] = '# PHP: the redis extension (pecl install redis, or the package php-redis), then restart PHP';
         }
-        $lines[] = "# .env (Redis)\nCACHE_STORE=redis\nSESSION_DRIVER=redis";
+        $lines[] = "# .env (Redis)\n" . implode("\n", array_map(function ($key) {
+            return $key . '=redis';
+        }, static::cacheEnvKeys())) . "\nSESSION_DRIVER=redis";
         return implode("\n", $lines);
+    }
+
+    /**
+     * The key of .env that config/cache.php of this site reads: CACHE_DRIVER (Laravel 10 style,
+     * the boilerplate of Exment) or CACHE_STORE (Laravel 11 and later). Both when it cannot be told.
+     *
+     * @return array<string>
+     */
+    public static function cacheEnvKeys(?string $path = null): array
+    {
+        $path = $path ?? config_path('cache.php');
+        $source = is_file($path) ? (string) @file_get_contents($path) : '';
+        $keys = array_values(array_filter(['CACHE_DRIVER', 'CACHE_STORE'], function ($key) use ($source) {
+            return strpos($source, "'" . $key . "'") !== false || strpos($source, '"' . $key . '"') !== false;
+        }));
+        return count($keys) > 0 ? $keys : ['CACHE_DRIVER', 'CACHE_STORE'];
     }
 }

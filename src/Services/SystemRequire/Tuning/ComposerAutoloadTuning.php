@@ -30,6 +30,28 @@ class ComposerAutoloadTuning extends TuningBase
 
     public function getFixText(): ?string
     {
-        return 'composer install --optimize-autoloader --no-dev';
+        // run as the owner of vendor/: another user (www-data on a docker install where vendor/
+        // is root's) cannot write the map, and composer may say nothing about it
+        $owner = static::vendorOwner();
+        return 'cd ' . base_path() . "\n"
+            . '# as the owner of vendor/' . (is_null($owner) ? '' : ' (' . $owner . ')') . "\n"
+            . 'composer dump-autoload -o';
+    }
+
+    /**
+     * The name of the owner of vendor/, or null.
+     */
+    public static function vendorOwner(): ?string
+    {
+        $path = base_path('vendor');
+        if (!is_dir($path) || !function_exists('posix_getpwuid')) {
+            return null;
+        }
+        $uid = @fileowner($path);
+        if ($uid === false) {
+            return null;
+        }
+        $info = @posix_getpwuid($uid);
+        return is_array($info) && isset($info['name']) ? strval($info['name']) : strval($uid);
     }
 }
