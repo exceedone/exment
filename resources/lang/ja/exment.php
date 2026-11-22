@@ -4004,6 +4004,7 @@ return [
         'notify_body' => '通知本文',
         'target_custom_value' => '対象データ',
         'data_refer' => 'この通知に紐づくデータを表示',
+        'show_content' => '通知の内容を見る',
         'all_check' => '一括既読',
         'read_all' => 'すべての通知を既読にする',
         'unread_all' => 'すべての通知を未読にする',
