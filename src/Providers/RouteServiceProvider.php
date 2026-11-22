@@ -30,6 +30,16 @@ class RouteServiceProvider extends ServiceProvider
         /** @var int $rate_limit */
         $rate_limit = config('exment.api_max_rate_limit', 60);
         RateLimiter::for('api', function (Request $request) use ($rate_limit) {
+            // an API key of a user: not through the OAuth guard (Passport empties the Authorization
+            // header of a bearer that is not its token, and the key would never sign in after it)
+            $bearer = $request->bearerToken();
+            if (\Exceedone\Exment\Services\UserApiKeys::looksLikeKey($bearer)) {
+                // by the IP (a new random key each time, or many keys, do not get more) and by the key
+                return [
+                    Limit::perMinute($rate_limit)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
+                    Limit::perMinute($rate_limit)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
+                ];
+            }
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
             return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
         });
@@ -161,6 +171,13 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
+            // the API keys of the users (ISS00437): of the login user, and of the site
+            $router->get('auth/api_keys', 'UserApiKeyController@index');
+            $router->post('auth/api_keys', 'UserApiKeyController@store');
+            $router->post('auth/api_keys/{id}/revoke', 'UserApiKeyController@revoke')->where('id', '[0-9]+');
+            $router->get('api_keys', 'UserApiKeyController@adminIndex');
+            $router->post('api_keys/{id}/revoke', 'UserApiKeyController@adminRevoke')->where('id', '[0-9]+');
+            $router->post('api_keys/user/{userId}/revoke', 'UserApiKeyController@adminRevokeUser')->where('userId', '[0-9]+');
 
             $router->get('system', 'SystemController@index');
             $router->post('system', 'SystemController@post');
@@ -706,6 +723,13 @@ class RouteServiceProvider extends ServiceProvider
 
                     // System --------------------------------------------------
                     $router->get("version", 'ApiController@version');
+
+                    // MCP (ISS00439): the tools check their scopes, the API only (not webapi)
+                    if ($route['type'] === 'api') {
+                        $router->post('mcp', 'McpController@handle');
+                        $router->get('mcp', 'McpController@notAllowed');
+                        $router->delete('mcp', 'McpController@notAllowed');
+                    }
 
                     $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
                     // workflow data - tables, record labels, statuses - so the scopes of the wf/ read endpoints

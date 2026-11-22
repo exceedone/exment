@@ -331,6 +331,10 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootDatabase();
         $this->bootSchedule();
         $this->bootMeilisearch();
+        // when the user signed in to the pages (SSO too): a user of SSO makes an API key only soon after
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
+            \Exceedone\Exment\Services\UserApiKeys::rememberSignIn($event->guard);
+        });
 
         $this->publish();
         $this->load();
