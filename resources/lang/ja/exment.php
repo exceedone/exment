@@ -17,7 +17,7 @@ return [
         'basic_setting' => '基本設定',
         'detail_setting' => '詳細設定',
         'section_nav' => 'この画面の設定項目（押すと移動します）',
-        'section_nav_back' => '▲ 上へ戻る',
+        'section_nav_back' => '▲ 上へ',
         'result' => '結果',
         'execute_result' => '実行結果',
         'no_setting' => '未設定',
