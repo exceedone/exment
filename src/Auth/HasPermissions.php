@@ -277,10 +277,14 @@ trait HasPermissions
             return false;
         }
 
-        // a parent menu (a group) with nothing in it to show: the menus of the
-        // features turned off are taken out of the tree before this, and a
-        // group a template or a plugin made may have nothing else
-        if (array_get($item, 'menu_type') == MenuType::PARENT_NODE && empty(array_get($item, 'children'))) {
+        // a group of the feature map (Define::MENU_GROUP_DEFINITION) with nothing
+        // in it to show: the menus of the features turned off are taken out of
+        // the tree before this, and a template or a plugin may make the group
+        // before anything goes in it. A parent an administrator made empty
+        // still shows, as before.
+        if (array_get($item, 'menu_type') == MenuType::PARENT_NODE
+            && empty(array_get($item, 'children'))
+            && array_key_exists(strval(array_get($item, 'menu_name')), Define::MENU_GROUP_DEFINITION)) {
             return false;
         }
 

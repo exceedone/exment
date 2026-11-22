@@ -80,6 +80,8 @@ class NewSiteMenuGroupsTest extends FeatureTestBase
         $this->assertFalse($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'groupware']));
         $this->assertFalse($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'groupware', 'children' => []]));
         $this->assertTrue($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'groupware', 'children' => [['menu_type' => 'custom', 'uri' => 'https://example.com/']]]));
+        // a parent an administrator made, empty: shown as before (MenuNullUriTest)
+        $this->assertTrue($admin->visible(['menu_type' => 'parent_node', 'menu_name' => 'my_folder', 'uri' => null]));
     }
 
     public function testEveryMenuOfTheTemplateIsASystemMenuOrATable(): void
