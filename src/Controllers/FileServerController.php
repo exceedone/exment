@@ -788,8 +788,11 @@ class FileServerController extends AdminControllerBase
         return $this->run(function () use ($request, $workspace) {
             $ws = $this->workspace($workspace);
             $parent = $this->parentFolder($ws, $request->input('parent_id'));
-            $node = (new TextFiles($this->library()))->create($ws, $parent, $this->stringInput($request, 'name'), $this->stringInput($request, 'type'));
-            return ['message' => exmtrans('file_server.text_created', ['name' => $node->name]), 'id' => $node->id, 'version' => $node->current_version_id, 'redirect' => $this->nodeUrl($ws, $node, 'edit')];
+            $type = $this->stringInput($request, 'type');
+            $node = (new TextFiles($this->library()))->create($ws, $parent, $this->stringInput($request, 'name'), $type);
+            // a text opens in the editor; an Office file on its page (its preview, and its editor when there is one)
+            $redirect = TextFiles::isOffice($type) ? $this->pageUrl($ws, $node) : $this->nodeUrl($ws, $node, 'edit');
+            return ['message' => exmtrans('file_server.text_created', ['name' => $node->name]), 'id' => $node->id, 'version' => $node->current_version_id, 'redirect' => $redirect];
         });
     }
 
