@@ -60,6 +60,20 @@ jobs:
         working-directory: docker-exment
         run: make mysql-init
 
+      # the database accepts the user of the app a little after the container is up (see unittest.yml)
+      - name: Wait for the database
+        working-directory: docker-exment
+        run: |
+          for i in $(seq 1 60); do
+            if docker compose -f docker-compose.yml exec -T php php artisan exment:check-connection 2>/dev/null | grep -qx 'Connected'; then
+              echo "the database accepts the app user (try $i)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::the database did not accept the app user in 120 seconds"
+          exit 1
+
       - name: Run unit + feature with coverage and merge
         working-directory: docker-exment
         run: make test-coverage
