@@ -104,7 +104,11 @@
                                         @endif
                                     </div>
                                 @elseif ($rendition_status === null)
-                                    <p class="exm-fs-muted">{{ exmtrans('file_server.preview_making') }}</p>
+                                    @if (\Exceedone\Exment\Services\FileServer\Preview::convertsOnView($kind))
+                                        @include('exment::file_server._preview_wait')
+                                    @else
+                                        <p class="exm-fs-muted">{{ exmtrans('file_server.preview_making') }}</p>
+                                    @endif
                                 @else
                                     @if (isset($embed))
                                         {{-- the viewer of a plugin (read only), as the server makes no PDF --}}

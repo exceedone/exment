@@ -1112,6 +1112,25 @@ class FileServerController extends AdminControllerBase
     }
 
     /**
+     * The preview of an Office file opened (ISS01704): its PDF is made now by
+     * the converter when it is not made yet (one request makes it; the page
+     * asks again until it is there). For those who may see the file.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function previewNow(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) {
+            $version = $this->library()->version($ws, $item);
+            $status = Preview::makeOnView($version);
+            return [
+                'status' => $status,
+                'pdf_url' => $status === FileNodeVersion::RENDITION_DONE && isset($version->preview_path) ? $this->nodeUrl($ws, $item, 'content') . '?rendition=pdf' : null,
+            ];
+        });
+    }
+
+    /**
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function thumbnail(Request $request, string $workspace, string $node)
