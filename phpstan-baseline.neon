@@ -2297,19 +2297,7 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/LoginUser.php
 
 		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Model/LoginUser.php
-
-		-
 			message: '#^Unable to resolve the template type TRelatedModel in call to method Illuminate\\Database\\Eloquent\\Model\:\:belongsTo\(\)$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Model/LoginUser.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
 			path: vendor/exceedone/exment/src/Model/LoginUser.php
