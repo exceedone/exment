@@ -1,0 +1,144 @@
+{
+    "template_view_name": "Quản lý dự án/công việc",
+    "description": "Quản lý dự án và công việc.",
+    "custom_tables": [
+        {
+            "table_name": "project",
+            "table_view_name": "Quản lý dự án",
+            "description": "Quản lý các dự án.",
+            "custom_columns": [
+                {
+                    "column_name": "project_code",
+                    "column_view_name": "Mã dự án",
+                    "options": {
+                        "true_label": "Có",
+                        "false_label": "Không"
+                    }
+                },
+                {
+                    "column_name": "project_name",
+                    "column_view_name": "Tên dự án",
+                    "options": {
+                        "true_label": "Có",
+                        "false_label": "Không"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "task",
+            "table_view_name": "Quản lý công việc",
+            "description": "Quản lý công việc hằng ngày.",
+            "custom_columns": [
+                {
+                    "column_name": "task_name",
+                    "column_view_name": "Tên công việc",
+                    "options": {
+                        "true_label": "Có",
+                        "false_label": "Không"
+                    }
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "Mô tả",
+                    "options": {
+                        "true_label": "Có",
+                        "false_label": "Không"
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Trạng thái",
+                    "options": {
+                        "true_label": "Có",
+                        "false_label": "Không",
+                        "select_item_valtext": "1,Mới\r\n2,Đang xử lý\r\n90,Hoàn tất\r\n91,Tạm hoãn\r\n97,Không xử lý"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "Mức ưu tiên",
+                    "options": {
+                        "true_label": "Có",
+                        "false_label": "Không",
+                        "select_item_valtext": "1,Thấp\r\n2,Bình thường\r\n3,Cao\r\n4,Gấp\r\n5,Khẩn cấp"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Ngày bắt đầu",
+                    "options": {
+                        "true_label": "Có",
+                        "false_label": "Không"
+                    }
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Ngày kết thúc",
+                    "options": {
+                        "true_label": "Có",
+                        "false_label": "Không"
+                    }
+                },
+                {
+                    "column_name": "charge_user",
+                    "column_view_name": "Người phụ trách",
+                    "options": {
+                        "true_label": "Có",
+                        "false_label": "Không"
+                    }
+                },
+                {
+                    "column_name": "complete_flg",
+                    "column_view_name": "Cờ hoàn tất",
+                    "options": {
+                        "help": "Khi công việc đã hoàn tất, vui lòng chọn [YES].",
+                        "true_label": "Có",
+                        "false_label": "Không"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "a0ce41d5d7816f0aab70",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "d31c7b1ade9a4574fcfb",
+            "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "7ef66a7fdef45f094079",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "204a26c2f5f8061cd30f",
+            "view_view_name": "Danh sách công việc chưa hoàn tất"
+        },
+        {
+            "suuid": "356404ddc4d26620fa13",
+            "view_view_name": "Danh sách tất cả công việc"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Quản lý dự án",
+            "menu_type": "parent_node",
+            "menu_name": "project_management"
+        },
+        {
+            "title": "Dự án",
+            "menu_type": "table",
+            "menu_name": "project"
+        },
+        {
+            "title": "Quản lý công việc",
+            "menu_type": "table",
+            "menu_name": "task"
+        }
+    ]
+}
