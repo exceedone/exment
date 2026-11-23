@@ -537,15 +537,17 @@ __EOT__;
     protected static function getMysqlPath()
     {
         $path = path_join_os(config('exment.backup_info.mysql_dir', ''), 'mysql');
-        // Quote path if it contains spaces (Windows compatibility)
-        return (strpos($path, ' ') !== false) ? '"' . $path . '"' : $path;
+        // escapeshellarg neutralizes shell metacharacters ($(), backticks, ;, |, &)
+        // and handles spaces, on both *nix (single quotes) and Windows (double quotes).
+        return escapeshellarg($path);
     }
 
     // @phpstan-ignore-next-line
     protected static function getMysqlDumpPath()
     {
         $path = path_join_os(config('exment.backup_info.mysql_dir', ''), 'mysqldump');
-        // Quote path if it contains spaces (Windows compatibility)
-        return (strpos($path, ' ') !== false) ? '"' . $path . '"' : $path;
+        // escapeshellarg neutralizes shell metacharacters ($(), backticks, ;, |, &)
+        // and handles spaces, on both *nix (single quotes) and Windows (double quotes).
+        return escapeshellarg($path);
     }
 }

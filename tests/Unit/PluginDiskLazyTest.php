@@ -36,6 +36,8 @@ class PluginDiskLazyTest extends UnitTestBase
             'filesystems.disks.plugin_local' => ['driver' => 'local', 'root' => $this->root],
         ]);
         Storage::forgetDisk(['plugin_sync', 'plugin_local']);
+        // Exment SaaS: the worker remembers the plugins it checked; each test starts afresh
+        PluginDiskService::clearSyncedPaths();
     }
 
     protected function tearDown(): void
