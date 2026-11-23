@@ -352,7 +352,7 @@ abstract class CustomItem implements ItemInterface
 
         // a record: its value straight (the same as array_get, without walking the model as an array)
         if ($custom_value instanceof CustomValue) {
-            $values = $custom_value->value;
+            $values = $custom_value->decodedValue();
             return is_array($values) ? ($values[$this->custom_column->column_name] ?? null) : null;
         }
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);

@@ -95,6 +95,22 @@ abstract class CustomValue extends ModelBase
         }
         return $this->valueDecoded;
     }
+
+    /**
+     * The same as $this->value, without the way through Eloquent's __get (the mutators and
+     * the casts are looked up on every read) while the json has not changed since it was
+     * decoded: a board reads it for every column of every card.
+     *
+     * @return mixed
+     */
+    public function decodedValue()
+    {
+        $json = $this->attributes['value'] ?? null;
+        if (is_string($json) && $json === $this->valueJson) {
+            return $this->valueDecoded;
+        }
+        return $this->value;
+    }
     // protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
 
