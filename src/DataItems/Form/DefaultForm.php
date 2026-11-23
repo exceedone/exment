@@ -699,6 +699,22 @@ EOT;
                 ]));
             }
 
+            // Start the new record from a record of another table (#1828): one
+            // button for each copy setting the admin put on this form.
+            if (!$disableToolsButton && !isset($id)) {
+                foreach (\Exceedone\Exment\Model\CustomCopy::getCreateSources($custom_table) as $copy) {
+                    $tools->append(new Tools\ModalMenuButton(
+                        admin_urls('data', $custom_table->table_name, 'copyFromModal'),
+                        [
+                            'label' => exmtrans('custom_copy.copy_from.button', $copy->from_custom_table->table_view_name),
+                            'expand' => ['uuid' => $copy->suuid],
+                            'button_class' => 'btn-default',
+                            'icon' => 'fa-copy',
+                        ]
+                    ));
+                }
+            }
+
             if (!$disableToolsButton) {
                 PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             }

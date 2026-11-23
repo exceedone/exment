@@ -199,6 +199,9 @@ class CustomCopyController extends AdminControllerTableBase
             $form->text('label', exmtrans("plugin.options.label"))->default(exmtrans("common.copy"))->rules("max:40");
             $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"))->default('fa-copy');
             $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
+            $form->switchbool('use_on_create', exmtrans("custom_copy.options.use_on_create"))
+                ->help(exmtrans("custom_copy.help.use_on_create"))
+                ->default(0);
             if (!empty($child_options)) {
                 $form->select('child_copy', exmtrans("custom_copy.options.child_copy"))
                     ->help(exmtrans("custom_copy.help.child_copy"))->options($child_options);

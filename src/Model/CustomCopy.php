@@ -165,6 +165,45 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
 
+    /**
+     * The copy settings whose button is on the new-record form of this table.
+     *
+     * Only settings the admin turned on ("use_on_create"), and only those whose
+     * source table the user may see, so the button never offers data the user
+     * cannot open.
+     *
+     * @param CustomTable $to_custom_table
+     * @return \Illuminate\Support\Collection<int, CustomCopy>
+     */
+    public static function getCreateSources(CustomTable $to_custom_table)
+    {
+        return static::query()->where('to_custom_table_id', $to_custom_table->id)->get()->filter(function ($copy) {
+            if (!boolval($copy->getOption('use_on_create'))) {
+                return false;
+            }
+            $from = $copy->from_custom_table;
+            return isset($from) && $from->hasPermission(\Exceedone\Exment\Enums\Permission::AVAILABLE_VIEW_CUSTOM_VALUE);
+        })->values();
+    }
+
+    /**
+     * Make a new record of the copy-to table from a record, without saving it.
+     *
+     * The new-record form starts from this model: the user sees the values,
+     * changes what differs, and only then saves.
+     *
+     * @param CustomValue $from_custom_value
+     * @return CustomValue
+     */
+    public function makeNewModel($from_custom_value)
+    {
+        return static::makeCopyModel(
+            $this->custom_copy_columns,
+            $this->to_custom_table,
+            $from_custom_value
+        );
+    }
+
     // @phpstan-ignore-next-line
     protected static function saveCopyModel(
         $custom_copy_columns,
@@ -172,6 +211,34 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         $to_custom_table,
         $from_custom_value,
         $inputs = null,
+        $skipParent = false
+    ) {
+        $to_custom_value = static::makeCopyModel($custom_copy_columns, $to_custom_table, $from_custom_value, $skipParent);
+
+        // has input parameters, set value from input
+        if (isset($inputs)) {
+            foreach ($custom_copy_input_columns as $custom_copy_input_column) {
+                $custom_column = $custom_copy_input_column->to_custom_column;
+                if (is_nullorempty($custom_column)) {
+                    continue;
+                }
+                // get input value
+                $val = array_get($inputs, $custom_column->column_name);
+                if (isset($val)) {
+                    $to_custom_value->setValue($custom_column->column_name, $val);
+                }
+            }
+        }
+        // save
+        $to_custom_value->saveOrFail();
+        return $to_custom_value;
+    }
+
+    // @phpstan-ignore-next-line
+    protected static function makeCopyModel(
+        $custom_copy_columns,
+        $to_custom_table,
+        $from_custom_value,
         $skipParent = false
     ) {
         // get to_custom_value model
@@ -209,22 +276,6 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
             }
         }
 
-        // has input parameters, set value from input
-        if (isset($inputs)) {
-            foreach ($custom_copy_input_columns as $custom_copy_input_column) {
-                $custom_column = $custom_copy_input_column->to_custom_column;
-                if (is_nullorempty($custom_column)) {
-                    continue;
-                }
-                // get input value
-                $val = array_get($inputs, $custom_column->column_name);
-                if (isset($val)) {
-                    $to_custom_value->setValue($custom_column->column_name, $val);
-                }
-            }
-        }
-        // save
-        $to_custom_value->saveOrFail();
         return $to_custom_value;
     }
 
