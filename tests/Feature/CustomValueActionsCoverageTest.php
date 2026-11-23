@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
+use Elibyy\TCPDF\Facades\TCPDF;
 use Exceedone\Exment\Controllers\CustomValueController;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\FileType;
@@ -421,17 +422,21 @@ class CustomValueActionsCoverageTest extends FeatureTestBase
     public function testTheQrCodeSheetsAreBuiltAsPdf(): void
     {
         // qrCreateOrDownloadResponse() sends its answer itself and then ends the process with exit,
-        // which PHPUnit cannot survive. The controller is swapped for one whose deleteTmpFile() -
-        // the last call before exit - stops the request there, so the answer it sent can be read.
+        // which PHPUnit cannot survive. The controller is swapped for one whose deleteTmpFile() of
+        // the sheet (the .pdf) - the last call before exit - stops the request there, so the answer
+        // it sent can be read. The png of each sticker is deleted with deleteTmpFile() too, while
+        // the sheet is being built: those calls must go on.
         $this->app->bind(CustomValueController::class, function (Application $app) {
             return new class ($app->make(CustomTable::class), $app->make(Request::class)) extends CustomValueController {
                 /**
                  * @param string $file_path
                  */
-                protected function deleteTmpFile($file_path): never
+                protected function deleteTmpFile($file_path): void
                 {
                     parent::deleteTmpFile($file_path);
-                    throw new HttpResponseException(response()->noContent());
+                    if (str_ends_with((string) $file_path, '.pdf')) {
+                        throw new HttpResponseException(response()->noContent());
+                    }
                 }
             };
         });
@@ -446,6 +451,11 @@ class CustomValueActionsCoverageTest extends FeatureTestBase
         $this->assertSame($before + 2, $table->getValueModel()->query()->count());
         System::clearCache();
         $this->assertTrue(boolval(CustomTable::getEloquent(static::TABLE)?->getOption('qr_use')));
+
+        // the sheet is made with the TCPDF facade, one object for the process: a site makes one
+        // sheet in a request, this test makes a second one, so it starts again from a new object
+        $this->app->forgetInstance('tcpdf');
+        TCPDF::clearResolvedInstance('tcpdf');
 
         $custom_value = $this->createValue(['text' => 'cov qr download']);
         System::clearRequestSession();

@@ -136,5 +136,14 @@ jobs:
 
       - name: PHPUnit Test
         working-directory: docker-exment
+        # A test that ends the process (exit in the code it calls) stops PHPUnit with code 0 and
+        # no summary, so the job looked green with half of the tests not run. The job now also
+        # needs the last lines of PHPUnit ("OK (...)" or "Tests: ...").
         run: |
-          docker compose -f docker-compose.yml exec -T -e EXMENT_TEST_OFFICIAL_RELEASES=/var/www/exment/exment-plugins-release/releases php composer run exment:test:${{ matrix.test }}
+          set -o pipefail
+          docker compose -f docker-compose.yml exec -T -e EXMENT_TEST_OFFICIAL_RELEASES=/var/www/exment/exment-plugins-release/releases php composer run exment:test:${{ matrix.test }} 2>&1 | tee "$RUNNER_TEMP/phpunit.log"
+          if ! grep -qE '^(OK \(|Tests: [0-9]+)' "$RUNNER_TEMP/phpunit.log"; then
+            echo "::error::PHPUnit ended without its summary: a test ended the process before the end. The last lines:"
+            tail -20 "$RUNNER_TEMP/phpunit.log"
+            exit 1
+          fi
