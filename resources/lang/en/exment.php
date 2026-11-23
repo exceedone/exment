@@ -848,7 +848,7 @@ return [
             'config_cache' => [
                 'label' => 'Config cache (config:cache)',
                 'explain' => 'Puts the config files into one file, read once per request. When Exment writes .env (install, restore), it removes the cache itself. The route cache (route:cache) is not used: the pages of plugins would not open.',
-                'warning' => 'There is no config cache. Make it with the button below or with this command. After changing .env by hand, make it again.',
+                'warning' => 'There is no config cache. Make it with this command or with the button of the Tuning page (at the setup, also with the checkbox of "Settings Exment can make by itself"). After changing .env by hand, make it again.',
             ],
             'composer_autoload' => [
                 'label' => 'Optimized class loading (composer)',
@@ -872,7 +872,7 @@ return [
             'queue' => [
                 'label' => 'Queue (mails and other background work)',
                 'explain' => 'With the sync queue, mails are sent inside the request and the screen waits until they are sent.',
-                'warning' => 'The queue is sync. Set .env as below and keep a queue worker running.',
+                'warning' => 'The queue is sync. Set .env as below and keep a queue worker running. On a server where no process may keep running (a rental server), start the worker from cron every minute.',
             ],
             'dashboard_cache' => [
                 'label' => 'Dashboard aggregation cache (EXMENT_DASHBOARD_CACHE_SECONDS)',
@@ -892,7 +892,7 @@ return [
             'schedule' => [
                 'label' => 'Scheduled tasks (schedule:run, cron)',
                 'explain' => 'Notifications, schedules and batches run in schedule:run, started by cron every minute. It starts PHP and Exment every minute, so heavy tasks take the CPU from the screens. (Result: when it last ran, the longest time of one minute)',
-                'warning' => 'The scheduled tasks have not run for 10 minutes or more. Add this line to cron (with nice, a low priority).',
+                'warning' => 'The scheduled tasks have not run for 10 minutes or more. Add this line to cron (with nice, a low priority). On a rental server, add it in the cron setting of the server panel. Write the full path of the PHP of the same version as this site.',
                 'warning_heavy' => 'The scheduled tasks are heavy. Review the heavy tasks, and run cron with a low priority (nice).',
                 'never' => 'No run is recorded yet',
                 'result' => 'last run :last, longest minute :seconds s',
