@@ -78,7 +78,7 @@ class Exment
     {
         // the menus the login user sees (Services\MenuVisibility)
         $user = \Admin::user();
-        if (!($user instanceof \Exceedone\Exment\Model\LoginUser)) {
+        if (!isset($user)) {
             return (new Menu())->toTree();
         }
         return \Exceedone\Exment\Services\MenuVisibility::forUser($user)->tree();
