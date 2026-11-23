@@ -3885,13 +3885,20 @@ return [
 
         'help' => [
             'to_custom_table_view_name' => 'Please select copy target table.',
-            'use_on_create' => 'When on, the create form of the copy-to table has a "Copy from ..." button. With it the user picks a record of this table and starts from its values. Nothing is saved until the user saves.',
+            'use_on_create' => 'When on, the create form of the copy-to table has a "Copy from ..." button. With it the user searches the list of this table, picks a record, and starts from its values. Nothing is saved until the user saves.',
             'child_copy' => 'Copy the child table data linked to the target data together. Data copy settings between child tables registered in advance (those without input dialog settings) are displayed as candidates.',
+        ],
+
+        'match_columns' => [
+            'button' => 'Pair the columns of the same name',
+            'help' => 'When on, the columns whose name (column_name) is the same in both tables are put in "Copy column settings" from the start. You can change them afterwards.',
+            'confirm' => 'This screen opens again with the columns of the same name paired. What you have typed is lost. Continue?',
+            'message' => '%s pairs of columns of the same name were put in the copy column settings. Check them, then save.',
+            'message_none' => 'No columns have the same name. Add the copy column settings by hand.',
         ],
 
         'copy_from' => [
             'button' => 'Copy from %s',
-            'dialog_description' => 'Pick the record of %s to copy from. The create form of %s opens with its values.',
             'message' => 'The values of "%2$s" of %1$s were copied. Change what you need, then save.',
         ],
 
