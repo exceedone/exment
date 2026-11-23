@@ -100,7 +100,6 @@ class Exment
      *
      * @return string
      */
-    // @phpstan-ignore-next-line
     public function sidebarMenuHtml()
     {
         $user = $this->user();
@@ -110,16 +109,16 @@ class Exment
 
         $tree = $this->menu();
 
-        $key = 'exment_sidebar_menu_html_' . md5(json_encode([
+        $key = 'exment_sidebar_menu_html_' . md5(strval(json_encode([
             $tree,
-            method_exists($user, 'getUserId') ? $user->getUserId() : array_get($user, 'id'),
+            $user instanceof \Exceedone\Exment\Model\LoginUser ? $user->getUserId() : array_get($user, 'id'),
             System::permission_available(),
             System::organization_available(),
             System::api_available(),
             app()->getLocale(),
             request()->getSchemeAndHttpHost(),
             floor(time() / 1800),
-        ]));
+        ])));
 
         return System::cache($key, function () use ($tree) {
             $html = '';
