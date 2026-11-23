@@ -34,7 +34,7 @@ class StudioAppController extends Controller
             'title' => exmtrans('studio.app_title'),
             'user_name' => isset($user) ? strval($user->base_user->getValue('user_name')) : '',
             // the drafts and the screens kept on the phone are kept per user
-            'user_key' => isset($user) ? strval($user->getUserId()) : '',
+            'user_key' => isset($user) ? \Exceedone\Exment\Form\Navbar\NotifyNav::userKey() : '',
             'base' => admin_url(''),
             'webapi' => admin_url('webapi'),
             'manifest' => admin_url('app/manifest.webmanifest'),
