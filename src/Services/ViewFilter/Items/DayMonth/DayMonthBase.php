@@ -26,7 +26,7 @@ abstract class DayMonthBase extends ViewFilterBase
     protected function getTargetAndTodayFirstDay($target_day)
     {
         $target_day = Carbon::parse($target_day)->firstOfMonth();
-        $today = Carbon::today()->firstOfMonth();
+        $today = \Exceedone\Exment\Services\UserTimezone::today()->firstOfMonth();
 
         return [$target_day, $today];
     }
