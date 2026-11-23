@@ -290,11 +290,11 @@ class BundledPluginsTest extends FeatureTestBase
         } catch (ReleaseException $e) {
             $this->assertSame('zip', $e->reason());
         }
-        $this->assertNull(BundledPlugins::installed(static::SAMPLE_UUID));
+        $this->assertFalse(Plugin::query()->where('uuid', static::SAMPLE_UUID)->exists(), 'not installed');
 
         // a good copy: installed, and the copy is the one kept for going back
-        BundledPlugins::install(static::SAMPLE_UUID);
-        $this->assertSame('1.0.0', BundledPlugins::installed(static::SAMPLE_UUID)?->version);
+        $plugin = BundledPlugins::install(static::SAMPLE_UUID);
+        $this->assertSame('1.0.0', strval($plugin->version));
         $kept = Storage::disk(Define::DISKNAME_ADMIN)->get(BundledPlugins::PREVIOUS_DIR . '/' . static::SAMPLE_UUID . '/1.0.0.zip');
         $this->assertSame(hash_file('sha256', $this->dir . '/ExmentSignSample-1.0.0.zip'), hash('sha256', strval($kept)));
     }
