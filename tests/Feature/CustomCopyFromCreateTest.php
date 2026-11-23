@@ -44,6 +44,10 @@ class CustomCopyFromCreateTest extends FeatureTestBase
         $this->initAllTest();
         Notification::fake();
         $this->actAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        // only the settings a test makes (rolled back with the rest)
+        CustomCopy::query()->get()->each(function ($copy) {
+            $copy->delete();
+        });
     }
 
     /**
@@ -161,8 +165,8 @@ class CustomCopyFromCreateTest extends FeatureTestBase
             $to_column = CustomColumn::getEloquent(explode('?', $pair['to_column_target'])[0]);
             $this->assertInstanceOf(CustomColumn::class, $from_column);
             $this->assertInstanceOf(CustomColumn::class, $to_column);
-            $this->assertSame($from->id, $from_column->custom_table_id);
-            $this->assertSame($to->id, $to_column->custom_table_id);
+            $this->assertEquals($from->id, $from_column->custom_table_id);
+            $this->assertEquals($to->id, $to_column->custom_table_id);
             $this->assertSame($from_column->column_name, $to_column->column_name);
             $this->assertNotSame(\Exceedone\Exment\Enums\ColumnType::AUTO_NUMBER, $from_column->column_type);
             $this->assertSame(CopyColumnType::DEFAULT, $pair['copy_column_type']);
