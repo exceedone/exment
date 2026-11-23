@@ -163,14 +163,14 @@ class FileGovernanceTest extends FeatureTestBase
         $manager = $this->manager();
         $folder = $manager->createFolder($ws, null, 'Out');
         $link = (new ShareLinks($manager))->create($ws, $folder, FileShareLink::KIND_SHARE, ['expires_at' => now()->addDays(3)->format('Y-m-d')]);
-        $this->assertNotNull(ShareLinks::resolve($link->token));
+        $this->assertNotNull(ShareLinks::resolve(strval($link->plainToken())));
 
         $features::save(['file_server' => ['enabled' => false]]);
         System::clearRequestSession();
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         $this->assertFalse(Library::featureEnabled());
         $this->assertSame(Level::NONE, Access::current()->level($ws, null), 'no one may do anything');
-        $this->assertNull(ShareLinks::resolve($link->token), 'the links are gone');
+        $this->assertNull(ShareLinks::resolve(strval($link->plainToken())), 'the links are gone');
         $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:file-server-purge'));
         // the data stays
         $this->assertTrue(FileNode::query()->whereKey($folder->id)->exists());
@@ -180,7 +180,7 @@ class FileGovernanceTest extends FeatureTestBase
         System::clearRequestSession();
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         $this->assertSame(Level::MANAGE, Access::current()->level($ws, null), 'all comes back');
-        $this->assertNotNull(ShareLinks::resolve($link->token));
+        $this->assertNotNull(ShareLinks::resolve(strval($link->plainToken())));
     }
 
     /**
