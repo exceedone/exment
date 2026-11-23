@@ -715,6 +715,12 @@ return [
                 'explain' => 'In debug mode the details of an error are shown on the page. Turn it off on a live site.',
                 'warning' => 'Debug mode is on.',
             ],
+            'display_errors' => [
+                'label' => 'PHP error display (display_errors)',
+                'explain' => 'A PHP error that happens before Exment gets it is shown on the page, with the paths of the files. Turn it off on a live site. Some rental servers turn it on in the php.ini of the domain.',
+                'warning' => 'PHP display_errors is On.',
+                'fix' => "Write this line in php.ini (on a rental server, its php.ini setting in the control panel) or in :public/.user.ini:\ndisplay_errors = Off",
+            ],
             'app_key' => [
                 'label' => 'Application key (APP_KEY)',
                 'explain' => 'The key for encryption and for signing the session. Each site needs its own.',
