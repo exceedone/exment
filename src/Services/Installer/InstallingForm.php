@@ -25,6 +25,8 @@ class InstallingForm
      */
     public static function sessionPath(?string $basePath = null): array
     {
+        // the install: the config is not cached yet, .env is read
+        // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
         if (!is_null(env('SESSION_PATH'))) {
             return [];
         }
