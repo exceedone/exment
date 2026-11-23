@@ -111,10 +111,14 @@ class AttachmentCleanup
         $bytes = 0;
         // collect first: the deletes would move the chunks
         $items = iterator_to_array($this->items(), false);
+        // the sizes before anything goes (an attachment takes its older versions with it)
         foreach ($items as $item) {
             if (isset($item['file'])) {
                 $bytes += static::fileSize($item['file']);
             }
+        }
+        foreach ($items as $item) {
+            // "version_with_document": deleted by its attachment
             switch ($item['type']) {
                 case 'document':
                     $this->deleteDocument($item);
@@ -205,23 +209,30 @@ class AttachmentCleanup
             })->filter()->all();
             $files = ExmentFile::whereIn('uuid', $uuids)->get()->keyBy('uuid');
 
+            $going = [];
             $staying = [];
             foreach ($documents as $document) {
                 $file = $files->get(strval(array_get($document->value, 'file_uuid')));
                 if ($this->matches($file)) {
+                    $going[$document->id] = $document->parent_id;
                     yield ['type' => 'document', 'count' => 'documents', 'document' => $document, 'file' => $file, 'record_id' => $document->parent_id];
                 } else {
                     $staying[$document->id] = $document->parent_id;
                 }
             }
 
-            if (!$versions || count($staying) === 0) {
+            if (!$versions || count($going) + count($staying) === 0) {
                 continue;
             }
-            $olders = DocumentVersion::query()->whereIn('document_id', array_keys($staying))->orderBy('id')->get();
+            $olders = DocumentVersion::query()->whereIn('document_id', array_keys($going + $staying))->orderBy('id')->get();
             $older_files = ExmentFile::whereIn('uuid', $olders->pluck('file_uuid')->all())->get()->keyBy('uuid');
             foreach ($olders as $older) {
                 $file = $older_files->get($older->file_uuid);
+                if (array_key_exists($older->document_id, $going)) {
+                    // goes with its attachment (File::deleteDocumentModel): counted, with its size, not deleted twice
+                    yield ['type' => 'version_with_document', 'count' => 'versions', 'version' => $older, 'file' => $file, 'record_id' => $going[$older->document_id]];
+                    continue;
+                }
                 if (!$this->matches($file, $older->created_at)) {
                     continue;
                 }

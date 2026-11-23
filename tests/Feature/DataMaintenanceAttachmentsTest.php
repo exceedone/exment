@@ -67,11 +67,15 @@ class DataMaintenanceAttachmentsTest extends FeatureTestBase
         $cleanup = new AttachmentCleanup($this->table(), [AttachmentCleanup::KIND_DOCUMENT]);
         $summary = $cleanup->summary();
         $this->assertSame(1, $summary['documents']);
-        $this->assertSame(0, $summary['versions'], 'the versions go with their attachment, not counted twice');
+        // the older version goes with its attachment: counted (and its size), deleted once
+        $this->assertSame(1, $summary['versions']);
+        $this->assertSame(2, $summary['files']);
         $this->assertSame(1, $summary['records']);
+        $this->assertGreaterThanOrEqual(strlen('one') + strlen('two'), $summary['bytes']);
 
         $result = $cleanup->execute(1);
         $this->assertSame(1, $result['documents']);
+        $this->assertSame(1, $result['versions']);
 
         $this->assertNull(ExmentFile::getData($first->uuid));
         $this->assertNull(ExmentFile::getData($current->uuid));
