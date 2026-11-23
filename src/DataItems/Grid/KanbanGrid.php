@@ -538,21 +538,6 @@ class KanbanGrid extends GridBase
 
 
     /**
-     * Build every card shown on the board.
-     *
-     * @param \Illuminate\Support\Collection<int, mixed> $records
-     * @param array<string, CustomColumn> $value_columns
-     * @param array<int, array<string, mixed>> $card_fields
-     * @param CustomColumn|null $title_column
-     * @param Workflow|null $workflow
-     * @param array<int, array<string, mixed>> $statuses
-     * @param CustomColumn|null $cover_column image shown as the card cover
-     * @param CustomColumn|null $labels_column values shown as the label strip
-     * @param array<string, CustomColumn> $writable_columns columns the board
-     *        may write, see getWritableColumns()
-     * @return array<int, array<string, mixed>>
-     */
-    /**
      * The records the cards point to (a status, a parent issue, a user...), read at
      * once for each table they are in. Each card asked for its own, one query per
      * value not read yet: 174 queries on a board of 1,300 issues.
@@ -602,6 +587,21 @@ class KanbanGrid extends GridBase
         }
     }
 
+    /**
+     * Build every card shown on the board.
+     *
+     * @param \Illuminate\Support\Collection<int, mixed> $records
+     * @param array<string, CustomColumn> $value_columns
+     * @param array<int, array<string, mixed>> $card_fields
+     * @param CustomColumn|null $title_column
+     * @param Workflow|null $workflow
+     * @param array<int, array<string, mixed>> $statuses
+     * @param CustomColumn|null $cover_column image shown as the card cover
+     * @param CustomColumn|null $labels_column values shown as the label strip
+     * @param array<string, CustomColumn> $writable_columns columns the board
+     *        may write, see getWritableColumns()
+     * @return array<int, array<string, mixed>>
+     */
     protected function buildCards($records, array $value_columns, array $card_fields, $title_column, $workflow = null, array $statuses = [], $cover_column = null, $labels_column = null, array $writable_columns = [])
     {
         // the moves are only ever used by drag and drop and by the drawer
