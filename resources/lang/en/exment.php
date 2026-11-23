@@ -901,7 +901,8 @@ return [
             'php_fpm' => [
                 'label' => 'PHP-FPM processes',
                 'explain' => 'With pm = ondemand and a short pm.process_idle_timeout, the first request after a quiet time waits for a new process. pm.max_children should fit the memory of the server.',
-                'not_found' => 'No file of PHP-FPM was found (nothing to do when PHP-FPM is not used)',
+                'not_read' => 'Could not read the PHP-FPM settings (on a rental server, see its control panel or ask the server administrator)',
+                'not_used' => 'The PHP of this site is not PHP-FPM (nothing to do)',
                 'memory' => 'memory :memory MB, max_children in all :children',
                 'warning_idle' => 'Some pools stop their processes soon (:pools). For a site used often, use dynamic or a longer idle time.',
                 'warning_many' => 'max_children in all is too many for the memory of the server; it runs out of memory when busy.',
