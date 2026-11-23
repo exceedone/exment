@@ -1,0 +1,588 @@
+{
+    "template_view_name": "Systemvorlage",
+    "description": "Eine Vorlage für das System. Sie muss installiert werden.",
+    "custom_tables": [
+        {
+            "table_name": "document",
+            "table_view_name": "Dokument",
+            "custom_columns": [
+                {
+                    "column_name": "document_name",
+                    "column_view_name": "Dokumentname"
+                },
+                {
+                    "column_name": "file_uuid",
+                    "column_view_name": "Datei-UUID"
+                }
+            ]
+        },
+        {
+            "table_name": "comment",
+            "table_view_name": "Dokument",
+            "custom_columns": [
+                {
+                    "column_name": "comment_detail",
+                    "column_view_name": "Dokumentdetails"
+                }
+            ]
+        },
+        {
+            "table_name": "base_info",
+            "table_view_name": "Basisinformationen",
+            "custom_columns": [
+                {
+                    "column_name": "company_name",
+                    "column_view_name": "Firmenname"
+                },
+                {
+                    "column_name": "company_kana",
+                    "column_view_name": "Firmenname (Kana)"
+                },
+                {
+                    "column_name": "zip01",
+                    "column_view_name": "Postleitzahl 1"
+                },
+                {
+                    "column_name": "zip02",
+                    "column_view_name": "Postleitzahl 2"
+                },
+                {
+                    "column_name": "tel01",
+                    "column_view_name": "Telefon 1",
+                    "options": {
+                        "placeholder": "z. B. 03"
+                    }
+                },
+                {
+                    "column_name": "tel02",
+                    "column_view_name": "Telefon 2",
+                    "options": {
+                        "placeholder": "z. B. 1234"
+                    }
+                },
+                {
+                    "column_name": "tel03",
+                    "column_view_name": "Telefon 3",
+                    "options": {
+                        "placeholder": "z. B. 5678"
+                    }
+                },
+                {
+                    "column_name": "fax01",
+                    "column_view_name": "Fax 1",
+                    "options": {
+                        "placeholder": "z. B. 03"
+                    }
+                },
+                {
+                    "column_name": "fax02",
+                    "column_view_name": "Fax 2",
+                    "options": {
+                        "placeholder": "z. B. 1234"
+                    }
+                },
+                {
+                    "column_name": "fax03",
+                    "column_view_name": "Fax 3",
+                    "options": {
+                        "placeholder": "z. B. 5678"
+                    }
+                },
+                {
+                    "column_name": "pref",
+                    "column_view_name": "Präfektur",
+                    "options": {
+                        "select_item_valtext": "01,Hokkaido\n02,Aomori\n03,Iwate\n04,Akita\n05,Akita\n06,Yamagata\n07,Fukushima\n08,Ibaraki\n09,Tochigi\n10,Gunma\n11,Saitama\n12,Chiba\n13,Tokio\n14,Kanagawa\n15,Niigata\n16,Toyama\n17,Ishikawa\n18,Fukui\n19,Yamanashi\n20,Nagano\n21,Gifu\n22,Shizuoka\n23,Aichi\n24,Mie\n25,Shiga\n26,Kyoto\n27,Osaka\n28,Hyogo\n29,Nara\n30,Wakayama\n31,Tottori\n32,Shimane\n33,Hiroshima\n34,Yamaguchi\n36,Tokushima\n37,Kagawa\n38,Ehime\n39,Kochi\n40,Fukuoka\n41,Saga\n42,Nagasaki\n43,Kumamoto\n44,Oita\n45,Miyazaki\n46,Kagoshima\n47,Okinawa"
+                    }
+                },
+                {
+                    "column_name": "addr01",
+                    "column_view_name": "Adresse"
+                },
+                {
+                    "column_name": "addr02",
+                    "column_view_name": "Adresse (Gebäude usw.)"
+                },
+                {
+                    "column_name": "company_logo",
+                    "column_view_name": "Firmenlogo",
+                    "options": {
+                        "help": "Die optimale Bildgröße ist 200 x 70."
+                    }
+                },
+                {
+                    "column_name": "company_stamp",
+                    "column_view_name": "Firmenstempel",
+                    "options": {
+                        "help": "Die optimale Bildgröße ist 200 x 200."
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_name",
+                    "column_view_name": "Bankverbindung – Bankname"
+                },
+                {
+                    "column_name": "transfer_bank_office_name",
+                    "column_view_name": "Bankverbindung – Filialname"
+                },
+                {
+                    "column_name": "transfer_bank_office_no",
+                    "column_view_name": "Bankverbindung – Filialnummer"
+                },
+                {
+                    "column_name": "transfer_bank_account_type",
+                    "column_view_name": "Bankverbindung – Kontoart",
+                    "options": {
+                        "help": "Bitte geben Sie die Kontoart ein, z. B. [Girokonto] oder [Kontokorrentkonto]."
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "Bankverbindung – Kontoinhaber"
+                },
+                {
+                    "column_name": "transfer_bank_account_no",
+                    "column_view_name": "Bankverbindung – Kontonummer"
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "Bankverbindung – Kontoinhaber"
+                }
+            ]
+        },
+        {
+            "table_name": "user",
+            "table_view_name": "Benutzer",
+            "custom_columns": [
+                {
+                    "column_name": "user_code",
+                    "column_view_name": "Benutzercode"
+                },
+                {
+                    "column_name": "user_name",
+                    "column_view_name": "Benutzername"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "E-Mail"
+                }
+            ]
+        },
+        {
+            "table_name": "organization",
+            "table_view_name": "Organisation",
+            "custom_columns": [
+                {
+                    "column_name": "organization_code",
+                    "column_view_name": "Organisationscode"
+                },
+                {
+                    "column_name": "organization_name",
+                    "column_view_name": "Organisationsname"
+                },
+                {
+                    "column_name": "parent_organization",
+                    "column_view_name": "Übergeordnete Organisation"
+                }
+            ]
+        },
+        {
+            "table_name": "mail_template",
+            "table_view_name": "E-Mail-Vorlage",
+            "description": "Verwalten Sie Nachrichtentexte usw. für den E-Mail-Versand.",
+            "custom_columns": [
+                {
+                    "column_name": "mail_key_name",
+                    "column_view_name": "E-Mail-Schlüsselname",
+                    "options": {
+                        "help": "Ein Schlüsselname, der die E-Mail-Vorlage im System eindeutig identifiziert."
+                    }
+                },
+                {
+                    "column_name": "mail_view_name",
+                    "column_view_name": "E-Mail-Anzeigename",
+                    "options": {
+                        "help": "Der Vorlagenname, der in der Liste angezeigt wird."
+                    }
+                },
+                {
+                    "column_name": "mail_template_type",
+                    "column_view_name": "Vorlagentyp",
+                    "options": {
+                        "select_item_valtext": "header,Kopfzeile\nbody,Textkörper\nfooter,Fußzeile"
+                    }
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "E-Mail-Betreff",
+                    "options": {
+                        "help": "Geben Sie den Betreff der zu sendenden E-Mail ein. Sie können Variablen verwenden."
+                    }
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "E-Mail-Text",
+                    "options": {
+                        "help": "Geben Sie den Text der zu sendenden E-Mail ein. Sie können Variablen verwenden."
+                    }
+                },
+                {
+                    "column_name": "mail_from_view_name",
+                    "column_view_name": "Absendername",
+                    "options": {
+                        "help": "Bitte geben Sie den Anzeigenamen des Absenders ein."
+                    }
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "Anhänge",
+                    "options": {
+                        "help": "Fügen Sie die Dateien hinzu, die an die E-Mail angehängt werden sollen."
+                    }
+                },
+                {
+                    "column_name": "custom_attachments",
+                    "column_view_name": "Benutzerdefinierte Anhänge",
+                    "options": {
+                        "help": "Fügen Sie die Dateispalte oder Dokumente hinzu, die an die E-Mail angehängt werden sollen."
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "mail_send_log",
+            "table_view_name": "E-Mail-Versandverlauf",
+            "description": "Verwalten Sie den E-Mail-Versandverlauf.",
+            "custom_columns": [
+                {
+                    "column_name": "mail_from",
+                    "column_view_name": "E-Mail-Absender"
+                },
+                {
+                    "column_name": "mail_to",
+                    "column_view_name": "E-Mail-Empfänger"
+                },
+                {
+                    "column_name": "mail_cc",
+                    "column_view_name": "E-Mail-Empfänger (CC)"
+                },
+                {
+                    "column_name": "mail_bcc",
+                    "column_view_name": "E-Mail-Empfänger (BCC)"
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "E-Mail-Betreff"
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "E-Mail-Text"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "Empfangender Benutzer"
+                },
+                {
+                    "column_name": "mail_template",
+                    "column_view_name": "Verwendete E-Mail-Vorlage"
+                },
+                {
+                    "column_name": "send_datetime",
+                    "column_view_name": "Versanddatum"
+                }
+            ]
+        },
+        {
+            "table_name": "information",
+            "table_view_name": "Information",
+            "description": "Informationen für die Benutzer. Sie können z. B. auf einem Dashboard angezeigt werden.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Titel"
+                },
+                {
+                    "column_name": "body",
+                    "column_view_name": "Text"
+                },
+                {
+                    "column_name": "view_flg",
+                    "column_view_name": "Anzeigen",
+                    "options": {
+                        "help": "Setzen Sie diese Option auf JA, wenn die Information in der Liste angezeigt werden soll."
+                    }
+                },
+                {
+                    "column_name": "order",
+                    "column_view_name": "Anzeigereihenfolge",
+                    "options": {
+                        "help": "Die Anzeige in der Liste erfolgt absteigend nach dem Zahlenwert. (Bei gleichem Wert wird nach dem neuesten Aktualisierungszeitpunkt sortiert.)"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "Priorität",
+                    "options": {
+                        "select_item_valtext": "1,Sehr niedrig\n2,Niedrig\n3,Normal\n4,Hoch\n5,Sehr hoch"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "e6b833089cee9ad107e6",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "c38977fc14800c624894",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "cd614f0abb054f5f9adb",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "eaaae44f42d1895e43b9",
+            "form_view_name": "Formular",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": "Untertabelle – Benutzer",
+                    "form_block_target_table_name": "user"
+                }
+            ]
+        },
+        {
+            "suuid": "96c4e4f7d8a86a4ba17e",
+            "form_view_name": "Formular"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "s6j3csfuc4kagb82zna3",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "s6j3csauc4kagb82zna3",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "3471e23fbff8dc65437b",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "24e34126c023857a092e",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "b6d5afcda4ce26091f36",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "99120fd4b360e15993d2",
+            "view_view_name": "Informationsliste"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "system_default_dashboard",
+            "dashboard_view_name": "Standard-Dashboard",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Informationsliste"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Leitfaden"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Exment-Neuigkeiten"
+                }
+            ]
+        }
+    ],
+    "role_groups": [
+        {
+            "role_group_name": "data_admin_group",
+            "role_group_view_name": "Gruppe Datenverwaltung (alle Daten)",
+            "description": "Rollengruppe, die alle Daten bearbeiten und anzeigen darf."
+        },
+        {
+            "role_group_name": "user_organization_admin_group",
+            "role_group_view_name": "Gruppe Benutzer- und Organisationsverwaltung",
+            "description": "Rollengruppe, die Benutzer und Organisationen verwaltet."
+        },
+        {
+            "role_group_name": "information_manage_group",
+            "role_group_view_name": "Gruppe Informationsverwaltung",
+            "description": "Rollengruppe, die Informationen verwaltet."
+        },
+        {
+            "role_group_name": "user_group",
+            "role_group_view_name": "Benutzergruppe",
+            "description": "Standard-Rollengruppe für Benutzer."
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "system",
+            "menu_name": "home",
+            "title": "Dashboard"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "groupware",
+            "title": "Groupware"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "file_server",
+            "title": "Dateifreigabe"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "master",
+            "title": "Stammdaten"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "base_info",
+            "title": "Basisinformationen"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "organization",
+            "title": "Organisation"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "user",
+            "title": "Benutzer"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "information",
+            "title": "Information"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_data",
+            "title": "Einstellungen: Daten & Bildschirme"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "custom_table",
+            "title": "Benutzerdefinierte Tabelle"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "studio",
+            "title": "Studio"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "menu",
+            "title": "Menü"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "workflow",
+            "title": "Workflow"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "mail_template",
+            "title": "E-Mail-Vorlage"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "notify",
+            "title": "Benachrichtigung"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "cell_style_preset",
+            "title": "Zellstil-Vorlagen"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "template",
+            "title": "Vorlage"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_user",
+            "title": "Einstellungen: Benutzer & Berechtigungen"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "loginuser",
+            "title": "Login-Benutzer"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "role_group",
+            "title": "Rollengruppe"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "login_setting",
+            "title": "Anmeldeeinstellungen"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "api_setting",
+            "title": "API-Einstellungen"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "operation_log",
+            "title": "Betriebsprotokoll"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin",
+            "title": "Einstellungen: System"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "system",
+            "title": "Systemeinstellungen"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "feature",
+            "title": "Funktionsverwaltung"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "plugin",
+            "title": "Plugin"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "backup",
+            "title": "Sicherung"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "tuning",
+            "title": "Optimierung"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "security_check",
+            "title": "Sicherheitsprüfung"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "maintenance",
+            "title": "Wartungsmodus"
+        }
+    ]
+}
