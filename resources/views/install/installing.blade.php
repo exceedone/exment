@@ -31,7 +31,7 @@
                     @endforeach @endif
 
                     <label class=" fw-bold" for="ADMIN_ROUTE_PREFIX">{{exmtrans('install.installing.admin_route_prefix')}}:</label>
-                    <input type="text" class="form-control" id="ADMIN_ROUTE_PREFIX" name="ADMIN_ROUTE_PREFIX" maxlength="64" placeholder="admin" value="{{ old('ADMIN_ROUTE_PREFIX', trim(strval(config('admin.route.prefix')), '/')) }}" />
+                    <input type="text" class="form-control" id="ADMIN_ROUTE_PREFIX" name="ADMIN_ROUTE_PREFIX" maxlength="64" placeholder="admin" value="{{ old('ADMIN_ROUTE_PREFIX', '') }}" />
                     <p class="small">
                         <i class="fa fa-info-circle"></i>&nbsp;{{exmtrans('install.help.admin_route_prefix', ['url' => url('/')])}}
                     </p>

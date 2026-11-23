@@ -317,6 +317,11 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::boot();
 
+        // a site not installed yet without APP_KEY: made before the cookies need it
+        if (!$this->app->runningInConsole()) {
+            Services\Installer\AppKey::ensure();
+        }
+
         // Re-register route middleware aliases.
         // The auto-discovered AdminServiceProvider runs register() after this provider,
         // and re-aliases names like "admin.log" or "admin.auth" back to the core classes.

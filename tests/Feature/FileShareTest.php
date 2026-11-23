@@ -266,13 +266,15 @@ class FileShareTest extends FeatureTestBase
         [$ws, , $file] = $this->sample();
         $links = $this->links($this->admin());
 
+        // no end given: 30 days by default, never past the latest end of the site
+        config(['exment.file_server_share_max_days' => 90, 'exment.file_server_share_default_days' => 30]);
+        $this->assertSame(now()->addDays(30)->format('Y-m-d'), $links->create($ws, $file, FileShareLink::KIND_SHARE)->expires_at->format('Y-m-d'));
         config(['exment.file_server_share_max_days' => 7]);
-        try {
-            $links->create($ws, $file, FileShareLink::KIND_SHARE);
-            $this->fail('a link without an end date');
-        } catch (FileServerException $e) {
-            $this->assertStringContainsString('7', $e->getMessage());
-        }
+        $this->assertSame(now()->addDays(7)->format('Y-m-d'), $links->create($ws, $file, FileShareLink::KIND_SHARE)->expires_at->format('Y-m-d'));
+        // no limit and no default: a link without an end, as before
+        config(['exment.file_server_share_max_days' => 0, 'exment.file_server_share_default_days' => 0]);
+        $this->assertNull($links->create($ws, $file, FileShareLink::KIND_SHARE)->expires_at);
+        config(['exment.file_server_share_max_days' => 7]);
         try {
             $links->create($ws, $file, FileShareLink::KIND_SHARE, ['expires_at' => now()->addDays(30)->format('Y-m-d')]);
             $this->fail('a link past the days of the site');
@@ -491,6 +493,18 @@ class FileShareTest extends FeatureTestBase
         $this->assertNotNull(ShareLinks::resolve(strval($link->plainToken())), 'the link still opens');
         $this->assertFalse(ShareLinks::downloadAllowed($link, $file));
         $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertStatus(403);
+    }
+
+    public function testALinkWithoutDownloadGivesNoBytesOfTheFile(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => false]);
+        $answer = $this->get($this->shareUrl($link, 'content') . '?node=' . $file->id);
+        $answer->assertStatus(403);
+        $this->assertStringNotContainsString('hello outside', strval($answer->getContent()));
+
+        $open = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => true]);
+        $this->assertStringContainsString('hello outside', $this->get($this->shareUrl($open, 'content') . '?node=' . $file->id)->streamedContent());
     }
 
     public function testTheTokenIsKeptHashed(): void
