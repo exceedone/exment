@@ -241,7 +241,7 @@ class DashboardController extends AdminControllerBase
             // bundle (the ECharts chart types) and the admin layer's own Ion.RangeSlider (its Slider
             // form field), the two-handle slider under a number range item of the bar
             'assets' => [
-                'echarts' => asset('vendor/exment/echarts/echarts.min.js?ver=' . $ver),
+                'echarts' => admin_asset('vendor/exment/echarts/echarts.min.js?ver=' . $ver),
                 'ionslider' => asset('vendor/open-admin/AdminLTE/plugins/ionslider'),
             ],
         ];
