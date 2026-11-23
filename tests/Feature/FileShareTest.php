@@ -17,6 +17,7 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -90,7 +91,7 @@ class FileShareTest extends FeatureTestBase
 
     protected function shareUrl(FileShareLink $link, string $path = ''): string
     {
-        return '/' . ShareLinks::basePath() . '/' . $link->token . ($path === '' ? '' : '/' . $path);
+        return '/' . ShareLinks::basePath() . '/' . $link->plainToken() . ($path === '' ? '' : '/' . $path);
     }
 
     protected function links(Library $library): ShareLinks
@@ -103,11 +104,11 @@ class FileShareTest extends FeatureTestBase
         [$ws, $folder] = $this->sample();
         $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
         $link = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2))->create($ws, $folder, FileShareLink::KIND_REQUEST);
-        $this->assertNotNull(ShareLinks::resolve($link->token));
+        $this->assertNotNull(ShareLinks::resolve(strval($link->plainToken())));
         // the maker may only upload now (as a link made before 7.2.1 by who could upload)
         FilePermission::query()->where('workspace_id', $ws->id)->whereNull('node_id')
             ->where('target_id', $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2))->update(['level' => Level::UPLOAD]);
-        $this->assertNull(ShareLinks::resolve($link->token));
+        $this->assertNull(ShareLinks::resolve(strval($link->plainToken())));
     }
 
     public function testWhoMayMakeALink(): void
@@ -487,9 +488,62 @@ class FileShareTest extends FeatureTestBase
         $ws->download_level = Level::MANAGE;
         $ws->save();
         $link = $link->fresh();
-        $this->assertNotNull(ShareLinks::resolve($link->token), 'the link still opens');
+        $this->assertNotNull(ShareLinks::resolve(strval($link->plainToken())), 'the link still opens');
         $this->assertFalse(ShareLinks::downloadAllowed($link, $file));
         $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertStatus(403);
+    }
+
+    public function testALinkWithoutDownloadGivesNoBytesOfTheFile(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => false]);
+        $answer = $this->get($this->shareUrl($link, 'content') . '?node=' . $file->id);
+        $answer->assertStatus(403);
+        $this->assertStringNotContainsString('hello outside', strval($answer->getContent()));
+
+        $open = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => true]);
+        $this->assertStringContainsString('hello outside', $this->get($this->shareUrl($open, 'content') . '?node=' . $file->id)->streamedContent());
+    }
+
+    public function testTheTokenIsKeptHashed(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE);
+        $plain = strval($link->plainToken());
+        $this->assertSame(ShareLinks::TOKEN_LENGTH, strlen($plain));
+
+        $row = \DB::table('file_share_links')->where('id', $link->id)->first();
+        $this->assertSame(hash('sha256', $plain), $row->token, 'only the sha256 is kept');
+        $this->assertStringNotContainsString($plain, strval($row->token_encrypted), 'the copy is encrypted');
+        $this->assertNotNull(ShareLinks::resolve($plain));
+        $this->assertNull(ShareLinks::resolve($row->token), 'the kept value does not open it');
+        $this->assertStringEndsWith('/' . $plain, strval(FileShareLink::query()->findOrFail($link->id)->url()));
+
+        // a link made before: the migration moves its token, and it still opens
+        $legacy = Str::random(ShareLinks::TOKEN_LENGTH);
+        \DB::table('file_share_links')->where('id', $link->id)->update(['token' => $legacy, 'token_encrypted' => null]);
+        (require base_path('vendor/exceedone/exment/database/migrations/2026_11_30_000000_hash_file_share_link_tokens.php'))->up();
+        $this->assertSame(hash('sha256', $legacy), \DB::table('file_share_links')->where('id', $link->id)->value('token'));
+        $this->assertNotNull(ShareLinks::resolve($legacy));
+        $this->assertStringEndsWith('/' . $legacy, strval(FileShareLink::query()->findOrFail($link->id)->url()));
+    }
+
+    public function testTheUrlIsShownToItsMakerAndToWhoManages(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
+        $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE);
+        $rows = function (string $loginId) use ($ws, $file) {
+            $this->be(LoginUser::findOrFail($loginId));
+            \Exceedone\Exment\Model\System::clearRequestSession();
+            $method = new \ReflectionMethod(\Exceedone\Exment\Controllers\FileServerController::class, 'linkRows');
+            $method->setAccessible(true);
+            return $method->invoke(app(\Exceedone\Exment\Controllers\FileServerController::class), $ws, $file);
+        };
+        $this->assertNotNull($rows(TestDefine::TESTDATA_USER_LOGINID_ADMIN)[0]['url'] ?? null, 'its maker');
+        $editor = $rows(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->assertCount(1, $editor, 'an editor sees the link');
+        $this->assertNull($editor[0]['url'], 'but not its url');
     }
 
     public function testAZipHasALimit(): void

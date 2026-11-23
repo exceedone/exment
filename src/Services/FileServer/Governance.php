@@ -176,8 +176,17 @@ class Governance
     }
 
     /**
-     * The rules of a folder or file (those who manage it): the legal hold, and
-     * (a folder) whether the files put in it need an approval.
+     * Who may set or clear a legal hold and the retention: the system administrators.
+     * Those who manage a workspace or a folder see them, and cannot change them.
+     */
+    public static function canSetHold(Access $access): bool
+    {
+        return $access->isSystemAdmin();
+    }
+
+    /**
+     * The rules of a folder or file (those who manage it): the legal hold (the
+     * system administrators), and (a folder) whether the files put in it need an approval.
      *
      * @param array<string, mixed> $input legal_hold, requires_approval
      */
@@ -188,7 +197,8 @@ class Governance
             throw FileServerException::notFound();
         }
         $access->authorize($workspace, $node, Level::MANAGE);
-        if (array_key_exists('legal_hold', $input)) {
+        // the hold of anyone else stays as it is (their form shows it, read only)
+        if (array_key_exists('legal_hold', $input) && static::canSetHold($access)) {
             $hold = boolval($input['legal_hold']);
             if ($hold !== $node->legal_hold) {
                 $node->legal_hold = $hold;
@@ -211,14 +221,18 @@ class Governance
     {
         $access = $library->access();
         $access->authorize($workspace, null, Level::MANAGE);
-        $days = array_get($input, 'retention_days');
-        $workspace->retention_days = ($days === null || $days === '' || intval($days) <= 0) ? null : min(36500, intval($days));
-        $workspace->retention_action = array_get($input, 'retention_action') === static::RETENTION_DELETE ? static::RETENTION_DELETE : static::RETENTION_KEEP;
-        $hold = boolval(array_get($input, 'legal_hold', false));
-        if ($hold !== $workspace->legal_hold) {
-            Audit::log(Audit::HOLD, $workspace, null, $access->userId(), ['hold' => $hold]);
+        // the retention and the hold: the system administrators; for anyone else they
+        // stay as they are (their form shows them, read only)
+        if (static::canSetHold($access)) {
+            $days = array_get($input, 'retention_days');
+            $workspace->retention_days = ($days === null || $days === '' || intval($days) <= 0) ? null : min(36500, intval($days));
+            $workspace->retention_action = array_get($input, 'retention_action') === static::RETENTION_DELETE ? static::RETENTION_DELETE : static::RETENTION_KEEP;
+            $hold = boolval(array_get($input, 'legal_hold', false));
+            if ($hold !== $workspace->legal_hold) {
+                Audit::log(Audit::HOLD, $workspace, null, $access->userId(), ['hold' => $hold]);
+            }
+            $workspace->legal_hold = $hold;
         }
-        $workspace->legal_hold = $hold;
         $workspace->watermark = boolval(array_get($input, 'watermark', false));
         $level = intval(array_get($input, 'download_level', Level::VIEW));
         $workspace->download_level = in_array($level, [Level::VIEW, Level::UPLOAD, Level::EDIT, Level::MANAGE], true) ? $level : Level::VIEW;
