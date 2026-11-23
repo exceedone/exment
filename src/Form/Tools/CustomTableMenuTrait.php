@@ -22,6 +22,10 @@ trait CustomTableMenuTrait
     {
         $items = [];
         foreach (Define::GRID_CHANGE_PAGE_MENULIST as $menu) {
+            // a page of a feature that is not used
+            if (array_has($menu, 'feature') && !\Exceedone\Exment\Services\Features::allowed(strval(array_get($menu, 'feature')))) {
+                continue;
+            }
             // if same page, skip
             // if ($this->page_name == array_get($menu, 'name') && !array_has($menu, 'buttons')) {
             //     continue;
