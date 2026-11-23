@@ -18,6 +18,7 @@ use Exceedone\Exment\Services\FileServer\FileSearch;
 use Exceedone\Exment\Services\FileServer\FileServerException;
 use Exceedone\Exment\Services\FileServer\Level;
 use Exceedone\Exment\Services\FileServer\Library;
+use Exceedone\Exment\Services\FileServer\ViewOnly;
 use Exceedone\Exment\Services\FileServer\Metadata;
 use Exceedone\Exment\Services\FileServer\Paths;
 use Exceedone\Exment\Services\FileServer\Preview;
@@ -355,6 +356,10 @@ class FileServerController extends AdminControllerBase
         }
         $collaboration = new Collaboration($library);
         $kind = isset($version) ? Preview::kind($version->mime_type, $item->name) : Preview::KIND_NONE;
+        // who may see and not download: what is made from the file, not the file (ViewOnly)
+        if ($item->isFile() && !Governance::canDownload($access, $ws, $item)) {
+            $kind = ViewOnly::kind($kind, $version);
+        }
         // a file from a request link: its preview and text are made when a manager asks (ISS00410, ISS00433)
 
         $text = null;
@@ -1102,11 +1107,14 @@ class FileServerController extends AdminControllerBase
         if (!ShareLinks::enabled()) {
             return [];
         }
-        return (new ShareLinks($this->library()))->linksOf($ws, $item)->map(function (FileShareLink $link) use ($ws, $item) {
+        $access = $this->library()->access();
+        $manages = $access->can($ws, $item, \Exceedone\Exment\Services\FileServer\Level::MANAGE);
+        return (new ShareLinks($this->library()))->linksOf($ws, $item)->map(function (FileShareLink $link) use ($ws, $item, $access, $manages) {
             return [
                 'id' => $link->id,
                 'kind' => $link->kind,
-                'url' => $link->url(),
+                // the url again: to its maker and to who manages the folder or file
+                'url' => $manages || intval($link->created_user_id) === $access->userId() ? $link->url() : null,
                 'active' => $link->isActive(),
                 'state' => isset($link->revoked_at) ? exmtrans('file_server.share_state_revoked')
                     : ($link->isExpired() ? exmtrans('file_server.share_state_expired')
@@ -1203,20 +1211,27 @@ class FileServerController extends AdminControllerBase
         } catch (FileServerException $e) {
             abort($e->status(), $e->getMessage());
         }
+        $access = $this->library()->access();
+        $canDownload = Governance::canDownload($access, $ws, $item);
         if ($request->get('rendition') === 'pdf') {
             if (!isset($version->preview_path)) {
                 abort(404);
             }
+            if (!$canDownload) {
+                Audit::log(Audit::VIEW, $ws, $item, $access->userId(), ['version' => $version->version_no, 'view_only' => 'pdf']);
+            }
             return $this->stream($version->preview_path, pathinfo($item->name, PATHINFO_FILENAME) . '.pdf', 'application/pdf', true);
+        }
+        // who may not download: never the bytes of the file (ViewOnly)
+        if (!$canDownload) {
+            Audit::log(Audit::VIEW, $ws, $item, $access->userId(), ['version' => $version->version_no, 'view_only' => 'content']);
+            return ViewOnly::response($version, $item->name);
         }
         if (!Preview::isInlineSafe($version->mime_type)) {
             // html, svg and the others are only downloaded: they could run scripts
             // in the site. A download: those who may download only, and written
             // in the audit log (as the download page)
-            if (!Governance::canDownload($this->library()->access(), $ws, $item)) {
-                abort(403);
-            }
-            Audit::log(Audit::DOWNLOAD, $ws, $item, $this->library()->access()->userId(), ['version' => $version->version_no, 'content' => true]);
+            Audit::log(Audit::DOWNLOAD, $ws, $item, $access->userId(), ['version' => $version->version_no, 'content' => true]);
             return $this->stream($version->path, $item->name, 'application/octet-stream', false);
         }
         return $this->stream($version->path, $item->name, strval($version->mime_type), true);

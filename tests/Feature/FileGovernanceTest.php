@@ -109,6 +109,41 @@ class FileGovernanceTest extends FeatureTestBase
     }
 
     /**
+     * A system administrator: who sets the legal holds and the retention (without
+     * signing in, so the user of the test stays the same).
+     */
+    protected function holder(): Library
+    {
+        return new Library(new Access($this->userId(TestDefine::TESTDATA_USER_LOGINID_ADMIN), true));
+    }
+
+    public function testOnlyTheSystemAdministratorsSetTheHoldAndTheRetention(): void
+    {
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $folder = $manager->createFolder($ws, null, 'Case');
+
+        // a manager: the hold and the retention stay as they are
+        Governance::setRules($manager, $ws, $folder, ['legal_hold' => true]);
+        $this->assertFalse((bool) $folder->refresh()->legal_hold);
+        Governance::setWorkspaceRules($manager, $ws, ['retention_days' => 30, 'legal_hold' => true, 'download_level' => Level::EDIT]);
+        $ws->refresh();
+        $this->assertNull($ws->retention_days);
+        $this->assertFalse((bool) $ws->legal_hold);
+        $this->assertSame(Level::EDIT, intval($ws->download_level), 'the other rules are still the manager\'s');
+
+        // a system administrator sets them, and a manager does not clear them
+        Governance::setRules($this->holder(), $ws, $folder, ['legal_hold' => true]);
+        Governance::setWorkspaceRules($this->holder(), $ws, ['retention_days' => 30, 'legal_hold' => true]);
+        Governance::setRules($manager, $ws, $folder->refresh(), ['legal_hold' => false]);
+        Governance::setWorkspaceRules($manager, $ws->refresh(), ['download_level' => Level::VIEW]);
+        $this->assertTrue((bool) $folder->refresh()->legal_hold);
+        $ws->refresh();
+        $this->assertSame(30, intval($ws->retention_days));
+        $this->assertTrue((bool) $ws->legal_hold);
+    }
+
+    /**
      * @return int[]
      */
     protected function childIds(Library $library, FileWorkspace $ws, ?FileNode $folder): array
@@ -128,14 +163,14 @@ class FileGovernanceTest extends FeatureTestBase
         $manager = $this->manager();
         $folder = $manager->createFolder($ws, null, 'Out');
         $link = (new ShareLinks($manager))->create($ws, $folder, FileShareLink::KIND_SHARE, ['expires_at' => now()->addDays(3)->format('Y-m-d')]);
-        $this->assertNotNull(ShareLinks::resolve($link->token));
+        $this->assertNotNull(ShareLinks::resolve(strval($link->plainToken())));
 
         $features::save(['file_server' => ['enabled' => false]]);
         System::clearRequestSession();
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         $this->assertFalse(Library::featureEnabled());
         $this->assertSame(Level::NONE, Access::current()->level($ws, null), 'no one may do anything');
-        $this->assertNull(ShareLinks::resolve($link->token), 'the links are gone');
+        $this->assertNull(ShareLinks::resolve(strval($link->plainToken())), 'the links are gone');
         $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:file-server-purge'));
         // the data stays
         $this->assertTrue(FileNode::query()->whereKey($folder->id)->exists());
@@ -145,7 +180,7 @@ class FileGovernanceTest extends FeatureTestBase
         System::clearRequestSession();
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         $this->assertSame(Level::MANAGE, Access::current()->level($ws, null), 'all comes back');
-        $this->assertNotNull(ShareLinks::resolve($link->token));
+        $this->assertNotNull(ShareLinks::resolve(strval($link->plainToken())));
     }
 
     /**
@@ -276,6 +311,45 @@ class FileGovernanceTest extends FeatureTestBase
         $this->assertTrue(FileAuditLog::query()->where('node_id', $file->id)->where('action', Audit::DOWNLOAD)->exists());
     }
 
+    /**
+     * Who may see and not download gets what is made from a file, never its bytes:
+     * an image made smaller, "the download is not allowed" for the rest; each one in
+     * the audit log. Who may download sees the file itself, as before.
+     */
+    public function testViewOnlyGetsNoOriginalBytes(): void
+    {
+        if (!function_exists('imagecreatetruecolor')) {
+            $this->markTestSkipped('GD is not here');
+        }
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $note = $manager->storeFile($ws, null, 'note.txt', $this->local('the words of the file'));
+        $img = imagecreatetruecolor(40, 30);
+        imagefilledrectangle($img, 0, 0, 39, 29, intval(imagecolorallocate($img, 200, 30, 30)));
+        ob_start();
+        imagepng($img);
+        $pngBytes = strval(ob_get_clean());
+        $picture = $manager->storeFile($ws, null, 'picture.png', $this->local($pngBytes));
+        Governance::setWorkspaceRules($manager, $ws, ['download_level' => Level::EDIT]);
+
+        // user2 may see, not download
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $text = $this->get(admin_urls('file_server', $ws->id, 'nodes', $note->id, 'content'));
+        $text->assertStatus(403);
+        $this->assertStringNotContainsString('the words of the file', strval($text->getContent()));
+        $image = $this->get(admin_urls('file_server', $ws->id, 'nodes', $picture->id, 'content'));
+        $image->assertOk();
+        $this->assertStringStartsWith('image/', strval($image->headers->get('Content-Type')));
+        $this->assertNotSame($pngBytes, $image->getContent(), 'a copy made again, not the bytes of the file');
+        $this->assertSame(2, FileAuditLog::query()->whereIn('node_id', [$note->id, $picture->id])->where('action', Audit::VIEW)->count());
+
+        // who may download: the file itself
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        $own = $this->get(admin_urls('file_server', $ws->id, 'nodes', $note->id, 'content'));
+        $own->assertOk();
+        $this->assertStringContainsString('the words of the file', $own->streamedContent());
+    }
+
     public function testMoveTrimAndPurgeKeepTheHolds(): void
     {
         $ws = $this->workspace();
@@ -283,15 +357,15 @@ class FileGovernanceTest extends FeatureTestBase
         $case = $manager->createFolder($ws, null, 'Case');
         $inner = $manager->createFolder($ws, $case, 'Inner');
         $file = $manager->storeFile($ws, $inner, 'evidence.txt', $this->local('v1'));
-        Governance::setRules($manager, $ws, $case, ['legal_hold' => true]);
+        Governance::setRules($this->holder(), $ws, $case, ['legal_hold' => true]);
         // out of the held folder: no
         $this->assertRefused(function () use ($manager, $ws, $file) {
             $manager->move($ws, $file->refresh(), null);
         }, 423, 'a held file was moved out');
 
         // the versions are kept while the file must be kept
-        Governance::setRules($manager, $ws, $case->refresh(), ['legal_hold' => false]);
-        Governance::setWorkspaceRules($manager, $ws, ['retention_days' => 30]);
+        Governance::setRules($this->holder(), $ws, $case->refresh(), ['legal_hold' => false]);
+        Governance::setWorkspaceRules($this->holder(), $ws, ['retention_days' => 30]);
         $ws->refresh();
         $ws->version_limit = 1;
         $ws->save();
@@ -300,10 +374,10 @@ class FileGovernanceTest extends FeatureTestBase
         $this->assertSame(3, FileNodeVersion::query()->where('node_id', $file->id)->count());
 
         // a hold set on a folder above, after the file went to the trash
-        Governance::setWorkspaceRules($manager, $ws, ['retention_days' => null]);
+        Governance::setWorkspaceRules($this->holder(), $ws, ['retention_days' => null]);
         $ws->refresh();
         $manager->trash($ws, $file->refresh());
-        Governance::setRules($manager, $ws, $case->refresh(), ['legal_hold' => true]);
+        Governance::setRules($this->holder(), $ws, $case->refresh(), ['legal_hold' => true]);
         $this->assertRefused(function () use ($manager, $ws, $file) {
             $manager->purge($ws, $file->refresh());
         }, 423, 'a file under a held folder was removed for good');
@@ -318,7 +392,7 @@ class FileGovernanceTest extends FeatureTestBase
         $manager->trash($ws, $folder->refresh());
 
         // the days to keep are set after it went to the trash: it is not removed for good
-        Governance::setWorkspaceRules($manager, $ws, ['retention_days' => 30]);
+        Governance::setWorkspaceRules($this->holder(), $ws, ['retention_days' => 30]);
         $this->assertRefused(function () use ($manager, $ws, $folder) {
             $manager->purge($ws->refresh(), $folder->refresh());
         }, 423, 'a folder with a file still to be kept was removed for good');
@@ -657,7 +731,7 @@ class FileGovernanceTest extends FeatureTestBase
         $folder = $manager->createFolder($ws, null, 'Case');
         $file = $manager->storeFile($ws, $folder, 'evidence.txt', $this->local('v1'));
 
-        Governance::setRules($manager, $ws, $file, ['legal_hold' => true]);
+        Governance::setRules($this->holder(), $ws, $file, ['legal_hold' => true]);
         foreach ([$file, $folder] as $node) {
             try {
                 $manager->trash($ws, $node->refresh());
@@ -674,11 +748,11 @@ class FileGovernanceTest extends FeatureTestBase
         $manager->addVersion($ws, $file->refresh(), $this->local('v3'));
         $this->assertSame(3, FileNodeVersion::query()->where('node_id', $file->id)->count());
 
-        Governance::setRules($manager, $ws, $file->refresh(), ['legal_hold' => false]);
+        Governance::setRules($this->holder(), $ws, $file->refresh(), ['legal_hold' => false]);
         $manager->trash($ws, $file->refresh());
 
         // a hold of the workspace: nothing goes, and what is in the trash stays
-        Governance::setWorkspaceRules($manager, $ws, ['legal_hold' => true]);
+        Governance::setWorkspaceRules($this->holder(), $ws, ['legal_hold' => true]);
         $other = $manager->storeFile($ws, null, 'other.txt', $this->local('o'));
         try {
             $manager->trash($ws, $other);
@@ -705,7 +779,7 @@ class FileGovernanceTest extends FeatureTestBase
     {
         $ws = $this->workspace();
         $manager = $this->manager();
-        Governance::setWorkspaceRules($manager, $ws, ['retention_days' => 30, 'retention_action' => Governance::RETENTION_DELETE]);
+        Governance::setWorkspaceRules($this->holder(), $ws, ['retention_days' => 30, 'retention_action' => Governance::RETENTION_DELETE]);
         $young = $manager->storeFile($ws, null, 'young.txt', $this->local('y'));
         $old = $manager->storeFile($ws, null, 'old.txt', $this->local('o'));
         FileNode::query()->where('id', $old->id)->update(['created_at' => now()->subDays(40)]);

@@ -175,7 +175,7 @@ class Bootstrap
             $ver = date('YmdHis');
         }
         // @phpstan-ignore-next-line
-        Ad::jslast(asset('vendor/exment/js/customscript.js?ver='.$ver));
+        Ad::jslast(admin_asset('vendor/exment/js/customscript.js?ver='.$ver));
 
         // delete object
         $delete_confirm = trans('admin.delete_confirm');
