@@ -1564,11 +1564,6 @@ parameters:
 			count: 1
 			path: vendor/exceedone/exment/src/Form/Tools/PluginMenuButton.php
 
-		-
-			message: '#^PHPDoc tag @return with type array is incompatible with native type string\.$#'
-			identifier: return.phpDocType
-			count: 1
-			path: vendor/exceedone/exment/src/Form/Widgets/ModalForm.php
 
 		-
 			message: '#^Return type \(string\) of method Exceedone\\Exment\\Form\\Widgets\\ModalForm\:\:getScript\(\) should be compatible with return type \(array\<string\>\) of method ExmentAdminCore\\Admin\\Widgets\\Form\:\:getScript\(\)$#'
@@ -1651,7 +1646,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 2
+			count: 3
 			path: vendor/exceedone/exment/src/Middleware/Initialize.php
 
 		-

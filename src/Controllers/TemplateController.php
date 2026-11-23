@@ -31,7 +31,7 @@ class TemplateController extends AdminControllerBase
      * Defined as a controller action (instead of a route closure) so the route table
      * stays serializable for `php artisan route:cache`.
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function redirectIndex()
     {
