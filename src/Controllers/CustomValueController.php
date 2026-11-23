@@ -1958,9 +1958,13 @@ EOT);
                     continue;
                 }
 
-                if (($response = $this->firstFlow($request, CustomValuePageType::EDIT)) instanceof Response) {
+                // the edit permission of the row (enableEdit() refuses a row in the trash)
+                if (!$custom_value->custom_table->hasPermissionEditData($custom_value)) {
                     \DB::rollback();
-                    return $response;
+                    return getAjaxResponse([
+                        'result'  => false,
+                        'message' => ErrorCode::PERMISSION_DENY()->getMessage(),
+                    ]);
                 }
 
                 $custom_value->restore();
@@ -2248,6 +2252,10 @@ EOT);
 
         $img_width = $this->mmToPixel($_img_width);
         $img_height = $this->mmToPixel($_img_height);
+
+        // null when the PDF could not be made (the callers check isset)
+        $tmpPath = null;
+        $fileName = null;
 
         DB::beginTransaction();
         try {

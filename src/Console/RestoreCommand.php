@@ -57,6 +57,8 @@ class RestoreCommand extends Command
             return 1;
         }
 
+        $result = 0;
+
         try {
             $this->restore->initBackupRestore();
 
@@ -81,6 +83,14 @@ class RestoreCommand extends Command
         } finally {
             $this->restore->diskService()->deleteTmpDirectory();
         }
+
+        // execute() returns non-zero when a step went wrong (a folder that could not be
+        // copied, a schema that could not be migrated): told to the caller (cron, scripts)
+        if ($result !== 0) {
+            $this->error('Restore finished with errors. The data was restored, but see the log for the steps that failed.');
+            return 1;
+        }
+
         return 0;
     }
 
