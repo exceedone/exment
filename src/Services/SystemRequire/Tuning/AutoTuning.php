@@ -307,9 +307,6 @@ class AutoTuning
     }
 
     /**
-     * @param array<string, string> $values
-     */
-    /**
      * The end of the install: EXMENT_INITIALIZE, APP_ENV=production (exment.zip ships
      * "local"), and .env readable by the owner and the group only (the owner is kept).
      * Other sites' APP_ENV (testing, staging...) is kept.
@@ -318,7 +315,7 @@ class AutoTuning
      */
     public static function installedEnv(?array $files = null): void
     {
-        $values = ['EXMENT_INITIALIZE' => 1];
+        $values = ['EXMENT_INITIALIZE' => '1'];
         if (in_array(strval(config('app.env')), ['', 'local'], true)) {
             $values['APP_ENV'] = 'production';
         }
@@ -331,6 +328,9 @@ class AutoTuning
         }
     }
 
+    /**
+     * @param array<string, string> $values
+     */
     protected static function writeEnv(array $values): void
     {
         if (static::$envWriter) {

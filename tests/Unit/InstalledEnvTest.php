@@ -39,7 +39,7 @@ class InstalledEnvTest extends UnitTestBase
         config(['app.env' => 'local']);
         AutoTuning::installedEnv([$this->env]);
 
-        $this->assertSame([['EXMENT_INITIALIZE' => 1, 'APP_ENV' => 'production']], $this->written);
+        $this->assertSame([['EXMENT_INITIALIZE' => '1', 'APP_ENV' => 'production']], $this->written);
         if (DIRECTORY_SEPARATOR !== '\\' && function_exists('posix_geteuid')) {
             clearstatcache();
             $this->assertSame('640', substr(sprintf('%o', fileperms($this->env)), -3));
@@ -51,7 +51,7 @@ class InstalledEnvTest extends UnitTestBase
         config(['app.env' => 'staging']);
         AutoTuning::installedEnv([$this->env]);
 
-        $this->assertSame([['EXMENT_INITIALIZE' => 1]], $this->written);
+        $this->assertSame([['EXMENT_INITIALIZE' => '1']], $this->written);
     }
 
     public function testTheSetupUsesIt(): void
