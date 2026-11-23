@@ -1,0 +1,50 @@
+{
+    "template_view_name": "Registro de rendimiento del sistema",
+    "description": "Plantilla para registrar el rendimiento del sistema, incluidos la URL de ejecución, el usuario, el tiempo y las consultas SQL.",
+    "custom_tables": [
+        {
+            "table_name": "system_logs",
+            "table_view_name": "Registro de rendimiento del sistema",
+            "description": "Registra el rendimiento del sistema: consultas SQL ejecutadas, URL de ejecución, usuario y tiempo.",
+            "custom_columns": [
+                {
+                    "column_name": "url",
+                    "column_view_name": "URL de ejecución"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "Usuario de ejecución"
+                },
+                {
+                    "column_name": "create_at",
+                    "column_view_name": "Tiempo de ejecución"
+                },
+                {
+                    "column_name": "sql",
+                    "column_view_name": "SQL"
+                }
+            ]
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "5160ffbedcfce843fb8e",
+            "form_view_name": "Formulario"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "d9ce8f6d3b288d6da84b",
+            "view_view_name": "Todos los registros"
+        }
+    ],
+    "custom_copies": [],
+    "admin_menu": [
+        {
+            "title": "Registro de rendimiento del sistema",
+            "menu_type": "table",
+            "menu_name": "system_logs"
+        }
+    ]
+}

@@ -1,0 +1,141 @@
+{
+    "template_view_name": "Gestión de clientes",
+    "description": "Gestión sencilla de clientes. Al registrar las categorías principales y secundarias de los clientes, puede buscarlos por categoría.",
+    "custom_tables": [
+        {
+            "table_name": "major_class",
+            "table_view_name": "Clasificación principal",
+            "description": "Clasificación principal",
+            "custom_columns": [
+                {
+                    "column_name": "major_class_code",
+                    "column_view_name": "Código de clasificación principal"
+                },
+                {
+                    "column_name": "major_class_name",
+                    "column_view_name": "Nombre de clasificación principal"
+                }
+            ]
+        },
+        {
+            "table_name": "minor_class",
+            "table_view_name": "Clasificación secundaria",
+            "description": "Clasificación secundaria",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "Clasificación principal"
+                },
+                {
+                    "column_name": "minor_class_code",
+                    "column_view_name": "Código de clasificación secundaria"
+                },
+                {
+                    "column_name": "minor_class_name",
+                    "column_view_name": "Nombre de clasificación secundaria"
+                }
+            ]
+        },
+        {
+            "table_name": "client_manage",
+            "table_view_name": "Información de clientes",
+            "description": "Información de clientes",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "Clasificación principal"
+                },
+                {
+                    "column_name": "minor_class",
+                    "column_view_name": "Clasificación secundaria"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "Nombre del cliente"
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "Código postal"
+                },
+                {
+                    "column_name": "street_address",
+                    "column_view_name": "Dirección"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "Teléfono"
+                },
+                {
+                    "column_name": "fax",
+                    "column_view_name": "Fax"
+                },
+                {
+                    "column_name": "mail",
+                    "column_view_name": "Correo electrónico"
+                },
+                {
+                    "column_name": "hp",
+                    "column_view_name": "Sitio web"
+                },
+                {
+                    "column_name": "available_flg",
+                    "column_view_name": "Activo"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "9b7cdef69121669e53f3",
+            "form_view_name": "Formulario"
+        },
+        {
+            "suuid": "874049a23fa54616587e",
+            "form_view_name": "Formulario"
+        },
+        {
+            "suuid": "d72abe95f6a2bd472bee",
+            "form_view_name": "Formulario"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "901117b47cad43291ed6",
+            "view_view_name": "Vista predeterminada"
+        },
+        {
+            "suuid": "58c28b1a750f81b6621a",
+            "view_view_name": "Vista predeterminada"
+        },
+        {
+            "suuid": "1e425a576a67c5d993f2",
+            "view_view_name": "Todos los clientes"
+        },
+        {
+            "suuid": "bc5692520c4d124b4815",
+            "view_view_name": "Clientes activos"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Gestión de clientes",
+            "menu_type": "parent_node",
+            "menu_name": "client_manage_parent"
+        },
+        {
+            "title": "Clasificación principal",
+            "menu_type": "table",
+            "menu_name": "major_class"
+        },
+        {
+            "title": "Clasificación secundaria",
+            "menu_type": "table",
+            "menu_name": "minor_class"
+        },
+        {
+            "title": "Información de clientes",
+            "menu_type": "table",
+            "menu_name": "client_manage"
+        }
+    ]
+}
