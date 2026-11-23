@@ -138,3 +138,5 @@ jobs:
         working-directory: docker-exment
         run: |
           docker compose -f docker-compose.yml exec -T -e EXMENT_TEST_OFFICIAL_RELEASES=/var/www/exment/exment-plugins-release/releases php composer run exment:test:${{ matrix.test }}
+
+# ci check 202611232217
