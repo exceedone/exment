@@ -533,6 +533,40 @@ class KanbanGrid extends GridBase
     }
 
 
+    /** @var array<string, bool> the columns whose text the card does not carry (textlessColumns) */
+    protected $textlessColumns = [];
+
+    /**
+     * The columns whose text a card need not carry: their choices are on the board
+     * (the group and filter lists), so the browser puts the label back from the value
+     * (labelOfValue) for the search, and the card does not draw them. A text read for
+     * every card and every such column was most of the weight of a board.
+     *
+     * @param array<string, mixed> $context
+     * @param CustomColumn|null $group_column
+     * @return array<string, bool>
+     */
+    protected function textlessColumns(array $context, $group_column): array
+    {
+        $drawn = [];
+        foreach ([$context['title_column'] ?? null, $context['assignee_column'] ?? null, $context['badge_column'] ?? null,
+            $context['limit_column'] ?? null, $context['ai_column'] ?? null, $group_column, $this->getSwimlaneColumn()] as $column) {
+            if ($column instanceof CustomColumn) {
+                $drawn[$column->column_name] = true;
+            }
+        }
+        $textless = [];
+        foreach (array_merge(array_values($context['groupables'] ?? []), array_values($context['filter_columns'] ?? [])) as $column) {
+            // a long list carries only the choices of the cards read so far: the cards
+            // of "load more" keep their texts there
+            if ($column instanceof CustomColumn && !isset($drawn[$column->column_name]) && static::isValueListedColumn($column)
+                && ($this->isWholeListColumn($column) || !static::isLongList($column))) {
+                $textless[$column->column_name] = true;
+            }
+        }
+        return $textless;
+    }
+
     /**
      * Build every card shown on the board.
      *
@@ -606,7 +640,15 @@ class KanbanGrid extends GridBase
                 $item->setCustomValue($record);
                 $raw = $item->value();
                 $values[$column_name] = static::normalizeKey($raw);
-                $texts[$column_name] = strval($item->text());
+                // the text only where the browser cannot tell it (textOf in the board
+                // script): not for a column whose label it puts back from its lists,
+                // not where it is the value itself (a subject, a date, a number)
+                if (!isset($this->textlessColumns[$column_name])) {
+                    $text = strval($item->text());
+                    if ($text !== $values[$column_name]) {
+                        $texts[$column_name] = $text;
+                    }
+                }
                 if (isset($multiple_columns[$column_name])) {
                     $keys = static::normalizeKeys($raw);
                     // one value is already in $values; sending it twice would
@@ -691,7 +733,8 @@ class KanbanGrid extends GridBase
                 // only the columns that carry more than one value, so a board
                 // of single-value columns pays nothing for this
                 'multi' => (object) $multi,
-                'texts' => $texts,
+                // an object even when empty, as the browser writes into it
+                'texts' => (object) $texts,
                 'fields' => $fields,
                 'cover' => isset($cover_column) ? $this->buildCoverUrl($record, $cover_column) : '',
                 'labels' => isset($labels_column)
@@ -1137,6 +1180,7 @@ class KanbanGrid extends GridBase
         }
         $context['value_columns'] = $value_columns;
         $context['writable_columns'] = $this->getWritableColumns($context);
+        $this->textlessColumns = $this->textlessColumns($context, $group_column);
 
         return $context;
     }
