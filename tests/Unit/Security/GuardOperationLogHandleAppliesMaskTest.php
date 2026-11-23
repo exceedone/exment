@@ -64,6 +64,13 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
         });
         $this->assertTrue($next, 'handle() did not pass the request down the pipeline.');
 
+        // handle() does not INSERT: it registers the write with app()->terminating() so the
+        // audit row no longer costs request latency (see LogOperation::handle). In a real
+        // request the kernel runs those callbacks after the response is sent; calling
+        // handle() straight from a test never gets there, so the row must be flushed here
+        // or every assertion below reads a table that was never written to.
+        $this->app->terminate();
+
         $log = OperationLog::where('id', '>', $maxId)->orderBy('id', 'desc')->first();
         $this->assertNotNull(
             $log,
