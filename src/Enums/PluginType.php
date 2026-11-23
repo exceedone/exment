@@ -320,7 +320,7 @@ class PluginType extends EnumBase
 
         $classname = $plugin->getNameSpace($classShortName);
         $fuleFullPath = $plugin->getFullPath($classShortName . '.php');
-        if (\File::exists($fuleFullPath) && class_exists($classname)) {
+        if (isset($fuleFullPath) && \File::exists($fuleFullPath) && class_exists($classname)) {
             return $classname;
         }
 

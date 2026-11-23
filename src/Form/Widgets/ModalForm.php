@@ -23,20 +23,30 @@ class ModalForm extends WidgetForm
     // @phpstan-ignore-next-line
     protected $buttons = [];
 
+    protected $customScripts = [];
+
+    public function addCustomScriptToArray(array $scripts)
+    {
+        foreach ($scripts as $script) {
+            $this->customScripts[] = $script;
+        }
+        return $this;
+    }
+
     /**
      * Get script each fields
      *
-     * @return array
+     * @return string
      */
     public function getScript(): string
     {
-            return collect($this->fields)
-        ->map(function ($field) {
-            /* @var Field $field  */
+        $fieldScripts = collect($this->fields)->map(function ($field) {
             return $field->getScript();
-        })
-        ->filter()
-        ->implode("\n");
+        })->filter()->values()->toArray();
+
+        return collect(array_merge($fieldScripts, $this->customScripts))
+            ->filter()
+            ->implode("\n");
     }
 
     /**
