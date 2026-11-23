@@ -31,16 +31,17 @@
                     <div class="col-sm-3"><input id="exm-fs-ver" type="number" name="version_limit" class="form-control" min="1" max="1000" value="{{ isset($workspace) ? $workspace->version_limit : 50 }}"></div>
                 </div>
                 @if (isset($workspace))
-                    {{-- phase 5 (ISS00379) --}}
+                    {{-- phase 5 (ISS00379); the retention and the hold: the system administrators (Governance::canSetHold) --}}
+                    @php $canHold = \Exceedone\Exment\Services\FileServer\Governance::canSetHold(\Exceedone\Exment\Services\FileServer\Access::current()); @endphp
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="exm-fs-ret">{{ exmtrans('file_server.retention_days') }}</label>
-                        <div class="col-sm-3"><input id="exm-fs-ret" type="number" name="retention_days" class="form-control" min="0" max="36500" value="{{ $workspace->retention_days }}"></div>
+                        <div class="col-sm-3"><input id="exm-fs-ret" type="number" name="retention_days" class="form-control" min="0" max="36500" value="{{ $workspace->retention_days }}" @disabled(!$canHold)></div>
                         <div class="col-sm-5">
-                            <select name="retention_action" class="form-control" aria-label="{{ exmtrans('file_server.retention_action') }}">
+                            <select name="retention_action" class="form-control" aria-label="{{ exmtrans('file_server.retention_action') }}" @disabled(!$canHold)>
                                 <option value="keep" @selected($workspace->retention_action !== 'delete')>{{ exmtrans('file_server.retention_keep') }}</option>
                                 <option value="delete" @selected($workspace->retention_action === 'delete')>{{ exmtrans('file_server.retention_delete') }}</option>
                             </select>
-                            <p class="help-block">{{ exmtrans('file_server.retention_help') }}</p>
+                            <p class="help-block">{{ exmtrans('file_server.retention_help') }}@if (!$canHold) {{ exmtrans('file_server.hold_admin_only') }}@endif</p>
                         </div>
                     </div>
                     <div class="form-group">
@@ -57,7 +58,7 @@
                     <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-8">
                             <label style="font-weight:normal;display:block"><input type="checkbox" name="watermark" value="1" @checked($workspace->watermark)> {{ exmtrans('file_server.watermark') }}</label>
-                            <label style="font-weight:normal;display:block"><input type="checkbox" name="legal_hold" value="1" @checked($workspace->legal_hold)> {{ exmtrans('file_server.legal_hold_workspace') }}</label>
+                            <label style="font-weight:normal;display:block"><input type="checkbox" name="legal_hold" value="1" @checked($workspace->legal_hold) @disabled(!$canHold)> {{ exmtrans('file_server.legal_hold_workspace') }}</label>
                             @if (isset($audit_url))
                                 <a href="{{ $audit_url }}"><i class="fa fa-history" aria-hidden="true"></i> {{ exmtrans('file_server.audit') }}</a>
                             @endif
