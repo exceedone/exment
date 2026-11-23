@@ -236,6 +236,9 @@ class SystemController extends AdminControllerBase
         $form->multipleSelect('allowed_locales', exmtrans('system.allowed_locales'))
             ->options(\Exceedone\Exment\Services\UserLocale::options())
             ->help(exmtrans('system.help.allowed_locales'));
+        $form->switchbool('locale_from_browser', exmtrans('system.locale_from_browser'))
+            ->default(1)
+            ->help(exmtrans('system.help.locale_from_browser'));
 
         $form->multipleSelect('header_user_info', exmtrans('system.header_user_info'))
             ->help(exmtrans('system.help.header_user_info'))

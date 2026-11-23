@@ -248,8 +248,11 @@ class UserLocale
     }
 
     /**
-     * Whether the language of the browser is used (config exment.locale_from_browser, EXMENT_LOCALE_FROM_BROWSER).
-     * Not set: yes, but not in the tests, whose client always sends "Accept-Language: en-us".
+     * Whether the language of the browser is used for a user who has not chosen one:
+     * the system setting "locale_from_browser" (System → Advanced, on by default).
+     * EXMENT_LOCALE_FROM_BROWSER (config exment.locale_from_browser), when set, wins over the setting.
+     * In the tests it is off unless a test asks for it (config exment.locale_from_browser_in_tests):
+     * their client sends "Accept-Language: en-us" with every request.
      */
     public static function useBrowserLanguage(): bool
     {
@@ -257,7 +260,15 @@ class UserLocale
         if (!is_null($value) && $value !== '') {
             return boolval($value);
         }
-        return !app()->runningUnitTests();
+        if (app()->runningUnitTests() && !boolval(config('exment.locale_from_browser_in_tests', false))) {
+            return false;
+        }
+        try {
+            return boolval(System::locale_from_browser());
+        } catch (\Throwable $ex) {
+            // before the installation (no database)
+            return true;
+        }
     }
 
     /**

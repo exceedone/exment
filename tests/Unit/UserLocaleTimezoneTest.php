@@ -45,12 +45,14 @@ class UserLocaleTimezoneTest extends UnitTestBase
             'app.timezone' => config('app.timezone'),
             'exment.locale' => config('exment.locale'),
             'exment.locale_from_browser' => config('exment.locale_from_browser'),
+            'exment.locale_from_browser_in_tests' => config('exment.locale_from_browser_in_tests'),
         ];
         $this->phpTimezoneBefore = date_default_timezone_get();
         $this->localeBefore = \App::getLocale();
 
-        // (the language of the browser is not used in the tests unless asked)
-        config(['exment.timezone' => static::SITE_TZ, 'app.timezone' => static::SITE_TZ, 'exment.locale' => 'ja', 'exment.locale_from_browser' => true]);
+        // the language of the browser as on a site (the tests leave it out unless asked); no env override
+        config(['exment.timezone' => static::SITE_TZ, 'app.timezone' => static::SITE_TZ, 'exment.locale' => 'ja',
+            'exment.locale_from_browser' => null, 'exment.locale_from_browser_in_tests' => true]);
         date_default_timezone_set(static::SITE_TZ);
         Carbon::setTestNow(Carbon::parse('2026-11-23 10:00:00', static::SITE_TZ));
         UserTimezone::setCurrent(null);
@@ -110,11 +112,43 @@ class UserLocaleTimezoneTest extends UnitTestBase
         $this->assertSame('en', UserLocale::resolve($other->id, $this->makeRequest(null, 'fr,en;q=0.5')), 'then the browser');
         $this->assertSame('ja', UserLocale::resolve($other->id, $this->makeRequest(null, 'fr')), 'then the site');
         $this->assertSame('ja', UserLocale::resolve(null, null));
+    }
 
-        // EXMENT_LOCALE_FROM_BROWSER=false: not the browser
-        config(['exment.locale_from_browser' => false]);
-        $this->assertSame('ja', UserLocale::resolve($other->id, $this->makeRequest(null, 'en')));
-        config(['exment.locale_from_browser' => true]);
+    /**
+     * The system setting "Use the browser's language when a user has not chosen one": on by default.
+     * EXMENT_LOCALE_FROM_BROWSER wins over it when set.
+     */
+    public function testBrowserLanguageSetting(): void
+    {
+        $other = $this->getUser(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->setUserSetting($other->id, []);
+        $english = $this->makeRequest(null, 'en-US,en;q=0.9');
+
+        // default: on → an English browser on a ja site gets English
+        System::where('system_name', 'locale_from_browser')->delete();
+        System::clearCache();
+        $this->assertTrue(UserLocale::useBrowserLanguage());
+        $this->assertSame('en', UserLocale::resolve($other->id, $english));
+
+        // off → the language of the site
+        System::locale_from_browser(false);
+        System::clearCache();
+        try {
+            $this->assertSame('ja', UserLocale::resolve($other->id, $english));
+            // the env wins over the setting
+            config(['exment.locale_from_browser' => true]);
+            $this->assertSame('en', UserLocale::resolve($other->id, $english));
+        } finally {
+            config(['exment.locale_from_browser' => null]);
+            System::locale_from_browser(true);
+            System::clearCache();
+        }
+    }
+
+    public function testAllowedLocales(): void
+    {
+        $user = $this->getUser(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->setUserSetting($user->id, ['locale' => 'en']);
 
         // a language the administrator does not allow is not used
         System::allowed_locales(['ja']);
