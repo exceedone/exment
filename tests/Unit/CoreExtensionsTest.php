@@ -17,6 +17,18 @@ use Exceedone\Exment\Services\TablePolicy;
  */
 class CoreExtensionsTest extends UnitTestBase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // an application on Exment (exment-saas) registers its own when it boots
+        CoreExtensions::reset();
+        TablePolicy::reset();
+        ScreenExtensions::reset();
+        Permission::resetEndpoints();
+        \Exceedone\Exment\Exment::resolveVersionUsing(null);
+        \Exceedone\Exment\Exment::versionUpdateUrlUsing(null);
+    }
+
     protected function tearDown(): void
     {
         CoreExtensions::reset();
