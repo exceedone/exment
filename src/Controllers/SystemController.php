@@ -366,6 +366,8 @@ class SystemController extends AdminControllerBase
         $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
+        \Exceedone\Exment\Services\ScreenExtensions::call('system.advanced', $form);
+
         return $form;
     }
 
@@ -494,6 +496,23 @@ class SystemController extends AdminControllerBase
     // }
 
     /**
+     * The values of the settings whose change reloads the whole page ('reload' => true in
+     * their definition, CoreExtensions::addSystemSettings()).
+     *
+     * @return array<string, mixed>
+     */
+    protected static function reloadSettingValues(): array
+    {
+        $values = [];
+        foreach (\Exceedone\Exment\Services\CoreExtensions::systemSettings() as $name => $setting) {
+            if (boolval(array_get($setting, 'reload'))) {
+                $values[$name] = System::{$name}();
+            }
+        }
+        return $values;
+    }
+
+    /**
      * Send data
      *
      * @param Request $request
@@ -504,6 +523,7 @@ class SystemController extends AdminControllerBase
     {
         $advanced = $request->has('advanced');
         $lookBefore = static::screenLook();
+        $reloadBefore = static::reloadSettingValues();
 
         // validation
         $form = $advanced ? $this->formAdvanced($request) : $this->formBasic($request);
@@ -531,7 +551,7 @@ class SystemController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             System::clearCache();
-            if (static::screenLook() !== $lookBefore) {
+            if (static::screenLook() !== $lookBefore || static::reloadSettingValues() !== $reloadBefore) {
                 session()->flash(static::SESSION_KEY_RELOAD_PAGE, true);
             }
 

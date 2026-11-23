@@ -418,6 +418,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
+            if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($model->custom_table?->table_name))) {
+                $policy->savingColumn($model);
+            }
             // The name goes into SQL (JSON paths, generated index columns). The
             // screens check it; a template or an import saves without them, so
             // a new or changed name is checked here too.
@@ -703,6 +706,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      */
     public function createSelectOptions()
     {
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($this->custom_table?->table_name)) && !is_null($options = $policy->selectOptions($this))) {
+            return $options;
+        }
         // get value
         $column_type = array_get($this, 'column_type');
         $column_options = array_get($this, 'options');

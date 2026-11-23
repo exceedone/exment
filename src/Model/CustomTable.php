@@ -3309,6 +3309,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function hasPermission($role_key = Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
     {
+        // the rule of an application for this table (TablePolicy)
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($this->table_name)) && !is_null($decided = $policy->hasPermission($this, $role_key))) {
+            return $decided;
+        }
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
@@ -3396,6 +3400,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function hasPermissionData($id)
     {
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($this->table_name)) && !is_null($decided = $policy->hasPermissionData($this, $id))) {
+            return $decided;
+        }
         $result = $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
 
         // check parent data permission
@@ -3427,6 +3434,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function hasPermissionEditData($id)
     {
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($this->table_name)) && !is_null($decided = $policy->hasPermissionEditData($this, $id))) {
+            return $decided;
+        }
         return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_EDIT_CUSTOM_VALUE, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
 

@@ -686,6 +686,9 @@ class DefaultGrid extends GridBase
                 }
             }
 
+            // the buttons of an application (ScreenExtensions data_grid.tools)
+            \Exceedone\Exment\Services\ScreenExtensions::call('data_grid.tools', $tools, $this->custom_table, $this->custom_view);
+
             if ($this->custom_table->enableViewMenuButton()) {
                 /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
                 $tools->append((new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view))->gridTool());

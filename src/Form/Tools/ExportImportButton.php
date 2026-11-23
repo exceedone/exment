@@ -294,33 +294,36 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         if ($this->import_flg) {
+            $items = [
+                [
+                    'icon' => 'fa-download',
+                    'header' => exmtrans('custom_value.template'),
+                    'description' => exmtrans('custom_value.help.template'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => $this->endpoint . "?_export_=all&temp=1&format=$key"], $format);
+                    })->toArray(),
+                ],
+                [
+                    'icon' => 'fa-upload',
+                    'header' => exmtrans('common.import'),
+                    'description' => exmtrans("$base_key.help.import"),
+                    'buttons' => [
+                        [
+                            'label' => exmtrans('common.import'),
+                            'icon' => 'fa-upload',
+                            'url' => '#',
+                            'attributes' => \Exment::formatAttributes([
+                                'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
+                            ]),
+                        ]
+                    ],
+                ],
+            ];
+            // the import items of an application (ScreenExtensions import.items)
+            $items = \Exceedone\Exment\Services\ScreenExtensions::filter('import.items', $items, $this->custom_table);
             $groups[] = [
                 'header' => exmtrans('common.import'),
-                'items' => [
-                    [
-                        'icon' => 'fa-download',
-                        'header' => exmtrans('custom_value.template'),
-                        'description' => exmtrans('custom_value.help.template'),
-                        'buttons' => collect($formats)->map(function ($format, $key) {
-                            return array_merge(['href' => $this->endpoint . "?_export_=all&temp=1&format=$key"], $format);
-                        })->toArray(),
-                    ],
-                    [
-                        'icon' => 'fa-upload',
-                        'header' => exmtrans('common.import'),
-                        'description' => exmtrans("$base_key.help.import"),
-                        'buttons' => [
-                            [
-                                'label' => exmtrans('common.import'),
-                                'icon' => 'fa-upload',
-                                'url' => '#',
-                                'attributes' => \Exment::formatAttributes([
-                                    'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
-                                ]),
-                            ]
-                        ],
-                    ],
-                ]
+                'items' => $items,
             ];
         }
 
