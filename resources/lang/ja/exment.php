@@ -715,6 +715,12 @@ return [
                 'explain' => 'デバッグモードでは、エラーの詳しい中身が画面に出ます。本番では OFF にします。',
                 'warning' => 'デバッグモードが ON です。',
             ],
+            'display_errors' => [
+                'label' => 'PHP のエラー表示（display_errors）',
+                'explain' => 'Exment が受け取る前に起きた PHP のエラーが、ファイルの場所といっしょに画面に出ます。本番では Off にします。レンタルサーバーでは、ドメインの php.ini で On になっていることがあります。',
+                'warning' => 'PHP の display_errors が On です。',
+                'fix' => "php.ini（レンタルサーバーでは、管理画面の「php.ini 設定」）か、:public/.user.ini に次の行を書いてください。\ndisplay_errors = Off",
+            ],
             'app_key' => [
                 'label' => 'アプリケーションキー（APP_KEY）',
                 'explain' => '暗号化とセッションの署名に使うキーです。サイトごとに作った値が要ります。',
@@ -842,7 +848,7 @@ return [
             'config_cache' => [
                 'label' => '設定のキャッシュ（config:cache）',
                 'explain' => '設定ファイルを 1 つにまとめ、リクエストごとの読み込みを減らします。Exment が .env を書きかえたとき（インストール・リストアなど）は、キャッシュを自動で消します。ルートのキャッシュ（route:cache）は、プラグインの画面が開けなくなるため使いません。',
-                'warning' => '設定のキャッシュがありません。下のボタンか、次のコマンドで作れます。.env を手で書きかえたときは、もう一度作ってください。',
+                'warning' => '設定のキャッシュがありません。次のコマンドか、「チューニング」の画面のボタンで作れます（セットアップのときは、「Exment が自分で入れられる設定」のチェックでも作れます）。.env を手で書きかえたときは、もう一度作ってください。',
             ],
             'composer_autoload' => [
                 'label' => 'クラスの読み込みの最適化（composer）',
@@ -895,7 +901,8 @@ return [
             'php_fpm' => [
                 'label' => 'PHP-FPM のプロセス',
                 'explain' => 'pm = ondemand で待ち時間（pm.process_idle_timeout）が短いと、しばらく使われなかったあとの 1 回目が、プロセスを起こす分だけ遅くなります。pm.max_children は、サーバーのメモリに合わせます。',
-                'not_found' => 'PHP-FPM の設定ファイルが見つかりません（PHP-FPM を使っていないときは関係ありません）',
+                'not_read' => 'PHP-FPM の設定を読めませんでした（レンタルサーバーなどでは、サーバーの管理画面かサーバーの管理者に確認してください）',
+                'not_used' => 'このサイトの PHP は PHP-FPM ではありません（関係ありません）',
                 'memory' => 'メモリ :memory MB・max_children の合計 :children',
                 'warning_idle' => 'プロセスをすぐ止める設定のプールがあります（:pools）。よく使うサイトは dynamic にするか、待ち時間を長くしてください。',
                 'warning_many' => 'max_children の合計が、サーバーのメモリに対して多すぎます。混んだときにメモリが足りなくなります。',
@@ -4917,6 +4924,10 @@ return [
         'security_badge' => 'セキュリティ修正',
         'header' => '無料の公式プラグイン（Exment に同梱）',
         'help' => 'Exment と一緒に届いている公式プラグインです。「使う」を押すまでは、インストールも読み込みもしません（テーブルも作りません）。新しいバージョンがあるときは、お知らせだけします（自動では入れません）。',
+        'help_plugin_page' => '「使う」を押すと、プラグインの画面にも出るようになります。設定はプラグインの画面でします。',
+        'help_updates' => '新しいバージョンは、Exment を更新すると一緒に届きます。',
+        'help_upload' => 'すぐに最新にしたいときは、公開している場所から zip をダウンロードして、プラグインの画面でアップロードします。この方法では署名を確かめず、前のバージョンも残しません。',
+        'help_release_link' => '公開している場所',
         'version' => 'バージョン',
         'installed_version' => 'このサイト: :version',
         'status_not_installed' => 'まだ使っていません。',

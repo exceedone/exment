@@ -715,6 +715,12 @@ return [
                 'explain' => 'In debug mode the details of an error are shown on the page. Turn it off on a live site.',
                 'warning' => 'Debug mode is on.',
             ],
+            'display_errors' => [
+                'label' => 'PHP error display (display_errors)',
+                'explain' => 'A PHP error that happens before Exment gets it is shown on the page, with the paths of the files. Turn it off on a live site. Some rental servers turn it on in the php.ini of the domain.',
+                'warning' => 'PHP display_errors is On.',
+                'fix' => "Write this line in php.ini (on a rental server, its php.ini setting in the control panel) or in :public/.user.ini:\ndisplay_errors = Off",
+            ],
             'app_key' => [
                 'label' => 'Application key (APP_KEY)',
                 'explain' => 'The key for encryption and for signing the session. Each site needs its own.',
@@ -842,7 +848,7 @@ return [
             'config_cache' => [
                 'label' => 'Config cache (config:cache)',
                 'explain' => 'Puts the config files into one file, read once per request. When Exment writes .env (install, restore), it removes the cache itself. The route cache (route:cache) is not used: the pages of plugins would not open.',
-                'warning' => 'There is no config cache. Make it with the button below or with this command. After changing .env by hand, make it again.',
+                'warning' => 'There is no config cache. Make it with this command or with the button of the Tuning page (at the setup, also with the checkbox of "Settings Exment can make by itself"). After changing .env by hand, make it again.',
             ],
             'composer_autoload' => [
                 'label' => 'Optimized class loading (composer)',
@@ -895,7 +901,8 @@ return [
             'php_fpm' => [
                 'label' => 'PHP-FPM processes',
                 'explain' => 'With pm = ondemand and a short pm.process_idle_timeout, the first request after a quiet time waits for a new process. pm.max_children should fit the memory of the server.',
-                'not_found' => 'No file of PHP-FPM was found (nothing to do when PHP-FPM is not used)',
+                'not_read' => 'Could not read the PHP-FPM settings (on a rental server, see its control panel or ask the server administrator)',
+                'not_used' => 'The PHP of this site is not PHP-FPM (nothing to do)',
                 'memory' => 'memory :memory MB, max_children in all :children',
                 'warning_idle' => 'Some pools stop their processes soon (:pools). For a site used often, use dynamic or a longer idle time.',
                 'warning_many' => 'max_children in all is too many for the memory of the server; it runs out of memory when busy.',
@@ -4918,6 +4925,10 @@ return [
         'security_badge' => 'Security fix',
         'header' => 'Free official plugins (bundled with Exment)',
         'help' => 'The official plugins that come with Exment. Nothing is installed or loaded (no tables are made) until you press "Use". When a newer version is there, it is only shown (never installed by itself).',
+        'help_plugin_page' => 'After you press "Use", the plugin is also shown in the Plugins page. Its settings are made there.',
+        'help_updates' => 'Newer versions come when Exment is updated.',
+        'help_upload' => 'To get the newest version at once, download the zip from the place where it is published, and upload it in the Plugins page. This way, the signature is not checked and the previous version is not kept.',
+        'help_release_link' => 'Where it is published',
         'version' => 'Version',
         'installed_version' => 'This site: :version',
         'status_not_installed' => 'Not used yet.',
