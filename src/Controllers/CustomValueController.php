@@ -371,7 +371,7 @@ class CustomValueController extends AdminControllerTableBase
                 $this->filterCopyColumn($form->model());
             })->replicate($model);
             admin_info(
-                exmtrans('custom_copy.copy_from.button', $copy->from_custom_table->table_view_name),
+                exmtrans('custom_copy.copy_from.button'),
                 exmtrans('custom_copy.copy_from.message', esc_html($copy->from_custom_table->table_view_name), esc_html($from_custom_value->getLabel()))
             );
         } elseif (!is_null($copy_id = $request->get('copy_id'))) {

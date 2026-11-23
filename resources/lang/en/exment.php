@@ -3885,7 +3885,7 @@ return [
 
         'help' => [
             'to_custom_table_view_name' => 'Please select copy target table.',
-            'use_on_create' => 'When on, the create form of the copy-to table has a "Copy from ..." button. With it the user searches the list of this table, picks a record, and starts from its values. Nothing is saved until the user saves.',
+            'use_on_create' => 'When on, the create form of the copy-to table has a "Copy from" button. With it the user searches the list of this table, picks a record, and starts from its values. Nothing is saved until the user saves.',
             'child_copy' => 'Copy the child table data linked to the target data together. Data copy settings between child tables registered in advance (those without input dialog settings) are displayed as candidates.',
         ],
 
@@ -3898,7 +3898,8 @@ return [
         ],
 
         'copy_from' => [
-            'button' => 'Copy from %s',
+            'button' => 'Copy from',
+            'button_table' => 'Copy from %s',
             'message' => 'The values of "%2$s" of %1$s were copied. Change what you need, then save.',
         ],
 

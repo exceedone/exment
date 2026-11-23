@@ -707,7 +707,10 @@ EOT;
                     $from_table = $copy->from_custom_table;
                     $target_class = 'copy_from_target_' . $copy->suuid;
                     $tools->append(view('exment::tools.copy-from-button', [
-                        'label' => exmtrans('custom_copy.copy_from.button', $from_table->table_view_name),
+                        // one source: just "Copy from"; several: say which table
+                        'label' => count($copies) > 1
+                            ? exmtrans('custom_copy.copy_from.button_table', $from_table->table_view_name)
+                            : exmtrans('custom_copy.copy_from.button'),
                         'target_class' => $target_class,
                         // the picked record id is put after this
                         'url' => admin_urls_query('data', $custom_table->table_name, 'create', ['copy_from' => $copy->suuid]) . '&copy_from_id=',
