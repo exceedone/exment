@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Validator\ImageRule;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Model\CustomColumn;
@@ -195,28 +196,24 @@ class FileController extends AdminControllerBase
             return response('', 404);
         }
 
+        $accessResponse = static::authorizeFileView($data, $options);
+        if ($accessResponse !== true) {
+            return $accessResponse;
+        }
+
         $path = $data->path;
-        $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
+        try {
+            $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
+        } catch (\Exception $e) {
+            \Log::warning('FileController::downloadFile - storage check failed: ' . $e->getMessage(), ['path' => $path]);
+            $exists = false;
+        }
 
         if (!$exists) {
             if ($options['asApi']) {
                 return abortJson(404, ErrorCode::DATA_NOT_FOUND());
             }
             return response('', 404);
-        }
-
-        // if has parent_id, check permission
-        if (isset($data->parent_id) && isset($data->parent_type)) {
-            // The table named here can be gone while its files are not, and
-            // then getEloquent() answers null: asking it for a permission was
-            // a fatal error, so the download answered 500 instead of anything.
-            $custom_table = CustomTable::getEloquent($data->parent_type);
-            if (isset($custom_table) && !$custom_table->hasPermissionData($data->parent_id)) {
-                if ($options['asApi']) {
-                    return abortJson(403, ErrorCode::PERMISSION_DENY());
-                }
-                return response('', 403);
-            }
         }
 
         $disk = Storage::disk(config('admin.upload.disk'));
@@ -641,6 +638,44 @@ class FileController extends AdminControllerBase
         return true;
     }
 
+    /**
+     * Whether the user may view the file: the read permission on its row, or, for a file
+     * without a row, a login unless it is shown on the public pages (system images, public
+     * forms, form images). A table that is gone is a refusal.
+     *
+     * @param File $data
+     * @param array<string, mixed> $options
+     * @return true|\Symfony\Component\HttpFoundation\Response
+     */
+    protected static function authorizeFileView($data, array $options = [])
+    {
+        $options = array_merge(['asApi' => false], $options);
+
+        if (isset($data->parent_id) && isset($data->parent_type)) {
+            $customTable = CustomTable::getEloquent($data->parent_type);
+            if (!$customTable || !$customTable->hasPermissionData($data->parent_id)) {
+                if ($options['asApi']) {
+                    return abortJson(403, ErrorCode::PERMISSION_DENY());
+                }
+                return response('', 403);
+            }
+            return true;
+        }
+
+        $publicFileTypes = [
+            FileType::SYSTEM,
+            FileType::PUBLIC_FORM,
+            FileType::CUSTOM_FORM_COLUMN,
+        ];
+        if (!in_array((string) $data->file_type, $publicFileTypes, true) && is_null(\Exment::user())) {
+            if ($options['asApi']) {
+                return abortJson(403, ErrorCode::PERMISSION_DENY());
+            }
+            return response('', 403);
+        }
+
+        return true;
+    }
 
     /**
      * Whether this file downloads as inline
