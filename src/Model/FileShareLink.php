@@ -7,7 +7,8 @@ namespace Exceedone\Exment\Model;
  * takes files from them into a folder (ISS00377, phase 3).
  *
  * @property int $id
- * @property string $token
+ * @property string $token the sha256 of the token of the url (the token itself is not kept)
+ * @property string|null $token_encrypted the token, encrypted with the app key, to show the url again
  * @property int $workspace_id
  * @property int $node_id
  * @property string $kind share, request
@@ -89,8 +90,46 @@ class FileShareLink extends ModelBase
         return !isset($this->revoked_at) && !$this->isExpired() && !$this->isUsedUp();
     }
 
-    public function url(): string
+    /** @var string|null the token of the url, when known (made now, or opened with it) */
+    protected $plainToken;
+
+    /**
+     * What is kept of a token: its sha256. The url has the token itself.
+     */
+    public static function hashToken(string $token): string
     {
-        return url()->to(url_join(\Exceedone\Exment\Services\FileServer\ShareLinks::basePath(), $this->token));
+        return hash('sha256', $token);
+    }
+
+    public function setPlainToken(string $token): self
+    {
+        $this->plainToken = $token;
+        return $this;
+    }
+
+    /**
+     * The token of the url: the one this link was made or opened with, else the
+     * encrypted copy (null when the app key changed since: the link still opens,
+     * its url is not shown again).
+     */
+    public function plainToken(): ?string
+    {
+        if (isset($this->plainToken)) {
+            return $this->plainToken;
+        }
+        if (!isset($this->token_encrypted)) {
+            return null;
+        }
+        try {
+            return $this->plainToken = \Illuminate\Support\Facades\Crypt::decryptString($this->token_encrypted);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    public function url(): ?string
+    {
+        $token = $this->plainToken();
+        return isset($token) ? url()->to(url_join(\Exceedone\Exment\Services\FileServer\ShareLinks::basePath(), $token)) : null;
     }
 }

@@ -7,6 +7,11 @@ use Exceedone\Exment\Enums\SystemRequireResult;
 /**
  * The session cookie: httponly, samesite lax or strict, and secure on an https site.
  * Secure is fixed only on https: on http it would stop every sign-in.
+ *
+ * SESSION_SECURE_COOKIE not set (the default of Laravel): the cookie is secure on a
+ * request over https. On the page (a request over https) that is enough; where it
+ * cannot be told (the command line, a proxy that PHP does not see as https), it is
+ * still asked for.
  */
 class SessionCookieSecurity extends SecurityBase
 {
@@ -30,10 +35,27 @@ class SessionCookieSecurity extends SecurityBase
         if (!in_array($sameSite, ['lax', 'strict'], true)) {
             $wanted['SESSION_SAME_SITE'] = 'lax';
         }
-        if (HttpsSecurity::isHttps() && !boolval(config('session.secure'))) {
+        if (HttpsSecurity::isHttps() && !static::secure()) {
             $wanted['SESSION_SECURE_COOKIE'] = 'true';
         }
         return $wanted;
+    }
+
+    /**
+     * Whether the session cookie is sent only over https: SESSION_SECURE_COOKIE, or when
+     * it is not set, whether this request is over https (the cookie is secure then).
+     */
+    public static function secure(): bool
+    {
+        $secure = config('session.secure');
+        if (!is_null($secure)) {
+            return boolval($secure);
+        }
+        try {
+            return request()->isSecure();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function checkResult(): string
@@ -45,7 +67,7 @@ class SessionCookieSecurity extends SecurityBase
     {
         return sprintf(
             'secure=%s, httponly=%s, samesite=%s',
-            boolval(config('session.secure')) ? 'true' : 'false',
+            (static::secure() ? 'true' : 'false') . (is_null(config('session.secure')) ? ' (auto)' : ''),
             boolval(config('session.http_only', true)) ? 'true' : 'false',
             strval(config('session.same_site')) ?: '-'
         );
