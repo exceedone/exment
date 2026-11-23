@@ -227,7 +227,9 @@ abstract class ViewFilterBase
         });
 
         // a date and time is compared as a time of the user ("today" etc. are the days of the user, ISS02835)
-        if ($this->column_item->isDateTime() && UserTimezone::differs()) {
+        // (some conditions, the workflow ones, have no column item)
+        // @phpstan-ignore-next-line
+        if (isset($this->column_item) && $this->column_item->isDateTime() && UserTimezone::differs()) {
             $value = $value->map(function ($value) {
                 return UserTimezone::localString($value);
             });
