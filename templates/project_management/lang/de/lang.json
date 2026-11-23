@@ -1,0 +1,144 @@
+{
+    "template_view_name": "Projekt-/Aufgabenverwaltung",
+    "description": "Verwalten Sie Projekte und Aufgaben.",
+    "custom_tables": [
+        {
+            "table_name": "project",
+            "table_view_name": "Projektverwaltung",
+            "description": "Verwalten Sie Projekte.",
+            "custom_columns": [
+                {
+                    "column_name": "project_code",
+                    "column_view_name": "Projektcode",
+                    "options": {
+                        "true_label": "Ja",
+                        "false_label": "Nein"
+                    }
+                },
+                {
+                    "column_name": "project_name",
+                    "column_view_name": "Projektname",
+                    "options": {
+                        "true_label": "Ja",
+                        "false_label": "Nein"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "task",
+            "table_view_name": "Aufgabenverwaltung",
+            "description": "Verwalten Sie tägliche Aufgaben.",
+            "custom_columns": [
+                {
+                    "column_name": "task_name",
+                    "column_view_name": "Aufgabenname",
+                    "options": {
+                        "true_label": "Ja",
+                        "false_label": "Nein"
+                    }
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "Beschreibung",
+                    "options": {
+                        "true_label": "Ja",
+                        "false_label": "Nein"
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Status",
+                    "options": {
+                        "true_label": "Ja",
+                        "false_label": "Nein",
+                        "select_item_valtext": "1,Neu\r\n2,In Bearbeitung\r\n90,Abgeschlossen\r\n91,Zurückgestellt\r\n97,Nicht unterstützt"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "Priorität",
+                    "options": {
+                        "true_label": "Ja",
+                        "false_label": "Nein",
+                        "select_item_valtext": "1,Niedrig\r\n2,Normal\r\n3,Hoch\r\n4,Dringend\r\n5,Sehr dringend"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Startdatum",
+                    "options": {
+                        "true_label": "Ja",
+                        "false_label": "Nein"
+                    }
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Enddatum",
+                    "options": {
+                        "true_label": "Ja",
+                        "false_label": "Nein"
+                    }
+                },
+                {
+                    "column_name": "charge_user",
+                    "column_view_name": "Zuständiger Benutzer",
+                    "options": {
+                        "true_label": "Ja",
+                        "false_label": "Nein"
+                    }
+                },
+                {
+                    "column_name": "complete_flg",
+                    "column_view_name": "Erledigt",
+                    "options": {
+                        "help": "Wählen Sie [Ja], wenn die Aufgabe erledigt ist.",
+                        "true_label": "Ja",
+                        "false_label": "Nein"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "a0ce41d5d7816f0aab70",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "d31c7b1ade9a4574fcfb",
+            "form_view_name": "Formular"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "7ef66a7fdef45f094079",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "204a26c2f5f8061cd30f",
+            "view_view_name": "Offene Aufgaben"
+        },
+        {
+            "suuid": "356404ddc4d26620fa13",
+            "view_view_name": "Alle Aufgaben"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Projektverwaltung",
+            "menu_type": "parent_node",
+            "menu_name": "project_management"
+        },
+        {
+            "title": "Projekt",
+            "menu_type": "table",
+            "menu_name": "project"
+        },
+        {
+            "title": "Aufgabenverwaltung",
+            "menu_type": "table",
+            "menu_name": "task"
+        }
+    ]
+}

@@ -1,0 +1,281 @@
+{
+    "template_view_name": "Vertriebs-Paket",
+    "description": "Kunden (mit Ansprechpartnern), Verkaufschancen, Angebote (mit Positionen) und Verträge, eine Vertriebs-Rollengruppe und ein Menü „Vertrieb & Kunden“.",
+    "custom_tables": [
+        {
+            "table_name": "sales_customer",
+            "table_view_name": "Kunden",
+            "description": "Kunden und Interessenten. Die Ansprechpartner werden in den Positionen erfasst.",
+            "custom_columns": [
+                {
+                    "column_name": "customer_name",
+                    "column_view_name": "Kunde"
+                },
+                {
+                    "column_name": "customer_type",
+                    "column_view_name": "Art",
+                    "options": {
+                        "select_item_valtext": "prospect,Interessent\ncustomer,Kunde\nformer,Ehemaliger Kunde"
+                    }
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "Postleitzahl"
+                },
+                {
+                    "column_name": "address",
+                    "column_view_name": "Adresse"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "Telefon"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "E-Mail"
+                },
+                {
+                    "column_name": "url",
+                    "column_view_name": "Website"
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Verantwortlich"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_customer_contact",
+            "table_view_name": "Ansprechpartner",
+            "description": "Die Personen beim Kunden.",
+            "custom_columns": [
+                {
+                    "column_name": "contact_name",
+                    "column_view_name": "Name"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Abteilung"
+                },
+                {
+                    "column_name": "title",
+                    "column_view_name": "Titel"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "Telefon"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "E-Mail"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_deal",
+            "table_view_name": "Verkaufschancen",
+            "description": "Verfolgen Sie jede Verkaufschance nach Phase und erwartetem Betrag.",
+            "custom_columns": [
+                {
+                    "column_name": "deal_name",
+                    "column_view_name": "Verkaufschance"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Kunde"
+                },
+                {
+                    "column_name": "stage",
+                    "column_view_name": "Phase",
+                    "options": {
+                        "select_item_valtext": "lead,Lead\nproposal,Vorschlag\nquote,Angebot\nwon,Gewonnen\nlost,Verloren"
+                    }
+                },
+                {
+                    "column_name": "expected_amount",
+                    "column_view_name": "Erwarteter Betrag"
+                },
+                {
+                    "column_name": "expected_date",
+                    "column_view_name": "Erwarteter Abschluss"
+                },
+                {
+                    "column_name": "probability",
+                    "column_view_name": "Wahrscheinlichkeit",
+                    "options": {
+                        "select_item_valtext": "a,A (fast sicher)\nb,B (50:50)\nc,C (gering)"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Verantwortlich"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Details"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote",
+            "table_view_name": "Angebote",
+            "description": "Angebote und ihre Positionen.",
+            "custom_columns": [
+                {
+                    "column_name": "quote_title",
+                    "column_view_name": "Betreff"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Kunde"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Verkaufschance"
+                },
+                {
+                    "column_name": "quote_date",
+                    "column_view_name": "Angebotsdatum"
+                },
+                {
+                    "column_name": "valid_until",
+                    "column_view_name": "Gültig bis"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "Summe"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote_detail",
+            "table_view_name": "Angebotspositionen",
+            "description": "Eine Position eines Angebots.",
+            "custom_columns": [
+                {
+                    "column_name": "item_name",
+                    "column_view_name": "Artikel"
+                },
+                {
+                    "column_name": "quantity",
+                    "column_view_name": "Menge"
+                },
+                {
+                    "column_name": "unit",
+                    "column_view_name": "Einheit"
+                },
+                {
+                    "column_name": "unit_price",
+                    "column_view_name": "Einzelpreis"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Betrag"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_contract",
+            "table_view_name": "Verträge",
+            "description": "Verträge und ihre Bedingungen.",
+            "custom_columns": [
+                {
+                    "column_name": "contract_name",
+                    "column_view_name": "Vertrag"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Kunde"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Verkaufschance"
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "Vertragsdatum"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Startdatum"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Enddatum"
+                },
+                {
+                    "column_name": "auto_renewal",
+                    "column_view_name": "Automatische Verlängerung"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Betrag"
+                },
+                {
+                    "column_name": "document",
+                    "column_view_name": "Vertragsdokument"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0858ef1666946ae5f31e",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "1e9cf01d6433f6d1e818",
+            "form_view_name": "Formular"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Vertrieb & Kunden",
+            "menu_type": "parent_node",
+            "menu_name": "sales"
+        },
+        {
+            "title": "Kunden",
+            "menu_type": "table",
+            "menu_name": "sales_customer"
+        },
+        {
+            "title": "Verkaufschancen",
+            "menu_type": "table",
+            "menu_name": "sales_deal"
+        },
+        {
+            "title": "Angebote",
+            "menu_type": "table",
+            "menu_name": "sales_quote"
+        },
+        {
+            "title": "Verträge",
+            "menu_type": "table",
+            "menu_name": "sales_contract"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "sales_member_group",
+            "role_group_view_name": "Vertrieb",
+            "description": "Personen, die Kunden, Verkaufschancen, Angebote und Verträge sehen, anlegen und bearbeiten."
+        }
+    ]
+}

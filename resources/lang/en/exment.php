@@ -227,7 +227,7 @@ return [
             'max_file_size_link' => 'File upload upper limit size change.',
             'max_file_size' => 'This is the size limit when uploading files from the page.Please execute<a href="%s" target="_blank">this<i class="fa fa-external-link"></i></a>to change.',
             'import' => 'Displays a dialog for executing import.',
-            'import_max_row_count' => 'Up to :count data items can be imported at one time. For data with more than that number, split and upload.',
+            'import_max_row_count' => 'Up to :count data items can be imported at one time. For more data than that, split it and upload it in parts, or use <a href=":manual" target="_blank">bulk data import<i class="fa fa-external-link"></i></a>.',
             'init_flg' => 'Cannot edit after save.',
             'more_help' => '<span class="red">For a detailed explanation, click the "?" Icon at the top right of the page and check the manual.</span>',
             'more_help_here' => 'Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
@@ -349,7 +349,7 @@ return [
         'duplicate_relation' => 'The table is already associated.',
         'filename_not_allow' => 'A prohibited character is used in :attribute. Please change the file name and try again.',
 
-        'not_match' => 'The value of :attribute1 and the value of :attribute1 are different.',
+        'not_match' => 'The value of :attribute1 and the value of :attribute2 are different.',
         'not_notmatch' => ':attribute1 and :attribute2 must have different values.',
         'not_gt' => 'The value for :attribute1 must be greater than the value for :attribute2.',
         'not_gte' => 'The value for :attribute1 must be greater than or equal to the value for :attribute2.',
@@ -1016,7 +1016,7 @@ return [
         'dashboard_name' => 'Dashboard Name',
         'dashboard_view_name' => 'Dashboard View Name',
         'dashboard_type' => 'Dashboard Type',
-        'row' => 'Dashboard Row',
+        'row' => 'Dashboard Row %s',
         'description_row' => 'The number of columns to display on the %s row of the dashboard.',
         'description_row2' => 'The number of columns to display on the %s row of the dashboard. *If you select "None", the %s row is not displayed.',
         'row_height' => 'Dashboard Row %s Max Height(px)',
@@ -1533,7 +1533,7 @@ return [
         ],
 
         'message' => [
-            'not_install_library' => '*:The library to execute name is not set. <a href=":url" target="_blank">Follow the steps below<i class="fa fa-external-link"></i></a> to install.',
+            'not_install_library' => '*The library to execute :name is not set. <a href=":url" target="_blank">Follow the steps below<i class="fa fa-external-link"></i></a> to install.',
             'login_provider_caution' => '*First, additional settings for OAuth login are required. <a href=":url" target="_blank">Follow the steps below<i class="fa fa-external-link"></i></a> to install.',
             'login_test_description' => 'Test the login with the set login information.<br />We recommend performing a login test before activating the login settings. <br>*If the setting value has been changed, save it first and then perform the test.',
             'not_match_mapping' => 'The :mappingKey specified in the Exment field :key was not included in the field from the provider.',

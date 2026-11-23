@@ -1,0 +1,227 @@
+{
+    "template_view_name": "资产包",
+    "description": "资产（含二维码）、资产申请（采购、调拨、报废，含审批）、盘点（含明细）和借用，以及资产角色组和“资产”菜单。",
+    "custom_tables": [
+        {
+            "table_name": "asset_item",
+            "table_view_name": "资产",
+            "description": "电脑、家具、设备和用品。在每项资产上贴二维码，扫码即可打开记录。",
+            "custom_columns": [
+                {
+                    "column_name": "asset_no",
+                    "column_view_name": "资产编号"
+                },
+                {
+                    "column_name": "asset_name",
+                    "column_view_name": "名称"
+                },
+                {
+                    "column_name": "category",
+                    "column_view_name": "类别",
+                    "options": {
+                        "select_item_valtext": "it,电脑与IT\nfurniture,家具与器具\nequipment,设备与机器\nvehicle,车辆\nsupply,用品\nother,其他"
+                    }
+                },
+                {
+                    "column_name": "location",
+                    "column_view_name": "存放地点"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "管理部门"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "使用人"
+                },
+                {
+                    "column_name": "purchase_date",
+                    "column_view_name": "购买日期"
+                },
+                {
+                    "column_name": "purchase_price",
+                    "column_view_name": "购买价格"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "状态",
+                    "options": {
+                        "select_item_valtext": "in_use,使用中\nstock,在库\nlending,借出中\nrepair,维修中\ndisposed,已报废"
+                    }
+                },
+                {
+                    "column_name": "photo",
+                    "column_view_name": "照片"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_request",
+            "table_view_name": "资产申请",
+            "description": "资产的采购、调拨或报废申请，通过工作流审批。",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "标题"
+                },
+                {
+                    "column_name": "request_type",
+                    "column_view_name": "类型",
+                    "options": {
+                        "select_item_valtext": "purchase,采购\ntransfer,调拨\ndisposal,报废"
+                    }
+                },
+                {
+                    "column_name": "asset",
+                    "column_view_name": "资产"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "金额"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "期望日期"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "理由"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake",
+            "table_view_name": "盘点",
+            "description": "盘点记录。每项资产的结果记录在明细中。",
+            "custom_columns": [
+                {
+                    "column_name": "stocktake_name",
+                    "column_view_name": "盘点"
+                },
+                {
+                    "column_name": "stocktake_date",
+                    "column_view_name": "日期"
+                },
+                {
+                    "column_name": "staff",
+                    "column_view_name": "负责人"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake_detail",
+            "table_view_name": "盘点明细",
+            "description": "每项已核对资产的结果。",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "资产"
+                },
+                {
+                    "column_name": "result",
+                    "column_view_name": "结果",
+                    "options": {
+                        "select_item_valtext": "found,已确认\nmissing,缺失\ndamaged,损坏"
+                    }
+                },
+                {
+                    "column_name": "location_found",
+                    "column_view_name": "发现地点"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_lending",
+            "table_view_name": "借用",
+            "description": "资产的借出与归还。",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "资产"
+                },
+                {
+                    "column_name": "borrower",
+                    "column_view_name": "借用人"
+                },
+                {
+                    "column_name": "lend_date",
+                    "column_view_name": "借出日期"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "归还期限"
+                },
+                {
+                    "column_name": "return_date",
+                    "column_view_name": "归还日期"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "afef91701db2db9db4cd",
+            "form_view_name": "表单"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "资产",
+            "menu_type": "parent_node",
+            "menu_name": "asset"
+        },
+        {
+            "title": "资产",
+            "menu_type": "table",
+            "menu_name": "asset_item"
+        },
+        {
+            "title": "资产申请",
+            "menu_type": "table",
+            "menu_name": "asset_request"
+        },
+        {
+            "title": "盘点",
+            "menu_type": "table",
+            "menu_name": "asset_stocktake"
+        },
+        {
+            "title": "借用",
+            "menu_type": "table",
+            "menu_name": "asset_lending"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "asset_admin_group",
+            "role_group_view_name": "资产管理员",
+            "description": "可查看、创建和编辑资产、申请、盘点和借用的人员。"
+        },
+        {
+            "role_group_name": "asset_member_group",
+            "role_group_view_name": "资产使用者",
+            "description": "可查看资产和借用，并提交资产申请的人员。"
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "资产申请（标准）"
+        }
+    ]
+}

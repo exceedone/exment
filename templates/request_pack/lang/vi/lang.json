@@ -1,0 +1,241 @@
+{
+    "template_view_name": "Gói yêu cầu",
+    "description": "Bộ gồm tờ trình phê duyệt, thanh toán chi phí, yêu cầu công tác, yêu cầu thanh toán và đơn xin nghỉ phép, cùng quy trình làm việc gửi / phê duyệt / trả lại, các nhóm vai trò người yêu cầu và người phê duyệt, và menu \"Yêu cầu & phê duyệt\".",
+    "custom_tables": [
+        {
+            "table_name": "request_ringi",
+            "table_view_name": "Tờ trình phê duyệt",
+            "description": "Đề nghị ra quyết định nội bộ (mua sắm, hợp đồng, tuyển dụng, v.v.).",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Tiêu đề"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Số tiền"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "Ngày mong muốn"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Nội dung và lý do"
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "Tệp đính kèm"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense",
+            "table_view_name": "Thanh toán chi phí",
+            "description": "Đề nghị hoàn lại các khoản chi phí bạn đã trả. Đính kèm hóa đơn vào phần chi tiết.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Tiêu đề"
+                },
+                {
+                    "column_name": "apply_date",
+                    "column_view_name": "Ngày đề nghị"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "Tổng cộng"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense_detail",
+            "table_view_name": "Chi tiết chi phí",
+            "description": "Một dòng của đề nghị thanh toán chi phí.",
+            "custom_columns": [
+                {
+                    "column_name": "use_date",
+                    "column_view_name": "Ngày"
+                },
+                {
+                    "column_name": "account",
+                    "column_view_name": "Khoản mục",
+                    "options": {
+                        "select_item_valtext": "travel,Đi lại\nmeeting,Hội họp\nentertainment,Tiếp khách\nsupplies,Vật tư tiêu hao\ncommunication,Liên lạc\nbooks,Sách báo\nother,Khác"
+                    }
+                },
+                {
+                    "column_name": "payee",
+                    "column_view_name": "Trả cho"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Số tiền"
+                },
+                {
+                    "column_name": "receipt",
+                    "column_view_name": "Hóa đơn"
+                }
+            ]
+        },
+        {
+            "table_name": "request_trip",
+            "table_view_name": "Yêu cầu công tác",
+            "description": "Gửi yêu cầu trước khi đi công tác.",
+            "custom_columns": [
+                {
+                    "column_name": "destination",
+                    "column_view_name": "Nơi đến"
+                },
+                {
+                    "column_name": "purpose",
+                    "column_view_name": "Mục đích"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Ngày bắt đầu"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Ngày kết thúc"
+                },
+                {
+                    "column_name": "transport",
+                    "column_view_name": "Phương tiện",
+                    "options": {
+                        "select_item_valtext": "train,Tàu điện\nshinkansen,Shinkansen\nplane,Máy bay\ncar,Ô tô\nother,Khác"
+                    }
+                },
+                {
+                    "column_name": "estimated_cost",
+                    "column_view_name": "Chi phí dự kiến"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                }
+            ]
+        },
+        {
+            "table_name": "request_payment",
+            "table_view_name": "Yêu cầu thanh toán",
+            "description": "Đề nghị thanh toán một hóa đơn.",
+            "custom_columns": [
+                {
+                    "column_name": "payee",
+                    "column_view_name": "Trả cho"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Số tiền"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Hạn thanh toán"
+                },
+                {
+                    "column_name": "invoice",
+                    "column_view_name": "Hóa đơn"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Nội dung"
+                }
+            ]
+        },
+        {
+            "table_name": "request_leave",
+            "table_view_name": "Đơn xin nghỉ phép",
+            "description": "Gửi đơn xin nghỉ phép.",
+            "custom_columns": [
+                {
+                    "column_name": "leave_type",
+                    "column_view_name": "Loại nghỉ phép",
+                    "options": {
+                        "select_item_valtext": "paid,Nghỉ phép có lương\nhalf_am,Nghỉ nửa ngày (buổi sáng)\nhalf_pm,Nghỉ nửa ngày (buổi chiều)\nspecial,Nghỉ phép đặc biệt\nsubstitute,Nghỉ bù\nabsence,Vắng mặt\nother,Khác"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Ngày bắt đầu"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Ngày kết thúc"
+                },
+                {
+                    "column_name": "days",
+                    "column_view_name": "Số ngày"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "Lý do"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "fb49ce9f4362a2c57793",
+            "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Yêu cầu & phê duyệt",
+            "menu_type": "parent_node",
+            "menu_name": "request"
+        },
+        {
+            "title": "Công việc chờ xử lý",
+            "menu_type": "system",
+            "menu_name": "workflow_task"
+        },
+        {
+            "title": "Tờ trình phê duyệt",
+            "menu_type": "table",
+            "menu_name": "request_ringi"
+        },
+        {
+            "title": "Thanh toán chi phí",
+            "menu_type": "table",
+            "menu_name": "request_expense"
+        },
+        {
+            "title": "Yêu cầu công tác",
+            "menu_type": "table",
+            "menu_name": "request_trip"
+        },
+        {
+            "title": "Yêu cầu thanh toán",
+            "menu_type": "table",
+            "menu_name": "request_payment"
+        },
+        {
+            "title": "Đơn xin nghỉ phép",
+            "menu_type": "table",
+            "menu_name": "request_leave"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "request_applicant_group",
+            "role_group_view_name": "Người yêu cầu",
+            "description": "Người tạo yêu cầu, xem và chỉnh sửa yêu cầu của chính mình. Thêm nhân viên vào nhóm này."
+        },
+        {
+            "role_group_name": "request_approver_group",
+            "role_group_view_name": "Người phê duyệt",
+            "description": "Người xem tất cả yêu cầu và phê duyệt hoặc trả lại."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "Yêu cầu và phê duyệt (tiêu chuẩn)"
+        }
+    ]
+}
