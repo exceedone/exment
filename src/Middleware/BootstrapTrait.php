@@ -17,8 +17,12 @@ trait BootstrapTrait
      */
     protected static function setCssJsList(array $list, bool $isCss, bool $isLast = false)
     {
-        /** @phpstan-ignore-next-line */
-        $ver = \Exment::getExmentCurrentVersion();
+        // the same for every list of the page: looked up once (a cache read and composer.lock each time, ISS00413)
+        static $ver = null;
+        if (!isset($ver)) {
+            /** @phpstan-ignore-next-line */
+            $ver = \Exment::getExmentCurrentVersion();
+        }
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }
