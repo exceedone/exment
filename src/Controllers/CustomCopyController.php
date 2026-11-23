@@ -202,6 +202,10 @@ class CustomCopyController extends AdminControllerTableBase
             $form->switchbool('use_on_create', exmtrans("custom_copy.options.use_on_create"))
                 ->help(exmtrans("custom_copy.help.use_on_create"))
                 ->default(0);
+            $form->text('create_label', exmtrans("custom_copy.options.create_label"))
+                ->help(exmtrans("custom_copy.help.create_label"))
+                ->rules("max:40")
+                ->attribute(['data-filter' => json_encode(['key' => 'options_use_on_create', 'value' => '1'])]);
             if (!empty($child_options)) {
                 $form->select('child_copy', exmtrans("custom_copy.options.child_copy"))
                     ->help(exmtrans("custom_copy.help.child_copy"))->options($child_options);
