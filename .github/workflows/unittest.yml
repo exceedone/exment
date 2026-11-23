@@ -39,8 +39,6 @@ jobs:
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate
-          # TEMPORARY (exceedone/exment-boilerplate#7): the lock with bacon/bacon-qr-code 3. Remove before merging.
-          ref: chore/qrcode-bacon3
 
       - uses: actions/checkout@v4
         with:
