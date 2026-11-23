@@ -8,7 +8,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Services\EnvService;
 use Exceedone\Exment\Services\SystemRequire\Security\SecurityCheck;
 use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
 use Illuminate\Support\Facades\Auth;
@@ -89,9 +88,9 @@ class InitializeForm
             // add system initialized flg.
             System::initialized(1);
 
-            // write env
+            // write env: initialized, production, .env not readable by others
             try {
-                EnvService::setEnv(['EXMENT_INITIALIZE' => 1]);
+                AutoTuning::installedEnv();
             }
             // if cannot write, nothing do
             catch (\Exception $ex) {

@@ -236,6 +236,29 @@ class BundledPlugins
     }
 
     /**
+     * Install or update an official plugin from a release downloaded by hand
+     * (its zip and its signed record, from where the releases are published):
+     * checked as a bundled release is, and the version before is kept. Only
+     * a newer version than the one installed (going back is by "back to the
+     * version before" only).
+     *
+     * @throws ReleaseException|\RuntimeException
+     */
+    public static function installUploaded(string $zipPath, string $jsonPath): Plugin
+    {
+        $record = json_decode(strval(@file_get_contents($jsonPath)), true);
+        if (!is_array($record)) {
+            throw new ReleaseException('format');
+        }
+        ReleaseVerifier::verify($record, $zipPath);
+        $plugin = static::installed(strval($record['uuid']));
+        if (isset($plugin) && !static::newer(strval($record['version']), strval($plugin->version))) {
+            throw new ReleaseException('not_newer', strval($plugin->version));
+        }
+        return static::installRelease($record, $zipPath);
+    }
+
+    /**
      * Go back to the version kept before the last update.
      *
      * @throws ReleaseException|\RuntimeException
@@ -289,19 +312,23 @@ class BundledPlugins
      */
     protected static function installRelease(array $record, string $zip, bool $rollback = false): Plugin
     {
-        // checked again, now (the files may have been changed since they were listed)
-        ReleaseVerifier::verify($record, $zip);
-        $uuid = strval($record['uuid']);
-        $before = static::installed($uuid);
-        // a plugin of the same name and another uuid is another plugin
-        $sameName = Plugin::query()->where('plugin_name', strval($record['name']))->first();
-        if (!isset($before) && isset($sameName)) {
-            throw new ReleaseException('same_name', strval($record['name']));
-        }
-
+        // a copy first: the one checked is the one installed and kept
         $local = static::tempCopy($zip);
-        session()->forget('errorMess');
         try {
+            ReleaseVerifier::verify($record, $local);
+            $bytes = file_get_contents($local);
+            if ($bytes === false) {
+                throw new ReleaseException('zip');
+            }
+            $uuid = strval($record['uuid']);
+            $before = static::installed($uuid);
+            // a plugin of the same name and another uuid is another plugin
+            $sameName = Plugin::query()->where('plugin_name', strval($record['name']))->first();
+            if (!isset($before) && isset($sameName)) {
+                throw new ReleaseException('same_name', strval($record['name']));
+            }
+
+            session()->forget('errorMess');
             PluginInstaller::uploadPlugin(new UploadedFile($local, basename($zip), 'application/zip', null, true));
         } finally {
             @unlink($local);
@@ -325,7 +352,7 @@ class BundledPlugins
         $disk = static::disk();
         $base = static::PREVIOUS_DIR . '/' . $uuid . '/' . strval($record['version']);
         if (!$disk->exists($base . '.json')) {
-            $disk->put($base . '.zip', strval(file_get_contents($zip)));
+            $disk->put($base . '.zip', $bytes);
             $disk->put($base . '.json', strval(json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)));
         }
         return $plugin;
