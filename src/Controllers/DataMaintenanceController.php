@@ -40,7 +40,7 @@ class DataMaintenanceController extends AdminControllerTableBase
         }
         $this->AdminContent($content);
         $menu = (new Tools\CustomTableMenuButton('data_maintenance', $this->custom_table))->render();
-        $menu = $menu instanceof \Illuminate\Contracts\Support\Renderable ? $menu->render() : strval($menu);
+        $menu = strval($menu);
 
         list($kinds, $before, $error) = $this->options($request);
         $summary = null;
@@ -66,7 +66,7 @@ class DataMaintenanceController extends AdminControllerTableBase
     /**
      * Delete the attachments.
      *
-     * @return \Illuminate\Http\RedirectResponse|void
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
      */
     public function deleteAttachments(Request $request)
     {

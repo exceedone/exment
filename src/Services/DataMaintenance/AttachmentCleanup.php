@@ -75,25 +75,25 @@ class AttachmentCleanup
      */
     public function summary(): array
     {
-        $result = ['documents' => 0, 'versions' => 0, 'column_files' => 0, 'records' => 0, 'files' => 0, 'bytes' => 0, 'bytes_partial' => false];
+        $counts = static::emptyCounts();
         $records = [];
         $sized = 0;
+        $bytes = 0;
+        $partial = false;
         foreach ($this->items() as $item) {
-            $result[$item['count']]++;
+            $counts[$item['count']]++;
             $records[$item['record_id']] = true;
-            $result['files']++;
             if (!isset($item['file'])) {
                 continue;
             }
             if ($sized >= static::SIZE_LIMIT) {
-                $result['bytes_partial'] = true;
+                $partial = true;
                 continue;
             }
             $sized++;
-            $result['bytes'] += static::fileSize($item['file']);
+            $bytes += static::fileSize($item['file']);
         }
-        $result['records'] = count($records);
-        return $result;
+        return static::result($counts, count($records), $bytes, $partial);
     }
 
     /**
@@ -106,13 +106,14 @@ class AttachmentCleanup
         if (function_exists('set_time_limit')) {
             @set_time_limit(0);
         }
-        $result = ['documents' => 0, 'versions' => 0, 'column_files' => 0, 'records' => 0, 'files' => 0, 'bytes' => 0, 'bytes_partial' => false];
+        $counts = static::emptyCounts();
         $records = [];
+        $bytes = 0;
         // collect first: the deletes would move the chunks
         $items = iterator_to_array($this->items(), false);
         foreach ($items as $item) {
             if (isset($item['file'])) {
-                $result['bytes'] += static::fileSize($item['file']);
+                $bytes += static::fileSize($item['file']);
             }
             switch ($item['type']) {
                 case 'document':
@@ -125,14 +126,38 @@ class AttachmentCleanup
                     $this->deleteColumnFile($item);
                     break;
             }
-            $result[$item['count']]++;
-            $result['files']++;
+            $counts[$item['count']]++;
             $records[$item['record_id']] = true;
         }
-        $result['records'] = count($records);
+        $result = static::result($counts, count($records), $bytes, false);
 
         $this->log($user_id, $result);
         return $result;
+    }
+
+    /**
+     * @return array{documents: int, versions: int, column_files: int}
+     */
+    protected static function emptyCounts(): array
+    {
+        return ['documents' => 0, 'versions' => 0, 'column_files' => 0];
+    }
+
+    /**
+     * @param array{documents: int, versions: int, column_files: int} $counts
+     * @return array{documents: int, versions: int, column_files: int, records: int, files: int, bytes: int, bytes_partial: bool}
+     */
+    protected static function result(array $counts, int $records, int $bytes, bool $partial): array
+    {
+        return [
+            'documents' => $counts['documents'],
+            'versions' => $counts['versions'],
+            'column_files' => $counts['column_files'],
+            'records' => $records,
+            'files' => $counts['documents'] + $counts['versions'] + $counts['column_files'],
+            'bytes' => $bytes,
+            'bytes_partial' => $partial,
+        ];
     }
 
     /**
