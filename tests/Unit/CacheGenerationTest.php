@@ -136,7 +136,7 @@ class CacheGenerationTest extends UnitTestBase
             return 'kept';
         });
         $before = System::cacheGeneration();
-        $this->artisan('exment:cache-clear')->assertExitCode(0);
+        $this->assertSame(0, \Artisan::call('exment:cache-clear'));
         $this->assertNotSame($before, System::cacheGeneration());
         System::clearRequestSession();
         $this->assertSame('again', System::cache('cache_generation_test', function () {
