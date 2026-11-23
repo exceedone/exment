@@ -1089,9 +1089,9 @@ class ApiDataController extends AdminControllerTableBase
      * Returns null when the linkage is valid or absent; otherwise an associative array of
      * field => message describing the rejection (to be merged into the validation errors).
      *
-     * @param array $rootValue
+     * @param array<string, mixed> $rootValue
      * @param \Exceedone\Exment\Model\CustomValue|null $custom_value existing record on update
-     * @return array|null
+     * @return array<string, string>|null
      */
     protected function validateParentPermission($rootValue, $custom_value = null)
     {
