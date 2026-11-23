@@ -1488,7 +1488,13 @@ if (!function_exists('hasTable')) {
                 // those, and the empty list below would then read as "no tables".
                 return \Schema::getTableListing();
             } catch (\Throwable $e) {
-                \Log::error('Error fetching table names: ' . $e->getMessage());
+                // before the install the database of .env is not the site's yet (the defaults
+                // of the zip, before the database step): not an error of the site
+                if (boolval(env('EXMENT_INITIALIZE', false))) {
+                    \Log::error('Error fetching table names: ' . $e->getMessage());
+                } else {
+                    \Log::debug('Error fetching table names (not installed yet): ' . $e->getMessage());
+                }
                 return [];
             }
         }, true);
