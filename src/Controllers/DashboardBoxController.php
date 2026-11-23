@@ -281,7 +281,6 @@ class DashboardBoxController extends AdminControllerBase
      * @param  \Exceedone\Exment\Model\DashboardBox  $box
      * @return bool
      */
-    // @phpstan-ignore-next-line
     protected function isCacheableBox($box)
     {
         if (DashboardBoxType::getEnumValue($box->dashboard_box_type) != DashboardBoxType::SYSTEM) {
@@ -293,6 +292,7 @@ class DashboardBoxController extends AdminControllerBase
         // NOTIFY_NAVBAR are both declared as 4 while the options array gives notify_navbar id 5,
         // so the constants would match the wrong item.
         $target_system_id = array_get($box, 'options.target_system_id');
+        // @phpstan-ignore-next-line
         $item = collect(DashboardBoxSystemPage::options())->first(function ($value) use ($target_system_id) {
             return array_get($value, 'id') == $target_system_id;
         });
