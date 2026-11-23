@@ -13,7 +13,7 @@ class HelpNav
         $manual_url = htmlspecialchars(getManualUrl());
 
         // set help urls: the pages of the features first (their own manual), then the others
-        $help_urls = esc_html(json_encode(array_merge(static::featureHelpUrls(), Define::HELP_URLS)));
+        $help_urls = esc_html(json_encode(array_merge(static::featureHelpUrls(), \Exceedone\Exment\Services\CoreExtensions::helpUrls())));
 
         return <<<HTML
 

@@ -89,8 +89,39 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
     {
         $mergeConfig = static::getConfig($config);
 
-        $client = new S3Client(static::getClientConfig($mergeConfig));
-        return new self($client, array_get($mergeConfig, 'bucket'));
+        $clientConfig = static::getClientConfig($mergeConfig);
+        if (!is_null(static::$clientConfigResolver)) {
+            $clientConfig = call_user_func(static::$clientConfigResolver, $clientConfig, $mergeConfig, strval($driverKey));
+        }
+        $prefix = is_null(static::$prefixResolver) ? '' : strval(call_user_func(static::$prefixResolver, strval($driverKey), $mergeConfig));
+
+        $client = new S3Client($clientConfig);
+        return new self($client, array_get($mergeConfig, 'bucket'), $prefix);
+    }
+
+    /**
+     * fn(array $clientConfig, array $mergeConfig, string $driverKey): array — changes the config
+     * of the S3 client (other credentials, an assumed role ...).
+     *
+     * @var callable|null
+     */
+    protected static $clientConfigResolver;
+
+    /**
+     * fn(string $driverKey, array $mergeConfig): string — the key prefix of a disk ('' none).
+     *
+     * @var callable|null
+     */
+    protected static $prefixResolver;
+
+    public static function resolveClientConfigUsing(?callable $resolver): void
+    {
+        static::$clientConfigResolver = $resolver;
+    }
+
+    public static function resolvePrefixUsing(?callable $resolver): void
+    {
+        static::$prefixResolver = $resolver;
     }
 
     /**

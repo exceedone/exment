@@ -522,13 +522,14 @@ class ApiController extends AdminControllerBase
         // timer. NotifyNavbar moves the user's cache version whenever one of their notifications
         // is made, read or deleted, so the next poll is fresh.
         $cacheKey = NotifyNavbar::navbarCacheKey();
-        if (is_null($cacheKey)) {
-            return $this->buildNotifyPage();
-        }
+        $page = is_null($cacheKey)
+            ? $this->buildNotifyPage()
+            : \Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\NotifyNav::interval(), function () {
+                return $this->buildNotifyPage();
+            });
 
-        return \Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\NotifyNav::interval(), function () {
-            return $this->buildNotifyPage();
-        });
+        // what an application adds to every poll, never from the cache above (ScreenExtensions notify.poll)
+        return \Exceedone\Exment\Services\ScreenExtensions::filter('notify.poll', $page);
     }
 
     /**

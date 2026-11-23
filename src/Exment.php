@@ -27,6 +27,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use ExmentAdminCore\Admin\Admin;
 use ExmentAdminCore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\ErrorCode;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Finder\Finder;
 use League\Flysystem\PathPrefixer;
@@ -185,9 +186,27 @@ class Exment
                         'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
                     ]);
                 }
+                if ($exception->getCode() == ErrorCode::ERROR_CODE_VALIDATION_FAILED) {
+                    return getAjaxResponse([
+                        'result' => false,
+                        'toastr' => $exception->getMessage(),
+                        'errors' => [
+                            'import_error_message' => [
+                                'type' => 'input',
+                                'message' => $exception->getMessage(),
+                            ],
+                        ],
+                    ]);
+                }
 
                 // @phpstan-ignore-next-line
                 return $callback($request, $exception);
+            }
+
+            // a refusal for the user (ErrorCode::ERROR_CODE_VALIDATION_FAILED): its message, back
+            if ($exception->getCode() == ErrorCode::ERROR_CODE_VALIDATION_FAILED) {
+                admin_toastr($exception->getMessage(), 'error');
+                return redirect($request->header('referer', '/'))->withInput();
             }
 
             // whether has User
@@ -282,6 +301,38 @@ class Exment
 
 
     /**
+     * fn(): array{0: ?string, 1: ?string}|null — [latest, current], or null for Exment's own
+     * reading (composer and packagist).
+     *
+     * @var callable|null
+     */
+    protected static $versionResolver;
+
+    /** @var callable|null fn(): string — the page where the site is updated */
+    protected static $versionUpdateUrlResolver;
+
+    public static function resolveVersionUsing(?callable $resolver): void
+    {
+        static::$versionResolver = $resolver;
+    }
+
+    public static function versionUpdateUrlUsing(?callable $resolver): void
+    {
+        static::$versionUpdateUrlResolver = $resolver;
+    }
+
+    /**
+     * The page where the site is updated (the system settings, or the application's).
+     */
+    public function versionUpdateUrl(): string
+    {
+        if (!is_null(static::$versionUpdateUrlResolver)) {
+            return strval(call_user_func(static::$versionUpdateUrlResolver));
+        }
+        return admin_url('system');
+    }
+
+    /**
      * getExmentVersion using session and composer
      *
      * @return array $latest: new version in package, $current: this version in server
@@ -289,6 +340,14 @@ class Exment
     // @phpstan-ignore-next-line
     public function getExmentVersion($getFromComposer = true)
     {
+        // an application that knows its version itself (resolveVersionUsing())
+        if (!is_null(static::$versionResolver)) {
+            $resolved = call_user_func(static::$versionResolver);
+            if (is_array($resolved)) {
+                return $resolved;
+            }
+        }
+
         try {
             try {
                 $version_json = Cache::get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
