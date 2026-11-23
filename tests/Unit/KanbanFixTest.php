@@ -664,6 +664,36 @@ class KanbanFixTest extends UnitTestBase
         }
     }
 
+    /**
+     * A card carries a text only where the browser cannot tell it: not the value itself,
+     * not a column whose label the board's lists give back (textOf in the script).
+     */
+    public function testCardsCarryOnlyTheTextsTheBrowserCannotTell(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $select = CustomColumn::getEloquent('select', $table);
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, [
+            'kanban_group_column_id' => $select->id,
+            'kanban_max_count' => 20,
+        ]);
+        $board = $this->boardOf($view);
+        $this->assertNotEmpty($board['cards']);
+        foreach ($board['cards'] as $card) {
+            foreach ((array) $card['texts'] as $name => $text) {
+                $this->assertNotSame($card['values'][$name] ?? null, $text, "the text of {$name} is its value: not sent");
+            }
+        }
+        $grid = $this->gridOf($view);
+        $this->invoke($grid, 'buildCardContext', [$select, null]);
+        $property = new \ReflectionProperty($grid, 'textlessColumns');
+        $property->setAccessible(true);
+        foreach (array_keys($property->getValue($grid)) as $name) {
+            foreach ($board['cards'] as $card) {
+                $this->assertArrayNotHasKey($name, (array) $card['texts'], "{$name}: the board gives its label back");
+            }
+        }
+    }
+
     public function testBoardValueColorsWorkForValuesWithADot(): void
     {
         $select = $this->selectWithDottedValueColor();
