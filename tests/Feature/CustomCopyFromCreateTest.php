@@ -159,6 +159,7 @@ class CustomCopyFromCreateTest extends FeatureTestBase
     public function testTheAdminsOwnLabelIsUsed(): void
     {
         $copy = $this->copy(static::FROM, static::TO, true);
+        $copy->setOption('create_label_type', CustomCopy::CREATE_LABEL_LABEL);
         $copy->setOption('create_label', '前年度 1828');
         $copy->save();
         $this->copy(static::TO, static::TO, true);
@@ -168,6 +169,31 @@ class CustomCopyFromCreateTest extends FeatureTestBase
             ->assertSee(exmtrans('custom_copy.copy_from.button_table', '前年度 1828'), false)
             ->assertDontSee(exmtrans('custom_copy.copy_from.button_table', $this->table(static::FROM)->table_view_name), false)
             ->assertSee(exmtrans('custom_copy.copy_from.button_table', $this->table(static::TO)->table_view_name), false);
+    }
+
+    public function testTheBracketsSayWhatTheAdminPicked(): void
+    {
+        $copy = $this->copy(static::FROM, static::TO, true);
+        $from_name = $this->table(static::FROM)->table_view_name;
+
+        // auto, one button: just "Copy from"
+        $this->assertSame(exmtrans('custom_copy.copy_from.button'), CustomCopy::getCreateLabel($copy, false));
+        // auto, several buttons: the table
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', $from_name), CustomCopy::getCreateLabel($copy, true));
+
+        $copy->setOption('create_label_type', CustomCopy::CREATE_LABEL_TABLE);
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', $from_name), CustomCopy::getCreateLabel($copy, false));
+
+        // a label typed but not picked is not used
+        $copy->setOption('create_label', 'last year');
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', $from_name), CustomCopy::getCreateLabel($copy, false));
+
+        $copy->setOption('create_label_type', CustomCopy::CREATE_LABEL_LABEL);
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', 'last year'), CustomCopy::getCreateLabel($copy, false));
+
+        // the label picked but left empty: as auto
+        $copy->setOption('create_label', '');
+        $this->assertSame(exmtrans('custom_copy.copy_from.button'), CustomCopy::getCreateLabel($copy, false));
     }
 
     public function testANewSettingCanStartWithTheColumnsOfTheSameNamePaired(): void
