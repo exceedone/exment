@@ -342,15 +342,25 @@ class Initialize
 
         // mysql setting
         if (defined('PDO::MYSQL_ATTR_LOCAL_INFILE')) {
-            Config::set('database.connections.mysql.strict', false);
-            Config::set('database.connections.mysql.options', [
+            $options = [
                 PDO::ATTR_CASE => PDO::CASE_LOWER,
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
                 PDO::ATTR_STRINGIFY_FETCHES => true,
                 PDO::ATTR_EMULATE_PREPARES => true,
                 PDO::MYSQL_ATTR_LOCAL_INFILE => true,
-            ]);
+            ];
+            // Preserve the TLS CA that config/database.php already set. This
+            // Config::set replaces the WHOLE options array, so without this the
+            // MYSQL_ATTR_SSL_CA is dropped and connections to a server with
+            // require_secure_transport=ON (e.g. AWS RDS) are rejected.
+            $currentOptions = Config::get('database.connections.mysql.options', []);
+            $sslCa = $currentOptions[PDO::MYSQL_ATTR_SSL_CA] ?? env('MYSQL_ATTR_SSL_CA');
+            if (!empty($sslCa)) {
+                $options[PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
+            }
+            Config::set('database.connections.mysql.strict', false);
+            Config::set('database.connections.mysql.options', $options);
         }
 
         // mariadb setting

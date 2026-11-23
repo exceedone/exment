@@ -20,6 +20,19 @@ return [
     */
     'composer_path' => env('EXMENT_COMPOSER_PATH'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Plugin upload / code editing
+    |--------------------------------------------------------------------------
+    |
+    | Whether users may upload, install (from market) or edit plugin code.
+    | Installing/editing a plugin executes arbitrary PHP on the server, so in
+    | shared/multi-tenant deployments this should be set to false and plugins
+    | provisioned out-of-band by the operator.
+    |
+    */
+    'plugin_upload_enabled' => env('EXMENT_PLUGIN_UPLOAD_ENABLED', true),
+
 
     /*
     |--------------------------------------------------------------------------
