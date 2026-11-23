@@ -199,7 +199,10 @@ class DocumentVersionService
         }
     }
 
-    protected static function deleteVersion(DocumentVersion $version): void
+    /**
+     * Delete one older version and its file (also used by the data maintenance, #1829).
+     */
+    public static function deleteVersion(DocumentVersion $version): void
     {
         $file = ExmentFile::getData($version->file_uuid);
         if (isset($file)) {
