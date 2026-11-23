@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\MenuVisibility;
 
 trait HasPermissions
 {
@@ -263,8 +264,8 @@ trait HasPermissions
     }
 
     /**
-     * If visible for permission_details.
-     * called form menu
+     * Whether the user sees a menu (a node of the menu tree, with its
+     * children) or a page (its uri). Services\MenuVisibility decides.
      *
      * @param array|string $item
      * @param array $target_tables output target tables. for template export. default nothing item
@@ -274,66 +275,7 @@ trait HasPermissions
     // @phpstan-ignore-next-line
     public function visible($item, $target_tables = []): bool
     {
-        if (is_string($item)) {
-            $item = [
-                'uri' => $item
-            ];
-        } elseif (empty($item)) {
-            return false;
-        }
-
-        // if organization and not use org setting, return false
-        if (array_get($item, 'menu_type') == MenuType::TABLE
-            && array_get($item, 'table_name') == SystemTableName::ORGANIZATION
-            && !System::organization_available()) {
-            return false;
-        }
-
-        // a parent menu (a group of the menu) with role groups: only for the
-        // members of one of them (the system administrators always see it)
-        if (array_get($item, 'menu_type') == MenuType::PARENT_NODE && !$this->canSeeMenuGroup($item)) {
-            return false;
-        }
-
-        // a group of the feature map (Define::MENU_GROUP_DEFINITION) with nothing
-        // in it to show: the menus of the features turned off are taken out of
-        // the tree before this, and a template or a plugin may make the group
-        // before anything goes in it. A parent an administrator made empty
-        // still shows, as before.
-        if (array_get($item, 'menu_type') == MenuType::PARENT_NODE
-            && empty(array_get($item, 'children'))
-            && array_key_exists(strval(array_get($item, 'menu_name')), Define::MENU_GROUP_DEFINITION)) {
-            return false;
-        }
-
-        // if $item has children, get children's visible result.
-        // if children have true result, return true;
-        if (array_key_exists('children', $item)) {
-            $first = collect($item['children'])->first(function ($child) use ($target_tables) {
-                return $this->visible($child, $target_tables);
-            });
-            return !is_null($first);
-        }
-
-        // if has target tables.
-        if (count($target_tables) > 0) {
-            // if $item->menu_name is not contains $target_tables, return false
-            if (!collect($target_tables)->first(function ($target_table) use ($item) {
-                return array_get($item, 'table_name') == $target_table;
-            })) {
-                return false;
-            }
-        }
-
-        // get permission for target endpoint
-        $permissons = $this->allPermissions();
-
-        if (!$permissons->first(function ($permission) use ($item) {
-            return $permission->shouldPassEndpoint(array_get($item, 'uri'), $item);
-        })) {
-            return false;
-        }
-        return true;
+        return MenuVisibility::forUser($this)->isVisible($item, (array) $target_tables);
     }
 
     /**
@@ -344,24 +286,7 @@ trait HasPermissions
      */
     protected function canSeeMenuGroup(array $item): bool
     {
-        $options = array_get($item, 'options');
-        if (is_string($options)) {
-            $options = json_decode_ex($options, true);
-        }
-        $ids = \Exceedone\Exment\Model\Menu::roleGroupIds(array_get($options, 'visible_role_groups'));
-        if (count($ids) === 0 || $this->isAdministrator()) {
-            return true;
-        }
-        $mine = System::requestSession('menu_group_role_group_ids_' . $this->getUserId(), function () {
-            $base = $this->base_user;
-            if (!isset($base)) {
-                return [];
-            }
-            return $base->belong_role_groups_all()->pluck('id')->map(function ($id) {
-                return intval($id);
-            })->all();
-        });
-        return count(array_intersect($ids, (array) $mine)) > 0;
+        return MenuVisibility::forUser($this)->canSeeGroup($item);
     }
 
     /**
