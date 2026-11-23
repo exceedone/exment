@@ -712,6 +712,30 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $select_item = array_get($column_options, $array_get_key);
         $isValueText = ($column_type == 'select_valtext');
 
+        // the choices are read for every row of a list or a board: made once per
+        // column object, again only when its choices or its type change
+        $memoKey = $column_type . "
+" . (is_string($select_item) ? $select_item : json_encode($select_item));
+        if ($this->selectOptionsKey === $memoKey) {
+            return $this->selectOptionsMemo;
+        }
+        $this->selectOptionsKey = $memoKey;
+        $this->selectOptionsMemo = $this->makeSelectOptions($select_item, $isValueText);
+        return $this->selectOptionsMemo;
+    }
+
+    /** @var string|null the choices createSelectOptions() last made its list from */
+    protected $selectOptionsKey;
+
+    /** @var array<mixed> that list */
+    protected $selectOptionsMemo = [];
+
+    /**
+     * @param mixed $select_item
+     * @return array<mixed>
+     */
+    protected function makeSelectOptions($select_item, bool $isValueText): array
+    {
         $options = [];
         if (is_null($select_item)) {
             return $options;

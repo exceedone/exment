@@ -123,10 +123,14 @@ class ScheduleTuning extends TuningBase
 
     public function getFixText(): ?string
     {
-        // a low priority (nice), so that the screens get the CPU first
-        return implode("\n", [
-            '# crontab -e (the user of the web server)',
-            '* * * * * cd ' . base_path() . ' && nice -n 15 php artisan schedule:run >> /dev/null 2>&1',
-        ]);
+        // a low priority (nice), so that the screens get the CPU first; the PHP of this
+        // site's version, as the "php" of cron may be another one (CliPhp)
+        $php = CliPhp::path();
+        $lines = ['# crontab -e, or the cron setting of the server panel (the user of the web server)'];
+        if ($php !== 'php') {
+            $lines[] = '# PHP ' . CliPhp::version() . ' (the version of this site): the "php" of cron may be another version';
+        }
+        $lines[] = '* * * * * cd ' . base_path() . ' && nice -n 15 ' . $php . ' artisan schedule:run >> /dev/null 2>&1';
+        return implode("\n", $lines);
     }
 }
