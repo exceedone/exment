@@ -43,7 +43,7 @@ class StudioAppController extends Controller
             'pc_url' => admin_url(''),
             'code_url' => admin_url('app/code'),
             // the reader of QR / bar codes Exment already has (loaded only when the camera is used)
-            'zxing_url' => asset('vendor/exment/js/zxing.js'),
+            'zxing_url' => admin_asset('vendor/exment/js/zxing.js'),
         ]);
     }
 
