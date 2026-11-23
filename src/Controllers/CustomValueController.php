@@ -361,7 +361,20 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::CREATE
         ]);
 
-        if (!is_null($copy_id = $request->get('copy_id'))) {
+        $copy_from = $this->getCopyFromSource($request);
+        if (isset($copy_from)) {
+            // start from the values of a record of another table (#1828); the
+            // record is made only when the user saves
+            [$copy, $from_custom_value] = $copy_from;
+            $model = $copy->makeNewModel($from_custom_value);
+            $form = $this->form(null)->editing(function ($form) {
+                $this->filterCopyColumn($form->model());
+            })->replicate($model);
+            admin_info(
+                exmtrans('custom_copy.copy_from.button', $copy->from_custom_table->table_view_name),
+                exmtrans('custom_copy.copy_from.message', esc_html($copy->from_custom_table->table_view_name), esc_html($from_custom_value->getLabel()))
+            );
+        } elseif (!is_null($copy_id = $request->get('copy_id'))) {
             // ignore file and autonumber from target model
             $form = $this->form(null)->editing(function($form) {
                 $model = $form->model();
@@ -1634,6 +1647,125 @@ EOT);
             'body'  => $form->render(),
             'script' => $form->getScript(),
             'title' => $label
+        ]);
+    }
+
+    /**
+     * The copy setting and the record the new-record form starts from.
+     *
+     * From "copy_from" (the suuid of a copy setting) and "copy_from_id" (a record
+     * of its source table). Anything that does not hold - another table's
+     * setting, a setting not on the create form, a record the user may not see -
+     * gives null, and the form opens empty.
+     *
+     * @param Request $request
+     * @return array{0: CustomCopy, 1: \Exceedone\Exment\Model\CustomValue}|null
+     */
+    protected function getCopyFromSource(Request $request): ?array
+    {
+        $uuid = $request->get('copy_from');
+        $id = $request->get('copy_from_id');
+        if (!is_string($uuid) || is_nullorempty($id)) {
+            return null;
+        }
+
+        $copy = $this->getCopyFromSetting($uuid);
+        if (!isset($copy)) {
+            return null;
+        }
+
+        $from_custom_value = getModelName($copy->from_custom_table)::find($id);
+        if (!isset($from_custom_value) || $from_custom_value->enableAccess() !== true) {
+            return null;
+        }
+        return [$copy, $from_custom_value];
+    }
+
+    /**
+     * A copy setting whose button is on this table's new-record form.
+     *
+     * @param mixed $uuid
+     * @return CustomCopy|null
+     */
+    protected function getCopyFromSetting($uuid): ?CustomCopy
+    {
+        if (!is_string($uuid)) {
+            return null;
+        }
+        /** @var CustomCopy|null $copy */
+        $copy = CustomCopy::getCreateSources($this->custom_table)->first(function ($copy) use ($uuid) {
+            return $copy->suuid === $uuid;
+        });
+        return $copy;
+    }
+
+    /**
+     * The dialog of the new-record form that picks the record to copy from.
+     *
+     * @param Request $request
+     * @param string $tableKey
+     * @return Response
+     */
+    public function copyFromModal(Request $request, $tableKey)
+    {
+        $copy = $this->getCopyFromSetting($request->input('uuid'));
+        if (!isset($copy) || $this->custom_table->enableCreate(true) !== true) {
+            abort(404);
+        }
+        $from_table = $copy->from_custom_table;
+
+        $form = new ModalForm();
+        $form->action(admin_urls('data', $this->custom_table->table_name, 'copyFromClick'));
+        $form->method('POST');
+        $form->descriptionHtml(exmtrans('custom_copy.copy_from.dialog_description', esc_html($from_table->table_view_name), esc_html($this->custom_table->table_view_name)));
+
+        $field = $form->select('copy_from_id', esc_html($from_table->table_view_name))
+            ->options(function ($value) use ($from_table) {
+                return $from_table->getSelectOptions([
+                    'selected_value' => $value,
+                    'display_table' => $this->custom_table,
+                ]);
+            })
+            ->required();
+        $ajax = $from_table->getOptionAjaxUrl(['display_table' => $this->custom_table]);
+        if (isset($ajax)) {
+            $field->ajax($ajax);
+        }
+        $form->hidden('uuid')->default($copy->suuid);
+        $form->setWidth(9, 3);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('custom_copy.copy_from.button', esc_html($from_table->table_view_name)),
+        ]);
+    }
+
+    /**
+     * Go to the new-record form that starts from the picked record.
+     *
+     * @param Request $request
+     * @param string $tableKey
+     * @return Response
+     */
+    public function copyFromClick(Request $request, $tableKey)
+    {
+        $copy = $this->getCopyFromSetting($request->input('uuid'));
+        if (!isset($copy) || $this->custom_table->enableCreate(true) !== true) {
+            abort(404);
+        }
+        $id = $request->input('copy_from_id');
+        $from_custom_value = is_nullorempty($id) ? null : getModelName($copy->from_custom_table)::find($id);
+        if (!isset($from_custom_value) || $from_custom_value->enableAccess() !== true) {
+            return getAjaxResponse(['result' => false, 'swaltext' => ErrorCode::PERMISSION_DENY()->getMessage()]);
+        }
+
+        return getAjaxResponse([
+            'result' => true,
+            'redirect' => admin_urls_query('data', $this->custom_table->table_name, 'create', [
+                'copy_from' => $copy->suuid,
+                'copy_from_id' => $from_custom_value->id,
+            ]),
         ]);
     }
 
