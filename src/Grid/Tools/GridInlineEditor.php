@@ -946,7 +946,7 @@ HTML;
 
         // the editor opens on the date and time of the user, as the cell shows it (ISS02835)
         $value_column = $custom_column
-            ?? ((is_object($item) && method_exists($item, 'getCustomColumn')) ? $item->getCustomColumn() : null);
+            ?? ($item instanceof \Exceedone\Exment\ColumnItems\CustomItem ? $item->getCustomColumn() : null);
         if ($value_column && $value_column->column_type === ColumnType::DATETIME) {
             $value = \Exceedone\Exment\Services\UserTimezone::formatToUser($value);
         }
