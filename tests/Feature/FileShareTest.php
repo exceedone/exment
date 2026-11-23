@@ -98,14 +98,41 @@ class FileShareTest extends FeatureTestBase
         return new ShareLinks($library);
     }
 
+    public function testARequestLinkClosesWhenItsMakerMayOnlyUpload(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
+        $link = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2))->create($ws, $folder, FileShareLink::KIND_REQUEST);
+        $this->assertNotNull(ShareLinks::resolve($link->token));
+        // the maker may only upload now (as a link made before 7.2.1 by who could upload)
+        FilePermission::query()->where('workspace_id', $ws->id)->whereNull('node_id')
+            ->where('target_id', $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2))->update(['level' => Level::UPLOAD]);
+        $this->assertNull(ShareLinks::resolve($link->token));
+    }
+
     public function testWhoMayMakeALink(): void
     {
         [$ws, $folder, $file] = $this->sample();
         $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::UPLOAD);
         $uploader = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
-        // an uploader may make a request link for a folder, not a share link
-        $this->assertSame(FileShareLink::KIND_REQUEST, $uploader->create($ws, $folder, FileShareLink::KIND_REQUEST)->kind);
+        // an uploader may make neither a request link (those who may edit the folder, ISS00433) nor a share link
+        try {
+            $uploader->create($ws, $folder, FileShareLink::KIND_REQUEST);
+            $this->fail('an uploader made a request link');
+        } catch (FileServerException $e) {
+            $this->assertSame(403, $e->status());
+        }
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
+        $editor = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $this->assertSame(FileShareLink::KIND_REQUEST, $editor->create($ws, $folder, FileShareLink::KIND_REQUEST)->kind);
+        // a password too short
+        try {
+            $editor->create($ws, $folder, FileShareLink::KIND_REQUEST, ['password' => 'short']);
+            $this->fail('a password of 5 characters');
+        } catch (FileServerException $e) {
+            $this->assertStringContainsString('8', $e->getMessage());
+        }
         try {
             $uploader->create($ws, $file, FileShareLink::KIND_SHARE);
             $this->fail('an uploader made a share link');
@@ -115,6 +142,16 @@ class FileShareTest extends FeatureTestBase
         // a request link is for a folder only
         $this->expectException(FileServerException::class);
         $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_REQUEST);
+    }
+
+    public function testOpensOfALinkAreWrittenOnceInAWhile(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE);
+        $this->get($this->shareUrl($link))->assertOk();
+        $this->get($this->shareUrl($link))->assertOk();
+        // once in 10 minutes for a link and an address (ISS00433)
+        $this->assertSame(1, \Exceedone\Exment\Model\FileAuditLog::query()->where('link_id', $link->id)->where('action', \Exceedone\Exment\Services\FileServer\Audit::LINK_OPEN)->count());
     }
 
     public function testAShareLinkOfAFile(): void
@@ -366,16 +403,16 @@ class FileShareTest extends FeatureTestBase
     public function testThePasswordStopsAfterTooManyTries(): void
     {
         [$ws, , $file] = $this->sample();
-        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['password' => 'right-1']);
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['password' => 'right-12']);
         \Illuminate\Support\Facades\Cache::forget('exment_file_share_fail_' . $link->id);
         for ($i = 0; $i < ShareLinks::PASSWORD_TRIES; $i++) {
             $this->assertFalse(ShareLinks::unlock($link, 'wrong'));
         }
         // the right one does not open it while it is stopped
         $this->assertTrue(ShareLinks::isLocked($link));
-        $this->assertFalse(ShareLinks::unlock($link, 'right-1'));
+        $this->assertFalse(ShareLinks::unlock($link, 'right-12'));
         \Illuminate\Support\Facades\Cache::forget('exment_file_share_fail_' . $link->id);
-        $this->assertTrue(ShareLinks::unlock($link, 'right-1'));
+        $this->assertTrue(ShareLinks::unlock($link, 'right-12'));
     }
 
     public function testTheLimitsOfARequestLink(): void
@@ -401,13 +438,58 @@ class FileShareTest extends FeatureTestBase
         config(['exment.file_server_request_max_files' => 0, 'exment.file_server_request_max_bytes' => 0, 'exment.file_server_request_max_file_size' => 3]);
         $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('d.txt', '1234')]], $json)->assertStatus(413);
 
-        // the preview of a file from outside waits until someone inside opens it
+        // the preview of a file from outside waits until a manager asks for it (ISS00433), not when it is opened
         $received = FileNode::query()->where('parent_id', $folder->id)->where('name', 'a.txt')->firstOrFail();
         $this->assertSame(\Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD, $received->current_version->rendition_status);
         \Exceedone\Exment\Model\System::clearRequestSession();
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $this->get(admin_urls('file_server', $ws->id, 'nodes', $received->id), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+        $this->assertSame(\Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD, $received->refresh()->current_version->rendition_status);
+        $this->post(admin_urls('file_server', $ws->id, 'nodes', $received->id, 'preview'), [], ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
         $this->assertNotSame(\Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD, $received->refresh()->current_version->rendition_status);
+    }
+
+    public function testAFileFromALinkStaysHeldWhenCopiedOrGivenANewVersion(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_REQUEST);
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('held.txt', 'from outside')]], ['Accept' => 'application/json'])->assertOk();
+        $received = FileNode::query()->where('parent_id', $folder->id)->where('name', 'held.txt')->firstOrFail();
+        $held = \Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD;
+        $this->assertSame($held, $received->current_version->rendition_status);
+        $first = $received->current_version;
+
+        $lib = $this->admin();
+        // a copy, a new version, a restore: still held
+        $copy = $lib->copy($ws, $received, null);
+        $this->assertSame($held, $copy->current_version->rendition_status);
+        $lib->addVersion($ws, $received, $this->local('again from inside'));
+        $this->assertSame($held, $received->refresh()->current_version->rendition_status);
+        $lib->restoreVersion($ws, $received, $first);
+        $this->assertSame($held, $received->refresh()->current_version->rendition_status);
+
+        // a file that was never held is not held by a copy or a new version
+        $file = FileNode::query()->where('parent_id', $folder->id)->where('name', 'hello.txt')->firstOrFail();
+        $this->assertNotSame($held, $lib->copy($ws, $file, null)->current_version->rendition_status);
+        $lib->addVersion($ws, $file, $this->local('hello again'));
+        $this->assertNotSame($held, $file->refresh()->current_version->rendition_status);
+    }
+
+    public function testAShareLinkStopsGivingFilesWhenTheRuleOfDownloadIsRaised(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
+        $link = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2))->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => true]);
+        $this->assertTrue(ShareLinks::downloadAllowed($link, $file));
+        $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertOk();
+
+        // the workspace now lets only those who manage it download: the link made before follows
+        $ws->download_level = Level::MANAGE;
+        $ws->save();
+        $link = $link->fresh();
+        $this->assertNotNull(ShareLinks::resolve($link->token), 'the link still opens');
+        $this->assertFalse(ShareLinks::downloadAllowed($link, $file));
+        $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertStatus(403);
     }
 
     public function testAZipHasALimit(): void
@@ -482,14 +564,30 @@ class FileShareTest extends FeatureTestBase
     {
         [$ws, $folder] = $this->sample();
         $link = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_SHARE);
-        $lock = \Illuminate\Support\Facades\Cache::lock('exment_file_server_zip_link_' . $ws->id, 60);
+        // one zip at a time for a link; another link of the workspace is not stopped by it (ISS00433)
+        $other = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_SHARE);
+        $lock = \Illuminate\Support\Facades\Cache::lock('exment_file_server_zip_link_' . $link->id, 60);
         $this->assertTrue($lock->get());
         try {
             $this->get($this->shareUrl($link, 'download'))->assertStatus(429);
+            $this->get($this->shareUrl($other, 'download'))->assertOk();
         } finally {
             $lock->release();
         }
         $this->get($this->shareUrl($link, 'download'))->assertOk();
+        // and a few for all the links at a time
+        $slots = [];
+        for ($i = 0; $i < \Exceedone\Exment\Services\FileServer\Library::LINK_ZIP_SLOTS; $i++) {
+            $slots[$i] = \Illuminate\Support\Facades\Cache::lock('exment_file_server_zip_links_' . $i, 60);
+            $this->assertTrue($slots[$i]->get());
+        }
+        try {
+            $this->get($this->shareUrl($other, 'download'))->assertStatus(429);
+        } finally {
+            foreach ($slots as $slot) {
+                $slot->release();
+            }
+        }
 
         // a failed zip leaves nothing
         $before = glob(storage_path('app/file_server_tmp/zip_*')) ?: [];

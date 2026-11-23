@@ -1,6 +1,9 @@
 {{-- Admin setting → Feature management. Data from FeatureController::index. --}}
 <style>
-.exm-feature table { width: 100%; }
+.exm-feature table { width: 100%; table-layout: fixed; }
+/* the name column takes what the fixed columns leave, and its long help text wraps
+   instead of pushing the other columns out of sight */
+.exm-feature th, .exm-feature td { white-space: normal !important; overflow-wrap: anywhere; }
 .exm-feature th, .exm-feature td { vertical-align: top !important; }
 .exm-feature .exm-feature-help { font-size: .85em; opacity: .75; margin: 2px 0 0; }
 .exm-feature .exm-feature-groups { max-height: 140px; overflow: auto; margin-top: 4px; }
@@ -10,7 +13,11 @@
 .exm-feature .exm-feature-child td:first-child { padding-left: 28px; }
 .exm-feature .exm-feature-muted { opacity: .5; }
 .exm-feature .help-block { margin: 2px 0 0; }
+/* the save button stays in sight on a long page (as at the bottom of a form) */
+.exm-feature .exm-feature-save { position: sticky; bottom: 0; z-index: 5; margin-bottom: 0; }
+.exm-feature .exm-feature-save .box-footer { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
 @media (max-width: 767px) {
+    .exm-feature table { table-layout: auto; }
     .exm-feature .exm-feature-col { width: auto !important; }
 }
 </style>
@@ -22,6 +29,11 @@
     </div>
     @if ($read_only)
         <div class="alert alert-warning">{{ exmtrans('feature.read_only') }}</div>
+    @else
+        {{-- a save button at the top too: the page is long, and the one at the bottom may not stay in sight --}}
+        <div class="text-right" style="margin-bottom:10px">
+            <button type="submit" class="btn btn-primary">{{ exmtrans('common.save') }}</button>
+        </div>
     @endif
 
     <div class="box card">
@@ -88,9 +100,9 @@
     </div>
 
     @if (!$read_only)
-        <div class="box card">
+        <div class="box card exm-feature-save">
             <div class="box-footer">
-                <button type="submit" class="btn btn-primary pull-right">{{ exmtrans('common.save') }}</button>
+                <button type="submit" class="btn btn-primary">{{ exmtrans('common.save') }}</button>
             </div>
         </div>
     @endif
@@ -102,6 +114,13 @@
     var form = document.getElementById('exm-feature-form');
     if (!form || form.dataset.ready) { return; }
     form.dataset.ready = '1';
+    // "use": the switch of the other forms of the admin pages (the checkbox stays the field)
+    if (window.jQuery && window.jQuery.fn && window.jQuery.fn.bootstrapSwitch) {
+        window.jQuery(form).find('[data-feature-switch]').bootstrapSwitch({
+            size: 'small', onText: 'ON', offText: 'OFF', onColor: 'primary', offColor: 'default'
+        });
+        window.jQuery(form).find('[data-feature-use-text]').attr('hidden', 'hidden');
+    }
     form.addEventListener('change', function (e) {
         if (!e.target.matches('[data-feature-all]')) { return; }
         var row = e.target.closest('[data-feature-row]');

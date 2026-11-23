@@ -35,7 +35,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      */
     protected $titleColumn = 'title';
 
-    protected $appends = ['menu_target_view'];
+    protected $appends = ['menu_target_view', 'visible_role_groups'];
     protected $casts = ['options' => 'json'];
 
     /**
@@ -55,7 +55,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public static $templateItems = [
         'excepts' => [
             'import' => ['permission'],
-            'export' => ['menu_target', 'permission', 'menu_target_view'],
+            'export' => ['menu_target', 'permission', 'menu_target_view', 'visible_role_groups'],
         ],
         'uniqueKeys' => ['menu_type', 'menu_name'],
         'langs' => [
@@ -116,11 +116,199 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         return $this->setOption('menu_target_view', $value);
     }
 
+    /**
+     * The role groups a parent menu (a group of the menu) is shown to; empty
+     * shows it to everyone, as before.
+     *
+     * @return array<int, int>
+     */
+    public function getVisibleRoleGroupsAttribute(): array
+    {
+        return static::roleGroupIds($this->getOption('visible_role_groups', []));
+    }
+
+    /**
+     * @param mixed $value
+     * @return void
+     */
+    public function setVisibleRoleGroupsAttribute($value)
+    {
+        $ids = static::roleGroupIds($value);
+        $this->setOption('visible_role_groups', count($ids) > 0 ? $ids : null);
+    }
+
+    /**
+     * @param mixed $value ids as the form or the options give them
+     * @return array<int, int>
+     */
+    public static function roleGroupIds($value): array
+    {
+        if (is_string($value)) {
+            $value = explode(',', $value);
+        }
+        if (!is_array($value)) {
+            return [];
+        }
+        $ids = [];
+        foreach ($value as $id) {
+            if (is_numeric($id) && intval($id) > 0) {
+                $ids[] = intval($id);
+            }
+        }
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * Export: the role groups of a parent menu travel by their name, not by
+     * their id (on another site the same id is another role group or none).
+     *
+     * @param array<mixed> $json
+     * @param-out array<mixed> $json
+     * @return void
+     */
+    public static function exportReplaceJson(&$json)
+    {
+        $ids = static::roleGroupIds(array_get($json, 'options.visible_role_groups'));
+        array_forget($json, 'options.visible_role_groups');
+        if (count($ids) > 0) {
+            $names = RoleGroup::whereIn('id', $ids)->pluck('role_group_name')->map(function ($name) {
+                return strval($name);
+            })->values()->all();
+            array_set($json, 'options.visible_role_group_names', $names);
+        }
+    }
+
+    /**
+     * Import: the names of the role groups back to the ids of this site; a
+     * name this site does not have is dropped.
+     *
+     * @param array<mixed> $json
+     * @param-out array<mixed> $json
+     * @return void
+     */
+    protected static function importVisibleRoleGroups(&$json)
+    {
+        $names = array_get($json, 'options.visible_role_group_names');
+        array_forget($json, 'options.visible_role_group_names');
+        array_forget($json, 'options.visible_role_groups');
+        if (!is_array($names) || count($names) === 0) {
+            return;
+        }
+        $ids = RoleGroup::whereIn('role_group_name', $names)->pluck('id')->map(function ($id) {
+            return intval($id);
+        })->values()->all();
+        if (count($ids) > 0) {
+            array_set($json, 'options.visible_role_groups', $ids);
+        }
+    }
+
 
     // @phpstan-ignore-next-line
     public static function getTableName()
     {
         return (new static())->getTable();
+    }
+
+    /**
+     * The language of the site (APP_LOCALE), also when an update runs from
+     * the command line (where the locale of Laravel may be another one).
+     */
+    public static function siteLocale(): string
+    {
+        // exment.locale is APP_LOCALE (config/exment.php)
+        $locale = config('exment.locale');
+        return is_string($locale) && $locale !== '' ? $locale : strval(app()->getLocale());
+    }
+
+    /**
+     * The id of a group of the left menu (Define::MENU_GROUP_DEFINITION), made
+     * at the top level (in the order of the feature map) when the site does not
+     * have it yet. For the bundled templates and the official plugins, which
+     * put their menus under their group:
+     *
+     *   if (method_exists(Menu::class, 'groupParentId')) {
+     *       $parentId = Menu::groupParentId('project');
+     *   }
+     *
+     * A name that is not a group returns null (and makes nothing).
+     */
+    public static function groupParentId(string $name): ?int
+    {
+        $define = array_get(Define::MENU_GROUP_DEFINITION, $name);
+        if (!is_array($define)) {
+            return null;
+        }
+        $table = (new static())->getTable();
+        $id = DB::table($table)->where('menu_type', MenuType::PARENT_NODE)->where('menu_name', $name)->value('id');
+        if (isset($id)) {
+            return intval($id);
+        }
+        return intval(DB::table($table)->insertGetId([
+            'parent_id' => 0,
+            'order' => $define['order'],
+            'title' => static::systemTitle($name),
+            'icon' => $define['icon'],
+            'uri' => null,
+            'menu_type' => MenuType::PARENT_NODE,
+            'menu_name' => $name,
+            'menu_target' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]));
+    }
+
+    /**
+     * The title of a system menu in the language of the site, for a menu an
+     * update adds.
+     */
+    /**
+     * Put a system menu right after another one under the same parent (the security check
+     * after Tuning): the ones after it move down by one. Nothing when either is missing or
+     * they are under different parents (an administrator moved one).
+     */
+    public static function placeSystemMenuAfter(string $menuName, string $afterName): void
+    {
+        $table = config('admin.database.menu_table', 'admin_menu');
+        $menu = \DB::table($table)->where('menu_type', 'system')->where('menu_name', $menuName)->first();
+        $after = \DB::table($table)->where('menu_type', 'system')->where('menu_name', $afterName)->first();
+        if (!isset($menu, $after) || intval($menu->parent_id) !== intval($after->parent_id)) {
+            return;
+        }
+        $order = intval($after->order);
+        if (intval($menu->order) === $order + 1) {
+            return;
+        }
+        \DB::table($table)->where('parent_id', $after->parent_id)->where('id', '<>', $menu->id)->where('order', '>', $order)->increment('order');
+        \DB::table($table)->where('id', $menu->id)->update(['order' => $order + 1]);
+    }
+
+    public static function systemTitle(string $menuName): string
+    {
+        // a language without the name: the one of Laravel, then English, then the name of the menu
+        $key = 'exment::exment.menu.system_definitions.' . $menuName;
+        foreach (array_unique([static::siteLocale(), strval(app()->getLocale()), 'en']) as $locale) {
+            $title = trans($key, [], $locale);
+            if (is_string($title) && $title !== '' && !str_starts_with($title, 'exment::')) {
+                return $title;
+            }
+        }
+        return $menuName;
+    }
+
+    /**
+     * Whether the menus of the features not used are given too (marked
+     * "feature_hidden"): for editing the menus and exporting a template,
+     * not for the menu of the pages.
+     */
+    protected bool $withHidden = false;
+
+    /**
+     * @return $this
+     */
+    public function withHidden(bool $withHidden = true)
+    {
+        $this->withHidden = $withHidden;
+        return $this;
     }
 
     /**
@@ -180,6 +368,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         $results = [];
         foreach ($rows as &$row) {
             $result = true;
+            $hidden = false;
             if (isset($row['options'])) {
                 $row['options'] = json_decode_ex($row['options'], true);
             }
@@ -193,7 +382,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     $row['uri'] = $plugin->getRouteUri();
                     // its menu turned off (Admin setting → Feature management)
                     if (\Exceedone\Exment\Services\Features::hidesPluginMenu($plugin->plugin_name)) {
-                        $result = false;
+                        $hidden = true;
                     }
                     break;
                 case MenuType::TABLE:
@@ -230,7 +419,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     // a feature not used, or that the user may not use (Admin setting → Feature management)
                     if (\Exceedone\Exment\Services\Features::hidesSystemMenu(strval($row['menu_target']))) {
-                        $result = false;
+                        $hidden = true;
                     }
                     break;
                 case MenuType::PARENT_NODE:
@@ -244,8 +433,13 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
             // a page of a feature the user may not use: its menu goes too, of
             // any kind (a plugin's own feature, a custom menu to its URL)
-            if ($result && \Exceedone\Exment\Services\Features::hidesMenuUri(isset($row['uri']) ? strval($row['uri']) : null)) {
-                $result = false;
+            if ($result && !$hidden && \Exceedone\Exment\Services\Features::hidesMenuUri(isset($row['uri']) ? strval($row['uri']) : null)) {
+                $hidden = true;
+            }
+            if ($hidden) {
+                // the menu of a feature not used: kept for editing and the templates
+                $row['feature_hidden'] = true;
+                $result = $result && $this->withHidden;
             }
             if (!$result) {
                 continue;
@@ -260,6 +454,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     // @phpstan-ignore-next-line
     public static function importReplaceJson(&$json, $options = [])
     {
+        static::importVisibleRoleGroups($json);
+
         // Create menu. --------------------------------------------------
         $hasname = array_get($options, 'hasname');
 
@@ -370,7 +566,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
             $parent_name = null;
         } else {
             $parent_id = $this['parent_id'];
-            $menulist = (new Menu())->allNodes(); // allNodes:dimensional
+            $menulist = (new Menu())->withHidden()->allNodes(); // allNodes:dimensional
             $parent = collect($menulist)->first(function ($value, $key) use ($parent_id) {
                 return array_get($value, 'id') == $parent_id;
             });

@@ -40,7 +40,7 @@ class FileServerMetaController extends FileServerController
             if (isset($rows[$i])) {
                 $rows[$i]['snippet'] = $row['snippet'];
                 $rows[$i]['in_content'] = $row['in_content'];
-                $rows[$i]['path'] = $this->pathOf($row['node']);
+                $rows[$i]['path'] = $this->pathOf($row['node'], $library->access());
             }
         }
 
@@ -62,7 +62,7 @@ class FileServerMetaController extends FileServerController
     /**
      * The folders above a node: "workspace / folder / folder".
      */
-    protected function pathOf(\Exceedone\Exment\Model\FileNode $node): string
+    protected function pathOf(\Exceedone\Exment\Model\FileNode $node, \Exceedone\Exment\Services\FileServer\Access $access): string
     {
         $names = [];
         $workspace = $node->workspace;
@@ -72,7 +72,9 @@ class FileServerMetaController extends FileServerController
         $list = $node->ancestorsAndSelf();
         array_pop($list);
         foreach ($list as $item) {
-            $names[] = $item->name;
+            // a folder above that the user may not see: not its name (ISS00433)
+            $names[] = isset($workspace) && $access->can($workspace, $item, \Exceedone\Exment\Services\FileServer\Level::VIEW)
+                ? $item->name : strval(exmtrans('file_server.path_hidden'));
         }
         return implode(' / ', $names);
     }

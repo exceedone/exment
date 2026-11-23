@@ -1,6 +1,7 @@
 @extends('exment::auth.layout')
 @section('content')
     <p class="login-box-msg">{{ trans('admin.login') }}</p>
+    @include('exment::maintenance.login_notice')
 
     @if($show_default_form)
         <form style="margin-bottom:0px;" action="{{ admin_url('auth/login') }}" method="post">

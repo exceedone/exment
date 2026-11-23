@@ -11,6 +11,8 @@
         @foreach ($breadcrumbs as $i => $crumb)
             @if ($i === count($breadcrumbs) - 1)
                 <span>{{ $crumb['name'] }}</span>
+            @elseif (!isset($crumb['url']))
+                <span class="exm-fs-muted">{{ $crumb['name'] }}</span>
             @else
                 <a href="{{ $crumb['url'] }}">{{ $crumb['name'] }}</a>
             @endif
@@ -19,15 +21,18 @@
 
     <div class="exm-fs-toolbar">
         @if ($node->isFolder())
-            <a class="btn btn-sm btn-default" href="{{ $base_url }}/folder/{{ $node->id }}"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.open') }}</a>
+            <a class="btn btn-sm btn-default" href="{{ $page_url }}"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.open') }}</a>
         @endif
         @if ($can_download)
-            <a class="btn btn-sm btn-primary" href="{{ $node_url }}/download"><i class="fa fa-download" aria-hidden="true"></i> {{ exmtrans('file_server.download') }}</a>
+            <a data-nopjax download class="btn btn-sm btn-primary" href="{{ $node_url }}/download"><i class="fa fa-download" aria-hidden="true"></i> {{ exmtrans('file_server.download') }}</a>
+        @endif
+        @if ($can_edit_text && !$lockedByOther)
+            <a class="btn btn-sm btn-primary" href="{{ $node_url }}/edit"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> {{ exmtrans('file_server.text_edit') }}</a>
         @endif
         @foreach ($openers as $opener)
             <a class="btn btn-sm btn-default" href="{{ $opener['url'] }}" target="_blank" rel="noopener"><i class="fa {{ $opener['icon'] ?? 'fa-external-link' }}" aria-hidden="true"></i> {{ $opener['label'] }}</a>
         @endforeach
-        <button type="button" class="btn btn-sm btn-default" data-fs-copy="{{ $node_url }}" title="{{ exmtrans('file_server.copy_internal_link_help') }}"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.copy_internal_link') }}</button>
+        <button type="button" class="btn btn-sm btn-default" data-fs-copy-link="{{ $link }}" data-fs-copy-name="{{ $node->name }}" title="{{ exmtrans('file_server.copy_link_help') }}"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.copy_link') }}</button>
         <button type="button" class="btn btn-sm btn-default" data-fs-action="favorite"><i class="fa {{ $favorite ? 'fa-star' : 'fa-star-o' }}" aria-hidden="true"></i> {{ exmtrans('file_server.favorite') }}</button>
         @if ($node->isFile() && $canEdit)
             @if ($checked_out_by === null)
@@ -89,8 +94,21 @@
                                     </div>
                                 @elseif ($has_pdf_preview)
                                     <iframe src="{{ $node_url }}/content?rendition=pdf" title="{{ $node->name }}"></iframe>
+                                @elseif ($rendition_status === \Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD)
+                                    {{-- a file from people outside: made when a manager asks (ISS00433) --}}
+                                    <div style="width:100%;padding:12px">
+                                        <p>{{ exmtrans('file_server.preview_held') }}</p>
+                                        @if ($canManage)
+                                            <p class="exm-fs-muted">{{ exmtrans('file_server.preview_held_manage') }}</p>
+                                            <button type="button" class="btn btn-sm btn-default" data-fs-action="preview"><i class="fa fa-eye" aria-hidden="true"></i> {{ exmtrans('file_server.make_preview') }}</button>
+                                        @endif
+                                    </div>
                                 @elseif ($rendition_status === null)
-                                    <p class="exm-fs-muted">{{ exmtrans('file_server.preview_making') }}</p>
+                                    @if (\Exceedone\Exment\Services\FileServer\Preview::convertsOnView($kind))
+                                        @include('exment::file_server._preview_wait')
+                                    @else
+                                        <p class="exm-fs-muted">{{ exmtrans('file_server.preview_making') }}</p>
+                                    @endif
                                 @else
                                     @if (isset($embed))
                                         {{-- the viewer of a plugin (read only), as the server makes no PDF --}}
@@ -125,7 +143,7 @@
                 </div>
 
                 <div class="exm-fs-section box card">
-                    <div class="box-header"><h4><i class="fa fa-history" aria-hidden="true"></i> {{ exmtrans('file_server.versions') }}</h4></div>
+                    <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-history" aria-hidden="true"></i> {{ exmtrans('file_server.versions') }}</h3></div>
                     <div class="box-body">
                         @if ($canEdit && !$lockedByOther)
                             <form data-fs-version-form class="form-inline" style="margin-bottom:10px">
@@ -149,7 +167,7 @@
                                             <td style="overflow-wrap:anywhere">{{ $v['comment'] }}</td>
                                             <td class="exm-fs-actions">
                                                 @if ($can_download)
-                                                    <a class="btn btn-xs btn-default" href="{{ $v['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                                    <a data-nopjax download class="btn btn-xs btn-default" href="{{ $v['download_url'] }}" title="{{ exmtrans('file_server.download') }}"><i class="fa fa-download" aria-hidden="true"></i></a>
                                                 @endif
                                                 @if (!$v['current'] && $canEdit && !$lockedByOther)
                                                     <button type="button" class="btn btn-xs btn-default" data-fs-restore="{{ $v['restore_url'] }}" title="{{ exmtrans('file_server.restore_version') }}"><i class="fa fa-undo" aria-hidden="true"></i></button>
@@ -189,7 +207,7 @@
             @include('exment::file_server._governance_box')
 
             <div class="exm-fs-section box card">
-                <div class="box-header"><h4><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h4></div>
+                <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h3></div>
                 <div class="box-body">
                     <p class="exm-fs-muted">{{ $node->has_unique_permissions ? exmtrans('file_server.permissions_unique') : exmtrans('file_server.permissions_inherited') }}</p>
                     @if ($canManage && $node->has_unique_permissions)
@@ -199,11 +217,16 @@
                             <button type="button" class="btn btn-sm btn-default" data-fs-action="inherit">{{ exmtrans('file_server.inherit_permissions') }}</button>
                         </div>
                     @else
-                        <ul style="padding-left:18px;margin:0 0 8px">
-                            @foreach ($permissions as $p)
-                                <li>{{ $p['name'] }} <span class="exm-fs-muted">({{ $p['level_label'] }})</span></li>
-                            @endforeach
-                        </ul>
+                        @if ($canManage)
+                            <ul style="padding-left:18px;margin:0 0 8px">
+                                @foreach ($permissions as $p)
+                                    <li>{{ $p['name'] }} <span class="exm-fs-muted">({{ $p['level_label'] }})</span></li>
+                                @endforeach
+                            </ul>
+                        @else
+                            {{-- who else may see it: for those who manage it (ISS00433) --}}
+                            <p>{{ exmtrans('file_server.permissions_your_level', ['level' => \Exceedone\Exment\Services\FileServer\Level::label($level)]) }}</p>
+                        @endif
                         @if ($canManage)
                             <button type="button" class="btn btn-sm btn-default" data-fs-action="break">{{ exmtrans('file_server.break_permissions') }}</button>
                         @endif
@@ -213,7 +236,7 @@
 
             @if ($can_share || $can_request || count($links) > 0)
             <div class="exm-fs-section box card">
-                <div class="box-header"><h4><i class="fa fa-share-alt" aria-hidden="true"></i> {{ exmtrans('file_server.share_links') }}</h4></div>
+                <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-share-alt" aria-hidden="true"></i> {{ exmtrans('file_server.share_links') }}</h3></div>
                 <div class="box-body">
                     @foreach ($links as $l)
                         <div style="border-bottom:1px solid rgba(0,0,0,.08);padding:6px 0;{{ $l['active'] ? '' : 'opacity:.55' }}">
@@ -295,7 +318,7 @@
     root.addEventListener('click', function (e) {
         var restore = e.target.closest('[data-fs-restore]');
         if (restore) {
-            if (confirm(t.confirm_restore)) { Fs.post(restore.getAttribute('data-fs-restore'), {}).then(Fs.done, Fs.fail); }
+            Fs.confirm(t.confirm_restore).then(function (ok) { if (ok) { Fs.post(restore.getAttribute('data-fs-restore'), {}).then(Fs.done, Fs.fail); } });
             return;
         }
         var btn = e.target.closest('[data-fs-action]');
@@ -306,22 +329,24 @@
             case 'checkout':
             case 'checkin':
             case 'discard_checkout':
+            case 'preview':
                 Fs.post(url + '/' + action, {}).then(Fs.done, Fs.fail);
                 break;
             case 'rename':
-                var n = prompt(t.new_name, name);
-                if (n && n !== name) { Fs.post(url + '/rename', { name: n }).then(Fs.done, Fs.fail); }
+                Fs.ask(t.new_name, name).then(function (n) {
+                    if (n && n !== name) { Fs.post(url + '/rename', { name: n }).then(Fs.done, Fs.fail); }
+                });
                 break;
             case 'trash':
-                if (confirm(t.confirm_trash)) {
-                    Fs.post(url + '/trash', {}).then(function (json) { Fs.notify(json.message); location.href = root.dataset.parentUrl; }, Fs.fail);
-                }
+                Fs.confirm(t.confirm_trash).then(function (ok) {
+                    if (ok) { Fs.post(url + '/trash', {}).then(function (json) { Fs.notify(json.message); location.href = root.dataset.parentUrl; }, Fs.fail); }
+                });
                 break;
             case 'break':
-                if (confirm(t.confirm_break)) { Fs.post(url + '/permissions', { mode: 'break' }).then(Fs.done, Fs.fail); }
+                Fs.confirm(t.confirm_break).then(function (ok) { if (ok) { Fs.post(url + '/permissions', { mode: 'break' }).then(Fs.done, Fs.fail); } });
                 break;
             case 'inherit':
-                if (confirm(t.confirm_inherit)) { Fs.post(url + '/permissions', { mode: 'inherit' }).then(Fs.done, Fs.fail); }
+                Fs.confirm(t.confirm_inherit).then(function (ok) { if (ok) { Fs.post(url + '/permissions', { mode: 'inherit' }).then(Fs.done, Fs.fail); } });
                 break;
             case 'save_permissions':
                 var fd = new FormData();
@@ -335,17 +360,19 @@
     function copyText(text) {
         var done = function () { Fs.notify(@json(exmtrans('file_server.copied'))); };
         if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(done, function () { prompt('URL', text); });
+            navigator.clipboard.writeText(text).then(done, function () { Fs.show('URL', text); });
         } else {
-            prompt('URL', text);
+            Fs.show('URL', text);
         }
     }
     root.addEventListener('click', function (e) {
         var c = e.target.closest('[data-fs-copy]');
         if (c) { copyText(c.getAttribute('data-fs-copy')); return; }
         var r = e.target.closest('[data-fs-revoke]');
-        if (r && confirm(@json(exmtrans('file_server.confirm_share_revoke')))) {
-            Fs.post(r.getAttribute('data-fs-revoke'), {}).then(Fs.done, Fs.fail);
+        if (r) {
+            Fs.confirm(@json(exmtrans('file_server.confirm_share_revoke'))).then(function (ok) {
+                if (ok) { Fs.post(r.getAttribute('data-fs-revoke'), {}).then(Fs.done, Fs.fail); }
+            });
         }
     });
     var linkForm = root.querySelector('[data-fs-link-form]');

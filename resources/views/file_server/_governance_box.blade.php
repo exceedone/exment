@@ -5,7 +5,7 @@
 <div id="exm-fs-governance">
     @if ($approval_status !== null)
         <div class="exm-fs-section box card">
-            <div class="box-header"><h4><i class="fa fa-check-square-o" aria-hidden="true"></i> {{ exmtrans('file_server.approval') }}</h4></div>
+            <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-check-square-o" aria-hidden="true"></i> {{ exmtrans('file_server.approval') }}</h3></div>
             <div class="box-body">
                 <p><span class="exm-fs-badge">{{ exmtrans('file_server.approval_' . $approval_status) }}</span>
                     @if ($approval_status !== 'draft' && $approval_user !== '')
@@ -32,7 +32,7 @@
     @endif
 
     <div class="exm-fs-section box card">
-        <div class="box-header"><h4><i class="fa fa-shield" aria-hidden="true"></i> {{ exmtrans('file_server.rules') }}</h4></div>
+        <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-shield" aria-hidden="true"></i> {{ exmtrans('file_server.rules') }}</h3></div>
         <div class="box-body">
             @if ($held)
                 <p><i class="fa fa-lock" aria-hidden="true"></i> {{ exmtrans('file_server.held_help') }}</p>
@@ -58,7 +58,7 @@
     </div>
 
     <div class="exm-fs-section box card">
-        <div class="box-header"><h4><i class="fa fa-comments-o" aria-hidden="true"></i> {{ exmtrans('file_server.comments') }}</h4>
+        <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-comments-o" aria-hidden="true"></i> {{ exmtrans('file_server.comments') }}</h3>
             <button type="button" class="btn btn-xs btn-default pull-right" data-fs-follow="{{ $follow_url }}" aria-pressed="{{ $following ? 'true' : 'false' }}">
                 <i class="fa {{ $following ? 'fa-bell' : 'fa-bell-o' }}" aria-hidden="true"></i> {{ $following ? exmtrans('file_server.following') : exmtrans('file_server.follow') }}</button>
         </div>
@@ -101,8 +101,10 @@
             return;
         }
         var del = e.target.closest('[data-fs-comment-delete]');
-        if (del && confirm(@json(exmtrans('file_server.confirm_comment_delete')))) {
-            Fs.post(del.getAttribute('data-fs-comment-delete'), {}).then(Fs.done, Fs.fail);
+        if (del) {
+            Fs.confirm(@json(exmtrans('file_server.confirm_comment_delete'))).then(function (ok) {
+                if (ok) { Fs.post(del.getAttribute('data-fs-comment-delete'), {}).then(Fs.done, Fs.fail); }
+            });
         }
     });
     var rules = root.querySelector('[data-fs-rules-form]');

@@ -4166,14 +4166,9 @@ label.checkboxone-label:has(input[readonly][type=checkbox]) {
 }
 
 
-.content-header > h1.exm-has-back-to-list {
-  float: none;
-  width: 100%;
-}
 .content-header > h1 .exm-back-to-list {
-  float: right;
-  margin-left: auto;
-  margin-top: -2px;
+  margin: -2px 12px 0 0;
+  vertical-align: middle;
   padding: 6px 14px;
   font-size: 14px;
   font-weight: 600;

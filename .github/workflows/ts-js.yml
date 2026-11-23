@@ -1,0 +1,36 @@
+name: ts-js
+
+# The js in public/vendor/exment/js is built from src/Web/ts. Fail when it was changed by hand
+# or not rebuilt, so the two do not drift apart.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ts-js.yml'
+      - 'src/Web/ts/**'
+      - 'public/vendor/exment/js/**'
+
+jobs:
+  ts-js:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build the js from the ts
+        run: |
+          # type errors are expected (no type packages); the files are still written
+          npx -y -p typescript@5.6.3 tsc -p src/Web/ts/tsconfig.json > /tmp/tsc.log || true
+          grep -c 'error TS' /tmp/tsc.log || true
+
+      - name: The committed js is the built js
+        run: |
+          if [ -n "$(git status --porcelain -- public/vendor/exment/js)" ]; then
+            git status --short -- public/vendor/exment/js
+            git diff -- public/vendor/exment/js | head -200
+            echo "::error::public/vendor/exment/js differs from the build of src/Web/ts. Change the ts, then run: npx -y -p typescript@5.6.3 tsc -p src/Web/ts/tsconfig.json"
+            exit 1
+          fi
+          echo "the js matches the ts"

@@ -22,14 +22,29 @@ class InstallingForm
     {
         // Merge session DB inputs with the APP_DEBUG flag from this form,
         // then write everything to .env in one shot (EnvService deduplicates).
+        // the value in front of the URLs of Exment (empty: none, the default from 7.2.1)
+        $prefix = \Exceedone\Exment\Services\LegacyAdminRedirect::normalizePrefix(request()->get('ADMIN_ROUTE_PREFIX'));
+        if (is_null($prefix)) {
+            return back()->withInput()->withErrors([
+                'ADMIN_ROUTE_PREFIX' => exmtrans('install.error.admin_route_prefix'),
+            ]);
+        }
+
         try {
             $merged = array_merge(InstallService::getInputParams(), [
                 'APP_DEBUG' => boolval(request()->get('APP_DEBUG')) ? 'true' : 'false',
+                'ADMIN_ROUTE_PREFIX' => $prefix,
             ]);
             $this->setEnv($merged);
+            // with a config cache (php artisan config:cache), .env is not read: the
+            // database and the URL prefix just written would not apply
+            if (app()->configurationIsCached()) {
+                \Artisan::call('config:clear');
+            }
             InstallService::setSettingTmp();
             InstallService::forgetInputParams();
         } catch (\Exception $ex) {
+            \Log::error('Exment install: cannot write .env: ' . $ex->getMessage());
             return back()->withInput()->withErrors([
                 'install_error' => exmtrans('install.error.cannot_write_env'),
             ]);
@@ -62,6 +77,7 @@ class InstallingForm
         InstallService::setInitializeStatus(InitializeStatus::INSTALLING);
 
         admin_toastr(exmtrans('install.help.install_success'));
-        return redirect(admin_url('initialize'));
+        // .env is read again from the next request: go to the URL with the prefix just written
+        return redirect(url($prefix === '' ? 'initialize' : $prefix . '/initialize'));
     }
 }

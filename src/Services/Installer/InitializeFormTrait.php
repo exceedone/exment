@@ -224,6 +224,9 @@ trait InitializeFormTrait
             ->default(admin_url('line/webhook'));
 
         $form->exmheader(exmtrans('system.safety_check'))->hr();
+        if (!\Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::SAFETY_CHECK)) {
+            $form->descriptionHtml('<span class="text-warning">' . esc_html(exmtrans('safety.feature_off')) . '</span> <a href="' . esc_html(admin_url('feature')) . '">' . esc_html(exmtrans('feature.open_feature')) . '</a>');
+        }
 
         $form->switchbool('safety_check_auto_enabled', exmtrans('system.safety_check_auto_enabled'))
             ->help(exmtrans('system.help.safety_check_auto_enabled'));

@@ -59,6 +59,11 @@ class Bootstrap
             if (DemoMode::enabled()) {
                 $navbar->left(new \Exceedone\Exment\Form\Navbar\DemoModeNav());
             }
+            // maintenance mode: in it, or planned
+            $maintenance = \Exceedone\Exment\Form\Navbar\MaintenanceNav::make();
+            if (isset($maintenance)) {
+                $navbar->left($maintenance);
+            }
         });
         static::setCssJsList(['lib/js/jquery-ui.min.js'], false);
         static::setCssJsList(['lib/css/jquery-ui.min.css'], true);
@@ -132,6 +137,8 @@ class Bootstrap
             'vendor/exment/js/scroll-restore.js',
             'vendor/exment/js/search.js',
             'vendor/exment/js/calc.js',
+            // one shared timer for the navbar polls (ISS02824): before the two that use it
+            'vendor/exment/js/navbar_poll.js',
             'vendor/exment/js/notify_navbar.js',
             'vendor/exment/js/workflow_task_navbar.js',
             'vendor/exment/js/modal.js',

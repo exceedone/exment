@@ -419,6 +419,25 @@ body[class*="skin-"] .main-header .logo .logo-mini img {
   padding: 4px;
 }
 
+/* The Exment logo of a site without its own (Initialize::DEFAULT_LOGO) has
+   its colors made for this bar: no plate. */
+body[class*="skin-"] .main-header .logo .logo-lg img.exment-default-logo,
+body[class*="skin-"] .main-header .logo .logo-mini img.exment-default-logo {
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+body[class*="skin-"] .main-header .logo .logo-lg img.exment-default-logo {
+  height: 34px;
+  width: auto;
+}
+
+body[class*="skin-"] .main-header .logo .logo-mini img.exment-default-logo {
+  height: 30px;
+  width: auto;
+}
+
 /* !important: skin-blue-light sets the navbar color with !important. */
 body[class*="skin-"] .main-header .navbar {
   background-color: var(--exm-ui-bg) !important;
@@ -1892,7 +1911,7 @@ body[class*="skin-"] .box:has(table.exm-grid) > .box-footer .pagination .page-it
   background-color: transparent;
 }
 
-/* "Back to the list" on the right of the page title: the accent color. */
+/* "Back to the list" at the left of the page title: the accent color. */
 body[class*="skin-"] .content-header > h1 .exm-back-to-list {
   color: #fff;
   background-color: var(--exm-ui-accent);

@@ -34,7 +34,7 @@ return new class extends Migration
         DB::table($menuTable)->insert([
             'parent_id' => $admin->id,
             'order' => $order,
-            'title' => exmtrans('menu.system_definitions.studio'),
+            'title' => \Exceedone\Exment\Model\Menu::systemTitle('studio'),
             'icon' => 'fa-th-large',
             'uri' => 'studio',
             'menu_type' => 'system',

@@ -170,7 +170,8 @@ class AdminScreensContentTest extends FeatureTestBase
         $this->assertForm($this->html($create), 'notify_navbar', 'POST', []);
 
         $navbar = NotifyNavbar::findOrFail(1);
-        $show = $this->open('notify_navbar/1');
+        // notify_navbar/1 alone opens the notification's record (NotifyOpenRecordTest)
+        $show = $this->open('notify_navbar/1?content=1');
         $this->assertScreen($show, exmtrans('notify_navbar.header'));
         $show->assertSee(strval($navbar->notify_subject));
     }

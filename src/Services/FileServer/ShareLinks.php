@@ -29,6 +29,27 @@ class ShareLinks
     public const SESSION_KEY = 'exment_file_share_unlocked';
     public const COUNTED_KEY = 'exment_file_share_unlocked_counted';
 
+    /**
+     * The shortest password of a link.
+     */
+    public static function passwordMinLength(): int
+    {
+        return max(1, intval(config('exment.file_server_share_password_min', 8)));
+    }
+
+    /**
+     * Whether an open of a link by someone outside is written in the audit
+     * log: once in 10 minutes for a link and an address (not for each page).
+     */
+    public static function auditOpen(FileShareLink $link, ?string $ip): bool
+    {
+        try {
+            return \Illuminate\Support\Facades\Cache::add('exment_file_share_open_' . $link->id . '_' . md5(strval($ip)), 1, now()->addMinutes(10));
+        } catch (\Throwable $e) {
+            return true;
+        }
+    }
+
     /** The wrong passwords of a link before it is stopped for a while (ISS00410). */
     public const PASSWORD_TRIES = 10;
     public const PASSWORD_LOCK_MINUTES = 15;
@@ -81,7 +102,8 @@ class ShareLinks
             if (!$node->isFolder()) {
                 throw new FileServerException(exmtrans('file_server.error_request_folder_only'));
             }
-            $access->authorize($workspace, $node, Level::UPLOAD);
+            // a link that lets anyone outside put files in: those who may edit the folder (ISS00433)
+            $access->authorize($workspace, $node, Level::EDIT);
         } elseif ($kind === FileShareLink::KIND_SHARE) {
             $access->authorize($workspace, $node, Level::EDIT);
             if ($node->isDraft()) {
@@ -97,6 +119,9 @@ class ShareLinks
 
         $expires = $this->expiresAt(array_get($options, 'expires_at'));
         $password = strval(array_get($options, 'password', ''));
+        if ($password !== '' && mb_strlen($password) < static::passwordMinLength()) {
+            throw new FileServerException(exmtrans('file_server.error_share_password_short', ['min' => static::passwordMinLength()]));
+        }
         $max = array_get($options, 'max_access');
         $max = ($max === null || $max === '' || intval($max) <= 0) ? null : min(1000000, intval($max));
         $message = trim(strval(array_get($options, 'message', '')));
@@ -157,7 +182,7 @@ class ShareLinks
         $level = $access->level($workspace, $node);
         return FileShareLink::query()->where('node_id', $node->id)->orderByDesc('id')->get()
             ->filter(function (FileShareLink $link) use ($level) {
-                return $link->kind === FileShareLink::KIND_REQUEST ? $level >= Level::UPLOAD : $level >= Level::EDIT;
+                return $level >= Level::EDIT;
             })->values();
     }
 
@@ -220,22 +245,47 @@ class ShareLinks
 
     protected static function makerMayGive(FileShareLink $link, FileWorkspace $workspace, FileNode $node): bool
     {
+        $access = static::makerAccess($link);
+        // a request link as a share link: its maker must still edit the folder
+        // (a link made before by who may only upload closes too, ISS00433)
+        return isset($access) && $access->can($workspace, $node, Level::EDIT);
+    }
+
+    /**
+     * Whether the link gives the files to take away now: it was made so, and its
+     * maker may still download them under the rule of the workspace today (a rule
+     * made stricter later applies to the links made before).
+     */
+    public static function downloadAllowed(FileShareLink $link, ?FileNode $node = null): bool
+    {
+        if (!$link->allow_download || $link->kind !== FileShareLink::KIND_SHARE) {
+            return false;
+        }
+        $workspace = $link->workspace;
+        $access = static::makerAccess($link);
+        return isset($workspace, $access) && Governance::canDownload($access, $workspace, $node ?? $link->node);
+    }
+
+    /**
+     * The access of the maker of a link (null: no maker, or removed).
+     */
+    protected static function makerAccess(FileShareLink $link): ?Access
+    {
         $makerId = $link->created_user_id;
         if (!isset($makerId)) {
-            return false;
+            return null;
         }
         $isAdmin = false;
         try {
             $login = \Exceedone\Exment\Model\LoginUser::query()->where('base_user_id', $makerId)->first();
             if (!isset($login) && getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($makerId) === null) {
-                return false;
+                return null;
             }
             $isAdmin = isset($login) && boolval($login->hasPermission(\Exceedone\Exment\Enums\Permission::SYSTEM));
         } catch (\Throwable $e) {
             $isAdmin = false;
         }
-        $level = $link->kind === FileShareLink::KIND_REQUEST ? Level::UPLOAD : Level::EDIT;
-        return (new Access(intval($makerId), $isAdmin))->can($workspace, $node, $level);
+        return new Access(intval($makerId), $isAdmin);
     }
 
     public static function isUnlocked(FileShareLink $link): bool

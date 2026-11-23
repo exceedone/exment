@@ -419,4 +419,43 @@ class FileMetadataTest extends FeatureTestBase
         $this->assertTrue(str_contains(strval($html), '?view=1') || str_contains(strval($html), '来期の計画書の本文'));
         $this->assertStringNotContainsString(exmtrans('file_server.preview_office_none'), strval($html));
     }
+
+    public function testTheWordsOfTheServerAreForTheSystemAdministratorsOnly(): void
+    {
+        // no LibreOffice, no viewer of a plugin, no text in the file (ISS01704)
+        config(['exment.file_server_soffice_path' => null]);
+        $openers = new \ReflectionProperty(\Exceedone\Exment\Services\FileServer\Preview::class, 'openers');
+        $kept = $openers->getValue();
+        $openers->setValue(null, []);
+        try {
+            $lib = $this->admin();
+            $ws = $lib->createWorkspace(['name' => 'Office']);
+            $blank = Library::tempPath('test_blank_') . '.docx';
+            $zip = new \ZipArchive();
+            $zip->open($blank, \ZipArchive::CREATE);
+            $zip->addFromString('[Content_Types].xml', '<?xml version="1.0"?><Types/>');
+            $zip->addFromString('word/document.xml', '<?xml version="1.0"?><w:document xmlns:w="w"><w:body/></w:document>');
+            $zip->close();
+            $this->locals[] = $blank;
+            $file = $this->withText($lib->storeFile($ws, null, 'blank.docx', $blank));
+            $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::VIEW);
+            $url = admin_urls('file_server', $ws->id, 'nodes', $file->id);
+
+            // a user: only to download it, nothing of the server
+            System::clearRequestSession();
+            $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1));
+            $html = strval($this->get($url, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->getContent());
+            $this->assertStringContainsString(exmtrans('file_server.preview_office_user'), $html);
+            $this->assertStringNotContainsString('EXMENT_FILE_SERVER_SOFFICE_PATH', $html);
+            $this->assertStringNotContainsString('LibreOffice', $html);
+
+            // the system administrator: what the server needs
+            System::clearRequestSession();
+            $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+            $html = strval($this->get($url, ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()->getContent());
+            $this->assertStringContainsString(exmtrans('file_server.preview_office_none'), $html);
+        } finally {
+            $openers->setValue(null, $kept);
+        }
+    }
 }

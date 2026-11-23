@@ -9,6 +9,8 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\EnvService;
+use Exceedone\Exment\Services\SystemRequire\Security\SecurityCheck;
+use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +37,16 @@ class InitializeForm
         $form->text('email', exmtrans('user.email'))->required()->help(exmtrans('user.help.email'));
         $form->password('password', exmtrans('user.password'))->required()->help(\Exment::get_password_help());
         $form->password('password_confirmation', exmtrans('user.password_confirmation'))->required();
+
+        // the tuning Exment can do by itself: chosen here, done after the setup is saved
+        $autoItems = (new AutoTuning(true))->available();
+        if (count($autoItems) > 0) {
+            $form->exmheader(exmtrans('tuning.install_header'))->hr();
+            $form->checkbox('auto_tuning', exmtrans('tuning.auto.header'))
+                ->options($autoItems)
+                ->default(array_keys($autoItems))
+                ->help(exmtrans('tuning.auto.install_help'));
+        }
         return view('exment::initialize.content', [
             'content'=> $form->render(),
             'header' => exmtrans('system.initialize_header'),
@@ -87,11 +99,38 @@ class InitializeForm
             }
 
             \DB::commit();
+
+            // the tuning chosen on the screen; a failure does not stop the setup (it is logged)
+            try {
+                (new AutoTuning(true))->apply((array) $request->get('auto_tuning', []), intval($loginuser->id));
+            } catch (\Throwable $ex) {
+                \Log::error($ex);
+            }
+
             admin_toastr(trans('admin.save_succeeded'));
             $this->guard()->login($loginuser);
 
             // set session for 2factor
             session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+
+            // the security check (ISS02833): something of a high risk opens its page (with
+            // the fixes); the rest (two-step sign-in...) is told on the dashboard
+            try {
+                $after = (new SecurityCheck())->afterInitialize();
+                if ($after['page']) {
+                    admin_toastr(exmtrans('security_check.after_initialize_high', ['count' => $after['high']]), 'warning');
+                    return redirect(admin_url('security_check'));
+                }
+                if ($after['other'] > 0) {
+                    admin_warning(
+                        exmtrans('security_check.header'),
+                        e(exmtrans('security_check.after_initialize', ['count' => $after['other']]))
+                            . ' <a href="' . e(admin_url('security_check')) . '">' . e(exmtrans('security_check.open')) . '</a>'
+                    );
+                }
+            } catch (\Throwable $ex) {
+                \Log::error($ex);
+            }
 
             return redirect(admin_url('/'));
         } catch (InvalidZipEntryException $exception) {

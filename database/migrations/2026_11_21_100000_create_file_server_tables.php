@@ -165,7 +165,7 @@ return new class extends Migration
         DB::table($menuTable)->insert([
             'parent_id' => $parentId,
             'order' => $order,
-            'title' => exmtrans('menu.system_definitions.file_server'),
+            'title' => \Exceedone\Exment\Model\Menu::systemTitle('file_server'),
             'icon' => 'fa-folder-open',
             'uri' => 'file_server',
             'menu_type' => 'system',

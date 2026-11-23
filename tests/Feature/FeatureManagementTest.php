@@ -240,6 +240,170 @@ class FeatureManagementTest extends FeatureTestBase
         $this->assertSame('a::b c', Features::label('exment_test.plain'));
     }
 
+    public function testWithTheRoutesCachedThePluginsAreNotMadeEachTime(): void
+    {
+        // the routes cached (php artisan route:cache)
+        Features::routesCachedForTests(true);
+        try {
+            $key = Features::pluginsCacheKey();
+            // what the plugins registered is taken from the cache (no class made)
+            $kept = ['exment_test.kept' => ['label' => 'Kept', 'description' => '', 'endpoints' => ['plugins/exment_test'], 'api' => [],
+                'menu' => null, 'plugin' => 'exment_test', 'existing' => false, 'default' => false, 'who' => true, 'requires' => null]];
+            \Cache::put($key, $kept, 60);
+            Features::reset();
+            $this->assertArrayHasKey('exment_test.kept', Features::definitions());
+            $this->assertSame('exment_test.kept', Features::forRequest(Request::create(admin_url('plugins/exment_test'))));
+
+            // a plugin changed: another key, the classes are made again and kept
+            $plugin = Plugin::query()->orderBy('id')->first();
+            if ($plugin !== null) {
+                DB::table('plugins')->where('id', $plugin->id)->update(['updated_at' => now()->addMinute()]);
+                $this->assertNotSame($key, Features::pluginsCacheKey());
+            }
+            \Cache::forget(Features::pluginsCacheKey());
+            Features::reset();
+            $this->assertArrayNotHasKey('exment_test.kept', Features::definitions());
+            $this->assertIsArray(\Cache::get(Features::pluginsCacheKey()), 'what the plugins registered is kept');
+        } finally {
+            \Cache::forget($key ?? '');
+            Features::routesCachedForTests(null);
+            Features::reset();
+        }
+    }
+
+    public function testTheCacheOfThePluginsIsKeptOnlyWhenAll(): void
+    {
+        Features::routesCachedForTests(true);
+        $broken = null;
+        $cache = null;
+        try {
+            // a plugin forgotten: the key changes
+            $key = Features::pluginsCacheKey();
+            Features::forgetPluginsCache();
+            $this->assertNotSame($key, Features::pluginsCacheKey());
+
+            // a page plugin whose class cannot be made (its files are not there): not kept
+            $broken = new Plugin();
+            $broken->uuid = (string)\Illuminate\Support\Str::uuid();
+            $broken->plugin_name = 'TestBroken' . uniqid();
+            $broken->plugin_view_name = 'Broken';
+            $broken->plugin_types = \Exceedone\Exment\Enums\PluginType::PAGE;
+            $broken->active_flg = true;
+            $broken->version = '1.0.0';
+            $broken->save();
+            Features::reset();
+            Features::routesCachedForTests(true);
+            Features::definitions();
+            $this->assertNull(\Cache::get(Features::pluginsCacheKey()), 'a set without a plugin was kept');
+
+            // what was registered before in the request is kept too
+            $broken->active_flg = false;
+            $broken->save();
+            Features::reset();
+            Features::routesCachedForTests(true);
+            Features::register('exment_test.before', ['label' => 'Before', 'endpoints' => ['plugins/exment_test']]);
+            Features::definitions();
+            /** @var mixed $kept */
+            $kept = \Cache::store()->get(Features::pluginsCacheKey());
+            $this->assertTrue(is_array($kept), 'the features were not kept');
+            $this->assertArrayHasKey('exment_test.before', (array)$kept);
+
+            // the cache cannot be read: the features are made as without it
+            $cache = app('cache');
+            \Cache::partialMock()->shouldReceive('get')->andThrow(new \RuntimeException('the store is down'));
+            Features::reset();
+            Features::routesCachedForTests(true);
+            Features::register('exment_test.desk', ['label' => 'Desk', 'endpoints' => ['plugins/exment_test']]);
+            $this->assertArrayHasKey('exment_test.desk', Features::definitions());
+        } finally {
+            if (isset($cache)) {
+                \Illuminate\Support\Facades\Cache::swap($cache);
+            }
+            if (isset($broken) && $broken->exists) {
+                $broken->delete();
+            }
+            Features::routesCachedForTests(null);
+            Features::reset();
+        }
+    }
+
+    public function testTheManualsOfTheFeatures(): void
+    {
+        try {
+            // Exment's own: a page of the manual
+            $this->assertSame(getManualUrl('studio'), Features::manualUrl(Features::STUDIO));
+            $this->assertSame(getManualUrl('file_server'), Features::manualUrl(Features::FILE_SERVER));
+            $this->assertNull(Features::manualUrl(Features::MCP), 'a feature without a manual');
+
+            // a plugin's: its own URL, or a page; anything else is dropped
+            Features::register('exment_test.own', ['label' => 'Own', 'endpoints' => ['plugins/exment_test/own'], 'manual' => 'https://example.com/manual/own']);
+            Features::register('exment_test.page', ['label' => 'Page', 'endpoints' => ['plugins/exment_test/page'], 'manual' => 'plugin?id=setting']);
+            Features::register('exment_test.script', ['label' => 'Script', 'endpoints' => ['plugins/exment_test/script'], 'manual' => 'javascript:alert(1)']);
+            Features::register('exment_test.quote', ['label' => 'Quote', 'endpoints' => ['plugins/exment_test/quote'], 'manual' => 'https://example.com/"onmouseover="x']);
+            $this->assertSame('https://example.com/manual/own', Features::manualUrl('exment_test.own'));
+            $this->assertSame(getManualUrl('plugin?id=setting'), Features::manualUrl('exment_test.page'));
+            $this->assertNull(Features::manualUrl('exment_test.script'));
+            $this->assertNull(Features::manualUrl('exment_test.quote'));
+
+            // the help button: the pages of the features come first
+            $html = strval(new \Exceedone\Exment\Form\Navbar\HelpNav());
+            $this->assertSame(1, preg_match('/value="([^"]*)" id="help_urls"/', $html, $m));
+            $urls = json_decode(html_entity_decode($m[1] ?? '', ENT_QUOTES), true);
+            $this->assertTrue(is_array($urls));
+            $uris = array_column($urls, 'help_uri', 'uri');
+            $this->assertSame('https://example.com/manual/own', $uris['plugins/exment_test/own'] ?? null);
+            $this->assertSame('studio', $uris['studio'] ?? null);
+            $this->assertArrayNotHasKey('plugins/exment_test/script', $uris);
+            $first = array_search('studio', array_column($urls, 'uri'), true);
+            $table = array_search('table', array_column($urls, 'uri'), true);
+            $this->assertTrue($first !== false && $table !== false && $first < $table, 'the features are not first');
+            $this->assertSame('feature', $uris['feature'] ?? null);
+
+            // the page of Feature management: a link to the manual of each feature that has one
+            Features::reset();
+            $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+            $this->get(admin_url('feature'), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk()
+                ->assertSee('href="' . e(getManualUrl('studio')) . '"', false)
+                ->assertSee('data-feature-manual', false);
+        } finally {
+            Features::reset();
+        }
+    }
+
+    public function testTheActionOfAFeature(): void
+    {
+        try {
+            Features::register('exment_test.editor', ['label' => 'Editor', 'action' => ['label' => 'Install the editor', 'url' => '/admin/plugins/exment_test']]);
+            Features::register('exment_test.away', ['label' => 'Away', 'action' => ['label' => 'Go', 'url' => 'https://example.com/setup']]);
+            Features::register('exment_test.script', ['label' => 'Script', 'action' => ['label' => 'Run', 'url' => 'javascript:alert(1)']]);
+            Features::register('exment_test.quote', ['label' => 'Quote', 'action' => ['label' => 'Q', 'url' => '/x" onmouseover="y']]);
+            Features::register('exment_test.other', ['label' => 'Other', 'action' => ['label' => 'Other site', 'url' => '//evil.example.com/']]);
+            Features::register('exment_test.empty', ['label' => 'Empty', 'action' => ['label' => '', 'url' => '/admin']]);
+            Features::register('exment_test.none', ['label' => 'None']);
+            $this->assertSame(['label' => 'Install the editor', 'url' => '/admin/plugins/exment_test'], Features::action('exment_test.editor'));
+            $this->assertSame(['label' => 'Go', 'url' => 'https://example.com/setup'], Features::action('exment_test.away'));
+            foreach (['script', 'quote', 'other', 'empty', 'none'] as $name) {
+                $this->assertNull(Features::action('exment_test.' . $name), $name);
+            }
+
+            // its row shows it as a button (the page lists a plugin's features under the plugin,
+            // and there is no plugin exment_test: the row is drawn as the page draws it)
+            $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+            $controller = app(\Exceedone\Exment\Controllers\FeatureController::class);
+            $method = new \ReflectionMethod($controller, 'featureRow');
+            $method->setAccessible(true);
+            $draw = function (string $key) use ($controller, $method) {
+                $row = $method->invoke($controller, $key, Features::definitions()[$key]);
+                return view('exment::feature._row', ['f' => $row, 'child' => false, 'muted' => false, 'role_groups' => [], 'menu_url' => admin_url('menu')])->render();
+            };
+            $this->assertStringContainsString('href="/admin/plugins/exment_test" data-feature-action>Install the editor</a>', $draw('exment_test.editor'));
+            $this->assertStringNotContainsString('data-feature-action', $draw('exment_test.script'));
+            $this->assertStringNotContainsString('javascript:alert(1)', $draw('exment_test.script'));
+        } finally {
+            Features::reset();
+        }
+    }
+
     public function testRequiresAndWho(): void
     {
         Features::register('exment_test.desk', ['label' => 'Desk', 'endpoints' => ['plugins/exment_test']]);

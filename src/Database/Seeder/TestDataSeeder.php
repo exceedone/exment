@@ -861,7 +861,7 @@ class TestDataSeeder extends Seeder
         // create parent id
         $menu = Menu::create([
             'parent_id' => 0,
-            'order' => 92,
+            'order' => 94,
             'title' => $options['title'],
             'icon' => 'fa-table',
             'uri' => '#',

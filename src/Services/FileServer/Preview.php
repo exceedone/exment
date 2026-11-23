@@ -11,7 +11,9 @@ use Exceedone\Exment\Model\FileNodeVersion;
  *
  * - image, video, audio, PDF, text: shown as they are
  * - Office (Word, Excel, PowerPoint...): converted to PDF by LibreOffice when
- *   the site has it (config exment.file_server_soffice_path); otherwise download only
+ *   the site has it: a converter of its own on the inner network (Gotenberg,
+ *   config exment.file_server_soffice_url, ISS01704), or LibreOffice in the
+ *   same server (config exment.file_server_soffice_path); otherwise download only
  * - the thumbnail of an image is made with GD; of a PDF with Imagick when it is there
  *
  * An editor (as the Office of the Groupware, ISS00233) can be added as an
@@ -28,6 +30,9 @@ class Preview
     public const KIND_NONE = 'none';
 
     public const THUMBNAIL_SIZE = 320;
+
+    /** The answer of makeOnView() while the PDF is being made (not kept in the table). */
+    public const STATUS_CONVERTING = 'converting';
     public const TEXT_PREVIEW_BYTES = 1048576;
 
     /** @var array<string, string> */
@@ -72,6 +77,10 @@ class Preview
                 $mime = finfo_file($finfo, $localPath) ?: null;
                 finfo_close($finfo);
             }
+        }
+        // an empty file (a new text file) is known by its extension
+        if ($mime === 'application/x-empty' || $mime === 'inode/x-empty') {
+            $mime = null;
         }
         if (!isset($mime) || $mime === 'application/octet-stream' || $mime === 'text/plain') {
             $byExt = \Symfony\Component\Mime\MimeTypes::getDefault()->getMimeTypes($ext);
@@ -122,6 +131,51 @@ class Preview
     }
 
     /**
+     * The converter on the inner network (a Gotenberg with LibreOffice), set
+     * on the server only: http(s), a host and a port, nothing else. Its user
+     * and password (when the converter asks for them: Basic) are not in it.
+     */
+    public static function sofficeUrl(): ?string
+    {
+        $parts = static::converterParts();
+        return isset($parts) ? $parts['url'] : null;
+    }
+
+    /**
+     * The address of the converter and its user and password, from
+     * "http(s)://[user:password@]host[:port][/]".
+     *
+     * @return array{url: string, user: ?string, password: ?string}|null
+     */
+    protected static function converterParts(): ?array
+    {
+        $url = config('exment.file_server_soffice_url');
+        if (!is_string($url) || trim($url) === '' || preg_match('/\s/', trim($url)) === 1) {
+            return null;
+        }
+        $parts = parse_url(trim($url));
+        if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])
+            || !in_array(strtolower($parts['scheme']), ['http', 'https'], true)
+            || isset($parts['query']) || isset($parts['fragment'])
+            || (isset($parts['path']) && $parts['path'] !== '/')) {
+            return null;
+        }
+        return [
+            'url' => strtolower($parts['scheme']) . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : ''),
+            'user' => isset($parts['user']) ? rawurldecode($parts['user']) : null,
+            'password' => isset($parts['pass']) ? rawurldecode($parts['pass']) : null,
+        ];
+    }
+
+    /**
+     * Whether the site can make the PDF of an Office file (a converter or LibreOffice).
+     */
+    public static function canConvertOffice(): bool
+    {
+        return static::sofficeUrl() !== null || static::sofficePath() !== null;
+    }
+
+    /**
      * Make the thumbnail and the PDF of a version later (on the queue).
      */
     public static function queueRenditions(FileNodeVersion $version): void
@@ -130,10 +184,15 @@ class Preview
         $kind = static::kind($version->mime_type, isset($node) ? $node->name : '');
         $needs = $kind === static::KIND_IMAGE
             || ($kind === static::KIND_PDF && extension_loaded('imagick'))
-            || ($kind === static::KIND_OFFICE && static::sofficePath() !== null);
+            || ($kind === static::KIND_OFFICE && static::canConvertOffice());
         if (!$needs) {
             $version->rendition_status = FileNodeVersion::RENDITION_NONE;
             $version->save();
+            return;
+        }
+        // with a converter of its own, an Office file is converted the first time its
+        // preview is opened (makeOnView), not while it is uploaded (ISS01704)
+        if (static::convertsOnView($kind)) {
             return;
         }
         try {
@@ -141,6 +200,53 @@ class Preview
         } catch (\Throwable $e) {
             \Log::warning('[FileServer] could not queue the preview of version ' . $version->id . ': ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Whether the PDF of the kind is made when the preview is first opened:
+     * an Office file with a converter of its own (EXMENT_FILE_SERVER_SOFFICE_URL).
+     * When the site has a queue worker (ISS01236), this can go to the queue.
+     */
+    public static function convertsOnView(string $kind): bool
+    {
+        return $kind === static::KIND_OFFICE && static::sofficeUrl() !== null;
+    }
+
+    /**
+     * The preview of a version opened: makes its PDF now when it is not made
+     * yet and none is being made. One request converts; the others (another
+     * viewer, the same page asking again) are told it is being made, by a lock
+     * of the version that ends by itself after the time limit.
+     *
+     * @return string the status: done, failed, none, held, or "converting"
+     */
+    public static function makeOnView(FileNodeVersion $version): string
+    {
+        $node = $version->node;
+        if (!isset($node) || !static::convertsOnView(static::kind($version->mime_type, $node->name))) {
+            return strval($version->rendition_status ?? static::STATUS_CONVERTING);
+        }
+        if ($version->rendition_status !== null) {
+            return strval($version->rendition_status);
+        }
+        $timeout = max(5, intval(config('exment.file_server_soffice_timeout', 120)));
+        $lock = \Illuminate\Support\Facades\Cache::lock('exment_file_server_convert_' . $version->id, $timeout + 60);
+        if (!$lock->get()) {
+            return static::STATUS_CONVERTING;
+        }
+        try {
+            $version->refresh();
+            if ($version->rendition_status === null) {
+                // the viewer may leave the page: the conversion still ends and is kept
+                ignore_user_abort(true);
+                @set_time_limit($timeout + 30);
+                static::makeRenditions($version);
+                $version->refresh();
+            }
+        } finally {
+            $lock->release();
+        }
+        return strval($version->rendition_status ?? static::STATUS_CONVERTING);
     }
 
     /**
@@ -166,7 +272,7 @@ class Preview
             $local = $library->downloadToLocal($version);
             $dir = dirname($version->path);
 
-            if ($kind === static::KIND_OFFICE && static::sofficePath() !== null) {
+            if ($kind === static::KIND_OFFICE && static::canConvertOffice()) {
                 $pdf = static::convertToPdf($local, $node->extension());
                 if (isset($pdf)) {
                     $path = $dir . '/preview_' . $version->version_no . '.pdf';
@@ -302,7 +408,8 @@ class Preview
             $class = 'Imagick';
             $im = new $class();
             $im->setResolution(72, 72);
-            $im->readImage($local . '[0]');
+            // read as a PDF only (not as what its bytes say: MVG, SVG, ...)
+            $im->readImage('pdf:' . $local . '[0]');
             $im->setImageFormat('jpeg');
             $im->thumbnailImage(static::THUMBNAIL_SIZE, static::THUMBNAIL_SIZE, true);
             $out = Library::tempPath('thumb_');
@@ -320,6 +427,9 @@ class Preview
      */
     public static function convertToPdf(string $local, string $ext): ?string
     {
+        if (static::sofficeUrl() !== null) {
+            return static::convertByConverter($local, $ext);
+        }
         $soffice = static::sofficePath();
         if (!isset($soffice)) {
             return null;
@@ -331,6 +441,11 @@ class Preview
         // a list (no shell between): nothing of the names can be run
         $command = [$soffice, '--headless', '--norestore', '--convert-to', 'pdf', '--outdir', $work, $input,
             '-env:UserInstallation=file://' . str_replace('\\', '/', $work) . '/profile'];
+        // run without the network, when the site gives a command for it (config file_server_soffice_prefix)
+        $prefix = trim(strval(config('exment.file_server_soffice_prefix', '')));
+        if ($prefix !== '') {
+            $command = array_merge(preg_split('/\s+/', $prefix) ?: [], $command);
+        }
         $timeout = intval(config('exment.file_server_soffice_timeout', 120));
         $process = new \Symfony\Component\Process\Process($command, $work, ['HOME' => $work]);
         $process->setTimeout($timeout);
@@ -342,6 +457,113 @@ class Preview
             rename($pdf, $result);
         }
         \File::deleteDirectory($work);
+        return $result;
+    }
+
+    /**
+     * Convert an Office file to PDF with the converter on the inner network
+     * (Gotenberg: POST /forms/libreoffice/convert). Only the file is sent, with
+     * a plain name; the converter keeps nothing. While it is busy (its queue
+     * full: 429, or starting: 503) it is asked again a few times, within the
+     * time limit. It is not followed to another address (no redirect), and
+     * its answer is written to a file as it comes, up to a limit. Returns the
+     * local path of the PDF, or null.
+     */
+    protected static function convertByConverter(string $local, string $ext): ?string
+    {
+        $parts = static::converterParts();
+        if (!isset($parts)) {
+            return null;
+        }
+        $url = $parts['url'];
+        $maxPdf = max(1048576, intval(config('exment.file_server_soffice_max_pdf_bytes', 209715200)));
+        $ext = preg_replace('/[^a-z0-9]/', '', strtolower($ext)) ?: 'bin';
+        $timeout = max(5, intval(config('exment.file_server_soffice_timeout', 120)));
+        $until = microtime(true) + $timeout;
+        $wait = 2;
+        while (true) {
+            $left = (int) ceil($until - microtime(true));
+            if ($left <= 0) {
+                return null;
+            }
+            $stream = fopen($local, 'rb');
+            if ($stream === false) {
+                return null;
+            }
+            try {
+                $request = \Illuminate\Support\Facades\Http::timeout($left)
+                    ->connectTimeout(min(10, $left))
+                    // not to another address; the answer read as it comes
+                    ->withOptions(['allow_redirects' => false, 'stream' => true])
+                    ->accept('application/pdf');
+                if (isset($parts['user'])) {
+                    $request = $request->withBasicAuth($parts['user'], strval($parts['password']));
+                }
+                $response = $request->attach('files', $stream, 'input.' . $ext)
+                    ->post($url . '/forms/libreoffice/convert');
+            } catch (\Throwable $e) {
+                \Log::warning('[FileServer] the converter could not be reached: ' . $e->getMessage());
+                return null;
+            } finally {
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+            }
+            $status = $response->status();
+            if (($status === 429 || $status === 503) && microtime(true) + $wait < $until) {
+                // busy: asked again after a while
+                sleep($wait);
+                $wait = min($wait * 2, 16);
+                continue;
+            }
+            if ($status !== 200 || intval($response->header('Content-Length') ?: 0) > $maxPdf) {
+                \Log::warning('[FileServer] the converter answered ' . $status . ' for a .' . $ext . ' file');
+                return null;
+            }
+            return static::receivePdf($response->toPsrResponse()->getBody(), $maxPdf, $ext);
+        }
+    }
+
+    /**
+     * Write the answer of the converter to a local file as it comes; stop past
+     * the limit, or when it is not a PDF. Returns the path, or null.
+     */
+    protected static function receivePdf(\Psr\Http\Message\StreamInterface $body, int $max, string $ext): ?string
+    {
+        $result = Library::tempPath('pdf_');
+        $out = fopen($result, 'wb');
+        if ($out === false) {
+            return null;
+        }
+        $written = 0;
+        $ok = true;
+        try {
+            while (!$body->eof()) {
+                $chunk = $body->read(65536);
+                if ($chunk === '') {
+                    break;
+                }
+                $written += strlen($chunk);
+                if ($written > $max) {
+                    $ok = false;
+                    break;
+                }
+                fwrite($out, $chunk);
+            }
+        } catch (\Throwable $e) {
+            $ok = false;
+        } finally {
+            fclose($out);
+            $body->close();
+        }
+        if ($ok && strval(file_get_contents($result, false, null, 0, 5)) !== '%PDF-') {
+            $ok = false;
+        }
+        if (!$ok) {
+            \Log::warning('[FileServer] the answer of the converter for a .' . $ext . ' file was not a PDF in ' . $max . ' bytes');
+            @unlink($result);
+            return null;
+        }
         return $result;
     }
 

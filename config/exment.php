@@ -55,6 +55,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Security check: the address of the site, seen from this server
+    |--------------------------------------------------------------------------
+    |
+    | The security check asks the site for some pages (headers, files that must not be seen).
+    | It uses APP_URL; set this when that address cannot be reached from the server itself
+    | (in a container, for example http://web for docker-exment).
+    */
+    'site_probe_url' => env('EXMENT_SITE_PROBE_URL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Chart of a list view: max rows
     |--------------------------------------------------------------------------
     |
@@ -411,6 +422,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Notify navbar interval
+    |--------------------------------------------------------------------------
+    |
+    | How often the bell asks for new notifications, in seconds (at least 30).
+    | The open tabs of one browser share one poll, and a hidden tab does not ask.
+    |
+    */
+    'notify_navbar_interval' => env('EXMENT_NOTIFY_NAVBAR_INTERVAL', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Workflow task navbar
     |--------------------------------------------------------------------------
     |
@@ -583,6 +605,25 @@ return [
     |
     */
     'features_locked' => env('EXMENT_FEATURES_LOCKED', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | maintenance mode: the operator's file
+    |--------------------------------------------------------------------------
+    |
+    | The file of the operator's maintenance (`php artisan exment:maintenance
+    | on --operator`). The screens of the site cannot change it. Empty:
+    | storage/framework/exment-maintenance.json. A comma list is read in
+    | order (as a file of the site, then one of all the sites of the server);
+    | the command writes the first. Keep them where only the server's
+    | operator may write.
+    |
+    */
+    'maintenance_operator_file' => env('EXMENT_MAINTENANCE_OPERATOR_FILE', ''),
+
+    // the paths (exact, GET and HEAD) a maintenance does not stop: the health
+    // check of a load balancer. "/" only sends on to the login.
+    'maintenance_exempt_paths' => env('EXMENT_MAINTENANCE_EXEMPT_PATHS', '/,/up'),
 
     /*
     |--------------------------------------------------------------------------
@@ -1266,6 +1307,41 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Client certificates of the API keys of the users
+    |--------------------------------------------------------------------------
+    |
+    | The header in which the front server (nginx, ALB) gives the client certificate it checked:
+    | its sha256 fingerprint, or the certificate (PEM, URL-encoded, as X-Amzn-Mtls-Clientcert).
+    | It is read only from a trusted proxy (ADMIN_TRUST_PROXY_IPS). The front server MUST always
+    | set (overwrite) this header, empty when it did not check a certificate: Exment cannot tell a
+    | header the proxy wrote from one the client sent through it. With ADMIN_TRUST_PROXY_IPS=*
+    | every request counts as from the proxy, so only use it when nothing reaches Exment directly.
+    | ADMIN_API_KEY_REQUIRE_CLIENT_CERT=true: no API key works without a client certificate.
+    | *Not copied by a backup restore: the keys are ADMIN_.*
+    */
+    'api_client_cert_header' => env('ADMIN_API_CLIENT_CERT_HEADER', null),
+    'api_key_require_client_cert' => env('ADMIN_API_KEY_REQUIRE_CLIENT_CERT', false),
+
+    /*
+    | The API keys of the users: the most days of a key (at most 365), of a key made by a login of
+    | SSO (shorter: Exment does not hear when the IdP stops the user), and the keys a user has at once.
+    */
+    'api_key_max_days' => env('EXMENT_API_KEY_MAX_DAYS', 365),
+    'api_key_max_days_sso' => env('EXMENT_API_KEY_MAX_DAYS_SSO', 30),
+    'api_key_max_per_user' => env('EXMENT_API_KEY_MAX_PER_USER', 10),
+
+    /*
+    |--------------------------------------------------------------------------
+    | MCP server (api/mcp)
+    |--------------------------------------------------------------------------
+    |
+    | The most records one tool call returns (at most 100), and the calls a user makes per minute.
+    */
+    'mcp_max_rows' => env('EXMENT_MCP_MAX_ROWS', 50),
+    'mcp_calls_per_minute' => env('EXMENT_MCP_CALLS_PER_MINUTE', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Show Select field with group option
     |--------------------------------------------------------------------------
     |
@@ -1561,6 +1637,9 @@ return [
     'safety_check' => [
         'feed_url'   => env('EXMENT_SAFETY_CHECK_FEED_URL', 'https://api.p2pquake.net/v2/history'),
         'feed_limit' => env('EXMENT_SAFETY_CHECK_FEED_LIMIT', 10),
+        // how often the earthquake feed is watched, in minutes: 1, 5, 10 or 15 (default 5).
+        // 5 is enough for a safety check after a quake, and lets "schedule:run" go every 5 minutes.
+        'watch_interval' => env('EXMENT_SAFETY_CHECK_WATCH_INTERVAL', 5),
     ],
 
     /*
@@ -1569,12 +1648,33 @@ return [
     |--------------------------------------------------------------------------
     | file_server_workspace_create: who may make a workspace. "admin" (system permission; the default) or "all".
     |   A new feature is not open to all users until an administrator says so.
-    | file_server_max_file_size: the largest file, in bytes (0: no limit but the space of the workspace).
+    | file_server_max_file_size: the largest file, in bytes (default 2 GB; 0: no limit but the space of the workspace).
+    | file_server_max_uploads: the uploads in parts a user may have not finished at the same time.
+    | file_server_max_upload_bytes: the bytes those uploads may say they will send, all together (default 10 GB; 0: no limit).
+    | file_server_soffice_prefix: a command put before LibreOffice, to run it without the network
+    |   (e.g. "unshare -rn" or "firejail --net=none --quiet"). Office files may link to the outside:
+    |   run LibreOffice where it cannot reach the network (ISS00433).
     | file_server_soffice_path: LibreOffice (soffice) to make the PDF preview of Office files. Empty: no preview.
+    | file_server_soffice_url: a converter of its own on the inner network instead (Gotenberg with LibreOffice,
+    |   e.g. http://office:3000; docker-exment's docker-compose.office.yml). Used before soffice_path (ISS01704).
+    |   Put the converter on a network that cannot go out (an Office file may fetch linked pictures or objects):
+    |   no port to the outside, no Internet, no cloud metadata, no database; and start Gotenberg with
+    |   --libreoffice-deny-private-ips --libreoffice-deny-public-ips --api-disable-download-from --webhook-disable.
+    |   With Basic auth on Gotenberg: http://user:password@office:3000 (sent as a header, not in the address).
+    |   Not followed to another address (no redirect). file_server_soffice_max_pdf_bytes: the largest PDF taken.
     */
     'file_server_workspace_create' => env('EXMENT_FILE_SERVER_WORKSPACE_CREATE', 'admin'),
-    'file_server_max_file_size' => env('EXMENT_FILE_SERVER_MAX_FILE_SIZE', 0),
+    'file_server_max_file_size' => env('EXMENT_FILE_SERVER_MAX_FILE_SIZE', 2147483648),
+    'file_server_max_uploads' => env('EXMENT_FILE_SERVER_MAX_UPLOADS', 20),
+    'file_server_max_upload_bytes' => env('EXMENT_FILE_SERVER_MAX_UPLOAD_BYTES', 10737418240),
+    'file_server_soffice_prefix' => env('EXMENT_FILE_SERVER_SOFFICE_PREFIX'),
+    // the shortest password of a share link; whether /share/{token} takes the IP filter of the web too
+    // (read when the routes are made: run "php artisan route:cache" again after changing it, when the routes are cached)
+    'file_server_share_password_min' => env('EXMENT_FILE_SERVER_SHARE_PASSWORD_MIN', 8),
+    'file_server_share_web_ip_filter' => env('EXMENT_FILE_SERVER_SHARE_WEB_IP_FILTER', false),
     'file_server_soffice_path' => env('EXMENT_FILE_SERVER_SOFFICE_PATH'),
+    'file_server_soffice_url' => env('EXMENT_FILE_SERVER_SOFFICE_URL'),
+    'file_server_soffice_max_pdf_bytes' => env('EXMENT_FILE_SERVER_SOFFICE_MAX_PDF_BYTES', 209715200),
     'file_server_soffice_timeout' => env('EXMENT_FILE_SERVER_SOFFICE_TIMEOUT', 120),
     // share links for people outside (phase 3): false stops them; max_days > 0 makes an end date needed
     'file_server_external_share' => env('EXMENT_FILE_SERVER_EXTERNAL_SHARE', true),
