@@ -245,6 +245,79 @@ class BundledPluginsTest extends FeatureTestBase
         $this->assertSame(BundledPlugins::STATUS_INSTALLED, BundledPlugins::rows()[0]['status']);
     }
 
+    public function testAReleaseDownloadedByHand(): void
+    {
+        // downloaded from where the releases are published (not in the bundle)
+        $downloads = sys_get_temp_dir() . '/exment_downloaded_' . uniqid();
+        File::makeDirectory($downloads, 0777, true);
+        try {
+            [, $zip100] = $this->makeRelease('1.0.0', self::SAMPLE_UUID, 'ExmentSignSample', $downloads);
+            [, $zip110] = $this->makeRelease('1.1.0', self::SAMPLE_UUID, 'ExmentSignSample', $downloads);
+            $json = function (string $zip) {
+                return substr($zip, 0, -4) . '.json';
+            };
+
+            $plugin = BundledPlugins::installUploaded($zip100, $json($zip100));
+            $this->assertSame('1.0.0', strval($plugin->version));
+            $this->assertTrue(boolval($plugin->active_flg));
+
+            // a newer one: updated in place, the version before kept to go back to
+            $updated = BundledPlugins::installUploaded($zip110, $json($zip110));
+            $this->assertSame('1.1.0', strval($updated->version));
+            $this->assertSame($plugin->id, $updated->id);
+            $this->assertSame('1.0.0', BundledPlugins::previousVersion(self::SAMPLE_UUID, '1.1.0'));
+
+            // the same or an older one: not by an upload
+            try {
+                BundledPlugins::installUploaded($zip100, $json($zip100));
+                $this->fail('an older version was installed by an upload');
+            } catch (ReleaseException $e) {
+                $this->assertSame('not_newer', $e->reason());
+            }
+
+            // a zip that does not match its signed record: refused
+            [, $zip120] = $this->makeRelease('1.2.0', self::SAMPLE_UUID, 'ExmentSignSample', $downloads);
+            file_put_contents($zip120, 'changed', FILE_APPEND);
+            try {
+                BundledPlugins::installUploaded($zip120, $json($zip120));
+                $this->fail('a changed zip was installed');
+            } catch (ReleaseException $e) {
+                $this->assertSame('zip', $e->reason());
+            }
+            $this->assertSame('1.1.0', BundledPlugins::installed(self::SAMPLE_UUID)->version ?? null);
+
+            // the page: both files are needed, and a good pair is installed
+            [, $zip130] = $this->makeRelease('1.3.0', self::SAMPLE_UUID, 'ExmentSignSample', $downloads);
+            System::clearRequestSession();
+            $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+            $upload = function (string $path) {
+                return new \Illuminate\Http\UploadedFile($path, basename($path), null, null, true);
+            };
+            $this->post(admin_url('feature/bundled_upload'), ['bundled_zip' => $upload($zip130)])->assertRedirect(admin_url('feature'));
+            $this->assertSame('1.1.0', BundledPlugins::installed(self::SAMPLE_UUID)->version ?? null);
+            $this->post(admin_url('feature/bundled_upload'), [
+                'bundled_zip' => $upload($zip130),
+                'bundled_json' => $upload($json($zip130)),
+            ])->assertRedirect(admin_url('feature'));
+            $this->assertSame('1.3.0', BundledPlugins::installed(self::SAMPLE_UUID)->version ?? null);
+        } finally {
+            File::deleteDirectory($downloads);
+        }
+    }
+
+    public function testADownloadedReleaseOnASiteThatKeepsTheVersionsToItsProvider(): void
+    {
+        config(['exment.bundled_plugins_updates' => false]);
+        [, $zip] = $this->makeRelease('1.0.0');
+        System::clearRequestSession();
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $this->post(admin_url('feature/bundled_upload'), [
+            'bundled_zip' => new \Illuminate\Http\UploadedFile($zip, basename($zip), null, null, true),
+            'bundled_json' => new \Illuminate\Http\UploadedFile(substr($zip, 0, -4) . '.json', 'r.json', null, null, true),
+        ])->assertRedirect(admin_url('feature'));
+        $this->assertNull(BundledPlugins::installed(self::SAMPLE_UUID));
+    }
+
     public function testUpdateAndGoBack(): void
     {
         $this->makeRelease('1.0.0');

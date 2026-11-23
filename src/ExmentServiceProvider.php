@@ -74,9 +74,11 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\MeiliSettingsCommand::class,
         \Exceedone\Exment\Console\MeiliHealthCommand::class,
         \Exceedone\Exment\Console\MeiliReconcileCommand::class,
+        \Exceedone\Exment\Console\MeiliSetupCommand::class,
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
         \Exceedone\Exment\Console\UpdateCommand::class,
+        \Exceedone\Exment\Console\CacheClearCommand::class,
         \Exceedone\Exment\Console\PublishCommand::class,
         \Exceedone\Exment\Console\ScheduleCommand::class,
         \Exceedone\Exment\Console\NotifyScheduleCommand::class,
@@ -315,6 +317,11 @@ class ExmentServiceProvider extends ServiceProvider
     public function boot()
     {
         parent::boot();
+
+        // a site not installed yet without APP_KEY: made before the cookies need it
+        if (!$this->app->runningInConsole()) {
+            Services\Installer\AppKey::ensure();
+        }
 
         // Re-register route middleware aliases.
         // The auto-discovered AdminServiceProvider runs register() after this provider,

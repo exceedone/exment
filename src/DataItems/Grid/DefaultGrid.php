@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\DataItems\Grid;
 
+use Exceedone\Exment\Services\ReferencePrefetcher;
 use ExmentAdminCore\Admin\Grid;
 use ExmentAdminCore\Admin\Grid\Linker;
 use Exceedone\Exment\Grid\Tools as GridTools;
@@ -90,9 +91,15 @@ class DefaultGrid extends GridBase
         // manage tool button
         $this->manageMenuToolButton($grid);
 
-        $grid->getDataCallback(function ($grid) {
-            $customValueCollection = $grid->getOriginalCollection();
+        $grid->getDataCallback(function ($target) use ($grid) {
+            $customValueCollection = $target->getOriginalCollection();
             $this->custom_table->setSelectTableValues($customValueCollection);
+
+            // the files and parents the view shows, read together, not one query per cell (ISS00413).
+            // The callbacks are kept for every grid of the request: only for this one
+            if ($target === $grid) {
+                ReferencePrefetcher::prefetch($this->custom_table, $customValueCollection, $this->custom_view->custom_view_columns_cache, false);
+            }
         });
 
         // if modal, append to selectitem button
@@ -223,7 +230,7 @@ class DefaultGrid extends GridBase
                     // server refuses the write either way. ($this is the
                     // row's model here: the grid binds it to this closure.)
                     // @phpstan-ignore-next-line
-                    if (!GridTools\GridInlineEditor::isFormEditableColumn($custom_table, $this, $item->getCustomColumn())) {
+                    if (!GridTools\GridInlineEditor::isFormEditableColumnInList($custom_table, $this, $item->getCustomColumn())) {
                         return (string)$html . GridTools\GridInlineEditor::LOCKED_MARKER;
                     }
                     // A long value is shown shortened ('...'), a formatted

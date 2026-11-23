@@ -15,6 +15,13 @@ class SecurityCheckTest extends UnitTestBase
     /** @var array<string> */
     protected $tempDirs = [];
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // the paths of the fakes below are of a site with the prefix "admin"
+        config(['admin.route.prefix' => 'admin']);
+    }
+
     protected function tearDown(): void
     {
         Security\SiteProbe::clear();
@@ -43,6 +50,24 @@ class SecurityCheckTest extends UnitTestBase
         $this->assertFalse((new Security\AppKeySecurity())->canFix());
     }
 
+    public function testDisplayErrors(): void
+    {
+        try {
+            foreach (['1' => SystemRequireResult::WARNING, 'On' => SystemRequireResult::WARNING, 'stdout' => SystemRequireResult::WARNING, '' => SystemRequireResult::OK, '0' => SystemRequireResult::OK, 'Off' => SystemRequireResult::OK, 'stderr' => SystemRequireResult::OK] as $value => $result) {
+                Security\DisplayErrorsSecurity::$value = fn () => strval($value);
+                $this->assertSame($result, (new Security\DisplayErrorsSecurity())->checkResult(), 'display_errors=' . $value);
+            }
+            Security\DisplayErrorsSecurity::$value = fn () => 'On';
+            $item = new Security\DisplayErrorsSecurity();
+            $this->assertStringContainsString('.user.ini', strval($item->getFixText()));
+            $this->assertSame(Security\SecurityBase::SCOPE_SERVER, $item->scope(), 'a SaaS site cannot change it');
+            $this->assertFalse($item->canFix(), 'not from the page');
+            $this->assertContains('display_errors', Security\SecurityCheck::INSTALL_ITEMS);
+        } finally {
+            Security\DisplayErrorsSecurity::$value = null;
+        }
+    }
+
     public function testTheSessionCookie(): void
     {
         config(['app.url' => 'http://example.test', 'session.http_only' => true, 'session.same_site' => 'lax', 'session.secure' => false]);
@@ -52,6 +77,51 @@ class SecurityCheckTest extends UnitTestBase
         config(['app.url' => 'https://example.test', 'session.same_site' => null]);
         $this->assertSame(['SESSION_SAME_SITE' => 'lax', 'SESSION_SECURE_COOKIE' => 'true'], (new Security\SessionCookieSecurity())->wanted());
         $this->assertSame(SystemRequireResult::WARNING, (new Security\SessionCookieSecurity())->checkResult());
+    }
+
+    /**
+     * SESSION_SECURE_COOKIE not set: the cookie is secure on a request over https, so the
+     * page (over https) does not ask for it; the command line (not https) still does.
+     */
+    public function testTheSessionCookieNotSetIsSecureOverHttps(): void
+    {
+        config(['app.url' => 'https://example.test', 'session.http_only' => true, 'session.same_site' => 'lax', 'session.secure' => null]);
+        $this->assertSame(['SESSION_SECURE_COOKIE' => 'true'], (new Security\SessionCookieSecurity())->wanted());
+
+        $this->app['request']->server->set('HTTPS', 'on');
+        $this->assertTrue(Security\SessionCookieSecurity::secure());
+        $this->assertSame([], (new Security\SessionCookieSecurity())->wanted());
+        $this->assertSame(SystemRequireResult::OK, (new Security\SessionCookieSecurity())->checkResult());
+        $this->assertStringContainsString('secure=true (auto)', strval((new Security\SessionCookieSecurity())->getResultText()));
+
+        // set to false: asked for, also over https
+        config(['session.secure' => false]);
+        $this->assertSame(['SESSION_SECURE_COOKIE' => 'true'], (new Security\SessionCookieSecurity())->wanted());
+        $this->app['request']->server->remove('HTTPS');
+    }
+
+    /**
+     * A site without the admin prefix (the default of a new site from 7.2.1): the login
+     * page is /auth/login, not /admin/auth/login (which only redirects there). The lines
+     * to add are for Apache (.htaccess) and nginx.
+     */
+    public function testTheHeadersOfASiteWithoutThePrefix(): void
+    {
+        config(['app.url' => 'https://example.test', 'admin.route.prefix' => '']);
+        Http::fake([
+            'https://example.test/auth/login' => Http::response('', 200, [
+                'X-Frame-Options' => 'SAMEORIGIN',
+                'X-Content-Type-Options' => 'nosniff',
+                'Referrer-Policy' => 'same-origin',
+                'Strict-Transport-Security' => 'max-age=31536000',
+            ]),
+            'https://example.test/*' => Http::response('', 302),
+        ]);
+        $this->assertSame('auth/login', Security\SiteProbe::adminPath('auth/login'));
+        $this->assertSame([], (new Security\HeadersSecurity())->missing());
+
+        config(['admin.route.prefix' => '/admin/']);
+        $this->assertSame('admin/auth/login', Security\SiteProbe::adminPath('/auth/login'));
     }
 
     public function testTheHeadersOfTheLoginPage(): void
@@ -65,6 +135,8 @@ class SecurityCheckTest extends UnitTestBase
         $this->assertSame(['referrer-policy', 'strict-transport-security'], $check->missing());
         $this->assertSame(SystemRequireResult::WARNING, $check->checkResult());
         $this->assertStringContainsString('Referrer-Policy', strval($check->getFixText()));
+        $this->assertStringContainsString('Header always set Referrer-Policy', strval($check->getFixText()));
+        $this->assertStringContainsString('add_header Referrer-Policy', strval($check->getFixText()));
     }
 
     public function testNoHstsAskedOnHttp(): void
@@ -156,6 +228,47 @@ class SecurityCheckTest extends UnitTestBase
 
         chmod($dir, 0750);
         $this->assertFalse($check->storageOpen());
+    }
+
+    public function testLogsAndSessionsReadableByOthers(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $this->markTestSkipped('no POSIX permissions here');
+        }
+        $dir = sys_get_temp_dir() . '/exment_security_' . uniqid('', true);
+        mkdir($dir . '/logs', 0750, true);
+        mkdir($dir . '/framework/sessions', 0750, true);
+        chmod($dir, 0750);
+        chmod($dir . '/logs', 0750);
+        chmod($dir . '/framework/sessions', 0750);
+        file_put_contents($dir . '/framework/sessions/abc', 'a session');
+        chmod($dir . '/framework/sessions/abc', 0600);
+        file_put_contents($dir . '/logs/laravel.log', 'a log');
+        chmod($dir . '/logs/laravel.log', 0644);
+
+        $check = new Security\FilePermissionSecurity();
+        $check->files = new FilePermissionTuningNone();
+        $check->storage = $dir;
+        $this->assertSame(['logs/*' => '644'], $check->storageReadable());
+        $this->assertSame(SystemRequireResult::WARNING, $check->checkResult());
+        $this->assertStringContainsString('storage/logs/* (644)', strval($check->getResultText()));
+        $this->assertStringContainsString('chmod -R o-rwx storage', strval($check->getFixText()));
+
+        // a folder open to the others (755) with the files closed
+        chmod($dir . '/logs/laravel.log', 0640);
+        chmod($dir . '/framework/sessions', 0755);
+        $this->assertSame(['framework/sessions' => '755'], $check->storageReadable());
+
+        chmod($dir . '/framework/sessions', 0750);
+        $this->assertSame([], $check->storageReadable());
+        $this->assertSame(SystemRequireResult::OK, $check->checkResult());
+
+        @unlink($dir . '/framework/sessions/abc');
+        @unlink($dir . '/logs/laravel.log');
+        @rmdir($dir . '/framework/sessions');
+        @rmdir($dir . '/framework');
+        @rmdir($dir . '/logs');
+        @rmdir($dir);
     }
 
     public function testASaasSiteSeesOnlyWhatItCanFix(): void
@@ -281,5 +394,17 @@ class SecurityItemRecorder extends Security\SecurityBase
     public function fix(): void
     {
         $this->fixed++;
+    }
+}
+
+/** The tuning's file check with nothing open (.env and the config cache are not looked at). */
+class FilePermissionTuningNone extends \Exceedone\Exment\Services\SystemRequire\Tuning\FilePermissionTuning
+{
+    /**
+     * @return array<string, string>
+     */
+    public function openFiles(): array
+    {
+        return [];
     }
 }

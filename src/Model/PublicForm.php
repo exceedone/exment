@@ -665,7 +665,7 @@ class PublicForm extends ModelBase
     // @phpstan-ignore-next-line
     public function setContentOption(PublicContent $content, array $options = [])
     {
-        \Admin::css(asset('vendor/exment/css/publicform.css'));
+        \Admin::css(admin_asset('vendor/exment/css/publicform.css'));
         $options = array_merge(
             [
                 'add_analytics' => true,

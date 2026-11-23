@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Tests\InstalledStateTrait;
 
 /**
  * Test for Initialize middleware behavior when EXMENT_INITIALIZE=1 and DB connection fails.
@@ -13,6 +14,8 @@ use Exceedone\Exment\Model\Define;
  */
 class InitializeMiddlewareTest extends FeatureTestBase
 {
+    use InstalledStateTrait;
+
     /** @var string|false */
     private $originalExmentInitialize;
 
@@ -25,6 +28,8 @@ class InitializeMiddlewareTest extends FeatureTestBase
 
     protected function tearDown(): void
     {
+        $this->restoreInstalledState();
+
         // Restore EXMENT_INITIALIZE env
         if ($this->originalExmentInitialize === false) {
             putenv('EXMENT_INITIALIZE');
@@ -52,6 +57,7 @@ class InitializeMiddlewareTest extends FeatureTestBase
     {
         // --- Arrange ---
         // 1. Set EXMENT_INITIALIZE=1 (simulate already-installed system)
+        $this->useInstalledState(false);
         putenv('EXMENT_INITIALIZE=1');
         $_ENV['EXMENT_INITIALIZE'] = '1';
         $_SERVER['EXMENT_INITIALIZE'] = '1';
@@ -86,7 +92,8 @@ class InitializeMiddlewareTest extends FeatureTestBase
     public function testDbFailWithoutExmentInitializeShouldRedirectToInstall(): void
     {
         // --- Arrange ---
-        // Ensure EXMENT_INITIALIZE is not set
+        // Ensure EXMENT_INITIALIZE is not set (nor the marker file, nor in .env)
+        $this->useInstalledState(false);
         putenv('EXMENT_INITIALIZE');
         unset($_ENV['EXMENT_INITIALIZE'], $_SERVER['EXMENT_INITIALIZE']);
 

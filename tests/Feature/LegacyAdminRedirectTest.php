@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Feature;
 use Exceedone\Exment\Providers\RouteServiceProvider;
 use Exceedone\Exment\Services\LegacyAdminRedirect;
 use Exceedone\Exment\Services\Installer\InstallingForm;
+use Exceedone\Exment\Tests\InstalledStateTrait;
 use Illuminate\Support\ViewErrorBag;
 
 /**
@@ -14,6 +15,8 @@ use Illuminate\Support\ViewErrorBag;
  */
 class LegacyAdminRedirectTest extends FeatureTestBase
 {
+    use InstalledStateTrait;
+
     public function testTheTargetIsAPathOfThisSite(): void
     {
         $this->assertSame('/', LegacyAdminRedirect::target('admin'));
@@ -89,7 +92,13 @@ class LegacyAdminRedirectTest extends FeatureTestBase
         $path = base_path('.env');
         $before = (string) file_get_contents($path);
         request()->merge(['ADMIN_ROUTE_PREFIX' => 'a/b']);
-        $response = (new InstallingForm())->post();
+        // a site not installed yet (an installed one refuses the form at once)
+        $this->useInstalledState(false);
+        try {
+            $response = (new InstallingForm())->post();
+        } finally {
+            $this->restoreInstalledState();
+        }
         $this->assertSame(302, $response->getStatusCode());
         $this->assertTrue(session()->has('errors'));
         $this->assertSame($before, (string) file_get_contents($path), '.env is not touched');

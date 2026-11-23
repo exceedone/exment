@@ -32,6 +32,9 @@ class LangForm
     // @phpstan-ignore-next-line
     public function post()
     {
+        // the installer does not run again on an installed site
+        InstalledState::refuseIfInstalled();
+
         $request = request();
 
         $rules = [

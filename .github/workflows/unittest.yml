@@ -14,13 +14,20 @@ env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
 
+# a newer push to the pull request stops the run of the push before (fewer runs waiting for a runner)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   exment-testing:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        db: ["mysql", "mariadb"]
+        # a pull request to master is most often the copy of one to 7.2, which runs both
+        # databases: master runs MySQL only (fewer jobs waiting for a runner)
+        db: ${{ github.base_ref == 'master' && fromJSON('["mysql"]') || fromJSON('["mysql", "mariadb"]') }}
         test: ["feature", "unit", "browser"]
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +38,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
+          # 7.2 keeps the boilerplate of 7.2 (simple-qrcode); main moved to bacon-qr-code 3
+          ref: 7.2
           path: ./docker-exment/exment-boilerplate
 
       - uses: actions/checkout@v4
@@ -53,6 +62,37 @@ jobs:
           repository: exceedone/exment-plugins-release
           ref: '7.2.0'
           path: ./docker-exment/exment-boilerplate/exment-plugins-release
+
+      # the downloads of composer are kept between runs (fewer downloads: faster, and fewer
+      # network failures). The folder is in exment-boilerplate, which the php container mounts.
+      - name: Cache the composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ./docker-exment/exment-boilerplate/.composer-cache
+          key: composer-${{ hashFiles('docker-exment/exment-boilerplate/composer.dev.lock') }}
+          restore-keys: composer-
+
+      - name: Composer uses the kept downloads
+        run: printf '\nCOMPOSER_CACHE_DIR=/var/www/exment/.composer-cache\n' >> docker-exment/.env
+
+      # the php image of docker-exment, built with its layers kept between runs (the OS packages
+      # and the SQL Server drivers are not made again each time). Tagged with the name docker
+      # compose gives it (docker-exment-php), so "up" uses it and does not build it again.
+      - name: The PHP version of docker-exment
+        id: php
+        run: echo "version=$(grep -E '^EXMENT_DOCKER_PHP_VERSION=' docker-exment/.env | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the php image (kept layers)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker-exment/docker/php
+          build-args: PHP_VERSION=${{ steps.php.outputs.version }}
+          tags: docker-exment-php:latest
+          load: true
+          cache-from: type=gha,scope=docker-exment-php-${{ steps.php.outputs.version }}
+          cache-to: type=gha,mode=max,scope=docker-exment-php-${{ steps.php.outputs.version }}
 
       - name: Docker Compose Version
         run: docker compose --version
@@ -98,5 +138,14 @@ jobs:
 
       - name: PHPUnit Test
         working-directory: docker-exment
+        # A test that ends the process (exit in the code it calls) stops PHPUnit with code 0 and
+        # no summary, so the job looked green with half of the tests not run. The job now also
+        # needs the last lines of PHPUnit ("OK (...)" or "Tests: ...").
         run: |
-          docker compose -f docker-compose.yml exec -T -e EXMENT_TEST_OFFICIAL_RELEASES=/var/www/exment/exment-plugins-release/releases php composer run exment:test:${{ matrix.test }}
+          set -o pipefail
+          docker compose -f docker-compose.yml exec -T -e EXMENT_TEST_OFFICIAL_RELEASES=/var/www/exment/exment-plugins-release/releases php composer run exment:test:${{ matrix.test }} 2>&1 | tee "$RUNNER_TEMP/phpunit.log"
+          if ! grep -qE '^(OK \(|Tests: [0-9]+)' "$RUNNER_TEMP/phpunit.log"; then
+            echo "::error::PHPUnit ended without its summary: a test ended the process before the end. The last lines:"
+            tail -20 "$RUNNER_TEMP/phpunit.log"
+            exit 1
+          fi
