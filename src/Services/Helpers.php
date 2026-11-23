@@ -1488,7 +1488,15 @@ if (!function_exists('hasTable')) {
                 // those, and the empty list below would then read as "no tables".
                 return \Schema::getTableListing();
             } catch (\Throwable $e) {
-                \Log::error('Error fetching table names: ' . $e->getMessage());
+                // before the install the database of .env is not the site's yet (the defaults
+                // of the zip, before the database step): not an error of the site
+                // a cached config is an installed site; else .env tells (as the Initialize middleware)
+                // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
+                if (app()->configurationIsCached() || boolval(env('EXMENT_INITIALIZE', false))) {
+                    \Log::error('Error fetching table names: ' . $e->getMessage());
+                } else {
+                    \Log::debug('Error fetching table names (not installed yet): ' . $e->getMessage());
+                }
                 return [];
             }
         }, true);

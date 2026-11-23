@@ -243,6 +243,7 @@
                             <div><strong>{{ $l['kind'] === 'request' ? exmtrans('file_server.share_kind_request') : exmtrans('file_server.share_kind_share') }}</strong>
                                 <span class="exm-fs-badge">{{ $l['state'] }}</span>
                                 @if ($l['password'])<span class="exm-fs-badge"><i class="fa fa-lock" aria-hidden="true"></i></span>@endif
+                                @if (!empty($l['no_expiry']) && $l['active'])<span class="exm-fs-badge" style="color:#c0392b">{{ exmtrans('file_server.share_no_end') }}</span>@endif
                                 @if ($l['kind'] === 'share' && !$l['allow_download'])<span class="exm-fs-badge">{{ exmtrans('file_server.share_preview_only') }}</span>@endif
                             </div>
                             @if ($l['active'] && !empty($l['url']))
@@ -273,7 +274,8 @@
                             <div class="form-group" style="margin-bottom:6px">
                                 <label style="font-weight:normal;font-size:.85em">{{ exmtrans('file_server.share_expires') }}@if ($share_max_days > 0) ({{ exmtrans('file_server.share_max_days', ['days' => $share_max_days]) }})@endif</label>
                                 <input type="date" name="expires_at" class="form-control input-sm" min="{{ now()->format('Y-m-d') }}"
-                                       @if ($share_max_days > 0) required max="{{ now()->addDays($share_max_days)->format('Y-m-d') }}" value="{{ now()->addDays(min(7, $share_max_days))->format('Y-m-d') }}" @else value="{{ now()->addDays(7)->format('Y-m-d') }}" @endif>
+                                       @if ($share_max_days > 0) required max="{{ now()->addDays($share_max_days)->format('Y-m-d') }}" @endif
+                                       @if ($share_default_days > 0) value="{{ now()->addDays($share_default_days)->format('Y-m-d') }}" @endif>
                             </div>
                             <div class="form-group" style="margin-bottom:6px">
                                 <input type="password" name="password" class="form-control input-sm" autocomplete="new-password" placeholder="{{ exmtrans('file_server.share_password_placeholder') }}" aria-label="{{ exmtrans('file_server.share_password_placeholder') }}">

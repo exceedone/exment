@@ -62,10 +62,21 @@ class Yesno extends CustomItem
         }
     }
 
+    /**
+     * The value of a condition (view filter, form priority, workflow, notify ...) is always a switch.
+     * A single checkbox posts nothing when it is unchecked, so a condition "= NO" could not be saved
+     * on a column that shows a checkbox (#1716).
+     */
+    // @phpstan-ignore-next-line
+    protected function getFilterFieldClass()
+    {
+        return Field\SwitchBoolField::class;
+    }
+
     // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
-        if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
+        if ($field instanceof Field\Checkboxone) {
             $field->option([
                 1 => ''
             ]);

@@ -28,7 +28,9 @@ trait BootstrapTrait
             $func .= 'last';
         }
         foreach ($list as $l) {
-            Ad::{$func}(asset($l . '?ver='.$ver));
+            // ?ver= the version of Exment, &v= the time of the published file (admin_asset):
+            // an update (exment:update publishes the files again) changes the URL
+            Ad::{$func}(admin_asset($l . '?ver='.$ver));
         }
     }
 

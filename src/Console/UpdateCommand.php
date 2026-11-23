@@ -78,6 +78,14 @@ class UpdateCommand extends Command
             return $this->migrateExitCode;
         }
 
+        // the site is installed: the web installer stays closed even while the database is down
+        try {
+            if (hasTable(\Exceedone\Exment\Enums\SystemTableName::SYSTEM)) {
+                \Exceedone\Exment\Services\Installer\InstalledState::markInstalled();
+            }
+        } catch (\Throwable $e) {
+        }
+
         // the features the site has not decided on yet (they are off): told at the end
         try {
             $features = \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures();
@@ -148,6 +156,9 @@ class UpdateCommand extends Command
         // the table "System Performance Log" is made only where the log is on
         // (otherwise it is made when someone turns the log on in the system setting)
         TemplateImporter::importSystemLogsTemplateIfEnabled();
+
+        // the cache of Exment (EXMENT_USE_CACHE) may hold the settings of before the update
+        \Exceedone\Exment\Model\System::clearCache();
 
     }
 

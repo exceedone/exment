@@ -193,11 +193,20 @@ class TuningServerChecksTest extends UnitTestBase
         $this->assertSame(3600, Tuning\PhpFpmTuning::seconds('60m'));
         $this->assertSame(3600, Tuning\PhpFpmTuning::seconds('1h'));
 
-        // no PHP-FPM: nothing to advise
+        // no pool read: nothing to advise; "not used" only when the PHP of the site is not PHP-FPM
         $check = new Tuning\PhpFpmTuning();
         $check->files = [];
+        $check->sapi = 'apache2handler';
         $this->assertSame(SystemRequireResult::OK, $check->checkResult());
-        $this->assertSame(exmtrans('tuning.item.php_fpm.not_found'), $check->getResultText());
+        $this->assertSame(exmtrans('tuning.item.php_fpm.not_used'), $check->getResultText());
+        // PHP-FPM whose files cannot be read (a rental server): not "not relevant"
+        $check = new Tuning\PhpFpmTuning();
+        $check->files = [];
+        $check->sapi = 'fpm-fcgi';
+        $this->assertSame(SystemRequireResult::OK, $check->checkResult());
+        $this->assertSame(exmtrans('tuning.item.php_fpm.not_read'), $check->getResultText());
+        $check->sapi = 'cli';
+        $this->assertSame(exmtrans('tuning.item.php_fpm.not_read'), $check->getResultText(), 'the command cannot tell');
 
         // ondemand with FPM's default idle (10s): the first request after a quiet time waits
         $check = new Tuning\PhpFpmTuning();

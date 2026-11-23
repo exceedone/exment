@@ -90,6 +90,9 @@ class PluginPublicBase
             $url = admin_urls();
         }
 
-        return url_join($url, $this->plugin->getRouteUri(), 'public', $fileName);
+        $result = url_join($url, $this->plugin->getRouteUri(), 'public', $fileName);
+        // the version of the plugin: an update of the plugin changes the URL
+        $version = strval($this->plugin->version ?? '');
+        return $version === '' ? $result : $result . (strpos($result, '?') === false ? '?' : '&') . 'ver=' . rawurlencode($version);
     }
 }

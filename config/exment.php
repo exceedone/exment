@@ -1680,9 +1680,13 @@ return [
     'file_server_soffice_url' => env('EXMENT_FILE_SERVER_SOFFICE_URL'),
     'file_server_soffice_max_pdf_bytes' => env('EXMENT_FILE_SERVER_SOFFICE_MAX_PDF_BYTES', 209715200),
     'file_server_soffice_timeout' => env('EXMENT_FILE_SERVER_SOFFICE_TIMEOUT', 120),
-    // share links for people outside (phase 3): false stops them; max_days > 0 makes an end date needed
+    // share links for people outside (phase 3): false stops them.
+    // file_server_share_max_days: the latest end of a new link, in days (0: none, an end is not needed).
+    // file_server_share_default_days: the end of a new link given none, and the date the dialog starts with
+    // (0: no end, when max_days allows it). The links made before keep their end, or none.
     'file_server_external_share' => env('EXMENT_FILE_SERVER_EXTERNAL_SHARE', true),
-    'file_server_share_max_days' => env('EXMENT_FILE_SERVER_SHARE_MAX_DAYS', 0),
+    'file_server_share_max_days' => env('EXMENT_FILE_SERVER_SHARE_MAX_DAYS', 90),
+    'file_server_share_default_days' => env('EXMENT_FILE_SERVER_SHARE_DEFAULT_DAYS', 30),
     'file_server_share_path' => env('EXMENT_FILE_SERVER_SHARE_PATH', 'share'),
     // the limits of each request link (0: none), and the types it does not take (ISS00410)
     'file_server_request_max_files' => env('EXMENT_FILE_SERVER_REQUEST_MAX_FILES', 100),

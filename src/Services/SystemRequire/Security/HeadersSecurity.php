@@ -41,6 +41,11 @@ class HeadersSecurity extends SecurityBase
         if (!isset($page)) {
             return null;
         }
+        // only the login page itself tells: a 401 (Basic auth in front of the site), a
+        // redirect or an error is the answer of something else ("could not check")
+        if ($page['status'] !== 200) {
+            return null;
+        }
         $missing = [];
         foreach (array_keys(static::HEADERS) as $header) {
             if ($header === 'strict-transport-security' && !HttpsSecurity::isHttps()) {

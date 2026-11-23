@@ -231,6 +231,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('feature', 'FeatureController@store');
             $router->post('feature/notices_known', 'FeatureController@noticesKnown');
             $router->post('feature/bundled/{uuid}/{action}', 'FeatureController@bundled')->where('action', 'install|rollback');
+            $router->post('feature/bundled_upload', 'FeatureController@bundledUpload');
             $router->get('studio', 'StudioController@index');
             $router->get('studio/create', 'StudioController@create');
             $router->post('studio', 'StudioController@store');
@@ -499,6 +500,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("column/{tableKey}/columnTypeHtml", 'CustomColumnController@columnTypeHtml');
             $router->get("column/{tableKey}/{id}/columnTypeHtml", 'CustomColumnController@columnTypeHtml');
             $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
+
+            // data maintenance of a table (#1829, Features::DATA_MAINTENANCE)
+            $router->get("data_maintenance/{tableKey}", 'DataMaintenanceController@index');
+            $router->post("data_maintenance/{tableKey}/attachments", 'DataMaintenanceController@deleteAttachments');
 
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
             $router->post('form/{tableKey}/settingModal', 'CustomFormController@settingModal');
