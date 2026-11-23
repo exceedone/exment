@@ -91,6 +91,27 @@ class SecurityCheckTest extends UnitTestBase
         $this->assertTrue($check->isHigh());
     }
 
+    public function testBasicAuthInFrontOfTheSiteIsNotChecked(): void
+    {
+        config(['app.url' => 'https://example.test']);
+        Http::fake(['https://example.test/*' => Http::response('', 401, ['WWW-Authenticate' => 'Basic realm="site"'])]);
+        // not "headers missing", not "nothing served"
+        $headers = new Security\HeadersSecurity();
+        $this->assertNull($headers->missing());
+        $this->assertSame(exmtrans('security_check.not_checked'), $headers->getResultText());
+        $exposed = new Security\ExposedPathSecurity();
+        $this->assertNull($exposed->exposed());
+        $this->assertSame(SystemRequireResult::WARNING, $exposed->checkResult());
+        $this->assertFalse($exposed->checked());
+    }
+
+    public function testARedirectOfTheLoginPageIsNotChecked(): void
+    {
+        config(['app.url' => 'https://example.test']);
+        Http::fake(['https://example.test/*' => Http::response('', 302, ['Location' => 'https://example.test/other'])]);
+        $this->assertNull((new Security\HeadersSecurity())->missing());
+    }
+
     public function testNothingServedWhenRefused(): void
     {
         config(['app.url' => 'https://example.test']);
