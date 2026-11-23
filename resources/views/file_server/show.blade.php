@@ -243,7 +243,7 @@
                             <div><strong>{{ $l['kind'] === 'request' ? exmtrans('file_server.share_kind_request') : exmtrans('file_server.share_kind_share') }}</strong>
                                 <span class="exm-fs-badge">{{ $l['state'] }}</span>
                                 @if ($l['password'])<span class="exm-fs-badge"><i class="fa fa-lock" aria-hidden="true"></i></span>@endif
-                                @if (!empty($l['no_expiry']) && $l['active'])<span class="exm-fs-badge" style="color:#c0392b">{{ exmtrans('file_server.share_no_expiry') }}</span>@endif
+                                @if (!empty($l['no_expiry']) && $l['active'])<span class="exm-fs-badge" style="color:#c0392b">{{ exmtrans('file_server.share_no_end') }}</span>@endif
                                 @if ($l['kind'] === 'share' && !$l['allow_download'])<span class="exm-fs-badge">{{ exmtrans('file_server.share_preview_only') }}</span>@endif
                             </div>
                             @if ($l['active'])

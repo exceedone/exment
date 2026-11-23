@@ -3089,6 +3089,7 @@ return [
         'share_max_days' => ':days 日以内',
         'share_message_placeholder' => '相手へのメッセージ（受け取りの画面に出ます）',
         'share_no_expiry' => 'なし',
+        'share_no_end' => '期限なし',
         'share_password_placeholder' => 'パスワード（空にするとなし）',
         'share_password_title' => 'パスワードを入れてください',
         'share_password_wrong' => 'パスワードが違います。',
