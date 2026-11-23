@@ -49,7 +49,7 @@ use Exceedone\Exment\Services\TableService;
 use Exceedone\Exment\Services\Workflow\WorkflowBulkService;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Carbon\Carbon;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Exceedone\Exment\Facades\QrCodeFacade as QrCode;
 use Elibyy\TCPDF\Facades\TCPDF;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
