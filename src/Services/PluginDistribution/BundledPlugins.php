@@ -289,19 +289,23 @@ class BundledPlugins
      */
     protected static function installRelease(array $record, string $zip, bool $rollback = false): Plugin
     {
-        // checked again, now (the files may have been changed since they were listed)
-        ReleaseVerifier::verify($record, $zip);
-        $uuid = strval($record['uuid']);
-        $before = static::installed($uuid);
-        // a plugin of the same name and another uuid is another plugin
-        $sameName = Plugin::query()->where('plugin_name', strval($record['name']))->first();
-        if (!isset($before) && isset($sameName)) {
-            throw new ReleaseException('same_name', strval($record['name']));
-        }
-
+        // a copy first: the one checked is the one installed and kept
         $local = static::tempCopy($zip);
-        session()->forget('errorMess');
         try {
+            ReleaseVerifier::verify($record, $local);
+            $bytes = file_get_contents($local);
+            if ($bytes === false) {
+                throw new ReleaseException('zip');
+            }
+            $uuid = strval($record['uuid']);
+            $before = static::installed($uuid);
+            // a plugin of the same name and another uuid is another plugin
+            $sameName = Plugin::query()->where('plugin_name', strval($record['name']))->first();
+            if (!isset($before) && isset($sameName)) {
+                throw new ReleaseException('same_name', strval($record['name']));
+            }
+
+            session()->forget('errorMess');
             PluginInstaller::uploadPlugin(new UploadedFile($local, basename($zip), 'application/zip', null, true));
         } finally {
             @unlink($local);
@@ -325,7 +329,7 @@ class BundledPlugins
         $disk = static::disk();
         $base = static::PREVIOUS_DIR . '/' . $uuid . '/' . strval($record['version']);
         if (!$disk->exists($base . '.json')) {
-            $disk->put($base . '.zip', strval(file_get_contents($zip)));
+            $disk->put($base . '.zip', $bytes);
             $disk->put($base . '.json', strval(json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)));
         }
         return $plugin;
