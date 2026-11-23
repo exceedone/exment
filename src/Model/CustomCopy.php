@@ -189,8 +189,9 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * The label of the button on the new-record form.
      *
-     * The admin's own label when there is one; otherwise "Copy from", with the
-     * copy-from table when the form has more than one such button.
+     * "Copy from (the admin's label)" when the setting has one; otherwise
+     * "Copy from", with the copy-from table when the form has more than one such
+     * button.
      *
      * @param CustomCopy $copy
      * @param bool $several
@@ -200,7 +201,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $label = $copy->getOption('create_label');
         if (is_string($label) && trim($label) !== '') {
-            return $label;
+            return strval(exmtrans('custom_copy.copy_from.button_table', trim($label)));
         }
         if ($several) {
             return strval(exmtrans('custom_copy.copy_from.button_table', $copy->from_custom_table->table_view_name));
