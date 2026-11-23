@@ -80,6 +80,8 @@ class Define
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'advanced'],
         'data_submit_redirect' => ['type' => 'string', 'default' => null, 'group' => 'advanced'],
         'header_user_info' => ['type' => 'array', 'default' => SystemColumn::CREATED_AT, 'group' => 'advanced'],
+        // the languages the users can choose (ISS02835). Empty: all the installed languages
+        'allowed_locales' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],
 
         // name is "flg", but array is OK.
         'grid_filter_disable_flg' => ['type' => 'array', 'default' => 'comment', 'group' => 'advanced'] ,

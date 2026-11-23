@@ -48,6 +48,20 @@
                             <a href="{{ admin_url('line/link') }}" class="btn btn-default btn-flat btn-block"><i class="fa fa-comments"></i> {{ exmtrans('line.link_menu_title') }}</a>
                         </li>
                         @endif
+                        @php($exmentLocales = \Exceedone\Exment\Services\UserLocale::allowedOptions())
+                        @if(count($exmentLocales) > 1)
+                        <li class="user-body">
+                            <form method="POST" action="{{ admin_url('auth/setting/locale') }}" class="exment-user-locale" data-nopjax>
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <label for="exment-user-locale" class="small mb-1"><i class="fa fa-language"></i> {{ exmtrans('user.locale') }}</label>
+                                <select id="exment-user-locale" name="locale" class="form-select form-select-sm">
+                                    @foreach($exmentLocales as $exmentLocale => $exmentLocaleLabel)
+                                    <option value="{{ $exmentLocale }}" @if($exmentLocale === \App::getLocale()) selected @endif>{{ $exmentLocaleLabel }}</option>
+                                    @endforeach
+                                </select>
+                            </form>
+                        </li>
+                        @endif
                         <li class="user-footer">
                             @if(Admin::user()->visible('auth/setting'))
                             <div class="pull-left">
@@ -87,6 +101,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.cookie = '{{ \Exceedone\Exment\Model\Define::COOKIE_SIDEBAR_STATE }}=' + state
                     + '; path=/; max-age=31536000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
             }
+        });
+    }
+    // the language of the user (ISS02835): saved when chosen
+    const localeSelect = document.getElementById('exment-user-locale');
+    if (localeSelect) {
+        localeSelect.addEventListener('change', function () {
+            localeSelect.form.submit();
         });
     }
 });

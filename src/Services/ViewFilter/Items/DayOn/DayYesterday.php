@@ -14,7 +14,7 @@ class DayYesterday extends DayOnBase
     // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
-        return \Carbon\Carbon::yesterday();
+        return \Exceedone\Exment\Services\UserTimezone::today()->subDay();
     }
 
 
@@ -27,6 +27,6 @@ class DayYesterday extends DayOnBase
      */
     protected function _compareValue($value, $conditionValue): bool
     {
-        return \Carbon\Carbon::parse($value)->isYesterday();
+        return \Exment::getCarbonOnlyDay($value)->eq(\Exceedone\Exment\Services\UserTimezone::today()->subDay());
     }
 }

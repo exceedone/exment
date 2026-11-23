@@ -24,6 +24,13 @@ class CheckLangCommand extends Command
     protected $description = 'get forgeting translate language file';
 
     /**
+     * The missing keys of the language now checked.
+     *
+     * @var int
+     */
+    protected $missingCount = 0;
+
+    /**
      * Create a new command instance.
      *
      * @return void
@@ -43,6 +50,7 @@ class CheckLangCommand extends Command
     public function handle(): int
     {
         $jaTrans = trans('exment::exment', [], 'ja');
+        // all the installed languages (the folders of resources/lang), against ja
         $langs = SystemLocale::getLocaleOptions();
 
         $hasError = false;
@@ -51,9 +59,13 @@ class CheckLangCommand extends Command
                 continue;
             }
 
+            $this->missingCount = 0;
             $result = $this->checkTrans(['exment::exment'], $jaTrans, $lang);
             if ($result === true) {
                 $hasError = true;
+                $this->warn("{$lang}: {$this->missingCount} missing");
+            } else {
+                $this->info("{$lang}: OK");
             }
         }
         return $hasError ? 1 : 0;
@@ -80,9 +92,11 @@ class CheckLangCommand extends Command
                     $hasError = true;
                 }
             } else {
-                if (!\Lang::has(implode(".", $langKeys), $lang)) {
+                // only the file of that language (not the fallback language)
+                if (!\Lang::hasForLocale(implode(".", $langKeys), $lang)) {
                     $langKey = implode(".", $langKeys);
                     $this->warn("{$lang} {$langKey}");
+                    $this->missingCount++;
                     $hasError = true;
                 }
             }

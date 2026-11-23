@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\ValidateCalledType;
 use Exceedone\Exment\Grid\Tools\GridInlineEditor;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\Services\UserTimezone;
 use Carbon\Carbon;
 use Validator;
 
@@ -1174,6 +1175,11 @@ class ApiDataController extends AdminControllerTableBase
 
         $start = Carbon::parse($start);
         $end = Carbon::parse($end);
+        // the days of the calendar are the days of the user: a day more on each side for the date and times (ISS02835)
+        if (UserTimezone::differs()) {
+            $start->subDay();
+            $end->addDay();
+        }
 
         $table_name = $this->custom_table->table_name;
         // get paginate
@@ -1323,9 +1329,10 @@ class ApiDataController extends AdminControllerTableBase
         // set
         $allDayBetween = $dtType == ColumnType::DATE && $dtEndType == ColumnType::DATE;
 
-        $task['start'] = $dt;
+        // a date and time in the time zone of the user; a date as it is (ISS02835)
+        $task['start'] = $dtType == ColumnType::DATETIME ? UserTimezone::formatToUser($dt) : $dt;
         if (isset($dtEnd)) {
-            $task['end'] = $dtEnd;
+            $task['end'] = $dtEndType == ColumnType::DATETIME ? UserTimezone::formatToUser($dtEnd) : $dtEnd;
         }
         $task['allDayBetween'] = $allDayBetween;
     }
