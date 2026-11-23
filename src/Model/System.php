@@ -262,7 +262,7 @@ class System extends ModelBase
             }
 
             // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
-            if (boolval(config('exment.use_cache', false)) && !is_null($val = Cache::get(static::storeKey($key)))) {
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = static::store()->get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -274,7 +274,7 @@ class System extends ModelBase
             }
 
             // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
-            if (boolval(config('exment.use_cache', false)) && !is_null($val = Cache::get(static::storeKey($key)))) {
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = static::store()->get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -291,13 +291,13 @@ class System extends ModelBase
 
             // set cache
             if (boolval(config('exment.use_cache', false))) {
-                Cache::put(static::storeKey($key), $val, Define::CACHE_CLEAR_MINUTE);
+                static::store()->put(static::storeKey($key), $val, Define::CACHE_CLEAR_MINUTE);
             }
             return $val;
         }
 
         static::setRequestSession($key, $value);
-        Cache::put(static::storeKey($key), $value, Define::CACHE_CLEAR_MINUTE);
+        static::store()->put(static::storeKey($key), $value, Define::CACHE_CLEAR_MINUTE);
     }
 
     /** @var string|null the generation of the cache last read from the database */
@@ -363,7 +363,73 @@ class System extends ModelBase
         if (!boolval(config('exment.use_cache', false))) {
             return strval($key);
         }
-        return 'g' . static::cacheGeneration() . ':' . $key;
+        return static::STORE_KEY_PREFIX . static::cacheGeneration() . ':' . $key;
+    }
+
+    /** what every key of the cache of Exment starts with in the cache store */
+    public const STORE_KEY_PREFIX = 'exm:';
+
+    /** the name of the store made for the cache of Exment when the cache of the site is in files */
+    public const FILE_STORE = 'exment_kept';
+
+    /**
+     * The driver of the cache store of the site (file, redis, database, array...).
+     */
+    protected static function storeDriver(): string
+    {
+        $default = strval(config('cache.default'));
+        return strval(config("cache.stores.{$default}.driver", $default));
+    }
+
+    /**
+     * Where the cache of Exment is kept: the cache store of the site. When that is files,
+     * a folder of its own inside it ("exment"), so that it can be emptied alone (the files of
+     * a store are never removed when their time is over, only when they are read).
+     *
+     * @return \Illuminate\Contracts\Cache\Repository
+     */
+    protected static function store()
+    {
+        if (static::storeDriver() !== 'file') {
+            return Cache::store();
+        }
+        if (is_null(config('cache.stores.' . static::FILE_STORE))) {
+            $default = strval(config('cache.default'));
+            $settings = (array) config("cache.stores.{$default}");
+            $path = strval($settings['path'] ?? storage_path('framework/cache/data'));
+            config(['cache.stores.' . static::FILE_STORE => array_merge($settings, [
+                'driver' => 'file',
+                'path' => $path . DIRECTORY_SEPARATOR . 'exment',
+            ])]);
+        }
+        return Cache::store(static::FILE_STORE);
+    }
+
+    /**
+     * Remove what the cache of Exment kept on this server, and only that: the rest of the
+     * cache store (the count of wrong passwords, the signal to restart the queue, the locks)
+     * is not Exment's to clear. A store that drops what is past its time itself (Redis,
+     * Memcached) needs nothing: the values of the generation before are no longer read, and
+     * go when their time is over (an hour).
+     */
+    protected static function dropKept(): void
+    {
+        try {
+            $driver = static::storeDriver();
+            if ($driver === 'file') {
+                static::store()->getStore()->flush();
+            } elseif ($driver === 'database') {
+                $default = strval(config('cache.default'));
+                $prefix = strval(Cache::store()->getStore()->getPrefix()) . static::STORE_KEY_PREFIX;
+                \DB::connection(config("cache.stores.{$default}.connection"))
+                    ->table(strval(config("cache.stores.{$default}.table", 'cache')))
+                    ->where('key', 'like', addcslashes($prefix, '%_\\') . '%')
+                    ->delete();
+            }
+        } catch (\Throwable $e) {
+            // the values of the generation before are not read in any case
+            \Log::debug('[Exment] the kept cache was not removed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -380,11 +446,12 @@ class System extends ModelBase
         }
 
         if (!isset($key)) {
-            // this server's store, and a new generation for the stores of the other servers
-            Cache::flush();
+            // a new generation: no server of the site reads what it kept before. Then what
+            // this server kept is removed (only what is Exment's, see dropKept).
             static::renewCacheGeneration();
+            static::dropKept();
         } else {
-            Cache::forget(static::storeKey($key));
+            static::store()->forget(static::storeKey($key));
         }
     }
 
