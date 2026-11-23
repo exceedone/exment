@@ -189,28 +189,20 @@ trait ItemTrait
      */
     protected function _getMultipleValue($singleValueCallback)
     {
-        $isList = is_list($this->value);
-        if (!$isList) {
+        if (!is_list($this->value)) {
             // one value (most cells of a list or a board): the same answer without a collection
             $item = $singleValueCallback($this->value);
             return is_nullorempty($item) ? null : $item;
         }
-        $values = $this->value;
 
         $items = [];
-        foreach ($values as $value) {
+        foreach ($this->value as $value) {
             $items[] = $singleValueCallback($value);
         }
 
-        $items = collect($items)->filter(function ($item) {
+        return collect($items)->filter(function ($item) {
             return !is_nullorempty($item);
         });
-
-        if ($isList) {
-            return $items;
-        }
-
-        return $items->first();
     }
 
     /**

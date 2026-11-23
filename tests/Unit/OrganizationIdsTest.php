@@ -77,20 +77,25 @@ class OrganizationIdsTest extends UnitTestBase
     public function testAllOrganizationsCostOneQuery()
     {
         $organizations = getModelName(SystemTableName::ORGANIZATION)::query()->orderBy('id')->get();
-        System::clearRequestSession();
-        // the definitions of the organization table are read before the count starts
-        $organizations->first()->getOrganizationIdsForQuery(JoinedOrgFilterType::ALL);
-        System::clearRequestSession();
-
+        $this->assertGreaterThan(1, $organizations->count());
         $queries = 0;
         \DB::listen(function () use (&$queries) {
             $queries++;
         });
+
+        // one organization, with nothing kept (the definitions of the table are read too)
+        System::clearRequestSession();
+        $organizations->first()->getOrganizationIdsForQuery(JoinedOrgFilterType::ALL);
+        $forOne = $queries;
+
+        // all of them, with nothing kept: not more queries than for one
+        System::clearRequestSession();
+        $queries = 0;
         foreach ($organizations as $organization) {
             $organization->getOrganizationIdsForQuery(JoinedOrgFilterType::ALL);
         }
-        $counted = $queries;
-        $this->assertLessThanOrEqual(3, $counted, 'not a query for each organization');
+        $forAll = $queries;
+        $this->assertLessThanOrEqual($forOne, $forAll, 'not a query for each organization');
     }
 
     /**
