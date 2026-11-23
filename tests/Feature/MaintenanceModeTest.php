@@ -143,7 +143,7 @@ class MaintenanceModeTest extends FeatureTestBase
         $this->assertSame('Moving the data.', MaintenanceMode::message($state));
         // another language: the first one there
         app()->setLocale('vi');
-        $this->assertSame('Moving the data.', MaintenanceMode::message($state));
+        $this->assertSame('Moving the data.', MaintenanceMode::message($this->state()));
         app()->setLocale('en');
 
         MaintenanceMode::save(['messages' => []]);

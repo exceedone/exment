@@ -37,6 +37,18 @@ class RoleGroupController extends AdminControllerBase
     }
 
     /**
+     * Redirect legacy GET /role to the role_group index.
+     * Defined as a controller action (instead of a route closure) so the route table
+     * stays serializable for `php artisan route:cache`.
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function redirectRole()
+    {
+        return redirect(admin_urls('role_group'));
+    }
+
+    /**
      * Make a grid builder.
      *
      * @return Grid
@@ -292,6 +304,7 @@ class RoleGroupController extends AdminControllerBase
                 });
                 $items[] = [
                     'label' => $plugin->plugin_view_name,
+                    'label_title' => $plugin->plugin_name,
                     'values' => $values,
                     'name' => "plugin_permission[$plugin->plugin_name][permissions]",
                     'key' => "plugin_permission.{$plugin->plugin_name}.permissions",

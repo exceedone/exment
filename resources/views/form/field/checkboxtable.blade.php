@@ -72,8 +72,8 @@
                         <div class="table-cell border-solid">
                             <div
                                 class="checkboxtable-body text-end {{ !is_nullorempty(array_get($item, 'error')) ? 'has-error' : '' }}">
-                                <label for="{{ $id }}"
-                                    class="control-label table-label">{{ $item['label'] }}</label>
+                                <label for="{{ $id }}" class="control-label table-label"
+                                    @if (!is_nullorempty(array_get($item, 'label_title'))) title="{{ array_get($item, 'label_title') }}" @endif>{{ $item['label'] }}</label>
 
                                 @if (!is_nullorempty(array_get($item, 'error')))
                                     <i class="fa fa-exclamation-circle" data-help-text="{{ array_get($item, 'error') }}"

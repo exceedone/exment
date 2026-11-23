@@ -946,7 +946,12 @@ EOT;
         }
 
         // file put(store)
-        foreach (toArray($httpfiles) as $httpfile) {
+        // A single upload arrives as one UploadedFile. toArray() would cast that
+        // object into an array of its own properties instead of wrapping it, so the
+        // loop below would iterate over strings. Normalize first, the same way
+        // fileuploadTemp() does.
+        $files_array = is_array($httpfiles) ? $httpfiles : [$httpfiles];
+        foreach (toArray($files_array) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
             $custom_value = $this->custom_value;
             $file = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $httpfile, $this->custom_table->table_name, $filename)
