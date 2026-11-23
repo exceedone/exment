@@ -180,7 +180,7 @@ class PluginDiskService extends DiskServiceBase
     /**
      * copy file from disk to tmp disk
      *
-     * @return true
+     * @return bool
      */
     protected function sync()
     {
@@ -223,6 +223,7 @@ class PluginDiskService extends DiskServiceBase
                     if (substr($file, -4) === '.php' && function_exists('opcache_invalidate')) {
                         try {
                             if (method_exists($localSyncDisk, 'path')) {
+                                // @phpstan-ignore-next-line
                                 $localPath = $localSyncDisk->path($file);
                                 if ($localPath) {
                                     @opcache_invalidate($localPath, true);
@@ -247,6 +248,7 @@ class PluginDiskService extends DiskServiceBase
                             if (substr($localFile, -4) === '.php' && function_exists('opcache_invalidate')) {
                                 try {
                                     if (method_exists($localSyncDisk, 'path')) {
+                                        // @phpstan-ignore-next-line
                                         $localPath = $localSyncDisk->path($localFile);
                                         if ($localPath) {
                                             @opcache_invalidate($localPath, true);

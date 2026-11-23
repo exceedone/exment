@@ -32,7 +32,7 @@ use ExmentAdminCore\Admin\Form\EmbeddedForm as EmbeddedFormBase;
  * @method Field\Year           year($column, $label = '')
  * @method Field\Month          month($column, $label = '')
  * @method Field\DateRange      dateRange($start, $end, $label = '')
- * @method Field\DatetimeRange  datetimeRange($start, $end, $label = '')
+ * @method Field\DateTimeRange  datetimeRange($start, $end, $label = '')
  * @method Field\TimeRange      timeRange($start, $end, $label = '')
  * @method Field\Number         number($column, $label = '')
  * @method Field\Currency       currency($column, $label = '')
