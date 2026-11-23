@@ -145,7 +145,8 @@ class MenuController extends AdminControllerBase
      */
     protected function treeView()
     {
-        // with the menus of the features not used, to move or remove them
+        // with the menus of the features not used, to move or remove them, marked
+        // (Services\MenuVisibility); not taken out for the user who edits
         return new Tree((new Menu())->withHidden(), function (Tree $tree) {
             $tree->disableCreate();
 

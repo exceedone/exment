@@ -74,7 +74,8 @@ class InstallingForm
         }
 
         try {
-            \Artisan::call('key:generate');
+            // --force: on a production site key:generate asks, and stops without a terminal
+            \Artisan::call('key:generate', ['--force' => true]);
             \Artisan::call('passport:keys');
             $exitCode = \Artisan::call('exment:install');
             if ($exitCode !== 0) {

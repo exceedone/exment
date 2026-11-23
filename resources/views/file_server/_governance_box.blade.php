@@ -45,7 +45,9 @@
             @endif
             @if ($gCanManage)
                 <form data-fs-rules-form>
-                    <label style="font-weight:normal;display:block"><input type="checkbox" name="legal_hold" value="1" @checked($node->legal_hold)> {{ exmtrans('file_server.legal_hold') }}</label>
+                    @php $gCanHold = \Exceedone\Exment\Services\FileServer\Governance::canSetHold(\Exceedone\Exment\Services\FileServer\Access::current()); @endphp
+                    <label style="font-weight:normal;display:block"><input type="checkbox" name="legal_hold" value="1" @checked($node->legal_hold) @disabled(!$gCanHold)> {{ exmtrans('file_server.legal_hold') }}</label>
+                    @if (!$gCanHold)<p class="exm-fs-muted" style="margin:0 0 4px">{{ exmtrans('file_server.hold_admin_only') }}</p>@endif
                     @if ($node->isFolder())
                         <label style="font-weight:normal;display:block"><input type="checkbox" name="requires_approval" value="1" @checked($node->requires_approval)> {{ exmtrans('file_server.requires_approval') }}</label>
                     @endif
