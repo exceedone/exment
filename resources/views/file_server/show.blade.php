@@ -245,7 +245,7 @@
                                 @if ($l['password'])<span class="exm-fs-badge"><i class="fa fa-lock" aria-hidden="true"></i></span>@endif
                                 @if ($l['kind'] === 'share' && !$l['allow_download'])<span class="exm-fs-badge">{{ exmtrans('file_server.share_preview_only') }}</span>@endif
                             </div>
-                            @if ($l['active'])
+                            @if ($l['active'] && !empty($l['url']))
                                 <div style="display:flex;gap:4px;margin:4px 0">
                                     <input type="text" class="form-control input-sm" readonly value="{{ $l['url'] }}" aria-label="URL">
                                     <button type="button" class="btn btn-sm btn-default" data-fs-copy="{{ $l['url'] }}" title="{{ exmtrans('file_server.copy') }}"><i class="fa fa-clipboard" aria-hidden="true"></i></button>

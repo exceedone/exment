@@ -221,6 +221,8 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
         ];
 
         $request->session()->invalidate();
+        // the login page then clears what this browser kept for the user (auth/layout)
+        $request->session()->flash('exment_logged_out', true);
 
         if (isset($login_user) && $login_user->login_type != LoginType::PURE) {
             return $this->logoutSso($request, $login_user, $options);
