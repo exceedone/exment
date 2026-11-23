@@ -169,6 +169,22 @@ class RouteServiceProvider extends ServiceProvider
             'middleware'    => ['adminweb', 'admin'],
         ], function (Router $router) {
             $router->get('/', 'DashboardController@home');
+
+            // When prefix is empty the admin lives at "/", which conflicts with
+            // routes/web.php's default welcome route. That file is loaded via
+            // Application::booting() — before service providers boot — so its
+            // Route::get('/') is registered first. We re-register this route
+            // inside app()->booted() (after ALL providers boot) so it is the
+            // last write to the route collection's associative-array slot for
+            // GET "/", guaranteeing the admin dashboard wins the match.
+            if (empty(config('admin.route.prefix'))) {
+                $namespace = $this->namespace;
+                app()->booted(function () use ($namespace) {
+                    Route::middleware(['adminweb', 'admin'])
+                        ->namespace($namespace)
+                        ->get('/', 'Exceedone\Exment\Controllers\DashboardController@home');
+                });
+            }
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
             $router->post('dashboardbox/chart_state/{suuid}', 'DashboardBoxController@chartState');
             $router->post('dashboardbox/chart_color/{suuid}', 'DashboardBoxController@chartColor');
@@ -313,12 +329,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
-            $router->get('template/import', function () {
-                return redirect(admin_url('template'));
-            });
-            $router->get('template/export', function () {
-                return redirect(admin_url('template'));
-            });
+            $router->get('template/import', 'TemplateController@redirectIndex');
+            $router->get('template/export', 'TemplateController@redirectIndex');
 
             $router->get("workflow/beginning", 'WorkflowController@beginningForm');
             $router->post("workflow/beginning", 'WorkflowController@beginningPost');
@@ -402,9 +414,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("role_group/import", 'RoleGroupController@import');
             $this->setResouce($router, 'role_group', 'RoleGroupController');
 
-            $router->get('role', function () {
-                return redirect(admin_urls('role_group'));
-            });
+            $router->get('role', 'RoleGroupController@redirectRole');
 
             $router->get('qr-code/{tableName}/{id}', 'QrCodeController@scanRedirect');
             $router->get('jan-code/{id}', 'JanCodeController@scanRedirect');

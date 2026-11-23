@@ -84,6 +84,51 @@ class Exment
         return \Exceedone\Exment\Services\MenuVisibility::forUser($user)->tree();
     }
 
+    /**
+     * Render the left sidebar menu to HTML, cached per user.
+     *
+     * The rendered markup is identical for any request by the same user until the menu or the
+     * user's permissions change, so it is cached instead of re-rendering the recursive blade +
+     * per-node visible() permission check on every page load.
+     *
+     * Cache key is fail-safe (not flush-dependent): it embeds a hash of the menu tree (changes when
+     * any menu/table/plugin/view that feeds it changes — allNodes is rebuilt), the user id, the
+     * permission/organization/api availability flags, the locale, and the request host (admin_url is
+     * absolute). A coarse 30-minute time bucket bounds staleness if a rare role/membership change
+     * misses the model-save cache flush — page-level authority is enforced independently, so a stale
+     * menu can at worst show a link that then 403s, never grant access.
+     *
+     * @return string
+     */
+    public function sidebarMenuHtml()
+    {
+        $user = $this->user();
+        if (is_null($user)) {
+            return '';
+        }
+
+        $tree = $this->menu();
+
+        $key = 'exment_sidebar_menu_html_' . md5(strval(json_encode([
+            $tree,
+            $user instanceof \Exceedone\Exment\Model\LoginUser ? $user->getUserId() : array_get($user, 'id'),
+            System::permission_available(),
+            System::organization_available(),
+            System::api_available(),
+            app()->getLocale(),
+            request()->getSchemeAndHttpHost(),
+            floor(time() / 1800),
+        ])));
+
+        return System::cache($key, function () use ($tree) {
+            $html = '';
+            foreach ($tree as $item) {
+                $html .= view('admin::partials.menu', ['item' => $item])->render();
+            }
+            return $html;
+        });
+    }
+
 
     /**
      * Error handling.

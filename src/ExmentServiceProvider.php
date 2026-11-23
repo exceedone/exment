@@ -344,7 +344,11 @@ class ExmentServiceProvider extends ServiceProvider
             \Exceedone\Exment\Services\UserApiKeys::rememberSignIn($event->guard);
         });
 
-        $this->publish();
+        // Perf: publishes() only feeds the `vendor:publish` console command; running it on
+        // every web request is pure waste (matches open-admin-core's console-guarded publishing).
+        if ($this->app->runningInConsole()) {
+            $this->publish();
+        }
         $this->load();
 
         $this->registerPolicies();
