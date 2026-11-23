@@ -26,13 +26,14 @@ class UserLocaleTest extends FeatureTestBase
         parent::setUp();
         $this->initAllTest();
         $this->localeBefore = config('exment.locale');
-        config(['exment.locale' => 'ja']);
+        // (the language of the browser is not used in the tests unless asked)
+        config(['exment.locale' => 'ja', 'exment.locale_from_browser' => true]);
         System::clearRequestSession();
     }
 
     protected function tearDown(): void
     {
-        config(['exment.locale' => $this->localeBefore]);
+        config(['exment.locale' => $this->localeBefore, 'exment.locale_from_browser' => null]);
         UserTimezone::setCurrent(null);
         parent::tearDown();
     }
