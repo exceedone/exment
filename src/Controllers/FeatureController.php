@@ -15,6 +15,7 @@ use Exceedone\Exment\Services\PluginDistribution\AdminNotices;
 use Exceedone\Exment\Services\PluginDistribution\BundledPlugins;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -128,6 +129,41 @@ class FeatureController extends AdminControllerBase
             ]));
         } catch (\Throwable $e) {
             \Log::warning('[Exment] the bundled plugin ' . $uuid . ': ' . $e->getMessage());
+            admin_toastr($e->getMessage(), 'error');
+        }
+        return redirect(admin_url('feature'));
+    }
+
+    /**
+     * A release of an official plugin downloaded by hand (its zip and its
+     * signed record): checked, then installed or updated (the version before is kept).
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function bundledUpload(Request $request)
+    {
+        if (DemoMode::enabled()) {
+            admin_toastr(DemoMode::message(), 'error');
+            return redirect(admin_url('feature'));
+        }
+        if (!BundledPlugins::updatesAllowed()) {
+            admin_toastr(exmtrans('plugin_distribution.error_updates_off'), 'error');
+            return redirect(admin_url('feature'));
+        }
+        $zip = $request->file('bundled_zip');
+        $json = $request->file('bundled_json');
+        if (!$zip instanceof UploadedFile || !$json instanceof UploadedFile || !$zip->isValid() || !$json->isValid()) {
+            admin_toastr(exmtrans('plugin_distribution.error_upload_files'), 'error');
+            return redirect(admin_url('feature'));
+        }
+        try {
+            $plugin = BundledPlugins::installUploaded(strval($zip->getRealPath()), strval($json->getRealPath()));
+            admin_toastr(exmtrans('plugin_distribution.installed', [
+                'name' => $plugin->plugin_view_name,
+                'version' => $plugin->version,
+            ]));
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] an uploaded official plugin: ' . $e->getMessage());
             admin_toastr($e->getMessage(), 'error');
         }
         return redirect(admin_url('feature'));
