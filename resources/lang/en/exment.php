@@ -3879,6 +3879,7 @@ return [
 
         'options' => [
             'use_on_create' => 'Button on the create form',
+            'create_label' => 'Label of the button on the create form',
             'child_copy' => 'Child Table Setting',
             'child_copy_format' => '%s（%s → %s）',
         ],
@@ -3886,6 +3887,7 @@ return [
         'help' => [
             'to_custom_table_view_name' => 'Please select copy target table.',
             'use_on_create' => 'When on, the create form of the copy-to table has a "Copy from" button. With it the user searches the list of this table, picks a record, and starts from its values. Nothing is saved until the user saves.',
+            'create_label' => 'The text of the "Copy from" button of the create form. For example "Copy from last year". Empty: "Copy from" ("Copy from (copy-from table name)" when two or more settings put this button on the same table).',
             'child_copy' => 'Copy the child table data linked to the target data together. Data copy settings between child tables registered in advance (those without input dialog settings) are displayed as candidates.',
         ],
 
