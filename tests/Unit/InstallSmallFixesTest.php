@@ -30,6 +30,13 @@ class InstallSmallFixesTest extends UnitTestBase
         $this->assertStringContainsString("value=\"{{ old('ADMIN_ROUTE_PREFIX', '') }}\"", $view);
     }
 
+    public function testNoErrorLogForTheTablesBeforeTheInstall(): void
+    {
+        $helpers = $this->read('src/Services/Helpers.php');
+        $this->assertMatchesRegularExpression("/if \\(boolval\\(env\\('EXMENT_INITIALIZE', false\\)\\)\\) \\{\\s*\\\\\\\\Log::error\\('Error fetching table names: '/", $helpers);
+        $this->assertStringContainsString("\\Log::debug('Error fetching table names (not installed yet): '", $helpers);
+    }
+
     public function testNoEmptyLinkToTheManual(): void
     {
         foreach (['resources/views/widgets/system-require.blade.php', 'resources/views/tuning/index.blade.php'] as $path) {
