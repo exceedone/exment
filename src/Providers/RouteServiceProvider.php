@@ -210,6 +210,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
+            // the language from the user menu (ISS02835)
+            $router->post('auth/setting/locale', 'AuthController@postLocale');
             // the API keys of the users (ISS00437): of the login user, and of the site
             $router->get('auth/api_keys', 'UserApiKeyController@index');
             $router->post('auth/api_keys', 'UserApiKeyController@store');
@@ -591,6 +593,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('auth/login', 'AuthController@getLoginExment')->name('exment.login');
             $router->get('auth/logout', 'AuthController@getLogout')->name('exment.logout');
             $router->post('auth/login', 'AuthController@postLogin');
+            // the language of the login page (ISS02835)
+            $router->post('auth/login_locale', 'AuthController@postLoginLocale');
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
             $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');

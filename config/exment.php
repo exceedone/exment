@@ -8,6 +8,10 @@ return [
 
     'system_locale_options' => env('EXMENT_SYSTEM_LOCALE_OPTIONS'),
 
+    // the language of the browser (Accept-Language) for a user who has not chosen one (ISS02835).
+    // Not set: the system setting (System → Advanced, on by default). Set (true / false): wins over the setting.
+    'locale_from_browser' => env('EXMENT_LOCALE_FROM_BROWSER'),
+
 
 
     /*

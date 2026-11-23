@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Services\UserTimezone;
 
 /**
  * Kanban view.
@@ -309,7 +310,8 @@ class KanbanGrid extends GridBase
                 'hook' => $this->getEditorHook(),
             ],
             'embed' => $this->isEmbed() ? ['type' => $this->embed_parent_type, 'id' => $this->embed_parent_id] : null,
-            'now' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
+            // the date and times of the cards are in the time zone of the user, and so is now (ISS02835)
+            'now' => UserTimezone::nowString(),
 
             'source' => $is_workflow ? static::SOURCE_WORKFLOW : static::SOURCE_COLUMN,
             'workflow_key' => static::WORKFLOW_KEY,
@@ -669,6 +671,7 @@ class KanbanGrid extends GridBase
         // but the filter panel and "only mine" have to see all of them, or
         // the second person on a card is invisible to both.
         $multiple_columns = [];
+        $datetime_columns = [];
         foreach ($value_columns as $column_name => $custom_column) {
             $item = CustomItem::getItem($custom_column);
             if (isset($item)) {
@@ -676,6 +679,9 @@ class KanbanGrid extends GridBase
             }
             if ($custom_column->isMultipleEnabled()) {
                 $multiple_columns[$column_name] = true;
+            }
+            if (array_get($custom_column, 'column_type') == ColumnType::DATETIME) {
+                $datetime_columns[$column_name] = true;
             }
         }
 
@@ -702,6 +708,10 @@ class KanbanGrid extends GridBase
                 $item->setCustomValue($record);
                 $raw = $item->value();
                 $values[$column_name] = static::normalizeKey($raw);
+                // a date and time in the time zone of the user, as its text and the edit of the deadline (ISS02835)
+                if (isset($datetime_columns[$column_name])) {
+                    $values[$column_name] = UserTimezone::formatToUser($values[$column_name]);
+                }
                 // the text only where the browser cannot tell it (textOf in the board
                 // script): not for a column whose label it puts back from its lists,
                 // not where it is the value itself (a subject, a date, a number)
@@ -781,7 +791,7 @@ class KanbanGrid extends GridBase
             $card = [
                 'id' => $record->id,
                 'label' => strval($record->getLabel()),
-                'entered' => isset($entered) ? \Carbon\Carbon::parse($entered)->format('Y-m-d H:i:s') : '',
+                'entered' => isset($entered) ? UserTimezone::display($entered, UserTimezone::DB_FORMAT) : '',
                 // the edit lock: a write from the board sends it back, so a
                 // record somebody else saved since this card was read is
                 // refused instead of overwritten (CustomTable::validatorLock)
