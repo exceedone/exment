@@ -420,6 +420,7 @@ EOT;
 
                 // the options of the column, for the scripts of the field
                 if (method_exists($field, 'setCustomOptions')) {
+                    // @phpstan-ignore-next-line
                     $field->setCustomOptions($form_column->custom_column->options ?? []);
                 }
                 // push field to form
