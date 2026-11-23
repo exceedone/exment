@@ -140,7 +140,7 @@ class AttachmentCleanup
     }
 
     /**
-     * @return array{documents: int, versions: int, column_files: int}
+     * @return array<string, int>
      */
     protected static function emptyCounts(): array
     {
@@ -148,17 +148,20 @@ class AttachmentCleanup
     }
 
     /**
-     * @param array{documents: int, versions: int, column_files: int} $counts
+     * @param array<string, int> $counts
      * @return array{documents: int, versions: int, column_files: int, records: int, files: int, bytes: int, bytes_partial: bool}
      */
     protected static function result(array $counts, int $records, int $bytes, bool $partial): array
     {
+        $documents = $counts['documents'] ?? 0;
+        $versions = $counts['versions'] ?? 0;
+        $column_files = $counts['column_files'] ?? 0;
         return [
-            'documents' => $counts['documents'],
-            'versions' => $counts['versions'],
-            'column_files' => $counts['column_files'],
+            'documents' => $documents,
+            'versions' => $versions,
+            'column_files' => $column_files,
             'records' => $records,
-            'files' => $counts['documents'] + $counts['versions'] + $counts['column_files'],
+            'files' => $documents + $versions + $column_files,
             'bytes' => $bytes,
             'bytes_partial' => $partial,
         ];
