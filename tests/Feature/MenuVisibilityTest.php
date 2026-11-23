@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Features;
+use Exceedone\Exment\Services\MenuVisibility;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
@@ -49,6 +50,7 @@ class MenuVisibilityTest extends FeatureTestBase
     protected function tearDown(): void
     {
         config(['exment.demo_mode' => false]);
+        MenuVisibility::reset();
         Features::reset();
         System::clearRequestSession();
         parent::tearDown();
@@ -432,5 +434,109 @@ class MenuVisibilityTest extends FeatureTestBase
         foreach (['mvis-sys-menu', 'mvis-limited', 'mvis-admin', 'mvis-sys-studio', 'mvis-map', 'mvis-empty-map'] as $title) {
             $this->assertStringNotContainsString('<span>' . $title . '</span>', $sidebar, $title);
         }
+    }
+
+    // Services\MenuVisibility itself ---------------------------------------------------
+
+    /**
+     * @param array<int, array<string, mixed>> $nodes
+     * @return string[]
+     */
+    protected function treeTitles(array $nodes): array
+    {
+        $titles = [];
+        foreach ($nodes as $node) {
+            $titles[] = strval($node['title']);
+            if (isset($node['children'])) {
+                $titles = array_merge($titles, $this->treeTitles($node['children']));
+            }
+        }
+        return array_values(array_filter($titles, function ($title) {
+            return str_starts_with($title, 'mvis-');
+        }));
+    }
+
+    public function testTheTreeIsTheLeftMenu(): void
+    {
+        foreach ([TestDefine::TESTDATA_USER_LOGINID_ADMIN, TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2] as $loginId) {
+            foreach ([true, false] as $studio) {
+                $this->setFeatures(['studio' => ['enabled' => $studio, 'role_groups' => null, 'menu' => true]]);
+                $user = $this->login($loginId);
+                $tree = $this->treeTitles(MenuVisibility::forUser($user)->tree());
+                $this->assertSame($this->leftMenu($user), $tree, "user $loginId, studio " . ($studio ? 'on' : 'off'));
+                $this->assertSame($tree, $this->treeTitles(app(\Exceedone\Exment\Exment::class)->menu()), 'the sidebar');
+            }
+        }
+    }
+
+    public function testACacheHoldsOnlyTheRows(): void
+    {
+        $cache = [];
+        $loads = 0;
+        MenuVisibility::cacheRowsWith(function ($key, $load) use (&$cache, &$loads) {
+            $this->assertSame(MenuVisibility::ROWS_CACHE_KEY, $key);
+            if (!array_key_exists($key, $cache)) {
+                $loads++;
+                $cache[$key] = $load();
+            }
+            return $cache[$key];
+        }, function ($key) use (&$cache) {
+            unset($cache[$key]);
+        });
+        $this->setFeatures(['studio' => ['enabled' => true, 'role_groups' => [$this->roleGroupId], 'menu' => true]]);
+
+        // user1 fills the cache: user2 still does not get the menus of the feature
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->assertArrayHasKey('mvis-sys-studio', $this->rows());
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->assertArrayNotHasKey('mvis-sys-studio', $this->rows());
+        $this->assertTrue($this->rows(true)['mvis-sys-studio']['feature_hidden'] ?? false);
+        $this->assertSame(1, $loads, 'read once');
+        foreach ($cache[MenuVisibility::ROWS_CACHE_KEY] as $row) {
+            $this->assertArrayNotHasKey('feature_hidden', $row, 'the cache has the rows only');
+        }
+
+        // a menu saved: read again
+        $menu = Menu::where('menu_name', 'mvis_ext')->firstOrFail();
+        $menu->title = 'mvis-ext-renamed';
+        $menu->save();
+        $this->assertArrayHasKey('mvis-ext-renamed', $this->rows());
+        $this->assertSame(2, $loads);
+    }
+
+    public function testTheAnswersOfAUserAreHisOwn(): void
+    {
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $limited = collect((new Menu())->toTree())->firstWhere('menu_name', 'mvis_limited');
+        $this->assertIsArray($limited);
+
+        // in one request, nothing cleared between them
+        $user1 = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $user2 = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->assertTrue($user1->visible($limited));
+        $this->assertFalse($user2->visible($limited));
+        $this->assertTrue($user1->visible($limited));
+        $this->assertFalse(MenuVisibility::forUser($user2)->isVisible($limited));
+    }
+
+    public function testARuleHidesMore(): void
+    {
+        MenuVisibility::addHideRule(function (array $item, LoginUser $user) {
+            return array_get($item, 'menu_name') === 'mvis_limited_ext' && !$user->isAdministrator();
+        });
+        $this->assertNotContains('mvis-limited', $this->leftMenu($this->login(TestDefine::TESTDATA_USER_LOGINID_USER1)), 'the group with nothing else in it goes too');
+        $this->assertContains('mvis-limited-ext', $this->leftMenu($this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN)));
+    }
+
+    public function testTheTreeOfATemplate(): void
+    {
+        $this->setFeatures(['studio' => ['enabled' => false, 'role_groups' => null, 'menu' => true]]);
+        $admin = $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->assertSame(['mvis-open', 'mvis-table'], $this->treeTitles(MenuVisibility::forUser($admin)->exportTree([TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL])));
+        $all = $this->treeTitles(MenuVisibility::forUser($admin)->exportTree());
+        foreach (['mvis-sys-studio', 'mvis-limited', 'mvis-admin-role', 'mvis-empty-map', 'mvis-sys-backup'] as $title) {
+            $this->assertContains($title, $all, $title);
+        }
+        $this->assertNotContains('mvis-gone-table', $all);
     }
 }
