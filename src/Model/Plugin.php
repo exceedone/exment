@@ -296,7 +296,19 @@ class Plugin extends ModelBase
         $diskService = new PluginDiskService($this);
         // sync from crowd.
         $diskService->syncFromDisk();
-        $this->requirePlugin($diskService);
+
+        // S3 was unreachable during sync check — skip requirePlugin entirely
+        if ($diskService->syncFailed) {
+            return null;
+        }
+
+        try {
+            $this->requirePlugin($diskService);
+        } catch (\Throwable $e) {
+            // S3 unreachable or file not found — log once and return null so callers can skip
+            \Log::warning("Plugin::getFullPath - could not load plugin [{$this->plugin_name}]: " . $e->getMessage());
+            return null;
+        }
 
         $plugin_fullpath = $diskService->localSyncDiskItem()->dirFullPath();
         return path_join($plugin_fullpath, ...$pass_array);
@@ -489,8 +501,11 @@ class Plugin extends ModelBase
             }
         }
 
-        $disk = $diskService->diskItem()->disk();
-        $dirName = $diskService->diskItem()->dirName();
+        // When sync is requested the plugin is executed from the local synced copy,
+        // so check existence there instead of calling the remote disk (S3) on every request.
+        $diskItem = boolval($options['sync']) ? $diskService->localSyncDiskItem() : $diskService->diskItem();
+        $disk = $diskItem->disk();
+        $dirName = $diskItem->dirName();
 
         if (!$disk->exists($dirName)) {
             throw new FileNotFoundException($dirName);
@@ -805,11 +820,16 @@ class Plugin extends ModelBase
                 $targetPluginTypes = [$targetPluginTypes];
             }
 
-            foreach ($targetPluginTypes as $targetPluginType) {
-                $class = $plugin->getClass($targetPluginType, ['throw_ex' => false]);
-                if (isset($class)) {
-                    return $class;
+            try {
+                foreach ($targetPluginTypes as $targetPluginType) {
+                    $class = $plugin->getClass($targetPluginType, ['throw_ex' => false]);
+                    if (isset($class)) {
+                        return $class;
+                    }
                 }
+            } catch (\Throwable $e) {
+                \Log::error('Plugin load failed, skipping plugin [' . $plugin->plugin_name . ']: ' . $e->getMessage());
+                return null;
             }
         })->filter();
     }

@@ -34,7 +34,7 @@
                                 <option value="{{$revision->suuid}}" {{ $revision->suuid == $revision_suuid ? 'selected' : '' }}>
                                     No.{{$revision->revision_no}}
                                     &nbsp;
-                                    {{$revision->updated_at}}
+                                    {{ \Exceedone\Exment\Services\UserTimezone::display($revision->updated_at) }}
                                     &nbsp;({{ exmtrans("common.updated_user") }}&nbsp;:&nbsp;{{ $revision->user }})
                                     @if($revision->suuid == $newest_revision_suuid)
                                     &nbsp;{{exmtrans('revision.new')}}

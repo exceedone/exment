@@ -255,7 +255,7 @@
                         <td>{{ $row['table_view_name'] }}</td>
                         <td><a class="rowclick" href="{{ admin_url('workflow_task/read') }}?key={{ urlencode($row['task_key']) }}">{{ $row['label'] }}</a></td>
                         <td>{!! $row['status_tag'] !!}</td>
-                        <td>{{ $row['updated_at'] }}</td>
+                        <td>{{ \Exceedone\Exment\Services\UserTimezone::display($row['updated_at']) }}</td>
                         <td>
                             @if($removedView)
                             {{-- Puts the task back on THIS user's list, as unread

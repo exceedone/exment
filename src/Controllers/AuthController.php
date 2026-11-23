@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\UserLocale;
+use Exceedone\Exment\Services\UserTimezone;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -347,8 +349,20 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                     ->help(exmtrans("2factor.help.login_2factor_provider_user"));
             }
 
+            // the language and the time zone of the user (ISS02835)
+            $form->select('user_locale', exmtrans('user.locale'))
+                ->options(UserLocale::allowedOptions())
+                ->default(\Exment::user()->getSettingValue(UserLocale::SETTING_KEY))
+                ->placeholder(exmtrans('user.locale_auto'))
+                ->help(exmtrans('user.help.locale'));
+            $form->select('user_timezone', exmtrans('user.timezone'))
+                ->options(UserTimezone::options())
+                ->default(\Exment::user()->getSettingValue(UserTimezone::SETTING_KEY))
+                ->placeholder(exmtrans('user.timezone_site', ['timezone' => UserTimezone::site()]))
+                ->help(exmtrans('user.help.timezone'));
+
             $form->setAction(admin_url('auth/setting'));
-            $form->ignore(['password_confirmation', 'current_password', 'login_2factor_provider']);
+            $form->ignore(['password_confirmation', 'current_password', 'login_2factor_provider', 'user_locale', 'user_timezone']);
             $form->tools(function (Form\Tools $tools) {
                 $tools->disableDelete();
                 // the API keys of the user, when the administrators allow it (ISS00437)
@@ -370,6 +384,8 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                     implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
                     request()->get('login_2factor_provider')
                 );
+
+                static::saveLocaleTimezone(request()->get('user_locale'), request()->get('user_timezone'));
             });
 
             $form->saved(function ($form) {
@@ -378,6 +394,83 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                 return redirect(admin_url('auth/setting'));
             });
         });
+    }
+
+    /**
+     * Save the language and the time zone of the login user (empty: automatic / the time zone of the site).
+     * A language or a time zone that is not allowed is not saved.
+     */
+    protected static function saveLocaleTimezone(?string $locale, ?string $timezone): void
+    {
+        $user = \Exment::user();
+        if (is_null($user)) {
+            return;
+        }
+
+        $locale = UserLocale::match($locale);
+        $user->setSettingValue(UserLocale::SETTING_KEY, $locale);
+        if (UserTimezone::isValid($timezone) && $timezone !== UserTimezone::site()) {
+            $user->setSettingValue(UserTimezone::SETTING_KEY, $timezone);
+        } else {
+            $user->setSettingValue(UserTimezone::SETTING_KEY, null);
+        }
+        UserLocale::clearCache();
+
+        // the login page of this browser in the same language
+        static::queueLocaleCookie($locale);
+    }
+
+    /**
+     * The language chosen from the user menu (top right).
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function postLocale(Request $request)
+    {
+        $locale = UserLocale::match($request->get('locale'));
+        $user = \Exment::user();
+        if (!is_null($user) && !DemoMode::enabled()) {
+            $user->setSettingValue(UserLocale::SETTING_KEY, $locale);
+            UserLocale::clearCache();
+        }
+        static::queueLocaleCookie($locale);
+
+        return redirect(static::safeBackUrl($request));
+    }
+
+    /**
+     * The language chosen on the login page (before the login: a cookie of the browser).
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function postLoginLocale(Request $request)
+    {
+        static::queueLocaleCookie(UserLocale::match($request->get('locale')));
+
+        return redirect(admin_url('auth/login'));
+    }
+
+    protected static function queueLocaleCookie(?string $locale): void
+    {
+        if (is_null($locale)) {
+            \Cookie::queue(\Cookie::forget(UserLocale::COOKIE_NAME));
+            return;
+        }
+        // one year
+        \Cookie::queue(UserLocale::COOKIE_NAME, $locale, 60 * 24 * 365);
+    }
+
+    /**
+     * Back to the page of the site the user was on (not to another site).
+     */
+    protected static function safeBackUrl(Request $request): string
+    {
+        $back = url()->previous();
+        $base = rtrim(admin_url(), '/');
+        if ($back === $base || strpos($back, $base . '/') === 0 || strpos($back, $base . '?') === 0) {
+            return $back;
+        }
+        return $base;
     }
 
     /**

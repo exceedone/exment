@@ -210,6 +210,14 @@ class SystemItem implements ItemInterface
     // @phpstan-ignore-next-line
     protected function _text($v)
     {
+        // created_at etc. in the time zone of the user (ISS02835)
+        if (array_get($this->getSystemColumnOption(), 'type') == 'datetime' && !boolval(array_get($this->options, 'summary'))
+            && \Exceedone\Exment\Services\UserTimezone::differs()) {
+            $carbon = \Exceedone\Exment\Services\UserTimezone::toUser($v);
+            if ($carbon) {
+                return $carbon->format(config('admin.datetime_format') ?: 'Y-m-d H:i:s');
+            }
+        }
         return $this->_pureValue($v);
     }
 
@@ -524,6 +532,14 @@ class SystemItem implements ItemInterface
         }
     }
 
+
+    /**
+     * Whether this is a date and time of the system (created_at, updated_at, deleted_at).
+     */
+    public function isSystemDatetime(): bool
+    {
+        return array_get($this->getSystemColumnOption(), 'type') == 'datetime';
+    }
 
     // @phpstan-ignore-next-line
     protected function getSystemColumnOption()

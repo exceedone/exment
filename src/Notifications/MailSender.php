@@ -16,6 +16,7 @@ use Exceedone\Exment\Notifications\Mail\MailInfoTrait;
 use Exceedone\Exment\Notifications\Mail\MailHistoryTrait;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Notifications\Notifiable;
+use Exceedone\Exment\Services\UserLocale;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 /**
@@ -277,8 +278,23 @@ class MailSender extends SenderBase
      */
     public function send()
     {
-        $this->sendMail();
-        $this->sendPasswordMail();
+        // in the language and the time zone of the user who receives it (ISS02835)
+        UserLocale::runAs($this->getRecipientUserId(), function () {
+            $this->sendMail();
+            $this->sendPasswordMail();
+        });
+    }
+
+    /**
+     * The id of the user who receives the mail, or '' when it is not one user of the site
+     * (an e-mail address only: the language and the time zone of the site).
+     *
+     * @return int|string
+     */
+    protected function getRecipientUserId()
+    {
+        $userId = $this->mailHistory->getUserId();
+        return is_numeric($userId) ? $userId : '';
     }
 
     /**

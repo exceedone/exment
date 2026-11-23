@@ -20,6 +20,9 @@ class SecurityCheckMenuOrderTest extends FeatureTestBase
     }
 
     /**
+     * The menus under the parent, read again each time.
+     *
+     * @phpstan-impure
      * @return array<string>
      */
     protected function children(int $parent): array

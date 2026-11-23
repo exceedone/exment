@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Database;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Services\UserTimezone;
 
 /**
  *
@@ -526,9 +527,10 @@ trait ExtendedBuilderTrait
         if ($isDatetime) {
             $start = $values['datetime'][0];
             $end = $values['datetime'][1];
+            // the days of the user: from 00:00 of the user, in the time of the site (ISS02835)
             $values = [
-                $start->format('Y-m-d'),
-                $end->format('Y-m-d'),
+                UserTimezone::dayStartForQuery($start),
+                UserTimezone::dayStartForQuery($end),
             ];
             return $this->_between($column, $values, '>=', '<', $isOr);
         }
@@ -558,7 +560,8 @@ trait ExtendedBuilderTrait
 
         if ($isDatetime) {
             $date = (in_array($mark, ['<', '<=']) ? $value->copy()->addDays(1) : $value);
-            return $this->where($column, $mark, $date->format('Y-m-d'), $boolean);
+            // the days of the user: from 00:00 of the user, in the time of the site (ISS02835)
+            return $this->where($column, $mark, UserTimezone::dayStartForQuery($date), $boolean);
         }
 
         return $this->where($column, $mark, $value->format('Y-m-d'), $boolean);

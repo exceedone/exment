@@ -1483,10 +1483,16 @@ if (!function_exists('hasTable')) {
             try {
                 // Through the connection's own schema builder, so it follows
                 // whichever driver is configured (MySQL, MariaDB, SQL Server)
-                // and its socket / SSL / read-write settings. A separate DBAL
-                // connection built from host and port only would fail on any of
-                // those, and the empty list below would then read as "no tables".
-                return \Schema::getTableListing();
+                // and its socket / SSL / read-write settings (e.g. the TLS CA
+                // AWS RDS needs with require_secure_transport=ON). A separate
+                // DBAL connection built from host and port only would fail on
+                // any of those, and the empty list below would then read as
+                // "no tables".
+                // Scoped to the connection's own schema and unqualified: with no
+                // arguments Laravel 12 lists every schema on the server as
+                // "schema.table", which never matches $table_name below and, on a
+                // shared multi-tenant server, would read other tenants' databases.
+                return \Schema::getTableListing(\Schema::getCurrentSchemaName(), false);
             } catch (\Throwable $e) {
                 // before the install the database of .env is not the site's yet (the defaults
                 // of the zip, before the database step): not an error of the site

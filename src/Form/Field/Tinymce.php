@@ -63,6 +63,31 @@ class Tinymce extends Textarea
         return parent::readonly();
     }
 
+    /**
+     * The language of TinyMCE for a locale: the one of public/vendor/exment/tinymce/langs when it has
+     * a file for it (ja, zh_CN, vi ...), else English (built in).
+     */
+    public static function tinymceLanguage(?string $locale): string
+    {
+        if (is_nullorempty($locale)) {
+            return 'en';
+        }
+        $locale = (string)$locale;
+        $dirs = [
+            public_path('vendor/exment/tinymce/langs'),
+            exment_package_path('public/vendor/exment/tinymce/langs'),
+        ];
+        $names = array_unique([$locale, str_replace('-', '_', $locale), explode('_', str_replace('-', '_', $locale))[0]]);
+        foreach ($names as $name) {
+            foreach ($dirs as $dir) {
+                if (is_file($dir . '/' . $name . '.js')) {
+                    return $name;
+                }
+            }
+        }
+        return 'en';
+    }
+
     // @phpstan-ignore-next-line
     protected function getValidElements()
     {
@@ -109,7 +134,8 @@ class Tinymce extends Textarea
         })->toArray();
         $this->rules = array_values($this->rules);
 
-        $locale = \App::getLocale();
+        // the language file of TinyMCE when it has one (langs/<locale>.js), else English (ISS02835)
+        $locale = static::tinymceLanguage(\App::getLocale());
 
         $enableImage = !$this->disableImage && !boolval(config('exment.diable_upload_images_editor', false));
 

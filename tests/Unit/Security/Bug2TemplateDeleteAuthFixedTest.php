@@ -23,6 +23,10 @@ class Bug2TemplateDeleteAuthFixedTest extends SecurityRegressionTestCase
 
     public function test_unauthenticated_delete_is_forbidden(): void
     {
+        // delete() only guards on an installed system (see the class docblock), so the
+        // precondition has to hold for this assertion to mean anything.
+        $this->forceSystemInitialized();
+
         // The `api/...` path has no session and no CSRF -> matches the anonymous-attacker scenario.
         $prefix = $this->prefix();
 
