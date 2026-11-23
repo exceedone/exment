@@ -262,7 +262,7 @@ class System extends ModelBase
             }
 
             // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
-            if (boolval(config('exment.use_cache', false)) && !is_null($val = Cache::get($key))) {
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = Cache::get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -274,7 +274,7 @@ class System extends ModelBase
             }
 
             // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
-            if (boolval(config('exment.use_cache', false)) && !is_null($val = Cache::get($key))) {
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = Cache::get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -291,13 +291,79 @@ class System extends ModelBase
 
             // set cache
             if (boolval(config('exment.use_cache', false))) {
-                Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
+                Cache::put(static::storeKey($key), $val, Define::CACHE_CLEAR_MINUTE);
             }
             return $val;
         }
 
         static::setRequestSession($key, $value);
-        Cache::put($key, $value, Define::CACHE_CLEAR_MINUTE);
+        Cache::put(static::storeKey($key), $value, Define::CACHE_CLEAR_MINUTE);
+    }
+
+    /** @var string|null the generation of the cache last read from the database */
+    protected static $cacheGeneration;
+
+    /** @var float when it was read (microtime) */
+    protected static $cacheGenerationReadAt = 0.0;
+
+    /**
+     * The generation of the cache: a value kept in the database (table systems) that changes
+     * each time the cache is cleared. What is kept in the cache store is kept under it, so a
+     * server whose store was not cleared (two web servers with a file cache each, a worker of
+     * the queue) no longer reads what it kept before: it sees the new generation and works the
+     * values out again. Read once for a request (again after a second, for a process that
+     * runs long).
+     */
+    public static function cacheGeneration(): string
+    {
+        $now = microtime(true);
+        if (isset(static::$cacheGeneration) && $now - static::$cacheGenerationReadAt < 1.0) {
+            return static::$cacheGeneration;
+        }
+        try {
+            $value = \DB::table((new static())->getTable())
+                ->where('system_name', Define::SYSTEM_KEY_CACHE_GENERATION)->value('system_value');
+        } catch (\Throwable $e) {
+            // no database yet (the install): nothing is shared with another server
+            $value = null;
+        }
+        static::$cacheGenerationReadAt = $now;
+        return static::$cacheGeneration = strval($value ?? '0');
+    }
+
+    /**
+     * A new generation of the cache, for every server of the site (see cacheGeneration).
+     * Inside a transaction that is rolled back, the generation of before stays.
+     */
+    public static function renewCacheGeneration(): string
+    {
+        $generation = dechex(time()) . bin2hex(random_bytes(4));
+        try {
+            \DB::table((new static())->getTable())->updateOrInsert(
+                ['system_name' => Define::SYSTEM_KEY_CACHE_GENERATION],
+                ['system_value' => $generation]
+            );
+        } catch (\Throwable $e) {
+            // no database yet (the install)
+            return static::cacheGeneration();
+        }
+        static::$cacheGenerationReadAt = microtime(true);
+        return static::$cacheGeneration = $generation;
+    }
+
+    /**
+     * The key of a value in the cache store: under the generation of the cache. Without the
+     * cache of Exment (EXMENT_USE_CACHE) nothing is read from the store, and the generation
+     * is not asked.
+     *
+     * @param string $key
+     */
+    protected static function storeKey($key): string
+    {
+        if (!boolval(config('exment.use_cache', false))) {
+            return strval($key);
+        }
+        return 'g' . static::cacheGeneration() . ':' . $key;
     }
 
     /**
@@ -314,9 +380,11 @@ class System extends ModelBase
         }
 
         if (!isset($key)) {
+            // this server's store, and a new generation for the stores of the other servers
             Cache::flush();
+            static::renewCacheGeneration();
         } else {
-            Cache::forget($key);
+            Cache::forget(static::storeKey($key));
         }
     }
 
