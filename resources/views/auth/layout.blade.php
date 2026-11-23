@@ -118,6 +118,27 @@
 
 <script src="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.js")}}"></script>
 <script src="{{ admin_asset("/vendor/exment/js/common_all.js")}}"></script>
+@if (session('exment_logged_out'))
+<script>
+    // after the logout: what this browser kept for the user (the navbar, the Studio app)
+    (function () {
+        try {
+            for (var i = localStorage.length - 1; i >= 0; i--) {
+                var key = localStorage.key(i);
+                if (key && key.indexOf('exment.navbar.') === 0) { localStorage.removeItem(key); }
+            }
+        } catch (e) {}
+        try { if (window.indexedDB) { indexedDB.deleteDatabase('exment-app'); } } catch (e) {}
+        try {
+            if (window.caches) {
+                caches.keys().then(function (keys) {
+                    keys.forEach(function (k) { if (k.indexOf('exment-app') === 0) { caches.delete(k); } });
+                }).catch(function () {});
+            }
+        } catch (e) {}
+    })();
+</script>
+@endif
 
 <script>
   // $(function () {
