@@ -202,10 +202,23 @@ class CustomCopyController extends AdminControllerTableBase
             $form->switchbool('use_on_create', exmtrans("custom_copy.options.use_on_create"))
                 ->help(exmtrans("custom_copy.help.use_on_create"))
                 ->default(0);
+            $form->select('create_label_type', exmtrans("custom_copy.options.create_label_type"))
+                ->help(exmtrans("custom_copy.help.create_label_type"))
+                ->options([
+                    CustomCopy::CREATE_LABEL_AUTO => exmtrans("custom_copy.create_label_type_options.auto"),
+                    CustomCopy::CREATE_LABEL_TABLE => exmtrans("custom_copy.create_label_type_options.table"),
+                    CustomCopy::CREATE_LABEL_LABEL => exmtrans("custom_copy.create_label_type_options.label"),
+                ])
+                ->disableClear()
+                ->default(CustomCopy::CREATE_LABEL_AUTO)
+                ->attribute(['data-filter' => json_encode(['key' => 'options_use_on_create', 'value' => '1'])]);
             $form->text('create_label', exmtrans("custom_copy.options.create_label"))
                 ->help(exmtrans("custom_copy.help.create_label"))
                 ->rules("max:40")
-                ->attribute(['data-filter' => json_encode(['key' => 'options_use_on_create', 'value' => '1'])]);
+                ->attribute(['data-filter' => json_encode([
+                    ['key' => 'options_use_on_create', 'value' => '1'],
+                    ['key' => 'options_create_label_type', 'value' => CustomCopy::CREATE_LABEL_LABEL],
+                ])]);
             if (!empty($child_options)) {
                 $form->select('child_copy', exmtrans("custom_copy.options.child_copy"))
                     ->help(exmtrans("custom_copy.help.child_copy"))->options($child_options);

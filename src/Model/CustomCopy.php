@@ -24,6 +24,11 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     protected $casts = ['options' => 'json'];
 
+    /** What the brackets of the create-form button say (options.create_label_type) */
+    public const CREATE_LABEL_AUTO = 'auto';
+    public const CREATE_LABEL_TABLE = 'table';
+    public const CREATE_LABEL_LABEL = 'label';
+
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
@@ -189,9 +194,9 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * The label of the button on the new-record form.
      *
-     * "Copy from (the admin's label)" when the setting has one; otherwise
-     * "Copy from", with the copy-from table when the form has more than one such
-     * button.
+     * The admin picks what the brackets say: the copy-from table, their own label,
+     * or "auto" - nothing, or the copy-from table when the form has more than one
+     * such button.
      *
      * @param CustomCopy $copy
      * @param bool $several
@@ -199,11 +204,12 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public static function getCreateLabel(CustomCopy $copy, bool $several): string
     {
+        $type = $copy->getOption('create_label_type') ?? static::CREATE_LABEL_AUTO;
         $label = $copy->getOption('create_label');
-        if (is_string($label) && trim($label) !== '') {
+        if ($type == static::CREATE_LABEL_LABEL && is_string($label) && trim($label) !== '') {
             return strval(exmtrans('custom_copy.copy_from.button_table', trim($label)));
         }
-        if ($several) {
+        if ($type == static::CREATE_LABEL_TABLE || $several) {
             return strval(exmtrans('custom_copy.copy_from.button_table', $copy->from_custom_table->table_view_name));
         }
         return strval(exmtrans('custom_copy.copy_from.button'));
