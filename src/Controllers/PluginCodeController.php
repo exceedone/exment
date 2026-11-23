@@ -136,6 +136,10 @@ class PluginCodeController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function fileupload(Request $request, $id)
     {
+        // Editing plugin code executes arbitrary PHP; disabled in shared/multi-tenant.
+        if (!config('exment.plugin_upload_enabled', true)) {
+            abort(403);
+        }
         $this->plugin = Plugin::getEloquent($id);
 
         if (!static::canEditCode()) {
@@ -333,6 +337,10 @@ class PluginCodeController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function delete(Request $request, $id)
     {
+        // Editing plugin code executes arbitrary PHP; disabled in shared/multi-tenant.
+        if (!config('exment.plugin_upload_enabled', true)) {
+            abort(403);
+        }
         $this->plugin = Plugin::getEloquent($id);
         if (!static::canEditCode()) {
             Checker::error();
@@ -383,6 +391,10 @@ class PluginCodeController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function store(Request $request, $id)
     {
+        // Editing plugin code executes arbitrary PHP; disabled in shared/multi-tenant.
+        if (!config('exment.plugin_upload_enabled', true)) {
+            abort(403);
+        }
         $this->plugin = Plugin::getEloquent($id);
         if (!static::canEditCode()) {
             Checker::error();

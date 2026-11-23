@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 
 trait ExmentKitPrepareTrait
@@ -194,7 +195,7 @@ trait ExmentKitPrepareTrait
             'column_view_name' => 'Select From Table',
             'column_type' => 'select_table',
             'options' => [
-                'select_target_table' => 6,
+                'select_target_table' => CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)?->id,
                 'multiple_enabled' => 1,
             ],
         ];
