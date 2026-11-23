@@ -76,7 +76,12 @@ class Exment
     // @phpstan-ignore-next-line
     public function menu()
     {
-        return (new Menu())->toTree();
+        // the menus the login user sees (Services\MenuVisibility)
+        $user = \Admin::user();
+        if (!($user instanceof \Exceedone\Exment\Model\LoginUser)) {
+            return (new Menu())->toTree();
+        }
+        return \Exceedone\Exment\Services\MenuVisibility::forUser($user)->tree();
     }
 
 
