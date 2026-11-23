@@ -236,6 +236,29 @@ class BundledPlugins
     }
 
     /**
+     * Install or update an official plugin from a release downloaded by hand
+     * (its zip and its signed record, from where the releases are published):
+     * checked as a bundled release is, and the version before is kept. Only
+     * a newer version than the one installed (going back is by "back to the
+     * version before" only).
+     *
+     * @throws ReleaseException|\RuntimeException
+     */
+    public static function installUploaded(string $zipPath, string $jsonPath): Plugin
+    {
+        $record = json_decode(strval(@file_get_contents($jsonPath)), true);
+        if (!is_array($record)) {
+            throw new ReleaseException('format');
+        }
+        ReleaseVerifier::verify($record, $zipPath);
+        $plugin = static::installed(strval($record['uuid']));
+        if (isset($plugin) && !static::newer(strval($record['version']), strval($plugin->version))) {
+            throw new ReleaseException('not_newer', strval($plugin->version));
+        }
+        return static::installRelease($record, $zipPath);
+    }
+
+    /**
      * Go back to the version kept before the last update.
      *
      * @throws ReleaseException|\RuntimeException

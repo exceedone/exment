@@ -53,7 +53,10 @@ class InstallCommand extends AdminInstallCommand
 
         $this->createExmentBootstrapFile();
 
-        $this->initDatabase();
+        $exitCode = $this->initDatabase();
+        if ($exitCode !== 0) {
+            return $exitCode;
+        }
 
         $this->initAdminDirectory();
 
@@ -62,14 +65,25 @@ class InstallCommand extends AdminInstallCommand
     }
 
     /**
-     * Create tables and seed it.
+     * Create tables and seed it. --force: the install is asked for (the command, the
+     * install screen), also on a site whose APP_ENV is production, where migrate and db:seed
+     * would otherwise ask, and stop without a terminal ("Command cancelled") with no table made.
      *
-     * @return void
+     * @return int the exit code: 0, or that of the step that failed
      */
     public function initDatabase()
     {
-        $this->call('migrate');
+        $exitCode = intval($this->call('migrate', ['--force' => true]));
+        if ($exitCode !== 0) {
+            $this->error('exment:install: migrate failed (exit ' . $exitCode . '). No table was made.');
+            return $exitCode;
+        }
 
-        $this->call('db:seed', ['--class' => \Exceedone\Exment\Database\Seeder\InstallSeeder::class]);
+        $exitCode = intval($this->call('db:seed', ['--class' => \Exceedone\Exment\Database\Seeder\InstallSeeder::class, '--force' => true]));
+        if ($exitCode !== 0) {
+            $this->error('exment:install: db:seed failed (exit ' . $exitCode . ').');
+            return $exitCode;
+        }
+        return 0;
     }
 }

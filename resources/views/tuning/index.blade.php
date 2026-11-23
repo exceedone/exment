@@ -85,9 +85,11 @@
                         @elseif(!is_null($action) && $check->isServerWide())
                         <span class="text-muted small">{{ exmtrans('tuning.server_actions_off') }}</span>
                         @endif
-                        <a href="{{ $check->getSettingUrl() }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-default">
+                        @if(!is_null($settingUrl = $check->getSettingUrl()))
+                        <a href="{{ $settingUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-default">
                             {{ exmtrans('system_require.check_setting') }}
                         </a>
+                        @endif
                     </div>
                 </div>
                 @endforeach

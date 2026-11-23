@@ -699,6 +699,40 @@ EOT;
                 ]));
             }
 
+            // Start the new record from a record of another table (#1828): one
+            // button for each copy setting the admin put on this form.
+            if (!$disableToolsButton && !isset($id)) {
+                $copies = \Exceedone\Exment\Model\CustomCopy::getCreateSources($custom_table);
+                foreach ($copies as $copy) {
+                    $from_table = $copy->from_custom_table;
+                    $target_class = 'copy_from_target_' . $copy->suuid;
+                    $tools->append(view('exment::tools.copy-from-button', [
+                        // one source: just "Copy from"; several: say which table
+                        'label' => \Exceedone\Exment\Model\CustomCopy::getCreateLabel($copy, count($copies) > 1),
+                        'target_class' => $target_class,
+                        // the picked record id is put after this
+                        'url' => admin_urls_query('data', $custom_table->table_name, 'create', ['copy_from' => $copy->suuid]) . '&copy_from_id=',
+                        // the search dialog of the copy-from table
+                        'modal_url' => admin_urls_query('data', $from_table->table_name, ['modalframe' => 1]),
+                        'expand' => json_encode([
+                            'target_column_class' => $target_class,
+                            'target_column_multiple' => 0,
+                            'display_table_id' => $custom_table->id,
+                        ]),
+                    ])->render());
+                }
+                if (count($copies) > 0) {
+                    Admin::script(<<<'EOT'
+$(document).off('change.exment_copy_from').on('change.exment_copy_from', 'select[data-copy-from-url]', function () {
+    var value = $(this).val();
+    if (value) {
+        window.location.href = $(this).data('copy-from-url') + encodeURIComponent(value);
+    }
+});
+EOT);
+                }
+            }
+
             if (!$disableToolsButton) {
                 PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             }

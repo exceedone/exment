@@ -70,6 +70,10 @@ class FileShareController extends \App\Http\Controllers\Controller
         } else {
             $version = $item->current_version;
             $kind = isset($version) ? Preview::kind($version->mime_type, $item->name) : Preview::KIND_NONE;
+            // a link without download: what is made from the file, not the file (ViewOnly)
+            if (!$canDownload) {
+                $kind = \Exceedone\Exment\Services\FileServer\ViewOnly::kind($kind, $version);
+            }
             $text = null;
             if ($kind === Preview::KIND_TEXT && isset($version) && $version->size <= Preview::TEXT_PREVIEW_BYTES) {
                 $text = Library::disk()->get($version->path);
@@ -159,11 +163,17 @@ class FileShareController extends \App\Http\Controllers\Controller
             abort(404);
         }
         $version = $item->current_version;
+        $canDownload = ShareLinks::downloadAllowed($link, $item);
         if ($request->get('rendition') === 'pdf') {
             if (!isset($version->preview_path)) {
                 abort(404);
             }
             return $this->stream($version->preview_path, pathinfo($item->name, PATHINFO_FILENAME) . '.pdf', 'application/pdf', true);
+        }
+        // a link without download: never the bytes of the file (ViewOnly)
+        if (!$canDownload) {
+            \Exceedone\Exment\Services\FileServer\Audit::log(\Exceedone\Exment\Services\FileServer\Audit::VIEW, $link->workspace, $item, null, ['view_only' => 'content'], $link->id);
+            return \Exceedone\Exment\Services\FileServer\ViewOnly::response($version, $item->name);
         }
         if (!Preview::isInlineSafe($version->mime_type)) {
             abort(404);
