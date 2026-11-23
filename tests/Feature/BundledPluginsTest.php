@@ -280,6 +280,25 @@ class BundledPluginsTest extends FeatureTestBase
         $this->assertSame(BundledPlugins::STATUS_NEWER, BundledPlugins::rows()[0]['status']);
     }
 
+    public function testTheCopyIsWhatIsCheckedAndInstalled(): void
+    {
+        $this->makeRelease('1.0.0');
+        // the copy differs from the file checked when listed: refused
+        try {
+            ChangedCopyBundledPlugins::install(static::SAMPLE_UUID);
+            $this->fail('a copy that does not match was installed');
+        } catch (ReleaseException $e) {
+            $this->assertSame('zip', $e->reason());
+        }
+        $this->assertNull(BundledPlugins::installed(static::SAMPLE_UUID));
+
+        // a good copy: installed, and the copy is the one kept for going back
+        BundledPlugins::install(static::SAMPLE_UUID);
+        $this->assertSame('1.0.0', BundledPlugins::installed(static::SAMPLE_UUID)->version ?? null);
+        $kept = Storage::disk(Define::DISKNAME_ADMIN)->get(BundledPlugins::PREVIOUS_DIR . '/' . static::SAMPLE_UUID . '/1.0.0.zip');
+        $this->assertSame(hash_file('sha256', $this->dir . '/ExmentSignSample-1.0.0.zip'), hash('sha256', strval($kept)));
+    }
+
     public function testAnotherPluginOfTheSameName(): void
     {
         $this->makeRelease('1.0.0');
@@ -536,5 +555,18 @@ class BundledPluginsTest extends FeatureTestBase
         // a SaaS gives its own
         config(['exment.site_id' => 'AAAAAAAA-0000-4000-8000-000000000001']);
         $this->assertSame('aaaaaaaa-0000-4000-8000-000000000001', SiteId::get());
+    }
+}
+
+/**
+ * The copy made before the install is changed (as if the file changed while it was copied).
+ */
+class ChangedCopyBundledPlugins extends BundledPlugins
+{
+    protected static function tempCopy(string $zip): string
+    {
+        $local = parent::tempCopy($zip);
+        file_put_contents($local, 'changed', FILE_APPEND);
+        return $local;
     }
 }
