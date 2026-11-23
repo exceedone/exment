@@ -3103,6 +3103,7 @@ return [
         'share_max_days' => 'within :days days',
         'share_message_placeholder' => 'A message to them (shown on the upload page)',
         'share_no_expiry' => 'none',
+        'share_no_end' => 'No end',
         'share_password_placeholder' => 'Password (empty: none)',
         'share_password_title' => 'Enter the password',
         'share_password_wrong' => 'The password is wrong.',

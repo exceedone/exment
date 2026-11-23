@@ -266,13 +266,15 @@ class FileShareTest extends FeatureTestBase
         [$ws, , $file] = $this->sample();
         $links = $this->links($this->admin());
 
+        // no end given: 30 days by default, never past the latest end of the site
+        config(['exment.file_server_share_max_days' => 90, 'exment.file_server_share_default_days' => 30]);
+        $this->assertSame(now()->addDays(30)->format('Y-m-d'), $links->create($ws, $file, FileShareLink::KIND_SHARE)->expires_at->format('Y-m-d'));
         config(['exment.file_server_share_max_days' => 7]);
-        try {
-            $links->create($ws, $file, FileShareLink::KIND_SHARE);
-            $this->fail('a link without an end date');
-        } catch (FileServerException $e) {
-            $this->assertStringContainsString('7', $e->getMessage());
-        }
+        $this->assertSame(now()->addDays(7)->format('Y-m-d'), $links->create($ws, $file, FileShareLink::KIND_SHARE)->expires_at->format('Y-m-d'));
+        // no limit and no default: a link without an end, as before
+        config(['exment.file_server_share_max_days' => 0, 'exment.file_server_share_default_days' => 0]);
+        $this->assertNull($links->create($ws, $file, FileShareLink::KIND_SHARE)->expires_at);
+        config(['exment.file_server_share_max_days' => 7]);
         try {
             $links->create($ws, $file, FileShareLink::KIND_SHARE, ['expires_at' => now()->addDays(30)->format('Y-m-d')]);
             $this->fail('a link past the days of the site');
