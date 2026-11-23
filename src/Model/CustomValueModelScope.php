@@ -57,11 +57,16 @@ class CustomValueModelScope implements Scope
         $user = \Exment::user();
         // if not have, check as login
         if (!isset($user)) {
-            // no access role
-            //throw new \Exception;
-
-            // set no filter. Because when this function called, almost after login or pass oauth authonize.
-            // if throw exception, Cannot execute batch.
+            // console, queue and batch (backup, import, schedules): no user, all rows
+            if (app()->runningInConsole()) {
+                return;
+            }
+            // a web request without a user: the system tables only (the login reads the user
+            // table before the login). Public forms run as their proxy user, not here.
+            if (boolval($model->custom_table->system_flg)) {
+                return;
+            }
+            $builder->whereRaw('1 = 0');
             return;
         }
 
