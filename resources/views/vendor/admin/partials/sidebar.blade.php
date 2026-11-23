@@ -33,7 +33,7 @@
         <ul class="sidebar-menu">
             <li class="header">{{ trans('admin.menu') }}</li>
 
-            @each('admin::partials.menu', Exment::menu(), 'item')
+            {!! Exment::sidebarMenuHtml() !!}
 
         </ul>
         <!-- /.sidebar-menu -->
