@@ -895,7 +895,8 @@ return [
             'php_fpm' => [
                 'label' => 'PHP-FPM のプロセス',
                 'explain' => 'pm = ondemand で待ち時間（pm.process_idle_timeout）が短いと、しばらく使われなかったあとの 1 回目が、プロセスを起こす分だけ遅くなります。pm.max_children は、サーバーのメモリに合わせます。',
-                'not_found' => 'PHP-FPM の設定ファイルが見つかりません（PHP-FPM を使っていないときは関係ありません）',
+                'not_read' => 'PHP-FPM の設定を読めませんでした（レンタルサーバーなどでは、サーバーの管理画面かサーバーの管理者に確認してください）',
+                'not_used' => 'このサイトの PHP は PHP-FPM ではありません（関係ありません）',
                 'memory' => 'メモリ :memory MB・max_children の合計 :children',
                 'warning_idle' => 'プロセスをすぐ止める設定のプールがあります（:pools）。よく使うサイトは dynamic にするか、待ち時間を長くしてください。',
                 'warning_many' => 'max_children の合計が、サーバーのメモリに対して多すぎます。混んだときにメモリが足りなくなります。',
