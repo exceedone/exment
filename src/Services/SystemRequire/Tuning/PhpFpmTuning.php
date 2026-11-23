@@ -29,6 +29,9 @@ class PhpFpmTuning extends TuningBase
     /** @var int|null the memory of the server in MB (a test sets it) */
     public $memoryMb;
 
+    /** @var string|null the PHP_SAPI of the site (a test sets it) */
+    public $sapi;
+
     /** @var array<string, array<string, string>>|null */
     protected $pools;
 
@@ -180,7 +183,10 @@ class PhpFpmTuning extends TuningBase
     {
         $pools = $this->pools();
         if (count($pools) == 0) {
-            return exmtrans('tuning.item.php_fpm.not_found');
+            // the web of a rental server may use PHP-FPM with files this user cannot read:
+            // "not used" only when this PHP is not PHP-FPM, else "could not read"
+            $sapi = $this->sapi ?? PHP_SAPI;
+            return exmtrans($sapi === 'fpm-fcgi' || $sapi === 'cli' ? 'tuning.item.php_fpm.not_read' : 'tuning.item.php_fpm.not_used');
         }
         $text = collect($pools)->map(function ($pool, $name) {
             $text = "{$name}: pm={$pool['pm']}, max_children=" . ($pool['pm.max_children'] ?? '-');

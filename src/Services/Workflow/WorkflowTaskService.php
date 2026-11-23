@@ -2007,7 +2007,7 @@ class WorkflowTaskService
 
         $version = (int)\Cache::get(self::navbarVersionKey($userId), 0);
 
-        return 'exment_workflow_task_nav_' . $userId . '_' . $version . '_' . app()->getLocale();
+        return 'exment_workflow_task_nav_' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . '_' . $userId . '_' . $version . '_' . app()->getLocale();
     }
 
     /**
@@ -2018,7 +2018,7 @@ class WorkflowTaskService
      */
     private static function navbarVersionKey($userId): string
     {
-        return 'exment_workflow_task_nav_ver_' . $userId;
+        return 'exment_workflow_task_nav_ver_' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . '_' . $userId;
     }
 
     /**
