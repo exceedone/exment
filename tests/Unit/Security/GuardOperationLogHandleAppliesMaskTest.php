@@ -58,14 +58,11 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
         $maxId = OperationLog::max('id') ?? 0;
 
         $next = false;
-        $middleware = new LogOperation();
-        $response = $middleware->handle($request, function () use (&$next) {
+        (new LogOperation())->handle($request, function () use (&$next) {
             $next = true;
             return 'next';
         });
         $this->assertTrue($next, 'handle() did not pass the request down the pipeline.');
-        // the row is written once the response is sent
-        $middleware->terminate($request, $response);
 
         $log = OperationLog::where('id', '>', $maxId)->orderBy('id', 'desc')->first();
         $this->assertNotNull(
