@@ -311,6 +311,45 @@ class FileGovernanceTest extends FeatureTestBase
         $this->assertTrue(FileAuditLog::query()->where('node_id', $file->id)->where('action', Audit::DOWNLOAD)->exists());
     }
 
+    /**
+     * Who may see and not download gets what is made from a file, never its bytes:
+     * an image made smaller, "the download is not allowed" for the rest; each one in
+     * the audit log. Who may download sees the file itself, as before.
+     */
+    public function testViewOnlyGetsNoOriginalBytes(): void
+    {
+        if (!function_exists('imagecreatetruecolor')) {
+            $this->markTestSkipped('GD is not here');
+        }
+        $ws = $this->workspace();
+        $manager = $this->manager();
+        $note = $manager->storeFile($ws, null, 'note.txt', $this->local('the words of the file'));
+        $img = imagecreatetruecolor(40, 30);
+        imagefilledrectangle($img, 0, 0, 39, 29, intval(imagecolorallocate($img, 200, 30, 30)));
+        ob_start();
+        imagepng($img);
+        $pngBytes = strval(ob_get_clean());
+        $picture = $manager->storeFile($ws, null, 'picture.png', $this->local($pngBytes));
+        Governance::setWorkspaceRules($manager, $ws, ['download_level' => Level::EDIT]);
+
+        // user2 may see, not download
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $text = $this->get(admin_urls('file_server', $ws->id, 'nodes', $note->id, 'content'));
+        $text->assertStatus(403);
+        $this->assertStringNotContainsString('the words of the file', strval($text->getContent()));
+        $image = $this->get(admin_urls('file_server', $ws->id, 'nodes', $picture->id, 'content'));
+        $image->assertOk();
+        $this->assertStringStartsWith('image/', strval($image->headers->get('Content-Type')));
+        $this->assertNotSame($pngBytes, $image->getContent(), 'a copy made again, not the bytes of the file');
+        $this->assertSame(2, FileAuditLog::query()->whereIn('node_id', [$note->id, $picture->id])->where('action', Audit::VIEW)->count());
+
+        // who may download: the file itself
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+        $own = $this->get(admin_urls('file_server', $ws->id, 'nodes', $note->id, 'content'));
+        $own->assertOk();
+        $this->assertStringContainsString('the words of the file', $own->streamedContent());
+    }
+
     public function testMoveTrimAndPurgeKeepTheHolds(): void
     {
         $ws = $this->workspace();

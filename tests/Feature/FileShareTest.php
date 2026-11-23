@@ -495,6 +495,18 @@ class FileShareTest extends FeatureTestBase
         $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertStatus(403);
     }
 
+    public function testALinkWithoutDownloadGivesNoBytesOfTheFile(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => false]);
+        $answer = $this->get($this->shareUrl($link, 'content') . '?node=' . $file->id);
+        $answer->assertStatus(403);
+        $this->assertStringNotContainsString('hello outside', strval($answer->getContent()));
+
+        $open = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => true]);
+        $this->assertStringContainsString('hello outside', $this->get($this->shareUrl($open, 'content') . '?node=' . $file->id)->streamedContent());
+    }
+
     /**
      * Two requests at the same time, each with the link as it was read before the
      * other counted: the database decides in one UPDATE, so only one takes the last place.
