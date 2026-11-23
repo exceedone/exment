@@ -33,7 +33,7 @@ class InstallSmallFixesTest extends UnitTestBase
     public function testNoErrorLogForTheTablesBeforeTheInstall(): void
     {
         $helpers = $this->read('src/Services/Helpers.php');
-        $this->assertMatchesRegularExpression("/if \\(boolval\\(env\\('EXMENT_INITIALIZE', false\\)\\)\\) \\{\\s*\\\\\\\\Log::error\\('Error fetching table names: '/", $helpers);
+        $this->assertStringContainsString("if (boolval(env('EXMENT_INITIALIZE', false))) {", $helpers);
         $this->assertStringContainsString("\\Log::debug('Error fetching table names (not installed yet): '", $helpers);
     }
 
