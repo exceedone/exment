@@ -43,6 +43,24 @@ class SecurityCheckTest extends UnitTestBase
         $this->assertFalse((new Security\AppKeySecurity())->canFix());
     }
 
+    public function testDisplayErrors(): void
+    {
+        try {
+            foreach (['1' => SystemRequireResult::WARNING, 'On' => SystemRequireResult::WARNING, 'stdout' => SystemRequireResult::WARNING, '' => SystemRequireResult::OK, '0' => SystemRequireResult::OK, 'Off' => SystemRequireResult::OK, 'stderr' => SystemRequireResult::OK] as $value => $result) {
+                Security\DisplayErrorsSecurity::$value = fn () => strval($value);
+                $this->assertSame($result, (new Security\DisplayErrorsSecurity())->checkResult(), 'display_errors=' . $value);
+            }
+            Security\DisplayErrorsSecurity::$value = fn () => 'On';
+            $item = new Security\DisplayErrorsSecurity();
+            $this->assertStringContainsString('.user.ini', strval($item->getFixText()));
+            $this->assertSame(Security\SecurityBase::SCOPE_SERVER, $item->scope(), 'a SaaS site cannot change it');
+            $this->assertFalse($item->canFix(), 'not from the page');
+            $this->assertContains('display_errors', Security\SecurityCheck::INSTALL_ITEMS);
+        } finally {
+            Security\DisplayErrorsSecurity::$value = null;
+        }
+    }
+
     public function testTheSessionCookie(): void
     {
         config(['app.url' => 'http://example.test', 'session.http_only' => true, 'session.same_site' => 'lax', 'session.secure' => false]);
