@@ -51,14 +51,17 @@
                         @php($exmentLocales = \Exceedone\Exment\Services\UserLocale::allowedOptions())
                         @if(count($exmentLocales) > 1)
                         <li class="user-body">
-                            <form method="POST" action="{{ admin_url('auth/setting/locale') }}" class="exment-user-locale" data-nopjax>
+                            {{-- one button for each language (not a select: the pages have their own selects) --}}
+                            <form method="POST" action="{{ admin_url('auth/setting/locale') }}" id="exment-user-locale" class="exment-user-locale" data-nopjax>
                                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                <label for="exment-user-locale" class="small mb-1"><i class="fa fa-language"></i> {{ exmtrans('user.locale') }}</label>
-                                <select id="exment-user-locale" name="locale" class="form-select form-select-sm">
+                                <div class="small mb-1"><i class="fa fa-language"></i> {{ exmtrans('user.locale') }}</div>
+                                <div class="d-flex flex-wrap gap-1">
                                     @foreach($exmentLocales as $exmentLocale => $exmentLocaleLabel)
-                                    <option value="{{ $exmentLocale }}" @if($exmentLocale === \App::getLocale()) selected @endif>{{ $exmentLocaleLabel }}</option>
+                                    <button type="submit" name="locale" value="{{ $exmentLocale }}" lang="{{ str_replace('_', '-', $exmentLocale) }}"
+                                        class="btn btn-sm {{ $exmentLocale === \App::getLocale() ? 'btn-primary' : 'btn-default' }}"
+                                        @if($exmentLocale === \App::getLocale()) aria-current="true" @endif>{{ $exmentLocaleLabel }}</button>
                                     @endforeach
-                                </select>
+                                </div>
                             </form>
                         </li>
                         @endif
@@ -101,13 +104,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.cookie = '{{ \Exceedone\Exment\Model\Define::COOKIE_SIDEBAR_STATE }}=' + state
                     + '; path=/; max-age=31536000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
             }
-        });
-    }
-    // the language of the user (ISS02835): saved when chosen
-    const localeSelect = document.getElementById('exment-user-locale');
-    if (localeSelect) {
-        localeSelect.addEventListener('change', function () {
-            localeSelect.form.submit();
         });
     }
 });

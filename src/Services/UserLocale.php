@@ -240,11 +240,24 @@ class UserLocale
             if (is_string($cookie) && !is_null($locale = static::match($cookie, $allowed))) {
                 return $locale;
             }
-            if (!is_null($locale = static::fromAcceptLanguage($request->header('Accept-Language'), $allowed))) {
+            if (static::useBrowserLanguage() && !is_null($locale = static::fromAcceptLanguage($request->header('Accept-Language'), $allowed))) {
                 return $locale;
             }
         }
         return static::match(static::siteDefault(), $allowed) ?? static::siteDefault();
+    }
+
+    /**
+     * Whether the language of the browser is used (config exment.locale_from_browser, EXMENT_LOCALE_FROM_BROWSER).
+     * Not set: yes, but not in the tests, whose client always sends "Accept-Language: en-us".
+     */
+    public static function useBrowserLanguage(): bool
+    {
+        $value = config('exment.locale_from_browser');
+        if (!is_null($value) && $value !== '') {
+            return boolval($value);
+        }
+        return !app()->runningUnitTests();
     }
 
     /**

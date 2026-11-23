@@ -44,11 +44,13 @@ class UserLocaleTimezoneTest extends UnitTestBase
             'exment.timezone' => config('exment.timezone'),
             'app.timezone' => config('app.timezone'),
             'exment.locale' => config('exment.locale'),
+            'exment.locale_from_browser' => config('exment.locale_from_browser'),
         ];
         $this->phpTimezoneBefore = date_default_timezone_get();
         $this->localeBefore = \App::getLocale();
 
-        config(['exment.timezone' => static::SITE_TZ, 'app.timezone' => static::SITE_TZ, 'exment.locale' => 'ja']);
+        // (the language of the browser is not used in the tests unless asked)
+        config(['exment.timezone' => static::SITE_TZ, 'app.timezone' => static::SITE_TZ, 'exment.locale' => 'ja', 'exment.locale_from_browser' => true]);
         date_default_timezone_set(static::SITE_TZ);
         Carbon::setTestNow(Carbon::parse('2026-11-23 10:00:00', static::SITE_TZ));
         UserTimezone::setCurrent(null);
@@ -108,6 +110,11 @@ class UserLocaleTimezoneTest extends UnitTestBase
         $this->assertSame('en', UserLocale::resolve($other->id, $this->makeRequest(null, 'fr,en;q=0.5')), 'then the browser');
         $this->assertSame('ja', UserLocale::resolve($other->id, $this->makeRequest(null, 'fr')), 'then the site');
         $this->assertSame('ja', UserLocale::resolve(null, null));
+
+        // EXMENT_LOCALE_FROM_BROWSER=false: not the browser
+        config(['exment.locale_from_browser' => false]);
+        $this->assertSame('ja', UserLocale::resolve($other->id, $this->makeRequest(null, 'en')));
+        config(['exment.locale_from_browser' => true]);
 
         // a language the administrator does not allow is not used
         System::allowed_locales(['ja']);
