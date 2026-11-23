@@ -1490,7 +1490,9 @@ if (!function_exists('hasTable')) {
             } catch (\Throwable $e) {
                 // before the install the database of .env is not the site's yet (the defaults
                 // of the zip, before the database step): not an error of the site
-                if (boolval(env('EXMENT_INITIALIZE', false))) {
+                // a cached config is an installed site; else .env tells (as the Initialize middleware)
+                // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
+                if (app()->configurationIsCached() || boolval(env('EXMENT_INITIALIZE', false))) {
                     \Log::error('Error fetching table names: ' . $e->getMessage());
                 } else {
                     \Log::debug('Error fetching table names (not installed yet): ' . $e->getMessage());

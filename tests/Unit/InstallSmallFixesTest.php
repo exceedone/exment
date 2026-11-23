@@ -17,6 +17,7 @@ class InstallSmallFixesTest extends UnitTestBase
 
     public function testTheCookiePathOfASiteUnderAFolder(): void
     {
+        // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
         if (!is_null(env('SESSION_PATH'))) {
             $this->markTestSkipped('SESSION_PATH is set here');
         }
@@ -33,7 +34,7 @@ class InstallSmallFixesTest extends UnitTestBase
     public function testNoErrorLogForTheTablesBeforeTheInstall(): void
     {
         $helpers = $this->read('src/Services/Helpers.php');
-        $this->assertStringContainsString("if (boolval(env('EXMENT_INITIALIZE', false))) {", $helpers);
+        $this->assertStringContainsString("if (app()->configurationIsCached() || boolval(env('EXMENT_INITIALIZE', false))) {", $helpers);
         $this->assertStringContainsString("\\Log::debug('Error fetching table names (not installed yet): '", $helpers);
     }
 
