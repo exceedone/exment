@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\SystemRequireResult;
 /**
  * With the "sync" queue, mails and other jobs run inside the request, and the screen waits
  * for them (tens of seconds when the mail server does not answer).
+ * A server where no process may keep running (a rental server) runs the worker from cron.
  */
 class QueueTuning extends TuningBase
 {
@@ -27,6 +28,15 @@ class QueueTuning extends TuningBase
 
     public function getFixText(): ?string
     {
-        return "# .env\nQUEUE_CONNECTION=database\n# keep a worker running (supervisor, systemd):\nphp artisan queue:work --tries=3";
+        // a server where nothing may keep running (a rental server): cron starts a worker
+        // every minute, which ends when the queue is empty (and before the next minute)
+        return implode("\n", [
+            '# .env',
+            'QUEUE_CONNECTION=database',
+            '# keep a worker running (supervisor, systemd):',
+            'php artisan queue:work --tries=3',
+            '# a server where nothing may keep running (a rental server): cron every minute instead',
+            '* * * * * cd ' . base_path() . ' && nice -n 15 ' . CliPhp::path() . ' artisan queue:work --stop-when-empty --max-time=50 --tries=3 >> /dev/null 2>&1',
+        ]);
     }
 }
