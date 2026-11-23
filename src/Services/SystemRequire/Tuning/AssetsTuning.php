@@ -9,8 +9,10 @@ use Exceedone\Exment\Enums\SystemRequireResult;
  * - every file they load is in public (a missing one is a 404 on every visit,
  *   and the page waits for it); publish them with "php artisan exment:publish";
  * - the browser may keep them (Cache-Control or Expires on a JS file). The URLs carry the
- *   version (?v=), so a long time is safe. Asked once, with a short timeout; when the site
- *   cannot be reached from the server, that part is not judged.
+ *   version: admin_asset() adds ?v= the time of the file, the pages of Exment add ?ver= the
+ *   version of Exment, the files of a plugin ?ver= the version of the plugin. So a long time is
+ *   safe. Asked once, with a short timeout; when the site cannot be reached from the server,
+ *   that part is not judged.
  */
 class AssetsTuning extends TuningBase
 {
