@@ -57,6 +57,14 @@ class UpdateCommand extends Command
 
         $this->initDatabase();
 
+        // the site is installed: the web installer stays closed even while the database is down
+        try {
+            if (hasTable(\Exceedone\Exment\Enums\SystemTableName::SYSTEM)) {
+                \Exceedone\Exment\Services\Installer\InstalledState::markInstalled();
+            }
+        } catch (\Throwable $e) {
+        }
+
         return 0;
     }
 
