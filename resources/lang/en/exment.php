@@ -3197,6 +3197,7 @@ return [
         'rules' => 'Rules',
         'rules_none' => 'No special rules.',
         'legal_hold' => 'Legal hold (cannot be deleted)',
+        'hold_admin_only' => 'Only system administrators change the legal hold and the retention.',
         'legal_hold_workspace' => 'Put the whole workspace on legal hold (nothing can be deleted)',
         'held_help' => 'This is on legal hold: it cannot be deleted, and old versions are kept.',
         'error_legal_hold' => 'This is on legal hold and cannot be deleted.',
