@@ -20,6 +20,9 @@ class InstallingForm
     // @phpstan-ignore-next-line
     public function post()
     {
+        // the installer does not run again on an installed site
+        InstalledState::refuseIfInstalled();
+
         try {
             $inputs = [
                 'APP_DEBUG' => boolval(request()->get('APP_DEBUG')) ? 'true' : 'false'

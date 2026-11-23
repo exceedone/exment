@@ -16,6 +16,7 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\Services\Installer\InstalledState;
 use Encore\Admin\Form;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Grid;
@@ -36,22 +37,33 @@ class Initialize
     public function handle(Request $request, \Closure $next)
     {
         if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
-            // Check install directory
-            if (!$this->isInstallPath($request)) {
-                // check has 'EXMENT_INITIALIZE' on .env directly
-                // if true, already installed
-                if (boolval(env('EXMENT_INITIALIZE', false))) {
-                    // Throwing error connecting database purposely.
-                    hasTable(SystemTableName::SYSTEM);
-                }
+            // An installed site whose database cannot be reached (or is empty) is
+            // down: 503 for every path, the install pages too. "Installed" is read
+            // from the marker file and from .env itself, not from the database nor
+            // from env() (with a config cache, env() does not read .env).
+            if (InstalledState::isInstalled()) {
+                \Log::error('Database connection failed during initialization. Exment is installed, but the database is unreachable or has no system table.');
+                abort(503, 'Database connection failed. Please check your database settings in .env');
+            }
 
-                // If not initialized, return to install path
+            // Not installed yet: only the install pages
+            if (!$this->isInstallPath($request)) {
                 return redirect()->guest(admin_base_path('install'));
             }
 
             static::initializeConfig(false);
         } else {
             $initialized = System::initialized();
+
+            if ($initialized) {
+                // a site set up before the marker existed gets it here
+                InstalledState::markInstalled();
+            }
+
+            // the install pages are closed on an installed site
+            if ($this->isInstallPath($request) && InstalledState::isInstalled()) {
+                return redirect()->guest(admin_base_path($initialized ? 'auth/login' : 'initialize'));
+            }
 
             // if path is not "initialize" and not installed, then redirect to initialize
             if (!shouldPassThrough(true) && !$initialized) {

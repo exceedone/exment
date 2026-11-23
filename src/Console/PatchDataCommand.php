@@ -1494,6 +1494,7 @@ class PatchDataCommand extends Command
         catch (\Exception $ex) {
         } catch (\Throwable $ex) {
         }
+        \Exceedone\Exment\Services\Installer\InstalledState::markInstalled();
     }
 
     /**
