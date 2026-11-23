@@ -643,6 +643,8 @@ class FileController extends AdminControllerBase
      * without a row, a login unless it is shown on the public pages (system images, public
      * forms, form images). A table that is gone is a refusal.
      *
+     * @param File $data
+     * @param array<string, mixed> $options
      * @return true|\Symfony\Component\HttpFoundation\Response
      */
     protected static function authorizeFileView($data, array $options = [])
