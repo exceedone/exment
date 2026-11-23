@@ -637,6 +637,11 @@ EOT;
     {
         $documents = $this->getDocuments();
         $useFileUpload = $this->useFileUpload();
+        // an application may show the files only, under its own title (ScreenExtensions data_show.attachment)
+        $attachment = ['uploader' => true, 'title' => exmtrans("common.attachment")];
+        foreach (\Exceedone\Exment\Services\ScreenExtensions::call('data_show.attachment', $this->custom_table) as $changed) {
+            $attachment = array_merge($attachment, (array) $changed);
+        }
 
         if (count($documents) == 0 && !$useFileUpload) {
             return;
@@ -677,7 +682,7 @@ EOT;
         }
 
         // add file uploader
-        if ($useFileUpload) {
+        if ($useFileUpload && boolval($attachment['uploader'])) {
             $max_count = config('exment.document_upload_max_count', 5);
             $options = array_merge(Define::FILE_OPTION(), [
                 'showUpload' => true,
@@ -717,7 +722,7 @@ EOT;
 
             Admin::script($script);
         }
-        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
+        $row->column(['xs' => 12, 'sm' => 6], (new Box(strval($attachment['title']), $form))->style('info'));
     }
 
     /**

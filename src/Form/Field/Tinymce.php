@@ -7,6 +7,8 @@ use Exceedone\Exment\Model\Define;
 
 class Tinymce extends Textarea
 {
+    use HasCustomOptions;
+
     protected $view = 'admin::form.textarea';
 
     protected static $js = [
