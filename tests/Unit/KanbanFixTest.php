@@ -694,6 +694,85 @@ class KanbanFixTest extends UnitTestBase
         }
     }
 
+    /**
+     * The first cards of every column in one query (a window function) are the cards a
+     * query per column reads, in the same order; without window functions the board
+     * asks column by column.
+     */
+    public function testOneQueryForTheColumnsReadsTheSameCards(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $select = CustomColumn::getEloquent('select', $table);
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, [
+            'kanban_group_column_id' => $select->id,
+            'kanban_col_count' => 2,
+        ]);
+        $grid = $this->gridOf($view);
+        $keys = $this->invoke($grid, 'getBoardKeys', [$select, null, []]);
+
+        $byColumn = function ($records) use ($select) {
+            $ids = [];
+            foreach ($records as $record) {
+                $ids[strval(array_get($record, 'value.' . $select->column_name))][] = intval($record->id);
+            }
+            ksort($ids);
+            return $ids;
+        };
+        $loop = collect();
+        foreach ($keys as $key) {
+            $loop = $loop->merge($this->invoke($grid, 'buildColumnQuery', [$select, null, [], $key])->take(2)->get());
+        }
+
+        $windowed = $this->invoke($grid, 'windowedColumnRecords', [$select, null, [], $keys, 2]);
+        if (!\Exceedone\Exment\DataItems\Grid\KanbanGrid::supportsWindowFunctions()) {
+            $this->assertNull($windowed, 'without window functions, column by column');
+            return;
+        }
+        $this->assertNotNull($windowed);
+        $this->assertSame($byColumn($loop), $byColumn($windowed));
+
+        // a database without window functions: column by column, as before
+        $property = new \ReflectionProperty(\Exceedone\Exment\DataItems\Grid\KanbanGrid::class, 'windowFunctions');
+        $property->setAccessible(true);
+        $property->setValue(null, false);
+        try {
+            $this->assertNull($this->invoke($grid, 'windowedColumnRecords', [$select, null, [], $keys, 2]));
+        } finally {
+            $property->setValue(null, null);
+        }
+    }
+
+    /**
+     * The records the cards point to are read at once for each table, not card by card.
+     */
+    public function testTheLinkedRecordsAreReadAtOnce(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $linked = $table->custom_columns->first(function ($column) {
+            return $column->column_type === \Exceedone\Exment\Enums\ColumnType::SELECT_TABLE && !$column->isMultipleEnabled() && isset($column->select_target_table);
+        });
+        if (!isset($linked)) {
+            $this->markTestSkipped('no select_table column in the test table');
+        }
+        $records = $table->getValueModel()->query()->take(50)->get()->filter(function ($record) use ($linked) {
+            return !is_nullorempty(array_get($record, 'value.' . $linked->column_name));
+        })->values();
+        if ($records->count() < 2) {
+            $this->markTestSkipped('not enough records that point to another table');
+        }
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, ['kanban_group_column_id' => CustomColumn::getEloquent('select', $table)->id]);
+        \Exceedone\Exment\Model\System::clearRequestSession();
+        $queries = 0;
+        $target = getDBTableName($linked->select_target_table);
+        \DB::listen(function ($query) use (&$queries, $target) {
+            if (strpos($query->sql, $target) !== false) {
+                $queries++;
+            }
+        });
+        $this->invoke($this->gridOf($view), 'prefetchLinkedRecords', [$records, [$linked->column_name => $linked], []]);
+        $this->assertLessThanOrEqual(1, $queries, 'one query for the linked records of every card');
+    }
+
     public function testBoardValueColorsWorkForValuesWithADot(): void
     {
         $select = $this->selectWithDottedValueColor();
