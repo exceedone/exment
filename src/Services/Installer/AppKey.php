@@ -24,7 +24,9 @@ class AppKey
             return false;
         }
         // an installed site without a key is a broken setting: not changed here
-        if (boolval(env('EXMENT_INITIALIZE', false))) {
+        // (a cached config is an installed site; else .env tells, as the Initialize middleware)
+        // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
+        if (app()->configurationIsCached() || boolval(env('EXMENT_INITIALIZE', false))) {
             return false;
         }
         $key = 'base64:' . base64_encode(Encrypter::generateKey(strval(config('app.cipher', 'AES-256-CBC'))));
