@@ -224,6 +224,35 @@ class ExportImportButton extends ModalTileMenuButton
             ];
         }
 
+        ///// the date and times in the time zone of the user (the others are in the time zone of the site). ISS02835
+        if (\Exceedone\Exment\Services\UserTimezone::differs() && ($this->export_flg || $this->view_flg)) {
+            $items = [];
+            if ($this->export_flg) {
+                $items[] = [
+                    'icon' => 'fa-clock-o',
+                    'header' => exmtrans("$base_key.default_export") . ' - ' . $all,
+                    'description' => exmtrans('custom_value.help.export_user_timezone'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&timezone=user&format=$key")], $format);
+                    })->toArray(),
+                ];
+            }
+            if ($this->view_flg) {
+                $items[] = [
+                    'icon' => 'fa-clock-o',
+                    'header' => exmtrans('custom_value.view_export') . ' - ' . $all,
+                    'description' => exmtrans('custom_value.help.export_user_timezone'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=view_export&timezone=user&format=$key")], $format);
+                    })->toArray(),
+                ];
+            }
+            $groups[] = [
+                'header' => exmtrans('custom_value.export_user_timezone', ['timezone' => \Exceedone\Exment\Services\UserTimezone::user()]),
+                'items' => $items,
+            ];
+        }
+
         $plugins = $this->getPluginExports();
         // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
         if ($this->total_export_flg && $this->plugin_flg && !is_nullorempty($plugins)) {

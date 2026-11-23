@@ -13,6 +13,7 @@ use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Services\RecordUrl;
+use Exceedone\Exment\Services\UserTimezone;
 use ExmentAdminCore\Admin\Layout\Content;
 
 class NotifyNavbarController extends AdminControllerBase
@@ -42,7 +43,10 @@ class NotifyNavbarController extends AdminControllerBase
             return $custom_table->table_view_name;
         });
         $grid->column('notify_subject', exmtrans('notify_navbar.notify_subject'))->sortable();
-        $grid->column('created_at', exmtrans('common.created_at'))->sortable();
+        // in the time zone of the user (ISS02835)
+        $grid->column('created_at', exmtrans('common.created_at'))->sortable()->display(function ($created_at) {
+            return UserTimezone::display($created_at);
+        });
 
         $grid->disableCreation();
         $grid->disableExport();
