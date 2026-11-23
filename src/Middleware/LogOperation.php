@@ -32,14 +32,40 @@ class LogOperation extends BaseLogOperation
                 'input'   => json_encode(static::maskInputArray((array)$request->input(), $request->path())),
             ];
 
-            try {
-                OperationLogModel::create($log);
-            } catch (\Exception $exception) {
-                // pass
-            }
+            // written after the response is sent (terminate): the user does not wait for
+            // the insert. The time of the request is kept as the time of the log.
+            $log['created_at'] = $log['updated_at'] = now();
+            $request->attributes->set(static::PENDING_LOG, $log);
         }
 
         return $next($request);
+    }
+
+    /** the attribute of the request that holds the log to write once the response is sent */
+    public const PENDING_LOG = 'exment_operation_log';
+
+    /**
+     * Write the operation log of the request, after the response is sent.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param mixed $response
+     * @return void
+     */
+    public function terminate($request, $response)
+    {
+        $log = $request->attributes->get(static::PENDING_LOG);
+        if (!is_array($log)) {
+            return;
+        }
+        // once: the request can pass this middleware more than once
+        $request->attributes->remove(static::PENDING_LOG);
+        try {
+            $model = new OperationLogModel();
+            $model->forceFill($log);
+            $model->save();
+        } catch (\Throwable $exception) {
+            // pass (as before: the page is not stopped for its log)
+        }
     }
 
     /**
