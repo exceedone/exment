@@ -136,7 +136,7 @@ class System extends ModelBase
     {
         // Get system setting value
         if (static::hasFunction($name)) {
-            $setting = Define::SYSTEM_SETTING_NAME_VALUE[$name];
+            $setting = \Exceedone\Exment\Services\CoreExtensions::systemSettings()[$name];
             return static::getset_system_value($name, $setting, $argments);
         }
 
@@ -485,7 +485,7 @@ class System extends ModelBase
     // @phpstan-ignore-next-line
     public static function hasFunction($name)
     {
-        return array_key_exists($name, Define::SYSTEM_SETTING_NAME_VALUE);
+        return array_key_exists($name, \Exceedone\Exment\Services\CoreExtensions::systemSettings());
     }
 
 
@@ -493,7 +493,7 @@ class System extends ModelBase
     public static function get_system_keys($group = null)
     {
         $keys = [];
-        foreach (Define::SYSTEM_SETTING_NAME_VALUE as $k => $v) {
+        foreach (\Exceedone\Exment\Services\CoreExtensions::systemSettings() as $k => $v) {
             if (isset($group)) {
                 if (is_string($group)) {
                     $group = [$group];
@@ -645,7 +645,7 @@ class System extends ModelBase
         $old_value = $system->system_value;
 
         // change set value by type
-        $setting = Define::SYSTEM_SETTING_NAME_VALUE[$name];
+        $setting = \Exceedone\Exment\Services\CoreExtensions::systemSettings()[$name];
         $type = array_get($setting, 'type');
 
         if ($type == 'file') {
