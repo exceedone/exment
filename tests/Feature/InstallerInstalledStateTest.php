@@ -143,7 +143,7 @@ class InstallerInstalledStateTest extends FeatureTestBase
         InstallService::setInitializeStatus(InitializeStatus::SYSTEM_REQUIRE);
         foreach (['index', 'post'] as $method) {
             try {
-                InstallService::$method();
+                call_user_func([InstallService::class, $method]);
                 $this->fail("InstallService::$method must refuse on an installed site");
             } catch (HttpException $ex) {
                 $this->assertSame(404, $ex->getStatusCode());
