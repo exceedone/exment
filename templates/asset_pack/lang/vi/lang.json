@@ -1,0 +1,227 @@
+{
+    "template_view_name": "Gói tài sản",
+    "description": "Bộ gồm tài sản (có mã QR), yêu cầu về tài sản (mua, điều chuyển, thanh lý, có phê duyệt), kiểm kê (có chi tiết) và cho mượn, các nhóm vai trò cho tài sản và menu \"Tài sản\".",
+    "custom_tables": [
+        {
+            "table_name": "asset_item",
+            "table_view_name": "Tài sản",
+            "description": "Máy tính, nội thất, thiết bị và vật tư. Dán mã QR lên từng tài sản và quét mã để mở bản ghi.",
+            "custom_columns": [
+                {
+                    "column_name": "asset_no",
+                    "column_view_name": "Mã tài sản"
+                },
+                {
+                    "column_name": "asset_name",
+                    "column_view_name": "Tên"
+                },
+                {
+                    "column_name": "category",
+                    "column_view_name": "Phân loại",
+                    "options": {
+                        "select_item_valtext": "it,Máy tính & thiết bị CNTT\nfurniture,Nội thất & đồ dùng\nequipment,Thiết bị & máy móc\nvehicle,Phương tiện\nsupply,Vật tư\nother,Khác"
+                    }
+                },
+                {
+                    "column_name": "location",
+                    "column_view_name": "Vị trí"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Bộ phận quản lý"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "Người sử dụng"
+                },
+                {
+                    "column_name": "purchase_date",
+                    "column_view_name": "Ngày mua"
+                },
+                {
+                    "column_name": "purchase_price",
+                    "column_view_name": "Giá mua"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Trạng thái",
+                    "options": {
+                        "select_item_valtext": "in_use,Đang sử dụng\nstock,Trong kho\nlending,Đang cho mượn\nrepair,Đang sửa chữa\ndisposed,Đã thanh lý"
+                    }
+                },
+                {
+                    "column_name": "photo",
+                    "column_view_name": "Ảnh"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_request",
+            "table_view_name": "Yêu cầu về tài sản",
+            "description": "Yêu cầu mua, điều chuyển hoặc thanh lý tài sản, được phê duyệt qua quy trình làm việc.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Tiêu đề"
+                },
+                {
+                    "column_name": "request_type",
+                    "column_view_name": "Loại",
+                    "options": {
+                        "select_item_valtext": "purchase,Mua\ntransfer,Điều chuyển\ndisposal,Thanh lý"
+                    }
+                },
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Tài sản"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Số tiền"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "Ngày mong muốn"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "Lý do"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake",
+            "table_view_name": "Kiểm kê",
+            "description": "Các đợt kiểm kê. Kết quả của từng tài sản được nhập vào phần chi tiết.",
+            "custom_columns": [
+                {
+                    "column_name": "stocktake_name",
+                    "column_view_name": "Đợt kiểm kê"
+                },
+                {
+                    "column_name": "stocktake_date",
+                    "column_view_name": "Ngày"
+                },
+                {
+                    "column_name": "staff",
+                    "column_view_name": "Người phụ trách"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake_detail",
+            "table_view_name": "Chi tiết kiểm kê",
+            "description": "Kết quả của từng tài sản đã kiểm tra.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Tài sản"
+                },
+                {
+                    "column_name": "result",
+                    "column_view_name": "Kết quả",
+                    "options": {
+                        "select_item_valtext": "found,Có\nmissing,Không tìm thấy\ndamaged,Hư hỏng"
+                    }
+                },
+                {
+                    "column_name": "location_found",
+                    "column_view_name": "Nơi tìm thấy"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_lending",
+            "table_view_name": "Cho mượn",
+            "description": "Ghi nhận tài sản cho mượn và trả lại.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Tài sản"
+                },
+                {
+                    "column_name": "borrower",
+                    "column_view_name": "Người mượn"
+                },
+                {
+                    "column_name": "lend_date",
+                    "column_view_name": "Ngày cho mượn"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Hạn trả"
+                },
+                {
+                    "column_name": "return_date",
+                    "column_view_name": "Ngày trả"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "afef91701db2db9db4cd",
+            "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Tài sản",
+            "menu_type": "parent_node",
+            "menu_name": "asset"
+        },
+        {
+            "title": "Tài sản",
+            "menu_type": "table",
+            "menu_name": "asset_item"
+        },
+        {
+            "title": "Yêu cầu về tài sản",
+            "menu_type": "table",
+            "menu_name": "asset_request"
+        },
+        {
+            "title": "Kiểm kê",
+            "menu_type": "table",
+            "menu_name": "asset_stocktake"
+        },
+        {
+            "title": "Cho mượn",
+            "menu_type": "table",
+            "menu_name": "asset_lending"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "asset_admin_group",
+            "role_group_view_name": "Người quản lý tài sản",
+            "description": "Người xem, tạo và chỉnh sửa tài sản, yêu cầu, kiểm kê và cho mượn."
+        },
+        {
+            "role_group_name": "asset_member_group",
+            "role_group_view_name": "Người sử dụng tài sản",
+            "description": "Người xem tài sản, cho mượn và gửi yêu cầu về tài sản."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "Yêu cầu về tài sản (tiêu chuẩn)"
+        }
+    ]
+}

@@ -1,0 +1,281 @@
+{
+    "template_view_name": "销售包",
+    "description": "客户（含联系人）、商机、报价（含明细）和合同，以及销售角色组和“销售与客户”菜单。",
+    "custom_tables": [
+        {
+            "table_name": "sales_customer",
+            "table_view_name": "客户",
+            "description": "客户和潜在客户。其联系人记录在明细中。",
+            "custom_columns": [
+                {
+                    "column_name": "customer_name",
+                    "column_view_name": "客户"
+                },
+                {
+                    "column_name": "customer_type",
+                    "column_view_name": "类型",
+                    "options": {
+                        "select_item_valtext": "prospect,潜在客户\ncustomer,客户\nformer,原客户"
+                    }
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "邮政编码"
+                },
+                {
+                    "column_name": "address",
+                    "column_view_name": "地址"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "电话"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "电子邮箱"
+                },
+                {
+                    "column_name": "url",
+                    "column_view_name": "网站"
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "负责人"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_customer_contact",
+            "table_view_name": "客户联系人",
+            "description": "客户方的人员。",
+            "custom_columns": [
+                {
+                    "column_name": "contact_name",
+                    "column_view_name": "姓名"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "部门"
+                },
+                {
+                    "column_name": "title",
+                    "column_view_name": "职务"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "电话"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "电子邮箱"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_deal",
+            "table_view_name": "商机",
+            "description": "按阶段和预计金额跟进每个商机。",
+            "custom_columns": [
+                {
+                    "column_name": "deal_name",
+                    "column_view_name": "商机"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "客户"
+                },
+                {
+                    "column_name": "stage",
+                    "column_view_name": "阶段",
+                    "options": {
+                        "select_item_valtext": "lead,线索\nproposal,提案\nquote,报价\nwon,成交\nlost,丢单"
+                    }
+                },
+                {
+                    "column_name": "expected_amount",
+                    "column_view_name": "预计金额"
+                },
+                {
+                    "column_name": "expected_date",
+                    "column_view_name": "预计成交日期"
+                },
+                {
+                    "column_name": "probability",
+                    "column_view_name": "可能性",
+                    "options": {
+                        "select_item_valtext": "a,A（基本确定）\nb,B（一半一半）\nc,C（较低）"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "负责人"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "详情"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote",
+            "table_view_name": "报价",
+            "description": "报价及其明细。",
+            "custom_columns": [
+                {
+                    "column_name": "quote_title",
+                    "column_view_name": "标题"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "客户"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "商机"
+                },
+                {
+                    "column_name": "quote_date",
+                    "column_view_name": "报价日期"
+                },
+                {
+                    "column_name": "valid_until",
+                    "column_view_name": "有效期至"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "合计"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote_detail",
+            "table_view_name": "报价明细",
+            "description": "报价的一行明细。",
+            "custom_columns": [
+                {
+                    "column_name": "item_name",
+                    "column_view_name": "项目"
+                },
+                {
+                    "column_name": "quantity",
+                    "column_view_name": "数量"
+                },
+                {
+                    "column_name": "unit",
+                    "column_view_name": "单位"
+                },
+                {
+                    "column_name": "unit_price",
+                    "column_view_name": "单价"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "金额"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_contract",
+            "table_view_name": "合同",
+            "description": "合同及其条款。",
+            "custom_columns": [
+                {
+                    "column_name": "contract_name",
+                    "column_view_name": "合同"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "客户"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "商机"
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "签约日期"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "开始日期"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "结束日期"
+                },
+                {
+                    "column_name": "auto_renewal",
+                    "column_view_name": "自动续约"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "金额"
+                },
+                {
+                    "column_name": "document",
+                    "column_view_name": "合同文件"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0858ef1666946ae5f31e",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "1e9cf01d6433f6d1e818",
+            "form_view_name": "表单"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "销售与客户",
+            "menu_type": "parent_node",
+            "menu_name": "sales"
+        },
+        {
+            "title": "客户",
+            "menu_type": "table",
+            "menu_name": "sales_customer"
+        },
+        {
+            "title": "商机",
+            "menu_type": "table",
+            "menu_name": "sales_deal"
+        },
+        {
+            "title": "报价",
+            "menu_type": "table",
+            "menu_name": "sales_quote"
+        },
+        {
+            "title": "合同",
+            "menu_type": "table",
+            "menu_name": "sales_contract"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "sales_member_group",
+            "role_group_view_name": "销售",
+            "description": "可查看、创建和编辑客户、商机、报价和合同的人员。"
+        }
+    ]
+}

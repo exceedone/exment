@@ -1,0 +1,281 @@
+{
+    "template_view_name": "Gói bán hàng",
+    "description": "Bộ gồm khách hàng (có người liên hệ), cơ hội bán hàng, báo giá (có chi tiết) và hợp đồng, nhóm vai trò bán hàng và menu \"Bán hàng & khách hàng\".",
+    "custom_tables": [
+        {
+            "table_name": "sales_customer",
+            "table_view_name": "Khách hàng",
+            "description": "Khách hàng và khách hàng tiềm năng. Người liên hệ được nhập vào phần chi tiết.",
+            "custom_columns": [
+                {
+                    "column_name": "customer_name",
+                    "column_view_name": "Khách hàng"
+                },
+                {
+                    "column_name": "customer_type",
+                    "column_view_name": "Loại",
+                    "options": {
+                        "select_item_valtext": "prospect,Tiềm năng\ncustomer,Đang giao dịch\nformer,Khách hàng cũ"
+                    }
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "Mã bưu chính"
+                },
+                {
+                    "column_name": "address",
+                    "column_view_name": "Địa chỉ"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "Điện thoại"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "Email"
+                },
+                {
+                    "column_name": "url",
+                    "column_view_name": "Trang web"
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Người phụ trách"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_customer_contact",
+            "table_view_name": "Người liên hệ của khách hàng",
+            "description": "Những người liên hệ phía khách hàng.",
+            "custom_columns": [
+                {
+                    "column_name": "contact_name",
+                    "column_view_name": "Họ tên"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Bộ phận"
+                },
+                {
+                    "column_name": "title",
+                    "column_view_name": "Chức vụ"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "Điện thoại"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "Email"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_deal",
+            "table_view_name": "Cơ hội bán hàng",
+            "description": "Theo dõi từng cơ hội theo giai đoạn và số tiền dự kiến.",
+            "custom_columns": [
+                {
+                    "column_name": "deal_name",
+                    "column_view_name": "Cơ hội"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Khách hàng"
+                },
+                {
+                    "column_name": "stage",
+                    "column_view_name": "Giai đoạn",
+                    "options": {
+                        "select_item_valtext": "lead,Tiếp cận\nproposal,Đề xuất\nquote,Báo giá\nwon,Thành công\nlost,Thất bại"
+                    }
+                },
+                {
+                    "column_name": "expected_amount",
+                    "column_view_name": "Số tiền dự kiến"
+                },
+                {
+                    "column_name": "expected_date",
+                    "column_view_name": "Ngày dự kiến chốt"
+                },
+                {
+                    "column_name": "probability",
+                    "column_view_name": "Khả năng thành công",
+                    "options": {
+                        "select_item_valtext": "a,A (gần như chắc chắn)\nb,B (50/50)\nc,C (thấp)"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Người phụ trách"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Nội dung"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote",
+            "table_view_name": "Báo giá",
+            "description": "Báo giá và các dòng chi tiết.",
+            "custom_columns": [
+                {
+                    "column_name": "quote_title",
+                    "column_view_name": "Tiêu đề"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Khách hàng"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Cơ hội"
+                },
+                {
+                    "column_name": "quote_date",
+                    "column_view_name": "Ngày báo giá"
+                },
+                {
+                    "column_name": "valid_until",
+                    "column_view_name": "Có hiệu lực đến"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "Tổng cộng"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote_detail",
+            "table_view_name": "Chi tiết báo giá",
+            "description": "Một dòng của báo giá.",
+            "custom_columns": [
+                {
+                    "column_name": "item_name",
+                    "column_view_name": "Mặt hàng"
+                },
+                {
+                    "column_name": "quantity",
+                    "column_view_name": "Số lượng"
+                },
+                {
+                    "column_name": "unit",
+                    "column_view_name": "Đơn vị"
+                },
+                {
+                    "column_name": "unit_price",
+                    "column_view_name": "Đơn giá"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Thành tiền"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_contract",
+            "table_view_name": "Hợp đồng",
+            "description": "Hợp đồng và thời hạn hợp đồng.",
+            "custom_columns": [
+                {
+                    "column_name": "contract_name",
+                    "column_view_name": "Hợp đồng"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Khách hàng"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Cơ hội"
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "Ngày hợp đồng"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Ngày bắt đầu"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Ngày kết thúc"
+                },
+                {
+                    "column_name": "auto_renewal",
+                    "column_view_name": "Tự động gia hạn"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Số tiền"
+                },
+                {
+                    "column_name": "document",
+                    "column_view_name": "Văn bản hợp đồng"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0858ef1666946ae5f31e",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "1e9cf01d6433f6d1e818",
+            "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Bán hàng & khách hàng",
+            "menu_type": "parent_node",
+            "menu_name": "sales"
+        },
+        {
+            "title": "Khách hàng",
+            "menu_type": "table",
+            "menu_name": "sales_customer"
+        },
+        {
+            "title": "Cơ hội bán hàng",
+            "menu_type": "table",
+            "menu_name": "sales_deal"
+        },
+        {
+            "title": "Báo giá",
+            "menu_type": "table",
+            "menu_name": "sales_quote"
+        },
+        {
+            "title": "Hợp đồng",
+            "menu_type": "table",
+            "menu_name": "sales_contract"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "sales_member_group",
+            "role_group_view_name": "Bán hàng",
+            "description": "Người xem, tạo và chỉnh sửa khách hàng, cơ hội bán hàng, báo giá và hợp đồng."
+        }
+    ]
+}

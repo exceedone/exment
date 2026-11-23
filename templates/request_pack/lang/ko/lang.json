@@ -45,6 +45,10 @@
                 {
                     "column_name": "note",
                     "column_view_name": "비고"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "합계"
                 }
             ]
         },

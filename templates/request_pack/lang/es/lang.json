@@ -45,6 +45,10 @@
                 {
                     "column_name": "note",
                     "column_view_name": "Nota"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "Total"
                 }
             ]
         },
