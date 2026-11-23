@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Console\UpdateCommand;
+use Illuminate\Testing\PendingCommand;
 
 /**
  * exment:update on a production site: the database is updated only with --force or a
@@ -27,6 +28,17 @@ class UpdateCommandForceTest extends UnitTestBase
         parent::tearDown();
     }
 
+    /**
+     * @param array<string, mixed> $parameters
+     */
+    private function pending(string $command, array $parameters = []): PendingCommand
+    {
+        $pending = $this->artisan($command, $parameters);
+        // artisan() answers an int only when the output is not mocked
+        $this->assertInstanceOf(PendingCommand::class, $pending);
+        return $pending;
+    }
+
     public function testTheCommandHasForce(): void
     {
         $command = $this->app->make(UpdateCommand::class);
@@ -37,7 +49,7 @@ class UpdateCommandForceTest extends UnitTestBase
     {
         $this->app['env'] = 'production';
 
-        $this->artisan('exment:update', ['--no-interaction' => true])
+        $this->pending('exment:update', ['--no-interaction' => true])
             ->expectsOutputToContain('--force')
             ->assertExitCode(1);
     }
@@ -46,7 +58,7 @@ class UpdateCommandForceTest extends UnitTestBase
     {
         $this->app['env'] = 'production';
 
-        $this->artisan('exment:update')
+        $this->pending('exment:update')
             ->expectsConfirmation('This site is in production (APP_ENV=production). Update its database now?', 'no')
             ->assertExitCode(1);
     }
