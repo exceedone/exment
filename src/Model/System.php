@@ -48,7 +48,7 @@ use Cache;
  * @method static string|void system_values_pos($arg = null)
  * @method static string|void data_submit_redirect($arg = null)
  * @method static array|void header_user_info($arg = null)
- * @method static array|void allowed_locales($arg = null)
+ * @method static array<int, string>|void allowed_locales($arg = null)
  * @method static boolean|void complex_password($arg = null)
  * @method static int|void password_expiration_days($arg = null)
  * @method static boolean|void first_change_password($arg = null)
