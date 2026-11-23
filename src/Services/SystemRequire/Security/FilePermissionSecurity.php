@@ -10,7 +10,9 @@ use Exceedone\Exment\Services\SystemRequire\Tuning\FilePermissionTuning;
  * .env, the config cache and storage not readable by the other users of the server.
  * The files: the check of the tuning page (FilePermissionTuning); the fix: AutoTuning's
  * file_permission (640, only for what the site's PHP owns), not a second chmod here.
- * storage: only reported (its folders are written by the web server and by cron).
+ * storage: only reported (its folders are written by the web server and by cron): the
+ * folder itself open to everyone, or the logs, the sessions and the cache readable by the
+ * other users of the server (a shared rental server: a session file is a login).
  */
 class FilePermissionSecurity extends SecurityBase
 {
@@ -30,6 +32,54 @@ class FilePermissionSecurity extends SecurityBase
         return $this->files ?? ($this->files = new FilePermissionTuning());
     }
 
+    /** The folders under storage whose files hold secrets (the logs, the sessions, the cache). */
+    public const SECRET_DIRS = ['logs', 'framework/sessions', 'framework/cache'];
+
+    /** At most this many files are looked at in a folder (a big cache is not walked). */
+    public const MAX_FILES = 200;
+
+    /**
+     * The folders and files under SECRET_DIRS that the other users of the server can read
+     * (o+r, or a folder o+x): path under storage => mode.
+     *
+     * @return array<string, string>
+     */
+    public function storageReadable(): array
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            return [];
+        }
+        $base = $this->storage ?? storage_path();
+        $result = [];
+        foreach (static::SECRET_DIRS as $dir) {
+            $path = $base . '/' . $dir;
+            if (!is_dir($path)) {
+                continue;
+            }
+            clearstatcache(true, $path);
+            $perms = @fileperms($path);
+            if ($perms !== false && ($perms & 0005) !== 0) {
+                $result[$dir] = substr(sprintf('%o', $perms), -3);
+            }
+            $count = 0;
+            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS)) as $file) {
+                if (++$count > static::MAX_FILES) {
+                    break;
+                }
+                if (!$file->isFile() || $file->getFilename() === '.gitignore') {
+                    continue;
+                }
+                $mode = @fileperms($file->getPathname());
+                if ($mode !== false && ($mode & 0004) !== 0) {
+                    // one file tells the folder
+                    $result[$dir . '/*'] = substr(sprintf('%o', $mode), -3);
+                    break;
+                }
+            }
+        }
+        return $result;
+    }
+
     /** storage readable and writable by everyone (0007 all set) */
     public function storageOpen(): bool
     {
@@ -47,7 +97,7 @@ class FilePermissionSecurity extends SecurityBase
         if (count($this->files()->openFiles()) > 0) {
             return SystemRequireResult::NG;
         }
-        return $this->storageOpen() ? SystemRequireResult::WARNING : SystemRequireResult::OK;
+        return $this->storageOpen() || count($this->storageReadable()) > 0 ? SystemRequireResult::WARNING : SystemRequireResult::OK;
     }
 
     /** .env or the config cache readable by others (storage alone is not high) */
@@ -64,6 +114,9 @@ class FilePermissionSecurity extends SecurityBase
         if ($this->storageOpen()) {
             $items[] = 'storage (' . substr(sprintf('%o', @fileperms($this->storage ?? storage_path())), -3) . ')';
         }
+        foreach ($this->storageReadable() as $path => $mode) {
+            $items[] = "storage/{$path} ({$mode})";
+        }
         return count($items) > 0 ? implode(', ', $items) : exmtrans('security_check.result_ok');
     }
 
@@ -72,7 +125,14 @@ class FilePermissionSecurity extends SecurityBase
         if ($this->checkResult() == SystemRequireResult::OK) {
             return null;
         }
-        return "cd " . base_path() . "\nchmod 640 .env bootstrap/cache/config.php\nchmod -R o-rwx storage\n# the group must be the one of the web server (apache, nginx, www-data)";
+        return implode("\n", [
+            'cd ' . base_path(),
+            'chmod 640 .env bootstrap/cache/config.php',
+            '# the logs, the sessions and the cache: not readable by the other users',
+            'chmod -R o-rwx storage',
+            '# the group must be the one of the web server (apache, nginx, www-data)',
+            '# the files written later: LOG_CHANNEL permission / the umask of PHP (027) keep them so',
+        ]);
     }
 
     public function canFix(): bool
