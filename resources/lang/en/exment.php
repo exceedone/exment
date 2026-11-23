@@ -842,7 +842,7 @@ return [
             'config_cache' => [
                 'label' => 'Config cache (config:cache)',
                 'explain' => 'Puts the config files into one file, read once per request. When Exment writes .env (install, restore), it removes the cache itself. The route cache (route:cache) is not used: the pages of plugins would not open.',
-                'warning' => 'There is no config cache. Make it with the button below or with this command. After changing .env by hand, make it again.',
+                'warning' => 'There is no config cache. Make it with this command or with the button of the Tuning page (at the setup, also with the checkbox of "Settings Exment can make by itself"). After changing .env by hand, make it again.',
             ],
             'composer_autoload' => [
                 'label' => 'Optimized class loading (composer)',

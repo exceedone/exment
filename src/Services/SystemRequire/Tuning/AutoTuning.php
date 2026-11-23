@@ -307,6 +307,28 @@ class AutoTuning
     }
 
     /**
+     * The end of the install: EXMENT_INITIALIZE, APP_ENV=production (exment.zip ships
+     * "local"), and .env readable by the owner and the group only (the owner is kept).
+     * Other sites' APP_ENV (testing, staging...) is kept.
+     *
+     * @param array<string>|null $files .env (tests)
+     */
+    public static function installedEnv(?array $files = null): void
+    {
+        $values = ['EXMENT_INITIALIZE' => '1'];
+        if (in_array(strval(config('app.env')), ['', 'local'], true)) {
+            $values['APP_ENV'] = 'production';
+        }
+        static::writeEnv($values);
+
+        $tuning = new self(true);
+        $tuning->files = $files ?? [path_join(base_path(), '.env')];
+        foreach ($tuning->ownFiles() as $file) {
+            @chmod($file, 0640);
+        }
+    }
+
+    /**
      * @param array<string, string> $values
      */
     protected static function writeEnv(array $values): void
