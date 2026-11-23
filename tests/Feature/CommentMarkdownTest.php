@@ -148,7 +148,8 @@ class CommentMarkdownTest extends FeatureTestBase
     public function testEveryCommentIsMarkdownWhenNoStartIsKept(): void
     {
         System::where('system_name', 'comment_markdown_start')->delete();
-        System::clearRequestSession();
+        // removed without the model: what Exment kept of the settings is cleared too
+        System::clearCache();
 
         $this->assertFalse(CommentMarkdown::isBeforeMarkdown('2000-01-01 00:00:00'));
     }

@@ -109,6 +109,60 @@ class CacheGenerationTest extends UnitTestBase
         }));
     }
 
+    public function testClearingLeavesTheRestOfTheStore(): void
+    {
+        // not Exment's: the count of wrong passwords, the signal to restart the queue...
+        Cache::put('not_of_exment', 'stays', 600);
+        System::cache('cache_generation_test', function () {
+            return 'kept';
+        });
+
+        System::clearCache();
+
+        $this->assertSame('stays', Cache::get('not_of_exment'));
+        System::clearRequestSession();
+        $this->assertSame('again', System::cache('cache_generation_test', function () {
+            return 'again';
+        }));
+    }
+
+    public function testAFileStoreKeepsItInAFolderOfItsOwnAndEmptiesOnlyThat(): void
+    {
+        $path = sys_get_temp_dir() . '/exment_cache_generation_' . uniqid('', true);
+        config([
+            'cache.default' => 'file',
+            'cache.stores.file' => ['driver' => 'file', 'path' => $path],
+            'cache.stores.' . System::FILE_STORE => null,
+        ]);
+        Cache::forgetDriver('file');
+        Cache::forgetDriver(System::FILE_STORE);
+        try {
+            Cache::put('not_of_exment', 'stays', 600);
+            System::cache('cache_generation_test', function () {
+                return 'kept';
+            });
+            $this->assertDirectoryExists($path . DIRECTORY_SEPARATOR . 'exment');
+            System::clearRequestSession();
+            $this->assertSame('kept', System::cache('cache_generation_test', function () {
+                return 'again';
+            }), 'read from the files');
+
+            System::clearCache();
+
+            $this->assertSame('stays', Cache::get('not_of_exment'));
+            $this->assertSame([], \File::allFiles($path . DIRECTORY_SEPARATOR . 'exment'), 'the files of the generation before are removed');
+            System::clearRequestSession();
+            $this->assertSame('again', System::cache('cache_generation_test', function () {
+                return 'again';
+            }));
+        } finally {
+            \File::deleteDirectory($path);
+            config(['cache.default' => 'array', 'cache.stores.' . System::FILE_STORE => null]);
+            Cache::forgetDriver('file');
+            Cache::forgetDriver(System::FILE_STORE);
+        }
+    }
+
     public function testWithoutTheCacheNothingIsKeptAndTheGenerationIsNotAsked(): void
     {
         config(['exment.use_cache' => false]);
@@ -136,7 +190,7 @@ class CacheGenerationTest extends UnitTestBase
             return 'kept';
         });
         $before = System::cacheGeneration();
-        $this->artisan('exment:cache-clear')->assertExitCode(0);
+        $this->assertSame(0, \Artisan::call('exment:cache-clear'));
         $this->assertNotSame($before, System::cacheGeneration());
         System::clearRequestSession();
         $this->assertSame('again', System::cache('cache_generation_test', function () {
