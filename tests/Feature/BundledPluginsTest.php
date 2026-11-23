@@ -294,7 +294,7 @@ class BundledPluginsTest extends FeatureTestBase
 
         // a good copy: installed, and the copy is the one kept for going back
         BundledPlugins::install(static::SAMPLE_UUID);
-        $this->assertSame('1.0.0', BundledPlugins::installed(static::SAMPLE_UUID)->version ?? null);
+        $this->assertSame('1.0.0', BundledPlugins::installed(static::SAMPLE_UUID)?->version);
         $kept = Storage::disk(Define::DISKNAME_ADMIN)->get(BundledPlugins::PREVIOUS_DIR . '/' . static::SAMPLE_UUID . '/1.0.0.zip');
         $this->assertSame(hash_file('sha256', $this->dir . '/ExmentSignSample-1.0.0.zip'), hash('sha256', strval($kept)));
     }
