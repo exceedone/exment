@@ -82,7 +82,7 @@ class CustomCopyFromCreateTest extends FeatureTestBase
     {
         $copy = $this->copy(static::FROM, static::TO, true);
         $record = $this->record(static::FROM, 'copy me 1828');
-        $label = exmtrans('custom_copy.copy_from.button', $this->table(static::FROM)->table_view_name);
+        $label = exmtrans('custom_copy.copy_from.button');
         $search = admin_urls_query('data', static::FROM, ['modalframe' => 1]);
 
         // the button opens the search dialog of the copy-from table
@@ -111,11 +111,10 @@ class CustomCopyFromCreateTest extends FeatureTestBase
     {
         $copy = $this->copy(static::FROM, static::TO, false);
         $record = $this->record(static::FROM, 'not on the form 1828');
-        $label = exmtrans('custom_copy.copy_from.button', $this->table(static::FROM)->table_view_name);
 
         $this->get(admin_urls('data', static::TO, 'create'))
             ->assertStatus(200)
-            ->assertDontSee($label, false);
+            ->assertDontSee('copy_from_target_', false);
         $this->get(admin_urls_query('data', static::TO, 'create', ['copy_from' => $copy->suuid, 'copy_from_id' => $record->id]))
             ->assertStatus(200)
             ->assertDontSee('not on the form 1828', false);
@@ -136,15 +135,25 @@ class CustomCopyFromCreateTest extends FeatureTestBase
     {
         $copy = $this->copy(TestDefine::TESTDATA_TABLE_NO_PERMISSION, static::TO, true);
         $record = $this->record(TestDefine::TESTDATA_TABLE_NO_PERMISSION, 'secret 1828');
-        $label = exmtrans('custom_copy.copy_from.button', $this->table(TestDefine::TESTDATA_TABLE_NO_PERMISSION)->table_view_name);
 
         $this->actAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
         $this->get(admin_urls('data', static::TO, 'create'))
             ->assertStatus(200)
-            ->assertDontSee($label, false);
+            ->assertDontSee('copy_from_target_', false);
         $this->get(admin_urls_query('data', static::TO, 'create', ['copy_from' => $copy->suuid, 'copy_from_id' => $record->id]))
             ->assertStatus(200)
             ->assertDontSee('secret 1828', false);
+    }
+
+    public function testWithTwoSourcesTheButtonsSayTheTable(): void
+    {
+        $this->copy(static::FROM, static::TO, true);
+        $this->copy(static::TO, static::TO, true);
+
+        $this->get(admin_urls('data', static::TO, 'create'))
+            ->assertStatus(200)
+            ->assertSee(exmtrans('custom_copy.copy_from.button_table', $this->table(static::FROM)->table_view_name), false)
+            ->assertSee(exmtrans('custom_copy.copy_from.button_table', $this->table(static::TO)->table_view_name), false);
     }
 
     public function testANewSettingCanStartWithTheColumnsOfTheSameNamePaired(): void
