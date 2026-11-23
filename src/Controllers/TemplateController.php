@@ -27,6 +27,18 @@ class TemplateController extends AdminControllerBase
     }
 
     /**
+     * Redirect legacy GET template/import and template/export to the template index.
+     * Defined as a controller action (instead of a route closure) so the route table
+     * stays serializable for `php artisan route:cache`.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function redirectIndex()
+    {
+        return redirect(admin_url('template'));
+    }
+
+    /**
      * Index interface.
      *
      * @return Content
