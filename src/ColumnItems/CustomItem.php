@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\ColumnType;
@@ -302,7 +303,8 @@ abstract class CustomItem implements ItemInterface
         $this->custom_value = $this->getTargetCustomValue($custom_value);
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
-            $this->id = array_get($custom_value, 'id');
+            // a record: its id straight (array_get walks the model as an array, once per cell of a list)
+            $this->id = $custom_value instanceof CustomValue ? $custom_value->id : array_get($custom_value, 'id');
         }
 
         $this->prepare();
@@ -348,6 +350,11 @@ abstract class CustomItem implements ItemInterface
             return $this->getViewPivotValue($custom_value, $this->options);
         }
 
+        // a record: its value straight (the same as array_get, without walking the model as an array)
+        if ($custom_value instanceof CustomValue) {
+            $values = $custom_value->value;
+            return is_array($values) ? ($values[$this->custom_column->column_name] ?? null) : null;
+        }
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
 

@@ -230,7 +230,7 @@ class DefaultGrid extends GridBase
                     // server refuses the write either way. ($this is the
                     // row's model here: the grid binds it to this closure.)
                     // @phpstan-ignore-next-line
-                    if (!GridTools\GridInlineEditor::isFormEditableColumn($custom_table, $this, $item->getCustomColumn())) {
+                    if (!GridTools\GridInlineEditor::isFormEditableColumnInList($custom_table, $this, $item->getCustomColumn())) {
                         return (string)$html . GridTools\GridInlineEditor::LOCKED_MARKER;
                     }
                     // A long value is shown shortened ('...'), a formatted
