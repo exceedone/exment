@@ -53,7 +53,7 @@ class NotifyNavbar extends ModelBase
             return null;
         }
         $version = (int) \Cache::get(static::navbarVersionKey($userId), 0);
-        return 'exment_notify_nav_' . $userId . '_' . $version . '_' . app()->getLocale();
+        return 'exment_notify_nav_' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . '_' . $userId . '_' . $version . '_' . app()->getLocale();
     }
 
     /**
@@ -82,7 +82,7 @@ class NotifyNavbar extends ModelBase
      */
     protected static function navbarVersionKey($userId): string
     {
-        return 'exment_notify_nav_ver_' . $userId;
+        return 'exment_notify_nav_ver_' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . '_' . $userId;
     }
 
     /**
