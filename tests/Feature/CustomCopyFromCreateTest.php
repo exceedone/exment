@@ -159,13 +159,13 @@ class CustomCopyFromCreateTest extends FeatureTestBase
     public function testTheAdminsOwnLabelIsUsed(): void
     {
         $copy = $this->copy(static::FROM, static::TO, true);
-        $copy->setOption('create_label', '前年度から複写 1828');
+        $copy->setOption('create_label', '前年度 1828');
         $copy->save();
         $this->copy(static::TO, static::TO, true);
 
         $this->get(admin_urls('data', static::TO, 'create'))
             ->assertStatus(200)
-            ->assertSee('前年度から複写 1828', false)
+            ->assertSee(exmtrans('custom_copy.copy_from.button_table', '前年度 1828'), false)
             ->assertDontSee(exmtrans('custom_copy.copy_from.button_table', $this->table(static::FROM)->table_view_name), false)
             ->assertSee(exmtrans('custom_copy.copy_from.button_table', $this->table(static::TO)->table_view_name), false);
     }
