@@ -66,6 +66,9 @@ class DefaultForm extends FormBase
         // for lock data
         $form->hidden('updated_at');
 
+        // an application adds its own to the form (ScreenExtensions data_form.form)
+        \Exceedone\Exment\Services\ScreenExtensions::call('data_form.form', $form, $this->custom_table, $this->id);
+
         // get select_parent
         $select_parent = $request->has('select_parent') ? intval($request->get('select_parent')) : null;
         // set one:many select
@@ -353,6 +356,9 @@ EOT;
             }
         }
         foreach ($custom_form_columns as $form_column) {
+            if (!\Exceedone\Exment\Services\ScreenExtensions::allows('data_form.column', $form_column, $this->custom_table)) {
+                continue;
+            }
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
                 continue;
@@ -388,6 +394,9 @@ EOT;
             $custom_form_columns = $custom_form_block->custom_form_columns;
             // setting fields.
             foreach ($custom_form_columns as $form_column) {
+                if (!\Exceedone\Exment\Services\ScreenExtensions::allows('data_form.column', $form_column, $this->custom_table)) {
+                    continue;
+                }
                 if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                     continue;
                 }
@@ -408,6 +417,11 @@ EOT;
                 }
 
                 $field->setWidth(8, 2);
+
+                // the options of the column, for the scripts of the field
+                if (method_exists($field, 'setCustomOptions')) {
+                    $field->setCustomOptions($form_column->custom_column->options ?? []);
+                }
                 // push field to form
                 $form->pushFieldAndOption($field, [
                     'row' => $form_column->row_no,
@@ -739,6 +753,7 @@ EOT);
 
             if (!$disableToolsButton && $custom_table->enableTableMenuButton()) {
                 $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
+                \Exceedone\Exment\Services\ScreenExtensions::call('data_form.tools', $tools, $custom_table, $id);
             }
         });
     }

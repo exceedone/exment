@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\CoreExtensions;
+use Exceedone\Exment\Services\ScreenExtensions;
 use Exceedone\Exment\Services\TablePolicy;
 
 /**
@@ -20,6 +21,7 @@ class CoreExtensionsTest extends UnitTestBase
     {
         CoreExtensions::reset();
         TablePolicy::reset();
+        ScreenExtensions::reset();
         Permission::resetEndpoints();
         \Exceedone\Exment\Exment::resolveVersionUsing(null);
         \Exceedone\Exment\Exment::versionUpdateUrlUsing(null);
@@ -88,5 +90,30 @@ class CoreExtensionsTest extends UnitTestBase
         });
         $this->assertSame(['9.9.9', '9.9.8'], \Exment::getExmentVersion());
         $this->assertSame(admin_url('sample-update'), \Exment::versionUpdateUrl());
+    }
+
+    public function testAScreenPlaceCallsWhatWasAdded(): void
+    {
+        $this->assertSame([], ScreenExtensions::call('data_grid.tools', null));
+        $this->assertTrue(ScreenExtensions::allows('data_form.column', null, null));
+        $this->assertSame(['a'], ScreenExtensions::filter('import.items', ['a'], null));
+
+        ScreenExtensions::add('data_form.column', function () {
+            return false;
+        });
+        ScreenExtensions::add('import.items', function (array $items) {
+            $items[] = 'b';
+            return $items;
+        });
+        $this->assertFalse(ScreenExtensions::allows('data_form.column', null, null));
+        $this->assertSame(['a', 'b'], ScreenExtensions::filter('import.items', ['a'], null));
+    }
+
+    public function testTheFieldsKeepTheOptionsOfTheColumn(): void
+    {
+        foreach ([\Exceedone\Exment\Form\Field\Text::class, \Exceedone\Exment\Form\Field\Number::class, \Exceedone\Exment\Form\Field\Tinymce::class] as $class) {
+            $field = new $class('sample');
+            $this->assertSame(['ocr' => 'x'], $field->setCustomOptions(['ocr' => 'x'])->getCustomOptions(), $class);
+        }
     }
 }
