@@ -1,0 +1,251 @@
+{
+    "template_view_name": "Vorlage für Produktvertrieb",
+    "description": "Eine Vorlage für Unternehmen, die Produkte vertreiben. Enthält Vertrags- und Produktverwaltung.",
+    "custom_tables": [
+        {
+            "table_name": "client",
+            "table_view_name": "Kunde",
+            "description": "Verwalten Sie Kundeninformationen.",
+            "custom_columns": [
+                {
+                    "column_name": "client_code",
+                    "column_view_name": "Kundencode"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "Kundenname"
+                }
+            ]
+        },
+        {
+            "table_name": "agency",
+            "table_view_name": "Vertriebspartner",
+            "custom_columns": [
+                {
+                    "column_name": "agency_code",
+                    "column_view_name": "Vertriebspartner-Code"
+                },
+                {
+                    "column_name": "agency_name",
+                    "column_view_name": "Vertriebspartner-Name"
+                }
+            ]
+        },
+        {
+            "table_name": "product",
+            "table_view_name": "Produkt",
+            "custom_columns": [
+                {
+                    "column_name": "product_code",
+                    "column_view_name": "Produktcode"
+                },
+                {
+                    "column_name": "product_name",
+                    "column_view_name": "Produktname"
+                }
+            ]
+        },
+        {
+            "table_name": "product_version",
+            "table_view_name": "Produktversion",
+            "custom_columns": [
+                {
+                    "column_name": "product_version_code",
+                    "column_view_name": "Produktversionscode"
+                },
+                {
+                    "column_name": "product_version_name",
+                    "column_view_name": "Produktversionsname"
+                },
+                {
+                    "column_name": "cost",
+                    "column_view_name": "Kosten"
+                }
+            ]
+        },
+        {
+            "table_name": "contract",
+            "table_view_name": "Vertrag",
+            "custom_columns": [
+                {
+                    "column_name": "contract_code",
+                    "column_view_name": "Vertragscode"
+                },
+                {
+                    "column_name": "client",
+                    "column_view_name": "Kunde"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Status",
+                    "options": {
+                        "select_item_valtext": "1,Anfrage\n2,Test\n3,Angebot\n4,Abrechnung\n5,Wartung\n6,Abgeschlossen"
+                    }
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "Vertragsdatum"
+                },
+                {
+                    "column_name": "trial_start_date",
+                    "column_view_name": "Testbeginn"
+                },
+                {
+                    "column_name": "trial_end_date",
+                    "column_view_name": "Testende"
+                },
+                {
+                    "column_name": "mitumorisyo_date",
+                    "column_view_name": "Angebotsdatum"
+                },
+                {
+                    "column_name": "seikyusyo_date",
+                    "column_view_name": "Rechnungsdatum"
+                },
+                {
+                    "column_name": "nyukin_planed_date",
+                    "column_view_name": "Geplantes Zahlungsdatum"
+                },
+                {
+                    "column_name": "nyukin_date",
+                    "column_view_name": "Zahlungsdatum"
+                },
+                {
+                    "column_name": "attachment_files",
+                    "column_view_name": "Anhänge"
+                },
+                {
+                    "column_name": "subscription_claim_type",
+                    "column_view_name": "Monatsvertrag/Jahresvertrag",
+                    "options": {
+                        "select_item": [
+                            "月間",
+                            "年間"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_term",
+                    "column_view_name": "Vertragslaufzeit (Monate / Jahre)",
+                    "options": {
+                        "help": "Bitte geben Sie bei einem Monatsvertrag die Anzahl der Monate und bei einem Jahresvertrag die Anzahl der Jahre ein."
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_start_date",
+                    "column_view_name": "Vertragsbeginn"
+                },
+                {
+                    "column_name": "subscription_agreement_limit_date",
+                    "column_view_name": "Vertragsablauf"
+                },
+                {
+                    "column_name": "subscription_end_date",
+                    "column_view_name": "Vertragsende"
+                }
+            ]
+        },
+        {
+            "table_name": "contract_detail",
+            "table_view_name": "Vertragsposition",
+            "custom_columns": [
+                {
+                    "column_name": "fixed_price",
+                    "column_view_name": "Listenpreis"
+                },
+                {
+                    "column_name": "comment",
+                    "column_view_name": "Kommentar"
+                },
+                {
+                    "column_name": "product_version_id",
+                    "column_view_name": "Produktversion"
+                },
+                {
+                    "column_name": "num",
+                    "column_view_name": "Anzahl"
+                },
+                {
+                    "column_name": "zeinuki_price",
+                    "column_view_name": "Nettopreis"
+                },
+                {
+                    "column_name": "tax_rate",
+                    "column_view_name": "Steuersatz"
+                },
+                {
+                    "column_name": "tax_price",
+                    "column_view_name": "Steuerbetrag"
+                },
+                {
+                    "column_name": "zeikomi_price",
+                    "column_view_name": "Bruttopreis"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "29150ee399f540216b6d",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "5f861dd652ee0fbff3a2",
+            "form_view_name": "Formular",
+            "custom_form_blocks": [
+                {
+                    "custom_form_columns": [
+                        {
+                            "options": {
+                                "text": "Abonnementvertrag"
+                            },
+                            "form_column_target_name": "header"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                },
+                {
+                    "form_block_view_name": "Untertabelle – Vertragsposition",
+                    "form_block_target_table_name": "contract_detail"
+                }
+            ]
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "table",
+            "menu_name": "contract",
+            "title": "Vertrag"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "contract2",
+            "title": "Vertrag"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "client",
+            "title": "Kunde"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "product",
+            "title": "Produkt"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "agency",
+            "title": "Vertriebspartner"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "saller",
+            "title": "Vertriebsunterstützung (SFA)"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "manage",
+            "title": "Kundenverwaltung (CRM)"
+        }
+    ]
+}

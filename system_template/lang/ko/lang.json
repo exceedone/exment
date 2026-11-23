@@ -1,0 +1,588 @@
+{
+    "template_view_name": "시스템 템플릿",
+    "description": "시스템용 템플릿입니다. 반드시 설치해야 합니다.",
+    "custom_tables": [
+        {
+            "table_name": "document",
+            "table_view_name": "문서",
+            "custom_columns": [
+                {
+                    "column_name": "document_name",
+                    "column_view_name": "문서명"
+                },
+                {
+                    "column_name": "file_uuid",
+                    "column_view_name": "파일 UUID"
+                }
+            ]
+        },
+        {
+            "table_name": "comment",
+            "table_view_name": "코멘트",
+            "custom_columns": [
+                {
+                    "column_name": "comment_detail",
+                    "column_view_name": "코멘트 내용"
+                }
+            ]
+        },
+        {
+            "table_name": "base_info",
+            "table_view_name": "기본 정보",
+            "custom_columns": [
+                {
+                    "column_name": "company_name",
+                    "column_view_name": "회사명"
+                },
+                {
+                    "column_name": "company_kana",
+                    "column_view_name": "회사명(가나)"
+                },
+                {
+                    "column_name": "zip01",
+                    "column_view_name": "우편번호1"
+                },
+                {
+                    "column_name": "zip02",
+                    "column_view_name": "우편번호2"
+                },
+                {
+                    "column_name": "tel01",
+                    "column_view_name": "전화번호1",
+                    "options": {
+                        "placeholder": "예: 03"
+                    }
+                },
+                {
+                    "column_name": "tel02",
+                    "column_view_name": "전화번호2",
+                    "options": {
+                        "placeholder": "예: 1234"
+                    }
+                },
+                {
+                    "column_name": "tel03",
+                    "column_view_name": "전화번호3",
+                    "options": {
+                        "placeholder": "예: 5678"
+                    }
+                },
+                {
+                    "column_name": "fax01",
+                    "column_view_name": "팩스1",
+                    "options": {
+                        "placeholder": "예: 03"
+                    }
+                },
+                {
+                    "column_name": "fax02",
+                    "column_view_name": "팩스2",
+                    "options": {
+                        "placeholder": "예: 1234"
+                    }
+                },
+                {
+                    "column_name": "fax03",
+                    "column_view_name": "팩스3",
+                    "options": {
+                        "placeholder": "예: 5678"
+                    }
+                },
+                {
+                    "column_name": "pref",
+                    "column_view_name": "도도부현",
+                    "options": {
+                        "select_item_valtext": "01,홋카이도\n02,아오모리\n03,이와테\n04,아키타\n05,아키타\n06,야마가타\n07,후쿠시마\n08,이바라키\n09,도치기\n10,군마\n11,사이타마\n12,지바\n13,도쿄\n14,가나가와\n15,니가타\n16,도야마\n17,이시카와\n18,후쿠이\n19,야마나시\n20,나가노\n21,기후\n22,시즈오카\n23,아이치\n24,미에\n25,시가\n26,교토\n27,오사카\n28,효고\n29,나라\n30,와카야마\n31,돗토리\n32,시마네\n33,히로시마\n34,야마구치\n36,도쿠시마\n37,가가와\n38,에히메\n39,고치\n40,후쿠오카\n41,사가\n42,나가사키\n43,구마모토\n44,오이타\n45,미야자키\n46,가고시마\n47,오키나와"
+                    }
+                },
+                {
+                    "column_name": "addr01",
+                    "column_view_name": "주소"
+                },
+                {
+                    "column_name": "addr02",
+                    "column_view_name": "주소(건물명 이하)"
+                },
+                {
+                    "column_name": "company_logo",
+                    "column_view_name": "회사 로고",
+                    "options": {
+                        "help": "최적의 이미지 크기는 200 x 70입니다."
+                    }
+                },
+                {
+                    "column_name": "company_stamp",
+                    "column_view_name": "회사 직인",
+                    "options": {
+                        "help": "최적의 이미지 크기는 200 x 200입니다."
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_name",
+                    "column_view_name": "은행 계좌 - 은행명"
+                },
+                {
+                    "column_name": "transfer_bank_office_name",
+                    "column_view_name": "은행 계좌 - 지점명"
+                },
+                {
+                    "column_name": "transfer_bank_office_no",
+                    "column_view_name": "은행 계좌 - 지점 번호"
+                },
+                {
+                    "column_name": "transfer_bank_account_type",
+                    "column_view_name": "은행 계좌 - 계좌 종류",
+                    "options": {
+                        "help": "[보통] 또는 [당좌] 등 계좌 종류를 입력하십시오."
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "은행 계좌 - 예금주"
+                },
+                {
+                    "column_name": "transfer_bank_account_no",
+                    "column_view_name": "은행 계좌 - 계좌 번호"
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "은행 계좌 - 예금주"
+                }
+            ]
+        },
+        {
+            "table_name": "user",
+            "table_view_name": "사용자",
+            "custom_columns": [
+                {
+                    "column_name": "user_code",
+                    "column_view_name": "사용자 코드"
+                },
+                {
+                    "column_name": "user_name",
+                    "column_view_name": "사용자 이름"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "이메일"
+                }
+            ]
+        },
+        {
+            "table_name": "organization",
+            "table_view_name": "조직",
+            "custom_columns": [
+                {
+                    "column_name": "organization_code",
+                    "column_view_name": "조직 코드"
+                },
+                {
+                    "column_name": "organization_name",
+                    "column_view_name": "조직명"
+                },
+                {
+                    "column_name": "parent_organization",
+                    "column_view_name": "상위 조직"
+                }
+            ]
+        },
+        {
+            "table_name": "mail_template",
+            "table_view_name": "메일 템플릿",
+            "description": "메일 발송 시 본문 등을 관리합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "mail_key_name",
+                    "column_view_name": "메일 키 이름",
+                    "options": {
+                        "help": "시스템에서 메일 템플릿을 고유하게 식별하기 위한 키 이름입니다."
+                    }
+                },
+                {
+                    "column_name": "mail_view_name",
+                    "column_view_name": "메일 표시 이름",
+                    "options": {
+                        "help": "목록 화면에 표시되는 템플릿 이름입니다."
+                    }
+                },
+                {
+                    "column_name": "mail_template_type",
+                    "column_view_name": "템플릿 유형",
+                    "options": {
+                        "select_item_valtext": "header,헤더\nbody,본문\nfooter,푸터"
+                    }
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "메일 제목",
+                    "options": {
+                        "help": "발송할 메일의 제목을 입력하십시오. 변수를 사용할 수 있습니다."
+                    }
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "메일 본문",
+                    "options": {
+                        "help": "발송할 메일의 본문을 입력하십시오. 변수를 사용할 수 있습니다."
+                    }
+                },
+                {
+                    "column_name": "mail_from_view_name",
+                    "column_view_name": "발신자 표시 이름",
+                    "options": {
+                        "help": "발신자의 표시 이름을 입력하십시오."
+                    }
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "첨부 파일",
+                    "options": {
+                        "help": "메일에 첨부할 파일을 추가하십시오."
+                    }
+                },
+                {
+                    "column_name": "custom_attachments",
+                    "column_view_name": "사용자 정의 첨부 파일",
+                    "options": {
+                        "help": "메일에 첨부할 파일 열 또는 문서를 추가하십시오."
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "mail_send_log",
+            "table_view_name": "메일 발송 이력",
+            "description": "메일 발송 이력을 관리합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "mail_from",
+                    "column_view_name": "메일 발신자"
+                },
+                {
+                    "column_name": "mail_to",
+                    "column_view_name": "메일 수신자"
+                },
+                {
+                    "column_name": "mail_cc",
+                    "column_view_name": "메일 수신자(CC)"
+                },
+                {
+                    "column_name": "mail_bcc",
+                    "column_view_name": "메일 수신자(BCC)"
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "메일 제목"
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "메일 본문"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "발송 대상 사용자"
+                },
+                {
+                    "column_name": "mail_template",
+                    "column_view_name": "발송 메일 템플릿"
+                },
+                {
+                    "column_name": "send_datetime",
+                    "column_view_name": "발송 일시"
+                }
+            ]
+        },
+        {
+            "table_name": "information",
+            "table_view_name": "공지사항",
+            "description": "사용자에게 알리는 공지사항입니다. 대시보드 등에 표시할 수 있습니다.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "제목"
+                },
+                {
+                    "column_name": "body",
+                    "column_view_name": "본문"
+                },
+                {
+                    "column_name": "view_flg",
+                    "column_view_name": "표시 여부",
+                    "options": {
+                        "help": "목록에 표시하려면 [예]로 설정하십시오."
+                    }
+                },
+                {
+                    "column_name": "order",
+                    "column_view_name": "표시 순서",
+                    "options": {
+                        "help": "숫자가 큰 순서대로 목록에 표시됩니다. (값이 같으면 업데이트 일시가 최신인 순서로 표시됩니다)"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "우선순위",
+                    "options": {
+                        "select_item_valtext": "1,매우 낮음\n2,낮음\n3,보통\n4,높음\n5,매우 높음"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "e6b833089cee9ad107e6",
+            "form_view_name": "폼"
+        },
+        {
+            "suuid": "c38977fc14800c624894",
+            "form_view_name": "폼"
+        },
+        {
+            "suuid": "cd614f0abb054f5f9adb",
+            "form_view_name": "폼"
+        },
+        {
+            "suuid": "eaaae44f42d1895e43b9",
+            "form_view_name": "폼",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": "하위 테이블 - 사용자",
+                    "form_block_target_table_name": "user"
+                }
+            ]
+        },
+        {
+            "suuid": "96c4e4f7d8a86a4ba17e",
+            "form_view_name": "폼"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "s6j3csfuc4kagb82zna3",
+            "view_view_name": "기본 뷰"
+        },
+        {
+            "suuid": "s6j3csauc4kagb82zna3",
+            "view_view_name": "기본 뷰"
+        },
+        {
+            "suuid": "3471e23fbff8dc65437b",
+            "view_view_name": "기본 뷰"
+        },
+        {
+            "suuid": "24e34126c023857a092e",
+            "view_view_name": "기본 뷰"
+        },
+        {
+            "suuid": "b6d5afcda4ce26091f36",
+            "view_view_name": "기본 뷰"
+        },
+        {
+            "suuid": "99120fd4b360e15993d2",
+            "view_view_name": "공지사항 목록"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "system_default_dashboard",
+            "dashboard_view_name": "기본 대시보드",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "공지사항 목록"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "가이드라인"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Exment 뉴스 목록"
+                }
+            ]
+        }
+    ],
+    "role_groups": [
+        {
+            "role_group_name": "data_admin_group",
+            "role_group_view_name": "전체 데이터 관리 그룹",
+            "description": "모든 데이터를 편집하고 조회할 수 있는 역할 그룹입니다."
+        },
+        {
+            "role_group_name": "user_organization_admin_group",
+            "role_group_view_name": "사용자·조직 관리 그룹",
+            "description": "사용자와 조직을 관리하는 역할 그룹입니다."
+        },
+        {
+            "role_group_name": "information_manage_group",
+            "role_group_view_name": "공지사항 관리 그룹",
+            "description": "공지사항을 관리하는 역할 그룹입니다."
+        },
+        {
+            "role_group_name": "user_group",
+            "role_group_view_name": "사용자 그룹",
+            "description": "기본 사용자 그룹인 역할 그룹입니다."
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "system",
+            "menu_name": "home",
+            "title": "대시보드"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "groupware",
+            "title": "그룹웨어"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "file_server",
+            "title": "파일 공유"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "master",
+            "title": "마스터"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "base_info",
+            "title": "기본 정보"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "organization",
+            "title": "조직"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "user",
+            "title": "사용자"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "information",
+            "title": "공지사항"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_data",
+            "title": "설정: 데이터·화면"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "custom_table",
+            "title": "사용자 정의 테이블"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "studio",
+            "title": "스튜디오"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "menu",
+            "title": "메뉴"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "workflow",
+            "title": "워크플로"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "mail_template",
+            "title": "메일 템플릿"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "notify",
+            "title": "알림"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "cell_style_preset",
+            "title": "셀 스타일 프리셋"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "template",
+            "title": "템플릿"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_user",
+            "title": "설정: 사용자·권한"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "loginuser",
+            "title": "로그인 사용자"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "role_group",
+            "title": "역할 그룹"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "login_setting",
+            "title": "로그인 설정"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "api_setting",
+            "title": "API 설정"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "operation_log",
+            "title": "작업 로그"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin",
+            "title": "설정: 시스템"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "system",
+            "title": "시스템 설정"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "feature",
+            "title": "기능 관리"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "plugin",
+            "title": "플러그인"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "backup",
+            "title": "백업"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "tuning",
+            "title": "튜닝"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "security_check",
+            "title": "보안 점검"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "maintenance",
+            "title": "유지보수 모드"
+        }
+    ]
+}
