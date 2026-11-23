@@ -19,6 +19,11 @@ env:
   # the types of meilisearch-php 1.17 add 3 errors in MeiliSearchService.php
   MEILISEARCH_VERSION: 1.10.0
 
+# a newer push to the pull request stops the run of the push before (fewer runs waiting for a runner)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   phpstan:
     runs-on: ubuntu-24.04
@@ -43,6 +48,18 @@ jobs:
         with:
           repository: exceedone/exment-admin-core
           path: ./docker-exment/exment-boilerplate/exment-admin-core
+
+      # the downloads of composer are kept between runs (fewer downloads: faster, and fewer
+      # network failures). The folder is in exment-boilerplate, which the php container mounts.
+      - name: Cache the composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ./docker-exment/exment-boilerplate/.composer-cache
+          key: composer-${{ hashFiles('docker-exment/exment-boilerplate/composer.dev.lock') }}
+          restore-keys: composer-
+
+      - name: Composer uses the kept downloads
+        run: printf '\nCOMPOSER_CACHE_DIR=/var/www/exment/.composer-cache\n' >> docker-exment/.env
 
       - name: Docker Compose Version
         run: docker compose --version

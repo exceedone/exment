@@ -14,6 +14,11 @@ env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
 
+# a newer push to the pull request stops the run of the push before (fewer runs waiting for a runner)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   exment-testing:
     runs-on: ubuntu-24.04
@@ -53,6 +58,18 @@ jobs:
           repository: exceedone/exment-plugins-release
           ref: '7.2.0'
           path: ./docker-exment/exment-boilerplate/exment-plugins-release
+
+      # the downloads of composer are kept between runs (fewer downloads: faster, and fewer
+      # network failures). The folder is in exment-boilerplate, which the php container mounts.
+      - name: Cache the composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ./docker-exment/exment-boilerplate/.composer-cache
+          key: composer-${{ hashFiles('docker-exment/exment-boilerplate/composer.dev.lock') }}
+          restore-keys: composer-
+
+      - name: Composer uses the kept downloads
+        run: printf '\nCOMPOSER_CACHE_DIR=/var/www/exment/.composer-cache\n' >> docker-exment/.env
 
       - name: Docker Compose Version
         run: docker compose --version
