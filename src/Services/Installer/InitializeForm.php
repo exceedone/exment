@@ -70,7 +70,16 @@ class InitializeForm
             }
 
             // add user table
-            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
+            // A half-installed tenant (migrated but never seeded) has no "user" table
+            // definition yet — fail with guidance instead of a fatal on null.
+            $userTable = CustomTable::getEloquent(SystemTableName::USER);
+            if (is_null($userTable)) {
+                DB::rollback();
+                return back()->withErrors([
+                    'initialize_error' => exmtrans('install.error.system_not_installed'),
+                ]);
+            }
+            $user = $userTable->getValueModel();
             $user->value = [
                 'user_code' => $request->get('user_code'),
                 'user_name' => $request->get('user_name'),
@@ -139,8 +148,11 @@ class InitializeForm
             // without this the installer would swallow it below and answer with a blank page.
             DB::rollback();
             return back()->withInput()->withErrors(['upload_template' => $exception->getMessage()]);
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
+            // \Throwable, not \Exception: a TypeError/Error here must roll back and show
+            // the friendly message too, not white-screen. Keep the cause in the log.
             DB::rollback();
+            \Log::error($exception);
             return back()->withErrors([
                 'initialize_error' => exmtrans('install.error.initialize_error'),
             ]);

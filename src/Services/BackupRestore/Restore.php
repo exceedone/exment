@@ -98,6 +98,15 @@ class Restore
             // copy env
             $this->updateEnv();
 
+            // Everything cached so far describes rows that no longer exist, and the migrations
+            // below read Exment's own models - clear before, and again after, so the caller
+            // starts from a clean cache whichever way the migration step goes.
+            System::clearCache();
+
+            if (!$this->migrateToCurrentSchema()) {
+                $result = -1;
+            }
+
             System::clearCache();
 
             return $result;
@@ -109,6 +118,59 @@ class Restore
         }
     }
 
+
+    /**
+     * Bring the restored schema up to the version the running code expects.
+     *
+     * restoreDatabase() replays the backup's table definitions, so after a restore the schema
+     * is whatever it was on the day of the backup while the application code is still current.
+     * Every column, index and table added since then is gone, and the code that needs them
+     * fails at runtime - often quietly, because callers tend to catch the SQL error and skip
+     * the feature rather than stop. That is not a restore succeeding; it is a restore leaving
+     * the tenant broken.
+     *
+     * The restore also rolls back the migrations table (backupDatabase() dumps every table
+     * \Schema::getTableListing() reports, that one included), which is what makes a plain
+     * `migrate` the right repair and not a heavy-handed one: it replays exactly the migrations
+     * whose record the restore removed, and nothing else. A backup taken after a migration
+     * still carries that migration's record, so the migration is skipped and whatever the
+     * tenant did afterwards - including deleting something the migration had created - is
+     * preserved. Restoring stays faithful to the backup.
+     *
+     * Failure is reported, never swallowed: the caller turns it into a non-zero exit code so
+     * the operator finds out now, rather than when a user opens the page that needs the
+     * missing column.
+     *
+     * @return bool true when the schema is in sync with the code afterwards
+     */
+    protected function migrateToCurrentSchema(): bool
+    {
+        try {
+            // --force: this runs unattended (queue worker, cron applier, CLI restore), and
+            // migrate refuses to touch a production database without it.
+            $exitCode = \Artisan::call('migrate', ['--force' => true]);
+            $output = \Artisan::output();
+
+            if ($exitCode !== 0) {
+                \Log::error('Restore: migrate failed after restoring the database. The schema is still at the version of the backup.', [
+                    'exit_code' => $exitCode,
+                    'output' => $output,
+                ]);
+                return false;
+            }
+
+            \Log::info('Restore: migrate finished after restoring the database.', ['output' => $output]);
+            return true;
+        } catch (\Throwable $e) {
+            // Console commands run with catchExceptions disabled, so a migration that throws
+            // lands here. Do not rethrow: the data restore itself did succeed, and the finally
+            // block of execute() still has to bring the application back up.
+            \Log::error('Restore: migrate threw after restoring the database. The schema is still at the version of the backup.', [
+                'exception' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
 
     /**
      * insert table data from backup tsv files.
@@ -159,6 +221,20 @@ class Restore
             // is local file
             if (is_string($s)) {
                 $topath = $s;
+
+                // In a multi-tenant install the framework directories (config, routes,
+                // vendor) are symlinks into a shared mount that is deliberately read-only:
+                // writing there is impossible, and would overwrite the files of every other
+                // tenant on the same pool. Skip such a target instead of letting copy() raise
+                // and abort the whole restore - otherwise restore can never succeed there.
+                if (!$this->isWritableDirectory($topath)) {
+                    \Log::warning('Restore: skipped a directory that is not writable.', [
+                        'path' => $topath,
+                        'target' => $setting[2] ?? $keyname,
+                    ]);
+                    continue;
+                }
+
                 $success = \File::copyDirectory($fromDirectory, $topath);
                 if (!$success) {
                     $result = false;
@@ -194,6 +270,26 @@ class Restore
         }
 
         return $result;
+    }
+
+    /**
+     * Whether a local directory from the backup can actually be written to.
+     *
+     * Returns false when the path lives on a read-only mount, which is how shared framework
+     * code is exposed to each tenant in a multi-tenant install.
+     *
+     * @param string $path
+     * @return bool
+     */
+    protected function isWritableDirectory(string $path): bool
+    {
+        if (\File::isDirectory($path)) {
+            return is_writable($path);
+        }
+
+        $parent = dirname($path);
+
+        return \File::isDirectory($parent) && is_writable($parent);
     }
 
     /**
@@ -284,6 +380,11 @@ class Restore
             ],
         ];
 
+        // Never import keys that control external binary paths from a restored .env:
+        // a crafted backup could point them at attacker payloads (command injection).
+        // Mirrors the exclusion list used when creating a backup (Backup::getMatchedEnv).
+        $ignoreKeys = ['EXMENT_COMPOSER_PATH', 'EXMENT_MYSQL_BIN_DIR'];
+
         foreach ($matchKeys as $item) {
             foreach ($item['keys'] as $key) {
                 if (is_null($lines = $this->getEnv($key, $file, $item['prefix']))) {
@@ -291,6 +392,9 @@ class Restore
                 }
 
                 foreach ($lines as $line) {
+                    if (in_array($line[0], $ignoreKeys, true)) {
+                        continue;
+                    }
                     $this->setEnv([$line[0] => $line[1]]);
                 }
             }

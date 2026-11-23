@@ -424,7 +424,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     break;
                 case MenuType::SYSTEM:
-                    $defines = array_get(Define::MENU_SYSTEM_DEFINITION, $row['menu_target']);
+                    // a system menu row may have only its menu_name
+                    $defines = array_get(Define::MENU_SYSTEM_DEFINITION, array_get($row, 'menu_target') ?: $row['menu_name']);
                     // if not set menu icon, set Define's default icon.
                     if (is_nullorempty($row['icon'])) {
                         $row['icon'] = array_get($defines, 'icon');

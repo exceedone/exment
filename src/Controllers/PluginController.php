@@ -134,6 +134,11 @@ class PluginController extends AdminControllerBase
     //Function use to upload file and update or add new record
     public function store(Request $request)
     {
+        // Installing a plugin executes arbitrary PHP on the server. In shared /
+        // multi-tenant deployments this is disabled via config.
+        if (!config('exment.plugin_upload_enabled', true)) {
+            abort(403);
+        }
         // Uploading installs or replaces a plugin, that is PHP code. The route lets
         // in the setting permission of a single plugin too, so check it here: the
         // upload form itself is shown only with PLUGIN_ALL (index()).
@@ -276,7 +281,7 @@ class PluginController extends AdminControllerBase
             }
 
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL())) {
-                $form->text('uri', exmtrans("plugin.options.uri"))->required();
+                $form->text('uri', exmtrans("plugin.options.uri"))->required()->rules(['regex:/^[A-Za-z0-9][A-Za-z0-9_\-]*$/', 'max:100']);
 
                 if ($plugin->matchPluginType(PluginType::PAGE)) {
                     $form->display('endpoint_page', exmtrans("plugin.options.endpoint_page"))->default($plugin->getRootUrl(PluginType::PAGE))->help(exmtrans("plugin.help.endpoint"));
