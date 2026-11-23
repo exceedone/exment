@@ -22,6 +22,7 @@ use Exceedone\Exment\Services\Dashboard\ChartSorter;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
 use Exceedone\Exment\Services\Dashboard\FilterValue;
 use Exceedone\Exment\Services\Dashboard\SummaryCache;
+use Exceedone\Exment\Services\UserTimezone;
 
 /**
  * Chart box. On top of the configured chart, the box renders a toolbar (runtime chart-type
@@ -396,7 +397,7 @@ class ChartItem implements ItemInterface
                 $columns = $columns->count() >= 2 ? collect([$columns[$this->multiSeriesXPos($columns)]]) : collect();
             }
             foreach ($columns as $i => $column) {
-                $fields[] = ['key' => 'x' . $i, 'label' => array_get($column, 'view_column_name') ?? $column->column_item->label()];
+                $fields[] = ['key' => 'x' . $i, 'label' => UserTimezone::siteGroupLabel(array_get($column, 'view_column_name') ?? $column->column_item->label(), $column->column_item)];
             }
         } else {
             $view_column_x = CustomViewSummary::getSummaryViewColumn($this->axis_x);
@@ -634,8 +635,9 @@ class ChartItem implements ItemInterface
         }
 
         // get item label
+        // a date and time is grouped in the time of the site: its time zone in the label (ISS02835)
         $axisx_label = collect($view_column_x_list)->map(function ($item) {
-            return array_get($item, 'view_column_name')?? $item->column_item->label();
+            return UserTimezone::siteGroupLabel(array_get($item, 'view_column_name')?? $item->column_item->label(), $item->column_item);
         })->implode(' ');
 
         return [

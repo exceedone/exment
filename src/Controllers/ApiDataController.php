@@ -405,6 +405,9 @@ class ApiDataController extends AdminControllerTableBase
         if ($screenWrite && ($response = $this->validateScreenWrite($request, null)) instanceof Response) {
             return $response;
         }
+        if ($screenWrite) {
+            $this->screenWriteFromUser($request);
+        }
 
         return $this->saveData($request);
     }
@@ -439,8 +442,45 @@ class ApiDataController extends AdminControllerTableBase
         if ($screenWrite && ($response = $this->validateScreenWrite($request, $custom_value)) instanceof Response) {
             return $response;
         }
+        if ($screenWrite) {
+            $this->screenWriteFromUser($request);
+        }
 
         return $this->saveData($request, $custom_value);
+    }
+
+    /**
+     * A write from a list screen (the inline edit of the grid, the kanban board) types a date and time
+     * in the time zone of the user, as the edit page: saved in the time zone of the site (ISS02835).
+     * A plain API call stays in the time zone of the site.
+     *
+     * @param Request $request
+     * @return void
+     */
+    protected function screenWriteFromUser(Request $request): void
+    {
+        $values = $request->get('value');
+        if (!UserTimezone::differs() || !is_array($values)) {
+            return;
+        }
+
+        $changed = false;
+        foreach ($this->custom_table->custom_columns_cache as $custom_column) {
+            $column_name = $custom_column->column_name;
+            if ($custom_column->column_type != ColumnType::DATETIME || !array_key_exists($column_name, $values)) {
+                continue;
+            }
+            $value = $values[$column_name];
+            if (!is_string($value) || is_nullorempty($value)) {
+                continue;
+            }
+            $values[$column_name] = UserTimezone::formatFromUser($value);
+            $changed = true;
+        }
+
+        if ($changed) {
+            $request->merge(['value' => $values]);
+        }
     }
 
     /**
