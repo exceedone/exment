@@ -18,6 +18,11 @@ class InstallService
         static::setSettingTmp();
         $status = static::getStatus();
 
+        // an installed site: only the first setup (/initialize) is left, never the install steps
+        if ($status != InitializeStatus::INITIALIZE) {
+            InstalledState::refuseIfInstalled();
+        }
+
         if (($response = static::redirect($status)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
         }
@@ -32,6 +37,11 @@ class InstallService
     {
         static::setSettingTmp();
         $status = static::getStatus();
+
+        // an installed site: only the first setup (/initialize) is left, never the install steps
+        if ($status != InitializeStatus::INITIALIZE) {
+            InstalledState::refuseIfInstalled();
+        }
 
         if (($response = static::redirect($status)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;

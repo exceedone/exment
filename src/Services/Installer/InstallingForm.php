@@ -20,6 +20,9 @@ class InstallingForm
     // @phpstan-ignore-next-line
     public function post()
     {
+        // the installer does not run again on an installed site
+        InstalledState::refuseIfInstalled();
+
         // Merge session DB inputs with the APP_DEBUG flag from this form,
         // then write everything to .env in one shot (EnvService deduplicates).
         try {

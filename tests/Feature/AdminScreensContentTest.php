@@ -90,7 +90,8 @@ class AdminScreensContentTest extends FeatureTestBase
             'copy show' => ['copy/custom_value_edit_all/1', 'copy/custom_value_edit_all/1/edit'],
             'operation show' => ['operation/custom_value_edit_all/1', 'operation/custom_value_edit_all/1/edit'],
             'notify show' => ['notify/custom_value_edit_all/1', 'notify/custom_value_edit_all/1/edit'],
-            'install reset' => ['install/reset', 'install'],
+            // an installed site: the install pages are closed
+            'install reset' => ['install/reset', 'auth/login'],
         ];
     }
 
